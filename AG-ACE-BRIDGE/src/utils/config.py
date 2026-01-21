@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     # Task Queue
     queue_db_path: str = "./data/tasks.db"
     queue_max_retries: int = 3
+    task_queue_db: str = "./data/tasks.db"
+
+    # Projects (24/7 Factory)
+    projects_dir: str = "./projects"
 
     # Pipeline Settings
     max_qa_iterations: int = 5

@@ -84,7 +84,7 @@ async def run_24_7(
         debug: Enable debug logging
     """
     # Configure logging
-    configure_logging(debug=debug)
+    configure_logging(level="DEBUG" if debug else "INFO")
     logger = Loggers.orchestrator()
 
     settings = get_settings()

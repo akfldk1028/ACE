@@ -20,6 +20,7 @@ from src.coordinator.task_queue import TaskQueue, TaskStatus, create_task_queue
 from src.coordinator.pipeline_builder import get_builder, build_pipeline
 from src.coordinator.agent_selector import get_selector
 from src.registry.agent_registry import get_registry
+from src.memory import SharedMemoryClient
 from src.pipeline import (
     SequentialPipeline,
     ParallelPipeline,
@@ -112,6 +113,10 @@ class Orchestrator:
         self._sequential = SequentialPipeline()
         self._parallel = ParallelPipeline()
 
+        # SharedMemory client (AG-CLI 연동)
+        self._shared_memory: Optional[SharedMemoryClient] = None
+        self._enable_shared_memory = self.settings.enable_shared_memory
+
     async def start(self) -> None:
         """
         Start the 24/7 orchestration loop.
@@ -132,6 +137,9 @@ class Orchestrator:
 
         # Initialize adapters
         await self._initialize_adapters()
+
+        # Initialize SharedMemory (AG-CLI 연동)
+        await self._initialize_shared_memory()
 
         # Setup signal handlers
         self._setup_signal_handlers()
@@ -247,6 +255,9 @@ class Orchestrator:
             self.queue.complete(task.id, output=result.output)
             self.metrics["tasks_succeeded"] += 1
 
+            # Share to SharedMemory
+            await self._share_task_complete(task, success=True, output=result.output)
+
             self.logger.info(
                 "task_completed",
                 task_id=task.id,
@@ -256,6 +267,9 @@ class Orchestrator:
         elif result.status == ResultStatus.PARTIAL:
             self.queue.complete(task.id, output=result.output)
             self.metrics["tasks_succeeded"] += 1
+
+            # Share to SharedMemory
+            await self._share_task_complete(task, success=True, output=result.output)
 
             self.logger.warning(
                 "task_partial_success",
@@ -267,6 +281,9 @@ class Orchestrator:
             retried = self.queue.fail(task.id, error=result.error)
             if not retried:
                 self.metrics["tasks_failed"] += 1
+
+                # Share to SharedMemory (only if not retrying)
+                await self._share_task_complete(task, success=False)
 
             self.logger.error(
                 "task_failed",
@@ -326,6 +343,9 @@ class Orchestrator:
             # Update pipeline state
             pipeline.current_stage_index = i + 1
             pipeline.accumulated_context = context
+
+            # Store stage result to SharedMemory (AG-CLI 연동)
+            await self._share_stage_result(task, i, stage, result)
 
         # Build final result
         pipeline.is_complete = True
@@ -470,6 +490,113 @@ class Orchestrator:
             count=len(adapters),
         )
 
+    async def _initialize_shared_memory(self) -> None:
+        """Initialize SharedMemory client for AG-CLI integration"""
+        if not self._enable_shared_memory:
+            self.logger.info("shared_memory_disabled")
+            return
+
+        try:
+            self._shared_memory = SharedMemoryClient(
+                base_url=self.settings.shared_memory_url,
+                source_name="ag-ace-bridge-orchestrator",
+            )
+
+            # Check connection
+            if await self._shared_memory.health_check():
+                self.logger.info(
+                    "shared_memory_connected",
+                    url=self.settings.shared_memory_url,
+                )
+            else:
+                self.logger.warning(
+                    "shared_memory_not_available",
+                    url=self.settings.shared_memory_url,
+                )
+                self._shared_memory = None
+
+        except Exception as e:
+            self.logger.warning(
+                "shared_memory_init_failed",
+                error=str(e),
+            )
+            self._shared_memory = None
+
+    async def _share_stage_result(
+        self,
+        task: Task,
+        stage_index: int,
+        stage: Stage,
+        result: Result,
+    ) -> None:
+        """Share stage result to SharedMemory"""
+        if not self._shared_memory:
+            return
+
+        try:
+            agent_type = stage.agent.value if hasattr(stage.agent, 'value') else str(stage.agent)
+
+            # Store result
+            await self._shared_memory.store_task_result(
+                task_id=task.id,
+                stage=stage_index,
+                result=result.output or {},
+                agent_type=agent_type,
+            )
+
+            # Notify stage completion
+            await self._shared_memory.notify_stage_complete(
+                task_id=task.id,
+                stage=stage_index,
+                agent_type=agent_type,
+                success=result.status == ResultStatus.SUCCESS,
+            )
+
+            self.logger.debug(
+                "stage_result_shared",
+                task_id=task.id,
+                stage=stage_index,
+                agent=agent_type,
+            )
+
+        except Exception as e:
+            # Don't fail task if SharedMemory fails
+            self.logger.debug(
+                "stage_share_failed",
+                task_id=task.id,
+                error=str(e),
+            )
+
+    async def _share_task_complete(
+        self,
+        task: Task,
+        success: bool,
+        output: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Share task completion to SharedMemory"""
+        if not self._shared_memory:
+            return
+
+        try:
+            await self._shared_memory.notify_task_complete(
+                task_id=task.id,
+                success=success,
+                artifacts=output or {},
+            )
+
+            self.logger.debug(
+                "task_complete_shared",
+                task_id=task.id,
+                success=success,
+            )
+
+        except Exception as e:
+            self.logger.debug(
+                "task_share_failed",
+                task_id=task.id,
+                error=str(e),
+            )
+
     async def _health_check(self) -> None:
         """Perform health check on all agents"""
         stats = self.registry.get_stats()
@@ -482,6 +609,14 @@ class Orchestrator:
     async def _shutdown(self) -> None:
         """Shutdown orchestrator"""
         self.state = OrchestratorState.STOPPED
+
+        # Close SharedMemory connection
+        if self._shared_memory:
+            try:
+                await self._shared_memory.close()
+                self.logger.debug("shared_memory_closed")
+            except Exception:
+                pass
 
         # Shutdown all adapters
         for agent_type in self.registry.get_all_agents():

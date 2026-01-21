@@ -97,8 +97,10 @@ class TaskQueue:
                     priority TEXT NOT NULL,
                     priority_weight INTEGER NOT NULL,
                     status TEXT NOT NULL DEFAULT 'pending',
+                    input TEXT DEFAULT '{}',
                     context TEXT DEFAULT '{}',
                     requirements TEXT DEFAULT '[]',
+                    metadata TEXT DEFAULT '{}',
                     needs_research INTEGER DEFAULT 0,
                     domain_validation INTEGER DEFAULT 0,
                     created_at TEXT NOT NULL,
@@ -146,10 +148,10 @@ class TaskQueue:
             conn.execute("""
                 INSERT INTO tasks (
                     id, type, description, priority, priority_weight,
-                    status, context, requirements, needs_research,
-                    domain_validation, created_at, updated_at,
+                    status, input, context, requirements, metadata,
+                    needs_research, domain_validation, created_at, updated_at,
                     parent_task_id, retry_count, max_retries
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 task.id,
                 task.type if isinstance(task.type, str) else task.type.value,
@@ -157,8 +159,10 @@ class TaskQueue:
                 task.priority if isinstance(task.priority, str) else task.priority.value,
                 priority_weight,
                 TaskStatus.PENDING,
+                json.dumps(task.input),
                 json.dumps(task.context),
                 json.dumps(task.requirements),
+                json.dumps(task.metadata),
                 1 if task.needs_research else 0,
                 1 if task.domain_validation else 0,
                 task.created_at.isoformat() if task.created_at else now,
@@ -460,8 +464,10 @@ class TaskQueue:
             type=TaskType(row["type"]),
             description=row["description"],
             priority=Priority(row["priority"]),
+            input=json.loads(row["input"]) if row["input"] else {},
             context=json.loads(row["context"]) if row["context"] else {},
             requirements=json.loads(row["requirements"]) if row["requirements"] else [],
+            metadata=json.loads(row["metadata"]) if row["metadata"] else {},
             needs_research=bool(row["needs_research"]),
             domain_validation=bool(row["domain_validation"]),
             created_at=datetime.fromisoformat(row["created_at"]),

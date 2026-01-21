@@ -1,186 +1,138 @@
 # Utils Module
 
-유틸리티 모듈. 설정 관리, 데이터 모델, 로깅을 담당합니다.
+AG-ACE-BRIDGE의 핵심 유틸리티 모듈.
 
-## 구조
+## 파일 구조
 
 ```
-utils/
-├── __init__.py
-├── config.py      # 설정 관리 (Pydantic Settings)
-├── models.py      # 데이터 모델 (Pydantic)
-└── logger.py      # 구조화된 로깅
+src/utils/
+├── __init__.py      # 모듈 export
+├── models.py        # Pydantic 데이터 모델
+├── config.py        # 환경 설정 관리
+├── logger.py        # 구조화된 로깅
+└── README.md        # 이 파일
 ```
 
-## 핵심 컴포넌트
-
-### config.py - 설정 관리
-
-```python
-class Settings(BaseSettings):
-    """
-    환경 변수 기반 설정
-    .env 파일 자동 로드
-    """
-
-    # Bridge Settings
-    bridge_port: int = 8080
-    bridge_log_level: str = "INFO"
-
-    # Auto-Claude
-    auto_claude_path: str = "D:/Data/25_ACE/Auto-Claude/apps/backend"
-    graphiti_enabled: bool = True
-    anthropic_api_key: Optional[str] = None
-
-    # AG Connection
-    ag_autogen_url: str = "http://localhost:8000"
-    ag_law_domain_url: str = "http://localhost:8001"
-
-    # Neo4j
-    neo4j_uri: str = "bolt://localhost:7687"
-    neo4j_user: str = "neo4j"
-    neo4j_password: Optional[str] = None
-
-    # Task Queue
-    queue_db_path: str = "./data/tasks.db"
-    queue_max_retries: int = 3
-
-    # Pipeline
-    max_qa_iterations: int = 5
-    default_priority: str = "medium"
-
-    class Config:
-        env_file = ".env"
-```
+## 주요 컴포넌트
 
 ### models.py - 데이터 모델
 
-주요 모델들:
+모든 데이터 구조를 Pydantic으로 정의.
 
-```python
-# Task - 작업 정의
-class Task(BaseModel):
-    id: str
-    type: TaskType  # RESEARCH, SPEC, CODE, QA, etc.
-    description: str
-    priority: Priority  # HIGH, MEDIUM, LOW
-    context: dict
-    requirements: List[str]
-    needs_research: bool = False
-    domain_validation: bool = False
+#### Enums (열거형)
+| Enum | 용도 | 값 |
+|------|------|-----|
+| `Priority` | 태스크 우선순위 | HIGH, MEDIUM, LOW |
+| `TaskType` | 태스크 유형 | RESEARCH, SPEC, PLAN, CODE, QA, FIX, VALIDATE, MERGE, CUSTOM |
+| `ResultStatus` | 실행 결과 | SUCCESS, FAILED, NEEDS_RETRY, PARTIAL, CANCELLED |
+| `StageType` | 파이프라인 스테이지 | SEQUENTIAL, PARALLEL, CRITIC_LOOP |
+| `AgentType` | 17개 AI 에이전트 | 아래 참조 |
 
-# Result - 실행 결과
-class Result(BaseModel):
-    task_id: str
-    status: ResultStatus  # SUCCESS, FAILED, NEEDS_RETRY
-    output: Any
-    next_tasks: List[Task] = []
-    insights: List[str] = []
+#### AgentType - 17개 에이전트
+```
+Auto-Claude (4):
+├── auto_claude.planner      # 프로젝트 계획
+├── auto_claude.coder        # 코드 작성
+├── auto_claude.qa_reviewer  # QA 검토
+└── auto_claude.qa_fixer     # QA 수정
 
-# Pipeline - 실행 계획
-class Pipeline(BaseModel):
-    id: str
-    task_id: str
-    stages: List[Stage]
-    current_stage_index: int = 0
-    accumulated_context: dict = {}
+AG Autogen (5):
+├── ag.research              # 리서치
+├── ag.analyst               # 분석
+├── ag.writer                # 작성
+├── ag.reviewer              # 리뷰
+└── ag.coordinator           # 조율
 
-# Stage - 파이프라인 스테이지
-class Stage(BaseModel):
-    id: str
-    agent: AgentType
-    stage_type: StageType  # SEQUENTIAL, PARALLEL, CRITIC_LOOP
-    timeout_seconds: int = 300
-    critic_loop: bool = False
-    max_iterations: int = 5
-
-# AgentCapability - 에이전트 기능
-class AgentCapability(BaseModel):
-    agent: AgentType
-    capabilities: List[str]
-    description: str
-    is_available: bool = True
+AG Law Domain (5):
+├── ag.case_analyzer         # 케이스 분석
+├── ag.legal_researcher      # 법률 리서치
+├── ag.risk_assessor         # 리스크 평가
+├── ag.compliance_checker    # 컴플라이언스 체크
+└── ag.document_drafter      # 문서 초안
 ```
 
-### Enum 정의
+#### Models (데이터 클래스)
+| Model | 용도 | 주요 필드 |
+|-------|------|-----------|
+| `Task` | 실행할 태스크 | id, type, description, priority, input, context |
+| `Result` | 실행 결과 | task_id, status, output, error, next_tasks |
+| `Stage` | 파이프라인 스테이지 | agent, stage_type, timeout_seconds |
+| `Pipeline` | 실행 계획 | task_id, stages, current_stage_index |
+| `AgentCapability` | 에이전트 능력 | agent, capabilities, is_available |
+| `MemorySyncEvent` | 메모리 동기화 | source, event_type, entity_id, data |
+
+### config.py - 설정 관리
+
+환경 변수 및 `.env` 파일에서 설정 로드.
 
 ```python
-class Priority(str, Enum):
-    HIGH = "high"
-    MEDIUM = "medium"
-    LOW = "low"
+from src.utils.config import get_settings
 
-class TaskType(str, Enum):
-    RESEARCH = "research"
-    SPEC = "spec"
-    PLAN = "plan"
-    CODE = "code"
-    QA = "qa"
-    FIX = "fix"
-    VALIDATE = "validate"
-    MERGE = "merge"
-
-class ResultStatus(str, Enum):
-    SUCCESS = "success"
-    FAILED = "failed"
-    NEEDS_RETRY = "needs_retry"
-
-class AgentType(str, Enum):
-    # Auto-Claude
-    AUTO_CLAUDE_PLANNER = "auto_claude.planner"
-    AUTO_CLAUDE_CODER = "auto_claude.coder"
-    AUTO_CLAUDE_QA_REVIEWER = "auto_claude.qa_reviewer"
-    AUTO_CLAUDE_QA_FIXER = "auto_claude.qa_fixer"
-    # AG autogen
-    AG_RESEARCH = "ag.research"
-    AG_ANALYST = "ag.analyst"
-    # ... etc.
-```
-
-### logger.py - 구조화된 로깅
-
-```python
-import structlog
-
-def get_logger(name: str):
-    """구조화된 로거 생성"""
-    return structlog.get_logger(name)
-
-# 사용
-logger = get_logger("orchestrator")
-logger.info("task_started", task_id=task.id, type=task.type)
-```
-
-## 사용법
-
-```python
-from src.utils import (
-    get_settings,
-    Task, Result, Pipeline, Stage,
-    Priority, TaskType, AgentType
-)
-
-# 설정
 settings = get_settings()
-print(settings.auto_claude_path)
+print(settings.bridge_port)  # 8080
+print(settings.auto_claude_path)  # D:/Data/25_ACE/Auto-Claude/apps/backend
+```
 
-# Task 생성
+#### 주요 설정값
+| 설정 | 기본값 | 설명 |
+|------|--------|------|
+| `bridge_port` | 8080 | 브릿지 서버 포트 |
+| `auto_claude_path` | D:/Data/25_ACE/Auto-Claude/apps/backend | Auto-Claude 경로 |
+| `ag_autogen_url` | http://localhost:8000 | AG Autogen 서버 |
+| `ag_law_domain_url` | http://localhost:8001 | AG Law Domain 서버 |
+| `neo4j_uri` | bolt://localhost:7687 | Neo4j 연결 |
+| `queue_db_path` | ./data/tasks.db | SQLite 태스크 큐 |
+| `max_qa_iterations` | 5 | QA 크리틱 루프 최대 반복 |
+
+### logger.py - 구조화 로깅
+
+structlog 기반 JSON 로깅.
+
+```python
+from src.utils.logger import Loggers, bind_context
+
+# 모듈별 로거 사용
+logger = Loggers.orchestrator()
+logger.info("task_started", task_id="123", type="code")
+
+# 컨텍스트 바인딩 (이후 모든 로그에 포함)
+bind_context(pipeline_id="456")
+logger.info("stage_complete")  # pipeline_id 자동 포함
+```
+
+#### 로거 종류
+- `Loggers.orchestrator()` - 오케스트레이터
+- `Loggers.pipeline()` - 파이프라인
+- `Loggers.adapter()` - 어댑터
+- `Loggers.memory()` - 메모리
+- `Loggers.registry()` - 레지스트리
+- `Loggers.queue()` - 태스크 큐
+
+## 사용 예시
+
+```python
+from src.utils import Task, TaskType, Priority, Result, ResultStatus
+
+# 태스크 생성
 task = Task(
     type=TaskType.CODE,
-    description="Implement user auth",
+    description="사용자 인증 기능 구현",
     priority=Priority.HIGH,
-    requirements=["implementation", "security"]
+    input={"feature": "login"},
+    context={"project": "my-app"}
 )
 
-# Result 생성
+# 결과 생성
 result = Result(
     task_id=task.id,
     status=ResultStatus.SUCCESS,
-    output={"files_changed": 5}
+    output={"files_created": ["auth.py", "test_auth.py"]},
+    agent_used="auto_claude.coder"
 )
 ```
 
-## 관련 파일
+## 의존성
 
-- `.env.example`: 환경 변수 템플릿
-- `pyproject.toml`: 프로젝트 설정
+- `pydantic>=2.0.0` - 데이터 검증
+- `pydantic-settings>=2.0.0` - 설정 관리
+- `structlog>=23.0.0` - 구조화 로깅

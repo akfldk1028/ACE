@@ -1,191 +1,201 @@
 # Registry Module
 
-에이전트 레지스트리 모듈. 17개 에이전트의 등록, 탐색, 기능 매칭을 담당합니다.
+에이전트 레지스트리 모듈. 14개 에이전트의 등록, 상태 추적, 기능 기반 선택을 담당.
 
-## 구조
+## 파일 구조
 
 ```
-registry/
-├── __init__.py
-├── agent_registry.py   # 에이전트 등록/탐색
-└── capabilities.py     # 기능 정의
+src/registry/
+├── __init__.py          # 모듈 export
+├── agent_registry.py    # AgentRegistry, AgentStatus
+├── capabilities.py      # 14개 에이전트 능력 정의
+└── README.md            # 이 파일
 ```
 
 ## 아키텍처
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                      AGENT REGISTRY                              │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  AUTO-CLAUDE (4 agents)                                         │
-│  ├── planner     [planning, subtask-decomposition]             │
-│  ├── coder       [implementation, 24/7-autonomous]             │
-│  ├── qa_reviewer [testing, e2e, validation]                    │
-│  └── qa_fixer    [debugging, issue-resolution]                 │
-│                                                                 │
-│  AG AUTOGEN (8 agents)                                         │
-│  ├── research    [information-gathering, web-search]           │
-│  ├── analyst     [data-analysis, pattern-detection]            │
-│  ├── writer      [documentation, content-creation]             │
-│  └── ...                                                       │
-│                                                                 │
-│  AG LAW-DOMAIN (5 agents)                                      │
-│  ├── case_analyzer    [case-law, precedent]                    │
-│  ├── legal_researcher [statute, regulation]                    │
-│  └── ...                                                       │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                         AgentRegistry                                │
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐           │
+│  │ _capabilities │  │  _statuses    │  │  _adapters    │           │
+│  │ (정적 능력)   │  │ (런타임상태) │  │ (어댑터참조) │           │
+│  └───────────────┘  └───────────────┘  └───────────────┘           │
+│                            │                                        │
+│         ┌──────────────────┼──────────────────┐                    │
+│         ▼                  ▼                  ▼                    │
+│   select_agents()    health_check()    record_success()           │
+│   (태스크→에이전트)  (상태 모니터링)   (성능 기록)                 │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-## 핵심 컴포넌트
+## 주요 컴포넌트
 
-### agent_registry.py - 에이전트 레지스트리
+### capabilities.py - 에이전트 능력 정의
+
+**14개 에이전트의 능력을 정적으로 정의**
 
 ```python
-class AgentRegistry:
-    """
-    에이전트 등록 및 탐색
-    - Capability-based matching
-    - Availability tracking
-    - Load balancing
-    """
+@dataclass
+class AgentCapabilities:
+    agent_type: AgentType           # 에이전트 타입
+    name: str                       # 표시 이름
+    capabilities: List[Capability]  # 능력 목록
+    supported_task_types: List[TaskType]  # 지원 태스크
+    is_autonomous: bool             # 24/7 자율 실행 가능
+    adapter_type: str               # "auto_claude", "ag_http", "ag_law"
+    priority_boost: int             # 우선순위 가산점
 
-    def __init__(self):
-        self._agents: Dict[AgentType, AgentCapability] = {}
-        self._register_default_agents()
-
-    def register(self, capability: AgentCapability) -> None:
-        """에이전트 등록"""
-        self._agents[capability.agent] = capability
-
-    def find_by_capabilities(self, required: List[str]) -> List[AgentType]:
-        """
-        요구 기능에 맞는 에이전트 찾기
-
-        Example:
-            required = ["legal-research", "implementation"]
-            returns = [AG_LEGAL_RESEARCHER, AUTO_CLAUDE_CODER]
-        """
-        matched = []
-        for agent, cap in self._agents.items():
-            if any(req in cap.capabilities for req in required):
-                matched.append(agent)
-        return matched
-
-    def get_available(self) -> List[AgentType]:
-        """사용 가능한 에이전트 목록"""
-        return [a for a, c in self._agents.items() if c.is_available]
+@dataclass
+class Capability:
+    name: str                # 능력 이름 (e.g., "implementation")
+    description: str         # 설명
+    keywords: List[str]      # 매칭 키워드 (e.g., ["code", "implement"])
 ```
 
-### capabilities.py - 기능 정의
-
+**전역 레지스트리**
 ```python
-# 기본 기능 정의
-CAPABILITIES = {
-    # Auto-Claude
-    AgentType.AUTO_CLAUDE_PLANNER: [
-        "planning", "subtask-decomposition", "implementation-plan"
-    ],
-    AgentType.AUTO_CLAUDE_CODER: [
-        "implementation", "coding", "24/7-autonomous", "bug-fix"
-    ],
-    AgentType.AUTO_CLAUDE_QA_REVIEWER: [
-        "testing", "e2e", "validation", "quality-assurance"
-    ],
-    AgentType.AUTO_CLAUDE_QA_FIXER: [
-        "debugging", "issue-resolution", "fix"
-    ],
-
-    # AG autogen_a2a_kit
-    AgentType.AG_RESEARCH: [
-        "information-gathering", "web-search", "research"
-    ],
-    AgentType.AG_ANALYST: [
-        "data-analysis", "pattern-detection", "analytics"
-    ],
-    # ...
-
-    # AG law-domain
-    AgentType.AG_LEGAL_RESEARCHER: [
-        "legal-research", "statute-search", "regulation"
-    ],
-    AgentType.AG_COMPLIANCE_CHECKER: [
-        "compliance", "regulation-check", "legal-validation"
-    ],
-    # ...
+ALL_AGENT_CAPABILITIES: Dict[AgentType, AgentCapabilities] = {
+    # 14개 에이전트 능력 정의
 }
 ```
 
-## 에이전트 선택 로직
+### agent_registry.py - 런타임 레지스트리
 
-### Capability Matching
-
+**AgentStatus - 런타임 상태**
 ```python
-# Task: "법률 조사 후 계약서 생성 기능 구현"
-task.requirements = ["legal-research", "implementation"]
-
-# Registry finds:
-# 1. AG_LEGAL_RESEARCHER (legal-research)
-# 2. AUTO_CLAUDE_CODER (implementation)
-
-agents = registry.find_by_capabilities(task.requirements)
-# → [AG_LEGAL_RESEARCHER, AUTO_CLAUDE_CODER]
+@dataclass
+class AgentStatus:
+    agent_type: AgentType
+    is_available: bool = True       # 사용 가능 여부
+    is_healthy: bool = True         # 건강 상태
+    current_task_id: Optional[str]  # 현재 실행 중인 태스크
+    consecutive_failures: int = 0   # 연속 실패 횟수
+    total_tasks_completed: int = 0  # 총 완료 태스크
+    avg_response_time_ms: float     # 평균 응답 시간
 ```
 
-### Pipeline Building with Registry
-
+**AgentRegistry - 메인 클래스**
 ```python
-def build_pipeline(task: Task) -> Pipeline:
-    agents = registry.find_by_capabilities(task.requirements)
+class AgentRegistry:
+    def initialize(self):
+        """14개 에이전트 초기화"""
 
-    stages = []
-    for agent in agents:
-        stages.append(Stage(agent=agent))
+    def select_agents(self, task, limit=3) -> List[AgentType]:
+        """태스크에 맞는 에이전트 선택 (점수 기반)"""
 
-    return Pipeline(stages=stages)
+    def record_success(self, agent_type, response_time_ms):
+        """성공 기록 (EMA로 평균 응답시간 갱신)"""
+
+    def record_failure(self, agent_type):
+        """실패 기록 (3회 연속 실패 시 unhealthy)"""
+
+    async def health_check_all(self) -> Dict[AgentType, bool]:
+        """전체 에이전트 상태 확인"""
 ```
 
-## 사용법
+## 에이전트 선택 알고리즘
 
 ```python
-from src.registry import AgentRegistry
+def select_agents(task, limit=3) -> List[AgentType]:
+    # 1. TaskType으로 후보 필터링
+    candidates = find_best_agents(task.type, task.requirements)
 
-registry = AgentRegistry()
+    # 2. 각 후보 점수 계산
+    for candidate in candidates:
+        score = capability_match_score      # 요구사항 매칭 (0.0~1.0)
+        score += availability_bonus         # 가용성 보너스 (+0.3)
+        score += success_rate * 0.2         # 성공률 보너스
+        score -= failures * 0.1             # 연속 실패 패널티
 
-# 기능으로 에이전트 찾기
-agents = registry.find_by_capabilities(["research", "implementation"])
-
-# 특정 에이전트 정보
-info = registry.get(AgentType.AUTO_CLAUDE_CODER)
-print(info.capabilities)  # ["implementation", "coding", ...]
-
-# 사용 가능한 에이전트
-available = registry.get_available()
+    # 3. 점수순 정렬 후 상위 N개 반환
+    return sorted(scored)[:limit]
 ```
 
-## 전체 에이전트 목록 (17개)
+## 14개 에이전트 전체 목록
 
-| 시스템 | 에이전트 | 주요 기능 |
-|--------|----------|-----------|
-| Auto-Claude | planner | planning, subtask-decomposition |
-| Auto-Claude | coder | implementation, 24/7-autonomous |
-| Auto-Claude | qa_reviewer | testing, e2e, validation |
-| Auto-Claude | qa_fixer | debugging, issue-resolution |
-| AG Autogen | research | information-gathering, web-search |
-| AG Autogen | analyst | data-analysis, pattern-detection |
-| AG Autogen | writer | documentation, content-creation |
-| AG Autogen | reviewer | feedback, quality-assessment |
-| AG Autogen | coordinator | orchestration, task-routing |
-| AG Autogen | ... | (3개 더) |
-| AG Law | case_analyzer | case-law, precedent-analysis |
-| AG Law | legal_researcher | statute-search, regulation |
-| AG Law | risk_assessor | risk-evaluation, liability |
-| AG Law | compliance_checker | compliance, regulation-check |
-| AG Law | document_drafter | legal-docs, contracts |
+### Auto-Claude (4개) - 자율 코딩
+| AgentType | 이름 | 주요 능력 | TaskType |
+|-----------|------|-----------|----------|
+| `AUTO_CLAUDE_PLANNER` | Planner | planning, task-decomposition | SPEC, PLAN |
+| `AUTO_CLAUDE_CODER` | Coder | implementation, refactoring | CODE, FIX |
+| `AUTO_CLAUDE_QA_REVIEWER` | QA Reviewer | code-review, testing | QA, VALIDATE |
+| `AUTO_CLAUDE_QA_FIXER` | QA Fixer | debugging, issue-resolution | FIX |
 
-## 관련 파일
+### AG Autogen (5개) - 범용
+| AgentType | 이름 | 주요 능력 | TaskType |
+|-----------|------|-----------|----------|
+| `AG_RESEARCH` | Research | web-search, info-gathering | RESEARCH |
+| `AG_ANALYST` | Analyst | data-analysis, pattern-detection | RESEARCH, VALIDATE |
+| `AG_WRITER` | Writer | documentation, content | SPEC, CUSTOM |
+| `AG_REVIEWER` | Reviewer | feedback, quality-assessment | QA, VALIDATE |
+| `AG_COORDINATOR` | Coordinator | orchestration, task-routing | PLAN, CUSTOM |
 
-- `src/utils/models.py`: AgentType, AgentCapability 모델
-- `src/adapters/`: 에이전트 어댑터
-- `src/coordinator/agent_selector.py`: 선택 로직
+### AG Law Domain (5개) - 법률 특화
+| AgentType | 이름 | 주요 능력 | TaskType |
+|-----------|------|-----------|----------|
+| `AG_CASE_ANALYZER` | Case Analyzer | case-law, precedent | RESEARCH, VALIDATE |
+| `AG_LEGAL_RESEARCHER` | Legal Researcher | statute-search, regulation | RESEARCH |
+| `AG_RISK_ASSESSOR` | Risk Assessor | risk-evaluation, liability | VALIDATE, RESEARCH |
+| `AG_COMPLIANCE_CHECKER` | Compliance Checker | compliance, audit | VALIDATE, QA |
+| `AG_DOCUMENT_DRAFTER` | Document Drafter | legal-docs, contracts | SPEC, CUSTOM |
+
+## 사용 예시
+
+```python
+from src.registry import get_registry, AgentRegistry
+from src.utils import Task, TaskType
+
+# 싱글톤 레지스트리 가져오기
+registry = get_registry()
+
+# 태스크에 맞는 에이전트 선택
+task = Task(
+    type=TaskType.CODE,
+    description="로그인 기능 구현",
+    requirements=["implementation", "authentication"]
+)
+agents = registry.select_agents(task, limit=2)
+# → [AUTO_CLAUDE_CODER, ...]
+
+# 단일 최적 에이전트
+best = registry.select_single_agent(task)
+# → AUTO_CLAUDE_CODER
+
+# 특정 능력으로 검색
+coders = registry.get_agents_by_capability("implementation")
+# → [AUTO_CLAUDE_CODER, AUTO_CLAUDE_QA_FIXER]
+
+# 실행 결과 기록
+registry.record_success(AgentType.AUTO_CLAUDE_CODER, response_time_ms=1500)
+registry.record_failure(AgentType.AG_RESEARCH)
+
+# 통계 조회
+stats = registry.get_stats()
+# → {"total_agents": 14, "available_agents": 12, ...}
+```
+
+## 헬퍼 함수
+
+```python
+from src.registry import (
+    get_capabilities,       # AgentType → AgentCapabilities
+    get_agents_by_task_type, # TaskType → List[AgentCapabilities]
+    get_agents_by_adapter,   # adapter_type → List[AgentCapabilities]
+    find_best_agents,        # (TaskType, requirements) → scored agents
+)
+
+# TaskType으로 후보 찾기
+candidates = get_agents_by_task_type(TaskType.CODE)
+# → [AUTO_CLAUDE_CODER, AUTO_CLAUDE_QA_FIXER]
+
+# 어댑터 타입으로 그룹
+auto_claude_agents = get_agents_by_adapter("auto_claude")
+# → [PLANNER, CODER, QA_REVIEWER, QA_FIXER]
+```
+
+## 관련 모듈
+
+- `src/utils/models.py` - AgentType, TaskType 정의
+- `src/adapters/` - 실제 에이전트 연결
+- `src/coordinator/agent_selector.py` - 고급 선택 로직

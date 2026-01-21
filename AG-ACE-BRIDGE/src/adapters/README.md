@@ -1,155 +1,188 @@
 # Adapters Module
 
-에이전트 연결 모듈. Auto-Claude와 AG 에이전트들에 대한 통일된 인터페이스를 제공합니다.
+AG-ACE-BRIDGE의 에이전트 연결 모듈. 3가지 에이전트 시스템에 대한 통일된 인터페이스 제공.
 
-## 구조
+## 파일 구조
 
 ```
-adapters/
-├── __init__.py
-├── base.py            # 기본 어댑터 인터페이스 (ABC)
-├── auto_claude.py     # Auto-Claude SDK 어댑터
-├── ag_autogen.py      # AG autogen_a2a_kit HTTP 어댑터
-└── ag_law_domain.py   # AG law-domain-agents HTTP 어댑터
+src/adapters/
+├── __init__.py          # 모듈 export (14개 어댑터/팩토리 함수)
+├── base.py              # AgentAdapter 추상 베이스 클래스
+├── auto_claude.py       # Auto-Claude SDK 어댑터 (OAuth 인증)
+├── ag_autogen.py        # AG Autogen HTTP 어댑터 (A2A Protocol)
+├── ag_law_domain.py     # AG Law Domain HTTP 어댑터 (FastAPI)
+└── README.md            # 이 파일
 ```
 
-## 핵심 컴포넌트
+## 아키텍처
 
-### base.py - 기본 인터페이스
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      AgentAdapter (ABC)                      │
+│  - execute(task, context) -> Result                          │
+│  - health_check() -> bool                                    │
+│  - get_capabilities() -> List[str]                           │
+└─────────────────────────────────────────────────────────────┘
+         │                    │                    │
+         ▼                    ▼                    ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│ AutoClaudeAdapter│  │ AGAutogenAdapter │  │AGLawDomainAdapter│
+│  (Claude SDK)    │  │  (HTTP/A2A)      │  │  (HTTP/FastAPI)  │
+│                  │  │                  │  │                  │
+│ - OAuth Token    │  │ - JSON-RPC 2.0   │  │ - REST API       │
+│ - ClaudeSDKClient│  │ - A2A Protocol   │  │ - Domain-specific│
+│ - Graphiti Memory│  │                  │  │   parameters     │
+└─────────────────┘  └─────────────────┘  └─────────────────┘
+        │                    │                    │
+        ▼                    ▼                    ▼
+   Claude Max           localhost:8000       localhost:8001
+   (계정 기반)          (AG Autogen)        (AG Law Domain)
+```
+
+## 주요 컴포넌트
+
+### base.py - 추상 베이스 클래스
 
 ```python
 class AgentAdapter(ABC):
-    """
-    모든 어댑터의 기본 인터페이스
-    일관된 에이전트 상호작용 제공
-    """
+    """모든 어댑터가 구현해야 하는 인터페이스"""
 
     @abstractmethod
-    async def execute(self, task: Task, context: dict) -> Result:
-        """작업 실행"""
-        pass
+    async def execute(self, task: Task, context: Dict) -> Result:
+        """태스크 실행"""
 
     @abstractmethod
     async def health_check(self) -> bool:
         """에이전트 상태 확인"""
-        pass
 
     @abstractmethod
     def get_capabilities(self) -> List[str]:
-        """에이전트 기능 목록"""
-        pass
+        """에이전트 능력 목록"""
 ```
 
-### auto_claude.py - Auto-Claude 어댑터
+### auto_claude.py - Auto-Claude SDK 어댑터
+
+**인증**: Claude Max 계정 기반 OAuth (API 키 X)
 
 ```python
-class AutoClaudeAdapter(AgentAdapter):
-    """
-    Auto-Claude SDK 세션 관리
-    - Claude Agent SDK 연동
-    - Graphiti 메모리 접근
-    - 4개 에이전트 지원: planner, coder, qa_reviewer, qa_fixer
-    """
+# OAuth 토큰 자동 검색 위치:
+# Windows: %USERPROFILE%\.claude\.credentials.json
+# macOS: ~/Library/Application Support/Claude/.credentials.json
+# Linux: ~/.config/claude/.credentials.json
 
-    async def execute(self, task: Task, context: dict) -> Result:
-        # SDK 세션 생성 및 실행
-        client = create_client(
-            project_dir=self.project_dir,
-            spec_dir=self.spec_dir,
-            agent_type=self.agent_type
-        )
-        response = await client.create_agent_session(
-            name=f"{self.agent_type}-session",
-            starting_message=task.description
-        )
-        return Result(task_id=task.id, status="success", output=response)
+adapter = AutoClaudeAdapter(AgentType.AUTO_CLAUDE_CODER)
+await adapter.initialize()  # OAuth 토큰 검증
+
+result = await adapter.execute(task, context)
 ```
 
-### ag_autogen.py - AG Autogen 어댑터
+**에이전트별 역할 프롬프트**:
+| 역할 | 프롬프트 |
+|------|----------|
+| planner | 프로젝트 구조, 의존성, 구현 계획 생성 |
+| coder | 코드 작성, 테스트, 디버깅 |
+| qa_reviewer | 코드 리뷰, 버그 탐지, 개선 제안 |
+| qa_fixer | QA 이슈 수정, 리팩토링 |
+
+### ag_autogen.py - AG Autogen HTTP 어댑터
+
+**프로토콜**: A2A (JSON-RPC 2.0)
 
 ```python
-class AGAutogenAdapter(AgentAdapter):
-    """
-    AG autogen_a2a_kit HTTP 클라이언트
-    - A2A 프로토콜 지원
-    - 8개 에이전트 지원
-    """
-
-    async def execute(self, task: Task, context: dict) -> Result:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{self.endpoint_url}/agents/{self.agent_name}/run",
-                json={"task": task.dict(), "context": context}
-            )
-            return Result(**response.json())
+# A2A 요청 포맷
+{
+    "jsonrpc": "2.0",
+    "method": "execute",
+    "params": {
+        "task_id": "...",
+        "task_type": "research",
+        "description": "...",
+        "context": {...}
+    },
+    "id": "task-id"
+}
 ```
 
-### ag_law_domain.py - AG Law Domain 어댑터
+### ag_law_domain.py - AG Law Domain HTTP 어댑터
+
+**특화 파라미터**:
+| 에이전트 | 추가 파라미터 |
+|----------|---------------|
+| case_analyzer | analysis_type, jurisdiction |
+| legal_researcher | search_scope, date_range |
+| risk_assessor | risk_categories, severity_threshold |
+| compliance_checker | regulations, check_depth |
+| document_drafter | document_type, template_id |
+
+## 14개 에이전트 전체 목록
+
+### Auto-Claude (4개) - Claude SDK
+| AgentType | 팩토리 함수 | 기능 |
+|-----------|-------------|------|
+| `AUTO_CLAUDE_PLANNER` | `create_planner_adapter()` | 프로젝트 계획 |
+| `AUTO_CLAUDE_CODER` | `create_coder_adapter()` | 코드 작성 |
+| `AUTO_CLAUDE_QA_REVIEWER` | `create_qa_reviewer_adapter()` | QA 검토 |
+| `AUTO_CLAUDE_QA_FIXER` | `create_qa_fixer_adapter()` | QA 수정 |
+
+### AG Autogen (5개) - HTTP/A2A
+| AgentType | 팩토리 함수 | 기능 |
+|-----------|-------------|------|
+| `AG_RESEARCH` | `create_research_adapter()` | 정보 수집 |
+| `AG_ANALYST` | `create_analyst_adapter()` | 데이터 분석 |
+| `AG_WRITER` | `create_writer_adapter()` | 문서 작성 |
+| `AG_REVIEWER` | `create_reviewer_adapter()` | 리뷰 피드백 |
+| `AG_COORDINATOR` | `create_coordinator_adapter()` | 작업 조율 |
+
+### AG Law Domain (5개) - HTTP/FastAPI
+| AgentType | 팩토리 함수 | 기능 |
+|-----------|-------------|------|
+| `AG_CASE_ANALYZER` | `create_case_analyzer_adapter()` | 판례 분석 |
+| `AG_LEGAL_RESEARCHER` | `create_legal_researcher_adapter()` | 법률 조사 |
+| `AG_RISK_ASSESSOR` | `create_risk_assessor_adapter()` | 리스크 평가 |
+| `AG_COMPLIANCE_CHECKER` | `create_compliance_checker_adapter()` | 컴플라이언스 |
+| `AG_DOCUMENT_DRAFTER` | `create_document_drafter_adapter()` | 문서 초안 |
+
+## 사용 예시
 
 ```python
-class AGLawDomainAdapter(AgentAdapter):
-    """
-    AG law-domain-agents HTTP 클라이언트
-    - FastAPI 엔드포인트 호출
-    - Neo4j 연동 에이전트
-    - 5개 법률 도메인 에이전트 지원
-    """
+from src.adapters import (
+    AutoClaudeAdapter,
+    AGAutogenAdapter,
+    AGLawDomainAdapter,
+    create_coder_adapter,
+)
+from src.utils import Task, TaskType, AgentType
 
-    async def execute(self, task: Task, context: dict) -> Result:
-        # 법률 도메인 특화 에이전트 호출
-        ...
+# 방법 1: 클래스 직접 사용
+adapter = AutoClaudeAdapter(AgentType.AUTO_CLAUDE_CODER)
+await adapter.initialize()
+
+task = Task(type=TaskType.CODE, description="로그인 기능 구현")
+result = await adapter.execute(task, {"project": "my-app"})
+
+await adapter.shutdown()
+
+# 방법 2: 팩토리 함수 사용
+coder = create_coder_adapter()
+await coder.initialize()
 ```
 
-## 지원 에이전트
-
-### Auto-Claude (4개)
-| 에이전트 | 기능 |
-|----------|------|
-| `auto_claude.planner` | 구현 계획 생성 |
-| `auto_claude.coder` | 코드 구현 (24/7) |
-| `auto_claude.qa_reviewer` | 품질 검증 |
-| `auto_claude.qa_fixer` | 이슈 수정 |
-
-### AG autogen_a2a_kit (8개)
-| 에이전트 | 기능 |
-|----------|------|
-| `ag.research` | 정보 수집 |
-| `ag.analyst` | 데이터 분석 |
-| `ag.writer` | 문서 작성 |
-| `ag.reviewer` | 검토 피드백 |
-| `ag.coordinator` | 작업 조율 |
-| ... | 3개 더 |
-
-### AG law-domain (5개)
-| 에이전트 | 기능 |
-|----------|------|
-| `ag.case_analyzer` | 판례 분석 |
-| `ag.legal_researcher` | 법률 조사 |
-| `ag.risk_assessor` | 리스크 평가 |
-| `ag.compliance_checker` | 컴플라이언스 검증 |
-| `ag.document_drafter` | 법률 문서 초안 |
-
-## 사용법
+## 설정 (config.py)
 
 ```python
-from src.adapters import AutoClaudeAdapter, AGAutogenAdapter
-
-# Auto-Claude
-auto = AutoClaudeAdapter(agent_type="coder")
-result = await auto.execute(task, context)
-
-# AG
-ag = AGAutogenAdapter(agent_name="research")
-result = await ag.execute(task, context)
+# AG 연결 설정
+ag_autogen_url: str = "http://localhost:8000"
+ag_law_domain_url: str = "http://localhost:8001"
+adapter_timeout: float = 120.0  # HTTP 타임아웃 (초)
 ```
 
-## 설계 패턴
+## 의존성
 
-- **Adapter Pattern** - 통일된 인터페이스
-- **Handoff Pattern** (Microsoft) - 에이전트 간 컨텍스트 전달
+- `claude-agent-sdk>=0.1.19` - Auto-Claude SDK
+- `httpx>=0.25.0` - HTTP 클라이언트 (AG 어댑터)
 
-## 관련 파일
+## 관련 모듈
 
-- `src/utils/models.py`: AgentType, AgentCapability 모델
-- `src/registry/`: 에이전트 레지스트리
-- `Auto-Claude/apps/backend/core/client.py`: SDK 클라이언트
+- `src/utils/models.py` - AgentType, Task, Result 정의
+- `src/registry/` - 에이전트 레지스트리 및 선택
+- `src/coordinator/` - 오케스트레이터

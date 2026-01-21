@@ -23,6 +23,7 @@ class TaskType(str, Enum):
     RESEARCH = "research"
     SPEC = "spec"
     PLAN = "plan"
+    PLANNING = "planning"  # Alias for project-level planning
     CODE = "code"
     QA = "qa"
     FIX = "fix"
@@ -71,8 +72,11 @@ class Task(BaseModel):
     """
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     type: TaskType
-    description: str
+    description: str = Field(default="")
     priority: Priority = Priority.MEDIUM
+
+    # Task input data
+    input: Dict[str, Any] = Field(default_factory=dict)
 
     # Task context and requirements
     context: Dict[str, Any] = Field(default_factory=dict)
@@ -83,6 +87,7 @@ class Task(BaseModel):
     domain_validation: bool = False
 
     # Metadata
+    metadata: Dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=datetime.now)
     parent_task_id: Optional[str] = None
     retry_count: int = 0

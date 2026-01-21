@@ -1,7 +1,7 @@
 """
 Agent Capabilities for AG-ACE-BRIDGE
 
-Defines capabilities, skills, and metadata for all 17 agents.
+Defines capabilities, skills, and metadata for all 14 agents.
 Used by AgentRegistry for matching tasks to appropriate agents.
 """
 

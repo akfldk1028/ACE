@@ -21,7 +21,7 @@ class AGAutogenAdapter(AgentAdapter):
     Adapter for AG autogen_a2a_kit agents.
 
     Connects to autogen agents via HTTP using the A2A Protocol.
-    Supports 8 different agent types:
+    Supports 5 different agent types:
     - Research: Information gathering
     - Analyst: Data analysis
     - Writer: Documentation

@@ -162,11 +162,33 @@ cp .env.example .env
 # Edit .env with your API keys
 ```
 
-### 실행
+### 실행 (24/7 Project Factory)
 
 ```bash
-# 24/7 오케스트레이터 시작
-python -m src.coordinator.orchestrator
+# 방법 1: 24/7 Factory 시작 (프로젝트 드롭 → 자동 실행)
+python run_24_7.py
+
+# 방법 2: 프로젝트 제출
+python run_24_7.py submit --spec my-project.yaml
+
+# 방법 3: 예제 스펙 생성 후 실행
+python run_24_7.py example
+cp projects/examples/example_api_project.yaml projects/queue/
+python run_24_7.py
+
+# 프로젝트 상태 확인
+python run_24_7.py list
+python run_24_7.py status <project-id>
+```
+
+### 프로젝트 자동 실행 방법
+
+1. **YAML 스펙 파일 작성** (또는 예제 복사)
+2. **`projects/queue/` 폴더에 드롭**
+3. **자동 실행** - 17개 에이전트가 협업하여 프로젝트 완성
+
+```
+projects/queue/my-api.yaml → 자동 감지 → 17 Agents → 완성!
 ```
 
 ---
@@ -203,10 +225,15 @@ python -m src.coordinator.orchestrator
 | Parallel Pipeline | ✅ 완료 | `src/pipeline/parallel.py` |
 | Critic Loop | ✅ 완료 | `src/pipeline/critic_loop.py` |
 | README 문서 | ✅ 완료 | 각 폴더 |
+| **Project Spec** | ✅ 완료 | `src/project/spec.py` |
+| **Project Watcher** | ✅ 완료 | `src/project/watcher.py` |
+| **Project CLI** | ✅ 완료 | `src/project/cli.py` |
+| **run_24_7.py** | ✅ 완료 | `run_24_7.py` |
 | Memory Sync | ⏳ 구현 예정 | `src/memory/*.py` |
 
 ---
 
 ## 변경 이력
 
+- 2025-01-21: 24/7 Project Factory 추가 (Watcher, CLI, run_24_7.py)
 - 2025-01-21: 프로젝트 생성, 아키텍처 설계, README 작성

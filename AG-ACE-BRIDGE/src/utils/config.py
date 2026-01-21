@@ -26,16 +26,20 @@ class Settings(BaseSettings):
     # AG Connection
     ag_autogen_url: str = "http://localhost:8000"
     ag_law_domain_url: str = "http://localhost:8001"
+    adapter_timeout: float = 120.0  # HTTP adapter timeout in seconds
 
     # Neo4j (AG Memory)
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_user: str = "neo4j"
     neo4j_password: Optional[str] = None
 
+    # SharedMemory (AG-CLI 연동)
+    shared_memory_url: str = "http://localhost:8101"
+    enable_shared_memory: bool = True
+
     # Task Queue
     queue_db_path: str = "./data/tasks.db"
     queue_max_retries: int = 3
-    task_queue_db: str = "./data/tasks.db"
 
     # Projects (24/7 Factory)
     projects_dir: str = "./projects"

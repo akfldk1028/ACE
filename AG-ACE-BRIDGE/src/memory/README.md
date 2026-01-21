@@ -1,185 +1,256 @@
 # Memory Module
 
-메모리 동기화 모듈. Graphiti (Auto-Claude)와 Neo4j (AG) 간의 양방향 메모리 동기화를 담당합니다.
+AG-ACE-BRIDGE의 메모리 동기화 모듈. AG-CLI의 SharedMemory(8101)에 연결하여 Auto-Claude와 AG 에이전트 간 상태 공유.
 
-## 구조
-
-```
-memory/
-├── __init__.py
-├── sync_service.py      # 동기화 서비스 (핵심)
-├── graphiti_client.py   # Graphiti 클라이언트
-└── neo4j_client.py      # Neo4j 클라이언트
-```
-
-## 아키텍처
+## 핵심 개념
 
 ```
-┌──────────────────────┐    ┌──────────────────────┐
-│    Graphiti          │    │      Neo4j           │
-│    (LadybugDB)       │    │    (Knowledge)       │
-│                      │    │                      │
-│  - Code Patterns     │ ←→ │  - Domain Knowledge  │
-│  - Session Insights  │    │  - Legal Rules       │
-│  - Implementation    │    │  - Compliance        │
-└──────────────────────┘    └──────────────────────┘
-            │                        │
-            └────────────┬───────────┘
-                         ▼
-                ┌──────────────┐
-                │  Sync        │
-                │  Service     │
-                └──────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                     AG-ACE-BRIDGE                                 │
+│  ┌─────────────────┐    ┌─────────────────┐                      │
+│  │ Auto-Claude     │    │   AG Agents     │                      │
+│  │ Adapter         │    │   Adapter       │                      │
+│  └────────┬────────┘    └────────┬────────┘                      │
+│           │                      │                               │
+│           └──────────┬───────────┘                               │
+│                      ▼                                           │
+│           ┌──────────────────────┐                               │
+│           │ SharedMemoryClient   │  ← 이 모듈                    │
+│           └──────────┬───────────┘                               │
+└──────────────────────┼───────────────────────────────────────────┘
+                       │ HTTP (8101)
+                       ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                     AG-CLI                                        │
+│  ┌────────────────────────────────────────────────────────┐      │
+│  │            SharedMemoryServer (8101)                   │      │
+│  │  - Decisions (상태 저장)                               │      │
+│  │  - Events (이벤트 발행/구독)                           │      │
+│  │  - File Locks (파일 락)                                │      │
+│  └────────────────────────────────────────────────────────┘      │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
-## 핵심 컴포넌트
+## 파일 구조
 
-### sync_service.py - 동기화 서비스
+```
+src/memory/
+├── __init__.py              # 모듈 export
+├── shared_memory_client.py  # SharedMemory HTTP 클라이언트
+└── README.md                # 이 파일
+```
+
+## 주요 클래스
+
+### SharedMemoryClient
+
+AG-CLI SharedMemory 서버에 HTTP로 연결하는 클라이언트.
 
 ```python
-class MemorySyncService:
-    """
-    Graphiti ↔ Neo4j 양방향 동기화
-    - Event-driven sync
-    - Conflict resolution
-    - Eventual consistency
-    """
+from src.memory import SharedMemoryClient
 
-    async def sync_to_neo4j(self, insights: List[str]) -> None:
-        """Auto-Claude 인사이트 → Neo4j"""
-        for insight in insights:
-            embedding = await self.graphiti.get_embedding(insight)
-            await self.neo4j.store_insight(insight, embedding)
-
-    async def sync_from_neo4j(self, query: str) -> List[str]:
-        """Neo4j 도메인 지식 → Graphiti 컨텍스트"""
-        knowledge = await self.neo4j.search(query)
-        return knowledge
+client = SharedMemoryClient(
+    base_url="http://localhost:8101",  # AG-CLI SharedMemory 서버
+    source_name="ag-ace-bridge",       # 클라이언트 식별 이름
+)
 ```
 
-### graphiti_client.py - Graphiti 클라이언트
+**핵심 메서드**
 
-```python
-class GraphitiClient:
-    """
-    Auto-Claude Graphiti 메모리 연동
-    - LadybugDB 접근 (Docker 불필요)
-    - Semantic search
-    - Session insights
-    """
-
-    async def get_context(self, query: str) -> dict:
-        """세션 컨텍스트 검색"""
-        ...
-
-    async def add_insight(self, insight: str) -> None:
-        """인사이트 저장"""
-        ...
-
-    async def get_embedding(self, text: str) -> List[float]:
-        """임베딩 벡터 생성"""
-        ...
-```
-
-### neo4j_client.py - Neo4j 클라이언트
-
-```python
-class Neo4jClient:
-    """
-    AG Neo4j 지식 그래프 연동
-    - 도메인 지식 쿼리
-    - 법률 규칙 검색
-    - 컴플라이언스 요구사항
-    """
-
-    async def search(self, query: str) -> List[dict]:
-        """지식 그래프 검색"""
-        cypher = """
-        MATCH (n)-[r]->(m)
-        WHERE n.content CONTAINS $query
-        RETURN n, r, m
-        """
-        return await self.run(cypher, {"query": query})
-
-    async def store_insight(self, insight: str, embedding: List[float]) -> None:
-        """인사이트 저장"""
-        ...
-```
-
-## 동기화 전략
-
-### 1. Event-Driven Sync
-작업 완료 시 자동 동기화
-
-```python
-# Pipeline 완료 후
-result = await pipeline.execute(task)
-await memory_sync.sync_to_neo4j(result.insights)
-```
-
-### 2. On-Demand Sync
-필요 시 수동 동기화
-
-```python
-# 도메인 지식 필요 시
-context = await memory_sync.sync_from_neo4j("contract law")
-```
-
-### 3. Conflict Resolution
-충돌 해결 정책
-
-```python
-class ConflictResolver:
-    """
-    충돌 해결 전략
-    - Last-write-wins
-    - Merge
-    - Manual resolution
-    """
-```
-
-## 동기화 데이터
-
-### Graphiti → Neo4j
-| 데이터 | 설명 |
+| 메서드 | 설명 |
 |--------|------|
-| Code Patterns | 코드 패턴, 베스트 프랙티스 |
-| Session Insights | 세션 중 발견된 인사이트 |
-| Implementation Context | 구현 컨텍스트 |
+| `store(key, data)` | 상태 저장 |
+| `get(key)` | 상태 조회 |
+| `delete(key)` | 상태 삭제 |
+| `list_keys()` | 모든 키 목록 |
+| `publish_event(type, data)` | 이벤트 발행 |
+| `get_events(type, limit)` | 이벤트 조회 |
+| `health_check()` | 서버 연결 확인 |
 
-### Neo4j → Graphiti
-| 데이터 | 설명 |
+**편의 메서드 (파이프라인용)**
+
+| 메서드 | 설명 |
 |--------|------|
-| Domain Knowledge | 도메인 지식 |
-| Legal Rules | 법률 규칙 (law-domain) |
-| Compliance Requirements | 컴플라이언스 요구사항 |
+| `store_task_result(task_id, stage, result, agent)` | 스테이지 결과 저장 |
+| `get_task_context(task_id)` | 태스크 누적 컨텍스트 조회 |
+| `notify_stage_complete(task_id, stage, agent, success)` | 스테이지 완료 이벤트 |
+| `notify_task_complete(task_id, success, artifacts)` | 태스크 완료 이벤트 |
 
-## 사용법
+### Decision
+
+SharedMemory에 저장되는 상태 모델.
 
 ```python
-from src.memory import MemorySyncService
+class Decision(BaseModel):
+    key: str               # 저장 키
+    data: Dict[str, Any]   # 데이터
+    source: str            # 저장 주체
+    timestamp: datetime    # 저장 시간
+    version: int           # 버전
+```
 
-sync = MemorySyncService()
+### Event
 
-# Auto-Claude 인사이트 → Neo4j
-await sync.sync_to_neo4j(["Pattern: use async/await for I/O"])
+SharedMemory 이벤트 모델.
 
-# Neo4j 도메인 지식 → Graphiti
-knowledge = await sync.sync_from_neo4j("계약법 요구사항")
+```python
+class Event(BaseModel):
+    id: str                # 이벤트 ID
+    event_type: str        # 이벤트 타입
+    data: Dict[str, Any]   # 이벤트 데이터
+    source: str            # 발행 주체
+    timestamp: datetime    # 발행 시간
+```
+
+## 사용 예시
+
+### 기본 사용
+
+```python
+from src.memory import SharedMemoryClient
+
+async def main():
+    client = SharedMemoryClient()
+
+    # 상태 저장
+    await client.store("api_spec", {
+        "endpoints": ["/users", "/items"],
+        "version": "1.0.0"
+    })
+
+    # 상태 조회
+    api_spec = await client.get("api_spec")
+    print(api_spec["endpoints"])  # ["/users", "/items"]
+
+    # 이벤트 발행
+    await client.publish_event(
+        "api_ready",
+        {"endpoints_count": 2}
+    )
+
+    await client.close()
+```
+
+### 편의 함수 사용
+
+```python
+from src.memory import store, get, publish_event
+
+# 모듈 레벨 편의 함수 (싱글톤 클라이언트 사용)
+await store("schema", {"tables": ["users", "orders"]})
+schema = await get("schema")
+await publish_event("schema_ready", {"tables_count": 2})
+```
+
+### 어댑터에서 사용
+
+```python
+from src.adapters.base import AgentAdapter
+
+# SharedMemory 연동 활성화
+adapter = MyAdapter(
+    name="my_agent",
+    enable_shared_memory=True,  # 활성화
+    shared_memory_url="http://localhost:8101"
+)
+
+# execute() 완료 후 자동으로 결과 공유됨
+result = await adapter.execute(task, context)
+# → SharedMemory에 result_{task_id}_{agent_name} 저장
+# → agent_task_completed 이벤트 발행
+```
+
+### 파이프라인에서 사용
+
+```python
+from src.memory import SharedMemoryClient
+
+client = SharedMemoryClient()
+
+# 스테이지 결과 저장
+await client.store_task_result(
+    task_id="task_123",
+    stage=0,
+    result={"code": "..."},
+    agent_type="auto_claude_coder"
+)
+
+# 다음 스테이지에서 컨텍스트 조회
+context = await client.get_task_context("task_123")
+# context = {"stage_0_output": {"code": "..."}}
+```
+
+## 이벤트 타입
+
+### 표준 이벤트
+
+| 이벤트 타입 | 설명 | 데이터 |
+|------------|------|--------|
+| `agent_task_completed` | 에이전트 태스크 완료 | `{task_id, agent, success}` |
+| `stage_completed` | 파이프라인 스테이지 완료 | `{task_id, stage, agent_type, success}` |
+| `task_completed` | 전체 태스크 완료 | `{task_id, success, artifacts}` |
+
+### 커스텀 이벤트
+
+```python
+# 스키마 준비 완료
+await client.publish_event("schema_ready", {
+    "tables": ["users", "orders", "items"],
+    "source": "db_agent"
+})
+
+# API 준비 완료
+await client.publish_event("api_ready", {
+    "endpoints": ["/users", "/orders"],
+    "version": "1.0.0"
+})
+```
+
+## AG-CLI 서버 실행
+
+SharedMemory 클라이언트를 사용하려면 AG-CLI SharedMemory 서버가 실행 중이어야 합니다.
+
+```powershell
+# AG-CLI SharedMemory 서버 시작
+cd D:\Data\22_AG\autogen_a2a_kit\AG-cli
+python mcp/shared_memory.py
+# → Running on http://localhost:8101
 ```
 
 ## 설정
 
-```bash
-# .env
-GRAPHITI_ENABLED=true
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=...
+환경변수 또는 직접 설정:
+
+```python
+# 환경변수
+SHARED_MEMORY_URL=http://localhost:8101
+
+# 또는 직접 설정
+client = SharedMemoryClient(
+    base_url="http://localhost:8101"
+)
 ```
 
-## 관련 파일
+## 에러 처리
 
-- `Auto-Claude/apps/backend/integrations/graphiti/`: Graphiti 구현
-- `AG/agent/law-domain-agents/`: Neo4j 연동 에이전트
-- `src/utils/models.py`: MemorySyncEvent 모델
+SharedMemory 연결 오류는 핵심 로직에 영향을 주지 않도록 처리됩니다.
+
+```python
+# 어댑터에서 SharedMemory 오류 시
+async def _share_result(self, task, result):
+    try:
+        await self._shared_memory_client.store(...)
+    except Exception:
+        pass  # 무시 - 핵심 로직 계속 진행
+```
+
+## 의존성
+
+- `httpx>=0.24.0` - 비동기 HTTP 클라이언트
+- `pydantic>=2.0.0` - 데이터 모델
+
+## 관련 모듈
+
+- `AG-CLI/mcp/shared_memory.py` - SharedMemory 서버 구현
+- `src/adapters/base.py` - AgentAdapter SharedMemory 통합
+- `src/pipeline/` - 파이프라인 컨텍스트 공유

@@ -641,3 +641,82 @@ npm run dev      # Run in development mode (includes --remote-debugging-port=922
 
 **Project data storage:**
 - `.auto-claude/specs/` - Per-project data (specs, plans, QA reports, memory) - gitignored
+
+## A2A Integration & SharedMemory Sync (★ AG-ACE-BRIDGE 연동)
+
+Auto-Claude는 AG-ACE-BRIDGE와 SharedMemory(8101)를 통해 상태를 동기화합니다.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    SharedMemory (8101)                           │
+│               ★ 중앙 동기화 허브 - enable_shared_memory=True      │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │
+        ┌───────────────┼───────────────┐
+        │               │               │
+        ▼               ▼               ▼
+┌───────────────┐ ┌─────────────┐ ┌─────────────────┐
+│ Auto-Claude   │ │ AG-ACE-     │ │ AG-CLI         │
+│ A2A Client    │ │ BRIDGE      │ │ (Message Bus)  │
+└───────────────┘ └─────────────┘ └─────────────────┘
+        │               │
+        └───────┬───────┘
+                ▼
+        A2A Agents (8003-8120)
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `apps/backend/integrations/a2a/client.py` | A2A Client (enable_shared_memory=True) |
+| `apps/backend/integrations/a2a/shared_memory.py` | SharedMemory Client for AG-CLI |
+| `apps/backend/integrations/a2a/discovery.py` | A2A Agent Discovery |
+| `apps/backend/integrations/a2a/tools.py` | MCP Tools for A2A |
+
+### Usage
+
+```python
+from integrations.a2a import A2AClient, call_a2a_agent
+
+# A2A 에이전트 호출 (자동으로 SharedMemory에 저장됨)
+result = await call_a2a_agent(
+    agent_url="http://localhost:8006",
+    message="2 + 3 = ?",
+    enable_shared_memory=True  # 기본값 True
+)
+
+# 결과가 SharedMemory(8101)에 자동 저장됨:
+# - a2a_{agent_name}_{request_id}
+# - a2a_{agent_name}_latest
+```
+
+### SharedMemory API Endpoints (AG-CLI)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/decision` | 상태 저장 (body: {category, decision, agent}) |
+| GET | `/decision/{category}` | 상태 조회 |
+| POST | `/event` | 이벤트 발행 |
+| GET | `/events` | 이벤트 목록 |
+
+### Required Servers
+
+```powershell
+# 1. SharedMemory (8101) - 먼저 시작!
+cd D:\Data\25_ACE\AG\autogen_a2a_kit\AG-cli
+python mcp/shared_memory.py
+
+# 2. A2A Agents (8003-8120)
+cd D:\Data\25_ACE\AG\autogen_a2a_kit\a2a_demo\calculator_agent
+python agent.py
+```
+
+### Sync Flow
+
+1. Auto-Claude UI에서 A2A 에이전트 호출
+2. 결과가 SharedMemory(8101)에 저장됨
+3. AG-ACE-BRIDGE Orchestrator가 동일 SharedMemory 조회
+4. 양방향 협업 완성

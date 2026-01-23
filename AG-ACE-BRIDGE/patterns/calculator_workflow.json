@@ -1,0 +1,37 @@
+{
+  "name": "calculator_workflow",
+  "description": "Basic calculator development workflow using Auto-Claude agents",
+  "type": "workflow",
+  "version": "1.0.0",
+  "tags": ["calculator", "demo", "auto-claude"],
+  "nodes": [
+    {
+      "id": "planner",
+      "agent": "AUTO_CLAUDE_PLANNER",
+      "task": "Create development plan for calculator app"
+    },
+    {
+      "id": "coder",
+      "agent": "AUTO_CLAUDE_CODER",
+      "task": "Implement calculator based on plan",
+      "depends_on": ["planner"]
+    },
+    {
+      "id": "reviewer",
+      "agent": "AUTO_CLAUDE_QA_REVIEWER",
+      "task": "Review code quality and suggest improvements",
+      "depends_on": ["coder"]
+    },
+    {
+      "id": "fixer",
+      "agent": "AUTO_CLAUDE_QA_FIXER",
+      "task": "Fix any issues found in review",
+      "depends_on": ["reviewer"]
+    }
+  ],
+  "config": {
+    "max_iterations": 3,
+    "timeout_seconds": 300,
+    "enable_shared_memory": true
+  }
+}

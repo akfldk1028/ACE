@@ -2,6 +2,7 @@
 Agent registry module for AG-ACE-BRIDGE
 
 Provides agent registration, discovery, and capability matching.
+Also includes Pattern Registry for AutoGen Studio integration.
 """
 
 from .capabilities import (
@@ -21,6 +22,13 @@ from .agent_registry import (
     reset_registry,
 )
 
+from .pattern_registry import (
+    PatternRegistry,
+    RegisteredPattern,
+    PatternStatus,
+    PatternType,
+)
+
 __all__ = [
     # Capabilities
     "Capability",
@@ -30,9 +38,14 @@ __all__ = [
     "get_agents_by_task_type",
     "get_agents_by_adapter",
     "find_best_agents",
-    # Registry
+    # Agent Registry
     "AgentRegistry",
     "AgentStatus",
     "get_registry",
     "reset_registry",
+    # Pattern Registry (AutoGen Studio)
+    "PatternRegistry",
+    "RegisteredPattern",
+    "PatternStatus",
+    "PatternType",
 ]

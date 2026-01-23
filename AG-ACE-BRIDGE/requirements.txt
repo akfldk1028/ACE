@@ -26,9 +26,10 @@ structlog>=23.0.0
 typer>=0.9.0
 rich>=13.0.0
 
-# Project Watcher
+# Pattern Watcher & Scheduler
 watchdog>=3.0.0
 PyYAML>=6.0.0
+APScheduler>=3.10.0
 
 # Web Server
 fastapi>=0.104.0

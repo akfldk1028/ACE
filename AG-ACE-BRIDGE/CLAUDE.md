@@ -349,7 +349,16 @@ AG-ACE-BRIDGE/
 │   │
 │   ├── registry/          # 에이전트 레지스트리
 │   │   ├── agent_registry.py   # 런타임 상태
-│   │   └── capabilities.py     # 14개 능력 정의
+│   │   ├── capabilities.py     # 14개 능력 정의
+│   │   └── pattern_registry.py # 패턴 등록/관리 (★ NEW)
+│   │
+│   ├── watcher/           # 패턴 감시 (★ NEW)
+│   │   ├── __init__.py
+│   │   └── pattern_watcher.py  # AutoGen Studio 출력 감시
+│   │
+│   ├── scheduler/         # 스케줄러 (★ NEW)
+│   │   ├── __init__.py
+│   │   └── trigger.py          # Cron/이벤트 트리거
 │   │
 │   ├── memory/            # Layer 4: SharedMemory 연동
 │   │   ├── __init__.py            # 모듈 export
@@ -362,7 +371,8 @@ AG-ACE-BRIDGE/
 │   │
 │   ├── server/            # 웹 서버 (대시보드)
 │   │   ├── __init__.py         # 모듈 export
-│   │   └── dashboard.py        # FastAPI + WebSocket
+│   │   ├── dashboard.py        # FastAPI + WebSocket
+│   │   └── pattern_routes.py   # 패턴 REST API (★ NEW)
 │   │
 │   └── utils/             # 유틸리티
 │       ├── config.py           # 환경 설정
@@ -373,6 +383,9 @@ AG-ACE-BRIDGE/
 │   ├── queue/                  # 새 프로젝트
 │   ├── completed/              # 완료
 │   └── failed/                 # 실패
+│
+├── patterns/              # 패턴 폴더 (★ NEW - AutoGen Studio 연동)
+│   └── *.json/yaml            # 워크플로우/에이전트 패턴
 │
 └── data/
     └── tasks.db               # SQLite 태스크 큐
@@ -480,6 +493,141 @@ python shared_memory.py
 4. AutoGen Studio (port 8081)
 5. Auto-Claude UI (Electron)
 ```
+
+---
+
+## Pattern Automation (★ AutoGen Studio → 24/7 자동 실행)
+
+AutoGen Studio에서 설계한 패턴이 자동으로 24/7 실행되는 시스템입니다.
+
+### 아키텍처
+
+```
+[AutoGen Studio]
+      │
+      │ (1) 패턴 저장 (JSON/YAML)
+      ▼
+[patterns/ 폴더] ─────────────────────────────────┐
+      │                                           │
+      │ (2) PatternWatcher 감지                   │
+      ▼                                           │
+[PatternRegistry]                                 │
+      │                                           │
+      │ (3) SharedMemory에 등록                   │
+      ▼                                           │
+[SharedMemory:8101]                               │
+      │                                           │
+      ├─→ (4a) ScheduleTrigger (Cron/이벤트)      │
+      │                                           │
+      ├─→ (4b) Auto-Claude UI 알림               │
+      ▼                                           │
+[Orchestrator 실행]                               │
+      │                                           │
+      │ (5) A2A 에이전트 호출                     │
+      ▼                                           │
+[실행 결과] ──────────────────────────────────────┘
+```
+
+### 핵심 컴포넌트
+
+| 컴포넌트 | 위치 | 역할 |
+|---------|------|------|
+| PatternWatcher | `src/watcher/` | AutoGen Studio 출력 폴더 감시 |
+| PatternRegistry | `src/registry/` | 패턴 등록, 버전 관리, SharedMemory 동기화 |
+| ScheduleTrigger | `src/scheduler/` | Cron/이벤트 기반 자동 실행 |
+| Pattern REST API | `src/server/pattern_routes.py` | HTTP 관리 인터페이스 |
+
+### 감시 폴더
+
+```
+./patterns/                      # 로컬 패턴 폴더
+~/.autogenstudio/patterns/       # AutoGen Studio 패턴
+~/.autogenstudio/workflows/      # AutoGen Studio 워크플로우
+```
+
+### Pattern REST API
+
+```bash
+# 패턴 목록
+GET /patterns/
+
+# 패턴 상세
+GET /patterns/{pattern_id}
+
+# 패턴 등록 (수동)
+POST /patterns/
+{
+  "name": "my_workflow",
+  "pattern_type": "workflow",
+  "data": { "nodes": [...] }
+}
+
+# 패턴 스케줄 설정
+POST /patterns/{pattern_id}/schedule
+{
+  "cron": "0 9 * * *"  # 매일 오전 9시
+}
+
+# 패턴 즉시 실행
+POST /patterns/{pattern_id}/trigger
+
+# 이벤트 트리거 추가
+POST /patterns/{pattern_id}/event-trigger
+{
+  "event_type": "task_completed"
+}
+```
+
+### 패턴 파일 형식
+
+```json
+{
+  "name": "calculator_workflow",
+  "description": "Calculator development workflow",
+  "type": "workflow",
+  "tags": ["calculator", "demo"],
+  "nodes": [
+    {
+      "id": "planner",
+      "agent": "AUTO_CLAUDE_PLANNER",
+      "task": "Create development plan"
+    },
+    {
+      "id": "coder",
+      "agent": "AUTO_CLAUDE_CODER",
+      "depends_on": ["planner"]
+    }
+  ],
+  "config": {
+    "max_iterations": 3,
+    "enable_shared_memory": true
+  }
+}
+```
+
+### 사용 흐름
+
+1. **AutoGen Studio에서 설계**
+   - 워크플로우/에이전트 패턴 생성
+   - JSON/YAML로 저장
+
+2. **자동 감지**
+   - PatternWatcher가 파일 변경 감지
+   - PatternRegistry에 자동 등록
+   - SharedMemory에 메타데이터 동기화
+
+3. **스케줄 설정** (선택)
+   - REST API로 Cron 스케줄 설정
+   - 또는 이벤트 트리거 설정
+
+4. **자동 실행**
+   - ScheduleTrigger가 정해진 시간에 실행
+   - Orchestrator를 통해 에이전트 호출
+   - 결과 SharedMemory에 저장
+
+5. **모니터링**
+   - Auto-Claude UI에서 실행 상태 확인
+   - AG-ACE Dashboard에서 통계 확인
 
 ---
 

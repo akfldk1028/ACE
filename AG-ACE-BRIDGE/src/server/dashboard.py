@@ -36,6 +36,12 @@ from src.adapters import A2AAdapterManager, A2AAgentType
 from src.utils.logger import get_logger
 from src.utils.config import get_settings
 
+# Pattern automation imports
+from src.watcher.pattern_watcher import PatternWatcher, PatternEvent
+from src.registry.pattern_registry import PatternRegistry
+from src.scheduler.trigger import ScheduleTrigger
+from src.server import pattern_routes
+
 # AG-CLI Message Bus configuration
 AG_CLI_MESSAGE_BUS_URL = "http://localhost:8100"
 
@@ -47,9 +53,15 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Include pattern routes
+app.include_router(pattern_routes.router)
+
 # Global instances
 orchestrator: Optional[Orchestrator] = None
 a2a_manager: Optional[A2AAdapterManager] = None
+pattern_registry: Optional[PatternRegistry] = None
+pattern_watcher: Optional[PatternWatcher] = None
+schedule_trigger: Optional[ScheduleTrigger] = None
 websocket_clients: List[WebSocket] = []
 logger = get_logger("dashboard")
 settings = get_settings()
@@ -1040,6 +1052,89 @@ async def broadcast_status():
         await asyncio.sleep(2)
 
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialize pattern automation on startup"""
+    global pattern_registry, pattern_watcher, schedule_trigger
+
+    logger.info("Initializing pattern automation...")
+
+    # Initialize PatternRegistry
+    pattern_registry = PatternRegistry(
+        shared_memory_url="http://localhost:8101",
+        enable_shared_memory=True,
+    )
+    await pattern_registry.initialize()
+
+    # Initialize ScheduleTrigger
+    schedule_trigger = ScheduleTrigger(
+        registry=pattern_registry,
+        orchestrator=orchestrator,
+        shared_memory_url="http://localhost:8101",
+        enable_shared_memory=True,
+    )
+    await schedule_trigger.start()
+
+    # Set dependencies for pattern routes
+    pattern_routes.set_dependencies(
+        registry=pattern_registry,
+        scheduler=schedule_trigger,
+    )
+
+    # Initialize PatternWatcher
+    async def on_pattern_detected(event: PatternEvent):
+        """Handle detected patterns from AutoGen Studio"""
+        logger.info(
+            "pattern_detected",
+            pattern_name=event.pattern_name,
+            file_path=event.file_path,
+        )
+        # Auto-register pattern
+        pattern = await pattern_registry.register(event)
+        if pattern:
+            # Broadcast to WebSocket clients
+            await broadcast_project_event({
+                "icon": "📦",
+                "message": f"New pattern detected: {event.pattern_name}",
+                "type": "info",
+            })
+
+    pattern_watcher = PatternWatcher(
+        watch_paths=[
+            "./patterns",
+            "~/.autogenstudio/patterns",
+            "~/.autogenstudio/workflows",
+        ],
+        on_pattern_detected=on_pattern_detected,
+    )
+    await pattern_watcher.start()
+
+    # Scan existing patterns
+    existing = await pattern_watcher.scan_existing()
+    for event in existing:
+        await pattern_registry.register(event)
+
+    logger.info(
+        "pattern_automation_initialized",
+        patterns_loaded=len(existing),
+    )
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on shutdown"""
+    global pattern_registry, pattern_watcher, schedule_trigger
+
+    if pattern_watcher:
+        await pattern_watcher.stop()
+    if schedule_trigger:
+        await schedule_trigger.stop()
+    if pattern_registry:
+        await pattern_registry.shutdown()
+
+    logger.info("pattern_automation_shutdown")
+
+
 def run_dashboard(host: str = "0.0.0.0", port: int = 8080):
     """
     Run the dashboard server.
@@ -1052,6 +1147,11 @@ def run_dashboard(host: str = "0.0.0.0", port: int = 8080):
     print("AG-ACE-BRIDGE Dashboard")
     print("=" * 60)
     print(f"Starting dashboard server at http://{host}:{port}")
+    print("")
+    print("Pattern Automation:")
+    print("  - Watches: ./patterns, ~/.autogenstudio/*")
+    print("  - REST API: /patterns/*")
+    print("  - SharedMemory: http://localhost:8101")
     print("=" * 60)
 
     uvicorn.run(app, host=host, port=port, log_level="info")

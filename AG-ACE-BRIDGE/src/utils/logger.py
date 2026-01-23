@@ -161,3 +161,15 @@ class Loggers:
     @staticmethod
     def queue() -> structlog.stdlib.BoundLogger:
         return get_logger("queue")
+
+    @staticmethod
+    def watcher() -> structlog.stdlib.BoundLogger:
+        return get_logger("watcher")
+
+    @staticmethod
+    def scheduler() -> structlog.stdlib.BoundLogger:
+        return get_logger("scheduler")
+
+    @staticmethod
+    def dashboard() -> structlog.stdlib.BoundLogger:
+        return get_logger("dashboard")

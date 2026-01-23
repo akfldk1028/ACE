@@ -33,7 +33,7 @@ class AgentAdapter(ABC):
         self,
         name: str,
         endpoint_url: str = None,
-        enable_shared_memory: bool = False,
+        enable_shared_memory: bool = True,  # ★ 기본값 True (Auto-Claude ↔ AG 통합)
         shared_memory_url: str = "http://localhost:8101",
     ):
         """

@@ -130,7 +130,8 @@ import type {
   GitLabInvestigationStatus,
   GitLabMRReviewResult,
   GitLabMRReviewProgress,
-  GitLabNewCommitsCheck
+  GitLabNewCommitsCheck,
+  A2ASyncStatus
 } from './integrations';
 import type { APIProfile, ProfilesFile, TestConnectionResult, DiscoverModelsResult } from './profile';
 
@@ -573,6 +574,15 @@ export interface ElectronAPI {
   onGitLabInvestigationError: (
     callback: (projectId: string, error: string) => void
   ) => () => void;
+
+  // A2A (Agent-to-Agent) operations
+  discoverA2AAgents: (projectId: string) => Promise<IPCResult<A2ASyncStatus>>;
+  checkA2AAgentHealth: (projectId: string, agentUrl: string) => Promise<IPCResult<{ online: boolean; error?: string }>>;
+  sendA2AMessage: (
+    projectId: string,
+    agentUrl: string,
+    message: string
+  ) => Promise<IPCResult<{ response: string; raw?: unknown }>>;
 
   // Release operations
   getReleaseableVersions: (projectId: string) => Promise<IPCResult<ReleaseableVersion[]>>;

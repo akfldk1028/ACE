@@ -478,3 +478,65 @@ export interface RoadmapProviderConfig {
  * Canny-specific status values
  */
 export type CannyStatus = 'open' | 'under review' | 'planned' | 'in progress' | 'complete' | 'closed';
+
+// ============================================
+// A2A (Agent-to-Agent) Integration Types
+// ============================================
+
+/**
+ * A2A 에이전트 정보
+ */
+export interface A2AAgent {
+  name: string;
+  displayName: string;
+  url: string;
+  description: string;
+  skills: A2ASkill[];
+  isOnline: boolean;
+  lastChecked?: string;
+  timeout: number;
+}
+
+/**
+ * A2A 에이전트 스킬
+ */
+export interface A2ASkill {
+  name: string;
+  description: string;
+  inputSchema?: Record<string, unknown>;
+}
+
+/**
+ * A2A 연결 설정
+ */
+export interface A2AConfig {
+  enabled: boolean;
+  autogenStudioUrl: string;
+  a2aDemoPath?: string;
+  autoDiscovery: boolean;
+  refreshIntervalSeconds: number;
+}
+
+/**
+ * A2A 동기화 상태
+ */
+export interface A2ASyncStatus {
+  connected: boolean;
+  autogenStudioOnline: boolean;
+  agentCount: number;
+  onlineAgentCount: number;
+  agents: A2AAgent[];
+  lastSyncedAt?: string;
+  error?: string;
+}
+
+/**
+ * A2A 호출 결과
+ */
+export interface A2ACallResult {
+  success: boolean;
+  agentName: string;
+  response: string;
+  duration?: number;
+  error?: string;
+}

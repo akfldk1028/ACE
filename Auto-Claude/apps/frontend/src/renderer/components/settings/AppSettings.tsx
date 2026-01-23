@@ -93,7 +93,8 @@ const projectNavItemsConfig: NavItemConfig<ProjectSettingsSection>[] = [
   { id: 'linear', icon: Zap },
   { id: 'github', icon: Github },
   { id: 'gitlab', icon: GitLabIcon },
-  { id: 'memory', icon: Database }
+  { id: 'memory', icon: Database },
+  { id: 'a2a', icon: Bot }
 ];
 
 /**

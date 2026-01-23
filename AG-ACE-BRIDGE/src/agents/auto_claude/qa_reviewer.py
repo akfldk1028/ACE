@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Dict, Any, List
 
 from src.agents.auto_claude.base import BaseAutoClaudeAgent
+from src.modules.auto_claude_prompts import get_qa_reviewer_prompt
 
 
 class AutoClaudeQAReviewer(BaseAutoClaudeAgent):
@@ -23,7 +24,8 @@ class AutoClaudeQAReviewer(BaseAutoClaudeAgent):
     implementation meets requirements.
     """
 
-    SYSTEM_PROMPT = (
+    # Fallback prompt if submodule not available
+    DEFAULT_SYSTEM_PROMPT = (
         "You are an expert QA engineer. "
         "Your role is to review code changes and validate they meet acceptance criteria. "
         "Run tests, check for bugs, verify edge cases, and ensure code quality. "
@@ -40,9 +42,11 @@ class AutoClaudeQAReviewer(BaseAutoClaudeAgent):
 
     def __init__(self):
         """Initialize QA Reviewer agent."""
+        # Load prompt from submodule, fallback to default
+        system_prompt = get_qa_reviewer_prompt() or self.DEFAULT_SYSTEM_PROMPT
         super().__init__(
             name="auto_claude_qa_reviewer",
-            system_prompt=self.SYSTEM_PROMPT,
+            system_prompt=system_prompt,
             capabilities=self.CAPABILITIES,
         )
 

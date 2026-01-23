@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Dict, Any, List
 
 from src.agents.auto_claude.base import BaseAutoClaudeAgent
+from src.modules.auto_claude_prompts import get_qa_fixer_prompt
 
 
 class AutoClaudeQAFixer(BaseAutoClaudeAgent):
@@ -22,7 +23,8 @@ class AutoClaudeQAFixer(BaseAutoClaudeAgent):
     Fixes issues found during QA review and debugging.
     """
 
-    SYSTEM_PROMPT = (
+    # Fallback prompt if submodule not available
+    DEFAULT_SYSTEM_PROMPT = (
         "You are an expert debugger and issue resolver. "
         "Your role is to fix issues found during QA review. "
         "Analyze error messages, identify root causes, and implement fixes. "
@@ -38,9 +40,11 @@ class AutoClaudeQAFixer(BaseAutoClaudeAgent):
 
     def __init__(self):
         """Initialize QA Fixer agent."""
+        # Load prompt from submodule, fallback to default
+        system_prompt = get_qa_fixer_prompt() or self.DEFAULT_SYSTEM_PROMPT
         super().__init__(
             name="auto_claude_qa_fixer",
-            system_prompt=self.SYSTEM_PROMPT,
+            system_prompt=system_prompt,
             capabilities=self.CAPABILITIES,
         )
 

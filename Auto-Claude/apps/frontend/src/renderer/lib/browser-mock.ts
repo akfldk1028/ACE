@@ -332,7 +332,22 @@ const browserMockAPI: ElectronAPI = {
   openLogsFolder: async () => ({ success: false, error: 'Not available in browser mode' }),
   copyDebugInfo: async () => ({ success: false, error: 'Not available in browser mode' }),
   getRecentErrors: async () => [],
-  listLogFiles: async () => []
+  listLogFiles: async () => [],
+
+  // A2A Operations
+  discoverA2AAgents: async () => ({
+    success: true,
+    data: {
+      connected: false,
+      autogenStudioOnline: false,
+      agentCount: 0,
+      onlineAgentCount: 0,
+      agents: [],
+      error: 'Not available in browser mode'
+    }
+  }),
+  checkA2AAgentHealth: async () => ({ success: true, data: { online: false, error: 'Not available in browser mode' } }),
+  sendA2AMessage: async () => ({ success: false, error: 'Not available in browser mode' })
 };
 
 /**

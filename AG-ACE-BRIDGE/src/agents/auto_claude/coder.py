@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 from src.agents.auto_claude.base import BaseAutoClaudeAgent
+from src.modules.auto_claude_prompts import get_coder_prompt
 
 
 class AutoClaudeCoder(BaseAutoClaudeAgent):
@@ -23,7 +24,8 @@ class AutoClaudeCoder(BaseAutoClaudeAgent):
     and specifications.
     """
 
-    SYSTEM_PROMPT = (
+    # Fallback prompt if submodule not available
+    DEFAULT_SYSTEM_PROMPT = (
         "You are an expert full-stack developer. "
         "Your role is to implement features based on the provided plan and specifications. "
         "Write clean, maintainable code following best practices. "
@@ -40,9 +42,11 @@ class AutoClaudeCoder(BaseAutoClaudeAgent):
 
     def __init__(self):
         """Initialize Coder agent."""
+        # Load prompt from submodule, fallback to default
+        system_prompt = get_coder_prompt() or self.DEFAULT_SYSTEM_PROMPT
         super().__init__(
             name="auto_claude_coder",
-            system_prompt=self.SYSTEM_PROMPT,
+            system_prompt=system_prompt,
             capabilities=self.CAPABILITIES,
         )
 

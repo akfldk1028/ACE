@@ -50,6 +50,8 @@ export function createHookProxy(
     get setShowLinearImportModal() { return hookRef.current.setShowLinearImportModal; },
     get linearConnectionStatus() { return hookRef.current.linearConnectionStatus; },
     get isCheckingLinear() { return hookRef.current.isCheckingLinear; },
+    get a2aConnectionStatus() { return hookRef.current.a2aConnectionStatus; },
+    get isCheckingA2A() { return hookRef.current.isCheckingA2A; },
     get handleInitialize() { return hookRef.current.handleInitialize; },
     get handleSaveEnv() { return hookRef.current.handleSaveEnv; },
     get handleClaudeSetup() { return hookRef.current.handleClaudeSetup; },

@@ -318,6 +318,12 @@ export interface ProjectEnvConfig {
   gitlabProject?: string; // Format: group/project or numeric ID
   gitlabAutoSync?: boolean; // Auto-sync issues on project load
 
+  // A2A (Agent-to-Agent) Integration - AG Multi-Agent System
+  a2aEnabled?: boolean;
+  a2aAutogenStudioUrl?: string; // AutoGen Studio URL for agent registry (default: http://localhost:8081)
+  a2aDemoPath?: string; // Path to a2a_demo folder for direct agent discovery
+  a2aAutoDiscovery?: boolean; // Automatically discover new agents
+
   // Git/Worktree Settings
   defaultBranch?: string; // Base branch for worktree creation (e.g., 'main', 'develop')
 

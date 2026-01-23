@@ -1,15 +1,16 @@
 # Adapters Module
 
-AG-ACE-BRIDGE의 에이전트 연결 모듈. 3가지 에이전트 시스템에 대한 통일된 인터페이스 제공.
+AG-ACE-BRIDGE의 에이전트 연결 모듈. 4가지 에이전트 시스템에 대한 통일된 인터페이스 제공.
 
 ## 파일 구조
 
 ```
 src/adapters/
-├── __init__.py          # 모듈 export (14개 어댑터/팩토리 함수)
+├── __init__.py          # 모듈 export (19개 어댑터/팩토리 함수)
 ├── base.py              # AgentAdapter 추상 베이스 클래스
 ├── auto_claude.py       # Auto-Claude SDK 어댑터 (OAuth 인증)
 ├── ag_autogen.py        # AG Autogen HTTP 어댑터 (A2A Protocol)
+├── ag_a2a_adapter.py    # AG A2A Protocol 어댑터 (Google ADK) ★ 신규
 ├── ag_law_domain.py     # AG Law Domain HTTP 어댑터 (FastAPI)
 └── README.md            # 이 파일
 ```
@@ -141,6 +142,45 @@ result = await adapter.execute(task, context)
 | `AG_RISK_ASSESSOR` | `create_risk_assessor_adapter()` | 리스크 평가 |
 | `AG_COMPLIANCE_CHECKER` | `create_compliance_checker_adapter()` | 컴플라이언스 |
 | `AG_DOCUMENT_DRAFTER` | `create_document_drafter_adapter()` | 문서 초안 |
+
+### AG A2A Protocol (5개) - Google ADK ★ 신규
+| A2AAgentType | Port | 팩토리 함수 | 기능 |
+|--------------|------|-------------|------|
+| `POETRY` | 8003 | `create_poetry_adapter()` | 시/문학 분석 |
+| `PHILOSOPHY` | 8004 | `create_philosophy_adapter()` | 철학적 사고 |
+| `HISTORY` | 8005 | `create_history_adapter()` | 역사적 맥락 |
+| `CALCULATOR` | 8006 | `create_calculator_adapter()` | 수학 계산 |
+| `GUI_TEST` | 8120 | `create_gui_test_adapter()` | GUI 자동화 |
+
+#### A2A 에이전트 서버 시작
+```powershell
+# 각 터미널에서 실행 (D:\Data\25_ACE\AG\autogen_a2a_kit\a2a_demo\)
+cd poetry_agent && python agent.py       # port 8003
+cd philosophy_agent && python agent.py   # port 8004
+cd history_agent && python agent.py      # port 8005
+cd calculator_agent && python agent.py   # port 8006
+```
+
+#### A2A 사용 예시
+```python
+from src.adapters import (
+    AGA2AAdapter,
+    A2AAgentType,
+    A2AAdapterManager,
+    create_calculator_adapter,
+)
+
+# 단일 에이전트 사용
+adapter = create_calculator_adapter(enable_shared_memory=True)
+await adapter.initialize()
+result = await adapter.execute(task, context)
+
+# 전체 매니저로 관리
+manager = A2AAdapterManager(enable_shared_memory=True)
+await manager.initialize_all()
+status = await manager.health_check_all()
+# {A2AAgentType.CALCULATOR: True, A2AAgentType.POETRY: False, ...}
+```
 
 ## 사용 예시
 

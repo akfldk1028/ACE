@@ -12,7 +12,10 @@ import {
   Radio,
   Github,
   RefreshCw,
-  GitBranch
+  GitBranch,
+  Bot,
+  Network,
+  Circle
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -26,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '../ui/select';
-import type { ProjectEnvConfig, LinearSyncStatus, GitHubSyncStatus, Project, ProjectSettings as ProjectSettingsType } from '../../../shared/types';
+import type { ProjectEnvConfig, LinearSyncStatus, GitHubSyncStatus, Project, ProjectSettings as ProjectSettingsType, A2ASyncStatus } from '../../../shared/types';
 
 interface IntegrationSettingsProps {
   envConfig: ProjectEnvConfig | null;
@@ -53,6 +56,13 @@ interface IntegrationSettingsProps {
   isCheckingGitHub: boolean;
   githubExpanded: boolean;
   onGitHubToggle: () => void;
+
+  // A2A state (optional - for AG integration)
+  a2aConnectionStatus?: A2ASyncStatus | null;
+  isCheckingA2A?: boolean;
+  a2aExpanded?: boolean;
+  onA2AToggle?: () => void;
+  onA2ARefresh?: () => void;
 }
 
 export function IntegrationSettings({
@@ -73,7 +83,13 @@ export function IntegrationSettings({
   gitHubConnectionStatus,
   isCheckingGitHub,
   githubExpanded,
-  onGitHubToggle
+  onGitHubToggle,
+  // A2A props (optional)
+  a2aConnectionStatus,
+  isCheckingA2A,
+  a2aExpanded,
+  onA2AToggle,
+  onA2ARefresh
 }: IntegrationSettingsProps) {
   // Branch selection state
   const [branches, setBranches] = useState<string[]>([]);
@@ -481,6 +497,175 @@ export function IntegrationSettings({
           </div>
         )}
       </section>
+
+      {/* A2A Integration Section (AG Multi-Agent) */}
+      {onA2AToggle && (
+        <>
+          <Separator />
+
+          <section className="space-y-3">
+            <button
+              onClick={onA2AToggle}
+              className="w-full flex items-center justify-between text-sm font-semibold text-foreground hover:text-foreground/80"
+            >
+              <div className="flex items-center gap-2">
+                <Bot className="h-4 w-4" />
+                A2A Agent Integration
+                {envConfig?.a2aEnabled && (
+                  <span className="px-2 py-0.5 text-xs bg-success/10 text-success rounded-full">
+                    Enabled
+                  </span>
+                )}
+              </div>
+              {a2aExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </button>
+
+            {a2aExpanded && (
+              <div className="space-y-4 pl-6 pt-2">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="font-normal text-foreground">Enable A2A Agents</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Use specialized agents (poetry, math, GPU) from AutoGen Studio
+                    </p>
+                  </div>
+                  <Switch
+                    checked={envConfig?.a2aEnabled || false}
+                    onCheckedChange={(checked) => updateEnvConfig({ a2aEnabled: checked })}
+                  />
+                </div>
+
+                {envConfig?.a2aEnabled && (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-foreground">AutoGen Studio URL</Label>
+                      <p className="text-xs text-muted-foreground">
+                        URL of the AutoGen Studio server for agent registry
+                      </p>
+                      <Input
+                        placeholder="http://localhost:8081"
+                        value={envConfig.a2aAutogenStudioUrl || 'http://localhost:8081'}
+                        onChange={(e) => updateEnvConfig({ a2aAutogenStudioUrl: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-foreground">A2A Demo Path (Optional)</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Path to a2a_demo folder for direct agent discovery
+                      </p>
+                      <Input
+                        placeholder="D:/Data/25_ACE/AG/autogen_a2a_kit/a2a_demo"
+                        value={envConfig.a2aDemoPath || ''}
+                        onChange={(e) => updateEnvConfig({ a2aDemoPath: e.target.value })}
+                      />
+                    </div>
+
+                    {/* Connection Status */}
+                    <div className="rounded-lg border border-border bg-muted/30 p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Agent Status</p>
+                          <p className="text-xs text-muted-foreground">
+                            {isCheckingA2A ? 'Discovering agents...' :
+                              a2aConnectionStatus?.connected
+                                ? `${a2aConnectionStatus.onlineAgentCount}/${a2aConnectionStatus.agentCount} agents online`
+                                : a2aConnectionStatus?.error || 'Not connected'}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {onA2ARefresh && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={onA2ARefresh}
+                              disabled={isCheckingA2A}
+                            >
+                              <RefreshCw className={`h-4 w-4 ${isCheckingA2A ? 'animate-spin' : ''}`} />
+                            </Button>
+                          )}
+                          {isCheckingA2A ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          ) : a2aConnectionStatus?.connected ? (
+                            <CheckCircle2 className="h-4 w-4 text-success" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4 text-warning" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Agent List */}
+                    {a2aConnectionStatus?.agents && a2aConnectionStatus.agents.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-foreground flex items-center gap-2">
+                          <Network className="h-4 w-4" />
+                          Available Agents
+                        </Label>
+                        <div className="rounded-lg border border-border bg-muted/20 p-2 space-y-1 max-h-48 overflow-y-auto">
+                          {a2aConnectionStatus.agents.map((agent) => (
+                            <div
+                              key={agent.name}
+                              className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/50"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Circle
+                                  className={`h-2 w-2 ${agent.isOnline ? 'fill-success text-success' : 'fill-muted-foreground text-muted-foreground'}`}
+                                />
+                                <span className="text-sm font-medium">{agent.displayName}</span>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {agent.description}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Auto Discovery Toggle */}
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <RefreshCw className="h-4 w-4 text-info" />
+                          <Label className="font-normal text-foreground">Auto Discovery</Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground pl-6">
+                          Automatically discover new agents from AutoGen Studio
+                        </p>
+                      </div>
+                      <Switch
+                        checked={envConfig.a2aAutoDiscovery || false}
+                        onCheckedChange={(checked) => updateEnvConfig({ a2aAutoDiscovery: checked })}
+                      />
+                    </div>
+
+                    {/* Info Box */}
+                    <div className="rounded-lg border border-info/30 bg-info/5 p-3">
+                      <div className="flex items-start gap-3">
+                        <Bot className="h-5 w-5 text-info mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">How it works</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            When enabled, the Coder agent can call specialized A2A agents for tasks like
+                            poetry generation, mathematical calculations, GPU processing, and more.
+                            Agents are discovered from AutoGen Studio or the a2a_demo folder.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </>
   );
 }

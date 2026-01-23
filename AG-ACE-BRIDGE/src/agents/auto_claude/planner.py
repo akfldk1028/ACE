@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 from src.agents.auto_claude.base import BaseAutoClaudeAgent
+from src.modules.auto_claude_prompts import get_planner_prompt
 
 
 class AutoClaudePlanner(BaseAutoClaudeAgent):
@@ -23,7 +24,8 @@ class AutoClaudePlanner(BaseAutoClaudeAgent):
     with subtasks, dependencies, and execution order.
     """
 
-    SYSTEM_PROMPT = (
+    # Fallback prompt if submodule not available
+    DEFAULT_SYSTEM_PROMPT = (
         "You are an expert software architect and planner. "
         "Your role is to analyze requirements and create detailed implementation plans. "
         "Break down complex tasks into smaller, manageable subtasks. "
@@ -40,9 +42,11 @@ class AutoClaudePlanner(BaseAutoClaudeAgent):
 
     def __init__(self):
         """Initialize Planner agent."""
+        # Load prompt from submodule, fallback to default
+        system_prompt = get_planner_prompt() or self.DEFAULT_SYSTEM_PROMPT
         super().__init__(
             name="auto_claude_planner",
-            system_prompt=self.SYSTEM_PROMPT,
+            system_prompt=system_prompt,
             capabilities=self.CAPABILITIES,
         )
 

@@ -10,7 +10,7 @@ import { SectionRouter } from './sections/SectionRouter';
 import { createHookProxy } from './utils/hookProxyFactory';
 import type { Project } from '../../../shared/types';
 
-export type ProjectSettingsSection = 'general' | 'linear' | 'github' | 'gitlab' | 'memory';
+export type ProjectSettingsSection = 'general' | 'linear' | 'github' | 'gitlab' | 'memory' | 'a2a';
 
 interface ProjectSettingsContentProps {
   project: Project | undefined;
@@ -102,6 +102,8 @@ function ProjectSettingsContentInner({
     setShowLinearImportModal,
     linearConnectionStatus,
     isCheckingLinear,
+    a2aConnectionStatus,
+    isCheckingA2A,
     handleInitialize,
     error
   } = hook;
@@ -146,6 +148,8 @@ function ProjectSettingsContentInner({
         isCheckingGitLab={isCheckingGitLab}
         linearConnectionStatus={linearConnectionStatus}
         isCheckingLinear={isCheckingLinear}
+        a2aConnectionStatus={a2aConnectionStatus}
+        isCheckingA2A={isCheckingA2A}
         handleInitialize={handleInitialize}
         onOpenLinearImport={() => setShowLinearImportModal(true)}
       />

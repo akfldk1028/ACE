@@ -63,6 +63,13 @@ class AgentType(str, Enum):
     AG_COMPLIANCE_CHECKER = "ag.compliance_checker"
     AG_DOCUMENT_DRAFTER = "ag.document_drafter"
 
+    # AG A2A Protocol agents (autogen_a2a_kit demo agents)
+    AG_A2A_POETRY = "ag.a2a.poetry_agent"
+    AG_A2A_PHILOSOPHY = "ag.a2a.philosophy_agent"
+    AG_A2A_HISTORY = "ag.a2a.history_agent"
+    AG_A2A_CALCULATOR = "ag.a2a.calculator_agent"
+    AG_A2A_GUI_TEST = "ag.a2a.gui_test_agent"
+
 
 class Task(BaseModel):
     """

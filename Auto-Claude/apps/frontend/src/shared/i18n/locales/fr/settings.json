@@ -354,6 +354,13 @@
       "integrationTitle": "Mémoire",
       "integrationDescription": "Configurer la mémoire persistante inter-sessions pour les agents",
       "syncDescription": "Configurer la mémoire persistante"
+    },
+    "a2a": {
+      "title": "Agents A2A",
+      "description": "Intégration AG-ACE-BRIDGE",
+      "integrationTitle": "Intégration Agents A2A",
+      "integrationDescription": "Connecter aux agents A2A AG-ACE-BRIDGE pour des tâches spécialisées",
+      "syncDescription": "Connecter les agents A2A spécialisés"
     }
   },
   "agentProfile": {

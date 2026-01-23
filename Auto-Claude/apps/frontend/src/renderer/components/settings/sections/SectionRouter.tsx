@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import type { Project, ProjectSettings as ProjectSettingsType, AutoBuildVersionInfo, ProjectEnvConfig, LinearSyncStatus, GitHubSyncStatus, GitLabSyncStatus } from '../../../../shared/types';
+import type { Project, ProjectSettings as ProjectSettingsType, AutoBuildVersionInfo, ProjectEnvConfig, LinearSyncStatus, GitHubSyncStatus, GitLabSyncStatus, A2ASyncStatus } from '../../../../shared/types';
 import { SettingsSection } from '../SettingsSection';
 import { GeneralSettings } from '../../project-settings/GeneralSettings';
 import { SecuritySettings } from '../../project-settings/SecuritySettings';
 import { LinearIntegration } from '../integrations/LinearIntegration';
 import { GitHubIntegration } from '../integrations/GitHubIntegration';
 import { GitLabIntegration } from '../integrations/GitLabIntegration';
+import { A2AIntegration } from '../integrations/A2AIntegration';
 import { InitializationGuard } from '../common/InitializationGuard';
 import type { ProjectSettingsSection } from '../ProjectSettingsContent';
 
@@ -35,8 +36,11 @@ interface SectionRouterProps {
   isCheckingGitLab: boolean;
   linearConnectionStatus: LinearSyncStatus | null;
   isCheckingLinear: boolean;
+  a2aConnectionStatus: A2ASyncStatus | null;
+  isCheckingA2A: boolean;
   handleInitialize: () => Promise<void>;
   onOpenLinearImport: () => void;
+  onA2ARefresh?: () => void;
 }
 
 /**
@@ -69,8 +73,11 @@ export function SectionRouter({
   isCheckingGitLab,
   linearConnectionStatus,
   isCheckingLinear,
+  a2aConnectionStatus,
+  isCheckingA2A,
   handleInitialize,
-  onOpenLinearImport
+  onOpenLinearImport,
+  onA2ARefresh
 }: SectionRouterProps) {
   const { t } = useTranslation('settings');
 
@@ -189,6 +196,28 @@ export function SectionRouter({
               setShowOpenAIKey={setShowOpenAIKey}
               expanded={true}
               onToggle={() => {}}
+            />
+          </InitializationGuard>
+        </SettingsSection>
+      );
+
+    case 'a2a':
+      return (
+        <SettingsSection
+          title={t('projectSections.a2a.integrationTitle')}
+          description={t('projectSections.a2a.integrationDescription')}
+        >
+          <InitializationGuard
+            initialized={!!project.autoBuildPath}
+            title={t('projectSections.a2a.integrationTitle')}
+            description={t('projectSections.a2a.syncDescription')}
+          >
+            <A2AIntegration
+              envConfig={envConfig}
+              updateEnvConfig={updateEnvConfig}
+              a2aConnectionStatus={a2aConnectionStatus}
+              isCheckingA2A={isCheckingA2A}
+              onRefresh={onA2ARefresh}
             />
           </InitializationGuard>
         </SettingsSection>

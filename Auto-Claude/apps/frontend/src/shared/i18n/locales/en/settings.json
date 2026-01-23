@@ -354,6 +354,13 @@
       "integrationTitle": "Memory",
       "integrationDescription": "Configure persistent cross-session memory for agents",
       "syncDescription": "Configure persistent memory"
+    },
+    "a2a": {
+      "title": "A2A Agents",
+      "description": "AG-ACE-BRIDGE integration",
+      "integrationTitle": "A2A Agent Integration",
+      "integrationDescription": "Connect to AG-ACE-BRIDGE A2A agents for specialized tasks",
+      "syncDescription": "Connect specialized A2A agents"
     }
   },
   "agentProfile": {

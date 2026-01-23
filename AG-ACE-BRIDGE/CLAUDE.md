@@ -2,6 +2,90 @@
 
 AG-ACE-BRIDGE 프로젝트의 AI 에이전트용 컨텍스트 파일.
 
+---
+
+## 필수 규칙 (MUST DO)
+
+> **코드 변경 시 반드시 문서도 동기화!**
+
+### 1. 문서 동기화
+- 코드 변경 → 관련 README 업데이트
+- 새 기능 추가 → 해당 모듈 README에 반영
+- API 변경 → CLAUDE.md 업데이트
+
+### 2. README 필수
+- **모든 폴더에 README.md 필수**
+- 새 폴더 생성 시 README.md 함께 생성
+- 내용: 개요, 파일 설명, 사용법, 예제
+
+### 3. Documentation Index 유지
+- 메인 `README.md`에 Documentation Index 섹션 유지
+- 새 README 추가 시 인덱스에 링크 추가
+
+```markdown
+## Documentation Index
+| 모듈 | 설명 | README |
+|------|------|--------|
+| new_module | 설명 | [링크](src/new_module/README.md) |
+```
+
+---
+
+## 개발 환경
+
+### Python 버전
+- **Python 3.13+** 권장
+- 현재: Python 3.13.7
+
+### 가상환경 설정
+
+```bash
+# 1. 가상환경 생성
+python -m venv .venv
+
+# 2. 활성화
+# Windows (PowerShell)
+.\.venv\Scripts\Activate.ps1
+
+# Windows (CMD)
+.\.venv\Scripts\activate.bat
+
+# Linux/macOS
+source .venv/bin/activate
+
+# 3. 의존성 설치
+pip install -r requirements.txt
+
+# 4. Submodule 초기화
+git submodule update --init --recursive
+```
+
+### 환경 변수 (.env)
+
+```bash
+cp .env.example .env
+# .env 파일 편집
+```
+
+주요 설정:
+| 변수 | 설명 | 기본값 |
+|------|------|--------|
+| `BRIDGE_PORT` | 브릿지 서버 포트 | 8080 |
+| `ANTHROPIC_API_KEY` | Anthropic API 키 | - |
+| `NEO4J_URI` | Neo4j 연결 URI | bolt://localhost:7687 |
+| `MAX_QA_ITERATIONS` | QA 루프 최대 반복 | 5 |
+
+### Claude Code OAuth
+
+```bash
+# Claude Code 로그인 (필수)
+claude
+/login
+# 브라우저에서 OAuth 인증
+```
+
+---
+
 ## 프로젝트 개요
 
 **AG-ACE-BRIDGE**는 24/7 AI Project Factory로, Auto-Claude와 AG 멀티에이전트 시스템을 통합하는 브릿지입니다.
@@ -260,6 +344,7 @@ AG-ACE-BRIDGE/
 │   │   ├── base.py             # 추상 베이스
 │   │   ├── auto_claude.py      # Claude SDK OAuth
 │   │   ├── ag_autogen.py       # HTTP/A2A
+│   │   ├── ag_a2a_adapter.py   # A2A Protocol (Google ADK)
 │   │   └── ag_law_domain.py    # HTTP/REST
 │   │
 │   ├── registry/          # 에이전트 레지스트리
@@ -274,6 +359,10 @@ AG-ACE-BRIDGE/
 │   │   ├── spec.py             # ProjectSpec 모델
 │   │   ├── watcher.py          # 폴더 감시
 │   │   └── cli.py              # CLI 명령어
+│   │
+│   ├── server/            # 웹 서버 (대시보드)
+│   │   ├── __init__.py         # 모듈 export
+│   │   └── dashboard.py        # FastAPI + WebSocket
 │   │
 │   └── utils/             # 유틸리티
 │       ├── config.py           # 환경 설정
@@ -317,7 +406,84 @@ MAX_QA_ITERATIONS=5
 STAGE_TIMEOUT_SECONDS=300
 ```
 
-## 빠른 시작
+## UI 시작 가이드 (★ 중요!)
+
+### Triple UI 아키텍처
+
+| UI | 설명 | URL/위치 |
+|---|---|---|
+| **Auto-Claude UI** | Electron 데스크톱 앱 | 데스크톱 앱 |
+| **AutoGen Studio** | 웹 기반 에이전트 빌더 | http://localhost:8081 |
+| **AG-ACE Dashboard** | 브릿지 모니터링 대시보드 | http://localhost:8080 |
+
+### 1. Auto-Claude UI 시작 (Electron)
+
+```powershell
+cd D:\Data\25_ACE\Auto-Claude\apps\frontend
+npm run dev
+```
+
+- Electron 데스크톱 앱이 자동으로 열림
+- Dev 서버: http://localhost:5173 (내부용)
+
+### 2. AutoGen Studio 시작
+
+```powershell
+# 방법 1: Python에서 직접 실행 (권장)
+python -c "from autogenstudio.cli import app; app()" ui --port 8081
+
+# 방법 2: autogenstudio 명령어가 PATH에 있는 경우
+autogenstudio ui --port 8081
+```
+
+- 웹 브라우저에서 http://localhost:8081 접속
+
+### 3. A2A 에이전트 서버 시작 (AG)
+
+```powershell
+cd D:\Data\25_ACE\AG\autogen_a2a_kit
+python run_all_agents.py --subset
+```
+
+| Agent | Port | 설명 |
+|-------|------|------|
+| poetry_agent | 8003 | 시/문학 |
+| philosophy_agent | 8004 | 철학 |
+| history_agent | 8005 | 역사 |
+| calculator_agent | 8006 | 계산 |
+| gui_test_agent | 8120 | GUI 자동화 |
+
+### 4. AG-ACE-BRIDGE Dashboard 시작
+
+```powershell
+cd D:\Data\25_ACE\AG-ACE-BRIDGE
+python main.py --dashboard
+```
+
+- 웹 브라우저에서 http://localhost:8080 접속
+
+### 5. SharedMemory 서버 시작
+
+```powershell
+cd D:\Data\25_ACE\AG\autogen_a2a_kit\AG-cli
+python shared_memory.py
+```
+
+- REST API: http://localhost:8101
+
+### 전체 시작 순서 (권장)
+
+```
+1. A2A 에이전트 서버 (ports 8003-8006, 8120)
+2. SharedMemory 서버 (port 8101)
+3. AG-ACE Dashboard (port 8080)
+4. AutoGen Studio (port 8081)
+5. Auto-Claude UI (Electron)
+```
+
+---
+
+## 빠른 시작 (백엔드 전용)
 
 ```bash
 # 1. 설치
@@ -348,8 +514,10 @@ python -m src.project.cli submit my-project.yaml
 ## 개발 상태
 
 - [x] Phase 1: Foundation (폴더 구조, 모델, 설정)
-- [x] Phase 2: Adapters (Auto-Claude SDK OAuth, AG HTTP)
+- [x] Phase 2: Adapters (Auto-Claude SDK OAuth, AG HTTP, AG A2A Protocol)
 - [x] Phase 3: Pipeline (Sequential, Parallel, Critic Loop)
 - [x] Phase 4: Project System (Spec, Watcher, CLI)
 - [x] Phase 5: Memory Sync (SharedMemoryClient → AG-CLI 8101 연동)
-- [ ] Phase 6: E2E Testing & Polish
+- [x] Phase 6: Web Dashboard (FastAPI + WebSocket 실시간 모니터링)
+- [x] Phase 7: AG Integration (A2A Protocol 연동, 19개 에이전트 조율)
+- [ ] Phase 8: E2E Testing & Polish

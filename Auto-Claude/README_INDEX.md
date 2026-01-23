@@ -64,6 +64,55 @@ SPEC → PLANNER → CODER → QA LOOP → FIXER → MERGE
 
 ---
 
+## Frontend 문서 (`apps/frontend/`)
+
+| 경로 | 설명 |
+|------|------|
+| [apps/frontend/README.md](apps/frontend/README.md) | Frontend 메인 가이드 (Electron + React) |
+| [apps/frontend/CONTRIBUTING.md](apps/frontend/CONTRIBUTING.md) | Frontend 기여 가이드 |
+
+---
+
+## Guides 문서 (`guides/`)
+
+| 경로 | 설명 |
+|------|------|
+| [guides/README.md](guides/README.md) | 가이드 인덱스 |
+| [guides/CLI-USAGE.md](guides/CLI-USAGE.md) | CLI 전용 사용법 |
+| [guides/windows-development.md](guides/windows-development.md) | Windows 개발 가이드 |
+| [guides/linux.md](guides/linux.md) | Linux 설치 가이드 |
+
+---
+
+## Scripts 문서 (`scripts/`)
+
+| 경로 | 설명 |
+|------|------|
+| [scripts/README.md](scripts/README.md) | 스크립트 목록 및 사용법 |
+
+주요 스크립트:
+- `bump-version.js` - 버전 범프 (patch/minor/major)
+- `install-backend.js` - 백엔드 의존성 설치
+- `test-backend.js` - 백엔드 테스트 실행
+- `validate-release.js` - 릴리스 검증
+
+---
+
+## Tests 문서 (`tests/`)
+
+| 경로 | 설명 |
+|------|------|
+| [tests/README.md](tests/README.md) | 테스트 가이드 |
+
+테스트 카테고리:
+- 핵심 테스트 (client, auth, security)
+- 에이전트 테스트 (architecture, configs, recovery)
+- QA 테스트 (loop, criteria, report)
+- Merge 테스트 (orchestrator, conflict, resolver)
+- GitHub 통합 테스트 (PR review, bot detection)
+
+---
+
 ## 아키텍처 다이어그램
 
 ### 파이프라인 흐름
@@ -251,5 +300,6 @@ python run.py --spec 001 --merge
 
 ## 변경 이력
 
+- 2025-01-23: scripts, tests README 추가 및 INDEX 업데이트
 - 2025-01-21: README INDEX 생성
 - 2025-01-21: core, integrations, prompts, qa README 추가

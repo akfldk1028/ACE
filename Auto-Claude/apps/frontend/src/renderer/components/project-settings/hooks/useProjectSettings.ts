@@ -12,7 +12,8 @@ import type {
   ProjectEnvConfig,
   LinearSyncStatus,
   GitHubSyncStatus,
-  GitLabSyncStatus
+  GitLabSyncStatus,
+  A2ASyncStatus
 } from '../../../../shared/types';
 
 export interface UseProjectSettingsReturn {
@@ -72,6 +73,10 @@ export interface UseProjectSettingsReturn {
   linearConnectionStatus: LinearSyncStatus | null;
   isCheckingLinear: boolean;
 
+  // A2A state
+  a2aConnectionStatus: A2ASyncStatus | null;
+  isCheckingA2A: boolean;
+
   // Actions
   handleInitialize: () => Promise<void>;
   handleSaveEnv: () => Promise<void>;
@@ -106,7 +111,8 @@ export function useProjectSettings(
     claude: true,
     linear: false,
     github: false,
-    graphiti: false
+    graphiti: false,
+    a2a: false
   });
 
   // GitHub state
@@ -127,6 +133,10 @@ export function useProjectSettings(
   const [showLinearImportModal, setShowLinearImportModal] = useState(false);
   const [linearConnectionStatus, setLinearConnectionStatus] = useState<LinearSyncStatus | null>(null);
   const [isCheckingLinear, setIsCheckingLinear] = useState(false);
+
+  // A2A state
+  const [a2aConnectionStatus, setA2AConnectionStatus] = useState<A2ASyncStatus | null>(null);
+  const [isCheckingA2A, setIsCheckingA2A] = useState(false);
 
   // Reset settings when project changes
   useEffect(() => {
@@ -271,6 +281,39 @@ export function useProjectSettings(
       checkGitLabConnection();
     }
   }, [envConfig?.gitlabEnabled, envConfig?.gitlabToken, envConfig?.gitlabProject, project.id]);
+
+  // Check A2A connection when enabled
+  useEffect(() => {
+    const checkA2AConnection = async () => {
+      if (!envConfig?.a2aEnabled) {
+        setA2AConnectionStatus(null);
+        return;
+      }
+
+      setIsCheckingA2A(true);
+      try {
+        const result = await window.electronAPI.discoverA2AAgents(project.id);
+        if (result.success && result.data) {
+          setA2AConnectionStatus(result.data);
+        }
+      } catch {
+        setA2AConnectionStatus({
+          connected: false,
+          autogenStudioOnline: false,
+          agentCount: 0,
+          onlineAgentCount: 0,
+          agents: [],
+          error: 'Failed to check A2A connection'
+        });
+      } finally {
+        setIsCheckingA2A(false);
+      }
+    };
+
+    if (envConfig?.a2aEnabled) {
+      checkA2AConnection();
+    }
+  }, [envConfig?.a2aEnabled, envConfig?.a2aAutogenStudioUrl, project.id]);
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -418,6 +461,8 @@ export function useProjectSettings(
     setShowLinearImportModal,
     linearConnectionStatus,
     isCheckingLinear,
+    a2aConnectionStatus,
+    isCheckingA2A,
     handleInitialize,
     handleSaveEnv,
     handleClaudeSetup,

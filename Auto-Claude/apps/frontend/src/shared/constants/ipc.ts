@@ -529,6 +529,18 @@ export const IPC_CHANNELS = {
   MCP_CHECK_HEALTH: 'mcp:checkHealth',           // Quick connectivity check
   MCP_TEST_CONNECTION: 'mcp:testConnection',     // Full MCP protocol test
 
+  // A2A (Agent-to-Agent) Protocol operations
+  A2A_DISCOVER_AGENTS: 'a2a:discoverAgents',      // Discover available A2A agents
+  A2A_CHECK_AGENT_HEALTH: 'a2a:checkAgentHealth', // Check individual agent health
+  A2A_SEND_MESSAGE: 'a2a:sendMessage',            // Send message to A2A agent
+
+  // SharedMemory synchronization (A2A ↔ AG sync)
+  SHARED_MEMORY_HEALTH: 'sharedMemory:health',       // Check SharedMemory server (8101) status
+  SHARED_MEMORY_GET: 'sharedMemory:get',             // Get value from SharedMemory
+  SHARED_MEMORY_STORE: 'sharedMemory:store',         // Store value to SharedMemory
+  SHARED_MEMORY_LIST_KEYS: 'sharedMemory:listKeys',  // List all keys in SharedMemory
+  SHARED_MEMORY_GET_A2A_HISTORY: 'sharedMemory:getA2AHistory',  // Get A2A call history
+
   // Sentry error reporting
   SENTRY_STATE_CHANGED: 'sentry:state-changed',  // Notify main process when setting changes
   GET_SENTRY_DSN: 'sentry:get-dsn',              // Get DSN from main process (env var)

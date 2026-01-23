@@ -42,6 +42,14 @@ from src.adapters import (
     create_risk_assessor_adapter,
     create_compliance_checker_adapter,
     create_document_drafter_adapter,
+    # AG A2A Protocol adapters
+    A2AAdapterManager,
+    A2AAgentType,
+    create_poetry_adapter,
+    create_philosophy_adapter,
+    create_history_adapter,
+    create_calculator_adapter,
+    create_gui_test_adapter,
 )
 
 
@@ -453,6 +461,9 @@ class Orchestrator:
 
     async def _initialize_adapters(self) -> None:
         """Initialize all adapters and register with registry"""
+        # ★ SharedMemory 동기화 플래그 - 모든 A2A 어댑터에 전달
+        sm = self._enable_shared_memory
+
         adapters = [
             # Auto-Claude
             (AgentType.AUTO_CLAUDE_PLANNER, create_planner_adapter()),
@@ -471,6 +482,12 @@ class Orchestrator:
             (AgentType.AG_RISK_ASSESSOR, create_risk_assessor_adapter()),
             (AgentType.AG_COMPLIANCE_CHECKER, create_compliance_checker_adapter()),
             (AgentType.AG_DOCUMENT_DRAFTER, create_document_drafter_adapter()),
+            # AG A2A Protocol (autogen_a2a_kit demo agents) - ★ SharedMemory 연동
+            (AgentType.AG_A2A_POETRY, create_poetry_adapter(enable_shared_memory=sm)),
+            (AgentType.AG_A2A_PHILOSOPHY, create_philosophy_adapter(enable_shared_memory=sm)),
+            (AgentType.AG_A2A_HISTORY, create_history_adapter(enable_shared_memory=sm)),
+            (AgentType.AG_A2A_CALCULATOR, create_calculator_adapter(enable_shared_memory=sm)),
+            (AgentType.AG_A2A_GUI_TEST, create_gui_test_adapter(enable_shared_memory=sm)),
         ]
 
         for agent_type, adapter in adapters:

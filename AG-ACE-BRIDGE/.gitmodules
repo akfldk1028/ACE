@@ -1,0 +1,3 @@
+[submodule "modules/Auto-Claude"]
+	path = modules/Auto-Claude
+	url = https://github.com/AndyMik90/Auto-Claude.git

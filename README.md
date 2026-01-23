@@ -1,180 +1,353 @@
 # 25_ACE
 
-AI Agent Coordination Ecosystem - 24/7 AI 프로젝트 팩토리
+AI Agent Coordination Ecosystem - 24/7 AI Project Factory
 
 ## Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         25_ACE ECOSYSTEM                             │
-│                    AI Agent Coordination Ecosystem                   │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌─────────────────┐                      ┌─────────────────┐      │
-│  │   Auto-Claude   │                      │       AG        │      │
-│  │   24/7 Engine   │                      │  Multi-Agent    │      │
-│  │                 │                      │                 │      │
-│  │  • Planner      │    AG-ACE-BRIDGE    │  • autogen_a2a  │      │
-│  │  • Coder (24/7) │◄────────────────────►│    (8 agents)   │      │
-│  │  • QA Reviewer  │                      │  • law-domain   │      │
-│  │  • QA Fixer     │                      │    (5 agents)   │      │
-│  └─────────────────┘                      └─────────────────┘      │
-│          │                                        │                 │
-│          ▼                                        ▼                 │
-│  ┌─────────────────┐                      ┌─────────────────┐      │
-│  │    Graphiti     │        Sync          │     Neo4j       │      │
-│  │   (LadybugDB)   │◄────────────────────►│  Knowledge      │      │
-│  └─────────────────┘                      └─────────────────┘      │
-│                                                                     │
-│  Total: 17 Coordinated Agents                                       │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
++-----------------------------------------------------------------------+
+|                         25_ACE ECOSYSTEM                               |
+|                    AI Agent Coordination Ecosystem                     |
++-----------------------------------------------------------------------+
+|                                                                       |
+|  +-------------------+                      +-------------------+     |
+|  |   Auto-Claude     |                      |       AG          |     |
+|  |   24/7 Engine     |                      |  Multi-Agent      |     |
+|  |                   |                      |                   |     |
+|  |  * Planner        |    AG-ACE-BRIDGE    |  * autogen_a2a    |     |
+|  |  * Coder (24/7)   |<------------------->|    (10 agents)    |     |
+|  |  * QA Reviewer    |                      |  * law-domain     |     |
+|  |  * QA Fixer       |                      |    (5 agents)     |     |
+|  +-------------------+                      +-------------------+     |
+|          |                                          |                 |
+|          v                                          v                 |
+|  +-------------------+                      +-------------------+     |
+|  |    Graphiti       |        Sync          |     Neo4j         |     |
+|  |   (LadybugDB)     |<-------------------->|  Knowledge        |     |
+|  +-------------------+                      +-------------------+     |
+|                                                                       |
+|  Total: 19 Coordinated Agents                                         |
+|                                                                       |
++-----------------------------------------------------------------------+
+```
+
+## Triple UI Architecture
+
+**3개의 UI를 함께 실행**하여 Task 관리, Pattern 개발, 운영을 분리합니다:
+
+```
++-----------------------------------------------------------------------------+
+|                         TRIPLE UI ARCHITECTURE                               |
++-----------------------------------------------------------------------------+
+|                                                                             |
+|  +---------------------+  +---------------------+  +---------------------+  |
+|  |    Auto-Claude      |  |   AutoGen Studio    |  |   AG-ACE-BRIDGE    |  |
+|  |    (Electron)       |  |      (Web)          |  |    Dashboard       |  |
+|  |                     |  |                     |  |      (Web)         |  |
+|  |  [Task Management]  |  |  [Pattern Dev]      |  |  [Operations]      |  |
+|  |                     |  |                     |  |                    |  |
+|  |  * SPEC Creation    |  |  * Pattern Gallery  |  |  * 24/7 Queue      |  |
+|  |  * Task Queue       |  |  * Team Config      |  |  * Orchestrator    |  |
+|  |  * Execution View   |  |  * A2A Testing      |  |  * Agent Status    |  |
+|  |  * GitHub/Linear    |  |  * Drag & Drop      |  |  * Memory Sync     |  |
+|  |                     |  |                     |  |                    |  |
+|  |  npm run dev        |  |  autogenstudio ui   |  |  python main.py    |  |
+|  |  (Electron App)     |  |  (Port 8081)        |  |  (Port 8080)       |  |
+|  +---------------------+  +---------------------+  +---------------------+  |
+|           |                        |                        |               |
+|           +------------------------+------------------------+               |
+|                                    |                                        |
+|                    +---------------v---------------+                        |
+|                    |      Shared Infrastructure    |                        |
+|                    |   A2A Agents (8003-8120)      |                        |
+|                    |   SharedMemory (8101)         |                        |
+|                    |   Neo4j / Graphiti            |                        |
+|                    +-------------------------------+                        |
+|                                                                             |
++-----------------------------------------------------------------------------+
+```
+
+| UI | Type | Port | Purpose | When to Use |
+|----|------|------|---------|-------------|
+| **Auto-Claude** | Electron | - | Task management, SPEC creation, GitHub/Linear | Creating tasks, Monitoring execution |
+| **AutoGen Studio** | Web | 8081 | Pattern development, Team config, A2A testing | Developing patterns, Agent experiments |
+| **AG-ACE-BRIDGE** | Web | 8080 | 24/7 orchestration, Agent coordination | Running 24/7 operations, Status monitoring |
+
+## Quick Start
+
+### 1. Start All Services
+
+```bash
+# Terminal 1: A2A Agents
+cd AG/autogen_a2a_kit/a2a_demo
+python run_all_agents.py  # 8003-8120
+
+# Terminal 2: SharedMemory
+cd AG/autogen_a2a_kit/AG-cli
+python shared_memory_server.py  # 8101
+
+# Terminal 3: AutoGen Studio (Optional - Development)
+cd AG/autogen_a2a_kit/autogen_source
+npm run dev  # 8081
+
+# Terminal 4: AG-ACE-BRIDGE (Main Operations)
+cd AG-ACE-BRIDGE
+python main.py  # 8080 + Orchestrator
+```
+
+### 2. Access Dashboards
+
+- **Operations**: http://localhost:8080 (AG-ACE-BRIDGE)
+- **Development**: http://localhost:8081 (AutoGen Studio)
+
+### 3. Submit a Project
+
+```bash
+# Via CLI
+cd AG-ACE-BRIDGE
+python -m src.coordinator.orchestrator --spec "Build a REST API"
+
+# Or via Dashboard
+# Open http://localhost:8080 -> Submit New Task
 ```
 
 ## Projects
 
-| 프로젝트 | 설명 | 문서 |
-|----------|------|------|
-| [Auto-Claude](Auto-Claude/) | 24/7 자율 코딩 프레임워크 | [README_INDEX](Auto-Claude/README_INDEX.md) |
-| [AG](AG/) | 멀티에이전트 프레임워크 (18개 프로젝트) | [README_INDEX](AG/agent/README_INDEX.md) |
-| [AG-ACE-BRIDGE](AG-ACE-BRIDGE/) | Auto-Claude + AG 통합 브릿지 | [README_INDEX](AG-ACE-BRIDGE/README_INDEX.md) |
+| Project | Description | Docs |
+|---------|-------------|------|
+| [Auto-Claude](Auto-Claude/) | 24/7 Autonomous Coding Framework | [README_INDEX](Auto-Claude/README_INDEX.md) |
+| [AG](AG/) | Multi-Agent System Hub | [README.md](AG/README.md) |
+| [AG-ACE-BRIDGE](AG-ACE-BRIDGE/) | Auto-Claude + AG Integration Bridge | [README_INDEX](AG-ACE-BRIDGE/README_INDEX.md) |
+| [Calculator](Calculator/) | Example Project (Agent Demo) | - |
+
+## Complete Workflow Example
+
+**GitHub Issue -> PR Merge 완전 자동화 예시**: [WORKFLOW_EXAMPLE.md](docs/WORKFLOW_EXAMPLE.md)
+
+```
+GitHub Issue #42: "Calculator에 퍼센트 기능 추가"
+    |
+    v
++--------+   +--------+   +--------+   +--------+   +--------+
+|  SPEC  | > |  PLAN  | > |  CODE  | > |   QA   | > | MERGE  |
+| 30min  |   | 15min  |   |  2hr   |   | 30min  |   |  5min  |
++--------+   +--------+   +--------+   +--------+   +--------+
+    |            |            |            |            |
+AG Selector  AG Magentic  Auto-Claude  AG Reflection  Auto PR
++ Research   Orchestrator Coder 24/7   + gui_test     Creation
+
+Total: ~3.5 hours (Fully Automated)
+```
 
 ## Architecture
 
-상세 아키텍처: [ARCHITECTURE.md](ARCHITECTURE.md)
+### Core Concepts
 
-### 핵심 개념
+1. **Auto-Claude**: 24/7 Autonomous Coding Engine
+   - SPEC -> PLAN -> CODE -> QA -> MERGE pipeline
+   - `while True:` infinite loop for autonomous operation
+   - Claude Agent SDK based
 
-1. **Auto-Claude**: 24/7 자율 코딩 엔진
-   - SPEC → PLAN → CODE → QA → MERGE 파이프라인
-   - `while True:` 무한 루프로 자율 운영
-   - Claude Agent SDK 기반
+2. **AG**: Multi-Agent Expert Teams
+   - autogen_a2a_kit: 10 A2A protocol agents
+   - law-domain-agents: 5 legal domain agents
+   - 11 MAS patterns (Sequential, Selector, Swarm, Debate, etc.)
 
-2. **AG**: 멀티에이전트 전문가 팀
-   - autogen_a2a_kit: 8개 A2A 프로토콜 에이전트
-   - law-domain-agents: 5개 법률 도메인 에이전트
-   - FastAPI HTTP 엔드포인트
+3. **AG-ACE-BRIDGE**: Integration Bridge
+   - Central Orchestrator for 19 agents
+   - Pattern-based task routing
+   - Graphiti <-> Neo4j memory sync
 
-3. **AG-ACE-BRIDGE**: 통합 브릿지
-   - 4계층 Hybrid Orchestration
-   - 17개 에이전트 조율
-   - Graphiti ↔ Neo4j 메모리 동기화
+### Flow Model Integration
 
-## Quick Start
-
-### Auto-Claude 실행
-
-```bash
-cd Auto-Claude/apps/backend
-python run.py --list
-python run.py --spec 001
+```
++-----------------------------------------------------------------------------+
+|                    UNIFIED FLOW MODEL ARCHITECTURE                           |
++-----------------------------------------------------------------------------+
+|                                                                             |
+|  [Phase 1: Task Intake]                                                     |
+|  +---------------------------------------------------------------------+   |
+|  |  GitHub Issues/PRs  ->  Auto-Claude SPEC  ->  Task Queue             |   |
+|  |  Linear Tasks       ->  Planner Agent    ->  Subtask Decomposition   |   |
+|  +---------------------------------------------------------------------+   |
+|                                      |                                      |
+|                                      v                                      |
+|  [Phase 2: MAS Pattern Selection]                                          |
+|  +---------------------------------------------------------------------+   |
+|  |  AG autogen_a2a_kit Patterns:                                        |   |
+|  |  +-- Sequential (01): Linear conversation -> Simple pipeline         |   |
+|  |  +-- Selector  (03): LLM selects next agent -> Dynamic routing       |   |
+|  |  +-- Swarm     (05): Agent handoffs -> Complex delegation            |   |
+|  |  +-- Debate    (07): Discussion/rebuttal -> Code review              |   |
+|  |  +-- Reflection(08): Worker+Reviewer -> QA loop                      |   |
+|  |  +-- Magentic  (06): Orchestrator -> Large-scale distribution        |   |
+|  +---------------------------------------------------------------------+   |
+|                                      |                                      |
+|                                      v                                      |
+|  [Phase 3: Agent Execution]                                                |
+|  +---------------------------------------------------------------------+   |
+|  |  Auto-Claude Pipeline:                AG A2A Agents:                 |   |
+|  |  +-- Planner   (plan)     <------>  +-- research_agent               |   |
+|  |  +-- Coder     (impl 24/7)<------>  +-- calculator_agent             |   |
+|  |  +-- QA Reviewer (verify) <------>  +-- philosophy_agent             |   |
+|  |  +-- QA Fixer  (fix)      <------>  +-- gui_test_agent (PyAutoGUI)   |   |
+|  +---------------------------------------------------------------------+   |
+|                                      |                                      |
+|                                      v                                      |
+|  [Phase 4: Memory & Sync]                                                  |
+|  +---------------------------------------------------------------------+   |
+|  |  Graphiti (LadybugDB)           <------->          Neo4j             |   |
+|  |  +-- Code Patterns              <------->   +-- Domain Knowledge     |   |
+|  |  +-- Session Insights           <------->   +-- Legal Rules          |   |
+|  |  +-- Project Context            <------->   +-- Compliance           |   |
+|  +---------------------------------------------------------------------+   |
+|                                                                             |
++-----------------------------------------------------------------------------+
 ```
 
-### AG Law-Domain 실행
+### Pattern-Pipeline Mapping
 
-```bash
-cd AG/agent/law-domain-agents
-python -m uvicorn main:app --port 8000
-```
+| Auto-Claude Stage | Recommended AG Pattern | Use Case |
+|-------------------|------------------------|----------|
+| SPEC Generation | Selector | Dynamic selection of expert agents |
+| PLAN Creation | Magentic | Orchestrator distributes work |
+| CODE Implementation | Sequential / Swarm | Linear or complex delegation |
+| QA Validation | Reflection / Debate | Reviewer pattern, discussion |
+| MERGE | Sequential | Final merge confirmation |
 
-### AG-ACE-BRIDGE 실행 (구현 예정)
+## Agent Registry (19 Agents)
 
-```bash
-cd AG-ACE-BRIDGE
-pip install -r requirements.txt
-python -m src.coordinator.orchestrator
-```
+### Auto-Claude (4)
+| Agent | Function |
+|-------|----------|
+| Planner | Implementation planning, subtask decomposition |
+| Coder | 24/7 autonomous coding |
+| QA Reviewer | E2E testing, quality verification |
+| QA Fixer | Issue fixing, debugging |
+
+### AG autogen_a2a_kit (10 A2A Agents)
+| Agent | Port | Function |
+|-------|------|----------|
+| poetry_agent | 8003 | Poetry/Literature |
+| philosophy_agent | 8004 | Philosophy |
+| history_agent | 8005 | History |
+| calculator_agent | 8006 | Calculation |
+| math_agent | 8007 | Mathematics |
+| graphics_agent | 8008 | Graphics |
+| gpu_agent | 8009 | GPU Computing |
+| research_agent | 8010 | Research |
+| code_agent | 8011 | Code Analysis |
+| gui_test_agent | 8120 | GUI Automation (PyAutoGUI) |
+
+### AG law-domain (5)
+| Agent | Function |
+|-------|----------|
+| Case Analyzer | Case law analysis |
+| Legal Researcher | Legal research |
+| Risk Assessor | Risk assessment |
+| Compliance Checker | Compliance verification |
+| Document Drafter | Legal document drafting |
 
 ## Directory Structure
 
 ```
 D:/Data/25_ACE/
-│
-├── Auto-Claude/              # 24/7 자율 코딩
-│   ├── apps/backend/         # Python 백엔드
-│   ├── apps/frontend/        # Electron 프론트엔드
-│   ├── CLAUDE.md             # Claude Code 가이드
-│   └── README_INDEX.md       # 문서 목록
-│
-├── AG/                       # 멀티에이전트 프레임워크
-│   └── agent/                # 에이전트 프로젝트들
-│       ├── autogen_a2a_kit/  # A2A 프로토콜 에이전트
-│       ├── law-domain-agents/# 법률 도메인 에이전트
-│       └── README_INDEX.md   # 문서 목록
-│
-├── AG-ACE-BRIDGE/            # 통합 브릿지
-│   ├── src/                  # 소스 코드
-│   │   ├── coordinator/      # 24/7 오케스트레이터
-│   │   ├── pipeline/         # 실행 흐름
-│   │   ├── adapters/         # 에이전트 어댑터
-│   │   ├── memory/           # 메모리 동기화
-│   │   └── registry/         # 에이전트 레지스트리
-│   ├── docs/ARCHITECTURE.md  # 상세 아키텍처
-│   └── README_INDEX.md       # 문서 목록
-│
-├── ARCHITECTURE.md           # 전체 아키텍처 문서
-└── README.md                 # 이 파일
+|
++-- Auto-Claude/              # 24/7 Autonomous Coding
+|   +-- apps/backend/         # Python Backend
+|   +-- apps/frontend/        # Electron Frontend
+|   +-- CLAUDE.md             # Claude Code Guide
+|   +-- README_INDEX.md       # Documentation Index
+|
++-- AG/                       # Multi-Agent System Hub
+|   +-- agent/                # 18+ Agent Projects
+|   |   +-- law-domain-agents/# Legal Domain Agents
+|   |   +-- README_INDEX.md   # Documentation Index
+|   +-- autogen_a2a_kit/      # AutoGen + A2A Integration
+|   |   +-- a2a_demo/         # 10 A2A Agents
+|   |   +-- AG_Cohub/         # Pattern Gallery (12 patterns)
+|   |   +-- AG-cli/           # Claude CLI Collaboration
+|   +-- agent_core/           # Shared Libraries
+|   +-- README_INDEX.md       # Documentation Index
+|
++-- AG-ACE-BRIDGE/            # Integration Bridge
+|   +-- main.py               # Main Entry Point
+|   +-- src/                  # Source Code
+|   |   +-- coordinator/      # 24/7 Orchestrator
+|   |   +-- pipeline/         # Execution Flow
+|   |   +-- adapters/         # Agent Adapters
+|   |   +-- memory/           # Memory Sync
+|   |   +-- server/           # Dashboard Server
+|   +-- docs/ARCHITECTURE.md  # Detailed Architecture
+|   +-- README_INDEX.md       # Documentation Index
+|
++-- docs/
+|   +-- WORKFLOW_EXAMPLE.md   # Complete Project Example
+|
++-- ARCHITECTURE.md           # Overall Architecture
++-- README.md                 # This File
 ```
-
-## Agent Registry (17개)
-
-### Auto-Claude (4개)
-| 에이전트 | 기능 |
-|----------|------|
-| Planner | 구현 계획, 서브태스크 분해 |
-| Coder | 24/7 자율 코딩 |
-| QA Reviewer | E2E 테스트, 품질 검증 |
-| QA Fixer | 이슈 수정, 디버깅 |
-
-### AG autogen_a2a_kit (8개)
-| 에이전트 | 기능 |
-|----------|------|
-| Research | 정보 수집, 웹 검색 |
-| Analyst | 데이터 분석, 패턴 탐지 |
-| Writer | 문서 작성 |
-| Reviewer | 검토, 피드백 |
-| Coordinator | 작업 조율 |
-| ... | (3개 더) |
-
-### AG law-domain (5개)
-| 에이전트 | 기능 |
-|----------|------|
-| Case Analyzer | 판례 분석 |
-| Legal Researcher | 법률 조사 |
-| Risk Assessor | 리스크 평가 |
-| Compliance Checker | 컴플라이언스 검증 |
-| Document Drafter | 법률 문서 초안 |
 
 ## Use Cases
 
-### 1. 법률 소프트웨어 개발
+### 1. Legal Software Development
 ```
-AG Legal Research → Auto-Claude SPEC → CODE → AG Compliance → QA → MERGE
-```
-
-### 2. 연구 기반 개발
-```
-AG Research → AG Analyst → Auto-Claude Full Pipeline
+AG Legal Research -> Auto-Claude SPEC -> CODE -> AG Compliance -> QA -> MERGE
+Pattern: Selector (legal expert selection) + Reflection (compliance review)
 ```
 
-### 3. 24/7 자동 개선
+### 2. Research-Based Development
 ```
-Orchestrator detects → AG Analyst → Queue new tasks → Auto-Claude implements
+AG Research -> AG Analyst -> Auto-Claude Full Pipeline
+Pattern: Sequential (research->analysis->implementation) + Debate (approach discussion)
+```
+
+### 3. 24/7 GitHub Automation
+```
+GitHub Issue -> Auto-Claude SPEC -> Planner -> Coder(24/7) -> QA -> PR
+Pattern: Magentic (orchestrator-based work distribution)
+```
+
+### 4. Complex Domain Integration
+```
+AG law-domain + AG autogen_a2a_kit -> AG-ACE-BRIDGE -> Auto-Claude
+Pattern: Swarm (domain expert handoffs) + Selector (dynamic routing)
 ```
 
 ## Requirements
 
 - Python 3.10+
-- Node.js (Auto-Claude frontend)
+- Node.js 18+ (Auto-Claude frontend)
 - Neo4j (AG law-domain)
 - Claude API Key (ANTHROPIC_API_KEY)
 - OpenAI API Key (AG)
 
 ## Documentation
 
-- [Auto-Claude CLAUDE.md](Auto-Claude/CLAUDE.md) - Auto-Claude 핵심 가이드
-- [ARCHITECTURE.md](ARCHITECTURE.md) - 전체 아키텍처
-- [AG-ACE-BRIDGE Architecture](AG-ACE-BRIDGE/docs/ARCHITECTURE.md) - 브릿지 상세 설계
+| Document | Description |
+|----------|-------------|
+| [AI_STARTUP_GUIDE.md](docs/AI_STARTUP_GUIDE.md) | **AI용 시작 가이드 - 서버 시작 순서, 2 UI 운영** |
+| [PROJECT_START_GUIDE.md](docs/PROJECT_START_GUIDE.md) | 3 UI coordination guide - How to use all UIs together |
+| [WORKFLOW_EXAMPLE.md](docs/WORKFLOW_EXAMPLE.md) | Complete project workflow (GitHub Issue -> PR) |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Overall system architecture |
+| [Auto-Claude CLAUDE.md](Auto-Claude/CLAUDE.md) | Auto-Claude core guide |
+| [AG-ACE-BRIDGE Architecture](AG-ACE-BRIDGE/docs/ARCHITECTURE.md) | Bridge detailed design |
+
+## Service Ports
+
+| Service | Port | Description |
+|---------|------|-------------|
+| AG-ACE-BRIDGE Dashboard | 8080 | Operations monitoring |
+| AutoGen Studio | 8081 | Pattern development |
+| SharedMemory | 8101 | Context sharing |
+| poetry_agent | 8003 | A2A agent |
+| philosophy_agent | 8004 | A2A agent |
+| history_agent | 8005 | A2A agent |
+| calculator_agent | 8006 | A2A agent |
+| math_agent | 8007 | A2A agent |
+| graphics_agent | 8008 | A2A agent |
+| gpu_agent | 8009 | A2A agent |
+| gui_test_agent | 8120 | E2E testing |
 
 ## License
 

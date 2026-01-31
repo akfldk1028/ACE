@@ -367,6 +367,8 @@ export const TaskCard = memo(function TaskCard({
   const isAutogenAgent = (task.metadata as Record<string, unknown>)?.source === 'autogen-agent';
   const isAutogenLastAgent = (task.metadata as Record<string, unknown>)?.isLastAgent === true;
   const autogenAgentCount = (task.metadata as Record<string, unknown>)?.agentCount as number | undefined;
+  const triggerStatus = (task.metadata as Record<string, unknown>)?.triggerStatus as string | undefined;
+  const triggerExecId = (task.metadata as Record<string, unknown>)?.triggerExecId as string | undefined;
 
   return (
     <Card
@@ -413,12 +415,29 @@ export const TaskCard = memo(function TaskCard({
               {displayTitle}
             </h3>
 
-            {/* AutoGen header: agent count summary */}
+            {/* AutoGen header: agent count summary + 24/7 trigger status */}
             {isAutogenHeader && autogenAgentCount !== undefined && (
               <div className="mt-1 flex items-center gap-1.5 text-[10px] text-blue-400/70">
                 <span>● {(task.metadata as Record<string, unknown>)?.runStatus === 'COMPLETE' || (task.metadata as Record<string, unknown>)?.runStatus === 'COMPLETED' ? 'Complete' : (task.metadata as Record<string, unknown>)?.runStatus === 'RUNNING' ? 'Running' : String((task.metadata as Record<string, unknown>)?.runStatus || '')}</span>
                 <span>·</span>
                 <span>{autogenAgentCount} agent{autogenAgentCount !== 1 ? 's' : ''}</span>
+                {triggerStatus && (
+                  <>
+                    <span>·</span>
+                    <span className={cn(
+                      triggerStatus === 'running' && 'text-green-400',
+                      triggerStatus === 'triggered' && 'text-yellow-400',
+                      triggerStatus === 'done' && 'text-green-500',
+                      triggerStatus === 'error' && 'text-red-400',
+                    )}>
+                      {triggerStatus === 'running' && '⚡ Pipeline running'}
+                      {triggerStatus === 'triggered' && '⏳ Triggering...'}
+                      {triggerStatus === 'done' && '✓ Pipeline done'}
+                      {triggerStatus === 'error' && '✗ Trigger failed'}
+                      {triggerExecId && ` (${triggerExecId})`}
+                    </span>
+                  </>
+                )}
               </div>
             )}
 

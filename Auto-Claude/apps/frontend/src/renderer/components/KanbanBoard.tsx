@@ -491,6 +491,7 @@ function autogenRunToTasks(run: {
       isHeader: true,
       agentCount,
       runStatus: runStatus,
+      sessionId: String(sessionId),
     } as Task['metadata']
   });
 
@@ -621,6 +622,10 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
   const [autogenTasks, setAutogenTasks] = useState<Task[]>([]);
   const autogenPollRef = useRef<NodeJS.Timeout | null>(null);
 
+  // ★ 24/7 Auto-trigger: track processed sessions to avoid re-triggering
+  const processedSessionsRef = useRef<Set<string>>(new Set());
+  const [autoTriggerLog, setAutoTriggerLog] = useState<Record<string, { status: 'triggered' | 'running' | 'done' | 'error'; execId?: string; message?: string }>>({});
+
   // Pipeline project state
   const [pipelineProjects, setPipelineProjects] = useState<PipelineProject[]>([]);
   const [pipelineTasks, setPipelineTasks] = useState<Task[]>([]);
@@ -635,29 +640,99 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
   });
   const [isCreatingProject, setIsCreatingProject] = useState(false);
 
+  // ★ 24/7 Auto-trigger: when a new AutoGen session completes, auto-execute workflow
+  const autoTriggerWorkflow = useCallback(async (sessionId: string, taskDescription: string) => {
+    const key = String(sessionId);
+    if (processedSessionsRef.current.has(key)) return;
+    processedSessionsRef.current.add(key);
+
+    console.log(`[24/7] Auto-triggering workflow for session ${sessionId}: "${taskDescription.slice(0, 80)}..."`);
+    setAutoTriggerLog(prev => ({ ...prev, [key]: { status: 'triggered' } }));
+
+    try {
+      const response = await window.electronAPI.workflowExecute(
+        taskDescription,
+        'standard', // Default complexity; AutoGen tasks are typically standard
+        false       // Don't auto-merge; let human review
+      );
+
+      if (response.success && response.data?.success) {
+        console.log(`[24/7] Workflow triggered successfully for session ${sessionId}:`, response.data.exec_id);
+        setAutoTriggerLog(prev => ({
+          ...prev,
+          [key]: { status: 'running', execId: response.data!.exec_id, message: response.data!.message }
+        }));
+        toast({
+          title: `[24/7] Auto-pipeline started`,
+          description: `Session ${sessionId} → ${response.data.exec_id || 'running'}`,
+        });
+      } else {
+        console.warn(`[24/7] Workflow trigger failed for session ${sessionId}:`, response.error);
+        setAutoTriggerLog(prev => ({
+          ...prev,
+          [key]: { status: 'error', message: response.error || 'Unknown error' }
+        }));
+      }
+    } catch (err) {
+      console.error(`[24/7] Workflow trigger error for session ${sessionId}:`, err);
+      setAutoTriggerLog(prev => ({
+        ...prev,
+        [key]: { status: 'error', message: String(err) }
+      }));
+    }
+  }, [toast]);
+
   // Poll AutoGen results directly from AutoGen Studio (8081)
   // ★ 2026-01-31: SharedMemory(8101) 제거됨 → 8081 직접 폴링으로 변경
+  // ★ 2026-01-31: 24/7 auto-trigger 추가 → complete 세션 감지 시 자동 workflowExecute
   useEffect(() => {
     const fetchAutogenResults = async () => {
       try {
-        // ★ 핵심: getAutogenRunsDetailed()로 여러 세션의 run 결과를 가져옴
-        // → autogenRunToTasks()로 세션당 N개 카드 (헤더 + agent별) 분해
         const detailedResponse = await window.electronAPI.getAutogenRunsDetailed();
         if (detailedResponse.success && detailedResponse.data && detailedResponse.data.length > 0) {
           const detailedTasks: Task[] = [];
           const seenSessions = new Set<string | number>();
 
           for (const run of detailedResponse.data) {
-            // 중복 세션 방지
             if (seenSessions.has(run.sessionId)) continue;
             seenSessions.add(run.sessionId);
 
             const sessionTasks = autogenRunToTasks(run);
             detailedTasks.push(...sessionTasks);
+
+            // ★ 24/7 Auto-trigger: detect newly completed sessions
+            const status = (run.status || '').toUpperCase();
+            const sessionKey = String(run.sessionId);
+            if (
+              (status === 'COMPLETE' || status === 'COMPLETED') &&
+              !processedSessionsRef.current.has(sessionKey)
+            ) {
+              // Extract task description for the workflow
+              const messages = run.messages || [];
+              const userMsg = messages.find((m: { source: string }) => m.source === 'user');
+              const taskDesc = userMsg?.content || run.task || '';
+              if (taskDesc) {
+                autoTriggerWorkflow(sessionKey, taskDesc);
+              }
+            }
           }
 
           if (detailedTasks.length > 0) {
-            setAutogenTasks(detailedTasks);
+            // ★ Enrich header cards with auto-trigger status
+            const enriched: Task[] = detailedTasks.map(t => {
+              const meta = t.metadata as Record<string, unknown>;
+              if (meta?.isHeader && meta?.sessionId) {
+                const triggerInfo = autoTriggerLog[String(meta.sessionId)];
+                if (triggerInfo) {
+                  return {
+                    ...t,
+                    metadata: { ...meta, triggerStatus: triggerInfo.status, triggerExecId: triggerInfo.execId, triggerMessage: triggerInfo.message } as Task['metadata']
+                  };
+                }
+              }
+              return t;
+            });
+            setAutogenTasks(enriched);
             return;
           }
         }
@@ -666,10 +741,41 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
       }
     };
 
-    // Initial fetch
-    fetchAutogenResults();
+    // Initial fetch - mark all existing sessions as already processed (don't re-trigger old ones)
+    const initialFetch = async () => {
+      try {
+        const detailedResponse = await window.electronAPI.getAutogenRunsDetailed();
+        if (detailedResponse.success && detailedResponse.data) {
+          const seenSessions = new Set<string | number>();
+          for (const run of detailedResponse.data) {
+            if (seenSessions.has(run.sessionId)) continue;
+            seenSessions.add(run.sessionId);
+            const status = (run.status || '').toUpperCase();
+            if (status === 'COMPLETE' || status === 'COMPLETED') {
+              // Mark existing completed sessions as already processed
+              processedSessionsRef.current.add(String(run.sessionId));
+            }
+          }
+          // Also decompose for display
+          const detailedTasks: Task[] = [];
+          const seen2 = new Set<string | number>();
+          for (const run of detailedResponse.data) {
+            if (seen2.has(run.sessionId)) continue;
+            seen2.add(run.sessionId);
+            detailedTasks.push(...autogenRunToTasks(run));
+          }
+          if (detailedTasks.length > 0) {
+            setAutogenTasks(detailedTasks);
+          }
+        }
+      } catch (err) {
+        console.debug('[KanbanBoard] AutoGen initial fetch error:', err);
+      }
+    };
 
-    // Poll every 3 seconds for real-time sync
+    initialFetch();
+
+    // Poll every 3 seconds for real-time sync + auto-trigger
     autogenPollRef.current = setInterval(fetchAutogenResults, 3000);
 
     return () => {
@@ -677,7 +783,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
         clearInterval(autogenPollRef.current);
       }
     };
-  }, []);
+  }, [autoTriggerWorkflow, autoTriggerLog]);
 
   // ──────────────────────────────────────────────
   // Pipeline: Create project + plan + poll tasks

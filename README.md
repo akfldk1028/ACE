@@ -510,53 +510,86 @@ await run_auto_claude_qa_loop(
 )
 ```
 
-### Auto-Claude UI Integration
+### Auto-Claude UI Integration (Agent-Level Decomposition)
 
-The Auto-Claude Electron app displays AutoGen results in the Kanban board:
+AutoGen sessions are decomposed into **per-agent task cards** on the Kanban board:
 
-```typescript
-// In KanbanBoard.tsx - Polls SharedMemory every 5 seconds
-useEffect(() => {
-  const fetchAutogenResults = async () => {
-    const response = await window.electronAPI.getAutogenLatest();
-    if (response.success && response.data) {
-      // Convert to virtual task for display
-      const virtualTask = autogenResultToTask(response.data);
-      setAutogenTasks([virtualTask]);
-    }
-  };
-  const interval = setInterval(fetchAutogenResults, 5000);
-  return () => clearInterval(interval);
-}, []);
+```
+AutoGen Session 136 (complete)
+  ├─ user: "TODO CLI 만들어줘"
+  ├─ insights_agent    → [Planning] column
+  ├─ planner_agent     → [Planning] column
+  ├─ coder_agent       → [In Progress] column
+  └─ reviewer_agent    → [AI Review] column
 ```
 
-**Result displayed as Kanban card:**
+**Agent role → Kanban column mapping:**
+| Agent Name Contains | Column | Logic |
+|---------------------|--------|-------|
+| insight, plan, architect | Planning (backlog) | Design/analysis phase |
+| code, implement, develop | In Progress | Implementation phase |
+| review, qa, test, critic | AI Review | Validation phase |
+| (error/failed sessions) | Human Review | Needs attention |
+
+**Kanban card layout:**
 ```
-┌─────────────────────────────────────────┐
-│ [AutoGen] calculator_workflow           │
-│                                         │
-│ Task: Calculate 100 + 200               │
-│ Result: The result is 300.              │
-│                                         │
-│ Agents: assistant_agent                 │
-│ Status: ● complete                      │
-│ Time: Jan 24, 2:16 PM                   │
-└─────────────────────────────────────────┘
+┌─────────────────────────────────┐  ← Session header (blue)
+│ [AutoGen] Session 136           │
+│ Python으로 TODO CLI 앱...       │
+│ ● Complete · 6 agents           │
+│ ⚡ Pipeline running (exec_001)  │  ← 24/7 auto-trigger status
+└─────────────────────────────────┘
+  ┌───────────────────────────────┐  ← Agent card (indented)
+  │  └ coder_agent                │
+  │  ```python def main()...      │
+  └───────────────────────────────┘
 ```
+
+### 24/7 Auto-Trigger Pipeline (★ 핵심!)
+
+When an AutoGen session completes, Auto-Claude **automatically** triggers the build pipeline:
+
+```
+AutoGen Studio (8081)
+       │
+       │ Session completes
+       ▼
+Auto-Claude (3s polling)
+       │
+       │ Detects new completion
+       │ (tracks processed sessions to avoid re-trigger)
+       ▼
+workflowExecute(task, 'standard', false)
+       │
+       │ Starts AG-ACE-BRIDGE pipeline
+       ▼
+spec_runner.py → run.py → Planner → Coder → QA
+       │
+       ▼
+Git Worktree (isolated build)
+```
+
+**Advantages of 24/7 Auto-Trigger:**
+1. **Zero human intervention** - AutoGen completes → pipeline starts automatically
+2. **De-duplication** - Processed session IDs tracked; no double-trigger
+3. **Initial load safety** - Existing completed sessions marked as processed on app start
+4. **Visual feedback** - Trigger status shown on header cards (triggered/running/done/error)
+5. **Toast notifications** - User informed of auto-pipeline start
 
 ## Complete Startup Sequence
 
-### 최소 구성 (★ 권장 - 2개만 실행)
+### 최소 구성 (★ 권장 - 2개만 실행, 24/7 자동 파이프라인)
 
 ```bash
-# 1. AutoGen Studio (port 8081) - 워크플로우 설계
+# 1. AutoGen Studio (port 8081) - 워크플로우 설계 + 실행
 autogenstudio ui --port 8081
 
-# 2. Auto-Claude (Electron) - Task UI
+# 2. Auto-Claude (Electron) - 자동 감지 + 파이프라인 실행
 cd Auto-Claude/apps/frontend
 npm run dev
 
-# 끝! AutoGen 결과가 Auto-Claude Kanban에 바로 표시됨
+# 끝! AutoGen에서 세션 완료 → Auto-Claude가 자동으로 빌드 파이프라인 시작
+# ★ 수동 버튼 클릭 불필요 - 3초 폴링으로 새 완료 감지 → workflowExecute 자동 호출
 ```
 
 ### 전체 구성 (24/7 운영 + A2A 에이전트)

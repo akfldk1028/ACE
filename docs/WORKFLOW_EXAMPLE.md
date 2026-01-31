@@ -1,70 +1,90 @@
 # 25_ACE Workflow Example
 
-> GitHub Issue에서 PR Merge까지 - 완전한 프로젝트 완성 예시
+> 자연어 → 완성된 프로젝트 - AG-ACE-BRIDGE 완전 자동화 예시
 
-## Overview
+## Overview (★ 2026-01-24 업데이트)
 
-이 문서는 **"Calculator 앱에 퍼센트 계산 기능 추가"** 라는 실제 예시를 통해 25_ACE 시스템이 어떻게 프로젝트를 완성하는지 보여줍니다.
+이 문서는 **"계산기 앱 만들어줘"** 라는 자연어 요청이 어떻게 완성된 프로젝트로 변환되는지 보여줍니다.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    COMPLETE PROJECT LIFECYCLE                                │
+│                    AG-ACE-BRIDGE 완전 자동화 파이프라인                       │
 │                                                                             │
-│  GitHub Issue #42                                                           │
-│  "Calculator에 퍼센트(%) 계산 기능 추가해주세요"                            │
+│  자연어 요청: "계산기 앱 만들어줘"                                           │
 │       │                                                                     │
 │       ▼                                                                     │
-│  ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐      │
-│  │  SPEC   │ → │  PLAN   │ → │  CODE   │ → │   QA    │ → │  MERGE  │      │
-│  │ 30min   │   │ 15min   │   │  2hr    │   │ 30min   │   │ 5min    │      │
-│  └─────────┘   └─────────┘   └─────────┘   └─────────┘   └─────────┘      │
-│       │             │             │             │             │            │
-│  AG Research   AG Magentic   Auto-Claude   AG Reflection   Auto-Claude    │
-│  + Selector    Orchestrator  Coder 24/7    + gui_test      PR Creation    │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │  AG-ACE-BRIDGE: WorkflowExecutor.execute_full_pipeline()               │ │
+│  │                                                                        │ │
+│  │  Phase 1: spec_runner.py (AI Spec 생성)                               │ │
+│  │    → AI가 복잡도 자동 평가 (SIMPLE/STANDARD/COMPLEX)                   │ │
+│  │    → requirements.json, context.json, spec.md 생성                    │ │
+│  │    → implementation_plan.json 생성                                    │ │
+│  │                                                                        │ │
+│  │  Phase 2: run.py (24/7 빌드 실행)                                     │ │
+│  │    → Planner Agent: 구현 계획 수립                                    │ │
+│  │    → Coder Agent: 코드 작성 (subagent 병렬 처리)                      │ │
+│  │    → QA Reviewer: 검증 및 피드백                                      │ │
+│  │    → QA Fixer: 수정 루프 (필요시)                                     │ │
+│  │                                                                        │ │
+│  │  Phase 3: Git Worktree 관리                                           │ │
+│  │    → auto-claude/{spec-name} 브랜치에서 안전하게 빌드                 │ │
+│  │    → 완료 후 --merge 또는 --review                                    │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+│       │                                                                     │
+│       ▼                                                                     │
+│  완성된 프로젝트! (Git commit, PR, 테스트 통과)                             │
 │                                                                             │
-│  Total: ~3.5 hours (완전 자동)                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Phase 0: 시스템 시작
+## 빠른 시작: 한 줄 실행
 
-### 0.1 서비스 시작 순서
+```python
+from src.bridge import WorkflowExecutor
 
-```bash
-# Terminal 1: A2A Agents 시작
-cd D:\Data\25_ACE\AG\autogen_a2a_kit\a2a_demo
-python run_all_agents.py
-# 또는 개별 실행:
-# python -m calculator_agent  # :8006
-# python -m poetry_agent      # :8003
-
-# Terminal 2: SharedMemory 서버
-cd D:\Data\25_ACE\AG\autogen_a2a_kit\AG-cli
-python shared_memory_server.py  # :8101
-
-# Terminal 3: AutoGen Studio (선택적 - 개발/테스트용)
-cd D:\Data\25_ACE\AG\autogen_a2a_kit\autogen_source
-npm run dev  # :8081
-
-# Terminal 4: AG-ACE-BRIDGE (메인 운영)
-cd D:\Data\25_ACE\AG-ACE-BRIDGE
-python main.py  # :8080 Dashboard + Orchestrator
+executor = WorkflowExecutor()
+result = executor.execute_full_pipeline_sync(
+    task_description="계산기 앱 만들어줘",
+    complexity="standard"
+)
+# → 자동으로 spec 생성, 코드 작성, QA, Git 커밋까지 완료!
 ```
 
-### 0.2 서비스 상태 확인
+---
+
+## 상세 예시: Calculator 퍼센트 기능 추가
+
+---
+
+## Phase 0: 시스템 시작
+
+### 0.1 최소 구성 (★ 권장)
+
+```bash
+# Terminal 1: AutoGen Studio (에이전트 설계)
+cd D:\Data\25_ACE\AG\autogen_a2a_kit\autogen_source\python\packages\autogen-studio
+autogenstudio ui --port 8081
+
+# Terminal 2: Auto-Claude UI (24/7 모니터링)
+cd D:\Data\25_ACE\Auto-Claude\apps\frontend
+npm run dev
+```
+
+### 0.2 서비스 상태 확인 (★ 2026-01-25 업데이트)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ Service Health Check                                             │
 ├─────────────────────────────────────────────────────────────────┤
-│ [✓] AG-ACE-BRIDGE Dashboard    http://localhost:8080            │
-│ [✓] AutoGen Studio             http://localhost:8081            │
-│ [✓] SharedMemory               http://localhost:8101            │
-│ [✓] calculator_agent           http://localhost:8006            │
-│ [✓] poetry_agent               http://localhost:8003            │
-│ [✓] gui_test_agent             http://localhost:8120            │
+│ [★필수] AutoGen Studio         http://localhost:8081            │
+│ [★필수] Auto-Claude UI         npm run dev (Electron)           │
+│ [선택] A2A Agents              http://localhost:8003-8120       │
+├─────────────────────────────────────────────────────────────────┤
+│ [제거됨] AG-ACE Dashboard (8080)                                 │
+│ [제거됨] SharedMemory (8101)                                     │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -309,23 +329,6 @@ plan = {
             "dependencies": ["ST-4"]
         }
     ]
-}
-```
-
-### 3.3 SharedMemory에 Plan 저장
-
-```python
-# SharedMemory (localhost:8101)에 Plan 저장
-POST http://localhost:8101/memory
-
-{
-    "key": "plan:SPEC-042",
-    "value": plan,
-    "metadata": {
-        "type": "implementation_plan",
-        "spec_id": "SPEC-042",
-        "github_issue": 42
-    }
 }
 ```
 
@@ -704,39 +707,9 @@ what_percent(50, 200)  # → 25.0
 
 ---
 
-## Phase 7: Memory Sync & Learning
+## Phase 7: Memory & Learning
 
-### 7.1 SharedMemory 업데이트
-
-```python
-# SharedMemory에 완료 결과 저장
-POST http://localhost:8101/memory
-
-{
-    "key": "completed:SPEC-042",
-    "value": {
-        "spec_id": "SPEC-042",
-        "github_issue": 42,
-        "pr_number": 123,
-        "status": "merged",
-        "duration_hours": 3.5,
-        "agents_used": [
-            "research_agent",
-            "calculator_agent",
-            "Planner",
-            "Coder",
-            "QA Reviewer",
-            "gui_test_agent"
-        ],
-        "patterns_used": ["Selector", "Magentic", "Reflection"],
-        "files_changed": 3,
-        "lines_added": 75,
-        "test_coverage": "95%"
-    }
-}
-```
-
-### 7.2 Graphiti (LadybugDB) 패턴 학습
+### 7.1 Graphiti (LadybugDB) 패턴 학습
 
 ```python
 # Graphiti에 코드 패턴 저장 (향후 재사용)
@@ -798,37 +771,31 @@ pattern_learned = {
 
 ---
 
-## Monitoring Dashboard
+## Monitoring (★ 2026-01-25 업데이트)
 
-AG-ACE-BRIDGE Dashboard (http://localhost:8080)에서 실시간 모니터링:
+> **Note**: AG-ACE-BRIDGE Dashboard(8080)는 제거되었습니다.
+> 모니터링은 Auto-Claude UI에서 진행합니다.
+
+Auto-Claude UI에서 실시간 모니터링:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ AG-ACE-BRIDGE Dashboard                                    http://localhost:8080 │
+│ Auto-Claude UI - Agent Terminals + AutoGen Collab Panel                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ Current Task: SPEC-042 - Calculator 퍼센트 기능           [RUNNING] │   │
 │  │ Progress: ████████████████████░░░░░ 80%                             │   │
 │  │ Phase: QA Validation                                                │   │
-│  │ ETA: 15 minutes                                                     │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 │  ┌──────────────────────────┐  ┌──────────────────────────┐                │
-│  │ Agent Status             │  │ Pattern in Use           │                │
-│  │ ✓ Planner      [DONE]   │  │ Current: Reflection      │                │
-│  │ ✓ Coder        [DONE]   │  │ Workers: QA + gui_test   │                │
-│  │ ● QA Reviewer  [ACTIVE] │  │ Iteration: 1/3           │                │
-│  │ ○ QA Fixer     [IDLE]   │  │                          │                │
+│  │ AutoGen Studio Status    │  │ Real-time Agent Chat      │                │
+│  │ ✓ Connected (8081)       │  │ [Streaming from AutoGen]  │                │
+│  │ ✓ Latest Run: complete   │  │ "계산 완료: 8"           │                │
 │  └──────────────────────────┘  └──────────────────────────┘                │
 │                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ A2A Agent Health                                                    │   │
-│  │ ✓ calculator_agent (8006)  ✓ poetry_agent (8003)                   │   │
-│  │ ✓ gui_test_agent (8120)    ✓ SharedMemory (8101)                   │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-│  [View Logs]  [Cancel Task]  [Force QA Pass]  [Manual Review]              │
+│  [AutogenStatusBadge] [AutogenCollabPanel] [AutogenResultsWidget]          │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -837,14 +804,49 @@ AG-ACE-BRIDGE Dashboard (http://localhost:8080)에서 실시간 모니터링:
 
 ## Summary
 
-| Phase | Pattern | Agents Used | Duration |
-|-------|---------|-------------|----------|
-| SPEC | Selector | research_agent, calculator_agent | 25 min |
-| PLAN | Magentic | Planner | 10 min |
-| CODE | Sequential | Coder (24/7) | 2 hours |
-| QA | Reflection | QA Reviewer, gui_test_agent | 25 min |
-| MERGE | Sequential | Auto-Claude | 10 min |
-| **Total** | - | **6 agents** | **~3.5 hours** |
+### 새로운 아키텍처 (AG-ACE-BRIDGE)
+
+| Phase | 컴포넌트 | 설명 |
+|-------|----------|------|
+| Phase 1 | spec_runner.py | AI 기반 Spec 생성 (복잡도 자동 평가) |
+| Phase 2 | run.py | Planner → Coder → QA Reviewer → QA Fixer |
+| Phase 3 | Git Worktree | 안전한 격리 빌드, --merge로 병합 |
+| **Total** | - | **완전 자동화** |
+
+### 사용된 Auto-Claude 기능
+
+| 기능 | 설명 |
+|------|------|
+| **AI Spec 생성** | 복잡도 자동 평가, 정교한 Spec |
+| **Planner Agent** | 구현 계획 수립, subtask 분해 |
+| **Coder Agent** | 코드 작성 (subagent 병렬 처리) |
+| **QA Reviewer** | 검증 및 피드백 |
+| **QA Fixer** | 수정 루프 |
+| **Git Worktree** | 안전한 격리 빌드 |
+| **Graphiti Memory** | 크로스 세션 컨텍스트 |
+
+---
+
+## 핵심 코드
+
+```python
+from src.bridge import WorkflowExecutor
+
+executor = WorkflowExecutor()
+
+# 완전 자동화 실행
+result = executor.execute_full_pipeline_sync(
+    task_description="Calculator에 퍼센트 기능 추가",
+    complexity="standard",  # simple, standard, complex
+    auto_merge=False
+)
+
+# 결과 확인
+if result["success"]:
+    print(f"Spec: {result['spec_id']}")
+    print(f"Review: python run.py --spec {result['spec_id']} --review")
+    print(f"Merge:  python run.py --spec {result['spec_id']} --merge")
+```
 
 ---
 
@@ -852,12 +854,12 @@ AG-ACE-BRIDGE Dashboard (http://localhost:8080)에서 실시간 모니터링:
 
 이 예시를 기반으로:
 
-1. **더 복잡한 프로젝트**: Swarm Pattern으로 여러 Agent 핸드오프
-2. **법률 도메인**: law-domain-agents 통합
-3. **대규모 리팩토링**: Magentic One으로 작업 분배
-4. **코드 리뷰 토론**: Debate Pattern으로 Pro/Con 분석
+1. **복잡도 조절**: `complexity="complex"`로 더 정교한 Spec 생성
+2. **자동 병합**: `auto_merge=True`로 완료 후 자동 병합
+3. **AutoGen Studio 연동**: 에이전트 팀 설계 → 자동 실행
+4. **모니터링**: Auto-Claude UI에서 실시간 진행 상황 확인
 
 ---
 
 *이 문서는 25_ACE 시스템의 실제 워크플로우를 보여줍니다.*
-*자세한 아키텍처는 [ARCHITECTURE.md](../ARCHITECTURE.md)를 참조하세요.*
+*자세한 아키텍처는 [ARCHITECTURE.md](ARCHITECTURE.md)를 참조하세요.*

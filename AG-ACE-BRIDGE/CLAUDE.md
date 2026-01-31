@@ -324,6 +324,103 @@ python mcp/shared_memory.py
 # → http://localhost:8101
 ```
 
+---
+
+## Bridge Module (★ 핵심! - 2026-01-24)
+
+AutoGen Studio → Auto-Claude 완전 자동화 파이프라인.
+
+### 아키텍처
+
+```
+┌─────────────────┐
+│  AutoGen Studio │  "계산기 앱 만들어줘"
+│   (에이전트 설계) │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      AG-ACE-BRIDGE                               │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │ WorkflowExecutor.execute_full_pipeline()                  │   │
+│  │                                                           │   │
+│  │  Phase 1: spec_runner.py (AI Spec 생성)                  │   │
+│  │    → AI가 복잡도 평가 (SIMPLE/STANDARD/COMPLEX)          │   │
+│  │    → requirements.json, context.json, spec.md 생성       │   │
+│  │    → implementation_plan.json 생성                        │   │
+│  │                                                           │   │
+│  │  Phase 2: run.py (빌드 실행)                             │   │
+│  │    → Planner Agent (계획 수립)                           │   │
+│  │    → Coder Agent (코드 작성, subagent 병렬)              │   │
+│  │    → QA Reviewer (검증)                                  │   │
+│  │    → QA Fixer (수정 루프)                                │   │
+│  │                                                           │   │
+│  │  Phase 3: Git Worktree에서 안전하게 빌드                 │   │
+│  │    → 브랜치: auto-claude/{spec-name}                     │   │
+│  │    → 완료 후 --merge 또는 --review                       │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Auto-Claude   │  완성된 프로젝트!
+│   (24/7 실행)   │
+└─────────────────┘
+```
+
+### 핵심 파일
+
+| 파일 | 역할 |
+|------|------|
+| `src/bridge/__init__.py` | 모듈 export |
+| `src/bridge/autogen_to_spec.py` | AutoGen Workflow → Auto-Claude Spec 변환 |
+| `src/bridge/auto_claude_runner.py` | Auto-Claude run.py 호출 래퍼 |
+| `src/bridge/workflow_executor.py` | 전체 파이프라인 실행기 |
+
+### 사용법 (★ 권장)
+
+```python
+from src.bridge import WorkflowExecutor
+
+executor = WorkflowExecutor()
+
+# AI 모드: Auto-Claude의 모든 기능 활용
+result = executor.execute_full_pipeline_sync(
+    task_description="계산기 앱 만들어줘",
+    complexity="standard",  # simple, standard, complex
+    auto_merge=False        # True면 완료 후 자동 병합
+)
+
+# 결과 확인
+if result["success"]:
+    print(f"Spec ID: {result['spec_id']}")
+    print(f"Review: python run.py --spec {result['spec_id']} --review")
+    print(f"Merge:  python run.py --spec {result['spec_id']} --merge")
+```
+
+### 두 가지 모드
+
+| 모드 | 메서드 | 설명 |
+|------|--------|------|
+| **AI 모드** | `execute_full_pipeline()` | spec_runner.py + run.py (모든 기능) |
+| 템플릿 모드 | `execute()` | 빠르지만 간단 |
+
+### Auto-Claude 활용 기능
+
+| 기능 | 설명 |
+|------|------|
+| **AI Spec 생성** | 복잡도 자동 평가, 정교한 Spec |
+| **Planner Agent** | 구현 계획 수립, subtask 분해 |
+| **Coder Agent** | 코드 작성 (subagent 병렬 처리) |
+| **QA Reviewer** | 검증 및 피드백 |
+| **QA Fixer** | 수정 루프 |
+| **Git Worktree** | 안전한 격리 빌드 |
+| **Graphiti Memory** | 크로스 세션 컨텍스트 |
+
+---
+
 ## 디렉토리 구조
 
 ```
@@ -347,6 +444,12 @@ AG-ACE-BRIDGE/
 │   │   ├── ag_a2a_adapter.py   # A2A Protocol (Google ADK)
 │   │   └── ag_law_domain.py    # HTTP/REST
 │   │
+│   ├── bridge/            # Bridge Module (★ 핵심! - 2026-01-24)
+│   │   ├── __init__.py           # 모듈 export
+│   │   ├── autogen_to_spec.py    # AutoGen → Auto-Claude Spec 변환
+│   │   ├── auto_claude_runner.py # Auto-Claude run.py 호출 래퍼
+│   │   └── workflow_executor.py  # 전체 파이프라인 실행기
+│   │
 │   ├── registry/          # 에이전트 레지스트리
 │   │   ├── agent_registry.py   # 런타임 상태
 │   │   ├── capabilities.py     # 14개 능력 정의
@@ -360,6 +463,12 @@ AG-ACE-BRIDGE/
 │   │   ├── __init__.py
 │   │   └── trigger.py          # Cron/이벤트 트리거
 │   │
+│   ├── designer/          # 프로젝트 설계 시스템 (★ NEW)
+│   │   ├── __init__.py
+│   │   ├── project_designer.py # AI 기반 프로젝트 설계
+│   │   ├── pattern_matcher.py  # 태스크→패턴 매칭
+│   │   └── project_executor.py # 프로젝트 레벨 실행
+│   │
 │   ├── memory/            # Layer 4: SharedMemory 연동
 │   │   ├── __init__.py            # 모듈 export
 │   │   └── shared_memory_client.py # AG-CLI SharedMemory 클라이언트
@@ -372,7 +481,8 @@ AG-ACE-BRIDGE/
 │   ├── server/            # 웹 서버 (대시보드)
 │   │   ├── __init__.py         # 모듈 export
 │   │   ├── dashboard.py        # FastAPI + WebSocket
-│   │   └── pattern_routes.py   # 패턴 REST API (★ NEW)
+│   │   ├── pattern_routes.py   # 패턴 REST API (★ NEW)
+│   │   └── project_routes.py   # 프로젝트 REST API (★ NEW)
 │   │
 │   └── utils/             # 유틸리티
 │       ├── config.py           # 환경 설정
@@ -484,6 +594,17 @@ python shared_memory.py
 
 - REST API: http://localhost:8101
 
+### 6. AutoGen ↔ SharedMemory 동기화 시작 (★ 핵심!)
+
+```powershell
+cd D:\Data\25_ACE\AG-ACE-BRIDGE
+python -u run_autogen_sync_simple.py
+```
+
+- AutoGen Studio 세션 완료 시 SharedMemory에 자동 저장
+- MCP 없이 직접 HTTP 연결 (단순화)
+- Auto-Claude UI에서 `autogen_*` 키로 결과 조회
+
 ### 전체 시작 순서 (권장)
 
 ```
@@ -492,6 +613,95 @@ python shared_memory.py
 3. AG-ACE Dashboard (port 8080)
 4. AutoGen Studio (port 8081)
 5. Auto-Claude UI (Electron)
+6. AutoGen ↔ SharedMemory 동기화 (run_autogen_sync_simple.py)
+```
+
+---
+
+## AutoGen ↔ Auto-Claude UI 실시간 연동 (★ 핵심!)
+
+AutoGen Studio 실행 결과가 Auto-Claude UI에 2초 내에 실시간 표시됩니다.
+
+### 아키텍처 (★ IPC 중앙화 - 2026-01-24)
+
+```
+AutoGen Studio (8081)
+       │
+       │ ★ Main Process에서만 호출! (CORS 해결)
+       ▼
+┌─────────────────────────────────────────────────────┐
+│ Main Process (a2a-handlers.ts)                       │
+│  ├── getAutogenLatest() → 8081 → 8101 폴백          │
+│  └── getAutogenRunsDetailed() → 8081 직접           │
+└─────────────────────────────────────────────────────┘
+       │
+       │ IPC (electronAPI) - 2초 폴링
+       ▼
+┌─────────────────────────────────────────────────────┐
+│ Renderer (React UI) - 직접 fetch(8081) 금지!        │
+│  ├── AutogenStatusBadge (사이드바)                  │
+│  ├── KanbanBoard (Kanban 카드)                      │
+│  ├── AutogenResultsWidget (플로팅 위젯)             │
+│  └── ★ AutogenCollabPanel (Agent Terminals 탭)     │
+│       → 터미널 없으면 풀스크린 협업 뷰!             │
+└─────────────────────────────────────────────────────┘
+```
+
+### Legacy 아키텍처 (폴백용 - SharedMemory 경유)
+
+```
+AutoGen Studio (8081)
+       │
+       │ polling (2초마다)
+       ▼
+run_autogen_sync_simple.py
+       │
+       │ HTTP POST /decision
+       ▼
+SharedMemory (8101)
+       │
+       │ HTTP GET /decisions
+       ▼
+Auto-Claude UI (autogen_* 키로 조회)
+```
+
+### 저장되는 데이터
+
+| 키 | 설명 |
+|---|---|
+| `autogen_session_{id}` | 각 세션별 결과 |
+| `autogen_latest` | 가장 최근 결과 |
+
+### 데이터 형식
+
+```json
+{
+  "workflow_name": "session_110",
+  "task": "10*5 please",
+  "result": "The result is 50.",
+  "agents_used": ["assistant_agent"],
+  "status": "complete",
+  "timestamp": "2026-01-24T12:16:26",
+  "source": "autogen-studio"
+}
+```
+
+### 사용법
+
+```bash
+# 동기화 시작
+python -u run_autogen_sync_simple.py
+
+# 출력 예시:
+# ==================================================
+# AutoGen Studio -> SharedMemory (Direct)
+# ==================================================
+# AutoGen: http://localhost:8081
+# SharedMemory: http://localhost:8101
+# [INIT] Loaded 7 runs
+# [WATCHING] Waiting for new AutoGen sessions...
+# [NEW] Session 111: calculate 100+200...
+# [OK] -> SharedMemory (autogen_session_111)
 ```
 
 ---
@@ -631,6 +841,202 @@ POST /patterns/{pattern_id}/event-trigger
 
 ---
 
+## Project Design System (★ 자연어 → 프로젝트 자동 생성)
+
+자연어 요청을 AI 기반으로 프로젝트 설계 → 태스크 분해 → 패턴 매칭 → 자동 실행까지 처리하는 시스템입니다.
+
+### 아키텍처
+
+```
+[자연어 요청]
+      │
+      │ (1) "계산기 앱 만들어줘"
+      ▼
+[ProjectDesigner]
+      │
+      │ (2) AI Planner로 프로젝트 설계
+      │     - 목표 추출
+      │     - 단계 분해
+      │     - 태스크 정의
+      ▼
+[ProjectSpec]
+      │
+      │ (3) Phase 1: Planning
+      │     Phase 2: Implementation
+      │     Phase 3: Testing
+      │     Phase 4: Deployment
+      ▼
+[PatternMatcher]
+      │
+      │ (4) 각 태스크 → 기존 패턴 매칭
+      │     - 키워드 매칭 (40%)
+      │     - 에이전트 타입 매칭 (30%)
+      │     - 패턴 타입 추론 (20%)
+      │     - 성공률 히스토리 (10%)
+      ▼
+[ProjectExecutor]
+      │
+      │ (5) Phase별 순차 실행
+      │     - 의존성 기반 태스크 스케줄링
+      │     - 병렬 실행 (max 4 동시)
+      │     - 자동 패턴 생성 (미매칭 시)
+      ▼
+[실행 결과]
+      │
+      │ (6) 단계별 결과 저장
+      │     - SharedMemory 동기화
+      │     - WebSocket 실시간 브로드캐스트
+      ▼
+[완료]
+```
+
+### 핵심 컴포넌트
+
+| 컴포넌트 | 위치 | 역할 |
+|---------|------|------|
+| ProjectDesigner | `src/designer/project_designer.py` | AI Planner로 프로젝트 설계, 태스크 분해 |
+| PatternMatcher | `src/designer/pattern_matcher.py` | 태스크 → 패턴 매칭, 신뢰도 점수화 |
+| ProjectExecutor | `src/designer/project_executor.py` | Phase별 실행, 의존성 관리, 결과 집계 |
+| Project REST API | `src/server/project_routes.py` | HTTP 관리 인터페이스 |
+
+### Project REST API
+
+```bash
+# 프로젝트 설계 (자연어 → ProjectSpec)
+POST /projects/design
+{
+  "request": "계산기 앱을 만들어줘. 기본 연산과 테스트 포함",
+  "options": {
+    "priority": "high",
+    "use_auto_claude": true
+  }
+}
+
+# 프로젝트 목록
+GET /projects/
+
+# 프로젝트 상세
+GET /projects/{project_id}
+
+# 프로젝트 실행
+POST /projects/{project_id}/execute
+{
+  "start_phase": null  # 특정 단계부터 재개 시 지정
+}
+
+# 실행 상태 조회
+GET /projects/{project_id}/status
+
+# 실행 취소
+POST /projects/{project_id}/cancel
+
+# 패턴 매칭 결과 조회
+GET /projects/{project_id}/matches
+```
+
+### ProjectSpec 모델
+
+```python
+class ProjectSpec(BaseModel):
+    id: str                           # UUID
+    name: str                         # 프로젝트 이름
+    description: str                  # 설명
+    goals: List[str]                  # 목표 목록
+    status: ProjectStatus             # DRAFT, DESIGNED, IN_PROGRESS, COMPLETED, FAILED
+    phases: List[Dict[str, Any]]      # 단계별 태스크
+    metadata: Dict[str, Any]          # 추가 메타데이터
+
+# 각 Phase 구조
+{
+  "id": "phase_1",
+  "name": "Planning",
+  "tasks": [
+    {
+      "id": "task_1",
+      "description": "요구사항 분석",
+      "agent_type": "AUTO_CLAUDE_PLANNER",
+      "depends_on": []
+    },
+    {
+      "id": "task_2",
+      "description": "아키텍처 설계",
+      "agent_type": "AUTO_CLAUDE_PLANNER",
+      "depends_on": ["task_1"]
+    }
+  ]
+}
+```
+
+### PatternMatcher 점수 알고리즘
+
+```python
+# 총 점수 = 키워드 + 에이전트 + 타입 + 성공률 (최대 1.0)
+
+score = 0.0
+
+# 1. 키워드 매칭 (40%)
+for word in pattern_name.split():
+    if word in task_description:
+        score += 0.2
+for tag in pattern_tags:
+    if tag in task_description:
+        score += 0.15
+score = min(score, 0.4)
+
+# 2. 에이전트 타입 매칭 (30%)
+if task.agent_type in pattern_agents:
+    score += 0.3
+elif same_agent_family(task.agent_type, pattern_agents):
+    score += 0.15
+
+# 3. 패턴 타입 추론 (20%)
+inferred_type = infer_pattern_type(task.description)
+if inferred_type == pattern.type:
+    score += 0.2
+
+# 4. 히스토리 기반 보너스 (10%)
+success_bonus = min(pattern.execution_count / 100, 0.1)
+score += success_bonus
+
+# 임계값 (기본 0.5) 이상이면 매칭
+if score >= threshold:
+    return PatternMatch(pattern_id=pattern.id, confidence=score)
+else:
+    return PatternMatch(create_new=True)  # 새 패턴 생성 권장
+```
+
+### 사용 흐름
+
+1. **자연어 요청 입력**
+   ```bash
+   POST /projects/design
+   {"request": "REST API 백엔드를 만들어줘. 사용자 CRUD와 인증 포함"}
+   ```
+
+2. **AI 프로젝트 설계**
+   - Auto-Claude Planner가 요청 분석
+   - 목표, 단계, 태스크 자동 생성
+   - ProjectSpec 반환
+
+3. **패턴 매칭**
+   - 각 태스크를 기존 패턴과 매칭
+   - 미매칭 태스크는 새 패턴 생성 권장
+
+4. **프로젝트 실행**
+   ```bash
+   POST /projects/{project_id}/execute
+   ```
+   - Phase별 순차 실행
+   - 태스크 의존성 존중
+   - 병렬 처리 (최대 4개 동시)
+
+5. **결과 모니터링**
+   - 실시간 상태 조회
+   - WebSocket 이벤트 수신
+   - 성공률/오류 확인
+
+---
+
 ## 빠른 시작 (백엔드 전용)
 
 ```bash
@@ -668,4 +1074,10 @@ python -m src.project.cli submit my-project.yaml
 - [x] Phase 5: Memory Sync (SharedMemoryClient → AG-CLI 8101 연동)
 - [x] Phase 6: Web Dashboard (FastAPI + WebSocket 실시간 모니터링)
 - [x] Phase 7: AG Integration (A2A Protocol 연동, 19개 에이전트 조율)
-- [ ] Phase 8: E2E Testing & Polish
+- [x] Phase 8: AutoGen ↔ SharedMemory 동기화 (MCP 없이 직접 연결)
+- [x] Phase 9: IPC 중앙화 & Agent Terminals 협업 패널 (★ 2026-01-24)
+  - Main Process(a2a-handlers.ts)에서만 8081 호출 (CORS 해결)
+  - AutogenCollabPanel 실시간 대화 스트리밍
+  - 2초 폴링으로 실시간 동기화 (바로바로!)
+  - Agent Terminals 탭에서 풀스크린 협업 뷰
+- [ ] Phase 10: E2E Testing & Polish

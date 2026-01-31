@@ -23,6 +23,58 @@
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+## Core Concept: AutoGen Studio에서 설계 → Auto-Claude에서 24/7 실행
+
+```
+┌────────────────────┐       ┌────────────────────┐       ┌────────────────────┐
+│  AutoGen Studio    │       │   AG-ACE-BRIDGE    │       │    Auto-Claude     │
+│  (Design Tool)     │──────▶│  (Execution Bridge)│──────▶│  (24/7 Engine)     │
+│                    │       │                    │       │                    │
+│  - Workflow Design │       │  - Parse Nodes     │       │  - PLANNER         │
+│  - Node + Deps     │       │  - Route to Adapter│       │  - CODER           │
+│  - JSON/YAML Save  │       │  - Dependency Order│       │  - QA_REVIEWER     │
+└────────────────────┘       └────────────────────┘       │  - QA_FIXER        │
+                                                          └────────────────────┘
+```
+
+### 실행 흐름
+
+1. **AutoGen Studio에서 설계**: 워크플로우(nodes + dependencies) 생성 → JSON/YAML로 저장
+2. **AG-ACE-BRIDGE가 파싱**: PatternRegistry에 등록, 노드별로 어댑터에 라우팅
+3. **Auto-Claude에서 24/7 실행**: 각 노드의 agent_type에 따라 순차/병렬 실행
+
+### 예시: 계산기 앱 개발 워크플로우
+
+```json
+{
+  "name": "calculator_app_workflow",
+  "nodes": [
+    {"id": "planner", "agent": "AUTO_CLAUDE_PLANNER", "task": "개발 계획"},
+    {"id": "coder", "agent": "AUTO_CLAUDE_CODER", "depends_on": ["planner"]},
+    {"id": "qa_reviewer", "agent": "AUTO_CLAUDE_QA_REVIEWER", "depends_on": ["coder"]},
+    {"id": "qa_fixer", "agent": "AUTO_CLAUDE_QA_FIXER", "depends_on": ["qa_reviewer"]}
+  ]
+}
+```
+
+**실행 순서**: PLANNER → CODER → QA_REVIEWER → QA_FIXER (의존성 그래프 기반)
+
+### 테스트 실행
+
+```bash
+# 워크플로우 실행 테스트
+python tests/test_workflow_execution.py
+
+# 결과:
+# [OK] 의존성 순서 정확!
+# 1. AUTO_CLAUDE_PLANNER
+# 2. AUTO_CLAUDE_CODER
+# 3. AUTO_CLAUDE_QA_REVIEWER
+# 4. AUTO_CLAUDE_QA_FIXER
+```
+
+---
+
 ## Features
 
 - **24/7 자율 운영**: Auto-Claude의 무한 루프 활용
@@ -111,6 +163,46 @@ python -c "from autogenstudio.cli import app; app()" ui --port 8081
 cd D:\Data\25_ACE\Auto-Claude\apps\frontend
 npm run dev
 ```
+
+### Step 6: AutoGen ↔ SharedMemory 동기화 (★ 핵심!)
+
+```powershell
+cd D:\Data\25_ACE\AG-ACE-BRIDGE
+python -u run_autogen_sync_simple.py
+```
+
+**아키텍처 (★ IPC 중앙화):**
+```
+AutoGen Studio (8081)
+       │
+       │ Main Process에서만 호출! (CORS 해결)
+       ▼
+┌─────────────────────────────────────────────────────┐
+│ Main Process (a2a-handlers.ts)                       │
+│  ├── getAutogenLatest() → 8081 → 8101 폴백           │
+│  └── getAutogenRunsDetailed() → 8081 직접            │
+└─────────────────────────────────────────────────────┘
+       │
+       │ IPC (electronAPI) - 2초 폴링
+       ▼
+┌─────────────────────────────────────────────────────┐
+│ Renderer (React UI)                                  │
+│  ├── AutogenStatusBadge (사이드바)                   │
+│  ├── KanbanBoard (Kanban 카드)                       │
+│  ├── AutogenResultsWidget (플로팅 위젯)              │
+│  └── ★ AutogenCollabPanel (Agent Terminals 탭)      │
+│       → 터미널 없으면 풀스크린 협업 뷰!              │
+└─────────────────────────────────────────────────────┘
+```
+
+**Agent Terminals 탭:**
+- 터미널 없을 때 → AutoGen 대화가 풀스크린으로 실시간 스트리밍
+- 터미널 있을 때 → "AutoGen" 버튼으로 사이드바 토글
+- 2초마다 자동 폴링 (바로바로!)
+
+**저장되는 키 (폴백 모드):**
+- `autogen_session_{id}` - 각 세션별 결과
+- `autogen_latest` - 가장 최근 결과
 
 ---
 
@@ -264,6 +356,12 @@ AG-ACE-BRIDGE/
 | **server** | 웹 대시보드 & API | [src/server/README.md](src/server/README.md) |
 | **utils** | 유틸리티 | [src/utils/README.md](src/utils/README.md) |
 
+### 통합 스크립트
+
+| 파일 | 설명 | 용도 |
+|------|------|------|
+| **[run_autogen_sync_simple.py](run_autogen_sync_simple.py)** | AutoGen ↔ SharedMemory 동기화 | AutoGen 결과 자동 저장 |
+
 ### 아키텍처 문서
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - 상세 아키텍처 설계서
@@ -284,7 +382,12 @@ AG-ACE-BRIDGE/
 - [x] Phase 4: Project System (Spec, Watcher, CLI)
 - [x] Phase 5: Web Dashboard (FastAPI + WebSocket 실시간 모니터링)
 - [x] Phase 6: AG Integration (A2A Protocol 연동, SharedMemory 클라이언트)
-- [ ] Phase 7: E2E Testing & Polish
+- [x] Phase 7: AutoGen ↔ SharedMemory 동기화 (MCP 없이 직접 연결)
+- [x] Phase 8: IPC 중앙화 & Agent Terminals 협업 패널
+  - Main Process에서만 8081 호출 (CORS 해결)
+  - AutogenCollabPanel 실시간 대화 스트리밍
+  - 2초 폴링으로 실시간 동기화
+- [ ] Phase 9: E2E Testing & Polish
 
 ## License
 

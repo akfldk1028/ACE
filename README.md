@@ -349,6 +349,226 @@ Pattern: Swarm (domain expert handoffs) + Selector (dynamic routing)
 | gpu_agent | 8009 | A2A agent |
 | gui_test_agent | 8120 | E2E testing |
 
+## Agent Collaboration & Data Flow
+
+### Design vs Execution Architecture
+
+The system separates **design** (AutoGen Studio) from **execution** (Auto-Claude + AG-ACE-BRIDGE):
+
+```
++-----------------------------------------------------------------------------+
+|                     DESIGN → EXECUTION ARCHITECTURE                          |
+|                    ★ 직접 연결 - 중간 서버 불필요!                             |
++-----------------------------------------------------------------------------+
+|                                                                             |
+|  ┌─────────────────────────────────┐                                        |
+|  │      AutoGen Studio (8081)      │   ← DESIGN PHASE                       |
+|  │   +--------------------------+  │                                        |
+|  │   │  Pattern/Workflow Editor │  │   * Drag & drop agent config           |
+|  │   │  Team Configuration      │  │   * Visual workflow builder            |
+|  │   │  Test & Iterate          │  │   * Run test sessions                  |
+|  │   +--------------------------+  │                                        |
+|  └───────────────┬─────────────────┘                                        |
+|                  │                                                          |
+|                  │ ★ Direct API Call (Vite Proxy)                           |
+|                  │   /api/autogen → localhost:8081                          |
+|                  ▼                                                          |
+|  ┌─────────────────────────────────┐                                        |
+|  │      Auto-Claude (Electron)     │   ← EXECUTION PHASE                    |
+|  │   +--------------------------+  │                                        |
+|  │   │ Kanban Board             │  │   * AutoGen 결과 직접 표시              |
+|  │   │ AutogenStatusBadge       │  │   * 5초마다 8081 폴링                   |
+|  │   │ Task Management          │  │   * SharedMemory 폴백 지원              |
+|  │   +--------------------------+  │                                        |
+|  └───────────────┬─────────────────┘                                        |
+|                  │                                                          |
+|     ┌────────────┴────────────┐                                             |
+|     ▼                         ▼                                             |
+|  ┌─────────────────┐   ┌─────────────────┐                                  |
+|  │ AG-ACE-BRIDGE   │   │ SharedMemory    │   ← OPTIONAL                     |
+|  │  Orchestrator   │   │    (8101)       │                                  |
+|  │                 │   │                 │                                  |
+|  │ * 24/7 Loop     │   │ * Fallback only │                                  |
+|  │ * Agent Select  │   │ * AG-CLI sync   │                                  |
+|  │ * Pipeline Exec │   │ * Event pub/sub │                                  |
+|  └────────┬────────┘   └─────────────────┘                                  |
+|           │                                                                 |
+|           ▼                                                                 |
+|  ┌──────────────────────────────────────────────────────────────────┐       |
+|  │                    Agent Layer (19 Agents)                        │       |
+|  │  +----------------+  +----------------+  +----------------------+  │       |
+|  │  │ Auto-Claude    │  │  A2A Protocol  │  │  AG Law Domain       │  │       |
+|  │  │ (SDK-based)    │  │  (HTTP/RPC)    │  │  (HTTP/REST)         │  │       |
+|  │  │                │  │                │  │                      │  │       |
+|  │  │ - Planner      │  │ - poetry 8003  │  │ - Case Analyzer      │  │       |
+|  │  │ - Coder 24/7   │  │ - philosophy   │  │ - Legal Researcher   │  │       |
+|  │  │ - QA Reviewer  │  │ - history      │  │ - Risk Assessor      │  │       |
+|  │  │ - QA Fixer     │  │ - calculator   │  │ - Compliance         │  │       |
+|  │  │                │  │ - gui_test     │  │ - Document Drafter   │  │       |
+|  │  +----------------+  +----------------+  +----------------------+  │       |
+|  └──────────────────────────────────────────────────────────────────┘       |
+|                                                                             |
++-----------------------------------------------------------------------------+
+```
+
+### Direct Connection (★ 권장 - 단순!)
+
+**Auto-Claude UI가 AutoGen Studio(8081)에 직접 연결:**
+
+```
+Auto-Claude UI  ──────────────────────►  AutoGen Studio (8081)
+                  Vite Proxy
+                  /api/autogen                GET /api/sessions/
+                                              GET /api/sessions/{id}/runs/
+```
+
+**장점:**
+- SharedMemory(8101) 서버 불필요
+- run_autogen_sync_simple.py 스크립트 불필요
+- AutoGen Studio만 실행하면 즉시 연동
+
+**Vite Proxy 설정 (electron.vite.config.ts):**
+```typescript
+proxy: {
+  '/api/autogen': {
+    target: 'http://localhost:8081',
+    changeOrigin: true,
+    rewrite: (path) => path.replace(/^\/api\/autogen/, '/api')
+  }
+}
+```
+
+### SharedMemory (Optional Fallback)
+
+**SharedMemory (8101)** is optional - used as fallback when direct connection fails:
+
+```bash
+# Optional: Start SharedMemory server for AG-CLI integration
+cd AG/autogen_a2a_kit/AG-cli
+python mcp/shared_memory.py  # → http://localhost:8101
+```
+
+**Fallback Flow:**
+```
+Auto-Claude UI
+     │
+     ├─(1)─► AutoGen Studio (8081) - 직접 연결 시도
+     │           ↓ 실패 시
+     └─(2)─► SharedMemory (8101) - 폴백
+```
+
+**Stored Keys (when using SharedMemory):**
+| Key | Description |
+|-----|-------------|
+| `autogen_session_{id}` | Each session result |
+| `autogen_latest` | Most recent result |
+| `task_{id}_stage_{n}` | Pipeline stage results |
+
+### Agent Adapter Types
+
+The system uses three adapter types to connect different agent systems:
+
+| Adapter | Protocol | Agents | Features |
+|---------|----------|--------|----------|
+| **AutoClaudeAdapter** | Claude Agent SDK + OAuth | Planner, Coder, QA | 24/7 autonomous, security sandbox |
+| **AGA2AAdapter** | JSON-RPC 2.0 over HTTP | poetry, philosophy, calc, etc. | Google ADK A2A Protocol |
+| **AutogenStudioAdapter** | Python/HTTP | AutoGen Teams | Workflow execution |
+
+### Pipeline Execution Patterns
+
+The Orchestrator supports three execution patterns:
+
+| Pattern | Description | Use Case |
+|---------|-------------|----------|
+| **Sequential** | Stage1 → Stage2 → Stage3 | Simple linear workflows |
+| **Parallel** | [Stage1, Stage2, Stage3] → Gather | Fan-out/gather for research |
+| **CriticLoop** | Generator → Critic → Fix → Repeat | QA validation loops |
+
+**Example Pipeline:**
+```python
+# QA Loop with Auto-Claude agents
+await run_auto_claude_qa_loop(
+    task=task,
+    stages=[
+        Stage(AgentType.AUTO_CLAUDE_CODER, StageType.SEQUENTIAL),
+        Stage(AgentType.AUTO_CLAUDE_QA_REVIEWER, StageType.CRITIC_LOOP),
+    ],
+    max_iterations=5
+)
+```
+
+### Auto-Claude UI Integration
+
+The Auto-Claude Electron app displays AutoGen results in the Kanban board:
+
+```typescript
+// In KanbanBoard.tsx - Polls SharedMemory every 5 seconds
+useEffect(() => {
+  const fetchAutogenResults = async () => {
+    const response = await window.electronAPI.getAutogenLatest();
+    if (response.success && response.data) {
+      // Convert to virtual task for display
+      const virtualTask = autogenResultToTask(response.data);
+      setAutogenTasks([virtualTask]);
+    }
+  };
+  const interval = setInterval(fetchAutogenResults, 5000);
+  return () => clearInterval(interval);
+}, []);
+```
+
+**Result displayed as Kanban card:**
+```
+┌─────────────────────────────────────────┐
+│ [AutoGen] calculator_workflow           │
+│                                         │
+│ Task: Calculate 100 + 200               │
+│ Result: The result is 300.              │
+│                                         │
+│ Agents: assistant_agent                 │
+│ Status: ● complete                      │
+│ Time: Jan 24, 2:16 PM                   │
+└─────────────────────────────────────────┘
+```
+
+## Complete Startup Sequence
+
+### 최소 구성 (★ 권장 - 2개만 실행)
+
+```bash
+# 1. AutoGen Studio (port 8081) - 워크플로우 설계
+autogenstudio ui --port 8081
+
+# 2. Auto-Claude (Electron) - Task UI
+cd Auto-Claude/apps/frontend
+npm run dev
+
+# 끝! AutoGen 결과가 Auto-Claude Kanban에 바로 표시됨
+```
+
+### 전체 구성 (24/7 운영 + A2A 에이전트)
+
+```bash
+# 1. A2A Agents (ports 8003-8120) - Optional
+cd AG/autogen_a2a_kit
+python run_all_agents.py --subset
+
+# 2. SharedMemory (port 8101) - Optional (AG-CLI 연동용)
+cd AG/autogen_a2a_kit/AG-cli
+python mcp/shared_memory.py
+
+# 3. AutoGen Studio (port 8081) - Design UI
+autogenstudio ui --port 8081
+
+# 4. AG-ACE-BRIDGE Dashboard (port 8080) - 24/7 Orchestrator
+cd AG-ACE-BRIDGE
+python main.py --dashboard
+
+# 5. Auto-Claude (Electron) - Task UI
+cd Auto-Claude/apps/frontend
+npm run dev
+```
+
 ## License
 
 - Auto-Claude: AGPL-3.0

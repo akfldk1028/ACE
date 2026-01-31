@@ -6,13 +6,14 @@ AG-ACE-BRIDGE의 에이전트 연결 모듈. 4가지 에이전트 시스템에 �
 
 ```
 src/adapters/
-├── __init__.py          # 모듈 export (19개 어댑터/팩토리 함수)
-├── base.py              # AgentAdapter 추상 베이스 클래스
-├── auto_claude.py       # Auto-Claude SDK 어댑터 (OAuth 인증)
-├── ag_autogen.py        # AG Autogen HTTP 어댑터 (A2A Protocol)
-├── ag_a2a_adapter.py    # AG A2A Protocol 어댑터 (Google ADK) ★ 신규
-├── ag_law_domain.py     # AG Law Domain HTTP 어댑터 (FastAPI)
-└── README.md            # 이 파일
+├── __init__.py              # 모듈 export (22개 어댑터/팩토리 함수)
+├── base.py                  # AgentAdapter 추상 베이스 클래스
+├── auto_claude.py           # Auto-Claude SDK 어댑터 (OAuth 인증)
+├── ag_autogen.py            # AG Autogen HTTP 어댑터 (A2A Protocol)
+├── ag_a2a_adapter.py        # AG A2A Protocol 어댑터 (Google ADK)
+├── ag_law_domain.py         # AG Law Domain HTTP 어댑터 (FastAPI)
+├── autogen_studio_adapter.py # AutoGen Studio 워크플로우 어댑터 ★ 신규
+└── README.md                # 이 파일
 ```
 
 ## 아키텍처
@@ -180,6 +181,55 @@ manager = A2AAdapterManager(enable_shared_memory=True)
 await manager.initialize_all()
 status = await manager.health_check_all()
 # {A2AAgentType.CALCULATOR: True, A2AAgentType.POETRY: False, ...}
+```
+
+### AutoGen Studio (1개) - 워크플로우 실행 ★ 신규
+
+AutoGen Studio에서 설계한 워크플로우를 실행합니다.
+
+| 어댑터 | 모드 | 기능 |
+|--------|------|------|
+| `AutogenStudioAdapter` | Direct/HTTP | 워크플로우 실행, 팀 조율 |
+
+#### 실행 모드
+- **Direct Mode**: autogenstudio 패키지 직접 호출 (권장)
+- **HTTP Mode**: AutoGen Studio 서버 API 호출 (포트 8081)
+
+#### AutoGen Studio 서버 시작
+```powershell
+# autogenstudio CLI로 실행
+autogenstudio ui --port 8081
+
+# 또는 Python에서
+python -c "from autogenstudio.cli import app; app()" ui --port 8081
+```
+
+#### 사용 예시
+```python
+from src.adapters import AutogenStudioAdapter, execute_pattern_with_autogen
+
+# 어댑터 직접 사용
+adapter = AutogenStudioAdapter(
+    studio_url="http://localhost:8081",
+    use_direct=True,  # Direct mode 사용
+    enable_shared_memory=True,
+)
+await adapter.initialize()
+
+workflow_data = {
+    "name": "calculator_workflow",
+    "nodes": [
+        {"id": "planner", "agent": "AUTO_CLAUDE_PLANNER"},
+        {"id": "coder", "agent": "AUTO_CLAUDE_CODER", "depends_on": ["planner"]},
+    ],
+}
+result = await adapter.execute_workflow(workflow_data, "계산기 앱 개발")
+
+# 편의 함수 사용
+result = await execute_pattern_with_autogen(
+    pattern_data=workflow_data,
+    task_description="계산기 앱 개발",
+)
 ```
 
 ## 사용 예시

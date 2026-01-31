@@ -2,6 +2,27 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+---
+## ★★★ 핵심 메모리 (절대 잊지 말 것!) ★★★
+
+### 8101 SharedMemory 사용 금지! (2026-01-25 확정)
+- **8101 포트는 사용하지 않음!** 모든 SharedMemory 관련 코드 제거됨
+- **8081 AutoGen Studio만 사용!**
+- browser-mock.ts의 sharedMemory* 함수들은 빈 값만 반환 (호출해도 네트워크 요청 안 함)
+
+### CORS 문제 해결 규칙
+| 모드 | API 호출 방법 | 파일 |
+|------|--------------|------|
+| Electron | `window.electronAPI.*` | a2a-handlers.ts (Main Process) |
+| Browser | `fetch('/api/autogen/...')` | browser-mock.ts (Vite 프록시) |
+| ❌ 금지 | `fetch('http://localhost:8081/...')` | 브라우저 CORS로 차단됨! |
+
+### Vite 프록시 설정 (electron.vite.config.ts)
+```typescript
+'/api/autogen' → 'http://localhost:8081/api'
+```
+---
+
 ## Project Overview
 
 Auto Claude is a multi-agent autonomous coding framework that builds software through coordinated AI agent sessions. It uses the Claude Agent SDK to run agents in isolated workspaces with security controls.
@@ -642,81 +663,185 @@ npm run dev      # Run in development mode (includes --remote-debugging-port=922
 **Project data storage:**
 - `.auto-claude/specs/` - Per-project data (specs, plans, QA reports, memory) - gitignored
 
-## A2A Integration & SharedMemory Sync (★ AG-ACE-BRIDGE 연동)
+## A2A Integration & AutoGen Studio 연동
 
-Auto-Claude는 AG-ACE-BRIDGE와 SharedMemory(8101)를 통해 상태를 동기화합니다.
+Auto-Claude는 AutoGen Studio(8081)와 실시간 협업합니다.
 
-### Architecture
+**★ 중요: 8101 SharedMemory는 사용하지 않음! 8081 직접 연결만 사용!**
 
+### 실행 모드별 아키텍처 (★ 2026-01-25 확정)
+
+#### 1. Electron 모드 (npm run dev → Electron 앱)
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    SharedMemory (8101)                           │
-│               ★ 중앙 동기화 허브 - enable_shared_memory=True      │
+│                    AutoGen Studio (8081)                         │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │ HTTP (CORS 무시 - Node.js)
+                        ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ Main Process (a2a-handlers.ts) - 유일한 8081 호출점              │
+│  ├── getAutogenLatest() → 8081 직접                             │
+│  └── getAutogenRunsDetailed() → 8081 직접                       │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │ IPC (electronAPI)
+                        ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ Renderer Process (React UI)                                      │
+│  └── window.electronAPI.getAutogenLatest() 사용                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### 2. 브라우저 모드 (localhost:5173 직접 접속)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    AutoGen Studio (8081)                         │
 └───────────────────────┬─────────────────────────────────────────┘
                         │
-        ┌───────────────┼───────────────┐
-        │               │               │
-        ▼               ▼               ▼
-┌───────────────┐ ┌─────────────┐ ┌─────────────────┐
-│ Auto-Claude   │ │ AG-ACE-     │ │ AG-CLI         │
-│ A2A Client    │ │ BRIDGE      │ │ (Message Bus)  │
-└───────────────┘ └─────────────┘ └─────────────────┘
-        │               │
-        └───────┬───────┘
-                ▼
-        A2A Agents (8003-8120)
+                        ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ Vite Dev Server (5173) - 프록시로 CORS 해결                      │
+│  └── /api/autogen/* → http://localhost:8081/api/*               │
+│      (electron.vite.config.ts에서 설정)                          │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ Browser (React UI) - window.electronAPI 없음                     │
+│  └── browser-mock.ts가 fetch('/api/autogen/...') 사용            │
+│      ★ 직접 fetch('http://localhost:8081/...') 금지! (CORS)     │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Files
+### ★ CORS 문제 해결 규칙 (절대 잊지 말 것!)
 
-| File | Purpose |
-|------|---------|
-| `apps/backend/integrations/a2a/client.py` | A2A Client (enable_shared_memory=True) |
-| `apps/backend/integrations/a2a/shared_memory.py` | SharedMemory Client for AG-CLI |
-| `apps/backend/integrations/a2a/discovery.py` | A2A Agent Discovery |
-| `apps/backend/integrations/a2a/tools.py` | MCP Tools for A2A |
+| 모드 | API 호출 방법 | 이유 |
+|------|--------------|------|
+| Electron | `window.electronAPI.*` | Main Process가 Node.js로 8081 직접 호출 (CORS 없음) |
+| Browser | `fetch('/api/autogen/...')` | Vite 프록시가 8081로 중계 (CORS 회피) |
+| ❌ 금지 | `fetch('http://localhost:8081/...')` | 브라우저 CORS 정책으로 차단됨! |
 
-### Usage
+### 핵심 파일 (수정 시 주의!)
+
+| 파일 | 역할 | 주의사항 |
+|------|------|----------|
+| `electron.vite.config.ts` | Vite 프록시 설정 | `/api/autogen` → 8081 매핑 |
+| `browser-mock.ts` | 브라우저 모드 폴백 | 반드시 `/api/autogen/...` 사용 |
+| `a2a-handlers.ts` | Electron Main Process | 8081 직접 호출 가능 |
+| `AutogenStatusBadge.tsx` | AutoGen 상태 표시 | electronAPI 우선, 없으면 프록시 |
+
+### Agent Terminals 협업 패널 (★ 핵심!)
+
+Agent Terminals 탭에서 AutoGen Studio 대화가 실시간으로 스트리밍됩니다:
+
+- **터미널 없을 때**: AutoGen 협업 뷰가 풀스크린으로 표시
+- **터미널 있을 때**: 툴바의 "AutoGen" 버튼으로 사이드바 토글
+- **2초마다 자동 폴링**: IPC 통해 Main Process가 8081 호출
+
+### 핵심 파일
+
+| 파일 | 역할 |
+|------|------|
+| `a2a-handlers.ts` | Main Process에서 8081 호출 (유일한 호출점) |
+| `a2a-api.ts` | Preload API (IPC 노출) |
+| `AutogenCollabPanel.tsx` | Agent Terminals 협업 패널 |
+| `TerminalGrid.tsx` | 터미널 그리드 + 협업 패널 통합 |
+
+### AG-ACE-BRIDGE에서 트리거 (★ Bridge Module - 2026-01-24)
+
+AG-ACE-BRIDGE의 Bridge Module을 통해 Auto-Claude를 프로그래밍 방식으로 실행할 수 있습니다:
 
 ```python
-from integrations.a2a import A2AClient, call_a2a_agent
+# AG-ACE-BRIDGE에서 실행
+from src.bridge import WorkflowExecutor
 
-# A2A 에이전트 호출 (자동으로 SharedMemory에 저장됨)
-result = await call_a2a_agent(
-    agent_url="http://localhost:8006",
-    message="2 + 3 = ?",
-    enable_shared_memory=True  # 기본값 True
+executor = WorkflowExecutor()
+
+# AI 모드: Auto-Claude의 모든 기능 활용
+result = executor.execute_full_pipeline_sync(
+    task_description="계산기 앱 만들어줘",
+    complexity="standard",  # simple, standard, complex
+    auto_merge=False        # True면 완료 후 자동 병합
 )
 
-# 결과가 SharedMemory(8101)에 자동 저장됨:
-# - a2a_{agent_name}_{request_id}
-# - a2a_{agent_name}_latest
+# 파이프라인:
+# 1. spec_runner.py → AI가 Spec 생성
+# 2. run.py → Planner → Coder → QA 파이프라인
+# 3. Git Worktree에서 안전하게 빌드
 ```
-
-### SharedMemory API Endpoints (AG-CLI)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/decision` | 상태 저장 (body: {category, decision, agent}) |
-| GET | `/decision/{category}` | 상태 조회 |
-| POST | `/event` | 이벤트 발행 |
-| GET | `/events` | 이벤트 목록 |
 
 ### Required Servers
 
 ```powershell
-# 1. SharedMemory (8101) - 먼저 시작!
-cd D:\Data\25_ACE\AG\autogen_a2a_kit\AG-cli
-python mcp/shared_memory.py
-
-# 2. A2A Agents (8003-8120)
-cd D:\Data\25_ACE\AG\autogen_a2a_kit\a2a_demo\calculator_agent
-python agent.py
+# AutoGen Studio (8081)
+cd D:\Data\25_ACE\AG\autogen_a2a_kit
+autogenstudio ui --host 127.0.0.1 --port 8081
 ```
 
 ### Sync Flow
 
-1. Auto-Claude UI에서 A2A 에이전트 호출
-2. 결과가 SharedMemory(8101)에 저장됨
-3. AG-ACE-BRIDGE Orchestrator가 동일 SharedMemory 조회
-4. 양방향 협업 완성
+1. AutoGen Studio(8081)에서 워크플로우 실행
+2. Main Process(a2a-handlers.ts)가 IPC로 8081 직접 조회
+3. Renderer가 IPC 결과를 UI에 표시
+4. Vite 프록시는 dev 모드에서만 작동 (Electron 모드에서는 IPC 사용)
+
+### ★ Agent → Task Flow (2026-01-25 확정)
+
+AutoGen Studio에서 Agent 설계 → Auto-Claude에서 Task 표시 흐름:
+
+#### Step 1: AutoGen Studio에서 Agent 설계
+```
+http://localhost:8081 → Teams → Create Team
+- Agent 추가 (예: Calculator, Researcher)
+- Model 설정 (Claude, GPT 등)
+- Tools 연결
+```
+
+#### Step 2: AutoGen Studio에서 Workflow 실행
+```
+Sessions → New Session → Run
+- Task 입력 (예: "5 + 3은?")
+- Team 실행
+- 결과 저장 (status: "complete")
+```
+
+#### Step 3: Auto-Claude가 결과 폴링
+```typescript
+// a2a-handlers.ts
+const sessionsResponse = await fetch('http://localhost:8081/api/sessions/?user_id=guestuser@gmail.com');
+const runsResponse = await fetch('http://localhost:8081/api/sessions/{id}/runs/?user_id=guestuser@gmail.com');
+```
+
+#### Step 4: Auto-Claude UI에 표시
+| 컴포넌트 | 위치 | 표시 내용 |
+|----------|------|-----------|
+| `AutogenStatusBadge` | 사이드바 | 연결 상태 + "NEW" 배지 |
+| `AutogenCollabPanel` | Agent Terminals 탭 | 실시간 대화 스트리밍 |
+| `AutogenResultsWidget` | 하단 좌측 플로팅 | 최신 결과 요약 |
+
+#### Step 5: (선택) AG-ACE-BRIDGE로 Spec 생성
+```typescript
+// AutogenCollabPanel.tsx의 "Create Spec from AutoGen" 폼
+await window.electronAPI.workflowExecute(task, complexity, autoMerge);
+
+// 파이프라인:
+// spec_runner.py → Spec 생성
+// run.py → Planner → Coder → QA
+// 결과 → Kanban Board에 Task로 표시
+```
+
+#### 핵심 데이터 구조
+```typescript
+interface AutogenResult {
+  workflow_name: string;  // "session_123"
+  task: string;           // "5 + 3은?"
+  result: string;         // "8"
+  agents_used: string[];  // ["calculator_agent"]
+  status: string;         // "complete"
+  timestamp: string;      // ISO8601
+  source?: string;        // "autogen-studio-direct"
+}
+```
+
+### 추가 문서
+
+상세 문서는 `.claude/MEMORY.md` 참조

@@ -88,6 +88,15 @@ export default defineConfig({
       }
     },
     server: {
+      // ★ Proxy for browser mode - 8081만 사용! (8101 제거됨 - 2026-01-25)
+      proxy: {
+        // AutoGen Studio 직접 연결
+        '/api/autogen': {
+          target: 'http://localhost:8081',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/autogen/, '/api')
+        }
+      },
       watch: {
         // Ignore directories to prevent HMR conflicts during merge operations
         // Using absolute paths and broader patterns

@@ -584,6 +584,99 @@ export interface ElectronAPI {
     message: string
   ) => Promise<IPCResult<{ response: string; raw?: unknown }>>;
 
+  // SharedMemory synchronization operations (Auto-Claude ↔ AG sync)
+  sharedMemoryHealth: (projectId?: string) => Promise<IPCResult<{ online: boolean; url: string }>>;
+  sharedMemoryGet: (key: string, projectId?: string) => Promise<IPCResult<unknown>>;
+  sharedMemoryStore: (key: string, data: unknown, projectId?: string) => Promise<IPCResult<{ stored: boolean }>>;
+  sharedMemoryListKeys: (projectId?: string) => Promise<IPCResult<string[]>>;
+  sharedMemoryGetA2AHistory: (
+    agentName?: string,
+    limit?: number,
+    projectId?: string
+  ) => Promise<IPCResult<Array<{ agent: string; message: string; result: unknown; timestamp: string }>>>;
+
+  // AutoGen Studio sync (★ 8081 직접 연결 우선, SharedMemory 폴백)
+  getAutogenLatest: (projectId?: string) => Promise<IPCResult<{
+    workflow_name: string;
+    task: string;
+    result: string;
+    agents_used: string[];
+    status: string;
+    timestamp: string;
+    source?: string;  // 'autogen-studio-direct' or 'shared-memory'
+  } | null>>;
+
+  // AutoGen Studio runs with messages (for Collab panel - 8081 only)
+  getAutogenRunsDetailed: () => Promise<IPCResult<Array<{
+    sessionId: number;
+    runId: number;
+    status: string;
+    task: string;
+    messages: Array<{
+      id: string;
+      source: string;
+      content: string;
+      timestamp: string;
+      type: 'text' | 'code' | 'function_call';
+    }>;
+    timestamp: string;
+  }>>>;
+
+  // AG-ACE-BRIDGE Workflow operations (★ Bridge Module - Auto-Claude trigger from AutoGen)
+  workflowExecute: (
+    task: string,
+    complexity?: 'simple' | 'standard' | 'complex',
+    autoMerge?: boolean
+  ) => Promise<IPCResult<{
+    success: boolean;
+    status: string;
+    message: string;
+    exec_id?: string;
+  }>>;
+
+  workflowGetExecution: (execId: string) => Promise<IPCResult<{
+    task: string;
+    complexity: string;
+    status: string;
+    started_at: string;
+    spec_id: string | null;
+    result: unknown | null;
+    error?: string;
+  }>>;
+
+  workflowListExecutions: () => Promise<IPCResult<{
+    executions: Array<{
+      task: string;
+      complexity: string;
+      status: string;
+      started_at: string;
+      spec_id: string | null;
+    }>;
+    total: number;
+  }>>;
+
+  workflowListSpecs: () => Promise<IPCResult<{
+    specs: Array<{
+      id: string;
+      name: string;
+      status?: string;
+    }>;
+    total: number;
+  }>>;
+
+  workflowReview: (specId: string) => Promise<IPCResult<{
+    spec_id: string;
+    success: boolean;
+    output?: string;
+    error?: string;
+  }>>;
+
+  workflowMerge: (specId: string) => Promise<IPCResult<{
+    spec_id: string;
+    success: boolean;
+    error?: string;
+  }>>;
+
   // Release operations
   getReleaseableVersions: (projectId: string) => Promise<IPCResult<ReleaseableVersion[]>>;
   runReleasePreflightCheck: (projectId: string, version: string) => Promise<IPCResult<ReleasePreflightStatus>>;

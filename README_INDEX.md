@@ -178,8 +178,37 @@ AI 에이전트를 위한 전체 문서 인덱스. 24/7 AI Project Factory 생�
 
 ---
 
+## 핵심 연동 (★ 직접 연결 - 8101 불필요!)
+
+**AutoGen Studio(8081) → Auto-Claude UI 직접 연결:**
+
+| 단계 | 설명 | 방식 |
+|------|------|------|
+| 1 | AutoGen Studio에서 워크플로우 실행 | Web UI (8081) |
+| 2 | Auto-Claude UI가 5초마다 직접 조회 | Vite Proxy `/api/autogen` |
+| 3 | Kanban 보드에 카드로 표시 | [AutoGen] workflow_name |
+
+**장점 (vs 기존 방식):**
+| 항목 | 기존 (복잡) | 신규 (단순) |
+|------|-------------|-------------|
+| 필요 서버 | AutoGen + SharedMemory + Sync 스크립트 | AutoGen만! |
+| 설정 | 3개 프로세스 실행 | 2개만 실행 |
+| 지연 | 2초 (sync) + 5초 (poll) = 7초 | 5초 (직접 poll) |
+
+**핵심 파일:**
+
+| 파일 | 역할 |
+|------|------|
+| `Auto-Claude/.../electron.vite.config.ts` | `/api/autogen` → 8081 프록시 |
+| `Auto-Claude/.../browser-mock.ts` | AutoGen API 직접 호출 (8081 우선) |
+| `Auto-Claude/.../KanbanBoard.tsx` | AutoGen 결과 Kanban 표시 |
+| `Auto-Claude/.../AutogenStatusBadge.tsx` | 연결 상태 뱃지 |
+| `AG-ACE-BRIDGE/run_autogen_sync_simple.py` | (선택) SharedMemory 동기화 |
+
 ## 변경 이력
 
 | 날짜 | 변경 내용 |
 |------|-----------|
+| 2026-01-24 | ★ 직접 연결 구현 - SharedMemory(8101) 없이 AutoGen(8081) 직접 폴링 |
+| 2026-01-24 | Agent Collaboration & Data Flow 섹션 추가 |
 | 2025-01-23 | README_INDEX.md 생성 (AI 네비게이션용) |

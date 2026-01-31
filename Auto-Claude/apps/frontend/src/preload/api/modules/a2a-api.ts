@@ -30,6 +30,87 @@ export interface A2AAPI {
     limit?: number,
     projectId?: string
   ) => Promise<IPCResult<Array<{ agent: string; message: string; result: unknown; timestamp: string }>>>;
+
+  // AutoGen Studio sync (★ AutoGen → SharedMemory → Auto-Claude UI)
+  getAutogenLatest: (projectId?: string) => Promise<IPCResult<{
+    workflow_name: string;
+    task: string;
+    result: string;
+    agents_used: string[];
+    status: string;
+    timestamp: string;
+  } | null>>;
+
+  // AutoGen Studio runs with messages (for Collab panel - IPC를 통해 Main Process에서 8081 호출)
+  getAutogenRunsDetailed: () => Promise<IPCResult<Array<{
+    sessionId: number;
+    runId: number;
+    status: string;
+    task: string;
+    messages: Array<{
+      id: string;
+      source: string;
+      content: string;
+      timestamp: string;
+      type: 'text' | 'code' | 'function_call';
+    }>;
+    timestamp: string;
+  }>>>;
+
+  // AG-ACE-BRIDGE Workflow operations (★ Bridge Module - Auto-Claude trigger from AutoGen)
+  workflowExecute: (
+    task: string,
+    complexity?: 'simple' | 'standard' | 'complex',
+    autoMerge?: boolean
+  ) => Promise<IPCResult<{
+    success: boolean;
+    status: string;
+    message: string;
+    exec_id?: string;
+  }>>;
+
+  workflowGetExecution: (execId: string) => Promise<IPCResult<{
+    task: string;
+    complexity: string;
+    status: string;
+    started_at: string;
+    spec_id: string | null;
+    result: unknown | null;
+    error?: string;
+  }>>;
+
+  workflowListExecutions: () => Promise<IPCResult<{
+    executions: Array<{
+      task: string;
+      complexity: string;
+      status: string;
+      started_at: string;
+      spec_id: string | null;
+    }>;
+    total: number;
+  }>>;
+
+  workflowListSpecs: () => Promise<IPCResult<{
+    specs: Array<{
+      id: string;
+      name: string;
+      status?: string;
+    }>;
+    total: number;
+  }>>;
+
+  workflowReview: (specId: string) => Promise<IPCResult<{
+    spec_id: string;
+    success: boolean;
+    output?: string;
+    error?: string;
+  }>>;
+
+  workflowMerge: (specId: string) => Promise<IPCResult<{
+    spec_id: string;
+    success: boolean;
+    error?: string;
+  }>>;
 }
 
 /**
@@ -66,5 +147,94 @@ export function createA2AAPI(): A2AAPI {
       projectId?: string
     ): Promise<IPCResult<Array<{ agent: string; message: string; result: unknown; timestamp: string }>>> =>
       invokeIpc(IPC_CHANNELS.SHARED_MEMORY_GET_A2A_HISTORY, agentName, limit, projectId),
+
+    // AutoGen Studio sync
+    getAutogenLatest: (projectId?: string): Promise<IPCResult<{
+      workflow_name: string;
+      task: string;
+      result: string;
+      agents_used: string[];
+      status: string;
+      timestamp: string;
+    } | null>> =>
+      invokeIpc(IPC_CHANNELS.SHARED_MEMORY_GET_AUTOGEN_LATEST, projectId),
+
+    // AutoGen Studio runs with messages (for Collab panel)
+    getAutogenRunsDetailed: (): Promise<IPCResult<Array<{
+      sessionId: number;
+      runId: number;
+      status: string;
+      task: string;
+      messages: Array<{
+        id: string;
+        source: string;
+        content: string;
+        timestamp: string;
+        type: 'text' | 'code' | 'function_call';
+      }>;
+      timestamp: string;
+    }>>> =>
+      invokeIpc(IPC_CHANNELS.AUTOGEN_GET_RUNS_DETAILED),
+
+    // AG-ACE-BRIDGE Workflow operations (★ Bridge Module)
+    workflowExecute: (
+      task: string,
+      complexity: 'simple' | 'standard' | 'complex' = 'standard',
+      autoMerge = false
+    ): Promise<IPCResult<{
+      success: boolean;
+      status: string;
+      message: string;
+      exec_id?: string;
+    }>> =>
+      invokeIpc(IPC_CHANNELS.WORKFLOW_EXECUTE, task, complexity, autoMerge),
+
+    workflowGetExecution: (execId: string): Promise<IPCResult<{
+      task: string;
+      complexity: string;
+      status: string;
+      started_at: string;
+      spec_id: string | null;
+      result: unknown | null;
+      error?: string;
+    }>> =>
+      invokeIpc(IPC_CHANNELS.WORKFLOW_GET_EXECUTION, execId),
+
+    workflowListExecutions: (): Promise<IPCResult<{
+      executions: Array<{
+        task: string;
+        complexity: string;
+        status: string;
+        started_at: string;
+        spec_id: string | null;
+      }>;
+      total: number;
+    }>> =>
+      invokeIpc(IPC_CHANNELS.WORKFLOW_LIST_EXECUTIONS),
+
+    workflowListSpecs: (): Promise<IPCResult<{
+      specs: Array<{
+        id: string;
+        name: string;
+        status?: string;
+      }>;
+      total: number;
+    }>> =>
+      invokeIpc(IPC_CHANNELS.WORKFLOW_LIST_SPECS),
+
+    workflowReview: (specId: string): Promise<IPCResult<{
+      spec_id: string;
+      success: boolean;
+      output?: string;
+      error?: string;
+    }>> =>
+      invokeIpc(IPC_CHANNELS.WORKFLOW_REVIEW, specId),
+
+    workflowMerge: (specId: string): Promise<IPCResult<{
+      spec_id: string;
+      success: boolean;
+      error?: string;
+    }>> =>
+      invokeIpc(IPC_CHANNELS.WORKFLOW_MERGE, specId),
   };
 }

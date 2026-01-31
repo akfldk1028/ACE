@@ -7,29 +7,82 @@ AI 에이전트가 시스템을 시작하고 운영하기 위한 가이드.
 ## 시스템 개요
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                          25_ACE ECOSYSTEM                            │
-│                                                                     │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────────┐ │
-│  │  AG-ACE     │    │   AutoGen   │    │      A2A Agents         │ │
-│  │  Dashboard  │    │   Studio    │    │  (8개 전문 에이전트)      │ │
-│  │   :8080     │    │    :8081    │    │  :8003-8009, :8120      │ │
-│  └──────┬──────┘    └──────┬──────┘    └───────────┬─────────────┘ │
-│         │                  │                       │               │
-│         └──────────────────┼───────────────────────┘               │
-│                            │                                        │
-│                  ┌─────────┴─────────┐                             │
-│                  │   SharedMemory    │                             │
-│                  │      :8101        │                             │
-│                  └───────────────────┘                             │
-└─────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           25_ACE ECOSYSTEM (3-Layer)                         │
+│                                                                              │
+│  STEP 1: 에이전트 설계                                                       │
+│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  │  AutoGen Studio (8081) - 드래그 앤 드롭 에이전트 팀 설계                 │ │
+│  └─────────────────────────────────────────────────────────────────────────┘ │
+│                                      │                                       │
+│                                      ▼ Workflow JSON                         │
+│  STEP 2: 브릿지 (변환 + 실행)                                                │
+│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  │  AG-ACE-BRIDGE (8080)                                                    │ │
+│  │    WorkflowExecutor.execute_full_pipeline()                              │ │
+│  │      Phase 1: spec_runner.py (AI Spec 생성)                              │ │
+│  │      Phase 2: run.py (빌드 실행)                                         │ │
+│  │      Phase 3: Git Worktree 관리                                          │ │
+│  └─────────────────────────────────────────────────────────────────────────┘ │
+│                                      │                                       │
+│                                      ▼ subprocess                            │
+│  STEP 3: 24/7 자율 실행                                                      │
+│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  │  Auto-Claude (5173) - Electron UI                                        │ │
+│  │    Planner → Coder → QA Reviewer → QA Fixer                              │ │
+│  │    + Git Worktree 격리 빌드                                              │ │
+│  └─────────────────────────────────────────────────────────────────────────┘ │
+│                                                                              │
+│  [선택] A2A Agents (8003-8009, 8120) - 전문 에이전트                          │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 서버 시작 순서 (필수!)
+## 서버 시작 순서 (권장)
 
-> **순서를 지켜야 함!** 의존성: A2A → SharedMemory → Dashboard → Studio
+> **최소 필수:** AutoGen Studio(8081) + Auto-Claude UI만으로 작동!
+> ★ SharedMemory(8101)는 완전히 제거됨 (2026-01-25)
+
+### 최소 구성 (2개만!)
+
+```powershell
+# 터미널 1: AutoGen Studio (에이전트 설계)
+cd D:\Data\25_ACE\AG\autogen_a2a_kit\autogen_source\python\packages\autogen-studio
+autogenstudio ui --port 8081
+
+# 터미널 2: Auto-Claude UI (24/7 실행)
+cd D:\Data\25_ACE\Auto-Claude\apps\frontend
+npm run dev
+```
+
+| 서비스 | 포트 | 설명 |
+|--------|------|------|
+| AutoGen Studio | 8081 | 에이전트 팀 설계, 패턴 갤러리 |
+| Auto-Claude UI | 5173 | Electron 데스크톱 앱 |
+
+---
+
+### 확장 구성 (추가 기능)
+
+```powershell
+# 터미널 3: A2A 에이전트 (선택)
+cd D:\Data\25_ACE\AG\autogen_a2a_kit
+.\start_all_agents.bat
+```
+
+| 서비스 | 포트 | 설명 |
+|--------|------|------|
+| A2A Agents | 8003-8009, 8120 | 전문 에이전트 (calculator, gui_test 등) |
+
+> **Note (2026-01-25)**: SharedMemory(8101), AG-ACE Dashboard(8080) 모두 제거됨
+
+---
+
+### Legacy 구성 (전체) - ⚠️ 더 이상 권장하지 않음
+
+> **Note**: 아래 Legacy 구성은 참고용입니다. SharedMemory(8101)는 완전히 제거되었습니다.
 
 ### Step 1: A2A 에이전트 시작 (8개)
 
@@ -54,21 +107,10 @@ cd D:\Data\25_ACE\AG\autogen_a2a_kit
 
 ---
 
-### Step 2: SharedMemory 서버 시작
+### Step 2: SharedMemory 서버 시작 - ❌ 제거됨
 
-```powershell
-# 터미널 2
-cd D:\Data\25_ACE\AG\autogen_a2a_kit\AG-cli
-python mcp/shared_memory.py
-```
-
-| 항목 | 값 |
-|------|-----|
-| Port | 8101 |
-| 상태 확인 | http://127.0.0.1:8101 |
-| API 목록 | http://127.0.0.1:8101/docs |
-
-**대기:** "REST API: http://127.0.0.1:8101" 출력할 때까지
+> **⚠️ SharedMemory(8101)는 2026-01-25에 완전히 제거되었습니다.**
+> Auto-Claude는 이제 AutoGen Studio(8081)에 직접 연결합니다.
 
 ---
 
@@ -90,7 +132,7 @@ python main.py
 
 ---
 
-### Step 4: AutoGen Studio 시작 (UI 2) - 선택적
+### Step 4: AutoGen Studio 시작 (UI 2)
 
 ```powershell
 # 터미널 4
@@ -102,6 +144,21 @@ autogenstudio ui --port 8081
 |------|-----|
 | Port | 8081 |
 | Studio URL | http://localhost:8081 |
+
+---
+
+### Step 5: Auto-Claude UI 시작 (Electron)
+
+```powershell
+# 터미널 5
+cd D:\Data\25_ACE\Auto-Claude\apps\frontend
+npm run dev
+```
+
+| 항목 | 값 |
+|------|-----|
+| Port | 5173 (dev) |
+| 앱 | Electron 데스크톱 |
 
 ---
 
@@ -131,7 +188,10 @@ autogenstudio ui --port 8081
 ### 전체 헬스체크 (PowerShell)
 
 ```powershell
-# A2A 에이전트 확인
+# AutoGen Studio 확인 (★ 필수!)
+Invoke-WebRequest http://localhost:8081/api/version
+
+# A2A 에이전트 확인 (선택)
 @(8003,8004,8005,8006,8007,8008,8009,8120) | ForEach-Object {
     $port = $_
     try {
@@ -141,25 +201,19 @@ autogenstudio ui --port 8081
         Write-Host "[FAIL] Port $port" -ForegroundColor Red
     }
 }
-
-# SharedMemory 확인
-Invoke-WebRequest http://127.0.0.1:8101
-
-# Dashboard 확인
-Invoke-WebRequest http://localhost:8080/api/status
 ```
 
 ### curl로 확인
 
 ```bash
-# SharedMemory
-curl http://127.0.0.1:8101
+# AutoGen Studio (★ 필수!)
+curl http://localhost:8081/api/version
 
-# Dashboard 상태
-curl http://localhost:8080/api/status
-
-# A2A 에이전트 (예: calculator)
+# A2A 에이전트 (예: calculator) (선택)
 curl http://127.0.0.1:8006/.well-known/agent.json
+
+# Vite 프록시 확인 (브라우저 모드용)
+curl http://localhost:5173/api/autogen/version
 ```
 
 ---
@@ -200,12 +254,45 @@ D:\Data\25_ACE\
 
 ## 빠른 시작 (한 줄 요약)
 
+### 최소 구성 (권장)
 ```
-1. start_all_agents.bat  → 2. shared_memory.py  → 3. main.py  → 4. autogenstudio ui
+1. autogenstudio ui --port 8081  → 2. npm run dev (Auto-Claude)
+```
+
+### 전체 구성
+```
+1. start_all_agents.bat  → 2. shared_memory.py  → 3. main.py  → 4. autogenstudio ui → 5. npm run dev
 ```
 
 **포트 기억:**
-- A2A: 8003-8009, 8120
-- SharedMemory: 8101
-- Dashboard: 8080
-- Studio: 8081
+- AutoGen Studio: 8081 (에이전트 설계) - ★ 필수
+- Auto-Claude UI: 5173 (Electron 앱) - ★ 필수
+- A2A: 8003-8009, 8120 (전문 에이전트) - 선택
+- ~~AG-ACE Dashboard: 8080~~ - ❌ 제거됨
+- ~~SharedMemory: 8101~~ - ❌ 제거됨
+
+---
+
+## AG-ACE-BRIDGE 사용법 (프로그래밍 방식)
+
+```python
+from src.bridge import WorkflowExecutor
+
+executor = WorkflowExecutor()
+
+# AI 모드: Auto-Claude의 모든 기능 활용
+result = executor.execute_full_pipeline_sync(
+    task_description="계산기 앱 만들어줘",
+    complexity="standard",  # simple, standard, complex
+    auto_merge=False        # True면 완료 후 자동 병합
+)
+
+# 파이프라인:
+# 1. spec_runner.py → AI가 Spec 생성
+# 2. run.py → Planner → Coder → QA 파이프라인
+# 3. Git Worktree에서 안전하게 빌드
+```
+
+---
+
+*자세한 아키텍처는 [ARCHITECTURE.md](ARCHITECTURE.md)를 참조하세요.*

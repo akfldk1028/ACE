@@ -1,28 +1,65 @@
 # Project Start Guide
 
-> 새 프로젝트를 처음부터 완성까지 - 3개 UI 조작 가이드
+> 새 프로젝트를 처음부터 완성까지 - 간소화된 2 UI 가이드
 
-## Overview: 3 UI Coordination
+## Overview: 새로운 단순화 아키텍처 (★ 2026-01-24)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    PROJECT LIFECYCLE & UI COORDINATION                       │
+│                    25_ACE 간소화 아키텍처 (2 UI)                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  STEP 1          STEP 2          STEP 3          STEP 4          STEP 5    │
-│  ┌──────┐        ┌──────┐        ┌──────┐        ┌──────┐        ┌──────┐  │
-│  │Setup │   →    │Create│   →    │Config│   →    │Submit│   →    │Monitor│ │
-│  │Agents│        │ Task │        │Pattern│       │ Run  │        │& Fix  │ │
-│  └──────┘        └──────┘        └──────┘        └──────┘        └──────┘  │
-│     │               │               │               │               │       │
-│     ▼               ▼               ▼               ▼               ▼       │
-│  ┌──────┐        ┌──────┐        ┌──────┐        ┌──────┐        ┌──────┐  │
-│  │Bridge│        │Auto- │        │AutoGen│       │Bridge│        │All 3 │  │
-│  │ 8080 │        │Claude│        │Studio │       │ 8080 │        │ UIs  │  │
-│  └──────┘        └──────┘        └──────┘        └──────┘        └──────┘  │
+│  STEP 1: 에이전트 설계         STEP 2: 자동 빌드                            │
+│  ┌─────────────────────────┐   ┌───────────────────────────────────────┐   │
+│  │  AutoGen Studio (8081)  │   │  AG-ACE-BRIDGE                         │   │
+│  │                         │   │    WorkflowExecutor                    │   │
+│  │  - 팀 구성              │   │      │                                 │   │
+│  │  - 패턴 선택            │──►│      ▼                                 │   │
+│  │  - A2A 에이전트 추가    │   │    spec_runner.py (AI Spec 생성)       │   │
+│  └─────────────────────────┘   │      │                                 │   │
+│                                │      ▼                                 │   │
+│                                │    run.py (Planner→Coder→QA)          │   │
+│                                │      │                                 │   │
+│                                │      ▼                                 │   │
+│                                │    Git Worktree (격리 빌드)            │   │
+│                                └───────────────────────────────────────┘   │
+│                                         │                                   │
+│                                         ▼                                   │
+│                                ┌───────────────────────────────────────┐   │
+│                                │  Auto-Claude UI (실시간 모니터링)      │   │
+│                                │    - Kanban 보드                       │   │
+│                                │    - Agent Terminals 협업 패널         │   │
+│                                │    - 실시간 AutoGen 결과 표시          │   │
+│                                └───────────────────────────────────────┘   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 방법 A: Python API로 직접 실행 (★ 권장)
+
+```python
+from src.bridge import WorkflowExecutor
+
+executor = WorkflowExecutor()
+
+# AI 모드: Auto-Claude의 모든 기능 활용
+result = executor.execute_full_pipeline_sync(
+    task_description="계산기 앱 만들어줘",
+    complexity="standard",  # simple, standard, complex
+    auto_merge=False        # True면 완료 후 자동 병합
+)
+
+print(f"Success: {result['success']}")
+print(f"Spec ID: {result['spec_id']}")
+print(f"Review: python run.py --spec {result['spec_id']} --review")
+print(f"Merge:  python run.py --spec {result['spec_id']} --merge")
+```
+
+---
+
+## 방법 B: UI 협업 (기존 방식)
 
 ---
 
@@ -31,55 +68,39 @@
 ### 1.1 서비스 시작
 
 ```bash
-# Terminal 1: A2A Agents
-cd D:\Data\25_ACE\AG\autogen_a2a_kit\a2a_demo
-python run_all_agents.py
-
-# Terminal 2: SharedMemory
-cd D:\Data\25_ACE\AG\autogen_a2a_kit\AG-cli
-python shared_memory_server.py
-
-# Terminal 3: AutoGen Studio
+# Terminal 1: AutoGen Studio (★ 필수)
 cd D:\Data\25_ACE\AG\autogen_a2a_kit\autogen_source\python\packages\autogen-studio
 autogenstudio ui --port 8081
 
-# Terminal 4: Auto-Claude (Electron)
+# Terminal 2: Auto-Claude (Electron) (★ 필수)
 cd D:\Data\25_ACE\Auto-Claude\apps\frontend
 npm run dev
 
-# Terminal 5: AG-ACE-BRIDGE
-cd D:\Data\25_ACE\AG-ACE-BRIDGE
-python main.py
+# Terminal 3: A2A Agents (선택)
+cd D:\Data\25_ACE\AG\autogen_a2a_kit\a2a_demo
+python run_all_agents.py
+
+# Note: SharedMemory(8101), AG-ACE Dashboard(8080) 모두 2026-01-25에 제거됨
 ```
 
-### 1.2 AG-ACE-BRIDGE Dashboard에서 상태 확인
+### 1.2 서비스 상태 확인 (★ 2026-01-25 업데이트)
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ AG-ACE-BRIDGE Dashboard (http://localhost:8080)                              │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  System Status                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ [✓] Orchestrator: Running                                           │   │
-│  │ [✓] SharedMemory (8101): Connected                                  │   │
-│  │ [✓] A2A Agents: 10/10 Online                                        │   │
-│  │ [✓] Auto-Claude Backend: Connected                                  │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-│  Agent Health                                                               │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ ✓ calculator_agent (8006)    ✓ poetry_agent (8003)                 │   │
-│  │ ✓ philosophy_agent (8004)    ✓ history_agent (8005)                │   │
-│  │ ✓ math_agent (8007)          ✓ graphics_agent (8008)               │   │
-│  │ ✓ gpu_agent (8009)           ✓ research_agent (8010)               │   │
-│  │ ✓ code_agent (8011)          ✓ gui_test_agent (8120)               │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+> **Note**: AG-ACE-BRIDGE Dashboard(8080)는 제거되었습니다.
+> 상태 확인은 curl 또는 Auto-Claude UI에서 진행합니다.
+
+```bash
+# AutoGen Studio 상태 확인
+curl http://localhost:8081/api/version
+
+# Vite 프록시 확인 (브라우저 모드)
+curl http://localhost:5173/api/autogen/version
 ```
 
-**Action**: 모든 서비스가 녹색(✓)인지 확인 → 다음 단계로
+**최소 필수 서비스:**
+- [✓] AutoGen Studio (8081)
+- [✓] Auto-Claude UI (5173)
+
+**Action**: AutoGen Studio, Auto-Claude UI 실행 확인 → 다음 단계로
 
 ---
 
@@ -562,15 +583,16 @@ QA 실패 시 알림:
 
 ---
 
-## Troubleshooting
+## Troubleshooting (★ 2026-01-25 업데이트)
 
 ### Service Not Connected
 ```bash
-# Check if all services are running
-curl http://localhost:8080/health  # AG-ACE-BRIDGE
-curl http://localhost:8081/health  # AutoGen Studio
-curl http://localhost:8101/health  # SharedMemory
-curl http://localhost:8006/health  # calculator_agent
+# Check if services are running (★ 필수 서비스만!)
+curl http://localhost:8081/api/version  # AutoGen Studio
+curl http://localhost:5173/api/autogen/version  # Vite 프록시
+
+# A2A agents (선택)
+curl http://localhost:8006/.well-known/agent.json  # calculator_agent
 ```
 
 ### Pattern Not Working

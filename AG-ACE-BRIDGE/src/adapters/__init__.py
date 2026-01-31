@@ -47,6 +47,12 @@ from .ag_law_domain import (
     create_document_drafter_adapter,
 )
 
+from .autogen_studio_adapter import (
+    AutogenStudioAdapter,
+    WorkflowResult,
+    execute_pattern_with_autogen,
+)
+
 __all__ = [
     # Base
     "AgentAdapter",
@@ -79,4 +85,8 @@ __all__ = [
     "create_risk_assessor_adapter",
     "create_compliance_checker_adapter",
     "create_document_drafter_adapter",
+    # AutoGen Studio
+    "AutogenStudioAdapter",
+    "WorkflowResult",
+    "execute_pattern_with_autogen",
 ]

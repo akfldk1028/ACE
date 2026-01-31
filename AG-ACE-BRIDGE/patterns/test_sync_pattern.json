@@ -1,0 +1,14 @@
+{
+  "name": "test_sync_pattern",
+  "description": "Auto-sync test pattern",
+  "type": "workflow",
+  "tags": ["test", "sync"],
+  "created_at": "2026-01-24T11:53:00",
+  "nodes": [
+    {
+      "id": "test_agent",
+      "agent": "AUTO_CLAUDE_CODER",
+      "task": "Test sync between AutoGen Studio and Auto-Claude"
+    }
+  ]
+}

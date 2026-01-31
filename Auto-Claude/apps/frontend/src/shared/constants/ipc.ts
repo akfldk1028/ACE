@@ -540,9 +540,19 @@ export const IPC_CHANNELS = {
   SHARED_MEMORY_STORE: 'sharedMemory:store',         // Store value to SharedMemory
   SHARED_MEMORY_LIST_KEYS: 'sharedMemory:listKeys',  // List all keys in SharedMemory
   SHARED_MEMORY_GET_A2A_HISTORY: 'sharedMemory:getA2AHistory',  // Get A2A call history
+  SHARED_MEMORY_GET_AUTOGEN_LATEST: 'sharedMemory:getAutogenLatest',  // Get AutoGen Studio latest result
+  AUTOGEN_GET_RUNS_DETAILED: 'autogen:getRunsDetailed',  // Get AutoGen runs with messages (for Collab panel)
 
   // Sentry error reporting
   SENTRY_STATE_CHANGED: 'sentry:state-changed',  // Notify main process when setting changes
   GET_SENTRY_DSN: 'sentry:get-dsn',              // Get DSN from main process (env var)
-  GET_SENTRY_CONFIG: 'sentry:get-config'         // Get full Sentry config (DSN + sample rates)
+  GET_SENTRY_CONFIG: 'sentry:get-config',        // Get full Sentry config (DSN + sample rates)
+
+  // AG-ACE-BRIDGE Workflow operations (★ Bridge Module - Auto-Claude trigger from AutoGen)
+  WORKFLOW_EXECUTE: 'workflow:execute',              // Execute workflow via Bridge Module
+  WORKFLOW_GET_EXECUTION: 'workflow:getExecution',   // Get execution status by exec_id
+  WORKFLOW_LIST_EXECUTIONS: 'workflow:listExecutions', // List all executions
+  WORKFLOW_LIST_SPECS: 'workflow:listSpecs',         // List all specs
+  WORKFLOW_REVIEW: 'workflow:review',                // Review a spec
+  WORKFLOW_MERGE: 'workflow:merge',                  // Merge a completed spec
 } as const;

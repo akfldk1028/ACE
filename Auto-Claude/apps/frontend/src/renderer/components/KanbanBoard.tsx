@@ -1,6 +1,7 @@
-import { useState, useMemo, memo, useEffect, useCallback } from 'react';
+import { useState, useMemo, memo, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useViewState } from '../contexts/ViewStateContext';
+import { Bot } from 'lucide-react';
 import {
   DndContext,
   DragOverlay,
@@ -418,12 +419,142 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
   );
 }, droppableColumnPropsAreEqual);
 
+// AutoGen result interface
+interface AutogenResult {
+  workflow_name: string;
+  task: string;
+  result: string;
+  agents_used?: string[];
+  status: string;
+  timestamp: string;
+  source?: string;
+}
+
+// Convert AutoGen result to a virtual Task for display
+// ★ AutoGen Studio 상태 → Auto-Claude Kanban 컬럼 매핑
+function autogenResultToTask(result: AutogenResult, index: number): Task {
+  // 방어 코드: undefined 처리
+  const workflowName = result.workflow_name || `session_${index}`;
+  const taskContent = result.task || 'AutoGen Task';
+  const resultContent = result.result || '';
+
+  // Map AutoGen status to Task status with time-based logic
+  let taskStatus: TaskStatus = 'in_progress';
+  const timestamp = result.timestamp ? new Date(result.timestamp) : new Date();
+  const ageMs = Date.now() - timestamp.getTime();
+
+  if (result.status === 'pending' || result.status === 'queued') {
+    taskStatus = 'backlog'; // Planning 컬럼
+  } else if (result.status === 'running' || result.status === 'in_progress') {
+    taskStatus = 'in_progress'; // In Progress 컬럼
+  } else if (result.status === 'complete' || result.status === 'completed') {
+    // 시간 기반 자동 이동:
+    // - 5분 이내: AI Review
+    // - 5분~1시간: Human Review
+    // - 1시간 이상: Done
+    if (ageMs < 5 * 60 * 1000) {
+      taskStatus = 'ai_review'; // AI Review 컬럼 (최근 완료)
+    } else if (ageMs < 60 * 60 * 1000) {
+      taskStatus = 'human_review'; // Human Review 컬럼 (확인 대기)
+    } else {
+      taskStatus = 'done'; // Done 컬럼 (오래된 완료)
+    }
+  } else if (result.status === 'error' || result.status === 'failed') {
+    taskStatus = 'human_review'; // 오류 → Human Review (수동 확인 필요)
+  }
+
+  return {
+    id: `autogen_${workflowName}_${index}`,
+    projectId: 'autogen',
+    specId: `autogen_${workflowName}`,
+    title: `[AutoGen] ${workflowName}`,
+    description: taskContent + (resultContent ? `\n\n**Result:** ${resultContent}` : ''),
+    status: taskStatus,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    subtasks: [],
+    logs: [],
+    metadata: {
+      // Use type assertion to allow custom AutoGen fields
+      ...(result.agents_used && { agents: result.agents_used }),
+      source: result.source || 'autogen-studio',
+    } as Task['metadata']
+  };
+}
+
 export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isRefreshing }: KanbanBoardProps) {
   const { t } = useTranslation(['tasks', 'dialogs', 'common']);
   const { toast } = useToast();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [overColumnId, setOverColumnId] = useState<string | null>(null);
   const { showArchived, toggleShowArchived } = useViewState();
+
+  // AutoGen results state
+  const [autogenTasks, setAutogenTasks] = useState<Task[]>([]);
+  const autogenPollRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Poll AutoGen results from SharedMemory
+  useEffect(() => {
+    const fetchAutogenResults = async () => {
+      try {
+        // Fetch latest AutoGen result
+        const response = await window.electronAPI.getAutogenLatest();
+        if (response.success && response.data) {
+          const task = autogenResultToTask(response.data, 0);
+          setAutogenTasks([task]);
+        }
+
+        // Also fetch all autogen session keys and create tasks
+        const keysResponse = await window.electronAPI.sharedMemoryListKeys();
+        if (keysResponse.success && keysResponse.data) {
+          const autogenKeys = keysResponse.data.filter((k: string) =>
+            k.startsWith('autogen_session_') || k.startsWith('autogen_')
+          );
+
+          // Fetch each autogen result and convert to task
+          const autogenTasksFromKeys: Task[] = [];
+          for (let i = 0; i < Math.min(autogenKeys.length, 10); i++) {
+            const key = autogenKeys[i];
+            try {
+              const resultResponse = await window.electronAPI.sharedMemoryGet(key);
+              if (resultResponse.success && resultResponse.data) {
+                const task = autogenResultToTask(resultResponse.data as AutogenResult, i);
+                // Avoid duplicates with latest
+                if (!autogenTasksFromKeys.find(t => t.specId === task.specId)) {
+                  autogenTasksFromKeys.push(task);
+                }
+              }
+            } catch {
+              // Skip failed fetches
+            }
+          }
+
+          if (autogenTasksFromKeys.length > 0) {
+            setAutogenTasks(autogenTasksFromKeys);
+          }
+        }
+      } catch (err) {
+        console.debug('[KanbanBoard] AutoGen fetch error:', err);
+      }
+    };
+
+    // Initial fetch
+    fetchAutogenResults();
+
+    // Poll every 2 seconds for real-time sync (바로바로)
+    autogenPollRef.current = setInterval(fetchAutogenResults, 2000);
+
+    return () => {
+      if (autogenPollRef.current) {
+        clearInterval(autogenPollRef.current);
+      }
+    };
+  }, []);
+
+  // Combine regular tasks with AutoGen tasks
+  const allTasks = useMemo(() => {
+    return [...tasks, ...autogenTasks];
+  }, [tasks, autogenTasks]);
 
   // Selection state for bulk actions (Human Review column)
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
@@ -450,17 +581,17 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
 
   // Calculate archived count for Done column button
   const archivedCount = useMemo(() =>
-    tasks.filter(t => t.metadata?.archivedAt).length,
-    [tasks]
+    allTasks.filter(t => t.metadata?.archivedAt).length,
+    [allTasks]
   );
 
   // Filter tasks based on archive status
   const filteredTasks = useMemo(() => {
     if (showArchived) {
-      return tasks; // Show all tasks including archived
+      return allTasks; // Show all tasks including archived
     }
-    return tasks.filter((t) => !t.metadata?.archivedAt);
-  }, [tasks, showArchived]);
+    return allTasks.filter((t) => !t.metadata?.archivedAt);
+  }, [allTasks, showArchived]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -608,7 +739,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    const task = tasks.find((t) => t.id === active.id);
+    const task = allTasks.find((t) => t.id === active.id);
     if (task) {
       setActiveTask(task);
     }
@@ -631,7 +762,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
     }
 
     // Check if over a task - get its column
-    const overTask = tasks.find((t) => t.id === overId);
+    const overTask = allTasks.find((t) => t.id === overId);
     if (overTask) {
       setOverColumnId(overTask.status);
     }
@@ -642,7 +773,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
    * Consolidated handler that accepts an optional task object for the dialog title
    */
   const handleStatusChange = async (taskId: string, newStatus: TaskStatus, providedTask?: Task) => {
-    const task = providedTask || tasks.find(t => t.id === taskId);
+    const task = providedTask || allTasks.find(t => t.id === taskId);
     const result = await persistTaskStatus(taskId, newStatus);
 
     if (!result.success) {
@@ -776,7 +907,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
     // Check if dropped on a column
     if (isValidDropColumn(overId)) {
       const newStatus = overId;
-      const task = tasks.find((t) => t.id === activeTaskId);
+      const task = allTasks.find((t) => t.id === activeTaskId);
 
       if (task && task.status !== newStatus) {
         // Move task to top of target column's order array
@@ -796,9 +927,9 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
     }
 
     // Check if dropped on another task
-    const overTask = tasks.find((t) => t.id === overId);
+    const overTask = allTasks.find((t) => t.id === overId);
     if (overTask) {
-      const task = tasks.find((t) => t.id === activeTaskId);
+      const task = allTasks.find((t) => t.id === activeTaskId);
       if (!task) return;
 
       // Compare visual columns (pr_created maps to 'done' visually)

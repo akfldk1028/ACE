@@ -36,3 +36,5 @@ nul
 .env
 .env.local
 AG
+AG-ACE-BRIDGE/modules/Auto-Claude
+Calculator

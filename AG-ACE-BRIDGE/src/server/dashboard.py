@@ -41,6 +41,8 @@ from src.watcher.pattern_watcher import PatternWatcher, PatternEvent
 from src.registry.pattern_registry import PatternRegistry
 from src.scheduler.trigger import ScheduleTrigger
 from src.server import pattern_routes
+from src.server import project_routes
+from src.server import workflow_routes
 
 # AG-CLI Message Bus configuration
 AG_CLI_MESSAGE_BUS_URL = "http://localhost:8100"
@@ -55,6 +57,12 @@ app = FastAPI(
 
 # Include pattern routes
 app.include_router(pattern_routes.router)
+
+# Include project routes
+app.include_router(project_routes.router)
+
+# Include workflow routes (Bridge Module)
+app.include_router(workflow_routes.router)
 
 # Global instances
 orchestrator: Optional[Orchestrator] = None
@@ -1054,10 +1062,34 @@ async def broadcast_status():
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize pattern automation on startup"""
-    global pattern_registry, pattern_watcher, schedule_trigger
+    """Initialize pattern automation and project design on startup"""
+    global pattern_registry, pattern_watcher, schedule_trigger, orchestrator
 
-    logger.info("Initializing pattern automation...")
+    logger.info("Initializing AG-ACE-BRIDGE systems...")
+
+    # Initialize Orchestrator (24/7 task execution)
+    orchestrator = Orchestrator()
+    logger.info("Orchestrator initialized")
+
+    # Initialize Auto-Claude Adapters
+    from src.adapters import AutoClaudeAdapter, A2AAdapterManager
+
+    planner_adapter = None
+    try:
+        planner_adapter = AutoClaudeAdapter(agent_type="AUTO_CLAUDE_PLANNER")
+        await planner_adapter.initialize()
+        logger.info("Auto-Claude Planner adapter initialized")
+    except Exception as e:
+        logger.warning(f"Auto-Claude Planner init failed (will use template fallback): {e}")
+
+    # Initialize A2A adapters for AutoGen Studio agents
+    a2a_adapters = None
+    try:
+        a2a_adapters = A2AAdapterManager()
+        await a2a_adapters.initialize_all()
+        logger.info("A2A adapters initialized")
+    except Exception as e:
+        logger.warning(f"A2A adapters init failed: {e}")
 
     # Initialize PatternRegistry
     pattern_registry = PatternRegistry(
@@ -1080,6 +1112,18 @@ async def startup_event():
         registry=pattern_registry,
         scheduler=schedule_trigger,
     )
+
+    # Initialize project routes with Auto-Claude Planner
+    project_routes.initialize(
+        registry=pattern_registry,
+        scheduler=schedule_trigger,
+        orchestrator=orchestrator,
+        planner_adapter=planner_adapter,
+        a2a_adapters=a2a_adapters,
+    )
+
+    # Initialize workflow routes for Bridge Module
+    workflow_routes.initialize(auto_claude_path="D:/Data/25_ACE/Auto-Claude")
 
     # Initialize PatternWatcher
     async def on_pattern_detected(event: PatternEvent):
@@ -1151,7 +1195,13 @@ def run_dashboard(host: str = "0.0.0.0", port: int = 8080):
     print("Pattern Automation:")
     print("  - Watches: ./patterns, ~/.autogenstudio/*")
     print("  - REST API: /patterns/*")
-    print("  - SharedMemory: http://localhost:8101")
+    print("")
+    print("Project Design System:")
+    print("  - REST API: /projects/*")
+    print("  - Design: POST /projects/design")
+    print("  - Execute: POST /projects/{id}/execute")
+    print("")
+    print("SharedMemory: http://localhost:8101")
     print("=" * 60)
 
     uvicorn.run(app, host=host, port=port, log_level="info")

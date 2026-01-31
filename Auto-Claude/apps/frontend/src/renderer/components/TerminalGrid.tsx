@@ -20,7 +20,7 @@ import {
   rectSortingStrategy,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
-import { Plus, Sparkles, Grid2X2, FolderTree, File, Folder, History, ChevronDown, Loader2, TerminalSquare } from 'lucide-react';
+import { Plus, Sparkles, Grid2X2, FolderTree, File, Folder, History, ChevronDown, Loader2, TerminalSquare, Bot } from 'lucide-react';
 import { SortableTerminalWrapper } from './SortableTerminalWrapper';
 import { Button } from './ui/button';
 import {
@@ -31,6 +31,7 @@ import {
   DropdownMenuSeparator,
 } from './ui/dropdown-menu';
 import { FileExplorerPanel } from './FileExplorerPanel';
+import { AutogenCollabPanel } from './AutogenCollabPanel';
 import { cn } from '../lib/utils';
 import { useTerminalStore } from '../stores/terminal-store';
 import { useTaskStore } from '../stores/task-store';
@@ -70,6 +71,9 @@ export function TerminalGrid({ projectPath, onNewTaskClick, isActive = false }: 
   // File explorer state
   const fileExplorerOpen = useFileExplorerStore((state) => state.isOpen);
   const toggleFileExplorer = useFileExplorerStore((state) => state.toggle);
+
+  // AutoGen Collaboration panel state
+  const [autogenCollabOpen, setAutogenCollabOpen] = useState(false);
 
   // Session history state
   const [sessionDates, setSessionDates] = useState<SessionDateInfo[]>([]);
@@ -372,26 +376,29 @@ export function TerminalGrid({ projectPath, onNewTaskClick, isActive = false }: 
   // Terminal IDs for SortableContext
   const terminalIds = useMemo(() => terminals.map(t => t.id), [terminals]);
 
-  // Empty state
+  // Empty state - show AutoGen Collaboration as main content
   if (terminals.length === 0) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-6 p-8">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="rounded-full bg-card p-4">
-            <Grid2X2 className="h-8 w-8 text-muted-foreground" />
+      <div className="flex h-full flex-col">
+        {/* Header with actions */}
+        <div className="flex h-10 items-center justify-between border-b border-border bg-card/30 px-3">
+          <div className="flex items-center gap-2">
+            <Bot className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">Agent Terminals + AutoGen Collaboration</span>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">Agent Terminals</h2>
-            <p className="mt-1 text-sm text-muted-foreground max-w-md">
-              Spawn multiple terminals to run Claude agents in parallel.
-              Use <kbd className="px-1.5 py-0.5 text-xs bg-card border border-border rounded">Ctrl+T</kbd> to create a new terminal.
-            </p>
-          </div>
+          <Button onClick={handleAddTerminal} size="sm" className="h-7 gap-1.5">
+            <Plus className="h-3 w-3" />
+            New Terminal
+            <kbd className="ml-1 text-[10px] text-muted-foreground">
+              {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+T
+            </kbd>
+          </Button>
         </div>
-        <Button onClick={handleAddTerminal} className="gap-2">
-          <Plus className="h-4 w-4" />
-          New Terminal
-        </Button>
+
+        {/* AutoGen Collaboration as main content when no terminals */}
+        <div className="flex-1 overflow-hidden">
+          <AutogenCollabPanel isOpen={true} onClose={() => {}} fullWidth={true} />
+        </div>
       </div>
     );
   }
@@ -487,6 +494,16 @@ export function TerminalGrid({ projectPath, onNewTaskClick, isActive = false }: 
                 Files
               </Button>
             )}
+            {/* AutoGen Collab toggle button */}
+            <Button
+              variant={autogenCollabOpen ? 'default' : 'outline'}
+              size="sm"
+              className="h-7 text-xs gap-1.5"
+              onClick={() => setAutogenCollabOpen(!autogenCollabOpen)}
+            >
+              <Bot className="h-3 w-3" />
+              AutoGen
+            </Button>
           </div>
         </div>
 
@@ -566,6 +583,12 @@ export function TerminalGrid({ projectPath, onNewTaskClick, isActive = false }: 
 
           {/* File explorer panel (slides from right, pushes content) */}
           {projectPath && <FileExplorerPanel projectPath={projectPath} />}
+
+          {/* AutoGen Collaboration panel */}
+          <AutogenCollabPanel
+            isOpen={autogenCollabOpen}
+            onClose={() => setAutogenCollabOpen(false)}
+          />
         </div>
 
         {/* Drag overlay - shows what's being dragged */}

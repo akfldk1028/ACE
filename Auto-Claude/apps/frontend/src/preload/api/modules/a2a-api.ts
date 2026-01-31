@@ -111,6 +111,53 @@ export interface A2AAPI {
     success: boolean;
     error?: string;
   }>>;
+
+  // AG-ACE-BRIDGE Pipeline operations (★ E2E Project Pipeline)
+  bridgePipelineInit: (path: string, name: string, description?: string) => Promise<IPCResult<{
+    project_id: string;
+    path: string;
+    name: string;
+    status: string;
+    created_at: string;
+  }>>;
+  bridgePipelinePlan: (projectId: string, sessionId?: number) => Promise<IPCResult<{
+    project_id: string;
+    tasks: Array<{
+      id: string;
+      title: string;
+      description: string;
+      stage: string;
+      agent: string;
+      status: string;
+      started_at?: string;
+      completed_at?: string;
+    }>;
+  }>>;
+  bridgePipelineStatus: (projectId: string) => Promise<IPCResult<{
+    project_id: string;
+    name: string;
+    path: string;
+    status: string;
+    current_stage?: string;
+    current_agent?: string;
+    tasks_total: number;
+    tasks_completed: number;
+    created_at: string;
+    updated_at: string;
+  }>>;
+  bridgePipelineTasks: (projectId: string) => Promise<IPCResult<{
+    project_id: string;
+    tasks: Array<{
+      id: string;
+      title: string;
+      description: string;
+      stage: string;
+      agent: string;
+      status: string;
+      started_at?: string;
+      completed_at?: string;
+    }>;
+  }>>;
 }
 
 /**
@@ -236,5 +283,59 @@ export function createA2AAPI(): A2AAPI {
       error?: string;
     }>> =>
       invokeIpc(IPC_CHANNELS.WORKFLOW_MERGE, specId),
+
+    // AG-ACE-BRIDGE Pipeline operations (★ E2E Project Pipeline)
+    bridgePipelineInit: (path: string, name: string, description = ''): Promise<IPCResult<{
+      project_id: string;
+      path: string;
+      name: string;
+      status: string;
+      created_at: string;
+    }>> =>
+      invokeIpc(IPC_CHANNELS.PIPELINE_INIT, path, name, description),
+
+    bridgePipelinePlan: (projectId: string, sessionId?: number): Promise<IPCResult<{
+      project_id: string;
+      tasks: Array<{
+        id: string;
+        title: string;
+        description: string;
+        stage: string;
+        agent: string;
+        status: string;
+        started_at?: string;
+        completed_at?: string;
+      }>;
+    }>> =>
+      invokeIpc(IPC_CHANNELS.PIPELINE_PLAN, projectId, sessionId),
+
+    bridgePipelineStatus: (projectId: string): Promise<IPCResult<{
+      project_id: string;
+      name: string;
+      path: string;
+      status: string;
+      current_stage?: string;
+      current_agent?: string;
+      tasks_total: number;
+      tasks_completed: number;
+      created_at: string;
+      updated_at: string;
+    }>> =>
+      invokeIpc(IPC_CHANNELS.PIPELINE_STATUS, projectId),
+
+    bridgePipelineTasks: (projectId: string): Promise<IPCResult<{
+      project_id: string;
+      tasks: Array<{
+        id: string;
+        title: string;
+        description: string;
+        stage: string;
+        agent: string;
+        status: string;
+        started_at?: string;
+        completed_at?: string;
+      }>;
+    }>> =>
+      invokeIpc(IPC_CHANNELS.PIPELINE_TASKS, projectId),
   };
 }

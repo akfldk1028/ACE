@@ -867,11 +867,12 @@ export function registerGetAutogenRunsDetailed(): void {
                   // Handle array content
                   if (Array.isArray(content)) {
                     for (const item of content) {
-                      if (typeof item === 'object' && item.type === 'text') {
-                        content = item.text || '';
+                      if (item && typeof item === 'object' && (item as Record<string, unknown>).type === 'text') {
+                        content = ((item as Record<string, unknown>).text as string) || '';
                         break;
-                      } else if (typeof item === 'object' && item.type === 'tool_use') {
-                        content = `[Tool: ${item.name}]\n${JSON.stringify(item.input, null, 2)}`;
+                      } else if (item && typeof item === 'object' && (item as Record<string, unknown>).type === 'tool_use') {
+                        const rec = item as Record<string, unknown>;
+                        content = `[Tool: ${rec.name}]\n${JSON.stringify(rec.input, null, 2)}`;
                         type = 'function_call';
                         break;
                       } else if (typeof item === 'string') {
@@ -1188,6 +1189,101 @@ export function registerWorkflowMerge(): void {
   );
 }
 
+// ──────────────────────────────────────────────
+// AG-ACE-BRIDGE Pipeline handlers (★ E2E Project Pipeline)
+// ──────────────────────────────────────────────
+
+export function registerPipelineInit(): void {
+  ipcMain.handle(
+    IPC_CHANNELS.PIPELINE_INIT,
+    async (_event, path: string, name: string, description = '') => {
+      debugLog('pipelineInit called', { path, name });
+      try {
+        const response = await fetch(`${AG_ACE_BRIDGE_URL}/pipeline/init`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path, name, description }),
+        });
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+          throw new Error(err.detail || `HTTP ${response.status}`);
+        }
+        const result = await response.json();
+        return { success: true, data: result };
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'Pipeline init failed';
+        debugLog('pipelineInit failed:', msg);
+        return { success: false, error: msg };
+      }
+    }
+  );
+}
+
+export function registerPipelinePlan(): void {
+  ipcMain.handle(
+    IPC_CHANNELS.PIPELINE_PLAN,
+    async (_event, projectId: string, sessionId?: number) => {
+      debugLog('pipelinePlan called', { projectId, sessionId });
+      try {
+        const response = await fetch(`${AG_ACE_BRIDGE_URL}/pipeline/plan`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: projectId, session_id: sessionId ?? null }),
+        });
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+          throw new Error(err.detail || `HTTP ${response.status}`);
+        }
+        const result = await response.json();
+        return { success: true, data: result };
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'Pipeline plan failed';
+        debugLog('pipelinePlan failed:', msg);
+        return { success: false, error: msg };
+      }
+    }
+  );
+}
+
+export function registerPipelineStatus(): void {
+  ipcMain.handle(
+    IPC_CHANNELS.PIPELINE_STATUS,
+    async (_event, projectId: string) => {
+      debugLog('pipelineStatus called', { projectId });
+      try {
+        const response = await fetch(`${AG_ACE_BRIDGE_URL}/pipeline/status/${projectId}`);
+        if (!response.ok) {
+          return { success: false, error: `HTTP ${response.status}` };
+        }
+        const result = await response.json();
+        return { success: true, data: result };
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'Pipeline status failed';
+        return { success: false, error: msg };
+      }
+    }
+  );
+}
+
+export function registerPipelineTasks(): void {
+  ipcMain.handle(
+    IPC_CHANNELS.PIPELINE_TASKS,
+    async (_event, projectId: string) => {
+      try {
+        const response = await fetch(`${AG_ACE_BRIDGE_URL}/pipeline/tasks/${projectId}`);
+        if (!response.ok) {
+          return { success: false, error: `HTTP ${response.status}` };
+        }
+        const result = await response.json();
+        return { success: true, data: result };
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'Pipeline tasks failed';
+        return { success: false, error: msg };
+      }
+    }
+  );
+}
+
 /**
  * Register all A2A handlers
  */
@@ -1218,5 +1314,11 @@ export function registerA2AHandlers(): void {
   registerWorkflowReview();
   registerWorkflowMerge();
 
-  console.log('[A2A] A2A handlers registered (including SharedMemory, AutoGen sync & Workflow)');
+  // AG-ACE-BRIDGE Pipeline handlers (★ E2E Project Pipeline)
+  registerPipelineInit();
+  registerPipelinePlan();
+  registerPipelineStatus();
+  registerPipelineTasks();
+
+  console.log('[A2A] A2A handlers registered (including SharedMemory, AutoGen sync, Workflow & Pipeline)');
 }

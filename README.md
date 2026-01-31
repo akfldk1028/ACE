@@ -332,6 +332,19 @@ Pattern: Swarm (domain expert handoffs) + Selector (dynamic routing)
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Overall system architecture |
 | [Auto-Claude CLAUDE.md](Auto-Claude/CLAUDE.md) | Auto-Claude core guide |
 | [AG-ACE-BRIDGE Architecture](AG-ACE-BRIDGE/docs/ARCHITECTURE.md) | Bridge detailed design |
+| [AutoGen Studio Windows 빌드](../22_AG/autogen_a2a_kit/autogen_source/python/packages/autogen-studio/frontend/README.md) | **Windows 빌드/패치 가이드 (SSR 에러 해결)** |
+
+## AutoGen Studio Windows 주의사항
+
+> **`npm run build` 금지!** → `web/ui/` 폴더가 삭제됨. 복구: `git checkout HEAD -- autogenstudio/web/ui/`
+
+소스 수정 시 Gatsby 풀빌드 대신 **minified JS 직접 패치** 사용:
+1. `frontend/src/`에서 소스 수정
+2. `autogenstudio/web/ui/`에서 해당 minified 패턴 grep으로 찾기
+3. Python 스크립트로 치환 + `index.html` cache-bust 추가
+4. AutoGen Studio 재시작 + 브라우저 `Ctrl+Shift+R`
+
+상세: [README_INDEX.md](README_INDEX.md) → "AutoGen Studio Windows 빌드/패치 가이드" 참조
 
 ## Service Ports
 

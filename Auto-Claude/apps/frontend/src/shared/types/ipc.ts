@@ -677,6 +677,53 @@ export interface ElectronAPI {
     error?: string;
   }>>;
 
+  // AG-ACE-BRIDGE Pipeline API (E2E Project Pipeline)
+  bridgePipelineInit: (path: string, name: string, description?: string) => Promise<IPCResult<{
+    project_id: string;
+    path: string;
+    name: string;
+    status: string;
+    created_at: string;
+  }>>;
+  bridgePipelinePlan: (projectId: string, sessionId?: number) => Promise<IPCResult<{
+    project_id: string;
+    tasks: Array<{
+      id: string;
+      title: string;
+      description: string;
+      stage: string;
+      agent: string;
+      status: string;
+      started_at?: string;
+      completed_at?: string;
+    }>;
+  }>>;
+  bridgePipelineStatus: (projectId: string) => Promise<IPCResult<{
+    project_id: string;
+    name: string;
+    path: string;
+    status: string;
+    current_stage?: string;
+    current_agent?: string;
+    tasks_total: number;
+    tasks_completed: number;
+    created_at: string;
+    updated_at: string;
+  }>>;
+  bridgePipelineTasks: (projectId: string) => Promise<IPCResult<{
+    project_id: string;
+    tasks: Array<{
+      id: string;
+      title: string;
+      description: string;
+      stage: string;
+      agent: string;
+      status: string;
+      started_at?: string;
+      completed_at?: string;
+    }>;
+  }>>;
+
   // Release operations
   getReleaseableVersions: (projectId: string) => Promise<IPCResult<ReleaseableVersion[]>>;
   runReleasePreflightCheck: (projectId: string, version: string) => Promise<IPCResult<ReleasePreflightStatus>>;

@@ -11,5 +11,6 @@ Provides web server components:
 from .dashboard import app, run_dashboard
 from . import pattern_routes
 from . import project_routes
+from . import pipeline_routes
 
-__all__ = ["app", "run_dashboard", "pattern_routes", "project_routes"]
+__all__ = ["app", "run_dashboard", "pattern_routes", "project_routes", "pipeline_routes"]

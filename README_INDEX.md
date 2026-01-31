@@ -205,10 +205,54 @@ AI 에이전트를 위한 전체 문서 인덱스. 24/7 AI Project Factory 생�
 | `Auto-Claude/.../AutogenStatusBadge.tsx` | 연결 상태 뱃지 |
 | `AG-ACE-BRIDGE/run_autogen_sync_simple.py` | (선택) SharedMemory 동기화 |
 
+## AutoGen Studio Windows 빌드/패치 가이드
+
+> **경고**: Windows에서 Gatsby 풀빌드(`npm run build`)는 SSR 에러로 실패한다.
+> 소스 수정 후 **minified JS 직접 패치** 방식으로 적용해야 한다.
+
+**상세 가이드**: [AG/autogen_a2a_kit/autogen_source/.../frontend/README.md](../22_AG/autogen_a2a_kit/autogen_source/python/packages/autogen-studio/frontend/README.md) → "Windows 빌드 가이드" 섹션
+
+### 핵심 경로
+
+| 경로 | 설명 |
+|------|------|
+| `autogen_source/.../frontend/src/` | TypeScript 소스 (수정하는 곳) |
+| `autogen_source/.../autogenstudio/web/ui/` | 실제 서빙되는 minified 파일 |
+| `autogen_source/.../frontend/gatsby-node.js` | SSR null-loader 설정 |
+
+### 소스 수정 → 적용 절차 (빌드 없이)
+
+```
+1. frontend/src/ 에서 TypeScript 소스 수정
+2. autogenstudio/web/ui/ 에서 minified JS 패턴 찾기 (grep)
+3. Python 스크립트로 패턴 치환
+4. index.html에 cache-bust 추가 (필수!)
+5. AutoGen Studio 재시작
+6. 브라우저 Ctrl+Shift+R (하드 리프레시)
+```
+
+### 절대 하지 말 것
+
+- `npm run build` 실행 금지 → `web/ui/` 폴더 삭제됨
+- 삭제되면 복구: `git checkout HEAD -- autogenstudio/web/ui/`
+
+### 알려진 이슈 (해결됨)
+
+| 이슈 | 증상 | 해결 |
+|------|------|------|
+| `msg.config` undefined | `runview.tsx:162` TypeError | `e.config&&` null guard 패치 |
+| SSR `/lite/` 에러 | gatsby build 실패 | `gatsby-node.js` null-loader |
+| SSR `/settings/` 에러 | `@monaco-editor` SSR 접근 | 미해결 (빌드 우회) |
+| Windows 빌드 문법 | `PREFIX_PATH_VALUE=''` 실패 | `npx gatsby build --prefix-paths` 직접 실행 |
+| 브라우저 캐시 | 패치 후에도 에러 지속 | index.html cache-bust 추가 |
+
+---
+
 ## 변경 이력
 
 | 날짜 | 변경 내용 |
 |------|-----------|
+| 2026-01-31 | AutoGen Studio Windows 빌드/패치 가이드 추가 (runview.tsx 크래시 해결) |
 | 2026-01-24 | ★ 직접 연결 구현 - SharedMemory(8101) 없이 AutoGen(8081) 직접 폴링 |
 | 2026-01-24 | Agent Collaboration & Data Flow 섹션 추가 |
 | 2025-01-23 | README_INDEX.md 생성 (AI 네비게이션용) |

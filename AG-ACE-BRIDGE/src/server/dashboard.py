@@ -43,6 +43,7 @@ from src.scheduler.trigger import ScheduleTrigger
 from src.server import pattern_routes
 from src.server import project_routes
 from src.server import workflow_routes
+from src.server import pipeline_routes
 
 # AG-CLI Message Bus configuration
 AG_CLI_MESSAGE_BUS_URL = "http://localhost:8100"
@@ -63,6 +64,9 @@ app.include_router(project_routes.router)
 
 # Include workflow routes (Bridge Module)
 app.include_router(workflow_routes.router)
+
+# Include pipeline routes (E2E Project Pipeline)
+app.include_router(pipeline_routes.router)
 
 # Global instances
 orchestrator: Optional[Orchestrator] = None

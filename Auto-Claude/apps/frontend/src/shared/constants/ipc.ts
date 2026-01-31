@@ -555,4 +555,10 @@ export const IPC_CHANNELS = {
   WORKFLOW_LIST_SPECS: 'workflow:listSpecs',         // List all specs
   WORKFLOW_REVIEW: 'workflow:review',                // Review a spec
   WORKFLOW_MERGE: 'workflow:merge',                  // Merge a completed spec
+
+  // AG-ACE-BRIDGE Pipeline operations (★ E2E Project Pipeline)
+  PIPELINE_INIT: 'pipeline:init',                    // Create project folder + git init
+  PIPELINE_PLAN: 'pipeline:plan',                    // Read AutoGen session → decompose tasks
+  PIPELINE_STATUS: 'pipeline:status',                // Get pipeline status
+  PIPELINE_TASKS: 'pipeline:tasks',                  // Get pipeline task list
 } as const;

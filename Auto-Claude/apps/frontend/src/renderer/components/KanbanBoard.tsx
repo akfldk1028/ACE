@@ -92,7 +92,10 @@ function tasksAreEquivalent(prevTasks: Task[], nextTasks: Task[]): boolean {
       prev.id !== next.id ||
       prev.status !== next.status ||
       prev.executionProgress?.phase !== next.executionProgress?.phase ||
-      prev.updatedAt !== next.updatedAt
+      // Use getTime() for Date comparison (avoid reference inequality on recreated Dates)
+      prev.updatedAt?.getTime?.() !== next.updatedAt?.getTime?.() ||
+      // AutoGen trigger status changes
+      (prev.metadata as Record<string, unknown>)?.triggerStatus !== (next.metadata as Record<string, unknown>)?.triggerStatus
     ) {
       return false;
     }
@@ -622,9 +625,19 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
   const [autogenTasks, setAutogenTasks] = useState<Task[]>([]);
   const autogenPollRef = useRef<NodeJS.Timeout | null>(null);
 
-  // ★ 24/7 Auto-trigger: track processed sessions to avoid re-triggering
+  // ★ 24/7 Auto-trigger: track processed sessions + trigger status
+  // Using refs for trigger state to avoid useEffect dependency loops
   const processedSessionsRef = useRef<Set<string>>(new Set());
-  const [autoTriggerLog, setAutoTriggerLog] = useState<Record<string, { status: 'triggered' | 'running' | 'done' | 'error'; execId?: string; message?: string }>>({});
+  const triggerLogRef = useRef<Record<string, { status: 'triggered' | 'running' | 'done' | 'error'; execId?: string; message?: string }>>({});
+  // Counter to force re-render when triggerLog changes (avoids object dep in useEffect)
+  const [triggerLogVersion, setTriggerLogVersion] = useState(0);
+  // Queue for serialized execution (prevent concurrent workflowExecute calls)
+  const triggerQueueRef = useRef<Array<{ sessionId: string; taskDesc: string }>>([]);
+  const isProcessingQueueRef = useRef(false);
+  // Initial load flag - skip triggers until first fetch completes
+  const initialLoadDoneRef = useRef(false);
+  // Execution status polling
+  const execPollRef = useRef<NodeJS.Timeout | null>(null);
 
   // Pipeline project state
   const [pipelineProjects, setPipelineProjects] = useState<PipelineProject[]>([]);
@@ -640,51 +653,135 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
   });
   const [isCreatingProject, setIsCreatingProject] = useState(false);
 
-  // ★ 24/7 Auto-trigger: when a new AutoGen session completes, auto-execute workflow
-  const autoTriggerWorkflow = useCallback(async (sessionId: string, taskDescription: string) => {
-    const key = String(sessionId);
-    if (processedSessionsRef.current.has(key)) return;
-    processedSessionsRef.current.add(key);
+  // ★ 24/7 Auto-trigger: serialized queue processor
+  // Processes one trigger at a time to prevent concurrent workflowExecute calls
+  const processQueue = useCallback(async () => {
+    if (isProcessingQueueRef.current) return;
+    if (triggerQueueRef.current.length === 0) return;
 
-    console.log(`[24/7] Auto-triggering workflow for session ${sessionId}: "${taskDescription.slice(0, 80)}..."`);
-    setAutoTriggerLog(prev => ({ ...prev, [key]: { status: 'triggered' } }));
+    isProcessingQueueRef.current = true;
 
-    try {
-      const response = await window.electronAPI.workflowExecute(
-        taskDescription,
-        'standard', // Default complexity; AutoGen tasks are typically standard
-        false       // Don't auto-merge; let human review
-      );
+    while (triggerQueueRef.current.length > 0) {
+      const { sessionId, taskDesc } = triggerQueueRef.current.shift()!;
+      const key = String(sessionId);
 
-      if (response.success && response.data?.success) {
-        console.log(`[24/7] Workflow triggered successfully for session ${sessionId}:`, response.data.exec_id);
-        setAutoTriggerLog(prev => ({
-          ...prev,
-          [key]: { status: 'running', execId: response.data!.exec_id, message: response.data!.message }
-        }));
-        toast({
-          title: `[24/7] Auto-pipeline started`,
-          description: `Session ${sessionId} → ${response.data.exec_id || 'running'}`,
-        });
-      } else {
-        console.warn(`[24/7] Workflow trigger failed for session ${sessionId}:`, response.error);
-        setAutoTriggerLog(prev => ({
-          ...prev,
-          [key]: { status: 'error', message: response.error || 'Unknown error' }
-        }));
+      console.log(`[24/7] Auto-triggering workflow for session ${sessionId}: "${taskDesc.slice(0, 80)}..."`);
+      triggerLogRef.current = { ...triggerLogRef.current, [key]: { status: 'triggered' } };
+      setTriggerLogVersion(v => v + 1);
+
+      try {
+        // Infer complexity from agent count
+        const agentCount = processedSessionsRef.current.size; // rough heuristic
+        const complexity: 'simple' | 'standard' | 'complex' =
+          taskDesc.length < 100 ? 'simple' : taskDesc.length > 500 ? 'complex' : 'standard';
+
+        const response = await window.electronAPI.workflowExecute(
+          taskDesc,
+          complexity,
+          false // Don't auto-merge; let human review
+        );
+
+        if (response.success && response.data?.success) {
+          console.log(`[24/7] Workflow triggered for session ${sessionId}:`, response.data.exec_id);
+          triggerLogRef.current = {
+            ...triggerLogRef.current,
+            [key]: { status: 'running', execId: response.data.exec_id, message: response.data.message }
+          };
+          setTriggerLogVersion(v => v + 1);
+          toast({
+            title: `[24/7] Auto-pipeline started`,
+            description: `Session ${sessionId} → ${response.data.exec_id || 'running'}`,
+          });
+        } else {
+          console.warn(`[24/7] Workflow trigger failed for session ${sessionId}:`, response.error);
+          triggerLogRef.current = {
+            ...triggerLogRef.current,
+            [key]: { status: 'error', message: response.error || 'Unknown error' }
+          };
+          setTriggerLogVersion(v => v + 1);
+        }
+      } catch (err) {
+        console.error(`[24/7] Workflow trigger error for session ${sessionId}:`, err);
+        triggerLogRef.current = {
+          ...triggerLogRef.current,
+          [key]: { status: 'error', message: String(err) }
+        };
+        setTriggerLogVersion(v => v + 1);
       }
-    } catch (err) {
-      console.error(`[24/7] Workflow trigger error for session ${sessionId}:`, err);
-      setAutoTriggerLog(prev => ({
-        ...prev,
-        [key]: { status: 'error', message: String(err) }
-      }));
     }
+
+    isProcessingQueueRef.current = false;
   }, [toast]);
 
+  // ★ 24/7 Execution status polling: check running executions periodically
+  useEffect(() => {
+    const pollExecutionStatus = async () => {
+      const runningEntries = Object.entries(triggerLogRef.current)
+        .filter(([, v]) => v.status === 'running' && v.execId);
+
+      if (runningEntries.length === 0) return;
+
+      for (const [sessionKey, entry] of runningEntries) {
+        try {
+          const api = window.electronAPI as unknown as Record<string, unknown>;
+          if (typeof api.workflowGetExecution !== 'function') break;
+
+          const result = await (api.workflowGetExecution as (id: string) => Promise<{ success: boolean; data?: { status: string } }>)(entry.execId!);
+          if (result.success && result.data) {
+            const execStatus = result.data.status;
+            if (execStatus === 'completed') {
+              triggerLogRef.current = {
+                ...triggerLogRef.current,
+                [sessionKey]: { ...entry, status: 'done' }
+              };
+              setTriggerLogVersion(v => v + 1);
+              toast({ title: `[24/7] Pipeline completed`, description: `Session ${sessionKey} → ${entry.execId}` });
+            } else if (execStatus === 'failed' || execStatus === 'error') {
+              triggerLogRef.current = {
+                ...triggerLogRef.current,
+                [sessionKey]: { ...entry, status: 'error', message: `Execution ${execStatus}` }
+              };
+              setTriggerLogVersion(v => v + 1);
+            }
+          }
+        } catch {
+          // Silently skip poll errors
+        }
+      }
+    };
+
+    execPollRef.current = setInterval(pollExecutionStatus, 10000); // Check every 10s
+    return () => {
+      if (execPollRef.current) clearInterval(execPollRef.current);
+    };
+  }, [toast]);
+
+  // ★ Memory cleanup: remove old entries after 1 hour to prevent unbounded growth
+  useEffect(() => {
+    const cleanup = setInterval(() => {
+      const now = Date.now();
+      const maxEntries = 100;
+      const entries = Object.entries(triggerLogRef.current);
+      if (entries.length > maxEntries) {
+        // Keep only the most recent maxEntries (by removing done/error entries first)
+        const removable = entries.filter(([, v]) => v.status === 'done' || v.status === 'error');
+        const toRemove = removable.slice(0, entries.length - maxEntries);
+        if (toRemove.length > 0) {
+          const updated = { ...triggerLogRef.current };
+          for (const [key] of toRemove) {
+            delete updated[key];
+            processedSessionsRef.current.delete(key);
+          }
+          triggerLogRef.current = updated;
+          setTriggerLogVersion(v => v + 1);
+        }
+      }
+    }, 60 * 60 * 1000); // Every hour
+    return () => clearInterval(cleanup);
+  }, []);
+
   // Poll AutoGen results directly from AutoGen Studio (8081)
-  // ★ 2026-01-31: SharedMemory(8101) 제거됨 → 8081 직접 폴링으로 변경
-  // ★ 2026-01-31: 24/7 auto-trigger 추가 → complete 세션 감지 시 자동 workflowExecute
+  // ★ Fixed: useEffect deps are stable (no state objects) → no re-mount loop
   useEffect(() => {
     const fetchAutogenResults = async () => {
       try {
@@ -701,28 +798,33 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
             detailedTasks.push(...sessionTasks);
 
             // ★ 24/7 Auto-trigger: detect newly completed sessions
-            const status = (run.status || '').toUpperCase();
-            const sessionKey = String(run.sessionId);
-            if (
-              (status === 'COMPLETE' || status === 'COMPLETED') &&
-              !processedSessionsRef.current.has(sessionKey)
-            ) {
-              // Extract task description for the workflow
-              const messages = run.messages || [];
-              const userMsg = messages.find((m: { source: string }) => m.source === 'user');
-              const taskDesc = userMsg?.content || run.task || '';
-              if (taskDesc) {
-                autoTriggerWorkflow(sessionKey, taskDesc);
+            // Skip during initial load (existing sessions marked as processed first)
+            if (initialLoadDoneRef.current) {
+              const status = (run.status || '').toUpperCase();
+              const sessionKey = String(run.sessionId);
+              if (
+                (status === 'COMPLETE' || status === 'COMPLETED') &&
+                !processedSessionsRef.current.has(sessionKey)
+              ) {
+                processedSessionsRef.current.add(sessionKey);
+                const messages = run.messages || [];
+                const userMsg = messages.find((m: { source: string }) => m.source === 'user');
+                const taskDesc = userMsg?.content || run.task || '';
+                if (taskDesc) {
+                  triggerQueueRef.current.push({ sessionId: sessionKey, taskDesc });
+                  processQueue();
+                }
               }
             }
           }
 
           if (detailedTasks.length > 0) {
-            // ★ Enrich header cards with auto-trigger status
+            // ★ Enrich header cards with trigger status from ref (no state dep)
+            const currentLog = triggerLogRef.current;
             const enriched: Task[] = detailedTasks.map(t => {
               const meta = t.metadata as Record<string, unknown>;
               if (meta?.isHeader && meta?.sessionId) {
-                const triggerInfo = autoTriggerLog[String(meta.sessionId)];
+                const triggerInfo = currentLog[String(meta.sessionId)];
                 if (triggerInfo) {
                   return {
                     ...t,
@@ -741,29 +843,25 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
       }
     };
 
-    // Initial fetch - mark all existing sessions as already processed (don't re-trigger old ones)
+    // Initial fetch - mark all existing completed sessions as processed (no re-trigger)
     const initialFetch = async () => {
       try {
         const detailedResponse = await window.electronAPI.getAutogenRunsDetailed();
         if (detailedResponse.success && detailedResponse.data) {
+          const detailedTasks: Task[] = [];
           const seenSessions = new Set<string | number>();
+
           for (const run of detailedResponse.data) {
             if (seenSessions.has(run.sessionId)) continue;
             seenSessions.add(run.sessionId);
+
             const status = (run.status || '').toUpperCase();
             if (status === 'COMPLETE' || status === 'COMPLETED') {
-              // Mark existing completed sessions as already processed
               processedSessionsRef.current.add(String(run.sessionId));
             }
-          }
-          // Also decompose for display
-          const detailedTasks: Task[] = [];
-          const seen2 = new Set<string | number>();
-          for (const run of detailedResponse.data) {
-            if (seen2.has(run.sessionId)) continue;
-            seen2.add(run.sessionId);
             detailedTasks.push(...autogenRunToTasks(run));
           }
+
           if (detailedTasks.length > 0) {
             setAutogenTasks(detailedTasks);
           }
@@ -771,6 +869,8 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
       } catch (err) {
         console.debug('[KanbanBoard] AutoGen initial fetch error:', err);
       }
+      // Mark initial load as done → subsequent polls can trigger
+      initialLoadDoneRef.current = true;
     };
 
     initialFetch();
@@ -783,7 +883,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
         clearInterval(autogenPollRef.current);
       }
     };
-  }, [autoTriggerWorkflow, autoTriggerLog]);
+  }, [processQueue]); // ★ Stable dep: processQueue only changes if toast changes (rare)
 
   // ──────────────────────────────────────────────
   // Pipeline: Create project + plan + poll tasks

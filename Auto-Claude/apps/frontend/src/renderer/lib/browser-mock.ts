@@ -477,7 +477,7 @@ const browserMockAPI: ElectronAPI = {
         timestamp: string;
       }> = [];
 
-      for (const session of sessions.slice(0, 3)) {
+      for (const session of sessions.slice(0, 10)) {
         try {
           const runsResponse = await fetch(`/api/autogen/sessions/${session.id}/runs?user_id=guestuser@gmail.com`, {
             headers: { Accept: 'application/json' }

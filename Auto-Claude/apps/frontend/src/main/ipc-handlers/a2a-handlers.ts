@@ -819,8 +819,8 @@ export function registerGetAutogenRunsDetailed(): void {
         const sessionsData = await sessionsRes.json();
         const sessions = sessionsData.data || [];
 
-        // Fetch runs for each recent session (max 3)
-        for (const session of sessions.slice(0, 3)) {
+        // Fetch runs for each recent session (max 10 for large projects)
+        for (const session of sessions.slice(0, 10)) {
           try {
             const runsRes = await fetch(`${autogenUrl}/api/sessions/${session.id}/runs/?user_id=guestuser@gmail.com`, {
               headers: { Accept: 'application/json' },

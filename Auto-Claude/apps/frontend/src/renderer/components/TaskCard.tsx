@@ -96,7 +96,7 @@ function taskCardPropsAreEqual(prevProps: TaskCardProps, nextProps: TaskCardProp
     prevTask.status === nextTask.status &&
     prevTask.title === nextTask.title &&
     prevTask.description === nextTask.description &&
-    prevTask.updatedAt === nextTask.updatedAt &&
+    prevTask.updatedAt?.getTime?.() === nextTask.updatedAt?.getTime?.() &&
     prevTask.reviewReason === nextTask.reviewReason &&
     prevTask.executionProgress?.phase === nextTask.executionProgress?.phase &&
     prevTask.executionProgress?.phaseProgress === nextTask.executionProgress?.phaseProgress &&
@@ -105,6 +105,11 @@ function taskCardPropsAreEqual(prevProps: TaskCardProps, nextProps: TaskCardProp
     prevTask.metadata?.complexity === nextTask.metadata?.complexity &&
     prevTask.metadata?.archivedAt === nextTask.metadata?.archivedAt &&
     prevTask.metadata?.prUrl === nextTask.metadata?.prUrl &&
+    // AutoGen card fields that affect rendering
+    (prevTask.metadata as Record<string, unknown>)?.triggerStatus === (nextTask.metadata as Record<string, unknown>)?.triggerStatus &&
+    (prevTask.metadata as Record<string, unknown>)?.runStatus === (nextTask.metadata as Record<string, unknown>)?.runStatus &&
+    (prevTask.metadata as Record<string, unknown>)?.isLastAgent === (nextTask.metadata as Record<string, unknown>)?.isLastAgent &&
+    (prevTask.metadata as Record<string, unknown>)?.agentCount === (nextTask.metadata as Record<string, unknown>)?.agentCount &&
     // Check if any subtask statuses changed (compare all subtasks)
     prevTask.subtasks.every((s, i) => s.status === nextTask.subtasks[i]?.status)
   );

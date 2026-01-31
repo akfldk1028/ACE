@@ -362,6 +362,12 @@ export const TaskCard = memo(function TaskCard({
 
   const isArchived = !!task.metadata?.archivedAt;
 
+  // AutoGen card type detection
+  const isAutogenHeader = (task.metadata as Record<string, unknown>)?.isHeader === true;
+  const isAutogenAgent = (task.metadata as Record<string, unknown>)?.source === 'autogen-agent';
+  const isAutogenLastAgent = (task.metadata as Record<string, unknown>)?.isLastAgent === true;
+  const autogenAgentCount = (task.metadata as Record<string, unknown>)?.agentCount as number | undefined;
+
   return (
     <Card
       className={cn(
@@ -369,11 +375,17 @@ export const TaskCard = memo(function TaskCard({
         isRunning && !isStuck && 'ring-2 ring-primary border-primary task-running-pulse',
         isStuck && 'ring-2 ring-warning border-warning task-stuck-pulse',
         isArchived && 'opacity-60 hover:opacity-80',
-        isSelectable && isSelected && 'ring-2 ring-ring border-ring bg-accent/10'
+        isSelectable && isSelected && 'ring-2 ring-ring border-ring bg-accent/10',
+        // AutoGen header card: blue accent
+        isAutogenHeader && 'border-blue-500/40 bg-blue-500/5',
+        // AutoGen agent card: subtle indent style
+        isAutogenAgent && 'ml-3 border-l-2 border-l-blue-400/30',
+        // AutoGen last agent (running): pulse
+        isAutogenLastAgent && 'ring-1 ring-blue-400/50 task-running-pulse'
       )}
       onClick={onClick}
     >
-      <CardContent className="p-4">
+      <CardContent className={cn('p-4', isAutogenAgent && 'py-2.5 px-3')}>
         <div className={isSelectable ? 'flex gap-3' : undefined}>
           {/* Checkbox for selectable mode - stops event propagation */}
           {isSelectable && (
@@ -390,11 +402,25 @@ export const TaskCard = memo(function TaskCard({
           <div className={isSelectable ? 'flex-1 min-w-0' : undefined}>
             {/* Title - full width, no wrapper */}
             <h3
-              className="font-semibold text-sm text-foreground line-clamp-2 leading-snug"
+              className={cn(
+                'font-semibold text-sm text-foreground line-clamp-2 leading-snug',
+                isAutogenHeader && 'text-blue-400',
+                isAutogenAgent && 'text-xs font-medium text-muted-foreground'
+              )}
               title={displayTitle}
             >
+              {isAutogenLastAgent && <Loader2 className="inline h-3 w-3 mr-1 animate-spin text-blue-400" />}
               {displayTitle}
             </h3>
+
+            {/* AutoGen header: agent count summary */}
+            {isAutogenHeader && autogenAgentCount !== undefined && (
+              <div className="mt-1 flex items-center gap-1.5 text-[10px] text-blue-400/70">
+                <span>● {(task.metadata as Record<string, unknown>)?.runStatus === 'COMPLETE' || (task.metadata as Record<string, unknown>)?.runStatus === 'COMPLETED' ? 'Complete' : (task.metadata as Record<string, unknown>)?.runStatus === 'RUNNING' ? 'Running' : String((task.metadata as Record<string, unknown>)?.runStatus || '')}</span>
+                <span>·</span>
+                <span>{autogenAgentCount} agent{autogenAgentCount !== 1 ? 's' : ''}</span>
+              </div>
+            )}
 
         {/* Description - sanitized to handle markdown content (memoized) */}
         {sanitizedDescription && (
@@ -476,6 +502,15 @@ export const TaskCard = memo(function TaskCard({
                 className="text-[10px] px-1.5 py-0.5"
               >
                 {reviewReasonInfo.label}
+              </Badge>
+            )}
+            {/* AutoGen agent badge */}
+            {isAutogenAgent && (
+              <Badge
+                variant="outline"
+                className="text-[10px] px-1.5 py-0 bg-blue-500/10 text-blue-400 border-blue-500/30"
+              >
+                {String((task.metadata as Record<string, unknown>)?.agent || 'agent')}
               </Badge>
             )}
             {/* Category badge with icon */}

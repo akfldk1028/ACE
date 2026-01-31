@@ -88,13 +88,32 @@ export default defineConfig({
       }
     },
     server: {
-      // ★ Proxy for browser mode - 8081만 사용! (8101 제거됨 - 2026-01-25)
+      // ★ Proxy for browser mode - CORS 회피
       proxy: {
         // AutoGen Studio 직접 연결
+        // ★ followRedirects: AutoGen이 trailing slash 307 redirect를 반환하므로
+        //    프록시 레벨에서 redirect를 따라가야 브라우저에 CORS 노출 안 됨
         '/api/autogen': {
           target: 'http://localhost:8081',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/autogen/, '/api')
+          rewrite: (path) => path.replace(/^\/api\/autogen/, '/api'),
+          configure: (proxy) => {
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              // Handle 307/301/302 redirects at proxy level to avoid CORS
+              const location = proxyRes.headers['location'];
+              if (location && proxyRes.statusCode && proxyRes.statusCode >= 300 && proxyRes.statusCode < 400) {
+                // Rewrite the redirect location through the proxy
+                const rewritten = location.replace(/^https?:\/\/localhost:8081\/api/, '/api/autogen');
+                proxyRes.headers['location'] = rewritten;
+              }
+            });
+          }
+        },
+        // AG-ACE-BRIDGE Pipeline API
+        '/api/bridge': {
+          target: 'http://localhost:8080',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/bridge/, '')
         }
       },
       watch: {

@@ -1,7 +1,7 @@
 import { useState, useMemo, memo, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useViewState } from '../contexts/ViewStateContext';
-import { Bot } from 'lucide-react';
+import { FolderPlus, Zap } from 'lucide-react';
 import {
   DndContext,
   DragOverlay,
@@ -419,66 +419,194 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
   );
 }, droppableColumnPropsAreEqual);
 
-// AutoGen result interface
-interface AutogenResult {
-  workflow_name: string;
-  task: string;
-  result: string;
-  agents_used?: string[];
-  status: string;
-  timestamp: string;
-  source?: string;
+// ★ Agent name → Kanban column mapping (역할 기반)
+function agentToColumn(agentName: string): TaskStatus {
+  const name = agentName.toLowerCase();
+  if (name.includes('insight') || name.includes('plan') || name.includes('architect'))
+    return 'backlog';        // Planning
+  if (name.includes('code') || name.includes('implement') || name.includes('develop'))
+    return 'in_progress';    // In Progress
+  if (name.includes('review') || name.includes('qa') || name.includes('test') || name.includes('critic'))
+    return 'ai_review';      // AI Review
+  if (name === 'user')
+    return 'backlog';        // User input = Planning
+  return 'in_progress';      // Default
 }
 
-// Convert AutoGen result to a virtual Task for display
-// ★ AutoGen Studio 상태 → Auto-Claude Kanban 컬럼 매핑
-function autogenResultToTask(result: AutogenResult, index: number): Task {
-  // 방어 코드: undefined 처리
-  const workflowName = result.workflow_name || `session_${index}`;
-  const taskContent = result.task || 'AutoGen Task';
-  const resultContent = result.result || '';
-
-  // Map AutoGen status to Task status with time-based logic
-  let taskStatus: TaskStatus = 'in_progress';
-  const timestamp = result.timestamp ? new Date(result.timestamp) : new Date();
+// ★ Convert a single AutoGen run → multiple Task cards (header + per-agent)
+function autogenRunToTasks(run: {
+  sessionId: number | string;
+  runId?: number;
+  status: string;
+  task: string;
+  messages: Array<{
+    id: string;
+    source: string;
+    content: string;
+    timestamp: string;
+    type: string;
+  }>;
+  timestamp: string;
+}): Task[] {
+  const tasks: Task[] = [];
+  const messages = run.messages || [];
+  const runStatus = (run.status || '').toUpperCase();
+  const sessionId = run.sessionId;
+  const timestamp = run.timestamp ? new Date(run.timestamp) : new Date();
   const ageMs = Date.now() - timestamp.getTime();
+  const isRecent = ageMs < 5 * 60 * 1000; // 5분 이내
 
-  if (result.status === 'pending' || result.status === 'queued') {
-    taskStatus = 'backlog'; // Planning 컬럼
-  } else if (result.status === 'running' || result.status === 'in_progress') {
-    taskStatus = 'in_progress'; // In Progress 컬럼
-  } else if (result.status === 'complete' || result.status === 'completed') {
-    // 시간 기반 자동 이동:
-    // - 5분 이내: AI Review
-    // - 5분~1시간: Human Review
-    // - 1시간 이상: Done
-    if (ageMs < 5 * 60 * 1000) {
-      taskStatus = 'ai_review'; // AI Review 컬럼 (최근 완료)
-    } else if (ageMs < 60 * 60 * 1000) {
-      taskStatus = 'human_review'; // Human Review 컬럼 (확인 대기)
-    } else {
-      taskStatus = 'done'; // Done 컬럼 (오래된 완료)
-    }
-  } else if (result.status === 'error' || result.status === 'failed') {
-    taskStatus = 'human_review'; // 오류 → Human Review (수동 확인 필요)
+  // Count non-user agents
+  const agentMessages = messages.filter(m => m.source && m.source !== 'user');
+  const agentCount = agentMessages.length;
+
+  // Determine header status
+  let headerStatus: TaskStatus = 'in_progress';
+  if (runStatus === 'COMPLETE' || runStatus === 'COMPLETED') {
+    headerStatus = 'done';
+  } else if (runStatus === 'ERROR' || runStatus === 'FAILED') {
+    headerStatus = 'human_review';
+  } else if (runStatus === 'PENDING' || runStatus === 'QUEUED') {
+    headerStatus = 'backlog';
   }
 
-  return {
-    id: `autogen_${workflowName}_${index}`,
+  // Extract task description from first user message
+  const userMsg = messages.find(m => m.source === 'user');
+  const taskDescription = userMsg?.content || run.task || 'AutoGen Task';
+
+  // 1) Session header card
+  tasks.push({
+    id: `autogen_session_${sessionId}_header`,
     projectId: 'autogen',
-    specId: `autogen_${workflowName}`,
-    title: `[AutoGen] ${workflowName}`,
-    description: taskContent + (resultContent ? `\n\n**Result:** ${resultContent}` : ''),
-    status: taskStatus,
+    specId: `autogen_session_${sessionId}`,
+    title: `[AutoGen] Session ${sessionId}`,
+    description: taskDescription.length > 200 ? taskDescription.slice(0, 200) + '...' : taskDescription,
+    status: headerStatus,
     createdAt: timestamp,
     updatedAt: timestamp,
     subtasks: [],
     logs: [],
     metadata: {
-      // Use type assertion to allow custom AutoGen fields
-      ...(result.agents_used && { agents: result.agents_used }),
-      source: result.source || 'autogen-studio',
+      source: 'autogen-session-header',
+      isHeader: true,
+      agentCount,
+      runStatus: runStatus,
     } as Task['metadata']
+  });
+
+  // 2) Per-agent cards
+  // Find the index of the last non-user message for "isLastAgent" detection
+  let lastAgentIdx = -1;
+  for (let j = messages.length - 1; j >= 0; j--) {
+    if (messages[j].source && messages[j].source !== 'user') {
+      lastAgentIdx = j;
+      break;
+    }
+  }
+
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    if (!msg.source || msg.source === 'user') continue;
+
+    const isLastAgent = (i === lastAgentIdx);
+    let column: TaskStatus;
+
+    if (runStatus === 'COMPLETE' || runStatus === 'COMPLETED') {
+      // Complete + recent: keep agent in role column for review
+      // Complete + old: move all to done
+      column = isRecent ? agentToColumn(msg.source) : 'done';
+    } else if (runStatus === 'ERROR' || runStatus === 'FAILED') {
+      column = 'human_review';
+    } else if (runStatus === 'RUNNING' || runStatus === 'IN_PROGRESS' || runStatus === 'ACTIVE') {
+      // Running: last agent is actively working, others in their role column
+      column = agentToColumn(msg.source);
+    } else {
+      column = agentToColumn(msg.source);
+    }
+
+    tasks.push({
+      id: `autogen_s${sessionId}_agent_${i}`,
+      projectId: 'autogen',
+      specId: `autogen_session_${sessionId}`,
+      title: `  └ ${msg.source}`,
+      description: (msg.content || '').slice(0, 300),
+      status: column,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      subtasks: [],
+      logs: [],
+      metadata: {
+        source: 'autogen-agent',
+        agent: msg.source,
+        parentSession: String(sessionId),
+        isLastAgent: isLastAgent && (runStatus === 'RUNNING' || runStatus === 'IN_PROGRESS' || runStatus === 'ACTIVE'),
+      } as Task['metadata']
+    });
+  }
+
+  return tasks;
+}
+
+// ──────────────────────────────────────────────
+// Pipeline types for AG-ACE-BRIDGE integration
+// ──────────────────────────────────────────────
+
+interface PipelineTask {
+  id: string;
+  title: string;
+  description: string;
+  stage: string;   // planning | coding | reviewing | testing | done | error
+  agent: string;
+  status: string;  // pending | in_progress | completed | failed
+  started_at?: string;
+  completed_at?: string;
+}
+
+interface PipelineProject {
+  project_id: string;
+  name: string;
+  path: string;
+  status: string;
+}
+
+/**
+ * Map pipeline task stage+status to Kanban TaskStatus
+ */
+function pipelineTaskToKanbanStatus(task: PipelineTask): TaskStatus {
+  if (task.status === 'failed') return 'human_review';
+  if (task.status === 'completed' || task.stage === 'done') return 'done';
+
+  switch (task.stage) {
+    case 'planning': return 'backlog';
+    case 'coding': return 'in_progress';
+    case 'reviewing': return 'ai_review';
+    case 'testing': return 'ai_review';
+    case 'error': return 'human_review';
+    default: return 'in_progress';
+  }
+}
+
+/**
+ * Convert pipeline task to Kanban Task object
+ */
+function pipelineTaskToTask(pt: PipelineTask, projectId: string): Task {
+  const status = pipelineTaskToKanbanStatus(pt);
+  return {
+    id: `pipeline_${pt.id}`,
+    projectId,
+    specId: `pipeline_${pt.id}`,
+    title: pt.title,
+    description: pt.description,
+    status,
+    createdAt: pt.started_at ? new Date(pt.started_at) : new Date(),
+    updatedAt: pt.completed_at ? new Date(pt.completed_at) : new Date(),
+    subtasks: [],
+    logs: [],
+    metadata: {
+      source: 'pipeline',
+      agent: pt.agent,
+      stage: pt.stage,
+    } as Task['metadata'],
   };
 }
 
@@ -493,44 +621,44 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
   const [autogenTasks, setAutogenTasks] = useState<Task[]>([]);
   const autogenPollRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Poll AutoGen results from SharedMemory
+  // Pipeline project state
+  const [pipelineProjects, setPipelineProjects] = useState<PipelineProject[]>([]);
+  const [pipelineTasks, setPipelineTasks] = useState<Task[]>([]);
+  const pipelinePollRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Project creation dialog state
+  const [showProjectDialog, setShowProjectDialog] = useState(false);
+  const [projectForm, setProjectForm] = useState({
+    path: 'D:\\AutoClaude\\01_TEST',
+    name: 'calculator',
+    description: 'Create a Python calculator with basic operations and unit tests',
+  });
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+
+  // Poll AutoGen results directly from AutoGen Studio (8081)
+  // ★ 2026-01-31: SharedMemory(8101) 제거됨 → 8081 직접 폴링으로 변경
   useEffect(() => {
     const fetchAutogenResults = async () => {
       try {
-        // Fetch latest AutoGen result
-        const response = await window.electronAPI.getAutogenLatest();
-        if (response.success && response.data) {
-          const task = autogenResultToTask(response.data, 0);
-          setAutogenTasks([task]);
-        }
+        // ★ 핵심: getAutogenRunsDetailed()로 여러 세션의 run 결과를 가져옴
+        // → autogenRunToTasks()로 세션당 N개 카드 (헤더 + agent별) 분해
+        const detailedResponse = await window.electronAPI.getAutogenRunsDetailed();
+        if (detailedResponse.success && detailedResponse.data && detailedResponse.data.length > 0) {
+          const detailedTasks: Task[] = [];
+          const seenSessions = new Set<string | number>();
 
-        // Also fetch all autogen session keys and create tasks
-        const keysResponse = await window.electronAPI.sharedMemoryListKeys();
-        if (keysResponse.success && keysResponse.data) {
-          const autogenKeys = keysResponse.data.filter((k: string) =>
-            k.startsWith('autogen_session_') || k.startsWith('autogen_')
-          );
+          for (const run of detailedResponse.data) {
+            // 중복 세션 방지
+            if (seenSessions.has(run.sessionId)) continue;
+            seenSessions.add(run.sessionId);
 
-          // Fetch each autogen result and convert to task
-          const autogenTasksFromKeys: Task[] = [];
-          for (let i = 0; i < Math.min(autogenKeys.length, 10); i++) {
-            const key = autogenKeys[i];
-            try {
-              const resultResponse = await window.electronAPI.sharedMemoryGet(key);
-              if (resultResponse.success && resultResponse.data) {
-                const task = autogenResultToTask(resultResponse.data as AutogenResult, i);
-                // Avoid duplicates with latest
-                if (!autogenTasksFromKeys.find(t => t.specId === task.specId)) {
-                  autogenTasksFromKeys.push(task);
-                }
-              }
-            } catch {
-              // Skip failed fetches
-            }
+            const sessionTasks = autogenRunToTasks(run);
+            detailedTasks.push(...sessionTasks);
           }
 
-          if (autogenTasksFromKeys.length > 0) {
-            setAutogenTasks(autogenTasksFromKeys);
+          if (detailedTasks.length > 0) {
+            setAutogenTasks(detailedTasks);
+            return;
           }
         }
       } catch (err) {
@@ -541,8 +669,8 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
     // Initial fetch
     fetchAutogenResults();
 
-    // Poll every 2 seconds for real-time sync (바로바로)
-    autogenPollRef.current = setInterval(fetchAutogenResults, 2000);
+    // Poll every 3 seconds for real-time sync
+    autogenPollRef.current = setInterval(fetchAutogenResults, 3000);
 
     return () => {
       if (autogenPollRef.current) {
@@ -551,10 +679,94 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
     };
   }, []);
 
-  // Combine regular tasks with AutoGen tasks
+  // ──────────────────────────────────────────────
+  // Pipeline: Create project + plan + poll tasks
+  // ──────────────────────────────────────────────
+
+  const handleCreatePipelineProject = useCallback(async () => {
+    const api = window.electronAPI as any;
+    if (!api.bridgePipelineInit) {
+      toast({ title: 'Pipeline API not available', variant: 'destructive' });
+      return;
+    }
+
+    setIsCreatingProject(true);
+    try {
+      // Step 1: Init project folder
+      const initResult = await api.bridgePipelineInit(
+        projectForm.path, projectForm.name, projectForm.description
+      );
+      if (!initResult.success) {
+        toast({ title: 'Failed to init project', description: initResult.error, variant: 'destructive' });
+        return;
+      }
+
+      const projectId = initResult.data.project_id;
+      const newProject: PipelineProject = {
+        project_id: projectId,
+        name: projectForm.name,
+        path: projectForm.path,
+        status: 'init',
+      };
+      setPipelineProjects(prev => [...prev, newProject]);
+
+      // Step 2: Read AutoGen session → decompose to tasks
+      const planResult = await api.bridgePipelinePlan(projectId);
+      if (planResult.success && planResult.data?.tasks) {
+        const kanbanTasks = planResult.data.tasks.map((pt: PipelineTask) =>
+          pipelineTaskToTask(pt, projectId)
+        );
+        setPipelineTasks(prev => [...prev.filter(t => t.projectId !== projectId), ...kanbanTasks]);
+      }
+
+      setShowProjectDialog(false);
+      toast({ title: `Project "${projectForm.name}" created`, description: `Path: ${projectForm.path}` });
+    } catch (err) {
+      toast({ title: 'Pipeline error', description: String(err), variant: 'destructive' });
+    } finally {
+      setIsCreatingProject(false);
+    }
+  }, [projectForm, toast]);
+
+  // Poll pipeline tasks for all active projects
+  useEffect(() => {
+    if (pipelineProjects.length === 0) return;
+
+    const pollPipelineTasks = async () => {
+      const api = window.electronAPI as any;
+      if (!api.bridgePipelineTasks) return;
+
+      const allPipelineTasks: Task[] = [];
+      for (const project of pipelineProjects) {
+        try {
+          const result = await api.bridgePipelineTasks(project.project_id);
+          if (result.success && result.data?.tasks) {
+            const kanbanTasks = result.data.tasks.map((pt: PipelineTask) =>
+              pipelineTaskToTask(pt, project.project_id)
+            );
+            allPipelineTasks.push(...kanbanTasks);
+          }
+        } catch {
+          // Skip failed polls
+        }
+      }
+      if (allPipelineTasks.length > 0) {
+        setPipelineTasks(allPipelineTasks);
+      }
+    };
+
+    pollPipelineTasks();
+    pipelinePollRef.current = setInterval(pollPipelineTasks, 5000);
+
+    return () => {
+      if (pipelinePollRef.current) clearInterval(pipelinePollRef.current);
+    };
+  }, [pipelineProjects]);
+
+  // Combine regular tasks + AutoGen tasks + Pipeline tasks
   const allTasks = useMemo(() => {
-    return [...tasks, ...autogenTasks];
-  }, [tasks, autogenTasks]);
+    return [...tasks, ...autogenTasks, ...pipelineTasks];
+  }, [tasks, autogenTasks, pipelineTasks]);
 
   // Selection state for bulk actions (Human Review column)
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
@@ -980,9 +1192,25 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
 
   return (
     <div className="flex h-full flex-col">
-      {/* Kanban header with refresh button */}
-      {onRefresh && (
-        <div className="flex items-center justify-end px-6 pt-4 pb-2">
+      {/* Kanban header with refresh + pipeline project button */}
+      <div className="flex items-center justify-between px-6 pt-4 pb-2">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowProjectDialog(true)}
+            className="gap-2"
+          >
+            <FolderPlus className="h-4 w-4" />
+            Pipeline Project
+          </Button>
+          {pipelineProjects.length > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {pipelineProjects.length} project(s) | {pipelineTasks.length} task(s)
+            </span>
+          )}
+        </div>
+        {onRefresh && (
           <Button
             variant="ghost"
             size="sm"
@@ -993,8 +1221,8 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
             <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
             {isRefreshing ? t('common:buttons.refreshing') : t('tasks:refreshTasks')}
           </Button>
-        </div>
-      )}
+        )}
+      </div>
       {/* Kanban columns */}
       <DndContext
         sensors={sensors}
@@ -1086,6 +1314,77 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
         onOpenChange={setBulkPRDialogOpen}
         onComplete={handleBulkPRComplete}
       />
+
+      {/* Pipeline Project Creation Dialog */}
+      {showProjectDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <FolderPlus className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-semibold">Create Pipeline Project</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Creates a project folder, reads the latest AutoGen Studio session,
+              and decomposes it into pipeline tasks.
+            </p>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">Project Path</label>
+                <input
+                  type="text"
+                  value={projectForm.path}
+                  onChange={(e) => setProjectForm(prev => ({ ...prev, path: e.target.value }))}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  placeholder="D:\AutoClaude\01_TEST"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Project Name</label>
+                <input
+                  type="text"
+                  value={projectForm.name}
+                  onChange={(e) => setProjectForm(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  placeholder="calculator"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <textarea
+                  value={projectForm.description}
+                  onChange={(e) => setProjectForm(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  rows={2}
+                  placeholder="Describe the project..."
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-5">
+              <Button
+                variant="ghost"
+                onClick={() => setShowProjectDialog(false)}
+                disabled={isCreatingProject}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreatePipelineProject}
+                disabled={isCreatingProject || !projectForm.path || !projectForm.name}
+                className="gap-2"
+              >
+                {isCreatingProject ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Zap className="h-4 w-4" />
+                )}
+                {isCreatingProject ? 'Creating...' : 'Create & Plan'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

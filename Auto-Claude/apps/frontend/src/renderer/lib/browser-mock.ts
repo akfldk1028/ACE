@@ -372,7 +372,7 @@ const browserMockAPI: ElectronAPI = {
 
         // 최신 세션에서 완료된 run 찾기
         for (const session of sessions.slice(0, 5)) {
-          const runsResponse = await fetch(`/api/autogen/sessions/${session.id}/runs/?user_id=guestuser@gmail.com`, {
+          const runsResponse = await fetch(`/api/autogen/sessions/${session.id}/runs?user_id=guestuser@gmail.com`, {
             headers: { Accept: 'application/json' }
           });
 
@@ -381,7 +381,7 @@ const browserMockAPI: ElectronAPI = {
             const runs = runsData.data?.runs || [];
 
             // 완료된 run 찾기
-            const completedRun = runs.find((r: { status: string }) => r.status === 'complete');
+            const completedRun = runs.find((r: { status: string }) => r.status?.toUpperCase() === 'COMPLETE');
             if (completedRun) {
               // 결과 파싱
               let taskContent = '';
@@ -479,7 +479,7 @@ const browserMockAPI: ElectronAPI = {
 
       for (const session of sessions.slice(0, 3)) {
         try {
-          const runsResponse = await fetch(`/api/autogen/sessions/${session.id}/runs/?user_id=guestuser@gmail.com`, {
+          const runsResponse = await fetch(`/api/autogen/sessions/${session.id}/runs?user_id=guestuser@gmail.com`, {
             headers: { Accept: 'application/json' }
           });
 
@@ -679,6 +679,79 @@ const browserMockAPI: ElectronAPI = {
       return { success: true, data: result };
     } catch (err) {
       console.debug('[Browser Mock] workflowMerge failed:', err);
+      return { success: false, error: 'AG-ACE-BRIDGE not connected' };
+    }
+  },
+
+  // ──────────────────────────────────────────────
+  // AG-ACE-BRIDGE Pipeline API (★ E2E Project Pipeline)
+  // Uses Vite proxy: /api/bridge → http://localhost:8080
+  // ──────────────────────────────────────────────
+
+  bridgePipelineInit: async (path: string, name: string, description = '') => {
+    console.log('[Browser Mock] bridgePipelineInit:', { path, name });
+    try {
+      const response = await fetch('/api/bridge/pipeline/init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path, name, description }),
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+        return { success: false, error: err.detail || `HTTP ${response.status}` };
+      }
+      const result = await response.json();
+      return { success: true, data: result };
+    } catch (err) {
+      console.debug('[Browser Mock] bridgePipelineInit failed:', err);
+      return { success: false, error: 'AG-ACE-BRIDGE not connected' };
+    }
+  },
+
+  bridgePipelinePlan: async (projectId: string, sessionId?: number) => {
+    console.log('[Browser Mock] bridgePipelinePlan:', { projectId, sessionId });
+    try {
+      const response = await fetch('/api/bridge/pipeline/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_id: projectId, session_id: sessionId ?? null }),
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+        return { success: false, error: err.detail || `HTTP ${response.status}` };
+      }
+      const result = await response.json();
+      return { success: true, data: result };
+    } catch (err) {
+      console.debug('[Browser Mock] bridgePipelinePlan failed:', err);
+      return { success: false, error: 'AG-ACE-BRIDGE not connected' };
+    }
+  },
+
+  bridgePipelineStatus: async (projectId: string) => {
+    try {
+      const response = await fetch(`/api/bridge/pipeline/status/${projectId}`);
+      if (!response.ok) {
+        return { success: false, error: `HTTP ${response.status}` };
+      }
+      const result = await response.json();
+      return { success: true, data: result };
+    } catch (err) {
+      console.debug('[Browser Mock] bridgePipelineStatus failed:', err);
+      return { success: false, error: 'AG-ACE-BRIDGE not connected' };
+    }
+  },
+
+  bridgePipelineTasks: async (projectId: string) => {
+    try {
+      const response = await fetch(`/api/bridge/pipeline/tasks/${projectId}`);
+      if (!response.ok) {
+        return { success: false, error: `HTTP ${response.status}` };
+      }
+      const result = await response.json();
+      return { success: true, data: result };
+    } catch (err) {
+      console.debug('[Browser Mock] bridgePipelineTasks failed:', err);
       return { success: false, error: 'AG-ACE-BRIDGE not connected' };
     }
   },

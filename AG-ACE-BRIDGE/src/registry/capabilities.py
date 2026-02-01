@@ -1,7 +1,7 @@
 """
 Agent Capabilities for AG-ACE-BRIDGE
 
-Defines capabilities, skills, and metadata for all 14 agents.
+Defines capabilities, skills, and metadata for all 20 agents.
 Used by AgentRegistry for matching tasks to appropriate agents.
 """
 
@@ -456,6 +456,155 @@ AG_DOCUMENT_DRAFTER = AgentCapabilities(
 
 
 # =============================================================================
+# AG A2A Protocol Agents (5)
+# =============================================================================
+
+AG_A2A_POETRY = AgentCapabilities(
+    agent_type=AgentType.AG_A2A_POETRY,
+    name="AG A2A Poetry Agent",
+    description="Poetry and literary analysis via A2A Protocol",
+    capabilities=[
+        Capability(
+            name="poem-analysis",
+            description="Analyze poems and literary works",
+            keywords=["poem", "poetry", "literary", "verse", "stanza"],
+        ),
+        Capability(
+            name="literary-devices",
+            description="Identify literary devices and techniques",
+            keywords=["metaphor", "simile", "alliteration", "rhyme"],
+        ),
+    ],
+    supported_task_types=[TaskType.RESEARCH, TaskType.CUSTOM],
+    adapter_type="a2a",
+    endpoint="http://localhost:8003/",
+    avg_execution_time_seconds=30,
+)
+
+AG_A2A_PHILOSOPHY = AgentCapabilities(
+    agent_type=AgentType.AG_A2A_PHILOSOPHY,
+    name="AG A2A Philosophy Agent",
+    description="Philosophical reasoning and analysis via A2A Protocol",
+    capabilities=[
+        Capability(
+            name="philosophical-analysis",
+            description="Analyze philosophical concepts",
+            keywords=["philosophy", "ethics", "logic", "reasoning"],
+        ),
+        Capability(
+            name="critical-thinking",
+            description="Apply critical thinking frameworks",
+            keywords=["critical", "thinking", "argument", "dialectic"],
+        ),
+    ],
+    supported_task_types=[TaskType.RESEARCH, TaskType.CUSTOM],
+    adapter_type="a2a",
+    endpoint="http://localhost:8004/",
+    avg_execution_time_seconds=30,
+)
+
+AG_A2A_HISTORY = AgentCapabilities(
+    agent_type=AgentType.AG_A2A_HISTORY,
+    name="AG A2A History Agent",
+    description="Historical context and analysis via A2A Protocol",
+    capabilities=[
+        Capability(
+            name="historical-context",
+            description="Provide historical context and analysis",
+            keywords=["history", "historical", "timeline", "era", "period"],
+        ),
+        Capability(
+            name="event-research",
+            description="Research historical events",
+            keywords=["event", "war", "revolution", "culture"],
+        ),
+    ],
+    supported_task_types=[TaskType.RESEARCH, TaskType.CUSTOM],
+    adapter_type="a2a",
+    endpoint="http://localhost:8005/",
+    avg_execution_time_seconds=30,
+)
+
+AG_A2A_CALCULATOR = AgentCapabilities(
+    agent_type=AgentType.AG_A2A_CALCULATOR,
+    name="AG A2A Calculator Agent",
+    description="Mathematical calculations via A2A Protocol",
+    capabilities=[
+        Capability(
+            name="math-calculation",
+            description="Perform mathematical calculations",
+            keywords=["math", "calculate", "arithmetic", "expression"],
+        ),
+        Capability(
+            name="number-theory",
+            description="Number theory operations",
+            keywords=["fibonacci", "factorial", "prime", "number"],
+        ),
+    ],
+    supported_task_types=[TaskType.CUSTOM],
+    adapter_type="a2a",
+    endpoint="http://localhost:8006/",
+    avg_execution_time_seconds=10,
+)
+
+AG_A2A_GUI_TEST = AgentCapabilities(
+    agent_type=AgentType.AG_A2A_GUI_TEST,
+    name="AG A2A GUI Test Agent",
+    description="GUI automation testing via A2A Protocol",
+    capabilities=[
+        Capability(
+            name="gui-automation",
+            description="Automate GUI interactions",
+            keywords=["gui", "automation", "screen", "click", "keyboard"],
+        ),
+        Capability(
+            name="screen-capture",
+            description="Capture and analyze screen content",
+            keywords=["screenshot", "capture", "visual", "pyautogui"],
+        ),
+    ],
+    supported_task_types=[TaskType.QA, TaskType.VALIDATE],
+    adapter_type="a2a",
+    endpoint="http://localhost:8120/",
+    avg_execution_time_seconds=45,
+)
+
+
+# =============================================================================
+# Claude Code CLI Agents (1)
+# =============================================================================
+
+CLAUDE_CLI_PLAN = AgentCapabilities(
+    agent_type=AgentType.CLAUDE_CLI_PLAN,
+    name="Claude CLI Plan Agent",
+    description="Analyzes codebases and generates implementation plans using Claude Code CLI in plan mode (read-only)",
+    capabilities=[
+        Capability(
+            name="code-analysis",
+            description="Analyze codebase structure and architecture",
+            keywords=["analyze", "codebase", "architecture", "structure", "read"],
+        ),
+        Capability(
+            name="implementation-planning",
+            description="Generate implementation plans for features and changes",
+            keywords=["plan", "implement", "design", "strategy", "approach"],
+        ),
+        Capability(
+            name="code-review",
+            description="Review code and provide feedback (read-only)",
+            keywords=["review", "feedback", "quality", "inspect", "assess"],
+        ),
+    ],
+    supported_task_types=[TaskType.PLAN, TaskType.SPEC, TaskType.RESEARCH],
+    is_autonomous=True,
+    adapter_type="a2a",
+    endpoint="http://localhost:9018/",
+    avg_execution_time_seconds=60,
+    priority_boost=1,
+)
+
+
+# =============================================================================
 # Capability Registry
 # =============================================================================
 
@@ -472,12 +621,20 @@ ALL_AGENT_CAPABILITIES: Dict[AgentType, AgentCapabilities] = {
     AgentType.AG_WRITER: AG_WRITER,
     AgentType.AG_REVIEWER: AG_REVIEWER,
     AgentType.AG_COORDINATOR: AG_COORDINATOR,
+    # Claude Code CLI
+    AgentType.CLAUDE_CLI_PLAN: CLAUDE_CLI_PLAN,
     # AG law-domain
     AgentType.AG_CASE_ANALYZER: AG_CASE_ANALYZER,
     AgentType.AG_LEGAL_RESEARCHER: AG_LEGAL_RESEARCHER,
     AgentType.AG_RISK_ASSESSOR: AG_RISK_ASSESSOR,
     AgentType.AG_COMPLIANCE_CHECKER: AG_COMPLIANCE_CHECKER,
     AgentType.AG_DOCUMENT_DRAFTER: AG_DOCUMENT_DRAFTER,
+    # AG A2A Protocol
+    AgentType.AG_A2A_POETRY: AG_A2A_POETRY,
+    AgentType.AG_A2A_PHILOSOPHY: AG_A2A_PHILOSOPHY,
+    AgentType.AG_A2A_HISTORY: AG_A2A_HISTORY,
+    AgentType.AG_A2A_CALCULATOR: AG_A2A_CALCULATOR,
+    AgentType.AG_A2A_GUI_TEST: AG_A2A_GUI_TEST,
 }
 
 

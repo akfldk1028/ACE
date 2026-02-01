@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 
 from src.adapters.base import AgentAdapter
-from src.utils.models import Task, Result, ResultStatus, AgentType, TaskType
+from src.utils.models import Task, Result, ResultStatus, AgentType, TaskType, AgentMcpConfig
 from src.utils.logger import Loggers
 from src.utils.config import get_settings
 
@@ -116,7 +116,7 @@ class AGLawDomainAdapter(AgentAdapter):
         await super().shutdown()
         self.logger.info("ag_law_domain_adapter_shutdown", agent_type=self.agent_type.value)
 
-    async def execute(self, task: Task, context: Dict[str, Any]) -> Result:
+    async def execute(self, task: Task, context: Dict[str, Any], mcp_config: Optional[AgentMcpConfig] = None) -> Result:
         """
         Execute a legal task via HTTP.
 

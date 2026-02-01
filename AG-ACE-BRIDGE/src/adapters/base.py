@@ -12,7 +12,7 @@ SharedMemory Integration:
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
-from ..utils.models import Task, Result, AgentCapability
+from ..utils.models import Task, Result, AgentCapability, AgentMcpConfig
 
 
 class AgentAdapter(ABC):
@@ -137,13 +137,21 @@ class AgentAdapter(ABC):
             return {}
 
     @abstractmethod
-    async def execute(self, task: Task, context: Dict[str, Any]) -> Result:
+    async def execute(
+        self,
+        task: Task,
+        context: Dict[str, Any],
+        mcp_config: Optional[AgentMcpConfig] = None,
+    ) -> Result:
         """
         Execute a task using this agent.
 
         Args:
             task: The task to execute
             context: Accumulated context from previous pipeline stages
+            mcp_config: Per-agent MCP configuration (servers + tools).
+                        For AutoGen agents, these map to McpWorkbench components.
+                        For Auto-Claude agents, these are passed as custom MCP server configs.
 
         Returns:
             Result containing output, status, and any follow-up tasks
@@ -170,6 +178,26 @@ class AgentAdapter(ABC):
         """
         pass
 
+    def get_mcp_tools(self) -> List[str]:
+        """
+        Get list of MCP tools available to this agent.
+        Override in subclasses that support MCP.
+
+        Returns:
+            List of MCP tool names
+        """
+        return []
+
+    def get_mcp_server_ids(self) -> List[str]:
+        """
+        Get list of MCP server IDs assigned to this agent.
+        Override in subclasses that support MCP.
+
+        Returns:
+            List of MCP server IDs
+        """
+        return []
+
     def get_agent_info(self) -> AgentCapability:
         """
         Get full agent capability information.
@@ -185,6 +213,8 @@ class AgentAdapter(ABC):
             description=self.__class__.__doc__ or f"Adapter for {self.name}",
             endpoint_url=self.endpoint_url,
             is_available=self._is_initialized,
+            mcp_tools=self.get_mcp_tools(),
+            mcp_server_ids=self.get_mcp_server_ids(),
         )
 
     def __repr__(self) -> str:

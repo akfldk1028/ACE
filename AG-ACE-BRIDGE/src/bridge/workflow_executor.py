@@ -28,6 +28,7 @@ import asyncio
 import json
 import os
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, Callable, List, Literal
@@ -121,7 +122,13 @@ class WorkflowExecutor:
             if on_output:
                 on_output(message)
             else:
-                print(f"[FullPipeline] {message}")
+                try:
+                    print(f"[FullPipeline] {message}")
+                except UnicodeEncodeError:
+                    # Windows cp949 can't handle some Unicode chars (box-drawing etc.)
+                    enc = getattr(sys.stdout, "encoding", "ascii") or "ascii"
+                    safe = message.encode(enc, errors="replace").decode(enc, errors="replace")
+                    print(f"[FullPipeline] {safe}")
 
         try:
             # ========================================
@@ -139,7 +146,9 @@ class WorkflowExecutor:
                 self.python_path,
                 str(spec_runner_path),
                 "--task", task_description,
-                "--complexity", complexity
+                "--complexity", complexity,
+                "--auto-approve",
+                "--no-build",
             ]
 
             log(f"Command: {' '.join(cmd)}")
@@ -147,6 +156,7 @@ class WorkflowExecutor:
             env = os.environ.copy()
             env["PYTHONUNBUFFERED"] = "1"
             env["PYTHONIOENCODING"] = "utf-8"
+            env["PYTHONUTF8"] = "1"
 
             process = subprocess.Popen(
                 cmd,
@@ -163,20 +173,34 @@ class WorkflowExecutor:
             spec_output = []
             spec_id = None
 
-            for line in iter(process.stdout.readline, ''):
-                if not line:
-                    break
-                line = line.rstrip()
-                spec_output.append(line)
-                log(f"[spec_runner] {line}")
+            try:
+                for line in iter(process.stdout.readline, ''):
+                    if not line:
+                        break
+                    line = line.rstrip()
+                    spec_output.append(line)
+                    log(f"[spec_runner] {line}")
 
-                # Spec ID 추출 (예: "Created spec: 001-feature-name")
-                if "Created spec:" in line or "Spec created:" in line:
-                    parts = line.split(":")
-                    if len(parts) >= 2:
-                        spec_id = parts[-1].strip().split("-")[0]
+                    # Spec ID 추출 (예: "Created spec: 001-feature-name")
+                    if "Created spec:" in line or "Spec created:" in line:
+                        parts = line.split(":")
+                        if len(parts) >= 2:
+                            spec_id = parts[-1].strip().split("-")[0]
 
-            process.wait(timeout=timeout // 2)  # Spec 생성에 절반 시간
+                process.wait(timeout=timeout // 2)  # Spec 생성에 절반 시간
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=10)
+                result["error"] = f"Spec creation timeout ({timeout // 2}s)"
+                result["phases"].append({
+                    "phase": "spec_creation",
+                    "success": False,
+                    "error": result["error"],
+                })
+                return result
+            finally:
+                if process.stdout:
+                    process.stdout.close()
 
             if process.returncode != 0:
                 result["phases"].append({
@@ -263,8 +287,6 @@ class WorkflowExecutor:
 
             result["success"] = True
 
-        except subprocess.TimeoutExpired:
-            result["error"] = f"Timeout ({timeout}s)"
         except Exception as e:
             result["error"] = str(e)
             result["phases"].append({

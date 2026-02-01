@@ -19,7 +19,7 @@ from datetime import datetime
 import json
 
 from src.adapters.base import AgentAdapter
-from src.utils.models import Task, Result
+from src.utils.models import Task, Result, AgentMcpConfig
 from src.utils.logger import get_logger
 
 logger = get_logger("autogen_studio_adapter")
@@ -132,19 +132,21 @@ class AutogenStudioAdapter(AgentAdapter):
             "autogen_studio_integration",
         ]
 
-    async def execute(self, task: Task, context: Dict[str, Any]) -> Result:
+    async def execute(self, task: Task, context: Dict[str, Any], mcp_config: Optional[AgentMcpConfig] = None) -> Result:
         """
         Execute a task using AutoGen Studio workflow.
 
-        The task's input_data should contain workflow definition or reference.
+        The task's input should contain workflow definition or reference.
         """
+        # mcp_config maps to McpWorkbench components in AutoGen (MCP server/tool definitions
+        # are translated to AutoGen's native McpWorkbench tool configuration when available).
         start_time = datetime.now()
 
         try:
             # Extract workflow from task
-            workflow_data = task.input_data.get("workflow")
+            workflow_data = task.input.get("workflow")
             if not workflow_data:
-                workflow_data = task.input_data  # Assume entire input is workflow
+                workflow_data = task.input  # Assume entire input is workflow
 
             # Execute workflow
             workflow_result = await self.execute_workflow(

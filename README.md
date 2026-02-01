@@ -2,230 +2,267 @@
 
 AI Agent Coordination Ecosystem - 24/7 AI Project Factory
 
+## System State (2026-01-31 Verified)
+
+```
+Servers:       AutoGen Studio (8081)  Auto-Claude (5173/Electron)  AG-ACE-BRIDGE (8080)
+Build:         OK (main 3MB + preload 79KB + renderer 5.3MB)
+E2E Test:      PASS (Playwright dual-browser, 38 cards, 6 pages navigated)
+AutoGen Data:  100+ sessions, agent-level decomposition working
+```
+
 ## Overview
 
 ```
 +-----------------------------------------------------------------------+
 |                         25_ACE ECOSYSTEM                               |
-|                    AI Agent Coordination Ecosystem                     |
 +-----------------------------------------------------------------------+
 |                                                                       |
-|  +-------------------+                      +-------------------+     |
-|  |   Auto-Claude     |                      |       AG          |     |
-|  |   24/7 Engine     |                      |  Multi-Agent      |     |
-|  |                   |                      |                   |     |
-|  |  * Planner        |    AG-ACE-BRIDGE    |  * autogen_a2a    |     |
-|  |  * Coder (24/7)   |<------------------->|    (10 agents)    |     |
-|  |  * QA Reviewer    |                      |  * law-domain     |     |
-|  |  * QA Fixer       |                      |    (5 agents)     |     |
-|  +-------------------+                      +-------------------+     |
-|          |                                          |                 |
-|          v                                          v                 |
-|  +-------------------+                      +-------------------+     |
-|  |    Graphiti       |        Sync          |     Neo4j         |     |
-|  |   (LadybugDB)     |<-------------------->|  Knowledge        |     |
-|  +-------------------+                      +-------------------+     |
-|                                                                       |
-|  Total: 19 Coordinated Agents                                         |
+|  +-------------------+    Direct API     +-------------------+        |
+|  |   Auto-Claude     |<---------------->|  AutoGen Studio   |        |
+|  |   Electron App    |  Vite Proxy      |    (8081)         |        |
+|  |                   |  /api/autogen     |                   |        |
+|  |  Kanban Board     |  3s polling       |  Pattern Gallery  |        |
+|  |  Agent Terminals  |                   |  Team Config      |        |
+|  |  MCP Overview     |                   |  Session Runs     |        |
+|  |  Pipeline Project |                   |                   |        |
+|  +-------------------+                   +-------------------+        |
+|          |                                        |                   |
+|          | IPC / workflowExecute                   |                   |
+|          v                                        v                   |
+|  +-------------------+                   +-------------------+        |
+|  |  AG-ACE-BRIDGE    |                   |  Agent Layer      |        |
+|  |  Pipeline (8080)  |                   |  A2A (8003-8120)  |        |
+|  |  spec_runner.py   |                   |  SharedMemory     |        |
+|  |  run.py           |                   |  (8101, optional) |        |
+|  +-------------------+                   +-------------------+        |
 |                                                                       |
 +-----------------------------------------------------------------------+
 ```
 
-## Triple UI Architecture
+## Key Feature: Agent-Level Decomposition
 
-**3개의 UI를 함께 실행**하여 Task 관리, Pattern 개발, 운영을 분리합니다:
+AutoGen sessions are not shown as 1 card per session. Each agent's output becomes an individual Kanban card:
 
 ```
-+-----------------------------------------------------------------------------+
-|                         TRIPLE UI ARCHITECTURE                               |
-+-----------------------------------------------------------------------------+
-|                                                                             |
-|  +---------------------+  +---------------------+  +---------------------+  |
-|  |    Auto-Claude      |  |   AutoGen Studio    |  |   AG-ACE-BRIDGE    |  |
-|  |    (Electron)       |  |      (Web)          |  |    Dashboard       |  |
-|  |                     |  |                     |  |      (Web)         |  |
-|  |  [Task Management]  |  |  [Pattern Dev]      |  |  [Operations]      |  |
-|  |                     |  |                     |  |                    |  |
-|  |  * SPEC Creation    |  |  * Pattern Gallery  |  |  * 24/7 Queue      |  |
-|  |  * Task Queue       |  |  * Team Config      |  |  * Orchestrator    |  |
-|  |  * Execution View   |  |  * A2A Testing      |  |  * Agent Status    |  |
-|  |  * GitHub/Linear    |  |  * Drag & Drop      |  |  * Memory Sync     |  |
-|  |                     |  |                     |  |                    |  |
-|  |  npm run dev        |  |  autogenstudio ui   |  |  python main.py    |  |
-|  |  (Electron App)     |  |  (Port 8081)        |  |  (Port 8080)       |  |
-|  +---------------------+  +---------------------+  +---------------------+  |
-|           |                        |                        |               |
-|           +------------------------+------------------------+               |
-|                                    |                                        |
-|                    +---------------v---------------+                        |
-|                    |      Shared Infrastructure    |                        |
-|                    |   A2A Agents (8003-8120)      |                        |
-|                    |   SharedMemory (8101)         |                        |
-|                    |   Neo4j / Graphiti            |                        |
-|                    +-------------------------------+                        |
-|                                                                             |
-+-----------------------------------------------------------------------------+
+AutoGen Session 136 (complete, 7 messages)
+  |
+  +-- [AutoGen] Session 136          -> Done (header card)
+  |     "Python으로 TODO CLI 앱..."
+  |
+  +-- insights_agent                  -> Planning column
+  |     "## Insights Report..."
+  |
+  +-- deep_research_agent             -> Planning column
+  |     "## Research Report..."
+  |
+  +-- spec_writer_agent               -> Planning column
+  |     "## Project Specification..."
+  |
+  +-- planner_agent                   -> Planning column
+  |     "## Implementation Plan..."
+  |
+  +-- coder_agent                     -> In Progress column
+  |     "```python def main()..."
+  |
+  +-- qa_reviewer_agent               -> AI Review column
+        "## QA Review Report PASS..."
 ```
 
-| UI | Type | Port | Purpose | When to Use |
-|----|------|------|---------|-------------|
-| **Auto-Claude** | Electron | - | Task management, SPEC creation, GitHub/Linear | Creating tasks, Monitoring execution |
-| **AutoGen Studio** | Web | 8081 | Pattern development, Team config, A2A testing | Developing patterns, Agent experiments |
-| **AG-ACE-BRIDGE** | Web | 8080 | 24/7 orchestration, Agent coordination | Running 24/7 operations, Status monitoring |
+**Agent name -> Kanban column mapping** (in `KanbanBoard.tsx` `agentToColumn()`):
 
-## Quick Start
+| Agent name contains | Column | Why |
+|---------------------|--------|-----|
+| insight, plan, architect, research, spec | Planning (backlog) | Design/analysis agents |
+| code, implement, develop, fix | In Progress | Implementation agents |
+| review, qa, test, critic | AI Review | Validation agents |
+| user | Planning | User prompt |
+| (default) | In Progress | Unknown agents |
+| (error sessions) | Human Review | Needs attention |
+| (complete sessions, all agents) | Done | Finished work |
 
-### 1. Start All Services
+## Key Feature: 24/7 Auto-Trigger Pipeline
+
+When AutoGen completes a session, Auto-Claude **automatically** starts the build pipeline. No button click needed.
+
+```
+AutoGen Studio                Auto-Claude (3s polling)           AG-ACE-BRIDGE
+     |                              |                                  |
+     | Session completes            |                                  |
+     |----------------------------->| Detects new completion           |
+     |                              | (processedSessionsRef tracks)    |
+     |                              |                                  |
+     |                              | workflowExecute()                |
+     |                              |--------------------------------->|
+     |                              |                                  | spec_runner.py
+     |                              |                                  | run.py
+     |                              |                                  | Planner -> Coder -> QA
+     |                              |                                  |
+     |                              | 10s execution polling            |
+     |                              |<---------------------------------|
+     |                              | Status: running -> done/error    |
+     |                              |                                  |
+```
+
+**Safety mechanisms:**
+- `processedSessionsRef` - tracks which sessions already triggered (no double-trigger)
+- `initialLoadDoneRef` - prevents old sessions from triggering on app start
+- `triggerQueueRef` - serialized queue prevents concurrent pipeline executions
+- `isProcessingQueueRef` - mutex for queue processing
+- Hourly memory cleanup (max 100 entries) for 24/7 operation
+
+## Auto-Claude UI Pages (All Verified Working)
+
+| Page | Description |
+|------|-------------|
+| **Kanban Board** | 5 columns: Planning / In Progress / AI Review / Human Review / Done. AutoGen agent cards + native task cards |
+| **Agent Terminals** | Live AutoGen Studio connection. Shows session runs with agent messages |
+| **Insights** | Project insights dashboard |
+| **Roadmap** | Project roadmap view |
+| **Ideation** | Idea capture |
+| **Changelog** | Version changelog |
+| **Context** | Project structure visualization |
+| **MCP Overview** | MCP server configuration. Context7 (ON), Graphiti Memory, Linear, Electron, Puppeteer, Auto-Claude Tools (ON). Custom server add supported |
+| **Worktrees** | Git worktree management |
+
+## Quick Start (Minimum - 2 services)
 
 ```bash
-# Terminal 1: A2A Agents
+# 1. AutoGen Studio (port 8081)
+autogenstudio ui --port 8081
+
+# 2. Auto-Claude
+cd Auto-Claude/apps/frontend
+npm run dev
+# Opens Electron app + Vite dev server at localhost:5173
+
+# Done. AutoGen sessions auto-appear on Kanban board.
+# Completed sessions auto-trigger build pipeline.
+```
+
+## Full Start (All services)
+
+```bash
+# 1. A2A Agents (8003-8120) - optional
 cd AG/autogen_a2a_kit/a2a_demo
-python run_all_agents.py  # 8003-8120
+python run_all_agents.py
 
-# Terminal 2: SharedMemory
+# 2. SharedMemory (8101) - optional, fallback only
 cd AG/autogen_a2a_kit/AG-cli
-python shared_memory_server.py  # 8101
+python mcp/shared_memory.py
 
-# Terminal 3: AutoGen Studio (Optional - Development)
-cd AG/autogen_a2a_kit/autogen_source
-npm run dev  # 8081
+# 3. AutoGen Studio (8081)
+autogenstudio ui --port 8081
 
-# Terminal 4: AG-ACE-BRIDGE (Main Operations)
+# 4. AG-ACE-BRIDGE (8080)
 cd AG-ACE-BRIDGE
-python main.py  # 8080 + Orchestrator
-```
+python main.py --dashboard
 
-### 2. Access Dashboards
-
-- **Operations**: http://localhost:8080 (AG-ACE-BRIDGE)
-- **Development**: http://localhost:8081 (AutoGen Studio)
-
-### 3. Submit a Project
-
-```bash
-# Via CLI
-cd AG-ACE-BRIDGE
-python -m src.coordinator.orchestrator --spec "Build a REST API"
-
-# Or via Dashboard
-# Open http://localhost:8080 -> Submit New Task
+# 5. Auto-Claude
+cd Auto-Claude/apps/frontend
+npm run dev
 ```
 
 ## Projects
 
-| Project | Description | Docs |
-|---------|-------------|------|
-| [Auto-Claude](Auto-Claude/) | 24/7 Autonomous Coding Framework | [README_INDEX](Auto-Claude/README_INDEX.md) |
-| [AG](AG/) | Multi-Agent System Hub | [README.md](AG/README.md) |
-| [AG-ACE-BRIDGE](AG-ACE-BRIDGE/) | Auto-Claude + AG Integration Bridge | [README_INDEX](AG-ACE-BRIDGE/README_INDEX.md) |
-| [Calculator](Calculator/) | Example Project (Agent Demo) | - |
-
-## Complete Workflow Example
-
-**GitHub Issue -> PR Merge 완전 자동화 예시**: [WORKFLOW_EXAMPLE.md](docs/WORKFLOW_EXAMPLE.md)
-
-```
-GitHub Issue #42: "Calculator에 퍼센트 기능 추가"
-    |
-    v
-+--------+   +--------+   +--------+   +--------+   +--------+
-|  SPEC  | > |  PLAN  | > |  CODE  | > |   QA   | > | MERGE  |
-| 30min  |   | 15min  |   |  2hr   |   | 30min  |   |  5min  |
-+--------+   +--------+   +--------+   +--------+   +--------+
-    |            |            |            |            |
-AG Selector  AG Magentic  Auto-Claude  AG Reflection  Auto PR
-+ Research   Orchestrator Coder 24/7   + gui_test     Creation
-
-Total: ~3.5 hours (Fully Automated)
-```
+| Project | Description | Key Files |
+|---------|-------------|-----------|
+| [Auto-Claude](Auto-Claude/) | Electron app, Kanban, Pipeline | `KanbanBoard.tsx`, `TaskCard.tsx`, `browser-mock.ts` |
+| [AG-ACE-BRIDGE](AG-ACE-BRIDGE/) | Pipeline server, spec_runner, run.py | `main.py`, `src/server/`, `src/pipeline/` |
+| [AG](AG/) | Multi-Agent System, A2A agents | `autogen_a2a_kit/`, `agent/` |
+| [Calculator](Calculator/) | Example project for agent demos | - |
 
 ## Architecture
 
-### Core Concepts
-
-1. **Auto-Claude**: 24/7 Autonomous Coding Engine
-   - SPEC -> PLAN -> CODE -> QA -> MERGE pipeline
-   - `while True:` infinite loop for autonomous operation
-   - Claude Agent SDK based
-
-2. **AG**: Multi-Agent Expert Teams
-   - autogen_a2a_kit: 10 A2A protocol agents
-   - law-domain-agents: 5 legal domain agents
-   - 11 MAS patterns (Sequential, Selector, Swarm, Debate, etc.)
-
-3. **AG-ACE-BRIDGE**: Integration Bridge
-   - Central Orchestrator for 19 agents
-   - Pattern-based task routing
-   - Graphiti <-> Neo4j memory sync
-
-### Flow Model Integration
+### Data Flow: AutoGen -> Auto-Claude Kanban
 
 ```
-+-----------------------------------------------------------------------------+
-|                    UNIFIED FLOW MODEL ARCHITECTURE                           |
-+-----------------------------------------------------------------------------+
-|                                                                             |
-|  [Phase 1: Task Intake]                                                     |
-|  +---------------------------------------------------------------------+   |
-|  |  GitHub Issues/PRs  ->  Auto-Claude SPEC  ->  Task Queue             |   |
-|  |  Linear Tasks       ->  Planner Agent    ->  Subtask Decomposition   |   |
-|  +---------------------------------------------------------------------+   |
-|                                      |                                      |
-|                                      v                                      |
-|  [Phase 2: MAS Pattern Selection]                                          |
-|  +---------------------------------------------------------------------+   |
-|  |  AG autogen_a2a_kit Patterns:                                        |   |
-|  |  +-- Sequential (01): Linear conversation -> Simple pipeline         |   |
-|  |  +-- Selector  (03): LLM selects next agent -> Dynamic routing       |   |
-|  |  +-- Swarm     (05): Agent handoffs -> Complex delegation            |   |
-|  |  +-- Debate    (07): Discussion/rebuttal -> Code review              |   |
-|  |  +-- Reflection(08): Worker+Reviewer -> QA loop                      |   |
-|  |  +-- Magentic  (06): Orchestrator -> Large-scale distribution        |   |
-|  +---------------------------------------------------------------------+   |
-|                                      |                                      |
-|                                      v                                      |
-|  [Phase 3: Agent Execution]                                                |
-|  +---------------------------------------------------------------------+   |
-|  |  Auto-Claude Pipeline:                AG A2A Agents:                 |   |
-|  |  +-- Planner   (plan)     <------>  +-- research_agent               |   |
-|  |  +-- Coder     (impl 24/7)<------>  +-- calculator_agent             |   |
-|  |  +-- QA Reviewer (verify) <------>  +-- philosophy_agent             |   |
-|  |  +-- QA Fixer  (fix)      <------>  +-- gui_test_agent (PyAutoGUI)   |   |
-|  +---------------------------------------------------------------------+   |
-|                                      |                                      |
-|                                      v                                      |
-|  [Phase 4: Memory & Sync]                                                  |
-|  +---------------------------------------------------------------------+   |
-|  |  Graphiti (LadybugDB)           <------->          Neo4j             |   |
-|  |  +-- Code Patterns              <------->   +-- Domain Knowledge     |   |
-|  |  +-- Session Insights           <------->   +-- Legal Rules          |   |
-|  |  +-- Project Context            <------->   +-- Compliance           |   |
-|  +---------------------------------------------------------------------+   |
-|                                                                             |
-+-----------------------------------------------------------------------------+
+AutoGen Studio (8081)
+  GET /api/sessions          -> list of sessions (id, name, team_id)
+  GET /api/sessions/{id}/runs -> run details with team_result.task_result.messages[]
+
+Auto-Claude Frontend
+  electron.vite.config.ts    -> Vite proxy: /api/autogen -> localhost:8081
+  browser-mock.ts            -> getAutogenSessions(), getAutogenRunsDetailed()
+                                fetches up to 10 sessions, returns messages array
+  a2a-handlers.ts            -> IPC handlers for Electron main process (same logic)
+
+  KanbanBoard.tsx
+    autogenRunToTasks(run, sessionId)  -> converts 1 run to N task cards
+    agentToColumn(agentName)           -> maps agent name to kanban column
+    fetchAutogenResults()              -> 3s polling, calls autogenRunToTasks
+    autoTriggerWorkflow()              -> detects new completions, queues pipeline
+    processQueue()                     -> serialized pipeline execution
+
+  TaskCard.tsx
+    renders task cards with:
+    - agent name as title ("└ coder_agent")
+    - agent output as description (first 300 chars)
+    - trigger status on header cards (running/done/error)
+    - Incomplete/Needs Recovery tags on error sessions
+    - Resume button on error sessions
 ```
 
-### Pattern-Pipeline Mapping
+### Agent Adapter Types
 
-| Auto-Claude Stage | Recommended AG Pattern | Use Case |
-|-------------------|------------------------|----------|
-| SPEC Generation | Selector | Dynamic selection of expert agents |
-| PLAN Creation | Magentic | Orchestrator distributes work |
-| CODE Implementation | Sequential / Swarm | Linear or complex delegation |
-| QA Validation | Reflection / Debate | Reviewer pattern, discussion |
-| MERGE | Sequential | Final merge confirmation |
+| Adapter | Protocol | Agents |
+|---------|----------|--------|
+| AutoClaudeAdapter | Claude Agent SDK + OAuth | Planner, Coder, QA Reviewer, QA Fixer |
+| AGA2AAdapter | JSON-RPC 2.0 over HTTP | poetry, philosophy, calculator, etc. |
+| AutogenStudioAdapter | Python/HTTP | AutoGen Teams |
 
-## Agent Registry (19 Agents)
+### MCP Integration (Current + Future)
 
-### Auto-Claude (4)
+**Current MCP servers** (visible in MCP Overview page):
+- Context7 - Documentation lookup (enabled)
+- Graphiti Memory - Cross-session memory
+- Linear - Project management
+- Electron - Desktop automation
+- Puppeteer - Web browser automation
+- Auto-Claude Tools - Build progress tracking (enabled)
+
+**Future**: Each AutoGen agent can be assigned MCP servers. The `metadata.agent` field on each Kanban card identifies the agent, enabling per-agent MCP routing.
+
+### Pipeline Execution
+
+```
+workflowExecute(taskDescription, 'standard', false)
+  |
+  +-> AG-ACE-BRIDGE (8080)
+       |
+       +-> spec_runner.py   # Generate specification
+       +-> run.py            # Execute pipeline
+            |
+            +-> Planner agent     # Decompose into subtasks
+            +-> Coder agent       # Implement (24/7)
+            +-> QA Reviewer agent # Validate
+            +-> QA Fixer agent    # Fix issues
+            |
+            +-> Git worktree (isolated build)
+```
+
+### Agent Registry
+
+**Auto-Claude (4 agents)**
 | Agent | Function |
 |-------|----------|
-| Planner | Implementation planning, subtask decomposition |
+| Planner | Task decomposition, implementation planning |
 | Coder | 24/7 autonomous coding |
 | QA Reviewer | E2E testing, quality verification |
 | QA Fixer | Issue fixing, debugging |
 
-### AG autogen_a2a_kit (10 A2A Agents)
+**AutoGen Studio agents** (configured per team, example from Session 136):
+| Agent | Output |
+|-------|--------|
+| insights_agent | Insights Report - project context analysis |
+| deep_research_agent | Research Report - technology research |
+| spec_writer_agent | Project Specification (spec.md) |
+| planner_agent | Implementation Plan with subtasks |
+| coder_agent | Code implementation |
+| qa_reviewer_agent | QA Review Report (PASS/FAIL) |
+| qa_fixer_agent | QA Fix Report (when FAIL) |
+
+**AG A2A (10 agents, ports 8003-8120)**
 | Agent | Port | Function |
 |-------|------|----------|
 | poetry_agent | 8003 | Poetry/Literature |
@@ -239,7 +276,7 @@ Total: ~3.5 hours (Fully Automated)
 | code_agent | 8011 | Code Analysis |
 | gui_test_agent | 8120 | GUI Automation (PyAutoGUI) |
 
-### AG law-domain (5)
+**AG Law Domain (5 agents)**
 | Agent | Function |
 |-------|----------|
 | Case Analyzer | Case law analysis |
@@ -248,200 +285,40 @@ Total: ~3.5 hours (Fully Automated)
 | Compliance Checker | Compliance verification |
 | Document Drafter | Legal document drafting |
 
-## Directory Structure
-
-```
-D:/Data/25_ACE/
-|
-+-- Auto-Claude/              # 24/7 Autonomous Coding
-|   +-- apps/backend/         # Python Backend
-|   +-- apps/frontend/        # Electron Frontend
-|   +-- CLAUDE.md             # Claude Code Guide
-|   +-- README_INDEX.md       # Documentation Index
-|
-+-- AG/                       # Multi-Agent System Hub
-|   +-- agent/                # 18+ Agent Projects
-|   |   +-- law-domain-agents/# Legal Domain Agents
-|   |   +-- README_INDEX.md   # Documentation Index
-|   +-- autogen_a2a_kit/      # AutoGen + A2A Integration
-|   |   +-- a2a_demo/         # 10 A2A Agents
-|   |   +-- AG_Cohub/         # Pattern Gallery (12 patterns)
-|   |   +-- AG-cli/           # Claude CLI Collaboration
-|   +-- agent_core/           # Shared Libraries
-|   +-- README_INDEX.md       # Documentation Index
-|
-+-- AG-ACE-BRIDGE/            # Integration Bridge
-|   +-- main.py               # Main Entry Point
-|   +-- src/                  # Source Code
-|   |   +-- coordinator/      # 24/7 Orchestrator
-|   |   +-- pipeline/         # Execution Flow
-|   |   +-- adapters/         # Agent Adapters
-|   |   +-- memory/           # Memory Sync
-|   |   +-- server/           # Dashboard Server
-|   +-- docs/ARCHITECTURE.md  # Detailed Architecture
-|   +-- README_INDEX.md       # Documentation Index
-|
-+-- docs/
-|   +-- WORKFLOW_EXAMPLE.md   # Complete Project Example
-|
-+-- ARCHITECTURE.md           # Overall Architecture
-+-- README.md                 # This File
-```
-
-## Use Cases
-
-### 1. Legal Software Development
-```
-AG Legal Research -> Auto-Claude SPEC -> CODE -> AG Compliance -> QA -> MERGE
-Pattern: Selector (legal expert selection) + Reflection (compliance review)
-```
-
-### 2. Research-Based Development
-```
-AG Research -> AG Analyst -> Auto-Claude Full Pipeline
-Pattern: Sequential (research->analysis->implementation) + Debate (approach discussion)
-```
-
-### 3. 24/7 GitHub Automation
-```
-GitHub Issue -> Auto-Claude SPEC -> Planner -> Coder(24/7) -> QA -> PR
-Pattern: Magentic (orchestrator-based work distribution)
-```
-
-### 4. Complex Domain Integration
-```
-AG law-domain + AG autogen_a2a_kit -> AG-ACE-BRIDGE -> Auto-Claude
-Pattern: Swarm (domain expert handoffs) + Selector (dynamic routing)
-```
-
-## Requirements
-
-- Python 3.10+
-- Node.js 18+ (Auto-Claude frontend)
-- Neo4j (AG law-domain)
-- Claude API Key (ANTHROPIC_API_KEY)
-- OpenAI API Key (AG)
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [AI_STARTUP_GUIDE.md](docs/AI_STARTUP_GUIDE.md) | **AI용 시작 가이드 - 서버 시작 순서, 2 UI 운영** |
-| [PROJECT_START_GUIDE.md](docs/PROJECT_START_GUIDE.md) | 3 UI coordination guide - How to use all UIs together |
-| [WORKFLOW_EXAMPLE.md](docs/WORKFLOW_EXAMPLE.md) | Complete project workflow (GitHub Issue -> PR) |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Overall system architecture |
-| [Auto-Claude CLAUDE.md](Auto-Claude/CLAUDE.md) | Auto-Claude core guide |
-| [AG-ACE-BRIDGE Architecture](AG-ACE-BRIDGE/docs/ARCHITECTURE.md) | Bridge detailed design |
-| [AutoGen Studio Windows 빌드](../22_AG/autogen_a2a_kit/autogen_source/python/packages/autogen-studio/frontend/README.md) | **Windows 빌드/패치 가이드 (SSR 에러 해결)** |
-
-## AutoGen Studio Windows 주의사항
-
-> **`npm run build` 금지!** → `web/ui/` 폴더가 삭제됨. 복구: `git checkout HEAD -- autogenstudio/web/ui/`
-
-소스 수정 시 Gatsby 풀빌드 대신 **minified JS 직접 패치** 사용:
-1. `frontend/src/`에서 소스 수정
-2. `autogenstudio/web/ui/`에서 해당 minified 패턴 grep으로 찾기
-3. Python 스크립트로 치환 + `index.html` cache-bust 추가
-4. AutoGen Studio 재시작 + 브라우저 `Ctrl+Shift+R`
-
-상세: [README_INDEX.md](README_INDEX.md) → "AutoGen Studio Windows 빌드/패치 가이드" 참조
-
 ## Service Ports
 
-| Service | Port | Description |
-|---------|------|-------------|
-| AG-ACE-BRIDGE Dashboard | 8080 | Operations monitoring |
-| AutoGen Studio | 8081 | Pattern development |
-| SharedMemory | 8101 | Context sharing |
-| poetry_agent | 8003 | A2A agent |
-| philosophy_agent | 8004 | A2A agent |
-| history_agent | 8005 | A2A agent |
-| calculator_agent | 8006 | A2A agent |
-| math_agent | 8007 | A2A agent |
-| graphics_agent | 8008 | A2A agent |
-| gpu_agent | 8009 | A2A agent |
-| gui_test_agent | 8120 | E2E testing |
+| Service | Port | Required |
+|---------|------|----------|
+| AutoGen Studio | 8081 | Yes |
+| Auto-Claude (Vite dev) | 5173 | Yes (dev mode) |
+| AG-ACE-BRIDGE | 8080 | For pipeline execution |
+| SharedMemory | 8101 | Optional (fallback) |
+| A2A Agents | 8003-8120 | Optional |
 
-## Agent Collaboration & Data Flow
+## Key File Paths
 
-### Design vs Execution Architecture
+### Auto-Claude Frontend (most actively modified)
+| File | Purpose |
+|------|---------|
+| `Auto-Claude/apps/frontend/src/renderer/components/KanbanBoard.tsx` | Kanban board, agent decomposition, 24/7 auto-trigger, polling |
+| `Auto-Claude/apps/frontend/src/renderer/components/TaskCard.tsx` | Card rendering, trigger status display, memo comparator |
+| `Auto-Claude/apps/frontend/src/renderer/lib/browser-mock.ts` | AutoGen API calls, session fetching (max 10) |
+| `Auto-Claude/apps/frontend/src/main/ipc-handlers/a2a-handlers.ts` | Electron IPC for AutoGen API (max 10 sessions) |
+| `Auto-Claude/apps/frontend/electron.vite.config.ts` | Vite proxy config (/api/autogen -> 8081) |
 
-The system separates **design** (AutoGen Studio) from **execution** (Auto-Claude + AG-ACE-BRIDGE):
+### AG-ACE-BRIDGE
+| File | Purpose |
+|------|---------|
+| `AG-ACE-BRIDGE/main.py` | Entry point |
+| `AG-ACE-BRIDGE/src/server/__init__.py` | FastAPI server setup |
+| `AG-ACE-BRIDGE/src/server/dashboard.py` | Dashboard routes |
+| `AG-ACE-BRIDGE/src/server/pipeline_routes.py` | Pipeline API routes |
+| `AG-ACE-BRIDGE/src/coordinator/orchestrator.py` | 24/7 main loop |
 
-```
-+-----------------------------------------------------------------------------+
-|                     DESIGN → EXECUTION ARCHITECTURE                          |
-|                    ★ 직접 연결 - 중간 서버 불필요!                             |
-+-----------------------------------------------------------------------------+
-|                                                                             |
-|  ┌─────────────────────────────────┐                                        |
-|  │      AutoGen Studio (8081)      │   ← DESIGN PHASE                       |
-|  │   +--------------------------+  │                                        |
-|  │   │  Pattern/Workflow Editor │  │   * Drag & drop agent config           |
-|  │   │  Team Configuration      │  │   * Visual workflow builder            |
-|  │   │  Test & Iterate          │  │   * Run test sessions                  |
-|  │   +--------------------------+  │                                        |
-|  └───────────────┬─────────────────┘                                        |
-|                  │                                                          |
-|                  │ ★ Direct API Call (Vite Proxy)                           |
-|                  │   /api/autogen → localhost:8081                          |
-|                  ▼                                                          |
-|  ┌─────────────────────────────────┐                                        |
-|  │      Auto-Claude (Electron)     │   ← EXECUTION PHASE                    |
-|  │   +--------------------------+  │                                        |
-|  │   │ Kanban Board             │  │   * AutoGen 결과 직접 표시              |
-|  │   │ AutogenStatusBadge       │  │   * 5초마다 8081 폴링                   |
-|  │   │ Task Management          │  │   * SharedMemory 폴백 지원              |
-|  │   +--------------------------+  │                                        |
-|  └───────────────┬─────────────────┘                                        |
-|                  │                                                          |
-|     ┌────────────┴────────────┐                                             |
-|     ▼                         ▼                                             |
-|  ┌─────────────────┐   ┌─────────────────┐                                  |
-|  │ AG-ACE-BRIDGE   │   │ SharedMemory    │   ← OPTIONAL                     |
-|  │  Orchestrator   │   │    (8101)       │                                  |
-|  │                 │   │                 │                                  |
-|  │ * 24/7 Loop     │   │ * Fallback only │                                  |
-|  │ * Agent Select  │   │ * AG-CLI sync   │                                  |
-|  │ * Pipeline Exec │   │ * Event pub/sub │                                  |
-|  └────────┬────────┘   └─────────────────┘                                  |
-|           │                                                                 |
-|           ▼                                                                 |
-|  ┌──────────────────────────────────────────────────────────────────┐       |
-|  │                    Agent Layer (19 Agents)                        │       |
-|  │  +----------------+  +----------------+  +----------------------+  │       |
-|  │  │ Auto-Claude    │  │  A2A Protocol  │  │  AG Law Domain       │  │       |
-|  │  │ (SDK-based)    │  │  (HTTP/RPC)    │  │  (HTTP/REST)         │  │       |
-|  │  │                │  │                │  │                      │  │       |
-|  │  │ - Planner      │  │ - poetry 8003  │  │ - Case Analyzer      │  │       |
-|  │  │ - Coder 24/7   │  │ - philosophy   │  │ - Legal Researcher   │  │       |
-|  │  │ - QA Reviewer  │  │ - history      │  │ - Risk Assessor      │  │       |
-|  │  │ - QA Fixer     │  │ - calculator   │  │ - Compliance         │  │       |
-|  │  │                │  │ - gui_test     │  │ - Document Drafter   │  │       |
-|  │  +----------------+  +----------------+  +----------------------+  │       |
-|  └──────────────────────────────────────────────────────────────────┘       |
-|                                                                             |
-+-----------------------------------------------------------------------------+
-```
+## Vite Proxy Configuration
 
-### Direct Connection (★ 권장 - 단순!)
-
-**Auto-Claude UI가 AutoGen Studio(8081)에 직접 연결:**
-
-```
-Auto-Claude UI  ──────────────────────►  AutoGen Studio (8081)
-                  Vite Proxy
-                  /api/autogen                GET /api/sessions/
-                                              GET /api/sessions/{id}/runs/
-```
-
-**장점:**
-- SharedMemory(8101) 서버 불필요
-- run_autogen_sync_simple.py 스크립트 불필요
-- AutoGen Studio만 실행하면 즉시 연동
-
-**Vite Proxy 설정 (electron.vite.config.ts):**
 ```typescript
+// electron.vite.config.ts
 proxy: {
   '/api/autogen': {
     target: 'http://localhost:8081',
@@ -451,168 +328,159 @@ proxy: {
 }
 ```
 
-### SharedMemory (Optional Fallback)
+Auto-Claude calls `/api/autogen/sessions` -> proxied to `http://localhost:8081/api/sessions`.
 
-**SharedMemory (8101)** is optional - used as fallback when direct connection fails:
+## E2E Test
 
-```bash
-# Optional: Start SharedMemory server for AG-CLI integration
-cd AG/autogen_a2a_kit/AG-cli
-python mcp/shared_memory.py  # → http://localhost:8101
-```
+`test_e2e_dual_browser.py` - Playwright dual-browser test:
+1. AutoGen Studio: verify sessions, teams, agent messages
+2. Auto-Claude: skip wizard, verify Kanban cards
+3. Session 136 detail: 6 unique agents verified
+4. Agent decomposition: 1 header + 29 agent cards
+5. Side-by-side screenshots
+6. New session creation -> Auto-Claude auto-detection
 
-**Fallback Flow:**
-```
-Auto-Claude UI
-     │
-     ├─(1)─► AutoGen Studio (8081) - 직접 연결 시도
-     │           ↓ 실패 시
-     └─(2)─► SharedMemory (8101) - 폴백
-```
+`test_functional.py` - Single browser functional verification:
+- All 9 sidebar pages navigate correctly
+- All buttons active (Pipeline, Start, Recover, Resume, New Task, Refresh)
+- 38 total cards on Kanban
+- API proxy working
 
-**Stored Keys (when using SharedMemory):**
-| Key | Description |
-|-----|-------------|
-| `autogen_session_{id}` | Each session result |
-| `autogen_latest` | Most recent result |
-| `task_{id}_stage_{n}` | Pipeline stage results |
+## AutoGen Studio Team Storage (데이터 저장 경로)
 
-### Agent Adapter Types
-
-The system uses three adapter types to connect different agent systems:
-
-| Adapter | Protocol | Agents | Features |
-|---------|----------|--------|----------|
-| **AutoClaudeAdapter** | Claude Agent SDK + OAuth | Planner, Coder, QA | 24/7 autonomous, security sandbox |
-| **AGA2AAdapter** | JSON-RPC 2.0 over HTTP | poetry, philosophy, calc, etc. | Google ADK A2A Protocol |
-| **AutogenStudioAdapter** | Python/HTTP | AutoGen Teams | Workflow execution |
-
-### Pipeline Execution Patterns
-
-The Orchestrator supports three execution patterns:
-
-| Pattern | Description | Use Case |
-|---------|-------------|----------|
-| **Sequential** | Stage1 → Stage2 → Stage3 | Simple linear workflows |
-| **Parallel** | [Stage1, Stage2, Stage3] → Gather | Fan-out/gather for research |
-| **CriticLoop** | Generator → Critic → Fix → Repeat | QA validation loops |
-
-**Example Pipeline:**
-```python
-# QA Loop with Auto-Claude agents
-await run_auto_claude_qa_loop(
-    task=task,
-    stages=[
-        Stage(AgentType.AUTO_CLAUDE_CODER, StageType.SEQUENTIAL),
-        Stage(AgentType.AUTO_CLAUDE_QA_REVIEWER, StageType.CRITIC_LOOP),
-    ],
-    max_iterations=5
-)
-```
-
-### Auto-Claude UI Integration (Agent-Level Decomposition)
-
-AutoGen sessions are decomposed into **per-agent task cards** on the Kanban board:
+### 저장 흐름 (순차적)
 
 ```
-AutoGen Session 136 (complete)
-  ├─ user: "TODO CLI 만들어줘"
-  ├─ insights_agent    → [Planning] column
-  ├─ planner_agent     → [Planning] column
-  ├─ coder_agent       → [In Progress] column
-  └─ reviewer_agent    → [AI Review] column
+1. UI (Team Builder /build/)
+   └─ POST /api/teams/  (team config JSON body)
+
+2. FastAPI Route
+   └─ autogenstudio/web/routes/teams.py → db.upsert(team)
+
+3. DatabaseManager (SQLAlchemy)
+   └─ autogenstudio/database/db_manager.py → INSERT/UPDATE `team` table
+
+4. SQLite Database
+   └─ ~/.autogenstudio/autogen04203.db
+      (Windows: C:\Users\<username>\.autogenstudio\autogen04203.db)
 ```
 
-**Agent role → Kanban column mapping:**
-| Agent Name Contains | Column | Logic |
-|---------------------|--------|-------|
-| insight, plan, architect | Planning (backlog) | Design/analysis phase |
-| code, implement, develop | In Progress | Implementation phase |
-| review, qa, test, critic | AI Review | Validation phase |
-| (error/failed sessions) | Human Review | Needs attention |
+### DB 스키마 (team 테이블)
 
-**Kanban card layout:**
-```
-┌─────────────────────────────────┐  ← Session header (blue)
-│ [AutoGen] Session 136           │
-│ Python으로 TODO CLI 앱...       │
-│ ● Complete · 6 agents           │
-│ ⚡ Pipeline running (exec_001)  │  ← 24/7 auto-trigger status
-└─────────────────────────────────┘
-  ┌───────────────────────────────┐  ← Agent card (indented)
-  │  └ coder_agent                │
-  │  ```python def main()...      │
-  └───────────────────────────────┘
-```
+| Column | Type | Description |
+|--------|------|-------------|
+| id | INTEGER (PK, autoincrement) | Team ID |
+| component | JSON | 팀 설정 전체 (agents, models, tools 포함) |
+| user_id | TEXT | 사용자 ID (default: `guestuser@gmail.com`) |
+| version | TEXT | 버전 (`0.0.1`) |
+| created_at | DATETIME | 생성 시간 |
+| updated_at | DATETIME | 수정 시간 |
 
-### 24/7 Auto-Trigger Pipeline (★ 핵심!)
+### 관련 테이블
 
-When an AutoGen session completes, Auto-Claude **automatically** triggers the build pipeline:
+| Table | 역할 | 관계 |
+|-------|------|------|
+| `team` | 팀 설정 (agents, models, tools) | - |
+| `session` | 실행 세션 | `team_id` → team.id |
+| `message` | 세션 메시지 (agent 대화) | `session_id` → session.id |
+| `run` | 실행 결과 | `session_id` → session.id |
+
+### 디렉토리 구조
 
 ```
-AutoGen Studio (8081)
-       │
-       │ Session completes
-       ▼
-Auto-Claude (3s polling)
-       │
-       │ Detects new completion
-       │ (tracks processed sessions to avoid re-trigger)
-       ▼
-workflowExecute(task, 'standard', false)
-       │
-       │ Starts AG-ACE-BRIDGE pipeline
-       ▼
-spec_runner.py → run.py → Planner → Coder → QA
-       │
-       ▼
-Git Worktree (isolated build)
+~/.autogenstudio/                   (AUTOGENSTUDIO_APPDIR 환경변수로 변경 가능)
+├── autogen04203.db                 # SQLite DB (teams, sessions, messages, runs)
+├── .env                            # 환경 설정
+├── files/user/                     # 업로드 파일
+└── configs/                        # JSON/YAML 팀 설정 import 경로
 ```
 
-**Advantages of 24/7 Auto-Trigger:**
-1. **Zero human intervention** - AutoGen completes → pipeline starts automatically
-2. **De-duplication** - Processed session IDs tracked; no double-trigger
-3. **Initial load safety** - Existing completed sessions marked as processed on app start
-4. **Visual feedback** - Trigger status shown on header cards (triggered/running/done/error)
-5. **Toast notifications** - User informed of auto-pipeline start
+### 환경변수 (prefix: AUTOGENSTUDIO_)
 
-## Complete Startup Sequence
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `AUTOGENSTUDIO_APPDIR` | 앱 루트 디렉토리 | `~/.autogenstudio` |
+| `AUTOGENSTUDIO_DATABASE_URI` | DB 경로 | `sqlite:///./autogen04203.db` |
+| `AUTOGENSTUDIO_DEFAULT_USER_ID` | 기본 사용자 | `guestuser@gmail.com` |
 
-### 최소 구성 (★ 권장 - 2개만 실행, 24/7 자동 파이프라인)
+### API Endpoints
 
-```bash
-# 1. AutoGen Studio (port 8081) - 워크플로우 설계 + 실행
-autogenstudio ui --port 8081
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/teams/?user_id=xxx` | 팀 목록 |
+| GET | `/api/teams/{team_id}` | 팀 상세 |
+| POST | `/api/teams/` | 팀 생성/수정 |
+| DELETE | `/api/teams/{team_id}` | 팀 삭제 |
+| GET | `/api/sessions/` | 세션 목록 |
+| GET | `/api/sessions/{id}/runs` | 세션 실행 결과 (agent messages 포함) |
 
-# 2. Auto-Claude (Electron) - 자동 감지 + 파이프라인 실행
-cd Auto-Claude/apps/frontend
-npm run dev
+### 핵심 소스 파일
 
-# 끝! AutoGen에서 세션 완료 → Auto-Claude가 자동으로 빌드 파이프라인 시작
-# ★ 수동 버튼 클릭 불필요 - 3초 폴링으로 새 완료 감지 → workflowExecute 자동 호출
+| File | Role |
+|------|------|
+| `autogenstudio/web/routes/teams.py` | Team CRUD API |
+| `autogenstudio/database/db_manager.py` | SQLAlchemy DB 관리 |
+| `autogenstudio/datamodel/db.py` | Team/Session/Message 스키마 |
+| `autogenstudio/web/config.py` | DB 경로, 기본 설정 |
+| `autogenstudio/web/initialization.py` | 앱 초기화, DB 연결 |
+| `autogenstudio/teammanager/teammanager.py` | JSON/YAML import, 팀 실행 |
+| `frontend/src/components/views/teambuilder/api.ts` | 프론트엔드 API 호출 |
+
+## AutoGen Studio Windows Notes
+
+> **`npm run build` 금지!** -> `web/ui/` 폴더가 삭제됨. 복구: `git checkout HEAD -- autogenstudio/web/ui/`
+
+Source modification uses **minified JS direct patch** instead of Gatsby full build.
+
+## Documentation
+
+| Document | Path | Description |
+|----------|------|-------------|
+| AI Startup Guide | [docs/AI_STARTUP_GUIDE.md](docs/AI_STARTUP_GUIDE.md) | Server start sequence |
+| Project Start Guide | [docs/PROJECT_START_GUIDE.md](docs/PROJECT_START_GUIDE.md) | 3 UI coordination |
+| Workflow Example | [docs/WORKFLOW_EXAMPLE.md](docs/WORKFLOW_EXAMPLE.md) | GitHub Issue -> PR flow |
+| Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture |
+| Auto-Claude CLAUDE.md | [Auto-Claude/CLAUDE.md](Auto-Claude/CLAUDE.md) | Auto-Claude AI context |
+| AG-ACE-BRIDGE Architecture | [AG-ACE-BRIDGE/docs/ARCHITECTURE.md](AG-ACE-BRIDGE/docs/ARCHITECTURE.md) | Bridge design |
+
+## Requirements
+
+- Python 3.10+
+- Node.js 18+ (Auto-Claude frontend)
+- Neo4j (AG law-domain, optional)
+- Claude API Key (ANTHROPIC_API_KEY)
+- OpenAI API Key (AG agents)
+
+## 다음 AI에게 (Critical Context)
+
+이 프로젝트는 **24/7 무중단 AI 코딩 공장**입니다. 수정 전 반드시 이해해야 할 것:
+
+### 순차적 이해 순서
+1. 이 README.md (전체 구조, 데이터 흐름)
+2. ARCHITECTURE.md (4-Layer, 19 agents, 3 pipeline patterns, IPC 22채널)
+3. KanbanBoard.tsx (핵심 로직: 3초 폴링, agent 분해, auto-trigger, 5개 Ref 안전장치)
+4. `npm run build` 확인 (빌드 깨지면 안 됨)
+
+### 수정 시 지뢰밭
+- **useEffect 무한루프**: KanbanBoard.tsx에서 함수를 deps에 넣으면 무한 렌더링 (2026-01-31에 8개 수정함)
+- **memo comparator**: TaskCard.tsx의 `taskCardPropsAreEqual()`에 새 필드 추가 시 비교 로직도 업데이트
+- **이중 모드**: browser-mock.ts(Vite proxy) + a2a-handlers.ts(Electron IPC) 양쪽 다 수정 필요
+- **AutoGen Studio**: `npm run build` 실행 금지 (web/ui/ 삭제됨), minified JS 직접 패치 방식
+
+### 핵심 원칙
+- AutoGen 세션 1개 = Kanban 카드 N개 (agent-level decomposition)
+- 완료된 세션은 자동으로 빌드 파이프라인 trigger (24/7)
+- Ref로 상태 관리 (렌더링 없이 24/7 안정성 유지)
+- 향후: agent별 MCP 라우팅 (metadata.agent 필드 활용)
+
+### AG-ACE-BRIDGE Pipeline 이해
 ```
-
-### 전체 구성 (24/7 운영 + A2A 에이전트)
-
-```bash
-# 1. A2A Agents (ports 8003-8120) - Optional
-cd AG/autogen_a2a_kit
-python run_all_agents.py --subset
-
-# 2. SharedMemory (port 8101) - Optional (AG-CLI 연동용)
-cd AG/autogen_a2a_kit/AG-cli
-python mcp/shared_memory.py
-
-# 3. AutoGen Studio (port 8081) - Design UI
-autogenstudio ui --port 8081
-
-# 4. AG-ACE-BRIDGE Dashboard (port 8080) - 24/7 Orchestrator
-cd AG-ACE-BRIDGE
-python main.py --dashboard
-
-# 5. Auto-Claude (Electron) - Task UI
-cd Auto-Claude/apps/frontend
-npm run dev
+Task → PipelineBuilder.auto_build() → Pipeline stages
+  → Orchestrator._execute_pipeline()
+    → Sequential: stage output → next stage context
+    → Parallel: fan-out → gather
+    → CriticLoop: Generator → Critic(score) → Fixer → (반복 max 5)
+  → Result → SharedMemory(optional) → next_tasks queue
 ```
 
 ## License

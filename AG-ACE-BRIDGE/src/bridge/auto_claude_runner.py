@@ -101,19 +101,25 @@ class AutoClaudeRunner:
             "--spec", spec_id
         ]
 
-        print(f"[AutoClaudeRunner] 실행: {' '.join(cmd)}")
-        print(f"[AutoClaudeRunner] 작업 디렉토리: {self.project_path}")
+        try:
+            print(f"[AutoClaudeRunner] Run: {' '.join(cmd)}")
+            print(f"[AutoClaudeRunner] CWD: {self.project_path}")
+        except UnicodeEncodeError:
+            print("[AutoClaudeRunner] Run: (encoding error in command)")
+            print(f"[AutoClaudeRunner] CWD: {self.project_path}")
 
         try:
             # 환경 변수 설정
             env = os.environ.copy()
             env["PYTHONUNBUFFERED"] = "1"
             env["PYTHONIOENCODING"] = "utf-8"
+            env["PYTHONUTF8"] = "1"
 
-            # 프로세스 실행
+            # 프로세스 실행 (stdin=PIPE로 interactive prompt 자동 응답)
             process = subprocess.Popen(
                 cmd,
                 cwd=str(self.project_path),
+                stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
@@ -123,21 +129,48 @@ class AutoClaudeRunner:
                 bufsize=1
             )
 
+            # Auto-confirm any "Press Enter" prompts by feeding newlines
+            try:
+                process.stdin.write("\n" * 5)
+                process.stdin.flush()
+                process.stdin.close()
+            except (OSError, BrokenPipeError):
+                # stdin may already be closed or process may have exited
+                pass
+
             output_lines = []
 
-            # 실시간 출력 읽기
-            for line in iter(process.stdout.readline, ''):
-                if not line:
-                    break
-                line = line.rstrip()
-                output_lines.append(line)
+            try:
+                # 실시간 출력 읽기
+                for line in iter(process.stdout.readline, ''):
+                    if not line:
+                        break
+                    line = line.rstrip()
+                    output_lines.append(line)
 
-                if on_output:
-                    on_output(line)
-                else:
-                    print(f"[Auto-Claude] {line}")
+                    if on_output:
+                        on_output(line)
+                    else:
+                        try:
+                            print(f"[Auto-Claude] {line}")
+                        except UnicodeEncodeError:
+                            enc = getattr(sys.stdout, "encoding", "ascii") or "ascii"
+                            safe = line.encode(enc, errors="replace").decode(enc, errors="replace")
+                            print(f"[Auto-Claude] {safe}")
 
-            process.wait(timeout=timeout)
+                process.wait(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=10)
+                return {
+                    "success": False,
+                    "spec_id": spec_id,
+                    "error": f"Timeout ({timeout}s)",
+                    "duration_seconds": timeout
+                }
+            finally:
+                if process.stdout:
+                    process.stdout.close()
 
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()
@@ -152,17 +185,9 @@ class AutoClaudeRunner:
                 "end_time": end_time.isoformat()
             }
 
-            print(f"[AutoClaudeRunner] 완료: {'성공' if result['success'] else '실패'} ({duration:.1f}초)")
+            print(f"[AutoClaudeRunner] Done: {'OK' if result['success'] else 'FAIL'} ({duration:.1f}s)")
             return result
 
-        except subprocess.TimeoutExpired:
-            process.kill()
-            return {
-                "success": False,
-                "spec_id": spec_id,
-                "error": f"타임아웃 ({timeout}초)",
-                "duration_seconds": timeout
-            }
         except Exception as e:
             return {
                 "success": False,

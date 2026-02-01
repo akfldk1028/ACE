@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 import uuid
 
 from src.utils.models import (
-    Task, Pipeline, Stage, StageType, AgentType, TaskType
+    Task, Pipeline, Stage, StageType, AgentType, TaskType, AgentMcpConfig
 )
 from src.utils.logger import Loggers
 from src.utils.config import get_settings
@@ -159,6 +159,7 @@ class PipelineBuilder:
         task: Task,
         template_name: Optional[str] = None,
         custom_stages: Optional[List[Stage]] = None,
+        agent_mcp_overrides: Optional[Dict[str, AgentMcpConfig]] = None,
     ) -> Pipeline:
         """
         Build a pipeline for a task.
@@ -167,6 +168,10 @@ class PipelineBuilder:
             task: Task to build pipeline for
             template_name: Optional template to use
             custom_stages: Optional custom stages override
+            agent_mcp_overrides: Per-agent MCP configurations keyed by AgentType value.
+                                 Resolved from Auto-Claude's project config (agentMcpOverrides
+                                 + customMcpServers). Each agent's MCP config is injected into
+                                 the corresponding pipeline stage.
 
         Returns:
             Configured Pipeline
@@ -186,6 +191,10 @@ class PipelineBuilder:
             # Auto-build based on task
             stages = self._auto_build_stages(task)
 
+        # Inject per-agent MCP configs into stages
+        if agent_mcp_overrides:
+            stages = self._inject_mcp_configs(stages, agent_mcp_overrides)
+
         pipeline = Pipeline(
             id=str(uuid.uuid4()),
             task_id=task.id,
@@ -204,6 +213,39 @@ class PipelineBuilder:
         )
 
         return pipeline
+
+    def _inject_mcp_configs(
+        self,
+        stages: List[Stage],
+        agent_mcp_overrides: Dict[str, AgentMcpConfig],
+    ) -> List[Stage]:
+        """
+        Inject per-agent MCP configurations into pipeline stages.
+
+        Each stage's primary agent is looked up in the overrides map.
+        Note: Stage.mcp_config is per-stage, not per-agent within a stage.
+        For parallel/critic stages, the primary agent's config is used.
+
+        Args:
+            stages: Pipeline stages to inject into
+            agent_mcp_overrides: Map of agent type string -> AgentMcpConfig
+
+        Returns:
+            Stages with MCP configs injected
+        """
+        for stage in stages:
+            agent_key = stage.agent if isinstance(stage.agent, str) else stage.agent.value if hasattr(stage.agent, 'value') else str(stage.agent)
+
+            if agent_key in agent_mcp_overrides:
+                stage.mcp_config = agent_mcp_overrides[agent_key]
+                self.logger.debug(
+                    "mcp_config_injected",
+                    stage_id=stage.id,
+                    agent=agent_key,
+                    server_count=len(agent_mcp_overrides[agent_key].servers),
+                )
+
+        return stages
 
     def _auto_build_stages(self, task: Task) -> List[Stage]:
         """Automatically build stages based on task"""
@@ -386,6 +428,7 @@ def get_builder() -> PipelineBuilder:
 def build_pipeline(
     task: Task,
     template: Optional[str] = None,
+    agent_mcp_overrides: Optional[Dict[str, AgentMcpConfig]] = None,
 ) -> Pipeline:
     """
     Convenience function to build a pipeline.
@@ -393,9 +436,10 @@ def build_pipeline(
     Args:
         task: Task to build pipeline for
         template: Optional template name
+        agent_mcp_overrides: Per-agent MCP configurations
 
     Returns:
         Configured pipeline
     """
     builder = get_builder()
-    return builder.build(task, template_name=template)
+    return builder.build(task, template_name=template, agent_mcp_overrides=agent_mcp_overrides)

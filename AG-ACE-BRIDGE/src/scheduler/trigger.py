@@ -192,7 +192,7 @@ class ScheduleTrigger:
 
     async def _poll_events(self):
         """Poll SharedMemory for events (event-based triggers)"""
-        last_event_id = None
+        seen_event_ids: set = set()
 
         while self._running:
             try:
@@ -203,12 +203,15 @@ class ScheduleTrigger:
                 # Get recent events
                 events = await self._shared_memory.get_events(
                     limit=50,
-                    after=last_event_id,
                 )
 
                 for event in events:
                     event_type = event.get("event_type")
                     event_id = event.get("id")
+
+                    # Skip already-processed events
+                    if event_id and event_id in seen_event_ids:
+                        continue
 
                     # Check if any patterns are triggered by this event
                     if event_type in self._event_handlers:
@@ -220,16 +223,19 @@ class ScheduleTrigger:
                             )
 
                     if event_id:
-                        last_event_id = event_id
+                        seen_event_ids.add(event_id)
+                        # Cap set size to prevent unbounded memory growth
+                        if len(seen_event_ids) > 10000:
+                            seen_event_ids = set(list(seen_event_ids)[-5000:])
 
                 await asyncio.sleep(1)  # Poll interval
 
             except Exception as e:
-                self.logger.error(
+                self.logger.warning(
                     "event_poll_error",
                     error=str(e),
                 )
-                await asyncio.sleep(5)  # Back off on error
+                await asyncio.sleep(60)  # Back off on error (SharedMemory may be offline)
 
     async def schedule_pattern(
         self,
@@ -520,7 +526,7 @@ class ScheduleTrigger:
             "type": task_type.value,
             "description": f"Execute pattern: {pattern.name}",
             "priority": Priority.MEDIUM.value,
-            "input_data": pattern.data,
+            "input": pattern.data,
             "context": {
                 "pattern_id": pattern.id,
                 "pattern_name": pattern.name,

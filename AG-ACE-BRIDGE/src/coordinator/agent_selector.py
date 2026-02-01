@@ -8,7 +8,7 @@ Uses capability matching and load balancing.
 from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
 
-from src.utils.models import Task, TaskType, AgentType
+from src.utils.models import Task, TaskType, AgentType, AgentMcpConfig
 from src.utils.logger import Loggers
 from src.registry.agent_registry import get_registry
 from src.registry.capabilities import (
@@ -90,8 +90,9 @@ class AgentSelector:
         # Determine parallel candidates if task supports it
         parallel_candidates = self._get_parallel_candidates(task, primary)
 
-        # Calculate confidence
-        confidence = self._calculate_confidence(task, primary)
+        # Calculate confidence (with MCP tools if specified in task metadata)
+        required_mcp_tools = task.metadata.get("required_mcp_tools") if task.metadata else None
+        confidence = self._calculate_confidence(task, primary, required_mcp_tools=required_mcp_tools)
 
         # Build selection reason
         reason = self._build_selection_reason(task, primary)
@@ -262,8 +263,23 @@ class AgentSelector:
 
         return []
 
-    def _calculate_confidence(self, task: Task, agent: AgentType) -> float:
-        """Calculate selection confidence"""
+    def _calculate_confidence(
+        self,
+        task: Task,
+        agent: AgentType,
+        required_mcp_tools: Optional[List[str]] = None,
+    ) -> float:
+        """
+        Calculate selection confidence.
+
+        Args:
+            task: Task being evaluated
+            agent: Candidate agent
+            required_mcp_tools: MCP tools required by the task (optional)
+
+        Returns:
+            Confidence score 0.0 to 1.0
+        """
         status = self.registry.get_status(agent)
         capabilities = self.registry.get_capabilities(agent)
 
@@ -284,7 +300,44 @@ class AgentSelector:
             match_score = capabilities.matches_requirements(task.requirements)
             confidence += match_score * 0.1
 
+        # MCP tool availability scoring
+        if required_mcp_tools:
+            mcp_score = self._calculate_mcp_score(agent, required_mcp_tools)
+            confidence += mcp_score * 0.15
+
         return min(confidence, 1.0)
+
+    def _calculate_mcp_score(
+        self,
+        agent: AgentType,
+        required_tools: List[str],
+    ) -> float:
+        """
+        Calculate MCP tool availability score for an agent.
+
+        Checks if the agent has access to the required MCP tools
+        via its assigned MCP servers.
+
+        Args:
+            agent: Agent to check
+            required_tools: List of required MCP tool names
+
+        Returns:
+            Score 0.0 to 1.0 based on tool coverage
+        """
+        if not required_tools:
+            return 0.0
+
+        agent_info = self.registry.get_agent_info(agent)
+        if not agent_info:
+            return 0.0
+
+        available_tools = set(getattr(agent_info, 'mcp_tools', []))
+        if not available_tools:
+            return 0.0
+
+        matched = sum(1 for t in required_tools if t in available_tools)
+        return matched / len(required_tools)
 
     def _build_selection_reason(self, task: Task, agent: AgentType) -> str:
         """Build human-readable selection reason"""

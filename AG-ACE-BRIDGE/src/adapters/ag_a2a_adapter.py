@@ -24,7 +24,7 @@ from datetime import datetime
 from enum import Enum
 
 from src.adapters.base import AgentAdapter
-from src.utils.models import Task, Result, ResultStatus
+from src.utils.models import Task, Result, ResultStatus, AgentMcpConfig
 from src.utils.logger import Loggers
 
 
@@ -186,7 +186,7 @@ class AGA2AAdapter(AgentAdapter):
 
         raise Exception("Failed to fetch agent card from any endpoint")
 
-    async def execute(self, task: Task, context: Dict[str, Any]) -> Result:
+    async def execute(self, task: Task, context: Dict[str, Any], mcp_config: Optional[AgentMcpConfig] = None) -> Result:
         """
         Execute a task via A2A Protocol.
 
@@ -472,9 +472,12 @@ class A2AAdapterManager:
         self.adapters: Dict[A2AAgentType, AGA2AAdapter] = {}
         self.logger = Loggers.adapter()
 
-    async def initialize_all(self) -> Dict[A2AAgentType, bool]:
+    async def initialize_all(self, timeout_per_agent: float = 10.0) -> Dict[A2AAgentType, bool]:
         """
-        Initialize all A2A adapters.
+        Initialize all A2A adapters with per-agent timeout.
+
+        Args:
+            timeout_per_agent: Max seconds to wait per agent initialization
 
         Returns:
             Dict mapping agent type to initialization success
@@ -487,9 +490,25 @@ class A2AAdapterManager:
                     agent_type,
                     enable_shared_memory=self.enable_shared_memory,
                 )
-                await adapter.initialize()
+                await asyncio.wait_for(
+                    adapter.initialize(),
+                    timeout=timeout_per_agent,
+                )
                 self.adapters[agent_type] = adapter
                 results[agent_type] = True
+
+            except asyncio.TimeoutError:
+                self.logger.warning(
+                    "a2a_adapter_init_timeout",
+                    agent=agent_type.value,
+                    timeout=timeout_per_agent,
+                )
+                # Cleanup partially initialized adapter
+                try:
+                    await adapter.shutdown()
+                except Exception:
+                    pass
+                results[agent_type] = False
 
             except Exception as e:
                 self.logger.warning(
@@ -497,6 +516,11 @@ class A2AAdapterManager:
                     agent=agent_type.value,
                     error=str(e),
                 )
+                # Cleanup partially initialized adapter
+                try:
+                    await adapter.shutdown()
+                except Exception:
+                    pass
                 results[agent_type] = False
 
         return results

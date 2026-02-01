@@ -20,7 +20,34 @@ import { Label } from './ui/label';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { useTranslation } from 'react-i18next';
 import type { CustomMcpServer } from '../../shared/types';
-import { Terminal, Globe, X, Github, Loader2, ExternalLink } from 'lucide-react';
+import { Terminal, Globe, X, Github, Loader2, ExternalLink, Users } from 'lucide-react';
+
+/**
+ * Known agent types from AG-ACE-BRIDGE (14 agents) + Auto-Claude (4 agents).
+ * Grouped by system for UI display.
+ */
+const AGENT_REGISTRY = {
+  'Auto-Claude': [
+    { id: 'planner', label: 'Planner' },
+    { id: 'coder', label: 'Coder' },
+    { id: 'qa_reviewer', label: 'QA Reviewer' },
+    { id: 'qa_fixer', label: 'QA Fixer' },
+  ],
+  'AG Autogen': [
+    { id: 'AG_RESEARCH', label: 'Research' },
+    { id: 'AG_ANALYST', label: 'Analyst' },
+    { id: 'AG_WRITER', label: 'Writer' },
+    { id: 'AG_REVIEWER', label: 'Reviewer' },
+    { id: 'AG_COORDINATOR', label: 'Coordinator' },
+  ],
+  'AG Law Domain': [
+    { id: 'AG_CASE_ANALYZER', label: 'Case Analyzer' },
+    { id: 'AG_LEGAL_RESEARCHER', label: 'Legal Researcher' },
+    { id: 'AG_RISK_ASSESSOR', label: 'Risk Assessor' },
+    { id: 'AG_COMPLIANCE_CHECKER', label: 'Compliance' },
+    { id: 'AG_DOCUMENT_DRAFTER', label: 'Document Drafter' },
+  ],
+} as const;
 
 interface CustomMcpDialogProps {
   open: boolean;
@@ -56,6 +83,8 @@ export function CustomMcpDialog({
   const [headerValue, setHeaderValue] = useState('');
   const [bearerToken, setBearerToken] = useState('');
   const [showAdvancedHeaders, setShowAdvancedHeaders] = useState(false);
+  const [assignedAgents, setAssignedAgents] = useState<string[]>([]);
+  const [showAgentSelector, setShowAgentSelector] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Known provider patterns for helpful hints
@@ -105,6 +134,8 @@ export function CustomMcpDialog({
     if (open && server) {
       setFormData(server);
       setArgsInput(server.args?.join(' ') || '');
+      setAssignedAgents(server.assignedAgents || []);
+      setShowAgentSelector((server.assignedAgents || []).length > 0);
       // Extract bearer token from existing Authorization header
       const authHeader = server.headers?.['Authorization'] || server.headers?.['authorization'] || '';
       if (authHeader.toLowerCase().startsWith('bearer ')) {
@@ -131,6 +162,8 @@ export function CustomMcpDialog({
       });
       setArgsInput('');
       setBearerToken('');
+      setAssignedAgents([]);
+      setShowAgentSelector(false);
       setShowAdvancedHeaders(false);
       setError(null);
     }
@@ -191,6 +224,7 @@ export function CustomMcpDialog({
       name: formData.name.trim(),
       type: formData.type,
       description: formData.description?.trim() || undefined,
+      assignedAgents: assignedAgents.length > 0 ? assignedAgents : undefined,
       ...(formData.type === 'command'
         ? {
             command: formData.command,
@@ -307,6 +341,71 @@ export function CustomMcpDialog({
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder={t('mcp.serverDescriptionPlaceholder')}
             />
+          </div>
+
+          {/* Agent Assignment (optional) */}
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => setShowAgentSelector(!showAgentSelector)}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Users className="h-3.5 w-3.5" />
+              <span className={`transition-transform text-xs ${showAgentSelector ? 'rotate-90' : ''}`}>▶</span>
+              {t('mcp.assignToAgents', { defaultValue: 'Assign to Agents' })}
+              {assignedAgents.length > 0 && (
+                <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                  {assignedAgents.length}
+                </span>
+              )}
+            </button>
+
+            {showAgentSelector && (
+              <div className="pl-4 space-y-3 border-l-2 border-border ml-1">
+                <p className="text-xs text-muted-foreground">
+                  {t('mcp.assignToAgentsHint', { defaultValue: 'Select which agents can use this MCP server. Leave empty for all agents.' })}
+                </p>
+                {Object.entries(AGENT_REGISTRY).map(([group, agents]) => (
+                  <div key={group} className="space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground">{group}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {agents.map((agent) => {
+                        const isSelected = assignedAgents.includes(agent.id);
+                        return (
+                          <button
+                            key={agent.id}
+                            type="button"
+                            onClick={() => {
+                              setAssignedAgents(prev =>
+                                isSelected
+                                  ? prev.filter(a => a !== agent.id)
+                                  : [...prev, agent.id]
+                              );
+                            }}
+                            className={`text-xs px-2 py-1 rounded-md border transition-colors ${
+                              isSelected
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground'
+                            }`}
+                          >
+                            {agent.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                {assignedAgents.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setAssignedAgents([])}
+                    className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    {t('mcp.clearAssignments', { defaultValue: 'Clear all assignments' })}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Command-based fields */}

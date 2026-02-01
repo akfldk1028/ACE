@@ -10,7 +10,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 
 from src.adapters.base import AgentAdapter
-from src.utils.models import Task, Result, ResultStatus, AgentType
+from src.utils.models import Task, Result, ResultStatus, AgentType, AgentMcpConfig
 from src.utils.logger import Loggers
 from src.utils.config import get_settings
 
@@ -125,7 +125,7 @@ class AutoClaudeAdapter(AgentAdapter):
         await super().shutdown()
         self.logger.info("auto_claude_adapter_shutdown", agent_type=self.agent_type.value)
 
-    async def execute(self, task: Task, context: Dict[str, Any]) -> Result:
+    async def execute(self, task: Task, context: Dict[str, Any], mcp_config: Optional[AgentMcpConfig] = None) -> Result:
         """
         Execute a task using the underlying agent.
 

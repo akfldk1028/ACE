@@ -6,7 +6,7 @@ Pydantic models for Task, Result, Pipeline, and related entities.
 
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from datetime import datetime
 import uuid
 
@@ -63,6 +63,9 @@ class AgentType(str, Enum):
     AG_COMPLIANCE_CHECKER = "ag.compliance_checker"
     AG_DOCUMENT_DRAFTER = "ag.document_drafter"
 
+    # Claude Code CLI agents
+    CLAUDE_CLI_PLAN = "claude_cli.plan"
+
     # AG A2A Protocol agents (autogen_a2a_kit demo agents)
     AG_A2A_POETRY = "ag.a2a.poetry_agent"
     AG_A2A_PHILOSOPHY = "ag.a2a.philosophy_agent"
@@ -109,9 +112,15 @@ class Result(BaseModel):
     Result of task execution.
 
     Contains the output, status, and any follow-up tasks.
+
+    Accepts either ``status`` (ResultStatus) or ``success`` (bool) at
+    construction time.  When ``success`` is given without ``status``,
+    it is automatically converted:
+        success=True  → status=ResultStatus.SUCCESS
+        success=False → status=ResultStatus.FAILED
     """
-    task_id: str
-    status: ResultStatus
+    task_id: str = ""
+    status: ResultStatus = ResultStatus.SUCCESS
 
     # Output data
     output: Any = None
@@ -125,6 +134,23 @@ class Result(BaseModel):
     completed_at: datetime = Field(default_factory=datetime.now)
     execution_time_ms: Optional[int] = None
     agent_used: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _convert_success_to_status(cls, values: Any) -> Any:
+        """Allow ``Result(success=True)`` as shorthand."""
+        if isinstance(values, dict) and "success" in values:
+            success = values.pop("success")
+            if "status" not in values:
+                values["status"] = (
+                    ResultStatus.SUCCESS if success else ResultStatus.FAILED
+                )
+        return values
+
+    @property
+    def success(self) -> bool:
+        """Whether the task completed successfully."""
+        return self.status == ResultStatus.SUCCESS or self.status == "success"
 
     class Config:
         use_enum_values = True
@@ -160,6 +186,9 @@ class Stage(BaseModel):
     critic_agent: Optional[AgentType] = None
     fixer_agent: Optional[AgentType] = None
 
+    # Per-agent MCP configuration (injected by PipelineBuilder from project config)
+    mcp_config: Optional["AgentMcpConfig"] = None
+
     class Config:
         use_enum_values = True
 
@@ -185,6 +214,54 @@ class Pipeline(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
 
 
+class McpServerConfig(BaseModel):
+    """
+    MCP server configuration for per-agent MCP integration.
+
+    Maps to AutoGen Studio's McpWorkbenchConfig server_params types:
+    - StdioServerParams (command-based)
+    - SseServerParams (SSE HTTP)
+    - StreamableHttpServerParams (streamable HTTP)
+
+    This is the bridge-level representation; AutoGen agents receive
+    these as McpWorkbench components via their workbench field.
+    """
+    id: str  # Unique server identifier (matches Auto-Claude CustomMcpServer.id)
+    name: str  # Display name
+    server_type: str  # 'stdio' | 'sse' | 'streamable_http'
+
+    # For stdio (command-based)
+    command: Optional[str] = None
+    args: List[str] = Field(default_factory=list)
+    env: Dict[str, str] = Field(default_factory=dict)
+
+    # For sse / streamable_http
+    url: Optional[str] = None
+    headers: Dict[str, str] = Field(default_factory=dict)
+
+    # Behavior
+    auto_connect: bool = True
+    priority: str = "optional"  # 'required' | 'optional'
+
+
+class AgentMcpConfig(BaseModel):
+    """
+    Per-agent MCP configuration passed through pipeline stages.
+
+    Contains the list of MCP servers assigned to a specific agent,
+    resolved from Auto-Claude's agentMcpOverrides + customMcpServers.
+    """
+    servers: List[McpServerConfig] = Field(default_factory=list)
+    tools: List[str] = Field(default_factory=list)  # Additional tool names
+
+    @property
+    def has_servers(self) -> bool:
+        return len(self.servers) > 0
+
+    def get_required_servers(self) -> List[McpServerConfig]:
+        return [s for s in self.servers if s.priority == "required"]
+
+
 class AgentCapability(BaseModel):
     """
     Capability definition for an agent.
@@ -202,6 +279,10 @@ class AgentCapability(BaseModel):
     # Availability
     is_available: bool = True
     endpoint_url: Optional[str] = None
+
+    # MCP capabilities (tools available via MCP servers)
+    mcp_tools: List[str] = Field(default_factory=list)
+    mcp_server_ids: List[str] = Field(default_factory=list)
 
     class Config:
         use_enum_values = True

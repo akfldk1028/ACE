@@ -91,7 +91,7 @@ claude
 **AG-ACE-BRIDGE**는 24/7 AI Project Factory로, Auto-Claude와 AG 멀티에이전트 시스템을 통합하는 브릿지입니다.
 
 ```
-핵심 목표: 14개 AI 에이전트를 조율하여 24/7 자율 프로젝트 실행
+핵심 목표: 20개 AI 에이전트를 조율하여 24/7 자율 프로젝트 실행
 ```
 
 ## 핵심 아키텍처
@@ -111,11 +111,11 @@ claude
 │   AutoClaudeAdapter (OAuth) │ AGAutogenAdapter │ AGLawAdapter   │
 ├─────────────────────────────────────────────────────────────────┤
 │ Layer 4: Registry + Memory                                      │
-│   AgentRegistry (14 agents) │ SharedMemoryClient (AG-CLI 연동)   │
+│   AgentRegistry (20 agents) │ SharedMemoryClient (AG-CLI 연동)   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## 14개 에이전트 매핑
+## 20개 에이전트 매핑
 
 ### Auto-Claude (4개) - Claude Agent SDK + OAuth
 | AgentType | 역할 | 시스템 프롬프트 키 |
@@ -143,28 +143,47 @@ claude
 | `AG_COMPLIANCE_CHECKER` | 컴플라이언스 점검, 감사 | /law/compliance |
 | `AG_DOCUMENT_DRAFTER` | 법률 문서 초안 작성 | /law/drafter |
 
+### AG A2A Protocol (5개) - Google ADK A2A
+| AgentType | 역할 | 포트 |
+|-----------|------|------|
+| `AG_A2A_POETRY` | 시/문학 분석 | 8003 |
+| `AG_A2A_PHILOSOPHY` | 철학적 사고 | 8004 |
+| `AG_A2A_HISTORY` | 역사적 맥락 | 8005 |
+| `AG_A2A_CALCULATOR` | 수학 계산 | 8006 |
+| `AG_A2A_GUI_TEST` | GUI 자동화 | 8120 |
+
+### Claude Code CLI (1개) - A2A
+| AgentType | 역할 | 포트 |
+|-----------|------|------|
+| `CLAUDE_CLI_PLAN` | 코드 분석, 구현 계획 | 9018 |
+
 ## 핵심 모델 (src/utils/models.py)
 
 ### Task
 ```python
 class Task(BaseModel):
     id: str                      # UUID
-    type: TaskType               # CODE, PLAN, REVIEW, RESEARCH, LEGAL_*
+    type: TaskType               # CODE, PLAN, REVIEW, RESEARCH, etc.
     description: str             # 태스크 설명
     priority: Priority           # HIGH, MEDIUM, LOW
-    status: TaskStatus           # PENDING, RUNNING, COMPLETED, FAILED
-    input_data: Dict[str, Any]   # 입력 데이터
+    input: Dict[str, Any]        # 입력 데이터
     context: Dict[str, Any]      # 컨텍스트 (누적)
+    requirements: List[str]      # 요구사항 키워드
+    needs_research: bool         # 리서치 필요 여부
+    domain_validation: bool      # 도메인 검증 필요 여부
 ```
 
 ### Result
 ```python
 class Result(BaseModel):
-    success: bool                # 성공 여부
-    output: Dict[str, Any]       # 출력 데이터
+    task_id: str                 # 태스크 ID
+    status: ResultStatus         # SUCCESS, FAILED, NEEDS_RETRY, PARTIAL, CANCELLED
+    output: Any                  # 출력 데이터
     error: Optional[str]         # 에러 메시지
     execution_time_ms: int       # 실행 시간
     insights: List[str]          # 인사이트 (메모리 동기화용)
+    # @property success -> bool  # status == SUCCESS일 때 True
+    # Result(success=True) 축약 가능 → 자동으로 status=SUCCESS 변환
 ```
 
 ### Stage & Pipeline
@@ -452,7 +471,7 @@ AG-ACE-BRIDGE/
 │   │
 │   ├── registry/          # 에이전트 레지스트리
 │   │   ├── agent_registry.py   # 런타임 상태
-│   │   ├── capabilities.py     # 14개 능력 정의
+│   │   ├── capabilities.py     # 20개 능력 정의
 │   │   └── pattern_registry.py # 패턴 등록/관리 (★ NEW)
 │   │
 │   ├── watcher/           # 패턴 감시 (★ NEW)
@@ -1073,7 +1092,7 @@ python -m src.project.cli submit my-project.yaml
 - [x] Phase 4: Project System (Spec, Watcher, CLI)
 - [x] Phase 5: Memory Sync (SharedMemoryClient → AG-CLI 8101 연동)
 - [x] Phase 6: Web Dashboard (FastAPI + WebSocket 실시간 모니터링)
-- [x] Phase 7: AG Integration (A2A Protocol 연동, 19개 에이전트 조율)
+- [x] Phase 7: AG Integration (A2A Protocol 연동, 20개 에이전트 조율)
 - [x] Phase 8: AutoGen ↔ SharedMemory 동기화 (MCP 없이 직접 연결)
 - [x] Phase 9: IPC 중앙화 & Agent Terminals 협업 패널 (★ 2026-01-24)
   - Main Process(a2a-handlers.ts)에서만 8081 호출 (CORS 해결)

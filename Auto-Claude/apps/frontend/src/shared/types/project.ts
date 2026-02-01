@@ -371,14 +371,35 @@ export interface AgentMcpOverride {
   add?: string[];
   /** MCP servers to remove from the agent's defaults */
   remove?: string[];
+  /** Whether to auto-connect MCP servers when the agent starts */
+  autoConnect?: boolean;
+  /** Whether the MCP servers are required or optional for this agent */
+  priority?: 'required' | 'optional';
 }
 
 /**
  * Map of agent type to their MCP overrides.
  * Agent types match backend AGENT_CONFIGS keys (e.g., 'planner', 'coder', 'qa_reviewer')
+ * and AG-ACE-BRIDGE agent types (e.g., 'AG_RESEARCH', 'AG_ANALYST')
  */
 export interface AgentMcpOverrides {
   [agentType: string]: AgentMcpOverride;
+}
+
+/**
+ * Reference to an AutoGen Studio McpWorkbench.
+ * Links a CustomMcpServer to AutoGen's workbench system for native agent integration.
+ *
+ * AutoGen agents use workbenches (McpWorkbenchConfig) to access MCP tools.
+ * This reference allows Auto-Claude's MCP config to be synced to AutoGen Studio.
+ */
+export interface AutogenWorkbenchRef {
+  /** AutoGen component label (display name in gallery) */
+  label: string;
+  /** AutoGen server_params type: 'StdioServerParams' | 'SseServerParams' | 'StreamableHttpServerParams' */
+  serverParamsType: 'StdioServerParams' | 'SseServerParams' | 'StreamableHttpServerParams';
+  /** Whether this workbench reference has been synced to AutoGen Studio */
+  synced?: boolean;
 }
 
 /**
@@ -402,6 +423,10 @@ export interface CustomMcpServer {
   headers?: Record<string, string>;
   /** Optional description shown in UI */
   description?: string;
+  /** Agent types this MCP server is assigned to (e.g., ['coder', 'qa_reviewer', 'AG_RESEARCH']) */
+  assignedAgents?: string[];
+  /** Reference to AutoGen Studio McpWorkbench for native agent integration */
+  autogenWorkbenchRef?: AutogenWorkbenchRef;
 }
 
 /**

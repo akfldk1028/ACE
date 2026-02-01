@@ -534,8 +534,8 @@ class ProjectExecutor:
                     "id": f"{task_dict['id']}_{node_id}",
                     "description": node_task if isinstance(node_task, str) else str(node_task),
                     "agent_type": agent_type,
-                    "input_data": {
-                        **task_dict.get("input_data", {}),
+                    "input": {
+                        **task_dict.get("input", {}),
                         "node_id": node_id,
                         "previous_results": results,
                     },
@@ -595,7 +595,7 @@ class ProjectExecutor:
                     type=self._infer_task_type(description),
                     description=description,
                     priority=Priority.MEDIUM,
-                    input_data=task_dict.get("input_data", {}),
+                    input=task_dict.get("input", {}),
                     context=task_dict.get("context", {}),
                 )
 

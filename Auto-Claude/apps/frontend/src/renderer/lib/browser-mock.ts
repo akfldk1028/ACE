@@ -439,12 +439,12 @@ const browserMockAPI: ElectronAPI = {
         }
       }
 
-      // ★ 8101 폴백 제거 - 8081 직접 연결만 사용
-      console.log('[Browser Mock] getAutogenLatest: no completed runs');
+      // No completed runs found in recent sessions
       return { success: true, data: null };
     } catch (err) {
-      console.debug('[Browser Mock] getAutogenLatest failed:', err);
-      return { success: true, data: null };
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn('[Browser Mock] getAutogenLatest failed:', message);
+      return { success: false, error: `AutoGen Studio not reachable: ${message}` };
     }
   },
 

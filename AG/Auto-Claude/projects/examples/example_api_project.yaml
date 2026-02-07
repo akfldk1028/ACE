@@ -1,0 +1,77 @@
+# AG-ACE-BRIDGE Project Specification Example
+# ===========================================
+#
+# Drop this file in projects/queue/ to trigger 24/7 execution
+#
+# Usage:
+#   1. Copy this file to projects/queue/
+#   2. Rename and edit for your project
+#   3. Run: python run_24_7.py
+#   4. Watch your project being built automatically!
+
+name: "Example REST API"
+description: "Build a REST API server with FastAPI and PostgreSQL"
+
+# Project Goals (what to achieve)
+# The 17 AI agents will work together to complete these goals
+goals:
+  - "Create user authentication with JWT tokens"
+  - "Implement CRUD endpoints for resources"
+  - "Add database models and migrations"
+  - "Write unit and integration tests"
+  - "Generate API documentation"
+
+# Detailed Requirements
+requirements:
+  functional:
+    - "User registration and login"
+    - "Token-based authentication"
+    - "Resource CRUD operations"
+    - "Input validation"
+  non_functional:
+    - "Response time < 200ms"
+    - "Test coverage > 80%"
+  constraints:
+    - "Python 3.11+"
+    - "PostgreSQL 14+"
+  dependencies:
+    - "FastAPI"
+    - "SQLAlchemy"
+    - "Pydantic"
+    - "pytest"
+
+# Technology Stack
+tech_stack:
+  - "Python 3.11"
+  - "FastAPI"
+  - "SQLAlchemy 2.0"
+  - "PostgreSQL"
+  - "Docker"
+
+# Where to create the project
+output_path: "./output/example-api"
+
+# Agent Configuration
+# Configure which agent groups to use
+agents:
+  use_auto_claude: true    # Planner, Coder, QA Reviewer, QA Fixer
+  use_ag_autogen: true     # Research, Analyst, Writer, Reviewer, etc.
+  use_ag_law: false        # Only for legal projects
+  preferred_agents:
+    - "auto_claude_coder"
+    - "auto_claude_qa_reviewer"
+  excluded_agents: []
+
+# Pipeline Configuration
+# How the agents work together
+pipeline:
+  pattern: "auto"          # auto, sequential, parallel, critic_loop
+  max_iterations: 5        # Max QA loop iterations
+  parallel_limit: 3        # Max parallel agents
+  timeout_minutes: 60      # Task timeout
+
+# Execution Priority
+priority: "medium"         # high, medium, low
+
+# Start immediately when dropped in queue/
+auto_start: true

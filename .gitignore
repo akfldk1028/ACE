@@ -35,6 +35,15 @@ nul
 # Environment
 .env
 .env.local
-AG
+AG/autogen_a2a_kit
+AG/agent
+AG/agent_core
+AG/templates
+AG/*.py
+AG/*.ps1
+AG/*.json
+AG/tmpclaude-*
+AG/README.md
+AG/README_INDEX.md
 AG-ACE-BRIDGE/modules/Auto-Claude
 Calculator

@@ -52,7 +52,7 @@ def create_claude_resolver() -> AIResolver:
         logger.warning("core.simple_client not available, AI resolution unavailable")
         return AIResolver()
 
-    # Get model settings from environment (passed from frontend)
+    # Get model settings from environment (passed from AG-Frontend)
     model, thinking_budget = get_utility_model_config()
 
     logger.info(

@@ -33,7 +33,7 @@ const detectAutoBuildSourcePath = (): string | null => {
 
   // Development mode paths
   if (is.dev) {
-    // In dev, __dirname is typically apps/frontend/out/main
+    // In dev, __dirname is typically apps/AG-Frontend/out/main
     // We need to go up to find apps/backend
     possiblePaths.push(
       path.resolve(__dirname, '..', '..', '..', 'backend'),      // From out/main -> apps/backend

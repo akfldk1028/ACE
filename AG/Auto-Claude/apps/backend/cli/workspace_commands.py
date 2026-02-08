@@ -1103,13 +1103,13 @@ def handle_create_pr_command(
         print("  2. Request reviews from your team")
         print("  3. Merge when approved")
 
-        # Output JSON for frontend parsing
+        # Output JSON for AG-Frontend parsing
         print(json.dumps(result))
         return result
     else:
         error = result.get("error", "Unknown error")
         print(f"\n{icon(Icons.ERROR)} Failed to create PR: {error}")
-        # Output JSON for frontend parsing
+        # Output JSON for AG-Frontend parsing
         print(json.dumps(result))
         return result
 

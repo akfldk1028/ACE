@@ -208,7 +208,7 @@ async def _call_claude(prompt: str) -> str:
         logger.warning("core.simple_client not available")
         return ""
 
-    # Get model settings from environment (passed from frontend)
+    # Get model settings from environment (passed from AG-Frontend)
     model, thinking_budget = get_utility_model_config()
 
     logger.info(

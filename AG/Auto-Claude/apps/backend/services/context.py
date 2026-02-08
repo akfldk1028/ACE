@@ -15,7 +15,7 @@ Usage:
     python auto-claude/service_context.py --all
 
     # Generate with custom project index
-    python auto-claude/service_context.py --service frontend --index auto-claude/project_index.json
+    python auto-claude/service_context.py --service AG-Frontend --index auto-claude/project_index.json
 """
 
 import json

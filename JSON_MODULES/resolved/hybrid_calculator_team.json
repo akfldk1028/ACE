@@ -1,0 +1,91 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 2,
+  "description": "Claude planner + A2A calculator agent hybrid team",
+  "label": "Hybrid Calculator Team",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "planner_agent",
+          "system_message": "당신은 프로젝트 플래너입니다. 요구사항을 분석하고 실행 가능한 태스크로 분해하세요.",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "profile": "balanced",
+              "agent_config": {
+                "profile": "reader",
+                "max_turns": 2
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          },
+          "description": "프로젝트 계획 및 태스크 분해 에이전트"
+        }
+      },
+      {
+        "provider": "autogenstudio.a2a.A2AAgent",
+        "component_type": "agent",
+        "version": 1,
+        "description": "기본 수학 연산, 피보나치 수열, 팩토리얼 계산을 수행하는 수학 계산 에이전트",
+        "label": "Calculator Agent",
+        "config": {
+          "name": "calculator_agent",
+          "a2a_server_url": "http://localhost:8006",
+          "description": "기본 수학 연산, 피보나치 수열, 팩토리얼 계산",
+          "timeout": 60,
+          "skills": [
+            {
+              "name": "calculate",
+              "description": "수학 표현식을 계산합니다"
+            },
+            {
+              "name": "fibonacci",
+              "description": "n번째 피보나치 수를 계산합니다"
+            },
+            {
+              "name": "factorial",
+              "description": "n의 팩토리얼을 계산합니다"
+            }
+          ]
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "config": {
+              "max_messages": 10
+            }
+          }
+        ]
+      }
+    }
+  }
+}

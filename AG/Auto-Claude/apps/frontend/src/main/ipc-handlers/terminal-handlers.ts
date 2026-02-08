@@ -241,7 +241,7 @@ export function registerTerminalHandlers(
             ? DEFAULT_CLAUDE_CONFIG_DIR
             : newProfile?.configDir;
 
-          // Build terminal refresh info for frontend
+          // Build terminal refresh info for AG-Frontend
           const terminalsNeedingRefresh: Array<{
             id: string;
             sessionId?: string;
@@ -288,7 +288,7 @@ export function registerTerminalHandlers(
 
           debugLog('[terminal-handlers:CLAUDE_PROFILE_SET_ACTIVE] Terminals needing refresh:', terminalsNeedingRefresh);
 
-          // Notify frontend that terminals need to be refreshed
+          // Notify AG-Frontend that terminals need to be refreshed
           // Frontend will destroy and recreate terminals with new profile env vars
           const mainWindow = getMainWindow();
           if (mainWindow && !mainWindow.isDestroyed()) {
@@ -297,7 +297,7 @@ export function registerTerminalHandlers(
               newProfileId: profileId,
               terminals: terminalsNeedingRefresh
             });
-            debugLog('[terminal-handlers:CLAUDE_PROFILE_SET_ACTIVE] Sent TERMINAL_PROFILE_CHANGED event to frontend');
+            debugLog('[terminal-handlers:CLAUDE_PROFILE_SET_ACTIVE] Sent TERMINAL_PROFILE_CHANGED event to AG-Frontend');
           }
         }
 

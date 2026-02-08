@@ -1,0 +1,22 @@
+{
+  "provider": "autogenstudio.a2a.A2AAgent",
+  "component_type": "agent",
+  "version": 1,
+  "description": "소수를 판별하고 소인수분해를 수행하는 수학 전문 에이전트",
+  "label": "Remote Prime Checker",
+  "config": {
+    "name": "prime_checker_agent",
+    "a2a_server_url": "http://localhost:8002",
+    "description": "소수 판별, 소인수분해",
+    "timeout": 300,
+    "skills": [
+      {"name": "is_prime", "description": "숫자가 소수인지 확인합니다"},
+      {"name": "get_prime_factors", "description": "숫자의 소인수분해를 수행합니다"}
+    ]
+  },
+  "_source": {
+    "agent_file": "D:/Data/22_AG/autogen_a2a_kit/a2a_demo/remote_agent/agent.py",
+    "port": 8002,
+    "framework": "google_adk"
+  }
+}

@@ -102,7 +102,7 @@ export function registerRoadmapHandlers(
           try {
             const competitorContent = readFileSync(competitorAnalysisPath, "utf-8");
             const rawCompetitor = JSON.parse(competitorContent);
-            // Transform snake_case to camelCase for frontend
+            // Transform snake_case to camelCase for AG-Frontend
             competitorAnalysis = {
               projectContext: {
                 projectName: rawCompetitor.project_context?.project_name || "",
@@ -153,7 +153,7 @@ export function registerRoadmapHandlers(
           }
         }
 
-        // Transform snake_case to camelCase for frontend
+        // Transform snake_case to camelCase for AG-Frontend
         const roadmap: Roadmap = {
           id: rawRoadmap.id || `roadmap-${Date.now()}`,
           projectId,
@@ -216,7 +216,7 @@ export function registerRoadmapHandlers(
     }
   );
 
-  // Get roadmap generation status - allows frontend to query if generation is running
+  // Get roadmap generation status - allows AG-Frontend to query if generation is running
   ipcMain.handle(
     IPC_CHANNELS.ROADMAP_GET_STATUS,
     async (_, projectId: string): Promise<IPCResult<{ isRunning: boolean }>> => {

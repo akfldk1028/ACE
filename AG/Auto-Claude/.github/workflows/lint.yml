@@ -8,7 +8,7 @@ on:
       - 'tests/**'
       - '.github/workflows/lint.yml'
       - '.github/actions/**'
-      - 'apps/frontend/biome.jsonc'
+      - 'apps/AG-Frontend/biome.jsonc'
       - '.pre-commit-config.yaml'
   pull_request:
     branches: [main, develop]
@@ -17,7 +17,7 @@ on:
       - 'tests/**'
       - '.github/workflows/lint.yml'
       - '.github/actions/**'
-      - 'apps/frontend/biome.jsonc'
+      - 'apps/AG-Frontend/biome.jsonc'
       - '.pre-commit-config.yaml'
 
 concurrency:
@@ -63,7 +63,7 @@ jobs:
           version: 2.3.11
 
       - name: Run Biome
-        working-directory: apps/frontend
+        working-directory: apps/AG-Frontend
         # biome ci fails on errors by default; warnings are reported but don't block
         # Use --error-on-warnings when ready to enforce all rules
         run: biome ci .

@@ -1,0 +1,14 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Refund Agent (Handoff)",
+  "description": "환불 담당",
+  "config": {
+    "name": "refund_agent",
+    "system_message": "당신은 환불 담당입니다. 환불 요청을 처리하세요.",
+    "handoffs": [
+      "triage_agent"
+    ]
+  }
+}

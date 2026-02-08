@@ -258,7 +258,7 @@ export function getBackendPath(project: Project): string | null {
 
   // Auto-detect from app location (same logic as agent-process.ts)
   const possiblePaths = [
-    // Dev mode: from dist/main -> ../../backend (apps/frontend/out/main -> apps/backend)
+    // Dev mode: from dist/main -> ../../backend (apps/AG-Frontend/out/main -> apps/backend)
     path.resolve(__dirname, '..', '..', '..', '..', '..', 'backend'),
     // Alternative: from app root -> apps/backend
     app ? path.resolve(app.getAppPath(), '..', 'backend') : null,

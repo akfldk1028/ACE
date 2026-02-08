@@ -4,11 +4,11 @@ Sentry Error Tracking for Python Backend
 
 Initializes Sentry for the Python backend with:
 - Privacy-preserving path masking (usernames removed)
-- Release tracking matching the Electron frontend
-- Environment variable configuration (same as frontend)
+- Release tracking matching the Electron AG-Frontend
+- Environment variable configuration (same as AG-Frontend)
 
 Configuration:
-- SENTRY_DSN: Required to enable Sentry (same as frontend)
+- SENTRY_DSN: Required to enable Sentry (same as AG-Frontend)
 - SENTRY_TRACES_SAMPLE_RATE: Performance monitoring sample rate (0-1, default: 0.1)
 - SENTRY_ENVIRONMENT: Override environment (default: auto-detected)
 
@@ -41,13 +41,13 @@ def _get_version() -> str:
     """
     Get the application version.
 
-    Tries to read from package.json in the frontend directory,
+    Tries to read from package.json in the AG-Frontend directory,
     falling back to a default version.
     """
     try:
         # Try to find package.json relative to this file
         backend_dir = Path(__file__).parent.parent
-        frontend_dir = backend_dir.parent / "frontend"
+        frontend_dir = backend_dir.parent / "AG-Frontend"
         package_json = frontend_dir / "package.json"
 
         if package_json.exists():

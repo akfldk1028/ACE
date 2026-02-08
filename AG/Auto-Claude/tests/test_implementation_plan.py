@@ -118,14 +118,14 @@ class TestChunk:
             "id": "chunk-1",
             "description": "Test chunk",
             "status": "completed",
-            "service": "frontend",
+            "service": "AG-Frontend",
         }
 
         chunk = Chunk.from_dict(data)
 
         assert chunk.id == "chunk-1"
         assert chunk.status == ChunkStatus.COMPLETED
-        assert chunk.service == "frontend"
+        assert chunk.service == "AG-Frontend"
 
 
 class TestVerification:
@@ -282,7 +282,7 @@ class TestImplementationPlan:
         plan = ImplementationPlan(
             feature="User Authentication",
             workflow_type=WorkflowType.FEATURE,
-            services_involved=["backend", "frontend"],
+            services_involved=["backend", "AG-Frontend"],
         )
 
         assert plan.feature == "User Authentication"
@@ -395,7 +395,7 @@ class TestCreateFeaturePlan:
 
         plan = create_feature_plan(
             feature="User Profile",
-            services=["backend", "frontend"],
+            services=["backend", "AG-Frontend"],
             phases_config=phases_config,
         )
 
@@ -433,7 +433,7 @@ class TestCreateInvestigationPlan:
         """Creates an investigation plan for debugging."""
         plan = create_investigation_plan(
             bug_description="Login fails for users with special characters",
-            services=["backend", "frontend"],
+            services=["backend", "AG-Frontend"],
         )
 
         assert "Fix:" in plan.feature

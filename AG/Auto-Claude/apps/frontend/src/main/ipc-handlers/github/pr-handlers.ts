@@ -420,7 +420,7 @@ interface CIWaitResult {
  * @param repo Repository in "owner/repo" format
  * @param headSha The commit SHA to check CI status for
  * @param prNumber PR number (for progress updates)
- * @param sendProgress Callback to send progress updates to frontend
+ * @param sendProgress Callback to send progress updates to AG-Frontend
  * @param abortSignal Optional abort signal for cancellation support
  * @returns CIWaitResult with final CI status
  */
@@ -949,7 +949,7 @@ function addLogEntry(logs: PRLogs, entry: PRLogEntry): boolean {
 
 /**
  * PR Log Collector - collects logs during review
- * Saves incrementally to disk so frontend can stream logs in real-time
+ * Saves incrementally to disk so AG-Frontend can stream logs in real-time
  */
 class PRLogCollector {
   private logs: PRLogs;
@@ -961,7 +961,7 @@ class PRLogCollector {
   constructor(project: Project, prNumber: number, repo: string, isFollowup: boolean) {
     this.project = project;
     this.logs = createEmptyPRLogs(prNumber, repo, isFollowup);
-    // Save initial empty logs so frontend sees the structure immediately
+    // Save initial empty logs so AG-Frontend sees the structure immediately
     this.save();
   }
 
@@ -1000,7 +1000,7 @@ class PRLogCollector {
     const phaseStatusChanged = addLogEntry(this.logs, entry);
     this.entryCount++;
 
-    // Save immediately if phase status changed (so frontend sees phase activation)
+    // Save immediately if phase status changed (so AG-Frontend sees phase activation)
     // OR save periodically for real-time streaming (every N entries)
     if (phaseStatusChanged || this.entryCount % this.saveInterval === 0) {
       this.save();
@@ -1011,7 +1011,7 @@ class PRLogCollector {
     const phaseLog = this.logs.phases[phase];
     phaseLog.status = success ? "completed" : "failed";
     phaseLog.completed_at = new Date().toISOString();
-    // Save immediately so frontend sees the status change
+    // Save immediately so AG-Frontend sees the status change
     this.save();
   }
 

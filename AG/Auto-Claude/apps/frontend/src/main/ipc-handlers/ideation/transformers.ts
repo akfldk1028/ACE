@@ -1,6 +1,6 @@
 /**
  * Data transformation utilities for ideation
- * Converts between snake_case (Python backend) and camelCase (TypeScript frontend)
+ * Converts between snake_case (Python backend) and camelCase (TypeScript AG-Frontend)
  */
 
 import type {
@@ -51,7 +51,7 @@ function validateEnabledTypes(rawTypes: unknown): IdeationType[] {
 }
 
 /**
- * Transform an idea from snake_case (Python backend) to camelCase (TypeScript frontend)
+ * Transform an idea from snake_case (Python backend) to camelCase (TypeScript AG-Frontend)
  */
 export function transformIdeaFromSnakeCase(idea: RawIdea): Idea {
   const status = (idea.status || 'draft') as IdeationStatus;

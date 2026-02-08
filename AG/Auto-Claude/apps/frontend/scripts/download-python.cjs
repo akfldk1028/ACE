@@ -135,7 +135,7 @@ const RELEASE_TAG = '20241219';
 // Base URL for downloads
 const BASE_URL = `https://github.com/indygreg/python-build-standalone/releases/download/${RELEASE_TAG}`;
 
-// Output directory for downloaded Python (relative to frontend root)
+// Output directory for downloaded Python (relative to AG-Frontend root)
 const OUTPUT_DIR = 'python-runtime';
 
 // SHA256 checksums for verification (from python-build-standalone release)

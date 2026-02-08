@@ -468,7 +468,7 @@ export function registerTaskExecutionHandlers(
                   console.warn('[TASK_REVIEW] Skipping image with no data:', image.filename);
                   continue;
                 }
-                // Server-side MIME type validation (defense in depth - frontend also validates)
+                // Server-side MIME type validation (defense in depth - AG-Frontend also validates)
                 // Reject missing mimeType to prevent bypass attacks
                 const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml'];
                 if (!image.mimeType || !ALLOWED_MIME_TYPES.includes(image.mimeType)) {

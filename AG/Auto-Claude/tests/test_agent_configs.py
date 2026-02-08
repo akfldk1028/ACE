@@ -161,7 +161,7 @@ class TestGetRequiredMcpServers:
             os.environ.pop("ELECTRON_MCP_ENABLED", None)
 
     def test_browser_resolved_to_puppeteer_for_web_frontend(self):
-        """Browser should resolve to 'puppeteer' for web frontend projects when enabled."""
+        """Browser should resolve to 'puppeteer' for web AG-Frontend projects when enabled."""
         from agents.tools_pkg.models import get_required_mcp_servers
 
         # Puppeteer requires explicit opt-in via project config

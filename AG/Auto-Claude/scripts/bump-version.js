@@ -118,7 +118,7 @@ function updatePackageJson(newVersion) {
     error(`package.json not found at ${frontendPath}`);
   }
 
-  // Update frontend package.json
+  // Update AG-Frontend package.json
   const frontendJson = JSON.parse(fs.readFileSync(frontendPath, 'utf8'));
   const oldVersion = frontendJson.version;
   frontendJson.version = newVersion;
@@ -258,7 +258,7 @@ function main() {
 
   // 7. Create git commit
   info('Creating git commit...');
-  exec('git add apps/frontend/package.json package.json apps/backend/__init__.py');
+  exec('git add apps/AG-Frontend/package.json package.json apps/backend/__init__.py');
   exec(`git commit -m "chore: bump version to ${newVersion}"`);
   success(`Created commit: "chore: bump version to ${newVersion}"`);
 

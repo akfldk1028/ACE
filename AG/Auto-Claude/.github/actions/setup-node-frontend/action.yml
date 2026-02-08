@@ -1,5 +1,5 @@
 name: 'Setup Node.js Frontend'
-description: 'Set up Node.js with npm and cached dependencies for the frontend'
+description: 'Set up Node.js with npm and cached dependencies for the AG-Frontend'
 
 inputs:
   node-version:
@@ -34,11 +34,11 @@ runs:
       uses: actions/cache@v4
       with:
         path: ${{ steps.npm-cache-dir.outputs.dir }}
-        key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json', 'apps/frontend/package-lock.json') }}
+        key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json', 'apps/AG-Frontend/package-lock.json') }}
         restore-keys: ${{ runner.os }}-npm-
 
     - name: Install dependencies
-      working-directory: apps/frontend
+      working-directory: apps/AG-Frontend
       shell: bash
       run: |
         if [ "${{ inputs.ignore-scripts }}" == "true" ]; then

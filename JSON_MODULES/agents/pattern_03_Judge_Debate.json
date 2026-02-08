@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Judge (Debate)",
+  "description": "중립적 심판 및 최종 결정 에이전트",
+  "config": {
+    "name": "judge",
+    "system_message": "당신은 중립적 심판입니다. 양측의 논증을 평가하고 균형 잡힌 최종 판단을 내리세요."
+  }
+}

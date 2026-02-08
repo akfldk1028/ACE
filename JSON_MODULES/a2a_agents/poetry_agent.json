@@ -1,0 +1,23 @@
+{
+  "provider": "autogenstudio.a2a.A2AAgent",
+  "component_type": "agent",
+  "version": 1,
+  "description": "시와 문학 작품을 분석하고 해석하는 문학 전문 에이전트",
+  "label": "Poetry Agent",
+  "config": {
+    "name": "poetry_agent",
+    "a2a_server_url": "http://localhost:8003",
+    "description": "시의 구조 분석, 문학적 기법 식별, 시인 정보 제공",
+    "timeout": 300,
+    "skills": [
+      {"name": "analyze_poem_structure", "description": "시의 구조를 분석합니다 (연, 행, 운율 패턴)"},
+      {"name": "find_literary_devices", "description": "문학적 기법을 찾습니다 (반복, 비유, 의인화)"},
+      {"name": "get_famous_poem", "description": "유명 시인의 대표작 정보를 제공합니다"}
+    ]
+  },
+  "_source": {
+    "agent_file": "D:/Data/22_AG/autogen_a2a_kit/a2a_demo/poetry_agent/agent.py",
+    "port": 8003,
+    "framework": "google_adk"
+  }
+}

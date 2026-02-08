@@ -23,14 +23,39 @@ Thumbs.db
 tmp/
 temp/
 *.tmp
+*.pckl
+tmp_*.json
 tmpclaude-*-cwd
 nul
+null
+
+# Log files
+*.log
+
+# Generated images (test/temp)
+test_screenshots/
+test_output/
+.langgraph_api/
 
 # Claude temp files
 .claude/
 
 # Playwright MCP
 .playwright-mcp/
+
+# Test artifacts
+.pytest_cache/
+JSON_MODULES/test_screenshots/
+JSON_MODULES/__pycache__/
+
+# Lock files
+*.lock
+!package-lock.json
+!pnpm-lock.yaml
+
+# Backup files
+*.backup
+*.original
 
 # Environment
 .env
@@ -45,5 +70,5 @@ AG/*.json
 AG/tmpclaude-*
 AG/README.md
 AG/README_INDEX.md
-AG-ACE-BRIDGE/modules/Auto-Claude
+# AG-ACE-BRIDGE removed (2026-02-06, replaced by AG/Auto-Claude)
 Calculator

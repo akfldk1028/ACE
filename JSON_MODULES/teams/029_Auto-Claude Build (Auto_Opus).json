@@ -1,0 +1,171 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "description": "Auto-Claude Build Pipeline: Planner -> Coder -> QA Reviewer. Opus model, optimized thinking.",
+  "label": "Auto-Claude Build (Auto/Opus)",
+  "config": {
+    "name": "RoundRobinGroupChat",
+    "description": "Auto-Claude Build Pipeline: Planner -> Coder -> QA Reviewer. Opus model, optimized thinking.",
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "Planner Agent - codebase investigation then subtask-based implementation plan.",
+        "label": "Auto-Claude Planner",
+        "config": {
+          "name": "planner_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Opus 4.5 (Max OAuth)",
+            "description": "Claude Opus 4.5 - Max OAuth. Auto-Claude Complex/Auto profile.",
+            "config": {
+              "model": "claude-opus-4-5-20251101"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "Planner Agent - codebase investigation then subtask-based implementation plan.",
+          "system_message": "You are the Planner Agent in an autonomous development process. Your job is to create a subtask-based implementation plan. Investigate the codebase deeply first, then create ordered subtasks that respect dependencies. Each subtask should be scoped to one service. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "Coder Agent - implements subtasks one at a time, verifies each.",
+        "label": "Auto-Claude Coder",
+        "config": {
+          "name": "coder_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "Coder Agent - implements subtasks one at a time, verifies each.",
+          "system_message": "You are the Coding Agent. Work on ONE subtask at a time. Complete it, verify it, move on. Use relative paths. Never assume paths exist - check first. When all subtasks are done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "QA Reviewer - validates completeness, correctness, production-readiness.",
+        "label": "Auto-Claude QA Reviewer",
+        "config": {
+          "name": "qa_reviewer_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Opus 4.5 (Max OAuth)",
+            "description": "Claude Opus 4.5 - Max OAuth. Auto-Claude Complex/Auto profile.",
+            "config": {
+              "model": "claude-opus-4-5-20251101"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "QA Reviewer - validates completeness, correctness, production-readiness.",
+          "system_message": "You are the QA Reviewer Agent. Validate that the implementation is complete, correct, and production-ready. Check for edge cases, missing tests, security vulnerabilities, console errors, and broken functionality. If everything passes, say APPROVED. If issues found, describe them clearly for the QA Fixer.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate when TERMINATE is mentioned.",
+            "label": "TextMentionTermination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate when APPROVED is mentioned.",
+            "label": "ApprovedTermination",
+            "config": {
+              "text": "APPROVED"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Max 20 messages.",
+            "label": "MaxMessageTermination(20)",
+            "config": {
+              "max_messages": 20,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

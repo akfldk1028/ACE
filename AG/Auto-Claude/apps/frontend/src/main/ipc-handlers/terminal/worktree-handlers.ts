@@ -230,7 +230,7 @@ function symlinkNodeModulesToWorktree(projectPath: string, worktreePath: string)
   // - Dynamic discovery (reading workspaces from package.json) would add complexity
   //   and potential failure points without significant benefit
   // - This monorepo uses npm workspaces with hoisting, so dependencies are primarily
-  //   in root node_modules with workspace-specific deps in apps/frontend/node_modules
+  //   in root node_modules with workspace-specific deps in apps/AG-Frontend/node_modules
   //
   // To add new workspace locations:
   // 1. Add [sourceRelPath, targetRelPath] tuple below
@@ -238,7 +238,7 @@ function symlinkNodeModulesToWorktree(projectPath: string, worktreePath: string)
   // 3. Update the pre-commit hook check in .husky/pre-commit if needed
   const nodeModulesLocations = [
     ['node_modules', 'node_modules'],
-    ['apps/frontend/node_modules', 'apps/frontend/node_modules'],
+    ['apps/AG-Frontend/node_modules', 'apps/AG-Frontend/node_modules'],
   ];
 
   for (const [sourceRel, targetRel] of nodeModulesLocations) {

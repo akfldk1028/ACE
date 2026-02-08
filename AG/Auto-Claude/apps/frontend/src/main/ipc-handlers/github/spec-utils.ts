@@ -218,7 +218,7 @@ Please analyze this issue and provide:
 
 /**
  * Update implementation plan status
- * Used to immediately update the plan file so the frontend shows the correct status
+ * Used to immediately update the plan file so the AG-Frontend shows the correct status
  */
 export function updateImplementationPlanStatus(specDir: string, status: string): void {
   const planPath = path.join(specDir, AUTO_BUILD_PATHS.IMPLEMENTATION_PLAN);

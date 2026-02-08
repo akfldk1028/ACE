@@ -347,7 +347,7 @@ export class AgentProcessManager {
     const possiblePaths = [
       // Packaged app: backend is in extraResources (process.resourcesPath/backend)
       ...(app.isPackaged ? [path.join(process.resourcesPath, 'backend')] : []),
-      // Dev mode: from dist/main -> ../../backend (apps/frontend/out/main -> apps/backend)
+      // Dev mode: from dist/main -> ../../backend (apps/AG-Frontend/out/main -> apps/backend)
       path.resolve(__dirname, '..', '..', '..', 'backend'),
       // Alternative: from app root -> apps/backend
       path.resolve(app.getAppPath(), '..', 'backend'),
@@ -468,7 +468,7 @@ export class AgentProcessManager {
 
   /**
    * Load environment variables from project's .auto-claude/.env file
-   * This contains frontend-configured settings like memory/Graphiti configuration
+   * This contains AG-Frontend-configured settings like memory/Graphiti configuration
    */
   private loadProjectEnv(projectPath: string): Record<string, string> {
     // Find project by path to get autoBuildPath

@@ -1,5 +1,5 @@
 """
-Execution phase event protocol for frontend synchronization.
+Execution phase event protocol for AG-Frontend synchronization.
 
 Protocol: __EXEC_PHASE__:{"phase":"coding","message":"Starting"}
 """
@@ -15,7 +15,7 @@ _DEBUG = os.environ.get("DEBUG", "").lower() in ("1", "true", "yes")
 
 
 class ExecutionPhase(str, Enum):
-    """Maps to frontend's ExecutionPhase type for task card badges."""
+    """Maps to AG-Frontend's ExecutionPhase type for task card badges."""
 
     PLANNING = "planning"
     CODING = "coding"
@@ -32,7 +32,7 @@ def emit_phase(
     progress: int | None = None,
     subtask: str | None = None,
 ) -> None:
-    """Emit structured phase event to stdout for frontend parsing."""
+    """Emit structured phase event to stdout for AG-Frontend parsing."""
     phase_value = phase.value if isinstance(phase, ExecutionPhase) else phase
 
     payload: dict[str, Any] = {

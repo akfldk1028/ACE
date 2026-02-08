@@ -1,0 +1,422 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "description": "A2A Protocol 팀: Coordinator가 외부 A2A 에이전트(History, Philosophy, Law, Poetry, Calculator, GUI)를 호출하여 응답.",
+  "label": "Auto-Claude A2A Protocol Team",
+  "config": {
+    "name": "RoundRobinGroupChat",
+    "description": "A2A Protocol team with external agent integration.",
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "A2A Protocol을 통해 외부 에이전트들을 조율하는 코디네이터. History(8001), Philosophy(8002), Law(8011), Poetry(8003), Calculator(8006), GUI(8120) 연결.",
+        "label": "A2A Coordinator",
+        "config": {
+          "name": "a2a_coordinator_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Balanced speed/quality.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "A2A Protocol을 통해 외부 에이전트들을 조율하는 코디네이터. History(8001), Philosophy(8002), Law(8011), Poetry(8003), Calculator(8006), GUI(8120) 연결.",
+          "system_message": "You are the A2A Coordinator Agent. You can call external agents via A2A Protocol (JSON-RPC 2.0).\n\nAvailable A2A Agents (Native):\n- call_history_agent: History homework helper (port 8001, Google ADK)\n- call_philosophy_agent: Philosophy homework helper (port 8002, LangGraph)\n- call_law_domain_agent: Korean law search with Neo4j (port 8011)\n- call_poetry_agent: Poetry/literary analysis (port 8003)\n- call_calculator_agent: Math calculations (port 8006)\n- call_gui_test_agent: GUI automation via PyAutoGUI (port 8120)\n\nAvailable A2A Agents (Wrapped):\n- call_chatgpt_clone: ChatGPT clone with web search, image gen, code exec (port 9001)\n- call_customer_support: Customer support with 5 specialist agents (port 9002)\n- call_tutor_agent: AI tutor system (port 9003)\n- call_langgraph_poet: Poetry writing bot - Mr. Poet (port 9004)\n- call_multi_agent_arch: Multi-agent architecture patterns (port 9005)\n- call_content_pipeline: Content pipeline automation (port 9006)\n- call_job_hunter: Job hunting automation (port 9007)\n- call_news_reader: News collection and analysis (port 9008)\n- call_youtube_thumbnail: YouTube thumbnail generation (port 9009)\n- call_workflow_testing: Workflow testing methodology (port 9010)\n- call_deployment_agent: Production deployment patterns (port 9011)\n- call_financial_analyst: Financial analysis - stocks, news, investment (port 9012)\n- call_deep_research: Deep research automation (port 9013)\n- call_email_refiner: Email text refinement (port 9014)\n- call_youtube_shorts: YouTube Shorts creation (port 9015)\n- call_workflow_arch: Workflow architecture patterns (port 9016)\n- call_first_agent: Basic agent with weather tool (port 9017)\n\nWhen a user asks a question:\n1. Determine which agent(s) are best suited\n2. Call the appropriate tool(s)\n3. Synthesize the results into a coherent response\n4. If an agent is unavailable, inform the user and suggest alternatives\n\nAlways respond in the same language as the user's input.\nWhen done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {},
+          "tools": [
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: History Helper (8001)",
+              "description": "A2A Protocol로 역사 전문 에이전트를 호출합니다. Google ADK 기반, 포트 8001.",
+              "config": {
+                "name": "call_history_agent",
+                "description": "A2A Protocol로 역사 전문 에이전트를 호출합니다. Google ADK 기반, 포트 8001.",
+                "content": "def call_history_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 역사 전문 에이전트를 호출합니다. Google ADK 기반, 포트 8001.\n    A2A Protocol (JSON-RPC 2.0) - Port 8001\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:8001/\", json=payload, timeout=30)\n        resp.raise_for_status()\n        result = resp.json()\n        # Google ADK format\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            # LangGraph/FastAPI format\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:8001/. Start the agent first.\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Philosophy Helper (8002)",
+              "description": "A2A Protocol로 철학 전문 에이전트를 호출합니다. LangGraph 기반, 포트 8002.",
+              "config": {
+                "name": "call_philosophy_agent",
+                "description": "A2A Protocol로 철학 전문 에이전트를 호출합니다. LangGraph 기반, 포트 8002.",
+                "content": "def call_philosophy_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 철학 전문 에이전트를 호출합니다. LangGraph 기반, 포트 8002.\n    A2A Protocol (JSON-RPC 2.0) - Port 8002\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:8002/messages\", json=payload, timeout=30)\n        resp.raise_for_status()\n        result = resp.json()\n        # Google ADK format\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            # LangGraph/FastAPI format\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:8002/messages. Start the agent first.\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Law Domain Search (8011)",
+              "description": "A2A Protocol로 법률 도메인 에이전트를 호출합니다. Neo4j 기반 법률 검색, 포트 8011.",
+              "config": {
+                "name": "call_law_domain_agent",
+                "description": "A2A Protocol로 법률 도메인 에이전트를 호출합니다. Neo4j 기반 법률 검색, 포트 8011.",
+                "content": "def call_law_domain_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 법률 도메인 에이전트를 호출합니다. Neo4j 기반 법률 검색, 포트 8011.\n    A2A Protocol (JSON-RPC 2.0) - Port 8011\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:8011/messages/domain-1\", json=payload, timeout=30)\n        resp.raise_for_status()\n        result = resp.json()\n        # Google ADK format\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            # LangGraph/FastAPI format\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:8011/messages/domain-1. Start the agent first.\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Poetry Agent (8003)",
+              "description": "A2A Protocol로 시/문학 분석 에이전트를 호출합니다. 포트 8003.",
+              "config": {
+                "name": "call_poetry_agent",
+                "description": "A2A Protocol로 시/문학 분석 에이전트를 호출합니다. 포트 8003.",
+                "content": "def call_poetry_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 시/문학 분석 에이전트를 호출합니다. 포트 8003.\n    A2A Protocol (JSON-RPC 2.0) - Port 8003\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:8003/\", json=payload, timeout=30)\n        resp.raise_for_status()\n        result = resp.json()\n        # Google ADK format\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            # LangGraph/FastAPI format\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:8003/. Start the agent first.\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Calculator Agent (8006)",
+              "description": "A2A Protocol로 수학 계산 에이전트를 호출합니다. 포트 8006.",
+              "config": {
+                "name": "call_calculator_agent",
+                "description": "A2A Protocol로 수학 계산 에이전트를 호출합니다. 포트 8006.",
+                "content": "def call_calculator_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 수학 계산 에이전트를 호출합니다. 포트 8006.\n    A2A Protocol (JSON-RPC 2.0) - Port 8006\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:8006/\", json=payload, timeout=30)\n        resp.raise_for_status()\n        result = resp.json()\n        # Google ADK format\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            # LangGraph/FastAPI format\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:8006/. Start the agent first.\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: GUI Test Agent (8120)",
+              "description": "A2A Protocol로 GUI 자동화 에이전트(PyAutoGUI)를 호출합니다. 포트 8120.",
+              "config": {
+                "name": "call_gui_test_agent",
+                "description": "A2A Protocol로 GUI 자동화 에이전트(PyAutoGUI)를 호출합니다. 포트 8120.",
+                "content": "def call_gui_test_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 GUI 자동화 에이전트(PyAutoGUI)를 호출합니다. 포트 8120.\n    A2A Protocol (JSON-RPC 2.0) - Port 8120\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:8120/\", json=payload, timeout=30)\n        resp.raise_for_status()\n        result = resp.json()\n        # Google ADK format\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            # LangGraph/FastAPI format\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:8120/. Start the agent first.\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: ChatGPT Clone (9001)",
+              "description": "A2A Protocol로 ChatGPT 클론 에이전트를 호출합니다. 웹 검색, 이미지 생성, 코드 실행. 포트 9001.",
+              "config": {
+                "name": "call_chatgpt_clone",
+                "description": "A2A Protocol로 ChatGPT 클론 에이전트를 호출합니다. 웹 검색, 이미지 생성, 코드 실행. 포트 9001.",
+                "content": "def call_chatgpt_clone(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 ChatGPT 클론 에이전트를 호출합니다. 웹 검색, 이미지 생성, 코드 실행. 포트 9001.\n    A2A Protocol (JSON-RPC 2.0) - Port 9001\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9001/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9001/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Customer Support (9002)",
+              "description": "A2A Protocol로 고객 지원 에이전트를 호출합니다. 5개 전문 에이전트 기반. 포트 9002.",
+              "config": {
+                "name": "call_customer_support",
+                "description": "A2A Protocol로 고객 지원 에이전트를 호출합니다. 5개 전문 에이전트 기반. 포트 9002.",
+                "content": "def call_customer_support(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 고객 지원 에이전트를 호출합니다. 5개 전문 에이전트 기반. 포트 9002.\n    A2A Protocol (JSON-RPC 2.0) - Port 9002\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9002/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9002/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Tutor Agent (9003)",
+              "description": "A2A Protocol로 AI 튜터 에이전트를 호출합니다. LangGraph 기반. 포트 9003.",
+              "config": {
+                "name": "call_tutor_agent",
+                "description": "A2A Protocol로 AI 튜터 에이전트를 호출합니다. LangGraph 기반. 포트 9003.",
+                "content": "def call_tutor_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 AI 튜터 에이전트를 호출합니다. LangGraph 기반. 포트 9003.\n    A2A Protocol (JSON-RPC 2.0) - Port 9003\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9003/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9003/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: LangGraph Poet (9004)",
+              "description": "A2A Protocol로 시 작성 에이전트를 호출합니다. LangGraph Mr. Poet. 포트 9004.",
+              "config": {
+                "name": "call_langgraph_poet",
+                "description": "A2A Protocol로 시 작성 에이전트를 호출합니다. LangGraph Mr. Poet. 포트 9004.",
+                "content": "def call_langgraph_poet(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 시 작성 에이전트를 호출합니다. LangGraph Mr. Poet. 포트 9004.\n    A2A Protocol (JSON-RPC 2.0) - Port 9004\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9004/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9004/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Multi-Agent Arch (9005)",
+              "description": "A2A Protocol로 멀티 에이전트 아키텍처 에이전트를 호출합니다. Swarm/Supervisor/Hierarchical 패턴. 포트 9005.",
+              "config": {
+                "name": "call_multi_agent_arch",
+                "description": "A2A Protocol로 멀티 에이전트 아키텍처 에이전트를 호출합니다. Swarm/Supervisor/Hierarchical 패턴. 포트 9005.",
+                "content": "def call_multi_agent_arch(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 멀티 에이전트 아키텍처 에이전트를 호출합니다. Swarm/Supervisor/Hierarchical 패턴. 포트 9005.\n    A2A Protocol (JSON-RPC 2.0) - Port 9005\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9005/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9005/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Content Pipeline (9006)",
+              "description": "A2A Protocol로 콘텐츠 파이프라인 에이전트를 호출합니다. CrewAI 기반. 포트 9006.",
+              "config": {
+                "name": "call_content_pipeline",
+                "description": "A2A Protocol로 콘텐츠 파이프라인 에이전트를 호출합니다. CrewAI 기반. 포트 9006.",
+                "content": "def call_content_pipeline(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 콘텐츠 파이프라인 에이전트를 호출합니다. CrewAI 기반. 포트 9006.\n    A2A Protocol (JSON-RPC 2.0) - Port 9006\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9006/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9006/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Job Hunter (9007)",
+              "description": "A2A Protocol로 구직 자동화 에이전트를 호출합니다. CrewAI 기반. 포트 9007.",
+              "config": {
+                "name": "call_job_hunter",
+                "description": "A2A Protocol로 구직 자동화 에이전트를 호출합니다. CrewAI 기반. 포트 9007.",
+                "content": "def call_job_hunter(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 구직 자동화 에이전트를 호출합니다. CrewAI 기반. 포트 9007.\n    A2A Protocol (JSON-RPC 2.0) - Port 9007\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9007/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9007/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: News Reader (9008)",
+              "description": "A2A Protocol로 뉴스 수집 에이전트를 호출합니다. CrewAI 기반. 포트 9008.",
+              "config": {
+                "name": "call_news_reader",
+                "description": "A2A Protocol로 뉴스 수집 에이전트를 호출합니다. CrewAI 기반. 포트 9008.",
+                "content": "def call_news_reader(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 뉴스 수집 에이전트를 호출합니다. CrewAI 기반. 포트 9008.\n    A2A Protocol (JSON-RPC 2.0) - Port 9008\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9008/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9008/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: YouTube Thumbnail (9009)",
+              "description": "A2A Protocol로 YouTube 썸네일 생성 에이전트를 호출합니다. LangGraph 기반. 포트 9009.",
+              "config": {
+                "name": "call_youtube_thumbnail",
+                "description": "A2A Protocol로 YouTube 썸네일 생성 에이전트를 호출합니다. LangGraph 기반. 포트 9009.",
+                "content": "def call_youtube_thumbnail(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 YouTube 썸네일 생성 에이전트를 호출합니다. LangGraph 기반. 포트 9009.\n    A2A Protocol (JSON-RPC 2.0) - Port 9009\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9009/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9009/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Workflow Testing (9010)",
+              "description": "A2A Protocol로 워크플로우 테스팅 에이전트를 호출합니다. LangGraph 기반. 포트 9010.",
+              "config": {
+                "name": "call_workflow_testing",
+                "description": "A2A Protocol로 워크플로우 테스팅 에이전트를 호출합니다. LangGraph 기반. 포트 9010.",
+                "content": "def call_workflow_testing(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 워크플로우 테스팅 에이전트를 호출합니다. LangGraph 기반. 포트 9010.\n    A2A Protocol (JSON-RPC 2.0) - Port 9010\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9010/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9010/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Deployment Agent (9011)",
+              "description": "A2A Protocol로 프로덕션 배포 에이전트를 호출합니다. OpenAI Agents 기반. 포트 9011.",
+              "config": {
+                "name": "call_deployment_agent",
+                "description": "A2A Protocol로 프로덕션 배포 에이전트를 호출합니다. OpenAI Agents 기반. 포트 9011.",
+                "content": "def call_deployment_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 프로덕션 배포 에이전트를 호출합니다. OpenAI Agents 기반. 포트 9011.\n    A2A Protocol (JSON-RPC 2.0) - Port 9011\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9011/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9011/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Financial Analyst (9012)",
+              "description": "A2A Protocol로 금융 분석 에이전트를 호출합니다. Google ADK 기반, 주식/뉴스 분석. 포트 9012.",
+              "config": {
+                "name": "call_financial_analyst",
+                "description": "A2A Protocol로 금융 분석 에이전트를 호출합니다. Google ADK 기반, 주식/뉴스 분석. 포트 9012.",
+                "content": "def call_financial_analyst(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 금융 분석 에이전트를 호출합니다. Google ADK 기반, 주식/뉴스 분석. 포트 9012.\n    A2A Protocol (JSON-RPC 2.0) - Port 9012\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9012/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9012/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Deep Research (9013)",
+              "description": "A2A Protocol로 심층 리서치 에이전트를 호출합니다. AutoGen 기반. 포트 9013.",
+              "config": {
+                "name": "call_deep_research",
+                "description": "A2A Protocol로 심층 리서치 에이전트를 호출합니다. AutoGen 기반. 포트 9013.",
+                "content": "def call_deep_research(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 심층 리서치 에이전트를 호출합니다. AutoGen 기반. 포트 9013.\n    A2A Protocol (JSON-RPC 2.0) - Port 9013\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9013/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9013/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Email Refiner (9014)",
+              "description": "A2A Protocol로 이메일 개선 에이전트를 호출합니다. Google ADK 기반. 포트 9014.",
+              "config": {
+                "name": "call_email_refiner",
+                "description": "A2A Protocol로 이메일 개선 에이전트를 호출합니다. Google ADK 기반. 포트 9014.",
+                "content": "def call_email_refiner(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 이메일 개선 에이전트를 호출합니다. Google ADK 기반. 포트 9014.\n    A2A Protocol (JSON-RPC 2.0) - Port 9014\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9014/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9014/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: YouTube Shorts (9015)",
+              "description": "A2A Protocol로 YouTube Shorts 제작 에이전트를 호출합니다. Google ADK 기반. 포트 9015.",
+              "config": {
+                "name": "call_youtube_shorts",
+                "description": "A2A Protocol로 YouTube Shorts 제작 에이전트를 호출합니다. Google ADK 기반. 포트 9015.",
+                "content": "def call_youtube_shorts(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 YouTube Shorts 제작 에이전트를 호출합니다. Google ADK 기반. 포트 9015.\n    A2A Protocol (JSON-RPC 2.0) - Port 9015\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9015/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9015/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Workflow Arch (9016)",
+              "description": "A2A Protocol로 워크플로우 아키텍처 에이전트를 호출합니다. LangGraph 기반. 포트 9016.",
+              "config": {
+                "name": "call_workflow_arch",
+                "description": "A2A Protocol로 워크플로우 아키텍처 에이전트를 호출합니다. LangGraph 기반. 포트 9016.",
+                "content": "def call_workflow_arch(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 워크플로우 아키텍처 에이전트를 호출합니다. LangGraph 기반. 포트 9016.\n    A2A Protocol (JSON-RPC 2.0) - Port 9016\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9016/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9016/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: First Agent (9017)",
+              "description": "A2A Protocol로 기본 에이전트를 호출합니다. OpenAI SDK 기반. 포트 9017.",
+              "config": {
+                "name": "call_first_agent",
+                "description": "A2A Protocol로 기본 에이전트를 호출합니다. OpenAI SDK 기반. 포트 9017.",
+                "content": "def call_first_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 기본 에이전트를 호출합니다. OpenAI SDK 기반. 포트 9017.\n    A2A Protocol (JSON-RPC 2.0) - Port 9017\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9017/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9017/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            }
+          ]
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.UserProxyAgent",
+        "component_type": "agent",
+        "version": 1,
+        "component_version": 1,
+        "description": "A human user proxy agent.",
+        "label": "UserProxyAgent",
+        "config": {
+          "name": "user_proxy",
+          "description": "A human user proxy."
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate when TERMINATE is mentioned.",
+            "label": "TextMentionTermination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Max 10 messages.",
+            "label": "MaxMessageTermination(10)",
+            "config": {
+              "max_messages": 10,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

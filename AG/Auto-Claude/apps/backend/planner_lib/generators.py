@@ -50,7 +50,7 @@ class FeaturePlanGenerator(PlanGenerator):
         phases = []
         phase_num = 0
 
-        # Determine service order (backend first, then workers, then frontend)
+        # Determine service order (backend first, then workers, then AG-Frontend)
         service_order = determine_service_order(files_by_service)
 
         backend_phase = None
@@ -99,7 +99,7 @@ class FeaturePlanGenerator(PlanGenerator):
 
             if service_type in ["worker", "celery", "jobs"] and backend_phase:
                 depends_on = [backend_phase]
-            elif service_type in ["frontend", "web", "client", "ui"] and backend_phase:
+            elif service_type in ["AG-Frontend", "web", "client", "ui"] and backend_phase:
                 depends_on = [backend_phase]
 
             phase = Phase(

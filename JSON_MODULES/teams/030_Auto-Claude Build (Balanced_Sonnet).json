@@ -1,0 +1,171 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "description": "Auto-Claude Build Pipeline: Planner -> Coder -> QA Reviewer. Sonnet model, balanced speed/quality.",
+  "label": "Auto-Claude Build (Balanced/Sonnet)",
+  "config": {
+    "name": "RoundRobinGroupChat",
+    "description": "Auto-Claude Build Pipeline: Planner -> Coder -> QA Reviewer. Sonnet model, balanced speed/quality.",
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "Planner - Sonnet Balanced.",
+        "label": "Planner (Sonnet)",
+        "config": {
+          "name": "planner_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "Planner - Sonnet Balanced.",
+          "system_message": "You are the Planner Agent. Create subtask-based implementation plans. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "Coder - Sonnet Balanced.",
+        "label": "Coder (Sonnet)",
+        "config": {
+          "name": "coder_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "Coder - Sonnet Balanced.",
+          "system_message": "You are the Coding Agent. Work on ONE subtask at a time. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "QA Reviewer - Sonnet Balanced.",
+        "label": "QA Reviewer (Sonnet)",
+        "config": {
+          "name": "qa_reviewer_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "QA Reviewer - Sonnet Balanced.",
+          "system_message": "You are the QA Reviewer. Validate implementation. If approved, say APPROVED. Otherwise describe issues.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate when TERMINATE is mentioned.",
+            "label": "TextMentionTermination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate when APPROVED is mentioned.",
+            "label": "ApprovedTermination",
+            "config": {
+              "text": "APPROVED"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Max 20 messages.",
+            "label": "MaxMessageTermination(20)",
+            "config": {
+              "max_messages": 20,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

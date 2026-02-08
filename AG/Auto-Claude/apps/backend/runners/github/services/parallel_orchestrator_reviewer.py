@@ -12,7 +12,7 @@ Key Design:
 - AI decides which agents to invoke (NOT programmatic rules)
 - Subagents defined via SDK `agents={}` parameter
 - SDK handles parallel execution automatically
-- User-configured model from frontend settings (no hardcoding)
+- User-configured model from AG-Frontend settings (no hardcoding)
 """
 
 from __future__ import annotations
@@ -205,7 +205,7 @@ class ParallelOrchestratorReviewer:
     3. Synthesizes findings into a final verdict
 
     Model Configuration:
-    - Orchestrator uses user-configured model from frontend settings
+    - Orchestrator uses user-configured model from AG-Frontend settings
     - Specialist agents use model="inherit" (same as orchestrator)
     """
 

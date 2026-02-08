@@ -1,7 +1,7 @@
 # 25_ACE README INDEX
 
 AI가 이 프로젝트를 이해하기 위한 전체 문서 인덱스.
-마지막 검증: 2026-01-31 (빌드 OK, E2E PASS, 38 cards, 100+ sessions)
+마지막 검증: 2026-02-08 (98 PASS, 7 team templates, 23 agents, 10 A2A, E2E 9/9 PASS, Platform UI 0 TS errors)
 
 ---
 
@@ -16,9 +16,10 @@ AutoGen Studio에서 multi-agent 팀이 설계/분석/코딩/리뷰하면, Auto-
 | 순서 | 파일 | 왜 읽어야 하는지 |
 |:----:|------|-----------------|
 | 1 | **[README.md](README.md)** | 전체 아키텍처, agent 분해 로직, 24/7 auto-trigger, 데이터 흐름 |
-| 2 | **[Auto-Claude/CLAUDE.md](Auto-Claude/CLAUDE.md)** | Auto-Claude SDK, agent 구조, 보안 모델 |
-| 3 | **[AG-ACE-BRIDGE/CLAUDE.md](AG-ACE-BRIDGE/CLAUDE.md)** | Bridge 오케스트레이터, 파이프라인, 어댑터 |
-| 4 | [docs/AI_STARTUP_GUIDE.md](docs/AI_STARTUP_GUIDE.md) | 서버 시작 순서 |
+| 2 | **[AG-frontend/](AG-frontend/)** | SaaS Frontend (Vite + React 19), API client, WebSocket, 6 pages |
+| 3 | **[AG/Auto-Claude/CLAUDE.md](AG/Auto-Claude/CLAUDE.md)** | Auto-Claude SDK, agent 구조, 보안 모델 |
+| 4 | **[JSON_MODULES/README.md](JSON_MODULES/README.md)** | JSON 컴포넌트 모듈, $ref 시스템, A2A 통합 |
+| 5 | [docs/AI_STARTUP_GUIDE.md](docs/AI_STARTUP_GUIDE.md) | 서버 시작 순서 |
 
 ---
 
@@ -30,40 +31,73 @@ AutoGen Studio에서 multi-agent 팀이 설계/분석/코딩/리뷰하면, Auto-
 ├── README_INDEX.md                 # 이 파일 (AI 네비게이션)
 ├── ARCHITECTURE.md                 # 시스템 아키텍처
 │
-├── Auto-Claude/                    # Electron 앱 (Kanban, Pipeline, MCP)
+├── AG-frontend/                       # ★ SaaS Frontend (Vite 7 + React 19 + Tailwind v4)
+│   ├── src/
+│   │   ├── app/                    # App shell (router, providers)
+│   │   ├── features/               # Domain modules
+│   │   │   ├── playground/         # 실시간 실행 (WebSocket + agent turn cards)
+│   │   │   ├── teams/              # 팀 목록, 선택
+│   │   │   ├── dashboard/          # 대시보드
+│   │   │   ├── history/            # 실행 이력
+│   │   │   ├── agents/             # 에이전트 마켓
+│   │   │   └── settings/           # 설정
+│   │   └── shared/                 # Cross-cutting
+│   │       ├── api/                # client.ts (REST), ws.ts (WebSocket)
+│   │       ├── types/              # datamodel.ts (AutoGen type system)
+│   │       ├── ui/                 # 7 components (Button, Badge, Card, Input, etc.)
+│   │       └── theme/              # 7색 × 2모드 테마
+│   └── vite.config.ts              # /api/* -> localhost:8081 proxy
+│
+├── AG/Auto-Claude/                 # Electron 앱 + CLI 24/7 Hub
 │   ├── CLAUDE.md                   # AI 컨텍스트
 │   ├── README_INDEX.md             # Auto-Claude 문서 인덱스
 │   └── apps/frontend/
 │       ├── electron.vite.config.ts       # Vite proxy (/api/autogen -> 8081)
 │       └── src/
 │           ├── main/ipc-handlers/
-│           │   └── a2a-handlers.ts       # Electron IPC: AutoGen API (max 10 sessions)
+│           │   ├── a2a-handlers.ts       # Electron IPC: AutoGen API (max 10 sessions)
+│           │   └── task/
+│           │       ├── worktree-handlers.ts   # Worktree 관리 (리팩토링됨)
+│           │       ├── worktree-git-utils.ts  # ★ NEW: Git 유틸 함수 분리
+│           │       ├── worktree-ide-tools.ts  # ★ NEW: IDE 도구 통합 분리
+│           │       ├── worktree-pr-utils.ts   # ★ NEW: PR 유틸 함수 분리
+│           │       ├── crud-handlers.ts       # Task CRUD (improved)
+│           │       ├── execution-handlers.ts  # Task 실행 (improved)
+│           │       └── shared.ts              # 공유 유틸
 │           ├── renderer/
 │           │   ├── components/
 │           │   │   ├── KanbanBoard.tsx   # ★ 핵심: agent 분해, 24/7 auto-trigger, 폴링
-│           │   │   └── TaskCard.tsx      # 카드 렌더링, trigger status, memo comparator
-│           │   └── lib/
-│           │       └── browser-mock.ts   # AutoGen API 호출 (max 10 sessions)
+│           │   │   ├── TaskCard.tsx      # 카드 렌더링, trigger status, memo comparator
+│           │   │   ├── task-detail/
+│           │   │   │   ├── TaskDetailModal.tsx  # Task 상세 모달 (improved)
+│           │   │   │   ├── TaskWarnings.tsx     # Task 경고 표시 (improved)
+│           │   │   │   └── hooks/useTaskDetail.ts # Task 상세 훅 (improved)
+│           │   │   └── AutogenCollabPanel.tsx  # AutoGen 협업 패널
+│           │   ├── lib/
+│           │   │   └── browser-mock.ts   # AutoGen API 호출 (max 10 sessions)
+│           │   └── stores/
+│           │       └── task-store.ts     # Task 상태 관리 (improved)
 │           ├── preload/api/modules/
 │           │   └── a2a-api.ts            # Preload API bridge
 │           └── shared/
 │               ├── constants/ipc.ts      # IPC channel 상수
-│               └── types/ipc.ts          # IPC 타입 정의
+│               ├── types/ipc.ts          # IPC 타입 정의
+│               └── i18n/locales/
+│                   ├── en/tasks.json     # 영어 번역 (expanded)
+│                   └── fr/tasks.json     # 프랑스어 번역 (expanded)
 │
-├── AG-ACE-BRIDGE/                  # Pipeline 서버 (FastAPI, 8080)
-│   ├── CLAUDE.md                   # AI 컨텍스트
-│   ├── README_INDEX.md             # Bridge 문서 인덱스
-│   ├── main.py                     # 엔트리포인트
-│   └── src/
-│       ├── server/
-│       │   ├── __init__.py         # FastAPI 서버 설정
-│       │   ├── dashboard.py        # 대시보드 라우트
-│       │   └── pipeline_routes.py  # 파이프라인 API 라우트
-│       ├── coordinator/
-│       │   └── orchestrator.py     # 24/7 메인 루프
-│       ├── pipeline/               # 실행 파이프라인
-│       ├── adapters/               # Agent 어댑터 (A2A, Claude SDK, AutoGen)
-│       └── memory/                 # Memory sync (Graphiti, Neo4j)
+├── JSON_MODULES/                   # n8n-style 조합 가능한 JSON 컴포넌트
+│   ├── agents/                     # 23 에이전트 정의
+│   ├── a2a_agents/                 # 10 A2A 에이전트 (ports 8001-8120)
+│   ├── models/                     # 7 모델 설정
+│   ├── patterns/                   # 14 오케스트레이션 패턴
+│   ├── templates_compact/          # 7 컴팩트 템플릿 ($ref 사용)
+│   ├── resolved/                   # resolve 출력
+│   ├── registry.json               # 중앙 레지스트리
+│   ├── ref_resolver.py             # $ref 리졸버 엔진
+│   ├── validate_json.py            # 98 파일 검증
+│   ├── a2a_manager.py              # A2A 에이전트 관리 CLI
+│   └── e2e_playwright_test.py      # E2E 테스트 (9/9 PASS)
 │
 ├── AG/                             # 멀티 에이전트 시스템
 │   ├── .claude/CLAUDE.md           # AI 컨텍스트
@@ -76,7 +110,13 @@ AutoGen Studio에서 multi-agent 팀이 설계/분석/코딩/리뷰하면, Auto-
 │   │   └── law-domain-agents/      # 법률 도메인 5개 에이전트
 │   └── agent_core/                 # 공유 라이브러리
 │
-├── Calculator/                     # 예제 프로젝트 (agent 데모)
+├── maintenance/                    # 유지보수 스크립트
+│   ├── run_maintenance.py          # 전체 유지보수 실행
+│   ├── health_check.py             # 서비스 헬스 체크
+│   ├── port_map_validator.py       # 포트 매핑 검증
+│   ├── doc_sync_checker.py         # 문서 동기화 체크
+│   ├── agent_registry_sync.py      # 에이전트 레지스트리 동기화
+│   └── model_field_checker.py      # 모델 필드 검증
 │
 ├── docs/
 │   ├── AI_STARTUP_GUIDE.md         # 서버 시작 순서
@@ -84,9 +124,7 @@ AutoGen Studio에서 multi-agent 팀이 설계/분석/코딩/리뷰하면, Auto-
 │   ├── WORKFLOW_EXAMPLE.md         # GitHub Issue -> PR 예시
 │   └── e2e_*.png, step*.png        # E2E 테스트 스크린샷
 │
-├── test_e2e_dual_browser.py        # Playwright 듀얼 브라우저 E2E 테스트
-├── test_functional.py              # 기능 검증 테스트
-└── test_step_by_step.py            # 단계별 스크린샷 테스트
+└── start_autogen.bat / .ps1        # AutoGen Studio 시작 스크립트
 ```
 
 ---
@@ -186,9 +224,9 @@ DB 테이블 구조:
 
 | 서비스 | 포트 | 필수 | 시작 명령 |
 |--------|------|------|-----------|
-| AutoGen Studio | 8081 | Yes | `autogenstudio ui --port 8081` |
-| Auto-Claude (dev) | 5173 | Yes | `cd Auto-Claude/apps/frontend && npm run dev` |
-| AG-ACE-BRIDGE | 8080 | Pipeline용 | `cd AG-ACE-BRIDGE && python main.py` |
+| AutoGen Studio | 8081 | Yes (backend) | `autogenstudio ui --port 8081` |
+| Platform UI (Vite) | 5173 | Yes (frontend) | `cd platform && npm run dev` |
+| Auto-Claude (Electron) | - | Optional | `cd AG/Auto-Claude/apps/frontend && npm run dev` |
 | SharedMemory | 8101 | Optional | `python mcp/shared_memory.py` |
 | A2A Agents | 8003-8120 | Optional | `python run_all_agents.py` |
 
@@ -244,16 +282,30 @@ DB 테이블 구조:
 
 | 파일 | 역할 | 수정 빈도 |
 |------|------|-----------|
-| `Auto-Claude/.../KanbanBoard.tsx` | Kanban + agent 분해 + auto-trigger | 매우 높음 |
-| `Auto-Claude/.../TaskCard.tsx` | 카드 UI + memo comparator | 높음 |
-| `Auto-Claude/.../browser-mock.ts` | AutoGen API 호출 | 중간 |
-| `Auto-Claude/.../a2a-handlers.ts` | Electron IPC | 중간 |
-| `Auto-Claude/.../electron.vite.config.ts` | Vite proxy | 낮음 |
-| `AG-ACE-BRIDGE/src/server/pipeline_routes.py` | Pipeline API | 중간 |
-| `AG-ACE-BRIDGE/src/server/dashboard.py` | Dashboard | 중간 |
-| `AG-ACE-BRIDGE/src/coordinator/orchestrator.py` | 24/7 메인 루프 | 중간 |
-| `AG-ACE-BRIDGE/src/coordinator/pipeline_builder.py` | 동적 파이프라인 | 낮음 |
-| `AG-ACE-BRIDGE/src/coordinator/agent_selector.py` | 에이전트 스코어링 | 낮음 |
+| `AG-frontend/src/shared/api/client.ts` | REST API client (AutoGen Studio 1:1) | 높음 |
+| `AG-frontend/src/shared/api/ws.ts` | WebSocket client (실행 스트리밍) | 높음 |
+| `AG-frontend/src/features/playground/PlaygroundPage.tsx` | 실시간 실행 UI | 높음 |
+| `AG-frontend/src/features/playground/executionStore.ts` | Zustand 실행 상태 | 높음 |
+| `AG-frontend/src/shared/types/datamodel.ts` | AutoGen TypeScript 타입 시스템 | 중간 |
+| `AG-frontend/vite.config.ts` | Vite + /api/* proxy 설정 | 낮음 |
+| `AG/Auto-Claude/.../KanbanBoard.tsx` | Kanban + agent 분해 + auto-trigger | 매우 높음 |
+| `AG/Auto-Claude/.../TaskCard.tsx` | 카드 UI + memo comparator | 높음 |
+| `AG/Auto-Claude/.../task-detail/TaskDetailModal.tsx` | Task 상세 모달 | 높음 |
+| `AG/Auto-Claude/.../task-detail/TaskWarnings.tsx` | Task 경고 표시 | 중간 |
+| `AG/Auto-Claude/.../task/worktree-handlers.ts` | Worktree 관리 (리팩토링) | 높음 |
+| `AG/Auto-Claude/.../task/worktree-git-utils.ts` | Git 유틸 (분리) | 중간 |
+| `AG/Auto-Claude/.../task/worktree-ide-tools.ts` | IDE 도구 (분리) | 중간 |
+| `AG/Auto-Claude/.../task/worktree-pr-utils.ts` | PR 유틸 (분리) | 중간 |
+| `AG/Auto-Claude/.../browser-mock.ts` | AutoGen API 호출 | 중간 |
+| `AG/Auto-Claude/.../a2a-handlers.ts` | Electron IPC | 중간 |
+| `AG/Auto-Claude/.../stores/task-store.ts` | Task 상태 관리 | 중간 |
+| `AG/Auto-Claude/.../electron.vite.config.ts` | Vite proxy | 낮음 |
+| `JSON_MODULES/ref_resolver.py` | $ref 리졸버 엔진 | 높음 |
+| `JSON_MODULES/validate_json.py` | 98 파일 검증 | 중간 |
+| `JSON_MODULES/e2e_playwright_test.py` | E2E 테스트 (9/9 PASS) | 중간 |
+| `AG/autogen_a2a_kit/AG_Cohub/model_factory.py` | ClaudeCLI ChatCompletionClient | 높음 |
+| `AG/autogen_a2a_kit/AG_Cohub/sdk/` | SDK 패키지 (7 모듈) | 높음 |
+| `maintenance/run_maintenance.py` | 전체 유지보수 실행 | 낮음 |
 
 ---
 
@@ -276,47 +328,17 @@ DB 테이블 구조:
 2. **max 10 sessions**: 두 곳 모두 최대 10 세션만 fetch
 3. **content truncation**: messages 1000자, descriptions 300자 제한
 
-### AG-ACE-BRIDGE 수정 시
-1. **Orchestrator state machine**: STOPPED -> STARTING -> RUNNING -> PAUSED 전이 순서 준수
-2. **Pipeline stage context**: 각 stage output이 다음 stage의 context로 전달됨
-3. **TaskQueue retry**: max 3회 재시도, 그 이후 FAILED
-4. **Critic loop**: max 5 iterations, QA Reviewer가 PASS 하면 즉시 종료
+### worktree-handlers.ts 수정 시 (★ 2026-02-03 리팩토링)
+1. **3파일 분리**: worktree-handlers.ts에서 worktree-git-utils.ts, worktree-ide-tools.ts, worktree-pr-utils.ts로 분리됨
+2. **import 확인**: worktree-handlers.ts가 3개 유틸 모듈을 import하는 구조
+3. **함수 이동**: Git 관련 → git-utils, IDE 도구 → ide-tools, PR 관련 → pr-utils
 
----
-
-## AG-ACE-BRIDGE 4-Layer 요약
-
-```
-Layer 1: Coordinator
-  Orchestrator(24/7 loop) + TaskQueue(SQLite) + AgentSelector(scoring) + PipelineBuilder(dynamic)
-
-Layer 2: Pipeline
-  Sequential(chain) + Parallel(fan-out/gather) + CriticLoop(generator-critic-fixer, max 5)
-
-Layer 3: Adapters
-  AutoClaudeAdapter(SDK) + AGAutogenAdapter(REST) + AGA2AAdapter(JSON-RPC) + AGLawDomainAdapter + AutogenStudioAdapter
-
-Layer 4: Registry
-  AgentRegistry(19 agents, health, success rate) + SharedMemoryClient(8101, optional)
-```
-
-### Pipeline Templates
-
-| Template | Stages | Use Case |
-|----------|--------|----------|
-| `auto_claude_full` | Planner -> Coder -> QA Critic Loop(x5) | 일반 코딩 |
-| `research` | Research + Analyst (Parallel) -> Writer | 리서치 기반 |
-| `legal_validation` | Researcher -> Analyzer + Compliance (Parallel) -> Risk | 법률 검증 |
-| `qa_loop` | Coder -> QA Reviewer -> QA Fixer (Critic Loop) | QA 집중 |
-
-### Task Priority & Retry
-
-```
-Priority: high(3) > medium(2) > low(1), ORDER BY priority_weight DESC, created_at ASC
-Retry: max 3회, 실패 시 PENDING으로 re-queue
-Timeout: stage당 300초 (5분)
-Cleanup: completed/cancelled 7일 후 자동 삭제
-```
+### JSON_MODULES 수정 시
+1. **$ref resolver**: `ref_resolver.py`로 compact template -> resolved JSON 변환. `--all`로 전체 resolve
+2. **registry.json**: 에이전트/모델/패턴 중앙 레지스트리. 새 컴포넌트 추가 시 registry에도 등록 필요
+3. **validate_json.py**: 98 파일 검증. 새 파일 추가 후 반드시 실행
+4. **cohub_loader.py**: `--action compact`로 resolve + AutoGen Studio import
+5. **AG-ACE-BRIDGE는 삭제됨**: CLI pipeline 기능은 AG/Auto-Claude로 이전
 
 ---
 
@@ -324,18 +346,17 @@ Cleanup: completed/cancelled 7일 후 자동 삭제
 
 | 파일 | 내용 | 결과 |
 |------|------|------|
-| `test_e2e_dual_browser.py` | Playwright 2 브라우저 (AutoGen + Auto-Claude) | PASS |
-| `test_functional.py` | 기능별 검증 (9 pages, 6 buttons, API) | PASS |
-| `test_step_by_step.py` | 단계별 스크린샷 캡처 | PASS |
-| `npm run build` | Auto-Claude 프로덕션 빌드 | OK (에러 없음) |
+| `JSON_MODULES/e2e_playwright_test.py` | Playwright + WebSocket E2E (9 tests) | 9 PASS |
+| `JSON_MODULES/validate_json.py` | 98 JSON 파일 검증 | 98 PASS |
+| `npm run build` | Auto-Claude 빌드 | OK |
 
 ---
 
-## AutoGen Studio Windows 주의사항
+## AutoGen Studio 참고사항
 
-- `npm run build` 실행 금지 -> `web/ui/` 삭제됨
-- 소스 수정은 minified JS 직접 패치 방식
-- 상세: [frontend/README.md](../22_AG/autogen_a2a_kit/autogen_source/python/packages/autogen-studio/frontend/README.md)
+- AutoGen Studio의 내장 UI(web/ui/)는 더 이상 직접 수정하지 않음
+- 커스텀 프론트엔드는 **`AG-frontend/`** (Vite + React 19)을 사용
+- AutoGen Studio는 **백엔드 API 엔진으로만** 사용 (REST + WebSocket on :8081)
 
 ---
 
@@ -343,6 +364,10 @@ Cleanup: completed/cancelled 7일 후 자동 삭제
 
 | 날짜 | 변경 |
 |------|------|
+| 2026-02-08 | Platform UI(Vite + React 19) 추가, Gatsby 참조 전면 제거, AG-frontend/ 디렉토리 구조/파일 목록 추가 |
+| 2026-02-07 | README_INDEX 대규모 업데이트: AG-ACE-BRIDGE 삭제 반영, JSON_MODULES 섹션 추가 ($ref 시스템, 98 PASS, 7 templates), Auto-Claude 경로 AG/Auto-Claude로 이전, E2E 9/9 PASS, SDK 패키지 반영 |
+| 2026-02-03 | README/INDEX 업데이트: AutoGen 6-team 반영, maintenance system 추가, worktree 리팩토링 (3파일 분리), AG-ACE-BRIDGE 개선사항 반영 |
+| 2026-02-01 | Code review fixes + maintenance system (health_check, port_validator, doc_sync, agent_registry, model_field_checker) + AutoGen 6-team setup |
 | 2026-01-31 | 전체 문서 딥 업데이트 (ARCHITECTURE.md 전면 재작성, AI_STARTUP_GUIDE.md 정리, README_INDEX에 수정 가이드/4-Layer 요약 추가) |
 | 2026-01-31 | AutoGen Studio Team Storage 경로 문서화 (SQLite DB 구조, API endpoints) |
 | 2026-01-31 | Team Builder (/build/) 페이지 수정 (page-data + index.html 생성) |

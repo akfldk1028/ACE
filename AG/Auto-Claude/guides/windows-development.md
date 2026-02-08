@@ -284,7 +284,7 @@ from apps.backend.core import client  # Could work on Windows but fail on Linux
 
    ```bash
    npm run test:backend
-   npm test  # frontend tests
+   npm test  # AG-Frontend tests
    ```
 
 3. **Test with special characters:**

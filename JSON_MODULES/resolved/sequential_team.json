@@ -1,0 +1,126 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 2,
+  "description": "순차적 오케스트레이션 팀 - 리서처 → 작가 → 리뷰어. 각 에이전트가 이전 에이전트의 출력을 처리하는 파이프라인.",
+  "label": "Sequential Team (Template)",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "researcher",
+          "system_message": "당신은 리서처입니다. 주어진 주제에 대해 조사하고 핵심 정보를 수집하세요.",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "profile": "balanced",
+              "agent_config": {
+                "profile": "reader",
+                "max_turns": 2
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          },
+          "description": "리서치 담당 - 정보 수집 및 조사"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "writer",
+          "system_message": "당신은 작가입니다. 리서처가 수집한 정보를 바탕으로 글을 작성하세요.",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "profile": "balanced",
+              "agent_config": {
+                "profile": "coder",
+                "max_turns": 3
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          },
+          "description": "작가 담당 - 콘텐츠 작성"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "reviewer",
+          "system_message": "당신은 리뷰어입니다. 작성된 글을 검토하세요. 완료되면 TERMINATE라고 말하세요.",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "profile": "balanced",
+              "agent_config": {
+                "profile": "text_only",
+                "max_turns": 1
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          },
+          "description": "리뷰어 담당 - 검토 및 피드백"
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "config": {
+              "max_messages": 10
+            }
+          }
+        ]
+      }
+    }
+  }
+}

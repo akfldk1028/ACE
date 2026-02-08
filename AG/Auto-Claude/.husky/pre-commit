@@ -64,7 +64,7 @@ if git diff --cached --name-only | grep -q "^package.json$"; then
   VERSION=$(node -p "require('./package.json').version")
 
   if [ -n "$VERSION" ]; then
-    # Sync to apps/frontend/package.json
+    # Sync to apps/AG-Frontend/package.json
     if [ -f "apps/frontend/package.json" ]; then
       node -e "
         const fs = require('fs');
@@ -75,7 +75,7 @@ if git diff --cached --name-only | grep -q "^package.json$"; then
           console.log('  Updated apps/frontend/package.json to $VERSION');
         }
       "
-      git add apps/frontend/package.json
+      git add apps/AG-Frontend/package.json
     fi
 
     # Sync to apps/backend/__init__.py
@@ -136,7 +136,7 @@ if git diff --cached --name-only | grep -q "^package.json$"; then
 fi
 
 # =============================================================================
-# BACKEND CHECKS (Python) - Run first, before frontend
+# BACKEND CHECKS (Python) - Run first, before AG-Frontend
 # =============================================================================
 
 # Check if there are staged Python files in apps/backend
@@ -223,7 +223,7 @@ fi
 # FRONTEND CHECKS (TypeScript/React)
 # =============================================================================
 
-# Check if there are staged files in apps/frontend
+# Check if there are staged files in apps/AG-Frontend
 if git diff --cached --name-only | grep -q "^apps/frontend/"; then
   echo "Frontend changes detected, running frontend checks..."
 
@@ -239,7 +239,7 @@ if git diff --cached --name-only | grep -q "^apps/frontend/"; then
 
   # Check if node_modules has actual dependencies by looking for a known package
   # @lydell/node-pty is required for terminal code and is a common source of TypeScript errors
-  # It may be in root node_modules (hoisted) or apps/frontend/node_modules
+  # It may be in root node_modules (hoisted) or apps/AG-Frontend/node_modules
   # Note: -d follows symlinks automatically, so this works for both real dirs and symlinks
   # We check for the full package path (@lydell/node-pty) rather than just the namespace
   # for precise detection - ensures the actual dependency is installed, not just any @lydell package
@@ -262,10 +262,10 @@ if git diff --cached --name-only | grep -q "^apps/frontend/"; then
       exit 1
     fi
   else
-    # Dependencies available - run full frontend checks
+    # Dependencies available - run full AG-Frontend checks
     # Use subshell to isolate directory changes and prevent worktree corruption
     (
-      cd apps/frontend
+      cd apps/AG-Frontend
 
       # Run lint-staged (handles staged .ts/.tsx files)
       npm exec lint-staged

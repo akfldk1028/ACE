@@ -8,7 +8,7 @@ Logs are organized by phase (planning, coding, validation) and stored in the spe
 Key features:
 - Phase-based log organization (collapsible in UI)
 - Streaming markers for real-time UI updates
-- Persistent storage in JSON format for easy frontend consumption
+- Persistent storage in JSON format for easy AG-Frontend consumption
 - Tool usage tracking with start/end markers
 """
 

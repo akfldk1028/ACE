@@ -56,7 +56,7 @@ def extract_capabilities_ports() -> Dict[str, int]:
 
 def extract_auto_claude_ports() -> Tuple[Dict[str, int], Dict[str, int]]:
     """Extract ports from a2a-handlers.ts DEFAULT_A2A_AGENTS and portToAgent."""
-    path = AUTO_CLAUDE / "apps" / "frontend" / "src" / "main" / "ipc-handlers" / "a2a-handlers.ts"
+    path = AUTO_CLAUDE / "apps" / "AG-Frontend" / "src" / "main" / "ipc-handlers" / "a2a-handlers.ts"
     if not path.exists():
         return {}, {}
 

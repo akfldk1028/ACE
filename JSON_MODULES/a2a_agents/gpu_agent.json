@@ -1,0 +1,24 @@
+{
+  "provider": "autogenstudio.a2a.A2AAgent",
+  "component_type": "agent",
+  "version": 1,
+  "description": "GPU 아키텍처와 병렬 컴퓨팅을 전문으로 하는 에이전트 (CUDA, 메모리 대역폭, 암달의 법칙)",
+  "label": "GPU Agent",
+  "config": {
+    "name": "gpu_agent",
+    "a2a_server_url": "http://localhost:8009",
+    "description": "GPU 아키텍처 비교, 병렬화 속도 분석, 메모리 대역폭 계산, CUDA 기초",
+    "timeout": 300,
+    "skills": [
+      {"name": "gpu_architecture_compare", "description": "주요 GPU 아키텍처를 비교합니다"},
+      {"name": "parallel_speedup_analysis", "description": "암달의 법칙으로 병렬화 속도 향상을 분석합니다"},
+      {"name": "memory_bandwidth_calc", "description": "GPU 메모리 대역폭을 계산합니다"},
+      {"name": "cuda_programming_basics", "description": "CUDA 프로그래밍 기초 개념을 설명합니다"}
+    ]
+  },
+  "_source": {
+    "agent_file": "D:/Data/22_AG/autogen_a2a_kit/a2a_demo/gpu_agent/agent.py",
+    "port": 8009,
+    "framework": "google_adk"
+  }
+}

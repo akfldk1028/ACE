@@ -1,0 +1,125 @@
+{
+  "provider": "autogen_agentchat.teams.SelectorGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "description": "QA loop: QA Reviewer <-> QA Fixer. Reviewer finds issues, Fixer resolves them.",
+  "label": "Auto-Claude QA Loop",
+  "config": {
+    "name": "SelectorGroupChat",
+    "description": "QA loop: QA Reviewer <-> QA Fixer. Reviewer finds issues, Fixer resolves them.",
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "QA Reviewer - validates completeness, correctness, production-readiness.",
+        "label": "Auto-Claude QA Reviewer",
+        "config": {
+          "name": "qa_reviewer_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Opus 4.5 (Max OAuth)",
+            "description": "Claude Opus 4.5 - Max OAuth. Auto-Claude Complex/Auto profile.",
+            "config": {
+              "model": "claude-opus-4-5-20251101"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "QA Reviewer - validates completeness, correctness, production-readiness.",
+          "system_message": "You are the QA Reviewer Agent. Validate that the implementation is complete, correct, and production-ready. Check for edge cases, missing tests, security vulnerabilities, console errors, and broken functionality. If everything passes, say APPROVED. If issues found, describe them clearly for the QA Fixer.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "QA Fixer - fixes all issues found by QA Reviewer.",
+        "label": "Auto-Claude QA Fixer",
+        "config": {
+          "name": "qa_fixer_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Opus 4.5 (Max OAuth)",
+            "description": "Claude Opus 4.5 - Max OAuth. Auto-Claude Complex/Auto profile.",
+            "config": {
+              "model": "claude-opus-4-5-20251101"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "QA Fixer - fixes all issues found by QA Reviewer.",
+          "system_message": "You are the QA Fix Agent. Fix ALL issues found by the QA Reviewer efficiently and correctly. Do not introduce new issues. When all fixes are complete, say FIXED.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate when APPROVED is mentioned.",
+            "label": "ApprovedTermination",
+            "config": {
+              "text": "APPROVED"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Max 10 messages.",
+            "label": "MaxMessageTermination(10)",
+            "config": {
+              "max_messages": 10,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false,
+    "selector_prompt": "You are coordinating a QA validation loop.\n\nAvailable agents:\n- qa_reviewer_agent: Validates implementation completeness and correctness\n- qa_fixer_agent: Fixes issues found by the reviewer\n\nRules:\n1. Always start with qa_reviewer_agent\n2. If issues are found, select qa_fixer_agent\n3. After fixes, select qa_reviewer_agent to re-validate\n4. Never select the same agent twice in a row\n\nReturn ONLY the agent name.",
+    "allow_repeated_speaker": false
+  }
+}

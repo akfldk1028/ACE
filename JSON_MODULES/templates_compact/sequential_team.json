@@ -1,0 +1,40 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 2,
+  "description": "순차적 오케스트레이션 팀 - 리서처 → 작가 → 리뷰어. 각 에이전트가 이전 에이전트의 출력을 처리하는 파이프라인.",
+  "label": "Sequential Team (Template)",
+  "_defaults": {
+    "reflect_on_tool_use": false,
+    "tool_call_summary_format": "{result}",
+    "model_client": { "$ref": "models/claude_sonnet" },
+    "model_context": {
+      "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+      "component_type": "model",
+      "config": {}
+    }
+  },
+  "config": {
+    "participants": [
+      {
+        "$ref": "agents/pattern_researcher",
+        "override": {
+          "model_client.config.agent_config": {"profile": "reader", "max_turns": 2}
+        }
+      },
+      {
+        "$ref": "agents/pattern_writer",
+        "override": {
+          "model_client.config.agent_config": {"profile": "coder", "max_turns": 3}
+        }
+      },
+      {
+        "$ref": "agents/pattern_reviewer",
+        "override": {
+          "model_client.config.agent_config": {"profile": "text_only", "max_turns": 1}
+        }
+      }
+    ],
+    "termination_condition": { "$ref": "terminations/default_or" }
+  }
+}

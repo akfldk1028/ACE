@@ -652,7 +652,7 @@ export function handleOAuthToken(
  *
  * This detects the Claude Code welcome screen that appears after successful login,
  * which includes patterns like "Welcome back", "Claude Code v2.x", or subscription
- * tier info like "Claude Max". When detected, it notifies the frontend to auto-close
+ * tier info like "Claude Max". When detected, it notifies the AG-Frontend to auto-close
  * the auth terminal.
  */
 export function handleOnboardingComplete(

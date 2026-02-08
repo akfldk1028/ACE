@@ -137,7 +137,7 @@ repos:
         files: ^(apps/backend/.*\.py$|tests/.*\.py$)
         pass_filenames: false
 
-  # Frontend linting (apps/frontend/) - Biome is 15-25x faster than ESLint
+  # Frontend linting (apps/AG-Frontend/) - Biome is 15-25x faster than ESLint
   # NOTE: These hooks check for worktree context to avoid npm/node_modules issues
   - repo: local
     hooks:
@@ -154,7 +154,7 @@ repos:
             fi
             cd apps/frontend && npx biome check --write --no-errors-on-unmatched .
         language: system
-        files: ^apps/frontend/.*\.(ts|tsx|js|jsx|json)$
+        files: ^apps/AG-Frontend/.*\.(ts|tsx|js|jsx|json)$
         pass_filenames: false
 
       - id: typecheck
@@ -170,7 +170,7 @@ repos:
             fi
             cd apps/frontend && npm run typecheck
         language: system
-        files: ^apps/frontend/.*\.(ts|tsx)$
+        files: ^apps/AG-Frontend/.*\.(ts|tsx)$
         pass_filenames: false
 
   # General checks

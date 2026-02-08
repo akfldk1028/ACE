@@ -132,6 +132,27 @@ Auto-Claude operates as a **3-tier multi-agent orchestration system**:
 | **Standard** (multi-file feature) | Claude Code CLI | Sub-agents auto-parallelize |
 | **Complex** (full-stack system) | AutoGen Studio + Claude Code | Team discussion for design, then parallel implementation |
 
+### Claude Agent SDK Integration (2026-02-06)
+
+Replaced `subprocess.run("claude -p")` with `claude-agent-sdk` package. **59s -> 15s per call.**
+
+```
+AG_Cohub/sdk/           <- Modular SDK package (7 modules)
+  auth.py               OAuth token management
+  config.py             ToolProfile (TEXT_ONLY/READER/CODER/FULL_AGENT)
+  client.py             ClaudeSDK.query() + [TOOL EXECUTED] markers
+  context.py            ProjectContext + ContextManager
+  hooks.py              quality/logging/budget/security hooks
+  tools.py              MCP tool schemas
+```
+
+### Tool Execution & Plan Mode
+
+- **agent_config**: JSON team configs pass role profiles to SDK
+- **Plan Mode**: `permission_mode: "plan"` for read-only analysis (planner agents)
+- **[TOOL EXECUTED] markers**: Differentiates actual tool execution from text output
+- **Code output**: All generated files go to `D:\AC247\`
+
 ### 20 Agent Pipeline
 
 | # | Family | Agent | Type | Role |

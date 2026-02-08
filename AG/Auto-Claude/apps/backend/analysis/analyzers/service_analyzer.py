@@ -30,7 +30,7 @@ class ServiceAnalyzer(BaseAnalyzer):
             "path": str(service_path),
             "language": None,
             "framework": None,
-            "type": None,  # backend, frontend, worker, library, etc.
+            "type": None,  # backend, AG-Frontend, worker, library, etc.
         }
 
     def analyze(self) -> dict[str, Any]:
@@ -69,8 +69,8 @@ class ServiceAnalyzer(BaseAnalyzer):
         name_lower = self.name.lower()
 
         # Infer from name
-        if any(kw in name_lower for kw in ["frontend", "client", "web", "ui", "app"]):
-            self.analysis["type"] = "frontend"
+        if any(kw in name_lower for kw in ["AG-Frontend", "client", "web", "ui", "app"]):
+            self.analysis["type"] = "AG-Frontend"
         elif any(kw in name_lower for kw in ["backend", "api", "server", "service"]):
             self.analysis["type"] = "backend"
         elif any(

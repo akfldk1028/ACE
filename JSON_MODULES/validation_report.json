@@ -1,0 +1,679 @@
+{
+  "timestamp": "2026-02-08T00:37:35.339924",
+  "total_files": 98,
+  "pass": 98,
+  "fail": 0,
+  "warnings": 52,
+  "cross_module": {
+    "registry": [],
+    "gallery": [],
+    "dry_violations": [
+      "029_Auto-Claude Build (Auto_Opus).json: identical model_context repeated 3x (could be team-level default)",
+      "030_Auto-Claude Build (Balanced_Sonnet).json: identical model_context repeated 3x (could be team-level default)",
+      "031_Auto-Claude Spec Creation.json: identical model_context repeated 2x (could be team-level default)",
+      "032_Auto-Claude QA Loop.json: identical model_context repeated 2x (could be team-level default)",
+      "034_A2A Research Team.json: identical model_context repeated 3x (could be team-level default)",
+      "035_default_team17.json: identical model_context repeated 3x (could be team-level default)",
+      "036_Auto-Claude + A2A Full Team.json: identical model_context repeated 11x (could be team-level default)",
+      "037_Auto-Claude Sequential Pipeline.json: identical model_context repeated 8x (could be team-level default)",
+      "cohub_01_Sequential_Team_(순차적_협업).json: identical model_context repeated 3x (could be team-level default)",
+      "cohub_02_Selector_Team_(전문가_라우팅).json: identical model_context repeated 4x (could be team-level default)",
+      "cohub_03_Handoff_Team_(고객_서비스).json: identical model_context repeated 4x (could be team-level default)",
+      "cohub_04_Debate_Team_(찬반_토론).json: identical model_context repeated 3x (could be team-level default)",
+      "cohub_05_Reflection_Team_(품질_개선).json: identical model_context repeated 2x (could be team-level default)",
+      "gallery 'Sequential Team (순차적 협업)': inline agent 'researcher' also exists in agents/ (potential DRY violation)",
+      "gallery 'Sequential Team (순차적 협업)': inline agent 'writer' also exists in agents/ (potential DRY violation)",
+      "gallery 'Sequential Team (순차적 협업)': inline agent 'reviewer' also exists in agents/ (potential DRY violation)",
+      "gallery 'Selector Team (전문가 라우팅)': inline agent 'coordinator' also exists in agents/ (potential DRY violation)",
+      "gallery 'Selector Team (전문가 라우팅)': inline agent 'history_expert' also exists in agents/ (potential DRY violation)",
+      "gallery 'Selector Team (전문가 라우팅)': inline agent 'science_expert' also exists in agents/ (potential DRY violation)",
+      "gallery 'Selector Team (전문가 라우팅)': inline agent 'math_expert' also exists in agents/ (potential DRY violation)",
+      "gallery 'Handoff Team (고객 서비스)': inline agent 'triage_agent' also exists in agents/ (potential DRY violation)",
+      "gallery 'Handoff Team (고객 서비스)': inline agent 'support_agent' also exists in agents/ (potential DRY violation)",
+      "gallery 'Handoff Team (고객 서비스)': inline agent 'sales_agent' also exists in agents/ (potential DRY violation)",
+      "gallery 'Handoff Team (고객 서비스)': inline agent 'refund_agent' also exists in agents/ (potential DRY violation)",
+      "gallery 'Debate Team (찬반 토론)': inline agent 'advocate' also exists in agents/ (potential DRY violation)",
+      "gallery 'Debate Team (찬반 토론)': inline agent 'critic' also exists in agents/ (potential DRY violation)",
+      "gallery 'Debate Team (찬반 토론)': inline agent 'judge' also exists in agents/ (potential DRY violation)",
+      "gallery 'Reflection Team (품질 개선)': inline agent 'generator' also exists in agents/ (potential DRY violation)",
+      "gallery 'Reflection Team (품질 개선)': inline agent 'critic' also exists in agents/ (potential DRY violation)"
+    ],
+    "ref_checks": [
+      "[OK] test-resolve reflection_team.json: 2 agents resolved"
+    ]
+  },
+  "results": [
+    {
+      "file": "a2a_agents\\calculator_agent.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "a2a_agents\\gpu_agent.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "a2a_agents\\graphics_agent.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "a2a_agents\\gui_test_agent.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "a2a_agents\\history_agent.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "a2a_agents\\history_helper_agent.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "a2a_agents\\math_agent.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "a2a_agents\\philosophy_agent.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "a2a_agents\\poetry_agent.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "a2a_agents\\remote_prime_checker.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\auto_claude_01_Auto_Claude_Planner.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\auto_claude_02_Auto_Claude_Coder.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\auto_claude_03_Auto_Claude_QA_Reviewer.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\auto_claude_04_Auto_Claude_QA_Fixer.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\auto_claude_05_Insights_Analyst.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\auto_claude_06_Deep_Research_Agent.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\auto_claude_07_Spec_Writer_Agent.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_01_Advocate_Debate.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_02_Critic_Debate.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_03_Judge_Debate.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_04_Generator_Reflection.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_05_Critic_Reflection.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_06_Researcher_Sequential.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_07_Writer_Sequential.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_08_Reviewer_Sequential.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_09_Coordinator_Selector.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_10_History_Expert_Selector.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_11_Science_Expert_Selector.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_12_Math_Expert_Selector.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_13_Triage_Handoff.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_14_Support_Handoff.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_15_Sales_Handoff.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "agents\\pattern_16_Refund_Handoff.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "cohub_gallery.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "e2e_logs\\e2e_run_20260207_150735.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "e2e_logs\\e2e_run_20260207_151928.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "e2e_logs\\e2e_run_20260207_153157.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "index.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "models\\claude_01_Claude_Opus_4.5_Max_OAuth.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "models\\claude_02_Claude_Sonnet_4.5_Max_OAuth.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "models\\claude_03_Claude_Haiku_4.5_Max_OAuth.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "models\\default_01_OpenAI_GPT_4o_Mini.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "models\\default_02_Mistral_7B_Local.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "models\\default_03_Anthropic_Claude_3_7.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "models\\default_04_AzureOpenAI_GPT_4o_mini.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "patterns\\01_sequential.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\02_concurrent.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\03_selector.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\04_group_chat.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\05_handoff.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\06_magentic.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\07_debate.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\08_reflection.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\09_hierarchical.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\10_mixture_of_agents.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\11_cli_collaboration.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\11_code_execution.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\11_gui_test_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "patterns\\12_pseudo_hierarchical.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "providers\\providers.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "registry.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    },
+    {
+      "file": "resolved\\auto_claude_dev_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "resolved\\debate_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "resolved\\handoff_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "resolved\\hybrid_calculator_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "resolved\\reflection_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "resolved\\selector_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "resolved\\sequential_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\013_A2A_Multi_Agent_Team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\027_AutoClaude.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\029_Auto-Claude Build (Auto_Opus).json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\030_Auto-Claude Build (Balanced_Sonnet).json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\031_Auto-Claude Spec Creation.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\032_Auto-Claude QA Loop.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\033_Auto-Claude A2A Protocol Team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\034_A2A Research Team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\035_default_team17.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\036_Auto-Claude + A2A Full Team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\037_Auto-Claude Sequential Pipeline.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\cohub_01_Sequential_Team_(순차적_협업).json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\cohub_02_Selector_Team_(전문가_라우팅).json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\cohub_03_Handoff_Team_(고객_서비스).json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\cohub_04_Debate_Team_(찬반_토론).json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "teams\\cohub_05_Reflection_Team_(품질_개선).json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates\\auto_claude_dev_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates\\debate_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates\\handoff_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates\\reflection_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates\\selector_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates\\sequential_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates_compact\\auto_claude_dev_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates_compact\\debate_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates_compact\\handoff_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates_compact\\hybrid_calculator_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates_compact\\reflection_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates_compact\\selector_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates_compact\\sequential_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "validation_report.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [
+        "Non-component file (docs/registry) - skipping field checks"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "provider": "autogenstudio.a2a.A2AAgent",
+  "component_type": "agent",
+  "version": 1,
+  "description": "수학 문제 해결과 수학적 개념 설명을 전문으로 하는 에이전트 (대수학, 정수론, 선형대수)",
+  "label": "Math Agent",
+  "config": {
+    "name": "math_agent",
+    "a2a_server_url": "http://localhost:8007",
+    "description": "이차방정식, 피보나치 분석, 소인수분해, 행렬식 계산",
+    "timeout": 300,
+    "skills": [
+      {"name": "solve_quadratic", "description": "이차방정식 ax^2 + bx + c = 0을 풉니다"},
+      {"name": "fibonacci_analysis", "description": "피보나치 수열 분석 (황금비 수렴)"},
+      {"name": "prime_factorization", "description": "소인수분해를 수행합니다"},
+      {"name": "matrix_determinant", "description": "2x2 또는 3x3 행렬식을 계산합니다"}
+    ]
+  },
+  "_source": {
+    "agent_file": "D:/Data/22_AG/autogen_a2a_kit/a2a_demo/math_agent/agent.py",
+    "port": 8007,
+    "framework": "google_adk"
+  }
+}

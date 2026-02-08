@@ -18,7 +18,7 @@ export function getBundledSourcePath(): string {
 
   // Development mode - look for backend in various locations
   const possiblePaths = [
-    // New structure: apps/frontend -> apps/backend
+    // New structure: apps/AG-Frontend -> apps/backend
     path.join(app.getAppPath(), '..', 'backend'),
     path.join(app.getAppPath(), '..', '..', 'apps', 'backend'),
     path.join(process.cwd(), 'apps', 'backend'),

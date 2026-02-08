@@ -48,8 +48,8 @@ npm --version   # Should output: 11.x.x or higher
 ## Quick Start
 
 ```bash
-# Navigate to frontend directory
-cd apps/frontend
+# Navigate to AG-Frontend directory
+cd apps/AG-Frontend
 
 # Install dependencies (includes native module rebuild)
 npm install

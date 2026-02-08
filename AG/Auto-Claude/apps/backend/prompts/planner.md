@@ -287,7 +287,7 @@ Based on the workflow type and services involved, create the implementation plan
       ]
     },
     {
-      "id": "phase-3-frontend",
+      "id": "phase-3-AG-Frontend",
       "name": "Frontend Dashboard",
       "type": "implementation",
       "description": "Build the real-time dashboard UI",
@@ -297,7 +297,7 @@ Based on the workflow type and services involved, create the implementation plan
         {
           "id": "subtask-3-1",
           "description": "Create dashboard component",
-          "service": "frontend",
+          "service": "AG-Frontend",
           "files_to_modify": [],
           "files_to_create": ["src/components/Dashboard.tsx"],
           "patterns_from": ["src/components/ExistingPage.tsx"],
@@ -315,7 +315,7 @@ Based on the workflow type and services involved, create the implementation plan
       "name": "Integration",
       "type": "integration",
       "description": "Wire all services together and verify end-to-end",
-      "depends_on": ["phase-2-worker", "phase-3-frontend"],
+      "depends_on": ["phase-2-worker", "phase-3-AG-Frontend"],
       "parallel_safe": false,
       "subtasks": [
         {
@@ -328,7 +328,7 @@ Based on the workflow type and services involved, create the implementation plan
           "verification": {
             "type": "e2e",
             "steps": [
-              "Trigger event via frontend",
+              "Trigger event via AG-Frontend",
               "Verify backend receives it",
               "Verify worker processes it",
               "Verify dashboard updates"
@@ -561,7 +561,7 @@ Include parallelism analysis, verification strategy, and QA configuration in the
   "summary": {
     "total_phases": 6,
     "total_subtasks": 10,
-    "services_involved": ["database", "frontend", "worker"],
+    "services_involved": ["database", "AG-Frontend", "worker"],
     "parallelism": {
       "max_parallel_phases": 2,
       "parallel_groups": [
@@ -712,8 +712,8 @@ wait_for_service [backend.port] "Backend"
 cd [worker.path] && [worker.dev_command] &
 
 # Frontend
-cd [frontend.path] && [frontend.dev_command] &
-wait_for_service [frontend.port] "Frontend"
+cd [AG-Frontend.path] && [AG-Frontend.dev_command] &
+wait_for_service [AG-Frontend.port] "Frontend"
 
 # ============================================
 # SUMMARY

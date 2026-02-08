@@ -42,7 +42,7 @@ def detect_project_capabilities(project_index: dict) -> dict:
     Analyzes the project_index.json to identify:
     - Desktop app frameworks (Electron, Tauri)
     - Mobile frameworks (Expo, React Native)
-    - Web frontend frameworks (React, Vue, Next.js, etc.)
+    - Web AG-Frontend frameworks (React, Vue, Next.js, etc.)
     - Backend capabilities (APIs, databases)
 
     Args:
@@ -54,7 +54,7 @@ def detect_project_capabilities(project_index: dict) -> dict:
         - is_tauri: True if project uses Tauri
         - is_expo: True if project uses Expo
         - is_react_native: True if project uses React Native
-        - is_web_frontend: True if project has web frontend (React, Vue, etc.)
+        - is_web_frontend: True if project has web AG-Frontend (React, Vue, etc.)
         - is_nextjs: True if project uses Next.js
         - is_nuxt: True if project uses Nuxt
         - has_api: True if project has API routes
@@ -67,7 +67,7 @@ def detect_project_capabilities(project_index: dict) -> dict:
         # Mobile frameworks
         "is_expo": False,
         "is_react_native": False,
-        # Web frontend frameworks
+        # Web AG-Frontend frameworks
         "is_web_frontend": False,
         "is_nextjs": False,
         "is_nuxt": False,
@@ -114,7 +114,7 @@ def detect_project_capabilities(project_index: dict) -> dict:
         if "react-native" in deps:
             capabilities["is_react_native"] = True
 
-        # Web frontend detection
+        # Web AG-Frontend detection
         web_frameworks = ("react", "vue", "svelte", "angular", "solid")
         if framework in web_frameworks:
             capabilities["is_web_frontend"] = True
@@ -135,7 +135,7 @@ def detect_project_capabilities(project_index: dict) -> dict:
             capabilities["is_nuxt"] = True
             capabilities["is_web_frontend"] = True
         if "vite" in deps and not capabilities["is_electron"]:
-            # Vite usually indicates web frontend (unless Electron)
+            # Vite usually indicates web AG-Frontend (unless Electron)
             capabilities["is_web_frontend"] = True
 
         # API detection

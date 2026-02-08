@@ -138,7 +138,7 @@ class ComplexityAnalyzer:
 
     MULTI_SERVICE_KEYWORDS = [
         "backend",
-        "frontend",
+        "AG-Frontend",
         "worker",
         "service",
         "api",

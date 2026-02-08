@@ -12,7 +12,7 @@ CollaborativeAgent는 다른 에이전트와 대화하고 협업할 수 있는 �
 사용법:
     agent = CollaborativeAgent(
         name="frontend_agent",
-        folder="frontend",
+        folder="AG-Frontend",
         expertise="React/TypeScript",
         bus_url="ws://localhost:8100",
         memory_url="http://localhost:8101"
@@ -260,7 +260,7 @@ class CollaborativeAgent:
         """
         Args:
             name: 에이전트 이름 (frontend_agent, backend_agent 등)
-            folder: 담당 폴더 (frontend, backend, db 등)
+            folder: 담당 폴더 (AG-Frontend, backend, db 등)
             expertise: 전문 분야 (React/TypeScript, FastAPI/Python 등)
             project_root: 프로젝트 루트 경로
             bus_url: Message Bus URL

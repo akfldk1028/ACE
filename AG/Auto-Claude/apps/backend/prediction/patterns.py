@@ -223,7 +223,7 @@ def detect_work_type(subtask: dict) -> list[str]:
         work_types.append("database_model")
 
     # Frontend component detection
-    if service in ["frontend", "web", "ui"]:
+    if service in ["AG-Frontend", "web", "ui"]:
         work_types.append("frontend_component")
     if any(f.endswith((".tsx", ".jsx", ".vue", ".svelte")) for f in files):
         work_types.append("frontend_component")

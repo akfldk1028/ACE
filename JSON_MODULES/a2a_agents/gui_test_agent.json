@@ -1,0 +1,28 @@
+{
+  "provider": "autogenstudio.a2a.A2AAgent",
+  "component_type": "agent",
+  "version": 1,
+  "description": "GUI 자동화 및 테스트 전문가. 화면 스크린샷, 마우스/키보드 제어, UI 요소 찾기",
+  "label": "GUI Test Agent",
+  "config": {
+    "name": "gui_test_agent",
+    "a2a_server_url": "http://localhost:8120",
+    "description": "화면 스크린샷, 마우스/키보드 제어, UI 요소 찾기, 데스크톱 앱 테스트",
+    "timeout": 300,
+    "skills": [
+      {"name": "take_screenshot", "description": "화면 스크린샷을 촬영합니다"},
+      {"name": "click_at", "description": "특정 좌표에 마우스 클릭을 수행합니다"},
+      {"name": "move_mouse", "description": "마우스를 특정 좌표로 이동합니다"},
+      {"name": "type_text", "description": "텍스트를 입력합니다"},
+      {"name": "press_key", "description": "특수 키 또는 조합키를 입력합니다"},
+      {"name": "find_image_on_screen", "description": "화면에서 이미지를 찾습니다"},
+      {"name": "get_screen_info", "description": "화면 정보를 조회합니다"},
+      {"name": "scroll", "description": "마우스 스크롤을 수행합니다"}
+    ]
+  },
+  "_source": {
+    "agent_file": "D:/Data/22_AG/autogen_a2a_kit/a2a_demo/gui_test_agent/agent.py",
+    "port": 8120,
+    "framework": "google_adk"
+  }
+}

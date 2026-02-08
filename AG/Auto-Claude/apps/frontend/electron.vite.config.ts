@@ -6,7 +6,7 @@ import { resolve } from 'path';
  * Sentry configuration embedded at build time.
  *
  * In CI builds, these come from GitHub secrets.
- * In local development, these come from apps/frontend/.env (loaded by dotenv).
+ * In local development, these come from apps/AG-Frontend/.env (loaded by dotenv).
  *
  * The `define` option replaces these values at build time, so they're
  * embedded in the bundle and available at runtime in packaged apps.

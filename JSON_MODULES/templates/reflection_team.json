@@ -1,0 +1,81 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 2,
+  "description": "반성 팀 - 생성 → 비평 → 개선 루프. 생성 에이전트가 출력을 만들고, 비평 에이전트가 검토 후 APPROVED 또는 피드백을 반복.",
+  "label": "Reflection Team (Template)",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "generator",
+          "description": "콘텐츠 생성 담당",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "system_message": "주어진 작업을 수행하고 결과를 생성하세요. 비평을 받으면 피드백을 반영하여 개선된 버전을 제공하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "agent_config": {"profile": "coder", "max_turns": 3, "permission_mode": "acceptEdits", "cwd": "D:\\AC247"}
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          }
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "critic",
+          "description": "품질 검토 및 피드백",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "system_message": "생성된 결과를 검토하고 구체적인 개선점을 제시하세요. 문제가 없으면 'APPROVED'라고 말하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "agent_config": {"profile": "text_only", "max_turns": 1}
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          }
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "config": {
+              "text": "APPROVED"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "config": {
+              "max_messages": 6
+            }
+          }
+        ]
+      }
+    }
+  }
+}

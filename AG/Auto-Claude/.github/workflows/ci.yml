@@ -111,7 +111,7 @@ jobs:
   # Frontend Tests - All Platforms
   # --------------------------------------------------------------------------
   test-frontend:
-    name: test-frontend (${{ matrix.os }})
+    name: test-AG-Frontend (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -123,21 +123,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js frontend
-        uses: ./.github/actions/setup-node-frontend
+      - name: Setup Node.js AG-Frontend
+        uses: ./.github/actions/setup-node-AG-Frontend
         with:
           ignore-scripts: 'true'
 
       - name: Run TypeScript type check
-        working-directory: apps/frontend
+        working-directory: apps/AG-Frontend
         run: npm run typecheck
 
       - name: Run unit tests
-        working-directory: apps/frontend
+        working-directory: apps/AG-Frontend
         run: npm run test
 
       - name: Build application
-        working-directory: apps/frontend
+        working-directory: apps/AG-Frontend
         run: npm run build
 
   # --------------------------------------------------------------------------

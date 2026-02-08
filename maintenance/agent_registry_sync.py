@@ -75,7 +75,7 @@ def extract_a2a_agent_types() -> Set[str]:
 
 def extract_auto_claude_agents() -> Set[str]:
     """Extract agent names from a2a-handlers.ts DEFAULT_A2A_AGENTS."""
-    path = AUTO_CLAUDE / "apps" / "frontend" / "src" / "main" / "ipc-handlers" / "a2a-handlers.ts"
+    path = AUTO_CLAUDE / "apps" / "AG-Frontend" / "src" / "main" / "ipc-handlers" / "a2a-handlers.ts"
     if not path.exists():
         return set()
 

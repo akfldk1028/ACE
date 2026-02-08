@@ -1157,7 +1157,7 @@ export function registerClaudeCodeHandlers(): void {
   );
 
   // Authenticate Claude profile - returns terminal config for embedded terminal
-  // The frontend creates an embedded terminal with CLAUDE_CONFIG_DIR set,
+  // The AG-Frontend creates an embedded terminal with CLAUDE_CONFIG_DIR set,
   // and the terminal ID pattern enables automatic token capture on /login
   ipcMain.handle(
     IPC_CHANNELS.CLAUDE_PROFILE_AUTHENTICATE,

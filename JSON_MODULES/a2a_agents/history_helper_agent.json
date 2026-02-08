@@ -1,0 +1,21 @@
+{
+  "provider": "autogenstudio.a2a.A2AAgent",
+  "component_type": "agent",
+  "version": 1,
+  "description": "An agent that can help students with their history homework",
+  "label": "History Helper Agent",
+  "config": {
+    "name": "history_helper_agent",
+    "a2a_server_url": "http://localhost:8001",
+    "description": "History homework helper for students",
+    "timeout": 300,
+    "skills": [
+      {"name": "dummy_tool", "description": "Helps the agent with history queries"}
+    ]
+  },
+  "_source": {
+    "agent_file": "D:/Data/25_ACE/AG/agent/a2a/remote_adk_agent/agent.py",
+    "port": 8001,
+    "framework": "google_adk"
+  }
+}

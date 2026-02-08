@@ -1,0 +1,11 @@
+{
+  "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+  "component_type": "model",
+  "version": 1,
+  "label": "Claude Opus 4.5 (Max OAuth)",
+  "description": "Claude Opus 4.5 - Max OAuth. Auto-Claude Complex/Auto profile.",
+  "config": {
+    "model": "claude-opus-4-5-20251101",
+    "profile": "complex"
+  }
+}

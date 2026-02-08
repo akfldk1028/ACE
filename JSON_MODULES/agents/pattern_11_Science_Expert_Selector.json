@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Science Expert (Selector)",
+  "description": "과학 관련 질문 전문가",
+  "config": {
+    "name": "science_expert",
+    "system_message": "당신은 과학 전문가입니다. 과학 관련 질문에 정확하고 상세하게 답변하세요."
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+  "component_type": "model",
+  "version": 1,
+  "label": "Claude Haiku 4.5 (Max OAuth)",
+  "description": "Claude Haiku 4.5 - Max OAuth. Auto-Claude Quick Edits profile.",
+  "config": {
+    "model": "claude-haiku-4-5-20251001",
+    "profile": "quick"
+  }
+}

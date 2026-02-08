@@ -143,16 +143,16 @@ class FrameworkAnalyzer(BaseAnalyzer):
 
         # Frontend frameworks
         frontend_frameworks = {
-            "next": {"name": "Next.js", "type": "frontend", "port": 3000},
-            "nuxt": {"name": "Nuxt", "type": "frontend", "port": 3000},
-            "react": {"name": "React", "type": "frontend", "port": 3000},
-            "vue": {"name": "Vue", "type": "frontend", "port": 5173},
-            "svelte": {"name": "Svelte", "type": "frontend", "port": 5173},
-            "@sveltejs/kit": {"name": "SvelteKit", "type": "frontend", "port": 5173},
-            "angular": {"name": "Angular", "type": "frontend", "port": 4200},
-            "@angular/core": {"name": "Angular", "type": "frontend", "port": 4200},
-            "solid-js": {"name": "SolidJS", "type": "frontend", "port": 3000},
-            "astro": {"name": "Astro", "type": "frontend", "port": 4321},
+            "next": {"name": "Next.js", "type": "AG-Frontend", "port": 3000},
+            "nuxt": {"name": "Nuxt", "type": "AG-Frontend", "port": 3000},
+            "react": {"name": "React", "type": "AG-Frontend", "port": 3000},
+            "vue": {"name": "Vue", "type": "AG-Frontend", "port": 5173},
+            "svelte": {"name": "Svelte", "type": "AG-Frontend", "port": 5173},
+            "@sveltejs/kit": {"name": "SvelteKit", "type": "AG-Frontend", "port": 5173},
+            "angular": {"name": "Angular", "type": "AG-Frontend", "port": 4200},
+            "@angular/core": {"name": "Angular", "type": "AG-Frontend", "port": 4200},
+            "solid-js": {"name": "SolidJS", "type": "AG-Frontend", "port": 3000},
+            "astro": {"name": "Astro", "type": "AG-Frontend", "port": 4321},
         }
 
         # Backend frameworks
@@ -167,7 +167,7 @@ class FrameworkAnalyzer(BaseAnalyzer):
 
         port_detector = PortDetector(self.path, self.analysis)
 
-        # Check frontend first (Next.js includes React, etc.)
+        # Check AG-Frontend first (Next.js includes React, etc.)
         for key, info in frontend_frameworks.items():
             if key in deps_lower:
                 self.analysis["framework"] = info["name"]
@@ -176,7 +176,7 @@ class FrameworkAnalyzer(BaseAnalyzer):
                 self.analysis["default_port"] = detected_port
                 break
 
-        # If no frontend, check backend
+        # If no AG-Frontend, check backend
         if not self.analysis.get("framework"):
             for key, info in backend_frameworks.items():
                 if key in deps_lower:

@@ -498,7 +498,7 @@ class IssueBatcher:
             "security",
             "ui",
             "ux",
-            "frontend",
+            "AG-Frontend",
             "backend",
             "api",
             "database",

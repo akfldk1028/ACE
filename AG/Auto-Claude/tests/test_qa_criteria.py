@@ -191,7 +191,7 @@ def sample_implementation_plan():
     return {
         "feature": "User Avatar Upload",
         "workflow_type": "feature",
-        "services_involved": ["backend", "worker", "frontend"],
+        "services_involved": ["backend", "worker", "AG-Frontend"],
         "phases": [
             {
                 "phase": 1,

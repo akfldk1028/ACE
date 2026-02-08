@@ -195,7 +195,7 @@ The release workflow **validates** that `CHANGELOG.md` has an entry for the vers
 1. Check if version in `package.json` is greater than latest tag:
    ```bash
    git tag -l 'v*' --sort=-version:refname | head -1
-   cat apps/frontend/package.json | grep version
+   cat apps/AG-Frontend/package.json | grep version
    ```
 
 2. Ensure the merge commit touched `package.json`:

@@ -233,7 +233,7 @@ export interface ElectronAPI {
   onTerminalWorktreeConfigChange: (callback: (id: string, config: TerminalWorktreeConfig | undefined) => void) => () => void;
   onTerminalClaudeSession: (callback: (id: string, sessionId: string) => void) => () => void;
   onTerminalRateLimit: (callback: (info: RateLimitInfo) => void) => () => void;
-  /** Listen for OAuth authentication completion (token is auto-saved to profile, never exposed to frontend) */
+  /** Listen for OAuth authentication completion (token is auto-saved to profile, never exposed to AG-Frontend) */
   onTerminalOAuthToken: (callback: (info: {
     terminalId: string;
     profileId?: string;

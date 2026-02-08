@@ -80,7 +80,7 @@ def get_gh_executable() -> str | None:
     Returns the path to gh executable, or None if not found.
 
     Priority order:
-    1. GITHUB_CLI_PATH env var (user-configured path from frontend)
+    1. GITHUB_CLI_PATH env var (user-configured path from AG-Frontend)
     2. shutil.which (if gh is in PATH)
     3. Homebrew paths on macOS
     4. Windows Program Files paths
@@ -101,7 +101,7 @@ def get_gh_executable() -> str | None:
 
 def _find_gh_executable() -> str | None:
     """Internal function to find gh executable."""
-    # 1. Check GITHUB_CLI_PATH env var (set by Electron frontend)
+    # 1. Check GITHUB_CLI_PATH env var (set by Electron AG-Frontend)
     env_path = os.environ.get("GITHUB_CLI_PATH")
     if env_path and os.path.isfile(env_path) and _verify_gh_executable(env_path):
         return env_path

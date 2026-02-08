@@ -23,7 +23,7 @@ class Subtask:
     status: SubtaskStatus = SubtaskStatus.PENDING
 
     # Scoping
-    service: str | None = None  # Which service (backend, frontend, worker)
+    service: str | None = None  # Which service (backend, AG-Frontend, worker)
     all_services: bool = False  # True for integration subtasks
 
     # Files

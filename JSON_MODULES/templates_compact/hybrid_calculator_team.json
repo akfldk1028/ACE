@@ -1,0 +1,39 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 2,
+  "description": "Claude planner + A2A calculator agent hybrid team",
+  "label": "Hybrid Calculator Team",
+  "_defaults": {
+    "reflect_on_tool_use": false,
+    "tool_call_summary_format": "{result}",
+    "model_client": { "$ref": "models/claude_sonnet" },
+    "model_context": {
+      "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+      "component_type": "model",
+      "config": {}
+    }
+  },
+  "config": {
+    "participants": [
+      {
+        "$ref": "agents/auto_claude_planner",
+        "override": {
+          "model_client.config.agent_config": {
+            "profile": "reader",
+            "max_turns": 2
+          }
+        }
+      },
+      {
+        "$ref": "a2a_agents/calculator",
+        "override": {
+          "timeout": 60
+        }
+      }
+    ],
+    "termination_condition": {
+      "$ref": "terminations/default_or"
+    }
+  }
+}

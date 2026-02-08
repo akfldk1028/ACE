@@ -1084,7 +1084,7 @@ export function registerWorktreeHandlers(
                         hasGitConflicts: false
                       },
                       gitConflicts: result.gitConflicts || null,
-                      // Include uncommitted changes info for the frontend
+                      // Include uncommitted changes info for the AG-Frontend
                       uncommittedChanges: hasUncommittedChanges ? {
                         hasChanges: true,
                         files: uncommittedFiles,

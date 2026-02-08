@@ -196,7 +196,7 @@ def handle_build_command(
     )
 
     # If base_branch not provided via CLI, try to read from task_metadata.json
-    # This ensures the backend uses the branch configured in the frontend
+    # This ensures the backend uses the branch configured in the AG-Frontend
     if base_branch is None:
         metadata_branch = get_base_branch_from_metadata(spec_dir)
         if metadata_branch:

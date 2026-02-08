@@ -419,7 +419,7 @@ async function startAutoFix(
       specData.metadata
     );
 
-    // Immediately update the plan status to 'planning' so the frontend shows the task as "In Progress"
+    // Immediately update the plan status to 'planning' so the AG-Frontend shows the task as "In Progress"
     // This provides instant feedback to the user while spec_runner.py is starting up
     updateImplementationPlanStatus(specData.specDir, 'planning');
 

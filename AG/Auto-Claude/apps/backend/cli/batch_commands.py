@@ -69,7 +69,7 @@ def handle_batch_create_command(batch_file: str, project_dir: str) -> bool:
             "task_description": task.get("description", task_title),
             "description": task.get("description", task_title),
             "workflow_type": task.get("workflow_type", "feature"),
-            "services_involved": task.get("services", ["frontend"]),
+            "services_involved": task.get("services", ["AG-Frontend"]),
             "priority": task.get("priority", 5),
             "complexity_inferred": task.get("complexity", "standard"),
             "inferred_from": {},

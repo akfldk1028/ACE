@@ -262,7 +262,7 @@ class ProjectAnalyzer:
             consumes = []
 
             # Check for API client patterns
-            if service_info.get("type") == "frontend":
+            if service_info.get("type") == "AG-Frontend":
                 # Frontend typically consumes backend
                 for other_name, other_info in services.items():
                     if other_info.get("type") == "backend":

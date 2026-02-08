@@ -80,7 +80,7 @@ jobs:
           python-version: '3.11'
 
       - name: Setup Node.js and install dependencies
-        uses: ./.github/actions/setup-node-frontend
+        uses: ./.github/actions/setup-node-AG-Frontend
 
       - name: Install Rust toolchain (for building native Python packages)
         uses: dtolnay/rust-toolchain@stable
@@ -96,13 +96,13 @@ jobs:
       - name: Cache bundled Python
         uses: actions/cache@v4
         with:
-          path: apps/frontend/python-runtime
+          path: apps/AG-Frontend/python-runtime
           key: python-bundle-${{ runner.os }}-x64-3.12.8-rust-${{ hashFiles('apps/backend/requirements.txt') }}
           restore-keys: |
             python-bundle-${{ runner.os }}-x64-3.12.8-rust-
 
       - name: Build application
-        run: cd apps/frontend && npm run build
+        run: cd apps/AG-Frontend && npm run build
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_TRACES_SAMPLE_RATE: ${{ secrets.SENTRY_TRACES_SAMPLE_RATE }}
@@ -156,7 +156,7 @@ jobs:
           python-version: '3.11'
 
       - name: Setup Node.js and install dependencies
-        uses: ./.github/actions/setup-node-frontend
+        uses: ./.github/actions/setup-node-AG-Frontend
 
       - name: Cache pip wheel cache
         uses: actions/cache@v4
@@ -169,13 +169,13 @@ jobs:
       - name: Cache bundled Python
         uses: actions/cache@v4
         with:
-          path: apps/frontend/python-runtime
+          path: apps/AG-Frontend/python-runtime
           key: python-bundle-${{ runner.os }}-arm64-3.12.8-${{ hashFiles('apps/backend/requirements.txt') }}
           restore-keys: |
             python-bundle-${{ runner.os }}-arm64-3.12.8-
 
       - name: Build application
-        run: cd apps/frontend && npm run build
+        run: cd apps/AG-Frontend && npm run build
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_TRACES_SAMPLE_RATE: ${{ secrets.SENTRY_TRACES_SAMPLE_RATE }}
@@ -231,7 +231,7 @@ jobs:
           python-version: '3.11'
 
       - name: Setup Node.js and install dependencies
-        uses: ./.github/actions/setup-node-frontend
+        uses: ./.github/actions/setup-node-AG-Frontend
 
       - name: Cache pip wheel cache
         uses: actions/cache@v4
@@ -244,13 +244,13 @@ jobs:
       - name: Cache bundled Python
         uses: actions/cache@v4
         with:
-          path: apps/frontend/python-runtime
+          path: apps/AG-Frontend/python-runtime
           key: python-bundle-${{ runner.os }}-x64-3.12.8-${{ hashFiles('apps/backend/requirements.txt') }}
           restore-keys: |
             python-bundle-${{ runner.os }}-x64-3.12.8-
 
       - name: Build application
-        run: cd apps/frontend && npm run build
+        run: cd apps/AG-Frontend && npm run build
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_TRACES_SAMPLE_RATE: ${{ secrets.SENTRY_TRACES_SAMPLE_RATE }}
@@ -284,7 +284,7 @@ jobs:
           endpoint: https://neu.codesigning.azure.net/
           trusted-signing-account-name: ${{ secrets.AZURE_SIGNING_ACCOUNT }}
           certificate-profile-name: ${{ secrets.AZURE_CERTIFICATE_PROFILE }}
-          files-folder: apps/frontend/dist
+          files-folder: apps/AG-Frontend/dist
           files-folder-filter: exe
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
@@ -403,7 +403,7 @@ jobs:
           python-version: '3.11'
 
       - name: Setup Node.js and install dependencies
-        uses: ./.github/actions/setup-node-frontend
+        uses: ./.github/actions/setup-node-AG-Frontend
 
       - name: Setup Flatpak
         run: |
@@ -425,13 +425,13 @@ jobs:
       - name: Cache bundled Python
         uses: actions/cache@v4
         with:
-          path: apps/frontend/python-runtime
+          path: apps/AG-Frontend/python-runtime
           key: python-bundle-${{ runner.os }}-x64-3.12.8-${{ hashFiles('apps/backend/requirements.txt') }}
           restore-keys: |
             python-bundle-${{ runner.os }}-x64-3.12.8-
 
       - name: Build application
-        run: cd apps/frontend && npm run build
+        run: cd apps/AG-Frontend && npm run build
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_TRACES_SAMPLE_RATE: ${{ secrets.SENTRY_TRACES_SAMPLE_RATE }}

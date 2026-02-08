@@ -420,7 +420,7 @@ class PRReviewResult:
         default_factory=list
     )  # New issues in recent commits
 
-    # Posted findings tracking (for frontend state sync)
+    # Posted findings tracking (for AG-Frontend state sync)
     has_posted_findings: bool = False  # True if any findings have been posted to GitHub
     posted_finding_ids: list[str] = field(
         default_factory=list

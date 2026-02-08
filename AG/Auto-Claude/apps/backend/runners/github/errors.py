@@ -71,7 +71,7 @@ class StructuredError:
     Structured error object for IPC and UI display.
 
     This class provides:
-    - Serialization for sending errors to frontend
+    - Serialization for sending errors to AG-Frontend
     - Stack trace preservation
     - Actionable messages and retry hints
     - Error categorization
@@ -406,7 +406,7 @@ def capture_error(
 
 def format_error_for_ui(error: StructuredError) -> dict[str, Any]:
     """
-    Format error for frontend UI display.
+    Format error for AG-Frontend UI display.
 
     Returns a simplified structure optimized for UI rendering.
     """

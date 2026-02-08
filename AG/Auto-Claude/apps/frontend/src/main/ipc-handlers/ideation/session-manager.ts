@@ -34,7 +34,7 @@ export async function getIdeationSession(
   }
 
   try {
-    // Transform snake_case to camelCase for frontend
+    // Transform snake_case to camelCase for AG-Frontend
     const enabledTypes = (rawIdeation.config?.enabled_types || rawIdeation.config?.enabledTypes || []) as unknown[];
 
     const session: IdeationSession = {

@@ -355,17 +355,17 @@ class TestEstimateServices:
     def test_multi_service_keywords(self):
         """Detects multiple services from keywords."""
         analyzer = ComplexityAnalyzer()
-        result = analyzer._estimate_services("backend api and frontend client", None)
+        result = analyzer._estimate_services("backend api and AG-Frontend client", None)
         assert result >= 2
 
     def test_monorepo_service_detection(self):
         """Detects mentioned services from monorepo project_index."""
         project_index = {
             "project_type": "monorepo",
-            "services": {"backend": {}, "frontend": {}, "worker": {}},
+            "services": {"backend": {}, "AG-Frontend": {}, "worker": {}},
         }
         analyzer = ComplexityAnalyzer(project_index=project_index)
-        result = analyzer._estimate_services("update backend and frontend", None)
+        result = analyzer._estimate_services("update backend and AG-Frontend", None)
         assert result >= 2
 
     def test_minimum_one_service(self):
@@ -378,7 +378,7 @@ class TestEstimateServices:
         """Caps at 5 services."""
         analyzer = ComplexityAnalyzer()
         result = analyzer._estimate_services(
-            "backend frontend worker service api client server database queue cache proxy",
+            "backend AG-Frontend worker service api client server database queue cache proxy",
             None
         )
         assert result <= 5
@@ -529,7 +529,7 @@ class TestAnalyze:
         """Uses requirements data when provided."""
         analyzer = ComplexityAnalyzer()
         requirements = {
-            "services_involved": ["backend", "frontend", "worker"],
+            "services_involved": ["backend", "AG-Frontend", "worker"],
         }
         result = analyzer.analyze("add feature", requirements=requirements)
 
@@ -683,7 +683,7 @@ class TestRunAIComplexityAssessment:
         requirements = {
             "task_description": "Test task from requirements",
             "workflow_type": "feature",
-            "services_involved": ["backend", "frontend"],
+            "services_involved": ["backend", "AG-Frontend"],
             "user_requirements": ["req1"],
             "acceptance_criteria": ["crit1"],
             "constraints": ["const1"],

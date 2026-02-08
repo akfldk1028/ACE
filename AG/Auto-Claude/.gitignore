@@ -106,7 +106,7 @@ dmypy.json
 .pyre/
 
 # ===========================
-# Node.js (apps/frontend)
+# Node.js (apps/AG-Frontend)
 # ===========================
 node_modules
 apps/frontend/node_modules

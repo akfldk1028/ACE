@@ -184,7 +184,7 @@ async def test_ollama_embeddings() -> bool:
 
     test_texts = [
         "This is a test memory about implementing OAuth authentication.",
-        "The user prefers using TypeScript for frontend development.",
+        "The user prefers using TypeScript for AG-Frontend development.",
         "A gotcha discovered: always validate JWT tokens on the server side.",
     ]
 
@@ -378,7 +378,7 @@ async def test_memory_creation(test_db_path: Path) -> tuple[Path, Path, bool]:
     print_step(4, "Saving gotchas (pitfalls)")
 
     gotchas = [
-        "Never store config values in frontend code or files checked into git",
+        "Never store config values in AG-Frontend code or files checked into git",
         "API redirect URIs must exactly match the registered URIs",
         "Cache expiration times should be short for performance (15 min default)",
     ]

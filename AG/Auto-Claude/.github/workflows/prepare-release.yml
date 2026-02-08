@@ -10,7 +10,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'apps/frontend/package.json'
+      - 'apps/AG-Frontend/package.json'
       - 'package.json'
   workflow_dispatch:
     inputs:

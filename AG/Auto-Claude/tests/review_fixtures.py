@@ -37,7 +37,7 @@ This is a test feature specification for unit testing purposes.
 | File | Service | What to Change |
 |------|---------|---------------|
 | `app/main.py` | backend | Add new endpoint |
-| `src/components/Test.tsx` | frontend | Add new component |
+| `src/components/Test.tsx` | AG-Frontend | Add new component |
 
 ## Files to Create
 
@@ -59,7 +59,7 @@ The task is complete when:
     plan = {
         "feature": "Test Feature",
         "workflow_type": "feature",
-        "services_involved": ["backend", "frontend"],
+        "services_involved": ["backend", "AG-Frontend"],
         "phases": [
             {
                 "phase": 1,
@@ -98,7 +98,7 @@ def complete_spec_dir(tmp_path: Path) -> Path:
 ## Overview
 
 This is a test feature that adds new functionality to the system.
-It involves changes to both backend and frontend components.
+It involves changes to both backend and AG-Frontend components.
 
 ## Workflow Type
 
@@ -110,11 +110,11 @@ It involves changes to both backend and frontend components.
 
 ### Services Involved
 - **backend** - API endpoints and business logic
-- **frontend** - UI components and state management
+- **AG-Frontend** - UI components and state management
 
 ### This Task Will:
 - [ ] Add new REST API endpoint
-- [ ] Create frontend form component
+- [ ] Create AG-Frontend form component
 - [ ] Add validation logic
 - [ ] Write unit tests
 
@@ -127,7 +127,7 @@ It involves changes to both backend and frontend components.
 | File | Service | What to Change |
 |------|---------|---------------|
 | `app/api/routes.py` | backend | Add new endpoint |
-| `src/components/Form.tsx` | frontend | Add form component |
+| `src/components/Form.tsx` | AG-Frontend | Add form component |
 | `app/services/processor.py` | backend | Add business logic |
 
 ## Files to Create
@@ -135,7 +135,7 @@ It involves changes to both backend and frontend components.
 | File | Service | Purpose |
 |------|---------|---------|
 | `app/api/handlers/new_feature.py` | backend | Handler implementation |
-| `src/components/NewFeature/index.tsx` | frontend | New component |
+| `src/components/NewFeature/index.tsx` | AG-Frontend | New component |
 | `tests/test_new_feature.py` | backend | Unit tests |
 
 ## Requirements
@@ -166,7 +166,7 @@ The task is complete when:
     plan = {
         "feature": "Test Feature Implementation",
         "workflow_type": "feature",
-        "services_involved": ["backend", "frontend"],
+        "services_involved": ["backend", "AG-Frontend"],
         "phases": [
             {
                 "phase": 1,
@@ -202,7 +202,7 @@ The task is complete when:
                     {
                         "id": "chunk-2-1",
                         "description": "Create form component",
-                        "service": "frontend",
+                        "service": "AG-Frontend",
                         "files_to_create": ["src/components/NewFeature/index.tsx"],
                         "files_to_modify": ["src/components/Form.tsx"],
                         "status": "pending",
@@ -234,7 +234,7 @@ The task is complete when:
         "summary": {
             "total_phases": 3,
             "total_chunks": 4,
-            "services_involved": ["backend", "frontend"],
+            "services_involved": ["backend", "AG-Frontend"],
             "parallelism": {
                 "max_parallel_phases": 1,
                 "recommended_workers": 2,

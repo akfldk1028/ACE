@@ -39,30 +39,30 @@ After running `cd ./apps/frontend`, your current directory changes. If you then 
 pwd
 
 # Step 2: Use paths RELATIVE TO CURRENT DIRECTORY
-# If pwd shows: /path/to/project/apps/frontend
+# If pwd shows: /path/to/project/apps/AG-Frontend
 # Then use: git add src/file.ts
-# NOT: git add apps/frontend/src/file.ts
+# NOT: git add apps/AG-Frontend/src/file.ts
 ```
 
 ### Examples
 
 **❌ WRONG - Path gets doubled:**
 ```bash
-cd ./apps/frontend
-git add apps/frontend/src/file.ts  # Looks for apps/frontend/apps/frontend/src/file.ts
+cd ./apps/AG-Frontend
+git add apps/AG-Frontend/src/file.ts  # Looks for apps/AG-Frontend/apps/AG-Frontend/src/file.ts
 ```
 
 **✅ CORRECT - Use relative path from current directory:**
 ```bash
-cd ./apps/frontend
-pwd  # Shows: /path/to/project/apps/frontend
-git add src/file.ts  # Correctly adds apps/frontend/src/file.ts from project root
+cd ./apps/AG-Frontend
+pwd  # Shows: /path/to/project/apps/AG-Frontend
+git add src/file.ts  # Correctly adds apps/AG-Frontend/src/file.ts from project root
 ```
 
 **✅ ALSO CORRECT - Stay at root, use full relative path:**
 ```bash
 # Don't change directory at all
-git add ./apps/frontend/src/file.ts  # Works from project root
+git add ./apps/AG-Frontend/src/file.ts  # Works from project root
 ```
 
 ### Mandatory Pre-Command Check
@@ -703,16 +703,16 @@ After successful verification, update the subtask:
 pwd
 
 # Step 2: What files do I want to commit?
-# If you changed to a subdirectory (e.g., cd apps/frontend),
+# If you changed to a subdirectory (e.g., cd apps/AG-Frontend),
 # you need to use paths RELATIVE TO THAT DIRECTORY, not from project root
 
 # Step 3: Verify paths exist
 ls -la [path-to-files]  # Make sure the path is correct from your current location
 
 # Example in a monorepo:
-# If pwd shows: /project/apps/frontend
+# If pwd shows: /project/apps/AG-Frontend
 # Then use: git add src/file.ts
-# NOT: git add apps/frontend/src/file.ts (this would look for apps/frontend/apps/frontend/src/file.ts)
+# NOT: git add apps/AG-Frontend/src/file.ts (this would look for apps/AG-Frontend/apps/AG-Frontend/src/file.ts)
 ```
 
 **CRITICAL RULE:** If you're in a subdirectory, either:

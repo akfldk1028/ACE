@@ -18,13 +18,13 @@ import { existsSync } from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load .env from apps/frontend directory
+// Load .env from apps/AG-Frontend directory
 // In development: __dirname is out/main (compiled), so go up 2 levels
 // In production: app resources directory
 const possibleEnvPaths = [
-  resolve(__dirname, '../../.env'),           // Development: out/main -> apps/frontend/.env
+  resolve(__dirname, '../../.env'),           // Development: out/main -> apps/AG-Frontend/.env
   resolve(__dirname, '../../../.env'),        // Alternative: might be in different location
-  resolve(process.cwd(), 'apps/frontend/.env'), // Fallback: from workspace root
+  resolve(process.cwd(), 'apps/AG-Frontend/.env'), // Fallback: from workspace root
 ];
 
 for (const envPath of possibleEnvPaths) {

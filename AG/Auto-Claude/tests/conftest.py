@@ -395,7 +395,7 @@ def sample_implementation_plan() -> dict:
     return {
         "feature": "User Avatar Upload",
         "workflow_type": "feature",
-        "services_involved": ["backend", "worker", "frontend"],
+        "services_involved": ["backend", "worker", "AG-Frontend"],
         "phases": [
             {
                 "phase": 1,
@@ -443,7 +443,7 @@ def sample_implementation_plan() -> dict:
                     {
                         "id": "chunk-3-1",
                         "description": "AvatarUpload component",
-                        "service": "frontend",
+                        "service": "AG-Frontend",
                         "status": "pending",
                         "files_to_create": ["src/components/AvatarUpload.tsx"],
                     },
@@ -792,7 +792,7 @@ def sample_requirements_json() -> dict:
     return {
         "task_description": "Add user authentication using OAuth2 with Google provider",
         "workflow_type": "feature",
-        "services_involved": ["backend", "frontend"],
+        "services_involved": ["backend", "AG-Frontend"],
         "user_requirements": [
             "Users should be able to sign in with Google",
             "Session should persist across page refreshes",
@@ -865,7 +865,7 @@ def sample_context_json() -> dict:
     """
     return {
         "task_description": "Add user authentication using OAuth2",
-        "services_involved": ["backend", "frontend"],
+        "services_involved": ["backend", "AG-Frontend"],
         "files_to_modify": [
             {
                 "path": "backend/app/routes/auth.py",
@@ -873,9 +873,9 @@ def sample_context_json() -> dict:
                 "service": "backend",
             },
             {
-                "path": "frontend/src/components/Login.tsx",
+                "path": "AG-Frontend/src/components/Login.tsx",
                 "reason": "Add Google sign-in button",
-                "service": "frontend",
+                "service": "AG-Frontend",
             },
         ],
         "files_to_create": [
@@ -917,15 +917,15 @@ def sample_project_index() -> dict:
                 "framework": "fastapi",
                 "package_manager": "pip",
             },
-            "frontend": {
-                "path": "frontend",
+            "AG-Frontend": {
+                "path": "AG-Frontend",
                 "language": "typescript",
                 "framework": "next",
                 "package_manager": "npm",
             },
         },
         "file_count": 150,
-        "top_level_dirs": ["backend", "frontend", "docs", ".github"],
+        "top_level_dirs": ["backend", "AG-Frontend", "docs", ".github"],
         "config_files": ["pyproject.toml", "package.json", "docker-compose.yml"],
         "has_tests": True,
         "has_ci": True,

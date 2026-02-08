@@ -132,7 +132,7 @@ class AutoFixProcessor:
             )
 
             # This would normally call the spec creation process
-            # For now, we just create the state and let the frontend handle spec creation
+            # For now, we just create the state and let the AG-Frontend handle spec creation
             # via the existing investigation flow
 
             state.update_status(AutoFixStatus.CREATING_SPEC)
@@ -174,7 +174,7 @@ class AutoFixProcessor:
         """
         Check for issues with auto-fix labels and return their details.
 
-        This is used by the frontend to detect new issues that should be auto-fixed.
+        This is used by the AG-Frontend to detect new issues that should be auto-fixed.
         When verify_permissions is True, only returns issues where the label was
         added by an authorized user.
 

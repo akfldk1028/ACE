@@ -43,7 +43,7 @@ SKIP_DIRS = {
 # Common service directory names
 SERVICE_INDICATORS = {
     "backend",
-    "frontend",
+    "AG-Frontend",
     "api",
     "web",
     "app",

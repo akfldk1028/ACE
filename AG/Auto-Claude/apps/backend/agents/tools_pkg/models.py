@@ -84,7 +84,7 @@ GRAPHITI_MCP_TOOLS = [
 # =============================================================================
 
 # Puppeteer MCP tools for web browser automation
-# Used for web frontend validation (non-Electron web apps)
+# Used for web AG-Frontend validation (non-Electron web apps)
 # NOTE: Screenshots must be compressed (1280x720, quality 60, JPEG) to stay under
 # Claude SDK's 1MB JSON message buffer limit. See GitHub issue #74.
 PUPPETEER_TOOLS = [

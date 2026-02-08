@@ -1,0 +1,149 @@
+{
+  "id": "mixture_of_agents",
+  "name": {
+    "en": "Mixture of Agents (MoA)",
+    "ko": "에이전트 혼합 (MoA)"
+  },
+  "description": {
+    "en": "A neural network-like architecture where multiple worker agents in each layer process tasks in parallel, and their outputs are aggregated and passed to the next layer. An orchestrator coordinates the entire flow and synthesizes the final result.",
+    "ko": "각 레이어에서 여러 워커 에이전트가 병렬로 작업을 처리하고, 그 출력이 집계되어 다음 레이어로 전달되는 신경망 유사 구조입니다. 오케스트레이터가 전체 흐름을 조율하고 최종 결과를 종합합니다."
+  },
+  "diagram": "     ╔═══════════════════════════════════════════════════════════════╗\n     ║                        ORCHESTRATOR                          ║\n     ╠═══════════════════════════════════════════════════════════════╣\n     ║   User Task                                                   ║\n     ║      │                                                        ║\n     ║      ▼                                                        ║\n     ║   Layer 1              Layer 2              Layer 3           ║\n     ║  ┌─────────┐          ┌─────────┐          ┌─────────┐        ║\n     ║  │Worker 1 │──────────│Worker 4 │──────────│Worker 7 │        ║\n     ║  ├─────────┤  Agg     ├─────────┤  Agg     ├─────────┤  Agg   ║\n     ║  │Worker 2 │──────────│Worker 5 │──────────│Worker 8 │────────║\n     ║  ├─────────┤          ├─────────┤          ├─────────┤        ║\n     ║  │Worker 3 │──────────│Worker 6 │──────────│Worker 9 │        ║\n     ║  └─────────┘          └─────────┘          └─────────┘        ║\n     ║                                                      │        ║\n     ║                                                      ▼        ║\n     ║                                               Final Result    ║\n     ╚═══════════════════════════════════════════════════════════════╝",
+  "complexity": "very_high",
+  "experimental": true,
+  "when_to_use": [
+    "여러 관점의 종합이 필요한 복잡한 분석",
+    "품질 향상을 위한 다중 LLM 앙상블",
+    "단일 모델 대비 성능 향상이 필요할 때",
+    "다양한 전문성의 통합이 필요할 때",
+    "반복적 정제가 필요한 창의적 작업"
+  ],
+  "when_to_avoid": [
+    "간단한 단일 작업",
+    "비용이 중요한 경우 (토큰 소비 많음)",
+    "낮은 지연시간이 필요할 때",
+    "실시간 응답이 필요할 때"
+  ],
+  "pros": [
+    "GPT-4를 능가하는 성능 (AlpacaEval 65.1% vs 57.5%)",
+    "오픈소스 모델로도 높은 품질 달성",
+    "다양한 관점의 종합",
+    "반복적 정제로 품질 향상",
+    "확장 가능한 레이어 구조"
+  ],
+  "cons": [
+    "높은 토큰 소비량",
+    "복잡한 구현",
+    "긴 실행 시간",
+    "autogen-core 기반 구현 필요",
+    "디버깅 어려움"
+  ],
+  "layer_structure": [
+    {
+      "layer": 1,
+      "role": "Initial Analysis",
+      "description": "사용자 작업에 대한 초기 다각도 분석"
+    },
+    {
+      "layer": 2,
+      "role": "Synthesis",
+      "description": "1차 분석 결과를 종합하여 정제"
+    },
+    {
+      "layer": 3,
+      "role": "Final Refinement",
+      "description": "최종 결과 도출 및 품질 향상"
+    }
+  ],
+  "example_use_cases": [
+    {
+      "name": "연구 논문 분석",
+      "layers": 3,
+      "workers_per_layer": 3,
+      "worker_roles": ["방법론 분석가", "결과 해석가", "비평가"],
+      "goal": "논문의 강점, 약점, 개선점 종합 분석"
+    },
+    {
+      "name": "복잡한 질문 응답",
+      "layers": 2,
+      "workers_per_layer": 4,
+      "worker_roles": ["사실 확인자", "맥락 분석가", "예시 제공자", "요약가"],
+      "goal": "정확하고 포괄적인 답변 생성"
+    },
+    {
+      "name": "창의적 콘텐츠 생성",
+      "layers": 3,
+      "workers_per_layer": 3,
+      "worker_roles": ["아이디어 생성자", "스타일 전문가", "편집자"],
+      "goal": "고품질 창의적 콘텐츠 제작"
+    }
+  ],
+  "autogen_implementation": {
+    "provider": "autogen_core (custom implementation)",
+    "note": "autogen-agentchat이 아닌 autogen-core 기반 구현 필요",
+    "api_style": "direct messaging with send_message()",
+    "config_template": {
+      "num_layers": 3,
+      "workers_per_layer": 3,
+      "orchestrator_model": "gpt-4o",
+      "worker_model": "gpt-4o-mini",
+      "aggregation_strategy": "concatenate_all"
+    },
+    "code_example": "from autogen_core import SingleThreadedAgentRuntime\nfrom autogen_ext.models.openai import OpenAIChatCompletionClient\n\nruntime = SingleThreadedAgentRuntime()\nmodel_client = OpenAIChatCompletionClient(model='gpt-4o-mini')\n\nawait WorkerAgent.register(runtime, 'worker', lambda: WorkerAgent(model_client=model_client))\nawait OrchestratorAgent.register(\n    runtime,\n    'orchestrator',\n    lambda: OrchestratorAgent(\n        model_client=model_client,\n        worker_agent_types=['worker'] * 3,\n        num_layers=3\n    )\n)"
+  },
+  "aggregation_strategies": [
+    {
+      "name": "concatenate_all",
+      "description": "모든 워커 출력을 연결하여 다음 레이어에 전달"
+    },
+    {
+      "name": "weighted_average",
+      "description": "워커 출력에 가중치를 적용하여 종합"
+    },
+    {
+      "name": "majority_vote",
+      "description": "다수결 방식으로 최선의 출력 선택"
+    },
+    {
+      "name": "llm_synthesis",
+      "description": "LLM을 사용하여 출력들을 지능적으로 종합"
+    }
+  ],
+  "performance_benchmarks": {
+    "alpaca_eval_2_0": {
+      "gpt_4o": "57.5%",
+      "moa_open_source": "65.1%",
+      "improvement": "+7.6%"
+    }
+  },
+  "best_practices": [
+    "각 레이어의 워커 수는 3-5개가 적정",
+    "레이어 수는 2-4개 권장",
+    "워커에는 경제적인 모델(gpt-4o-mini) 사용",
+    "오케스트레이터에는 강력한 모델(gpt-4o) 사용",
+    "각 워커에 명확한 역할 부여",
+    "집계 전략을 작업에 맞게 선택"
+  ],
+  "visual_override": {
+    "layout": "layers",
+    "category": "ensemble",
+    "icon": "Layers",
+    "primaryColor": "#8b5cf6",
+    "secondaryColor": "#c4b5fd",
+    "edgeStyle": "animated"
+  },
+  "references": [
+    {
+      "title": "AutoGen Core Mixture of Agents Documentation",
+      "url": "https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/design-patterns/mixture-of-agents.html"
+    },
+    {
+      "title": "Mixture-of-Agents Enhances Large Language Model Capabilities",
+      "url": "https://arxiv.org/abs/2406.04692"
+    },
+    {
+      "title": "Together AI MoA Implementation",
+      "url": "https://docs.together.ai/docs/mixture-of-agents"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Sales Agent (Handoff)",
+  "description": "영업 담당",
+  "config": {
+    "name": "sales_agent",
+    "system_message": "당신은 영업 담당입니다. 제품 문의와 구매 관련 질문에 답하세요.",
+    "handoffs": [
+      "triage_agent"
+    ]
+  }
+}

@@ -83,7 +83,7 @@ class DialogueEvent:
 # 에이전트 아이콘 매핑
 AGENT_ICONS = {
     "orchestrator": "🎯",
-    "frontend": "🎨",
+    "AG-Frontend": "🎨",
     "frontend_agent": "🎨",
     "backend": "🔧",
     "backend_agent": "🔧",
@@ -403,7 +403,7 @@ def create_fastapi_app(bus: AgentMessageBus) -> FastAPI:
     <div id="log"></div>
     <script>
         const icons = {
-            orchestrator: "🎯", frontend: "🎨", frontend_agent: "🎨",
+            orchestrator: "🎯", AG-Frontend: "🎨", frontend_agent: "🎨",
             backend: "🔧", backend_agent: "🔧", db: "💾", db_agent: "💾",
             test: "🧪", test_agent: "🧪", devops: "🚀", system: "⚙️"
         };

@@ -384,7 +384,7 @@ class GitHubOrchestrator:
                             flush=True,
                         )
                         # Don't overwrite - return the existing review as-is
-                        # The frontend will see "no new commits" via the newCommitsCheck
+                        # The AG-Frontend will see "no new commits" via the newCommitsCheck
                         return existing_review
                     elif existing_review and not existing_review.success:
                         safe_print(

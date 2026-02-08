@@ -1,0 +1,143 @@
+{
+  "id": "pseudo_hierarchical",
+  "name": {
+    "en": "Pseudo-Hierarchical (CLI Compatible)",
+    "ko": "의사-계층 구조 (CLI 호환)"
+  },
+  "description": {
+    "en": "Simulates hierarchical orchestration using SelectorGroupChat. The selector_prompt acts as an implicit manager, decomposing tasks and routing to workers. Compatible with CLI A2A agents that don't support handoffs.",
+    "ko": "SelectorGroupChat을 사용하여 계층적 오케스트레이션을 시뮬레이션합니다. selector_prompt가 암묵적 관리자 역할을 하여 작업을 분해하고 작업자에게 라우팅합니다. handoff를 지원하지 않는 CLI A2A 에이전트와 호환됩니다."
+  },
+  "diagram": "            ┌─────────────────┐\n            │  Selector       │ ← 암묵적 Manager\n            │  (selector_     │   (작업 분해, 라우팅)\n            │   prompt)       │\n            └────────┬────────┘\n         ┌───────────┼───────────┐\n         ↓           ↓           ↓\n    ┌─────────┐ ┌─────────┐ ┌─────────┐\n    │ Worker  │ │ Worker  │ │ Worker  │\n    │  (db)   │ │ (back)  │ │ (front) │\n    └─────────┘ └─────────┘ └─────────┘\n         │           │           │\n         └───────────┴───────────┘\n                     ↓\n              ┌─────────────┐\n              │   Result    │\n              └─────────────┘",
+  "complexity": "medium",
+  "tags": ["cli-compatible", "hierarchical-like", "no-handoff"],
+  "when_to_use": [
+    "CLI A2A 에이전트로 계층적 작업 필요할 때",
+    "handoff 없이 위임 패턴 구현할 때",
+    "작업을 단계별로 분해해야 할 때",
+    "여러 폴더/도메인 간 협업이 필요할 때"
+  ],
+  "when_to_avoid": [
+    "실제 handoff 기능이 필수인 경우",
+    "동적 계층 변경이 필요한 경우",
+    "3단계 이상 깊은 계층이 필요한 경우"
+  ],
+  "pros": [
+    "CLI A2A 에이전트 완벽 호환",
+    "handoff 없이 계층적 동작",
+    "selector_prompt로 유연한 라우팅",
+    "기존 SelectorGroupChat 인프라 활용"
+  ],
+  "cons": [
+    "진정한 계층 구조는 아님",
+    "selector_prompt 설계가 중요",
+    "복잡한 위임 체계 제한적"
+  ],
+  "workflow_phases": [
+    {
+      "phase": 1,
+      "name": "Analysis",
+      "name_ko": "분석",
+      "agent_preference": "cli_db_agent",
+      "description": "기존 구조 파악, 요구사항 분석"
+    },
+    {
+      "phase": 2,
+      "name": "Implementation",
+      "name_ko": "구현",
+      "agent_preference": "cli_backend_agent",
+      "description": "비즈니스 로직 구현, API 작성"
+    },
+    {
+      "phase": 3,
+      "name": "Verification",
+      "name_ko": "검증",
+      "agent_preference": "cli_db_agent",
+      "description": "결과 확인, 통합 테스트"
+    },
+    {
+      "phase": 4,
+      "name": "Synthesis",
+      "name_ko": "종합",
+      "agent_preference": "last_speaker",
+      "description": "결과 정리, 최종 보고"
+    }
+  ],
+  "autogen_implementation": {
+    "provider": "autogen_agentchat.teams.SelectorGroupChat",
+    "label": "Pseudo-Hierarchical Team (CLI 호환)",
+    "team_config": {
+      "participants": [
+        {
+          "provider": "autogenstudio.a2a.agent.A2AAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "cli_db_agent",
+            "description": "Database/Analysis specialist. Acts as senior analyst. Examines existing code, schemas, and provides analysis reports. Uses Claude CLI tools: Read, Glob, Grep.",
+            "a2a_url": "http://localhost:8110",
+            "system_message": "You are a Senior Analyst with database expertise.\n\nYour role in the pseudo-hierarchy:\n- PHASE 1 (Analysis): You START first. Analyze requirements and existing code.\n- PHASE 3 (Verification): You verify work done by other agents.\n- Report findings clearly for downstream agents.\n\nTools available: Read, Write, Edit, Glob, Grep, Bash\nWorking folder: db/\n\nWhen reporting, use format:\n[ANALYSIS REPORT]\n- Findings: ...\n- Recommendations: ...\n- Ready for next phase: YES/NO"
+          }
+        },
+        {
+          "provider": "autogenstudio.a2a.agent.A2AAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "cli_backend_agent",
+            "description": "Backend/Implementation specialist. Acts as developer. Implements features based on analysis. Uses Claude CLI tools for coding.",
+            "a2a_url": "http://localhost:8111",
+            "system_message": "You are a Developer with backend expertise.\n\nYour role in the pseudo-hierarchy:\n- PHASE 2 (Implementation): You work AFTER analysis is done.\n- Implement based on requirements from cli_db_agent.\n- Create files, write code, run tests.\n\nTools available: Read, Write, Edit, Glob, Grep, Bash\nWorking folder: backend/\n\nWhen reporting, use format:\n[IMPLEMENTATION REPORT]\n- Created: ...\n- Modified: ...\n- Status: COMPLETE/IN_PROGRESS"
+          }
+        }
+      ],
+      "selector_prompt": "You are a PROJECT MANAGER coordinating a pseudo-hierarchical team.\n\n=== TEAM STRUCTURE ===\n- cli_db_agent: Senior Analyst (Analysis, Verification phases)\n- cli_backend_agent: Developer (Implementation phase)\n\n=== WORKFLOW PHASES ===\nPhase 1 (Analysis): cli_db_agent analyzes requirements and existing code\nPhase 2 (Implementation): cli_backend_agent implements based on analysis\nPhase 3 (Verification): cli_db_agent verifies the implementation\nPhase 4 (Synthesis): Last speaker provides final summary\n\n=== ROUTING RULES ===\n1. NEW TASK → cli_db_agent (start with analysis)\n2. After [ANALYSIS REPORT] → cli_backend_agent (implementation)\n3. After [IMPLEMENTATION REPORT] → cli_db_agent (verification)\n4. After verification → conclude or iterate\n\n=== CURRENT STATE ===\n{history}\n\n=== DECISION ===\nBased on the conversation history:\n- Identify current phase\n- Select appropriate agent\n- Consider alternating to avoid loops\n\nReturn ONLY the agent name (cli_db_agent or cli_backend_agent):",
+      "termination_condition": {
+        "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+        "config": {
+          "max_messages": 8
+        }
+      }
+    },
+    "requiredConfig": {
+      "allow_repeated_speaker": false
+    }
+  },
+  "manager_simulation": {
+    "method": "selector_prompt",
+    "capabilities": {
+      "task_decomposition": "Workflow phases in selector_prompt",
+      "agent_routing": "Routing rules in selector_prompt",
+      "progress_tracking": "Phase identification from history",
+      "result_synthesis": "Final phase instruction"
+    }
+  },
+  "comparison_with_real_hierarchical": {
+    "real_hierarchical": {
+      "mechanism": "Swarm with handoff functions",
+      "delegation": "Explicit transfer_to_* calls",
+      "control": "Manager agent directly controls flow"
+    },
+    "pseudo_hierarchical": {
+      "mechanism": "SelectorGroupChat with smart prompt",
+      "delegation": "Implicit via selector decision",
+      "control": "Selector prompt guides flow"
+    }
+  },
+  "visual_override": {
+    "layout": "tree-simple",
+    "category": "hierarchical",
+    "icon": "GitBranch",
+    "primaryColor": "#10b981",
+    "secondaryColor": "#6ee7b7",
+    "edgeStyle": "solid"
+  },
+  "references": [
+    {
+      "title": "SelectorGroupChat as Manager Pattern",
+      "url": "https://microsoft.github.io/autogen/stable/user-guide/agentchat-user-guide/selector-group-chat.html"
+    },
+    {
+      "title": "CLI A2A Agent Architecture",
+      "url": "file://AG-cli/docs/ARCHITECTURE.md"
+    }
+  ]
+}

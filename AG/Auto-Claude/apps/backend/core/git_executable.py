@@ -66,7 +66,7 @@ def get_git_executable() -> str:
     """Find the git executable, with Windows-specific fallbacks.
 
     Returns the path to git executable. On Windows, checks multiple sources:
-    1. CLAUDE_CODE_GIT_BASH_PATH env var (set by Electron frontend)
+    1. CLAUDE_CODE_GIT_BASH_PATH env var (set by Electron AG-Frontend)
     2. shutil.which (if git is in PATH)
     3. Common installation locations
     4. Windows 'where' command
@@ -86,7 +86,7 @@ def get_git_executable() -> str:
 
 def _find_git_executable() -> str:
     """Internal function to find git executable."""
-    # 1. Check CLAUDE_CODE_GIT_BASH_PATH (set by Electron frontend)
+    # 1. Check CLAUDE_CODE_GIT_BASH_PATH (set by Electron AG-Frontend)
     # This env var points to bash.exe, we can derive git.exe from it
     bash_path = os.environ.get("CLAUDE_CODE_GIT_BASH_PATH")
     if bash_path:

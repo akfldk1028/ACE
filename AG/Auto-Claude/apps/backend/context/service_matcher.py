@@ -41,7 +41,7 @@ class ServiceMatcher:
                 for kw in ["api", "endpoint", "route", "database", "model"]
             ):
                 score += 5
-            if service_type == "frontend" and any(
+            if service_type == "AG-Frontend" and any(
                 kw in task_lower for kw in ["ui", "component", "page", "button", "form"]
             ):
                 score += 5
@@ -69,12 +69,12 @@ class ServiceMatcher:
         if suggested:
             return [s[0] for s in suggested[:3]]  # Top 3
 
-        # Default: return first backend and first frontend
+        # Default: return first backend and first AG-Frontend
         default = []
         for name, info in services.items():
             if info.get("type") == "backend" and "backend" not in [s for s in default]:
                 default.append(name)
-            elif info.get("type") == "frontend" and "frontend" not in [
+            elif info.get("type") == "AG-Frontend" and "AG-Frontend" not in [
                 s for s in default
             ]:
                 default.append(name)

@@ -223,7 +223,7 @@ class TestMonorepoDetection:
         packages_dir = temp_dir / "packages"
         packages_dir.mkdir()
 
-        frontend = packages_dir / "frontend"
+        frontend = packages_dir / "AG-Frontend"
         frontend.mkdir()
         (frontend / "package.json").write_text("{}")
 
@@ -231,7 +231,7 @@ class TestMonorepoDetection:
         services = orchestrator.get_services()
 
         service_names = [s.name for s in services]
-        assert "frontend" in service_names
+        assert "AG-Frontend" in service_names
 
     def test_detect_apps_directory(self, temp_dir):
         """Test detecting services in apps/ directory."""

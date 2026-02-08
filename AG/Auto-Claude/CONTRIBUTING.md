@@ -184,8 +184,8 @@ cp .env.example .env
 ### Electron Frontend
 
 ```bash
-# Navigate to the frontend directory
-cd apps/frontend
+# Navigate to the AG-Frontend directory
+cd apps/AG-Frontend
 
 # Install dependencies
 npm install
@@ -227,7 +227,7 @@ cp .env.example .env
 ### Step 2: Run the Desktop UI
 
 ```bash
-cd ../frontend
+cd ../AG-Frontend
 
 # Install dependencies
 npm install
@@ -447,7 +447,7 @@ Test configuration is in `tests/pytest.ini`.
 ### Frontend Tests
 
 ```bash
-cd apps/frontend
+cd apps/AG-Frontend
 
 # Run unit tests
 npm test
@@ -508,7 +508,7 @@ source .venv/bin/activate
 pytest ../../tests/ -v
 
 # Frontend tests
-cd apps/frontend
+cd apps/AG-Frontend
 npm test
 npm run lint
 npm run typecheck
@@ -820,7 +820,7 @@ git push --force-with-lease
 
 # Verify everything works
 npm run test:backend
-cd apps/frontend && npm test && npm run lint && npm run typecheck
+cd apps/AG-Frontend && npm test && npm run lint && npm run typecheck
 ```
 
 **PR size:**
@@ -845,7 +845,7 @@ cd apps/frontend && npm test && npm run lint && npm run typecheck
    npm run test:backend
 
    # Frontend
-   cd apps/frontend && npm test && npm run lint && npm run typecheck
+   cd apps/AG-Frontend && npm test && npm run lint && npm run typecheck
    ```
 
 4. **Update documentation** if your changes affect:

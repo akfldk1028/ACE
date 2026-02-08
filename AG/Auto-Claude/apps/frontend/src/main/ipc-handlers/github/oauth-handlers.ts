@@ -221,7 +221,7 @@ interface GitHubAuthStartResult {
   browserOpened?: boolean;
   /**
    * Fallback URL provided when browser launch fails.
-   * The frontend should display this URL so users can manually navigate to complete auth.
+   * The AG-Frontend should display this URL so users can manually navigate to complete auth.
    */
   fallbackUrl?: string;
 }
@@ -284,7 +284,7 @@ export function registerStartGhAuth(): void {
               }
 
               // IMMEDIATELY send device code to renderer so user can see it while auth is in progress
-              // This is critical - the frontend needs to display the code while the gh process is still running
+              // This is critical - the AG-Frontend needs to display the code while the gh process is still running
               sendDeviceCodeToRenderer(extractedDeviceCode, extractedAuthUrl, browserOpenedSuccessfully);
 
               // Extraction complete - mutex flag stays true to prevent re-extraction

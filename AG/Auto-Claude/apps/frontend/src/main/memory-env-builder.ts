@@ -4,7 +4,7 @@
  * Converts app-wide memory settings from settings.json into environment variables
  * that can be injected into Python agent processes.
  *
- * This bridges the gap between frontend settings storage and backend configuration.
+ * This bridges the gap between AG-Frontend settings storage and backend configuration.
  */
 
 import type { AppSettings } from '../shared/types/settings';

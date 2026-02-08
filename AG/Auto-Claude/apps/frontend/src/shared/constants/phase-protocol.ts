@@ -2,7 +2,7 @@
  * Phase Event Protocol Constants
  * ===============================
  * Single source of truth for execution phase communication between
- * Python backend and TypeScript frontend.
+ * Python backend and TypeScript AG-Frontend.
  *
  * SYNC REQUIREMENT: Phase values must match apps/backend/core/phase_event.py
  *
@@ -19,7 +19,7 @@ export const PHASE_PROTOCOL_VERSION = '1.0.0' as const;
  * All execution phases in order of progression.
  * Order matters for regression detection.
  *
- * 'idle' is frontend-only (initial state before any backend events)
+ * 'idle' is AG-Frontend-only (initial state before any backend events)
  */
 export const EXECUTION_PHASES = [
   'idle',

@@ -5,7 +5,7 @@
  * Each profile contains name, base URL, API key, and optional model mappings.
  *
  * NOTE: These types are intentionally duplicated from libs/profile-service/src/types/profile.ts
- * because the frontend build (Electron + Vite) doesn't consume the workspace library types directly.
+ * because the AG-Frontend build (Electron + Vite) doesn't consume the workspace library types directly.
  * Keep these definitions in sync with the library types when making changes.
  */
 

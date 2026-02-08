@@ -123,7 +123,7 @@ def test_detect_repo_structure_monorepo(tmp_path):
     apps_dir = project_dir / "apps"
     apps_dir.mkdir()
 
-    (apps_dir / "frontend").mkdir()
+    (apps_dir / "AG-Frontend").mkdir()
     (apps_dir / "backend").mkdir()
 
     # Create package.json with workspaces
@@ -135,7 +135,7 @@ def test_detect_repo_structure_monorepo(tmp_path):
     structure = gatherer._detect_repo_structure()
 
     assert "Monorepo Apps" in structure
-    assert "frontend" in structure
+    assert "AG-Frontend" in structure
     assert "backend" in structure
     assert "Workspaces" in structure
 

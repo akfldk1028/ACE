@@ -1,7 +1,7 @@
 /**
  * Phase Event Parser Tests
  * =========================
- * Tests the parser for __EXEC_PHASE__ protocol between Python backend and TypeScript frontend.
+ * Tests the parser for __EXEC_PHASE__ protocol between Python backend and TypeScript AG-Frontend.
  */
 
 import { describe, it, expect } from 'vitest';

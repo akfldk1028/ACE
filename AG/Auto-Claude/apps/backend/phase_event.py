@@ -1,5 +1,5 @@
 """
-Phase event facade for frontend synchronization.
+Phase event facade for AG-Frontend synchronization.
 Re-exports from core.phase_event for clean imports.
 """
 

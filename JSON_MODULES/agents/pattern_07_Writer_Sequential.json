@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Writer (Sequential)",
+  "description": "작가 담당 - 콘텐츠 작성",
+  "config": {
+    "name": "writer",
+    "system_message": "당신은 작가입니다. 리서처가 수집한 정보를 바탕으로 글을 작성하세요."
+  }
+}

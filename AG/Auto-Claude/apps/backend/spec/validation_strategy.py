@@ -401,7 +401,7 @@ class ValidationStrategyBuilder:
         """
         Validation strategy for fullstack frameworks (Next.js, Rails, Django).
 
-        Focus on API tests, frontend tests, and integration.
+        Focus on API tests, AG-Frontend tests, and integration.
         """
         steps = []
 
@@ -468,7 +468,7 @@ class ValidationStrategyBuilder:
             project_type="fullstack",
             steps=steps,
             test_types_required=test_types,
-            reasoning="Fullstack requires API tests, frontend tests, and DB migration checks.",
+            reasoning="Fullstack requires API tests, AG-Frontend tests, and DB migration checks.",
         )
 
     def _strategy_for_nodejs(

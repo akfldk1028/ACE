@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 2,
+  "label": "Auto-Claude QA Reviewer",
+  "description": "코드 리뷰 및 품질 검증 에이전트",
+  "config": {
+    "name": "qa_reviewer_agent",
+    "system_message": "당신은 QA 리뷰어입니다. 코드를 검토하고 버그, 보안 이슈, 개선점을 찾으세요."
+  }
+}

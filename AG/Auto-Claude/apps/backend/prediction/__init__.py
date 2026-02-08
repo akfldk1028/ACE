@@ -6,7 +6,7 @@ Generates pre-implementation checklists to prevent common bugs BEFORE they happe
 Uses historical data from memory system and pattern analysis to predict likely issues.
 
 The key insight: Most bugs are predictable based on:
-1. Type of work (API, frontend, database, etc.)
+1. Type of work (API, AG-Frontend, database, etc.)
 2. Past failures in similar subtasks
 3. Known gotchas in this codebase
 4. Missing integration points

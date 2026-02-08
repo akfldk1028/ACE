@@ -11,13 +11,13 @@ Enables GitHub automation across multiple repositories with:
 Usage:
     # Configure multiple repos
     config = MultiRepoConfig([
-        RepoConfig(repo="owner/frontend", path_scope="packages/frontend/*"),
+        RepoConfig(repo="owner/AG-Frontend", path_scope="packages/AG-Frontend/*"),
         RepoConfig(repo="owner/backend", path_scope="packages/backend/*"),
         RepoConfig(repo="owner/shared"),  # Full repo
     ])
 
     # Get isolated state for a repo
-    repo_state = config.get_repo_state("owner/frontend")
+    repo_state = config.get_repo_state("owner/AG-Frontend")
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ class RepoConfig:
     """
 
     repo: str  # owner/repo format
-    path_scope: str | None = None  # e.g., "packages/frontend/*"
+    path_scope: str | None = None  # e.g., "packages/AG-Frontend/*"
     enabled: bool = True
     relationship: RepoRelationship = RepoRelationship.STANDALONE
     upstream_repo: str | None = None
@@ -493,7 +493,7 @@ def create_monorepo_config(
         configs = create_monorepo_config(
             repo="owner/monorepo",
             packages=[
-                {"name": "frontend", "path_scope": "packages/frontend/**"},
+                {"name": "AG-Frontend", "path_scope": "packages/AG-Frontend/**"},
                 {"name": "backend", "path_scope": "packages/backend/**"},
                 {"name": "shared", "path_scope": "packages/shared/**"},
             ],

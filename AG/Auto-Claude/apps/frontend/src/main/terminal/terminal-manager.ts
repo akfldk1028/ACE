@@ -373,7 +373,7 @@ export class TerminalManager {
 
   /**
    * Get info about all terminals for profile change operations.
-   * Returns info needed to migrate sessions and notify frontend.
+   * Returns info needed to migrate sessions and notify AG-Frontend.
    */
   getTerminalsForProfileChange(): TerminalProfileChangeInfo[] {
     const result: TerminalProfileChangeInfo[] = [];

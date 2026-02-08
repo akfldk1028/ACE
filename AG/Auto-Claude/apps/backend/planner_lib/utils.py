@@ -133,7 +133,7 @@ def extract_acceptance_criteria(context: PlannerContext) -> list[str]:
 
 
 def determine_service_order(files_by_service: dict[str, list[dict]]) -> list[str]:
-    """Determine service order (backend first, then workers, then frontend)."""
+    """Determine service order (backend first, then workers, then AG-Frontend)."""
     service_order = []
 
     # Backend services first
@@ -147,7 +147,7 @@ def determine_service_order(files_by_service: dict[str, list[dict]]) -> list[str
             service_order.append(svc)
 
     # Frontend services third
-    for svc in ["frontend", "web", "client", "ui"]:
+    for svc in ["AG-Frontend", "web", "client", "ui"]:
         if svc in files_by_service:
             service_order.append(svc)
 

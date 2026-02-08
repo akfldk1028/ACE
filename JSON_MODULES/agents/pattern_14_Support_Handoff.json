@@ -1,0 +1,14 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Support Agent (Handoff)",
+  "description": "기술 지원",
+  "config": {
+    "name": "support_agent",
+    "system_message": "당신은 기술 지원 담당입니다. 기술적인 문제를 해결하세요.",
+    "handoffs": [
+      "triage_agent"
+    ]
+  }
+}

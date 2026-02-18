@@ -1,0 +1,9 @@
+pattern,category,n_runs,convergence_rate,mean_similarity,final_similarity,avg_convergence_turn,trend
+rr3,A,25,0.0%,0.069,0.076,N/A,+0.015
+sel3,B1,25,0.0%,0.048,0.076,N/A,+0.054
+sel4,B1,25,0.0%,0.054,0.078,N/A,+0.055
+swm3,B2,25,12.0%,0.178,0.062,27.0,-0.011
+swm4,B2,25,44.0%,0.174,0.237,31.2,+0.187
+refl2,C,25,0.0%,0.055,0.056,N/A,+0.004
+debate3,C,25,0.0%,0.093,0.102,N/A,+0.023
+pipe,D,25,0.0%,0.101,0.072,N/A,-0.005

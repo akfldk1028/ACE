@@ -1,0 +1,9 @@
+pattern,category,n_runs,total_agent_turns,avg_content_length,terminate_mention_pct,truncation_pct,repetitive_pct,hedging_pct
+rr3,A,25,90,1855,15.6,82.2,0.0,0.0
+sel3,B1,25,67,1832,17.9,77.6,0.0,0.0
+sel4,B1,25,80,1939,8.8,91.2,0.0,0.0
+swm3,B2,25,196,322,6.1,5.6,0.0,0.0
+swm4,B2,25,628,205,1.0,1.8,0.0,0.0
+refl2,C,25,56,1787,0.0,78.6,0.0,0.0
+debate3,C,25,89,1982,0.0,96.6,0.0,0.0
+pipe,D,25,101,1853,16.8,79.2,0.0,0.0

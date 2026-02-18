@@ -1,0 +1,781 @@
+pattern,category,task_id,task_domain,error,stop_reason
+rr2,A,fact_01,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_01,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_01,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_02,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_02,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_02,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_03,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_03,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_03,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_04,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_04,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_04,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_05,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_05,fact,False,Text 'TERMINATE' mentioned
+rr2,A,fact_05,fact,False,Text 'TERMINATE' mentioned
+rr2,A,crea_01,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_01,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_01,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_02,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_02,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_02,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_03,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_03,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_03,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_04,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_04,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_04,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_05,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_05,crea,False,Text 'TERMINATE' mentioned
+rr2,A,crea_05,crea,False,Text 'TERMINATE' mentioned
+rr2,A,anal_01,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_01,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_01,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_02,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_02,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_02,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_03,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_03,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_03,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_04,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_04,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_04,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_05,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_05,anal,False,Text 'TERMINATE' mentioned
+rr2,A,anal_05,anal,False,Text 'TERMINATE' mentioned
+rr2,A,tech_01,tech,False,
+rr2,A,tech_01,tech,False,
+rr2,A,tech_01,tech,False,
+rr2,A,tech_02,tech,False,Text 'TERMINATE' mentioned
+rr2,A,tech_02,tech,False,Text 'TERMINATE' mentioned
+rr2,A,tech_02,tech,False,Text 'TERMINATE' mentioned
+rr2,A,tech_03,tech,False,Text 'TERMINATE' mentioned
+rr2,A,tech_03,tech,False,Text 'TERMINATE' mentioned
+rr2,A,tech_03,tech,False,Text 'TERMINATE' mentioned
+rr2,A,tech_04,tech,False,Text 'TERMINATE' mentioned
+rr2,A,tech_04,tech,False,Text 'TERMINATE' mentioned
+rr2,A,tech_04,tech,False,Text 'TERMINATE' mentioned
+rr2,A,tech_05,tech,False,Text 'TERMINATE' mentioned
+rr2,A,tech_05,tech,False,
+rr2,A,tech_05,tech,False,
+rr3,A,fact_01,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_01,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_01,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_02,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_02,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_02,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_03,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_03,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_03,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_04,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_04,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_04,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_05,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_05,fact,False,Text 'TERMINATE' mentioned
+rr3,A,fact_05,fact,False,Text 'TERMINATE' mentioned
+rr3,A,crea_01,crea,False,Text 'TERMINATE' mentioned
+rr3,A,crea_01,crea,False,Text 'TERMINATE' mentioned
+rr3,A,crea_01,crea,False,
+rr3,A,crea_02,crea,False,Text 'TERMINATE' mentioned
+rr3,A,crea_02,crea,False,Text 'TERMINATE' mentioned
+rr3,A,crea_02,crea,False,Text 'TERMINATE' mentioned
+rr3,A,crea_03,crea,False,Text 'TERMINATE' mentioned
+rr3,A,crea_03,crea,False,Text 'TERMINATE' mentioned
+rr3,A,crea_03,crea,False,Text 'TERMINATE' mentioned
+rr3,A,crea_04,crea,False,Text 'TERMINATE' mentioned
+rr3,A,crea_04,crea,False,
+rr3,A,crea_04,crea,False,Text 'TERMINATE' mentioned
+rr3,A,crea_05,crea,False,Text 'TERMINATE' mentioned
+rr3,A,crea_05,crea,False,Text 'TERMINATE' mentioned
+rr3,A,crea_05,crea,False,
+rr3,A,anal_01,anal,False,Text 'TERMINATE' mentioned
+rr3,A,anal_01,anal,False,
+rr3,A,anal_01,anal,False,Text 'TERMINATE' mentioned
+rr3,A,anal_02,anal,False,
+rr3,A,anal_02,anal,False,
+rr3,A,anal_02,anal,False,Text 'TERMINATE' mentioned
+rr3,A,anal_03,anal,False,Text 'TERMINATE' mentioned
+rr3,A,anal_03,anal,False,Text 'TERMINATE' mentioned
+rr3,A,anal_03,anal,False,Text 'TERMINATE' mentioned
+rr3,A,anal_04,anal,False,Text 'TERMINATE' mentioned
+rr3,A,anal_04,anal,False,Text 'TERMINATE' mentioned
+rr3,A,anal_04,anal,False,Text 'TERMINATE' mentioned
+rr3,A,anal_05,anal,False,Text 'TERMINATE' mentioned
+rr3,A,anal_05,anal,False,Text 'TERMINATE' mentioned
+rr3,A,anal_05,anal,False,Text 'TERMINATE' mentioned
+rr3,A,tech_01,tech,False,
+rr3,A,tech_01,tech,False,
+rr3,A,tech_01,tech,False,
+rr3,A,tech_02,tech,False,Text 'TERMINATE' mentioned
+rr3,A,tech_02,tech,False,Text 'TERMINATE' mentioned
+rr3,A,tech_02,tech,False,
+rr3,A,tech_03,tech,False,Text 'TERMINATE' mentioned
+rr3,A,tech_03,tech,False,Text 'TERMINATE' mentioned
+rr3,A,tech_03,tech,False,Text 'TERMINATE' mentioned
+rr3,A,tech_04,tech,False,Text 'TERMINATE' mentioned
+rr3,A,tech_04,tech,False,Text 'TERMINATE' mentioned
+rr3,A,tech_04,tech,False,
+rr3,A,tech_05,tech,False,
+rr3,A,tech_05,tech,False,
+rr3,A,tech_05,tech,False,
+rr4,A,fact_01,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_01,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_01,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_02,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_02,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_02,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_03,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_03,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_03,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_04,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_04,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_04,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_05,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_05,fact,False,Text 'TERMINATE' mentioned
+rr4,A,fact_05,fact,False,Text 'TERMINATE' mentioned
+rr4,A,crea_01,crea,False,Text 'TERMINATE' mentioned
+rr4,A,crea_01,crea,False,Text 'TERMINATE' mentioned
+rr4,A,crea_01,crea,False,
+rr4,A,crea_02,crea,False,
+rr4,A,crea_02,crea,False,
+rr4,A,crea_02,crea,False,
+rr4,A,crea_03,crea,False,
+rr4,A,crea_03,crea,False,
+rr4,A,crea_03,crea,False,
+rr4,A,crea_04,crea,False,
+rr4,A,crea_04,crea,False,
+rr4,A,crea_04,crea,False,
+rr4,A,crea_05,crea,False,
+rr4,A,crea_05,crea,False,
+rr4,A,crea_05,crea,False,
+rr4,A,anal_01,anal,False,
+rr4,A,anal_01,anal,False,
+rr4,A,anal_01,anal,False,
+rr4,A,anal_02,anal,False,
+rr4,A,anal_02,anal,False,
+rr4,A,anal_02,anal,False,
+rr4,A,anal_03,anal,False,
+rr4,A,anal_03,anal,False,
+rr4,A,anal_03,anal,False,
+rr4,A,anal_04,anal,False,
+rr4,A,anal_04,anal,False,
+rr4,A,anal_04,anal,False,
+rr4,A,anal_05,anal,False,
+rr4,A,anal_05,anal,False,
+rr4,A,anal_05,anal,False,
+rr4,A,tech_01,tech,False,
+rr4,A,tech_01,tech,False,
+rr4,A,tech_01,tech,False,
+rr4,A,tech_02,tech,False,
+rr4,A,tech_02,tech,False,
+rr4,A,tech_02,tech,False,
+rr4,A,tech_03,tech,False,
+rr4,A,tech_03,tech,False,
+rr4,A,tech_03,tech,False,
+rr4,A,tech_04,tech,False,
+rr4,A,tech_04,tech,False,
+rr4,A,tech_04,tech,False,
+rr4,A,tech_05,tech,False,
+rr4,A,tech_05,tech,False,
+rr4,A,tech_05,tech,False,
+sel3,B1,fact_01,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_01,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_01,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_02,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_02,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_02,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_03,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_03,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_03,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_04,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_04,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_04,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_05,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_05,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,fact_05,fact,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_01,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_01,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_01,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_02,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_02,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_02,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_03,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_03,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_03,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_04,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_04,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_04,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_05,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_05,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,crea_05,crea,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_01,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_01,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_01,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_02,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_02,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_02,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_03,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_03,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_03,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_04,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_04,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_04,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_05,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_05,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,anal_05,anal,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_01,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_01,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_01,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_02,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_02,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_02,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_03,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_03,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_03,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_04,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_04,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_04,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_05,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_05,tech,False,Text 'TERMINATE' mentioned
+sel3,B1,tech_05,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_01,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_01,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_01,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_02,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_02,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_02,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_03,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_03,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_03,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_04,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_04,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_04,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_05,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_05,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,fact_05,fact,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_01,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_01,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_01,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_02,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_02,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_02,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_03,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_03,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_03,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_04,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_04,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_04,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_05,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_05,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,crea_05,crea,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_01,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_01,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_01,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_02,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_02,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_02,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_03,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_03,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_03,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_04,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_04,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_04,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_05,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_05,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,anal_05,anal,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_01,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_01,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_01,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_02,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_02,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_02,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_03,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_03,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_03,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_04,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_04,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_04,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_05,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_05,tech,False,Text 'TERMINATE' mentioned
+sel4,B1,tech_05,tech,False,Text 'TERMINATE' mentioned
+swm3,B2,fact_01,fact,False,"Maximum number of messages 10 reached, current message count: 10"
+swm3,B2,fact_01,fact,False,Text 'TERMINATE' mentioned
+swm3,B2,fact_01,fact,False,Text 'TERMINATE' mentioned
+swm3,B2,fact_02,fact,False,Text 'TERMINATE' mentioned
+swm3,B2,fact_02,fact,False,Text 'TERMINATE' mentioned
+swm3,B2,fact_02,fact,False,Text 'TERMINATE' mentioned
+swm3,B2,fact_03,fact,False,"Maximum number of messages 10 reached, current message count: 10"
+swm3,B2,fact_03,fact,False,"Maximum number of messages 10 reached, current message count: 10"
+swm3,B2,fact_03,fact,False,"Maximum number of messages 10 reached, current message count: 10"
+swm3,B2,fact_04,fact,False,Text 'TERMINATE' mentioned
+swm3,B2,fact_04,fact,False,Text 'TERMINATE' mentioned
+swm3,B2,fact_04,fact,False,Text 'TERMINATE' mentioned
+swm3,B2,fact_05,fact,False,Text 'TERMINATE' mentioned
+swm3,B2,fact_05,fact,False,Text 'TERMINATE' mentioned
+swm3,B2,fact_05,fact,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_01,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_01,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_01,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_02,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_02,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_02,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_03,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_03,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_03,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_04,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_04,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_04,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_05,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_05,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,crea_05,crea,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_01,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_01,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_01,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_02,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_02,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_02,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_03,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_03,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_03,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_04,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_04,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_04,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_05,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_05,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,anal_05,anal,False,Text 'TERMINATE' mentioned
+swm3,B2,tech_01,tech,False,Text 'TERMINATE' mentioned
+swm3,B2,tech_01,tech,False,"Maximum number of messages 10 reached, current message count: 10"
+swm3,B2,tech_01,tech,False,"Maximum number of messages 10 reached, current message count: 10"
+swm3,B2,tech_02,tech,False,"Maximum number of messages 10 reached, current message count: 10"
+swm3,B2,tech_02,tech,False,"Maximum number of messages 10 reached, current message count: 10"
+swm3,B2,tech_02,tech,False,Text 'TERMINATE' mentioned
+swm3,B2,tech_03,tech,False,Text 'TERMINATE' mentioned
+swm3,B2,tech_03,tech,False,"Maximum number of messages 10 reached, current message count: 10"
+swm3,B2,tech_03,tech,False,Text 'TERMINATE' mentioned
+swm3,B2,tech_04,tech,False,Text 'TERMINATE' mentioned
+swm3,B2,tech_04,tech,False,Text 'TERMINATE' mentioned
+swm3,B2,tech_04,tech,False,"Maximum number of messages 10 reached, current message count: 10"
+swm3,B2,tech_05,tech,False,"Maximum number of messages 10 reached, current message count: 10"
+swm3,B2,tech_05,tech,False,"Maximum number of messages 10 reached, current message count: 10"
+swm3,B2,tech_05,tech,False,"Maximum number of messages 10 reached, current message count: 10"
+swm4,B2,fact_01,fact,False,Text 'TERMINATE' mentioned
+swm4,B2,fact_01,fact,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,fact_01,fact,False,Text 'TERMINATE' mentioned
+swm4,B2,fact_02,fact,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,fact_02,fact,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,fact_02,fact,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,fact_03,fact,False,Text 'TERMINATE' mentioned
+swm4,B2,fact_03,fact,False,Text 'TERMINATE' mentioned
+swm4,B2,fact_03,fact,False,Text 'TERMINATE' mentioned
+swm4,B2,fact_04,fact,False,Text 'TERMINATE' mentioned
+swm4,B2,fact_04,fact,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,fact_04,fact,False,Text 'TERMINATE' mentioned
+swm4,B2,fact_05,fact,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,fact_05,fact,False,Text 'TERMINATE' mentioned
+swm4,B2,fact_05,fact,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_01,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_01,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_01,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_02,crea,False,Text 'TERMINATE' mentioned
+swm4,B2,crea_02,crea,False,Text 'TERMINATE' mentioned
+swm4,B2,crea_02,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_03,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_03,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_03,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_04,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_04,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_04,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_05,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_05,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,crea_05,crea,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_01,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_01,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_01,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_02,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_02,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_02,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_03,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_03,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_03,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_04,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_04,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_04,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_05,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,anal_05,anal,False,Text 'TERMINATE' mentioned
+swm4,B2,anal_05,anal,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,tech_01,tech,False,Text 'TERMINATE' mentioned
+swm4,B2,tech_01,tech,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,tech_01,tech,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,tech_02,tech,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,tech_02,tech,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,tech_02,tech,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,tech_03,tech,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,tech_03,tech,False,Text 'TERMINATE' mentioned
+swm4,B2,tech_03,tech,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,tech_04,tech,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,tech_04,tech,False,Text 'TERMINATE' mentioned
+swm4,B2,tech_04,tech,False,Text 'TERMINATE' mentioned
+swm4,B2,tech_05,tech,False,"Maximum number of messages 12 reached, current message count: 12"
+swm4,B2,tech_05,tech,False,Text 'TERMINATE' mentioned
+swm4,B2,tech_05,tech,False,Text 'TERMINATE' mentioned
+refl2,C,fact_01,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_01,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_01,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_02,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_02,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_02,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_03,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_03,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_03,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_04,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_04,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_04,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_05,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_05,fact,False,Text 'APPROVED' mentioned
+refl2,C,fact_05,fact,False,Text 'APPROVED' mentioned
+refl2,C,crea_01,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_01,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_01,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_02,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_02,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_02,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_03,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_03,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_03,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_04,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_04,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_04,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_05,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_05,crea,False,Text 'APPROVED' mentioned
+refl2,C,crea_05,crea,False,Text 'APPROVED' mentioned
+refl2,C,anal_01,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_01,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_01,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_02,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_02,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_02,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_03,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_03,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_03,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_04,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_04,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_04,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_05,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_05,anal,False,Text 'APPROVED' mentioned
+refl2,C,anal_05,anal,False,Text 'APPROVED' mentioned
+refl2,C,tech_01,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_01,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_01,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_02,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_02,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_02,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_03,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_03,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_03,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_04,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_04,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_04,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_05,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_05,tech,False,Text 'APPROVED' mentioned
+refl2,C,tech_05,tech,False,Text 'APPROVED' mentioned
+refl3,C,fact_01,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_01,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_01,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_02,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_02,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_02,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_03,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_03,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_03,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_04,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_04,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_04,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_05,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_05,fact,False,Text 'APPROVED' mentioned
+refl3,C,fact_05,fact,False,Text 'APPROVED' mentioned
+refl3,C,crea_01,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_01,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_01,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_02,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_02,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_02,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_03,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_03,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_03,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_04,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_04,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_04,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_05,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_05,crea,False,Text 'APPROVED' mentioned
+refl3,C,crea_05,crea,False,Text 'APPROVED' mentioned
+refl3,C,anal_01,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_01,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_01,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_02,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_02,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_02,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_03,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_03,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_03,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_04,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_04,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_04,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_05,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_05,anal,False,Text 'APPROVED' mentioned
+refl3,C,anal_05,anal,False,Text 'APPROVED' mentioned
+refl3,C,tech_01,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_01,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_01,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_02,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_02,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_02,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_03,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_03,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_03,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_04,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_04,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_04,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_05,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_05,tech,False,Text 'APPROVED' mentioned
+refl3,C,tech_05,tech,False,Text 'APPROVED' mentioned
+debate3,C,fact_01,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_01,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_01,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_02,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_02,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_02,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_03,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_03,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_03,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_04,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_04,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_04,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_05,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_05,fact,False,Text 'VERDICT' mentioned
+debate3,C,fact_05,fact,False,Text 'VERDICT' mentioned
+debate3,C,crea_01,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_01,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_01,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_02,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_02,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_02,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_03,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_03,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_03,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_04,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_04,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_04,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_05,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_05,crea,False,Text 'VERDICT' mentioned
+debate3,C,crea_05,crea,False,Text 'VERDICT' mentioned
+debate3,C,anal_01,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_01,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_01,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_02,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_02,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_02,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_03,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_03,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_03,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_04,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_04,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_04,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_05,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_05,anal,False,Text 'VERDICT' mentioned
+debate3,C,anal_05,anal,False,Text 'VERDICT' mentioned
+debate3,C,tech_01,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_01,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_01,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_02,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_02,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_02,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_03,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_03,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_03,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_04,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_04,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_04,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_05,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_05,tech,False,Text 'VERDICT' mentioned
+debate3,C,tech_05,tech,False,Text 'VERDICT' mentioned
+debate4,C,fact_01,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_01,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_01,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_02,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_02,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_02,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_03,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_03,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_03,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_04,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_04,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_04,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_05,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_05,fact,False,Text 'VERDICT' mentioned
+debate4,C,fact_05,fact,False,Text 'VERDICT' mentioned
+debate4,C,crea_01,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_01,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_01,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_02,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_02,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_02,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_03,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_03,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_03,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_04,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_04,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_04,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_05,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_05,crea,False,Text 'VERDICT' mentioned
+debate4,C,crea_05,crea,False,Text 'VERDICT' mentioned
+debate4,C,anal_01,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_01,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_01,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_02,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_02,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_02,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_03,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_03,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_03,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_04,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_04,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_04,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_05,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_05,anal,False,Text 'VERDICT' mentioned
+debate4,C,anal_05,anal,False,Text 'VERDICT' mentioned
+debate4,C,tech_01,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_01,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_01,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_02,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_02,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_02,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_03,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_03,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_03,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_04,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_04,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_04,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_05,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_05,tech,False,Text 'VERDICT' mentioned
+debate4,C,tech_05,tech,False,Text 'VERDICT' mentioned
+pipe,D,fact_01,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_01,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_01,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_02,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_02,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_02,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_03,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_03,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_03,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_04,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_04,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_04,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_05,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_05,fact,False,Text 'TERMINATE' mentioned
+pipe,D,fact_05,fact,False,Text 'TERMINATE' mentioned
+pipe,D,crea_01,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_01,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_01,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_02,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_02,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_02,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_03,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_03,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_03,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_04,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_04,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_04,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_05,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_05,crea,False,Text 'TERMINATE' mentioned
+pipe,D,crea_05,crea,False,Text 'TERMINATE' mentioned
+pipe,D,anal_01,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_01,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_01,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_02,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_02,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_02,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_03,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_03,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_03,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_04,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_04,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_04,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_05,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_05,anal,False,Text 'TERMINATE' mentioned
+pipe,D,anal_05,anal,False,Text 'TERMINATE' mentioned
+pipe,D,tech_01,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_01,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_01,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_02,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_02,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_02,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_03,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_03,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_03,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_04,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_04,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_04,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_05,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_05,tech,False,Text 'TERMINATE' mentioned
+pipe,D,tech_05,tech,False,Text 'TERMINATE' mentioned
+moa,D,fact_01,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_01,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_01,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_02,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_02,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_02,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_03,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_03,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_03,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_04,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_04,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_04,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_05,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_05,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,fact_05,fact,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_01,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_01,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_01,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_02,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_02,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_02,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_03,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_03,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_03,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_04,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_04,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_04,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_05,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_05,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,crea_05,crea,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_01,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_01,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_01,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_02,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_02,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_02,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_03,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_03,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_03,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_04,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_04,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_04,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_05,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_05,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,anal_05,anal,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_01,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_01,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_01,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_02,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_02,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_02,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_03,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_03,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_03,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_04,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_04,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_04,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_05,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_05,tech,False,"Maximum number of messages 2 reached, current message count: 2"
+moa,D,tech_05,tech,False,"Maximum number of messages 2 reached, current message count: 2"

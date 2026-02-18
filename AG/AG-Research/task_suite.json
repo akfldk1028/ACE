@@ -1,0 +1,202 @@
+[
+  {
+    "id": "sci_01",
+    "category": "factual",
+    "domain": "science",
+    "task": "Explain the three laws of thermodynamics and their practical implications in engineering.",
+    "eval_rubric": "Accuracy of law definitions, real-world engineering examples, logical flow",
+    "difficulty": "medium"
+  },
+  {
+    "id": "sci_02",
+    "category": "analytical",
+    "domain": "science",
+    "task": "Describe the process of photosynthesis including light-dependent and light-independent reactions. Compare C3, C4, and CAM pathways.",
+    "eval_rubric": "Chemical accuracy, process completeness, comparative analysis",
+    "difficulty": "medium"
+  },
+  {
+    "id": "sci_03",
+    "category": "creative",
+    "domain": "science",
+    "task": "Propose three novel experimental approaches to detect dark matter that differ from current methods. Justify each with theoretical motivation.",
+    "eval_rubric": "Scientific plausibility, creativity, theoretical grounding",
+    "difficulty": "hard"
+  },
+  {
+    "id": "cs_01",
+    "category": "factual",
+    "domain": "CS",
+    "task": "Explain the TCP/IP protocol stack layers and how data flows from application to physical layer.",
+    "eval_rubric": "Layer accuracy, data encapsulation explanation, protocol examples",
+    "difficulty": "medium"
+  },
+  {
+    "id": "cs_02",
+    "category": "technical",
+    "domain": "CS",
+    "task": "Implement an LRU cache with O(1) get and put operations. Explain the data structure choices and edge cases.",
+    "eval_rubric": "Algorithm correctness, complexity analysis, edge case handling",
+    "difficulty": "medium"
+  },
+  {
+    "id": "cs_03",
+    "category": "analytical",
+    "domain": "CS",
+    "task": "Compare microservices vs. monolithic architecture for a growing e-commerce platform with 100K daily users.",
+    "eval_rubric": "Technical accuracy, tradeoff analysis, migration considerations",
+    "difficulty": "medium"
+  },
+  {
+    "id": "hist_01",
+    "category": "factual",
+    "domain": "history",
+    "task": "What were the main causes of World War I? Discuss political, economic, and social factors.",
+    "eval_rubric": "Completeness of causes, multi-factor analysis, historical accuracy",
+    "difficulty": "medium"
+  },
+  {
+    "id": "hist_02",
+    "category": "analytical",
+    "domain": "history",
+    "task": "Compare the fall of the Roman Empire with the decline of the British Empire. What structural similarities and differences exist?",
+    "eval_rubric": "Historical accuracy, structural analysis depth, comparative framework",
+    "difficulty": "hard"
+  },
+  {
+    "id": "hist_03",
+    "category": "creative",
+    "domain": "history",
+    "task": "Write an alternate history scenario: What if the printing press had been invented in Song Dynasty China instead of Gutenberg's Europe?",
+    "eval_rubric": "Historical plausibility, butterfly effect reasoning, narrative coherence",
+    "difficulty": "hard"
+  },
+  {
+    "id": "phil_01",
+    "category": "factual",
+    "domain": "philosophy",
+    "task": "Explain Kant's categorical imperative and compare it with Mill's utilitarianism. How do they differ on moral decision-making?",
+    "eval_rubric": "Philosophical accuracy, comparison depth, example clarity",
+    "difficulty": "medium"
+  },
+  {
+    "id": "phil_02",
+    "category": "analytical",
+    "domain": "philosophy",
+    "task": "Analyze the trolley problem and its variants. What do different ethical frameworks (deontological, utilitarian, virtue ethics) prescribe?",
+    "eval_rubric": "Framework accuracy, variant coverage, nuanced analysis",
+    "difficulty": "medium"
+  },
+  {
+    "id": "phil_03",
+    "category": "creative",
+    "domain": "philosophy",
+    "task": "Design a thought experiment that challenges the concept of personal identity in the age of AI mind uploading.",
+    "eval_rubric": "Originality, philosophical depth, logical coherence",
+    "difficulty": "hard"
+  },
+  {
+    "id": "law_01",
+    "category": "factual",
+    "domain": "law_politics",
+    "task": "Explain the separation of powers doctrine and how it is implemented differently in presidential vs. parliamentary systems.",
+    "eval_rubric": "Constitutional accuracy, comparative depth, real-world examples",
+    "difficulty": "medium"
+  },
+  {
+    "id": "law_02",
+    "category": "analytical",
+    "domain": "law_politics",
+    "task": "Analyze the legal and ethical implications of AI-generated content in copyright law. Compare EU AI Act, US fair use doctrine, and Korean approaches.",
+    "eval_rubric": "Legal accuracy, multi-jurisdiction analysis, ethical reasoning",
+    "difficulty": "hard"
+  },
+  {
+    "id": "law_03",
+    "category": "creative",
+    "domain": "law_politics",
+    "task": "Draft a policy proposal for regulating autonomous vehicles including liability allocation, insurance requirements, and testing standards.",
+    "eval_rubric": "Policy completeness, feasibility, stakeholder consideration",
+    "difficulty": "hard"
+  },
+  {
+    "id": "game_01",
+    "category": "factual",
+    "domain": "gaming",
+    "task": "Explain the key game design principles: feedback loops, flow state theory, and the MDA (Mechanics-Dynamics-Aesthetics) framework.",
+    "eval_rubric": "Framework accuracy, example quality, conceptual clarity",
+    "difficulty": "medium"
+  },
+  {
+    "id": "game_02",
+    "category": "technical",
+    "domain": "gaming",
+    "task": "Design a real-time multiplayer matchmaking system that balances skill rating (ELO/Glicko), latency, and queue time.",
+    "eval_rubric": "Algorithm design, tradeoff handling, scalability considerations",
+    "difficulty": "hard"
+  },
+  {
+    "id": "game_03",
+    "category": "creative",
+    "domain": "gaming",
+    "task": "Design a game concept that teaches quantum computing concepts through puzzle mechanics. Define core loop, progression, and educational goals.",
+    "eval_rubric": "Educational effectiveness, game design quality, creativity",
+    "difficulty": "hard"
+  },
+  {
+    "id": "eng_01",
+    "category": "factual",
+    "domain": "engineering",
+    "task": "Explain the principles of structural load analysis for bridges. Cover dead loads, live loads, wind loads, and seismic considerations.",
+    "eval_rubric": "Engineering accuracy, completeness, practical design implications",
+    "difficulty": "medium"
+  },
+  {
+    "id": "eng_02",
+    "category": "technical",
+    "domain": "engineering",
+    "task": "Design a water treatment plant for a city of 200,000 people. Specify treatment stages, capacity calculations, and quality standards.",
+    "eval_rubric": "Technical completeness, standard compliance, practical feasibility",
+    "difficulty": "hard"
+  },
+  {
+    "id": "eng_03",
+    "category": "analytical",
+    "domain": "engineering",
+    "task": "Compare traditional construction vs. 3D-printed construction for affordable housing. Analyze cost, speed, structural integrity, and regulatory challenges.",
+    "eval_rubric": "Technical comparison, cost analysis, regulatory awareness",
+    "difficulty": "medium"
+  },
+  {
+    "id": "biz_01",
+    "category": "creative",
+    "domain": "business",
+    "task": "Create a business plan outline for a startup that uses AI to personalize education for K-12 students.",
+    "eval_rubric": "Completeness of plan sections, creativity of approach, market awareness",
+    "difficulty": "hard"
+  },
+  {
+    "id": "biz_02",
+    "category": "analytical",
+    "domain": "business",
+    "task": "Compare venture capital funding vs. bootstrapping for a B2B SaaS startup. When is each approach optimal?",
+    "eval_rubric": "Financial analysis quality, scenario identification, decision framework",
+    "difficulty": "medium"
+  },
+  {
+    "id": "biz_03",
+    "category": "analytical",
+    "domain": "business",
+    "task": "Evaluate the market entry strategy for an electric vehicle company entering Southeast Asia. Consider infrastructure, regulation, and consumer behavior.",
+    "eval_rubric": "Market analysis depth, risk assessment, strategic recommendations",
+    "difficulty": "hard"
+  },
+  {
+    "id": "med_01",
+    "category": "analytical",
+    "domain": "medicine",
+    "task": "Compare the effectiveness and tradeoffs of mRNA vaccines vs. traditional protein subunit vaccines for pandemic preparedness.",
+    "eval_rubric": "Scientific accuracy, immunological reasoning, public health implications",
+    "difficulty": "hard"
+  }
+]

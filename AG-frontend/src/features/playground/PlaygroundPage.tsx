@@ -21,6 +21,9 @@ import { broadcastFlowState, onFlowPresence } from './flowChannel'
 import { useToolApproval, ToolApprovalCard, parseToolApproval, useToolApprovalStore } from '@/features/tool-approval'
 import { useAutoScroll, stripThinkTags, ThinkingIndicator } from '@/features/streaming'
 import { ScheduleIndicator, SchedulePanel, useScheduleStore } from '@/features/schedule'
+import { useContextUsage, ContextUsageRing } from '@/features/context-usage'
+import { ExportButton } from '@/features/export'
+import { PresetPanel } from '@/features/assistants'
 
 // ---------- Markdown-lite renderer ----------
 // Splits content by ``` code fences and renders code blocks with styling
@@ -282,6 +285,7 @@ export function PlaygroundPage() {
   const { t } = useTranslation()
   const [task, setTask] = useState('')
   const [files, setFiles] = useState<FileAttachment[]>([])
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null)
   const { data: teams } = useTeams()
   const { data: allSessions, isLoading: sessionsLoading } = useSessions()
   const { selectedTeamId, selectTeam } = useTeamStore()
@@ -310,6 +314,7 @@ export function PlaygroundPage() {
   const selectedTeam = teams?.find((t) => t.id === selectedTeamId)
   const [flowPoppedOut, setFlowPoppedOut] = useState(false)
   const thinkingStartRef = useRef<number | null>(null)
+  const { percentage, level, displayTotal, displayLimit, total: totalTokens } = useContextUsage(turns)
 
   // Track thinking start time
   const isThinking = isRunning && !streamingSource && turns.length > 0
@@ -503,6 +508,10 @@ export function PlaygroundPage() {
   const toggleSchedule = useScheduleStore((s) => s.togglePanel)
   const closeSchedule = useCallback(() => useScheduleStore.getState().setPanelOpen(false), [])
 
+  const handlePromptClick = useCallback((prompt: string) => {
+    setTask(prompt)
+  }, [])
+
   const handleFilesChange = setFiles
 
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
@@ -629,8 +638,25 @@ export function PlaygroundPage() {
           </button>
         )}
 
+        {/* Export button */}
+        <ExportButton
+          turns={turns}
+          teamName={selectedTeam ? getTeamName(selectedTeam) : ''}
+          disabled={isRunning}
+        />
+
         {/* Schedule indicator */}
         <ScheduleIndicator onClick={toggleSchedule} />
+
+        {/* Context usage ring */}
+        {totalTokens > 0 && (
+          <ContextUsageRing
+            percentage={percentage}
+            level={level}
+            displayTotal={displayTotal}
+            displayLimit={displayLimit}
+          />
+        )}
 
         {/* Session indicator */}
         {currentSessionId !== null && (
@@ -670,18 +696,27 @@ export function PlaygroundPage() {
       {/* Chat area */}
       <div ref={scrollRef} className="flex-1 overflow-auto p-6 space-y-4 bg-(--color-background-primary)">
         {turns.length === 0 && !isRunning && status !== 'error' && !messagesLoading && (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <Bot className="w-16 h-16 mx-auto text-(--color-text-tertiary) mb-4" />
-              <h2 className="text-heading-medium text-(--color-text-secondary)">
-                {currentSessionId ? t('playground.emptySession') : t('playground.readyTitle')}
-              </h2>
-              <p className="text-body-medium text-(--color-text-tertiary) mt-2">
-                {currentSessionId
-                  ? t('playground.emptySessionDesc')
-                  : t('playground.readyDesc')}
-              </p>
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-center flex-1">
+              <div className="text-center">
+                <Bot className="w-16 h-16 mx-auto text-(--color-text-tertiary) mb-4" />
+                <h2 className="text-heading-medium text-(--color-text-secondary)">
+                  {currentSessionId ? t('playground.emptySession') : t('playground.readyTitle')}
+                </h2>
+                <p className="text-body-medium text-(--color-text-tertiary) mt-2">
+                  {currentSessionId
+                    ? t('playground.emptySessionDesc')
+                    : t('playground.readyDesc')}
+                </p>
+              </div>
             </div>
+            {!currentSessionId && (
+              <PresetPanel
+                selectedPresetId={selectedPresetId}
+                onSelectPreset={setSelectedPresetId}
+                onPromptClick={handlePromptClick}
+              />
+            )}
           </div>
         )}
 

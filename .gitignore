@@ -57,6 +57,10 @@ JSON_MODULES/__pycache__/
 *.backup
 *.original
 
+# Screenshots (test artifacts)
+/*.png
+/*.jpg
+
 # Environment
 .env
 .env.local

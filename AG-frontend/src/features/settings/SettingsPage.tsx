@@ -9,6 +9,7 @@ import { Key, Monitor, Palette, Server, Variable, Eye, EyeOff, Trash2, Plus, Glo
 import type { EnvironmentVariable, EnvironmentVariableType, Settings } from '@/shared/types/datamodel'
 import { truncateError } from '@/shared/utils'
 import { useLanguage, LOCALES } from '@/shared/i18n'
+import { FontScaleControl } from '@/features/font-scale'
 
 // ---- UI Settings Section ----
 
@@ -616,6 +617,14 @@ export function SettingsPage() {
                 ))}
               </select>
             </div>
+          </div>
+          {/* Font scale */}
+          <div>
+            <span className="text-label block mb-2">{t('settings.fontScale')}</span>
+            <span className="text-body-small text-(--color-text-tertiary) block mb-2">
+              {t('settings.fontScaleDesc')}
+            </span>
+            <FontScaleControl />
           </div>
         </div>
       </Card>

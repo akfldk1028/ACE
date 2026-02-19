@@ -55,6 +55,11 @@ export function AgentsPage() {
     selectAgent(name === selectedAgentName ? null : name)
   }, [selectAgent, selectedAgentName])
 
+  const handleRefreshHealth = useCallback(() => refetchHealth(), [refetchHealth])
+  const handleOpenRegister = useCallback(() => setRegisterOpen(true), [])
+  const handleCloseRegister = useCallback(() => setRegisterOpen(false), [])
+  const handleCloseDetail = useCallback(() => selectAgent(null), [selectAgent])
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -67,13 +72,13 @@ export function AgentsPage() {
         <div className="flex gap-2">
           <Button
             variant="ghost"
-            onClick={() => refetchHealth()}
+            onClick={handleRefreshHealth}
             disabled={isHealthFetching}
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isHealthFetching ? 'animate-spin' : ''}`} />
             Health Check All
           </Button>
-          <Button onClick={() => setRegisterOpen(true)}>
+          <Button onClick={handleOpenRegister}>
             <Plus className="w-4 h-4 mr-2" />
             Register Agent
           </Button>
@@ -97,7 +102,7 @@ export function AgentsPage() {
         <AgentDetailPanel
           agent={selectedAgent}
           health={healthMap.get(selectedAgent.config.name)}
-          onClose={() => selectAgent(null)}
+          onClose={handleCloseDetail}
           onUnregister={() => handleUnregister(selectedAgent.config.name)}
         />
       )}
@@ -133,7 +138,7 @@ export function AgentsPage() {
                   : 'No agents registered. Add your first A2A agent to get started.'}
               </p>
               {!searchQuery && (
-                <Button className="mt-4" onClick={() => setRegisterOpen(true)}>
+                <Button className="mt-4" onClick={handleOpenRegister}>
                   <Plus className="w-4 h-4 mr-2" />
                   Register Agent
                 </Button>
@@ -145,7 +150,7 @@ export function AgentsPage() {
 
       <AgentRegisterDialog
         open={registerOpen}
-        onClose={() => setRegisterOpen(false)}
+        onClose={handleCloseRegister}
       />
     </div>
   )

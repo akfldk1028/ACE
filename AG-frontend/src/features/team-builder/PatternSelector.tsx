@@ -11,6 +11,7 @@ import type { PatternType } from './agentflow'
 
 interface PatternSelectorProps {
   currentPattern: PatternType
+  onSelect?: (pattern: PatternType) => void
 }
 
 const PATTERN_ICONS: Record<string, LucideIcon> = {
@@ -23,7 +24,7 @@ const PATTERN_ICONS: Record<string, LucideIcon> = {
 
 const DISPLAY_PATTERNS: PatternType[] = ['sequential', 'selector', 'handoff', 'debate', 'reflection']
 
-export const PatternSelector = memo(function PatternSelector({ currentPattern }: PatternSelectorProps) {
+export const PatternSelector = memo(function PatternSelector({ currentPattern, onSelect }: PatternSelectorProps) {
   return (
     <div
       className="flex flex-wrap gap-2 mb-3"
@@ -42,11 +43,15 @@ export const PatternSelector = memo(function PatternSelector({ currentPattern }:
             role="radio"
             aria-checked={isCurrent}
             tabIndex={isCurrent ? 0 : -1}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-default transition-all ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+              onSelect ? 'cursor-pointer' : 'cursor-default'
+            } ${
               isCurrent
                 ? 'ring-2 ring-(--color-accent-primary) border-(--color-accent-primary) bg-(--color-background-secondary)'
                 : 'border-(--color-border-default) bg-(--color-background-primary)'
             }`}
+            onClick={onSelect ? () => onSelect(id) : undefined}
+            onKeyDown={onSelect ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(id) } } : undefined}
           >
             {Icon && <Icon className="w-4 h-4 flex-shrink-0" style={{ color: def.visual.primaryColor }} />}
             <div className="min-w-0">

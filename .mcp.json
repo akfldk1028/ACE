@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "ACE": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["AG/autogen_a2a_kit/AG-cli/mcp/autogen_studio_server.py"]
+    }
+  }
+}

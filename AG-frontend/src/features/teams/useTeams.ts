@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, teamAPI } from '@/shared/api'
+import { api, teamAPI, validationAPI } from '@/shared/api'
 import type { TeamResponse } from '@/shared/api'
+import type { Component, ComponentConfig } from '@/shared/types/datamodel'
 
 export function useTeams() {
   return useQuery({
@@ -33,6 +34,24 @@ export function useUpdateTeam() {
     mutationFn: ({ id, component }: { id: number; component: unknown }) =>
       teamAPI.update(id, component),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['teams'] }),
+  })
+}
+
+export function useDeleteTeam() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.deleteTeam(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['teams'] }),
+  })
+}
+
+export function useValidateComponent(component: Component<ComponentConfig> | null | undefined) {
+  return useQuery({
+    queryKey: ['validation', component ? JSON.stringify(component) : null],
+    queryFn: () => validationAPI.validate(component!),
+    enabled: !!component,
+    retry: false,
+    staleTime: 60_000,
   })
 }
 

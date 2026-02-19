@@ -96,13 +96,24 @@ function AgentNode({ data, isConnectable }: AgentNodeProps) {
           </>
         ) : (
           <>
-            {data.agentType && (
-              <div className="text-sm text-(--color-text-secondary)">{data.agentType}</div>
-            )}
-            {data.description && (
-              <div className="text-xs text-(--color-text-tertiary) mt-1 truncate max-w-[200px]">
-                {data.description}
+            {data.lastMessage ? (
+              <div
+                className="text-xs text-(--color-text-secondary) leading-snug max-w-[200px] line-clamp-3"
+                title={data.lastMessage}
+              >
+                {data.lastMessage}
               </div>
+            ) : (
+              <>
+                {data.agentType && (
+                  <div className="text-sm text-(--color-text-secondary)">{data.agentType}</div>
+                )}
+                {data.description && (
+                  <div className="text-xs text-(--color-text-tertiary) mt-1 truncate max-w-[200px]">
+                    {data.description}
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

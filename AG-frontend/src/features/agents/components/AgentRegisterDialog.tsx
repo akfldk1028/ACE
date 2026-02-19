@@ -5,14 +5,11 @@ import { AgentHealthBadge } from './AgentHealthBadge'
 import { agentAPI } from '../api'
 import { useRegisterAgent } from '../useAgents'
 import type { A2AHealthStatus } from '../types'
+import { truncateError } from '@/shared/utils'
 
 interface AgentRegisterDialogProps {
   open: boolean
   onClose: () => void
-}
-
-function truncateError(msg: string, max = 200): string {
-  return msg.length > max ? msg.slice(0, max) + '...' : msg
 }
 
 export function AgentRegisterDialog({ open, onClose }: AgentRegisterDialogProps) {

@@ -8,17 +8,14 @@ export {
   settingsAPI,
   healthAPI,
   validationAPI,
+  authAPI,
   ApiError,
 } from './client'
 export type {
   TeamResponse,
-  SessionResponse,
-  RunResponse,
-  HealthResponse,
-  VersionResponse,
-  ValidationResponse,
-  ValidationError,
-  ComponentTestResult,
+  AuthUser,
 } from './client'
 export { ExecutionWebSocket } from './ws'
 export type { WSMessage, FileAttachment } from './ws'
+export { McpWebSocket } from './mcpWs'
+export type { McpWsMessage, McpMessageListener } from './mcpWs'

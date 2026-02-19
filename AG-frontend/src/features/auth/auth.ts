@@ -1,8 +1,11 @@
-// Auth helpers - MVP: simple local user, expandable to Supabase/Clerk
+// Auth helpers - supports guest mode + OAuth (GitHub/MSAL/Firebase)
 export interface User {
   id: string
-  email: string
+  email: string | null
   name: string
+  avatar_url?: string
+  provider?: string
+  roles?: string[]
   orgId?: string
   role: 'owner' | 'admin' | 'member'
 }
@@ -29,7 +32,7 @@ export function clearStoredUser() {
   localStorage.removeItem(STORAGE_KEY)
 }
 
-// Default guest user for MVP (no auth backend yet)
+// Default guest user (used when auth type is "none")
 export const GUEST_USER: User = {
   id: 'guest',
   email: 'guestuser@gmail.com',

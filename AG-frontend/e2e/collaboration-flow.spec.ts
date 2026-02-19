@@ -19,16 +19,24 @@ test.describe('Full collaboration flow: Build -> Run -> Browse', () => {
     await expect(page).toHaveURL('/')
 
     // Step 3: Verify playground is ready with team pre-selected
-    const select = page.locator('select')
-    const value = await select.inputValue()
+    const teamSelect = page.getByLabel('Select a team')
+    // Wait for team to be pre-selected (store sets it before navigation)
+    await page.waitForFunction(
+      () => {
+        const s = document.querySelector('[aria-label="Select a team"]') as HTMLSelectElement
+        return s && s.value !== ''
+      },
+      { timeout: 10_000 },
+    )
+    const value = await teamSelect.inputValue()
     expect(value).not.toBe('')
 
     // Step 4: Enter a task
-    const input = page.getByPlaceholder('Enter a task for the team...')
+    const input = page.getByPlaceholder(/Enter a task|Continue this session/)
     await input.fill('Hello, test task')
 
     // Send button should be enabled
-    const sendButton = page.locator('button').filter({ has: page.locator('svg.lucide-send') })
+    const sendButton = page.getByLabel('Send task')
     await expect(sendButton).toBeEnabled()
   })
 

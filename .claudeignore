@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+venv/
+.venv/
+__pycache__/
+
+# Build outputs
+dist/
+AG-frontend/dist/
+*.tsbuildinfo
+
+# Screenshots at root (documentation images)
+*.png
+*.jpg
+
+# Auto-Claude worktrees (huge, nested repos)
+AG/Auto-Claude/.auto-claude/worktrees/
+
+# IDE / OS
+.idea/
+*.swp
+Thumbs.db
+
+# Large data files
+*.db
+*.sqlite
+*.db-journal
+
+# Caches
+.cache/
+.vitest/
+playwright-report/
+test-results/

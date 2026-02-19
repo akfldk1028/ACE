@@ -43,14 +43,14 @@ test.describe('Settings page - configuration display', () => {
   test('shows 7 color theme buttons', async ({ page }) => {
     const themeNames = ['Default', 'Dusk', 'Lime', 'Ocean', 'Retro', 'Neo', 'Forest']
     for (const name of themeNames) {
-      await expect(page.getByRole('button', { name, exact: true })).toBeVisible()
+      await expect(page.getByRole('radio', { name: `${name} theme` })).toBeVisible()
     }
   })
 
   // --- API Keys ---
   test('shows API Keys section with disabled Generate button', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible()
-    await expect(page.getByText('Phase 3')).toBeVisible()
+    await expect(page.getByText('Coming soon')).toBeVisible()
     await expect(page.getByRole('button', { name: /Generate/i })).toBeDisabled()
   })
 })

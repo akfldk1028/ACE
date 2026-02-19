@@ -88,17 +88,18 @@ test.describe('Color theme selection (Settings page)', () => {
 
   test('settings page shows color theme buttons', async ({ page }) => {
     // 7 themes: Default, Dusk, Lime, Ocean, Retro, Neo, Forest
+    // Theme buttons have role="radio" with aria-label="${name} theme"
     const themeNames = ['Default', 'Dusk', 'Lime', 'Ocean', 'Retro', 'Neo', 'Forest']
     for (const name of themeNames) {
-      await expect(page.getByRole('button', { name })).toBeVisible()
+      await expect(page.getByRole('radio', { name: `${name} theme` })).toBeVisible()
     }
   })
 
   test('selecting a color theme sets data-theme attribute on html', async ({ page }) => {
     const html = page.locator('html')
 
-    // Click the "Ocean" theme button
-    await page.getByRole('button', { name: 'Ocean' }).click()
+    // Click the "Ocean" theme radio
+    await page.getByRole('radio', { name: 'Ocean theme' }).click()
 
     // The html element should now have data-theme="ocean"
     await expect(html).toHaveAttribute('data-theme', 'ocean')
@@ -108,11 +109,11 @@ test.describe('Color theme selection (Settings page)', () => {
     const html = page.locator('html')
 
     // First set a non-default theme
-    await page.getByRole('button', { name: 'Retro' }).click()
+    await page.getByRole('radio', { name: 'Retro theme' }).click()
     await expect(html).toHaveAttribute('data-theme', 'retro')
 
     // Switch back to Default
-    await page.getByRole('button', { name: 'Default' }).click()
+    await page.getByRole('radio', { name: 'Default theme' }).click()
 
     // data-theme should be removed (not present)
     await expect(html).not.toHaveAttribute('data-theme')

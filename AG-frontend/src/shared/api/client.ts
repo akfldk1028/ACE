@@ -16,7 +16,18 @@ import type {
 // --------------- Config ---------------
 
 const BASE_URL = '/api'
-const DEFAULT_USER_ID = 'guestuser@gmail.com'
+const FALLBACK_USER_ID = 'guestuser@gmail.com'
+
+function getDefaultUserId(): string {
+  try {
+    const stored = localStorage.getItem('platform-user')
+    if (stored) {
+      const user = JSON.parse(stored)
+      if (typeof user?.email === 'string' && user.email) return user.email
+    }
+  } catch { /* fall through */ }
+  return FALLBACK_USER_ID
+}
 
 function getHeaders(): HeadersInit {
   const token = localStorage.getItem('auth_token')
@@ -84,7 +95,7 @@ export interface RunResponse {
 }
 
 export interface HealthResponse {
-  status: string
+  status: boolean
 }
 
 export interface VersionResponse {
@@ -115,63 +126,60 @@ export interface ComponentTestResult {
 // --------------- Team API ---------------
 
 export const teamAPI = {
-  list: (userId: string = DEFAULT_USER_ID) =>
+  list: (userId: string = getDefaultUserId()) =>
     fetchJSON<TeamResponse[]>(`/teams/?user_id=${encodeURIComponent(userId)}`),
 
-  get: (id: number, userId: string = DEFAULT_USER_ID) =>
+  get: (id: number, userId: string = getDefaultUserId()) =>
     fetchJSON<TeamResponse>(`/teams/${id}?user_id=${encodeURIComponent(userId)}`),
 
-  create: (teamData: Record<string, unknown>, userId: string = DEFAULT_USER_ID) =>
+  create: (teamData: Record<string, unknown>, userId: string = getDefaultUserId()) =>
     fetchJSON<TeamResponse>('/teams/', {
       method: 'POST',
       body: JSON.stringify({ ...teamData, user_id: userId }),
     }),
 
-  delete: (id: number, userId: string = DEFAULT_USER_ID) =>
+  delete: (id: number, userId: string = getDefaultUserId()) =>
     fetchJSON<void>(`/teams/${id}?user_id=${encodeURIComponent(userId)}`, { method: 'DELETE' }),
 
-  update: (id: number, component: unknown, userId: string = DEFAULT_USER_ID) =>
-    fetchJSON<TeamResponse>(`/teams/${id}?user_id=${encodeURIComponent(userId)}`, {
-      method: 'PUT',
-      body: JSON.stringify({ user_id: userId, component }),
+  update: (id: number, component: unknown, userId: string = getDefaultUserId()) =>
+    fetchJSON<TeamResponse>('/teams/', {
+      method: 'POST',
+      body: JSON.stringify({ id, user_id: userId, component }),
     }),
 }
 
 // --------------- Session API ---------------
 
 export const sessionAPI = {
-  list: (userId: string = DEFAULT_USER_ID) =>
+  list: (userId: string = getDefaultUserId()) =>
     fetchJSON<SessionResponse[]>(`/sessions/?user_id=${encodeURIComponent(userId)}`),
 
-  get: (id: number, userId: string = DEFAULT_USER_ID) =>
+  get: (id: number, userId: string = getDefaultUserId()) =>
     fetchJSON<SessionResponse>(`/sessions/${id}?user_id=${encodeURIComponent(userId)}`),
 
-  create: (sessionData: Partial<Session>, userId: string = DEFAULT_USER_ID) =>
+  create: (sessionData: Partial<Session>, userId: string = getDefaultUserId()) =>
     fetchJSON<SessionResponse>('/sessions/', {
       method: 'POST',
       body: JSON.stringify({ ...sessionData, user_id: userId }),
     }),
 
-  update: (id: number, sessionData: Partial<Session>, userId: string = DEFAULT_USER_ID) =>
+  update: (id: number, sessionData: Partial<Session>, userId: string = getDefaultUserId()) =>
     fetchJSON<SessionResponse>(`/sessions/${id}?user_id=${encodeURIComponent(userId)}`, {
       method: 'PUT',
       body: JSON.stringify({ ...sessionData, id, user_id: userId }),
     }),
 
-  getRuns: (sessionId: number, userId: string = DEFAULT_USER_ID) =>
+  getRuns: (sessionId: number, userId: string = getDefaultUserId()) =>
     fetchJSON<SessionRuns>(`/sessions/${sessionId}/runs?user_id=${encodeURIComponent(userId)}`),
 
-  getMessages: (sessionId: number, userId: string = DEFAULT_USER_ID) =>
-    fetchJSON<unknown[]>(`/sessions/${sessionId}/messages?user_id=${encodeURIComponent(userId)}`),
-
-  delete: (id: number, userId: string = DEFAULT_USER_ID) =>
+  delete: (id: number, userId: string = getDefaultUserId()) =>
     fetchJSON<void>(`/sessions/${id}?user_id=${encodeURIComponent(userId)}`, { method: 'DELETE' }),
 }
 
 // --------------- Run API ---------------
 
 export const runAPI = {
-  create: (sessionId: number, userId: string = DEFAULT_USER_ID) =>
+  create: (sessionId: number, userId: string = getDefaultUserId()) =>
     fetchJSON<RunResponse>('/runs/', {
       method: 'POST',
       body: JSON.stringify({ session_id: sessionId, user_id: userId }),
@@ -181,25 +189,25 @@ export const runAPI = {
 // --------------- Gallery API ---------------
 
 export const galleryAPI = {
-  list: (userId: string = DEFAULT_USER_ID) =>
+  list: (userId: string = getDefaultUserId()) =>
     fetchJSON<Gallery[]>(`/gallery/?user_id=${encodeURIComponent(userId)}`),
 
-  get: (id: number, userId: string = DEFAULT_USER_ID) =>
+  get: (id: number, userId: string = getDefaultUserId()) =>
     fetchJSON<Gallery>(`/gallery/${id}?user_id=${encodeURIComponent(userId)}`),
 
-  create: (galleryData: Partial<Gallery>, userId: string = DEFAULT_USER_ID) =>
+  create: (galleryData: Partial<Gallery>, userId: string = getDefaultUserId()) =>
     fetchJSON<Gallery>('/gallery/', {
       method: 'POST',
       body: JSON.stringify({ ...galleryData, user_id: userId }),
     }),
 
-  update: (id: number, galleryData: Partial<Gallery>, userId: string = DEFAULT_USER_ID) =>
+  update: (id: number, galleryData: Partial<Gallery>, userId: string = getDefaultUserId()) =>
     fetchJSON<Gallery>(`/gallery/${id}?user_id=${encodeURIComponent(userId)}`, {
       method: 'PUT',
       body: JSON.stringify({ ...galleryData, user_id: userId }),
     }),
 
-  delete: (id: number, userId: string = DEFAULT_USER_ID) =>
+  delete: (id: number, userId: string = getDefaultUserId()) =>
     fetchJSON<void>(`/gallery/${id}?user_id=${encodeURIComponent(userId)}`, { method: 'DELETE' }),
 
   sync: async (url: string): Promise<Gallery> => {
@@ -228,10 +236,10 @@ export const validationAPI = {
 // --------------- Settings API ---------------
 
 export const settingsAPI = {
-  get: (userId: string = DEFAULT_USER_ID) =>
+  get: (userId: string = getDefaultUserId()) =>
     fetchJSON<Settings>(`/settings/?user_id=${encodeURIComponent(userId)}`),
 
-  update: (settings: Settings, userId: string = DEFAULT_USER_ID) =>
+  update: (settings: Settings, userId: string = getDefaultUserId()) =>
     fetchJSON<Settings>('/settings/', {
       method: 'PUT',
       body: JSON.stringify({ ...settings, user_id: settings.user_id ?? userId }),
@@ -243,6 +251,23 @@ export const settingsAPI = {
 export const healthAPI = {
   check: () => fetchJSON<HealthResponse>('/health'),
   version: () => fetchJSON<VersionResponse>('/version'),
+}
+
+// --------------- Auth API ---------------
+
+export interface AuthUser {
+  id: string
+  name: string
+  email: string | null
+  avatar_url?: string
+  provider: string
+  roles: string[]
+}
+
+export const authAPI = {
+  getType: () => fetchJSON<{ type: string }>('/auth/type'),
+  getLoginUrl: () => fetchJSON<{ login_url: string }>('/auth/login-url'),
+  getMe: () => fetchJSON<AuthUser>('/auth/me'),
 }
 
 // --------------- Legacy compat: single `api` object ---------------

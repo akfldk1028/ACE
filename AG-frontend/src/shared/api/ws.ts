@@ -90,8 +90,8 @@ export class ExecutionWebSocket {
       try {
         const msg: WSMessage = JSON.parse(event.data)
         this.onMessage(msg)
-      } catch {
-        // ignore non-JSON messages (pong, etc.)
+      } catch (err) {
+        console.warn('[WS] Non-JSON message ignored:', event.data, err)
       }
     }
 
@@ -132,6 +132,10 @@ export class ExecutionWebSocket {
       type: 'stop',
       reason: reason ?? undefined,
     }))
+  }
+
+  get isConnected(): boolean {
+    return this.ws?.readyState === WebSocket.OPEN
   }
 
   disconnect() {

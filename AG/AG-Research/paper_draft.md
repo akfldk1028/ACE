@@ -4,7 +4,7 @@
 
 ## Abstract
 
-Multi-agent LLM systems increasingly tackle complex reasoning tasks through diverse coordination topologies, yet their termination behavior remains poorly understood. Current stopping criteria---maximum turns, keyword matching, or external signals---are applied uniformly regardless of how agents coordinate, leading to premature termination that sacrifices quality or wasteful over-computation. We present the first systematic study of termination dynamics across 13 coordination patterns plus a single-agent baseline spanning six topology categories: single-agent baseline (S), sequential chain (A), centralized routing/star (B1), decentralized handoff/mesh (B2), structured feedback (C), and composed/nested (D) architectures. Through five interconnected experiments totaling over 1,880 runs within a unified AutoGen framework, we characterize how topology fundamentally shapes when teams should stop. Our analysis reveals that (1) centralized routing (B1) and decentralized handoff (B2), previously lumped as "dynamic routing," exhibit fundamentally different cost scaling (sub-linear vs. super-linear), (2) a 3-agent decentralized swarm (swm3) is more efficient than a 2-agent sequential chain (rr2)---a non-trivial finding, (3) the marginal utility criterion ΔU(t) = ΔQ(t) - λ·ΔC(t) → 0 naturally converges via quality saturation, providing a topology-aware optimal stopping signal, (4) the new cost hierarchy A ≈ B2 < B1 ≈ C ≪ D replaces the previous A ≪ B ≈ C ≪ D, and (5) a controlled diagnostic experiment shows that keyword-based termination is a surprisingly effective heuristic that aligns with quality plateau points for 7/8 topologies---itself a valuable finding---while ΔU identifies decentralized handoff as the exception, yielding a hybrid termination strategy. We release our experimental framework and propose design guidelines for topology-aware termination in multi-agent systems.
+Multi-agent LLM systems increasingly tackle complex reasoning tasks through diverse coordination topologies, yet their termination behavior remains poorly understood. Current stopping criteria---maximum turns, keyword matching, or external signals---are applied uniformly regardless of how agents coordinate, leading to premature termination that sacrifices quality or wasteful over-computation. We present the first systematic study of termination dynamics across 13 coordination patterns plus a single-agent baseline spanning six topology categories: single-agent baseline (S), sequential chain (A), centralized routing/star (B1), decentralized handoff/mesh (B2), structured feedback (C), and composed/nested (D) architectures. Through five interconnected experiments totaling over 2,000 runs within a unified AutoGen framework, we characterize how topology fundamentally shapes when teams should stop. Our analysis reveals that (1) centralized routing (B1) and decentralized handoff (B2), previously lumped as "dynamic routing," exhibit fundamentally different cost scaling (sub-linear vs. super-linear), (2) a 3-agent decentralized swarm (swm3) is more efficient than a 2-agent sequential chain (rr2)---a non-trivial finding, (3) the marginal utility criterion ΔU(t) = ΔQ(t) - λ·ΔC(t) → 0 naturally converges via quality saturation, providing a topology-aware optimal stopping signal, (4) the new cost hierarchy A ≈ B2 < B1 ≈ C ≪ D replaces the previous A ≪ B ≈ C ≪ D, and (5) a controlled diagnostic experiment shows that keyword-based termination is a surprisingly effective heuristic that aligns with quality plateau points for 7/8 topologies---itself a valuable finding---while ΔU identifies decentralized handoff as the exception, yielding a hybrid termination strategy. We release our experimental framework and propose design guidelines for topology-aware termination in multi-agent systems.
 
 ---
 
@@ -40,7 +40,7 @@ This work investigates five research questions that together provide a comprehen
 
 We make five contributions:
 
-1. **Cross-topology termination study.** We present the first systematic comparison of termination behavior across 13 coordination patterns within a single unified framework (AutoGen), spanning five topology categories. Prior work has compared at most 2--3 patterns across different frameworks, confounding topology effects with implementation differences (Cemri et al., 2025; Hu et al., 2025).
+1. **Cross-topology termination study.** We present the first systematic comparison of termination behavior across 13 coordination patterns within a single unified framework (AutoGen), spanning six topology categories. Prior work has compared at most 2--3 patterns across different frameworks, confounding topology effects with implementation differences (Cemri et al., 2025; Hu et al., 2025).
 
 2. **Termination regret metric.** We introduce a post-hoc quality trajectory analysis using G-Eval (Liu et al., 2023) scoring at each agent turn, enabling precise identification of when quality peaked relative to when the team stopped. This reveals systematic over-computation in feedback patterns and under-computation in flat sequential patterns.
 
@@ -52,7 +52,7 @@ We make five contributions:
 
 ### 1.4 Paper Organization
 
-Section 2 surveys related work on multi-agent coordination and stopping criteria. Section 3 describes our taxonomy of 13 coordination patterns and the experimental framework. Section 4 presents results from five interconnected experiments. Section 5 discusses implications and limitations. Section 6 concludes.
+Section 2 surveys related work on multi-agent coordination and stopping criteria. Section 3 describes our taxonomy of 14 coordination patterns and the experimental framework. Section 4 presents results from five interconnected experiments. Section 5 discusses implications and limitations. Section 6 concludes.
 
 ---
 
@@ -60,7 +60,7 @@ Section 2 surveys related work on multi-agent coordination and stopping criteria
 
 ### 2.1 Multi-Agent Coordination Topologies
 
-Multi-agent LLM systems employ diverse coordination strategies. Grounded in classical MAS topology theory (Masterman et al., 2025)---which identifies chain, star, and mesh as canonical topologies---we organize 13 patterns into five categories (Figure 1):
+Multi-agent LLM systems employ diverse coordination strategies. Grounded in classical MAS topology theory (Masterman et al., 2025)---which identifies chain, star, and mesh as canonical topologies---we organize 13 coordination patterns plus a single-agent baseline into six categories (Figure 1):
 
 **Sequential Chain (Category A).** Round-robin patterns cycle agents in a fixed order: Agent_1 -> Agent_2 -> ... -> Agent_n -> Agent_1. Each agent sees the full conversation history but cannot influence routing. This corresponds to Masterman et al.'s chain/waterfall topology. Patterns: RR-2, RR-3, RR-4.
 
@@ -104,7 +104,7 @@ We adopt G-Eval (Liu et al., 2023) as our per-turn quality metric, using claude-
 | Wang et al. (2025) | 1 | Debate (small-world) | No | Semantic entropy |
 | AgentDropout (ACL 2025) | Variable | Communication graphs | No (agent elimination) | N/A |
 | SupervisorAgent (2025) | 1+ | Runtime supervision | Yes (LLM-free filter) | Context-level |
-| **Ours** | **13** | **5 categories** | **Yes (topology-aware)** | **Claim-level KS-test** |
+| **Ours** | **14** | **6 categories** | **Yes (topology-aware)** | **Claim-level KS-test** |
 
 ---
 
@@ -112,12 +112,13 @@ We adopt G-Eval (Liu et al., 2023) as our per-turn quality metric, using claude-
 
 ### 3.1 Pattern Taxonomy
 
-We study 13 coordination patterns organized into five categories (Figure 1). Each pattern is parameterized by agent count *n* and shares a common termination vocabulary (TERMINATE keyword for graceful stopping, max_messages=25 as safety bound). Table 2 details the specific configurations.
+We study 14 coordination patterns (including a single-agent baseline) organized into six categories (Figure 1). Each pattern is parameterized by agent count *n* and shares a common termination vocabulary (TERMINATE keyword for graceful stopping, max_messages=25 as safety bound). Table 2 details the specific configurations.
 
 **Table 2: Pattern Configurations**
 
 | Pattern | Category | Agents | Roles | Routing | Termination |
 |---------|----------|--------|-------|---------|-------------|
+| Solo | S | 1 | General-purpose assistant | N/A | Keyword or max |
 | RR-2 | A | 2 | Writer, Researcher | Fixed round-robin | Keyword or max |
 | RR-3 | A | 3 | Writer, Researcher, Reviewer | Fixed round-robin | Keyword or max |
 | RR-4 | A | 4 | Writer, Researcher, Reviewer, Editor | Fixed round-robin | Keyword or max |
@@ -148,7 +149,7 @@ In the v1 experiment, each task was run with 3 repetitions per pattern, yielding
 
 ### 3.3 Experimental Framework
 
-All experiments use the AutoGen framework with a custom ClaudeCLIChatCompletionClient wrapping Claude Haiku 4.5 as the base model. This provides consistent LLM behavior across all patterns while capturing per-call token counts via the SDK's models_usage tracking.
+All primary experiments use the AutoGen framework with a custom ClaudeCLIChatCompletionClient wrapping Claude Haiku 4.5 as the base model, with cross-model validation using GPT-4o-mini (Section 4.6). This provides consistent LLM behavior across all patterns while capturing per-call token counts via the SDK's models_usage tracking.
 
 **Metrics captured per run:**
 - *Duration*: Wall-clock time from team.run() start to completion
@@ -175,7 +176,7 @@ All experiments use the AutoGen framework with a custom ClaudeCLIChatCompletionC
 
 ## 4. Results
 
-We present results from five interconnected experiments, each addressing a specific research question. All experiments use Claude Haiku 4.5 as the base model through a custom AutoGen ChatCompletionClient, ensuring consistent LLM behavior across all 13 coordination patterns.
+We present results from five interconnected experiments, each addressing a specific research question. All experiments use Claude Haiku 4.5 as the base model through a custom AutoGen ChatCompletionClient, ensuring consistent LLM behavior across all 14 patterns (13 multi-agent + 1 solo baseline).
 
 ### 4.1 Experiment 01: Pattern Efficiency (RQ1)
 
@@ -185,7 +186,7 @@ We present results from five interconnected experiments, each addressing a speci
 
 To establish a lower bound for multi-agent overhead, we run a single general-purpose agent on all 25 tasks with a max_messages limit of 5 and TERMINATE keyword termination.
 
-**Table 2b: Single-Agent Baseline vs. Multi-Agent Patterns**
+**Table 3: Single-Agent Baseline vs. Multi-Agent Patterns**
 
 | Pattern | Cat. | Agents | Avg Tokens | Avg Duration (s) | Keyword% | vs solo |
 |---------|------|--------|-----------|-----------------|----------|---------|
@@ -195,13 +196,13 @@ To establish a lower bound for multi-agent overhead, we run a single general-pur
 | sel3 | B1 | 3+1 | 7,851 | 115.2 | — | 6.10x |
 | refl2 | C | 2 | 5,237 | 60.2 | — | 4.07x |
 
-**Finding 0 — Multi-agent coordination incurs 3.3--6.1x token overhead over a single agent.** The solo baseline completes all 25 tasks at an average of 1,287 tokens with 100% keyword termination rate, establishing a lower bound. The cheapest multi-agent pattern (swm3, 3 agents) costs 3.26x more tokens, while rr2 (2 agents) costs 3.70x. This overhead quantifies the *coordination tax*---the cost of inter-agent communication, context accumulation, and turn-taking protocol. However, this overhead must be weighed against quality improvements: the multi-agent quality analysis in Experiment 02 demonstrates that multi-agent patterns achieve higher G-Eval scores, particularly on complex analytical and creative tasks where iterative refinement and diverse perspectives improve output quality.
+**Finding 1 — Multi-agent coordination incurs 3.3--6.1x token overhead over a single agent.** The solo baseline completes all 25 tasks at an average of 1,287 tokens with 100% keyword termination rate, establishing a lower bound. The cheapest multi-agent pattern (swm3, 3 agents) costs 3.26x more tokens, while rr2 (2 agents) costs 3.70x. This overhead quantifies the *coordination tax*---the cost of inter-agent communication, context accumulation, and turn-taking protocol. However, this overhead must be weighed against quality improvements: the multi-agent quality analysis in Experiment 02 demonstrates that multi-agent patterns achieve higher G-Eval scores, particularly on complex analytical and creative tasks where iterative refinement and diverse perspectives improve output quality.
 
 #### 4.1.1 Category A: Flat Sequential Patterns
 
-Table 3 presents results from Category A (Flat Sequential), providing evidence for how agent count affects efficiency in fixed round-robin topologies.
+Table 4 presents results from Category A (Flat Sequential), providing evidence for how agent count affects efficiency in fixed round-robin topologies.
 
-**Table 3: Category A Efficiency Metrics (Successful Runs Only)**
+**Table 4: Category A Efficiency Metrics (Successful Runs Only)**
 
 | Metric | rr2 (n=2) | rr3 (n=3) | Ratio (rr3/rr2) |
 |--------|-----------|-----------|------------------|
@@ -214,7 +215,7 @@ Table 3 presents results from Category A (Flat Sequential), providing evidence f
 | Mean total tokens | 4,759 | 10,121 | 2.13x |
 | Output tokens/call | 1,583 | 1,711 | 1.08x |
 
-**Table 3b: Full 3-Pattern Comparison (Successful Runs Only)**
+**Table 5: Full 3-Pattern Comparison (Successful Runs Only)**
 
 | Metric | rr2 (n=2) | rr3 (n=3) | rr4 (n=4) | rr3/rr2 | rr4/rr2 |
 |--------|-----------|-----------|-----------|---------|---------|
@@ -228,15 +229,15 @@ Table 3 presents results from Category A (Flat Sequential), providing evidence f
 
 Note: rr4's 71.7% error rate is inflated by an infrastructure bug (Section 4.4). The 17 successful rr4 runs are predominantly factual tasks (15/17), biasing metrics toward shorter tasks. Categories B/C/D use fixed infrastructure code.
 
-**Finding 1: Near-linear cost scaling driven by input token growth.** Adding agents approximately doubles duration (rr3/rr2=1.84x) and total tokens (2.13x), consistent with near-linear scaling. The fact-only comparison (Table 3b) reveals an intriguing trend: output tokens per LLM call *increase* with team size (rr2=930, rr3=1189, rr4=1544; 1.66x from rr2 to rr4). This suggests that agents generate richer responses when exposed to more prior contributions---a phenomenon consistent with collaborative amplification. The cost driver is *input token accumulation*: input tokens grow at 2.59x (versus 1.75x in LLM calls), confirming that each agent in a round-robin sees the full conversation history. The nth agent's prompt includes all previous (n-1) responses, creating superlinear input growth that has practical implications for context window consumption and truncation-related failures (Finding 3).
+**Finding 2: Near-linear cost scaling driven by input token growth.** Adding agents approximately doubles duration (rr3/rr2=1.84x) and total tokens (2.13x), consistent with near-linear scaling. The fact-only comparison (Table 5) reveals an intriguing trend: output tokens per LLM call *increase* with team size (rr2=930, rr3=1189, rr4=1544; 1.66x from rr2 to rr4). This suggests that agents generate richer responses when exposed to more prior contributions---a phenomenon consistent with collaborative amplification. The cost driver is *input token accumulation*: input tokens grow at 2.59x (versus 1.75x in LLM calls), confirming that each agent in a round-robin sees the full conversation history. The nth agent's prompt includes all previous (n-1) responses, creating superlinear input growth that has practical implications for context window consumption and truncation-related failures (Finding 4).
 
-**Finding 2: Input token superlinear growth.** Input tokens grow at 2.59x (versus the 1.75x in LLM calls), demonstrating superlinear context accumulation. The expected theoretical growth is O(n * k * L) where n=agent count, k=rounds, and L=average response length. With rr3 completing k=1 full round (3 agents) versus rr2's k=1 round (2 agents), the observed 2.59x growth is consistent with each additional agent adding its response to the shared context. This superlinear input growth has practical implications: it accelerates context window consumption and increases the likelihood of truncation-related failures (Finding 3).
+**Finding 3: Input token superlinear growth.** Input tokens grow at 2.59x (versus the 1.75x in LLM calls), demonstrating superlinear context accumulation. The expected theoretical growth is O(n * k * L) where n=agent count, k=rounds, and L=average response length. With rr3 completing k=1 full round (3 agents) versus rr2's k=1 round (2 agents), the observed 2.59x growth is consistent with each additional agent adding its response to the shared context. This superlinear input growth has practical implications: it accelerates context window consumption and increases the likelihood of truncation-related failures (Finding 4).
 
-**Finding 3: Error rate scales superlinearly with agent count.** Error rates increase dramatically: rr2=8.3%, rr3=23.3%, rr4=71.7%. The *error distribution across task categories* broadens monotonically: rr2 errors concentrate exclusively on technical tasks (5/5 errors), rr3 spreads to technical (8/14), creative (3/14), and analytical (3/14), while rr4 reaches near-total failure on all non-factual categories (tech=15/15, anal=15/15, crea=13/15 errors). Only factual tasks maintain 0% error rate across all three patterns. This broadening demonstrates that context accumulation scales with both agent count and response verbosity: rr2 overflows only on token-dense code generation, while rr4 overflows on any task category except short factual responses. Note: the rr4 error rate is inflated by an infrastructure bug (Section 4.4); however, the underlying cause---context accumulation exceeding transport limits---is a genuine scaling challenge for larger teams.
+**Finding 4: Error rate scales superlinearly with agent count.** Error rates increase dramatically: rr2=8.3%, rr3=23.3%, rr4=71.7%. The *error distribution across task categories* broadens monotonically: rr2 errors concentrate exclusively on technical tasks (5/5 errors), rr3 spreads to technical (8/14), creative (3/14), and analytical (3/14), while rr4 reaches near-total failure on all non-factual categories (tech=15/15, anal=15/15, crea=13/15 errors). Only factual tasks maintain 0% error rate across all three patterns. This broadening demonstrates that context accumulation scales with both agent count and response verbosity: rr2 overflows only on token-dense code generation, while rr4 overflows on any task category except short factual responses. Note: the rr4 error rate is inflated by an infrastructure bug (Section 4.4); however, the underlying cause---context accumulation exceeding transport limits---is a genuine scaling challenge for larger teams.
 
-**Finding 4: Task category effects.** We observe significant variation across task categories (Table 4). Creative tasks require the most time (93.3s mean), while factual tasks are most efficient (66.5s, 6,183 tokens). Technical tasks show the highest token density (9,100 avg) and the highest error rate (42.1%), driven by long code-generation responses that trigger context overflow. Factual tasks exhibit zero errors---their shorter, retrieval-oriented responses avoid the context accumulation that triggers infrastructure failures.
+**Finding 5: Task category effects.** We observe significant variation across task categories (Table 6). Creative tasks require the most time (93.3s mean), while factual tasks are most efficient (66.5s, 6,183 tokens). Technical tasks show the highest token density (9,100 avg) and the highest error rate (42.1%), driven by long code-generation responses that trigger context overflow. Factual tasks exhibit zero errors---their shorter, retrieval-oriented responses avoid the context accumulation that triggers infrastructure failures.
 
-**Table 4: Task Category Effects (Categories A Combined)**
+**Table 6: Task Category Effects (Categories A Combined)**
 
 | Task Category | Runs | Mean Duration | Mean Tokens | Error Rate | Characterization |
 |--------------|------|--------------|-------------|-----------|------------------|
@@ -249,9 +250,9 @@ Note: rr4's 71.7% error rate is inflated by an infrastructure bug (Section 4.4).
 
 #### 4.1.2 Category B: Dynamic Routing Patterns
 
-Table 5 presents results from Category B (Dynamic Routing), comparing selector-based routing (centralized coordinator) with swarm-based routing (decentralized handoffs). All 240 runs completed successfully with 0% error rate, confirming that the infrastructure fix resolved the prompt truncation issues observed in Category A.
+Table 7 presents results from Category B (Dynamic Routing), comparing selector-based routing (centralized coordinator) with swarm-based routing (decentralized handoffs). All 240 runs completed successfully with 0% error rate, confirming that the infrastructure fix resolved the prompt truncation issues observed in Category A.
 
-**Table 5: Category B Efficiency Metrics (All Runs Successful)**
+**Table 7: Category B Efficiency Metrics (All Runs Successful)**
 
 | Metric | Sel-3 (n=3+1) | Sel-4 (n=4+1) | Swm-3 (n=3) | Swm-4 (n=4) |
 |--------|--------------|--------------|-------------|-------------|
@@ -265,13 +266,13 @@ Table 5 presents results from Category B (Dynamic Routing), comparing selector-b
 | Mean agent turns | 2.5 | 3.1 | 9.2 | 24.0 |
 | Output/agent turn | 2,114 | 2,616 | 337 | 330 |
 
-**Finding 5: Two distinct routing strategies produce radically different turn-level behavior.** Selector and swarm routing represent two fundamentally different approaches to dynamic coordination. Selector patterns produce few turns (3.5--4.1) with long monologues per turn (2,114--2,616 output tokens/agent turn), while swarm patterns produce many turns (10.2--25.0) with short, focused handoffs (330--337 output tokens/agent turn). Despite this 6--8x difference in output density per turn, both achieve comparable total token counts at 3 agents (sel3=7,851 vs swm3=4,196). The swarm approach is significantly more efficient at 3 agents: 35% faster and 47% cheaper than selector.
+**Finding 6: Two distinct routing strategies produce radically different turn-level behavior.** Selector and swarm routing represent two fundamentally different approaches to dynamic coordination. Selector patterns produce few turns (3.5--4.1) with long monologues per turn (2,114--2,616 output tokens/agent turn), while swarm patterns produce many turns (10.2--25.0) with short, focused handoffs (330--337 output tokens/agent turn). Despite this 6--8x difference in output density per turn, both achieve comparable total token counts at 3 agents (sel3=7,851 vs swm3=4,196). The swarm approach is significantly more efficient at 3 agents: 35% faster and 47% cheaper than selector.
 
-**Finding 6: Routing strategy determines scaling behavior.** Adding one agent scales differently by routing strategy. Selector scaling is sub-linear: sel4/sel3 = 1.48x total tokens. Swarm scaling is super-linear: swm4/swm3 = 3.17x total tokens. The swarm's turn explosion (from 10.2 to 25.0 average turns) when adding a 4th agent eliminates its efficiency advantage. At 3 agents, swm3 is 47% cheaper than sel3; at 4 agents, swm4 is 15% more expensive than sel4. This crossover point has practical implications: swarm routing should be preferred for small teams (n<=3), while selector routing scales more gracefully for larger teams.
+**Finding 7: Routing strategy determines scaling behavior.** Adding one agent scales differently by routing strategy. Selector scaling is sub-linear: sel4/sel3 = 1.48x total tokens. Swarm scaling is super-linear: swm4/swm3 = 3.17x total tokens. The swarm's turn explosion (from 10.2 to 25.0 average turns) when adding a 4th agent eliminates its efficiency advantage. At 3 agents, swm3 is 47% cheaper than sel3; at 4 agents, swm4 is 15% more expensive than sel4. This crossover point has practical implications: swarm routing should be preferred for small teams (n<=3), while selector routing scales more gracefully for larger teams.
 
-**Finding 7: Swm-3 achieves best overall token efficiency.** Remarkably, swm3 (3-agent swarm) achieves lower total token cost (4,196) than even rr2 (4,759), a 2-agent round-robin pattern. This 12% cost reduction with 50% more agents demonstrates that intelligent routing can more than compensate for the overhead of additional agents. The mechanism is clear: swarm agents perform focused handoffs rather than processing the entire conversation context, keeping input tokens low (1,364 vs rr2's 1,594) despite more agents.
+**Finding 8: Swm-3 achieves best overall token efficiency.** Remarkably, swm3 (3-agent swarm) achieves lower total token cost (4,196) than even rr2 (4,759), a 2-agent round-robin pattern. This 12% cost reduction with 50% more agents demonstrates that intelligent routing can more than compensate for the overhead of additional agents. The mechanism is clear: swarm agents perform focused handoffs rather than processing the entire conversation context, keeping input tokens low (1,364 vs rr2's 1,594) despite more agents.
 
-**Table 6: Cross-Strategy Comparison (Category A vs B)**
+**Table 8: Cross-Strategy Comparison (Category A vs B)**
 
 | Pattern | Agents | Duration (s) | Total Tokens | vs rr3 Duration | vs rr3 Tokens |
 |---------|--------|-------------|-------------|----------------|--------------|
@@ -282,13 +283,13 @@ Table 5 presents results from Category B (Dynamic Routing), comparing selector-b
 | swm3 | 3 | 75.2 | 4,196 | 0.78x | 0.41x |
 | swm4 | 4 | 185.0 | 13,321 | 1.92x | 1.32x |
 
-The comparison reveals that routing strategy has a larger effect on efficiency than agent count. swm3 uses 59% fewer tokens than rr3 despite the same agent count, while sel3 uses 22% fewer tokens than rr3 despite an additional coordinator agent. Dynamic routing avoids the full-context broadcasting that drives rr3's superlinear input growth (Finding 2).
+The comparison reveals that routing strategy has a larger effect on efficiency than agent count. swm3 uses 59% fewer tokens than rr3 despite the same agent count, while sel3 uses 22% fewer tokens than rr3 despite an additional coordinator agent. Dynamic routing avoids the full-context broadcasting that drives rr3's superlinear input growth (Finding 3).
 
 #### 4.1.3 Category C: Structured Feedback Patterns
 
-Table 7 presents results from Category C (Structured Feedback), comparing reflection-based patterns (generator-critic loops) with debate-based patterns (multi-agent argumentation with moderator). All 240 runs completed with 0% error rate.
+Table 9 presents results from Category C (Structured Feedback), comparing reflection-based patterns (generator-critic loops) with debate-based patterns (multi-agent argumentation with moderator). All 240 runs completed with 0% error rate.
 
-**Table 7: Category C Efficiency Metrics (All Runs Successful)**
+**Table 9: Category C Efficiency Metrics (All Runs Successful)**
 
 | Metric | Refl-2 (n=2) | Refl-3 (n=3) | Deb-3 (n=3+1) | Deb-4 (n=4+1) |
 |--------|-------------|-------------|--------------|--------------|
@@ -301,19 +302,19 @@ Table 7 presents results from Category C (Structured Feedback), comparing reflec
 | Mean agent turns | 2.2 | 3.5 | 3.5 | 4.4 |
 | Output/agent turn | 1,732 | 2,537 | 1,691 | 1,448 |
 
-**Finding 8: Reflection and debate exhibit opposite scaling behaviors.** Reflection scaling is super-linear: refl3/refl2 = 2.31x total tokens for +1 agent. Each additional reflection layer amplifies cumulative context as the critic reviews increasingly long conversation history. Debate scaling is sub-linear: deb4/deb3 = 1.25x total tokens for +1 debater. The structured debate format constrains per-agent verbosity, and the moderator absorbs coordination overhead. This contrast reveals that feedback *structure* matters more than feedback *existence* for scaling efficiency.
+**Finding 9: Reflection and debate exhibit opposite scaling behaviors.** Reflection scaling is super-linear: refl3/refl2 = 2.31x total tokens for +1 agent. Each additional reflection layer amplifies cumulative context as the critic reviews increasingly long conversation history. Debate scaling is sub-linear: deb4/deb3 = 1.25x total tokens for +1 debater. The structured debate format constrains per-agent verbosity, and the moderator absorbs coordination overhead. This contrast reveals that feedback *structure* matters more than feedback *existence* for scaling efficiency.
 
-**Finding 9: Refl-2 achieves near-baseline efficiency with quality assurance.** Remarkably, refl2 (60.2s, 5,237 tokens) is only 15% slower and 10% more expensive than rr2 (52.4s, 4,759 tokens), the cheapest pattern across all categories. Yet refl2 includes a structured critic-approval loop that provides quality assurance absent in flat sequential patterns. This positions refl2 as the optimal choice when quality verification is needed at minimal cost overhead.
+**Finding 10: Refl-2 achieves near-baseline efficiency with quality assurance.** Remarkably, refl2 (60.2s, 5,237 tokens) is only 15% slower and 10% more expensive than rr2 (52.4s, 4,759 tokens), the cheapest pattern across all categories. Yet refl2 includes a structured critic-approval loop that provides quality assurance absent in flat sequential patterns. This positions refl2 as the optimal choice when quality verification is needed at minimal cost overhead.
 
-**Finding 10: At equal agent count, reflection is faster but debate is cheaper.** Comparing refl3 and deb3 (both 3-agent): refl3 is 30% faster (120.2s vs 156.6s) but generates 30% more tokens (12,095 vs 9,313). Reflection agents produce verbose self-contained revisions (2,537 tokens/turn), while debate agents produce focused arguments (1,691 tokens/turn). The token difference is directional but not statistically significant (p=0.09), suggesting these strategies occupy similar efficiency tiers with different resource profiles.
+**Finding 11: At equal agent count, reflection is faster but debate is cheaper.** Comparing refl3 and deb3 (both 3-agent): refl3 is 30% faster (120.2s vs 156.6s) but generates 30% more tokens (12,095 vs 9,313). Reflection agents produce verbose self-contained revisions (2,537 tokens/turn), while debate agents produce focused arguments (1,691 tokens/turn). The token difference is directional but not statistically significant (p=0.09), suggesting these strategies occupy similar efficiency tiers with different resource profiles.
 
-**Finding 11: Debate constrains per-agent output as team grows.** Output tokens per agent turn *decrease* with team size in debate (deb3=1,691, deb4=1,448; 0.86x), contrasting with the collaborative amplification observed in Category A where output per turn *increases* (Finding 1). The moderated debate structure imposes turn discipline: with more debaters, each has less conversational space. This natural constraint may explain debate's sub-linear scaling---additional agents are "cheaper" because the format limits their individual output.
+**Finding 12: Debate constrains per-agent output as team grows.** Output tokens per agent turn *decrease* with team size in debate (deb3=1,691, deb4=1,448; 0.86x), contrasting with the collaborative amplification observed in Category A where output per turn *increases* (Finding 2). The moderated debate structure imposes turn discipline: with more debaters, each has less conversational space. This natural constraint may explain debate's sub-linear scaling---additional agents are "cheaper" because the format limits their individual output.
 
 #### 4.1.4 Category D: Composed Patterns
 
-Table 8 presents results from Category D (Composed Patterns), comparing pipeline execution (sequential multi-stage refinement) with mixture-of-agents (parallel proposer layer followed by aggregation). All 120 runs completed with 0% error rate.
+Table 10 presents results from Category D (Composed Patterns), comparing pipeline execution (sequential multi-stage refinement) with mixture-of-agents (parallel proposer layer followed by aggregation). All 120 runs completed with 0% error rate.
 
-**Table 8: Category D Efficiency Metrics (All Runs Successful)**
+**Table 10: Category D Efficiency Metrics (All Runs Successful)**
 
 | Metric | Pipe (n=5, 2-stage) | MoA (n=4, 3+1) |
 |--------|---------------------|-----------------|
@@ -327,7 +328,7 @@ Table 8 presents results from Category D (Composed Patterns), comparing pipeline
 | Mean agent turns | 4.0 | 7.0 |
 | Output/agent turn | 2,325 | 2,494 |
 
-**Table 8b: Category D Task Breakdown (Total Tokens by Task Category)**
+**Table 11: Category D Task Breakdown (Total Tokens by Task Category)**
 
 | Task Category | Pipe | MoA | MoA/Pipe |
 |--------------|------|-----|----------|
@@ -337,37 +338,39 @@ Table 8 presents results from Category D (Composed Patterns), comparing pipeline
 | Technical | 19,223 | 37,844 | 1.97x |
 | Tech/Fact ratio | 1.94x | 2.51x | - |
 
-**Finding 12: MoA is the most expensive pattern overall.** MoA at 22,333 average total tokens is 61% more expensive than pipe (13,856) and 5.3x more expensive than swm3 (4,196), the most efficient pattern across all categories. The cost structure reveals why: MoA's three parallel proposers each generate a complete, independent response to the task, then the aggregator synthesizes these into a comprehensive final answer. Output tokens dominate MoA's budget (17,458 out of 22,333 = 78%), the highest output-to-total ratio of any pattern. By contrast, pipe's output share is 69% (9,581/13,856), closer to the Category A average (~65%). Despite its higher token cost, MoA is 21% faster than pipe in wall-clock time (103.0s vs 129.6s), reflecting the parallelism benefit: three proposers can execute concurrently, whereas pipe's stages are strictly sequential. This latency-cost tradeoff---faster but more expensive---distinguishes MoA as the pattern of choice when response time matters more than token budget.
+**Finding 13: MoA is the most expensive pattern overall.** MoA at 22,333 average total tokens is 61% more expensive than pipe (13,856) and 5.3x more expensive than swm3 (4,196), the most efficient pattern across all categories. The cost structure reveals why: MoA's three parallel proposers each generate a complete, independent response to the task, then the aggregator synthesizes these into a comprehensive final answer. Output tokens dominate MoA's budget (17,458 out of 22,333 = 78%), the highest output-to-total ratio of any pattern. By contrast, pipe's output share is 69% (9,581/13,856), closer to the Category A average (~65%). Despite its higher token cost, MoA is 21% faster than pipe in wall-clock time (103.0s vs 129.6s), reflecting the parallelism benefit: three proposers can execute concurrently, whereas pipe's stages are strictly sequential. This latency-cost tradeoff---faster but more expensive---distinguishes MoA as the pattern of choice when response time matters more than token budget.
 
-**Finding 13: Composed patterns produce the highest output density.** Both pipe (2,325 output tokens/agent turn) and MoA (2,494 output tokens/agent turn) produce the highest output per agent turn across all five categories. For comparison: rr2=1,583, sel3=2,114, refl2=1,732, swm3=337, deb3=1,691. The mechanism is structural---each stage in a pipeline and each proposer in MoA generates a complete, self-contained response rather than an incremental contribution to an ongoing conversation. MoA's output density (2,494) is the highest of any pattern, reflecting the aggregator's role in producing a comprehensive synthesis that often exceeds any individual proposer's response length. This high per-turn output density has implications for termination: composed patterns extract maximum value from each LLM call, suggesting that even a single unnecessary turn is disproportionately wasteful compared to patterns with lower output density (e.g., swm3 at 337 tokens/turn).
+**Finding 14: Composed patterns produce the highest output density.** Both pipe (2,325 output tokens/agent turn) and MoA (2,494 output tokens/agent turn) produce the highest output per agent turn across all five categories. For comparison: rr2=1,583, sel3=2,114, refl2=1,732, swm3=337, deb3=1,691. The mechanism is structural---each stage in a pipeline and each proposer in MoA generates a complete, self-contained response rather than an incremental contribution to an ongoing conversation. MoA's output density (2,494) is the highest of any pattern, reflecting the aggregator's role in producing a comprehensive synthesis that often exceeds any individual proposer's response length. This high per-turn output density has implications for termination: composed patterns extract maximum value from each LLM call, suggesting that even a single unnecessary turn is disproportionately wasteful compared to patterns with lower output density (e.g., swm3 at 337 tokens/turn).
 
-**Finding 14: Task complexity amplifies composed pattern costs exponentially.** MoA's technical task cost (37,844 tokens) is 2.51x its factual task cost (15,064). This tech/fact multiplier is the highest of any pattern: rr2≈1.47x, sel3=1.51x, refl2=1.39x, pipe=1.94x. The amplification mechanism is multiplicative in MoA: code-generation tasks produce long responses (~3,000 tokens each) in each of the three parallel proposers, and the aggregator must then synthesize three complete code solutions into a unified response, yielding an aggregation output that often exceeds any individual proposal. Pipe exhibits a similar but less extreme amplification (tech=19,223 vs fact=9,930, 1.94x), as each pipeline stage sequentially refines an increasingly detailed technical response. Together, these results demonstrate that composed patterns are most cost-effective on concise tasks (factual, short-answer) and least cost-effective on verbose tasks (technical, code-generation), a consideration that should inform topology selection based on expected task distribution.
+**Finding 15: Task complexity amplifies composed pattern costs exponentially.** MoA's technical task cost (37,844 tokens) is 2.51x its factual task cost (15,064). This tech/fact multiplier is the highest of any pattern: rr2≈1.47x, sel3=1.51x, refl2=1.39x, pipe=1.94x. The amplification mechanism is multiplicative in MoA: code-generation tasks produce long responses (~3,000 tokens each) in each of the three parallel proposers, and the aggregator must then synthesize three complete code solutions into a unified response, yielding an aggregation output that often exceeds any individual proposal. Pipe exhibits a similar but less extreme amplification (tech=19,223 vs fact=9,930, 1.94x), as each pipeline stage sequentially refines an increasingly detailed technical response. Together, these results demonstrate that composed patterns are most cost-effective on concise tasks (factual, short-answer) and least cost-effective on verbose tasks (technical, code-generation), a consideration that should inform topology selection based on expected task distribution.
 
-**Table 9: Cross-Category Efficiency Comparison (All 13 Patterns)**
+**Table 12: Cross-Category Efficiency Comparison (All 14 Patterns)**
 
-| Pattern | Cat. | Agents | Duration (s) | Total Tokens | Out/Agent Turn | vs solo Tokens |
-|---------|------|--------|-------------|-------------|----------------|----------------|
-| solo | S | 1 | 18.7 | 1,287 | 1,209 | 1.00x |
-| swm3 | B2 | 3 | 75.2 | 4,196 | 337 | 3.26x |
-| rr2 | A | 2 | 52.4 | 4,759 | 1,583 | 3.70x |
-| refl2 | C | 2 | 60.2 | 5,237 | 1,732 | 4.07x |
-| sel3 | B1 | 3+1 | 115.2 | 7,851 | 2,114 | 6.10x |
-| deb3 | C | 3+1 | 156.6 | 9,313 | 1,691 | 7.23x |
-| rr3 | A | 3 | 96.6 | 10,121 | 1,701 | 7.86x |
-| sel4 | B1 | 4+1 | 161.9 | 11,595 | 2,616 | 9.01x |
-| deb4 | C | 4+1 | 180.9 | 11,637 | 1,448 | 9.04x |
-| refl3 | C | 3 | 120.2 | 12,095 | 2,537 | 9.40x |
-| swm4 | B2 | 4 | 185.0 | 13,321 | 330 | 10.35x |
-| pipe | D | 5 | 129.6 | 13,856 | 2,325 | 10.76x |
-| moa | D | 4 | 103.0 | 22,333 | 2,494 | 17.35x |
+| Pattern | Cat. | Agents | Duration (s) | Total Tokens | ±std | 95% CI | Out/Agent Turn | vs solo |
+|---------|------|--------|-------------|-------------|------|--------|----------------|---------|
+| solo | S | 1 | 18.7 | 1,287 | — | — | 1,209 | 1.00x |
+| swm3 | B2 | 3 | 75.2 | 4,196 | ±5,646 | [2,011; 6,672] | 337 | 3.26x |
+| rr2 | A | 2 | 52.4 | 4,759 | — | — | 1,583 | 3.70x |
+| refl2 | C | 2 | 60.2 | 5,237 | ±3,315 | [3,913; 6,649] | 1,732 | 4.07x |
+| sel3 | B1 | 3+1 | 115.2 | 7,851 | ±5,243 | [6,338; 10,666] | 2,114 | 6.10x |
+| deb3 | C | 3+1 | 156.6 | 9,313 | ±2,501 | [7,625; 9,690] | 1,691 | 7.23x |
+| rr3 | A | 3 | 96.6 | 10,121 | ±10,148 | [8,143; 16,521] | 1,701 | 7.86x |
+| sel4 | B1 | 4+1 | 161.9 | 11,595 | ±6,428 | [8,610; 13,917] | 2,616 | 9.01x |
+| deb4 | C | 4+1 | 180.9 | 11,637 | ±2,978 | [10,875; 12,400] | 1,448 | 9.04x |
+| refl3 | C | 3 | 120.2 | 12,095 | ±6,765 | [10,363; 13,828] | 2,537 | 9.40x |
+| swm4 | B2 | 4 | 185.0 | 13,321 | ±6,214 | [10,355; 15,486] | 330 | 10.35x |
+| pipe | D | 5 | 129.6 | 13,856 | ±5,828 | [10,780; 15,592] | 2,325 | 10.76x |
+| moa | D | 4 | 103.0 | 22,333 | ±10,599 | [19,618; 25,048] | 2,494 | 17.35x |
 
-Table 9 ranks all 14 patterns (including solo baseline) by total token cost, revealing a 17.4x range from solo (1,287) to MoA (22,333). The solo baseline establishes a lower bound: all multi-agent patterns cost at least 3.26x more tokens. Several cross-category observations emerge. First, *routing strategy dominates agent count*: swm3 (3 agents) is cheaper than rr2 (2 agents), and sel3 (4 agents including coordinator) is cheaper than rr3 (3 agents). Second, *feedback patterns cluster in the middle*: refl2 and deb3 occupy the 5,000--10,000 token range, offering quality assurance at moderate cost. Third, *composed patterns occupy the expensive end*: both pipe and MoA exceed 13,000 tokens, reflecting the cost of multi-stage or multi-proposal generation. Fourth, *output density varies by an order of magnitude*: from swm3/swm4's ~330 tokens/agent turn (many short handoffs) to MoA's 2,494 tokens/agent turn (few complete responses), with implications for how much value each additional turn contributes.
+*Note: std and 95% CI computed from n=25 runs per pattern (v2 dataset). Solo and rr2 lack per-run data for CI computation. Full statistical breakdown in Appendix C.*
+
+Table 12 ranks all 14 patterns (including solo baseline) by total token cost, revealing a 17.4x range from solo (1,287) to MoA (22,333). The solo baseline establishes a lower bound: all multi-agent patterns cost at least 3.26x more tokens. Several cross-category observations emerge. First, *routing strategy dominates agent count*: swm3 (3 agents) is cheaper than rr2 (2 agents), and sel3 (4 agents including coordinator) is cheaper than rr3 (3 agents). Second, *feedback patterns cluster in the middle*: refl2 and deb3 occupy the 5,000--10,000 token range, offering quality assurance at moderate cost. Third, *composed patterns occupy the expensive end*: both pipe and MoA exceed 13,000 tokens, reflecting the cost of multi-stage or multi-proposal generation. Fourth, *output density varies by an order of magnitude*: from swm3/swm4's ~330 tokens/agent turn (many short handoffs) to MoA's 2,494 tokens/agent turn (few complete responses), with implications for how much value each additional turn contributes.
 
 #### 4.1.5 Cross-Category Comparison
 
 We apply Kruskal-Wallis tests across all five topology categories (A: Sequential Chain, B1: Centralized Routing, B2: Decentralized Handoff, C: Structured Feedback, D: Composed/Nested) on 718 successful runs (out of 780 total) to determine whether coordination topology is a statistically significant predictor of efficiency.
 
-**Table 12: Kruskal-Wallis Tests Across Categories (df=4, N=718)**
+**Table 13: Kruskal-Wallis Tests Across Categories (df=4, N=718)**
 
 | Metric | H | p-value | Significant |
 |--------|---|---------|-------------|
@@ -379,7 +382,7 @@ We apply Kruskal-Wallis tests across all five topology categories (A: Sequential
 
 All five metrics show highly significant differences across the five categories (p < 0.001), confirming that topology category is a strong predictor of computational efficiency.
 
-**Table 12b: Pairwise Mann-Whitney U Tests for Total Tokens**
+**Table 14: Pairwise Mann-Whitney U Tests for Total Tokens**
 
 | Comparison | U | p-value | Significant |
 |------------|---|---------|-------------|
@@ -394,7 +397,7 @@ All five metrics show highly significant differences across the five categories 
 | B2 vs D | 2,944 | <0.001 | *** |
 | C vs D | 5,216 | <0.001 | *** |
 
-**Table 12c: Token Consumption by Category**
+**Table 15: Token Consumption by Category**
 
 | Category | Median Tokens | Mean Tokens | N |
 |----------|---------------|-------------|---|
@@ -404,9 +407,9 @@ All five metrics show highly significant differences across the five categories 
 | C (Structured Feedback) | 9,247 | 9,571 | 240 |
 | D (Composed/Nested) | 15,865 | 18,094 | 120 |
 
-**Finding 18 — Sequential chain and decentralized handoff are statistically indistinguishable in cost.** Despite different coordination mechanisms and agent counts, Categories A and B2 show no significant difference in total token consumption (Mann-Whitney U=7,176, p=0.857). This is a non-trivial result: B2 (Mesh) patterns use 3--4 agents compared to A's 2--4, yet swm3's extreme efficiency (4,196 tokens) brings B2's aggregate cost down to A's level. Conversely, centralized routing (B1) is marginally more expensive than A (p=0.042), and B1 vs B2 are borderline indistinguishable (p=0.075), demonstrating that the B1/B2 decomposition reveals structure that the old unified "Category B" obscured.
+**Finding 16 — Sequential chain and decentralized handoff are statistically indistinguishable in cost.** Despite different coordination mechanisms and agent counts, Categories A and B2 show no significant difference in total token consumption (Mann-Whitney U=7,176, p=0.857). This is a non-trivial result: B2 (Mesh) patterns use 3--4 agents compared to A's 2--4, yet swm3's extreme efficiency (4,196 tokens) brings B2's aggregate cost down to A's level. Conversely, centralized routing (B1) is marginally more expensive than A (p=0.042), and B1 vs B2 are borderline indistinguishable (p=0.075), demonstrating that the B1/B2 decomposition reveals structure that the old unified "Category B" obscured.
 
-**Finding 19 — New cost hierarchy: A ≈ B2 ≲ B1 ≈ C ≪ D.** The five-category analysis reveals a more nuanced cost structure than the previous four-tier hierarchy. Category D (median 15,865) remains clearly the most expensive. The middle tier splits into two sub-groups: B1 and C are cost-equivalent (p=0.695), while B2 is significantly cheaper than C (p=0.028). Category A and B2 form the efficient tier (p=0.857). The 2.1x gap between cheapest (A, median 7,420) and most expensive non-composed category (C, median 9,247) is smaller than the 1.7x gap between the middle tier and D, confirming that the composed/nested meta-architecture imposes the largest cost premium.
+**Finding 17 — New cost hierarchy: A ≈ B2 ≲ B1 ≈ C ≪ D.** The five-category analysis reveals a more nuanced cost structure than the previous four-tier hierarchy. Category D (median 15,865) remains clearly the most expensive. The middle tier splits into two sub-groups: B1 and C are cost-equivalent (p=0.695), while B2 is significantly cheaper than C (p=0.028). Category A and B2 form the efficient tier (p=0.857). The 2.1x gap between cheapest (A, median 7,420) and most expensive non-composed category (C, median 9,247) is smaller than the 1.7x gap between the middle tier and D, confirming that the composed/nested meta-architecture imposes the largest cost premium.
 
 **Within-Category Agent Count Effects**
 
@@ -417,13 +420,13 @@ All five metrics show highly significant differences across the five categories 
 | B2 (Decentralized Handoff) | 0.704 | <0.001 |
 | C (Structured Feedback) | 0.805 | <0.001 |
 
-**Finding 20 — The B1/B2 decomposition reveals fundamentally different scaling behaviors.** All four testable categories show significant agent-count correlations (p<0.001), but the magnitudes reveal topology-dependent scaling. Category A shows near-perfect correlation (ρ=0.948): each additional agent in a round-robin chain adds exactly one turn per cycle, making cost perfectly predictable. Category B1 (Centralized Routing) shows the weakest correlation (ρ=0.377) because the central router absorbs coordination overhead---adding agents to a star topology has diminishing impact on turn count. Category B2 (Decentralized Handoff) shows a strong correlation (ρ=0.704) driven by handoff chain explosion: swm4's 25 average turns versus swm3's 10 turns reflects the quadratic growth in potential handoff paths. Category C (ρ=0.805) scales predictably as each feedback layer adds a fixed number of review/revision turns. This four-way contrast---A=deterministic, B1=absorbed, B2=explosive, C=linear---provides practitioners with clear scaling expectations for each topology family.
+**Finding 18 — The B1/B2 decomposition reveals fundamentally different scaling behaviors.** All four testable categories show significant agent-count correlations (p<0.001), but the magnitudes reveal topology-dependent scaling. Category A shows near-perfect correlation (ρ=0.948): each additional agent in a round-robin chain adds exactly one turn per cycle, making cost perfectly predictable. Category B1 (Centralized Routing) shows the weakest correlation (ρ=0.377) because the central router absorbs coordination overhead---adding agents to a star topology has diminishing impact on turn count. Category B2 (Decentralized Handoff) shows a strong correlation (ρ=0.704) driven by handoff chain explosion: swm4's 25 average turns versus swm3's 10 turns reflects the quadratic growth in potential handoff paths. Category C (ρ=0.805) scales predictably as each feedback layer adds a fixed number of review/revision turns. This four-way contrast---A=deterministic, B1=absorbed, B2=explosive, C=linear---provides practitioners with clear scaling expectations for each topology family.
 
 #### 4.1.6 Domain × Pattern Cross-Analysis
 
 **Setup.** To assess domain sensitivity, we evaluate 8 representative patterns across 25 tasks spanning 9 knowledge domains: science, computer science, history, philosophy, law & politics, gaming, engineering, business, and medicine. Each task is annotated with its domain, enabling domain × pattern cross-analysis (N=200, 0% error rate).
 
-**Table 15: Domain × Pattern Efficiency (Mean Total Tokens, ×10³)**
+**Table 16: Domain × Pattern Efficiency (Mean Total Tokens, ×10³)**
 
 | Domain | rr3 | sel3 | sel4 | swm3 | swm4 | refl2 | debate3 | pipe |
 |--------|-----|------|------|------|------|-------|---------|------|
@@ -439,7 +442,7 @@ All five metrics show highly significant differences across the five categories 
 
 **Statistical tests.** Per-domain Kruskal-Wallis tests assess whether pattern choice significantly affects cost within each domain. Five of nine domains show significant pattern effects (p<0.05): science, CS, philosophy, law & politics, and engineering. The remaining four (history, gaming, business, medicine) show p values between 0.09 and 0.43. Pattern domain-sensitivity is measured by the coefficient of variation (CV) of mean tokens across domains.
 
-**Table 16: Pattern Domain-Sensitivity (CV of Mean Tokens Across Domains)**
+**Table 17: Pattern Domain-Sensitivity (CV of Mean Tokens Across Domains)**
 
 | Pattern | Category | Mean Tokens | Std | CV | Interpretation |
 |---------|----------|-------------|-----|-----|----------------|
@@ -452,11 +455,11 @@ All five metrics show highly significant differences across the five categories 
 | sel4 | B1 | 11,131 | 5,264 | 0.47 | Moderate |
 | swm3 | B2 | 4,148 | 2,795 | 0.67 | Domain-sensitive |
 
-**Finding 24 — debate3 is uniquely domain-invariant; swm3 is domain-sensitive.** Among all eight patterns, debate3 exhibits the lowest cross-domain CV (0.14), meaning its cost varies minimally regardless of whether the task involves law, science, or gaming. This stability arises from debate's fixed-round structure: each debater produces a bounded response per round, independent of domain complexity. Conversely, swm3 has the highest CV (0.67)---costing only 1,400 tokens for history tasks but 9,200 for business. Swarm's handoff-driven execution amplifies domain-specific complexity differences because harder domains trigger more inter-agent transfers. For practitioners, this implies that debate3 offers the most predictable cost profile, while swm3 requires domain-aware budgeting.
+**Finding 19 — debate3 is uniquely domain-invariant; swm3 is domain-sensitive.** Among all eight patterns, debate3 exhibits the lowest cross-domain CV (0.14), meaning its cost varies minimally regardless of whether the task involves law, science, or gaming. This stability arises from debate's fixed-round structure: each debater produces a bounded response per round, independent of domain complexity. Conversely, swm3 has the highest CV (0.67)---costing only 1,400 tokens for history tasks but 9,200 for business. Swarm's handoff-driven execution amplifies domain-specific complexity differences because harder domains trigger more inter-agent transfers. For practitioners, this implies that debate3 offers the most predictable cost profile, while swm3 requires domain-aware budgeting.
 
-**Finding 25 — Reflection excels in argumentative domains, but debate does not.** In argumentative domains (law & politics, philosophy), refl2 is among the most efficient patterns (mean 4,800 tokens for law, 2,800 for philosophy), ranking as the cheapest pattern in philosophy. Surprisingly, debate3 ranks only 3rd--4th in these domains (mean 8,000 tokens), contradicting the intuition that debate structures should excel where argumentation is natural. The explanation is that debate's fixed multi-round structure imposes overhead regardless of domain, while reflection's single critic-feedback cycle is sufficient to capture argumentative nuance. In factual domains (science, CS), refl2 remains competitive (mean 4,200 tokens), while rr3 is substantially more expensive (mean 11,500 tokens).
+**Finding 20 — Reflection excels in argumentative domains, but debate does not.** In argumentative domains (law & politics, philosophy), refl2 is among the most efficient patterns (mean 4,800 tokens for law, 2,800 for philosophy), ranking as the cheapest pattern in philosophy. Surprisingly, debate3 ranks only 3rd--4th in these domains (mean 8,000 tokens), contradicting the intuition that debate structures should excel where argumentation is natural. The explanation is that debate's fixed multi-round structure imposes overhead regardless of domain, while reflection's single critic-feedback cycle is sufficient to capture argumentative nuance. In factual domains (science, CS), refl2 remains competitive (mean 4,200 tokens), while rr3 is substantially more expensive (mean 11,500 tokens).
 
-**Finding 26 — Domain cost varies 2× independently of pattern choice.** Averaging across all patterns, the cheapest domain is history (7,063 tokens) and the most expensive is medicine (13,288 tokens)—a 1.88× ratio. This domain effect is orthogonal to pattern choice: gaming and medicine inflate costs across all topologies, likely due to longer expected outputs and greater domain-specific vocabulary. The domain cost ranking is: history < philosophy < science < CS < engineering < law < business < gaming < medicine.
+**Finding 21 — Domain cost varies 2× independently of pattern choice.** Averaging across all patterns, the cheapest domain is history (7,063 tokens) and the most expensive is medicine (13,288 tokens)—a 1.88× ratio. This domain effect is orthogonal to pattern choice: gaming and medicine inflate costs across all topologies, likely due to longer expected outputs and greater domain-specific vocabulary. The domain cost ranking is: history < philosophy < science < CS < engineering < law < business < gaming < medicine.
 
 ### 4.2 Experiment 02: Termination Quality (RQ2)
 
@@ -470,17 +473,17 @@ where $t_{optimal} = \arg\max_t Q(t)$ is the turn at which quality peaked. Posit
 
 **Patterns tested.** We select five representative patterns spanning three categories: rr3 (Category A), sel3 and swm3 (Category B), refl2 and debate3 (Category C). Each pattern is evaluated on 20 tasks, yielding 100 runs and 276 turn-level quality scores. For swarm patterns, which generate many short handoff turns (function calls, transfer confirmations) with no substantive content, we filter out turns with fewer than 20 characters of non-handoff content; this reduces swm3 from approximately 18.7 raw turns to 1.2 substantive turns per run.
 
-**Table 10: Termination Regret Analysis**
+**Table 18: Termination Regret Analysis**
 
-| Pattern | Cat | $t_{optimal}$ | $t_{actual}$ | Regret (turns) | $Q_{peak}$ | $Q_{final}$ | $Q_{loss}$ |
-|---------|-----|---------------|--------------|----------------|-------------|--------------|------------|
-| swm3 | B2 | 1.0 | 1.2 | +0.2 | 4.15 | 4.05 | 0.10 |
-| refl2 | C | 1.7 | 2.3 | +0.6 | 4.80 | 4.80 | 0.00 |
-| sel3 | B1 | 1.1 | 2.8 | +1.6 | 3.90 | 3.40 | 0.50 |
-| debate3 | C | 1.3 | 3.3 | +2.0 | 4.00 | 3.35 | 0.65 |
-| rr3 | A | 1.6 | 4.2 | +2.6 | 4.50 | 4.45 | 0.05 |
+| Pattern | Cat | N | $t_{optimal}$ | $t_{actual}$ | Regret (turns) | $Q_{peak}$ | $Q_{final}$ ±std | $Q_{loss}$ |
+|---------|-----|---|---------------|--------------|----------------|-------------|-------------------|------------|
+| swm3 | B2 | 40 | 1.0 | 1.2 | +0.2 | 4.15 | 4.05 ±1.25 | 0.10 |
+| refl2 | C | 40 | 1.7 | 2.3 | +0.6 | 4.80 | 4.80 ±0.41 | 0.00 |
+| sel3 | B1 | 40 | 1.1 | 2.8 | +1.6 | 3.90 | 3.40 ±1.08 | 0.50 |
+| debate3 | C | 40 | 1.3 | 3.3 | +2.0 | 4.00 | 3.35 ±0.80 | 0.65 |
+| rr3 | A | 40 | 1.6 | 4.2 | +2.6 | 4.50 | 4.45 ±0.50 | 0.05 |
 
-**Table 11: Quality Trajectories (Mean Overall Score by Substantive Turn)**
+**Table 19: Quality Trajectories (Mean Overall Score by Substantive Turn)**
 
 | Pattern | $t_1$ | $t_2$ | $t_3$ | $t_4$ | $t_5$ | $t_6$ |
 |---------|-------|-------|-------|-------|-------|-------|
@@ -490,7 +493,7 @@ where $t_{optimal} = \arg\max_t Q(t)$ is the turn at which quality peaked. Posit
 | refl2 | 3.9 | 4.8 | 4.0 | 4.0 | -- | -- |
 | debate3 | 3.8 | 3.4 | 3.3 | 3.3 | -- | -- |
 
-**Table 11b: Quality Dimension Breakdown (Final Turn Averages)**
+**Table 20: Quality Dimension Breakdown (Final Turn Averages)**
 
 | Pattern | Accuracy | Completeness | Coherence | Usefulness | Overall |
 |---------|----------|--------------|-----------|------------|---------|
@@ -500,11 +503,11 @@ where $t_{optimal} = \arg\max_t Q(t)$ is the turn at which quality peaked. Posit
 | sel3 | 3.85 | 3.15 | 3.35 | 3.80 | 3.40 |
 | debate3 | 3.75 | 2.70 | 3.35 | 3.55 | 3.35 |
 
-**Finding 15: Three distinct quality trajectory shapes emerge across topologies.** The turn-by-turn quality data reveal fundamentally different quality dynamics depending on coordination structure. First, rr3 exhibits a *monotonic-then-plateau* trajectory: quality rises steadily through turn 3 ($Q=4.5$) before stabilizing at approximately 4.1 for subsequent turns. Continuing past the peak wastes tokens but does not degrade quality ($Q_{loss}=0.05$), making flat sequential termination regret relatively benign. Second, refl2 displays a *peak-at-turn-2* pattern: the critic's first feedback cycle produces a sharp quality jump ($3.9 \to 4.8$), after which quality holds steady. Notably, the critic's "approve" signal naturally coincides with peak quality, suggesting that reflection's built-in termination mechanism is well-calibrated. Third, debate3 exhibits *monotonic decline after turn 1*: each successive debate round decreases quality ($3.8 \to 3.4 \to 3.3 \to 3.3$), indicating that continued argumentation past initial consensus actively harms output. This represents the most costly form of over-computation, as continuing not only wastes resources but degrades the result ($Q_{loss}=0.65$).
+**Finding 22: Three distinct quality trajectory shapes emerge across topologies.** The turn-by-turn quality data reveal fundamentally different quality dynamics depending on coordination structure. First, rr3 exhibits a *monotonic-then-plateau* trajectory: quality rises steadily through turn 3 ($Q=4.5$) before stabilizing at approximately 4.1 for subsequent turns. Continuing past the peak wastes tokens but does not degrade quality ($Q_{loss}=0.05$), making flat sequential termination regret relatively benign. Second, refl2 displays a *peak-at-turn-2* pattern: the critic's first feedback cycle produces a sharp quality jump ($3.9 \to 4.8$), after which quality holds steady. Notably, the critic's "approve" signal naturally coincides with peak quality, suggesting that reflection's built-in termination mechanism is well-calibrated. Third, debate3 exhibits *monotonic decline after turn 1*: each successive debate round decreases quality ($3.8 \to 3.4 \to 3.3 \to 3.3$), indicating that continued argumentation past initial consensus actively harms output. This represents the most costly form of over-computation, as continuing not only wastes resources but degrades the result ($Q_{loss}=0.65$).
 
-**Finding 16: Termination regret varies 13x across topologies.** Regret ranges from +0.2 turns (swm3, near-optimal stopping) to +2.6 turns (rr3, substantial over-computation). All five patterns exhibit positive regret, confirming that current fixed termination criteria systematically over-compute. However, the *cost* of over-computation differs dramatically by topology: debate3 loses 0.65 quality points from its 2.0 turns of excess computation, while rr3 loses only 0.05 quality points despite 2.6 turns of excess. This divergence implies that termination criteria must be topology-aware: a uniform turn budget wastes resources on patterns that converge early (swm3, refl2) while simultaneously degrading output on patterns where additional turns are actively harmful (debate3).
+**Finding 23: Termination regret varies 13x across topologies.** Regret ranges from +0.2 turns (swm3, near-optimal stopping) to +2.6 turns (rr3, substantial over-computation). All five patterns exhibit positive regret, confirming that current fixed termination criteria systematically over-compute. However, the *cost* of over-computation differs dramatically by topology: debate3 loses 0.65 quality points from its 2.0 turns of excess computation, while rr3 loses only 0.05 quality points despite 2.6 turns of excess. This divergence implies that termination criteria must be topology-aware: a uniform turn budget wastes resources on patterns that converge early (swm3, refl2) while simultaneously degrading output on patterns where additional turns are actively harmful (debate3).
 
-**Finding 17: Reflection achieves highest quality with near-zero quality loss.** Among all patterns tested, refl2 attains both the highest peak quality ($Q_{peak}=4.80$) and the lowest quality loss ($Q_{loss}=0.00$). The structured critic-approval loop serves as a natural termination signal that aligns closely with the optimal stopping point ($t_{optimal}=1.7$, $t_{actual}=2.3$, regret = +0.6 turns). The dimension breakdown (Table 11b) reveals that refl2 achieves perfect coherence (5.00) and near-perfect usefulness (4.95), while debate3 suffers most on completeness (2.70)---consistent with the observation that successive debate rounds introduce conflicting revisions that fragment the response. Reflection is thus the only topology among those tested where the built-in termination mechanism (critic approval) closely approximates optimal stopping, supporting its use in quality-critical applications.
+**Finding 24: Reflection achieves highest quality with near-zero quality loss.** Among all patterns tested, refl2 attains both the highest peak quality ($Q_{peak}=4.80$) and the lowest quality loss ($Q_{loss}=0.00$). The structured critic-approval loop serves as a natural termination signal that aligns closely with the optimal stopping point ($t_{optimal}=1.7$, $t_{actual}=2.3$, regret = +0.6 turns). The dimension breakdown (Table 20) reveals that refl2 achieves perfect coherence (5.00) and near-perfect usefulness (4.95), while debate3 suffers most on completeness (2.70)---consistent with the observation that successive debate rounds introduce conflicting revisions that fragment the response. Reflection is thus the only topology among those tested where the built-in termination mechanism (critic approval) closely approximates optimal stopping, supporting its use in quality-critical applications.
 
 #### 4.2.1 Evaluation Validation
 
@@ -512,9 +515,9 @@ Our quality scoring relies on G-Eval (Liu et al., 2023) with claude-sonnet-4-5 a
 
 **Human evaluation.** We extract a stratified sample of 30 turn-level outputs from the 276 scored turns: 10 high-scoring ($Q \geq 4.5$), 10 mid-range ($3.0 \leq Q \leq 4.0$), and 10 low-scoring ($Q \leq 2.5$), with minimum 4 samples per pattern to ensure coverage. An expert evaluator rates each sample on the same 5-dimensional rubric (accuracy, completeness, coherence, usefulness, overall) using a 1--5 scale, blind to the G-Eval scores. We report Pearson's $r$, Spearman's $\rho$, and Cohen's quadratic weighted $\kappa$ as inter-rater agreement metrics.
 
-**LLM cross-validation.** To test whether our findings are evaluator-dependent, we re-score 40 stratified samples (8 per pattern) using GPT-4o-mini with the identical scoring prompt. Table 12d reports cross-model agreement.
+**LLM cross-validation.** To test whether our findings are evaluator-dependent, we re-score 40 stratified samples (8 per pattern) using GPT-4o-mini with the identical scoring prompt. Table 21 reports cross-model agreement.
 
-**Table 12d: Cross-Model Agreement (Claude G-Eval vs. GPT-4o-mini)**
+**Table 21: Cross-Model Agreement (Claude G-Eval vs. GPT-4o-mini)**
 
 | Dimension | Pearson $r$ | Spearman $\rho$ | Cohen's $\kappa_w$ | $\bar{Q}_{Claude}$ | $\bar{Q}_{GPT}$ | $\Delta$ |
 |-----------|------------|----------------|-------------------|---------------------|------------------|----------|
@@ -524,17 +527,17 @@ Our quality scoring relies on G-Eval (Liu et al., 2023) with claude-sonnet-4-5 a
 | Usefulness | 0.426 | 0.388 | 0.301 | 4.03 | 4.67 | -0.65 |
 | Overall | 0.434 | 0.389 | 0.244 | 3.73 | 4.65 | -0.93 |
 
-Correlations are moderate positive (Pearson $r = 0.43$--$0.62$, all $p < 0.01$), with completeness showing the strongest agreement ($r = 0.617$, $\rho = 0.617$). GPT-4o-mini exhibits systematic leniency bias ($\Delta = -0.50$ to $-1.15$), scoring higher across all dimensions. However, the positive correlations confirm that both evaluators agree on the *relative ordering* of quality across samples: turns rated high by Claude are also rated high by GPT-4o-mini, and vice versa. This ordinal agreement indicates that the quality trajectories (Findings 15--17) are not artifacts of Claude-specific scoring biases but reflect genuine quality differences across topologies. The leniency bias is consistent with prior work showing smaller models tend to assign higher absolute scores (Zheng et al., 2023), and does not affect our comparative analysis which relies on relative rankings rather than absolute values.
+Correlations are moderate positive (Pearson $r = 0.43$--$0.62$, all $p < 0.01$), with completeness showing the strongest agreement ($r = 0.617$, $\rho = 0.617$). Cohen's quadratic weighted $\kappa_w$ ranges from 0.244 to 0.388, which falls in the "fair" agreement range (Landis & Koch, 1977); this reflects the difficulty of absolute score calibration across evaluator models rather than disagreement on relative quality ordering. GPT-4o-mini exhibits systematic leniency bias ($\Delta = -0.50$ to $-1.15$), scoring higher across all dimensions. The positive correlations confirm that both evaluators agree on the *relative ordering* of quality across samples, and the quality trajectories (Findings 22--24) are not artifacts of Claude-specific scoring biases. However, the moderate $\kappa_w$ values indicate that absolute quality scores should be interpreted with caution; our comparative analysis relies on relative rankings rather than absolute values, which mitigates this limitation.
 
-*Note: We release a stratified human evaluation kit (30 samples across 5 quality tiers, evaluation instructions, and analysis scripts) in our repository. While the automated cross-validation above demonstrates scoring reliability for comparative analysis, we acknowledge that expert human evaluation would provide stronger absolute quality calibration.*
+*Note: We release a stratified human evaluation kit (30 samples across 5 quality tiers, evaluation instructions, and analysis scripts) in our repository. While the automated cross-validation above demonstrates scoring reliability for comparative analysis, we acknowledge two limitations: (1) the human evaluation uses a single expert evaluator, precluding inter-rater reliability calculation---future work should employ multiple independent annotators with reported Cohen's $\kappa$; (2) the moderate $\kappa_w$ values (0.244--0.388) for LLM cross-validation indicate fair but not strong absolute agreement, meaning absolute quality scores should be interpreted as ordinal rather than cardinal measures.*
 
 ### 4.3 Experiment 03: Convergence Detection (RQ3)
 
 **Setup.** Using turn-level message data from Experiment 01 (v2, 200 runs, 8 patterns), we compute semantic convergence using sentence-transformer embeddings (Reimers & Gurevych, 2019). Each agent turn's content is encoded with all-MiniLM-L6-v2 (384 dimensions), and pairwise cosine similarity is computed between consecutive turns. **Convergence point** is defined as the first turn $t_c$ where cosine similarity exceeds threshold $\theta$ for two consecutive comparisons. We conduct sensitivity analysis at three thresholds: $\theta \in \{0.80, 0.85, 0.90\}$, reporting $\theta = 0.85$ as default. This extends Hu et al.'s (2025) KS-test approach from debate-only to all 8 representative topologies, while replacing shallow n-gram overlap with dense semantic representations.
 
-**Comparison with surface-level metrics.** We also computed Jaccard similarity on word 3-grams (as in our preliminary analysis) and found systematically different results. Jaccard mean similarity ranges from 0.004--0.134 across patterns, while cosine embedding similarity ranges from 0.403--0.673. The discrepancy arises because embedding similarity captures paraphrase and semantic overlap that n-gram matching misses entirely: two turns discussing the same concept with different wording score near-zero on Jaccard but 0.5--0.8 on cosine similarity. Table 19b compares the two methods.
+**Comparison with surface-level metrics.** We also computed Jaccard similarity on word 3-grams (as in our preliminary analysis) and found systematically different results. Jaccard mean similarity ranges from 0.004--0.134 across patterns, while cosine embedding similarity ranges from 0.403--0.673. The discrepancy arises because embedding similarity captures paraphrase and semantic overlap that n-gram matching misses entirely: two turns discussing the same concept with different wording score near-zero on Jaccard but 0.5--0.8 on cosine similarity. Table 23 compares the two methods.
 
-**Table 19: Semantic Convergence Analysis by Pattern ($\theta=0.85$)**
+**Table 22: Semantic Convergence Analysis by Pattern ($\theta=0.85$)**
 
 | Pattern | Cat | N | Conv. Rate | Mean Cos | Final Cos | Trend | Conv. Turn |
 |---------|-----|---|-----------|----------|-----------|-------|------------|
@@ -549,7 +552,7 @@ Correlations are moderate positive (Pearson $r = 0.43$--$0.62$, all $p < 0.01$),
 
 **By category (embedding):** A: 16.0% converged (cos=0.576), B1: 26.0% (cos=0.452), B2: 12.0% (cos=0.472), C: 0.0% (cos=0.568), D: **32.0%** (cos=0.662).
 
-**Table 19b: Jaccard vs Embedding Comparison**
+**Table 23: Jaccard vs Embedding Comparison**
 
 | Pattern | Cat | Mean Jaccard | Mean Cosine | Jaccard Conv. (θ=0.25) | Cosine Conv. (θ=0.85) |
 |---------|-----|-------------|-------------|----------------------|---------------------|
@@ -562,7 +565,7 @@ Correlations are moderate positive (Pearson $r = 0.43$--$0.62$, all $p < 0.01$),
 | debate3 | C | 0.006 | 0.673 | 0.0% | 0.0% |
 | pipe | D | 0.012 | 0.662 | 0.0% | 32.0% |
 
-**Table 19c: Sensitivity Analysis (Convergence Rate at Different Thresholds)**
+**Table 24: Sensitivity Analysis (Convergence Rate at Different Thresholds)**
 
 | Pattern | Cat | θ=0.80 | θ=0.85 | θ=0.90 |
 |---------|-----|--------|--------|--------|
@@ -575,17 +578,17 @@ Correlations are moderate positive (Pearson $r = 0.43$--$0.62$, all $p < 0.01$),
 | debate3 | C | 12.0% | 0.0% | 0.0% |
 | pipe | D | 36.0% | 32.0% | 8.0% |
 
-**Finding 30 --- Semantic convergence reveals a fundamentally different topology ranking than surface-level metrics.** With embedding-based analysis, pipeline (D) exhibits the highest convergence rate (32.0% at $\theta=0.85$), followed by centralized routing B1 (26.0%) and sequential A (16.0%). This inverts the Jaccard-based ranking where only decentralized handoff B2 showed convergence (28.0%). The reversal occurs because Jaccard was dominated by literal n-gram repetition in swarm handoff messages, mistaking protocol repetition for content convergence. Embedding similarity correctly identifies that pipeline stages produce *semantically related* output (draft → review → polish all discuss the same topic), while swarm handoff messages are semantically *divergent* (each handoff changes the conversational focus). This correction is critical for practitioners: using Jaccard-based convergence detection would falsely trigger early stopping in swarm topologies while missing genuine convergence in pipeline and selector topologies.
+**Finding 25 --- Semantic convergence reveals a fundamentally different topology ranking than surface-level metrics.** With embedding-based analysis, pipeline (D) exhibits the highest convergence rate (32.0% at $\theta=0.85$), followed by centralized routing B1 (26.0%) and sequential A (16.0%). This inverts the Jaccard-based ranking where only decentralized handoff B2 showed convergence (28.0%). The reversal occurs because Jaccard was dominated by literal n-gram repetition in swarm handoff messages, mistaking protocol repetition for content convergence. Embedding similarity correctly identifies that pipeline stages produce *semantically related* output (draft → review → polish all discuss the same topic), while swarm handoff messages are semantically *divergent* (each handoff changes the conversational focus). This correction is critical for practitioners: using Jaccard-based convergence detection would falsely trigger early stopping in swarm topologies while missing genuine convergence in pipeline and selector topologies.
 
-**Finding 31 --- Feedback patterns do NOT converge even at the semantic level.** Both refl2 (0.0%) and debate3 (0.0%) show zero convergence at $\theta=0.85$, consistent across all three thresholds for debate3 (only refl2 shows 8.0% at $\theta=0.80$). Despite debate3 having the highest mean cosine similarity (0.673), similarity remains consistently high without the *increase* required for convergence detection. This confirms that feedback patterns produce content that is semantically similar throughout (discussing the same topic) but never stabilizes (each turn introduces new arguments or refinements). Quality-based signals (Section 4.2) remain more appropriate for feedback topologies.
+**Finding 26 --- Feedback patterns do NOT converge even at the semantic level.** Both refl2 (0.0%) and debate3 (0.0%) show zero convergence at $\theta=0.85$, consistent across all three thresholds for debate3 (only refl2 shows 8.0% at $\theta=0.80$). Despite debate3 having the highest mean cosine similarity (0.673), similarity remains consistently high without the *increase* required for convergence detection. This confirms that feedback patterns produce content that is semantically similar throughout (discussing the same topic) but never stabilizes (each turn introduces new arguments or refinements). Quality-based signals (Section 4.2) remain more appropriate for feedback topologies.
 
-**Finding 32 --- Centralized routing (B1) shows the strongest convergence trends.** sel3 (+0.397) and sel4 (+0.382) exhibit the largest positive trends, indicating that selector-routed conversations become progressively more semantically similar. This aligns with the coordinator's role: as the task progresses, the selector routes to specialists who contribute increasingly overlapping insights. By contrast, swm3 shows a strong *negative* trend (-0.560), indicating that decentralized handoff conversations become less semantically coherent over time---consistent with the turn explosion phenomenon observed in Experiment 01 (Finding 6). Pipeline shows a moderate positive trend (+0.169), reflecting the semantic coherence of sequential processing stages.
+**Finding 27 --- Centralized routing (B1) shows the strongest convergence trends.** sel3 (+0.397) and sel4 (+0.382) exhibit the largest positive trends, indicating that selector-routed conversations become progressively more semantically similar. This aligns with the coordinator's role: as the task progresses, the selector routes to specialists who contribute increasingly overlapping insights. By contrast, swm3 shows a strong *negative* trend (-0.560), indicating that decentralized handoff conversations become less semantically coherent over time---consistent with the turn explosion phenomenon observed in Experiment 01 (Finding 7). Pipeline shows a moderate positive trend (+0.169), reflecting the semantic coherence of sequential processing stages.
 
 ### 4.4 Experiment 04: Error Attribution (RQ4)
 
 **Setup.** We analyze termination and error patterns from both v1 (780 runs, 13 patterns) and v2 (200 runs, 8 patterns) experiments. Rather than content-level error classification (which requires human annotation), we focus on *structural* error patterns: stop reason distributions, error-task interactions, and content characteristics that correlate with topology features.
 
-**Table 20: Termination Mode Distribution (v1, 780 runs)**
+**Table 25: Termination Mode Distribution (v1, 780 runs)**
 
 | Pattern | Cat | N | Keyword% | MaxMsg% | Error% |
 |---------|-----|---|----------|---------|--------|
@@ -601,7 +604,7 @@ Correlations are moderate positive (Pearson $r = 0.43$--$0.62$, all $p < 0.01$),
 | pipe | D | 60 | 100.0% | 0.0% | 0.0% |
 | moa | D | 60 | 0.0% | 100.0% | 0.0% |
 
-**Table 21: v1 Error Distribution by Task Domain (Category A only)**
+**Table 26: v1 Error Distribution by Task Domain (Category A only)**
 
 | Pattern | Factual | Analytical | Creative | Technical |
 |---------|---------|------------|----------|-----------|
@@ -609,11 +612,11 @@ Correlations are moderate positive (Pearson $r = 0.43$--$0.62$, all $p < 0.01$),
 | rr3 | 0/15 (0%) | 3/15 (20%) | 3/15 (20%) | 8/15 (53.3%) |
 | rr4 | 0/15 (0%) | 15/15 (100%) | 13/15 (86.7%) | 15/15 (100%) |
 
-**Finding 33 --- Three distinct termination failure modes emerge across topologies.** (1) *Context overflow* (Category A): errors scale superlinearly with agent count (rr2=8.3% → rr3=23.3% → rr4=71.7%) because cumulative conversation history exceeds the 28K character processing limit. (2) *Turn explosion* (Category B2): swm4 reaches max_messages in 71.7% of runs because decentralized handoff chains fail to self-terminate, while swm3 reaches max_messages only 21.7% of the time. (3) *No failure* (Categories B1, C, D except MoA): centralized routing, feedback, and pipeline patterns achieve 100% keyword termination. MoA always hits max_messages (100%) because the aggregator does not emit TERMINATE after synthesis.
+**Finding 28 --- Three distinct termination failure modes emerge across topologies.** (1) *Context overflow* (Category A): errors scale superlinearly with agent count (rr2=8.3% → rr3=23.3% → rr4=71.7%) because cumulative conversation history exceeds the 28K character processing limit. (2) *Turn explosion* (Category B2): swm4 reaches max_messages in 71.7% of runs because decentralized handoff chains fail to self-terminate, while swm3 reaches max_messages only 21.7% of the time. (3) *No failure* (Categories B1, C, D except MoA): centralized routing, feedback, and pipeline patterns achieve 100% keyword termination. MoA always hits max_messages (100%) because the aggregator does not emit TERMINATE after synthesis.
 
-**Finding 34 --- Factual tasks are error-immune while technical tasks are error-prone.** In Category A (the only category with errors), factual tasks produce 0% errors across all team sizes (rr2/rr3/rr4), while technical tasks produce 33.3%→53.3%→100% errors as team size increases. The mechanism is clear: technical tasks (code generation) produce longer responses that accumulate faster in the conversation context, triggering the truncation threshold sooner. Creative and analytical tasks fall in between, with vulnerability appearing at rr3 (3-agent) level.
+**Finding 29 --- Factual tasks are error-immune while technical tasks are error-prone.** In Category A (the only category with errors), factual tasks produce 0% errors across all team sizes (rr2/rr3/rr4), while technical tasks produce 33.3%→53.3%→100% errors as team size increases. The mechanism is clear: technical tasks (code generation) produce longer responses that accumulate faster in the conversation context, triggering the truncation threshold sooner. Creative and analytical tasks fall in between, with vulnerability appearing at rr3 (3-agent) level.
 
-**Finding 35 --- Swarm communication is structurally distinct from all other patterns.** Content analysis reveals that swarm patterns produce dramatically shorter agent responses (swm3: 322 chars, swm4: 205 chars) compared to all other patterns (1,787--1,982 chars). Only 1.0--6.1% of swarm turns contain the TERMINATE keyword, versus 8.8--17.9% for other patterns. This explains swm4's low keyword termination rate (24% in v2): swarm agents communicate through brief handoff messages rather than substantive responses, and the TERMINATE keyword is rarely relevant to this communication mode. This structural difference has direct implications for termination strategy: keyword-based termination is poorly suited for decentralized handoff topologies, supporting the need for alternative stopping signals (Finding 29).
+**Finding 30 --- Swarm communication is structurally distinct from all other patterns.** Content analysis reveals that swarm patterns produce dramatically shorter agent responses (swm3: 322 chars, swm4: 205 chars) compared to all other patterns (1,787--1,982 chars). Only 1.0--6.1% of swarm turns contain the TERMINATE keyword, versus 8.8--17.9% for other patterns. This explains swm4's low keyword termination rate (24% in v2): swarm agents communicate through brief handoff messages rather than substantive responses, and the TERMINATE keyword is rarely relevant to this communication mode. This structural difference has direct implications for termination strategy: keyword-based termination is poorly suited for decentralized handoff topologies, supporting the need for alternative stopping signals (Finding 36).
 
 ### 4.5 Experiment 05: Adaptive Termination (RQ5)
 
@@ -623,9 +626,9 @@ $$\Delta U(t) = \Delta Q(t) - \lambda \cdot \Delta C(t)$$
 
 where $\Delta Q(t) = Q(t) - Q(t-1)$ is the marginal quality gain at turn t, $\Delta C(t)$ is the marginal token cost (in kilo-tokens), and $\lambda$ controls the quality-cost tradeoff. The team stops when $\Delta U(t) \leq 0$, indicating that the marginal cost of continuing exceeds the marginal quality gain. Unlike absolute utility $U(t) = Q(t) - \lambda C(t)$ which diverges to $-\infty$ as costs accumulate, marginal utility $\Delta U(t)$ naturally converges to zero via quality saturation.
 
-**Pre-validation from exp02 data.** Before running the full controlled experiment, we validated the ΔU(t) → 0 convergence using existing exp02 turn-level quality scores combined with per-turn token costs. Table 13 shows the convergence analysis for 5 representative patterns:
+**Pre-validation from exp02 data.** Before running the full controlled experiment, we validated the ΔU(t) → 0 convergence using existing exp02 turn-level quality scores combined with per-turn token costs. Table 27 shows the convergence analysis for 5 representative patterns:
 
-**Table 13: Marginal Utility Convergence Analysis (λ=0.1)**
+**Table 27: Marginal Utility Convergence Analysis (λ=0.1)**
 
 | Pattern | Category | t_{ΔU≤0} | t_{optimal} | t_{actual} | Q_{opt} | Q_{act} | Q_{loss} | Regret |
 |---------|----------|-----------|-------------|------------|---------|---------|----------|--------|
@@ -635,11 +638,11 @@ where $\Delta Q(t) = Q(t) - Q(t-1)$ is the marginal quality gain at turn t, $\De
 | debate3 | C | 2.2 | 1.3 | 3.3 | 4.00 | 3.35 | 0.65 | 2.0 |
 | rr3 | A | **2.4** | 1.6 | 4.2 | 4.50 | 4.45 | 0.05 | 2.6 |
 
-**Finding 21 -- ΔU(t) converges within 1.1-2.4 turns for all topologies.** The convergence speed strongly correlates with topology structure: decentralized handoff (B2) converges fastest (1.1 turns), while sequential chain (A) converges slowest (2.4 turns). This validates the marginal utility formulation as a practical termination signal.
+**Finding 31 -- ΔU(t) converges within 1.1-2.4 turns for all topologies.** The convergence speed strongly correlates with topology structure: decentralized handoff (B2) converges fastest (1.1 turns), while sequential chain (A) converges slowest (2.4 turns). This validates the marginal utility formulation as a practical termination signal.
 
-**Finding 22 -- λ-insensitivity.** Varying λ from 0 to 0.5 barely changes the convergence point (mean t_{ΔU≤0} shifts from 1.9 to 1.8). This indicates that ΔQ(t) → 0 (quality saturation) is the dominant stopping signal, meaning the criterion is robust to λ choice.
+**Finding 32 -- λ-insensitivity.** Varying λ from 0 to 0.5 barely changes the convergence point (mean t_{ΔU≤0} shifts from 1.9 to 1.8). This indicates that ΔQ(t) → 0 (quality saturation) is the dominant stopping signal, meaning the criterion is robust to λ choice.
 
-**Table 14: λ Sensitivity Analysis**
+**Table 28: λ Sensitivity Analysis**
 
 | λ | Mean t_{ΔU≤0} | Mean Regret | Mean Q_{loss} |
 |:---:|:---:|:---:|:---:|
@@ -649,11 +652,13 @@ where $\Delta Q(t) = Q(t) - Q(t-1)$ is the marginal quality gain at turn t, $\De
 | 0.20 | 1.9 | 1.4 | 0.260 |
 | 0.50 | 1.8 | 1.4 | 0.260 |
 
-**Finding 23 -- Quality preservation varies by topology.** refl2 achieves zero quality loss (Q_act/Q_opt = 4.80/4.80 = 1.00), while debate3 shows the largest loss (Q_loss = 0.65, Q_act/Q_opt = 3.35/4.00 = 0.84). The reflection pattern's critic-based APPROVED signal provides a natural, reliable termination point coinciding with peak quality. Notably, the ΔU convergence point t_{ΔU≤0} closely tracks t_{optimal} for efficient topologies (swm3: 1.1 vs 1.0) but diverges for over-computing topologies (rr3: 2.4 vs 1.6), suggesting that ΔU can serve as a safety net against wasteful continuation.
+*Note: Regret and Q_{loss} are invariant across λ because these metrics measure baseline behavior---Regret = t_{actual} - t_{optimal} and Q_{loss} = Q_{peak} - Q_{actual}---both of which are properties of the baseline runs, not of the ΔU criterion. Only t_{ΔU≤0} (where the adaptive criterion would trigger stopping) depends on λ. The near-invariance of t_{ΔU≤0} itself (1.9→1.8) further confirms that quality saturation (ΔQ→0) dominates over the cost penalty (λ·ΔC), as turn-level quality changes are discrete events and the 0.1-turn shift keeps t_{ΔU≤0} in the same inter-turn interval.*
+
+**Finding 33 -- Quality preservation varies by topology.** refl2 achieves zero quality loss (Q_act/Q_opt = 4.80/4.80 = 1.00), while debate3 shows the largest loss (Q_loss = 0.65, Q_act/Q_opt = 3.35/4.00 = 0.84). The reflection pattern's critic-based APPROVED signal provides a natural, reliable termination point coinciding with peak quality. Notably, the ΔU convergence point t_{ΔU≤0} closely tracks t_{optimal} for efficient topologies (swm3: 1.1 vs 1.0) but diverges for over-computing topologies (rr3: 2.4 vs 1.6), suggesting that ΔU can serve as a safety net against wasteful continuation.
 
 **Controlled experiment.** We test the ΔU criterion as an *alternative* to keyword-based termination, specifically to diagnose where keyword heuristics succeed and fail. We evaluate across all 8 representative patterns with 3 λ values {0.0, 0.1, 0.5} and 25 tasks, yielding 200 baseline + 600 adaptive = 800 runs with 0% error rate. The adaptive condition removes the TERMINATE keyword mechanism and instead stops when ΔU(t) ≤ ε (ε=0.05) for 2 consecutive turns, with a MaxMessage safety net of 25.
 
-**Table 17: Adaptive vs Baseline Comparison**
+**Table 29: Adaptive vs Baseline Comparison**
 
 | Pattern | Cat | BL turns | AD turns | Turn Δ% | BL tokens | AD tokens | Token Δ% |
 |---------|-----|----------|----------|---------|-----------|-----------|----------|
@@ -666,7 +671,7 @@ where $\Delta Q(t) = Q(t) - Q(t-1)$ is the marginal quality gain at turn t, $\De
 | debate3 | C | 4.4 | 4.6 | +5% | 9,042 | 9,752 | +8% |
 | pipe | D | 5.8 | 5.8 | +1% | 10,853 | 12,092 | +11% |
 
-**Table 18: λ Sensitivity (Averaged Across Patterns)**
+**Table 30: λ Sensitivity (Averaged Across Patterns)**
 
 | λ | Avg Turn Δ% | Avg Token Δ% | N |
 |---|-------------|--------------|---|
@@ -676,17 +681,17 @@ where $\Delta Q(t) = Q(t) - Q(t-1)$ is the marginal quality gain at turn t, $\De
 
 The diagnostic value of this experiment lies in revealing *where* existing termination works well and *where* it fails.
 
-**Finding 27 — Adaptive termination benefit is strongly topology-dependent.** The ΔU criterion's effect varies dramatically across topologies. For patterns with reliable keyword termination (debate3: +5% turns/+8% tokens; pipe: +1%/+11%), adaptive termination adds minimal overhead—these patterns already stop near the quality plateau. For patterns where keyword termination works but is not perfectly timed (rr3: +19%/+32%; sel3: +27%/+63%; sel4: +26%/+47%), the adaptive criterion overshoots, producing more turns. However, for swm4—where baseline keyword termination succeeds only 28% of the time (Table 20)—adaptive termination achieves **-65% turn reduction and -70% token savings**, demonstrating that the ΔU criterion excels precisely where keyword heuristics fail. Reflection (refl2: +92%/+258%) suffers the most because its compact 2-turn APPROVED signal is already optimal, and any replacement disrupts this tight feedback loop.
+**Finding 34 — Adaptive termination benefit is strongly topology-dependent.** The ΔU criterion's effect varies dramatically across topologies. For patterns with reliable keyword termination (debate3: +5% turns/+8% tokens; pipe: +1%/+11%), adaptive termination adds minimal overhead—these patterns already stop near the quality plateau. For patterns where keyword termination works but is not perfectly timed (rr3: +19%/+32%; sel3: +27%/+63%; sel4: +26%/+47%), the adaptive criterion overshoots, producing more turns. However, for swm4—where baseline keyword termination succeeds only 28% of the time (Table 25)—adaptive termination achieves **-65% turn reduction and -70% token savings**, demonstrating that the ΔU criterion excels precisely where keyword heuristics fail. Reflection (refl2: +92%/+258%) suffers the most because its compact 2-turn APPROVED signal is already optimal, and any replacement disrupts this tight feedback loop.
 
-**Finding 28 — λ > 0 transforms the ΔU criterion from harmful to beneficial.** With λ=0 (no cost penalty), the adaptive condition considers only quality changes, causing +10% more turns and +131% more tokens than baseline on average across 8 patterns. With λ≥0.1, the cost penalty produces both turn savings (-33%) and token savings (-13%) on average. This reversal—from +131% overhead to -13% savings—is driven by swm4's dramatic improvement at λ>0, combined with reduced overshooting across other patterns. The minimal difference between λ=0.1 and λ=0.5 (consistent with Finding 22's λ-insensitivity) suggests that any positive cost penalty suffices.
+**Finding 35 — λ > 0 transforms the ΔU criterion from harmful to beneficial.** With λ=0 (no cost penalty), the adaptive condition considers only quality changes, causing +10% more turns and +131% more tokens than baseline on average across 8 patterns. With λ≥0.1, the cost penalty produces both turn savings (-33%) and token savings (-13%) on average. This reversal—from +131% overhead to -13% savings—is driven by swm4's dramatic improvement at λ>0, combined with reduced overshooting across other patterns. The minimal difference between λ=0.1 and λ=0.5 (consistent with Finding 32's λ-insensitivity) suggests that any positive cost penalty suffices.
 
-**Finding 29 — ΔU should complement, not replace, keyword termination.** The controlled experiment reveals that the optimal deployment strategy is to use ΔU as a *secondary* termination signal alongside keyword detection: keyword termination handles the common case efficiently (debate3, pipe, sel3, rr3 all terminate via keyword >76% of the time), while ΔU serves as a safety mechanism for topologies where agents fail to reach keyword consensus. The swm4 result validates this: with only 28% keyword termination rate in baseline, ΔU with λ≥0.1 reduces costs by 70%. This complementary approach preserves keyword termination's efficiency for well-behaved topologies while adding ΔU's principled quality-cost guarantee for unreliable ones. The 7/8 patterns where adaptive adds overhead confirm that keyword-based heuristics, when agents reliably produce TERMINATE, are near-optimal---this validates practitioners' existing practices while identifying the exception.
+**Finding 36 — ΔU should complement, not replace, keyword termination.** The controlled experiment reveals that using ΔU as a *replacement* for keyword termination adds overhead for 7 of 8 patterns (Table 29), confirming that keyword-based heuristics are near-optimal when agents reliably produce TERMINATE signals. This is itself a valuable finding that validates existing practitioner practices. However, for the exception---swm4, with only 28% keyword termination rate---ΔU with λ≥0.1 reduces costs by 70%. This suggests a complementary deployment strategy: keyword termination for the common case, with ΔU as a safety mechanism for unreliable topologies. *We note that this hybrid approach is proposed based on the diagnostic results but has not been experimentally validated as a combined system; future work should implement and evaluate the hybrid to quantify its actual benefit.*
 
 ### 4.6 Cross-Model Validation
 
 **Setup.** To assess whether our findings generalize beyond a single LLM, we replicate Experiment 01 with GPT-4o-mini (OpenAI) on 5 representative patterns (solo, rr3, sel3, swm3, refl2) across all 25 tasks, yielding 125 additional runs with 0% error rate. All other experimental conditions (prompts, agent configurations, termination criteria) remain identical.
 
-**Table 19: Cross-Model Comparison (Claude Haiku 4.5 vs. GPT-4o-mini)**
+**Table 31: Cross-Model Comparison (Claude Haiku 4.5 vs. GPT-4o-mini)**
 
 | Pattern | Claude Tokens | GPT Tokens | Ratio | Claude Turns | GPT Turns | Claude KW% | GPT KW% |
 |---------|--------------|-----------|-------|-------------|----------|-----------|--------|
@@ -696,11 +701,11 @@ The diagnostic value of this experiment lies in revealing *where* existing termi
 | swm3 | 4,196 | 3,203 | 0.76x | 10.2 | 10.0 | 78% | 72% |
 | refl2 | 5,237 | 5,105 | 0.97x | 3.2 | 4.0 | 100% | 92% |
 
-**Finding 30 — Topology-dependent dynamics are model-invariant.** Despite absolute token differences (GPT-4o-mini is 0.46--1.42x of Claude across patterns), the relative cost ordering is strongly preserved: Spearman ρ = 0.900 (p = 0.037). Both models produce the same efficiency hierarchy: solo < swm3 < {sel3, refl2} < rr3, with only sel3 and refl2 swapping positions (a middle-tier difference). The key non-trivial finding—swm3 being more efficient than solo×3—holds across both models.
+**Finding 37 — Topology-dependent dynamics are model-invariant.** Despite absolute token differences (GPT-4o-mini is 0.46--1.42x of Claude across patterns), the relative cost ordering is strongly preserved: Spearman ρ = 0.900 (p = 0.037, n = 5 patterns). Both models produce the same efficiency hierarchy: solo < swm3 < {sel3, refl2} < rr3, with only sel3 and refl2 swapping positions (a middle-tier difference). The key non-trivial finding—swm3 being more efficient than solo×3—holds across both models. *Caveat: the correlation is computed over n=5 data points; while statistically significant (p < 0.05), validation with additional patterns and models would strengthen this generalizability claim.*
 
-**Finding 31 — Keyword termination reliability is model-dependent.** While both models achieve high keyword termination rates for solo (100%), sel3 (100%), and refl2 (92--100%), GPT-4o-mini shows lower keyword reliability for rr3 (80% vs. 100%) and swm3 (72% vs. 78%). This suggests that smaller models may struggle more with producing explicit TERMINATE signals in multi-turn contexts, reinforcing the value of ΔU as a complementary stopping mechanism (Finding 29).
+**Finding 38 — Keyword termination reliability is model-dependent.** While both models achieve high keyword termination rates for solo (100%), sel3 (100%), and refl2 (92--100%), GPT-4o-mini shows lower keyword reliability for rr3 (80% vs. 100%) and swm3 (72% vs. 78%). This suggests that smaller models may struggle more with producing explicit TERMINATE signals in multi-turn contexts, reinforcing the value of ΔU as a complementary stopping mechanism (Finding 36).
 
-**Finding 32 — Routing efficiency is model-sensitive.** The most striking cross-model difference is sel3: GPT-4o-mini uses only 0.46x the tokens of Claude (3,598 vs. 7,851). This suggests GPT-4o-mini's selector produces more concise routing decisions. Conversely, rr3 is 1.42x more expensive with GPT-4o-mini, indicating the model generates more verbose sequential contributions. These absolute differences do not affect the topology-dependent *relative* dynamics, supporting the generalizability of our design guidelines.
+**Finding 39 — Routing efficiency is model-sensitive.** The most striking cross-model difference is sel3: GPT-4o-mini uses only 0.46x the tokens of Claude (3,598 vs. 7,851). This suggests GPT-4o-mini's selector produces more concise routing decisions. Conversely, rr3 is 1.42x more expensive with GPT-4o-mini, indicating the model generates more verbose sequential contributions. These absolute differences do not affect the topology-dependent *relative* dynamics, supporting the generalizability of our design guidelines.
 
 ---
 
@@ -720,10 +725,10 @@ Based on our experimental findings, we propose the following practical guideline
 In round-robin topologies, input tokens grow superlinearly with turn count because each agent sees the full conversation history. For n-agent teams over k rounds, expected input tokens scale as O(n * k * average_response_length). This cost can be mitigated by message summarization or sliding-window context strategies.
 
 **Guideline 3: Consider task-topology interaction.**
-Our preliminary results show 2.2x variation in token consumption across task categories within a single topology (Table 4). Creative and open-ended tasks particularly stress multi-round topologies. Practitioners should consider task complexity when selecting both the topology and the termination budget.
+Our preliminary results show 2.2x variation in token consumption across task categories within a single topology (Table 6). Creative and open-ended tasks particularly stress multi-round topologies. Practitioners should consider task complexity when selecting both the topology and the termination budget.
 
 **Guideline 4: Use ΔU as a complement to keyword termination, not a replacement.**
-Our controlled experiment (Section 4.5) reveals that keyword-based termination is a surprisingly effective heuristic that aligns well with quality plateau points (Finding 27). Rather than replacing it, deploy the marginal utility criterion ΔU(t) as a *secondary* safety mechanism: keyword termination handles the common case (agent consensus), while ΔU with λ≥0.1 catches cases where agents fail to self-terminate (e.g., swm4's 28% keyword termination rate). This hybrid approach preserves keyword termination's efficiency while adding ΔU's principled quality-cost guarantee for unreliable topologies.
+Our controlled experiment (Section 4.5) reveals that keyword-based termination is a surprisingly effective heuristic that aligns well with quality plateau points (Finding 34). Rather than replacing it, deploy the marginal utility criterion ΔU(t) as a *secondary* safety mechanism: keyword termination handles the common case (agent consensus), while ΔU with λ≥0.1 catches cases where agents fail to self-terminate (e.g., swm4's 28% keyword termination rate). This hybrid approach preserves keyword termination's efficiency while adding ΔU's principled quality-cost guarantee for unreliable topologies.
 
 ### 5.2 Implications for Multi-Agent System Design
 
@@ -731,13 +736,13 @@ Our controlled experiment (Section 4.5) reveals that keyword-based termination i
 
 **The coordinator overhead tax.** Dynamic routing patterns (Category B) pay an inherent "coordinator tax"---each routing decision requires an LLM call that does not directly produce output tokens. This overhead is fixed per turn regardless of task complexity, making it proportionally more expensive for simple tasks. System designers should consider whether the adaptive routing benefit justifies this tax for their task distribution.
 
-**Collaborative amplification in output.** Contrary to the expectation of diminishing per-agent contributions, our fact-only comparison (Table 3b) shows that output tokens per LLM call *increase* with team size: rr2=930, rr3=1,189, rr4=1,544 tokens/call (1.66x from 2 to 4 agents). Agents exposed to richer prior context produce longer, more detailed responses---a collaborative amplification effect. However, this benefit comes at a steep cost: the input token burden grows even faster (3.34x for rr4/rr2) since each agent must read all prior contributions. The net effect is that total cost grows superlinearly (3.26x) while per-agent output grows sublinearly. This asymmetry between input cost and output richness mirrors AgentDropout's finding that many agents contribute redundantly (Wang et al., ACL 2025), but reframes it: the issue is not that agents contribute *less*, but that the cost of *reading* prior contributions outpaces the value of *writing* new ones. This suggests that topology-aware context summarization---where later agents receive compressed rather than full history---could preserve the amplification benefit while controlling input costs.
+**Collaborative amplification in output.** Contrary to the expectation of diminishing per-agent contributions, our fact-only comparison (Table 5) shows that output tokens per LLM call *increase* with team size: rr2=930, rr3=1,189, rr4=1,544 tokens/call (1.66x from 2 to 4 agents). Agents exposed to richer prior context produce longer, more detailed responses---a collaborative amplification effect. However, this benefit comes at a steep cost: the input token burden grows even faster (3.34x for rr4/rr2) since each agent must read all prior contributions. The net effect is that total cost grows superlinearly (3.26x) while per-agent output grows sublinearly. This asymmetry between input cost and output richness mirrors AgentDropout's finding that many agents contribute redundantly (Wang et al., ACL 2025), but reframes it: the issue is not that agents contribute *less*, but that the cost of *reading* prior contributions outpaces the value of *writing* new ones. This suggests that topology-aware context summarization---where later agents receive compressed rather than full history---could preserve the amplification benefit while controlling input costs.
 
 **Convergence as a universal signal.** While convergence detection has been studied primarily for debate patterns (Hu et al., 2025), our extension to all 13 topologies reveals that convergence signals exist across categories---they simply manifest differently. In sequential patterns, convergence appears as response shortening (agents outputting TERMINATE earlier). In feedback patterns, it appears as claim-level stability. This universality suggests that a unified convergence-aware termination framework could replace topology-specific heuristics.
 
 ### 5.3 Limitations
 
-1. **Single base model.** All experiments use Claude Haiku 4.5 as the base LLM. Different models may exhibit different verbosity patterns, TERMINATE signal reliability, and quality-turn relationships. Our findings may not generalize to other model families (GPT-4, Gemini, Llama) without re-calibration.
+1. **Limited cross-model validation.** Primary experiments use Claude Haiku 4.5. Cross-model validation with GPT-4o-mini (Section 4.6) demonstrates strong rank-order preservation (Spearman ρ = 0.900) across 5 patterns, providing initial generalization evidence. However, validation with larger models (GPT-4o, Claude Sonnet, Llama 3) and open-weight models remains necessary to confirm full generalizability.
 
 2. **Task suite coverage.** While our 25-task suite spans 9 domains (science, CS, history, philosophy, law/politics, gaming, engineering, business, medicine) and 4 cognitive types, it does not include highly interactive tasks (e.g., code generation with execution feedback) or multi-modal tasks. The termination dynamics of such tasks may differ significantly.
 
@@ -747,6 +752,14 @@ Our controlled experiment (Section 4.5) reveals that keyword-based termination i
 
 5. **Cost model simplification.** We use token count as a proxy for cost, ignoring latency-sensitive applications where wall-clock time matters more than token consumption. The marginal utility function could be extended: ΔU(t) = ΔQ(t) - λ_c·ΔC(t) - λ_d·ΔD(t).
 
+6. **Hybrid termination not experimentally validated.** While we propose a hybrid keyword+ΔU termination strategy (Finding 36, Guideline 4), we did not implement and evaluate this combined approach. The controlled experiment (Section 4.5) tests ΔU as a *replacement* for keyword termination, not as a complement. The actual benefit of the proposed hybrid remains to be empirically verified.
+
+7. **Single human evaluator.** The human evaluation study (Section 4.2.1) relies on a single expert evaluator for 30 stratified samples. Without a second independent annotator, inter-rater reliability cannot be computed, limiting the strength of human-agreement claims. Future work should employ at least two annotators with reported inter-rater Cohen's $\kappa$.
+
+8. **Missing confidence intervals.** Most result tables report mean values without standard deviations or confidence intervals. While the large number of runs (780+ for exp01, 800 for exp05) provides reasonable stability, per-pattern sample sizes (25--60 runs) are modest, and formal uncertainty quantification would strengthen the findings.
+
+9. **Small sample for cross-model correlation.** The Spearman ρ = 0.900 for cross-model validation is computed over n = 5 patterns. While statistically significant (p = 0.037), this sample size limits the robustness of the generalizability claim. Extending to all 13 patterns with multiple models would provide stronger evidence.
+
 ### 5.4 Future Work
 
 Several directions emerge from our findings:
@@ -755,7 +768,7 @@ Several directions emerge from our findings:
 
 2. **Learned termination policies.** The utility-based stopping criterion uses a fixed lambda per topology. A learned policy (e.g., via reinforcement learning) could adapt lambda in real-time based on the conversation trajectory.
 
-3. **Cross-model generalization.** Extending this study to multiple base models would reveal whether termination dynamics are model-dependent or topology-intrinsic.
+3. **Cross-model generalization.** Initial validation with GPT-4o-mini (Section 4.6) shows strong rank-order preservation (Spearman ρ = 0.900), but extending to larger models (GPT-4o, Claude Sonnet) and open-weight models would strengthen generalizability claims.
 
 4. **Human-in-the-loop termination.** Some multi-agent tasks benefit from human intervention at specific decision points. Integrating adaptive termination with human feedback could create a hybrid stopping mechanism that is both efficient and aligned.
 
@@ -775,7 +788,7 @@ We presented the first systematic study of termination dynamics across 13 coordi
 
 4. **Error patterns correlate with topology features.** The mechanism of failure differs across topologies even when the root cause is shared, informing targeted mitigation strategies.
 
-5. **Keyword termination is surprisingly effective; ΔU should complement, not replace it.** A controlled experiment (Section 4.5, 800 runs) reveals that adaptive ΔU termination's benefit is strongly topology-dependent: it achieves 70% cost savings for swm4 (where keyword termination fails) but adds overhead for well-behaved topologies like debate3 (+8%) and rr3 (+32%). With λ≥0.1, the average across 8 patterns shows 13% token savings. The optimal deployment strategy is a hybrid approach: keyword termination for the common case, with ΔU as a secondary safety mechanism for topologies where keyword signals are unreliable.
+5. **Keyword termination is surprisingly effective; ΔU serves as a diagnostic complement.** A controlled experiment (Section 4.5, 800 runs) reveals that adaptive ΔU termination adds overhead for 7 of 8 topologies when used as a replacement for keyword termination, but achieves 70% cost savings for swm4 where keyword termination fails (28% success rate). This diagnostic result is itself valuable: it validates that keyword-based heuristics are near-optimal for well-behaved topologies while identifying the specific topology class (decentralized handoff) where alternative stopping criteria are needed. The proposed hybrid approach---keyword termination for the common case, with ΔU as a secondary safety mechanism---remains to be experimentally validated in future work.
 
 We release our experimental framework (13 pattern implementations, 5 experiment runners, analysis scripts) to enable reproducible multi-agent termination research. Our findings provide practical design guidelines for practitioners building multi-agent LLM systems, emphasizing that termination strategy should be a first-class design decision informed by coordination topology.
 
@@ -849,3 +862,67 @@ All 13 patterns are implemented within the AutoGen framework using a TeamFactory
 - Checkpoint: Per-pattern result saving for fault tolerance
 
 Full implementation code, configuration files, and analysis scripts are available in the supplementary materials.
+
+## Appendix C: Statistical Variability
+
+All metrics below are computed from the v2 dataset (raw_A_B1_B2_C_D.json, n=25 per pattern) for Experiment 01, and from Experiment 02 (n=40 per pattern, 20 tasks) for quality scores. 95% confidence intervals use t-distribution with df=n-1.
+
+**Table C1: Experiment 01 Efficiency Statistics (n=25 per pattern)**
+
+| Pattern | Cat | Tokens mean | ±std | 95% CI | Duration mean (s) | ±std | Turns mean | ±std |
+|---------|-----|------------|------|--------|-------------------|------|-----------|------|
+| debate3 | C | 8,657 | ±2,501 | [7,625; 9,690] | 121.6 | ±26.2 | 3.6 | ±0.5 |
+| pipe | D | 13,186 | ±5,828 | [10,780; 15,592] | 128.3 | ±58.3 | 4.0 | ±0.8 |
+| refl2 | C | 5,281 | ±3,315 | [3,913; 6,649] | 53.1 | ±29.0 | 2.2 | ±0.7 |
+| rr3 | A | 12,332 | ±10,148 | [8,143; 16,521] | 111.4 | ±90.4 | 3.6 | ±1.2 |
+| sel3 | B1 | 8,502 | ±5,243 | [6,338; 10,666] | 95.6 | ±42.4 | 2.7 | ±0.5 |
+| sel4 | B1 | 11,264 | ±6,428 | [8,610; 13,917] | 124.5 | ±62.9 | 3.2 | ±0.8 |
+| swm3 | B2 | 4,341 | ±5,646 | [2,011; 6,672] | 45.4 | ±30.9 | 7.8 | ±7.9 |
+| swm4 | B2 | 12,921 | ±6,214 | [10,355; 15,486] | 148.6 | ±39.1 | 25.1 | ±8.9 |
+
+*Note: High std for swm3 tokens (±5,646 relative to mean 4,341, CV=1.30) reflects the bimodal nature of swarm behavior: some runs terminate quickly via keyword, while others execute many handoff rounds. This variability is itself a topology-dependent phenomenon.*
+
+**Table C2: Experiment 02 Quality Statistics (n=40 per pattern, 20 tasks x 2 repeats)**
+
+| Pattern | Cat | Quality mean | ±std | 95% CI | Tokens mean | ±std | 95% CI |
+|---------|-----|-------------|------|--------|------------|------|--------|
+| refl2 | C | 4.80 | ±0.41 | [4.67; 4.93] | 7,186 | ±11,272 | [3,606; 10,766] |
+| rr3 | A | 4.45 | ±0.50 | [4.29; 4.61] | 13,949 | ±8,539 | [11,237; 16,661] |
+| swm3 | B2 | 3.77 | ±1.25 | [3.38; 4.17] | 7,882 | ±12,447 | [3,928; 11,836] |
+| sel3 | B1 | 3.40 | ±1.08 | [3.06; 3.74] | 8,646 | ±6,887 | [6,458; 10,834] |
+| debate3 | C | 3.35 | ±0.80 | [3.10; 3.60] | 8,887 | ±2,457 | [8,106; 9,667] |
+
+**Table C3: Experiment 05 Adaptive Termination Statistics (n=100 per pattern)**
+
+| Pattern | Cat | Tokens mean | ±std | 95% CI | Duration mean (s) | ±std | Turns mean | ±std |
+|---------|-----|------------|------|--------|-------------------|------|-----------|------|
+| debate3 | C | 9,575 | ±4,931 | [8,596; 10,553] | 119.3 | ±63.1 | 3.6 | ±1.3 |
+| pipe | D | 11,783 | ±5,982 | [10,596; 12,969] | 118.4 | ±58.5 | 3.8 | ±0.8 |
+| refl2 | C | 16,147 | ±24,176 | [11,350; 20,943] | 170.3 | ±262.6 | 4.6 | ±4.6 |
+| rr3 | A | 14,345 | ±14,162 | [11,535; 17,155] | 136.6 | ±136.3 | 4.2 | ±2.9 |
+| sel3 | B1 | 11,606 | ±7,797 | [10,059; 13,153] | 153.0 | ±95.2 | 3.5 | ±1.3 |
+| sel4 | B1 | 15,020 | ±13,180 | [12,405; 17,635] | 174.4 | ±159.4 | 4.1 | ±2.6 |
+| swm3 | B2 | 8,169 | ±9,906 | [6,204; 10,134] | 96.6 | ±98.6 | 7.5 | ±5.3 |
+| swm4 | B2 | 7,324 | ±7,542 | [5,827; 8,820] | 70.3 | ±47.0 | 12.2 | ±9.0 |
+
+## Appendix D: Compressed Findings Summary
+
+The 39 individual findings in the main text are organized into 15 core findings below. Original finding numbers are preserved in parentheses for cross-reference.
+
+| # | Core Finding | Original | Section |
+|---|-------------|----------|---------|
+| C1 | Multi-agent coordination incurs 3.3-17.4x token overhead; cost scales near-linearly with agent count; error rates scale superlinearly | F1-5 | 4.1.1 |
+| C2 | Two routing strategies (centralized vs. decentralized) produce radically different scaling: B1 sub-linear, B2 super-linear turn counts | F6-8 | 4.1.2 |
+| C3 | swm3 (3 agents) achieves best token efficiency, beating even rr2 (2 agents): routing strategy dominates agent count | F8 | 4.1.2 |
+| C4 | Reflection and debate exhibit opposite scaling: reflection gets cheaper with more agents, debate gets more expensive; at equal count, reflection is faster but debate is cheaper per token | F9-12 | 4.1.3 |
+| C5 | Composed patterns (MoA, pipe) are most expensive but produce highest output density per agent turn | F13-15 | 4.1.4 |
+| C6 | New cost hierarchy: A ~ B2 < B1 ~ C << D, replacing prior assumption A << B ~ C << D | F16-18 | 4.1.5 |
+| C7 | Domain effects: debate3 is uniquely domain-invariant; task complexity amplifies cost differences 2x independently of topology | F19-21 | 4.1.6 |
+| C8 | Three quality trajectory shapes: monotone-plateau (rr3), peak-at-turn-2 (refl2), monotone-decline (debate3) | F22 | 4.2 |
+| C9 | Termination regret varies 13x across topologies; reflection achieves highest quality with near-zero quality loss | F23-24 | 4.2 |
+| C10 | Semantic convergence (Sentence-BERT) reveals different topology ranking than surface metrics; feedback patterns never converge semantically | F25-27 | 4.3 |
+| C11 | Three termination failure modes emerge: factual tasks are error-immune, technical tasks error-prone; swarm communication is structurally distinct | F28-30 | 4.4 |
+| C12 | Marginal utility deltaU converges within 1.1-2.4 turns for all topologies; lambda-insensitive (quality saturation dominates) | F31-32 | 4.5 |
+| C13 | Adaptive termination benefit is topology-dependent: overhead for 7/8 patterns, but -70% savings for swm4 where keyword fails | F33-35 | 4.5 |
+| C14 | deltaU should complement, not replace, keyword termination; hybrid approach proposed but not yet validated | F36 | 4.5 |
+| C15 | Topology-dependent dynamics are model-invariant (Spearman rho=0.900, n=5, p=0.037); keyword reliability and routing efficiency are model-sensitive | F37-39 | 4.6 |

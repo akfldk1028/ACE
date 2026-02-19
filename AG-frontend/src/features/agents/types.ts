@@ -26,6 +26,7 @@ export interface A2AHealthStatus {
   name: string
   url: string
   healthy: boolean
+  is_online?: boolean
   latency_ms?: number
   error?: string
 }

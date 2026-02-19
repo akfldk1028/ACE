@@ -1,8 +1,13 @@
 import { Outlet } from 'react-router'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
+import { useAuthInit } from '@/features/auth/useAuth'
+import { useShortcutsDialog, ShortcutsDialog } from '@/features/shortcuts'
 
 export function MainLayout() {
+  useAuthInit()
+  const { isOpen: shortcutsOpen, close: closeShortcuts } = useShortcutsDialog()
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
@@ -12,6 +17,7 @@ export function MainLayout() {
           <Outlet />
         </main>
       </div>
+      <ShortcutsDialog isOpen={shortcutsOpen} onClose={closeShortcuts} />
     </div>
   )
 }

@@ -46,6 +46,8 @@ export interface AgentNodeData {
   isHub?: boolean
   hubType?: string
   color?: string
+  /** Truncated last message from this agent (live mode) */
+  lastMessage?: string
 }
 
 export interface CustomEdgeData extends Record<string, unknown> {
@@ -219,6 +221,19 @@ export const createEdge = (
     opacity: options.opacity ?? 1,
   },
 })
+
+// --- Pattern to Provider mapping (shared by TeamCreateDialog + useTeamEditor) ---
+
+export function patternToProvider(pattern: PatternType): string {
+  switch (pattern) {
+    case 'sequential': return 'autogen_agentchat.teams.RoundRobinGroupChat'
+    case 'selector': return 'autogen_agentchat.teams.SelectorGroupChat'
+    case 'handoff': return 'autogen_agentchat.teams.Swarm'
+    case 'debate': return 'autogen_agentchat.teams.SelectorGroupChat'
+    case 'reflection': return 'autogen_agentchat.teams.RoundRobinGroupChat'
+    default: return 'autogen_agentchat.teams.RoundRobinGroupChat'
+  }
+}
 
 // --- Pattern Detection ---
 

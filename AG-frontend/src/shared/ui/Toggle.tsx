@@ -3,16 +3,18 @@ import { cn } from '@/shared/lib/utils'
 export interface ToggleProps {
   checked: boolean
   onChange: (checked: boolean) => void
+  'aria-label'?: string
 }
 
-export function Toggle({ checked, onChange }: ToggleProps) {
+export function Toggle({ checked, onChange, 'aria-label': ariaLabel }: ToggleProps) {
   return (
     <button
       role="switch"
       aria-checked={checked}
+      aria-label={ariaLabel}
       onClick={() => onChange(!checked)}
       className={cn(
-        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200',
+        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary) focus:ring-offset-2',
         checked ? 'bg-(--color-accent-primary)' : 'bg-(--color-border-default)'
       )}
     >

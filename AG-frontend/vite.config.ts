@@ -39,6 +39,11 @@ export default defineConfig({
         changeOrigin: true,
         ws: true,
       },
+      '/arr': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/arr/, ''),
+      },
     },
   },
   test: {

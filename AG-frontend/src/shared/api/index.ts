@@ -19,3 +19,14 @@ export { ExecutionWebSocket } from './ws'
 export type { WSMessage, FileAttachment } from './ws'
 export { McpWebSocket } from './mcpWs'
 export type { McpWsMessage, McpMessageListener } from './mcpWs'
+export { landAPI } from './arrClient'
+export type {
+  LandAnalyzeRequest,
+  LandAnalyzeResponse,
+  LandZone,
+  LandStats,
+  PnuInfo,
+  ZoneRegulation,
+  RegulationResult,
+  LawArticle,
+} from './arrClient'

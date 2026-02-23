@@ -28,7 +28,7 @@ AutoGen Studio SaaS platform with custom frontend, multi-agent orchestration, A2
 ┌─────────────────────────────────────────────────────────────────┐
 │                     CLAUDE / AGENT LAYER                        │
 │  Claude Code ←→ ACE MCP Server (stdio or :8200)                │
-│                   53 tools (FastMCP)                            │
+│                   57 tools (FastMCP)                            │
 └───────┬──────────────┬──────────────┬──────────────┬────────────┘
         │              │              │              │
    AutoGen Studio  Message Bus  SharedMemory   Law Tools
@@ -130,7 +130,7 @@ Input (PNU/주소/zones)
 ### ACE MCP Server
 
 - **File**: `AG/autogen_a2a_kit/AG-cli/mcp/autogen_studio_server.py`
-- **53 tools** in 16 categories
+- **57 tools** in 17 categories
 - **Config env vars**: AUTOGEN_STUDIO_URL(:8081), MESSAGE_BUS_URL(:8100), SHARED_MEMORY_URL(:8101), LAW_BACKEND_URL(:8011), ARR_BACKEND_URL(:8000)
 - **Run**: `python autogen_studio_server.py` (stdio) or `--transport streamable-http --port 8200`
 

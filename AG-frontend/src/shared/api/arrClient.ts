@@ -65,6 +65,13 @@ export interface LandResolveRequest {
   input_type: 'pnu' | 'address'
 }
 
+export interface LandResolveResponse {
+  valid?: boolean
+  parsed?: Record<string, string>
+  pnu?: string
+  error?: string
+}
+
 export interface LandZone {
   zone_name: string
   bcr_default: number
@@ -75,7 +82,13 @@ export interface LandZone {
 export interface LandStats {
   total_queries: number
   avg_response_time_ms: number
-  zone_distribution: Record<string, number>
+  by_input_type: Array<{ input_type: string; count: number }>
+  error_count: number
+}
+
+export interface LandZonesResponse {
+  zones: LandZone[]
+  count: number
 }
 
 // --------------- Fetch Helper ---------------
@@ -105,12 +118,12 @@ export const landAPI = {
     }),
 
   resolve: (req: LandResolveRequest) =>
-    arrFetch<PnuInfo>('/land/resolve/', {
+    arrFetch<LandResolveResponse>('/land/resolve/', {
       method: 'POST',
       body: JSON.stringify(req),
     }),
 
-  zones: () => arrFetch<LandZone[]>('/land/zones/'),
+  zones: () => arrFetch<LandZonesResponse>('/land/zones/'),
 
   stats: () => arrFetch<LandStats>('/land/stats/'),
 }

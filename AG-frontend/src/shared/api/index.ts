@@ -23,7 +23,10 @@ export { landAPI } from './arrClient'
 export type {
   LandAnalyzeRequest,
   LandAnalyzeResponse,
+  LandResolveRequest,
+  LandResolveResponse,
   LandZone,
+  LandZonesResponse,
   LandStats,
   PnuInfo,
   ZoneRegulation,

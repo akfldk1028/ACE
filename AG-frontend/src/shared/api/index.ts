@@ -32,4 +32,5 @@ export type {
   ZoneRegulation,
   RegulationResult,
   LawArticle,
+  LawArticleGroup,
 } from './arrClient'

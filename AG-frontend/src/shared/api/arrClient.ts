@@ -37,8 +37,15 @@ export interface LawArticle {
   hang_id: string
   content: string
   law_name: string
+  law_type?: string
   article: string
   similarity?: number
+  stages?: string[]
+}
+
+export interface LawArticleGroup {
+  query: string
+  results: LawArticle[]
 }
 
 export interface LandAnalyzeResponse {
@@ -46,7 +53,7 @@ export interface LandAnalyzeResponse {
   regulation: RegulationResult
   land_info: Record<string, unknown>
   law_articles: {
-    articles: LawArticle[]
+    articles: LawArticleGroup[]
     total_count: number
     errors: string[]
   }

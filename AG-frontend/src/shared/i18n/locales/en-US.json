@@ -150,6 +150,7 @@
   "assistants.filterProductivity": "Productivity",
   "assistants.filterCreative": "Creative",
   "assistants.filterDevelopment": "Development",
+  "assistants.filterLifestyle": "Lifestyle",
 
   "toolApproval.title": "Tool Approval Required",
   "toolApproval.moreInQueue": "+{{count}} more",

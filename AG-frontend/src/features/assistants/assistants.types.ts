@@ -10,7 +10,7 @@ export interface AssistantPreset {
   /** Recommended model id from model-registry */
   recommendedModel?: string
   /** Category for filter tabs */
-  category: 'productivity' | 'creative' | 'development'
+  category: 'productivity' | 'creative' | 'development' | 'lifestyle'
   /** System prompt template - injected when team is created from this preset */
   systemPromptI18n?: Record<string, string>
 }

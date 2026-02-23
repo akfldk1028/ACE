@@ -4,13 +4,14 @@ import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import { usePresets } from '../assistants.hooks'
 import { PresetCard } from './PresetCard'
 
-type CategoryFilter = 'all' | 'productivity' | 'creative' | 'development'
+type CategoryFilter = 'all' | 'productivity' | 'creative' | 'development' | 'lifestyle'
 
 const CATEGORY_TABS: { key: CategoryFilter; labelKey: string }[] = [
   { key: 'all', labelKey: 'assistants.filterAll' },
   { key: 'productivity', labelKey: 'assistants.filterProductivity' },
   { key: 'creative', labelKey: 'assistants.filterCreative' },
   { key: 'development', labelKey: 'assistants.filterDevelopment' },
+  { key: 'lifestyle', labelKey: 'assistants.filterLifestyle' },
 ]
 
 interface PresetPanelProps {
@@ -89,6 +90,7 @@ export const PresetPanel = memo(function PresetPanel({
                 prompts={preset.localizedPrompts}
                 skills={preset.resolvedSkills}
                 isSelected={selectedPresetId === preset.id}
+                activeLabel={t('assistants.active')}
                 onSelect={() => onSelectPreset(preset.id)}
                 onPromptClick={onPromptClick}
               />

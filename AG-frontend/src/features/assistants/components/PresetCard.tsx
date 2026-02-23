@@ -9,6 +9,7 @@ interface PresetCardProps {
   prompts: string[]
   skills: SkillDefinition[]
   isSelected: boolean
+  activeLabel: string
   onSelect: () => void
   onPromptClick: (prompt: string) => void
 }
@@ -20,6 +21,7 @@ export const PresetCard = memo(function PresetCard({
   prompts,
   skills,
   isSelected,
+  activeLabel,
   onSelect,
   onPromptClick,
 }: PresetCardProps) {
@@ -41,7 +43,7 @@ export const PresetCard = memo(function PresetCard({
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold text-(--color-text-primary) truncate">{name}</h3>
         </div>
-        {isSelected && <Badge variant="primary">Active</Badge>}
+        {isSelected && <Badge variant="primary">{activeLabel}</Badge>}
       </div>
 
       {/* Description */}

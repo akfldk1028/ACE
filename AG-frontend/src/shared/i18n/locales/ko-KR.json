@@ -150,6 +150,7 @@
   "assistants.filterProductivity": "생산성",
   "assistants.filterCreative": "크리에이티브",
   "assistants.filterDevelopment": "개발",
+  "assistants.filterLifestyle": "라이프스타일",
 
   "toolApproval.title": "도구 승인 필요",
   "toolApproval.moreInQueue": "+{{count}}개 더",

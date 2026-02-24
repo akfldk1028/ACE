@@ -45,15 +45,22 @@
   - D = **복합/중첩**: MoA (Li et al., ICLR 2025). 단일 팀이 아닌 다단계 구조
 - 에이전트 수 선택 근거: 2명=최소협업, 3명=표준, 4명=스케일링 비교. 같은 범주 내 n→n+1 확장 효과를 체계적으로 측정하기 위한 그리드 설계. 14패턴 = 6개 토폴로지 범주 × 에이전트 수 변형
 
-### 슬라이드 4: 실험 설계 + 과제 예시
-- 5개 실험 (효율/품질/수렴/오류/적응적 종료), 2,000회+ 실행
-- 25개 과제 × 9개 도메인 × 4과제유형 (사실/분석/기술/창의)
-- **실제 과제 예시** (표로):
+### 슬라이드 4: 실험 설계 — 카테고리별 프롬프트 + 과제 구성
+- **표: 카테고리별 에이전트 구성과 실제 프롬프트** (핵심!)
+  - S (Solo): 에이전트 1명. 프롬프트: "You are a knowledgeable assistant. Answer thoroughly. When complete, end with TERMINATE."
+  - A (RR-3): researcher→writer→reviewer 고정 순환. reviewer 프롬프트: "Evaluate for accuracy and completeness. If sufficient, say TERMINATE."
+  - B1 (Sel-3): expert_a(기술)+expert_b(경영)+expert_c(종합) + **Selector LLM이 "다음 누구?" 결정**. Selector 프롬프트: "Select the next role from {participants}. Only return the role name."
+  - B2 (Swm-3): triage→specialist_a/b **자율 핸드오프**. triage 프롬프트: "Analyze the task and delegate to the right specialist. Use handoff to transfer." 중앙 조정자 없음!
+  - C-Refl (Refl-2): generator+critic 피드백 루프. critic 프롬프트: "Review carefully. If quality is sufficient, say **APPROVED**." (TERMINATE 아닌 APPROVED!)
+  - C-Debate (Debate-3): advocate+critic+judge. judge 프롬프트: "Evaluate both arguments. Deliver **VERDICT**: [final answer]."
+  - D (Pipe): [researcher+writer팀]→[reviewer+editor팀] 순차 연결
+- **25개 과제 × 9도메인 × 4유형** — 동일 과제를 모든 카테고리에 동일하게 투입
   - 사실형: "열역학 3법칙과 공학적 응용을 설명하라"
   - 분석형: "로마 제국 몰락과 대영제국 쇠퇴의 구조적 비교"
   - 기술형: "O(1) get/put의 LRU 캐시 구현 + 자료구조 설명"
   - 창의형: "구텐베르크 대신 송나라에서 인쇄술이 발명됐다면?"
-- 평가: Claude Sonnet 4.5 (G-Eval 5차원: 정확성, 완전성, 일관성, 유용성, 종합)
+- 모델: Claude Haiku 4.5 (에이전트) / Claude Sonnet 4.5 (평가, G-Eval 5차원) / GPT-4o-mini (교차 검증)
+- 5개 실험: 효율(780회) → 품질(100회) → 수렴 → 오류 → 적응적 종료(800회) = **2,000회+ 총 실행**
 
 ### 슬라이드 5: ★ 핵심 결과 — 패턴별 품질/정확도 비교
 - 차트: 히트맵 (차트 9 데이터, 패턴 × 과제유형 품질 점수)

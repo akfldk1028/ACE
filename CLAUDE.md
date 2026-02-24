@@ -87,16 +87,31 @@ Field mapping at each hop:
 - ARR views.py → law-domain-agents `{"query": query, "limit": limit}`
 - MCP `law_search(query, limit)` → law-domain-agents `{"query": query, "limit": limit}` (direct)
 
-### Law Ingestion Pipeline (one-time)
+### Law Ingestion Pipeline
+
+**Two data sources** (choose one per law):
 
 ```
-ARR/backend/law/STEP/run_all.py (5 steps, ~60 min)
-  step1: PDF → JSON
-  step2: JSON → Neo4j
-  step3: HANG embeddings (OpenAI text-embedding-3-large, 3072-dim)
-  step4: Domain initialization
-  step5: Relationship embeddings
+A) PDF Pipeline (legacy, 국토계획법 only):
+   ARR/backend/law/STEP/run_all.py → step1(PDF→JSON) → step2(JSON→Neo4j) → step3(embeddings) → step4(domains) → step5(rel-emb)
+
+B) Open API Pipeline (recommended, 10+ laws):
+   ARR/backend/law/scripts/law_downloader.py → data/api/*.json → step2(JSON→Neo4j) → step3 → step4 → step5
+   Requires: LAW_API_OC env var (open.law.go.kr 회원가입 후 로그인ID)
+   Usage: python law_downloader.py --oc EMAIL [--list | --force]
 ```
+
+**Current state (2026-02-23)**:
+- step2: HANG 1966, HO 1118, MOK 232, JO 920 = 4236 nodes (국토계획법 only, PDF pipeline)
+- step3: 1966 HANG embeddings (OpenAI text-embedding-3-large, 3072-dim)
+- step4: 2 domains (용도지역 1838, 도시계획 및 이용 128)
+- step5: NOT RUN
+
+**law_downloader.py** targets 10 laws: 국토계획법(법률/시행령/시행규칙), 건축법(법률/시행령/시행규칙), 농지법, 산지관리법, 자연공원법, 수도법
+
+**Neo4j**: `bolt://localhost:7687`, pw=`11111111` (Neo4j Desktop).
+
+**Vector indexes**: `hang_embedding_index`, `ho_embedding_index`, `mok_embedding_index`, `jo_embedding_index` (all ONLINE). `contains_embedding` NOT CREATED (step5 not run).
 
 ### Land Regulation Analysis (`ARR/backend/land/`)
 
@@ -112,20 +127,27 @@ GET  /land/stats/     ← 쿼리 통계
 Data flow:
 ```
 Input (PNU/주소/zones)
-  ├─ pnu_resolver: Vworld API 지오코딩 (VWORLD_API_KEY 필요)
+  ├─ pnu_resolver: Vworld API 지오코딩 + **주소→PNU 자동 추출** (level4LC)
   ├─ land_api: data.go.kr 토지이용규제 (Phase 3 stub)
   ├─ zoning_mapper: 21개 용도지역 → 건폐율/용적률 (static JSON, 복수시 최엄격)
   ├─ law_enricher: :8011 법조항 검색
   └─ LandQuery → SQLite (audit log)
 ```
 
+**Vworld API** (2026-02-24 연동 완료):
+- Key: `VWORLD_API_KEY` in `ARR/backend/.env` (만료: 2026-08-24)
+- 주소→좌표+PNU: `api.vworld.kr/req/address` (PARCEL/ROAD)
+- PNU 추출: `response.refined.structure.level4LC`에서 19자리 PNU 직접 추출
+- 6/6 지번 주소 테스트 성공 (용인 죽전, 서초, 춘천, 나주, 분당, 강남)
+
 **Phase status**:
 - Phase 1-2: DONE (skeleton + static data + services + views, 27 tests)
-- Phase 3: TODO (data.go.kr API key, Vworld API key, 좌표→PNU)
+- Phase 2.5: DONE (2026-02-24) — Vworld API 연동, 주소→PNU 자동 추출
+- Phase 3: TODO (data.go.kr API — PNU→용도지역 자동 조회)
 - Phase 4: TODO (MCP tools + Frontend)
 - Phase 5: TODO (Agent 협업 - 건축관련법 전체 Neo4j 적재 + Multi-Agent 분석)
 
-**Env vars**: `VWORLD_API_KEY`, `LAW_BACKEND_URL` (:8011), `DATA_GO_KR_SERVICE_KEY` (Phase 3)
+**Env vars**: `VWORLD_API_KEY` (geocoding+PNU), `LAW_BACKEND_URL` (:8011), `DATA_GO_KR_SERVICE_KEY` (Phase 3), `LAW_API_OC` (law.go.kr Open API)
 
 ### ACE MCP Server
 

@@ -12,6 +12,7 @@ const DeployPage = lazy(() => import('@/features/deploy/DeployPage').then(m => (
 const AgentsPage = lazy(() => import('@/features/agents/AgentsPage').then(m => ({ default: m.AgentsPage })))
 const HistoryPage = lazy(() => import('@/features/history/HistoryPage').then(m => ({ default: m.HistoryPage })))
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then(m => ({ default: m.SettingsPage })))
+const LandPage = lazy(() => import('@/features/land/LandPage').then(m => ({ default: m.LandPage })))
 const FlowPage = lazy(() => import('@/features/playground/FlowPage').then(m => ({ default: m.FlowPage })))
 
 function PageLoader() {
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
       { path: 'gallery', element: <SuspenseWrapper><GalleryPage /></SuspenseWrapper> },
       { path: 'history', element: <SuspenseWrapper><HistoryPage /></SuspenseWrapper> },
       { path: 'deploy', element: <SuspenseWrapper><DeployPage /></SuspenseWrapper> },
+      { path: 'land', element: <SuspenseWrapper><LandPage /></SuspenseWrapper> },
       { path: 'settings', element: <SuspenseWrapper><SettingsPage /></SuspenseWrapper> },
     ],
   },

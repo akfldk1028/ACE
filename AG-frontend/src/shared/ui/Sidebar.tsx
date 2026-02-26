@@ -9,6 +9,7 @@ import {
   GalleryHorizontalEnd,
   Clock,
   Rocket,
+  MapPin,
   Settings,
   Sun,
   Moon,
@@ -24,6 +25,7 @@ const navItems = [
   { path: '/gallery', icon: GalleryHorizontalEnd, labelKey: 'nav.gallery' },
   { path: '/history', icon: Clock, labelKey: 'nav.history' },
   { path: '/deploy', icon: Rocket, labelKey: 'nav.deploy' },
+  { path: '/land', icon: MapPin, labelKey: 'nav.land' },
 ]
 
 export function Sidebar() {

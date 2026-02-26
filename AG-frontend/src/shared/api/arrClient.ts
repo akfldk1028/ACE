@@ -16,21 +16,73 @@ export interface PnuInfo {
   land_type: string
   main_number: string
   sub_number: string
+  address?: string
+  coordinate_x?: number
+  coordinate_y?: number
 }
 
-export interface ZoneRegulation {
-  zone: string
-  bcr_limit: number
-  far_limit: number
-  category: string
-}
-
-export interface RegulationResult {
-  bcr_limit: number
-  far_limit: number
-  zones: ZoneRegulation[]
+export interface ZoneInfo {
   matched: number
+  zones: Array<{
+    name: string
+    bcr: number
+    far: number
+    category: string
+  }>
   unmatched: string[]
+}
+
+export interface RegulationItem {
+  limit_pct?: number | null
+  limit_m?: number | null
+  min_m?: number | null
+  setback_m?: number | null
+  multiplier?: number | null
+  threshold_m2?: number | null
+  min_pct?: number | null
+  applies?: boolean
+  required?: boolean
+  direction?: string | null
+  rules?: string[]
+  rule?: string | null
+  article: string
+}
+
+export interface ExtendedRegulationItem {
+  name: string
+  rule?: string
+  article: string
+  applies_when?: string
+  allowed_summary?: string
+  prohibited_summary?: string
+  reference_table?: string
+  min_frontage_m?: number
+  min_area_m2?: number
+  applies?: boolean
+}
+
+export interface RegulationsResponse {
+  bcr: RegulationItem
+  far: RegulationItem
+  height: RegulationItem
+  sunlight_setback: RegulationItem
+  corner_cutoff: RegulationItem
+  road_diagonal: RegulationItem
+  building_line: RegulationItem
+  adjacent_setback: RegulationItem
+  parking: RegulationItem
+  landscaping: RegulationItem
+  extended?: Record<string, ExtendedRegulationItem>
+}
+
+export interface LandInfoResponse {
+  success: boolean
+  pnu: string
+  land_area_m2?: number | null
+  official_land_price?: number | null
+  land_use_situation?: string | null
+  zones?: string[]
+  source: string
 }
 
 export interface LawArticle {
@@ -48,21 +100,26 @@ export interface LawArticleGroup {
   results: LawArticle[]
 }
 
+export interface LawArticlesResponse {
+  articles: LawArticleGroup[]
+  total_count: number
+  errors: string[]
+}
+
 export interface LandAnalyzeResponse {
   pnu: PnuInfo
-  regulation: RegulationResult
-  land_info: Record<string, unknown>
-  law_articles: {
-    articles: LawArticleGroup[]
-    total_count: number
-    errors: string[]
-  }
+  regulations: RegulationsResponse | null
+  zone_info: ZoneInfo | null
+  land_info: LandInfoResponse | null
+  law_articles: LawArticlesResponse | null
   restrictions: string[]
+  errors?: string[]
+  warning?: string
 }
 
 export interface LandAnalyzeRequest {
   input: string
-  input_type: 'pnu' | 'address'
+  input_type: 'pnu' | 'address' | 'raw'
   zones?: string[]
   include_law?: boolean
 }
@@ -76,6 +133,9 @@ export interface LandResolveResponse {
   valid?: boolean
   parsed?: Record<string, string>
   pnu?: string
+  address?: string
+  coordinate_x?: number
+  coordinate_y?: number
   error?: string
 }
 

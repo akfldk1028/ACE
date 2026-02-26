@@ -109,7 +109,7 @@ B) Open API Pipeline (recommended, 10+ laws):
 
 **law_downloader.py** targets 10 laws: 국토계획법(법률/시행령/시행규칙), 건축법(법률/시행령/시행규칙), 농지법, 산지관리법, 자연공원법, 수도법
 
-**Neo4j**: `bolt://localhost:7687`, pw=`11111111` (Neo4j Desktop).
+**Neo4j**: `bolt://localhost:7687`, pw=`demodemo` (Neo4j Community 5.26.0). ARR/backend/.env에도 Neo4j 설정 있음(pw=`11111111`, parser용 — 현재 미사용).
 
 **Vector indexes**: `hang_embedding_index`, `ho_embedding_index`, `mok_embedding_index`, `jo_embedding_index` (all ONLINE). `contains_embedding` NOT CREATED (step5 not run).
 
@@ -128,7 +128,7 @@ Data flow:
 ```
 Input (PNU/주소/zones)
   ├─ pnu_resolver: Vworld API 지오코딩 + **주소→PNU 자동 추출** (level4LC)
-  ├─ land_api: data.go.kr 토지이용규제 (Phase 3 stub)
+  ├─ land_api: Vworld Data API (3개: 토지이용계획+토지임야+공시지가) — Phase 3 DONE
   ├─ zoning_mapper: 21개 용도지역 → 건폐율/용적률 (static JSON, 복수시 최엄격)
   ├─ law_enricher: :8011 법조항 검색
   └─ LandQuery → SQLite (audit log)
@@ -143,11 +143,11 @@ Input (PNU/주소/zones)
 **Phase status**:
 - Phase 1-2: DONE (skeleton + static data + services + views, 27 tests)
 - Phase 2.5: DONE (2026-02-24) — Vworld API 연동, 주소→PNU 자동 추출
-- Phase 3: TODO (data.go.kr API — PNU→용도지역 자동 조회)
+- Phase 3: DONE (2026-02-24) — Vworld Data API 3개 (getLandUseAttr, ladfrlList, getIndvdLandPriceAttr) → 용도지역+면적+공시지가 자동조회, 66 tests
 - Phase 4: TODO (MCP tools + Frontend)
 - Phase 5: TODO (Agent 협업 - 건축관련법 전체 Neo4j 적재 + Multi-Agent 분석)
 
-**Env vars**: `VWORLD_API_KEY` (geocoding+PNU), `LAW_BACKEND_URL` (:8011), `DATA_GO_KR_SERVICE_KEY` (Phase 3), `LAW_API_OC` (law.go.kr Open API)
+**Env vars**: `VWORLD_API_KEY` (geocoding+PNU+DataAPI), `LAW_BACKEND_URL` (:8011), `LAW_API_OC` (law.go.kr Open API)
 
 ### ACE MCP Server
 

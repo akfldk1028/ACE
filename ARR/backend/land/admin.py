@@ -25,6 +25,7 @@ class LandAnalysisResultAdmin(admin.ModelAdmin):
         ('Parking', {'fields': ['parking_rule', 'parking_article']}),
         ('Landscaping', {'fields': ['landscaping_threshold_m2', 'landscaping_min_pct',
                                      'landscaping_article']}),
+        ('Extended (11-41)', {'fields': ['regulations_extended'], 'classes': ['collapse']}),
         ('Law Articles', {'fields': ['law_articles_json', 'law_article_count']}),
         ('Meta', {'fields': ['data_source', 'created_at']}),
     ]

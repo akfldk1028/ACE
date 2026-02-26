@@ -15,6 +15,7 @@ class LandAnalysisResult(models.Model):
     # Land info
     land_area_m2 = models.FloatField(null=True, blank=True)
     official_land_price = models.IntegerField(null=True, blank=True, help_text='Won/m2')
+    land_use_situation = models.CharField(max_length=50, blank=True, default='', help_text='지목')
 
     # 1. BCR
     bcr_pct = models.FloatField(null=True, blank=True)
@@ -58,6 +59,12 @@ class LandAnalysisResult(models.Model):
     landscaping_threshold_m2 = models.IntegerField(null=True, blank=True)
     landscaping_min_pct = models.FloatField(null=True, blank=True)
     landscaping_article = models.CharField(max_length=200, blank=True, default='')
+
+    # Extended regulations (items 11-41)
+    regulations_extended = models.JSONField(
+        default=dict, blank=True,
+        help_text='Items 11-41: zone/scale/text regulations',
+    )
 
     # Law articles
     law_articles_json = models.JSONField(default=list)

@@ -30,8 +30,22 @@ _BASE_QUERIES = [
     "조경",
 ]
 
+# Extended queries for items 11-41 (optional, activated via include_extended)
+_EXTENDED_QUERIES = [
+    "용도제한",
+    "접도의무",
+    "대지분할",
+    "인동간격",
+    "공개공지",
+    "내화구조",
+    "개발행위허가",
+    "소방시설",
+    "에너지절약",
+]
 
-def search_for_zones(zone_names: list[str], limit_per_query: int = 5) -> dict:
+
+def search_for_zones(zone_names: list[str], limit_per_query: int = 5,
+                     include_extended: bool = False) -> dict:
     """
     Search law articles relevant to the given zoning zones.
 
@@ -48,8 +62,10 @@ def search_for_zones(zone_names: list[str], limit_per_query: int = 5) -> dict:
     all_articles = []
     errors = []
 
-    # Build query list: base + zone-specific
+    # Build query list: base + extended(optional) + zone-specific
     queries = list(_BASE_QUERIES)
+    if include_extended:
+        queries.extend(_EXTENDED_QUERIES)
     for zone in zone_names:
         queries.append(f"{zone} 건폐율")
         queries.append(f"{zone} 건축제한")

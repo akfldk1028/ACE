@@ -1,9 +1,11 @@
 """
-Land Regulation Analysis API v2
+Land Regulation Analysis API v3
 
-Analyzes land parcels for 10 building regulations (BCR, FAR, height, sunlight,
-corner cutoff, road diagonal, building line, adjacent setback, parking, landscaping)
-with legal article references.
+Analyzes land parcels for 41 building regulations:
+- Items 1-10 (core): BCR, FAR, height, sunlight, corner cutoff, road diagonal,
+  building line, adjacent setback, parking, landscaping
+- Items 11-41 (extended): zone-dependent (5), scale-dependent (10), text-only (16)
+All with legal article references.
 """
 
 import json
@@ -16,7 +18,7 @@ from django.views.decorators.http import require_http_methods
 
 from land.models import LandQuery, LandAnalysisResult
 from land.services import pnu_resolver, zoning_mapper, land_api, law_enricher
-from land.services import regulation_calculator
+from land.services import regulation_calculator, regulation_calculator_ext
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ def analyze(request):
     POST /land/analyze/
 
     Main analysis endpoint. Accepts PNU, address, or raw zone list.
-    Returns 10 building regulations with legal article references.
+    Returns 41 building regulations (10 core + 31 extended) with legal article references.
 
     Body: {
         "input": "1168011200101280003" | "서울시 강남구 ...",
@@ -114,18 +116,25 @@ def analyze(request):
     # Step 4: Calculate all 10 regulations
     reg = regulation_calculator.calculate_all(zone_names, land_info)
 
-    # Step 5: Fetch law articles
+    # Step 4b: Calculate extended 31 regulations
+    reg_ext = regulation_calculator_ext.calculate_extended(zone_names, land_info)
+
+    # Step 5: Fetch law articles (extended queries included for 41-item analysis)
     law_articles = None
     if include_law:
-        law_articles = law_enricher.search_for_zones(zone_names)
+        law_articles = law_enricher.search_for_zones(
+            zone_names, include_extended=True,
+        )
         if law_articles["errors"]:
             errors.extend(law_articles["errors"])
 
     # Step 6: Save LandAnalysisResult
-    analysis_result = _save_analysis_result(pnu_info, zone_names, reg, law_articles, land_info)
+    analysis_result = _save_analysis_result(
+        pnu_info, zone_names, reg, law_articles, land_info, reg_ext=reg_ext,
+    )
 
     # Step 7: Build restrictions summary
-    restrictions = _build_restrictions(reg, zone_names)
+    restrictions = _build_restrictions(reg, zone_names, reg_ext)
 
     elapsed_ms = (time.time() - start) * 1000
 
@@ -141,7 +150,7 @@ def analyze(request):
 
     response = {
         "pnu": pnu_info,
-        "regulations": _format_regulations(reg),
+        "regulations": _format_regulations(reg, reg_ext=reg_ext),
         "zone_info": zone_info,
         "land_info": land_info,
         "law_articles": law_articles,
@@ -226,9 +235,9 @@ def stats(request):
     })
 
 
-def _format_regulations(reg: dict) -> dict:
+def _format_regulations(reg: dict, reg_ext: dict | None = None) -> dict:
     """Format regulation_calculator output into API response structure."""
-    return {
+    result = {
         "bcr": {
             "limit_pct": reg.get("bcr_pct"),
             "article": reg.get("bcr_article", ""),
@@ -277,9 +286,13 @@ def _format_regulations(reg: dict) -> dict:
             "article": reg.get("landscaping_article", ""),
         },
     }
+    if reg_ext:
+        result["extended"] = reg_ext
+    return result
 
 
-def _build_restrictions(reg: dict, zone_names: list[str]) -> list[str]:
+def _build_restrictions(reg: dict, zone_names: list[str],
+                        reg_ext: dict | None = None) -> list[str]:
     """Build a human-readable list of key restrictions."""
     restrictions = []
 
@@ -308,6 +321,20 @@ def _build_restrictions(reg: dict, zone_names: list[str]) -> list[str]:
     if reg.get("landscaping_min_pct") is not None:
         restrictions.append(f"조경: 대지면적의 {reg['landscaping_min_pct']}% 이상")
 
+    # Extended restrictions summary (Group A)
+    if reg_ext:
+        bur = reg_ext.get("building_use_restriction", {})
+        if bur.get("prohibited_summary"):
+            restrictions.append(f"건축물 용도 제한: {bur['prohibited_summary']}")
+
+        sub = reg_ext.get("site_subdivision_limit", {})
+        if sub.get("min_area_m2"):
+            restrictions.append(f"대지 분할 제한: 최소 {sub['min_area_m2']}m²")
+
+        dl = reg_ext.get("daylighting_spacing", {})
+        if dl.get("applies"):
+            restrictions.append("채광 인동간격: 공동주택 높이 기준 이격 (건축법 §61②)")
+
     if len(zone_names) > 1:
         restrictions.append(
             f"복수 용도지역 적용 ({len(zone_names)}개) - 최엄격 기준 적용 (국토계획법 제76-77조)"
@@ -315,9 +342,11 @@ def _build_restrictions(reg: dict, zone_names: list[str]) -> list[str]:
 
     cat = reg.get("zone_category", "")
     if "녹지" in cat:
-        restrictions.append("건축물 용도 제한 (녹지지역)")
+        restrictions.append("건축물 용도 제한 (녹지지역) — 시행령 별표 참조")
     elif "공업" in cat:
         restrictions.append("환경오염 관련 규제 주의 (공업지역)")
+    elif "자연환경보전" in cat:
+        restrictions.append("건축물 용도 극히 제한 (자연환경보전지역)")
 
     if reg.get("unmatched_zones"):
         restrictions.append(
@@ -327,7 +356,8 @@ def _build_restrictions(reg: dict, zone_names: list[str]) -> list[str]:
     return restrictions
 
 
-def _save_analysis_result(pnu_info, zone_names, reg, law_articles, land_info):
+def _save_analysis_result(pnu_info, zone_names, reg, law_articles, land_info,
+                          reg_ext=None):
     """Save LandAnalysisResult (non-fatal on failure)."""
     try:
         return LandAnalysisResult.objects.create(
@@ -339,6 +369,7 @@ def _save_analysis_result(pnu_info, zone_names, reg, law_articles, land_info):
             zone_category=reg.get("zone_category", ""),
             land_area_m2=land_info.get("land_area_m2") if land_info else None,
             official_land_price=land_info.get("official_land_price") if land_info else None,
+            land_use_situation=land_info.get("land_use_situation", "") if land_info else "",
             bcr_pct=reg.get("bcr_pct"),
             bcr_article=reg.get("bcr_article", ""),
             far_pct=reg.get("far_pct"),
@@ -362,9 +393,10 @@ def _save_analysis_result(pnu_info, zone_names, reg, law_articles, land_info):
             landscaping_threshold_m2=reg.get("landscaping_threshold_m2"),
             landscaping_min_pct=reg.get("landscaping_min_pct"),
             landscaping_article=reg.get("landscaping_article", ""),
+            regulations_extended=reg_ext or {},
             law_articles_json=law_articles.get("articles", []) if law_articles else [],
             law_article_count=law_articles.get("total_count", 0) if law_articles else 0,
-            data_source="static",
+            data_source=land_info.get("source", "static") if land_info else "static",
         )
     except Exception as e:
         logger.warning(f"LandAnalysisResult save failed (non-fatal): {e}")

@@ -4,7 +4,7 @@
 
 AutoGen Studio SaaS platform with custom frontend, multi-agent orchestration, A2A protocol support, and **land regulation analysis system** (건축법규 분석).
 
-**Core Goal**: AI agent가 땅 정보를 받아 관련 건축법규를 자동 분석하고, 건폐율/용적률/건축제한 등 모든 규제를 도출하는 시스템. 현재 Phase 1-2 완료 (static 분석), Phase 3+ (정부 API + Agent 협업) 진행 예정.
+**Core Goal**: AI agent가 땅 정보를 받아 관련 건축법규를 자동 분석하고, 건폐율/용적률/건축제한 등 모든 규제를 도출하는 시스템. **Phase 1-5 ALL DONE** — 주소→PNU→Vworld API→41규제+법조항 자동분석 완료. E2E 검증: "강남구 역삼동 677" → BCR=80%, FAR=1300%, 170개 법조항, 41개 규제.
 
 ```
 25_ACE/
@@ -95,23 +95,24 @@ Field mapping at each hop:
 A) PDF Pipeline (legacy, 국토계획법 only):
    ARR/backend/law/STEP/run_all.py → step1(PDF→JSON) → step2(JSON→Neo4j) → step3(embeddings) → step4(domains) → step5(rel-emb)
 
-B) Open API Pipeline (recommended, 10+ laws):
+B) Open API Pipeline (recommended, 18 laws):
    ARR/backend/law/scripts/law_downloader.py → data/api/*.json → step2(JSON→Neo4j) → step3 → step4 → step5
    Requires: LAW_API_OC env var (open.law.go.kr 회원가입 후 로그인ID)
    Usage: python law_downloader.py --oc EMAIL [--list | --force]
 ```
 
-**Current state (2026-02-23)**:
-- step2: HANG 1966, HO 1118, MOK 232, JO 920 = 4236 nodes (국토계획법 only, PDF pipeline)
-- step3: 1966 HANG embeddings (OpenAI text-embedding-3-large, 3072-dim)
-- step4: 2 domains (용도지역 1838, 도시계획 및 이용 128)
-- step5: NOT RUN
+**Current state (2026-02-27)**:
+- step2: LAW 18, HANG 6171, HO 6026, MOK 1284, JO 2431, JANG 96, JEOL 50 = 16,081 nodes
+- step3: ALL 6171 HANG embeddings (OpenAI text-embedding-3-large, 3072-dim) — 100%
+- step4: 5 domains (land_use_regulation:2286, national_land_planning:2004, building_standards:1018, zoning_regulation:614, urban_planning:249)
+- step5: ALL 16,058 CONTAINS rel embeddings — 100%
 
-**law_downloader.py** targets 10 laws: 국토계획법(법률/시행령/시행규칙), 건축법(법률/시행령/시행규칙), 농지법, 산지관리법, 자연공원법, 수도법
+**law_downloader.py** targets 18 laws: 6개 법률(국토계획법, 건축법, 농지법, 산지관리법, 자연공원법, 수도법) × 3 types(법률, 시행령, 시행규칙)
 
-**Neo4j**: `bolt://localhost:7687`, pw=`demodemo` (Neo4j Community 5.26.0). ARR/backend/.env에도 Neo4j 설정 있음(pw=`11111111`, parser용 — 현재 미사용).
+**Neo4j**: `bolt://localhost:7687`, pw=`11111111` (Neo4j Community 5.26.0).
 
-**Vector indexes**: `hang_embedding_index`, `ho_embedding_index`, `mok_embedding_index`, `jo_embedding_index` (all ONLINE). `contains_embedding` NOT CREATED (step5 not run).
+**Vector indexes**: `hang_embedding_index`, `ho_embedding_index`, `mok_embedding_index`, `jo_embedding_index`, `contains_embedding` (all ONLINE, 3072-dim cosine).
+**Fulltext indexes**: `hang_content_fulltext` (CJK bi-gram), `jo_content_fulltext`.
 
 ### Land Regulation Analysis (`ARR/backend/land/`)
 
@@ -144,8 +145,8 @@ Input (PNU/주소/zones)
 - Phase 1-2: DONE (skeleton + static data + services + views, 27 tests)
 - Phase 2.5: DONE (2026-02-24) — Vworld API 연동, 주소→PNU 자동 추출
 - Phase 3: DONE (2026-02-24) — Vworld Data API 3개 (getLandUseAttr, ladfrlList, getIndvdLandPriceAttr) → 용도지역+면적+공시지가 자동조회, 66 tests
-- Phase 4: TODO (MCP tools + Frontend)
-- Phase 5: TODO (Agent 협업 - 건축관련법 전체 Neo4j 적재 + Multi-Agent 분석)
+- Phase 4: DONE — MCP tools (arr_land_analyze/resolve/zones/stats) + Frontend Land page (/land)
+- Phase 5: DONE — 6-agent SelectorGroupChat (039_Land_Swarm_Analysis_Team.json), 41규제(10core+31extended), 93 tests
 
 **Env vars**: `VWORLD_API_KEY` (geocoding+PNU+DataAPI), `LAW_BACKEND_URL` (:8011), `LAW_API_OC` (law.go.kr Open API)
 
@@ -178,8 +179,8 @@ npx playwright test  # E2E tests (235 tests, 31s)
 - `ws: true` REQUIRED in vite proxy for Playground WebSocket execution
 - NEVER call `http://localhost:8081` directly from browser (CORS blocked)
 
-### 8 Pages (lazy-loaded)
-Team Builder(`/build`), Playground(`/`), MCP, A2A Agents(`/agents`), Gallery, History(`/history`), Deploy, Settings
+### 9 Pages (lazy-loaded)
+Team Builder(`/build`), Playground(`/`), MCP, A2A Agents(`/agents`), Gallery, History(`/history`), Deploy, **Land(`/land`)**, Settings
 
 ## Coding Conventions (MUST FOLLOW)
 

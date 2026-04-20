@@ -2,6 +2,7 @@ import React, { useRef, useCallback, useState } from 'react';
 import { useVworld3D } from '../../land/hooks/use-vworld-3d';
 import { reverse } from '../../land/lib/land-api-client';
 import type { GeoJSONFeature, SetbackGeometry } from '../lib/types';
+import type { SunlightEnvelope } from '../../land/lib/types';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const getCesium = (): any => (window as any).Cesium;
@@ -57,20 +58,29 @@ function getGroundHeight(Cesium: any, viewer: any, ring: number[][]): number {
 
 /** Mass shape display labels */
 const SHAPE_LABELS: Record<string, string> = {
-  additive: '자유형', subtractive: '중정형', grid: '격자형',
-  freeform: '자유형', rectangle: '직사각형', L: 'L형', U: 'U형', courtyard: 'ㅁ형 중정',
+  additive: '자유형', subtractive: '감산형', grid: '격자형',
+  lshape: 'ㄱ자형', ushape: 'ㄷ자형', cross: '십자형',
+  courtyard: '중정형', tower_podium: '타워+기단', hshape: 'H자형',
+  radial: '방사형',
+  freeform: '자유형', rectangle: '직사각형', L: 'L형', U: 'U형',
 };
 
-/** Mass shape color palette */
+/** Mass shape color palette — 10 distinct colors for 10 algorithms */
 const SHAPE_COLORS: Record<string, string> = {
-  additive: '#60a5fa',
-  subtractive: '#a78bfa',
-  grid: '#34d399',
+  additive: '#60a5fa',       // blue
+  subtractive: '#a78bfa',    // purple
+  grid: '#34d399',           // emerald
+  lshape: '#f97316',         // orange
+  ushape: '#06b6d4',         // cyan
+  cross: '#ef4444',          // red
+  courtyard: '#f472b6',      // pink
+  tower_podium: '#eab308',   // yellow
+  hshape: '#8b5cf6',         // violet
+  radial: '#14b8a6',         // teal
   freeform: '#60a5fa',
   rectangle: '#60a5fa',
-  L: '#a78bfa',
-  U: '#34d399',
-  courtyard: '#f472b6',
+  L: '#f97316',
+  U: '#06b6d4',
 };
 
 /** Render 3D building mass on Cesium viewer */
@@ -197,11 +207,14 @@ function renderMassEntities(
   }
 }
 
-/** Clear and render setback geometry lines */
+/** Clear and render setback geometry lines + 3D envelopes */
 function renderSetbackEntities(
   viewer: any,
   Cesium: any,
-  setbacks: Record<string, SetbackGeometry>,
+  setbacks: Record<string, SetbackGeometry> & {
+    sunlight_envelope?: SunlightEnvelope | null;
+    daylight_diagonal_envelope?: SunlightEnvelope | null;
+  },
 ) {
   // Clear old
   const toRemove: any[] = [];
@@ -211,27 +224,128 @@ function renderSetbackEntities(
   for (const e of toRemove) viewer.entities.remove(e);
 
   const colors: Record<string, string> = {
-    adjacent_setback: '#ef4444',
-    building_line: '#f59e0b',
+    buildable_area: '#22c55e',       // 초록 — 건축가능영역
+    north_setback: '#ef4444',        // 빨강 — 정북 일조사선
+    adjacent_setback: '#ef4444',     // 빨강 — 인접대지 이격
+    road_setback: '#ef4444',         // 빨강 — 건축선 후퇴
+    building_line: '#ef4444',        // 빨강
+    corner_cutoff: '#ef4444',        // 빨강 — 가각전제
+    building_designation_line: '#ef4444', // 빨강 — 건축지정선
   };
 
   for (const [key, sb] of Object.entries(setbacks)) {
-    const ring = extractRing(sb.geometry);
-    if (!ring || ring.length < 3) continue;
-    const flat = flattenRing(ring);
+    // sunlight_envelope has different structure — handled separately below
+    if (key === 'sunlight_envelope' || !sb || !('geometry' in sb)) continue;
+    const geom = (sb as SetbackGeometry).geometry;
     const color = colors[key] || '#f97316';
 
-    viewer.entities.add({
-      id: `${SETBACK_PREFIX}${key}`,
-      polygon: {
-        hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
-        height: 0.5,
-        material: Cesium.Color.fromCssColorString(color).withAlpha(0.08),
-        outline: true,
-        outlineColor: Cesium.Color.fromCssColorString(color).withAlpha(0.7),
-        outlineWidth: 2,
-      },
-    });
+    if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
+      const ring = extractRing(geom);
+      if (!ring || ring.length < 3) continue;
+      const flat = flattenRing(ring);
+      viewer.entities.add({
+        id: `${SETBACK_PREFIX}${key}`,
+        polygon: {
+          hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
+          height: 0.5,
+          material: Cesium.Color.fromCssColorString(color).withAlpha(0.25),
+          outline: true,
+          outlineColor: Cesium.Color.fromCssColorString(color),
+          outlineWidth: 3,
+        },
+      });
+    } else if (geom.type === 'LineString') {
+      const coords = geom.coordinates as number[][];
+      if (!coords || coords.length < 2) continue;
+      const flat = flattenRing(coords);
+      viewer.entities.add({
+        id: `${SETBACK_PREFIX}${key}`,
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArray(flat),
+          width: 12,
+          material: new Cesium.PolylineDashMaterialProperty({
+            color: Cesium.Color.fromCssColorString(color),
+            dashLength: 16,
+          }),
+          clampToGround: true,
+        },
+      });
+    } else if (geom.type === 'MultiLineString') {
+      const lines = geom.coordinates as number[][][];
+      for (let i = 0; i < lines.length; i++) {
+        const coords = lines[i];
+        if (!coords || coords.length < 2) continue;
+        const flat = flattenRing(coords);
+        viewer.entities.add({
+          id: `${SETBACK_PREFIX}${key}-${i}`,
+          polyline: {
+            positions: Cesium.Cartesian3.fromDegreesArray(flat),
+            width: 12,
+            material: new Cesium.PolylineDashMaterialProperty({
+              color: Cesium.Color.fromCssColorString(color),
+              dashLength: 16,
+            }),
+            clampToGround: true,
+          },
+        });
+      }
+    }
+  }
+
+  // 3D 일조사선 경사면 (sunlight_envelope — multiple walls)
+  const envelope = setbacks.sunlight_envelope;
+  if (envelope && envelope.walls) {
+    const wallColor = Cesium.Color.fromCssColorString('#f59e0b');
+    for (let wi = 0; wi < envelope.walls.length; wi++) {
+      const wall = envelope.walls[wi];
+      const positions = wall.positions;
+      const maxH = wall.max_heights;
+      const minH = wall.min_heights;
+
+      if (!positions || positions.length < 2 || positions.length !== maxH.length) continue;
+
+      const flat: number[] = [];
+      for (const [lng, lat] of positions) flat.push(lng, lat);
+
+      viewer.entities.add({
+        id: `${SETBACK_PREFIX}sunlight-wall-${wi}`,
+        wall: {
+          positions: Cesium.Cartesian3.fromDegreesArray(flat),
+          minimumHeights: minH,
+          maximumHeights: maxH,
+          material: wallColor.withAlpha(0.25),
+          outline: true,
+          outlineColor: wallColor.withAlpha(0.8),
+          outlineWidth: 2,
+        },
+      });
+    }
+  }
+
+  // 채광사선제한 경사면 (daylight_diagonal_envelope — 공동주택 인접경계)
+  const daylightEnvelope = setbacks.daylight_diagonal_envelope;
+  if (daylightEnvelope?.walls) {
+    const dlColor = Cesium.Color.fromCssColorString('#f59e0b');
+    for (let wi = 0; wi < daylightEnvelope.walls.length; wi++) {
+      const wall = daylightEnvelope.walls[wi];
+      if (!wall.positions || wall.positions.length < 2) continue;
+
+      const flat: number[] = [];
+      for (const [lng, lat] of wall.positions) flat.push(lng, lat);
+
+      viewer.entities.add({
+        id: `${SETBACK_PREFIX}daylight-diag-wall-${wi}`,
+        wall: {
+          positions: Cesium.Cartesian3.fromDegreesArray(flat),
+          minimumHeights: wall.min_heights,
+          maximumHeights: wall.max_heights,
+          material: dlColor.withAlpha(0.25),
+          outline: true,
+          outlineColor: dlColor.withAlpha(0.7),
+          outlineWidth: 2,
+        },
+      });
+    }
   }
 }
 
@@ -338,14 +452,19 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
     const Cesium = getCesium();
     if (!viewer || !Cesium) return;
 
+    const hasSetbacks = setbackGeometries && Object.keys(setbackGeometries).length > 0;
     if (massFeatures && massFeatures.length > 0) {
       setBuildingsVisible(false);
       renderMassEntities(viewer, Cesium, massFeatures, selectedDesignId);
+    } else if (hasSetbacks) {
+      // 규제선만 있어도 기존 건물 숨기기 (Wall이 건물에 가려지지 않도록)
+      setBuildingsVisible(false);
+      clearMassEntities(viewer);
     } else {
       clearMassEntities(viewer);
       setBuildingsVisible(true);
     }
-  }, [massFeatures, selectedDesignId, ready, viewerRef, setBuildingsVisible]);
+  }, [massFeatures, selectedDesignId, setbackGeometries, ready, viewerRef, setBuildingsVisible]);
 
   // Render setback geometry lines (regulation boundaries)
   React.useEffect(() => {
@@ -419,15 +538,14 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
           </div>
           {massFeatures.map((f, i) => {
             const p = f.properties;
+            const algoKey = p.algorithm || p.mass_shape || 'rectangle';
+            const algoColor = SHAPE_COLORS[algoKey] || '#60a5fa';
             return (
               <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                   <span style={{ color: '#94a3b8' }}>형태</span>
-                  <span style={{
-                    fontFamily: 'monospace',
-                    color: SHAPE_COLORS[p.mass_shape || 'rectangle'] || '#60a5fa',
-                  }}>
-                    {SHAPE_LABELS[p.mass_shape || 'rectangle'] || p.mass_shape}
+                  <span style={{ fontFamily: 'monospace', color: algoColor, fontWeight: 600 }}>
+                    {SHAPE_LABELS[algoKey] || algoKey}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -445,9 +563,15 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
                   <span style={{ color: '#94a3b8' }}>건폐율</span>
                   <span style={{ fontFamily: 'monospace', color: '#22c55e' }}>{p.bcr?.toFixed(1)}%</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                   <span style={{ color: '#94a3b8' }}>용적률</span>
                   <span style={{ fontFamily: 'monospace', color: '#f59e0b' }}>{p.far?.toFixed(1)}%</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                  <span style={{ color: '#94a3b8' }}>연면적</span>
+                  <span style={{ fontFamily: 'monospace', color: '#60c8ff' }}>
+                    {p.floor_area >= 1000 ? (p.floor_area / 1000).toFixed(1) + 'k' : p.floor_area?.toFixed(0)}m²
+                  </span>
                 </div>
               </div>
             );

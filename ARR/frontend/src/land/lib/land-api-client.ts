@@ -15,9 +15,11 @@ export async function analyze(
   input: string,
   inputType: 'pnu' | 'address' = 'address',
   zones?: string[],
+  geometry?: object | null,
 ): Promise<LandAnalysisResult> {
   const body: Record<string, unknown> = { input, input_type: inputType };
   if (zones) body.zones = zones;
+  if (geometry) body.geometry = geometry;
 
   const res = await fetch('/land/analyze/', {
     method: 'POST',

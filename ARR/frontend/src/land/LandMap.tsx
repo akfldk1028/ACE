@@ -4,7 +4,7 @@
  * Route: /land
  */
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { useVworldMap } from './hooks/use-vworld-map';
@@ -41,10 +41,19 @@ export default function LandMap() {
     }
   }, [analyzeByCoordinate]);
 
-  const { highlightParcel, clearHighlight, flyTo } = useVworldMap({
+  const { highlightParcel, clearHighlight, flyTo, drawSetbackLines, clearSetbackLines } = useVworldMap({
     target: mapContainerRef,
     onClick: handleMapClick,
   });
+
+  // Draw setback lines when analysis result arrives
+  useEffect(() => {
+    if (analysis?.setback_lines) {
+      drawSetbackLines(analysis.setback_lines);
+    } else {
+      clearSetbackLines();
+    }
+  }, [analysis, drawSetbackLines, clearSetbackLines]);
 
   const handleSearch = useCallback(async (input: string) => {
     clearHighlight();

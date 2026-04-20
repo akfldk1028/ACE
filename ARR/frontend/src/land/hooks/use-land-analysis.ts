@@ -45,7 +45,7 @@ export function useLandAnalysis() {
       }
 
       setState(prev => ({ ...prev, step: 'analyze' }));
-      const result = await analyze(rev.pnu, 'pnu');
+      const result = await analyze(rev.pnu, 'pnu', undefined, rev.geometry);
       setState(prev => ({
         ...prev,
         analysis: result,

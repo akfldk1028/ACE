@@ -1,4 +1,4 @@
-import type { DesignJob, AutoConstraintsResult, SiteBoundaryResult } from './types';
+import type { DesignJob, AutoConstraintsResult, SiteBoundaryResult, FloorPlanRoom, FloorPlanResult } from './types';
 
 const BASE = '/design';
 
@@ -57,5 +57,21 @@ export async function getAutoConstraints(params: {
     body: JSON.stringify(params),
   });
   if (!res.ok) throw new Error((await res.json()).error || 'Constraint generation failed');
+  return res.json();
+}
+
+export async function generateFloorPlan(params: {
+  footprint_geojson: object;
+  rooms: FloorPlanRoom[];
+  cell_size?: number;
+  algorithm?: string;
+  options?: { num_generations?: number; population_size?: number };
+}): Promise<FloorPlanResult> {
+  const res = await fetch(`${BASE}/floor-plan/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error((await res.json()).error || 'Floor plan generation failed');
   return res.json();
 }

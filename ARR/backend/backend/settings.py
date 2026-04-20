@@ -46,10 +46,10 @@ INSTALLED_APPS = [
 
     # Core apps
     'core',
-    'agents',
+    # 'agents',  # disabled in production (requires neo4j, langgraph)
 
-    # Legacy (to be migrated)
-    'gemini',
+    # Legacy (to be migrated) — disabled in production (requires google-genai)
+    # 'gemini',
 
     # Law search proxy + ingestion pipeline
     'law',
@@ -63,6 +63,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

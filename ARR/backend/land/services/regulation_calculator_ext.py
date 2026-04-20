@@ -239,10 +239,10 @@ def _resolve_group_a(zone_names: list[str]) -> dict:
         m.get("site_subdivision_limit", {}).get("min_area_m2")
         for m in matched if m.get("site_subdivision_limit", {}).get("min_area_m2") is not None
     ]
-    sub_articles = list({
+    sub_articles = list(dict.fromkeys(
         m.get("site_subdivision_limit", {}).get("article", "")
         for m in matched if m.get("site_subdivision_limit", {}).get("article")
-    })
+    ))
     result["site_subdivision_limit"] = {
         "name": "대지 분할 제한",
         "min_area_m2": max(sub_areas) if sub_areas else None,

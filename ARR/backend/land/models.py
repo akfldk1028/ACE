@@ -35,7 +35,7 @@ class LandAnalysisResult(models.Model):
     sunlight_article = models.CharField(max_length=200, blank=True, default='')
 
     # 5. Corner cutoff
-    corner_cutoff_required = models.BooleanField(default=True)
+    corner_cutoff_required = models.BooleanField(default=False)
     corner_cutoff_article = models.CharField(max_length=200, blank=True, default='')
 
     # 6. Road diagonal

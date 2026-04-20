@@ -106,7 +106,7 @@ class RegulationCalculatorTest(TestCase):
         self.assertEqual(reg["bcr_pct"], 60)
         self.assertEqual(reg["far_pct"], 200)
         self.assertTrue(reg["sunlight_applies"])
-        self.assertEqual(reg["road_diagonal_multiplier"], 1.0)
+        self.assertIsNone(reg["road_diagonal_multiplier"])  # abolished (시행령 §82 개정)
         self.assertTrue(reg["corner_cutoff_required"])
         self.assertEqual(reg["adjacent_setback_m"], 0.5)
         self.assertEqual(reg["landscaping_min_pct"], 15)
@@ -118,7 +118,7 @@ class RegulationCalculatorTest(TestCase):
         self.assertEqual(reg["bcr_pct"], 90)
         self.assertEqual(reg["far_pct"], 1500)
         self.assertFalse(reg["sunlight_applies"])
-        self.assertEqual(reg["road_diagonal_multiplier"], 1.5)
+        self.assertIsNone(reg["road_diagonal_multiplier"])  # abolished (시행령 §82 개정)
         self.assertEqual(reg["landscaping_min_pct"], 10)
 
     def test_single_green_zone(self):
@@ -141,10 +141,10 @@ class RegulationCalculatorTest(TestCase):
         reg = regulation_calculator.calculate_all(["제1종일반주거지역", "중심상업지역"])
         self.assertTrue(reg["sunlight_applies"])
 
-    def test_multiple_zones_strictest_road_diagonal(self):
+    def test_multiple_zones_road_diagonal_abolished(self):
         from land.services import regulation_calculator
         reg = regulation_calculator.calculate_all(["제1종일반주거지역", "중심상업지역"])
-        self.assertEqual(reg["road_diagonal_multiplier"], 1.0)
+        self.assertIsNone(reg["road_diagonal_multiplier"])  # abolished (시행령 §82 개정)
 
     def test_multiple_zones_strictest_landscaping(self):
         """Use highest landscaping percentage."""
@@ -399,7 +399,7 @@ class AnalyzeViewTest(TestCase):
         self.assertEqual(result.bcr_pct, 60)
         self.assertEqual(result.far_pct, 200)
         self.assertTrue(result.sunlight_applies)
-        self.assertEqual(result.road_diagonal_multiplier, 1.0)
+        self.assertIsNone(result.road_diagonal_multiplier)  # abolished
 
     def test_analyze_links_query_to_result(self):
         from land.models import LandQuery
@@ -516,13 +516,15 @@ class StatsViewTest(TestCase):
 import httpx
 from unittest.mock import patch, MagicMock
 
+from land import config
+
 
 class LandApiStubTest(TestCase):
     """Test land_api returns stub when no API key."""
 
     def test_stub_when_no_key(self):
         from land.services import land_api
-        with patch.object(land_api, 'VWORLD_API_KEY', ''):
+        with patch.object(config, 'VWORLD_API_KEY', ''):
             result = land_api.get_land_use_info('1168010100106770000')
         self.assertTrue(result["success"])
         self.assertEqual(result["source"], "stub")
@@ -530,7 +532,7 @@ class LandApiStubTest(TestCase):
 
     def test_stub_has_message(self):
         from land.services import land_api
-        with patch.object(land_api, 'VWORLD_API_KEY', ''):
+        with patch.object(config, 'VWORLD_API_KEY', ''):
             result = land_api.get_land_use_info('1168010100106770000')
         self.assertIn("message", result)
 
@@ -573,19 +575,15 @@ class LandApiParseTest(TestCase):
     def _mock_empty_response(self):
         return {"response": {"totalCount": "0"}}
 
-    @patch('land.services.land_api.VWORLD_API_KEY', 'test-key')
-    @patch('land.services.land_api.httpx.Client')
-    def test_parse_land_use_zones(self, mock_client_cls):
+    @patch('land.config.VWORLD_API_KEY', 'test-key')
+    @patch('land.config.vworld_client')
+    def test_parse_land_use_zones(self, mock_client):
         """Parses zone names from getLandUseAttr, filters cnflcAtNm=포함 only."""
         from land.services import land_api
         mock_resp = MagicMock()
         mock_resp.json.return_value = self._mock_land_use_response()
         mock_resp.raise_for_status = MagicMock()
-        mock_client = MagicMock()
         mock_client.get.return_value = mock_resp
-        mock_client.__enter__ = MagicMock(return_value=mock_client)
-        mock_client.__exit__ = MagicMock(return_value=False)
-        mock_client_cls.return_value = mock_client
 
         result = land_api._fetch_land_use_attr('1168010100106770000')
         self.assertTrue(result["success"])
@@ -593,79 +591,63 @@ class LandApiParseTest(TestCase):
         self.assertIn("일반상업지역", result["zones"])
         self.assertNotIn("제2종일반주거지역", result["zones"])
 
-    @patch('land.services.land_api.VWORLD_API_KEY', 'test-key')
-    @patch('land.services.land_api.httpx.Client')
-    def test_parse_ladfrl(self, mock_client_cls):
+    @patch('land.config.VWORLD_API_KEY', 'test-key')
+    @patch('land.config.vworld_client')
+    def test_parse_ladfrl(self, mock_client):
         """Parses area and jimok from ladfrlList."""
         from land.services import land_api
         mock_resp = MagicMock()
         mock_resp.json.return_value = self._mock_ladfrl_response()
         mock_resp.raise_for_status = MagicMock()
-        mock_client = MagicMock()
         mock_client.get.return_value = mock_resp
-        mock_client.__enter__ = MagicMock(return_value=mock_client)
-        mock_client.__exit__ = MagicMock(return_value=False)
-        mock_client_cls.return_value = mock_client
 
         result = land_api._fetch_ladfrl('1168010100106770000')
         self.assertTrue(result["success"])
         self.assertEqual(result["land_area_m2"], 497.2)
         self.assertEqual(result["land_use_situation"], "대")
 
-    @patch('land.services.land_api.VWORLD_API_KEY', 'test-key')
-    @patch('land.services.land_api.httpx.Client')
-    def test_parse_land_price(self, mock_client_cls):
+    @patch('land.config.VWORLD_API_KEY', 'test-key')
+    @patch('land.config.vworld_client')
+    def test_parse_land_price(self, mock_client):
         """Parses price from getIndvdLandPriceAttr."""
         from land.services import land_api
         mock_resp = MagicMock()
         mock_resp.json.return_value = self._mock_price_response()
         mock_resp.raise_for_status = MagicMock()
-        mock_client = MagicMock()
         mock_client.get.return_value = mock_resp
-        mock_client.__enter__ = MagicMock(return_value=mock_client)
-        mock_client.__exit__ = MagicMock(return_value=False)
-        mock_client_cls.return_value = mock_client
 
         result = land_api._fetch_land_price_for_year('1168010100106770000', '2025')
         self.assertTrue(result["success"])
         self.assertEqual(result["official_land_price"], 28620000)
 
-    @patch('land.services.land_api.VWORLD_API_KEY', 'test-key')
-    @patch('land.services.land_api.httpx.Client')
-    def test_connection_error_graceful(self, mock_client_cls):
+    @patch('land.config.VWORLD_API_KEY', 'test-key')
+    @patch('land.config.vworld_client')
+    def test_connection_error_graceful(self, mock_client):
         """ConnectError returns success=False, not exception."""
         from land.services import land_api
-        mock_client = MagicMock()
         mock_client.get.side_effect = httpx.ConnectError("unreachable")
-        mock_client.__enter__ = MagicMock(return_value=mock_client)
-        mock_client.__exit__ = MagicMock(return_value=False)
-        mock_client_cls.return_value = mock_client
 
         result = land_api._fetch_land_use_attr('1168010100106770000')
         self.assertFalse(result["success"])
         self.assertIn("connection failed", result["error"])
 
-    @patch('land.services.land_api.VWORLD_API_KEY', 'test-key')
-    @patch('land.services.land_api.httpx.Client')
-    def test_empty_response_graceful(self, mock_client_cls):
+    @patch('land.config.VWORLD_API_KEY', 'test-key')
+    @patch('land.config.vworld_client')
+    def test_empty_response_graceful(self, mock_client):
         """Empty API response (totalCount=0) returns success=False."""
         from land.services import land_api
         mock_resp = MagicMock()
         mock_resp.json.return_value = self._mock_empty_response()
         mock_resp.raise_for_status = MagicMock()
-        mock_client = MagicMock()
         mock_client.get.return_value = mock_resp
-        mock_client.__enter__ = MagicMock(return_value=mock_client)
-        mock_client.__exit__ = MagicMock(return_value=False)
-        mock_client_cls.return_value = mock_client
 
         result = land_api._fetch_land_use_attr('0000000000000000000')
         self.assertFalse(result["success"])
         self.assertEqual(result["zones"], [])
 
-    @patch('land.services.land_api.VWORLD_API_KEY', 'test-key')
-    @patch('land.services.land_api.httpx.Client')
-    def test_partial_failure_still_success(self, mock_client_cls):
+    @patch('land.config.VWORLD_API_KEY', 'test-key')
+    @patch('land.config.vworld_client')
+    def test_partial_failure_still_success(self, mock_client):
         """If 2 of 3 APIs fail, overall success=True if 1 succeeds."""
         from land.services import land_api
 
@@ -681,11 +663,7 @@ class LandApiParseTest(TestCase):
                 mock_resp.json.return_value = {"response": {"totalCount": "0"}}
             return mock_resp
 
-        mock_client = MagicMock()
         mock_client.get.side_effect = mock_get
-        mock_client.__enter__ = MagicMock(return_value=mock_client)
-        mock_client.__exit__ = MagicMock(return_value=False)
-        mock_client_cls.return_value = mock_client
 
         result = land_api.get_land_use_info('1168010100106770000')
         self.assertTrue(result["success"])
@@ -694,28 +672,24 @@ class LandApiParseTest(TestCase):
         self.assertEqual(result["zones"], [])
         self.assertIn("errors", result)
 
-    @patch('land.services.land_api.VWORLD_API_KEY', 'test-key')
-    @patch('land.services.land_api.httpx.Client')
-    def test_all_fail_returns_failure(self, mock_client_cls):
+    @patch('land.config.VWORLD_API_KEY', 'test-key')
+    @patch('land.config.vworld_client')
+    def test_all_fail_returns_failure(self, mock_client):
         """If all 3 APIs fail, overall success=False."""
         from land.services import land_api
 
-        mock_client = MagicMock()
         mock_resp = MagicMock()
         mock_resp.raise_for_status = MagicMock()
         mock_resp.json.return_value = {"response": {"totalCount": "0"}}
         mock_client.get.return_value = mock_resp
-        mock_client.__enter__ = MagicMock(return_value=mock_client)
-        mock_client.__exit__ = MagicMock(return_value=False)
-        mock_client_cls.return_value = mock_client
 
         result = land_api.get_land_use_info('0000000000000000000')
         self.assertFalse(result["success"])
         self.assertIn("message", result)
 
-    @patch('land.services.land_api.VWORLD_API_KEY', 'test-key')
-    @patch('land.services.land_api.httpx.Client')
-    def test_zone_name_dedup(self, mock_client_cls):
+    @patch('land.config.VWORLD_API_KEY', 'test-key')
+    @patch('land.config.vworld_client')
+    def test_zone_name_dedup(self, mock_client):
         """Duplicate zone names are removed."""
         from land.services import land_api
         mock_resp = MagicMock()
@@ -730,11 +704,7 @@ class LandApiParseTest(TestCase):
             }
         }
         mock_resp.raise_for_status = MagicMock()
-        mock_client = MagicMock()
         mock_client.get.return_value = mock_resp
-        mock_client.__enter__ = MagicMock(return_value=mock_client)
-        mock_client.__exit__ = MagicMock(return_value=False)
-        mock_client_cls.return_value = mock_client
 
         result = land_api._fetch_land_use_attr('1168010100106770000')
         self.assertEqual(len(result["zones"]), 2)
@@ -761,7 +731,7 @@ class LandApiNormalizationTest(TestCase):
 class AnalyzeWithLandApiTest(TestCase):
     """Test analyze view integration with land_api."""
 
-    @patch('land.services.land_api.VWORLD_API_KEY', '')
+    @patch('land.config.VWORLD_API_KEY', '')
     def test_manual_zones_override_api_zones(self):
         """Manual zones in request override API-returned zones (stub mode)."""
         client = Client()
@@ -798,9 +768,9 @@ class AnalyzeWithLandApiTest(TestCase):
         # With raw input, land_api is not called, so source stays "static"
         self.assertEqual(result.data_source, "static")
 
-    @patch('land.services.land_api.VWORLD_API_KEY', 'test-key')
-    @patch('land.services.land_api.httpx.Client')
-    def test_api_zones_used_when_no_manual(self, mock_client_cls):
+    @patch('land.config.VWORLD_API_KEY', 'test-key')
+    @patch('land.config.vworld_client')
+    def test_api_zones_used_when_no_manual(self, mock_client):
         """API zones used when no manual zones provided."""
         from land.models import LandAnalysisResult
 
@@ -836,11 +806,7 @@ class AnalyzeWithLandApiTest(TestCase):
                 }
             return mock_resp
 
-        mock_client = MagicMock()
         mock_client.get.side_effect = mock_get
-        mock_client.__enter__ = MagicMock(return_value=mock_client)
-        mock_client.__exit__ = MagicMock(return_value=False)
-        mock_client_cls.return_value = mock_client
 
         client = Client()
         resp = client.post(
@@ -1099,42 +1065,523 @@ class ExtendedLawEnricherTest(TestCase):
 
     def test_base_query_count(self):
         from land.services.law_enricher import _BASE_QUERIES
-        self.assertEqual(len(_BASE_QUERIES), 11)
+        self.assertEqual(len(_BASE_QUERIES), 12)
 
     def test_extended_query_count(self):
         from land.services.law_enricher import _EXTENDED_QUERIES
         self.assertEqual(len(_EXTENDED_QUERIES), 9)
 
-    @patch('land.services.law_enricher.httpx.Client')
-    def test_extended_false_uses_base_only(self, mock_client_cls):
+    @patch('land.config.law_client')
+    def test_extended_false_uses_base_only(self, mock_client):
         """include_extended=False uses only base queries + zone queries."""
         from land.services import law_enricher
-        mock_client = MagicMock()
-        mock_client.__enter__ = MagicMock(return_value=mock_client)
-        mock_client.__exit__ = MagicMock(return_value=False)
         mock_resp = MagicMock()
         mock_resp.json.return_value = {"results": []}
         mock_resp.raise_for_status = MagicMock()
         mock_client.post.return_value = mock_resp
-        mock_client_cls.return_value = mock_client
 
         law_enricher.search_for_zones(["제1종일반주거지역"], include_extended=False)
-        # 11 base + 2 zone-specific ("제1종일반주거지역 건폐율", "제1종일반주거지역 건축제한")
-        self.assertEqual(mock_client.post.call_count, 13)
+        # 12 base + 2 zone-specific ("제1종일반주거지역 건폐율", "제1종일반주거지역 건축제한")
+        self.assertEqual(mock_client.post.call_count, 14)
 
-    @patch('land.services.law_enricher.httpx.Client')
-    def test_extended_true_adds_queries(self, mock_client_cls):
+    @patch('land.config.law_client')
+    def test_extended_true_adds_queries(self, mock_client):
         """include_extended=True adds 9 more queries."""
         from land.services import law_enricher
-        mock_client = MagicMock()
-        mock_client.__enter__ = MagicMock(return_value=mock_client)
-        mock_client.__exit__ = MagicMock(return_value=False)
         mock_resp = MagicMock()
         mock_resp.json.return_value = {"results": []}
         mock_resp.raise_for_status = MagicMock()
         mock_client.post.return_value = mock_resp
-        mock_client_cls.return_value = mock_client
 
         law_enricher.search_for_zones(["제1종일반주거지역"], include_extended=True)
-        # 11 base + 9 extended + 2 zone-specific = 22
-        self.assertEqual(mock_client.post.call_count, 22)
+        # 12 base + 9 extended + 2 zone-specific = 23
+        self.assertEqual(mock_client.post.call_count, 23)
+
+
+# ──────────────────────────────────────────────────────
+# Overlay Resolver Tests (Phase 6B)
+# ──────────────────────────────────────────────────────
+class OverlayResolverTest(TestCase):
+    """Test overlay zone matching and value extraction."""
+
+    def test_load_overlay_data(self):
+        from land.services.overlay_resolver import _load_data
+        data = _load_data()
+        self.assertGreater(len(data), 10)
+
+    def test_skip_standard_zones(self):
+        """Standard 21 용도지역 should be skipped."""
+        from land.services.overlay_resolver import resolve_overlays
+        result = resolve_overlays(["제1종일반주거지역", "일반상업지역"])
+        self.assertEqual(len(result), 0)
+
+    def test_match_simple_overlay(self):
+        """Simple overlay like 방화지구 should match."""
+        from land.services.overlay_resolver import resolve_overlays
+        result = resolve_overlays(["방화지구"])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["name"], "방화지구")
+        self.assertEqual(result[0]["category"], "safety")
+        self.assertEqual(result[0]["article"], "건축법 §51")
+
+    def test_match_substring(self):
+        """Overlay matching works via substring."""
+        from land.services.overlay_resolver import resolve_overlays
+        result = resolve_overlays(["제1종지구단위계획구역"])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["name"], "지구단위계획구역")
+
+    def test_extract_height_range(self):
+        """대공방어협조구역 with height range should extract values."""
+        from land.services.overlay_resolver import resolve_overlays
+        result = resolve_overlays(["대공방어협조구역(위탁고도:54-236m)"])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["values"]["min_height_m"], 54)
+        self.assertEqual(result[0]["values"]["max_height_m"], 236)
+
+    def test_extract_no_pattern_match(self):
+        """Overlay without values in name should return empty values."""
+        from land.services.overlay_resolver import resolve_overlays
+        result = resolve_overlays(["역사문화환경보존지역"])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["values"], {})
+        self.assertEqual(result[0]["constraint"], "permit")
+
+    def test_mixed_zones(self):
+        """Mix of standard zones and overlays — only overlays returned."""
+        from land.services.overlay_resolver import resolve_overlays
+        result = resolve_overlays([
+            "제1종일반주거지역",
+            "방화지구",
+            "역사문화환경보존지역",
+            "일반상업지역",
+        ])
+        self.assertEqual(len(result), 2)
+        names = [r["name"] for r in result]
+        self.assertIn("방화지구", names)
+        self.assertIn("역사문화환경보존지역", names)
+
+    def test_unknown_overlay_ignored(self):
+        """Unknown overlay zones not in data should be skipped."""
+        from land.services.overlay_resolver import resolve_overlays
+        result = resolve_overlays(["완전새로운무언가구역"])
+        self.assertEqual(len(result), 0)
+
+    def test_school_zone(self):
+        """학교환경위생정화구역 should match."""
+        from land.services.overlay_resolver import resolve_overlays
+        result = resolve_overlays(["학교환경위생정화구역(상대정화)"])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["category"], "education")
+
+    def test_greenbelt(self):
+        """개발제한구역 should match."""
+        from land.services.overlay_resolver import resolve_overlays
+        result = resolve_overlays(["개발제한구역"])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["constraint"], "permit")
+
+    def test_longest_key_match(self):
+        """최고고도지구 should match before 고도지구 (longest-key-first)."""
+        from land.services.overlay_resolver import resolve_overlays
+        result = resolve_overlays(["최고고도지구(20m)"])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["name"], "최고고도지구")
+        self.assertEqual(result[0]["values"]["max_height_m"], 20)
+
+    def test_info_only_excluded_from_results(self):
+        """Info-only zones (constraint=none) should NOT appear in results."""
+        from land.services.overlay_resolver import resolve_overlays
+        result = resolve_overlays(["도로", "광장", "일반철도"])
+        self.assertEqual(len(result), 0)
+
+    def test_get_all_matched_includes_info(self):
+        """get_all_matched_zones includes info-only zones."""
+        from land.services.overlay_resolver import get_all_matched_zones
+        matched = get_all_matched_zones(["도로", "방화지구", "제1종일반주거지역", "알수없는것"])
+        self.assertIn("도로", matched)
+        self.assertIn("방화지구", matched)
+        self.assertNotIn("제1종일반주거지역", matched)  # standard zone
+        self.assertNotIn("알수없는것", matched)  # unknown
+
+    def test_real_sejongro_zones(self):
+        """Simulate 종로구 세종로 실제 zone list — most should be recognized."""
+        from land.services.overlay_resolver import resolve_overlays, get_all_matched_zones
+        zones = [
+            "대공방어협조구역(위탁고도:54-236m)",
+            "상대보호구역",
+            "도시지역",
+            "도로",
+            "일반철도",
+            "토지거래계약에관한허가구역",
+            "가축사육제한구역",
+            "과밀억제권역",
+            "역사문화환경보존지역",
+            "지구단위계획구역",
+            "중점경관관리구역",
+            "가로구역별 최고높이 제한지역",
+        ]
+        regs = resolve_overlays(zones)
+        all_matched = get_all_matched_zones(zones)
+        # Most should be recognized
+        self.assertGreaterEqual(len(all_matched), 10)
+        # Regulations (excluding info-only) should include key items
+        reg_names = [r["name"] for r in regs]
+        self.assertIn("대공방어협조구역", reg_names)
+        self.assertIn("역사문화환경보존지역", reg_names)
+        self.assertIn("과밀억제권역", reg_names)
+
+
+# ──────────────────────────────────────────────────────
+# Formatters overlay integration tests
+# ──────────────────────────────────────────────────────
+class FormattersOverlayTest(TestCase):
+    """Test build_restrictions with overlay data."""
+
+    def _base_reg(self):
+        return {
+            "bcr_pct": 60, "far_pct": 200,
+            "sunlight_applies": False,
+            "road_diagonal_multiplier": None,
+            "corner_cutoff_required": False,
+            "adjacent_setback_m": None,
+            "landscaping_min_pct": None,
+            "zone_category": "주거",
+            "unmatched_zones": ["대공방어협조구역(위탁고도:54-236m)", "방화지구"],
+        }
+
+    def test_overlay_adds_restrictions(self):
+        from land.formatters import build_restrictions
+        overlays = [
+            {
+                "name": "대공방어협조구역",
+                "raw_zone": "대공방어협조구역(위탁고도:54-236m)",
+                "category": "military",
+                "constraint": "height",
+                "article": "군사기지법 §13",
+                "description": "대공방어 협조구역 — 높이 제한",
+                "values": {"min_height_m": 54, "max_height_m": 236},
+            },
+        ]
+        result = build_restrictions(
+            self._base_reg(), ["제1종일반주거지역"], overlays=overlays,
+        )
+        height_items = [r for r in result if "54~236m" in r]
+        self.assertEqual(len(height_items), 1)
+
+    def test_overlay_removes_from_unmatched(self):
+        from land.formatters import build_restrictions
+        overlays = [
+            {
+                "name": "방화지구",
+                "raw_zone": "방화지구",
+                "category": "safety",
+                "constraint": "fireproof",
+                "article": "건축법 §51",
+                "description": "방화지구 내화구조 의무",
+                "values": {},
+            },
+        ]
+        result = build_restrictions(
+            self._base_reg(), ["제1종일반주거지역"], overlays=overlays,
+        )
+        unmatched_items = [r for r in result if "미인식" in r]
+        # 방화지구 should be removed from unmatched, 대공방어 remains
+        self.assertEqual(len(unmatched_items), 1)
+        self.assertIn("대공방어협조구역", unmatched_items[0])
+        self.assertNotIn("방화지구", unmatched_items[0])
+
+    def test_no_overlays_backward_compat(self):
+        from land.formatters import build_restrictions
+        result = build_restrictions(
+            self._base_reg(), ["제1종일반주거지역"],
+        )
+        # Should still work without overlays arg
+        self.assertIsInstance(result, list)
+
+    def test_overlay_all_matched_filters_info_zones(self):
+        """Info-only zones (도로, 광장 등) removed from unmatched via overlay_all_matched."""
+        from land.formatters import build_restrictions
+        reg = {
+            "bcr_pct": 60, "far_pct": 200,
+            "sunlight_applies": False,
+            "road_diagonal_multiplier": None,
+            "corner_cutoff_required": False,
+            "adjacent_setback_m": None,
+            "landscaping_min_pct": None,
+            "zone_category": "상업",
+            "unmatched_zones": ["도로", "광장", "알수없는구역"],
+        }
+        result = build_restrictions(
+            reg, ["일반상업지역"],
+            overlay_all_matched={"도로", "광장"},
+        )
+        unmatched_items = [r for r in result if "미인식" in r]
+        self.assertEqual(len(unmatched_items), 1)
+        self.assertIn("알수없는구역", unmatched_items[0])
+        self.assertNotIn("도로", unmatched_items[0])
+        self.assertNotIn("광장", unmatched_items[0])
+
+
+# ──────────────────────────────────────────────────────
+# LLM Extraction Tests
+# ──────────────────────────────────────────────────────
+class LLMExtractionTest(TestCase):
+    """Test LLM-based regulation value extraction."""
+
+    def setUp(self):
+        from land.services.law_enricher import clear_extraction_cache
+        clear_extraction_cache()
+
+    def test_extraction_disabled_returns_none(self):
+        """When LLM_EXTRACTION_ENABLED=False, extract returns None."""
+        from land import config
+        original = config.LLM_EXTRACTION_ENABLED
+        config.LLM_EXTRACTION_ENABLED = False
+        try:
+            from land.services.law_enricher import extract_regulation_values
+            result = extract_regulation_values(["제1종일반주거지역"], "sunlight")
+            self.assertIsNone(result)
+        finally:
+            config.LLM_EXTRACTION_ENABLED = original
+
+    def test_extraction_no_api_key_returns_none(self):
+        """When OPENAI_API_KEY is empty, extract returns None."""
+        from land import config
+        original_key = config.OPENAI_API_KEY
+        original_enabled = config.LLM_EXTRACTION_ENABLED
+        config.LLM_EXTRACTION_ENABLED = True
+        config.OPENAI_API_KEY = ""
+        try:
+            from land.services.law_enricher import extract_regulation_values
+            result = extract_regulation_values(["제1종일반주거지역"], "sunlight")
+            self.assertIsNone(result)
+        finally:
+            config.OPENAI_API_KEY = original_key
+            config.LLM_EXTRACTION_ENABLED = original_enabled
+
+    def test_extraction_unknown_type_returns_none(self):
+        """Unknown regulation_type returns None."""
+        from land import config
+        original_enabled = config.LLM_EXTRACTION_ENABLED
+        original_key = config.OPENAI_API_KEY
+        config.LLM_EXTRACTION_ENABLED = True
+        config.OPENAI_API_KEY = "test-key"
+        try:
+            from land.services.law_enricher import extract_regulation_values
+            result = extract_regulation_values(["제1종일반주거지역"], "nonexistent")
+            self.assertIsNone(result)
+        finally:
+            config.LLM_EXTRACTION_ENABLED = original_enabled
+            config.OPENAI_API_KEY = original_key
+
+    def test_regulation_calculator_sunlight_has_source_field(self):
+        """regulation_calculator sunlight result includes source field."""
+        from land import config
+        original = config.LLM_EXTRACTION_ENABLED
+        config.LLM_EXTRACTION_ENABLED = False
+        try:
+            from land.services import regulation_calculator
+            result = regulation_calculator.calculate_all(["제1종일반주거지역"])
+            self.assertIn("sunlight_source", result)
+            self.assertEqual(result["sunlight_source"], "static_json")
+        finally:
+            config.LLM_EXTRACTION_ENABLED = original
+
+    def test_regulation_calculator_adjacent_has_source_field(self):
+        """regulation_calculator adjacent setback result includes source field."""
+        from land import config
+        original = config.LLM_EXTRACTION_ENABLED
+        config.LLM_EXTRACTION_ENABLED = False
+        try:
+            from land.services import regulation_calculator
+            result = regulation_calculator.calculate_all(["제1종일반주거지역"])
+            self.assertIn("adjacent_setback_source", result)
+            self.assertEqual(result["adjacent_setback_source"], "static_json")
+        finally:
+            config.LLM_EXTRACTION_ENABLED = original
+
+    def test_extraction_prompts_config_structure(self):
+        """EXTRACTION_CONFIG has expected regulation types and structure."""
+        from land.data.regulation_prompts import EXTRACTION_CONFIG
+        expected_types = {"sunlight", "adjacent_setback", "bcr_far", "height", "building_designation"}
+        self.assertEqual(set(EXTRACTION_CONFIG.keys()), expected_types)
+        for reg_type, cfg in EXTRACTION_CONFIG.items():
+            self.assertIn("queries", cfg, f"{reg_type} missing queries")
+            self.assertIn("prompt", cfg, f"{reg_type} missing prompt")
+            self.assertIsInstance(cfg["queries"], list)
+            self.assertGreater(len(cfg["queries"]), 0)
+
+    def test_call_llm_extraction_handles_bad_json(self):
+        """_call_llm_extraction returns None on non-JSON response."""
+        from unittest.mock import patch, MagicMock
+        from land.services import law_enricher
+        from land.services.law_enricher import _call_llm_extraction
+        from land import config
+        original_key = config.OPENAI_API_KEY
+        config.OPENAI_API_KEY = "test-key"
+        old_client = law_enricher._openai_client
+        try:
+            mock_client_inst = MagicMock()
+            mock_response = MagicMock()
+            mock_response.choices = [MagicMock()]
+            mock_response.choices[0].message.content = "not valid json"
+            mock_client_inst.chat.completions.create.return_value = mock_response
+            law_enricher._openai_client = mock_client_inst
+
+            result = _call_llm_extraction("test", "system")
+            self.assertIsNone(result)
+        finally:
+            config.OPENAI_API_KEY = original_key
+            law_enricher._openai_client = old_client
+
+    def test_call_llm_extraction_handles_valid_json(self):
+        """_call_llm_extraction returns parsed dict on valid JSON response."""
+        from unittest.mock import MagicMock
+        from land.services import law_enricher
+        from land.services.law_enricher import _call_llm_extraction
+        from land import config
+        original_key = config.OPENAI_API_KEY
+        config.OPENAI_API_KEY = "test-key"
+        old_client = law_enricher._openai_client
+        try:
+            mock_client_inst = MagicMock()
+            mock_response = MagicMock()
+            mock_response.choices = [MagicMock()]
+            mock_response.choices[0].message.content = '{"sunlight_applies": true, "sunlight_rules": [{"condition": "H <= 10m", "setback_m": 1.5}]}'
+            mock_client_inst.chat.completions.create.return_value = mock_response
+            law_enricher._openai_client = mock_client_inst
+
+            result = _call_llm_extraction("test", "system")
+            self.assertIsNotNone(result)
+            self.assertTrue(result["sunlight_applies"])
+            self.assertEqual(len(result["sunlight_rules"]), 1)
+        finally:
+            config.OPENAI_API_KEY = original_key
+            law_enricher._openai_client = old_client
+
+    def test_call_llm_extraction_rejects_wrong_types(self):
+        """_call_llm_extraction returns None when LLM returns wrong field types."""
+        from unittest.mock import MagicMock
+        from land.services import law_enricher
+        from land.services.law_enricher import _call_llm_extraction
+        from land import config
+        original_key = config.OPENAI_API_KEY
+        config.OPENAI_API_KEY = "test-key"
+        old_client = law_enricher._openai_client
+        try:
+            mock_client_inst = MagicMock()
+            mock_response = MagicMock()
+            mock_response.choices = [MagicMock()]
+            # sunlight_applies should be bool, not string
+            mock_response.choices[0].message.content = '{"sunlight_applies": "yes"}'
+            mock_client_inst.chat.completions.create.return_value = mock_response
+            law_enricher._openai_client = mock_client_inst
+
+            result = _call_llm_extraction("test", "system")
+            self.assertIsNone(result)
+        finally:
+            config.OPENAI_API_KEY = original_key
+            law_enricher._openai_client = old_client
+
+
+class BuildingDesignationTest(TestCase):
+    """Test building designation line (7th setback type, 건축지정선)."""
+
+    def test_not_applies_regular_zone(self):
+        """Regular residential zone → building_designation_applies=False."""
+        from land.services import regulation_calculator
+        reg = regulation_calculator.calculate_all(["제1종일반주거지역"])
+        self.assertFalse(reg["building_designation_applies"])
+        self.assertIsNone(reg["building_designation_setback_m"])
+        self.assertEqual(reg["building_designation_article"], "")
+
+    def test_applies_in_district_plan(self):
+        """Zone list includes 지구단위계획구역 → applies=True."""
+        from land.services import regulation_calculator
+        reg = regulation_calculator.calculate_all(
+            ["제1종일반주거지역", "제1종지구단위계획구역"]
+        )
+        self.assertTrue(reg["building_designation_applies"])
+        self.assertEqual(reg["building_designation_setback_m"], 2.0)
+        self.assertIn("국토계획법", reg["building_designation_article"])
+        self.assertEqual(reg["building_designation_source"], "static_default")
+
+    def test_applies_partial_match(self):
+        """Any zone containing '지구단위계획' triggers applies=True."""
+        from land.services import regulation_calculator
+        reg = regulation_calculator.calculate_all(
+            ["일반상업지역", "제2종지구단위계획구역"]
+        )
+        self.assertTrue(reg["building_designation_applies"])
+
+    def test_default_setback_value(self):
+        """Default setback is 2.0m when applies."""
+        from land.services import regulation_calculator
+        reg = regulation_calculator.calculate_all(
+            ["제3종일반주거지역", "지구단위계획구역"]
+        )
+        self.assertEqual(reg["building_designation_setback_m"], 2.0)
+
+    def test_empty_result_has_designation_fields(self):
+        """Empty result includes designation fields."""
+        from land.services.regulation_calculator import _empty_result
+        empty = _empty_result()
+        self.assertIn("building_designation_applies", empty)
+        self.assertIn("building_designation_setback_m", empty)
+        self.assertIn("building_designation_article", empty)
+        self.assertIn("building_designation_source", empty)
+        self.assertFalse(empty["building_designation_applies"])
+
+    def test_setback_geometry_designation_line(self):
+        """Setback geometry generates building_designation_line when applies."""
+        from land.services.setback_geometry import compute_setback_lines
+
+        parcel = {
+            'type': 'Polygon',
+            'coordinates': [[
+                [127.0, 37.5],
+                [127.001, 37.5],
+                [127.001, 37.501],
+                [127.0, 37.501],
+                [127.0, 37.5],
+            ]],
+        }
+        regs = {
+            'adjacent_setback_m': 0.5,
+            'sunlight_applies': False,
+            'building_designation_applies': True,
+            'building_designation_setback_m': 2.0,
+        }
+        result = compute_setback_lines(parcel, regs)
+        self.assertIn('building_designation_line', result)
+        self.assertIsNotNone(result['building_designation_line'])
+        self.assertIn('type', result['building_designation_line'])
+
+    def test_setback_geometry_no_designation_when_not_applies(self):
+        """No building_designation_line when applies=False."""
+        from land.services.setback_geometry import compute_setback_lines
+
+        parcel = {
+            'type': 'Polygon',
+            'coordinates': [[
+                [127.0, 37.5],
+                [127.001, 37.5],
+                [127.001, 37.501],
+                [127.0, 37.501],
+                [127.0, 37.5],
+            ]],
+        }
+        regs = {
+            'adjacent_setback_m': 0.5,
+            'sunlight_applies': False,
+            'building_designation_applies': False,
+        }
+        result = compute_setback_lines(parcel, regs)
+        self.assertIsNone(result['building_designation_line'])
+
+    def test_setback_geometry_result_keys_include_designation(self):
+        """compute_setback_lines result always includes designation key."""
+        from land.services.setback_geometry import compute_setback_lines
+        result = compute_setback_lines({}, {})
+        self.assertIn('building_designation_line', result)

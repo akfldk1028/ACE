@@ -1,0 +1,59 @@
+"""
+Centralized configuration for the land app.
+
+All env vars, URLs, timeouts, and shared httpx clients live here.
+Services import from this module instead of reading env vars independently.
+"""
+
+import atexit
+import os
+
+import httpx
+
+# ── Env vars ──────────────────────────────────────────
+VWORLD_API_KEY: str = os.getenv("VWORLD_API_KEY", "")
+LAW_BACKEND_URL: str = os.getenv("LAW_BACKEND_URL", "http://localhost:8011")
+AG_LIGHT_URL: str = os.getenv("AG_LIGHT_URL", "https://law-light-api.clickaround8.workers.dev")
+
+# ── AutoGen Studio ───────────────────────────────────
+AUTOGEN_STUDIO_URL: str = os.getenv("AUTOGEN_STUDIO_URL", "http://localhost:8081")
+AUTOGEN_STUDIO_USER: str = os.getenv("AUTOGEN_STUDIO_USER", "guestuser@gmail.com")
+AUTOGEN_WS_TIMEOUT: int = 300  # seconds (3 agents × ~60s each + tool calls + selector)
+LAND_TEAM_LABEL: str = "Land Swarm Analysis Team"
+
+# ── LLM Extraction (법조문 → 규제 수치 동적 추출) ────
+OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+LLM_EXTRACTION_ENABLED: bool = os.getenv("LLM_EXTRACTION_ENABLED", "true").lower() == "true"
+LLM_EXTRACTION_MODEL: str = os.getenv("LLM_EXTRACTION_MODEL", "gpt-4o-mini")
+LLM_EXTRACTION_TIMEOUT: float = 15.0
+
+# ── Ordinance Override ────────────────────────────────
+ORDINANCE_DIR: str = os.path.join(os.path.dirname(__file__), "data", "ordinance_overrides")
+
+# ── Vworld URLs ───────────────────────────────────────
+VWORLD_GEOCODE_URL = "https://api.vworld.kr/req/address"
+VWORLD_DATA_URL = "https://api.vworld.kr/req/data"
+VWORLD_DATA_BASE = "https://api.vworld.kr/ned/data"
+
+# ── Timeouts ──────────────────────────────────────────
+VWORLD_TIMEOUT = httpx.Timeout(10.0, connect=5.0)
+LAW_TIMEOUT = httpx.Timeout(30.0, connect=5.0)
+PROXY_TIMEOUT = httpx.Timeout(15.0, connect=5.0)
+
+# ── Shared httpx clients (singletons) ────────────────
+vworld_client = httpx.Client(timeout=VWORLD_TIMEOUT)
+law_client = httpx.Client(base_url=LAW_BACKEND_URL, timeout=LAW_TIMEOUT)
+light_client = httpx.Client(base_url=AG_LIGHT_URL, timeout=LAW_TIMEOUT)
+proxy_client = httpx.Client(timeout=PROXY_TIMEOUT)
+
+
+def _cleanup_clients():
+    """Close httpx clients on process shutdown."""
+    for c in (vworld_client, law_client, light_client, proxy_client):
+        try:
+            c.close()
+        except Exception:
+            pass
+
+
+atexit.register(_cleanup_clients)

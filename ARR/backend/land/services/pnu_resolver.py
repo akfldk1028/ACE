@@ -11,18 +11,15 @@ Vworld Geocoding:
 """
 
 import logging
-import os
 import re
 
 import httpx
 
+from land import config
+
 logger = logging.getLogger(__name__)
 
 _PNU_PATTERN = re.compile(r"^\d{19}$")
-_TIMEOUT = httpx.Timeout(10.0, connect=5.0)
-
-VWORLD_API_KEY = os.getenv("VWORLD_API_KEY", "")
-VWORLD_GEOCODE_URL = "https://api.vworld.kr/req/address"
 
 
 def validate_pnu(pnu: str) -> bool:
@@ -79,7 +76,7 @@ def resolve_address(address: str) -> dict:
             "error": str (on failure)
         }
     """
-    if not VWORLD_API_KEY:
+    if not config.VWORLD_API_KEY:
         return {
             "success": False,
             "error": "VWORLD_API_KEY not configured. "
@@ -107,7 +104,7 @@ def _vworld_geocode(address: str, addr_type: str) -> dict | None:
     params = {
         "service": "address",
         "request": "getCoord",
-        "key": VWORLD_API_KEY,
+        "key": config.VWORLD_API_KEY,
         "address": address,
         "type": addr_type,
         "format": "json",
@@ -116,10 +113,9 @@ def _vworld_geocode(address: str, addr_type: str) -> dict | None:
     }
 
     try:
-        with httpx.Client(timeout=_TIMEOUT) as client:
-            resp = client.get(VWORLD_GEOCODE_URL, params=params)
-            resp.raise_for_status()
-            return resp.json()
+        resp = config.vworld_client.get(config.VWORLD_GEOCODE_URL, params=params)
+        resp.raise_for_status()
+        return resp.json()
     except httpx.ConnectError:
         logger.error("Vworld API unreachable")
         return None
@@ -169,4 +165,163 @@ def _parse_geocode_result(data: dict, original_address: str) -> dict:
             "error": f"Failed to parse Vworld response: {e}",
             "address": original_address,
             "pnu": None,
+        }
+
+
+# ---------------------------------------------------------------------------
+# Reverse geocode: 좌표 → PNU + 필지 polygon (Vworld 2D Data API)
+# ---------------------------------------------------------------------------
+
+def reverse_geocode(x: float, y: float) -> dict:
+    """
+    Reverse-geocode a coordinate to PNU + full address + parcel polygon.
+
+    Two API calls:
+      1) Vworld 2D Data API (LP_PA_CBND_BUBUN) → PNU + geometry
+      2) Vworld Address API (getAddress) → 전체 지번주소
+
+    Args:
+        x: longitude (EPSG:4326)
+        y: latitude (EPSG:4326)
+
+    Returns:
+        {
+            "success": bool,
+            "pnu": str | None,
+            "address": str | None (전체 주소: "서울특별시 강남구 역삼동 677"),
+            "geometry": GeoJSON polygon | None,
+            "coordinates": {"x": float, "y": float},
+            "error": str (on failure)
+        }
+    """
+    if not config.VWORLD_API_KEY:
+        return {
+            "success": False,
+            "error": "VWORLD_API_KEY not configured",
+            "pnu": None,
+            "address": None,
+            "geometry": None,
+            "coordinates": {"x": x, "y": y},
+        }
+
+    # ── 1. Data API — PNU + 필지 geometry ──
+    params = {
+        "key": config.VWORLD_API_KEY,
+        "service": "data",
+        "request": "GetFeature",
+        "data": "LP_PA_CBND_BUBUN",
+        "geomFilter": f"POINT({x} {y})",
+        "format": "json",
+        "crs": "EPSG:4326",
+        "size": "1",
+    }
+
+    try:
+        resp = config.vworld_client.get(config.VWORLD_DATA_URL, params=params)
+        resp.raise_for_status()
+        data = resp.json()
+    except httpx.ConnectError:
+        logger.error("Vworld Data API unreachable")
+        return {
+            "success": False,
+            "error": "Vworld Data API unreachable",
+            "pnu": None, "address": None, "geometry": None,
+            "coordinates": {"x": x, "y": y},
+        }
+    except Exception as e:
+        logger.error(f"Vworld Data API failed: {e}")
+        return {
+            "success": False,
+            "error": f"Vworld Data API failed: {e}",
+            "pnu": None, "address": None, "geometry": None,
+            "coordinates": {"x": x, "y": y},
+        }
+
+    result = _parse_data_api_result(data, x, y)
+
+    # ── 2. Address API — 전체 지번주소 보강 ──
+    if result["success"]:
+        full_addr = _vworld_reverse_address(x, y)
+        if full_addr:
+            result["address"] = full_addr
+
+    return result
+
+
+def _vworld_reverse_address(x: float, y: float) -> str | None:
+    """
+    Vworld Address API 역지오코딩 — 좌표 → 전체 지번주소.
+
+    Returns: "서울특별시 강남구 역삼동 677" 형태, 실패 시 None.
+    """
+    params = {
+        "service": "address",
+        "request": "getAddress",
+        "key": config.VWORLD_API_KEY,
+        "point": f"{x},{y}",
+        "type": "PARCEL",
+        "format": "json",
+        "crs": "EPSG:4326",
+    }
+    try:
+        resp = config.vworld_client.get(config.VWORLD_GEOCODE_URL, params=params)
+        resp.raise_for_status()
+        data = resp.json()
+        response = data.get("response", {})
+        if response.get("status") != "OK":
+            return None
+        results = response.get("result", [])
+        if isinstance(results, list) and results:
+            return results[0].get("text")
+        if isinstance(results, dict):
+            return results.get("text")
+        return None
+    except Exception as e:
+        logger.debug(f"Reverse address failed: {e}")
+        return None
+
+
+def _parse_data_api_result(data: dict, x: float, y: float) -> dict:
+    """Parse Vworld 2D Data API response."""
+    try:
+        resp = data.get("response", {})
+        status = resp.get("status", "")
+        if status != "OK":
+            return {
+                "success": False,
+                "error": f"Vworld status: {status} - {resp.get('error', {}).get('text', 'No result')}",
+                "pnu": None, "address": None, "geometry": None,
+                "coordinates": {"x": x, "y": y},
+            }
+
+        result = resp.get("result", {})
+        features = result.get("featureCollection", {}).get("features", [])
+        if not features:
+            return {
+                "success": False,
+                "error": "No parcel found at this location",
+                "pnu": None, "address": None, "geometry": None,
+                "coordinates": {"x": x, "y": y},
+            }
+
+        feat = features[0]
+        props = feat.get("properties", {})
+        geom = feat.get("geometry")
+
+        pnu = props.get("pnu", "")
+        addr = props.get("jibun", "") or props.get("addr", "")
+
+        return {
+            "success": True,
+            "pnu": pnu or None,
+            "address": addr,
+            "geometry": geom,
+            "coordinates": {"x": x, "y": y},
+        }
+    except (KeyError, TypeError, ValueError) as e:
+        return {
+            "success": False,
+            "error": f"Failed to parse Data API response: {e}",
+            "pnu": None, "address": None, "geometry": None,
+            "coordinates": {"x": x, "y": y},
         }

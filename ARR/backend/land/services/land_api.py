@@ -12,15 +12,12 @@ APIs:
 
 import datetime
 import logging
-import os
 
 import httpx
 
-logger = logging.getLogger(__name__)
+from land import config
 
-VWORLD_API_KEY = os.getenv("VWORLD_API_KEY", "")
-VWORLD_DATA_BASE = "https://api.vworld.kr/ned/data"
-_TIMEOUT = httpx.Timeout(10.0, connect=5.0)
+logger = logging.getLogger(__name__)
 
 
 def get_land_use_info(pnu: str) -> dict:
@@ -44,7 +41,7 @@ def get_land_use_info(pnu: str) -> dict:
             "source": "stub" | "vworld"
         }
     """
-    if not VWORLD_API_KEY:
+    if not config.VWORLD_API_KEY:
         logger.info(f"land_api.get_land_use_info(pnu={pnu}) - stub mode (no API key)")
         return _stub_result(pnu)
 
@@ -101,21 +98,21 @@ def _fetch_land_use_attr(pnu: str) -> dict:
     """토지이용계획 API → 용도지역명 목록.
 
     Response: landUses.field[].prposAreaDstrcCodeNm
-    Filters to cnflcAtNm=="포함" (parcel is IN the zone, not just adjacent).
+    Filters to cnflcAtNm in ("포함","저촉") — parcel is IN or OVERLAPS the zone.
+    Excludes "접함" (merely adjacent, zone does not apply to this parcel).
     Returns all zone/district names; downstream zoning_mapper filters to known 21 types.
     """
     params = {
-        "key": VWORLD_API_KEY,
+        "key": config.VWORLD_API_KEY,
         "pnu": pnu,
         "format": "json",
         "numOfRows": "50",
         "pageNo": "1",
     }
     try:
-        with httpx.Client(timeout=_TIMEOUT) as client:
-            resp = client.get(f"{VWORLD_DATA_BASE}/getLandUseAttr", params=params)
-            resp.raise_for_status()
-            data = resp.json()
+        resp = config.vworld_client.get(f"{config.VWORLD_DATA_BASE}/getLandUseAttr", params=params)
+        resp.raise_for_status()
+        data = resp.json()
 
         # Success: data["landUses"]["field"][...]
         # No data: data["response"]["totalCount"] == "0"
@@ -130,9 +127,11 @@ def _fetch_land_use_attr(pnu: str) -> dict:
         zones = []
         seen = set()
         for item in items:
-            # Only include zones the parcel is actually IN (skip "접함"=adjacent).
+            # Include zones the parcel is IN or OVERLAPS.
+            # 포함(1)=fully inside, 저촉(2)=partially overlapping → both applicable.
+            # 접함(3)=adjacent only → skip (zone does not apply to this parcel).
             # None = field missing → include as defensive default.
-            if item.get("cnflcAtNm") not in ("포함", None):
+            if item.get("cnflcAtNm") not in ("포함", "저촉", None):
                 continue
             name = item.get("prposAreaDstrcCodeNm", "").strip()
             if not name:
@@ -158,17 +157,16 @@ def _fetch_ladfrl(pnu: str) -> dict:
     Response: ladfrlVOList.ladfrlVOList[].lndpclAr / lndcgrCodeNm
     """
     params = {
-        "key": VWORLD_API_KEY,
+        "key": config.VWORLD_API_KEY,
         "pnu": pnu,
         "format": "json",
         "numOfRows": "1",
         "pageNo": "1",
     }
     try:
-        with httpx.Client(timeout=_TIMEOUT) as client:
-            resp = client.get(f"{VWORLD_DATA_BASE}/ladfrlList", params=params)
-            resp.raise_for_status()
-            data = resp.json()
+        resp = config.vworld_client.get(f"{config.VWORLD_DATA_BASE}/ladfrlList", params=params)
+        resp.raise_for_status()
+        data = resp.json()
 
         wrapper = data.get("ladfrlVOList", {})
         items = wrapper.get("ladfrlVOList", [])
@@ -228,7 +226,7 @@ def _fetch_land_price(pnu: str) -> dict:
 def _fetch_land_price_for_year(pnu: str, stdr_year: str) -> dict:
     """Fetch price for a specific year."""
     params = {
-        "key": VWORLD_API_KEY,
+        "key": config.VWORLD_API_KEY,
         "pnu": pnu,
         "format": "json",
         "numOfRows": "1",
@@ -236,10 +234,9 @@ def _fetch_land_price_for_year(pnu: str, stdr_year: str) -> dict:
         "stdrYear": stdr_year,
     }
     try:
-        with httpx.Client(timeout=_TIMEOUT) as client:
-            resp = client.get(f"{VWORLD_DATA_BASE}/getIndvdLandPriceAttr", params=params)
-            resp.raise_for_status()
-            data = resp.json()
+        resp = config.vworld_client.get(f"{config.VWORLD_DATA_BASE}/getIndvdLandPriceAttr", params=params)
+        resp.raise_for_status()
+        data = resp.json()
 
         prices = data.get("indvdLandPrices", {})
         items = prices.get("field", [])

@@ -332,6 +332,29 @@ function renderSetbackEntities(
       }
     }
 
+    // 단면 프로파일 폴리라인 — '꺾이는' 법규 단면 (img_5 빨간 점선 대응)
+    // 수직→평탄→경사를 3D 공간에 굵은 선으로 그어 한눈에 형상 보이게.
+    if (envelope.profile_polylines) {
+      for (let pi = 0; pi < envelope.profile_polylines.length; pi++) {
+        const line = envelope.profile_polylines[pi];
+        const pts = line.points as number[][];
+        if (!pts || pts.length < 2) continue;
+        const flat: number[] = [];
+        for (const p of pts) flat.push(p[0], p[1], p[2]);
+        viewer.entities.add({
+          id: `${SETBACK_PREFIX}sunlight-profile-${pi}`,
+          polyline: {
+            positions: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
+            width: 6,
+            material: new Cesium.PolylineDashMaterialProperty({
+              color: wallC,
+              dashLength: 12,
+            }),
+          },
+        });
+      }
+    }
+
     // 평탄/경사 지붕 (kind별 색상 분리, 낮은 alpha로 투명)
     if (envelope.slanted_polygons) {
       for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {

@@ -613,6 +613,38 @@ def _compute_sunlight_envelope(
                     thresholds.append({"distance_m": max_depth_cap, "max_height_m": h_top,
                                         "kind": "slope_top"})
 
+        # ── 4. 프로파일 폴리라인 — 각 edge 중앙에 '꺾이는' 단면 라인 1개
+        # 법규 img_5의 빨간 점선에 대응 (수직→평탄→경사)
+        profile_polylines = []
+        for edge in north_edges:
+            nx, ny = _inward_normal(edge, centroid)
+            if nx == 0.0 and ny == 0.0:
+                continue
+            coords_utm = list(edge.coords)
+            if len(coords_utm) < 2:
+                continue
+            # edge 중간점에서 내측으로 프로파일 그리기
+            mid = edge.interpolate(0.5, normalized=True)
+            mid_xy = (mid.x, mid.y)
+            pts_utm_h = [
+                (mid_xy[0] + nx * base_setback, mid_xy[1] + ny * base_setback, 0.0),
+                (mid_xy[0] + nx * base_setback, mid_xy[1] + ny * base_setback, base_height),
+            ]
+            if plateau_end > base_setback:
+                pts_utm_h.append(
+                    (mid_xy[0] + nx * plateau_end, mid_xy[1] + ny * plateau_end, base_height)
+                )
+            if max_depth_cap > plateau_end:
+                pts_utm_h.append(
+                    (mid_xy[0] + nx * max_depth_cap, mid_xy[1] + ny * max_depth_cap,
+                     slope * max_depth_cap)
+                )
+            pts_wgs_h = [[*_wgs_pt((p[0], p[1])), p[2]] for p in pts_utm_h]
+            profile_polylines.append({
+                "points": pts_wgs_h,
+                "label": "단면 프로파일 (수직→평탄→경사)",
+            })
+
         # Use cap value to satisfy later return structure.
         max_depth = max_depth_cap
 
@@ -622,6 +654,7 @@ def _compute_sunlight_envelope(
         return {
             "walls": walls,
             "slanted_polygons": slanted_polygons,
+            "profile_polylines": profile_polylines,
             "slope": slope,
             "base_setback_m": base_setback,
             "base_height_m": base_height,

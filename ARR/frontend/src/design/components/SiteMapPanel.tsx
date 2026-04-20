@@ -510,6 +510,11 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
     if (!viewer || !Cesium) return;
 
     if (setbackGeometries && Object.keys(setbackGeometries).length > 0) {
+      // Terrain이 envelope polygon (H=10~50m)을 가리는 것 방지 — depth test 끔.
+      // Vworld terrain이 parcel 위치에서 10.18m 고도라 H=10m envelope가 묻힘.
+      try {
+        if (viewer.scene?.globe) viewer.scene.globe.depthTestAgainstTerrain = false;
+      } catch { /* ignore */ }
       renderSetbackEntities(viewer, Cesium, setbackGeometries);
       // slope envelope이 하늘로 50m까지 올라가므로 기본 view에서 화면 밖.
       // zoomTo는 flyTo와 달리 동기적이라 setTimeout 불필요.

@@ -1,0 +1,899 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e7]:
+      - navigation "Project actions" [ref=e8]:
+        - generic [ref=e9]:
+          - link "Overleaf logo" [ref=e12] [cursor=pointer]:
+            - /url: /project
+            - generic "Overleaf logo" [ref=e13]
+          - menubar [ref=e14]:
+            - button "File" [ref=e16] [cursor=pointer]
+            - button "Edit" [ref=e1011] [cursor=pointer]
+            - button "Insert" [ref=e1013] [cursor=pointer]
+            - button "View" [ref=e22] [cursor=pointer]
+            - button "Format" [ref=e1015] [cursor=pointer]
+            - button "Help" [ref=e26] [cursor=pointer]
+        - button "Project title options" [ref=e28] [cursor=pointer]:
+          - generic [ref=e29]: When Should Multi-Agent Teams Stop? A Systematic Study of Termination Dynamics Across 14 Coordination Topologies
+          - generic [ref=e30]: keyboard_arrow_down
+        - generic [ref=e31]:
+          - button "History" [ref=e33] [cursor=pointer]:
+            - generic [ref=e35]: history
+          - button "Layout options" [ref=e39] [cursor=pointer]:
+            - generic [ref=e40]: space_dashboard
+          - button "Share" [ref=e42] [cursor=pointer]:
+            - generic [ref=e43]:
+              - generic [ref=e44]: person_add
+              - text: Share
+          - link "Upgrade" [ref=e46] [cursor=pointer]:
+            - /url: /user/subscription/plans?itm_referrer=editor-header-upgrade-prompt
+            - generic [ref=e47]: Upgrade
+      - generic [ref=e49]:
+        - navigation "Sidebar" [ref=e50]:
+          - tablist [ref=e51]:
+            - generic [ref=e52]:
+              - tab "File tree" [selected] [ref=e53] [cursor=pointer]:
+                - generic [ref=e54]: description
+                - generic [ref=e55]: File tree
+              - tab "Project search" [ref=e56] [cursor=pointer]:
+                - generic [ref=e57]: search
+                - generic [ref=e58]: Project search
+              - tab "Integrations" [ref=e59] [cursor=pointer]:
+                - generic [ref=e60]: integration_instructions
+                - generic [ref=e61]: Integrations
+              - tab "Review panel" [ref=e62] [cursor=pointer]:
+                - generic [ref=e63]: rate_review
+                - generic [ref=e64]: Review panel
+              - tab "Chat" [ref=e65] [cursor=pointer]:
+                - generic [ref=e66]: forum
+                - generic [ref=e67]: Chat
+              - tab "AI assistant" [ref=e68] [cursor=pointer]:
+                - img [ref=e69]
+                - generic [ref=e72]: AI assistant
+            - navigation "Help and editor settings" [ref=e73]:
+              - button "Help" [ref=e76] [cursor=pointer]:
+                - generic [ref=e77]: help
+              - button "Settings" [ref=e78] [cursor=pointer]:
+                - generic [ref=e79]: settings
+        - tabpanel "File tree" [ref=e83]:
+          - generic [ref=e84]:
+            - generic [ref=e86]:
+              - generic [ref=e87]:
+                - button "Hide file tree" [ref=e88] [cursor=pointer]:
+                  - generic [ref=e89]: keyboard_arrow_down
+                  - heading "File tree" [level=4] [ref=e90]
+                - generic [ref=e91]:
+                  - button "New file" [ref=e92] [cursor=pointer]:
+                    - generic [ref=e93]: note_add
+                    - generic [ref=e94]: New file
+                  - button "New folder" [ref=e95] [cursor=pointer]:
+                    - generic [ref=e96]: create_new_folder
+                    - generic [ref=e97]: New folder
+                  - button "Upload" [ref=e98] [cursor=pointer]:
+                    - generic [ref=e99]: upload
+                    - generic [ref=e100]: Upload
+                  - button "Close" [ref=e101] [cursor=pointer]:
+                    - generic [ref=e102]: close
+                    - generic [ref=e103]: Close
+              - tree [ref=e105]:
+                - generic [ref=e106]:
+                  - treeitem "colm2026_conference.bst" [ref=e107]:
+                    - generic [ref=e108] [cursor=pointer]:
+                      - generic [ref=e109]: description
+                      - generic [ref=e111]: colm2026_conference.bst
+                  - treeitem "colm2026_conference.sty" [ref=e112]:
+                    - generic [ref=e113] [cursor=pointer]:
+                      - generic [ref=e114]: description
+                      - generic [ref=e116]: colm2026_conference.sty
+                  - treeitem "fancyhdr.sty" [ref=e117]:
+                    - generic [ref=e118] [cursor=pointer]:
+                      - generic [ref=e119]: description
+                      - generic [ref=e121]: fancyhdr.sty
+                  - treeitem "fig_convergence_semantic.png" [ref=e122]:
+                    - generic [ref=e123] [cursor=pointer]:
+                      - generic [ref=e124]: image
+                      - generic [ref=e126]: fig_convergence_semantic.png
+                  - treeitem "fig_exp05_savings_by_pattern.png" [ref=e1627]:
+                    - generic [ref=e1628] [cursor=pointer]:
+                      - generic [ref=e1629]: image
+                      - generic [ref=e1631]: fig_exp05_savings_by_pattern.png
+                  - treeitem "fig_hybrid_validation.pdf" [ref=e132]:
+                    - generic [ref=e133] [cursor=pointer]:
+                      - generic [ref=e134]: image
+                      - generic [ref=e136]: fig_hybrid_validation.pdf
+                  - treeitem "fig_hybrid_validation.png" [ref=e137]:
+                    - generic [ref=e138] [cursor=pointer]:
+                      - generic [ref=e139]: image
+                      - generic [ref=e141]: fig_hybrid_validation.png
+                  - treeitem "fig_kappa_comparison.pdf" [ref=e142]:
+                    - generic [ref=e143] [cursor=pointer]:
+                      - generic [ref=e144]: image
+                      - generic [ref=e146]: fig_kappa_comparison.pdf
+                  - treeitem "fig_kappa_comparison.png" [ref=e147]:
+                    - generic [ref=e148] [cursor=pointer]:
+                      - generic [ref=e149]: image
+                      - generic [ref=e151]: fig_kappa_comparison.png
+                  - treeitem "fig1_taxonomy.png" [ref=e152]:
+                    - generic [ref=e153] [cursor=pointer]:
+                      - generic [ref=e154]: image
+                      - generic [ref=e156]: fig1_taxonomy.png
+                  - treeitem "fig4_exp01_main.png" [ref=e157]:
+                    - generic [ref=e158] [cursor=pointer]:
+                      - generic [ref=e159]: image
+                      - generic [ref=e161]: fig4_exp01_main.png
+                  - treeitem "fig5_quality_trajectories.png" [ref=e1530]:
+                    - generic [ref=e1531] [cursor=pointer]:
+                      - generic [ref=e1532]: image
+                      - generic [ref=e1534]: fig5_quality_trajectories.png
+                  - treeitem "fig8_pareto.png" [ref=e167]:
+                    - generic [ref=e168] [cursor=pointer]:
+                      - generic [ref=e169]: image
+                      - generic [ref=e171]: fig8_pareto.png
+                  - treeitem "main.tex" [selected] [ref=e172]:
+                    - generic [ref=e173] [cursor=pointer]:
+                      - generic [ref=e174]: description
+                      - generic [ref=e176]: main.tex
+                    - button "Open main.tex action menu" [ref=e1017] [cursor=pointer]:
+                      - generic [ref=e1018]: more_vert
+                      - generic [ref=e1019]: Menu
+                  - treeitem "math_commands.tex" [ref=e181]:
+                    - generic [ref=e182] [cursor=pointer]:
+                      - generic [ref=e183]: description
+                      - generic [ref=e185]: math_commands.tex
+                  - treeitem "natbib.sty" [ref=e186]:
+                    - generic [ref=e187] [cursor=pointer]:
+                      - generic [ref=e188]: description
+                      - generic [ref=e190]: natbib.sty
+                  - treeitem "references.bib" [ref=e191]:
+                    - generic [ref=e192] [cursor=pointer]:
+                      - generic [ref=e193]: book_5
+                      - generic [ref=e195]: references.bib
+            - separator [ref=e196]:
+              - generic "Resize" [ref=e197]
+            - generic [ref=e200]:
+              - button "Hide File outline" [ref=e202] [cursor=pointer]:
+                - generic [ref=e203]: keyboard_arrow_down
+                - heading "File outline" [level=4] [ref=e204]
+              - tree [ref=e1022]:
+                - treeitem "Introduction" [expanded] [ref=e1023]:
+                  - generic [ref=e1024]:
+                    - button "Collapse" [ref=e1025] [cursor=pointer]:
+                      - generic [ref=e1026]: keyboard_arrow_down
+                    - button "Introduction" [ref=e1027] [cursor=pointer]
+                  - group [ref=e1028]:
+                    - treeitem "The Termination Problem in Multi-Agent Teams" [ref=e1029]:
+                      - button "The Termination Problem in Multi-Agent Teams" [ref=e1031] [cursor=pointer]
+                    - treeitem "Research Questions" [ref=e1032]:
+                      - button "Research Questions" [ref=e1034] [cursor=pointer]
+                    - treeitem "Contributions" [ref=e1035]:
+                      - button "Contributions" [ref=e1037] [cursor=pointer]
+                    - treeitem "Scope and Positioning" [ref=e1038]:
+                      - button "Scope and Positioning" [ref=e1040] [cursor=pointer]
+                - treeitem "Background and Related Work" [expanded] [ref=e1041]:
+                  - generic [ref=e1042]:
+                    - button "Collapse" [ref=e1043] [cursor=pointer]:
+                      - generic [ref=e1044]: keyboard_arrow_down
+                    - button "Background and Related Work" [ref=e1045] [cursor=pointer]
+                  - group [ref=e1046]:
+                    - treeitem "Multi-Agent Coordination Topologies" [ref=e1047]:
+                      - button "Multi-Agent Coordination Topologies" [ref=e1049] [cursor=pointer]
+                    - treeitem "Stopping Criteria in LLM Systems" [ref=e1050]:
+                      - button "Stopping Criteria in LLM Systems" [ref=e1052] [cursor=pointer]
+                    - treeitem "Quality Evaluation in Multi-Agent Outputs" [ref=e1053]:
+                      - button "Quality Evaluation in Multi-Agent Outputs" [ref=e1055] [cursor=pointer]
+                - treeitem "Methodology" [expanded] [ref=e1056]:
+                  - generic [ref=e1057]:
+                    - button "Collapse" [ref=e1058] [cursor=pointer]:
+                      - generic [ref=e1059]: keyboard_arrow_down
+                    - button "Methodology" [ref=e1060] [cursor=pointer]
+                  - group [ref=e1061]:
+                    - treeitem "Pattern Taxonomy" [ref=e1062]:
+                      - button "Pattern Taxonomy" [ref=e1064] [cursor=pointer]
+                    - treeitem "Task Suite" [ref=e1065]:
+                      - button "Task Suite" [ref=e1067] [cursor=pointer]
+                    - treeitem "Experimental Framework" [ref=e1068]:
+                      - button "Experimental Framework" [ref=e1070] [cursor=pointer]
+                    - treeitem "Seven Experiments" [ref=e1071]:
+                      - button "Seven Experiments" [ref=e1073] [cursor=pointer]
+                - treeitem "Results" [expanded] [ref=e1074]:
+                  - generic [ref=e1075]:
+                    - button "Collapse" [ref=e1076] [cursor=pointer]:
+                      - generic [ref=e1077]: keyboard_arrow_down
+                    - button "Results" [ref=e1078] [cursor=pointer]
+                  - group [ref=e1079]:
+                    - 'treeitem "Experiment 01: Pattern Efficiency (RQ1)" [expanded] [ref=e1080]':
+                      - generic [ref=e1081]:
+                        - button "Collapse" [ref=e1082] [cursor=pointer]:
+                          - generic [ref=e1083]: keyboard_arrow_down
+                        - 'button "Experiment 01: Pattern Efficiency (RQ1)" [ref=e1084] [cursor=pointer]'
+                      - group [ref=e1085]:
+                        - treeitem "Single-Agent Baseline." [ref=e1086]:
+                          - button "Single-Agent Baseline." [ref=e1088] [cursor=pointer]
+                        - 'treeitem "Finding 1: Multi-agent coordination incurs 3.3--6.1$\\times$ token overhead over a single agent." [ref=e1089]':
+                          - 'button "Finding 1: Multi-agent coordination incurs 3.3--6.1$\\times$ token overhead over a single agent." [ref=e1091] [cursor=pointer]'
+                        - 'treeitem "Category A: Flat Sequential." [ref=e1092]':
+                          - 'button "Category A: Flat Sequential." [ref=e1094] [cursor=pointer]'
+                        - 'treeitem "Category B: Dynamic Routing." [ref=e1095]':
+                          - 'button "Category B: Dynamic Routing." [ref=e1097] [cursor=pointer]'
+                        - 'treeitem "Finding 2: swm3 achieves best overall token efficiency." [ref=e1098]':
+                          - 'button "Finding 2: swm3 achieves best overall token efficiency." [ref=e1100] [cursor=pointer]'
+                        - 'treeitem "Category C: Structured Feedback." [ref=e1101]':
+                          - 'button "Category C: Structured Feedback." [ref=e1103] [cursor=pointer]'
+                        - 'treeitem "Category D: Composed Patterns." [ref=e1104]':
+                          - 'button "Category D: Composed Patterns." [ref=e1106] [cursor=pointer]'
+                        - treeitem "Cross-Category Statistical Tests." [ref=e1107]:
+                          - button "Cross-Category Statistical Tests." [ref=e1109] [cursor=pointer]
+                    - 'treeitem "Experiment 02: Termination Quality (RQ2)" [expanded] [ref=e1110]':
+                      - generic [ref=e1111]:
+                        - button "Collapse" [ref=e1112] [cursor=pointer]:
+                          - generic [ref=e1113]: keyboard_arrow_down
+                        - 'button "Experiment 02: Termination Quality (RQ2)" [ref=e1114] [cursor=pointer]'
+                      - group [ref=e1115]:
+                        - 'treeitem "Finding 3: Three distinct quality trajectory shapes." [ref=e1116]':
+                          - 'button "Finding 3: Three distinct quality trajectory shapes." [ref=e1118] [cursor=pointer]'
+                        - 'treeitem "Finding 4: Termination regret varies 13$\\times$ across topologies." [ref=e1119]':
+                          - 'button "Finding 4: Termination regret varies 13$\\times$ across topologies." [ref=e1121] [cursor=pointer]'
+                        - 'treeitem "Finding 5: Reflection achieves highest quality with zero quality loss." [ref=e1122]':
+                          - 'button "Finding 5: Reflection achieves highest quality with zero quality loss." [ref=e1124] [cursor=pointer]'
+                        - treeitem "Evaluation Validation." [ref=e1125]:
+                          - button "Evaluation Validation." [ref=e1127] [cursor=pointer]
+                    - 'treeitem "Experiment 03: Convergence Detection (RQ3)" [expanded] [ref=e1128]':
+                      - generic [ref=e1129]:
+                        - button "Collapse" [ref=e1130] [cursor=pointer]:
+                          - generic [ref=e1131]: keyboard_arrow_down
+                        - 'button "Experiment 03: Convergence Detection (RQ3)" [ref=e1132] [cursor=pointer]'
+                      - group [ref=e1133]:
+                        - 'treeitem "Findings 6--7: Convergence signals are topology-dependent." [ref=e1134]':
+                          - 'button "Findings 6--7: Convergence signals are topology-dependent." [ref=e1136] [cursor=pointer]'
+                    - 'treeitem "Experiment 04: Error Attribution (RQ4)" [expanded] [ref=e1137]':
+                      - generic [ref=e1138]:
+                        - button "Collapse" [ref=e1139] [cursor=pointer]:
+                          - generic [ref=e1140]: keyboard_arrow_down
+                        - 'button "Experiment 04: Error Attribution (RQ4)" [ref=e1141] [cursor=pointer]'
+                      - group [ref=e1142]:
+                        - 'treeitem "Finding 8: Three distinct termination failure modes." [ref=e1143]':
+                          - 'button "Finding 8: Three distinct termination failure modes." [ref=e1145] [cursor=pointer]'
+                    - 'treeitem "Experiment 05: Adaptive Termination (RQ5)" [expanded] [ref=e1146]':
+                      - generic [ref=e1147]:
+                        - button "Collapse" [ref=e1148] [cursor=pointer]:
+                          - generic [ref=e1149]: keyboard_arrow_down
+                        - 'button "Experiment 05: Adaptive Termination (RQ5)" [ref=e1150] [cursor=pointer]'
+                      - group [ref=e1151]:
+                        - 'treeitem "Findings 9--11: $\\Delta U$ is a topology-dependent diagnostic." [ref=e1152]':
+                          - 'button "Findings 9--11: $\\Delta U$ is a topology-dependent diagnostic." [ref=e1154] [cursor=pointer]'
+                        - treeitem "Hybrid Validation." [ref=e1155]:
+                          - button "Hybrid Validation." [ref=e1157] [cursor=pointer]
+                    - treeitem "Cross-Model Validation" [ref=e1158]:
+                      - button "Cross-Model Validation" [ref=e1160] [cursor=pointer]
+                    - 'treeitem "Experiment 06: Cost Prediction (RQ6)" [expanded] [ref=e1161]':
+                      - generic [ref=e1162]:
+                        - button "Collapse" [ref=e1163] [cursor=pointer]:
+                          - generic [ref=e1164]: keyboard_arrow_down
+                        - 'button "Experiment 06: Cost Prediction (RQ6)" [ref=e1165] [cursor=pointer]'
+                      - group [ref=e1166]:
+                        - 'treeitem "Finding 15: Topology features predict 54\\% of cost variance." [ref=e1167]':
+                          - 'button "Finding 15: Topology features predict 54\\% of cost variance." [ref=e1169] [cursor=pointer]'
+                        - 'treeitem "Finding 16: Holdout generalization is limited." [ref=e1170]':
+                          - 'button "Finding 16: Holdout generalization is limited." [ref=e1172] [cursor=pointer]'
+                    - 'treeitem "Experiment 07: Task Difficulty Interaction (RQ7)" [expanded] [ref=e1173]':
+                      - generic [ref=e1174]:
+                        - button "Collapse" [ref=e1175] [cursor=pointer]:
+                          - generic [ref=e1176]: keyboard_arrow_down
+                        - 'button "Experiment 07: Task Difficulty Interaction (RQ7)" [ref=e1177] [cursor=pointer]'
+                      - group [ref=e1178]:
+                        - 'treeitem "Finding 17: Difficulty dominates pattern choice." [ref=e1179]':
+                          - 'button "Finding 17: Difficulty dominates pattern choice." [ref=e1181] [cursor=pointer]'
+                        - 'treeitem "Finding 18: Inverted-U relationship." [ref=e1182]':
+                          - 'button "Finding 18: Inverted-U relationship." [ref=e1184] [cursor=pointer]'
+                        - 'treeitem "Finding 19: Solo dominates cost-efficiency." [ref=e1185]':
+                          - 'button "Finding 19: Solo dominates cost-efficiency." [ref=e1187] [cursor=pointer]'
+                - treeitem "Discussion" [expanded] [ref=e1188]:
+                  - generic [ref=e1189]:
+                    - button "Collapse" [ref=e1190] [cursor=pointer]:
+                      - generic [ref=e1191]: keyboard_arrow_down
+                    - button "Discussion" [ref=e1192] [cursor=pointer]
+                  - group [ref=e1193]:
+                    - treeitem "Design Guidelines" [ref=e1194]:
+                      - button "Design Guidelines" [ref=e1196] [cursor=pointer]
+                    - treeitem "Limitations" [ref=e1197]:
+                      - button "Limitations" [ref=e1199] [cursor=pointer]
+                - treeitem "Conclusion" [ref=e1200]:
+                  - button "Conclusion" [ref=e1202] [cursor=pointer]
+                - treeitem "Task Suite" [ref=e1203]:
+                  - button "Task Suite" [ref=e1205] [cursor=pointer]
+                - treeitem "Detailed Results" [expanded] [ref=e1206]:
+                  - generic [ref=e1207]:
+                    - button "Collapse" [ref=e1208] [cursor=pointer]:
+                      - generic [ref=e1209]: keyboard_arrow_down
+                    - button "Detailed Results" [ref=e1210] [cursor=pointer]
+                  - group [ref=e1211]:
+                    - 'treeitem "Category A: Flat Sequential Patterns" [ref=e1212]':
+                      - 'button "Category A: Flat Sequential Patterns" [ref=e1214] [cursor=pointer]'
+                    - 'treeitem "Category B: Dynamic Routing Patterns" [ref=e1215]':
+                      - 'button "Category B: Dynamic Routing Patterns" [ref=e1217] [cursor=pointer]'
+                    - 'treeitem "Category C: Structured Feedback Patterns" [ref=e1218]':
+                      - 'button "Category C: Structured Feedback Patterns" [ref=e1220] [cursor=pointer]'
+                    - 'treeitem "Category D: Composed Patterns" [ref=e1221]':
+                      - 'button "Category D: Composed Patterns" [ref=e1223] [cursor=pointer]'
+                    - treeitem "Statistical Tests" [ref=e1224]:
+                      - button "Statistical Tests" [ref=e1226] [cursor=pointer]
+                    - treeitem "Quality Trajectories" [ref=e1227]:
+                      - button "Quality Trajectories" [ref=e1229] [cursor=pointer]
+                    - treeitem "Cross-Validation" [ref=e1230]:
+                      - button "Cross-Validation" [ref=e1232] [cursor=pointer]
+                    - treeitem "Marginal Utility Pre-Validation" [ref=e1233]:
+                      - button "Marginal Utility Pre-Validation" [ref=e1235] [cursor=pointer]
+                    - treeitem "Domain Analysis" [ref=e1236]:
+                      - button "Domain Analysis" [ref=e1238] [cursor=pointer]
+                    - treeitem "Convergence Analysis" [ref=e1239]:
+                      - button "Convergence Analysis" [ref=e1241] [cursor=pointer]
+                    - treeitem "Error Analysis" [ref=e1242]:
+                      - button "Error Analysis" [ref=e1244] [cursor=pointer]
+                - treeitem "Pattern Implementation Details" [ref=e1245]:
+                  - button "Pattern Implementation Details" [ref=e1247] [cursor=pointer]
+                - treeitem "Statistical Variability" [ref=e1248]:
+                  - button "Statistical Variability" [ref=e1250] [cursor=pointer]
+                - treeitem "Main Text Supporting Tables and Figures" [ref=e1251]:
+                  - button "Main Text Supporting Tables and Figures" [ref=e1253] [cursor=pointer]
+                - treeitem "Compressed Findings Summary" [ref=e1254]:
+                  - button "Compressed Findings Summary" [ref=e1256] [cursor=pointer]
+                - treeitem "Difficulty-Graded Task Suite" [ref=e1257]:
+                  - button "Difficulty-Graded Task Suite" [ref=e1259] [cursor=pointer]
+        - separator [ref=e445]:
+          - generic "Resize" [ref=e446]:
+            - button "Click to hide the panel" [ref=e447] [cursor=pointer]:
+              - generic: chevron_left
+        - generic [ref=e449]:
+          - region "Editor" [ref=e450]:
+            - generic [ref=e457]:
+              - generic [ref=e460]:
+                - toolbar "Editor tools" [ref=e461]:
+                  - generic "Code and visual editor switch" [ref=e462]:
+                    - group "Editor mode." [ref=e464]:
+                      - generic [ref=e465]: Editor mode.
+                      - radio "Code Editor" [checked] [ref=e466]
+                      - generic [ref=e468] [cursor=pointer]: Code Editor
+                      - generic [ref=e469]:
+                        - radio "Visual Editor" [ref=e470]
+                        - generic [ref=e472] [cursor=pointer]: Visual Editor
+                  - generic "Undo/Redo actions" [ref=e473]:
+                    - button "Undo" [ref=e474] [cursor=pointer]:
+                      - generic [ref=e475]: undo
+                      - generic [ref=e476]: Undo
+                    - button "Redo" [ref=e477] [cursor=pointer]:
+                      - generic [ref=e478]: redo
+                      - generic [ref=e479]: Redo
+                  - generic "Text formatting":
+                    - button "Choose section heading level" [ref=e481] [cursor=pointer]:
+                      - generic [ref=e482]: Normal text
+                      - generic [ref=e483]: expand_more
+                  - generic "Text style" [ref=e484]:
+                    - button "Bold" [ref=e485] [cursor=pointer]:
+                      - generic [ref=e486]: format_bold
+                      - generic [ref=e487]: Bold
+                    - button "Italic" [ref=e488] [cursor=pointer]:
+                      - generic [ref=e489]: format_italic
+                      - generic [ref=e490]: Italic
+                  - generic "Insert math and symbols"
+                  - generic "Insert misc (links, citations, cross-references, figures, tables)"
+                  - generic "List and indentation"
+                  - button "More editor toolbar items" [ref=e492] [cursor=pointer]:
+                    - generic [ref=e493]: more_horiz
+                  - generic [ref=e494]:
+                    - button "Toggle Writefull toolbar" [ref=e497] [cursor=pointer]:
+                      - img "Writefull logo" [ref=e498]
+                    - button "Search file" [ref=e499] [cursor=pointer]:
+                      - generic [ref=e500]: search
+                      - generic [ref=e501]: Search file
+                - menubar "Writefull toolbar" [ref=e503]:
+                  - generic "Writefull suggestions" [ref=e504]:
+                    - button "Reject suggestion" [disabled] [ref=e506]:
+                      - generic [ref=e507]: close
+                    - button "Block this suggestion from appearing again" [disabled] [ref=e509]:
+                      - generic [ref=e510]: block
+                    - button "Accept suggestion" [disabled] [ref=e512]:
+                      - generic [ref=e513]: check
+                    - button "Previous suggestion" [ref=e515] [cursor=pointer]:
+                      - generic [ref=e516]: chevron_left
+                    - button "Next suggestion" [ref=e518] [cursor=pointer]:
+                      - generic [ref=e519]: chevron_right
+                  - generic "Generation options" [ref=e520]:
+                    - button "Get AI assistance for your LaTeX writing and more" [ref=e522] [cursor=pointer]:
+                      - generic [ref=e523]: smart_toy
+                  - generic "Settings" [ref=e555]:
+                    - button "Settings" [ref=e557] [cursor=pointer]:
+                      - generic [ref=e558]: settings
+                  - button "More editor toolbar items" [ref=e560] [cursor=pointer]:
+                    - generic [ref=e561]: more_horiz
+                - generic [ref=e1260]:
+                  - generic [ref=e1261]: description
+                  - generic [ref=e1262]: main.tex
+              - generic [ref=e565]:
+                - generic [ref=e566]:
+                  - generic [ref=e567]:
+                    - generic [ref=e568]: "1"
+                    - generic [ref=e569]: "2"
+                    - generic [ref=e570]: "3"
+                    - generic [ref=e571]: "4"
+                    - generic [ref=e572]: "5"
+                    - generic [ref=e573]: "6"
+                    - generic [ref=e574]: "7"
+                    - generic [ref=e575]: "8"
+                    - generic [ref=e576]: "9"
+                    - generic [ref=e577]: "10"
+                    - generic [ref=e578]: "11"
+                    - generic [ref=e579]: "12"
+                    - generic [ref=e580]: "13"
+                    - generic [ref=e581]: "14"
+                    - generic [ref=e582]: "15"
+                    - generic [ref=e583]: "16"
+                    - generic [ref=e584]: "17"
+                    - generic [ref=e585]: "18"
+                    - generic [ref=e586]: "19"
+                    - generic [ref=e587]: "20"
+                    - generic [ref=e588]: "21"
+                    - generic [ref=e589]: "22"
+                    - generic [ref=e590]: "23"
+                    - generic [ref=e591]: "24"
+                    - generic [ref=e592]: "25"
+                    - generic [ref=e593]: "26"
+                    - generic [ref=e594]: "27"
+                    - generic [ref=e595]: "28"
+                    - generic [ref=e596]: "29"
+                    - generic [ref=e597]: "30"
+                    - generic [ref=e598]: "31"
+                    - generic [ref=e599]: "32"
+                    - generic [ref=e600]: "33"
+                    - generic [ref=e601]: "34"
+                    - generic [ref=e602]: "35"
+                    - generic [ref=e603]: "36"
+                    - generic [ref=e604]: "37"
+                    - generic [ref=e605]: "38"
+                  - generic [ref=e606]:
+                    - generic [ref=e609] [cursor=pointer]: ▾
+                    - generic [ref=e611] [cursor=pointer]: ▾
+                    - generic [ref=e613] [cursor=pointer]: ▾
+                - textbox "Source Editor editing" [ref=e617]:
+                  - generic [ref=e618]: "\\documentclass{article}"
+                  - generic [ref=e619]: "\\usepackage[submission]{colm2026_conference}"
+                  - generic [ref=e622]: "\\usepackage{microtype}"
+                  - generic [ref=e623]: "\\usepackage{hyperref}"
+                  - generic [ref=e624]: "\\usepackage{url}"
+                  - generic [ref=e625]: "\\usepackage{booktabs}"
+                  - generic [ref=e626]: "\\usepackage{graphicx}"
+                  - generic [ref=e627]: "\\usepackage{amsmath,amsfonts}"
+                  - generic [ref=e628]: "\\usepackage{multirow}"
+                  - generic [ref=e629]: "\\usepackage{xcolor}"
+                  - generic [ref=e630]: "\\usepackage{lineno}"
+                  - generic [ref=e633]: "\\definecolor{darkblue}{rgb}{0, 0, 0.5}"
+                  - generic [ref=e634]: "\\hypersetup{colorlinks=true, citecolor=darkblue, linkcolor=darkblue, urlcolor=darkblue}"
+                  - generic [ref=e637]: "\\DeclareMathOperator*{\\argmax}{arg\\,max}"
+                  - generic [ref=e638]: "\\DeclareMathOperator*{\\argmin}{arg\\,min}"
+                  - generic [ref=e641]: "\\title{When Should Multi-Agent Teams Stop? A Systematic Study of \\\\ Termination Dynamics Across 14 Coordination Topologies}"
+                  - generic [ref=e644]: "\\author{Anonymous Authors\\\\"
+                  - generic [ref=e645]: Anonymous Institution\\
+                  - generic [ref=e646]: "\\texttt{anonymous@example.com}}"
+                  - generic [ref=e649]: "\\newcommand{\\fix}{\\marginpar{FIX}}"
+                  - generic [ref=e650]: "\\newcommand{\\new}{\\marginpar{NEW}}"
+                  - generic [ref=e653]: "\\begin{document}"
+                  - generic [ref=e656]: \ifcolmsubmission
+                  - generic [ref=e657]: \linenumbers
+                  - generic [ref=e658]: \fi
+                  - generic [ref=e661]: \maketitle
+                  - generic [ref=e664]: "\\begin{abstract}"
+                  - generic [ref=e665]: "When should multi-agent LLM teams---an increasingly common mechanism for scaling inference-time compute---stop working? Current stopping criteria---fixed turn limits, keyword matching, or timeouts---ignore a critical factor: \\emph{how agents coordinate determines when they should stop}. We present the first systematic study of termination dynamics across 13 coordination patterns spanning six topology categories, through 2,200+ runs within a unified AutoGen framework. Our analysis yields several counterintuitive findings. First, a 3-agent decentralized swarm is \\emph{cheaper} than a 2-agent sequential chain (3,203 vs.\\ 4,759 tokens; $U$=95, $p<$0.001)---more agents can cost less when communication patterns differ. Second, multi-agent debate exhibits monotonic quality \\emph{decline} after the first round (3.8$\\to$3.4$\\to$3.3). Third, the simple \\texttt{TERMINATE} keyword is near-optimal for 7 of 8 topologies (800-run controlled experiment), validating existing practitioner heuristics. Fourth, centralized and decentralized routing show fundamentally different cost scaling (sub-linear vs.\\ super-linear), establishing the revised hierarchy $\\text{A} \\approx \\text{B2} < \\text{B1} \\approx \\text{C} \\ll \\text{D}$. Fifth, topology features alone predict 54\\% of runtime cost variance ($R^2$=0.54). Sixth, task difficulty dominates topology choice ($\\eta^2$=0.249, large effect) with a surprising inverted-U pattern: single agents achieve the highest quality for both easy (4.73) and hard (3.67) tasks, while multi-agent feedback excels only at medium difficulty. The marginal utility criterion $\\Delta U(t)$ identifies the specific topology class where keyword termination fails, enabling a hybrid stopping strategy. We release our experimental framework and propose five design guidelines for topology-aware termination."
+                - button "Editing" [ref=e668] [cursor=pointer]:
+                  - generic [ref=e669]: edit
+                  - generic "Editing" [ref=e670]
+                  - generic [ref=e671]: keyboard_arrow_down
+          - separator [ref=e672]:
+            - generic "Resize" [ref=e673]:
+              - button "Click to hide the PDF" [ref=e674] [cursor=pointer]:
+                - generic: chevron_right
+              - generic [ref=e675]:
+                - button "Go to code location in PDF" [ref=e1263] [cursor=pointer]:
+                  - generic [ref=e1265]: arrow_right_alt
+                - 'button "Go to PDF location in code (Tip: double click on the PDF for best results)" [ref=e711] [cursor=pointer]':
+                  - generic [ref=e713]: arrow_left_alt
+          - region "PDF preview" [ref=e676]:
+            - generic [ref=e677]:
+              - toolbar "PDF" [ref=e678]:
+                - generic [ref=e679]:
+                  - group [ref=e680]:
+                    - button "Recompile" [ref=e681] [cursor=pointer]:
+                      - generic [ref=e682]: Recompile
+                    - button "Toggle compile options menu" [ref=e683] [cursor=pointer]:
+                      - generic [ref=e684]: expand_more
+                  - button "View logs" [ref=e685] [cursor=pointer]:
+                    - generic [ref=e686]:
+                      - generic [ref=e687]: description
+                      - generic:
+                        - generic: "2"
+                  - link "Download PDF" [ref=e688] [cursor=pointer]:
+                    - /url: /download/project/69b910be4382bde4a4e2fe00/build/19cfb110c69-9ca23a5fba478eec/output/output.pdf?compileGroup=standard&clsiserverid=clsi-pre-emp-c3d-c-f-sv6m&enable_pdf_caching=true&popupDownload=true&editorId=302043ab-05a3-40cb-ac36-f643d33031b4
+                    - generic [ref=e690]: download
+                - generic [ref=e714]:
+                  - button "Invert PDF preview colors" [ref=e986] [cursor=pointer]:
+                    - generic [ref=e988]: invert_colors
+                  - group [ref=e989]:
+                    - button "Previous page" [disabled] [ref=e990]:
+                      - generic [ref=e992]: keyboard_arrow_up
+                    - button "Next page" [ref=e993] [cursor=pointer]:
+                      - generic [ref=e995]: keyboard_arrow_down
+                  - generic [ref=e996]:
+                    - textbox "Page 1, Current Page" [ref=e1746]: "1"
+                    - generic [ref=e999]: / 22
+                  - generic [ref=e1000]:
+                    - group [ref=e1001]:
+                      - button "Zoom out" [ref=e1002] [cursor=pointer]:
+                        - generic [ref=e1004]: remove
+                      - button "Zoom in" [ref=e1005] [cursor=pointer]:
+                        - generic [ref=e1007]: add
+                    - button "PDF zoom level" [ref=e1009] [cursor=pointer]: 121%
+              - tabpanel [ref=e695]:
+                - generic [ref=e696]:
+                  - generic "Page ⁨1⁩" [ref=e1638]:
+                    - generic [ref=e1748]:
+                      - text: "Under review as a conference paper at COLM 2026 When Should Multi-Agent Teams Stop? A Systematic Study of Termination Dynamics Across 14 Coordination Topologies Anonymous authors Paper under double-blind review Abstract When should multi-agent LLM teams—an increasingly common mecha- 1 nism for scaling inference-time compute—stop working? Current stopping 2 criteria—fixed turn limits, keyword matching, or timeouts—ignore a critical 3 factor: how agents coordinate determines when they should stop . We present 4 the first systematic study of termination dynamics across 13 coordination 5 patterns spanning six topology categories, through 2,200+ runs within a 6 unified AutoGen framework. Our analysis yields several counterintuitive 7 findings. First, a 3-agent decentralized swarm is cheaper than a 2-agent 8 sequential chain (3,203 vs. 4,759 tokens; U =95, p < 0.001)—more agents 9 can cost less when communication patterns differ. Second, multi-agent de- 10 bate exhibits monotonic quality decline after the first round (3.8 → 3.4 → 3.3). 11 Third, the simple TERMINATE keyword is near-optimal for 7 of 8 topologies 12 (800-run controlled experiment), validating existing practitioner heuris- 13 tics. Fourth, centralized and decentralized routing show fundamentally 14 different cost scaling (sub-linear vs. super-linear), establishing the revised 15 hierarchy A ≈ B2 < B1 ≈ C ≪ D . Fifth, topology features alone predict 16 54% of runtime cost variance ( R 2 =0.54). Sixth, task difficulty dominates 17 topology choice ( η 2 =0.249, large effect) with a surprising inverted-U pat- 18 tern: single agents achieve the highest quality for both easy (4.73) and hard 19 (3.67) tasks, while multi-agent feedback excels only at medium difficulty. 20 The marginal utility criterion ∆ U ( t ) identifies the specific topology class 21 where keyword termination fails, enabling a hybrid stopping strategy. We 22 release our experimental framework and propose five design guidelines 23 for topology-aware termination. 24 1 Introduction 25 1.1 The Termination Problem in Multi-Agent Teams 26 The deployment of large language model (LLM) based multi-agent systems has expanded 27"
+                      - generic [ref=e1749]:
+                        - text: rapidly, with frameworks such as AutoGen (Wu et al., 2023), CrewAI, and LangGraph en-
+                        - link [ref=e1750] [cursor=pointer]:
+                          - /url: "#cite.wu2023autogen"
+                        - link [ref=e1751] [cursor=pointer]:
+                          - /url: "#cite.wu2023autogen"
+                      - text: "28 abling diverse coordination patterns for complex reasoning tasks. These systems coordinate 29 multiple specialized agents through topologies ranging from simple round-robin chains to 30 sophisticated debate protocols and hierarchical pipelines. However, a fundamental question 31 remains largely unexplored: when should these teams stop? This question connects directly 32 to inference-time compute scaling : multi-agent coordination represents structured test-time 33 compute allocation across specialized agents, and the optimal stopping point defines the 34 saturation boundary beyond which additional computation yields diminishing returns. 35 Current practice relies on rudimentary stopping criteria applied uniformly across topologies: 36 (i) a fixed maximum number of turns, (ii) keyword detection (e.g., “TERMINATE”), and 37 (iii) external timeout signals. These heuristics ignore a critical insight: the optimal stopping 38 point depends fundamentally on how agents coordinate . A round-robin team of two agents 39 solving a factual question may reach a satisfactory answer in two turns, while a three-agent 40 debate team may need several exchange rounds to converge. Applying the same termination 41 1"
+                  - generic "Page ⁨2⁩" [ref=e1646]:
+                    - generic [ref=e1755]:
+                      - text: "Under review as a conference paper at COLM 2026 logic to both configurations inevitably leads to either premature stopping (quality loss) or 42 unnecessary computation (resource waste). 43 We term this mismatch termination regret —the gap between when a team actually stopped 44 and when it should have stopped to optimize the quality-cost tradeoff. 45 1.2 Research Questions 46 This work investigates seven research questions: RQ1 : How do termination dynamics 47 differ across topologies? (Exp 01) RQ2 : Can we detect termination regret via per-turn 48 quality trajectories? (Exp 02) RQ3 : Do feedback patterns exhibit convergence signals? 49 (Exp 03) RQ4 : Do topologies produce characteristic error patterns? (Exp 04) RQ5 : Does 50 ∆ U ( t ) = ∆ Q ( t ) − λ · ∆ C ( t ) converge to zero as a topology-aware termination signal? 51 (Exp 05) RQ6 : Can topology features predict runtime costs? (Exp 06) RQ7 : How does 52 task difficulty moderate optimal topology choice? (Exp 07) 53 1.3 Contributions 54 We make seven contributions: 55 1. Cross-topology termination study : first comparison across 14 patterns in a single 56 framework (AutoGen), spanning six categories; prior work covers at most 2–3 57"
+                      - generic [ref=e1756]:
+                        - text: patterns (Cemri et al., 2025; Hu et al., 2025).
+                        - link [ref=e1757] [cursor=pointer]:
+                          - /url: "#cite.cemri2025why"
+                        - link [ref=e1758] [cursor=pointer]:
+                          - /url: "#cite.hu2025when"
+                        - link [ref=e1759] [cursor=pointer]:
+                          - /url: "#cite.hu2025when"
+                      - generic [ref=e1760]:
+                        - text: "58"
+                        - link [ref=e1761] [cursor=pointer]:
+                          - /url: "#cite.cemri2025why"
+                      - text: "2."
+                      - generic [ref=e1762]:
+                        - text: Termination regret metric
+                        - link [ref=e1763] [cursor=pointer]:
+                          - /url: "#cite.liu2023geval"
+                      - generic [ref=e1764]:
+                        - text: ": post-hoc G-Eval (Liu et al., 2023) quality trajectories"
+                        - link [ref=e1765] [cursor=pointer]:
+                          - /url: "#cite.liu2023geval"
+                      - text: 59 identifying when quality peaked vs. when teams stopped. 60 3.
+                      - generic [ref=e1766]:
+                        - text: Claim-level convergence detection
+                        - link [ref=e1767] [cursor=pointer]:
+                          - /url: "#cite.hu2025when"
+                      - generic [ref=e1768]:
+                        - text: ": extending Hu et al. (2025)’s KS-test from"
+                        - link [ref=e1769] [cursor=pointer]:
+                          - /url: "#cite.hu2025when"
+                      - text: "61"
+                      - generic [ref=e1770]:
+                        - text: debate-only to all 13 topologies via sentence-transformer embeddings (Reimers &
+                        - link [ref=e1771] [cursor=pointer]:
+                          - /url: "#cite.reimers2019sentencebert"
+                      - generic [ref=e1772]:
+                        - text: "62"
+                        - link [ref=e1773] [cursor=pointer]:
+                          - /url: "#cite.reimers2019sentencebert"
+                      - generic [ref=e1774]:
+                        - text: Gurevych, 2019).
+                        - link [ref=e1775] [cursor=pointer]:
+                          - /url: "#cite.reimers2019sentencebert"
+                      - generic [ref=e1776]:
+                        - text: "63"
+                        - link [ref=e1777] [cursor=pointer]:
+                          - /url: "#cite.reimers2019sentencebert"
+                      - text: "4. Pattern-specific error taxonomy : error types correlate with topology—sequential 64 patterns produce context overflow; decentralized patterns produce turn explosion. 65 5. Marginal utility diagnostic : ∆ U ( t ) = ∆ Q ( t ) − λ · ∆ C ( t ) → 0 converges via quality 66 saturation (1.1–2.4 turns), revealing where keyword termination fails. 67 6. Cost prediction : topology features predict 54% of runtime cost variance (RF R 2 =0.54, 68 5-fold CV). 69 7. Difficulty-aware recommendation : inverted-U pattern—solo optimal for 70 easy/hard tasks; multi-agent feedback for medium only ( η 2 H =0.249 difficulty vs. 71 0.020 pattern). 72 1.4 Scope and Positioning 73 This work is an empirical benchmarking study , not an algorithmic contribution. Its 74 value lies in the same tradition as systematic benchmarks (e.g., GLUE for NLU, HELM 75 for language models): providing rigorous, large-scale empirical evidence that challenges 76 assumptions, calibrates intuitions, and informs design decisions. No prior work has sys- 77 tematically compared termination dynamics across more than 2–3 patterns within a single 78 controlled framework. By spanning 13 patterns, 7 experiments, and 2,200+ runs, we provide 79 the empirical foundation that future algorithmic work can build upon. 80 2 Background and Related Work 81 2.1 Multi-Agent Coordination Topologies 82 Multi-agent LLM systems employ diverse coordination strategies. Grounded in classical 83 MAS topology theory (Masterman et al., 2025)—which identifies chain, star, and mesh as"
+                      - generic [ref=e1778]:
+                        - text: "84"
+                        - link [ref=e1779] [cursor=pointer]:
+                          - /url: "#cite.masterman2025landscape"
+                        - link [ref=e1780] [cursor=pointer]:
+                          - /url: "#cite.masterman2025landscape"
+                      - generic [ref=e1781]:
+                        - text: "canonical topologies—we organize 13 patterns into five categories (Figure 1):"
+                        - link [ref=e1782] [cursor=pointer]:
+                          - /url: "#figure.1"
+                      - text: 85 2
+                  - generic "Page ⁨3⁩" [ref=e1691]:
+                    - generic [ref=e1799]:
+                      - text: "Under review as a conference paper at COLM 2026 Sequential Chain (A). Round-robin patterns cycle agents in fixed order. Each agent sees the 86 full conversation history but cannot influence routing. Patterns: RR-2, RR-3, RR-4. 87 Centralized Routing / Star (B1). A dedicated coordinator agent analyzes conversation state 88 and centrally decides which specialist to invoke next, corresponding to the hub-and-spoke 89 topology. Patterns: Sel-3, Sel-4. 90 Decentralized Handoff / Mesh (B2). Without a central coordinator, each agent au- 91 tonomously decides when and to whom to hand off control via tool calls. No coordination 92 bottleneck exists, but turn explosion risk is significant. Patterns: Swm-3, Swm-4. 93 Structured Feedback (C). Agents iteratively refine outputs through explicit feedback loops— 94 reflection (generator-critic) or debate (argumentation with moderator). Patterns: Refl-2, 95 Refl-3, Deb-3, Deb-4. 96 Composed/Nested (D). Multiple stages or layers are composed into pipeline or mixture-of- 97 agents (MoA) architectures. Patterns: Pipe, MoA. 98"
+                      - generic [ref=e1800]:
+                        - text: "Prior frameworks have implemented subsets: AutoGen (Wu et al., 2023) supports round-"
+                        - link [ref=e1801] [cursor=pointer]:
+                          - /url: "#cite.wu2023autogen"
+                        - link [ref=e1802] [cursor=pointer]:
+                          - /url: "#cite.wu2023autogen"
+                      - text: "99"
+                      - generic [ref=e1803]:
+                        - text: robin, selector, and swarm; DyTopo (Lu et al., 2026) enables dynamic topology switching;
+                        - link [ref=e1804] [cursor=pointer]:
+                          - /url: "#cite.lu2026dytopo"
+                      - generic [ref=e1805]:
+                        - text: "100"
+                        - link [ref=e1806] [cursor=pointer]:
+                          - /url: "#cite.lu2026dytopo"
+                      - generic [ref=e1807]:
+                        - text: MoA (Li et al., 2025) introduces layered aggregation. Wang et al. (2025a) apply small-world
+                        - link [ref=e1808] [cursor=pointer]:
+                          - /url: "#cite.wang2025rethinking"
+                        - link [ref=e1809] [cursor=pointer]:
+                          - /url: "#cite.wang2025rethinking"
+                      - generic [ref=e1810]:
+                        - text: "101"
+                        - link [ref=e1811] [cursor=pointer]:
+                          - /url: "#cite.li2025moa"
+                        - link [ref=e1812] [cursor=pointer]:
+                          - /url: "#cite.li2025moa"
+                      - generic [ref=e1813]:
+                        - text: network theory to multi-agent debate. MegaAgent (Sun et al., 2025b) demonstrates that
+                        - link [ref=e1814] [cursor=pointer]:
+                          - /url: "#cite.sun2025megaagent"
+                        - link [ref=e1815] [cursor=pointer]:
+                          - /url: "#cite.sun2025megaagent"
+                      - text: "102"
+                      - generic [ref=e1816]:
+                        - text: inter-agent dialogue tokens dominate total cost at scale. G-Designer (Zhang et al., 2025) uses
+                        - link [ref=e1817] [cursor=pointer]:
+                          - /url: "#cite.zhang2025gdesigner"
+                        - link [ref=e1818] [cursor=pointer]:
+                          - /url: "#cite.zhang2025gdesigner"
+                      - text: 103 variational graph auto-encoders to dynamically generate task-specific topologies, achieving 104
+                      - generic [ref=e1819]:
+                        - text: up to 95.33% token reduction. The concurrent “Scaling Agent Systems” study (Xiong et al.,
+                        - link [ref=e1820] [cursor=pointer]:
+                          - /url: "#cite.xiong2025scaling"
+                      - text: "105"
+                      - generic [ref=e1821]:
+                        - text: 2025) evaluates 5 architectures across 180 configurations. AgentDropout (Wang et al., 2025b)
+                        - link [ref=e1822] [cursor=pointer]:
+                          - /url: "#cite.wang2025agentdropout"
+                        - link [ref=e1823] [cursor=pointer]:
+                          - /url: "#cite.wang2025agentdropout"
+                      - generic [ref=e1824]:
+                        - text: "106"
+                        - link [ref=e1825] [cursor=pointer]:
+                          - /url: "#cite.xiong2025scaling"
+                      - text: optimizes communication graph adjacency matrices to eliminate redundant agents. Our 107 study complements these by focusing specifically on termination dynamics . 108 2.2 Stopping Criteria in LLM Systems 109 Single-Agent.
+                      - generic [ref=e1826]:
+                        - link [ref=e1827] [cursor=pointer]:
+                          - /url: "#cite.sun2025refrain"
+                        - link [ref=e1828] [cursor=pointer]:
+                          - /url: "#cite.sun2025refrain"
+                      - text: REFRAIN (Sun et al., 2025a) addresses “overthinking” in CoT reasoning 110 through a stop discriminator combined with UCB multi-armed bandit control, reducing 111
+                      - generic [ref=e1829]:
+                        - text: tokens by 20–55%. Self-consistency (Wang et al., 2023) implicitly uses convergence detection.
+                        - link [ref=e1830] [cursor=pointer]:
+                          - /url: "#cite.wang2023selfconsistency"
+                      - generic [ref=e1831]:
+                        - text: "112"
+                        - link [ref=e1832] [cursor=pointer]:
+                          - /url: "#cite.wang2023selfconsistency"
+                      - text: Multi-Agent.
+                      - generic [ref=e1833]:
+                        - link [ref=e1834] [cursor=pointer]:
+                          - /url: "#cite.hu2025when"
+                        - link [ref=e1835] [cursor=pointer]:
+                          - /url: "#cite.hu2025when"
+                      - text: Hu et al. (2025) propose adaptive stability detection for debate via KS-test on 113
+                      - generic [ref=e1836]:
+                        - text: Beta-Binomial distributions. Ruan & Wang (2025) introduce Aegean, a formal consensus
+                        - link [ref=e1837] [cursor=pointer]:
+                          - /url: "#cite.ruan2025reaching"
+                      - generic [ref=e1838]:
+                        - text: "114"
+                        - link [ref=e1839] [cursor=pointer]:
+                          - /url: "#cite.ruan2025reaching"
+                      - text: protocol with incremental quorum detection achieving 1.2–20 ×
+                      - generic [ref=e1840]:
+                        - text: latency reduction. Cemri
+                        - link [ref=e1841] [cursor=pointer]:
+                          - /url: "#cite.cemri2025why"
+                      - generic [ref=e1842]:
+                        - text: "115"
+                        - link [ref=e1843] [cursor=pointer]:
+                          - /url: "#cite.cemri2025why"
+                      - generic [ref=e1844]:
+                        - text: et al. (2025) identify termination as one of three failure categories. SupervisorAgent (Lin
+                        - link [ref=e1845] [cursor=pointer]:
+                          - /url: "#cite.lin2025stop"
+                      - generic [ref=e1846]:
+                        - text: "116"
+                        - link [ref=e1847] [cursor=pointer]:
+                          - /url: "#cite.cemri2025why"
+                        - link [ref=e1848] [cursor=pointer]:
+                          - /url: "#cite.cemri2025why"
+                        - link [ref=e1849] [cursor=pointer]:
+                          - /url: "#cite.lin2025stop"
+                      - text: et al., 2025) introduces an LLM-free context filter for runtime supervision, reducing tokens
+                      - generic [ref=e1850]:
+                        - text: "117"
+                        - link [ref=e1851] [cursor=pointer]:
+                          - /url: "#cite.lin2025stop"
+                        - link [ref=e1852] [cursor=pointer]:
+                          - /url: "#cite.lin2025stop"
+                      - text: by 29.45%. 118 Gap. No prior work systematically studies how termination dynamics vary across a compre- 119 hensive set of coordination topologies. Our work bridges this gap by studying 14 patterns 120 across six categories. 121 2.3 Quality Evaluation in Multi-Agent Outputs 122 We adopt G-Eval (Liu et al., 2023) as our per-turn quality metric with five dimensions
+                      - generic [ref=e1853]:
+                        - text: "123"
+                        - link [ref=e1854] [cursor=pointer]:
+                          - /url: "#cite.liu2023geval"
+                        - link [ref=e1855] [cursor=pointer]:
+                          - /url: "#cite.liu2023geval"
+                      - text: (accuracy, completeness, coherence, usefulness, overall) scored on a 1–5 scale. For error 124 detection, we align with MAST categories. 125 3 Methodology 126 3.1 Pattern Taxonomy 127 We study 13 coordination patterns plus a single-agent baseline organized into six categories 128 (Figure 1). Each multi-agent pattern is parameterized by agent count n and shares a com-
+                      - generic [ref=e1856]:
+                        - text: "129"
+                        - link [ref=e1857] [cursor=pointer]:
+                          - /url: "#figure.1"
+                      - text: mon termination vocabulary ( TERMINATE keyword for graceful stopping, max messages =25 130 as safety bound). The single-agent baseline (Category S) provides a reference point for 131
+                      - generic [ref=e1858]:
+                        - text: quantifying coordination overhead. Table 2 details the configurations.
+                        - link [ref=e1859] [cursor=pointer]:
+                          - /url: "#table.2"
+                      - text: 132 3
+                  - generic "Page ⁨4⁩" [ref=e1692]:
+                    - generic [ref=e1897]:
+                      - text: "Under review as a conference paper at COLM 2026 Table 1: Comparison with related work on multi-agent termination. Work Patterns Categories Adaptive Convergence MAST (NeurIPS ’25) 2 Debate, voting No Trajectory REFRAIN (’25) 1 CoT (1-agent) Yes"
+                      - generic [ref=e1898]:
+                        - text: N/A
+                        - link [ref=e1899] [cursor=pointer]:
+                          - /url: "#cite.hu2025when"
+                      - generic [ref=e1900]:
+                        - text: Hu et al. (2025)
+                        - link [ref=e1901] [cursor=pointer]:
+                          - /url: "#cite.hu2025when"
+                      - text: 1 Debate Yes Distribution Aegean (’25) N/A Consensus Yes
+                      - generic [ref=e1902]:
+                        - text: Quorum
+                        - link [ref=e1903] [cursor=pointer]:
+                          - /url: "#cite.cemri2025why"
+                      - generic [ref=e1904]:
+                        - text: Cemri et al. (2025)
+                        - link [ref=e1905] [cursor=pointer]:
+                          - /url: "#cite.cemri2025why"
+                      - text: ∼ 5 Mixed No Post-hoc G-Designer (ICML ’25) Dynamic GNN-gen. No N/A Scaling Agents (’25) 5 4 types No
+                      - generic [ref=e1906]:
+                        - text: N/A
+                        - link [ref=e1907] [cursor=pointer]:
+                          - /url: "#cite.wang2025rethinking"
+                      - generic [ref=e1908]:
+                        - text: Wang et al. (2025a)
+                        - link [ref=e1909] [cursor=pointer]:
+                          - /url: "#cite.wang2025rethinking"
+                      - text: "1 Debate No Semantic AgentDropout (ACL ’25) Variable Comm. graphs No N/A SupervisorAgent (’25) 1+ Runtime sup. Yes Context Ours 14 6 categories Yes Claim-level Figure 1: Taxonomy of 14 coordination patterns across six topology categories. Arrows indicate message flow; dashed lines indicate optional paths. 3.2 Task Suite 133 We design 25 tasks across two dimensions: cognitive type (4 categories: factual, analytical, cre- 134 ative, technical) and subject domain (9 domains: science, CS, history, philosophy, law/politics, 135 gaming, engineering, business, medicine). This dual classification enables domain-specific 136"
+                      - generic [ref=e1910]:
+                        - text: topology suitability analysis. Full task descriptions are in Appendix A.
+                        - link [ref=e1911] [cursor=pointer]:
+                          - /url: "#appendix.A"
+                      - text: 137 3.3 Experimental Framework 138 All experiments use AutoGen with a custom ClaudeCLIChatCompletionClient wrapping 139 Claude Haiku 4.5 as the base model. To assess cross-model generalizability, we additionally 140
+                      - generic [ref=e1912]:
+                        - text: replicate Experiment 01 with GPT-4o-mini on 5 representative patterns (Section 4.6). Metrics
+                        - link [ref=e1913] [cursor=pointer]:
+                          - /url: "#subsection.4.6"
+                      - text: "141 per run include: wall-clock duration, turn/agent turn counts, prompt and completion token 142 counts, stop reason, quality score (Exp02), and convergence point (Exp03). For multiple 143 hypothesis tests across findings, we apply Benjamini-Hochberg false discovery rate control 144"
+                      - generic [ref=e1914]:
+                        - text: (Benjamini & Hochberg, 1995) at
+                        - link [ref=e1915] [cursor=pointer]:
+                          - /url: "#cite.benjamini1995controlling"
+                      - text: q < 0.05; all reported significant effects survive correction.
+                      - generic [ref=e1916]:
+                        - text: "145"
+                        - link [ref=e1917] [cursor=pointer]:
+                          - /url: "#cite.benjamini1995controlling"
+                      - text: "3.4 Seven Experiments 146 Experiment 01: Pattern Efficiency (780 runs). All 13 patterns × 20 tasks × 3 repeats. 147 Experiment 02: Termination Quality (100 runs). G-Eval at each turn for 5 patterns × 20 148 tasks, yielding 276 turn-level scores. 149 Experiment 03: Convergence Detection (analysis on 200 runs). Sentence-BERT embeddings 150 on exp01 v2 data for 8 patterns. 151 4"
+                  - generic "Page ⁨5⁩" [ref=e1693]:
+                    - generic [ref=e1929]:
+                      - text: "Under review as a conference paper at COLM 2026 Table 2: Pattern configurations. Agent counts exclude the coordinator in B1/C debate patterns (shown as n +1). Pattern Cat. Agents Routing Termination Solo S 1 None Keyword RR-2 A 2 Fixed RR Keyword/max RR-3 A 3 Fixed RR Keyword/max RR-4 A 4 Fixed RR Keyword/max Sel-3 B1 3+1 LLM-routed Keyword/max Sel-4 B1 4+1 LLM-routed Keyword/max Swm-3 B2 3 Self-routing Keyword/max Swm-4 B2 4 Self-routing Keyword/max Refl-2 C 2 Fixed+feedback Keyword/max Refl-3 C 3 Fixed+feedback Keyword/max Deb-3 C 3+1 Moderated Keyword/max Deb-4 C 4+1 Moderated Keyword/max Pipe D 5 Sequential stages Per-stage MoA D 4 Fan-out/agg. Aggregator Experiment 04: Error Attribution (analysis on 780+200 runs). Structural error classification 152 from exp01/exp02. 153 Experiment 05: Adaptive Termination (800 runs). 8 patterns × 25 tasks × (1 baseline + 3 λ 154 values). 155 Experiment 06: Cost Prediction (analysis only). Regression models on exp01 data to predict 156 costs from topology features. 5-fold CV + holdout on exp05. 157 Experiment 07: Task Difficulty Interaction (225 runs). 5 patterns × 15 difficulty-graded 158 tasks × 3 repeats. G-Eval scored difficulty-aware recommendation matrix. 159 4 Results 160 4.1 Experiment 01: Pattern Efficiency (RQ1) 161 We executed 780 runs (13 patterns × 20 tasks × 3 repeats) measuring duration, LLM call 162 count, and token consumption. 163 Single-Agent Baseline. The solo baseline (1,287 tokens, 18.7s, 100% keyword) establishes 164 a 3.3–6.1 ×"
+                      - generic [ref=e1930]:
+                        - text: coordination overhead across all multi-agent categories (Appendix Table 32).
+                        - link [ref=e1931] [cursor=pointer]:
+                          - /url: "#table.32"
+                      - text: "165 Finding 1: Multi-agent coordination incurs 3.3–6.1 × token overhead over a single agent. 166 Even the most efficient multi-agent pattern (swm3, 3.26 × ) consumes more than three times 167 the tokens of a solo agent. This overhead anchors all subsequent comparisons: any multi- 168 agent topology must justify its coordination cost through measurable quality or capability 169 gains. 170 Table 3 ranks 12 patterns by total token cost (rr4 excluded due to 71.7% error rate from an"
+                      - generic [ref=e1932]:
+                        - text: "171"
+                        - link [ref=e1933] [cursor=pointer]:
+                          - /url: "#table.3"
+                      - generic [ref=e1934]:
+                        - text: infrastructure bug; see Section 4.4).
+                        - link [ref=e1935] [cursor=pointer]:
+                          - /url: "#subsection.4.4"
+                      - text: "172 Category A: Flat Sequential. Adding agents approximately doubles duration 173 (rr3/rr2=1.84 × ) and total tokens (2.13 × ). The cost driver is input token accumulation : input 174 tokens grow at 2.59 × (versus 1.75 × in LLM calls), confirming superlinear context growth 175 as each agent sees the full conversation history. Error rates scale superlinearly: rr2=8.3%, 176 rr3=23.3%, rr4=71.7%. 177 Category B: Dynamic Routing. Selector and swarm represent two fundamentally different 178 routing strategies. Selector produces few turns (3.5–4.1) with long monologues (2,114–2,616 179 out tokens/turn), while swarm produces many turns (10.2–25.0) with short handoffs (330– 180 337 out tokens/turn). Critically, their scaling behaviors are opposite: selector is sub-linear 181 5"
+                  - generic "Page ⁨6⁩" [ref=e1694]:
+                    - generic [ref=e1940]:
+                      - text: "Under review as a conference paper at COLM 2026 Table 3: Cross-category efficiency (12 multi-agent patterns + solo; rr4 excluded: 71.7% error"
+                      - generic [ref=e1941]:
+                        - text: rate). SDs in Appendix D.
+                        - link [ref=e1942] [cursor=pointer]:
+                          - /url: "#appendix.D"
+                      - text: "Pattern Cat. Agents Dur.(s) Tokens Out/Turn vs. solo solo S 1 18.7 1,287 – 1.00 × swm3 B2 3 75.2 4,196 337 3.26 × rr2 A 2 52.4 4,759 1,583 3.70 × refl2 C 2 60.2 5,237 1,732 4.07 × sel3 B1 3+1 115.2 7,851 2,114 6.10 × deb3 C 3+1 156.6 9,313 1,691 7.23 × rr3 A 3 96.6 10,121 1,701 7.86 × sel4 B1 4+1 161.9 11,595 2,616 9.01 × deb4 C 4+1 180.9 11,637 1,448 9.04 × refl3 C 3 120.2 12,095 2,537 9.40 × swm4 B2 4 185.0 13,321 330 10.35 × pipe D 5 129.6 13,856 2,325 10.76 × moa D 4 103.0 22,333 2,494 17.35 × (sel4/sel3=1.48 × ) while swarm is super-linear (swm4/swm3=3.17 × ). At 3 agents, swm3 is 182 47% cheaper than sel3; at 4 agents, swm4 is 15% more expensive than sel4. This crossover 183 has practical implications: swarm routing should be preferred for small teams ( n ≤ 3), while 184 selector scales more gracefully for larger teams. 185 Finding 2: swm3 achieves best overall token efficiency. Remarkably, swm3 (3-agent 186 swarm, 4,196 tokens) is cheaper than rr2 (2-agent round-robin, 4,759 tokens)—a 12% cost 187 reduction with 50% more agents. Intelligent routing compensates for the overhead of 188 additional agents by avoiding full-context broadcasting. 189 Category C: Structured Feedback. Reflection scaling is super-linear (refl3/refl2=2.31 × ); 190 debate is sub-linear (deb4/deb3=1.25 × ). Refl-2 (5,237 tokens) is only 10% costlier than rr2 191 while including critic-approval quality assurance. 192 Category D: Composed Patterns. MoA is the most expensive (22,333 tokens) but 21% 193 faster than pipe via parallelism. Both produce the highest output density per turn. Task 194 complexity amplifies costs: MoA’s tech/fact ratio is 2.51 × . 195 Cross-Category Statistical Tests. Kruskal-Wallis on 718 runs: p < 0.001 for all metrics. 196"
+                      - generic [ref=e1943]:
+                        - text: "Pairwise Mann-Whitney U tests (Appendix Table 15) reveal:"
+                        - link [ref=e1944] [cursor=pointer]:
+                          - /url: "#table.15"
+                      - text: "A ≈ B2 ( p =0.857) < B1 ≈ C 197 ( p =0.695) ≪ D ( p < 0.001). Debate3 is uniquely domain-invariant (CV=0.14); swm3 is 198 domain-sensitive (CV=0.67). 199 4.2 Experiment 02: Termination Quality (RQ2) 200 For five representative patterns (rr3, sel3, swm3, refl2, debate3), we apply G-Eval at each 201 agent turn to construct quality trajectories. Termination regret is R = t actual − t optimal where 202 t optimal = arg max t Q ( t ) . Termination regret ranges from +0.2 turns (swm3) to +2.6 turns 203"
+                      - generic [ref=e1945]:
+                        - text: (rr3), with quality loss spanning 0.00 (refl2) to 0.65 (debate3) (Table 33 in Appendix).
+                        - link [ref=e1946] [cursor=pointer]:
+                          - /url: "#table.33"
+                      - text: "204 Finding 3: Three distinct quality trajectory shapes. (1) rr3 exhibits monotonic-then-plateau : 205 quality rises through turn 3 ( Q =4.5) then stabilizes ( Q loss =0.05). (2) refl2 displays peak-at- 206 turn-2 : a sharp quality jump from the critic’s feedback (3.9 → 4.8), after which the “approve” 207 signal coincides with peak quality ( Q loss =0.00). (3) debate3 shows monotonic decline after 208 turn 1 (3.8 → 3.4 → 3.3), where continued argumentation degrades output ( Q loss =0.65). 209"
+                      - generic [ref=e1947]:
+                        - text: Quality trajectories per turn are in Appendix Tables 17–18.
+                        - link [ref=e1948] [cursor=pointer]:
+                          - /url: "#table.17"
+                        - link [ref=e1949] [cursor=pointer]:
+                          - /url: "#table.18"
+                      - text: "210 Finding 4: Termination regret varies 13 × across topologies. From +0.2 turns (swm3) to 211 +2.6 turns (rr3). The cost of over-computation differs dramatically: debate3 loses 0.65 quality 212 6"
+                  - generic "Page ⁨7⁩" [ref=e1695]:
+                    - generic [ref=e1956]:
+                      - text: "Under review as a conference paper at COLM 2026 Figure 2: Token consumption across all 13 patterns by category. Box plots show median, IQR, and outliers. The 5.3 × range from swm3 to MoA illustrates the impact of topology choice. points from 2.0 excess turns, while rr3 loses only 0.05 from 2.6 excess turns. Termination 213 criteria must be topology-aware. 214 Finding 5: Reflection achieves highest quality with zero quality loss. Refl2 attains 215 Q peak =4.80 with perfect coherence (5.00) and near-perfect usefulness (4.95). Its built-in critic 216 approval closely approximates optimal stopping. 217 Evaluation Validation. Cross-validation with two independent models confirms scoring 218 reliability. GPT-4o-mini (40 samples): r =0.43–0.62, κ w =0.244–0.388, systematic leniency 219 ( ∆ = − 0.50 to − 1.15). GPT-5.4 (100 stratified samples): r =0.54–0.65, κ w =0.357–0.573, overall 220 κ w = 0.415 (moderate agreement). Notably, bias direction reverses : GPT-4o-mini is lenient 221 ( ∆ < 0) while GPT-5.4 is strict ( ∆ > 0), yet both preserve rank-ordering ( ρ =0.53–0.64, all 222 p < 0.001). A three-model pairwise analysis ( N =23 overlapping samples) further confirms: 223 Claude–GPT-5.4 achieves substantial agreement ( κ w =0.732), while the low GPT-4o-mini/GPT- 224 5.4 agreement ( κ w =0.156) reflects opposite calibration biases, not ranking disagreement. This 225 multi-model consensus confirms that our comparative findings are evaluator-independent 226"
+                      - generic [ref=e1957]:
+                        - text: (Appendix Table 19).
+                        - link [ref=e1958] [cursor=pointer]:
+                          - /url: "#table.19"
+                      - text: "227 4.3 Experiment 03: Convergence Detection (RQ3) 228 Findings 6–7: Convergence signals are topology-dependent. Sentence-BERT embeddings 229 on 200 runs reveal that pipeline (D) exhibits the highest convergence rate (32.0% at θ =0.85), 230 followed by centralized B1 (26.0%). Feedback patterns (C) show 0% convergence despite 231 high mean cosine similarity (0.673), confirming they produce semantically similar but never- 232 stabilizing content. Centralized routing shows the strongest positive trends (sel3: +0.397), 233 while swm3 diverges ( −"
+                      - generic [ref=e1959]:
+                        - text: 0.560). Full analysis in Appendix Tables 24–26.
+                        - link [ref=e1960] [cursor=pointer]:
+                          - /url: "#table.24"
+                        - link [ref=e1961] [cursor=pointer]:
+                          - /url: "#table.26"
+                      - text: 234 7
+                  - generic "Page ⁨8⁩" [ref=e1696]:
+                    - generic [ref=e1966]:
+                      - text: "Under review as a conference paper at COLM 2026 4.4 Experiment 04: Error Attribution (RQ4) 235 Finding 8: Three distinct termination failure modes. (1) Context overflow (Category A): 236 errors scale superlinearly with agent count (rr2=8.3% → rr3=23.3% → rr4=71.7%). (2) Turn 237 explosion (Category B2): swm4 reaches max messages in 71.7% of runs due to uncontrolled 238 handoff chains. (3) No failure (B1, C, D except MoA): 100% keyword termination. MoA 239 always hits max messages because the aggregator does not emit TERMINATE . Factual tasks 240 are error-immune while technical tasks produce 33.3% → 100% errors as team size increases 241"
+                      - generic [ref=e1967]:
+                        - text: (Appendix B.11).
+                        - link [ref=e1968] [cursor=pointer]:
+                          - /url: "#subsection.B.11"
+                      - text: "242 4.5 Experiment 05: Adaptive Termination (RQ5) 243 We propose a marginal utility-based stopping criterion : 244 ∆ U ( t ) = ∆ Q ( t ) − λ · ∆ C ( t ) (1) where ∆ Q ( t ) = Q ( t ) − Q ( t − 1 ) is the marginal quality gain, ∆ C ( t ) is the marginal token 245 cost (in kilo-tokens), and λ controls the quality-cost tradeoff. The team stops when ∆ U ( t ) ≤ 246 0. Unlike absolute utility U ( t ) = Q ( t ) − λ C ( t ) which diverges to − ∞ , marginal utility 247 naturally converges to zero via quality saturation. 248 We test ∆ U as an alternative to keyword termination across 8 patterns with λ ∈ { 0.0, 0.1, 0.5 } 249 and 25 tasks, yielding 800 runs (200 baseline + 600 adaptive). 250 Findings 9–11: ∆ U is a topology-dependent diagnostic. Patterns with reliable TERMINATE 251 show minimal change (debate3: +8%; pipe: +11%), while swm4—28% keyword success— 252 achieves − 65% turns, − 70% tokens (Finding 9). With λ =0: +131% tokens; λ ≥ 0.1: − 13% 253 savings, confirming λ -insensitivity (Finding 10). As a replacement , ∆ U adds overhead 254 for 7/8 patterns, confirming keyword near-optimality (Finding 11). The result suggests 255 complementary deployment: keyword for the common case, ∆ U for unreliable topologies. 256 We validate this hybrid strategy below. 257 Hybrid Validation. We test keyword+ ∆ U as a combined system (not a replacement) on 258 the two extreme cases: swm4 (28% keyword success) and debate3 (100% keyword). Using 259 λ =0.1, 25 tasks per pattern (50 runs): for swm4, ∆ U fires in 92% of runs (keyword in only 260 8%), achieving 78% token savings vs. baseline ( t = − 7.44, p < 0.0001). For debate3, keyword 261 fires first in 64% of runs with 17% token savings ( p =0.058)—the hybrid adds no overhead 262 because keyword catches most cases before ∆ U activates. Zero runs hit max messages in 263"
+                      - generic [ref=e1969]:
+                        - text: either pattern (Figure 6).
+                        - link [ref=e1970] [cursor=pointer]:
+                          - /url: "#figure.6"
+                      - text: "264 4.6 Cross-Model Validation 265 We replicate Experiment 01 with GPT-4o-mini on 8 patterns × 25 tasks (200 runs, < 2% error). 266 Despite absolute differences (0.37–1.42 × ), cost ordering is preserved (Spearman ρ = 0.762, 267 p = 0.028, n =8): solo < swm3 < { sel3, refl2 } < { debate3, rr3 } < { sel4, swm4 } (Finding 12). 268 Keyword reliability is model-dependent (Finding 13): GPT swm4=25% vs. Claude 28%. GPT- 269 4o-mini is notably more efficient at centralized routing (sel4: 0.37 × ; sel3: 0.46 × ) but more 270 verbose in sequential chains (rr3: 1.42 × ), suggesting routing efficiency is model-dependent 271 while topology-dependent relative"
+                      - generic [ref=e1971]:
+                        - text: dynamics are model-invariant (Table 36, Appendix).
+                        - link [ref=e1972] [cursor=pointer]:
+                          - /url: "#table.36"
+                      - text: "272 4.7 Experiment 06: Cost Prediction (RQ6) 273 Using 718 successful runs from exp01, we train regression models (Linear, Ridge, Lasso, 274 Random Forest) to predict runtime token costs from pre-execution features: pattern category 275 (one-hot), agent count, max messages, task category, and agent count × max messages . 276 Finding 15: Topology features predict 54% of cost variance. Random Forest achieves 277 R 2 =0.54 on 5-fold CV (Linear: R 2 =0.46). The interaction term agent count × max messages 278 is the strongest predictor (importance=0.158), followed by pattern category indicators. For 279 8"
+                  - generic "Page ⁨9⁩" [ref=e1697]:
+                    - generic [ref=e1977]:
+                      - text: "Under review as a conference paper at COLM 2026 Table 4: Difficulty × Pattern quality heatmap (mean G-Eval overall score ± SD). Bold = highest per row. Solo Swm-3 Sel-3 Refl-2 Deb-3 Easy 4.73 ± .70 3.82 ± 1.25 4.07 ± .88 4.67 ± .49 4.40 ± .63 Med 3.27 ± .46 3.80 ± 1.01 3.33 ± .49 3.93 ± .59 3.67 ± .72 Hard 3.67 ± .98 3.00 ± .88 3.47 ± .74 3.47 ± .52 2.93 ± .46 context, R 2 > 0.50 is considered strong for structural predictors in behavioral science 280 (Cohen, 1988). The remaining ∼ 46% is attributable to task content complexity, defining an"
+                      - generic [ref=e1978]:
+                        - text: "281"
+                        - link [ref=e1979] [cursor=pointer]:
+                          - /url: "#cite.cohen1988statistical"
+                        - link [ref=e1980] [cursor=pointer]:
+                          - /url: "#cite.cohen1988statistical"
+                      - text: "honest boundary on topology-only prediction. 282 Finding 16: Holdout generalization is limited. Applying the model to exp05 baseline 283 data yields R 2 =0.29, indicating task suite differences require recalibration. Cost prediction 284 within a known task distribution is practical; cross-distribution prediction requires task-level 285 features. 286 4.8 Experiment 07: Task Difficulty Interaction (RQ7) 287 We cross 5 representative patterns (solo, swm3, sel3, refl2, debate3) with 15 difficulty-graded 288 tasks (5 domains × 3 levels: easy, medium, hard) with 3 repeats, yielding 220 scored runs. 289 Difficulty is operationalized as cognitive demand: easy=factual recall, medium=comparative 290 analysis, hard=creative design. 291 Finding 17: Difficulty dominates pattern choice. Difficulty main effect: H =55.95, 292 p < 0.000001, η 2 H =0.249 (large). Pattern main effect: H =8.24, p =0.083, η 2 H =0.020 (small). 293 Difficulty explains 12.6 × more variance. Pattern choice is significant within each difficulty 294 level ( p < 0.05, η 2 H =0.100–0.113, medium effects). 295 Finding 18: Inverted-U relationship. Solo achieves the highest quality for easy (4.73 ± 0.70) 296 and hard (3.67 ± 0.98) tasks. Refl-2 excels only at medium difficulty (3.93 ± 0.59 vs. solo 297 3.27 ± 0.46; U =176.5, p =0.003, Cohen’s d =1.26). Multi-agent coordination helps most at 298 moderate complexity. 299 Finding 19: Solo dominates cost-efficiency. Solo achieves the highest quality-per-token 300 ratio at all difficulty levels (9.64, 3.17, 0.65 Q/kT). Even when refl-2 achieves higher quality 301 on medium tasks, solo’s 4.5 × lower cost makes it more efficient. 302 5 Discussion 303 5.1 Design Guidelines 304 1. Match termination to topology : sequential (A) uses 2 n max messages; dynamic 305 routing (B) accounts for coordinator overhead; feedback (C) monitors convergence; 306 composed (D) applies per-stage termination. 307 2. Budget for superlinear input growth : in round-robin, input tokens grow as O ( n · 308 k · L ) ; context summarization mitigates this. 309 3. Consider task-topology interaction : cost varies 2.2 × across task categories and 310 1.88 × across domains; debate3 is domain-invariant (CV=0.14), swm3 domain- 311 sensitive (CV=0.67). 312 4. Use ∆ U as a diagnostic complement : keyword termination handles the common 313 case; ∆ U with λ ≥ 0.1 catches unreliable topologies (empirically validated on swm4 314 and debate3). 315 5. Match complexity to difficulty : solo suffices for easy (4.73) and hard (3.67) tasks; 316 multi-agent feedback (refl-2) excels only at medium difficulty (3.93). 317 9"
+                  - generic "Page ⁨10⁩" [ref=e1698]:
+                    - generic [ref=e1741]: "Under review as a conference paper at COLM 2026 5.2 Limitations 318 1. Single base model : cross-model validation with GPT-4o-mini on 8 patterns shows 319 rank-order preservation ( ρ =0.762, p =0.028); additional models would further 320 strengthen generalizability. 321 2. Task suite : 25 tasks across 9 domains exclude interactive and multi-modal tasks. 322 3. Quality estimator : multi-model validation (GPT-4o-mini κ w =0.244; GPT-5.4 323 κ w =0.415) confirms moderate agreement; single expert evaluator. 324 4. Hybrid termination : validated on two extreme patterns (swm4, debate3); broader 325 coverage across all 13 patterns remains future work. 326 5. Sample sizes : per-pattern n =25–60; some tables lack standard deviations. 327 6. Infrastructure : 28K character prompt truncation is implementation-specific. 328 7. Cost proxy : token count ignores latency; extended utility ∆ U ( t ) = ∆ Q ( t ) − 329 λ c ∆ C ( t ) − λ d ∆ D ( t ) may be needed. 330 6 Conclusion 331 As multi-agent systems become a primary mechanism for scaling inference-time compute, 332 understanding when to stop is essential. We presented the first systematic study of ter- 333 mination dynamics across 14 coordination topologies spanning six categories. Through 334 seven experiments totaling 2,200+ runs, we demonstrated that: (1) topology fundamentally 335 shapes termination behavior, with 3.3–17.4 × coordination overhead; (2) centralized (B1) and 336 decentralized (B2) routing are fundamentally different, establishing A ≈ B2 < B1 ≈ C ≪ D ; 337 (3) marginal utility ∆ U ( t ) converges to zero within 1.1–2.4 turns; (4) error patterns correlate 338 with topology features; (5) keyword termination is near-optimal for 7/8 topologies, while 339 ∆ U identifies the exception achieving 70% savings; (6) topology features predict 54% of 340 cost variance ( R 2 =0.54); and (7) task difficulty dominates topology choice ( η 2 =0.249) with 341 an inverted-U pattern—solo is optimal for easy and hard tasks, multi-agent feedback for 342 medium difficulty only. Promising future directions include dynamic topology switching 343 mid-execution, learned termination policies via reinforcement learning, and scaling to larger 344 teams (10+ agents). We release our framework and propose five design guidelines for 345 topology-aware termination. 346 References 347 Yoav Benjamini and Yosef Hochberg. Controlling the false discovery rate: A practical and 348 powerful approach to multiple testing. Journal of the Royal Statistical Society: Series B , 57(1): 349 289–300, 1995. 350 Mert Cemri et al. Why do multi-agent LLM systems fail? arXiv preprint arXiv:2503.13657 , 351 2025. 352 Jacob Cohen. Statistical Power Analysis for the Behavioral Sciences . Lawrence Erlbaum Asso- 353 ciates, 2nd edition, 1988. 354 Jingyi Hu et al. When to stop: Adaptive stability detection for multi-agent debate. Advances 355 in Neural Information Processing Systems (NeurIPS) , 2025. 356 Junlin Li et al. Mixture of agents enhances large language model capabilities. In International 357 Conference on Learning Representations (ICLR) , 2025. 358 Feng Lin et al. Stop wasting your tokens: Towards efficient runtime multi-agent systems. 359 arXiv preprint arXiv:2510.26585 , 2025. 360 Yang Liu, Dan Iter, Yichong Xu, Shuohang Wang, Ruochen Xu, and Chenguang Zhu. G-Eval: 361 NLG evaluation using GPT-4 with better human alignment. In Proceedings of the 2023 362 Conference on Empirical Methods in Natural Language Processing (EMNLP) , 2023. 363 10"
+                  - generic "Page ⁨11⁩" [ref=e1699]
+                  - generic "Page ⁨12⁩" [ref=e1700]
+                  - generic "Page ⁨13⁩" [ref=e1701]
+                  - generic "Page ⁨14⁩" [ref=e1702]
+                  - generic "Page ⁨15⁩" [ref=e1703]
+                  - generic "Page ⁨16⁩" [ref=e1704]
+                  - generic "Page ⁨17⁩" [ref=e1705]
+                  - generic "Page ⁨18⁩" [ref=e1706]
+                  - generic "Page ⁨19⁩" [ref=e1707]
+                  - generic "Page ⁨20⁩" [ref=e1708]
+                  - generic "Page ⁨21⁩" [ref=e1709]
+                  - generic "Page ⁨22⁩" [ref=e1710]
+  - generic:
+    - generic:
+      - button "Close overlay"
+  - generic:
+    - generic:
+      - button "Close overlay"
+  - generic:
+    - generic:
+      - button "Close overlay"

@@ -1,0 +1,13 @@
+target,model,r2_mean,r2_std,mae_mean,mae_std
+total_tokens,LinearRegression,0.4639,0.0603,3864.17,434.34
+total_tokens,Ridge,0.4625,0.0563,3837.42,409.68
+total_tokens,Lasso,0.4639,0.0602,3864.03,434.17
+total_tokens,RandomForest,0.5428,0.0599,3439.89,224.59
+turn_count,LinearRegression,0.1773,0.0556,4.01,0.32
+turn_count,Ridge,0.1778,0.0539,4.0,0.32
+turn_count,Lasso,0.1657,0.0421,3.85,0.35
+turn_count,RandomForest,0.2811,0.0906,2.98,0.4
+duration_sec,LinearRegression,0.4242,0.0301,37.39,1.18
+duration_sec,Ridge,0.4241,0.0307,37.4,1.26
+duration_sec,Lasso,0.4237,0.0303,37.47,1.21
+duration_sec,RandomForest,0.4569,0.0361,34.75,1.06

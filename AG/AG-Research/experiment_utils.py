@@ -88,16 +88,35 @@ class RunResult:
 
 
 def _make_client(model: str | None = None):
-    """Create model client. Claude (default) or OpenAI (gpt-*)."""
+    """Create model client. Claude (default), OpenAI (gpt-*), xAI (grok-*), or Google (gemini-*)."""
     if model is None:
         import config
         model = config.MODEL
     if "gpt" in model.lower() or "o1" in model.lower() or "o3" in model.lower():
         from autogen_ext.models.openai import OpenAIChatCompletionClient
         import os
+        kwargs = {"model": model, "api_key": os.environ.get("OPENAI_API_KEY")}
+        # GPT-5.4 and other new models need explicit model_info
+        if "5.4" in model or "5-4" in model:
+            kwargs["model_info"] = {"vision": False, "function_calling": True, "json_output": True, "family": "gpt-5"}
+        return OpenAIChatCompletionClient(**kwargs)
+    if "grok" in model.lower():
+        from autogen_ext.models.openai import OpenAIChatCompletionClient
+        import os
         return OpenAIChatCompletionClient(
             model=model,
-            api_key=os.environ.get("OPENAI_API_KEY"),
+            api_key=os.environ.get("XAI_API_KEY"),
+            base_url="https://api.x.ai/v1",
+            model_info={"vision": False, "function_calling": True, "json_output": True, "family": "unknown"},
+        )
+    if "gemini" in model.lower():
+        from autogen_ext.models.openai import OpenAIChatCompletionClient
+        import os
+        return OpenAIChatCompletionClient(
+            model=model,
+            api_key=os.environ.get("GOOGLE_GEMINI_API_KEY"),
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+            model_info={"vision": False, "function_calling": True, "json_output": True, "family": "unknown"},
         )
     return ClaudeCLIChatCompletionClient(
         model=model,
@@ -802,15 +821,33 @@ class ExperimentRunner:
         """Run all pattern × task × repeat combinations sequentially.
 
         If checkpoint_dir is provided, saves intermediate results after each
-        pattern completes, enabling crash recovery.
+        pattern completes AND resumes from checkpoint on restart.
         """
         results = []
+        done_keys: set[tuple[str, str, int]] = set()
+
+        # Resume from checkpoint if exists
+        if checkpoint_dir:
+            ckpt = checkpoint_dir / "checkpoint.json"
+            if ckpt.exists():
+                import json as _json
+                with open(ckpt, encoding="utf-8") as f:
+                    prev = _json.load(f)
+                for r in prev:
+                    done_keys.add((r["pattern"], r["task_id"], r.get("repeat_index", 0)))
+                results = [RunResult(**r) if isinstance(r, dict) else r for r in prev]
+                print(f"  [resume] Loaded {len(results)} previous results from checkpoint")
+
         total = len(patterns) * len(tasks) * repeats
-        done = 0
+        done = len(results)
 
         for pattern in patterns:
             for task_meta in tasks:
                 for rep in range(repeats):
+                    key = (pattern, task_meta["id"], rep)
+                    if key in done_keys:
+                        continue  # Skip already completed runs
+
                     team = TeamFactory.build(pattern, max_messages=max_messages)
 
                     if progress_callback:

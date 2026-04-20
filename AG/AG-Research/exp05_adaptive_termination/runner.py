@@ -20,11 +20,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from autogen_agentchat.conditions import (
     FunctionalTermination,
     MaxMessageTermination,
+    TextMentionTermination,
 )
 from autogen_agentchat.base import OrTerminationCondition
 
 from config import (
     LAMBDA_VALUES,
+    PATTERNS_ALL,
     PATTERNS_REPRESENTATIVE,
     PATTERN_MAX_MESSAGES,
     RESULTS_DIR,
@@ -58,6 +60,55 @@ def _build_adaptive_team(pattern: str, lambda_val: float, max_messages: int = 20
     adaptive_term = FunctionalTermination(state.should_terminate)
     safety_term = MaxMessageTermination(max_messages=max_messages)
     combined = OrTerminationCondition(adaptive_term, safety_term)
+
+    if hasattr(team, '_is_composed'):
+        return team, state
+
+    team._termination_condition = combined
+    return team, state
+
+
+# Pattern-specific keywords used by TeamFactory
+_PATTERN_KEYWORDS = {
+    "solo": ["TERMINATE"],
+    "rr2": ["TERMINATE"], "rr3": ["TERMINATE"], "rr4": ["TERMINATE"],
+    "sel3": ["TERMINATE"], "sel4": ["TERMINATE"],
+    "swm3": ["TERMINATE"], "swm4": ["TERMINATE"],
+    "refl2": ["APPROVED", "TERMINATE"], "refl3": ["APPROVED", "TERMINATE"],
+    "debate3": ["VERDICT", "TERMINATE"], "debate4": ["VERDICT", "TERMINATE"],
+}
+
+
+def _build_hybrid_team(pattern: str, lambda_val: float, max_messages: int | None = None):
+    """Build a team with hybrid termination: keyword OR adaptive OR max_messages.
+
+    Unlike _build_adaptive_team which replaces keyword termination,
+    hybrid KEEPS the original keyword condition and adds adaptive as a safety net.
+    """
+    mm = max_messages or PATTERN_MAX_MESSAGES.get(pattern, 20)
+    team = TeamFactory.build(pattern, max_messages=mm)
+
+    state = AdaptiveTerminationState(
+        lambda_cost=lambda_val,
+        patience=2,
+        min_turns=2,
+    )
+
+    # Build termination conditions
+    conditions = []
+
+    # 1. Original keyword conditions (preserved from TeamFactory)
+    for kw in _PATTERN_KEYWORDS.get(pattern, ["TERMINATE"]):
+        conditions.append(TextMentionTermination(kw))
+
+    # 2. Adaptive (ΔU) condition as safety net
+    adaptive_term = FunctionalTermination(state.should_terminate)
+    conditions.append(adaptive_term)
+
+    # 3. Safety max_messages
+    conditions.append(MaxMessageTermination(max_messages=mm))
+
+    combined = OrTerminationCondition(*conditions)
 
     if hasattr(team, '_is_composed'):
         return team, state
@@ -342,3 +393,165 @@ async def main(patterns: list[str] | None = None, dry_run: bool = False):
         print(f"  Errors: {len(errors)}")
 
     return all_results
+
+
+async def run_hybrid(patterns: list[str] | None = None, dry_run: bool = False):
+    """Run hybrid termination experiment: keyword OR adaptive OR max_messages.
+
+    Tests specified patterns (default: 6 representative across all categories)
+    with λ=0.1, 25 tasks. Checkpoints to avoid re-running completed combos.
+    Hybrid KEEPS original keyword and adds ΔU as safety net.
+    """
+    ALL_HYBRID_PATTERNS = ["swm4", "debate3", "rr3", "sel3", "refl2", "pipe"]
+    patterns = patterns or ALL_HYBRID_PATTERNS
+    patterns = [p for p in patterns if p in PATTERNS_ALL]
+
+    if not patterns:
+        print("Exp05-Hybrid: No valid patterns. Skipping.")
+        return
+
+    lambda_val = 0.1
+    tasks = load_tasks()
+
+    if dry_run:
+        tasks = tasks[:2]
+
+    total = len(patterns) * len(tasks)
+
+    print(f"Exp05-Hybrid: Keyword OR Adaptive Termination")
+    print(f"  Patterns: {patterns}")
+    print(f"  λ = {lambda_val}")
+    print(f"  Total runs: {total}")
+
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Load existing hybrid results as checkpoint
+    hybrid_path = OUTPUT_DIR / "hybrid_results.json"
+    prev_data = []
+    done_keys = set()
+    if hybrid_path.exists():
+        try:
+            with open(hybrid_path, encoding="utf-8") as f:
+                prev_data = json.load(f)
+            for r in prev_data:
+                done_keys.add((r.get("task_id", ""), r.get("pattern", "")))
+            print(f"  [checkpoint] Loaded {len(prev_data)} existing hybrid results, {len(done_keys)} unique", flush=True)
+        except Exception as e:
+            print(f"  [checkpoint] Failed to load: {e}", flush=True)
+
+    all_results = []
+    adaptive_stats_list = []
+    consecutive_failures = 0
+    skipped = 0
+
+    for pattern in patterns:
+        for task_meta in tasks:
+            # Skip already-completed runs
+            if (task_meta["id"], pattern) in done_keys:
+                skipped += 1
+                continue
+
+            label = f"HYBRID λ={lambda_val} pattern={pattern} task={task_meta['id']}"
+            print(f"  [{len(prev_data)+len(all_results)+1}/{total}] {label}", flush=True)
+
+            if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                print(f"  [cooldown] pausing {LONG_PAUSE}s...", flush=True)
+                await asyncio.sleep(LONG_PAUSE)
+                consecutive_failures = 0
+
+            run_kwargs = dict(
+                task_text=task_meta["task"],
+                experiment_id=f"{EXPERIMENT_ID}_hybrid_l{lambda_val}",
+                task_id=task_meta["id"],
+                pattern=pattern,
+            )
+
+            result, stats = await _run_with_retry(
+                lambda p=pattern, lv=lambda_val: _build_hybrid_team(p, lv),
+                run_kwargs, label,
+            )
+
+            # Post-process terminated_by for hybrid distinction
+            if result and not result.error:
+                sr = str(result.stop_reason or "").lower()
+                if any(kw in sr for kw in ["terminate", "approved", "verdict", "analysis_done"]):
+                    result.terminated_by = "keyword_hybrid"
+                elif "max" in sr:
+                    result.terminated_by = "max_messages"
+                else:
+                    result.terminated_by = "adaptive_hybrid"
+
+            if result.error:
+                consecutive_failures += 1
+            else:
+                consecutive_failures = 0
+
+            all_results.append(result)
+
+            if stats is not None:
+                adaptive_stats_list.append({
+                    "experiment_id": f"{EXPERIMENT_ID}_hybrid_l{lambda_val}",
+                    "task_id": task_meta["id"],
+                    "pattern": pattern,
+                    "lambda": lambda_val,
+                    **stats,
+                })
+
+    if skipped > 0:
+        print(f"  [skip] {skipped} hybrid runs already in checkpoint", flush=True)
+
+    # Save results (merge with existing checkpoint)
+    result_dicts = prev_data + [asdict(r) for r in all_results]
+
+    with open(hybrid_path, "w", encoding="utf-8") as f:
+        json.dump(result_dicts, f, indent=2, ensure_ascii=False, default=str)
+
+    with open(OUTPUT_DIR / "hybrid_summary.csv", "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS, extrasaction="ignore")
+        writer.writeheader()
+        for d in result_dicts:
+            writer.writerow(d)
+
+    if adaptive_stats_list:
+        with open(OUTPUT_DIR / "hybrid_adaptive_stats.json", "w", encoding="utf-8") as f:
+            json.dump(adaptive_stats_list, f, indent=2, ensure_ascii=False, default=str)
+
+    # Print summary
+    print(f"\nExp05-Hybrid complete: {len(all_results)} runs")
+
+    for pattern in patterns:
+        p_results = [r for r in all_results if r.pattern == pattern and not r.error]
+        keyword_count = sum(1 for r in p_results if r.terminated_by == "keyword_hybrid")
+        adaptive_count = sum(1 for r in p_results if r.terminated_by == "adaptive_hybrid")
+        max_count = sum(1 for r in p_results if r.terminated_by == "max_messages")
+        avg_tokens = sum(r.total_tokens for r in p_results) / max(len(p_results), 1)
+
+        print(f"\n  {pattern}:")
+        print(f"    keyword_hybrid: {keyword_count}/{len(p_results)}")
+        print(f"    adaptive_hybrid: {adaptive_count}/{len(p_results)}")
+        print(f"    max_messages: {max_count}/{len(p_results)}")
+        print(f"    avg tokens: {avg_tokens:.0f}")
+
+    errors = [r for r in all_results if r.error]
+    if errors:
+        print(f"\n  Errors: {len(errors)}")
+
+    return all_results
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Exp05: Adaptive/Hybrid Termination")
+    parser.add_argument("--hybrid", action="store_true",
+                        help="Run hybrid (keyword OR adaptive) experiment (default: 6 patterns)")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Run with minimal tasks for testing")
+    parser.add_argument("--patterns", nargs="*",
+                        help="Override pattern list (baseline/adaptive mode)")
+    args = parser.parse_args()
+
+    if args.hybrid:
+        asyncio.run(run_hybrid(patterns=args.patterns, dry_run=args.dry_run))
+    else:
+        asyncio.run(main(patterns=args.patterns, dry_run=args.dry_run))

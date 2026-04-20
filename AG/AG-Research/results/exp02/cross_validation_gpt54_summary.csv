@@ -1,0 +1,6 @@
+dimension,pearson,pearson_p,spearman,spearman_p,kappa,mean_claude,mean_gpt,mean_diff
+accuracy,0.578,0.0000,0.561,0.0000,0.357,4.16,3.38,+0.78
+completeness,0.646,0.0000,0.642,0.0000,0.573,3.19,2.75,+0.44
+coherence,0.568,0.0000,0.578,0.0000,0.433,4.16,3.45,+0.71
+usefulness,0.595,0.0000,0.613,0.0000,0.377,4.08,3.08,+1.00
+overall,0.540,0.0000,0.525,0.0000,0.415,3.78,3.09,+0.69

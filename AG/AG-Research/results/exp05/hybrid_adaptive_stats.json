@@ -1,0 +1,2112 @@
+[
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "sci_01",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.436507936507936,
+      2.14,
+      2.46
+    ],
+    "costs": [
+      971.0,
+      1594.0,
+      2290.0
+    ],
+    "delta_utilities": [
+      -91.66349206349207,
+      -162.69650793650794,
+      -228.68
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 4855.0,
+    "final_delta_u": -228.68
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "sci_02",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      4.545454545454545,
+      5.9625212947189095,
+      5.08
+    ],
+    "costs": [
+      2212.0,
+      4980.0,
+      1535.0
+    ],
+    "delta_utilities": [
+      -216.65454545454548,
+      -496.58293325073566,
+      -154.3825212947189
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 8727.0,
+    "final_delta_u": -154.3825212947189
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "sci_03",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.382308845577212,
+      6.46,
+      4.92
+    ],
+    "costs": [
+      1332.0,
+      3370.0,
+      4720.0
+    ],
+    "delta_utilities": [
+      -127.8176911544228,
+      -335.9223088455772,
+      -473.54
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 9422.0,
+    "final_delta_u": -473.54
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "cs_01",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      4.586846543001687,
+      4.180000000000001,
+      2.3800000000000003
+    ],
+    "costs": [
+      1726.0,
+      3513.0,
+      4311.0
+    ],
+    "delta_utilities": [
+      -168.01315345699834,
+      -351.7068465430017,
+      -432.90000000000003
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 9550.0,
+    "final_delta_u": -432.90000000000003
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "cs_02",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      2.166666666666667,
+      4.068027210884353,
+      3.42
+    ],
+    "costs": [
+      3019.0,
+      5524.0,
+      874.0
+    ],
+    "delta_utilities": [
+      -299.73333333333335,
+      -550.4986394557823,
+      -88.04802721088436
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 9417.0,
+    "final_delta_u": -88.04802721088436
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "cs_03",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.215123859191656,
+      6.04,
+      5.42
+    ],
+    "costs": [
+      1844.0,
+      3922.0,
+      5772.0
+    ],
+    "delta_utilities": [
+      -179.18487614080834,
+      -391.3751238591917,
+      -577.82
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 11538.0,
+    "final_delta_u": -577.82
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "hist_01",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.16,
+      3.38,
+      2.34
+    ],
+    "costs": [
+      706.0,
+      1689.0,
+      2292.0
+    ],
+    "delta_utilities": [
+      -65.44000000000001,
+      -170.68,
+      -230.24
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 4687.0,
+    "final_delta_u": -230.24
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "hist_02",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      6.089494163424124,
+      2.88,
+      3.42
+    ],
+    "costs": [
+      996.0,
+      1777.0,
+      2635.0
+    ],
+    "delta_utilities": [
+      -93.51050583657589,
+      -180.90949416342414,
+      -262.96
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 5408.0,
+    "final_delta_u": -262.96
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "hist_03",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.760309278350515,
+      5.28,
+      2.96
+    ],
+    "costs": [
+      1371.0,
+      2953.0,
+      3706.0
+    ],
+    "delta_utilities": [
+      -131.33969072164948,
+      -295.7803092783505,
+      -372.92
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 8030.0,
+    "final_delta_u": -372.92
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "phil_01",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.58,
+      5.600539811066127,
+      4.24
+    ],
+    "costs": [
+      945.0,
+      2287.0,
+      2873.0
+    ],
+    "delta_utilities": [
+      -88.92,
+      -228.6794601889339,
+      -288.66053981106614
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 6105.0,
+    "final_delta_u": -288.66053981106614
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "phil_02",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      4.766467065868263,
+      5.88,
+      7.5396825396825395
+    ],
+    "costs": [
+      1700.0,
+      3580.0,
+      5735.0
+    ],
+    "delta_utilities": [
+      -165.23353293413174,
+      -356.88646706586826,
+      -571.8403174603175
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 11015.0,
+    "final_delta_u": -571.8403174603175
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "phil_03",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.788423153692614,
+      4.94,
+      4.9399999999999995
+    ],
+    "costs": [
+      871.0,
+      2342.0,
+      3739.0
+    ],
+    "delta_utilities": [
+      -81.31157684630739,
+      -235.04842315369262,
+      -373.90000000000003
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 6952.0,
+    "final_delta_u": -373.90000000000003
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "law_01",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.3585657370517925,
+      3.44,
+      3.46
+    ],
+    "costs": [
+      1047.0,
+      1927.0,
+      2773.0
+    ],
+    "delta_utilities": [
+      -99.34143426294821,
+      -194.6185657370518,
+      -277.28000000000003
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 5747.0,
+    "final_delta_u": -277.28000000000003
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "law_02",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      4.078431372549019,
+      6.459227467811158,
+      4.24
+    ],
+    "costs": [
+      3057.0,
+      7015.0,
+      1133.0
+    ],
+    "delta_utilities": [
+      -301.621568627451,
+      -699.1192039047379,
+      -115.51922746781116
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 11205.0,
+    "final_delta_u": -115.51922746781116
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "law_03",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      4.526785714285714,
+      6.7592592592592595,
+      6.486486486486487
+    ],
+    "costs": [
+      2347.0,
+      5098.0,
+      2533.0
+    ],
+    "delta_utilities": [
+      -230.1732142857143,
+      -507.56752645502644,
+      -253.5727727727728
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 9978.0,
+    "final_delta_u": -253.5727727727728
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "game_01",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      6.08,
+      5.04,
+      3.5199999999999996
+    ],
+    "costs": [
+      1193.0,
+      3129.0,
+      4132.0
+    ],
+    "delta_utilities": [
+      -113.22000000000001,
+      -313.94000000000005,
+      -414.72
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 8454.0,
+    "final_delta_u": -414.72
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "game_02",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      2.6126126126126126,
+      5.189753320683112,
+      5.06429277942631
+    ],
+    "costs": [
+      9359.0,
+      2645.0,
+      2150.0
+    ],
+    "delta_utilities": [
+      -933.2873873873875,
+      -261.9228592919295,
+      -215.1254605412568
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 14154.0,
+    "final_delta_u": -215.1254605412568
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "game_03",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.033050047214354,
+      6.977077363896848,
+      5.859999999999999
+    ],
+    "costs": [
+      2540.0,
+      5800.0,
+      1851.0
+    ],
+    "delta_utilities": [
+      -248.96694995278565,
+      -578.0559726833175,
+      -186.21707736389686
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 10191.0,
+    "final_delta_u": -186.21707736389686
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "eng_01",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      4.811218985976268,
+      6.6115702479338845,
+      3.0
+    ],
+    "costs": [
+      2224.0,
+      4730.0,
+      852.0
+    ],
+    "delta_utilities": [
+      -217.58878101402374,
+      -471.19964873804236,
+      -88.81157024793389
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 7806.0,
+    "final_delta_u": -88.81157024793389
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "eng_02",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      4.214046822742475,
+      5.254237288135593,
+      5.0205761316872435
+    ],
+    "costs": [
+      3478.0,
+      8087.0,
+      2902.0
+    ],
+    "delta_utilities": [
+      -343.5859531772575,
+      -807.6598095346069,
+      -290.43366115644835
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 14467.0,
+    "final_delta_u": -290.43366115644835
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "eng_03",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.389527458492975,
+      6.043557168784029,
+      3.7600000000000002
+    ],
+    "costs": [
+      1842.0,
+      4258.0,
+      963.0
+    ],
+    "delta_utilities": [
+      -178.81047254150704,
+      -425.14597028970894,
+      -98.58355716878404
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 7063.0,
+    "final_delta_u": -98.58355716878404
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "biz_01",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.4731457800511505,
+      6.865671641791044,
+      6.72360248447205
+    ],
+    "costs": [
+      1770.0,
+      4272.0,
+      2565.0
+    ],
+    "delta_utilities": [
+      -171.52685421994886,
+      -425.80747413826015,
+      -256.642069157319
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 8607.0,
+    "final_delta_u": -256.642069157319
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "biz_02",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      6.229802513464992,
+      5.64,
+      5.960000000000001
+    ],
+    "costs": [
+      1194.0,
+      2142.0,
+      3106.0
+    ],
+    "delta_utilities": [
+      -113.17019748653502,
+      -214.78980251346502,
+      -310.28000000000003
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 6442.0,
+    "final_delta_u": -310.28000000000003
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "biz_03",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.966494845360825,
+      6.38,
+      3.6799999999999997
+    ],
+    "costs": [
+      1823.0,
+      3624.0,
+      4549.0
+    ],
+    "delta_utilities": [
+      -176.3335051546392,
+      -361.9864948453609,
+      -457.6
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 9996.0,
+    "final_delta_u": -457.6
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "med_01",
+    "pattern": "rr3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.533333333333333,
+      5.539999999999999,
+      4.22
+    ],
+    "costs": [
+      1350.0,
+      3270.0,
+      4374.0
+    ],
+    "delta_utilities": [
+      -129.46666666666667,
+      -326.99333333333334,
+      -438.72
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 8994.0,
+    "final_delta_u": -438.72
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "sci_01",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      4.220000000000001,
+      3.2,
+      2.9
+    ],
+    "costs": [
+      731.0,
+      1786.0,
+      2687.0
+    ],
+    "delta_utilities": [
+      -68.88000000000001,
+      -179.62000000000003,
+      -269.0
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 5204.0,
+    "final_delta_u": -269.0
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "sci_02",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.2373887240356085,
+      4.36,
+      5.924855491329479
+    ],
+    "costs": [
+      2109.0,
+      3480.0,
+      6502.0
+    ],
+    "delta_utilities": [
+      -205.6626112759644,
+      -348.8773887240356,
+      -648.6351445086706
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 12091.0,
+    "final_delta_u": -648.6351445086706
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "sci_03",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      6.161790017211704,
+      6.54,
+      6.3
+    ],
+    "costs": [
+      1247.0,
+      3530.0,
+      5774.0
+    ],
+    "delta_utilities": [
+      -118.5382099827883,
+      -352.6217900172117,
+      -577.64
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 10551.0,
+    "final_delta_u": -577.64
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "cs_01",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      4.398563734290844,
+      4.28,
+      3.7600000000000002
+    ],
+    "costs": [
+      1507.0,
+      2941.0,
+      4044.0
+    ],
+    "delta_utilities": [
+      -146.30143626570919,
+      -294.21856373429085,
+      -404.92
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 8492.0,
+    "final_delta_u": -404.92
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "cs_02",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      2.242063492063492,
+      4.66
+    ],
+    "costs": [
+      2678.0,
+      4193.0
+    ],
+    "delta_utilities": [
+      -265.5579365079365,
+      -416.8820634920635
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 6871.0,
+    "final_delta_u": -416.8820634920635
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "cs_03",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.684062059238364,
+      5.852090032154341,
+      5.829662261380323
+    ],
+    "costs": [
+      1801.0,
+      5059.0,
+      2977.0
+    ],
+    "delta_utilities": [
+      -174.41593794076167,
+      -505.73197202708405,
+      -297.722427770774
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 9837.0,
+    "final_delta_u": -297.722427770774
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "hist_01",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      3.3,
+      2.46
+    ],
+    "costs": [
+      404.0,
+      1117.0
+    ],
+    "delta_utilities": [
+      -37.10000000000001,
+      -112.54
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 1521.0,
+    "final_delta_u": -112.54
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "hist_02",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      6.140000000000001,
+      4.92
+    ],
+    "costs": [
+      885.0,
+      1592.0
+    ],
+    "delta_utilities": [
+      -82.36,
+      -160.42000000000002
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 2477.0,
+    "final_delta_u": -160.42000000000002
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "hist_03",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      6.160000000000001,
+      3.7
+    ],
+    "costs": [
+      827.0,
+      1916.0
+    ],
+    "delta_utilities": [
+      -76.54,
+      -194.06000000000003
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 2743.0,
+    "final_delta_u": -194.06000000000003
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "phil_01",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      3.92,
+      2.34
+    ],
+    "costs": [
+      649.0,
+      1347.0
+    ],
+    "delta_utilities": [
+      -60.980000000000004,
+      -136.28000000000003
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 1996.0,
+    "final_delta_u": -136.28000000000003
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "phil_02",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.25963149078727,
+      6.790322580645162,
+      6.245847176079734
+    ],
+    "costs": [
+      1165.0,
+      4013.0,
+      6828.0
+    ],
+    "delta_utilities": [
+      -111.24036850921273,
+      -399.7693089101421,
+      -683.3444754045655
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 12006.0,
+    "final_delta_u": -683.3444754045655
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "phil_03",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.393700787401575,
+      4.26
+    ],
+    "costs": [
+      882.0,
+      2168.0
+    ],
+    "delta_utilities": [
+      -82.80629921259843,
+      -217.9337007874016
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 3050.0,
+    "final_delta_u": -217.9337007874016
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "law_01",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      4.52,
+      3.7600000000000002
+    ],
+    "costs": [
+      741.0,
+      1840.0
+    ],
+    "delta_utilities": [
+      -69.58000000000001,
+      -184.76
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 2581.0,
+    "final_delta_u": -184.76
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "law_02",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.067567567567568,
+      5.291576673866091,
+      4.589285714285714
+    ],
+    "costs": [
+      2187.0,
+      6161.0,
+      4511.0
+    ],
+    "delta_utilities": [
+      -213.63243243243244,
+      -615.8759908937016,
+      -451.8022909595804
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 12859.0,
+    "final_delta_u": -451.8022909595804
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "law_03",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      4.297976701410178,
+      3.7920850561134083,
+      3.853211009174312
+    ],
+    "costs": [
+      3445.0,
+      7166.0,
+      3385.0
+    ],
+    "delta_utilities": [
+      -340.20202329858984,
+      -717.1058916452968,
+      -338.4388740469391
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 13996.0,
+    "final_delta_u": -338.4388740469391
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "game_01",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      6.4238410596026485,
+      6.619999999999999,
+      5.260000000000001
+    ],
+    "costs": [
+      1422.0,
+      3723.0,
+      5452.0
+    ],
+    "delta_utilities": [
+      -135.77615894039738,
+      -372.10384105960264,
+      -546.5600000000001
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 10597.0,
+    "final_delta_u": -546.5600000000001
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "game_02",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      2.313891020721412,
+      4.407051282051282,
+      4.745586708203531
+    ],
+    "costs": [
+      8527.0,
+      5950.0,
+      4881.0
+    ],
+    "delta_utilities": [
+      -850.3861089792787,
+      -592.9068397386701,
+      -487.7614645738478
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 19358.0,
+    "final_delta_u": -487.7614645738478
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "game_03",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.085638998682477,
+      6.202783300198807,
+      5.28
+    ],
+    "costs": [
+      1653.0,
+      3823.0,
+      5419.0
+    ],
+    "delta_utilities": [
+      -160.21436100131754,
+      -381.1828556984837,
+      -542.8227833001988
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 10895.0,
+    "final_delta_u": -542.8227833001988
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "eng_01",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.320754716981132,
+      5.231362467866324,
+      5.463917525773195
+    ],
+    "costs": [
+      2043.0,
+      5424.0,
+      2972.0
+    ],
+    "delta_utilities": [
+      -198.97924528301888,
+      -542.4893922491148,
+      -296.9674449420931
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 10439.0,
+    "final_delta_u": -296.9674449420931
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "eng_02",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      3.3535353535353534,
+      4.71255060728745,
+      5.96820809248555
+    ],
+    "costs": [
+      4145.0,
+      5491.0,
+      3121.0
+    ],
+    "delta_utilities": [
+      -411.14646464646466,
+      -547.7409847462479,
+      -310.84434251480195
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 12757.0,
+    "final_delta_u": -310.84434251480195
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "eng_03",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.718120805369128,
+      6.29080118694362,
+      6.40625
+    ],
+    "costs": [
+      1630.0,
+      4643.0,
+      2305.0
+    ],
+    "delta_utilities": [
+      -157.28187919463087,
+      -463.7273196184255,
+      -230.3845511869436
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 8578.0,
+    "final_delta_u": -230.3845511869436
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "biz_01",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      5.563463819691577,
+      6.413043478260869,
+      5.142276422764228
+    ],
+    "costs": [
+      1964.0,
+      5161.0,
+      4067.0
+    ],
+    "delta_utilities": [
+      -190.83653618030843,
+      -515.2504203414308,
+      -407.9707670554967
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 11192.0,
+    "final_delta_u": -407.9707670554967
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "biz_02",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      6.115241635687733,
+      3.1999999999999997
+    ],
+    "costs": [
+      1152.0,
+      2031.0
+    ],
+    "delta_utilities": [
+      -109.08475836431226,
+      -206.01524163568774
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 3183.0,
+    "final_delta_u": -206.01524163568774
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "biz_03",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.701415701415701,
+      5.28
+    ],
+    "costs": [
+      1734.0,
+      3237.0
+    ],
+    "delta_utilities": [
+      -167.6985842985843,
+      -324.12141570141574
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 4971.0,
+    "final_delta_u": -324.12141570141574
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "med_01",
+    "pattern": "sel3",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      6.180000000000001,
+      6.6,
+      6.451048951048951
+    ],
+    "costs": [
+      1083.0,
+      3281.0,
+      5675.0
+    ],
+    "delta_utilities": [
+      -102.12,
+      -327.68,
+      -567.6489510489511
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 10039.0,
+    "final_delta_u": -567.6489510489511
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "sci_01",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.180000000000001,
+      3.1399999999999997
+    ],
+    "costs": [
+      852.0,
+      1677.0
+    ],
+    "delta_utilities": [
+      -80.02,
+      -169.74
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 2529.0,
+    "final_delta_u": -169.74
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "sci_02",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.120000000000001,
+      2.88
+    ],
+    "costs": [
+      1290.0,
+      2097.0
+    ],
+    "delta_utilities": [
+      -123.88,
+      -211.94000000000003
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 3387.0,
+    "final_delta_u": -211.94000000000003
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "sci_03",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      6.01577909270217,
+      6.344294003868471
+    ],
+    "costs": [
+      1016.0,
+      2073.0
+    ],
+    "delta_utilities": [
+      -95.58422090729783,
+      -206.9714850888337
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 3089.0,
+    "final_delta_u": -206.9714850888337
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "cs_01",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      4.28,
+      2.7
+    ],
+    "costs": [
+      1546.0,
+      2321.0
+    ],
+    "delta_utilities": [
+      -150.32000000000002,
+      -233.68000000000004
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 3867.0,
+    "final_delta_u": -233.68000000000004
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "cs_02",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      2.4339106654512306,
+      4.08
+    ],
+    "costs": [
+      2825.0,
+      4090.0
+    ],
+    "delta_utilities": [
+      -280.0660893345488,
+      -407.3539106654512
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 6915.0,
+    "final_delta_u": -407.3539106654512
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "cs_03",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.574712643678161,
+      2.9000000000000004
+    ],
+    "costs": [
+      1326.0,
+      2151.0
+    ],
+    "delta_utilities": [
+      -127.02528735632183,
+      -217.77471264367819
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 3477.0,
+    "final_delta_u": -217.77471264367819
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "hist_01",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      3.9,
+      2.6599999999999997
+    ],
+    "costs": [
+      593.0,
+      1348.0
+    ],
+    "delta_utilities": [
+      -55.400000000000006,
+      -136.04000000000002
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 1941.0,
+    "final_delta_u": -136.04000000000002
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "hist_02",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.34,
+      3.4999999999999996
+    ],
+    "costs": [
+      720.0,
+      1637.0
+    ],
+    "delta_utilities": [
+      -66.66,
+      -165.54000000000002
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 2357.0,
+    "final_delta_u": -165.54000000000002
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "hist_03",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      6.104815864022663,
+      5.9799999999999995,
+      5.036656891495602
+    ],
+    "costs": [
+      1244.0,
+      2143.0,
+      4583.0
+    ],
+    "delta_utilities": [
+      -118.29518413597734,
+      -214.42481586402266,
+      -459.2433431085044
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 7970.0,
+    "final_delta_u": -459.2433431085044
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "phil_01",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      4.88,
+      2.7399999999999998
+    ],
+    "costs": [
+      849.0,
+      1582.0
+    ],
+    "delta_utilities": [
+      -80.02000000000001,
+      -160.34
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 2431.0,
+    "final_delta_u": -160.34
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "phil_02",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.625942684766214,
+      4.68
+    ],
+    "costs": [
+      1331.0,
+      2009.0
+    ],
+    "delta_utilities": [
+      -127.47405731523378,
+      -201.84594268476621
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 3340.0,
+    "final_delta_u": -201.84594268476621
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "phil_03",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.1183970856102,
+      3.6599999999999997
+    ],
+    "costs": [
+      948.0,
+      1949.0
+    ],
+    "delta_utilities": [
+      -89.68160291438981,
+      -196.3583970856102
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 2897.0,
+    "final_delta_u": -196.3583970856102
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "law_01",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.511811023622047,
+      3.3400000000000003
+    ],
+    "costs": [
+      1008.0,
+      1503.0
+    ],
+    "delta_utilities": [
+      -95.28818897637797,
+      -152.47181102362205
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 2511.0,
+    "final_delta_u": -152.47181102362205
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "law_02",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      4.728464419475655,
+      6.52,
+      4.754754754754755
+    ],
+    "costs": [
+      2315.0,
+      4235.0,
+      8163.0
+    ],
+    "delta_utilities": [
+      -226.77153558052436,
+      -421.70846441947566,
+      -818.0652452452454
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 14713.0,
+    "final_delta_u": -818.0652452452454
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "law_03",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      4.592720970537262,
+      5.878136200716845
+    ],
+    "costs": [
+      2324.0,
+      3386.0
+    ],
+    "delta_utilities": [
+      -227.80727902946273,
+      -337.31458476982044
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 5710.0,
+    "final_delta_u": -337.31458476982044
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "game_01",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.800000000000001,
+      3.5
+    ],
+    "costs": [
+      1103.0,
+      1617.0
+    ],
+    "delta_utilities": [
+      -104.50000000000001,
+      -164.00000000000003
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 2720.0,
+    "final_delta_u": -164.00000000000003
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "game_02",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      2.5205930807248764,
+      4.92,
+      2.1589403973509933
+    ],
+    "costs": [
+      5841.0,
+      1560.0,
+      9884.0
+    ],
+    "delta_utilities": [
+      -581.5794069192751,
+      -153.60059308072488,
+      -991.1610596026491
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 17285.0,
+    "final_delta_u": -991.1610596026491
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "game_03",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      4.940554821664465,
+      5.873715124816447
+    ],
+    "costs": [
+      1870.0,
+      3259.0
+    ],
+    "delta_utilities": [
+      -182.05944517833552,
+      -324.96683969684807
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 5129.0,
+    "final_delta_u": -324.96683969684807
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "eng_01",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.2198421645997755,
+      3.44
+    ],
+    "costs": [
+      1934.0,
+      2852.0
+    ],
+    "delta_utilities": [
+      -188.18015783540022,
+      -286.97984216459975
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 4786.0,
+    "final_delta_u": -286.97984216459975
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "eng_02",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      4.142480211081795,
+      4.92
+    ],
+    "costs": [
+      3180.0,
+      3934.0
+    ],
+    "delta_utilities": [
+      -313.8575197889182,
+      -392.62248021108184
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 7114.0,
+    "final_delta_u": -392.62248021108184
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "eng_03",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.631868131868131,
+      3.96
+    ],
+    "costs": [
+      1585.0,
+      2168.0
+    ],
+    "delta_utilities": [
+      -152.86813186813185,
+      -218.47186813186815
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 3753.0,
+    "final_delta_u": -218.47186813186815
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "biz_01",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 3,
+    "qualities": [
+      6.158833063209076,
+      6.38,
+      3.762079306897701
+    ],
+    "costs": [
+      1393.0,
+      2328.0,
+      9321.0
+    ],
+    "delta_utilities": [
+      -133.14116693679094,
+      -232.5788330632091,
+      -934.7179206931023
+    ],
+    "decline_count": 2,
+    "cumulative_cost": 13042.0,
+    "final_delta_u": -934.7179206931023
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "biz_02",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      6.080000000000001,
+      3.72
+    ],
+    "costs": [
+      1013.0,
+      1520.0
+    ],
+    "delta_utilities": [
+      -95.22000000000001,
+      -154.36
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 2533.0,
+    "final_delta_u": -154.36
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "biz_03",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.908496732026144,
+      4.359999999999999
+    ],
+    "costs": [
+      1649.0,
+      2823.0
+    ],
+    "delta_utilities": [
+      -158.99150326797385,
+      -283.84849673202615
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 4472.0,
+    "final_delta_u": -283.84849673202615
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "med_01",
+    "pattern": "refl2",
+    "lambda": 0.1,
+    "turn_count": 2,
+    "qualities": [
+      5.42,
+      3.24
+    ],
+    "costs": [
+      932.0,
+      1791.0
+    ],
+    "delta_utilities": [
+      -87.78,
+      -181.28000000000003
+    ],
+    "decline_count": 1,
+    "cumulative_cost": 2723.0,
+    "final_delta_u": -181.28000000000003
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "sci_01",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "sci_02",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "sci_03",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "cs_01",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "cs_02",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "cs_03",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "hist_01",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "hist_02",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "hist_03",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "phil_01",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "phil_02",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "phil_03",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "law_01",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "law_02",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "law_03",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "game_01",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "game_02",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "game_03",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "eng_01",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "eng_02",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "eng_03",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "biz_01",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "biz_02",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "biz_03",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  },
+  {
+    "experiment_id": "exp05_hybrid_l0.1",
+    "task_id": "med_01",
+    "pattern": "pipe",
+    "lambda": 0.1,
+    "turn_count": 0,
+    "qualities": [],
+    "costs": [],
+    "delta_utilities": [],
+    "decline_count": 0,
+    "cumulative_cost": 0,
+    "final_delta_u": null
+  }
+]

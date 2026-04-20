@@ -102,6 +102,9 @@ PATTERN_MAX_MESSAGES = {
 # A=rr3, B1=sel3+sel4, B2=swm3+swm4, C=refl2+debate3, D=pipe
 PATTERNS_REPRESENTATIVE = ["rr3", "sel3", "sel4", "swm3", "swm4", "refl2", "debate3", "pipe"]
 
+# exp07: one representative per category for difficulty study
+PATTERNS_DIFFICULTY_STUDY = ["solo", "swm3", "refl2", "sel3", "debate3"]
+
 # exp05: Lambda values for adaptive termination
 LAMBDA_VALUES = [0.0, 0.1, 0.5]
 

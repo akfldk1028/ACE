@@ -1,17 +1,17 @@
 """
 LLM Cross-Validation for G-Eval Scoring
 =========================================
-Re-scores a subset of exp02 turns using a different LLM (GPT-4o)
+Re-scores a subset of exp02 turns using a different LLM (GPT-5.4)
 to validate the Claude-based G-Eval scores.
 
 Requires: OPENAI_API_KEY environment variable
 
-Sampling: 40 turns stratified across 5 patterns and score ranges
+Sampling: 100 turns stratified across 5 patterns and score ranges
 Uses the IDENTICAL scoring prompt from scorer.py for fair comparison.
 
 Output:
-  results/exp02/cross_validation.csv          (paired scores)
-  results/exp02/cross_validation_summary.csv  (correlation metrics)
+  results/exp02/cross_validation_gpt54.csv          (paired scores)
+  results/exp02/cross_validation_gpt54_summary.csv  (correlation metrics)
 """
 
 import sys
@@ -102,8 +102,8 @@ def get_cumulative_text(run, up_to_turn):
     return cumulative.strip()
 
 
-def select_samples(raw_data, scores, n=40):
-    """Select 40 stratified samples (8 per pattern)."""
+def select_samples(raw_data, scores, n=100):
+    """Select 100 stratified samples (20 per pattern)."""
     run_lookup = {(r['pattern'], r['task_id']): r for r in raw_data}
 
     by_pattern = defaultdict(list)
@@ -140,10 +140,10 @@ def score_with_openai(prompt, api_key):
             'Content-Type': 'application/json',
         },
         json={
-            'model': 'gpt-4o-mini',
+            'model': 'gpt-5.4',
             'messages': [{'role': 'user', 'content': prompt}],
             'temperature': 0,
-            'max_tokens': 100,
+            'max_completion_tokens': 100,
         },
         timeout=30.0,
     )
@@ -244,7 +244,7 @@ def main():
 
     raw_data, scores = load_data()
     tasks = load_tasks()
-    samples, run_lookup = select_samples(raw_data, scores, n=40)
+    samples, run_lookup = select_samples(raw_data, scores, n=100)
 
     print(f"[OK] Selected {len(samples)} samples for cross-validation")
     pattern_counts = defaultdict(int)
@@ -255,7 +255,7 @@ def main():
 
     if dry_run:
         # Save sample selection for review
-        path = EXP02_DIR / 'cross_validation_samples.csv'
+        path = EXP02_DIR / 'cross_validation_gpt54_samples.csv'
         fields = ['pattern', 'task_id', 'turn_index', 'overall']
         with open(path, 'w', encoding='utf-8', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=fields)
@@ -266,7 +266,7 @@ def main():
         print("\n[INFO] Set OPENAI_API_KEY and re-run for full cross-validation.")
         return
 
-    # Score each sample with GPT-4o
+    # Score each sample with GPT-5.4
     pairs = []
     errors = 0
     for i, sample in enumerate(samples):
@@ -324,7 +324,7 @@ def main():
         return
 
     pair_fields = list(pairs[0].keys())
-    path = EXP02_DIR / 'cross_validation.csv'
+    path = EXP02_DIR / 'cross_validation_gpt54.csv'
     with open(path, 'w', encoding='utf-8', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=pair_fields)
         writer.writeheader()
@@ -340,7 +340,7 @@ def main():
               f"diff={metrics['mean_diff']})")
 
     # Save summary
-    summary_path = EXP02_DIR / 'cross_validation_summary.csv'
+    summary_path = EXP02_DIR / 'cross_validation_gpt54_summary.csv'
     summary_fields = ['dimension', 'pearson', 'pearson_p', 'spearman', 'spearman_p',
                       'kappa', 'mean_claude', 'mean_gpt', 'mean_diff']
     with open(summary_path, 'w', encoding='utf-8', newline='') as f:

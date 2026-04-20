@@ -1,307 +1,326 @@
 """
-Figure 1.1: Taxonomy of 13 Multi-Agent Coordination Patterns
+Figure 1: Representative Topology Diagrams for 6 Multi-Agent Coordination Patterns.
 
-Generates a tree-layout diagram showing 5 categories of coordination topologies:
-- A: Flat Sequential / Chain (RR-2, RR-3, RR-4)
-- B1: Centralized Routing / Star (Sel-3, Sel-4)
-- B2: Decentralized Handoff / Mesh (Swm-3, Swm-4)
-- C: Structured Feedback (Refl-2, Refl-3, Debate-3, Debate-4)
-- D: Composed/Nested (Pipe, MoA)
-
-Output: figures/fig1_taxonomy.png
+2x3 grid showing agent communication patterns with circular nodes and directed arrows.
+Output: figures/fig1_taxonomy.png, figures/fig1_taxonomy.pdf
 """
 
 import sys
 import io
+import math
 
-# Fix Windows cp949 encoding issue
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+from matplotlib.patches import FancyArrowPatch, Circle
 from pathlib import Path
+import numpy as np
 
-# Category colors (publication-quality palette)
+# --- Category color scheme ---
 COLORS = {
-    'A': '#4C78A8',   # Blue - Flat Sequential (Chain)
-    'B1': '#F58518',  # Orange - Centralized Routing (Star)
-    'B2': '#EECA3B',  # Yellow - Decentralized Handoff (Mesh)
-    'C': '#E45756',   # Red - Structured Feedback
-    'D': '#72B7B2',   # Teal - Composed/Nested
+    'A':       '#4C78A8',  # Blue   - Chain
+    'B1':      '#F58518',  # Orange - Centralized Star
+    'B2':      '#EECA3B',  # Dark gold - Decentralized Mesh
+    'C_refl':  '#E45756',  # Red    - Reflection
+    'C_debate':'#B07AA1',  # Purple - Debate
+    'D':       '#72B7B2',  # Teal   - Pipeline
 }
 
-# Topology icons (using ASCII-safe symbols)
-ICONS = {
-    'A': '>>',       # Linear chain
-    'B1': '*',       # Hub-and-spoke (star)
-    'B2': '#',       # Mesh/peer-to-peer
-    'C': 'O',        # Loop/cycle
-    'D': '=',        # Layers
-}
-
-# Pattern definitions
-PATTERNS = {
-    'A': {
-        'title': 'Flat Sequential\n(Chain)',
-        'patterns': [
-            ('RR-2', 2),
-            ('RR-3', 3),
-            ('RR-4', 4),
-        ]
-    },
-    'B1': {
-        'title': 'Centralized\nRouting (Star)',
-        'patterns': [
-            ('Sel-3', 3),
-            ('Sel-4', 4),
-        ]
-    },
-    'B2': {
-        'title': 'Decentralized\nHandoff (Mesh)',
-        'patterns': [
-            ('Swm-3', 3),
-            ('Swm-4', 4),
-        ]
-    },
-    'C': {
-        'title': 'Structured\nFeedback',
-        'patterns': [
-            ('Refl-2', 2),
-            ('Refl-3', 3),
-            ('Debate-3', 3),
-            ('Debate-4', 4),
-        ]
-    },
-    'D': {
-        'title': 'Composed/\nNested',
-        'patterns': [
-            ('Pipe', '2+'),
-            ('MoA', '3+'),
-        ]
-    },
-}
+NODE_RADIUS = 0.35
+NODE_LW = 3.5          # border linewidth
+ARROW_LW = 3.0         # arrow linewidth
+ARROW_SHRINK = 18       # shrink from node edge (points)
+TITLE_SIZE = 16
+LABEL_SIZE = 14
+ANNOT_SIZE = 11
 
 
-def draw_pattern_box(ax, x, y, name, agent_count, category, width=1.0, height=0.5):
-    """Draw a single pattern box with name, agent count, and icon."""
-    color = COLORS[category]
-    icon = ICONS[category]
-
-    # Main box with rounded corners
-    box = FancyBboxPatch(
-        (x - width/2, y - height/2),
-        width,
-        height,
-        boxstyle="round,pad=0.05",
-        edgecolor=color,
-        facecolor='white',
-        linewidth=2.5,
-        zorder=3
+def _circle(ax, cx, cy, label, color, radius=NODE_RADIUS, fontsize=LABEL_SIZE):
+    """Draw an agent node: white-filled circle with thick colored border."""
+    circ = Circle(
+        (cx, cy), radius,
+        facecolor='white', edgecolor=color, linewidth=NODE_LW, zorder=5
     )
-    ax.add_patch(box)
-
-    # Pattern name (bold)
-    ax.text(
-        x, y + 0.08,
-        name,
-        ha='center',
-        va='center',
-        fontsize=11,
-        fontweight='bold',
-        color=color,
-        zorder=4
-    )
-
-    # Agent count (small text)
-    ax.text(
-        x, y - 0.08,
-        f'{agent_count} agents',
-        ha='center',
-        va='center',
-        fontsize=8,
-        color='#666666',
-        zorder=4
-    )
-
-    # Topology icon (top-right corner)
-    ax.text(
-        x + width/2 - 0.12,
-        y + height/2 - 0.12,
-        icon,
-        ha='center',
-        va='center',
-        fontsize=10,
-        color=color,
-        alpha=0.5,
-        zorder=4
-    )
+    ax.add_patch(circ)
+    ax.text(cx, cy, label, ha='center', va='center',
+            fontsize=fontsize, fontweight='bold', color=color, zorder=6)
+    return (cx, cy)
 
 
-def draw_category_box(ax, x, y, title, category, width=1.2, height=0.6):
-    """Draw a category box (larger, filled background)."""
-    color = COLORS[category]
-
-    # Category box with filled background
-    box = FancyBboxPatch(
-        (x - width/2, y - height/2),
-        width,
-        height,
-        boxstyle="round,pad=0.08",
-        edgecolor=color,
-        facecolor=color,
-        alpha=0.15,
-        linewidth=2.5,
-        zorder=2
-    )
-    ax.add_patch(box)
-
-    # Category title
-    ax.text(
-        x, y,
-        title,
-        ha='center',
-        va='center',
-        fontsize=12,
-        fontweight='bold',
-        color=color,
-        zorder=4
-    )
-
-
-def draw_arrow(ax, x1, y1, x2, y2, color='#333333', style='->'):
-    """Draw a connecting arrow."""
+def _arrow(ax, start, end, color, style='solid', lw=ARROW_LW,
+           shrinkA=ARROW_SHRINK, shrinkB=ARROW_SHRINK,
+           connectionstyle='arc3,rad=0', arrowstyle='-|>',
+           mutation_scale=18):
+    """Draw a directed arrow between two (x,y) points."""
     arrow = FancyArrowPatch(
-        (x1, y1),
-        (x2, y2),
-        arrowstyle=style,
-        color=color,
-        linewidth=1.5,
-        alpha=0.6,
-        zorder=1,
-        connectionstyle="arc3,rad=0"
+        start, end,
+        arrowstyle=arrowstyle,
+        mutation_scale=mutation_scale,
+        color=color, linewidth=lw, linestyle=style,
+        shrinkA=shrinkA, shrinkB=shrinkB,
+        connectionstyle=connectionstyle,
+        zorder=3
     )
     ax.add_patch(arrow)
+    return arrow
 
 
-def generate_taxonomy_figure():
-    """Generate the complete taxonomy diagram."""
-    # Create figure
-    fig, ax = plt.subplots(figsize=(20, 6), dpi=150)
-    ax.set_xlim(-1, 21)
-    ax.set_ylim(-1, 6)
-    ax.axis('off')
+def _label_arrow(ax, x, y, text, color, fontsize=ANNOT_SIZE):
+    """Place a small annotation near an arrow."""
+    ax.text(x, y, text, ha='center', va='center',
+            fontsize=fontsize, fontstyle='italic', color=color, zorder=7,
+            bbox=dict(boxstyle='round,pad=0.15', facecolor='white',
+                      edgecolor='none', alpha=0.85))
+
+
+def _setup_ax(ax, title):
+    """Configure a subplot axes."""
+    ax.set_xlim(-1.3, 1.3)
+    ax.set_ylim(-1.3, 1.3)
     ax.set_aspect('equal')
+    ax.axis('off')
+    ax.set_title(title, fontsize=TITLE_SIZE, fontweight='bold', pad=12)
 
-    # Root node
-    root_x, root_y = 10, 5
-    root_box = FancyBboxPatch(
-        (root_x - 1.8, root_y - 0.35),
-        3.6,
-        0.7,
-        boxstyle="round,pad=0.1",
-        edgecolor='#333333',
-        facecolor='#F5F5F5',
-        linewidth=3,
-        zorder=3
-    )
-    ax.add_patch(root_box)
-    ax.text(
-        root_x, root_y,
-        '13 Coordination Topologies',
-        ha='center',
-        va='center',
-        fontsize=14,
-        fontweight='bold',
-        color='#333333',
-        zorder=4
-    )
 
-    # Category positions (y=3.2 for all 5 categories)
-    category_y = 3.2
-    category_positions = {
-        'A': 2.0,
-        'B1': 5.5,
-        'B2': 9.0,
-        'C': 13.0,
-        'D': 17.5,
-    }
+# ============================================================
+# Panel (a): Chain  RR-3
+# ============================================================
+def draw_sequential(ax):
+    _setup_ax(ax, '(a) Chain (A)')
+    color = COLORS['A']
 
-    # Draw categories
-    for cat_id, x_pos in category_positions.items():
-        cat_data = PATTERNS[cat_id]
-        draw_category_box(ax, x_pos, category_y, cat_data['title'], cat_id, height=0.7)
-        draw_arrow(ax, root_x, root_y - 0.35, x_pos, category_y + 0.35, color=COLORS[cat_id])
+    # Three agents on a circle of radius 0.65
+    R = 0.65
+    angles = [90, 210, 330]  # top, bottom-left, bottom-right
+    positions = []
+    labels = ['$A_1$', '$A_2$', '$A_3$']
 
-    # Pattern positions (bottom layer, y=1.0) — data-driven
-    pattern_y = 1.0
-    for cat_id, center_x in category_positions.items():
-        cat_patterns = PATTERNS[cat_id]['patterns']
-        spacing = 1.3
-        start_x = center_x - (len(cat_patterns) - 1) * spacing / 2
-        for i, (name, count) in enumerate(cat_patterns):
-            x = start_x + i * spacing
-            draw_pattern_box(ax, x, pattern_y, name, count, cat_id)
-            draw_arrow(ax, center_x, category_y - 0.35, x, pattern_y + 0.25, color=COLORS[cat_id])
+    for i, ang in enumerate(angles):
+        rad = math.radians(ang)
+        cx, cy = R * math.cos(rad), R * math.sin(rad)
+        _circle(ax, cx, cy, labels[i], color)
+        positions.append((cx, cy))
 
-    # Legend (topology icons)
-    legend_y = 0.2
-    legend_items = [
-        ('>>', 'Chain', COLORS['A']),
-        ('*', 'Star', COLORS['B1']),
-        ('#', 'Mesh', COLORS['B2']),
-        ('O', 'Feedback', COLORS['C']),
-        ('=', 'Nested', COLORS['D']),
+    # Curved arrows: A1 -> A2 -> A3 -> A1
+    for i in range(3):
+        j = (i + 1) % 3
+        _arrow(ax, positions[i], positions[j], color, style='solid',
+               connectionstyle='arc3,rad=0.25')
+
+
+# ============================================================
+# Panel (b): Centralized Star  Sel-3
+# ============================================================
+def draw_star(ax):
+    _setup_ax(ax, '(b) Centralized Star (B1)')
+    color = COLORS['B1']
+
+    # Coordinator in center
+    center = _circle(ax, 0, 0, 'Coord', color, fontsize=12)
+
+    # 3 specialists around it
+    R = 0.80
+    angles = [90, 210, 330]
+    labels = ['$S_1$', '$S_2$', '$S_3$']
+    positions = []
+    for i, ang in enumerate(angles):
+        rad = math.radians(ang)
+        cx, cy = R * math.cos(rad), R * math.sin(rad)
+        _circle(ax, cx, cy, labels[i], color)
+        positions.append((cx, cy))
+
+    # Bidirectional: coordinator <-> each specialist (dashed = dynamic routing)
+    for pos in positions:
+        _arrow(ax, center, pos, color, style='dashed',
+               connectionstyle='arc3,rad=0.12')
+        _arrow(ax, pos, center, color, style='dashed',
+               connectionstyle='arc3,rad=0.12')
+
+
+# ============================================================
+# Panel (c): Decentralized Mesh  Swm-3
+# ============================================================
+def draw_mesh(ax):
+    _setup_ax(ax, '(c) Decentralized Mesh (B2)')
+    color = COLORS['B2']
+    # Darken the gold for better readability on white
+    edge_color = '#C9A820'
+
+    R = 0.65
+    angles = [90, 210, 330]
+    labels = ['$A_1$', '$A_2$', '$A_3$']
+    positions = []
+    for i, ang in enumerate(angles):
+        rad = math.radians(ang)
+        cx, cy = R * math.cos(rad), R * math.sin(rad)
+        _circle(ax, cx, cy, labels[i], edge_color)
+        positions.append((cx, cy))
+
+    # Fully connected: every pair, both directions (dashed = dynamic)
+    for i in range(3):
+        for j in range(3):
+            if i != j:
+                _arrow(ax, positions[i], positions[j], edge_color,
+                       style='dashed', connectionstyle='arc3,rad=0.2')
+
+
+# ============================================================
+# Panel (d): Reflection  Refl-2
+# ============================================================
+def draw_reflection(ax):
+    _setup_ax(ax, '(d) Reflection (C)')
+    color = COLORS['C_refl']
+
+    gen_pos = _circle(ax, -0.55, 0, 'Gen', color)
+    crit_pos = _circle(ax, 0.55, 0, 'Critic', color, fontsize=12)
+
+    # Gen -> Critic (top arc) with "draft" label
+    _arrow(ax, gen_pos, crit_pos, color, style='solid',
+           connectionstyle='arc3,rad=0.35')
+    _label_arrow(ax, 0, 0.45, 'draft', color)
+
+    # Critic -> Gen (bottom arc) with "revise" label
+    _arrow(ax, crit_pos, gen_pos, color, style='solid',
+           connectionstyle='arc3,rad=0.35')
+    _label_arrow(ax, 0, -0.45, 'revise', color)
+
+    # "approve" exit arrow from Critic going right
+    _arrow(ax, (0.55 + NODE_RADIUS + 0.02, 0), (1.15, 0), color,
+           style='solid', shrinkA=0, shrinkB=0,
+           arrowstyle='-|>', mutation_scale=16)
+    _label_arrow(ax, 1.05, 0.20, 'done', color)
+
+
+# ============================================================
+# Panel (e): Debate  Deb-3
+# ============================================================
+def draw_debate(ax):
+    _setup_ax(ax, '(e) Debate (C)')
+    color = COLORS['C_debate']
+
+    # Moderator on top, two debaters at bottom
+    mod_pos = _circle(ax, 0, 0.55, 'Mod', color, fontsize=12)
+    d1_pos = _circle(ax, -0.6, -0.45, '$D_1$', color)
+    d2_pos = _circle(ax, 0.6, -0.45, '$D_2$', color)
+
+    # D1 -> Mod, D2 -> Mod (arguments go up)
+    _arrow(ax, d1_pos, mod_pos, color, style='solid',
+           connectionstyle='arc3,rad=0.15')
+    _arrow(ax, d2_pos, mod_pos, color, style='solid',
+           connectionstyle='arc3,rad=-0.15')
+
+    # Mod -> D1, Mod -> D2 (questions / prompts go down, dashed)
+    _arrow(ax, mod_pos, d1_pos, color, style='dashed',
+           connectionstyle='arc3,rad=0.15')
+    _arrow(ax, mod_pos, d2_pos, color, style='dashed',
+           connectionstyle='arc3,rad=-0.15')
+
+    # D1 <-> D2 (cross-debate, dotted)
+    _arrow(ax, d1_pos, d2_pos, color, style=(0, (2, 3)),
+           connectionstyle='arc3,rad=0.2')
+    _arrow(ax, d2_pos, d1_pos, color, style=(0, (2, 3)),
+           connectionstyle='arc3,rad=0.2')
+
+    # Labels
+    _label_arrow(ax, -0.55, 0.15, 'argue', color)
+    _label_arrow(ax, 0.55, 0.15, 'argue', color)
+    _label_arrow(ax, 0, -0.6, 'rebut', color)
+
+
+# ============================================================
+# Panel (f): Pipeline  Pipe
+# ============================================================
+def draw_pipeline(ax):
+    ax.set_xlim(-1.8, 1.8)
+    ax.set_ylim(-1.0, 1.0)
+    ax.set_aspect('equal')
+    ax.axis('off')
+    ax.set_title('(f) Pipeline (D)', fontsize=TITLE_SIZE, fontweight='bold', pad=12)
+
+    color = COLORS['D']
+
+    # 5 agents in a horizontal line
+    xs = np.linspace(-1.35, 1.35, 5)
+    y = 0
+    labels = ['$A_1$', '$A_2$', '$A_3$', '$A_4$', '$A_5$']
+    positions = []
+    for i, x in enumerate(xs):
+        _circle(ax, x, y, labels[i], color, radius=0.28, fontsize=12)
+        positions.append((x, y))
+
+    # Linear arrows: A1 -> A2 -> ... -> A5
+    for i in range(4):
+        _arrow(ax, positions[i], positions[i+1], color, style='solid',
+               shrinkA=14, shrinkB=14)
+
+    # Stage labels below each node
+    stages = ['stage 1', 'stage 2', 'stage 3', 'stage 4', 'stage 5']
+    for i, x in enumerate(xs):
+        ax.text(x, y - 0.48, stages[i], ha='center', va='center',
+                fontsize=10, color='#666666', zorder=6)
+
+
+# ============================================================
+# Main figure
+# ============================================================
+def generate_figure():
+    fig, axes = plt.subplots(2, 3, figsize=(16, 11))
+    fig.patch.set_facecolor('white')
+
+    draw_sequential(axes[0, 0])
+    draw_star(axes[0, 1])
+    draw_mesh(axes[0, 2])
+    draw_reflection(axes[1, 0])
+    draw_debate(axes[1, 1])
+    draw_pipeline(axes[1, 2])
+
+    # Legend at the bottom
+    legend_handles = [
+        mpatches.Patch(facecolor='white', edgecolor=COLORS['A'], linewidth=3,
+                       label='A: Sequential'),
+        mpatches.Patch(facecolor='white', edgecolor=COLORS['B1'], linewidth=3,
+                       label='B1: Centralized'),
+        mpatches.Patch(facecolor='white', edgecolor='#C9A820', linewidth=3,
+                       label='B2: Decentralized'),
+        mpatches.Patch(facecolor='white', edgecolor=COLORS['C_refl'], linewidth=3,
+                       label='C: Reflection'),
+        mpatches.Patch(facecolor='white', edgecolor=COLORS['C_debate'], linewidth=3,
+                       label='C: Debate'),
+        mpatches.Patch(facecolor='white', edgecolor=COLORS['D'], linewidth=3,
+                       label='D: Pipeline'),
     ]
 
-    legend_x = 1.5
-    for i, (icon, label, color) in enumerate(legend_items):
-        x = legend_x + i * 3.2
-        ax.text(x, legend_y, icon, fontsize=12, color=color, ha='left', va='center')
-        ax.text(x + 0.4, legend_y, label, fontsize=9, color='#666666', ha='left', va='center')
+    # Arrow style legend items
+    from matplotlib.lines import Line2D
+    line_handles = [
+        Line2D([0], [0], color='#555555', linewidth=2.5, linestyle='solid',
+               label='Fixed routing'),
+        Line2D([0], [0], color='#555555', linewidth=2.5, linestyle='dashed',
+               label='Dynamic routing'),
+    ]
 
-    # Title annotation
-    ax.text(
-        10, -0.5,
-        'Figure 1.1: Taxonomy of Multi-Agent Coordination Patterns',
-        ha='center',
-        va='center',
-        fontsize=10,
-        color='#666666',
-        style='italic'
-    )
+    all_handles = legend_handles + line_handles
+    fig.legend(handles=all_handles, loc='lower center',
+               ncol=4, fontsize=12, frameon=True,
+               fancybox=True, edgecolor='#CCCCCC',
+               bbox_to_anchor=(0.5, -0.01))
 
-    # Tight layout
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0.05, 1, 1])
 
     # Save
-    output_dir = Path(r'D:\Data\25_ACE\AG\AG-Research\figures')
-    output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / 'fig1_taxonomy.png'
+    out_dir = Path(r'D:\Data\25_ACE\AG\AG-Research\figures')
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-    plt.savefig(
-        output_path,
-        dpi=150,
-        bbox_inches='tight',
-        facecolor='white',
-        edgecolor='none'
-    )
-    print(f"[OK] Figure saved to: {output_path}")
+    for ext in ('png', 'pdf'):
+        path = out_dir / f'fig1_taxonomy.{ext}'
+        fig.savefig(path, dpi=300, bbox_inches='tight',
+                    facecolor='white', edgecolor='none')
+        print(f'[OK] Saved {path}')
 
-    # Also save as high-res for publication
-    output_path_hires = output_dir / 'fig1_taxonomy_hires.png'
-    plt.savefig(
-        output_path_hires,
-        dpi=300,
-        bbox_inches='tight',
-        facecolor='white',
-        edgecolor='none'
-    )
-    print(f"[OK] High-res version (300 DPI) saved to: {output_path_hires}")
-
-    plt.close()
+    plt.close(fig)
 
 
 if __name__ == '__main__':
-    generate_taxonomy_figure()
-    print("\n[OK] Taxonomy diagram generation complete!")
+    generate_figure()
+    print('\n[OK] Taxonomy topology diagrams generated.')

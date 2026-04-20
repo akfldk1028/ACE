@@ -1,0 +1,4 @@
+target,holdout_r2,holdout_mae,n_train,n_test
+total_tokens,0.2893,3666.25,718,200
+turn_count,0.2957,3.99,718,200
+duration_sec,0.1332,39.7,718,200

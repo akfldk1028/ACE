@@ -300,115 +300,29 @@ function renderSetbackEntities(
     }
   }
 
-  // 3D 일조사선 envelope — 수직 직각벽 (진홍) + 평탄 지붕 (분홍) + 경사 지붕 (핑크)
+  // 정북일조 envelope — img_5 법규 단면의 빨간 점선만 3D로 표현.
+  // 각 north edge 중앙에서 내측으로 "수직→평탄→경사" 꺾이는 4-point polyline 1개.
+  // 수직벽/평탄지붕/경사지붕/계단/박스 모두 생략 (혼란 유발).
   const envelope = setbacks.sunlight_envelope as any;
-  if (envelope) {
-    const wallC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_wall);
-    const plateauC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_plateau);
-    const slopeC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_slope);
-
-    // 수직 직각벽 (진홍) — 얇고 투명하게
-    if (envelope.walls) {
-      for (let wi = 0; wi < envelope.walls.length; wi++) {
-        const wall = envelope.walls[wi];
-        const positions = wall.positions;
-        const maxH = wall.max_heights;
-        const minH = wall.min_heights;
-        if (!positions || positions.length < 2 || positions.length !== maxH.length) continue;
-        const flat: number[] = [];
-        for (const [lng, lat] of positions) flat.push(lng, lat);
-        viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-wall-${wi}`,
-          wall: {
-            positions: Cesium.Cartesian3.fromDegreesArray(flat),
-            minimumHeights: minH,
-            maximumHeights: maxH,
-            material: wallC.withAlpha(0.18),
-            outline: true,
-            outlineColor: wallC.withAlpha(0.85),
-            outlineWidth: 2,
-          },
-        });
-      }
-    }
-
-    // 계단식 envelope 층 — img_5의 건물 볼륨 (법규 §86① 반영)
-    // 3개 층: base(0-10m) / mid(10-20m) / high(20-30m), 각 층마다 북측 offset 증가
-    if (envelope.envelope_layers) {
-      const layerColors: Record<string, string> = {
-        base: plateauC.toCssColorString(),
-        mid: '#f59e0b',    // 주황 — 중층
-        high: slopeC.toCssColorString(),  // 핑크 — 고층
-      };
-      for (let li = 0; li < envelope.envelope_layers.length; li++) {
-        const layer = envelope.envelope_layers[li];
-        const ring = layer.footprint_wgs as number[][];
-        if (!ring || ring.length < 3) continue;
-        const flat: number[] = [];
-        for (const [lng, lat] of ring) flat.push(lng, lat);
-        const color = Cesium.Color.fromCssColorString(
-          layerColors[layer.kind] || '#ec4899'
-        );
-        viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-layer-${li}`,
-          polygon: {
-            hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
-            height: layer.h_bottom,
-            extrudedHeight: layer.h_top,
-            material: color.withAlpha(0.22),
-            outline: true,
-            outlineColor: color.withAlpha(0.9),
-            outlineWidth: 2,
-          },
-        });
-      }
-    }
-
-    // 단면 프로파일 폴리라인 — '꺾이는' 법규 단면 (img_5 빨간 점선 대응)
-    // 수직→평탄→경사를 3D 공간에 굵은 선으로 그어 한눈에 형상 보이게.
-    if (envelope.profile_polylines) {
-      for (let pi = 0; pi < envelope.profile_polylines.length; pi++) {
-        const line = envelope.profile_polylines[pi];
-        const pts = line.points as number[][];
-        if (!pts || pts.length < 2) continue;
-        const flat: number[] = [];
-        for (const p of pts) flat.push(p[0], p[1], p[2]);
-        viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-profile-${pi}`,
-          polyline: {
-            positions: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
-            width: 6,
-            material: new Cesium.PolylineDashMaterialProperty({
-              color: wallC,
-              dashLength: 12,
-            }),
-          },
-        });
-      }
-    }
-
-    // 평탄/경사 지붕 (kind별 색상 분리, 낮은 alpha로 투명)
-    if (envelope.slanted_polygons) {
-      for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
-        const poly = envelope.slanted_polygons[pi];
-        const corners = poly.corners as number[][];
-        if (!corners || corners.length < 3) continue;
-        const kind = poly.kind || '';
-        const color = kind === 'plateau' ? plateauC : slopeC;
-        const flat: number[] = [];
-        for (const c of corners) flat.push(c[0], c[1], c[2]);
-        viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-${kind}-${pi}`,
-          polygon: {
-            hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
-            perPositionHeight: true,
-            material: color.withAlpha(0.15),
-            outline: true,
-            outlineColor: color.withAlpha(0.85),
-            outlineWidth: 2,
-          },
-        });
-      }
+  if (envelope?.profile_polylines) {
+    const lineC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_wall); // 진홍
+    for (let pi = 0; pi < envelope.profile_polylines.length; pi++) {
+      const line = envelope.profile_polylines[pi];
+      const pts = line.points as number[][];
+      if (!pts || pts.length < 2) continue;
+      const flat: number[] = [];
+      for (const p of pts) flat.push(p[0], p[1], p[2]);
+      viewer.entities.add({
+        id: `${SETBACK_PREFIX}sunlight-profile-${pi}`,
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
+          width: 10,
+          material: new Cesium.PolylineDashMaterialProperty({
+            color: lineC,
+            dashLength: 14,
+          }),
+        },
+      });
     }
   }
 

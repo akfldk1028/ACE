@@ -223,14 +223,22 @@ function renderSetbackEntities(
   }
   for (const e of toRemove) viewer.entities.remove(e);
 
+  // 규제별 고유 색상 — 프런트/CLI 공통 레퍼런스.
+  // 변경시 land/services/regulations/colors.py 와 동기화 필요.
   const colors: Record<string, string> = {
-    buildable_area: '#22c55e',       // 초록 — 건축가능영역
-    north_setback: '#ef4444',        // 빨강 — 정북 일조사선
-    adjacent_setback: '#ef4444',     // 빨강 — 인접대지 이격
-    road_setback: '#ef4444',         // 빨강 — 건축선 후퇴
-    building_line: '#ef4444',        // 빨강
-    corner_cutoff: '#ef4444',        // 빨강 — 가각전제
-    building_designation_line: '#ef4444', // 빨강 — 건축지정선
+    buildable_area: '#22c55e',                 // 초록 — 건축가능영역
+    north_setback: '#dc2626',                  // 진홍 — 정북 일조사선 (2D 선)
+    sunlight_envelope_wall: '#dc2626',         // 진홍 — 정북 수직 직각벽 (3D)
+    sunlight_envelope_plateau: '#f472b6',      // 분홍 — 정북 평탄 지붕 (3D)
+    sunlight_envelope_slope: '#ec4899',        // 핑크 — 정북 경사 지붕 (3D)
+    adjacent_setback: '#3b82f6',               // 파랑 — 인접대지 이격
+    road_setback: '#f97316',                   // 주황 — 건축선 후퇴
+    corner_cutoff: '#eab308',                  // 노랑 — 가각전제
+    daylight_diagonal_envelope: '#a855f7',     // 보라 — 채광사선 경사면
+    building_designation_line: '#14b8a6',      // 청록 — 건축지정선 (지구단위)
+    building_limit_line: '#06b6d4',            // 시안 — 건축한계선
+    wall_designation_line: '#84cc16',          // 라임 — 벽면지정선
+    wall_limit_line: '#f43f5e',                // 산호 — 벽면한계선
   };
 
   for (const [key, sb] of Object.entries(setbacks)) {
@@ -292,12 +300,14 @@ function renderSetbackEntities(
     }
   }
 
-  // 3D 일조사선 envelope — 수직 직각벽 (walls) + 연속 경사면 (slanted_polygons)
+  // 3D 일조사선 envelope — 수직 직각벽 (진홍) + 평탄 지붕 (분홍) + 경사 지붕 (핑크)
   const envelope = setbacks.sunlight_envelope as any;
   if (envelope) {
-    const wallColor = Cesium.Color.fromCssColorString('#f59e0b');
+    const wallC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_wall);
+    const plateauC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_plateau);
+    const slopeC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_slope);
 
-    // 수직 직각벽 (Wall primitive, Cesium은 항상 수직)
+    // 수직 직각벽 (진홍)
     if (envelope.walls) {
       for (let wi = 0; wi < envelope.walls.length; wi++) {
         const wall = envelope.walls[wi];
@@ -313,32 +323,33 @@ function renderSetbackEntities(
             positions: Cesium.Cartesian3.fromDegreesArray(flat),
             minimumHeights: minH,
             maximumHeights: maxH,
-            material: wallColor.withAlpha(0.3),
+            material: wallC.withAlpha(0.35),
             outline: true,
-            outlineColor: wallColor.withAlpha(0.9),
+            outlineColor: wallC.withAlpha(0.95),
             outlineWidth: 2,
           },
         });
       }
     }
 
-    // 연속 경사 지붕/평탄 지붕 (Polygon + perPositionHeight)
-    // corners: [[lng, lat, h], [lng, lat, h], ...] — 4 corners per polygon
+    // 평탄/경사 지붕 (kind별 색상 분리)
     if (envelope.slanted_polygons) {
       for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
         const poly = envelope.slanted_polygons[pi];
         const corners = poly.corners as number[][];
         if (!corners || corners.length < 3) continue;
+        const kind = poly.kind || '';
+        const color = kind === 'plateau' ? plateauC : slopeC;
         const flat: number[] = [];
         for (const c of corners) flat.push(c[0], c[1], c[2]);
         viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-slope-${pi}`,
+          id: `${SETBACK_PREFIX}sunlight-${kind}-${pi}`,
           polygon: {
             hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
             perPositionHeight: true,
-            material: wallColor.withAlpha(0.28),
+            material: color.withAlpha(0.32),
             outline: true,
-            outlineColor: wallColor.withAlpha(0.95),
+            outlineColor: color.withAlpha(0.95),
             outlineWidth: 3,
           },
         });
@@ -346,10 +357,10 @@ function renderSetbackEntities(
     }
   }
 
-  // 채광사선제한 경사면 (daylight_diagonal_envelope — 공동주택 인접경계)
+  // 채광사선제한 경사면 (daylight_diagonal_envelope — 공동주택 인접경계, 보라)
   const daylightEnvelope = setbacks.daylight_diagonal_envelope;
   if (daylightEnvelope?.walls) {
-    const dlColor = Cesium.Color.fromCssColorString('#f59e0b');
+    const dlColor = Cesium.Color.fromCssColorString(colors.daylight_diagonal_envelope);
     for (let wi = 0; wi < daylightEnvelope.walls.length; wi++) {
       const wall = daylightEnvelope.walls[wi];
       if (!wall.positions || wall.positions.length < 2) continue;

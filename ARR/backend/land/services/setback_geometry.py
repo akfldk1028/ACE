@@ -442,7 +442,7 @@ def _compute_sunlight_envelope(
 
     법규 단면 (북측 경계에서 남쪽으로 x 진행):
         H (m)
-        |                            /     ← slope 2:1 (H = 2x)
+        |                            /     ← slope 2:1 (H = 2x, 연속 경사면)
         |                          /
         |                        /
         | 10 ────┐──────────────         ← 수평 평탄부 (x=1.5 ~ 5m)
@@ -452,18 +452,18 @@ def _compute_sunlight_envelope(
         | 0 ─────┴──────────────────→ x
              0  1.5  5m    inward
 
-    - x < 1.5m: 건축 불가 (인접경계에서 최소 1.5m 이격)
-    - x = 1.5m: 직각으로 H=10m까지 올릴 수 있는 수직벽
-    - 1.5m ≤ x ≤ 5m: 수평 평탄부 (최대 H=10m)
-    - x > 5m: slope 2:1 (H = 2x, 즉 H>10m 구간은 H/2 이격)
+    렌더 구성 (Cesium primitive 3종):
+    1. **수직 직각벽** (Wall): x=1.5m, H=0→10m — 법규의 "10m까지 직각"
+    2. **수평 평탄부** (Polygon, flat at H=10m): x=1.5m ~ 5m 직사각형 지붕
+    3. **경사면** (Polygon w/ perPositionHeight=true): x=5m~max 로 기울어진 사각형
+       내측이 높고 경계쪽이 낮은 **진짜 slanted 지붕** — 계단 아님.
 
-    Cesium Wall로 다음 요소 렌더:
-    1. **수직 직각벽** at x=1.5m (H=0→10m) — 법규의 "10m까지 직각" 부분
-    2. **연속 계단 wall** at x ∈ {5, 7.5, 10, 15, 20, 25, 30m} — 각 거리에서 H=2x
-       이게 slope 2:1 envelope의 시각화. 각 wall은 바닥→최대허용H까지의 면.
-
-    Returns: { walls: [...], slope, base_setback_m, base_height_m, max_depth_m,
-                thresholds: [...] — 각 wall의 (dist_m, h_max_m) 쌍 }
+    Returns: {
+        walls: [...],           # 수직 벽 (Cesium Wall primitive)
+        slanted_polygons: [...],# 연속 경사면 (Cesium Polygon + perPositionHeight)
+        slope, base_setback_m, base_height_m, max_depth_m,
+        thresholds: [...]
+    }
     """
     try:
         if not north_edges:
@@ -480,33 +480,34 @@ def _compute_sunlight_envelope(
         )
         max_depth = min(parcel_span * 0.5, 30.0)
 
-        # 계단 wall 샘플: 5m부터 시작 (이전은 H=10 평탄), 2:1 slope 적용
-        slope_samples = [5.0, 7.5, 10.0, 12.5, 15.0, 20.0, 25.0, 30.0]
-        slope_samples = [d for d in slope_samples if d <= max_depth]
+        plateau_end = 5.0  # H=10m까지 수평인 구간 끝 (§86① slope 시작점)
+        if plateau_end > max_depth:
+            plateau_end = max_depth
 
         walls = []
+        slanted_polygons = []
         thresholds = []
 
         def _offset_coord(coord, nx, ny, dist):
             return (coord[0] + nx * dist, coord[1] + ny * dist)
 
-        def _wgs_positions(utm_coords):
-            out = []
-            for pt in utm_coords:
-                wgs_pt = _utm_to_wgs(Point(pt[0], pt[1]))
-                out.append([wgs_pt.x, wgs_pt.y])
-            return out
+        def _wgs_pt(utm_pt):
+            wgs = _utm_to_wgs(Point(utm_pt[0], utm_pt[1]))
+            return [wgs.x, wgs.y]
 
         for edge in north_edges:
             nx, ny = _inward_normal(edge, centroid)
             if nx == 0.0 and ny == 0.0:
                 continue
-            edge_coords = list(edge.coords)
+            coords_utm = list(edge.coords)
+            if len(coords_utm) < 2:
+                continue
+            a_utm, b_utm = coords_utm[0], coords_utm[-1]
 
-            # ── Wall 1: 수직 직각벽 at x=1.5m (H=0→10m) ──
-            vert_utm = [_offset_coord(c, nx, ny, base_setback) for c in edge_coords]
+            # ── 1. 수직 직각벽 at x=1.5m, H=0→10m (Cesium Wall) ──
+            vert_utm = [_offset_coord(c, nx, ny, base_setback) for c in coords_utm]
             walls.append({
-                "positions": _wgs_positions(vert_utm),
+                "positions": [_wgs_pt(p) for p in vert_utm],
                 "min_heights": [0.0] * len(vert_utm),
                 "max_heights": [base_height] * len(vert_utm),
                 "label": f"수직 직각벽 (x={base_setback}m, H=0→{base_height}m)",
@@ -514,40 +515,53 @@ def _compute_sunlight_envelope(
             thresholds.append({"distance_m": base_setback, "max_height_m": base_height,
                                 "kind": "vertical"})
 
-            # ── Wall 2: 수평 평탄부 at x=5m, H=10m ──
-            # (x=1.5~5 구간이 모두 H=10m이지만, x=5m 지점에 한 번 더 wall 세워
-            #  평탄부의 한계(slope 시작점)를 명시)
-            plateau_end = 5.0
-            if plateau_end <= max_depth:
-                plateau_utm = [_offset_coord(c, nx, ny, plateau_end) for c in edge_coords]
-                walls.append({
-                    "positions": _wgs_positions(plateau_utm),
-                    "min_heights": [0.0] * len(plateau_utm),
-                    "max_heights": [base_height] * len(plateau_utm),
-                    "label": f"평탄부 한계 (x={plateau_end}m, H={base_height}m)",
+            # ── 2. 수평 평탄부 지붕 (flat polygon at H=10m, x=1.5m ~ 5m) ──
+            if plateau_end > base_setback:
+                plateau_corners_utm = [
+                    _offset_coord(a_utm, nx, ny, base_setback),
+                    _offset_coord(b_utm, nx, ny, base_setback),
+                    _offset_coord(b_utm, nx, ny, plateau_end),
+                    _offset_coord(a_utm, nx, ny, plateau_end),
+                ]
+                plateau_corners_wgs = [
+                    [*_wgs_pt(p), base_height] for p in plateau_corners_utm
+                ]
+                slanted_polygons.append({
+                    "corners": plateau_corners_wgs,
+                    "label": f"평탄 지붕 (x={base_setback}~{plateau_end}m, H={base_height}m)",
+                    "kind": "plateau",
                 })
                 thresholds.append({"distance_m": plateau_end, "max_height_m": base_height,
                                     "kind": "plateau_end"})
 
-            # ── Wall 3~N: slope 2:1 계단 wall at x > 5m ──
-            for dist in slope_samples:
-                if dist <= plateau_end:
-                    continue
-                h = slope * dist  # H = 2×dist
-                slope_utm = [_offset_coord(c, nx, ny, dist) for c in edge_coords]
-                walls.append({
-                    "positions": _wgs_positions(slope_utm),
-                    "min_heights": [0.0] * len(slope_utm),
-                    "max_heights": [h] * len(slope_utm),
-                    "label": f"사선 H=2×{dist:.1f}={h:.1f}m",
+            # ── 3. 경사 지붕 (slanted polygon, x=5m~max_depth, slope 2:1) ──
+            if max_depth > plateau_end:
+                h_top = slope * max_depth
+                slope_corners_utm = [
+                    _offset_coord(a_utm, nx, ny, plateau_end),  # H=10m
+                    _offset_coord(b_utm, nx, ny, plateau_end),  # H=10m
+                    _offset_coord(b_utm, nx, ny, max_depth),    # H=h_top
+                    _offset_coord(a_utm, nx, ny, max_depth),    # H=h_top
+                ]
+                heights = [base_height, base_height, h_top, h_top]
+                slope_corners_wgs = [
+                    [*_wgs_pt(p), h] for p, h in zip(slope_corners_utm, heights)
+                ]
+                slanted_polygons.append({
+                    "corners": slope_corners_wgs,
+                    "label": f"경사 지붕 slope 2:1 (x={plateau_end}~{max_depth}m, "
+                              f"H={base_height}→{h_top:.1f}m)",
+                    "kind": "slope",
                 })
-                thresholds.append({"distance_m": dist, "max_height_m": h, "kind": "slope"})
+                thresholds.append({"distance_m": max_depth, "max_height_m": h_top,
+                                    "kind": "slope_top"})
 
-        if not walls:
+        if not walls and not slanted_polygons:
             return None
 
         return {
             "walls": walls,
+            "slanted_polygons": slanted_polygons,
             "slope": slope,
             "base_setback_m": base_setback,
             "base_height_m": base_height,

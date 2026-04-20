@@ -292,33 +292,57 @@ function renderSetbackEntities(
     }
   }
 
-  // 3D 일조사선 경사면 (sunlight_envelope — multiple walls)
-  const envelope = setbacks.sunlight_envelope;
-  if (envelope && envelope.walls) {
+  // 3D 일조사선 envelope — 수직 직각벽 (walls) + 연속 경사면 (slanted_polygons)
+  const envelope = setbacks.sunlight_envelope as any;
+  if (envelope) {
     const wallColor = Cesium.Color.fromCssColorString('#f59e0b');
-    for (let wi = 0; wi < envelope.walls.length; wi++) {
-      const wall = envelope.walls[wi];
-      const positions = wall.positions;
-      const maxH = wall.max_heights;
-      const minH = wall.min_heights;
 
-      if (!positions || positions.length < 2 || positions.length !== maxH.length) continue;
+    // 수직 직각벽 (Wall primitive, Cesium은 항상 수직)
+    if (envelope.walls) {
+      for (let wi = 0; wi < envelope.walls.length; wi++) {
+        const wall = envelope.walls[wi];
+        const positions = wall.positions;
+        const maxH = wall.max_heights;
+        const minH = wall.min_heights;
+        if (!positions || positions.length < 2 || positions.length !== maxH.length) continue;
+        const flat: number[] = [];
+        for (const [lng, lat] of positions) flat.push(lng, lat);
+        viewer.entities.add({
+          id: `${SETBACK_PREFIX}sunlight-wall-${wi}`,
+          wall: {
+            positions: Cesium.Cartesian3.fromDegreesArray(flat),
+            minimumHeights: minH,
+            maximumHeights: maxH,
+            material: wallColor.withAlpha(0.3),
+            outline: true,
+            outlineColor: wallColor.withAlpha(0.9),
+            outlineWidth: 2,
+          },
+        });
+      }
+    }
 
-      const flat: number[] = [];
-      for (const [lng, lat] of positions) flat.push(lng, lat);
-
-      viewer.entities.add({
-        id: `${SETBACK_PREFIX}sunlight-wall-${wi}`,
-        wall: {
-          positions: Cesium.Cartesian3.fromDegreesArray(flat),
-          minimumHeights: minH,
-          maximumHeights: maxH,
-          material: wallColor.withAlpha(0.25),
-          outline: true,
-          outlineColor: wallColor.withAlpha(0.8),
-          outlineWidth: 2,
-        },
-      });
+    // 연속 경사 지붕/평탄 지붕 (Polygon + perPositionHeight)
+    // corners: [[lng, lat, h], [lng, lat, h], ...] — 4 corners per polygon
+    if (envelope.slanted_polygons) {
+      for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
+        const poly = envelope.slanted_polygons[pi];
+        const corners = poly.corners as number[][];
+        if (!corners || corners.length < 3) continue;
+        const flat: number[] = [];
+        for (const c of corners) flat.push(c[0], c[1], c[2]);
+        viewer.entities.add({
+          id: `${SETBACK_PREFIX}sunlight-slope-${pi}`,
+          polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
+            perPositionHeight: true,
+            material: wallColor.withAlpha(0.28),
+            outline: true,
+            outlineColor: wallColor.withAlpha(0.95),
+            outlineWidth: 3,
+          },
+        });
+      }
     }
   }
 

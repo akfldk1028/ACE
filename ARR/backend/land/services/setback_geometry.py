@@ -473,16 +473,19 @@ def _compute_sunlight_envelope(
         base_setback = 1.5   # 수직벽 이격 (m) — §86①제1호
         base_height = 10.0   # 수직벽 최대 높이 (m) — 2023.9.12 개정 9→10m
         slope = 2.0          # 경사면 기울기 H=2x (§86①제2호 "H/2 이격"의 역수)
-        # 필지 크기 기반 max_depth — 필지 밖 돌출 방지
-        parcel_span = max(
+
+        # 필지의 **최소** 차원 기준 — envelope가 반대쪽 경계 넘어가지 않도록.
+        # (기존 max 기준은 세장형 필지에서 envelope가 남쪽 경계 밖까지 튀어나감)
+        parcel_min_span = min(
             parcel_utm.bounds[2] - parcel_utm.bounds[0],
             parcel_utm.bounds[3] - parcel_utm.bounds[1],
         )
-        max_depth = min(parcel_span * 0.5, 30.0)
+        # 시각화상 slope 꼭대기가 너무 높지 않도록 보수적으로 capping.
+        # max_depth=15m 이면 slope_top=30m (법규 제3종 일반주거 ≤~30m대 높이 일치)
+        viz_cap = 15.0
+        max_depth_cap = min(parcel_min_span * 0.5, viz_cap)
 
-        plateau_end = 5.0  # H=10m까지 수평인 구간 끝 (§86① slope 시작점)
-        if plateau_end > max_depth:
-            plateau_end = max_depth
+        plateau_end = min(5.0, max_depth_cap)  # §86① H=10m 평탄 끝
 
         walls = []
         slanted_polygons = []
@@ -494,6 +497,60 @@ def _compute_sunlight_envelope(
         def _wgs_pt(utm_pt):
             wgs = _utm_to_wgs(Point(utm_pt[0], utm_pt[1]))
             return [wgs.x, wgs.y]
+
+        def _clip_to_parcel(corners_utm_h: list[list]) -> list[list] | None:
+            """
+            2D 외곽선 (corners의 x,y만)을 필지에 clip.
+            기존 corners의 h 값을 barycentric-like하게 interpolate.
+            polygon이 너무 작거나 필지 밖이면 None.
+            """
+            ring = [(c[0], c[1]) for c in corners_utm_h]
+            try:
+                poly2d = Polygon(ring)
+                if not poly2d.is_valid:
+                    poly2d = poly2d.buffer(0)
+                clipped = poly2d.intersection(parcel_utm)
+            except Exception:
+                return None
+            if clipped.is_empty:
+                return None
+            if isinstance(clipped, MultiPolygon):
+                clipped = max(clipped.geoms, key=lambda g: g.area)
+            if not isinstance(clipped, Polygon) or clipped.area < 1.0:
+                return None
+
+            # 원 polygon이 2 high-height corners + 2 low-height corners인 기울어진 사각형.
+            # clipped polygon의 각 vertex에 대해 "두 원본 low-height 코너가 이루는 edge로부터의
+            # 거리 비율"을 기준으로 높이 보간.
+            low_h = min(c[2] for c in corners_utm_h)
+            high_h = max(c[2] for c in corners_utm_h)
+            if abs(high_h - low_h) < 0.01:
+                # 평탄 polygon — 그냥 같은 높이 유지
+                return [[x, y, low_h] for (x, y) in clipped.exterior.coords[:-1]]
+
+            # 기울기 방향: low → high 벡터 (원 corners에서 low와 high 중점 간)
+            low_pts = [(c[0], c[1]) for c in corners_utm_h if abs(c[2] - low_h) < 0.01]
+            high_pts = [(c[0], c[1]) for c in corners_utm_h if abs(c[2] - high_h) < 0.01]
+            if not low_pts or not high_pts:
+                return [[x, y, low_h] for (x, y) in clipped.exterior.coords[:-1]]
+            low_cx = sum(p[0] for p in low_pts) / len(low_pts)
+            low_cy = sum(p[1] for p in low_pts) / len(low_pts)
+            high_cx = sum(p[0] for p in high_pts) / len(high_pts)
+            high_cy = sum(p[1] for p in high_pts) / len(high_pts)
+            dx = high_cx - low_cx
+            dy = high_cy - low_cy
+            span_sq = dx * dx + dy * dy
+            if span_sq < 1e-6:
+                return [[x, y, low_h] for (x, y) in clipped.exterior.coords[:-1]]
+
+            out = []
+            for (x, y) in list(clipped.exterior.coords)[:-1]:
+                # projection of (x-low_cx, y-low_cy) onto (dx, dy) / span = t in [0,1]
+                t = ((x - low_cx) * dx + (y - low_cy) * dy) / span_sq
+                t = max(0.0, min(1.0, t))
+                h = low_h + t * (high_h - low_h)
+                out.append([x, y, h])
+            return out
 
         for edge in north_edges:
             nx, ny = _inward_normal(edge, centroid)
@@ -515,46 +572,49 @@ def _compute_sunlight_envelope(
             thresholds.append({"distance_m": base_setback, "max_height_m": base_height,
                                 "kind": "vertical"})
 
-            # ── 2. 수평 평탄부 지붕 (flat polygon at H=10m, x=1.5m ~ 5m) ──
+            # ── 2. 평탄 지붕 (1.5~5m, H=10m 수평) — 필지 clip ──
             if plateau_end > base_setback:
-                plateau_corners_utm = [
-                    _offset_coord(a_utm, nx, ny, base_setback),
-                    _offset_coord(b_utm, nx, ny, base_setback),
-                    _offset_coord(b_utm, nx, ny, plateau_end),
-                    _offset_coord(a_utm, nx, ny, plateau_end),
+                plateau_utm_h = [
+                    [*_offset_coord(a_utm, nx, ny, base_setback), base_height],
+                    [*_offset_coord(b_utm, nx, ny, base_setback), base_height],
+                    [*_offset_coord(b_utm, nx, ny, plateau_end), base_height],
+                    [*_offset_coord(a_utm, nx, ny, plateau_end), base_height],
                 ]
-                plateau_corners_wgs = [
-                    [*_wgs_pt(p), base_height] for p in plateau_corners_utm
-                ]
-                slanted_polygons.append({
-                    "corners": plateau_corners_wgs,
-                    "label": f"평탄 지붕 (x={base_setback}~{plateau_end}m, H={base_height}m)",
-                    "kind": "plateau",
-                })
-                thresholds.append({"distance_m": plateau_end, "max_height_m": base_height,
-                                    "kind": "plateau_end"})
+                clipped = _clip_to_parcel(plateau_utm_h)
+                if clipped and len(clipped) >= 3:
+                    corners_wgs = [[*_wgs_pt((c[0], c[1])), c[2]] for c in clipped]
+                    slanted_polygons.append({
+                        "corners": corners_wgs,
+                        "label": f"평탄 지붕 (x={base_setback}~{plateau_end}m, H={base_height}m)",
+                        "kind": "plateau",
+                    })
+                    thresholds.append({"distance_m": plateau_end,
+                                        "max_height_m": base_height,
+                                        "kind": "plateau_end"})
 
-            # ── 3. 경사 지붕 (slanted polygon, x=5m~max_depth, slope 2:1) ──
-            if max_depth > plateau_end:
-                h_top = slope * max_depth
-                slope_corners_utm = [
-                    _offset_coord(a_utm, nx, ny, plateau_end),  # H=10m
-                    _offset_coord(b_utm, nx, ny, plateau_end),  # H=10m
-                    _offset_coord(b_utm, nx, ny, max_depth),    # H=h_top
-                    _offset_coord(a_utm, nx, ny, max_depth),    # H=h_top
+            # ── 3. 경사 지붕 (5~max_depth_cap, slope 2:1) — 필지 clip ──
+            if max_depth_cap > plateau_end:
+                h_top = slope * max_depth_cap
+                slope_utm_h = [
+                    [*_offset_coord(a_utm, nx, ny, plateau_end), base_height],
+                    [*_offset_coord(b_utm, nx, ny, plateau_end), base_height],
+                    [*_offset_coord(b_utm, nx, ny, max_depth_cap), h_top],
+                    [*_offset_coord(a_utm, nx, ny, max_depth_cap), h_top],
                 ]
-                heights = [base_height, base_height, h_top, h_top]
-                slope_corners_wgs = [
-                    [*_wgs_pt(p), h] for p, h in zip(slope_corners_utm, heights)
-                ]
-                slanted_polygons.append({
-                    "corners": slope_corners_wgs,
-                    "label": f"경사 지붕 slope 2:1 (x={plateau_end}~{max_depth}m, "
-                              f"H={base_height}→{h_top:.1f}m)",
-                    "kind": "slope",
-                })
-                thresholds.append({"distance_m": max_depth, "max_height_m": h_top,
-                                    "kind": "slope_top"})
+                clipped = _clip_to_parcel(slope_utm_h)
+                if clipped and len(clipped) >= 3:
+                    corners_wgs = [[*_wgs_pt((c[0], c[1])), c[2]] for c in clipped]
+                    slanted_polygons.append({
+                        "corners": corners_wgs,
+                        "label": f"경사 지붕 slope 2:1 (x={plateau_end}~{max_depth_cap:.1f}m, "
+                                  f"H={base_height}→{h_top:.1f}m)",
+                        "kind": "slope",
+                    })
+                    thresholds.append({"distance_m": max_depth_cap, "max_height_m": h_top,
+                                        "kind": "slope_top"})
+
+        # Use cap value to satisfy later return structure.
+        max_depth = max_depth_cap
 
         if not walls and not slanted_polygons:
             return None
@@ -607,10 +667,11 @@ def _compute_daylight_diagonal_envelope(
         # 필지 크기 기반 max_depth (밖으로 돌출 방지)
         bounds = parcel_utm.bounds  # (minx, miny, maxx, maxy)
         parcel_span = min(bounds[2] - bounds[0], bounds[3] - bounds[1])
-        max_depth = min(parcel_span * 0.5, 30.0)  # 필지 절반 또는 30m
+        # 시각화 보수적: 필지 최소 차원 40% 또는 12m cap (이전 30m는 너무 큼)
+        max_depth = min(parcel_span * 0.4, 12.0)
         if max_depth < 3.0:
             return None
-        depth_pairs = [(0.0, max_depth * 0.4), (max_depth * 0.4, max_depth)]
+        depth_pairs = [(0.0, max_depth * 0.5), (max_depth * 0.5, max_depth)]
         walls = []
 
         for edge in adjacent_edges:

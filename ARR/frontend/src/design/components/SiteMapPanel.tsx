@@ -307,7 +307,7 @@ function renderSetbackEntities(
     const plateauC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_plateau);
     const slopeC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_slope);
 
-    // 수직 직각벽 (진홍)
+    // 수직 직각벽 (진홍) — 얇고 투명하게
     if (envelope.walls) {
       for (let wi = 0; wi < envelope.walls.length; wi++) {
         const wall = envelope.walls[wi];
@@ -323,16 +323,16 @@ function renderSetbackEntities(
             positions: Cesium.Cartesian3.fromDegreesArray(flat),
             minimumHeights: minH,
             maximumHeights: maxH,
-            material: wallC.withAlpha(0.35),
+            material: wallC.withAlpha(0.18),
             outline: true,
-            outlineColor: wallC.withAlpha(0.95),
+            outlineColor: wallC.withAlpha(0.85),
             outlineWidth: 2,
           },
         });
       }
     }
 
-    // 평탄/경사 지붕 (kind별 색상 분리)
+    // 평탄/경사 지붕 (kind별 색상 분리, 낮은 alpha로 투명)
     if (envelope.slanted_polygons) {
       for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
         const poly = envelope.slanted_polygons[pi];
@@ -347,10 +347,10 @@ function renderSetbackEntities(
           polygon: {
             hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
             perPositionHeight: true,
-            material: color.withAlpha(0.32),
+            material: color.withAlpha(0.15),
             outline: true,
-            outlineColor: color.withAlpha(0.95),
-            outlineWidth: 3,
+            outlineColor: color.withAlpha(0.85),
+            outlineWidth: 2,
           },
         });
       }
@@ -374,9 +374,9 @@ function renderSetbackEntities(
           positions: Cesium.Cartesian3.fromDegreesArray(flat),
           minimumHeights: wall.min_heights,
           maximumHeights: wall.max_heights,
-          material: dlColor.withAlpha(0.25),
+          material: dlColor.withAlpha(0.15),
           outline: true,
-          outlineColor: dlColor.withAlpha(0.7),
+          outlineColor: dlColor.withAlpha(0.75),
           outlineWidth: 2,
         },
       });

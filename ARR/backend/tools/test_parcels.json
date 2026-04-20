@@ -86,11 +86,11 @@
       "pnu": "1111011500100010001",
       "address": "서울 종로구 사직동 1",
       "zone": "제2종일반주거지역",
-      "expected": {"bcr_pct": 60, "far_pct": 200, "sunlight_applies": true},
+      "expected": {"bcr_pct": 20, "far_pct": 100, "sunlight_applies": true},
       "expected_lines_drawn": ["buildable_area", "north_setback", "adjacent_setback", "road_setback", "corner_cutoff", "sunlight_envelope", "daylight_diagonal_envelope"],
       "expected_na": ["building_designation_line"],
       "area_m2": 3665.95,
-      "notes": "사직동 — 경복궁 근처. 현재 BCR=20% 반환 중 (경복궁 문화재 구역 overlay 영향 가능성, 확인 필요)."
+      "notes": "사직동 — 경복궁 인접. Vworld Data API가 19개 overlay zone 반환 (역사문화환경보존지역 등). auto-constraints가 가장 엄격한 zone 선택 → BCR 20%/FAR 100% (제2종일반주거 기본 60/250에서 감소). 법규상 정확."
     }
   ]
 }

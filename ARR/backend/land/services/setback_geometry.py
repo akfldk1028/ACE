@@ -211,60 +211,77 @@ def _classify_edges(edges: list[tuple], parcel_utm: Polygon) -> dict:
       법선 방위각 300°~60° (정북 ±60°)
       건축법 §61①: "정북(正北) 방향으로의 인접 대지경계선"
       NOTE: UTM Zone 52N의 Grid North ≈ True North (한국 중부 자오선 수렴각 <0.5°)
-    - road: 최장변 = 도로 접면 추정 (한국 필지 관행: 전면도로 = 가장 긴 변)
-      두 번째 최장변도 최장의 70% 이상이면 도로변으로 분류 (코너 필지)
-    - adjacent: 나머지 (인접대지)
+    - road: 최장변 1개 (한국 필지 관행: 전면도로 = 가장 긴 변).
+      코너 필지면 최장변과 꼭지점을 공유하는 인접 변 중 최장변 70% 이상 길이의 변도 도로변.
+      **최대 2개로 제한** (정사각형 필지가 전부 road 되는 버그 방지).
+    - adjacent: 나머지 (인접대지) — 항상 최소 1개 이상 보존.
     """
     classified = {"north": [], "road": [], "adjacent": []}
 
     if not edges:
         return classified
 
-    # 최장변 기준 도로변 추정
-    max_length = max(e[0].length for e in edges)
-    road_threshold = max_length * 0.70  # 최장의 70% 이상 → 도로 후보
-
     centroid = parcel_utm.centroid
 
+    # ── 1단계: 모든 변에 대해 북향 판정 + 바깥 법선 계산
+    edge_meta = []
     for line, az in edges:
-        # 바깥쪽 법선 방향 계산
         dx = line.coords[1][0] - line.coords[0][0]
         dy = line.coords[1][1] - line.coords[0][1]
         length = math.sqrt(dx * dx + dy * dy)
         if length < 0.01:
             continue
 
-        # 법선 벡터 (왼쪽 회전)
         nx = -dy / length
         ny = dx / length
-
-        # centroid에서 멀어지는 방향 = 바깥쪽
         mid = line.interpolate(0.5, normalized=True)
         to_center_x = centroid.x - mid.x
         to_center_y = centroid.y - mid.y
-        dot = nx * to_center_x + ny * to_center_y
-        if dot > 0:
-            # 법선이 안쪽을 향함 → 뒤집어서 바깥쪽으로
+        if nx * to_center_x + ny * to_center_y > 0:
             nx, ny = -nx, -ny
-
-        # 바깥 법선의 방위각 (0=북)
         normal_az = math.degrees(math.atan2(nx, ny)) % 360
-
-        # 정북: 법선이 300°~60° (정북 ±60°) — 북쪽을 향한 면
         is_north_facing = normal_az >= 300 or normal_az <= 60
+        edge_meta.append((line, line.length, is_north_facing))
 
-        # 도로변 추정: 최장변 기준
-        is_road = line.length >= road_threshold
+    if not edge_meta:
+        return classified
 
-        if is_road:
+    # ── 2단계: 도로변 선정 (최장변 1개 + 선택적 코너 1개, 최대 2개)
+    edge_meta.sort(key=lambda m: -m[1])  # 긴 순
+    longest_line = edge_meta[0][0]
+    max_length = edge_meta[0][1]
+    road_threshold = max_length * 0.70
+    road_lines = [longest_line]
+
+    # 두번째 도로 후보: 최장변과 꼭지점 공유 + 길이 ≥ 70%
+    for m in edge_meta[1:]:
+        cand, length, _ = m
+        if length < road_threshold:
+            break
+        # 꼭지점 공유 체크
+        ep_long = {longest_line.coords[0], longest_line.coords[1]}
+        ep_cand = {cand.coords[0], cand.coords[1]}
+        if ep_long & ep_cand:
+            road_lines.append(cand)
+            break  # 최대 2개
+
+    # ── 3단계: 분류 (road 우선, 나머지는 북향 or 인접)
+    road_set = {id(l) for l in road_lines}
+    for line, _, is_north_facing in edge_meta:
+        if id(line) in road_set:
             classified["road"].append(line)
-            # 정북향 도로변도 일조사선 적용 (중복 허용)
             if is_north_facing:
                 classified["north"].append(line)
         elif is_north_facing:
             classified["north"].append(line)
         else:
             classified["adjacent"].append(line)
+
+    # ── 방어: adjacent가 하나도 없으면 (극히 작은 필지) 도로 아닌 모든 변 복귀
+    if not classified["adjacent"] and len(edge_meta) > len(road_lines):
+        for line, _, _ in edge_meta:
+            if id(line) not in road_set and line not in classified["north"]:
+                classified["adjacent"].append(line)
 
     return classified
 

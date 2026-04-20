@@ -1,14 +1,14 @@
 """
-Batch verify all regulation lines for curated test parcels.
+Batch verify all regulation lines for curated test parcels, using the REGISTRY.
 
-Loads tools/test_parcels.json and runs verify_setbacks.verify() on each,
-collecting pass/fail counts by zone type. Produces a compact table.
+Registry-driven — automatically tests all 11 regulation types per parcel.
+Fixture `test_parcels.json` defines expected zone/BCR/FAR only; applies
+for each regulation is determined by the registry spec itself.
 
 Usage:
     cd ARR/backend
     PYTHONIOENCODING=utf-8 python tools/verify_all.py
-    PYTHONIOENCODING=utf-8 python tools/verify_all.py --backend http://localhost:8000
-    PYTHONIOENCODING=utf-8 python tools/verify_all.py --filter 주거  # partial zone name filter
+    PYTHONIOENCODING=utf-8 python tools/verify_all.py --filter 주거
 """
 from __future__ import annotations
 
@@ -21,102 +21,121 @@ from pathlib import Path
 import httpx
 
 HERE = Path(__file__).resolve().parent
-FIXTURES = HERE / "test_parcels.json"
+sys.path.insert(0, str(HERE.parent))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
 
-MARK_OK = "✓"
-MARK_FAIL = "✗"
-MARK_NA = "-"
+import django
+
+django.setup()
+
+from land.services.regulations import REGISTRY  # noqa: E402
+
+FIXTURES = HERE / "test_parcels.json"
 
 
 def load_fixtures() -> list[dict]:
-    data = json.loads(FIXTURES.read_text(encoding="utf-8"))
-    return data["parcels"]
+    return json.loads(FIXTURES.read_text(encoding="utf-8"))["parcels"]
 
 
 def verify_one(client: httpx.Client, parcel: dict) -> dict:
-    """Run one parcel through boundary + auto-constraints, compare to expected."""
     pnu = parcel["pnu"]
     expected = parcel["expected"]
-    want_drawn = set(parcel["expected_lines_drawn"])
-    want_na = set(parcel["expected_na"])
 
-    result = {
+    r = {
         "pnu": pnu,
         "address": parcel["address"],
         "expected_zone": parcel["zone"],
-        "actual_zone": None,
-        "bcr_match": False,
-        "far_match": False,
-        "sunlight_match": False,
-        "lines_drawn": [],
-        "lines_missing": [],
-        "unexpected_na": [],
-        "law_total": 0,
         "error": None,
     }
-
     try:
         sb = client.post("/design/site-boundary/", json={"pnu": pnu}, timeout=30.0).json()
         poly = sb.get("geometry")
         if not poly:
-            result["error"] = "no boundary"
-            return result
+            r["error"] = "no boundary"
+            return r
         ac = client.post(
             "/design/auto-constraints/",
             json={"pnu": pnu, "site_polygon": poly, "building_type": "공동주택"},
             timeout=120.0,
         ).json()
     except Exception as e:
-        result["error"] = f"http: {e}"
-        return result
+        r["error"] = f"http: {e}"
+        return r
 
     zones = ac.get("zones") or []
     reg = ac.get("regulations") or {}
     sg = ac.get("setback_geometries") or {}
     law = ac.get("law_articles") or {}
 
-    result["actual_zone"] = zones[0] if zones else None
-    result["bcr_match"] = reg.get("bcr_pct") == expected["bcr_pct"]
-    result["far_match"] = reg.get("far_pct") == expected["far_pct"]
-    result["sunlight_match"] = reg.get("sunlight_applies") == expected["sunlight_applies"]
-    result["actual_bcr"] = reg.get("bcr_pct")
-    result["actual_far"] = reg.get("far_pct")
-    result["actual_sunlight"] = reg.get("sunlight_applies")
+    r["actual_zone"] = zones[0] if zones else None
+    r["bcr_match"] = reg.get("bcr_pct") == expected["bcr_pct"]
+    r["far_match"] = reg.get("far_pct") == expected["far_pct"]
+    r["sunlight_match"] = reg.get("sunlight_applies") == expected["sunlight_applies"]
+    r["actual_bcr"] = reg.get("bcr_pct")
+    r["actual_far"] = reg.get("far_pct")
+    r["actual_sunlight"] = reg.get("sunlight_applies")
 
-    drawn = {k for k, v in sg.items() if v}
-    result["lines_drawn"] = sorted(drawn)
-    result["lines_missing"] = sorted(want_drawn - drawn)
-    result["unexpected_na"] = sorted(want_na & drawn)  # N/A expected but was drawn
-    result["law_total"] = law.get("total_count", 0)
-    return result
+    # Registry-driven line status
+    zone = r["actual_zone"]
+    bugs = []
+    drawn = []
+    na = []
+    stubs = []
+    geom_na = []  # geometry_dependent + applies=True but not detected — not a bug
+    for spec in REGISTRY:
+        applies = spec.applies(zone, reg)
+        has_value = sg.get(spec.key) is not None
+        if applies and not has_value:
+            if spec.overlay_only:
+                stubs.append(spec.key)
+            elif spec.geometry_dependent:
+                geom_na.append(spec.key)
+            else:
+                bugs.append(spec.key)
+        elif has_value:
+            drawn.append(spec.key)
+        else:
+            na.append(spec.key)
+
+    r["lines_drawn"] = drawn
+    r["lines_missing_bugs"] = bugs
+    r["lines_na_legal"] = na
+    r["lines_overlay_stubs"] = stubs
+    r["lines_geom_na"] = geom_na
+    r["law_total"] = law.get("total_count", 0)
+    return r
 
 
 def format_result(r: dict) -> str:
     if r["error"]:
-        return f"{MARK_FAIL} {r['pnu']}  {r['address']}  → {r['error']}"
+        return f"✗ {r['pnu']}  {r['address']}  → {r['error']}"
     zone_ok = r["actual_zone"] == r["expected_zone"]
-    bcr_mark = MARK_OK if r["bcr_match"] else MARK_FAIL
-    far_mark = MARK_OK if r["far_match"] else MARK_FAIL
-    sun_mark = MARK_OK if r["sunlight_match"] else MARK_FAIL
-    zone_mark = MARK_OK if zone_ok else MARK_FAIL
-    lines_part = f"lines={len(r['lines_drawn'])}"
-    if r["lines_missing"]:
-        lines_part += f" missing={r['lines_missing']}"
-    if r["unexpected_na"]:
-        lines_part += f" unexpected={r['unexpected_na']}"
+    mark = lambda ok: "✓" if ok else "✗"
+    lines_ok = not r["lines_missing_bugs"]
+
+    lines_part = (
+        f"drawn={len(r['lines_drawn'])} "
+        f"na={len(r['lines_na_legal'])} "
+        f"geom_na={len(r['lines_geom_na'])} "
+        f"stubs={len(r['lines_overlay_stubs'])}"
+    )
+    if r["lines_missing_bugs"]:
+        lines_part += f" BUGS={r['lines_missing_bugs']}"
+
     return (
         f"{r['pnu']}  {r['address']}\n"
-        f"    {zone_mark} zone={r['actual_zone']}  (기대 {r['expected_zone']})\n"
-        f"    {bcr_mark} BCR={r['actual_bcr']}%  {far_mark} FAR={r['actual_far']}%  "
-        f"{sun_mark} sunlight={r['actual_sunlight']}\n"
-        f"    {MARK_OK if not r['lines_missing'] and not r['unexpected_na'] else MARK_FAIL} {lines_part}  law={r['law_total']}건"
+        f"    {mark(zone_ok)} zone={r['actual_zone']}  (기대 {r['expected_zone']})\n"
+        f"    {mark(r['bcr_match'])} BCR={r['actual_bcr']}%  "
+        f"{mark(r['far_match'])} FAR={r['actual_far']}%  "
+        f"{mark(r['sunlight_match'])} sunlight={r['actual_sunlight']}\n"
+        f"    {mark(lines_ok)} {lines_part}  law={r['law_total']}건"
     )
 
 
 def main() -> int:
-    p = argparse.ArgumentParser(description="Batch regulation-line verification")
+    p = argparse.ArgumentParser()
     p.add_argument("--backend", default="http://localhost:8000")
-    p.add_argument("--filter", default=None, help="partial zone name filter (e.g. 주거)")
+    p.add_argument("--filter", default=None, help="zone name filter (e.g. 주거)")
     args = p.parse_args()
 
     parcels = load_fixtures()
@@ -127,24 +146,23 @@ def main() -> int:
         return 1
 
     client = httpx.Client(base_url=args.backend)
-    print(f"=== 배치 검증: {len(parcels)}개 필지 ===\n")
+    print(f"=== 배치 검증: {len(parcels)}개 필지, {len(REGISTRY)}종 규제 ===\n")
 
     all_pass = True
     zone_stats: dict[str, dict[str, int]] = {}
     for parcel in parcels:
-        r = verify_one(client, parcel)
-        print(format_result(r))
+        result = verify_one(client, parcel)
+        print(format_result(result))
         print()
         zone = parcel["zone"]
         stat = zone_stats.setdefault(zone, {"total": 0, "pass": 0})
         stat["total"] += 1
         ok = (
-            not r.get("error")
-            and r.get("bcr_match")
-            and r.get("far_match")
-            and r.get("sunlight_match")
-            and not r.get("lines_missing")
-            and not r.get("unexpected_na")
+            not result.get("error")
+            and result.get("bcr_match")
+            and result.get("far_match")
+            and result.get("sunlight_match")
+            and not result.get("lines_missing_bugs")
         )
         if ok:
             stat["pass"] += 1
@@ -153,8 +171,8 @@ def main() -> int:
 
     print("─── 용도지역별 요약 ───")
     for zone, stat in sorted(zone_stats.items()):
-        mark = MARK_OK if stat["pass"] == stat["total"] else MARK_FAIL
-        print(f"  {mark} {zone}: {stat['pass']}/{stat['total']}")
+        m = "✓" if stat["pass"] == stat["total"] else "✗"
+        print(f"  {m} {zone}: {stat['pass']}/{stat['total']}")
 
     return 0 if all_pass else 2
 

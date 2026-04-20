@@ -545,7 +545,25 @@ def _compute_sunlight_envelope(
                 out.append([x, y, h])
             return out
 
-        for edge in north_edges:
+        # 시각 혼란 방지: 여러 north edge 중 '가장 대표적인 북쪽 경계' 1개만 사용.
+        # 기준: edge.length × max(0, -ny) (길고 남쪽향 법선 가진 edge)
+        def _pick_primary_edge(edges: list) -> tuple | None:
+            best = None
+            best_score = -1.0
+            for e in edges:
+                nx_, ny_ = _inward_normal(e, centroid)
+                if nx_ == 0 and ny_ == 0:
+                    continue
+                sc = e.length * max(0.0, -ny_)
+                if sc > best_score:
+                    best_score = sc
+                    best = (e, nx_, ny_)
+            return best
+
+        primary = _pick_primary_edge(north_edges)
+        primary_edges = [primary[0]] if primary else []
+
+        for edge in primary_edges:
             nx, ny = _inward_normal(edge, centroid)
             if nx == 0.0 and ny == 0.0:
                 continue
@@ -605,10 +623,10 @@ def _compute_sunlight_envelope(
                 thresholds.append({"distance_m": max_depth_cap, "max_height_m": h_top,
                                     "kind": "slope_top"})
 
-        # ── 4. 프로파일 폴리라인 — 각 edge 중앙에 '꺾이는' 단면 라인 1개
+        # ── 4. 프로파일 폴리라인 — 대표 edge 중앙 1개만 (혼란 방지)
         # 법규 img_5의 빨간 점선에 대응 (수직→평탄→경사)
         profile_polylines = []
-        for edge in north_edges:
+        for edge in primary_edges:
             nx, ny = _inward_normal(edge, centroid)
             if nx == 0.0 and ny == 0.0:
                 continue

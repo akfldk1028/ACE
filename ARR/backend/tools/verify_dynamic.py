@@ -99,16 +99,17 @@ def verify_pilotis() -> int:
 
 
 def verify_road_level() -> int:
-    """전면도로 고저차 — road_level_offset_m."""
-    header("§119 전면도로 고저차 — road_level_offset_m")
+    """§119: 대지-도로 고저차 → 도로면 = 대지 + (고저차/2) 위치. 유효 H는 1/2만큼 감소."""
+    header("§119 전면도로 고저차 (대지 높음 → 도로면을 1/2만큼 올림)")
     fails = 0
     cases = [
         # (total_h, offset, expected_eff, expected_sb)
-        (8.0, 0.0,   8.0, 1.5),   # 평평, H=8m ≤10 → 1.5m
-        (8.0, 3.0,  11.0, 5.5),   # 대지 +3m → H_유효=11 > 10 → 5.5m
-        (12.0, -2.0, 10.0, 1.5),  # 대지 -2m → H_유효=10 → 1.5m
-        (20.0, 0.0,  20.0, 10.0),
-        (20.0, 5.0,  25.0, 12.5),
+        #   offset > 0: 대지가 도로보다 높음 → 유효 H -= offset/2
+        (8.0, 0.0,   8.0, 1.5),    # 평평: H=8 ≤ 10 → 1.5m
+        (8.0, 4.0,   6.0, 1.5),    # 대지 +4m → H_유효 = 8 - 2 = 6, ≤10 → 1.5m
+        (12.0, 2.0, 11.0, 5.5),    # H_유효 = 12 - 1 = 11 > 10 → 5.5m
+        (20.0, 0.0, 20.0, 10.0),   # 고저차 없음
+        (20.0, 4.0, 18.0, 9.0),    # H_유효 = 20 - 2 = 18 → 9m
     ]
     print(f"{'H_total':>8}  {'offset':>8}  {'expected_eff':>12}  {'computed_eff':>12}  "
           f"{'expected_sb':>12}  {'computed_sb':>12}  status")
@@ -148,8 +149,8 @@ def verify_daylight(zone: str) -> int:
 
 
 def verify_combined_scenario() -> int:
-    """실무 조합: 공동주택 20층, 필로티, 대지 +1m."""
-    header("실무 시나리오: 20층 공동주택, 필로티, 대지 +1m")
+    """실무 조합: 공동주택 20층, 필로티, 대지 +1m (§119 반영)."""
+    header("실무 시나리오: 20층 공동주택, 필로티, 대지가 도로보다 1m 높음")
     fails = 0
     total_h = 20 * 2.8  # 56m
     ctx = BuildingContext(
@@ -160,7 +161,8 @@ def verify_combined_scenario() -> int:
         is_multi_family=True,
     )
     print(f"  입력: H_전체={total_h}m, 필로티={ctx.has_pilotis_1f}, offset={ctx.road_level_offset_m}m")
-    expected_eff = total_h - 3.0 + 1.0  # 54m
+    # §119: H_유효 = 56 - 3 (필로티) - 0.5 (offset/2) = 52.5m
+    expected_eff = total_h - 3.0 - (1.0 * 0.5)
     eff = effective_height(total_h, ctx)
     if abs(eff - expected_eff) > 0.001:
         fails += 1

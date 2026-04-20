@@ -20,7 +20,9 @@ from .registry import (
 )
 from .building_context import (
     BuildingContext,
+    RoadSegment,
     effective_height,
+    weighted_road_level,
     sunlight_setback_for_height,
     sunlight_rules_for_context,
     daylight_distance,

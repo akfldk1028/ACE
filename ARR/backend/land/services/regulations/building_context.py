@@ -38,6 +38,13 @@ DAYLIGHT_MULTIPLIER_DEFAULT = 2.0        # 그 외
 
 
 @dataclass(frozen=True)
+class RoadSegment:
+    """전면도로 1구간 — 가중평균용 (§119)."""
+    width_m: float       # 접하는 범위 수평거리 (m)
+    level_m: float       # 해당 구간 도로면 고도 (m, 절대 또는 상대)
+
+
+@dataclass(frozen=True)
 class BuildingContext:
     """
     규제 계산에 영향을 주는 건축물 가상 조건.
@@ -55,7 +62,20 @@ class BuildingContext:
 
     # 전면도로와 대지면의 고저차(m). 양수 = 대지가 도로보다 높음.
     # 음수 = 대지가 도로보다 낮음. 건축법 시행령 §119 반영.
+    # 단일 균일 offset 케이스. 상세 고저차는 road_segments 사용.
     road_level_offset_m: float = 0.0
+
+    # §119 가중평균용 상세 전면도로 구간. 각 구간 (수평거리, 고도) 리스트.
+    # 비어있으면 road_level_offset_m만 사용. 지정시 weighted average 계산.
+    road_segments: tuple[RoadSegment, ...] = ()
+
+    # §119 대지 고저차 (주위 접하는 지표면 가중평균용).
+    # 3m 초과 고저차는 3m 이내로 분할 후 각 영역 지표면 별도 산정.
+    ground_segments: tuple[RoadSegment, ...] = ()
+
+    # §119: 대지 지표면이 전면도로보다 높은 경우 (도로면 = 대지 + 고저차/2).
+    # 자동 계산 (road_level_offset_m > 0 이면 해당) 시 활성.
+    apply_dfe_half_raise: bool = True
 
     # 공동주택 여부 (건물용도 기반). 채광사선 적용 대상.
     is_multi_family: bool = False
@@ -64,14 +84,29 @@ class BuildingContext:
     meta: dict[str, Any] = field(default_factory=dict)
 
 
+def weighted_road_level(segments: tuple[RoadSegment, ...]) -> float | None:
+    """§119: 전면도로 구간별 수평거리 가중평균 고도 계산."""
+    if not segments:
+        return None
+    total_w = sum(s.width_m for s in segments)
+    if total_w <= 0:
+        return None
+    weighted = sum(s.level_m * s.width_m for s in segments)
+    return weighted / total_w
+
+
 def effective_height(
     total_height_m: float, ctx: BuildingContext | None
 ) -> float:
     """
-    §60, §61 적용 기준 유효 높이 산정.
+    §60, §61, §119 종합 적용 유효 높이 산정.
 
-    1. 필로티 1층 전체: pilotis_height_m 차감.
-    2. 도로 고저차: road_level_offset_m 가산 (대지가 도로보다 높으면 +).
+    1. 필로티 1층 전체: pilotis_height_m 차감 (법제처 해석).
+    2. 도로 고저차 반영 (§119):
+       - road_segments 있으면 수평거리 가중평균 → 대지-도로 고저차 결정
+       - 없으면 road_level_offset_m 직접 사용
+       - 대지가 도로보다 높으면: (고저차 ÷ 2) 만큼 올라온 위치에 도로면 있다고 봄
+         (즉 효과적으로 기준 datum이 올라가므로 유효 H는 그만큼 낮아짐)
 
     Returns:
         유효 높이 (최소 0).
@@ -79,9 +114,27 @@ def effective_height(
     if ctx is None:
         return total_height_m
     h = float(total_height_m)
+
+    # 1. 필로티 제외
     if ctx.has_pilotis_1f and ctx.pilotis_height_m > 0:
         h -= ctx.pilotis_height_m
-    h += ctx.road_level_offset_m
+
+    # 2. 도로-대지 고저차 결정
+    if ctx.road_segments:
+        avg_road_level = weighted_road_level(ctx.road_segments) or 0.0
+        # ground level is 0 (대지 기준). 대지가 avg_road_level보다 위면 positive offset
+        parcel_above_road = -avg_road_level  # 대지 0 - 도로 level
+    else:
+        parcel_above_road = ctx.road_level_offset_m  # 양수 = 대지 높음
+
+    # 3. §119: 대지가 도로보다 높으면 "(고저차/2)만큼 올라온 위치"를 도로면으로 봄
+    # → 기준 datum ↑ by parcel_above_road/2 → 유효 H ↓ by parcel_above_road/2
+    # 대지가 낮으면 반대 (유효 H ↑)
+    if parcel_above_road != 0 and ctx.apply_dfe_half_raise:
+        h -= parcel_above_road * 0.5
+    else:
+        h += -parcel_above_road  # fallback: full offset (옛 로직)
+
     return max(0.0, h)
 
 

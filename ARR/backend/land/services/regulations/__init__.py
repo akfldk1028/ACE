@@ -18,5 +18,24 @@ from .registry import (
     applicable_for,
     find,
 )
+from .building_context import (
+    BuildingContext,
+    effective_height,
+    sunlight_setback_for_height,
+    sunlight_rules_for_context,
+    daylight_distance,
+    daylight_multiplier_for_zone,
+    summarize,
+    SUNLIGHT_LOW_THRESHOLD_M,
+    SUNLIGHT_LOW_SETBACK_M,
+    SUNLIGHT_HIGH_MULTIPLIER,
+)
 
-__all__ = ["LineType", "RegulationSpec", "REGISTRY", "applicable_for", "find"]
+__all__ = [
+    "LineType", "RegulationSpec", "REGISTRY", "applicable_for", "find",
+    "BuildingContext", "effective_height",
+    "sunlight_setback_for_height", "sunlight_rules_for_context",
+    "daylight_distance", "daylight_multiplier_for_zone", "summarize",
+    "SUNLIGHT_LOW_THRESHOLD_M", "SUNLIGHT_LOW_SETBACK_M",
+    "SUNLIGHT_HIGH_MULTIPLIER",
+]

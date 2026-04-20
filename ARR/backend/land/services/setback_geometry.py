@@ -474,18 +474,11 @@ def _compute_sunlight_envelope(
         base_height = 10.0   # 수직벽 최대 높이 (m) — 2023.9.12 개정 9→10m
         slope = 2.0          # 경사면 기울기 H=2x (§86①제2호 "H/2 이격"의 역수)
 
-        # 필지의 **최소** 차원 기준 — envelope가 반대쪽 경계 넘어가지 않도록.
-        # (기존 max 기준은 세장형 필지에서 envelope가 남쪽 경계 밖까지 튀어나감)
-        parcel_min_span = min(
-            parcel_utm.bounds[2] - parcel_utm.bounds[0],
-            parcel_utm.bounds[3] - parcel_utm.bounds[1],
-        )
-        # 시각화상 slope 꼭대기가 너무 높지 않도록 보수적으로 capping.
-        # max_depth=15m 이면 slope_top=30m (법규 제3종 일반주거 ≤~30m대 높이 일치)
-        viz_cap = 15.0
-        max_depth_cap = min(parcel_min_span * 0.5, viz_cap)
-
-        plateau_end = min(5.0, max_depth_cap)  # §86① H=10m 평탄 끝
+        # 사선은 법규 시각화용 — 필지 밖까지 길게 이어져도 괜찮음 (개념적 선).
+        # 고정 값 사용: slope가 H=50m까지 올라가도록 max_depth=25m.
+        #   plateau_end=5m (H=10m) → max_depth=25m (H=50m, slope 2:1)
+        max_depth_cap = 25.0
+        plateau_end = 5.0  # §86① H=10m 평탄 끝
 
         walls = []
         slanted_polygons = []
@@ -592,7 +585,8 @@ def _compute_sunlight_envelope(
                                         "max_height_m": base_height,
                                         "kind": "plateau_end"})
 
-            # ── 3. 경사 지붕 (5~max_depth_cap, slope 2:1) — 필지 clip ──
+            # ── 3. 경사 지붕 (5~max_depth_cap, slope 2:1) — **필지 clip 안 함**
+            # 법규상 사선은 필지 밖까지 개념적으로 이어지므로 clip 없이 전체 렌더.
             if max_depth_cap > plateau_end:
                 h_top = slope * max_depth_cap
                 slope_utm_h = [
@@ -601,17 +595,15 @@ def _compute_sunlight_envelope(
                     [*_offset_coord(b_utm, nx, ny, max_depth_cap), h_top],
                     [*_offset_coord(a_utm, nx, ny, max_depth_cap), h_top],
                 ]
-                clipped = _clip_to_parcel(slope_utm_h)
-                if clipped and len(clipped) >= 3:
-                    corners_wgs = [[*_wgs_pt((c[0], c[1])), c[2]] for c in clipped]
-                    slanted_polygons.append({
-                        "corners": corners_wgs,
-                        "label": f"경사 지붕 slope 2:1 (x={plateau_end}~{max_depth_cap:.1f}m, "
-                                  f"H={base_height}→{h_top:.1f}m)",
-                        "kind": "slope",
-                    })
-                    thresholds.append({"distance_m": max_depth_cap, "max_height_m": h_top,
-                                        "kind": "slope_top"})
+                corners_wgs = [[*_wgs_pt((c[0], c[1])), c[2]] for c in slope_utm_h]
+                slanted_polygons.append({
+                    "corners": corners_wgs,
+                    "label": f"경사 지붕 slope 2:1 (x={plateau_end}~{max_depth_cap:.1f}m, "
+                              f"H={base_height}→{h_top:.1f}m)",
+                    "kind": "slope",
+                })
+                thresholds.append({"distance_m": max_depth_cap, "max_height_m": h_top,
+                                    "kind": "slope_top"})
 
         # ── 4. 프로파일 폴리라인 — 각 edge 중앙에 '꺾이는' 단면 라인 1개
         # 법규 img_5의 빨간 점선에 대응 (수직→평탄→경사)

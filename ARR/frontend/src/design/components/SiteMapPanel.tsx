@@ -300,29 +300,57 @@ function renderSetbackEntities(
     }
   }
 
-  // 정북일조 envelope — img_5 법규 단면의 빨간 점선만 3D로 표현.
-  // 각 north edge 중앙에서 내측으로 "수직→평탄→경사" 꺾이는 4-point polyline 1개.
-  // 수직벽/평탄지붕/경사지붕/계단/박스 모두 생략 (혼란 유발).
+  // 정북일조 envelope — 법규 §86① 사선제한을 3D 공간에 길게 연장해 표현.
+  // 사선은 법규 개념선이므로 필지 밖까지 이어져도 OK (사용자 요구).
   const envelope = setbacks.sunlight_envelope as any;
-  if (envelope?.profile_polylines) {
-    const lineC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_wall); // 진홍
-    for (let pi = 0; pi < envelope.profile_polylines.length; pi++) {
-      const line = envelope.profile_polylines[pi];
-      const pts = line.points as number[][];
-      if (!pts || pts.length < 2) continue;
-      const flat: number[] = [];
-      for (const p of pts) flat.push(p[0], p[1], p[2]);
-      viewer.entities.add({
-        id: `${SETBACK_PREFIX}sunlight-profile-${pi}`,
-        polyline: {
-          positions: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
-          width: 10,
-          material: new Cesium.PolylineDashMaterialProperty({
-            color: lineC,
-            dashLength: 14,
-          }),
-        },
-      });
+  if (envelope) {
+    const slopeC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_slope); // 핑크
+
+    // (a) 경사면 polygon (slope 2:1) — 길게 연장, 필지 clip 안 함
+    //     이게 '사선제한' 핵심 시각화. 두껍고 선명한 outline.
+    if (envelope.slanted_polygons) {
+      for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
+        const poly = envelope.slanted_polygons[pi];
+        if (poly.kind !== 'slope') continue;
+        const corners = poly.corners as number[][];
+        if (!corners || corners.length < 3) continue;
+        const flat: number[] = [];
+        for (const c of corners) flat.push(c[0], c[1], c[2]);
+        viewer.entities.add({
+          id: `${SETBACK_PREFIX}sunlight-slope-${pi}`,
+          polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
+            perPositionHeight: true,
+            material: slopeC.withAlpha(0.28),
+            outline: true,
+            outlineColor: slopeC.withAlpha(1.0),
+            outlineWidth: 5,
+          },
+        });
+      }
+    }
+
+    // (b) 프로파일 polyline — 꺾임(vertical→plateau→slope) 한 선으로 표현
+    if (envelope.profile_polylines) {
+      const profileC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_wall); // 진홍
+      for (let pi = 0; pi < envelope.profile_polylines.length; pi++) {
+        const line = envelope.profile_polylines[pi];
+        const pts = line.points as number[][];
+        if (!pts || pts.length < 2) continue;
+        const flat: number[] = [];
+        for (const p of pts) flat.push(p[0], p[1], p[2]);
+        viewer.entities.add({
+          id: `${SETBACK_PREFIX}sunlight-profile-${pi}`,
+          polyline: {
+            positions: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
+            width: 8,
+            material: new Cesium.PolylineDashMaterialProperty({
+              color: profileC,
+              dashLength: 12,
+            }),
+          },
+        });
+      }
     }
   }
 

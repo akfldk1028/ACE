@@ -7,6 +7,13 @@ AutoGen Studio SaaS platform with custom frontend, multi-agent orchestration, A2
 **Core Goal**: AI agent가 땅 정보를 받아 관련 건축법규를 자동 분석하고, 건폐율/용적률/건축제한 등 모든 규제를 도출하는 시스템. **Phase 1-5 ALL DONE** — 주소→PNU→Vworld API→41규제+법조항 자동분석 완료. E2E 검증: "강남구 역삼동 677" → BCR=80%, FAR=1300%, 170개 법조항, 41개 규제.
 
 ```
+
+  전체 파이프라인 정상: Frontend → Django(:8000) →
+  law-domain-agents(:8011) → Neo4j(:7687) → 7-stage hybrid search
+  → 결과 반환
+
+
+
 25_ACE/
 ├── AG-frontend/          # SaaS Frontend (Vite 7 + React 19 + TS 5.9 + Tailwind v4)
 ├── AG/Auto-Claude/       # Electron app + CLI 24/7 Hub (20 agents)
@@ -15,7 +22,8 @@ AutoGen Studio SaaS platform with custom frontend, multi-agent orchestration, A2
 ├── AG/AG-Research/       # Multi-Agent Termination Study (paper)
 ├── ARR/backend/          # Django backend (port 8000)
 │   ├── law/              #   Law search proxy (→ :8011) + ingestion pipeline
-│   └── land/             #   Land regulation analysis (건폐율/용적률/건축제한)
+│   ├── land/             #   Land regulation analysis (건폐율/용적률/건축제한)
+│   └── design/           #   Building mass optimization (AUA NSGA-II 포팅)
 ├── ARR/frontend/         # Legacy React+Electron UI (law search UI at src/law/)
 ├── JSON_MODULES/         # 98 AutoGen component JSON files
 ├── tests/                # Cross-project integration tests
@@ -63,6 +71,7 @@ AutoGen Studio SaaS platform with custom frontend, multi-agent orchestration, A2
 | Port | Service | Project | Protocol |
 |------|---------|---------|----------|
 | 5173 | AG-frontend dev server | AG-frontend/ | HTTP (proxy→8081) |
+| 5173 | ARR frontend dev (alt) | ARR/frontend/ | HTTP (proxy→8000, BrowserRouter) |
 | 7474 | Neo4j Browser | external | HTTP |
 | 7687 | Neo4j Bolt | external | bolt:// |
 | 8000 | ARR Django backend | ARR/backend/ | HTTP |
@@ -80,6 +89,9 @@ Two paths exist - choose based on whether logging is needed:
 FAST (no logging):          MCP law_search → :8011/api/search → Neo4j
 LOGGED (analytics):         MCP arr_law_search → :8000/law/search/ → :8011/api/search → Neo4j
                                                    └→ SearchLog (SQLite)
+SSE STREAMING:              Frontend EventSource → :8000/law/search/stream → :8011/api/search → Neo4j
+                            (6-stage progress events + final results, logged to SearchLog)
+ARTICLE (full text):        Frontend → :8000/law/article/?full_id=... → Neo4j (JO→HANG→HO)
 ```
 
 Field mapping at each hop:

@@ -152,9 +152,11 @@ The `law/` Django app serves as a **proxy** to `law-domain-agents` on port 8011.
 | Method | Path | Proxies To | Logs |
 |--------|------|------------|------|
 | POST | `/law/search/` | `:8011/api/search` | SearchLog |
+| GET | `/law/search/stream?query=&limit=&domain_id=` | `:8011/api/search` (SSE wrapper) | SearchLog |
 | POST | `/law/domain/<id>/search/` | `:8011/api/domain/<id>/search` | SearchLog |
 | GET | `/law/domains/` | `:8011/api/domains` | No |
 | GET | `/law/health/` | `:8011/api/health` | No |
+| GET | `/law/article/?full_id=...` | Neo4j direct (JO→HANG→HO) | No |
 | GET | `/law/stats/` | Django DB direct | - |
 
 ### Field Mapping
@@ -169,22 +171,22 @@ Tracks query, domain_id, limit, result_count, response_time_ms, source. SearchLo
 - `python manage.py migrate` to create SearchLog table
 - law-domain-agents running on port 8011
 
-### Law Pipeline Status (2026-02-24 — 10 LAWS LOADED)
+### Law Pipeline Status (2026-02-27 — 18 LAWS LOADED, FULL PIPELINE)
 
 | Step | Status | Detail |
 |------|--------|--------|
-| Step1 PDF→JSON | DONE | Parser fixed: TOC duplicate bug + HANG→HO→MOK→JO order |
-| Step1-alt API→JSON | DONE | 10 laws downloaded via `law/scripts/law_downloader.py` |
-| Step2 JSON→Neo4j | DONE | LAW 10, HANG 3943, HO 3135, MOK 550, JO 1774 (total 9,514) |
-| Step3 Embeddings | DONE | ALL 3943 HANG nodes, OpenAI text-embedding-3-large 3072-dim |
-| Step4 Domains | DONE | 5 domains (building_standards:1018, land_use_regulation:959, zoning:312, urban_planning:128, national:1526) |
-| Step5 RelEmbeddings | NOT RUN | `contains_embedding` index missing |
+| Step1-alt API→JSON | DONE | 18 laws downloaded (6 법률 × 3 types) |
+| Step2 JSON→Neo4j | DONE | LAW 18, HANG 6171, HO 6026, MOK 1284, JO 2431 (total 16,081) |
+| Step3 Embeddings | DONE | ALL 6171 HANG nodes, OpenAI text-embedding-3-large 3072-dim |
+| Step4 Domains | DONE | 5 domains (land_use:2286, national:2004, building:1018, zoning:614, urban:249) |
+| Step5 RelEmbeddings | DONE | ALL 16,058 CONTAINS rel embeddings, `contains_embedding` ONLINE |
 
 **Neo4j**: `bolt://localhost:7687`, pw=`11111111` (Neo4j Desktop). **Pipeline docs**: `law/PIPELINE.md`.
 
 **Scripts** (`law/scripts/`):
-- `run_step3_standalone.py` — embeddings, `NEO4J_PASSWORD=11111111` env var
-- `law_downloader.py` — `python law_downloader.py --oc hanvit4303 --force` (10개 법률)
+- `run_step3_standalone.py` — HANG embeddings, `LAW_NEO4J_PASSWORD=11111111`
+- `run_step5_incremental.py` — CONTAINS rel embeddings (incremental, NULL only)
+- `law_downloader.py` — `python law_downloader.py --oc hanvit4303 --force` (18개 법률)
 
 ## Land Regulation Analysis (2026-02-22)
 
@@ -220,7 +222,7 @@ AI agent가 토지 정보를 입력받아 관련 건축법규를 자동으로 �
 - `pnu_resolver.py`: PNU 19자리 검증/파싱 + Vworld 지오코딩 + **주소→PNU 자동 추출** (level4LC, VWORLD_API_KEY env var)
 - `zoning_mapper.py`: 21개 용도지역 → 건폐율/용적률 (`land/data/zoning_limits.json`, exact match only)
 - `law_enricher.py`: law-domain-agents(:8011) 법조항 검색 (fail-fast, LAW_BACKEND_URL env var)
-- `land_api.py`: data.go.kr 토지이용규제정보 (Phase 3 stub)
+- `land_api.py`: Vworld Data API 3개 (getLandUseAttr, ladfrlList, getIndvdLandPriceAttr)
 
 ### Key Design
 - **복수 용도지역**: 가장 엄격한 값 적용 (국토계획법 제76-77조)

@@ -20,6 +20,7 @@ ARR/
 │   ├── gemini/          # Legacy Gemini voice integration
 │   ├── law/             # Law ingestion pipeline (PDF→Neo4j) + search proxy
 │   ├── land/            # Land regulation analysis (건폐율/용적률/건축제한)
+│   ├── design/          # Building mass optimization (AUA NSGA-II 포팅)
 │   ├── graph_db/        # Graph DB algorithms & CDC
 │   ├── parser/          # Law document parser utilities
 │   ├── src/             # Shared utilities (graph, LLM, entity extraction)
@@ -33,7 +34,9 @@ ARR/
 │       ├── registry/    # Service registry (~500 lines)
 │       └── tasks/       # Background jobs (~250 lines)
 ├── frontend/            # React 18 + Electron + Vite + TypeScript
-│   ├── src/law/         # Law search UI (SSE streaming)
+│   ├── src/law/         # Law search UI (SSE streaming + 조문 사이드바)
+│   ├── src/land/        # Land analysis UI (OpenLayers 2D Map + Panel)
+│   ├── src/design/      # Design optimization UI (Map + Controls + Pareto)
 │   └── server/          # FastAPI + PostgreSQL (Docker)
 ```
 
@@ -43,7 +46,7 @@ ARR/
 - **DB**: SQLite (db.sqlite3) for Django ORM
 - **Neo4j**: Optional, for graph features (`bolt://localhost:7687`)
 - **Run**: `python manage.py runserver 8000`
-- **INSTALLED_APPS**: core, agents, gemini, law, land
+- **INSTALLED_APPS**: core, agents, gemini, law, land, design
 - **First run**: `python manage.py migrate` (creates SearchLog + LandQuery + ZoningRegulation tables)
 
 ### Active Apps
@@ -54,6 +57,7 @@ ARR/
 - `gemini/`: ChatSession, voice integration views
 - `law/`: Law search proxy + ingestion pipeline (see below)
 - `land/`: Land regulation analysis (see below)
+- `design/`: Building mass optimization — AUA/discover NSGA-II 포팅 (see below)
 
 ### Land App (토지 규제 분석)
 
@@ -89,9 +93,10 @@ ARR/
 **Phase status**:
 - Phase 1-2: DONE (2026-02-22)
 - Phase 2.5: DONE (2026-02-24) — Vworld API 연동, 주소→PNU 자동 추출
-- Phase 3: TODO — data.go.kr API (토지이용규제정보로 PNU→용도지역 자동 조회)
-- Phase 4: TODO — ACE MCP `land_analyze` tool + Frontend
-- Phase 5: TODO — Agent 협업 (건축관련법 전체 Neo4j 적재 + Multi-Agent가 어떤 법규 볼지 판단)
+- Phase 3: DONE (2026-02-24) — Vworld Data API 3개 (getLandUseAttr, ladfrlList, getIndvdLandPriceAttr) → 용도지역+면적+공시지가 자동조회
+- Phase 4: DONE — MCP tools (arr_land_analyze/resolve/zones/stats) + Frontend /land 페이지
+- Phase 5: DONE — 6-agent→3-agent SelectorGroupChat (039_Land_Swarm_Analysis_Team), 41규제(10core+31ext)
+- Phase 6: DONE (2026-03-03) — Agent 협업 SSE (`/land/agent-analyze/stream`), AutoGen WS→SSE 릴레이
 
 ### Law App (Dual Role)
 
@@ -100,9 +105,11 @@ ARR/
 | Method | Endpoint | Proxies To | Logs |
 |--------|----------|------------|------|
 | POST | `/law/search/` | `:8011/api/search` | SearchLog |
+| GET | `/law/search/stream?query=...&limit=...&domain_id=...` | `:8011/api/search` (SSE wrapper) | SearchLog |
 | POST | `/law/domain/<id>/search/` | `:8011/api/domain/<id>/search` | SearchLog |
 | GET | `/law/domains/` | `:8011/api/domains` | No |
 | GET | `/law/health/` | `:8011/api/health` | No |
+| GET | `/law/article/?full_id=...` | Neo4j direct (JO→HANG→HO) | No |
 | GET | `/law/stats/` | Django DB (SearchLog aggregation) | - |
 
 Field mapping: Client sends `{"q": ..., "limit": ...}` → proxy sends `{"query": ..., "limit": ...}` to law-domain-agents.
@@ -118,6 +125,36 @@ Field mapping: Client sends `{"q": ..., "limit": ...}` → proxy sends `{"query"
 - Targets 10 laws: 국토계획법(3), 건축법(3), 농지법, 산지관리법, 자연공원법, 수도법
 - Output: `law/data/api/*.json` (step2 호환 format)
 
+### Design App (매스 최적화) — AUA/discover 포팅 완료
+
+**Purpose**: 대지 polygon 위 건물 매스 파라메트릭 생성 + NSGA-II 유전 알고리즘 최적화
+
+**Origin**: `AUA/discover/src/objects.py` (Danil Nagy, GPL-3.0) → `ARR/backend/design/engine/objects.py` 코드 적응 (import 아님)
+- Grasshopper 의존성(GHClient, Context, Logger) 완전 제거
+- callback 패턴(`evaluate_fn`)으로 대체, Django async 호환
+
+**Endpoints**:
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/design/jobs/` | 최적화 작업 생성+시작 |
+| GET | `/design/jobs/<id>/` | 작업 상태 조회 |
+| GET | `/design/jobs/<id>/stream/` | SSE 실시간 진행 (generation 이벤트) |
+| POST | `/design/auto-constraints/` | land/ 분석 결과 → GA 제약조건 자동 변환 |
+| GET | `/design/pareto/<id>/` | Pareto front 결과 |
+
+**Services** (`design/services/`):
+- `site_geometry.py`: Shapely+pyproj 대지 geometry 처리
+- `mass_evaluator.py`: 매스 평가 (건폐율, 용적률, 일조 등)
+- `constraint_bridge.py`: `land/analyze/` 결과 → GA 제약조건 자동 변환
+- `mass_renderer.py`: GeoJSON 매스 렌더링
+
+**Frontend** (`src/design/`): 3-panel (Map | Controls | Pareto), 6 components, 2 hooks, inline hex styles
+
+**Tests**: 24 Django tests, **Dependencies**: shapely>=2.0, pyproj>=3.6
+
+**SiteMapPanel**: placeholder (Cesium 3D 뷰어 미연동 — AUA 포팅과 무관, Vworld Cesium.js 별도 작업)
+
 ### Utility Packages (not Django apps)
 - `graph_db/`: PageRank, community detection, CDC event handling
 - `parser/`: Law document parsing
@@ -131,9 +168,16 @@ Coded but never registered in INSTALLED_APPS. To activate:
 
 ## Frontend (React + Electron)
 
-- **Stack**: React 18 + TypeScript + Vite + Electron
-- **Law UI**: `src/law/` has search components with SSE streaming hooks
-- **Frontend expects backend at**: `http://127.0.0.1:8000`
+- **Stack**: React 18 + TypeScript + Vite 5 + Electron + framer-motion + lucide-react
+- **Dev**: `npm run dev` → localhost:5173 (Vite + Electron 동시 실행)
+- **Route**: `/#/law` (HashRouter)
+- **Vite proxy**: `/law/*`, `/land/*` → `http://127.0.0.1:8000` (CORS 회피, 상대 URL 사용)
+- **Styling**: Inline styles with hex colors (Tailwind theme CSS 변수 충돌 회피)
+- **Law UI** (`src/law/`): 13 files — 검색 채팅 + 조문 원문 사이드바
+  - `LawChat.tsx`: Master-detail layout (채팅 + 420px ArticleDetailPanel)
+  - `ArticleDetailPanel.tsx`: 카드 클릭 → Neo4j에서 전체 항/호 조회 → 매칭 항 하이라이트
+  - `LawArticleCard.tsx`: 선택 상태 지원 (indigo border + glow)
+  - `law-api-client.ts`: `getArticle(fullId)` — `GET /law/article/?full_id=...`
 
 ## Connection to 25_ACE Ecosystem
 
@@ -142,7 +186,8 @@ ACE MCP Server ──arr_law_search──→ ARR :8000/law/search/ ──proxy�
                ──law_search────────────────────────────────direct──→ law-domain-agents :8011
                ──land_analyze──→ ARR :8000/land/analyze/ ──→ zoning_mapper + law_enricher(:8011)
 ARR frontend (src/law/) ──fetch──→ ARR :8000/law/search/
-ARR frontend (src/land/) ──fetch──→ ARR :8000/land/analyze/   (Phase 4)
+ARR frontend (src/land/) ──fetch──→ ARR :8000/land/analyze/
+ARR frontend (src/design/) ──fetch──→ ARR :8000/design/jobs/ (AUA NSGA-II 포팅)
 ```
 
 | Component | ARR | AG (25_ACE) |
@@ -150,29 +195,33 @@ ARR frontend (src/land/) ──fetch──→ ARR :8000/land/analyze/   (Phase 4
 | Law ingestion | `backend/law/STEP/` (PDF→Neo4j) | - |
 | Law search proxy | `backend/law/views.py` → :8011 | `AG/agent/law-domain-agents/` port 8011 |
 | Law search MCP | - | ACE MCP: `law_search` (direct) + `arr_law_search` (logged via ARR) |
-| **Land analysis** | `backend/land/views.py` | ACE MCP: `land_analyze` (Phase 4) |
+| Land analysis | `backend/land/views.py` | ACE MCP: `arr_land_analyze/resolve/zones/stats` |
 | Law search UI | `frontend/src/law/` → :8000 | `AG-frontend/` (SaaS UI) |
-| **Land UI** | `frontend/src/land/` (Phase 4) | `AG-frontend/` (Phase 4) |
-| Agent system | Worker agents (general, flight) | AutoGen Studio teams |
+| Land UI | `frontend/src/land/` → :8000 | `AG-frontend/` Land page |
+| **Design (매스최적화)** | `backend/design/` (AUA NSGA-II 포팅) | - |
+| Design UI | `frontend/src/design/` → :8000 | - |
+| Agent system | Worker agents (general, flight) | AutoGen Studio teams (039 Land Swarm) |
 | Protocol | A2A (JSON-RPC 2.0) | A2A + MCP |
 
-## Law Pipeline Status (2026-02-24 — 10 LAWS LOADED)
+## Law Pipeline Status (2026-02-27 — 18 LAWS LOADED, FULL PIPELINE)
 
 | Step | Status | Detail |
 |------|--------|--------|
-| Step1 PDF→JSON | DONE | Parser fixed (2026-02-23): TOC duplicate bug, HANG→HO→MOK→JO order, HO pattern |
-| Step1-alt API→JSON | DONE | 10 laws downloaded via `law/scripts/law_downloader.py` (law.go.kr Open API) |
-| Step2 JSON→Neo4j | DONE | LAW 10, HANG 3943, HO 3135, MOK 550, JO 1774, JANG 73, JEOL 27 (total 9,514) |
-| Step3 Embeddings | DONE | ALL 3943 HANG nodes, OpenAI text-embedding-3-large 3072-dim |
-| Step4 Domains | DONE | 5 domains (national_land_planning:1526, building_standards:1018, land_use_regulation:959, zoning:312, urban_planning:128) |
-| Step5 RelEmbeddings | NOT RUN | `contains_embedding` index missing |
-| Vector indexes | ONLINE | `hang_embedding_index`, `ho_embedding_index`, `mok_embedding_index`, `jo_embedding_index` |
+| Step1 PDF→JSON | DONE | Parser fixed: TOC duplicate bug, HANG→HO→MOK→JO order |
+| Step1-alt API→JSON | DONE | 18 laws downloaded via `law/scripts/law_downloader.py` (law.go.kr Open API) |
+| Step2 JSON→Neo4j | DONE | LAW 18, HANG 6171, HO 6026, MOK 1284, JO 2431, JANG 96, JEOL 50 (total 16,081) |
+| Step3 Embeddings | DONE | ALL 6171 HANG nodes, OpenAI text-embedding-3-large 3072-dim |
+| Step4 Domains | DONE | 5 domains (land_use_regulation:2286, national:2004, building:1018, zoning:614, urban:249) |
+| Step5 RelEmbeddings | DONE | ALL 16,058 CONTAINS rel embeddings, `contains_embedding` ONLINE |
+| Vector indexes | ONLINE | hang, ho, mok, jo, contains (all 3072-dim cosine) |
+| Fulltext indexes | ONLINE | hang_content_fulltext (CJK), jo_content_fulltext |
 
-**10 laws**: 국토계획법(법률/시행령/시행규칙) + 건축법(법률/시행령/시행규칙) + 농지법 + 산지관리법 + 자연공원법 + 수도법
+**18 laws**: 6개 법률(국토계획법, 건축법, 농지법, 산지관리법, 자연공원법, 수도법) × 3 types(법률, 시행령, 시행규칙)
 
 **Scripts**:
-- `law/scripts/run_step3_standalone.py` — embeddings, `NEO4J_PASSWORD=11111111` env var
-- `law/scripts/law_downloader.py` — law.go.kr Open API, `LAW_API_OC=hanvit4303` env var
+- `law/scripts/run_step3_standalone.py` — HANG embeddings, `LAW_NEO4J_PASSWORD=11111111`
+- `law/scripts/run_step5_incremental.py` — CONTAINS rel embeddings (incremental)
+- `law/scripts/law_downloader.py` — law.go.kr Open API, `LAW_API_OC=hanvit4303`
 
 **Pipeline docs**: `law/PIPELINE.md` (full step-by-step guide)
 

@@ -507,6 +507,21 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
 
     if (setbackGeometries && Object.keys(setbackGeometries).length > 0) {
       renderSetbackEntities(viewer, Cesium, setbackGeometries);
+      // slope envelope이 화면에 확실히 들어오도록 카메라를 entity 범위 + 적당한 pitch로 자동 flyTo.
+      // slope가 하늘 높이 올라가서 기본 view에서 안 보이는 문제 해결.
+      try {
+        const setbackEntities = viewer.entities.values.filter((e: any) =>
+          typeof e.id === 'string' && e.id.startsWith(SETBACK_PREFIX)
+        );
+        if (setbackEntities.length > 0) {
+          viewer.flyTo(setbackEntities, {
+            duration: 1.2,
+            offset: new Cesium.HeadingPitchRange(0.0, Cesium.Math.toRadians(-35), 120.0),
+          });
+        }
+      } catch {
+        /* ignore */
+      }
     }
   }, [setbackGeometries, ready, viewerRef]);
 

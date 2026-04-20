@@ -438,102 +438,110 @@ def _compute_sunlight_envelope(
     sunlight_rules: list,
 ) -> dict | None:
     """
-    정북 일조사선 3D 경사면 생성.
+    정북 일조사선 3D 경사면 생성 (건축법 시행령 §86①, 2023.9.12 개정).
 
-    건축법 시행령 §86① (2023 개정):
-    - H ≤ 10m: 경계선에서 1.5m 이격 (수직벽)
-    - H > 10m: 경계선에서 H/2 이격 → H = 2 × 거리 (경사면, 기울기 2:1)
+    법규 단면 (북측 경계에서 남쪽으로 x 진행):
+        H (m)
+        |                            /     ← slope 2:1 (H = 2x)
+        |                          /
+        |                        /
+        | 10 ────┐──────────────         ← 수평 평탄부 (x=1.5 ~ 5m)
+        |        │
+        |        │                      ← 수직 직각벽 (x=1.5m, H=0→10m)
+        |        │
+        | 0 ─────┴──────────────────→ x
+             0  1.5  5m    inward
 
-    단면도:
-        경계선    1.5m   5m        15m        25m (거리)
-        │         │      │         │          │
-        │         │ 10m ─┤         │          │
-        │         │      ╲         │          │
-        │         │       ╲ 20m ──┤          │
-        │         │        ╲       ╲          │
-        │         │         ╲       ╲ 50m ───┤
-        │         │          ╲ slope=2:1      │
+    - x < 1.5m: 건축 불가 (인접경계에서 최소 1.5m 이격)
+    - x = 1.5m: 직각으로 H=10m까지 올릴 수 있는 수직벽
+    - 1.5m ≤ x ≤ 5m: 수평 평탄부 (최대 H=10m)
+    - x > 5m: slope 2:1 (H = 2x, 즉 H>10m 구간은 H/2 이격)
 
-    Cesium Wall 3개:
-    1. 수직벽: 경계선~1.5m (높이 0→10m)
-    2. 경사면: 1.5m~50m 깊이 (높이 10m→100m, slope 2:1)
+    Cesium Wall로 다음 요소 렌더:
+    1. **수직 직각벽** at x=1.5m (H=0→10m) — 법규의 "10m까지 직각" 부분
+    2. **연속 계단 wall** at x ∈ {5, 7.5, 10, 15, 20, 25, 30m} — 각 거리에서 H=2x
+       이게 slope 2:1 envelope의 시각화. 각 wall은 바닥→최대허용H까지의 면.
 
-    Returns: { walls: [ {positions, min_heights, max_heights}, ... ] }
+    Returns: { walls: [...], slope, base_setback_m, base_height_m, max_depth_m,
+                thresholds: [...] — 각 wall의 (dist_m, h_max_m) 쌍 }
     """
     try:
         if not north_edges:
             return None
 
         centroid = parcel_utm.centroid
-        base_setback = 1.5   # 수직벽 이격 (m)
-        base_height = 10.0   # 수직벽 최대 높이 (m)
-        slope = 2.0          # 경사면 기울기 (높이 = slope × 거리)
+        base_setback = 1.5   # 수직벽 이격 (m) — §86①제1호
+        base_height = 10.0   # 수직벽 최대 높이 (m) — 2023.9.12 개정 9→10m
+        slope = 2.0          # 경사면 기울기 H=2x (§86①제2호 "H/2 이격"의 역수)
         # 필지 크기 기반 max_depth — 필지 밖 돌출 방지
         parcel_span = max(
             parcel_utm.bounds[2] - parcel_utm.bounds[0],
             parcel_utm.bounds[3] - parcel_utm.bounds[1],
         )
-        max_depth = min(parcel_span * 0.4, 30.0)  # 필지 폭의 40% or 30m 중 작은 값
+        max_depth = min(parcel_span * 0.5, 30.0)
+
+        # 계단 wall 샘플: 5m부터 시작 (이전은 H=10 평탄), 2:1 slope 적용
+        slope_samples = [5.0, 7.5, 10.0, 12.5, 15.0, 20.0, 25.0, 30.0]
+        slope_samples = [d for d in slope_samples if d <= max_depth]
 
         walls = []
+        thresholds = []
+
+        def _offset_coord(coord, nx, ny, dist):
+            return (coord[0] + nx * dist, coord[1] + ny * dist)
+
+        def _wgs_positions(utm_coords):
+            out = []
+            for pt in utm_coords:
+                wgs_pt = _utm_to_wgs(Point(pt[0], pt[1]))
+                out.append([wgs_pt.x, wgs_pt.y])
+            return out
 
         for edge in north_edges:
             nx, ny = _inward_normal(edge, centroid)
             if nx == 0.0 and ny == 0.0:
                 continue
-
             edge_coords = list(edge.coords)
 
-            # Wall 1: 수직벽 (경계선 → 1.5m 이격, 높이 0→10m)
-            wall1_positions = []
-            wall1_min = []
-            wall1_max = []
-            for coord in edge_coords:
-                # 경계선 위치 (높이 0)
-                wall1_positions.append(coord)
-                wall1_min.append(0.0)
-                wall1_max.append(0.0)
-            for coord in edge_coords:
-                # 1.5m 이격 위치 (높이 10m)
-                wall1_positions.append((
-                    coord[0] + nx * base_setback,
-                    coord[1] + ny * base_setback,
-                ))
-                wall1_min.append(0.0)
-                wall1_max.append(base_height)
+            # ── Wall 1: 수직 직각벽 at x=1.5m (H=0→10m) ──
+            vert_utm = [_offset_coord(c, nx, ny, base_setback) for c in edge_coords]
+            walls.append({
+                "positions": _wgs_positions(vert_utm),
+                "min_heights": [0.0] * len(vert_utm),
+                "max_heights": [base_height] * len(vert_utm),
+                "label": f"수직 직각벽 (x={base_setback}m, H=0→{base_height}m)",
+            })
+            thresholds.append({"distance_m": base_setback, "max_height_m": base_height,
+                                "kind": "vertical"})
 
-            # Wall 2: 경사면 (1.5m → max_depth, 높이 10m → slope*max_depth)
-            # 5개 샘플 포인트로 경사면 표현
-            sample_distances = [base_setback, 10.0, 20.0, 35.0, max_depth]
-            wall2_positions = []
-            wall2_min = []
-            wall2_max = []
-            for dist in sample_distances:
-                h = slope * dist  # 높이 = 2 × 거리
-                if h < base_height:
-                    h = base_height
-                for coord in edge_coords:
-                    wall2_positions.append((
-                        coord[0] + nx * dist,
-                        coord[1] + ny * dist,
-                    ))
-                    wall2_min.append(0.0)
-                    wall2_max.append(h)
-
-            # UTM → WGS84
-            for wall_pos, wall_min_h, wall_max_h in [
-                (wall1_positions, wall1_min, wall1_max),
-                (wall2_positions, wall2_min, wall2_max),
-            ]:
-                positions_wgs = []
-                for pt in wall_pos:
-                    wgs_pt = _utm_to_wgs(Point(pt[0], pt[1]))
-                    positions_wgs.append([wgs_pt.x, wgs_pt.y])
+            # ── Wall 2: 수평 평탄부 at x=5m, H=10m ──
+            # (x=1.5~5 구간이 모두 H=10m이지만, x=5m 지점에 한 번 더 wall 세워
+            #  평탄부의 한계(slope 시작점)를 명시)
+            plateau_end = 5.0
+            if plateau_end <= max_depth:
+                plateau_utm = [_offset_coord(c, nx, ny, plateau_end) for c in edge_coords]
                 walls.append({
-                    "positions": positions_wgs,
-                    "min_heights": wall_min_h,
-                    "max_heights": wall_max_h,
+                    "positions": _wgs_positions(plateau_utm),
+                    "min_heights": [0.0] * len(plateau_utm),
+                    "max_heights": [base_height] * len(plateau_utm),
+                    "label": f"평탄부 한계 (x={plateau_end}m, H={base_height}m)",
                 })
+                thresholds.append({"distance_m": plateau_end, "max_height_m": base_height,
+                                    "kind": "plateau_end"})
+
+            # ── Wall 3~N: slope 2:1 계단 wall at x > 5m ──
+            for dist in slope_samples:
+                if dist <= plateau_end:
+                    continue
+                h = slope * dist  # H = 2×dist
+                slope_utm = [_offset_coord(c, nx, ny, dist) for c in edge_coords]
+                walls.append({
+                    "positions": _wgs_positions(slope_utm),
+                    "min_heights": [0.0] * len(slope_utm),
+                    "max_heights": [h] * len(slope_utm),
+                    "label": f"사선 H=2×{dist:.1f}={h:.1f}m",
+                })
+                thresholds.append({"distance_m": dist, "max_height_m": h, "kind": "slope"})
 
         if not walls:
             return None
@@ -544,6 +552,8 @@ def _compute_sunlight_envelope(
             "base_setback_m": base_setback,
             "base_height_m": base_height,
             "max_depth_m": max_depth,
+            "thresholds": thresholds,
+            "law_basis": "건축법 §61①, 시행령 §86① (2023.9.12 개정 9→10m)",
         }
 
     except Exception as e:

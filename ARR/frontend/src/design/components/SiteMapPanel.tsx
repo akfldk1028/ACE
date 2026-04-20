@@ -332,6 +332,38 @@ function renderSetbackEntities(
       }
     }
 
+    // 계단식 envelope 층 — img_5의 건물 볼륨 (법규 §86① 반영)
+    // 3개 층: base(0-10m) / mid(10-20m) / high(20-30m), 각 층마다 북측 offset 증가
+    if (envelope.envelope_layers) {
+      const layerColors: Record<string, string> = {
+        base: plateauC.toCssColorString(),
+        mid: '#f59e0b',    // 주황 — 중층
+        high: slopeC.toCssColorString(),  // 핑크 — 고층
+      };
+      for (let li = 0; li < envelope.envelope_layers.length; li++) {
+        const layer = envelope.envelope_layers[li];
+        const ring = layer.footprint_wgs as number[][];
+        if (!ring || ring.length < 3) continue;
+        const flat: number[] = [];
+        for (const [lng, lat] of ring) flat.push(lng, lat);
+        const color = Cesium.Color.fromCssColorString(
+          layerColors[layer.kind] || '#ec4899'
+        );
+        viewer.entities.add({
+          id: `${SETBACK_PREFIX}sunlight-layer-${li}`,
+          polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
+            height: layer.h_bottom,
+            extrudedHeight: layer.h_top,
+            material: color.withAlpha(0.22),
+            outline: true,
+            outlineColor: color.withAlpha(0.9),
+            outlineWidth: 2,
+          },
+        });
+      }
+    }
+
     // 단면 프로파일 폴리라인 — '꺾이는' 법규 단면 (img_5 빨간 점선 대응)
     // 수직→평탄→경사를 3D 공간에 굵은 선으로 그어 한눈에 형상 보이게.
     if (envelope.profile_polylines) {

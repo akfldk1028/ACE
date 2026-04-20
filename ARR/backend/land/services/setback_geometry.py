@@ -645,16 +645,98 @@ def _compute_sunlight_envelope(
                 "label": "단면 프로파일 (수직→평탄→경사)",
             })
 
+        # ── 5. 계단식 envelope 층 — img_5의 건물 볼륨 시각화
+        # 각 height 레이어에서 필지의 "건축 가능 footprint"를 계산해 extruded polygon.
+        # 누적하면 img_5처럼 stepped building profile이 보임.
+        envelope_layers = []
+
+        def _offset_north_edges_buffer(offset_m: float):
+            """
+            'H 이하에서 건축 가능한 footprint' 반환.
+            가장 "북향"에 가까운 edge 1개를 기준으로 half-plane intersect.
+            복수 north edge가 있어도 over-constrain하지 않도록 대표 1개 사용.
+            """
+            if not north_edges:
+                return None
+            # 대표 edge: '길이가 길고 inward가 남쪽'에 가장 잘 맞는 edge.
+            # 짧은 북향 edge 1개만 쓰면 half-plane이 필지의 작은 귀퉁이만 덮음.
+            best_edge = None
+            best_score = -1.0
+            for edge in north_edges:
+                nx, ny = _inward_normal(edge, centroid)
+                if nx == 0.0 and ny == 0.0:
+                    continue
+                # score = edge.length × (inward가 남향인 정도, -ny clamped 0~1)
+                north_weight = max(0.0, -ny)
+                score = edge.length * north_weight
+                if score > best_score:
+                    best_score = score
+                    best_edge = (edge, nx, ny)
+            if not best_edge:
+                return None
+            edge, nx, ny = best_edge
+            coords_u = list(edge.coords)
+            a, b = coords_u[0], coords_u[-1]
+            big = 200.0
+            hp_coords = [
+                (a[0] + nx * offset_m, a[1] + ny * offset_m),
+                (b[0] + nx * offset_m, b[1] + ny * offset_m),
+                (b[0] + nx * big,      b[1] + ny * big),
+                (a[0] + nx * big,      a[1] + ny * big),
+            ]
+            try:
+                half = Polygon(hp_coords)
+                if not half.is_valid:
+                    half = half.buffer(0)
+                result = parcel_utm.intersection(half)
+            except Exception:
+                return None
+            if result.is_empty:
+                return None
+            if isinstance(result, MultiPolygon):
+                result = max(result.geoms, key=lambda g: g.area)
+            if not isinstance(result, Polygon) or result.area < 1.0:
+                return None
+            return result
+
+        # 법규 §86① 기준 적응형 레이어. 필지 크기에 따라 몇 개 층이 fit할지 자동 결정.
+        # 각 층 h_top에 필요한 offset = max(1.5m, h_top × 0.5)
+        # 필지가 작으면 위 층이 자동으로 생략됨.
+        candidate_heights = [10.0, 15.0, 20.0, 25.0, 30.0]
+        h_bot = 0.0
+        prev_offset = base_setback
+        kind_names = ["base", "mid", "high", "high2", "top"]
+        for i, h_top in enumerate(candidate_heights):
+            if h_top > slope * max_depth_cap + 0.01:
+                break
+            offset_req = max(base_setback, h_top * 0.5)
+            fp = _offset_north_edges_buffer(offset_req)
+            if fp is None:
+                break  # 이 층부터는 필지에 fit 안 됨
+            kind = kind_names[i] if i < len(kind_names) else "top"
+            ring_wgs = [_wgs_pt(p) for p in fp.exterior.coords[:-1]]
+            envelope_layers.append({
+                "footprint_wgs": ring_wgs,
+                "h_bottom": h_bot,
+                "h_top": h_top,
+                "offset_m": offset_req,
+                "kind": kind,
+                "label": f"H={h_bot:.0f}~{h_top:.0f}m (offset≥{offset_req:.1f}m)",
+            })
+            h_bot = h_top
+            prev_offset = offset_req
+
         # Use cap value to satisfy later return structure.
         max_depth = max_depth_cap
 
-        if not walls and not slanted_polygons:
+        if not walls and not slanted_polygons and not envelope_layers:
             return None
 
         return {
             "walls": walls,
             "slanted_polygons": slanted_polygons,
             "profile_polylines": profile_polylines,
+            "envelope_layers": envelope_layers,
             "slope": slope,
             "base_setback_m": base_setback,
             "base_height_m": base_height,

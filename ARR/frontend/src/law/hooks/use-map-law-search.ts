@@ -1,34 +1,24 @@
 /**
- * useMapLawSearch — 지적도 클릭/호버 → 토지 규제 분석 훅.
+ * useMapLawSearch — 지적도 클릭/주소검색 → 토지 규제 분석 훅.
  *
- * 3D 지도(Vworld WebGL)와 토지 분석(/land/analyze/)을 연결하는 중간 계층.
+ * 2D 지도(OpenLayers + Vworld Base 타일)와 토지 분석(/land/analyze/)을 연결.
  *
- * 클릭 흐름 (quick 모드):
- *   Cesium LEFT_CLICK → (lng, lat)
+ * 클릭 흐름:
+ *   OpenLayers singleclick → (lng, lat)
  *   → reverse()    — 좌표 → PNU + 주소 + geometry
- *   → highlightParcel(geometry)   — 진한 파랑 하이라이트
+ *   → highlightParcel(geometry)
  *   → analyze(pnu)  — PNU → 건폐율/용적률/41규제
  *   → addMessage(user: 주소) + addMessage(assistant: land_analysis)
  *
- * 클릭 흐름 (agent 모드):
- *   Cesium LEFT_CLICK → (lng, lat)
- *   → reverse geocode (동일)
- *   → SSE /land/agent-analyze/stream → quick_done(규제 즉시표시) → agent 메시지 릴레이
- *
- * 호버 흐름 (300ms 디바운스):
- *   Cesium MOUSE_MOVE → (lng, lat)
- *   → reverse()    — 좌표 → PNU + geometry
- *   → highlightHover(geometry)    — 연한 인디고 하이라이트
- *   → PNU 캐시로 동일 필지 재호출 방지
- *
- * highlightRef 패턴:
- *   handleMapClick(useCallback) ↔ useVworld3D(onClick) 순환 참조를
- *   ref 동기화로 해결.
+ * 주소 검색 흐름:
+ *   MapSearchBar → searchByAddress(input)
+ *   → resolve(input) — 주소 → PNU + 좌표
+ *   → flyTo(좌표) + analyze(pnu)
  */
 
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useVworld3D } from '../../land/hooks/use-vworld-3d';
-import { reverse, analyze } from '../../land/lib/land-api-client';
+import { reverse, resolve, analyze } from '../../land/lib/land-api-client';
 import { useAgentAnalyze } from '../../land/hooks/use-agent-analyze';
 import type { ChatMessage } from '../lib/types';
 import type { AgentAnalysisEvent, AgentMessage, LandAnalysisResult } from '../../land/lib/types';
@@ -57,6 +47,10 @@ interface UseMapLawSearchReturn {
   analysisMode: AnalysisMode;
   /** 모드 토글 */
   setAnalysisMode: (mode: AnalysisMode) => void;
+  /** 주소/PNU 검색 → 분석 */
+  searchByAddress: (input: string) => Promise<void>;
+  /** 3D 건물 표시/숨김 토글 */
+  setBuildingsVisible: (visible: boolean) => void;
   /** 에이전트 분석 상태 (agent 모드용) */
   agent: {
     event: AgentAnalysisEvent | null;
@@ -70,11 +64,8 @@ interface UseMapLawSearchReturn {
   };
 }
 
-/** 호버 디바운스 (ms) — API 호출 빈도 제한 */
-const HOVER_DEBOUNCE_MS = 300;
-
 /**
- * 지적도 클릭 시 토지 규제 분석 + 호버 시 필지 하이라이트.
+ * 지적도 클릭/주소검색 → 토지 규제 분석.
  */
 export function useMapLawSearch({
   target,
@@ -97,21 +88,18 @@ export function useMapLawSearch({
     stopAnalysis,
   } = useAgentAnalyze('');
 
-  // ── Refs (순환 참조 방지 + 디바운스 상태) ──
+  // ── Refs (순환 참조 방지) ──
   const highlightRef = useRef<(geojson: object) => void>(() => {});
-  const highlightHoverRef = useRef<(geojson: object) => void>(() => {});
-  const clearHoverRef = useRef<() => void>(() => {});
+  const clearHighlightRef = useRef<() => void>(() => {});
+  const flyToRef = useRef<(lng: number, lat: number, zoom?: number) => void>(() => {});
+  const drawSetbackRef = useRef<(lines: Record<string, unknown>) => void>(() => {});
+  const clearSetbackRef = useRef<() => void>(() => {});
   const analyzingRef = useRef(false);
-  const hoverTimerRef = useRef<number | null>(null);
-  const lastHoverPnuRef = useRef<string | null>(null);
-  const clickedPnuRef = useRef<string | null>(null);
   const analysisModeRef = useRef(analysisMode);
 
-  // Keep ref in sync
   useEffect(() => { analysisModeRef.current = analysisMode; }, [analysisMode]);
 
-  // ── Agent quick_done → addMessage (한 번만) ──
-  // quickResult의 object identity가 바뀔 때만 addMessage 호출
+  // ── Agent quick_done → addMessage + 규제선 렌더 (한 번만) ──
   const lastQuickResultRef = useRef<object | null>(null);
   useEffect(() => {
     if (quickResult && quickResult !== lastQuickResultRef.current) {
@@ -123,17 +111,38 @@ export function useMapLawSearch({
         content: addr || '토지 규제 분석 완료',
         land_analysis: quickResult,
       });
+      // 규제선 3D 렌더
+      if (quickResult.setback_lines) {
+        drawSetbackRef.current(quickResult.setback_lines as Record<string, unknown>);
+      }
     }
   }, [quickResult, addMessage]);
 
-  /** Cesium LEFT_CLICK → reverse geocode → land analyze */
+  /** 분석 공통 로직 (클릭/검색 공유) */
+  const runAnalysis = useCallback(async (pnu: string, addr: string, geometry?: object) => {
+    clearSetbackRef.current();
+    if (geometry) highlightRef.current(geometry);
+    addMessage({ role: 'user', content: addr });
+
+    if (analysisModeRef.current === 'agent') {
+      startAnalysis(pnu, addr);
+      // agent 모드: quickResult effect에서 규제선 렌더
+    } else {
+      const result = await analyze(pnu, 'pnu');
+      addMessage({ role: 'assistant', content: addr, land_analysis: result });
+      // quick 모드: 즉시 규제선 렌더
+      if (result.setback_lines) {
+        drawSetbackRef.current(result.setback_lines as Record<string, unknown>);
+      }
+    }
+  }, [addMessage, startAnalysis]);
+
+  /** OpenLayers singleclick → reverse geocode → land analyze */
   const handleMapClick = useCallback(async (lng: number, lat: number) => {
     if (busy || analyzingRef.current) return;
     analyzingRef.current = true;
     setMapClickLoading(true);
-
-    // 호버 하이라이트 제거 (클릭 하이라이트로 대체)
-    clearHoverRef.current();
+    clearHighlightRef.current();
 
     try {
       const rev = await reverse(lng, lat);
@@ -145,29 +154,7 @@ export function useMapLawSearch({
         });
         return;
       }
-
-      // 필지 폴리곤 하이라이트 (진한 파랑)
-      if (rev.geometry) highlightRef.current(rev.geometry);
-      clickedPnuRef.current = rev.pnu;
-
-      const addr = rev.address || rev.pnu;
-
-      // 주소를 사용자 메시지로 표시
-      addMessage({ role: 'user', content: addr });
-
-      if (analysisModeRef.current === 'agent') {
-        // Agent mode: SSE 스트리밍 (quick + 에이전트 협업)
-        startAnalysis(rev.pnu, rev.address || undefined);
-        // mapClickLoading stays true until agent finishes or quick_done
-      } else {
-        // Quick mode: 기존 동기 분석
-        const result = await analyze(rev.pnu, 'pnu');
-        addMessage({
-          role: 'assistant',
-          content: addr,
-          land_analysis: result,
-        });
-      }
+      await runAnalysis(rev.pnu, rev.address || rev.pnu, rev.geometry ?? undefined);
     } catch (e) {
       addMessage({
         role: 'assistant',
@@ -178,61 +165,106 @@ export function useMapLawSearch({
       analyzingRef.current = false;
       setMapClickLoading(false);
     }
-  }, [busy, addMessage, startAnalysis]);
+  }, [busy, addMessage, runAnalysis]);
 
-  /** Cesium MOUSE_MOVE → 디바운스 → reverse geocode → 호버 하이라이트 */
-  const handleHover = useCallback((lng: number, lat: number) => {
-    if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
+  /**
+   * 주소/PNU 검색.
+   * - PNU 19자리: 바로 분석
+   * - 번지 주소 ("문정동 123-4"): resolve → flyTo → 분석
+   * - 동 단위 ("송파구 문정동"): flyTo만 (필지 클릭 대기)
+   */
+  const searchByAddress = useCallback(async (input: string) => {
+    if (busy || analyzingRef.current) return;
+    analyzingRef.current = true;
+    setMapClickLoading(true);
+    clearHighlightRef.current();
 
-    hoverTimerRef.current = window.setTimeout(async () => {
-      // 분석 중이면 호버 무시
-      if (analyzingRef.current) return;
+    try {
+      const trimmed = input.trim();
+      const isPnu = /^\d{19}$/.test(trimmed);
 
-      try {
-        const rev = await reverse(lng, lat);
-        if (!rev.success || !rev.pnu) {
-          clearHoverRef.current();
-          lastHoverPnuRef.current = null;
-          return;
-        }
-
-        // 동일 필지 → 스킵 (API 절약)
-        if (rev.pnu === lastHoverPnuRef.current) return;
-        // 클릭된 필지 위에 호버 → 스킵 (이미 진한 하이라이트)
-        if (rev.pnu === clickedPnuRef.current) return;
-
-        lastHoverPnuRef.current = rev.pnu;
-        if (rev.geometry) highlightHoverRef.current(rev.geometry);
-      } catch {
-        /* 네트워크 오류 — silent */
+      if (isPnu) {
+        await runAnalysis(trimmed, trimmed);
+        return;
       }
-    }, HOVER_DEBOUNCE_MS);
-  }, []);
 
+      // 번지 유무 판단: 끝에 숫자 또는 숫자-숫자 패턴 (예: 677, 123-4)
+      const hasLotNumber = /\d+(-\d+)?$/.test(trimmed);
+
+      const resolved = await resolve(trimmed, 'address');
+      if (!resolved.success) {
+        addMessage({
+          role: 'assistant',
+          content: '주소를 찾을 수 없습니다.',
+          error: resolved.error || '주소 검색 실패',
+        });
+        return;
+      }
+
+      // 좌표가 있으면 지도 이동
+      if (resolved.coordinates) {
+        flyToRef.current(
+          resolved.coordinates.x,
+          resolved.coordinates.y,
+          hasLotNumber ? 18 : 16, // 번지 → 가까이, 동 → 넓게
+        );
+      }
+
+      // 번지가 있고 PNU도 확보 → 바로 분석
+      if (hasLotNumber && resolved.pnu) {
+        if (resolved.coordinates) {
+          try {
+            const rev = await reverse(resolved.coordinates.x, resolved.coordinates.y);
+            if (rev.geometry) {
+              await runAnalysis(resolved.pnu, resolved.address || trimmed, rev.geometry);
+              return;
+            }
+          } catch { /* fallback */ }
+        }
+        await runAnalysis(resolved.pnu, resolved.address || trimmed);
+      } else {
+        // 동/구 단위 → 이동만, 클릭 대기 안내
+        addMessage({
+          role: 'assistant',
+          content: `${resolved.geocoded_address || trimmed} 지역으로 이동했습니다. 지도에서 분석할 필지를 클릭하세요.`,
+        });
+      }
+    } catch (e) {
+      addMessage({
+        role: 'assistant',
+        content: '주소 검색 실패',
+        error: e instanceof Error ? e.message : '알 수 없는 오류',
+      });
+    } finally {
+      analyzingRef.current = false;
+      setMapClickLoading(false);
+    }
+  }, [busy, addMessage, runAnalysis]);
+
+  // ── 3D Vworld map (다이어그램 GRAPHIC + 지적도 WMS) ──
   const {
     ready: mapReady,
     loading: mapLoading,
     error: mapError,
     highlightParcel,
-    highlightHover,
-    clearHoverHighlight,
-  } = useVworld3D({ target, onClick: handleMapClick, onHover: handleHover });
+    clearHighlight,
+    flyTo,
+    setBuildingsVisible,
+    drawSetbackLines,
+    clearSetbackLines,
+  } = useVworld3D({ target, onClick: handleMapClick });
 
-  // ref 동기화 (useVworld3D 반환 후 결정되므로)
+  // ref 동기화
   useEffect(() => { highlightRef.current = highlightParcel; }, [highlightParcel]);
-  useEffect(() => { highlightHoverRef.current = highlightHover; }, [highlightHover]);
-  useEffect(() => { clearHoverRef.current = clearHoverHighlight; }, [clearHoverHighlight]);
-
-  // 클린업 — 디바운스 타이머 해제
-  useEffect(() => {
-    return () => {
-      if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
-    };
-  }, []);
+  useEffect(() => { clearHighlightRef.current = clearHighlight; }, [clearHighlight]);
+  useEffect(() => { flyToRef.current = flyTo; }, [flyTo]);
+  useEffect(() => { drawSetbackRef.current = drawSetbackLines; }, [drawSetbackLines]);
+  useEffect(() => { clearSetbackRef.current = clearSetbackLines; }, [clearSetbackLines]);
 
   return {
     mapReady, mapLoading, mapError, mapClickLoading,
     analysisMode, setAnalysisMode,
+    searchByAddress, setBuildingsVisible,
     agent: {
       event: agentEvent,
       quickResult,

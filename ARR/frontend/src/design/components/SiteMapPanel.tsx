@@ -300,54 +300,58 @@ function renderSetbackEntities(
     }
   }
 
-  // 정북일조 envelope — 법규 §86① 사선제한을 3D 공간에 길게 연장해 표현.
-  // 사선은 법규 개념선이므로 필지 밖까지 이어져도 OK (사용자 요구).
+  // 정북일조 envelope — 수직벽 + 평탄 + 경사가 이어진 하나의 surface.
+  // profile polyline은 중복이라 제거 — slanted polygon outline이 '직선+사선 연결'을 보여줌.
   const envelope = setbacks.sunlight_envelope as any;
   if (envelope) {
-    const slopeC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_slope); // 핑크
+    const wallC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_wall);    // 진홍
+    const plateauC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_plateau); // 분홍
+    const slopeC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_slope);  // 핑크
 
-    // (a) 경사면 polygon (slope 2:1) — 길게 연장, 필지 clip 안 함
-    //     이게 '사선제한' 핵심 시각화. 두껍고 선명한 outline.
-    if (envelope.slanted_polygons) {
-      for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
-        const poly = envelope.slanted_polygons[pi];
-        if (poly.kind !== 'slope') continue;
-        const corners = poly.corners as number[][];
-        if (!corners || corners.length < 3) continue;
+    // (1) 수직벽 at x=1.5m, H=0→10m (법규 "10m 직각" 부분)
+    if (envelope.walls) {
+      for (let wi = 0; wi < envelope.walls.length; wi++) {
+        const wall = envelope.walls[wi];
+        const positions = wall.positions;
+        const maxH = wall.max_heights;
+        const minH = wall.min_heights;
+        if (!positions || positions.length < 2 || positions.length !== maxH.length) continue;
         const flat: number[] = [];
-        for (const c of corners) flat.push(c[0], c[1], c[2]);
+        for (const [lng, lat] of positions) flat.push(lng, lat);
         viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-slope-${pi}`,
-          polygon: {
-            hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
-            perPositionHeight: true,
-            material: slopeC.withAlpha(0.28),
+          id: `${SETBACK_PREFIX}sunlight-wall-${wi}`,
+          wall: {
+            positions: Cesium.Cartesian3.fromDegreesArray(flat),
+            minimumHeights: minH,
+            maximumHeights: maxH,
+            material: wallC.withAlpha(0.25),
             outline: true,
-            outlineColor: slopeC.withAlpha(1.0),
-            outlineWidth: 5,
+            outlineColor: wallC,
+            outlineWidth: 4,
           },
         });
       }
     }
 
-    // (b) 프로파일 polyline — 꺾임(vertical→plateau→slope) 한 선으로 표현
-    if (envelope.profile_polylines) {
-      const profileC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_wall); // 진홍
-      for (let pi = 0; pi < envelope.profile_polylines.length; pi++) {
-        const line = envelope.profile_polylines[pi];
-        const pts = line.points as number[][];
-        if (!pts || pts.length < 2) continue;
+    // (2) 평탄 지붕 (1.5~5m, H=10m) + (3) 경사 지붕 (5~25m, H=10→50m)
+    // 두 polygon의 outline이 이어져서 envelope surface 연결됨
+    if (envelope.slanted_polygons) {
+      for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
+        const poly = envelope.slanted_polygons[pi];
+        const corners = poly.corners as number[][];
+        if (!corners || corners.length < 3) continue;
+        const color = poly.kind === 'plateau' ? plateauC : slopeC;
         const flat: number[] = [];
-        for (const p of pts) flat.push(p[0], p[1], p[2]);
+        for (const c of corners) flat.push(c[0], c[1], c[2]);
         viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-profile-${pi}`,
-          polyline: {
-            positions: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
-            width: 8,
-            material: new Cesium.PolylineDashMaterialProperty({
-              color: profileC,
-              dashLength: 12,
-            }),
+          id: `${SETBACK_PREFIX}sunlight-${poly.kind}-${pi}`,
+          polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(flat),
+            perPositionHeight: true,
+            material: color.withAlpha(0.22),
+            outline: true,
+            outlineColor: color,
+            outlineWidth: 4,
           },
         });
       }

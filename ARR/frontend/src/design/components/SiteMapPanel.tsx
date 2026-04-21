@@ -319,83 +319,20 @@ function renderSetbackEntities(
       }
     } catch { /* use 0 */ }
 
-    // (1) 수직벽 at x=1.5m, H=terrainH→terrainH+10m (terrain 위에 올림)
-    if (envelope.walls) {
-      for (let wi = 0; wi < envelope.walls.length; wi++) {
-        const wall = envelope.walls[wi];
-        const positions = wall.positions;
-        const maxH = wall.max_heights;
-        const minH = wall.min_heights;
-        if (!positions || positions.length < 2 || positions.length !== maxH.length) continue;
-        const flat: number[] = [];
-        for (const [lng, lat] of positions) flat.push(lng, lat);
-        // terrain H 가산
-        const minH_abs = minH.map((h: number) => h + terrainH);
-        const maxH_abs = maxH.map((h: number) => h + terrainH);
-        viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-wall-${wi}`,
-          wall: {
-            positions: Cesium.Cartesian3.fromDegreesArray(flat),
-            minimumHeights: minH_abs,
-            maximumHeights: maxH_abs,
-            material: wallC.withAlpha(0.25),
-            outline: true,
-            outlineColor: wallC,
-            outlineWidth: 4,
-          },
-        });
-      }
-    }
+    // envelope = 경사 지붕(사선) 1개 polygon만. 수직 벽 제거 (사용자 피드백).
+    //   - envelope.walls (§86① 1.5m 수직벽) 제거
+    //   - (b) 측면 closed loop wall 제거
+    //   - parcel footprint는 parcel_outline (점선)이 이미 표시하므로 중복 불필요
+    //   사선 surface 1개만 남기면 "깔끔한 사선" 달성.
+    void wallC; void plateauC;  // legacy variables, kept for future use
 
-    // (2) envelope 3면 닫힌 볼륨 — 바닥 + 벽 + 경사 지붕.
-    //     parcel에서 1.5m 내부로 이격된 inner polygon 기준 (법규 §86①: 1.5m 이격).
-    //     세 요소 모두 동일 색상 + inner polygon outline 공유 → 닫힌 3D 볼륨으로 보임.
     if (envelope.slanted_polygons) {
       for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
         const poly = envelope.slanted_polygons[pi];
         const corners = poly.corners as number[][];
         if (!corners || corners.length < 3) continue;
-        const color = slopeC;  // 단일 색상
 
-        // (a) 바닥 polygon: H=terrain 수평 (건축가능영역 바닥)
-        const bottomFlat: number[] = [];
-        for (const c of corners) bottomFlat.push(c[0], c[1]);
-        viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-bottom-${pi}`,
-          polygon: {
-            hierarchy: Cesium.Cartesian3.fromDegreesArray(bottomFlat),
-            height: terrainH,
-            material: color.withAlpha(0.15),
-            outline: true,
-            outlineColor: color.withAlpha(1.0),
-            outlineWidth: 3,
-          },
-        });
-
-        // (b) 측면 벽: closed loop, terrain → terrain+H(per-vertex)
-        const wallCorners = [...corners, corners[0]];
-        const wallFlat: number[] = [];
-        const minH: number[] = [];
-        const maxH: number[] = [];
-        for (const c of wallCorners) {
-          wallFlat.push(c[0], c[1]);
-          minH.push(terrainH);
-          maxH.push(terrainH + c[2]);
-        }
-        viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-wall-${pi}`,
-          wall: {
-            positions: Cesium.Cartesian3.fromDegreesArray(wallFlat),
-            minimumHeights: minH,
-            maximumHeights: maxH,
-            material: color.withAlpha(0.12),
-            outline: true,
-            outlineColor: color.withAlpha(0.95),
-            outlineWidth: 2,
-          },
-        });
-
-        // (c) 경사 지붕 polygon: per-vertex 높이 (법규 사선)
+        // 경사 지붕 polygon: per-vertex 높이 (법규 사선, terrain 가산)
         const roofFlat: number[] = [];
         for (const c of corners) roofFlat.push(c[0], c[1], c[2] + terrainH);
         viewer.entities.add({
@@ -403,9 +340,9 @@ function renderSetbackEntities(
           polygon: {
             hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(roofFlat),
             perPositionHeight: true,
-            material: color.withAlpha(0.28),
+            material: slopeC.withAlpha(0.28),
             outline: true,
-            outlineColor: color,
+            outlineColor: slopeC,
             outlineWidth: 3,
           },
         });
@@ -413,41 +350,8 @@ function renderSetbackEntities(
     }
   }
 
-  // 채광사선제한 경사면 (daylight_diagonal_envelope — 공동주택 인접경계, 보라)
-  const daylightEnvelope = setbacks.daylight_diagonal_envelope;
-  if (daylightEnvelope?.walls) {
-    const dlColor = Cesium.Color.fromCssColorString(colors.daylight_diagonal_envelope);
-    // terrain 고도 sample (첫 wall 첫 점 기준)
-    let dlTerrainH = 0;
-    try {
-      const firstPos = daylightEnvelope.walls[0]?.positions?.[0];
-      if (firstPos) {
-        const carto = Cesium.Cartographic.fromDegrees(firstPos[0], firstPos[1]);
-        const h = viewer.scene.globe.getHeight(carto);
-        if (typeof h === 'number' && isFinite(h)) dlTerrainH = h;
-      }
-    } catch { /* use 0 */ }
-    for (let wi = 0; wi < daylightEnvelope.walls.length; wi++) {
-      const wall = daylightEnvelope.walls[wi];
-      if (!wall.positions || wall.positions.length < 2) continue;
-
-      const flat: number[] = [];
-      for (const [lng, lat] of wall.positions) flat.push(lng, lat);
-
-      viewer.entities.add({
-        id: `${SETBACK_PREFIX}daylight-diag-wall-${wi}`,
-        wall: {
-          positions: Cesium.Cartesian3.fromDegreesArray(flat),
-          minimumHeights: wall.min_heights.map((h: number) => h + dlTerrainH),
-          maximumHeights: wall.max_heights.map((h: number) => h + dlTerrainH),
-          material: dlColor.withAlpha(0.15),
-          outline: true,
-          outlineColor: dlColor.withAlpha(0.75),
-          outlineWidth: 2,
-        },
-      });
-    }
-  }
+  // 채광사선제한 (daylight_diagonal_envelope) — 보라색 수직벽, 사용자 요청으로 비활성.
+  // 필요시 별도 토글로 살리기. 현재는 정북일조(pink)와 시각 충돌 방지 위해 렌더 안 함.
 }
 
 /** Fly camera to fit a GeoJSON geometry bounding box */

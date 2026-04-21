@@ -319,12 +319,36 @@ function renderSetbackEntities(
       }
     } catch { /* use 0 */ }
 
-    // envelope = 경사 지붕(사선) 1개 polygon만. 수직 벽 제거 (사용자 피드백).
-    //   - envelope.walls (§86① 1.5m 수직벽) 제거
-    //   - (b) 측면 closed loop wall 제거
-    //   - parcel footprint는 parcel_outline (점선)이 이미 표시하므로 중복 불필요
-    //   사선 surface 1개만 남기면 "깔끔한 사선" 달성.
-    void wallC; void plateauC;  // legacy variables, kept for future use
+    // envelope 구성 (사용자 피드백 img_18):
+    //   (1) 북쪽 수직벽 — 바닥(terrain) → H=10m (§86① plateau 시작, 직선→사선 올라감) [유지]
+    //   (2) 경사 지붕 polygon — H=10m→50m 사선 [유지]
+    //   (3) 나머지 측면 벽 (사선→바닥 내려감) [제거]
+    void plateauC;  // legacy variable, kept for future use
+
+    // (1) 북쪽 수직벽 — envelope.walls (백엔드에서 분리해서 보낸 북쪽 edge 벽)
+    if (envelope.walls) {
+      for (let wi = 0; wi < envelope.walls.length; wi++) {
+        const wall = envelope.walls[wi];
+        const positions = wall.positions;
+        const maxH = wall.max_heights;
+        const minH = wall.min_heights;
+        if (!positions || positions.length < 2 || positions.length !== maxH.length) continue;
+        const flat: number[] = [];
+        for (const [lng, lat] of positions) flat.push(lng, lat);
+        viewer.entities.add({
+          id: `${SETBACK_PREFIX}sunlight-wall-${wi}`,
+          wall: {
+            positions: Cesium.Cartesian3.fromDegreesArray(flat),
+            minimumHeights: minH.map((h: number) => h + terrainH),
+            maximumHeights: maxH.map((h: number) => h + terrainH),
+            material: wallC.withAlpha(0.25),
+            outline: true,
+            outlineColor: wallC,
+            outlineWidth: 3,
+          },
+        });
+      }
+    }
 
     if (envelope.slanted_polygons) {
       for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {

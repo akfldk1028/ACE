@@ -602,20 +602,31 @@ def _compute_sunlight_envelope(
             if north_lines:
                 north_mls = _MLS(north_lines) if len(north_lines) > 1 else north_lines[0]
 
-                # 필지 외곽 꼭지점들의 높이 계산 (Ladybug 수식)
-                ring_utm = list(parcel_utm.exterior.coords)[:-1]
+                # §86①: 인접경계에서 1.5m 이격 내부에 건축 가능.
+                # → envelope 바닥 outline = parcel.buffer(-1.5m) 내부 polygon.
+                # 이렇게 해야 envelope이 "필지 경계에 떠 있지 않고" 1.5m 안쪽에서 솟아오름.
+                try:
+                    inner_poly = parcel_utm.buffer(-base_setback)
+                    if isinstance(inner_poly, MultiPolygon):
+                        inner_poly = max(inner_poly.geoms, key=lambda g: g.area)
+                    if not isinstance(inner_poly, Polygon) or inner_poly.area < 1.0:
+                        inner_poly = parcel_utm  # fallback
+                except Exception:
+                    inner_poly = parcel_utm
+
+                ring_utm = list(inner_poly.exterior.coords)[:-1]
                 corners_utm_h = []
                 for pt in ring_utm:
                     pt_shp = Point(pt[0], pt[1])
                     d = north_mls.distance(pt_shp)
-                    # §86① (Ladybug solar_rights 유도): H = max(base_h, d × slope), cap = slope × max_depth
+                    # §86①: H = max(base_h, d × slope), cap = slope × max_depth
                     h = min(slope * max_depth_cap, max(base_height, d * slope))
                     corners_utm_h.append([pt[0], pt[1], h])
 
                 corners_wgs = [[*_wgs_pt((c[0], c[1])), c[2]] for c in corners_utm_h]
                 slanted_polygons.append({
                     "corners": corners_wgs,
-                    "label": f"정북일조 envelope (§86① Ladybug-inspired, H = max(10, d×2))",
+                    "label": f"정북일조 envelope (§86① H = max(10, d×2), 1.5m 이격 내부)",
                     "kind": "slope",
                 })
                 min_h = min(c[2] for c in corners_utm_h)

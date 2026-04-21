@@ -347,37 +347,66 @@ function renderSetbackEntities(
       }
     }
 
-    // (2) envelope — Cesium Wall로 각 edge를 "바닥→허용높이" 수직 벽으로 렌더.
-    //     polygon (기울어진 지붕)은 하늘에 떠서 이상하게 보여서 Wall 방식이 더 자연스러움.
-    //     각 edge segment가 바닥(H=0)에서 시작해 정북 거리 × 2 만큼 올라감.
+    // (2) envelope 3면 닫힌 볼륨 — 바닥 + 벽 + 경사 지붕.
+    //     parcel에서 1.5m 내부로 이격된 inner polygon 기준 (법규 §86①: 1.5m 이격).
+    //     세 요소 모두 동일 색상 + inner polygon outline 공유 → 닫힌 3D 볼륨으로 보임.
     if (envelope.slanted_polygons) {
       for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
         const poly = envelope.slanted_polygons[pi];
         const corners = poly.corners as number[][];
         if (!corners || corners.length < 3) continue;
-        const color = poly.kind === 'plateau' ? plateauC : slopeC;
+        const color = slopeC;  // 단일 색상
 
-        // Wall: 각 corner 위치에 바닥부터 (terrain+0) ~ (terrain+H) 수직벽.
-        // closed loop 만들기 위해 corners + first corner 반복.
+        // (a) 바닥 polygon: H=terrain 수평 (건축가능영역 바닥)
+        const bottomFlat: number[] = [];
+        for (const c of corners) bottomFlat.push(c[0], c[1]);
+        viewer.entities.add({
+          id: `${SETBACK_PREFIX}sunlight-bottom-${pi}`,
+          polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArray(bottomFlat),
+            height: terrainH,
+            material: color.withAlpha(0.15),
+            outline: true,
+            outlineColor: color.withAlpha(1.0),
+            outlineWidth: 3,
+          },
+        });
+
+        // (b) 측면 벽: closed loop, terrain → terrain+H(per-vertex)
         const wallCorners = [...corners, corners[0]];
-        const flat: number[] = [];
+        const wallFlat: number[] = [];
         const minH: number[] = [];
         const maxH: number[] = [];
         for (const c of wallCorners) {
-          flat.push(c[0], c[1]);
-          minH.push(terrainH);           // 바닥 = terrain
-          maxH.push(terrainH + c[2]);    // 최대 허용 높이
+          wallFlat.push(c[0], c[1]);
+          minH.push(terrainH);
+          maxH.push(terrainH + c[2]);
         }
         viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-${poly.kind}-${pi}`,
+          id: `${SETBACK_PREFIX}sunlight-wall-${pi}`,
           wall: {
-            positions: Cesium.Cartesian3.fromDegreesArray(flat),
+            positions: Cesium.Cartesian3.fromDegreesArray(wallFlat),
             minimumHeights: minH,
             maximumHeights: maxH,
-            material: color.withAlpha(0.2),
+            material: color.withAlpha(0.12),
+            outline: true,
+            outlineColor: color.withAlpha(0.95),
+            outlineWidth: 2,
+          },
+        });
+
+        // (c) 경사 지붕 polygon: per-vertex 높이 (법규 사선)
+        const roofFlat: number[] = [];
+        for (const c of corners) roofFlat.push(c[0], c[1], c[2] + terrainH);
+        viewer.entities.add({
+          id: `${SETBACK_PREFIX}sunlight-roof-${pi}`,
+          polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(roofFlat),
+            perPositionHeight: true,
+            material: color.withAlpha(0.28),
             outline: true,
             outlineColor: color,
-            outlineWidth: 2,
+            outlineWidth: 3,
           },
         });
       }

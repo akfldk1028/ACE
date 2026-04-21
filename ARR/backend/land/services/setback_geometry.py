@@ -60,7 +60,7 @@ def compute_setback_lines(parcel_geojson: dict, regulations: dict) -> dict:
         "adjacent_setback": None,
         "road_setback": None,
         "corner_cutoff": None,                # 가각전제 삼각 클립
-        "sunlight_envelope": None,            # 3D 일조사선 경사면 (wall vertices + heights)
+        "sunlight_envelope": None,            # 3D 일조사선 (walls + slanted_polygons, envelopes/sunlight.py)
         "building_designation_line": None,    # 건축지정선/한계선 (지구단위계획)
         "daylight_diagonal_envelope": None,   # 채광사선제한 3D (§86③, 공동주택)
     }

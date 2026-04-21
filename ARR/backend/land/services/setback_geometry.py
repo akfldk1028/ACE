@@ -563,6 +563,23 @@ def _compute_sunlight_envelope(
         primary = _pick_primary_edge(north_edges)
         primary_edges = [primary[0]] if primary else []
 
+        # ── shapely buffer 기반 재설계 ──
+        # 개별 edge offset은 convex/concave 꼭지점에서 parcel 밖으로 튀어나가는 버그.
+        # 대신 parcel polygon 자체를 buffer(-dist)로 inset하면 모든 꼭지점이 parcel 내부 보장.
+        #
+        # 1. buffer(-1.5m) = 인접이격 1.5m 들어간 polygon (수직벽 위치)
+        # 2. buffer(-5m)   = 평탄 끝 polygon (H=10m 수평 끝)
+        # 3. 둘의 차집합 = plateau 영역 (annulus, 가로 3.5m 고리)
+        # 4. slope polygon = primary edge의 외측 방향으로 x=5m→25m 사각형
+        #    (사선은 필지 밖까지 이어져도 OK)
+        try:
+            inset_base = parcel_utm.buffer(-base_setback)
+            inset_plat = parcel_utm.buffer(-plateau_end)
+        except Exception as e:
+            logger.warning(f"buffer failed: {e}")
+            inset_base = None
+            inset_plat = None
+
         for edge in primary_edges:
             nx, ny = _inward_normal(edge, centroid)
             if nx == 0.0 and ny == 0.0:
@@ -572,39 +589,56 @@ def _compute_sunlight_envelope(
                 continue
             a_utm, b_utm = coords_utm[0], coords_utm[-1]
 
-            # ── 1. 수직 직각벽 at x=1.5m, H=0→10m (Cesium Wall) ──
+            # ── 1. 수직 직각벽 — inset_base polygon 중 primary edge에 평행한 부분만 ──
+            # 단순화: primary edge를 base_setback 만큼 inward offset한 선을 Cesium Wall로.
+            # buffer 사용하면 parcel 꼭지점 둥글려지므로 edge 직선 offset이 더 법규 충실.
             vert_utm = [_offset_coord(c, nx, ny, base_setback) for c in coords_utm]
+            # parcel 내부로 clip (LineString 교차)
+            vert_line = LineString(vert_utm)
+            clipped_vert = vert_line.intersection(parcel_utm)
+            if not clipped_vert.is_empty:
+                if hasattr(clipped_vert, 'geoms'):
+                    clipped_vert = max(clipped_vert.geoms, key=lambda g: g.length)
+                if isinstance(clipped_vert, LineString):
+                    vert_coords = list(clipped_vert.coords)
+                else:
+                    vert_coords = vert_utm
+            else:
+                vert_coords = vert_utm
             walls.append({
-                "positions": [_wgs_pt(p) for p in vert_utm],
-                "min_heights": [0.0] * len(vert_utm),
-                "max_heights": [base_height] * len(vert_utm),
+                "positions": [_wgs_pt(p) for p in vert_coords],
+                "min_heights": [0.0] * len(vert_coords),
+                "max_heights": [base_height] * len(vert_coords),
                 "label": f"수직 직각벽 (x={base_setback}m, H=0→{base_height}m)",
             })
             thresholds.append({"distance_m": base_setback, "max_height_m": base_height,
                                 "kind": "vertical"})
 
-            # ── 2. 평탄 지붕 (1.5~5m, H=10m 수평) — 필지 clip ──
-            if plateau_end > base_setback:
-                plateau_utm_h = [
-                    [*_offset_coord(a_utm, nx, ny, base_setback), base_height],
-                    [*_offset_coord(b_utm, nx, ny, base_setback), base_height],
-                    [*_offset_coord(b_utm, nx, ny, plateau_end), base_height],
-                    [*_offset_coord(a_utm, nx, ny, plateau_end), base_height],
-                ]
-                clipped = _clip_to_parcel(plateau_utm_h)
-                if clipped and len(clipped) >= 3:
-                    corners_wgs = [[*_wgs_pt((c[0], c[1])), c[2]] for c in clipped]
-                    slanted_polygons.append({
-                        "corners": corners_wgs,
-                        "label": f"평탄 지붕 (x={base_setback}~{plateau_end}m, H={base_height}m)",
-                        "kind": "plateau",
-                    })
-                    thresholds.append({"distance_m": plateau_end,
-                                        "max_height_m": base_height,
-                                        "kind": "plateau_end"})
+            # ── 2. 평탄 지붕 — inset_base ∖ inset_plat = annulus ──
+            if inset_base is not None and not inset_base.is_empty:
+                if inset_plat is not None and not inset_plat.is_empty:
+                    plat_ring = inset_base.difference(inset_plat)
+                else:
+                    plat_ring = inset_base
+                if plat_ring.area >= 1.0:
+                    # take exterior ring of outermost poly
+                    if isinstance(plat_ring, MultiPolygon):
+                        plat_ring = max(plat_ring.geoms, key=lambda g: g.area)
+                    if isinstance(plat_ring, Polygon):
+                        corners_wgs = [
+                            [*_wgs_pt((pt[0], pt[1])), base_height]
+                            for pt in list(plat_ring.exterior.coords)[:-1]
+                        ]
+                        slanted_polygons.append({
+                            "corners": corners_wgs,
+                            "label": f"평탄 지붕 (x={base_setback}~{plateau_end}m, H={base_height}m)",
+                            "kind": "plateau",
+                        })
+                        thresholds.append({"distance_m": plateau_end,
+                                            "max_height_m": base_height,
+                                            "kind": "plateau_end"})
 
-            # ── 3. 경사 지붕 (5~max_depth_cap, slope 2:1) — **필지 clip 안 함**
-            # 법규상 사선은 필지 밖까지 개념적으로 이어지므로 clip 없이 전체 렌더.
+            # ── 3. 경사 지붕 — primary edge 기준 사각형 (필지 밖까지 이어짐) ──
             if max_depth_cap > plateau_end:
                 h_top = slope * max_depth_cap
                 slope_utm_h = [

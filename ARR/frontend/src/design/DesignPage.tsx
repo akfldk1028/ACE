@@ -6,6 +6,7 @@ import { useDesignJob } from './hooks/use-design-job';
 import { useOptimizationStream } from './hooks/use-optimization-stream';
 import ControlPanel from './components/ControlPanel';
 import ConstraintSummary from './components/ConstraintSummary';
+import { SunlightSectionDiagram } from './components/SunlightSectionDiagram';
 import GenerationProgress from './components/GenerationProgress';
 import ParetoChart from './components/ParetoChart';
 import DesignInspector from './components/DesignInspector';
@@ -248,6 +249,20 @@ const DesignPage: React.FC = () => {
         />
 
         <ConstraintSummary constraints={jobState.constraints} lawArticles={jobState.lawArticles} />
+
+        {/* 정북일조 사선제한 단면도 — 법규 §86① 그대로 2D 시각화 (지도 좌표 독립) */}
+        {jobState.zones && jobState.zones.length > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <SunlightSectionDiagram
+              applies={jobState.zones.some((z: string) =>
+                z.includes('전용주거') || z.includes('일반주거')
+              )}
+              targetHeightM={18}
+              width={440}
+              height={280}
+            />
+          </div>
+        )}
 
         {stream.status !== 'idle' && (
           <GenerationProgress

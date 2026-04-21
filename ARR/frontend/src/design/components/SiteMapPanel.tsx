@@ -301,14 +301,25 @@ function renderSetbackEntities(
   }
 
   // 정북일조 envelope — 수직벽 + 평탄 + 경사가 이어진 하나의 surface.
-  // profile polyline은 중복이라 제거 — slanted polygon outline이 '직선+사선 연결'을 보여줌.
+  // terrain 고도를 sample해서 envelope H에 가산 (지형 밑 파묻힘 방지).
   const envelope = setbacks.sunlight_envelope as any;
   if (envelope) {
     const wallC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_wall);    // 진홍
     const plateauC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_plateau); // 분홍
     const slopeC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_slope);  // 핑크
 
-    // (1) 수직벽 at x=1.5m, H=0→10m (법규 "10m 직각" 부분)
+    // terrain 고도 — envelope 중앙 지점에서 sample
+    let terrainH = 0;
+    try {
+      const firstCorner = envelope.slanted_polygons?.[0]?.corners?.[0];
+      if (firstCorner) {
+        const carto = Cesium.Cartographic.fromDegrees(firstCorner[0], firstCorner[1]);
+        const h = viewer.scene.globe.getHeight(carto);
+        if (typeof h === 'number' && isFinite(h)) terrainH = h;
+      }
+    } catch { /* use 0 */ }
+
+    // (1) 수직벽 at x=1.5m, H=terrainH→terrainH+10m (terrain 위에 올림)
     if (envelope.walls) {
       for (let wi = 0; wi < envelope.walls.length; wi++) {
         const wall = envelope.walls[wi];
@@ -318,12 +329,15 @@ function renderSetbackEntities(
         if (!positions || positions.length < 2 || positions.length !== maxH.length) continue;
         const flat: number[] = [];
         for (const [lng, lat] of positions) flat.push(lng, lat);
+        // terrain H 가산
+        const minH_abs = minH.map((h: number) => h + terrainH);
+        const maxH_abs = maxH.map((h: number) => h + terrainH);
         viewer.entities.add({
           id: `${SETBACK_PREFIX}sunlight-wall-${wi}`,
           wall: {
             positions: Cesium.Cartesian3.fromDegreesArray(flat),
-            minimumHeights: minH,
-            maximumHeights: maxH,
+            minimumHeights: minH_abs,
+            maximumHeights: maxH_abs,
             material: wallC.withAlpha(0.25),
             outline: true,
             outlineColor: wallC,
@@ -333,8 +347,7 @@ function renderSetbackEntities(
       }
     }
 
-    // (2) 평탄 지붕 (1.5~5m, H=10m) + (3) 경사 지붕 (5~25m, H=10→50m)
-    // 두 polygon의 outline이 이어져서 envelope surface 연결됨
+    // (2) 평탄 지붕 + (3) 경사 지붕 — terrain H 가산
     if (envelope.slanted_polygons) {
       for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
         const poly = envelope.slanted_polygons[pi];
@@ -342,7 +355,7 @@ function renderSetbackEntities(
         if (!corners || corners.length < 3) continue;
         const color = poly.kind === 'plateau' ? plateauC : slopeC;
         const flat: number[] = [];
-        for (const c of corners) flat.push(c[0], c[1], c[2]);
+        for (const c of corners) flat.push(c[0], c[1], c[2] + terrainH);  // H 가산
         viewer.entities.add({
           id: `${SETBACK_PREFIX}sunlight-${poly.kind}-${pi}`,
           polygon: {
@@ -362,6 +375,16 @@ function renderSetbackEntities(
   const daylightEnvelope = setbacks.daylight_diagonal_envelope;
   if (daylightEnvelope?.walls) {
     const dlColor = Cesium.Color.fromCssColorString(colors.daylight_diagonal_envelope);
+    // terrain 고도 sample (첫 wall 첫 점 기준)
+    let dlTerrainH = 0;
+    try {
+      const firstPos = daylightEnvelope.walls[0]?.positions?.[0];
+      if (firstPos) {
+        const carto = Cesium.Cartographic.fromDegrees(firstPos[0], firstPos[1]);
+        const h = viewer.scene.globe.getHeight(carto);
+        if (typeof h === 'number' && isFinite(h)) dlTerrainH = h;
+      }
+    } catch { /* use 0 */ }
     for (let wi = 0; wi < daylightEnvelope.walls.length; wi++) {
       const wall = daylightEnvelope.walls[wi];
       if (!wall.positions || wall.positions.length < 2) continue;
@@ -373,8 +396,8 @@ function renderSetbackEntities(
         id: `${SETBACK_PREFIX}daylight-diag-wall-${wi}`,
         wall: {
           positions: Cesium.Cartesian3.fromDegreesArray(flat),
-          minimumHeights: wall.min_heights,
-          maximumHeights: wall.max_heights,
+          minimumHeights: wall.min_heights.map((h: number) => h + dlTerrainH),
+          maximumHeights: wall.max_heights.map((h: number) => h + dlTerrainH),
           material: dlColor.withAlpha(0.15),
           outline: true,
           outlineColor: dlColor.withAlpha(0.75),

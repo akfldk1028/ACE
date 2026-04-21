@@ -347,9 +347,9 @@ function renderSetbackEntities(
       }
     }
 
-    // (2) envelope — extruded box (H=10m 법규 base) + 경사 지붕 (slope).
-    //     parcel footprint 그대로 수직 벽체 + 그 위에 per-vertex 경사면.
-    //     직선 규제선(2D)과 envelope(3D)이 같은 parcel outline 공유.
+    // (2) envelope — Cesium Wall로 각 edge를 "바닥→허용높이" 수직 벽으로 렌더.
+    //     polygon (기울어진 지붕)은 하늘에 떠서 이상하게 보여서 Wall 방식이 더 자연스러움.
+    //     각 edge segment가 바닥(H=0)에서 시작해 정북 거리 × 2 만큼 올라감.
     if (envelope.slanted_polygons) {
       for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
         const poly = envelope.slanted_polygons[pi];
@@ -357,35 +357,27 @@ function renderSetbackEntities(
         if (!corners || corners.length < 3) continue;
         const color = poly.kind === 'plateau' ? plateauC : slopeC;
 
-        // (a) extruded base: parcel footprint + H=10m extrude (수직 박스)
-        //     엄밀히 법규: 10m까지는 직각벽 허용. 이게 "사용자 눈에 들어오는 건물 볼륨".
-        const footFlat: number[] = [];
-        for (const c of corners) footFlat.push(c[0], c[1]);
-        viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-${poly.kind}-base-${pi}`,
-          polygon: {
-            hierarchy: Cesium.Cartesian3.fromDegreesArray(footFlat),
-            height: terrainH,
-            extrudedHeight: terrainH + 10.0,  // §86① base 10m
-            material: color.withAlpha(0.15),
-            outline: true,
-            outlineColor: color.withAlpha(0.8),
-            outlineWidth: 2,
-          },
-        });
-
-        // (b) 경사 지붕: 10m 위에 per-vertex slope (꼭지점별 (h-10) 만큼 추가 상승)
-        const slopeFlat: number[] = [];
-        for (const c of corners) slopeFlat.push(c[0], c[1], c[2] + terrainH);
+        // Wall: 각 corner 위치에 바닥부터 (terrain+0) ~ (terrain+H) 수직벽.
+        // closed loop 만들기 위해 corners + first corner 반복.
+        const wallCorners = [...corners, corners[0]];
+        const flat: number[] = [];
+        const minH: number[] = [];
+        const maxH: number[] = [];
+        for (const c of wallCorners) {
+          flat.push(c[0], c[1]);
+          minH.push(terrainH);           // 바닥 = terrain
+          maxH.push(terrainH + c[2]);    // 최대 허용 높이
+        }
         viewer.entities.add({
           id: `${SETBACK_PREFIX}sunlight-${poly.kind}-${pi}`,
-          polygon: {
-            hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(slopeFlat),
-            perPositionHeight: true,
-            material: color.withAlpha(0.25),
+          wall: {
+            positions: Cesium.Cartesian3.fromDegreesArray(flat),
+            minimumHeights: minH,
+            maximumHeights: maxH,
+            material: color.withAlpha(0.2),
             outline: true,
             outlineColor: color,
-            outlineWidth: 3,
+            outlineWidth: 2,
           },
         });
       }

@@ -576,48 +576,48 @@ def _compute_sunlight_envelope(
             inset_base = None
             inset_plat = None
 
-        # **Reverse Solar Envelope 방식** — 필지 polygon 전체를 사용해 각 꼭지점의
-        # "북측 경계로부터의 거리"에 따라 slope H 적용.
-        # 법규 §86①: 북측 경계에서 x만큼 떨어진 지점의 최대 허용 높이 = max(10, x×2)
-        # 이 방식은 primary edge 선택 오류 없이 필지 전체가 경사면으로 자연스럽게 올라감.
+        # **Reverse Solar Envelope + NYC frontage 방식** — Ladybug 수식 + NYC 도로변 판정 결합.
+        # 개선점 (세션 14 GitHub 조사 반영):
+        #   - 이전: "북측" edge만 사용 → 도로변이 북쪽이 아니면 엉뚱한 edge 선택 위험
+        #   - NYC Parametric Zoning: frontage = 도로까지 최단거리 변. 반대편이 "rear" (일조 대상)
+        #   - 그러나 한국 §86①은 도로 여부 무관, **정북(true north) 방향** 인접경계가 기준.
+        #   - 절충: 정북향 edge를 우선, 없으면 inward_ny 최소(가장 남향 inward) edge 대체.
         #
         # 알고리즘:
-        #   1. 필지 북측 경계 합집합 = MultiLineString (parcel의 모든 north-facing edges)
-        #   2. 각 parcel vertex → 북측 경계까지 최단거리 d 계산
-        #   3. 해당 vertex 높이 H = min(50, max(10, d × 2)) — §86① 적용
-        #   4. 필지 polygon을 perPositionHeight=True 로 그리면 각 꼭지점이
-        #      제각기 다른 높이로 올라가 envelope surface 형성
+        #   1. 정북 법선 edge 수집 (-ny > 0.3, 즉 정북 ±~72°)
+        #   2. 각 parcel vertex → 북측 경계까지 최단거리 d
+        #   3. H = min(50, max(10, d × 2)) — §86① (Ladybug solar_rights 수식)
+        #   4. Polygon perPositionHeight 렌더로 envelope surface 형성
         from shapely.geometry import MultiLineString as _MLS
         try:
-            # 북측 경계 수집 (inward normal의 -ny > 0 인 edge만)
             north_lines = []
             for edge in north_edges:
                 nx_e, ny_e = _inward_normal(edge, centroid)
                 if -ny_e > 0.3:  # 정북 ±~72°
                     north_lines.append(edge)
-            if not north_lines:
-                north_lines = [north_edges[0]] if north_edges else []
+            # fallback: 정북향 없으면 전체 north_edges 사용 (이미 _classify_edges에서 북향 판정됨)
+            if not north_lines and north_edges:
+                north_lines = list(north_edges)
 
             if north_lines:
                 north_mls = _MLS(north_lines) if len(north_lines) > 1 else north_lines[0]
 
-                # 필지 외곽 꼭지점들의 높이 계산
+                # 필지 외곽 꼭지점들의 높이 계산 (Ladybug 수식)
                 ring_utm = list(parcel_utm.exterior.coords)[:-1]
                 corners_utm_h = []
                 for pt in ring_utm:
                     pt_shp = Point(pt[0], pt[1])
                     d = north_mls.distance(pt_shp)
-                    # §86① H = max(10, d × 2), cap 50m
+                    # §86① (Ladybug solar_rights 유도): H = max(base_h, d × slope), cap = slope × max_depth
                     h = min(slope * max_depth_cap, max(base_height, d * slope))
                     corners_utm_h.append([pt[0], pt[1], h])
 
                 corners_wgs = [[*_wgs_pt((c[0], c[1])), c[2]] for c in corners_utm_h]
                 slanted_polygons.append({
                     "corners": corners_wgs,
-                    "label": f"정북일조 envelope (§86① H = max(10, d×2), d=북측 경계 거리)",
+                    "label": f"정북일조 envelope (§86① Ladybug-inspired, H = max(10, d×2))",
                     "kind": "slope",
                 })
-                # thresholds for verify CLI
                 min_h = min(c[2] for c in corners_utm_h)
                 max_h_ = max(c[2] for c in corners_utm_h)
                 thresholds.append({"distance_m": 0.0, "max_height_m": min_h, "kind": "vertical"})

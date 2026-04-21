@@ -3,6 +3,7 @@ import { useVworld3D } from '../../land/hooks/use-vworld-3d';
 import { reverse } from '../../land/lib/land-api-client';
 import type { GeoJSONFeature, SetbackGeometry } from '../lib/types';
 import type { SunlightEnvelope } from '../../land/lib/types';
+import { renderSunlightEnvelope } from '../lib/envelopes/sunlight';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const getCesium = (): any => (window as any).Cesium;
@@ -300,82 +301,14 @@ function renderSetbackEntities(
     }
   }
 
-  // 정북일조 envelope — 수직벽 + 평탄 + 경사가 이어진 하나의 surface.
-  // terrain 고도를 sample해서 envelope H에 가산 (지형 밑 파묻힘 방지).
-  const envelope = setbacks.sunlight_envelope as any;
-  if (envelope) {
-    const wallC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_wall);    // 진홍
-    const plateauC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_plateau); // 분홍
-    const slopeC = Cesium.Color.fromCssColorString(colors.sunlight_envelope_slope);  // 핑크
+  // 정북일조 envelope — design/lib/envelopes/sunlight.ts 전담 모듈로 위임.
+  // 북쪽 수직벽 + 경사 지붕만 렌더 (사용자 img_18 피드백 반영 LOCKED SPEC).
+  renderSunlightEnvelope(viewer, Cesium, setbacks.sunlight_envelope, {
+    wall: colors.sunlight_envelope_wall,
+    slope: colors.sunlight_envelope_slope,
+  });
 
-    // terrain 고도 — envelope 중앙 지점에서 sample
-    let terrainH = 0;
-    try {
-      const firstCorner = envelope.slanted_polygons?.[0]?.corners?.[0];
-      if (firstCorner) {
-        const carto = Cesium.Cartographic.fromDegrees(firstCorner[0], firstCorner[1]);
-        const h = viewer.scene.globe.getHeight(carto);
-        if (typeof h === 'number' && isFinite(h)) terrainH = h;
-      }
-    } catch { /* use 0 */ }
-
-    // envelope 구성 (사용자 피드백 img_18):
-    //   (1) 북쪽 수직벽 — 바닥(terrain) → H=10m (§86① plateau 시작, 직선→사선 올라감) [유지]
-    //   (2) 경사 지붕 polygon — H=10m→50m 사선 [유지]
-    //   (3) 나머지 측면 벽 (사선→바닥 내려감) [제거]
-    void plateauC;  // legacy variable, kept for future use
-
-    // (1) 북쪽 수직벽 — envelope.walls (백엔드에서 분리해서 보낸 북쪽 edge 벽)
-    if (envelope.walls) {
-      for (let wi = 0; wi < envelope.walls.length; wi++) {
-        const wall = envelope.walls[wi];
-        const positions = wall.positions;
-        const maxH = wall.max_heights;
-        const minH = wall.min_heights;
-        if (!positions || positions.length < 2 || positions.length !== maxH.length) continue;
-        const flat: number[] = [];
-        for (const [lng, lat] of positions) flat.push(lng, lat);
-        viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-wall-${wi}`,
-          wall: {
-            positions: Cesium.Cartesian3.fromDegreesArray(flat),
-            minimumHeights: minH.map((h: number) => h + terrainH),
-            maximumHeights: maxH.map((h: number) => h + terrainH),
-            material: wallC.withAlpha(0.25),
-            outline: true,
-            outlineColor: wallC,
-            outlineWidth: 3,
-          },
-        });
-      }
-    }
-
-    if (envelope.slanted_polygons) {
-      for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
-        const poly = envelope.slanted_polygons[pi];
-        const corners = poly.corners as number[][];
-        if (!corners || corners.length < 3) continue;
-
-        // 경사 지붕 polygon: per-vertex 높이 (법규 사선, terrain 가산)
-        const roofFlat: number[] = [];
-        for (const c of corners) roofFlat.push(c[0], c[1], c[2] + terrainH);
-        viewer.entities.add({
-          id: `${SETBACK_PREFIX}sunlight-roof-${pi}`,
-          polygon: {
-            hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(roofFlat),
-            perPositionHeight: true,
-            material: slopeC.withAlpha(0.28),
-            outline: true,
-            outlineColor: slopeC,
-            outlineWidth: 3,
-          },
-        });
-      }
-    }
-  }
-
-  // 채광사선제한 (daylight_diagonal_envelope) — 보라색 수직벽, 사용자 요청으로 비활성.
-  // 필요시 별도 토글로 살리기. 현재는 정북일조(pink)와 시각 충돌 방지 위해 렌더 안 함.
+  // 채광사선제한 (daylight_diagonal_envelope) — 보라 수직벽, 사용자 요청으로 비활성.
 }
 
 /** Fly camera to fit a GeoJSON geometry bounding box */

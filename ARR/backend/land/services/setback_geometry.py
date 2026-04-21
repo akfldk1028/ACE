@@ -563,15 +563,11 @@ def _compute_sunlight_envelope(
         primary = _pick_primary_edge(north_edges)
         primary_edges = [primary[0]] if primary else []
 
-        # ── shapely buffer 기반 재설계 ──
-        # 개별 edge offset은 convex/concave 꼭지점에서 parcel 밖으로 튀어나가는 버그.
-        # 대신 parcel polygon 자체를 buffer(-dist)로 inset하면 모든 꼭지점이 parcel 내부 보장.
-        #
-        # 1. buffer(-1.5m) = 인접이격 1.5m 들어간 polygon (수직벽 위치)
-        # 2. buffer(-5m)   = 평탄 끝 polygon (H=10m 수평 끝)
-        # 3. 둘의 차집합 = plateau 영역 (annulus, 가로 3.5m 고리)
-        # 4. slope polygon = primary edge의 외측 방향으로 x=5m→25m 사각형
-        #    (사선은 필지 밖까지 이어져도 OK)
+        # ── 단순화된 envelope (사용자 요구 "이쁜 사선") ──
+        # 기존: 수직벽 + 평탄 + 경사 3 요소가 겹쳐 박스처럼 보임.
+        # 신규: primary edge 따라 **한 장의 기울어진 사선 지붕** 만. 법규 단면 그대로.
+        #   - 북측 경계선 (H=0) → 내측 x=25m (H=50m) 기울어진 사각형
+        #   - base_setback/plateau/수직벽 없음 (2D 단면도가 이미 표현)
         try:
             inset_base = parcel_utm.buffer(-base_setback)
             inset_plat = parcel_utm.buffer(-plateau_end)
@@ -589,73 +585,27 @@ def _compute_sunlight_envelope(
                 continue
             a_utm, b_utm = coords_utm[0], coords_utm[-1]
 
-            # ── 1. 수직 직각벽 — inset_base polygon 중 primary edge에 평행한 부분만 ──
-            # 단순화: primary edge를 base_setback 만큼 inward offset한 선을 Cesium Wall로.
-            # buffer 사용하면 parcel 꼭지점 둥글려지므로 edge 직선 offset이 더 법규 충실.
-            vert_utm = [_offset_coord(c, nx, ny, base_setback) for c in coords_utm]
-            # parcel 내부로 clip (LineString 교차)
-            vert_line = LineString(vert_utm)
-            clipped_vert = vert_line.intersection(parcel_utm)
-            if not clipped_vert.is_empty:
-                if hasattr(clipped_vert, 'geoms'):
-                    clipped_vert = max(clipped_vert.geoms, key=lambda g: g.length)
-                if isinstance(clipped_vert, LineString):
-                    vert_coords = list(clipped_vert.coords)
-                else:
-                    vert_coords = vert_utm
-            else:
-                vert_coords = vert_utm
-            walls.append({
-                "positions": [_wgs_pt(p) for p in vert_coords],
-                "min_heights": [0.0] * len(vert_coords),
-                "max_heights": [base_height] * len(vert_coords),
-                "label": f"수직 직각벽 (x={base_setback}m, H=0→{base_height}m)",
+            # **단일 사선 지붕** — 경계선(H=0)에서 내측 25m(H=50m)로 기울어진 사각형.
+            # 사용자 요구: "사선이 건축선에 맞춰 이쁘게". 경계 edge 두 끝점을 그대로 쓰고
+            # inward 방향 25m 지점에 상단 두 꼭지점. slope 2:1 (H=2x) 법규 일치.
+            h_top = slope * max_depth_cap  # 50m
+            slope_corners_utm = [
+                [a_utm[0], a_utm[1], 0.0],                                # 경계 A (H=0)
+                [b_utm[0], b_utm[1], 0.0],                                # 경계 B (H=0)
+                [b_utm[0] + nx * max_depth_cap,
+                 b_utm[1] + ny * max_depth_cap, h_top],                   # 내측 B+25 (H=50)
+                [a_utm[0] + nx * max_depth_cap,
+                 a_utm[1] + ny * max_depth_cap, h_top],                   # 내측 A+25 (H=50)
+            ]
+            corners_wgs = [[*_wgs_pt((c[0], c[1])), c[2]] for c in slope_corners_utm]
+            slanted_polygons.append({
+                "corners": corners_wgs,
+                "label": f"정북일조 사선 (경계→{max_depth_cap:.0f}m 내측, H=0→{h_top:.0f}m)",
+                "kind": "slope",
             })
-            thresholds.append({"distance_m": base_setback, "max_height_m": base_height,
-                                "kind": "vertical"})
-
-            # ── 2. 평탄 지붕 — inset_base ∖ inset_plat = annulus ──
-            if inset_base is not None and not inset_base.is_empty:
-                if inset_plat is not None and not inset_plat.is_empty:
-                    plat_ring = inset_base.difference(inset_plat)
-                else:
-                    plat_ring = inset_base
-                if plat_ring.area >= 1.0:
-                    # take exterior ring of outermost poly
-                    if isinstance(plat_ring, MultiPolygon):
-                        plat_ring = max(plat_ring.geoms, key=lambda g: g.area)
-                    if isinstance(plat_ring, Polygon):
-                        corners_wgs = [
-                            [*_wgs_pt((pt[0], pt[1])), base_height]
-                            for pt in list(plat_ring.exterior.coords)[:-1]
-                        ]
-                        slanted_polygons.append({
-                            "corners": corners_wgs,
-                            "label": f"평탄 지붕 (x={base_setback}~{plateau_end}m, H={base_height}m)",
-                            "kind": "plateau",
-                        })
-                        thresholds.append({"distance_m": plateau_end,
-                                            "max_height_m": base_height,
-                                            "kind": "plateau_end"})
-
-            # ── 3. 경사 지붕 — primary edge 기준 사각형 (필지 밖까지 이어짐) ──
-            if max_depth_cap > plateau_end:
-                h_top = slope * max_depth_cap
-                slope_utm_h = [
-                    [*_offset_coord(a_utm, nx, ny, plateau_end), base_height],
-                    [*_offset_coord(b_utm, nx, ny, plateau_end), base_height],
-                    [*_offset_coord(b_utm, nx, ny, max_depth_cap), h_top],
-                    [*_offset_coord(a_utm, nx, ny, max_depth_cap), h_top],
-                ]
-                corners_wgs = [[*_wgs_pt((c[0], c[1])), c[2]] for c in slope_utm_h]
-                slanted_polygons.append({
-                    "corners": corners_wgs,
-                    "label": f"경사 지붕 slope 2:1 (x={plateau_end}~{max_depth_cap:.1f}m, "
-                              f"H={base_height}→{h_top:.1f}m)",
-                    "kind": "slope",
-                })
-                thresholds.append({"distance_m": max_depth_cap, "max_height_m": h_top,
-                                    "kind": "slope_top"})
+            thresholds.append({"distance_m": 0.0, "max_height_m": 0.0, "kind": "vertical"})
+            thresholds.append({"distance_m": max_depth_cap, "max_height_m": h_top,
+                                "kind": "slope_top"})
 
         # ── 4. 프로파일 폴리라인 — 대표 edge 중앙 1개만 (혼란 방지)
         # 법규 img_5의 빨간 점선에 대응 (수직→평탄→경사)
@@ -830,49 +780,36 @@ def _compute_daylight_diagonal_envelope(
         max_depth = min(parcel_span * 0.4, 12.0)
         if max_depth < 3.0:
             return None
-        depth_pairs = [(0.0, max_depth * 0.5), (max_depth * 0.5, max_depth)]
         walls = []
 
-        for edge in adjacent_edges:
-            nx, ny = _inward_normal(edge, centroid)
-            if nx == 0.0 and ny == 0.0:
-                continue
-
-            edge_coords = list(edge.coords)
-
-            for d_start, d_end in depth_pairs:
-                h_start = d_start * multiplier
-                h_end = d_end * multiplier
-
-                # 사각형: edge@d_start → edge@d_end (sunlight wall 패턴)
+        # 대표 edge 1개 선택 (가장 긴 adjacent edge만) — 너무 많은 edge에 wall 그리면 박스처럼 보임.
+        # 사용자 피드백 반영: "이쁜 사선"이 되려면 한 경계에만 slope 적용.
+        if adjacent_edges:
+            longest_edge = max(adjacent_edges, key=lambda e: e.length)
+            nx, ny = _inward_normal(longest_edge, centroid)
+            if nx != 0.0 or ny != 0.0:
+                edge_coords = list(longest_edge.coords)
+                h_end = max_depth * multiplier
                 positions = []
                 min_h = []
                 max_h = []
-
-                # edge 양 끝점 at d_start
+                # edge 경계 (H=0)
                 for coord in edge_coords:
-                    positions.append((
-                        coord[0] + nx * d_start,
-                        coord[1] + ny * d_start,
-                    ))
+                    positions.append(coord)
                     min_h.append(0.0)
-                    max_h.append(h_start)
-
-                # edge 양 끝점 at d_end (역순으로 사각형 닫기)
+                    max_h.append(0.0)
+                # edge 내측 max_depth (H=h_end)
                 for coord in reversed(edge_coords):
                     positions.append((
-                        coord[0] + nx * d_end,
-                        coord[1] + ny * d_end,
+                        coord[0] + nx * max_depth,
+                        coord[1] + ny * max_depth,
                     ))
                     min_h.append(0.0)
                     max_h.append(h_end)
-
-                # UTM → WGS84
                 positions_wgs = []
                 for pt in positions:
                     wgs_pt = _utm_to_wgs(Point(pt[0], pt[1]))
                     positions_wgs.append([wgs_pt.x, wgs_pt.y])
-
                 walls.append({
                     "positions": positions_wgs,
                     "min_heights": min_h,

@@ -634,6 +634,23 @@ def _compute_sunlight_envelope(
                 thresholds.append({"distance_m": 0.0, "max_height_m": min_h, "kind": "vertical"})
                 thresholds.append({"distance_m": max_depth_cap, "max_height_m": max_h_,
                                     "kind": "slope_top"})
+
+                # 북쪽 수직벽: inner_poly 외곽 중 h≈base_height (정북 경계 밀착) edge 구간.
+                # slope polygon이 H=10m에서 시작 → 그 선 아래로 바닥까지 수직벽.
+                # "직선에서 사선으로 올라가는 면" (사용자 img_18 피드백 반영).
+                n_corners = len(corners_utm_h)
+                for i in range(n_corners):
+                    c1 = corners_utm_h[i]
+                    c2 = corners_utm_h[(i + 1) % n_corners]
+                    if abs(c1[2] - base_height) < 0.5 and abs(c2[2] - base_height) < 0.5:
+                        p1 = _wgs_pt((c1[0], c1[1]))
+                        p2 = _wgs_pt((c2[0], c2[1]))
+                        walls.append({
+                            "positions": [p1, p2],
+                            "min_heights": [0.0, 0.0],
+                            "max_heights": [base_height, base_height],
+                            "kind": "north_vertical",
+                        })
         except Exception as e:
             logger.warning(f"envelope from north boundary failed: {e}")
 

@@ -123,17 +123,52 @@ interface GeoJSONGeometry {
   coordinates: unknown;
 }
 
-/** 3D 일조사선 경사면 (Cesium Wall) */
+/**
+ * 정북 일조사선 envelope 응답 구조.
+ * Backend: `land/services/envelopes/sunlight.py` (LOCKED SPEC).
+ * Renderer: `design/lib/envelopes/sunlight.ts` (LOCKED SPEC).
+ *
+ * 수정 전 `memory/arr/session14/envelope-locked-spec.md` 확인.
+ */
 export interface SunlightEnvelope {
+  /** 북쪽 수직 직각벽 — 바닥 → H=10m (§86①제1호) */
   walls: {
-    positions: [number, number][];
-    min_heights: number[];
-    max_heights: number[];
+    positions: [number, number][];   // [[lng, lat], [lng, lat]] — edge 1개당 2점
+    min_heights: number[];            // [0.0, 0.0]
+    max_heights: number[];            // [10.0, 10.0]
+    kind?: string;                    // 'north_vertical'
   }[];
-  slope: number;
-  base_setback_m: number;
-  base_height_m: number;
-  max_depth_m: number;
+  /** 경사 지붕 polygon (§86①제2호 H=2x, cap 50m) */
+  slanted_polygons?: {
+    corners: [number, number, number][];  // [[lng, lat, h], ...] — per-vertex 높이
+    label?: string;
+    kind?: string;                        // 'slope'
+  }[];
+  /** 2D 단면도용 프로파일 (수직→평탄→경사) */
+  profile_polylines?: {
+    points: [number, number, number][];
+    label?: string;
+  }[];
+  /** 계단식 envelope 층 (미래 매스 생성 참조용) */
+  envelope_layers?: {
+    footprint_wgs: [number, number][];
+    h_bottom: number;
+    h_top: number;
+    offset_m: number;
+    kind: string;
+    label?: string;
+  }[];
+  /** H 변화 임계값 */
+  thresholds?: {
+    distance_m: number;
+    max_height_m: number;
+    kind: string;
+  }[];
+  slope: number;              // 2.0 (SLOPE)
+  base_setback_m: number;     // 1.5 (BASE_SETBACK_M)
+  base_height_m: number;      // 10.0 (BASE_HEIGHT_M)
+  max_depth_m: number;        // 25.0 (MAX_DEPTH_CAP_M)
+  law_basis?: string;
 }
 
 /** 채광 인동간격 검증 결과 */

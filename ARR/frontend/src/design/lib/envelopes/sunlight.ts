@@ -24,6 +24,8 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import type { SunlightEnvelope } from '../../../land/lib/types';
+
 export const SUNLIGHT_ENVELOPE_PREFIX = 'design-setback-sunlight-';
 
 export interface SunlightColors {
@@ -49,7 +51,7 @@ export const DEFAULT_SUNLIGHT_COLORS: SunlightColors = {
 export function renderSunlightEnvelope(
   viewer: any,
   Cesium: any,
-  envelope: any,
+  envelope: SunlightEnvelope | null | undefined,
   colors: SunlightColors = DEFAULT_SUNLIGHT_COLORS,
 ): string[] {
   if (!envelope) return [];

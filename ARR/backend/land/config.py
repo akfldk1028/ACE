@@ -41,6 +41,13 @@ VWORLD_DATA_BASE = "https://api.vworld.kr/ned/data"
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/elevation"
 ELEVATION_PROVIDER: str = os.getenv("ELEVATION_PROVIDER", "open_meteo")
 
+# Phase 2B opt-in flag — production 배포는 false로 시작.
+# True면 setback_geometry → envelope에 §119 datum 평면을 절대 표고로 주입.
+# False면 LOCKED SPEC 시각 결과 유지 (frontend는 terrain.getHeight() fallback).
+ENABLE_DATUM_ELEVATION: bool = (
+    os.getenv("ENABLE_DATUM_ELEVATION", "false").lower() == "true"
+)
+
 # ── Timeouts ──────────────────────────────────────────
 VWORLD_TIMEOUT = httpx.Timeout(10.0, connect=5.0)
 LAW_TIMEOUT = httpx.Timeout(30.0, connect=5.0)

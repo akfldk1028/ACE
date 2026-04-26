@@ -60,10 +60,22 @@ export function renderSunlightEnvelope(
   const slopeC = Cesium.Color.fromCssColorString(colors.slope);
   const addedIds: string[] = [];
 
-  // terrain 고도 sample (envelope 첫 코너 기준, 지형 밑 파묻힘 방지)
+  // Phase 2B — ground reference 결정 (3-state):
+  //   "open_meteo" + 유효한 datum_elevation_m → §119 datum 절대 표고 (legally accurate)
+  //   "failed" / null / undefined            → terrain.getHeight() fallback (LOCKED SPEC)
+  //
+  // NOTE: datum_elevation_m (Open-Meteo §119 가중평균)와 terrainH (Cesium globe.getHeight)는
+  // 서로 다른 DEM 소스라 같은 좌표에서도 수 m 차이 가능. source='open_meteo'일 때
+  // envelope이 §119 법적 datum에 정확히 앉는 대신, Cesium 지형 메쉬 위로 떠보이거나
+  // 살짝 파묻힌 모습으로 보일 수 있음. ENABLE_DATUM_ELEVATION 프로덕션 토글 전 시각 검증 필수.
   const terrainH = sampleTerrainAt(
     viewer, Cesium, envelope.slanted_polygons?.[0]?.corners?.[0],
   );
+  const groundH = (
+    envelope.elevation_source === 'open_meteo'
+    && typeof envelope.datum_elevation_m === 'number'
+    && isFinite(envelope.datum_elevation_m)
+  ) ? envelope.datum_elevation_m : terrainH;
 
   // (1) 북쪽 수직벽 — 바닥 → H=10m (직선→사선 올라가는 면)
   if (Array.isArray(envelope.walls)) {
@@ -82,8 +94,8 @@ export function renderSunlightEnvelope(
         id,
         wall: {
           positions: Cesium.Cartesian3.fromDegreesArray(flat),
-          minimumHeights: minH.map((h: number) => h + terrainH),
-          maximumHeights: maxH.map((h: number) => h + terrainH),
+          minimumHeights: minH.map((h: number) => h + groundH),
+          maximumHeights: maxH.map((h: number) => h + groundH),
           material: wallC.withAlpha(0.25),
           outline: true,
           outlineColor: wallC,
@@ -102,7 +114,7 @@ export function renderSunlightEnvelope(
       if (!corners || corners.length < 3) continue;
 
       const roofFlat: number[] = [];
-      for (const c of corners) roofFlat.push(c[0], c[1], c[2] + terrainH);
+      for (const c of corners) roofFlat.push(c[0], c[1], c[2] + groundH);
 
       const id = `${SUNLIGHT_ENVELOPE_PREFIX}roof-${pi}`;
       viewer.entities.add({

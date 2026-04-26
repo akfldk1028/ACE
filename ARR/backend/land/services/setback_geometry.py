@@ -38,13 +38,21 @@ def _utm_to_wgs(geom):
     return transform(_to_wgs.transform, geom)
 
 
-def compute_setback_lines(parcel_geojson: dict, regulations: dict) -> dict:
+def compute_setback_lines(
+    parcel_geojson: dict,
+    regulations: dict,
+    *,
+    compute_datum: bool = False,
+) -> dict:
     """
     필지 polygon + 규제 수치 → 규제선 GeoJSON dict.
 
     Args:
         parcel_geojson: GeoJSON geometry (Polygon from Vworld)
         regulations: regulation_calculator.calculate_all() 결과
+        compute_datum: True면 §119 datum 계산 후 envelope에 주입 (Phase 2B opt-in,
+            keyword-only). False (default) → envelope.elevation_source=None
+            → frontend는 terrain.getHeight() fallback (LOCKED SPEC 동일).
 
     Returns:
         {
@@ -52,6 +60,8 @@ def compute_setback_lines(parcel_geojson: dict, regulations: dict) -> dict:
             "north_setback": GeoJSON LineString/MultiLineString | None,
             "adjacent_setback": GeoJSON LineString/MultiLineString | None,
             "road_setback": GeoJSON LineString/MultiLineString | None,
+            ...
+            "datum_result": dict | None,  # Phase 2B 디버그용 (compute_datum=True)
         }
     """
     result = {
@@ -63,6 +73,7 @@ def compute_setback_lines(parcel_geojson: dict, regulations: dict) -> dict:
         "sunlight_envelope": None,            # 3D 일조사선 (walls + slanted_polygons, envelopes/sunlight.py)
         "building_designation_line": None,    # 건축지정선/한계선 (지구단위계획)
         "daylight_diagonal_envelope": None,   # 채광사선제한 3D (§86③, 공동주택)
+        "datum_result": None,                 # Phase 2B (compute_datum=True 시)
     }
 
     # Validate geometry input
@@ -101,6 +112,11 @@ def compute_setback_lines(parcel_geojson: dict, regulations: dict) -> dict:
 
     classified = _classify_edges(edges, parcel_utm)
 
+    # Phase 2B: datum 계산 (compute_datum=True 시)
+    datum_result = _maybe_compute_datum(parcel, compute_datum)
+    if datum_result is not None:
+        result["datum_result"] = _datum_to_dict(datum_result)
+
     # 정북 일조사선 (2D multi-height lines + 3D envelope)
     if sunlight_applies and classified["north"]:
         result["north_setback"] = _compute_sunlight_setback_lines(
@@ -108,6 +124,7 @@ def compute_setback_lines(parcel_geojson: dict, regulations: dict) -> dict:
         )
         result["sunlight_envelope"] = compute_sunlight_envelope(
             classified["north"], parcel_utm, sunlight_rules,
+            datum=datum_result,
         )
 
     # 인접대지 이격선
@@ -146,6 +163,41 @@ def compute_setback_lines(parcel_geojson: dict, regulations: dict) -> dict:
         )
 
     return result
+
+
+def _maybe_compute_datum(parcel_wgs: Polygon, compute_datum: bool):
+    """
+    Phase 2B: 옵트인 datum 계산.
+
+    실패 가능 모든 지점은 None 반환 → envelope이 datum 없이 정상 생성.
+    LOCKED SPEC 시각 결과 보존 (datum 없으면 frontend는 terrain fallback).
+    """
+    if not compute_datum:
+        return None
+    try:
+        from land.services.datum import compute_datum_elevation, DatumContext
+        return compute_datum_elevation(DatumContext(parcel_wgs=parcel_wgs))
+    except ValueError as e:
+        logger.warning(f"datum compute skipped (invalid polygon): {e}")
+        return None
+    except Exception as e:
+        # ElevationFetchError, etc — already handled internally as fallback,
+        # but defend against unexpected errors anyway
+        logger.warning(f"datum compute failed: {e}")
+        return None
+
+
+def _datum_to_dict(datum) -> dict:
+    """DatumResult → JSON-serializable dict (디버그용 setback_lines 출력)."""
+    case = getattr(datum, "case", None)
+    return {
+        "elevation_m": float(getattr(datum, "elevation_m", 0.0)),
+        "case": case.value if hasattr(case, "value") else None,
+        "basis": getattr(datum, "basis", None),
+        "elevation_source": getattr(datum, "elevation_source", None),
+        "parcel_datum_m": getattr(datum, "parcel_datum_m", None),
+        "notes": getattr(datum, "notes", None),
+    }
 
 
 def _compute_buildable_area(parcel_utm: Polygon, setback_m: float) -> dict | None:

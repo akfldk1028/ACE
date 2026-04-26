@@ -346,9 +346,13 @@ def _core_analysis(pnu_info, zone_names, land_info, include_law=True,
     flat_articles = _flatten_law_articles(law_articles) if law_articles else None
 
     # Setback lines geometry (규제선 시각화)
+    # Phase 2B: ENABLE_DATUM_ELEVATION=true 일 때 envelope에 §119 datum 주입
     setback_lines = None
     if parcel_geometry:
-        setback_lines = setback_geometry.compute_setback_lines(parcel_geometry, reg)
+        setback_lines = setback_geometry.compute_setback_lines(
+            parcel_geometry, reg,
+            compute_datum=config.ENABLE_DATUM_ELEVATION,
+        )
 
     result = {
         "pnu": pnu_info,

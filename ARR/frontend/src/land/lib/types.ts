@@ -169,6 +169,16 @@ export interface SunlightEnvelope {
   base_height_m: number;      // 10.0 (BASE_HEIGHT_M)
   max_depth_m: number;        // 25.0 (MAX_DEPTH_CAP_M)
   law_basis?: string;
+
+  // ── Phase 2A — datum metadata (시행령 §119, §86) ────────────────
+  /** §119/§86 H=0 절대 표고 (m, EGM2008). 0 = 미계산. */
+  datum_elevation_m?: number;
+  /** "flat"|"slope_le3m"|"slope_gt3m"|"road_flat"|... or null */
+  datum_case?: string | null;
+  /** "ground_weighted_avg"|"road_centerline"|... or null */
+  datum_basis?: string | null;
+  /** 3-state: null=미계산(terrain fallback), "open_meteo"=정상, "failed"=fetch실패(terrain fallback) */
+  elevation_source?: 'open_meteo' | 'failed' | null;
 }
 
 /** 채광 인동간격 검증 결과 */

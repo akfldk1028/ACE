@@ -2057,3 +2057,149 @@ class DatumFailureModeTest(TestCase):
         with self.assertRaises(ValueError) as cm:
             compute_datum_elevation(ctx)
         self.assertIn("MAX_PARCEL_VERTICES", str(cm.exception))
+
+
+# ──────────────────────────────────────────────────────
+# Phase 2A — Sunlight envelope datum metadata 통합
+# ──────────────────────────────────────────────────────
+class SunlightEnvelopeDatumTest(TestCase):
+    """envelopes/sunlight.py의 datum metadata 통합 (LOCKED SPEC 호환)."""
+
+    def _square_parcel_utm(self):
+        """20m × 20m 정사각형 (UTM 32652)."""
+        from shapely.geometry import Polygon
+        # 강남 근처 UTM (대략 318000, 4150000)
+        x0, y0 = 318000.0, 4150000.0
+        return Polygon([
+            (x0, y0), (x0 + 20, y0),
+            (x0 + 20, y0 + 20), (x0, y0 + 20),
+            (x0, y0),
+        ])
+
+    def _north_edge_utm(self):
+        """정사각형의 북쪽 edge (y=y0+20)."""
+        from shapely.geometry import LineString
+        x0, y0 = 318000.0, 4150000.0
+        # 북쪽: y = y0+20, x increasing → inward normal = (0, -1) (남쪽으로)
+        return LineString([(x0 + 20, y0 + 20), (x0, y0 + 20)])
+
+    def test_envelope_without_datum_has_default_meta(self):
+        """datum 미제공 → defaults (elevation_source=None, frontend는 terrain fallback)."""
+        from land.services.envelopes.sunlight import compute_sunlight_envelope
+
+        env = compute_sunlight_envelope(
+            [self._north_edge_utm()], self._square_parcel_utm(),
+        )
+        self.assertIsNotNone(env)
+        self.assertEqual(env["datum_elevation_m"], 0.0)
+        self.assertIsNone(env["datum_case"])
+        self.assertIsNone(env["datum_basis"])
+        self.assertIsNone(env["elevation_source"])
+
+
+    def test_envelope_with_datum_propagates_meta(self):
+        """DatumResult 제공 → metadata 그대로 envelope output에 노출."""
+        from land.services.datum import DatumCase, DatumResult
+        from land.services.envelopes.sunlight import compute_sunlight_envelope
+
+        datum = DatumResult(
+            elevation_m=65.94,
+            case=DatumCase.SLOPE_GT3M,
+            basis="ground_weighted_avg",
+            elevation_source="open_meteo",
+            parcel_datum_m=65.94,
+        )
+        env = compute_sunlight_envelope(
+            [self._north_edge_utm()], self._square_parcel_utm(),
+            datum=datum,
+        )
+        self.assertIsNotNone(env)
+        self.assertAlmostEqual(env["datum_elevation_m"], 65.94, places=2)
+        self.assertEqual(env["datum_case"], "slope_gt3m")
+        self.assertEqual(env["datum_basis"], "ground_weighted_avg")
+        self.assertEqual(env["elevation_source"], "open_meteo")
+
+    def test_envelope_with_failed_datum_marks_source(self):
+        """elevation fetch 실패 datum → source='failed' 노출 (frontend 미적용 신호)."""
+        from land.services.datum import DatumCase, DatumResult
+        from land.services.envelopes.sunlight import compute_sunlight_envelope
+
+        datum = DatumResult(
+            elevation_m=0.0,
+            case=DatumCase.FLAT,
+            basis="elevation_fetch_failed",
+            elevation_source="failed",
+            notes=["Open-Meteo 실패: timeout. datum=0.0 fallback."],
+        )
+        env = compute_sunlight_envelope(
+            [self._north_edge_utm()], self._square_parcel_utm(),
+            datum=datum,
+        )
+        self.assertEqual(env["elevation_source"], "failed")
+        self.assertEqual(env["datum_basis"], "elevation_fetch_failed")
+
+    def test_envelope_walls_slanted_unchanged_by_datum(self):
+        """LOCKED SPEC: walls/slanted_polygons 형태/heights는 datum 무관 동일."""
+        from land.services.datum import DatumCase, DatumResult
+        from land.services.envelopes.sunlight import compute_sunlight_envelope
+
+        edges = [self._north_edge_utm()]
+        parcel = self._square_parcel_utm()
+
+        env_no = compute_sunlight_envelope(edges, parcel)
+        env_yes = compute_sunlight_envelope(
+            edges, parcel,
+            datum=DatumResult(
+                elevation_m=100.0, case=DatumCase.FLAT,
+                basis="ground_weighted_avg", elevation_source="open_meteo",
+            ),
+        )
+        self.assertIsNotNone(env_no)
+        self.assertIsNotNone(env_yes)
+
+        # walls 동일 (LOCKED)
+        self.assertEqual(len(env_no["walls"]), len(env_yes["walls"]))
+        for w_no, w_yes in zip(env_no["walls"], env_yes["walls"]):
+            self.assertEqual(w_no["min_heights"], w_yes["min_heights"])
+            self.assertEqual(w_no["max_heights"], w_yes["max_heights"])
+            self.assertEqual(w_no["positions"], w_yes["positions"])
+            self.assertEqual(w_no["kind"], w_yes["kind"])
+
+        # slanted_polygons 동일 (LOCKED)
+        self.assertEqual(len(env_no["slanted_polygons"]),
+                         len(env_yes["slanted_polygons"]))
+        for p_no, p_yes in zip(env_no["slanted_polygons"],
+                               env_yes["slanted_polygons"]):
+            self.assertEqual(p_no["corners"], p_yes["corners"])
+            self.assertEqual(p_no["kind"], p_yes["kind"])
+
+    def test_envelope_with_garbage_datum_uses_defaults(self):
+        """잘못된 datum 객체 (None 속성, 무효 타입) → 안전한 default + 비호환 입력 안전."""
+        from land.services.envelopes.sunlight import compute_sunlight_envelope
+
+        class _Bogus:
+            elevation_m = None
+            case = None
+            basis = None
+            elevation_source = None
+
+        # None 속성을 가진 호환 객체
+        env = compute_sunlight_envelope(
+            [self._north_edge_utm()], self._square_parcel_utm(),
+            datum=_Bogus(),
+        )
+        self.assertIsNotNone(env)
+        self.assertEqual(env["datum_elevation_m"], 0.0)
+        self.assertIsNone(env["datum_case"])
+        self.assertIsNone(env["elevation_source"])
+
+        # 비호환 입력 (str, dict, int) → defaults, no crash
+        for bad in ("string", {"elevation_m": 99.9}, 42):
+            env_bad = compute_sunlight_envelope(
+                [self._north_edge_utm()], self._square_parcel_utm(),
+                datum=bad,
+            )
+            self.assertIsNotNone(env_bad, f"crashed on input {bad!r}")
+            self.assertEqual(env_bad["datum_elevation_m"], 0.0)
+            self.assertIsNone(env_bad["datum_case"])
+            self.assertIsNone(env_bad["elevation_source"])

@@ -27,13 +27,13 @@ Output 구조 (frontend renderer와 계약)
 {
   "walls": [                            # 북쪽 수직 직각벽 (§86①제1호)
     {"positions": [[lng, lat], [lng, lat]],
-     "min_heights": [0.0, 0.0],
-     "max_heights": [10.0, 10.0],
+     "min_heights": [0.0, 0.0],         # ← datum 기준 상대값 (LOCKED)
+     "max_heights": [10.0, 10.0],       # ← datum 기준 상대값 (LOCKED)
      "kind": "north_vertical"},
     ...
   ],
   "slanted_polygons": [                  # §86①제2호 경사면 (per-vertex 높이)
-    {"corners": [[lng, lat, h], ...],    # h = max(10, d×2), cap 50
+    {"corners": [[lng, lat, h], ...],    # h = max(10, d×2), cap 50 (datum 상대)
      "label": "...",
      "kind": "slope"},
   ],
@@ -45,6 +45,15 @@ Output 구조 (frontend renderer와 계약)
   "max_depth_m": 25.0,
   "thresholds": [...],
   "law_basis": "건축법 §61①, 시행령 §86① (2023.9.12 개정 9→10m)",
+  # Phase 2A — datum metadata (선택). frontend는 datum_elevation_m이 있으면
+  # walls/slanted_polygons의 height에 더해서 절대 표고 렌더 가능. 없으면 기존
+  # terrain.getHeight() fallback 유지 (LOCKED SPEC).
+  "datum_elevation_m": 0.0,              # §119/§86 H=0 절대 표고
+  "datum_case": None,                    # "flat"|"slope_le3m"|... or None
+  "datum_basis": None,                   # "ground_weighted_avg"|"road_centerline"|...
+  "elevation_source": None,              # "open_meteo"|"failed"|None
+                                         # None = caller가 datum 미계산 (frontend는
+                                         # terrain.getHeight() fallback 사용해야 함)
 }
 
 ================================================================
@@ -119,6 +128,8 @@ def compute_sunlight_envelope(
     north_edges: list[LineString],
     parcel_utm: Polygon,
     sunlight_rules: list | None = None,
+    *,
+    datum: "DatumResult | None" = None,  # type: ignore[name-defined]  # noqa: F821
 ) -> dict | None:
     """
     정북 일조사선 envelope 생성.
@@ -127,6 +138,14 @@ def compute_sunlight_envelope(
         north_edges: _classify_edges()["north"] 리스트 (LineString, UTM)
         parcel_utm: 필지 Polygon (UTM EPSG:32652)
         sunlight_rules: 법규 rule (미사용, 호환 위해 유지)
+        datum: `land.services.datum.DatumResult` 호환 객체 또는 None (keyword-only).
+            제공시 envelope output에 datum_elevation_m + elevation_source 등
+            metadata 추가. **walls/slanted_polygons의 height 값은 변경하지 않음**
+            (LOCKED SPEC — frontend가 datum_elevation_m을 더해 절대 표고 렌더).
+            None이면 elevation_source=None 으로 표시 (frontend는 terrain
+            fallback 사용 신호).
+            런타임 duck typing — DatumResult 외 호환 객체도 허용 (정적 타입은
+            string forward ref로 명시).
 
     Returns:
         dict (위 모듈 docstring 구조) or None (북측 edge 없음).
@@ -161,6 +180,11 @@ def compute_sunlight_envelope(
         if not walls and not slanted_polygons and not envelope_layers:
             return None
 
+        # ── 5. datum metadata (Phase 2A, optional) ─────────
+        # walls/slanted_polygons height는 datum 기준 **상대값** 유지 (LOCKED SPEC).
+        # frontend가 datum_elevation_m을 entity height에 더해 절대 표고 렌더.
+        datum_meta = _extract_datum_meta(datum)
+
         return {
             "walls": walls,
             "slanted_polygons": slanted_polygons,
@@ -172,11 +196,55 @@ def compute_sunlight_envelope(
             "max_depth_m": MAX_DEPTH_CAP_M,
             "thresholds": thresholds,
             "law_basis": "건축법 §61①, 시행령 §86① (2023.9.12 개정 9→10m)",
+            **datum_meta,
         }
 
     except Exception as e:
         logger.warning(f"sunlight_envelope failed: {e}")
         return None
+
+
+_DEFAULT_DATUM_META: dict = {
+    "datum_elevation_m": 0.0,
+    "datum_case": None,
+    "datum_basis": None,
+    "elevation_source": None,   # None = caller가 datum 미계산
+}
+
+
+def _extract_datum_meta(datum: "DatumResult | None") -> dict:  # type: ignore[name-defined]  # noqa: F821
+    """
+    DatumResult → envelope output metadata.
+
+    None / 무효 입력시 안전한 default (LOCKED SPEC: datum=0이면 기존 동작).
+
+    Duck-typed 입력: hasattr(datum, "elevation_m"/"case"/"basis"/"elevation_source")
+    이 형태면 land.services.datum.DatumResult 또는 호환 객체로 간주.
+    str/dict/int 등 비호환 입력 → defaults (안전).
+    """
+    if datum is None:
+        return dict(_DEFAULT_DATUM_META)
+
+    # 비호환 객체 (str, dict, int 등) → defaults
+    if not hasattr(datum, "elevation_m"):
+        return dict(_DEFAULT_DATUM_META)
+
+    elev_raw = getattr(datum, "elevation_m", None)
+    try:
+        elev = float(elev_raw) if elev_raw is not None else 0.0
+    except (TypeError, ValueError):
+        elev = 0.0
+
+    case = getattr(datum, "case", None)
+    case_str = case.value if hasattr(case, "value") else (str(case) if case else None)
+    basis = getattr(datum, "basis", None)
+    src = getattr(datum, "elevation_source", None)
+    return {
+        "datum_elevation_m": elev,
+        "datum_case": case_str,
+        "datum_basis": basis if basis else None,
+        "elevation_source": src if src else None,
+    }
 
 
 # ───────────────────────────────────────────────────────────────

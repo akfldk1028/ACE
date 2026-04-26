@@ -1892,8 +1892,8 @@ class DatumCasesTest(TestCase):
         from land.services.datum import compute_datum_elevation, DatumCase, DatumContext
 
         ctx = DatumContext(parcel_wgs=self._square_parcel())
-        # 4 edges, variance 2.0m (10, 11, 12, 12) → < 3m → SLOPE_LE3M
-        with self._mock_elev_per_call([[10.0, 11.0, 12.0, 12.0]]):
+        # variance 4m (FLAT 임계값 2 초과, SLOPE_3M_THRESHOLD_M=8 이하) → SLOPE_LE3M
+        with self._mock_elev_per_call([[10.0, 11.0, 13.0, 14.0]]):
             result = compute_datum_elevation(ctx)
         self.assertEqual(result.case, DatumCase.SLOPE_LE3M)
 
@@ -1901,8 +1901,8 @@ class DatumCasesTest(TestCase):
         from land.services.datum import compute_datum_elevation, DatumCase, DatumContext
 
         ctx = DatumContext(parcel_wgs=self._square_parcel())
-        # variance 5m → SLOPE_GT3M
-        with self._mock_elev_per_call([[10.0, 11.0, 14.0, 15.0]]):
+        # variance 12m (SLOPE_3M_THRESHOLD_M=8.0 초과) → SLOPE_GT3M
+        with self._mock_elev_per_call([[10.0, 13.0, 18.0, 22.0]]):
             result = compute_datum_elevation(ctx)
         self.assertEqual(result.case, DatumCase.SLOPE_GT3M)
         self.assertIsNotNone(result.notes)

@@ -59,12 +59,19 @@ _BASIS_LABEL = {
     DatumCase.NEIGHBOR_AVG_86: "neighbor_avg_86",
 }
 
-# 케이스 결정 임계값 (Phase 1 — 90m DEM 노이즈 미보정)
-# TODO Phase 2: 90m DEM 노이즈 흡수용 임계값 상향 또는 평활화.
-#   현재 강남 50m 폴리곤도 SLOPE_GT3M로 분류됨 (90m DEM 격자 변동).
-FLAT_VARIANCE_THRESHOLD_M = 0.5    # max-min < 이값 → FLAT
-SLOPE_3M_THRESHOLD_M = 3.0         # max-min ≤ 이값 → SLOPE_LE3M, 초과 → SLOPE_GT3M
-ROAD_SLOPE_THRESHOLD_M = 0.5       # 도로 sample variance < 이값 → ROAD_FLAT, 이상 → ROAD_SLOPED
+# 케이스 결정 임계값 (Phase 2C — 90m DEM 라이브 검증 후 조정)
+#
+# 라이브 검증 (8 PNU, verify_datum_multi.py 2026-04-26):
+#   - 역삼동/합정동/대관령 (작은 polygon ~5 vertex): 변동 0m → FLAT 정확
+#   - 여의도동 한강변 매립지 (11 vertex): 변동 8m → §119 격자 인접 차이
+#   - 한남동/우동 (경사지): 변동 4~5m → 실제 경사
+#   - 성북동/평창동 (산기슭): 변동 11~22m → 실제 경사
+#
+# 결론: 90m DEM에서 큰 polygon(>10 vertex)은 격자 인접 차이 ~5~8m 가능.
+# 평지 매립지(여의도) 보호용 임계값 상향. NGII 5m 도입 시 원복 검토.
+FLAT_VARIANCE_THRESHOLD_M = 2.0    # max-min < 이값 → FLAT (작은 polygon 노이즈 흡수)
+SLOPE_3M_THRESHOLD_M = 8.0         # max-min ≤ 이값 → SLOPE_LE3M (여의도 매립지 8m 수용)
+ROAD_SLOPE_THRESHOLD_M = 1.0       # 도로 sample variance < 이값 → ROAD_FLAT
 
 # DoS guard — 폴리곤 외곽 vertex 수 상한 (HTTP 호출 폭주 방지)
 MAX_PARCEL_VERTICES = 500

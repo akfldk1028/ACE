@@ -1585,3 +1585,475 @@ class BuildingDesignationTest(TestCase):
         from land.services.setback_geometry import compute_setback_lines
         result = compute_setback_lines({}, {})
         self.assertIn('building_designation_line', result)
+
+
+# ──────────────────────────────────────────────────────
+# Datum Elevation Tests (§119, §86)
+# ──────────────────────────────────────────────────────
+class DatumElevationApiTest(TestCase):
+    """Open-Meteo client (httpx mocked at config.open_meteo_client level)."""
+
+    def setUp(self):
+        from land.services.datum import elevation_api
+        elevation_api.cache_clear()
+
+    def _mock_get(self, elevations=None, raise_exc=None, status_ok=True):
+        """Reusable httpx mock for config.open_meteo_client.get."""
+        from unittest.mock import patch
+        from land.services.datum import elevation_api
+
+        class _R:
+            def raise_for_status(self):
+                if not status_ok:
+                    raise RuntimeError("HTTP 500")
+            def json(self):
+                return {"elevation": elevations}
+
+        if raise_exc:
+            return patch.object(elevation_api.config.open_meteo_client, "get",
+                                side_effect=raise_exc)
+        return patch.object(elevation_api.config.open_meteo_client, "get",
+                            return_value=_R())
+
+    def test_fetch_single_success(self):
+        from land.services.datum import elevation_api
+
+        with self._mock_get(elevations=[38.0]):
+            elevs = elevation_api.fetch_elevations([(37.5, 127.0)])
+        self.assertEqual(len(elevs), 1)
+        self.assertAlmostEqual(elevs[0], 38.0)
+
+    def test_fetch_batch(self):
+        from land.services.datum import elevation_api
+
+        with self._mock_get(elevations=[10.0, 20.0, 30.0]):
+            elevs = elevation_api.fetch_elevations([
+                (37.5, 127.0), (37.6, 127.1), (37.7, 127.2),
+            ])
+        self.assertEqual(elevs, [10.0, 20.0, 30.0])
+
+    def test_fetch_full_failure_raises(self):
+        """전체 batch 실패 → ElevationFetchError."""
+        from land.services.datum import elevation_api
+
+        with self._mock_get(raise_exc=RuntimeError("network")):
+            with self.assertRaises(elevation_api.ElevationFetchError):
+                elevation_api.fetch_elevations([(37.5, 127.0), (37.6, 127.1)])
+
+    def test_fetch_response_shape_mismatch_raises(self):
+        """응답 length 불일치 → ElevationFetchError (silent 0.0 아님)."""
+        from land.services.datum import elevation_api
+
+        with self._mock_get(elevations=[10.0]):  # 1 returned, 2 requested
+            with self.assertRaises(elevation_api.ElevationFetchError):
+                elevation_api.fetch_elevations([(37.5, 127.0), (37.6, 127.1)])
+
+    def test_cache_hit_avoids_http(self):
+        """동일 좌표 두번째 호출 → HTTP 안 부르고 캐시 사용."""
+        from unittest.mock import patch, MagicMock
+        from land.services.datum import elevation_api
+
+        class _R:
+            def raise_for_status(self): pass
+            def json(self): return {"elevation": [42.0, 43.0]}
+
+        mock_get = MagicMock(return_value=_R())
+        with patch.object(elevation_api.config.open_meteo_client, "get", mock_get):
+            elevs1 = elevation_api.fetch_elevations([(37.5, 127.0), (37.6, 127.1)])
+            elevs2 = elevation_api.fetch_elevations([(37.5, 127.0), (37.6, 127.1)])
+        self.assertEqual(elevs1, [42.0, 43.0])
+        self.assertEqual(elevs2, [42.0, 43.0])
+        self.assertEqual(mock_get.call_count, 1, "캐시 hit 시 HTTP 호출 1번만")
+
+    def test_cache_partial_hit(self):
+        """일부만 캐시 hit → miss만 HTTP fetch."""
+        from unittest.mock import patch, MagicMock
+        from land.services.datum import elevation_api
+
+        # 1차: 2점 fetch
+        with self._mock_get(elevations=[10.0, 20.0]):
+            elevation_api.fetch_elevations([(37.5, 127.0), (37.6, 127.1)])
+
+        # 2차: 1점은 캐시, 1점은 새로 → miss 1만 HTTP
+        class _R:
+            def raise_for_status(self): pass
+            def json(self): return {"elevation": [99.0]}  # 새 점 1개만
+
+        mock_get = MagicMock(return_value=_R())
+        with patch.object(elevation_api.config.open_meteo_client, "get", mock_get):
+            elevs = elevation_api.fetch_elevations([
+                (37.5, 127.0),  # 캐시 hit (10.0)
+                (37.7, 127.2),  # 새 점 (99.0)
+            ])
+        self.assertEqual(elevs, [10.0, 99.0])
+        self.assertEqual(mock_get.call_count, 1)
+
+    def test_provider_unknown_raises(self):
+        from land import config as land_config
+        from land.services.datum import elevation_api
+
+        original = land_config.ELEVATION_PROVIDER
+        land_config.ELEVATION_PROVIDER = "bogus"
+        try:
+            with self.assertRaises(ValueError):
+                elevation_api.fetch_elevations([(37.5, 127.0)])
+        finally:
+            land_config.ELEVATION_PROVIDER = original
+
+    def test_provider_ngii_5m_not_implemented(self):
+        from land import config as land_config
+        from land.services.datum import elevation_api
+
+        original = land_config.ELEVATION_PROVIDER
+        land_config.ELEVATION_PROVIDER = "ngii_5m"
+        try:
+            with self.assertRaises(NotImplementedError):
+                elevation_api.fetch_elevations([(37.5, 127.0)])
+        finally:
+            land_config.ELEVATION_PROVIDER = original
+
+    def test_empty_input_returns_empty(self):
+        from land.services.datum import elevation_api
+        self.assertEqual(elevation_api.fetch_elevations([]), [])
+
+
+class DatumCalculatorTest(TestCase):
+    """§119 가중평균 수식 검증 (mock fetch_elevations)."""
+
+    def setUp(self):
+        from land.services.datum import elevation_api
+        elevation_api.cache_clear()
+
+    def _mock_elev(self, value_or_list):
+        """fetch_elevations를 상수 또는 리스트로 mock."""
+        from unittest.mock import patch
+        from land.services.datum import elevation_api
+
+        if callable(value_or_list):
+            return patch.object(elevation_api, "fetch_elevations",
+                                side_effect=value_or_list)
+        if isinstance(value_or_list, list):
+            return patch.object(elevation_api, "fetch_elevations",
+                                return_value=value_or_list)
+        # 상수 → 모든 점에 같은 값
+        def _all(points):
+            return [float(value_or_list)] * len(points)
+        return patch.object(elevation_api, "fetch_elevations", side_effect=_all)
+
+    def test_parcel_datum_uniform_elevation(self):
+        """모든 vertex 100m → datum=100m."""
+        from shapely.geometry import Polygon
+        from land.services.datum import calculator
+
+        parcel = Polygon([
+            (127.0, 37.5), (127.001, 37.5),
+            (127.001, 37.501), (127.0, 37.501),
+            (127.0, 37.5),
+        ])
+        with self._mock_elev(100.0):
+            datum, segments = calculator.parcel_datum_119(parcel)
+        self.assertAlmostEqual(datum, 100.0, places=2)
+        self.assertEqual(len(segments), 4)
+        for s in segments:
+            self.assertGreater(s["length_m"], 1.0)
+
+    def test_parcel_datum_weighted(self):
+        """edge 길이 비례 가중평균. 위도 37.5에서 동서 ~88m, 남북 ~111m로 길이 다름."""
+        from shapely.geometry import Polygon
+        from land.services.datum import calculator
+
+        # 위경도 사각형 (UTM 변환시 동서/남북 길이 비대칭)
+        parcel = Polygon([
+            (127.0, 37.5), (127.001, 37.5),
+            (127.001, 37.501), (127.0, 37.501),
+            (127.0, 37.5),
+        ])
+        # 4 edges → 4 elevations: e1(동서)=10, e2(남북)=20, e3(동서)=30, e4(남북)=40
+        # weighted = (88×10 + 111×20 + 88×30 + 111×40) / (88+111+88+111) ≈ 25.57
+        with self._mock_elev([10.0, 20.0, 30.0, 40.0]):
+            datum, segments = calculator.parcel_datum_119(parcel)
+        self.assertAlmostEqual(datum, 25.57, delta=0.5)
+        # 가중치가 단순평균(25.0) 보다 크다 (남북 edges가 길고 elev 높음)
+        self.assertGreater(datum, 25.0)
+
+    def test_road_datum_centerline_uniform(self):
+        from shapely.geometry import LineString
+        from land.services.datum import calculator
+
+        line = LineString([(127.0, 37.5), (127.001, 37.5)])  # ~88m
+        with self._mock_elev(50.0):
+            datum, samples = calculator.road_datum_119(line, sample_step_m=10.0)
+        self.assertAlmostEqual(datum, 50.0, places=2)
+        self.assertGreaterEqual(len(samples), 2)
+
+    def test_neighbor_avg_86(self):
+        from land.services.datum import calculator
+        result = calculator.neighbor_avg_datum_86(50.0, 70.0)
+        self.assertAlmostEqual(result, 60.0)
+
+    def test_site_above_road_119_when_higher(self):
+        from land.services.datum import calculator
+        # 대지 100m, 도로 90m → 도로면이 95m로 올라온 것으로 봄
+        result = calculator.site_above_road_119(100.0, 90.0)
+        self.assertAlmostEqual(result, 95.0)
+
+    def test_site_above_road_119_when_lower_returns_road(self):
+        from land.services.datum import calculator
+        # 대지가 도로보다 낮으면 도로 datum 그대로
+        result = calculator.site_above_road_119(80.0, 90.0)
+        self.assertAlmostEqual(result, 90.0)
+
+    def test_split_3m_returns_none_phase1(self):
+        from shapely.geometry import Polygon
+        from land.services.datum import calculator
+        parcel = Polygon([
+            (127.0, 37.5), (127.001, 37.5),
+            (127.001, 37.501), (127.0, 37.501),
+        ])
+        self.assertIsNone(calculator.split_3m_segments(parcel))
+
+    def test_parcel_datum_empty_polygon_raises(self):
+        """vertex 없는 polygon → ValueError (silent 0.0 아님)."""
+        from shapely.geometry import Polygon
+        from land.services.datum import calculator
+
+        # 모든 edge < 0.1m (degenerate, 0면적)
+        bad = Polygon([(127.0, 37.5), (127.0, 37.5), (127.0, 37.5)])
+        with self.assertRaises(ValueError):
+            calculator.parcel_datum_119(bad)
+
+
+class DatumCasesTest(TestCase):
+    """6 케이스 dispatcher 검증 (mock fetch_elevations)."""
+
+    def setUp(self):
+        from land.services.datum import elevation_api
+        elevation_api.cache_clear()
+
+    def _mock_elev_uniform(self, value):
+        from unittest.mock import patch
+        from land.services.datum import elevation_api
+
+        def _all(points):
+            return [float(value)] * len(points)
+        return patch.object(elevation_api, "fetch_elevations", side_effect=_all)
+
+    def _mock_elev_per_call(self, calls):
+        """순차적으로 다른 값 반환 (parcel call 1번, road call 1번 ...).
+
+        Each entry can be:
+            - int/float: 모든 점에 같은 값
+            - list: 정확히 points 개수와 일치해야 함 (불일치시 AssertionError)
+            - "fail": ElevationFetchError 발생 (실패 시뮬레이션)
+        """
+        from unittest.mock import patch
+        from land.services.datum import elevation_api
+
+        it = iter(calls)
+        def _next(points):
+            try:
+                vals = next(it)
+            except StopIteration as exc:
+                raise AssertionError(
+                    f"_mock_elev_per_call: 호출 횟수 초과 ({len(points)} points 추가 요청). "
+                    "테스트 fixture에 충분한 calls 제공하세요."
+                ) from exc
+            if vals == "fail":
+                raise elevation_api.ElevationFetchError("simulated failure")
+            if isinstance(vals, (int, float)):
+                return [float(vals)] * len(points)
+            vals = list(vals)
+            if len(vals) != len(points):
+                raise AssertionError(
+                    f"_mock_elev_per_call: supplied {len(vals)} elevations "
+                    f"but {len(points)} requested. Fixture는 정확히 일치해야 함."
+                )
+            return vals
+        return patch.object(elevation_api, "fetch_elevations", side_effect=_next)
+
+    def _square_parcel(self):
+        from shapely.geometry import Polygon
+        return Polygon([
+            (127.0, 37.5), (127.001, 37.5),
+            (127.001, 37.501), (127.0, 37.501),
+            (127.0, 37.5),
+        ])
+
+    def test_flat_case_low_variance(self):
+        from land.services.datum import compute_datum_elevation, DatumCase, DatumContext
+
+        ctx = DatumContext(parcel_wgs=self._square_parcel())
+        with self._mock_elev_uniform(38.0):
+            result = compute_datum_elevation(ctx)
+        self.assertEqual(result.case, DatumCase.FLAT)
+        self.assertAlmostEqual(result.elevation_m, 38.0, places=2)
+
+    def test_slope_le3m(self):
+        from land.services.datum import compute_datum_elevation, DatumCase, DatumContext
+
+        ctx = DatumContext(parcel_wgs=self._square_parcel())
+        # 4 edges, variance 2.0m (10, 11, 12, 12) → < 3m → SLOPE_LE3M
+        with self._mock_elev_per_call([[10.0, 11.0, 12.0, 12.0]]):
+            result = compute_datum_elevation(ctx)
+        self.assertEqual(result.case, DatumCase.SLOPE_LE3M)
+
+    def test_slope_gt3m_returns_notes(self):
+        from land.services.datum import compute_datum_elevation, DatumCase, DatumContext
+
+        ctx = DatumContext(parcel_wgs=self._square_parcel())
+        # variance 5m → SLOPE_GT3M
+        with self._mock_elev_per_call([[10.0, 11.0, 14.0, 15.0]]):
+            result = compute_datum_elevation(ctx)
+        self.assertEqual(result.case, DatumCase.SLOPE_GT3M)
+        self.assertIsNotNone(result.notes)
+        self.assertTrue(any("3m" in n for n in result.notes))
+
+    def test_road_flat_when_centerline_provided(self):
+        from shapely.geometry import LineString
+        from land.services.datum import compute_datum_elevation, DatumCase, DatumContext
+
+        # 도로 sample 모두 30m, parcel도 30m → ROAD_FLAT
+        line = LineString([(127.0, 37.4995), (127.001, 37.4995)])
+        ctx = DatumContext(
+            parcel_wgs=self._square_parcel(),
+            road_centerline_wgs=line,
+        )
+        with self._mock_elev_uniform(30.0):
+            result = compute_datum_elevation(ctx)
+        self.assertEqual(result.case, DatumCase.ROAD_FLAT)
+        self.assertAlmostEqual(result.elevation_m, 30.0, places=2)
+
+    def test_site_above_road_half_raise(self):
+        from shapely.geometry import LineString
+        from land.services.datum import compute_datum_elevation, DatumCase, DatumContext
+
+        line = LineString([(127.0, 37.4995), (127.001, 37.4995)])
+        ctx = DatumContext(
+            parcel_wgs=self._square_parcel(),
+            road_centerline_wgs=line,
+        )
+        # parcel 4 edges = 100m, road samples = 90m → 대지>도로 → 95m
+        with self._mock_elev_per_call([100.0, 90.0]):
+            result = compute_datum_elevation(ctx)
+        self.assertEqual(result.case, DatumCase.SITE_ABOVE_ROAD)
+        self.assertAlmostEqual(result.elevation_m, 95.0, delta=0.5)
+
+    def test_neighbor_avg_86_priority(self):
+        """§86 flag 우선순위: road 있어도 neighbor avg가 이김."""
+        from shapely.geometry import LineString, Polygon
+        from land.services.datum import compute_datum_elevation, DatumCase, DatumContext
+
+        neighbor = Polygon([
+            (127.0, 37.501), (127.001, 37.501),
+            (127.001, 37.502), (127.0, 37.502),
+            (127.0, 37.501),
+        ])
+        line = LineString([(127.0, 37.4995), (127.001, 37.4995)])
+        ctx = DatumContext(
+            parcel_wgs=self._square_parcel(),
+            road_centerline_wgs=line,
+            neighbor_parcel_wgs=neighbor,
+            apply_86_neighbor_avg=True,
+        )
+        # parcel = 50m, neighbor = 70m → avg 60m. road 호출 안됨 (§86 우선).
+        with self._mock_elev_per_call([50.0, 70.0]):
+            result = compute_datum_elevation(ctx)
+        self.assertEqual(result.case, DatumCase.NEIGHBOR_AVG_86)
+        self.assertAlmostEqual(result.elevation_m, 60.0, delta=0.5)
+        # notes: road_centerline 무시됨 표시
+        self.assertIsNotNone(result.notes)
+        self.assertTrue(any("road_centerline 무시" in n for n in result.notes))
+
+    def test_apply_86_without_neighbor_falls_through(self):
+        """apply_86_neighbor_avg=True 인데 neighbor 없으면 §119②로 fallback + notes."""
+        from land.services.datum import compute_datum_elevation, DatumCase, DatumContext
+
+        ctx = DatumContext(
+            parcel_wgs=self._square_parcel(),
+            apply_86_neighbor_avg=True,   # neighbor 없음
+        )
+        with self._mock_elev_uniform(20.0):
+            result = compute_datum_elevation(ctx)
+        # §119② FLAT으로 처리됨
+        self.assertEqual(result.case, DatumCase.FLAT)
+        self.assertIsNotNone(result.notes)
+        self.assertTrue(any("neighbor_parcel_wgs 없음" in n for n in result.notes))
+
+
+class DatumFailureModeTest(TestCase):
+    """elevation fetch 실패 / DoS guard / 잘못된 입력."""
+
+    def setUp(self):
+        from land.services.datum import elevation_api
+        elevation_api.cache_clear()
+
+    def _mock_fail(self):
+        from unittest.mock import patch
+        from land.services.datum import elevation_api
+
+        def _fail(points):
+            raise elevation_api.ElevationFetchError("simulated network failure")
+        return patch.object(elevation_api, "fetch_elevations", side_effect=_fail)
+
+    def _square_parcel(self):
+        from shapely.geometry import Polygon
+        return Polygon([
+            (127.0, 37.5), (127.001, 37.5),
+            (127.001, 37.501), (127.0, 37.501),
+            (127.0, 37.5),
+        ])
+
+    def test_fetch_failure_returns_failed_source(self):
+        """elevation fetch 실패 → DatumResult.elevation_source='failed' + notes."""
+        from land.services.datum import (
+            compute_datum_elevation, DatumContext, ELEV_SOURCE_FAILED,
+        )
+
+        ctx = DatumContext(parcel_wgs=self._square_parcel())
+        with self._mock_fail():
+            result = compute_datum_elevation(ctx)
+
+        self.assertEqual(result.elevation_source, ELEV_SOURCE_FAILED)
+        self.assertEqual(result.elevation_m, 0.0)
+        self.assertIn("elevation_fetch_failed", result.basis)
+        self.assertIsNotNone(result.notes)
+        self.assertTrue(any("실패" in n for n in result.notes))
+
+    def test_fetch_success_marks_open_meteo_source(self):
+        """정상 fetch → elevation_source='open_meteo'."""
+        from unittest.mock import patch
+        from land.services.datum import (
+            compute_datum_elevation, DatumContext,
+            ELEV_SOURCE_OPEN_METEO, elevation_api,
+        )
+
+        def _ok(points):
+            return [50.0] * len(points)
+
+        ctx = DatumContext(parcel_wgs=self._square_parcel())
+        with patch.object(elevation_api, "fetch_elevations", side_effect=_ok):
+            result = compute_datum_elevation(ctx)
+        self.assertEqual(result.elevation_source, ELEV_SOURCE_OPEN_METEO)
+
+    def test_dos_guard_too_many_vertices(self):
+        """vertex > MAX_PARCEL_VERTICES → ValueError."""
+        from shapely.geometry import Polygon
+        from land.services.datum import (
+            compute_datum_elevation, DatumContext, MAX_PARCEL_VERTICES,
+        )
+
+        # MAX+10개 vertex polygon (촘촘한 원)
+        import math
+        n = MAX_PARCEL_VERTICES + 10
+        coords = [
+            (127.0 + 0.0001 * math.cos(2 * math.pi * i / n),
+             37.5 + 0.0001 * math.sin(2 * math.pi * i / n))
+            for i in range(n)
+        ]
+        coords.append(coords[0])  # close ring
+        bad = Polygon(coords)
+
+        ctx = DatumContext(parcel_wgs=bad)
+        with self.assertRaises(ValueError) as cm:
+            compute_datum_elevation(ctx)
+        self.assertIn("MAX_PARCEL_VERTICES", str(cm.exception))

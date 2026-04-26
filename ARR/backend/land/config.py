@@ -35,21 +35,29 @@ VWORLD_GEOCODE_URL = "https://api.vworld.kr/req/address"
 VWORLD_DATA_URL = "https://api.vworld.kr/req/data"
 VWORLD_DATA_BASE = "https://api.vworld.kr/ned/data"
 
+# ── Datum Elevation (§119, §86) ───────────────────────
+# Vworld는 표고 API 없음 (2019년 3D Open API 폐쇄). Open-Meteo 90m DEM fallback.
+# 향후 NGII 5m self-host 옵션은 ELEVATION_PROVIDER=ngii_5m 로 토글.
+OPEN_METEO_URL = "https://api.open-meteo.com/v1/elevation"
+ELEVATION_PROVIDER: str = os.getenv("ELEVATION_PROVIDER", "open_meteo")
+
 # ── Timeouts ──────────────────────────────────────────
 VWORLD_TIMEOUT = httpx.Timeout(10.0, connect=5.0)
 LAW_TIMEOUT = httpx.Timeout(30.0, connect=5.0)
 PROXY_TIMEOUT = httpx.Timeout(15.0, connect=5.0)
+ELEVATION_TIMEOUT = httpx.Timeout(5.0, connect=3.0)
 
 # ── Shared httpx clients (singletons) ────────────────
 vworld_client = httpx.Client(timeout=VWORLD_TIMEOUT)
 law_client = httpx.Client(base_url=LAW_BACKEND_URL, timeout=LAW_TIMEOUT)
 light_client = httpx.Client(base_url=AG_LIGHT_URL, timeout=LAW_TIMEOUT)
 proxy_client = httpx.Client(timeout=PROXY_TIMEOUT)
+open_meteo_client = httpx.Client(timeout=ELEVATION_TIMEOUT)
 
 
 def _cleanup_clients():
     """Close httpx clients on process shutdown."""
-    for c in (vworld_client, law_client, light_client, proxy_client):
+    for c in (vworld_client, law_client, light_client, proxy_client, open_meteo_client):
         try:
             c.close()
         except Exception:

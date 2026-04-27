@@ -5,30 +5,49 @@
 - ARR Backend Django는 partial data 반환 + 짧은 timeout으로 robust.
 - 2026-04-27 smoke test 결과로 결정 변경 (메모리 #6 보정됨).
 
-Hermes handler 규약:
+Hermes handler 규약 (공식 docs `/docs/guides/build-a-hermes-plugin`):
 - 시그니처: def handler(args: dict, **kwargs) -> str
 - 항상 JSON string 반환 (에러도)
 - 절대 raise 하지 말 것 (catch 후 error JSON 반환)
+- sync 호출 (async 미지원, slash command만 async)
 """
+from __future__ import annotations
+
+import atexit
 import json
 import logging
 import os
+from typing import Any
 
 import httpx
 
 logger = logging.getLogger(__name__)
 
-ARR_BACKEND_URL = os.getenv(
+ARR_BACKEND_URL: str = os.getenv(
     "ARR_BACKEND_URL",
     "https://arr-backend-production.up.railway.app",
 ).rstrip("/")
 
-# Module-level client — connection pooling, 매 호출마다 새 TCP 안 만듦
+# Module-level client — connection pooling, 매 호출마다 새 TCP 안 만듦.
+# atexit으로 프로세스 종료 시 정리 (Hermes hot-reload 대비).
 _HTTP_TIMEOUT = httpx.Timeout(connect=10.0, read=30.0, write=10.0, pool=5.0)
-_client = httpx.Client(timeout=_HTTP_TIMEOUT)
+_client: httpx.Client = httpx.Client(timeout=_HTTP_TIMEOUT)
+atexit.register(_client.close)
 
 
-def land_analyst(args: dict, **kwargs) -> str:
+def _safe_pnu_str(data: Any) -> str:
+    """응답에서 PNU 문자열을 안전하게 추출 (다양한 응답 형식 방어)."""
+    if not isinstance(data, dict):
+        return "?"
+    pnu_field = data.get("pnu")
+    if isinstance(pnu_field, dict):
+        return pnu_field.get("pnu", "?")
+    if isinstance(pnu_field, str):
+        return pnu_field
+    return "?"
+
+
+def land_analyst(args: dict, **kwargs: Any) -> str:
     """토지 규제 분석 — ARR Backend Django 호출.
 
     Args:
@@ -36,28 +55,30 @@ def land_analyst(args: dict, **kwargs) -> str:
         kwargs: Hermes forward-compat (task_id, session_id 등 — 미사용)
 
     Returns:
-        JSON string. 성공: ARR /land/analyze/ 응답 (pnu/regulations/zone_info/land_info/law_articles).
-        실패: {"error": "..."}
+        JSON string.
+        - 정상: ARR /land/analyze/ 응답 (pnu/regulations/zone_info/land_info/law_articles).
+        - 부분 실패: 일부 필드 null (Vworld API 장애 시 regulations/zone_info null 가능 —
+          land_info.success=false면 LLM이 사용자에게 "Vworld 일시 장애" 안내).
+        - 호출 실패: {"error": "..."}
     """
     pnu_or_address = (args.get("pnu_or_address") or "").strip()
     if not pnu_or_address:
         logger.warning("land_analyst: pnu_or_address empty")
         return json.dumps({"error": "pnu_or_address required"}, ensure_ascii=False)
 
-    # PNU 19자리 숫자면 input_type=pnu, 아니면 address (Django 쪽에서 자동 판별도 함)
+    # PNU 19자리 숫자면 input_type=pnu, 아니면 address (Django도 자동 판별 가능)
     is_pnu = pnu_or_address.isdigit() and len(pnu_or_address) == 19
     input_type = "pnu" if is_pnu else "address"
 
     url = f"{ARR_BACKEND_URL}/land/analyze/"
     payload = {"input": pnu_or_address, "input_type": input_type, "include_law": True}
-    logger.info("land_analyst → POST %s (input=%s, type=%s)", url, pnu_or_address, input_type)
+    logger.info("land_analyst → POST %s (type=%s)", url, input_type)
 
     try:
         r = _client.post(url, json=payload)
         r.raise_for_status()
         data = r.json()
-        pnu_str = data.get("pnu", {}).get("pnu", "?") if isinstance(data, dict) else "?"
-        logger.info("land_analyst ← %d (PNU=%s)", r.status_code, pnu_str)
+        logger.info("land_analyst ← %d (PNU=%s)", r.status_code, _safe_pnu_str(data))
         return json.dumps(data, ensure_ascii=False)
     except httpx.TimeoutException as e:
         logger.error("land_analyst timeout: %s", e)

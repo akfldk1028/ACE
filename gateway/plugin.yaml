@@ -4,6 +4,6 @@ description: ARR 토지/건축법규 분석 도구 (PoC Step 1 — land_analyst�
 provides_tools:
   - land_analyst
 requires_env:
-  - name: AGLIGHT_URL
-    description: "AG-light Cloudflare Worker URL (default: https://law-light-api.clickaround8.workers.dev)"
+  - name: ARR_BACKEND_URL
+    description: "ARR Django Backend URL on Railway (default: https://arr-backend-production.up.railway.app)"
     secret: false

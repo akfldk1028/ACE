@@ -1,5 +1,6 @@
 import React from 'react';
 import type { SunlightEnvelope } from '../../land/lib/types';
+import type { DatumResultDict } from '../lib/types';
 
 const CASE_LABEL: Record<string, string> = {
   flat: '평탄지 (§119① 5호)',
@@ -28,11 +29,19 @@ const BASIS_LABEL: Record<string, string> = {
 };
 
 interface Props {
-  envelope: SunlightEnvelope | null | undefined;
+  /** envelope 우선 (정북일조 적용 zone). 없으면 datumResult로 fallback. */
+  envelope?: SunlightEnvelope | null;
+  /** envelope 없는 zone(상업 등)에서 datum 단독 표시용. */
+  datumResult?: DatumResultDict | null;
 }
 
 /**
  * 정북일조 envelope의 §119 datum 메타데이터를 시각 표시.
+ *
+ * Source 우선순위:
+ *   1. envelope이 있으면 envelope의 datum_* 필드 사용 (정북일조 적용 zone)
+ *   2. 없으면 datumResult 사용 (정북일조 미적용 zone, 상업/녹지 등)
+ *   3. 둘 다 없으면 null 반환 (렌더 안 함)
  *
  * 3-state:
  *   elevation_source = null      → datum 미계산 (회색 안내, ENABLE_DATUM_ELEVATION=false)
@@ -41,11 +50,33 @@ interface Props {
  *
  * Sibling: ConstraintSummary와 동일 surface(`#111827`/`#1e293b`).
  */
-const DatumInfoCard: React.FC<Props> = React.memo(({ envelope }) => {
-  if (!envelope) return null;
+const DatumInfoCard: React.FC<Props> = React.memo(({ envelope, datumResult }) => {
+  // envelope 우선, 없으면 datumResult를 envelope-호환 shape로 변환
+  const data: {
+    elevation_source: 'open_meteo' | 'failed' | null | undefined;
+    datum_elevation_m?: number;
+    datum_case?: string | null;
+    datum_basis?: string | null;
+  } | null = envelope
+    ? {
+      elevation_source: envelope.elevation_source,
+      datum_elevation_m: envelope.datum_elevation_m,
+      datum_case: envelope.datum_case,
+      datum_basis: envelope.datum_basis,
+    }
+    : datumResult
+      ? {
+        elevation_source: datumResult.elevation_source,
+        datum_elevation_m: datumResult.elevation_m,
+        datum_case: datumResult.case,
+        datum_basis: datumResult.basis,
+      }
+      : null;
+
+  if (!data) return null;
 
   // datum 미계산 (env flag false 또는 backend 미전달)
-  if (envelope.elevation_source == null) {
+  if (data.elevation_source == null) {
     return (
       <div style={{
         background: '#111827', borderRadius: 10, padding: 14, marginBottom: 10,
@@ -63,13 +94,13 @@ const DatumInfoCard: React.FC<Props> = React.memo(({ envelope }) => {
     );
   }
 
-  const datum_m = envelope.datum_elevation_m ?? 0;
-  const caseLabel = envelope.datum_case
-    ? (CASE_LABEL[envelope.datum_case] ?? envelope.datum_case) : '-';
-  const srcLabel = SOURCE_LABEL[envelope.elevation_source] ?? envelope.elevation_source;
-  const basisLabel = envelope.datum_basis
-    ? (BASIS_LABEL[envelope.datum_basis] ?? envelope.datum_basis) : null;
-  const isFailed = envelope.elevation_source === 'failed';
+  const datum_m = data.datum_elevation_m ?? 0;
+  const caseLabel = data.datum_case
+    ? (CASE_LABEL[data.datum_case] ?? data.datum_case) : '-';
+  const srcLabel = SOURCE_LABEL[data.elevation_source] ?? data.elevation_source;
+  const basisLabel = data.datum_basis
+    ? (BASIS_LABEL[data.datum_basis] ?? data.datum_basis) : null;
+  const isFailed = data.elevation_source === 'failed';
   const accent = isFailed ? '#f59e0b' : '#22d3ee';   // amber / cyan (design 모듈은 hex 직접 사용 패턴)
 
   return (

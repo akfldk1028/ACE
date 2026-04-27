@@ -105,14 +105,27 @@ export interface SetbackGeometry {
  * setback_geometries 응답 dict — heterogeneous values:
  *   - 일반 키 (buildable_area, north_setback, ...) → SetbackGeometry
  *   - sunlight_envelope, daylight_diagonal_envelope → SunlightEnvelope (from land/lib/types)
+ *   - datum_result → DatumResultDict (envelope 없는 zone에서도 datum 표시용)
  *
  * `as unknown as` 캐스팅 회피용. Phase 2C+ datum metadata 4 필드 포함.
  */
 import type { SunlightEnvelope } from '../../land/lib/types';
+
+/** Phase 2D — envelope과 독립적인 datum 정보 (정북일조 미적용 zone 표시용). */
+export interface DatumResultDict {
+  elevation_m: number;
+  case: string | null;
+  basis: string | null;
+  elevation_source: 'open_meteo' | 'failed' | null;
+  parcel_datum_m?: number | null;
+  notes?: string[] | null;
+}
+
 export type SetbackGeometriesMap =
   Record<string, SetbackGeometry> & {
     sunlight_envelope?: SunlightEnvelope | null;
     daylight_diagonal_envelope?: SunlightEnvelope | null;
+    datum_result?: DatumResultDict | null;
   };
 
 export interface LawArticle {

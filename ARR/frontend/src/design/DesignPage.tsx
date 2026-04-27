@@ -251,8 +251,11 @@ const DesignPage: React.FC = () => {
 
         <ConstraintSummary constraints={jobState.constraints} lawArticles={jobState.lawArticles} />
 
-        {/* 지반 레벨 (§119 datum) — envelope datum_elevation_m 시각 표시 */}
-        <DatumInfoCard envelope={jobState.setbackGeometries?.sunlight_envelope ?? null} />
+        {/* 지반 레벨 (§119 datum) — envelope 우선, 없으면 datum_result fallback */}
+        <DatumInfoCard
+          envelope={jobState.setbackGeometries?.sunlight_envelope ?? null}
+          datumResult={jobState.setbackGeometries?.datum_result ?? null}
+        />
 
         {/* 정북일조 사선제한 단면도 — 법규 §86① 그대로 2D 시각화 (지도 좌표 독립) */}
         {jobState.zones && jobState.zones.length > 0 && (

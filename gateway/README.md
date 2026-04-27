@@ -9,11 +9,25 @@ gateway/
 ├── pyproject.toml          # entry-point: hermes_agent.plugins → arr-gateway
 ├── plugin.yaml             # manifest (provides_tools, requires_env)
 ├── README.md               # 이 파일
+├── SOUL.md                 # ⭐ Agent 정체성/규칙 (Hermes 시스템 프롬프트 자동 주입)
+├── skills/
+│   └── land-analysis/
+│       └── SKILL.md        # ⭐ 분석 사이클 playbook (LLM 행동 흐름)
 └── arr_gateway/
     ├── __init__.py         # register(ctx) — Hermes에 도구 등록
     ├── schemas.py          # LLM-facing 도구 schema (flat dict, NOT OpenAI wrapper)
     └── tools.py            # 핸들러 — args dict + **kwargs → JSON string 반환
 ```
+
+## 도메인 specialization 3 layer (Hermes 본체 수정 X)
+
+| Layer | 무엇 | 우리 파일 |
+|-------|------|---------|
+| **Plugin tools** (Python) | 도메인 능력 | `arr_gateway/tools.py` |
+| **SOUL.md** (Markdown) | 정체성/honesty rules | `SOUL.md` |
+| **skills/SKILL.md** (Markdown) | 행동 사이클 | `skills/land-analysis/SKILL.md` |
+
+→ Hermes upstream 코드 1줄도 안 고침. ClickAround도 같은 패턴.
 
 ## 도구 (현재 1개, 점진 확장)
 

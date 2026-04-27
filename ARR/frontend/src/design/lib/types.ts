@@ -101,6 +101,20 @@ export interface SetbackGeometry {
   label: string;
 }
 
+/**
+ * setback_geometries 응답 dict — heterogeneous values:
+ *   - 일반 키 (buildable_area, north_setback, ...) → SetbackGeometry
+ *   - sunlight_envelope, daylight_diagonal_envelope → SunlightEnvelope (from land/lib/types)
+ *
+ * `as unknown as` 캐스팅 회피용. Phase 2C+ datum metadata 4 필드 포함.
+ */
+import type { SunlightEnvelope } from '../../land/lib/types';
+export type SetbackGeometriesMap =
+  Record<string, SetbackGeometry> & {
+    sunlight_envelope?: SunlightEnvelope | null;
+    daylight_diagonal_envelope?: SunlightEnvelope | null;
+  };
+
 export interface LawArticle {
   full_id: string;
   content: string;
@@ -124,7 +138,7 @@ export interface AutoConstraintsResult {
     adjacent_setback_m: number | null;
   };
   constraints: Constraint[];
-  setback_geometries?: Record<string, SetbackGeometry>;
+  setback_geometries?: SetbackGeometriesMap;
   law_articles?: LawSearchResult;
   building_type?: string;
 }

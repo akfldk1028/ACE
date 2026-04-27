@@ -6,6 +6,7 @@ import { useDesignJob } from './hooks/use-design-job';
 import { useOptimizationStream } from './hooks/use-optimization-stream';
 import ControlPanel from './components/ControlPanel';
 import ConstraintSummary from './components/ConstraintSummary';
+import DatumInfoCard from './components/DatumInfoCard';
 import { SunlightSectionDiagram } from './components/SunlightSectionDiagram';
 import GenerationProgress from './components/GenerationProgress';
 import ParetoChart from './components/ParetoChart';
@@ -249,6 +250,9 @@ const DesignPage: React.FC = () => {
         />
 
         <ConstraintSummary constraints={jobState.constraints} lawArticles={jobState.lawArticles} />
+
+        {/* 지반 레벨 (§119 datum) — envelope datum_elevation_m 시각 표시 */}
+        <DatumInfoCard envelope={jobState.setbackGeometries?.sunlight_envelope ?? null} />
 
         {/* 정북일조 사선제한 단면도 — 법규 §86① 그대로 2D 시각화 (지도 좌표 독립) */}
         {jobState.zones && jobState.zones.length > 0 && (

@@ -11,6 +11,7 @@ import type { LandAnalysisResult, RegulationItem, PnuInfo, OverlayRegulation, La
 import { RegulationCard } from './RegulationCard';
 import { BigStat } from './BigStat';
 import { LandInfoSummary } from './LandInfoSummary';
+import { DatumInfoCard } from './DatumInfoCard';
 import { LawArticlesList } from './LawArticlesList';
 
 interface LandAnalysisPanelProps {
@@ -346,6 +347,11 @@ export default React.memo(function LandAnalysisPanel({ analysis, address, onSele
       {/* ── Land info ── */}
       <motion.div custom={idx++} variants={fadeSlide}>
         <LandInfoSummary landInfo={analysis.land_info} />
+      </motion.div>
+
+      {/* ── 지반 레벨 (§119 datum) ── */}
+      <motion.div custom={idx++} variants={fadeSlide}>
+        <DatumInfoCard envelope={analysis.setback_lines?.sunlight_envelope} />
       </motion.div>
 
       {/* ── Law articles ── */}

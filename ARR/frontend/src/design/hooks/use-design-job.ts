@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { DesignJob, Constraint, SetbackGeometry, LawSearchResult } from '../lib/types';
+import type { DesignJob, Constraint, SetbackGeometriesMap, LawSearchResult } from '../lib/types';
 import { createJob, getAutoConstraints, getSiteBoundary } from '../lib/api-client';
 
 interface DesignJobState {
@@ -8,7 +8,7 @@ interface DesignJobState {
   sitePolygon: object | null;
   siteArea: number | null;
   zones: string[];
-  setbackGeometries: Record<string, SetbackGeometry>;
+  setbackGeometries: SetbackGeometriesMap;
   lawArticles: LawSearchResult | null;
   loading: boolean;
   error: string | null;
@@ -104,6 +104,7 @@ export function useDesignJob() {
       constraints: [],
       sitePolygon: null,
       siteArea: null,
+      zones: [],
       setbackGeometries: {},
       lawArticles: null,
       loading: false,

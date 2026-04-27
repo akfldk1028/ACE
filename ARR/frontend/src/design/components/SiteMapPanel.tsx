@@ -1,7 +1,7 @@
 import React, { useRef, useCallback, useState } from 'react';
 import { useVworld3D } from '../../land/hooks/use-vworld-3d';
 import { reverse } from '../../land/lib/land-api-client';
-import type { GeoJSONFeature, SetbackGeometry } from '../lib/types';
+import type { GeoJSONFeature, SetbackGeometry, SetbackGeometriesMap } from '../lib/types';
 import type { SunlightEnvelope } from '../../land/lib/types';
 import { renderSunlightEnvelope } from '../lib/envelopes/sunlight';
 
@@ -16,7 +16,7 @@ interface Props {
   massFeatures?: GeoJSONFeature[];
   selectedDesignId?: number;
   onParcelClick?: (pnu: string, address: string) => void;
-  setbackGeometries?: Record<string, SetbackGeometry>;
+  setbackGeometries?: SetbackGeometriesMap;
 }
 
 /** Extract outer ring from Polygon or MultiPolygon geometry */

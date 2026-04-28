@@ -256,11 +256,23 @@ function renderSetbackEntities(
         id: `${SETBACK_PREFIX}${key}`,
         polygon: {
           hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
-          height: 0.5,
+          // height: 0.5 (sea level) → terrain 표면 따라가도록 클램프.
+          // 강남 지표면 ~38m, sunlight envelope wall도 terrainH(~38m)에서 시작 → z축 일치.
+          // (이전 height:0.5 시 envelope만 38m 위에 떠 보임 z축 불일치 발생)
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
           material: Cesium.Color.fromCssColorString(color).withAlpha(0.25),
-          outline: true,
-          outlineColor: Cesium.Color.fromCssColorString(color),
-          outlineWidth: 3,
+          // outline은 CLAMP_TO_GROUND 모드에서 미지원 → outline 끄고 별도 polyline 추가
+          outline: false,
+        },
+      });
+      // Polygon outline 별도 polyline (clampToGround로 terrain 따라감)
+      viewer.entities.add({
+        id: `${SETBACK_PREFIX}${key}-outline`,
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArray(flat),
+          width: 3,
+          material: Cesium.Color.fromCssColorString(color),
+          clampToGround: true,
         },
       });
     } else if (geom.type === 'LineString') {
@@ -337,9 +349,17 @@ function flyToGeometryBbox(viewerRef: React.RefObject<any>, geometry: any) {
     if (lat > north) north = lat;
   }
 
-  // Add 20% padding
-  const dLng = (east - west) * 0.2 || 0.0005;
-  const dLat = (north - south) * 0.2 || 0.0005;
+  // Add padding 작은 parcel에서 zoom too close 방지
+  // 작은 parcel (~20m, 0.0002°)일 때 800% padding → ~200m 거리
+  // 큰 parcel일 때 50% padding
+  const spanLng = east - west;
+  const spanLat = north - south;
+  const span = Math.max(spanLng, spanLat);
+  // span < 0.0003° (≈30m) → 800% padding (작은 필지)
+  // span > 0.001° (≈100m) → 50% padding (큰 필지)
+  const paddingFactor = span < 0.0003 ? 8.0 : span < 0.001 ? 3.0 : 0.5;
+  const dLng = spanLng * paddingFactor || 0.001;
+  const dLat = spanLat * paddingFactor || 0.001;
   west -= dLng; east += dLng;
   south -= dLat; north += dLat;
 
@@ -347,7 +367,8 @@ function flyToGeometryBbox(viewerRef: React.RefObject<any>, geometry: any) {
     destination: Cesium.Rectangle.fromDegrees(west, south, east, north),
     orientation: {
       heading: Cesium.Math.toRadians(0),
-      pitch: Cesium.Math.toRadians(-60),
+      // pitch -35° → envelope wall (H=10m), slope (H=50m) 측면 보기 적합
+      pitch: Cesium.Math.toRadians(-35),
       roll: 0,
     },
     duration: 1.5,
@@ -442,20 +463,10 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
         if (viewer.scene?.globe) viewer.scene.globe.depthTestAgainstTerrain = false;
       } catch { /* ignore */ }
       renderSetbackEntities(viewer, Cesium, setbackGeometries);
-      // slope envelope이 하늘로 50m까지 올라가므로 기본 view에서 화면 밖.
-      // zoomTo는 flyTo와 달리 동기적이라 setTimeout 불필요.
-      try {
-        const setbackEntities = viewer.entities.values.filter((e: any) =>
-          typeof e.id === 'string' && e.id.startsWith(SETBACK_PREFIX)
-        );
-        if (setbackEntities.length > 0) {
-          viewer.zoomTo(setbackEntities, new Cesium.HeadingPitchRange(
-            0.0, Cesium.Math.toRadians(-35), 100.0,
-          ));
-        }
-      } catch {
-        /* ignore */
-      }
+      // NOTE: 카메라 이동은 sitePolygon useEffect의 flyToGeometryBbox(line 407)이
+      // 이미 parcel 위치로 이동시킴. zoomTo(entities)는 vworld map 자체 카메라 모션과
+      // race condition 발생해 기존 위치 잃어버림 → entities 위치 이동 호출 제거.
+      // 사용자가 carcel에 줌인 되어 있으면 envelope wall(H=10m)/slope(H=50m) 자동 보임.
     }
   }, [setbackGeometries, ready, viewerRef]);
 

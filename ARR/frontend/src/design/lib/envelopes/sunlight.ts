@@ -60,22 +60,16 @@ export function renderSunlightEnvelope(
   const slopeC = Cesium.Color.fromCssColorString(colors.slope);
   const addedIds: string[] = [];
 
-  // Phase 2B — ground reference 결정 (3-state):
-  //   "open_meteo" + 유효한 datum_elevation_m → §119 datum 절대 표고 (legally accurate)
-  //   "failed" / null / undefined            → terrain.getHeight() fallback (LOCKED SPEC)
-  //
-  // NOTE: datum_elevation_m (Open-Meteo §119 가중평균)와 terrainH (Cesium globe.getHeight)는
-  // 서로 다른 DEM 소스라 같은 좌표에서도 수 m 차이 가능. source='open_meteo'일 때
-  // envelope이 §119 법적 datum에 정확히 앉는 대신, Cesium 지형 메쉬 위로 떠보이거나
-  // 살짝 파묻힌 모습으로 보일 수 있음. ENABLE_DATUM_ELEVATION 프로덕션 토글 전 시각 검증 필수.
-  const terrainH = sampleTerrainAt(
+  // 시각 z축은 항상 Cesium terrainH 사용 (LOCKED SPEC 원래 동작).
+  // datum_elevation_m은 §119 법적 H=0 metadata로 DatumInfoCard에 노출하나,
+  // Cesium 시각 렌더에는 사용 X. 이유:
+  //   - datum (Open-Meteo 90m DEM, EGM2008 절대표고) ≠ terrainH (Cesium globe)
+  //   - 두 값 수십 m 차이 → envelope만 공중에 떠 보임 (다른 setback은 지면)
+  //   - LOCKED SPEC 의도: envelope 베이스가 parcel 지면에서 솟아오르는 것
+  // datum_elevation_m은 envelope.datum_elevation_m 필드로 metadata 전달, 시각 X.
+  const groundH = sampleTerrainAt(
     viewer, Cesium, envelope.slanted_polygons?.[0]?.corners?.[0],
   );
-  const groundH = (
-    envelope.elevation_source === 'open_meteo'
-    && typeof envelope.datum_elevation_m === 'number'
-    && isFinite(envelope.datum_elevation_m)
-  ) ? envelope.datum_elevation_m : terrainH;
 
   // (1) 북쪽 수직벽 — 바닥 → H=10m (직선→사선 올라가는 면)
   if (Array.isArray(envelope.walls)) {

@@ -36,10 +36,32 @@ VWORLD_DATA_URL = "https://api.vworld.kr/req/data"
 VWORLD_DATA_BASE = "https://api.vworld.kr/ned/data"
 
 # ── Datum Elevation (§119, §86) ───────────────────────
-# Vworld는 표고 API 없음 (2019년 3D Open API 폐쇄). Open-Meteo 90m DEM fallback.
-# 향후 NGII 5m self-host 옵션은 ELEVATION_PROVIDER=ngii_5m 로 토글.
+# Vworld 표고 API 없음 (2019 3D Open API 폐쇄, 2026-05-04 직접 호출 재검증 확정).
+# Provider:
+#   - "open_meteo" (default): Copernicus GLO-90 90m DEM, 무료 외부 REST, 도시 ~11m 오차
+#   - "ngii_lidar_1m" (Phase 3-α): NGII 1m LiDAR DEM self-host (opentopodata Docker),
+#     도시 ±10cm, 미커버시 Open-Meteo 자동 폴백
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/elevation"
+NGII_LIDAR_URL: str = os.getenv("NGII_LIDAR_URL", "http://localhost:5000")
 ELEVATION_PROVIDER: str = os.getenv("ELEVATION_PROVIDER", "open_meteo")
+
+# Datum 알고리즘 정확도 (Step 1 — 90m DEM 노이즈 흡수, edge sub-sample).
+# 둘 다 default true. 기존 회귀 테스트는 flag false로 monkey patch (단일 중점 동작 유지).
+DATUM_EDGE_SUBSAMPLE: bool = (
+    os.getenv("DATUM_EDGE_SUBSAMPLE", "true").lower() == "true"
+)
+DATUM_EDGE_SUBSAMPLE_THRESHOLD_M: float = float(
+    os.getenv("DATUM_EDGE_SUBSAMPLE_THRESHOLD_M", "10.0")
+)
+DATUM_EDGE_SUBSAMPLE_STEP_M: float = float(
+    os.getenv("DATUM_EDGE_SUBSAMPLE_STEP_M", "5.0")
+)
+DATUM_MEDIAN_FILTER: bool = (
+    os.getenv("DATUM_MEDIAN_FILTER", "true").lower() == "true"
+)
+DATUM_MEDIAN_FILTER_WINDOW: int = int(
+    os.getenv("DATUM_MEDIAN_FILTER_WINDOW", "3")
+)
 
 # Phase 2B opt-in flag — production 배포는 false로 시작.
 # True면 setback_geometry → envelope에 §119 datum 평면을 절대 표고로 주입.
@@ -60,11 +82,12 @@ law_client = httpx.Client(base_url=LAW_BACKEND_URL, timeout=LAW_TIMEOUT)
 light_client = httpx.Client(base_url=AG_LIGHT_URL, timeout=LAW_TIMEOUT)
 proxy_client = httpx.Client(timeout=PROXY_TIMEOUT)
 open_meteo_client = httpx.Client(timeout=ELEVATION_TIMEOUT)
+ngii_client = httpx.Client(timeout=ELEVATION_TIMEOUT)
 
 
 def _cleanup_clients():
     """Close httpx clients on process shutdown."""
-    for c in (vworld_client, law_client, light_client, proxy_client, open_meteo_client):
+    for c in (vworld_client, law_client, light_client, proxy_client, open_meteo_client, ngii_client):
         try:
             c.close()
         except Exception:

@@ -310,9 +310,17 @@ def _emit_slanted_polygon_and_walls(
             inner_poly = parcel_utm
 
         ring_utm = list(inner_poly.exterior.coords)[:-1]
+        # Phase C (2026-05-08) — cardinal North distance fix.
+        # 이전: d = north_mls.distance(Point) — 비-정방형 polygon에서 north_mls 단일 edge의
+        #       수직 거리가 한쪽으로 치우쳐 사선이 비스듬히 길게 뻗는 버그 (사용자 지적).
+        # 변경: d = (parcel.max_y - vertex.y) — UTM EPSG:32652 +y가 정북 (Korea Central
+        #       Meridian, 수렴각 < 0.5°, setback_geometry.py:267 명시). polygon 모양 무관.
+        # LOCKED SPEC 영향: 정방형 polygon에서는 동일 (north edge 수직거리 == y 차이).
+        # 비-정방형에서는 사선이 모든 vertex에 균일하게 적용되어 비대칭 사라짐.
+        parcel_max_y = parcel_utm.bounds[3]
         corners_utm_h: list[list] = []
         for pt in ring_utm:
-            d = north_mls.distance(Point(pt[0], pt[1]))
+            d = max(0.0, parcel_max_y - pt[1])
             h = min(SLOPE * MAX_DEPTH_CAP_M, max(BASE_HEIGHT_M, d * SLOPE))
             corners_utm_h.append([pt[0], pt[1], h])
 

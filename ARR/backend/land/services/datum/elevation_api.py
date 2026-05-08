@@ -62,9 +62,12 @@ def fetch_elevations(points: list[tuple[float, float]]) -> list[float]:
     provider = config.ELEVATION_PROVIDER
     if provider == "open_meteo":
         return _open_meteo_batch(points)
-    if provider == "ngii_5m":
-        raise NotImplementedError("ngii_5m provider not yet implemented; use open_meteo")
-    raise ValueError(f"Unknown ELEVATION_PROVIDER: {provider!r}")
+    if provider == "ngii_lidar_1m":
+        return _ngii_lidar_1m_batch(points)
+    # 그 외 모두 opentopodata sidecar/공개 인스턴스 dataset name으로 처리.
+    # 알려진 값: copernicus_glo30, ngii_5m, srtm30m, aster30m, mapzen, eudem25m, etc.
+    # 미커버시 Open-Meteo 자동 폴백 (opentopodata 응답 None 또는 HTTP 실패).
+    return _opentopodata_batch(points, dataset=provider)
 
 
 def _open_meteo_batch(points: list[tuple[float, float]]) -> list[float]:
@@ -131,3 +134,111 @@ def _open_meteo_http(points: list[tuple[float, float]]) -> list[float]:
         )
 
     return [float(e) if isinstance(e, (int, float)) else 0.0 for e in elevations]
+
+
+# ─── NGII 1m LiDAR DEM (opentopodata sidecar) ───────────────────
+# 데이터 출처: NGII 항공LiDAR 1m DEM (2005~2021 도시 구축, 2년 주기 갱신).
+# 라이선스: 이용허락범위 제한 없음 (무료, 상업 가능). map.ngii.go.kr 회원가입 후 다운로드.
+# 호스팅: opentopodata Docker (`config.NGII_LIDAR_URL`).
+# Fallback: NGII 미커버(산악/외곽) → Open-Meteo 자동 폴백.
+
+def _ngii_lidar_1m_batch(points: list[tuple[float, float]]) -> list[float]:
+    """NGII 1m LiDAR DEM batch. opentopodata 호환 응답 (`results[].elevation`)."""
+    return _opentopodata_batch(points, dataset="ngii_lidar_1m")
+
+
+def _opentopodata_batch(
+    points: list[tuple[float, float]], *, dataset: str,
+) -> list[float]:
+    """opentopodata 일반 batch. dataset 이름으로 endpoint 지정."""
+    out: list[float] = []
+    BATCH = 100
+    for i in range(0, len(points), BATCH):
+        chunk = points[i:i + BATCH]
+        out.extend(_opentopodata_call_with_cache(chunk, dataset=dataset))
+    return out
+
+
+def _opentopodata_call_with_cache(
+    chunk: list[tuple[float, float]], *, dataset: str,
+) -> list[float]:
+    """캐시 hit → 그대로. miss → opentopodata 1 HTTP. None(커버리지 밖) → Open-Meteo 폴백."""
+    rounded = [(round(p[0], 5), round(p[1], 5)) for p in chunk]
+    out: list[float] = [0.0] * len(rounded)
+    miss_idx: list[int] = []
+    miss_pts: list[tuple[float, float]] = []
+    for i, p in enumerate(rounded):
+        cached = _ELEVATION_CACHE.get(p)
+        if cached is not None:
+            out[i] = cached
+        else:
+            miss_idx.append(i)
+            miss_pts.append(p)
+
+    if not miss_pts:
+        return out
+
+    try:
+        fresh = _opentopodata_http(miss_pts, dataset=dataset)
+    except ElevationFetchError as e:
+        # opentopodata 자체 실패 → 전체 Open-Meteo 폴백
+        logger.warning("opentopodata %s failed, fallback to open_meteo: %s", dataset, e)
+        try:
+            fresh = _open_meteo_http(miss_pts)
+        except ElevationFetchError as e2:
+            logger.warning("open_meteo fallback also failed: %s", e2)
+            fresh = [0.0] * len(miss_pts)
+
+    # 격자 미커버시 None → Open-Meteo 폴백 (한 번 더 HTTP, 결과 캐시)
+    fallback_idx = [j for j, e in enumerate(fresh) if e is None]
+    if fallback_idx:
+        try:
+            fb = _open_meteo_http([miss_pts[j] for j in fallback_idx])
+            for j, e in zip(fallback_idx, fb):
+                fresh[j] = e
+        except ElevationFetchError as e:
+            logger.warning("%s miss + open_meteo fallback failed: %s", dataset, e)
+            for j in fallback_idx:
+                fresh[j] = 0.0
+
+    for i, p, e in zip(miss_idx, miss_pts, fresh):
+        e_val = float(e) if e is not None else 0.0
+        out[i] = e_val
+        _ELEVATION_CACHE[p] = e_val
+    return out
+
+
+def _opentopodata_http(
+    points: list[tuple[float, float]], *, dataset: str,
+) -> list[float | None]:
+    """opentopodata sidecar 일반 호출. results[i].elevation 이 None이면 커버리지 밖."""
+    if not points:
+        return []
+    locations = "|".join(f"{p[0]:.5f},{p[1]:.5f}" for p in points)
+    try:
+        resp = config.ngii_client.get(
+            f"{config.NGII_LIDAR_URL}/v1/{dataset}",
+            params={"locations": locations},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        logger.warning("opentopodata %s http failed (%d points): %s", dataset, len(points), e)
+        raise ElevationFetchError(f"opentopodata {dataset} HTTP failed: {e}") from e
+
+    results = data.get("results")
+    if not isinstance(results, list) or len(results) != len(points):
+        raise ElevationFetchError(
+            f"opentopodata {dataset} response shape mismatch: expected {len(points)} results"
+        )
+
+    out: list[float | None] = []
+    for r in results:
+        elev = r.get("elevation") if isinstance(r, dict) else None
+        if elev is None:
+            out.append(None)   # 커버리지 밖 → caller가 폴백
+        elif isinstance(elev, (int, float)):
+            out.append(float(elev))
+        else:
+            out.append(None)
+    return out

@@ -30,8 +30,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+from dataclasses import field
+
 from shapely.geometry import LineString, Polygon
 
+from land import config as land_config
 from land.services.datum import calculator
 from land.services.datum.elevation_api import ElevationFetchError
 
@@ -101,7 +104,8 @@ class DatumResult:
     elevation_m: float
     case: DatumCase
     basis: str
-    elevation_source: str = ELEV_SOURCE_OPEN_METEO
+    # 동적 default: 현재 ELEVATION_PROVIDER 값 사용 (open_meteo / copernicus_glo30 / ngii_lidar_1m)
+    elevation_source: str = field(default_factory=lambda: land_config.ELEVATION_PROVIDER)
     parcel_segments: list[dict] | None = None
     road_samples: list[dict] | None = None
     parcel_datum_m: float | None = None

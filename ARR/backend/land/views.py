@@ -237,6 +237,69 @@ def map_config(request):
 
 
 @require_http_methods(["GET"])
+def elevation_grid(request):
+    """
+    GET /land/elevation-grid/?lng=&lat=&radius_m=50&n=5
+
+    parcel 중심 기준 n×n 격자 점들의 표고 (Open-Meteo or NGII LiDAR via
+    config.ELEVATION_PROVIDER). "주변 몇m 표고" 시각화용.
+
+    Returns:
+        {"points": [{"lng": ..., "lat": ..., "elev_m": ...}, ...]}
+    """
+    import math
+    from land.services.datum import elevation_api
+
+    try:
+        lng = float(request.GET.get("lng", ""))
+        lat = float(request.GET.get("lat", ""))
+    except ValueError:
+        return JsonResponse({"error": "lng/lat required (float)"}, status=400)
+
+    try:
+        radius_m = float(request.GET.get("radius_m", "50"))
+        n = int(request.GET.get("n", "5"))
+    except ValueError:
+        return JsonResponse({"error": "radius_m (float) and n (int) required"}, status=400)
+
+    # DoS guard
+    n = max(2, min(n, 11))   # 2~11 → 4~121 점
+    radius_m = max(5.0, min(radius_m, 500.0))
+
+    deg_per_m_lat = 1.0 / 111000.0
+    deg_per_m_lng = 1.0 / (111000.0 * max(0.1, math.cos(math.radians(lat))))
+    step_m = (2 * radius_m) / (n - 1) if n > 1 else 0.0
+
+    points_latlng: list[tuple[float, float]] = []
+    points_meta: list[tuple[float, float]] = []   # (lng, lat) for response
+    for i in range(n):
+        for j in range(n):
+            dx = (j - (n - 1) / 2.0) * step_m
+            dy = ((n - 1) / 2.0 - i) * step_m   # i=0이 북쪽
+            pt_lat = lat + dy * deg_per_m_lat
+            pt_lng = lng + dx * deg_per_m_lng
+            points_latlng.append((pt_lat, pt_lng))
+            points_meta.append((pt_lng, pt_lat))
+
+    try:
+        elevs = elevation_api.fetch_elevations(points_latlng)
+    except elevation_api.ElevationFetchError as e:
+        return JsonResponse({"error": f"elevation fetch failed: {e}"}, status=502)
+
+    return JsonResponse({
+        "center": {"lng": lng, "lat": lat},
+        "radius_m": radius_m,
+        "n": n,
+        "step_m": round(step_m, 3),
+        "provider": config.ELEVATION_PROVIDER,
+        "points": [
+            {"lng": round(pl[0], 6), "lat": round(pl[1], 6), "elev_m": round(float(e), 3)}
+            for pl, e in zip(points_meta, elevs)
+        ],
+    })
+
+
+@require_http_methods(["GET"])
 def stats(request):
     """
     GET /land/stats/

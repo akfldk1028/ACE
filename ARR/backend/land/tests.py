@@ -1596,6 +1596,15 @@ class DatumElevationApiTest(TestCase):
     def setUp(self):
         from land.services.datum import elevation_api
         elevation_api.cache_clear()
+        # Session 4에서 ELEVATION_PROVIDER가 환경변수 의존(.env에 copernicus_glo30 설정 가능).
+        # 이 class는 open_meteo client를 mock하므로 provider도 강제 'open_meteo'로 격리.
+        from land import config as land_config
+        self._orig_provider = land_config.ELEVATION_PROVIDER
+        land_config.ELEVATION_PROVIDER = "open_meteo"
+
+    def tearDown(self):
+        from land import config as land_config
+        land_config.ELEVATION_PROVIDER = self._orig_provider
 
     def _mock_get(self, elevations=None, raise_exc=None, status_ok=True):
         """Reusable httpx mock for config.open_meteo_client.get."""
@@ -1700,15 +1709,30 @@ class DatumElevationApiTest(TestCase):
         finally:
             land_config.ELEVATION_PROVIDER = original
 
-    def test_provider_ngii_5m_not_implemented(self):
+    def test_provider_ngii_5m_routes_to_opentopodata(self):
+        """Session 4 변경: ngii_5m → opentopodata sidecar (이전 NotImplementedError).
+
+        ngii_client.get을 mock하여 dispatch만 검증. 실제 sidecar 미가동.
+        """
+        from unittest.mock import patch, MagicMock
         from land import config as land_config
         from land.services.datum import elevation_api
+
+        class _R:
+            def raise_for_status(self): pass
+            def json(self): return {"results": [{"elevation": 100.0}]}
 
         original = land_config.ELEVATION_PROVIDER
         land_config.ELEVATION_PROVIDER = "ngii_5m"
         try:
-            with self.assertRaises(NotImplementedError):
-                elevation_api.fetch_elevations([(37.5, 127.0)])
+            mock_get = MagicMock(return_value=_R())
+            with patch.object(land_config.ngii_client, "get", mock_get):
+                elevs = elevation_api.fetch_elevations([(37.5, 127.0)])
+            self.assertEqual(elevs, [100.0])
+            # opentopodata endpoint 호출 확인
+            self.assertTrue(mock_get.called)
+            call_args = mock_get.call_args
+            self.assertIn("ngii_5m", call_args[0][0])
         finally:
             land_config.ELEVATION_PROVIDER = original
 
@@ -1723,6 +1747,18 @@ class DatumCalculatorTest(TestCase):
     def setUp(self):
         from land.services.datum import elevation_api
         elevation_api.cache_clear()
+        # 단일 중점 sample + denoise off (Step 1 알고리즘 개선과 무관한 기본 수식 검증).
+        # 알고리즘 자체는 DatumAlgorithmAccuracyTest에서 별도 검증.
+        from land import config as land_config
+        self._orig_subsample = land_config.DATUM_EDGE_SUBSAMPLE
+        self._orig_median = land_config.DATUM_MEDIAN_FILTER
+        land_config.DATUM_EDGE_SUBSAMPLE = False
+        land_config.DATUM_MEDIAN_FILTER = False
+
+    def tearDown(self):
+        from land import config as land_config
+        land_config.DATUM_EDGE_SUBSAMPLE = self._orig_subsample
+        land_config.DATUM_MEDIAN_FILTER = self._orig_median
 
     def _mock_elev(self, value_or_list):
         """fetch_elevations를 상수 또는 리스트로 mock."""
@@ -1829,6 +1865,18 @@ class DatumCasesTest(TestCase):
     def setUp(self):
         from land.services.datum import elevation_api
         elevation_api.cache_clear()
+        # mock 호출 횟수 = edge 수 가정 (4) → sub-sample 활성시 점 수 폭증.
+        # 기본 수식·dispatcher 검증이라 알고리즘 개선 flag는 off.
+        from land import config as land_config
+        self._orig_subsample = land_config.DATUM_EDGE_SUBSAMPLE
+        self._orig_median = land_config.DATUM_MEDIAN_FILTER
+        land_config.DATUM_EDGE_SUBSAMPLE = False
+        land_config.DATUM_MEDIAN_FILTER = False
+
+    def tearDown(self):
+        from land import config as land_config
+        land_config.DATUM_EDGE_SUBSAMPLE = self._orig_subsample
+        land_config.DATUM_MEDIAN_FILTER = self._orig_median
 
     def _mock_elev_uniform(self, value):
         from unittest.mock import patch
@@ -1986,6 +2034,16 @@ class DatumFailureModeTest(TestCase):
     def setUp(self):
         from land.services.datum import elevation_api
         elevation_api.cache_clear()
+        from land import config as land_config
+        self._orig_subsample = land_config.DATUM_EDGE_SUBSAMPLE
+        self._orig_median = land_config.DATUM_MEDIAN_FILTER
+        land_config.DATUM_EDGE_SUBSAMPLE = False
+        land_config.DATUM_MEDIAN_FILTER = False
+
+    def tearDown(self):
+        from land import config as land_config
+        land_config.DATUM_EDGE_SUBSAMPLE = self._orig_subsample
+        land_config.DATUM_MEDIAN_FILTER = self._orig_median
 
     def _mock_fail(self):
         from unittest.mock import patch
@@ -2020,8 +2078,15 @@ class DatumFailureModeTest(TestCase):
         self.assertTrue(any("실패" in n for n in result.notes))
 
     def test_fetch_success_marks_open_meteo_source(self):
-        """정상 fetch → elevation_source='open_meteo'."""
+        """정상 fetch → elevation_source가 현재 provider 값.
+
+        Session 4에서 DatumResult.elevation_source가 동적 default
+        (`field(default_factory=lambda: land_config.ELEVATION_PROVIDER)`)로
+        변경됨 — 환경변수 따라 'open_meteo'/'copernicus_glo30'/'ngii_lidar_1m'.
+        test는 명시적으로 'open_meteo' provider 가정 후 검증.
+        """
         from unittest.mock import patch
+        from land import config as land_config
         from land.services.datum import (
             compute_datum_elevation, DatumContext,
             ELEV_SOURCE_OPEN_METEO, elevation_api,
@@ -2031,7 +2096,8 @@ class DatumFailureModeTest(TestCase):
             return [50.0] * len(points)
 
         ctx = DatumContext(parcel_wgs=self._square_parcel())
-        with patch.object(elevation_api, "fetch_elevations", side_effect=_ok):
+        with patch.object(land_config, "ELEVATION_PROVIDER", "open_meteo"), \
+             patch.object(elevation_api, "fetch_elevations", side_effect=_ok):
             result = compute_datum_elevation(ctx)
         self.assertEqual(result.elevation_source, ELEV_SOURCE_OPEN_METEO)
 
@@ -2057,6 +2123,140 @@ class DatumFailureModeTest(TestCase):
         with self.assertRaises(ValueError) as cm:
             compute_datum_elevation(ctx)
         self.assertIn("MAX_PARCEL_VERTICES", str(cm.exception))
+
+
+# ──────────────────────────────────────────────────────
+# Step 1 — Datum 알고리즘 정확도 (edge sub-sample + median filter)
+# ──────────────────────────────────────────────────────
+class DatumAlgorithmAccuracyTest(TestCase):
+    """edge sub-sample + median filter (Step 1).
+
+    `DATUM_EDGE_SUBSAMPLE`/`DATUM_MEDIAN_FILTER` flag default true 동작 검증.
+    다른 datum tests는 setUp에서 flag false로 격리.
+    """
+
+    def setUp(self):
+        from land.services.datum import elevation_api
+        elevation_api.cache_clear()
+        from land import config as land_config
+        self._orig_subsample = land_config.DATUM_EDGE_SUBSAMPLE
+        self._orig_median = land_config.DATUM_MEDIAN_FILTER
+        land_config.DATUM_EDGE_SUBSAMPLE = True
+        land_config.DATUM_MEDIAN_FILTER = True
+
+    def tearDown(self):
+        from land import config as land_config
+        land_config.DATUM_EDGE_SUBSAMPLE = self._orig_subsample
+        land_config.DATUM_MEDIAN_FILTER = self._orig_median
+
+    def _square_parcel_88x111(self):
+        """위경도 0.001 × 0.001 사각형 (위도 37.5에서 동서 ~88m, 남북 ~111m)."""
+        from shapely.geometry import Polygon
+        return Polygon([
+            (127.0, 37.5), (127.001, 37.5),
+            (127.001, 37.501), (127.0, 37.501),
+            (127.0, 37.5),
+        ])
+
+    def _mock_per_edge(self, edge_elev: dict[str, float]):
+        """좌표로 edge 식별 → elev 부여. sub-sample N에 무관.
+
+        edge_elev keys: 'bottom' (lat≈37.5), 'right' (lng≈127.001),
+                        'top' (lat≈37.501), 'left' (lng≈127.0)
+        """
+        from unittest.mock import patch
+        from land.services.datum import elevation_api
+        EPS = 1e-5
+
+        def _per(points):
+            out = []
+            for lat, lng in points:
+                if abs(lat - 37.5) < EPS:
+                    out.append(edge_elev["bottom"])
+                elif abs(lng - 127.001) < EPS:
+                    out.append(edge_elev["right"])
+                elif abs(lat - 37.501) < EPS:
+                    out.append(edge_elev["top"])
+                else:
+                    out.append(edge_elev["left"])
+            return out
+        return patch.object(elevation_api, "fetch_elevations", side_effect=_per)
+
+    def test_subsample_increases_segment_count(self):
+        """sub-sample 활성화 → segments > 4 (edge 분할됨)."""
+        from land.services.datum import calculator
+
+        with self._mock_per_edge({"bottom": 100.0, "right": 100.0,
+                                  "top": 100.0, "left": 100.0}):
+            datum, segments = calculator.parcel_datum_119(self._square_parcel_88x111())
+
+        # 기존 4 edges → sub-sample (88m/5m≈18, 111m/5m≈22) → ~80 segments
+        self.assertGreater(len(segments), 20)
+        self.assertAlmostEqual(datum, 100.0, places=2)
+
+    def test_subsample_preserves_weighted_avg(self):
+        """sub-sample 활성화해도 가중평균 결과는 단일 중점과 동일 (수치적분 정밀도만 향상).
+
+        88m × 111m, edge별 [10, 20, 30, 40] →
+        weighted = (88×10 + 111×20 + 88×30 + 111×40) / (88+111+88+111) ≈ 25.57
+        """
+        from land.services.datum import calculator
+
+        with self._mock_per_edge({"bottom": 10.0, "right": 20.0,
+                                  "top": 30.0, "left": 40.0}):
+            datum, _ = calculator.parcel_datum_119(self._square_parcel_88x111())
+        self.assertAlmostEqual(datum, 25.57, delta=0.5)
+        # 단순평균(25.0)보다 큼 (남북 111m가 더 길고 elev 평균이 더 높음).
+        self.assertGreater(datum, 25.0)
+
+    def test_median_filter_absorbs_spike(self):
+        """ring 중 한 점만 spike → median으로 흡수, 인접 두 점 값으로 대체."""
+        from land.services.datum import calculator
+
+        # 5 점 ring, [10, 10, 100, 10, 10] — index 2가 spike
+        out = calculator._denoise_median_filter([10.0, 10.0, 100.0, 10.0, 10.0], window=3)
+        # window=3, index 2의 이웃은 [10, 100, 10] → median = 10 (spike 제거)
+        self.assertEqual(out[2], 10.0)
+        # spike 양옆 (index 1, 3)은 [10, 10, 100] / [100, 10, 10] → median = 10
+        self.assertEqual(out[1], 10.0)
+        self.assertEqual(out[3], 10.0)
+
+    def test_median_filter_preserves_smooth_slope(self):
+        """점진적 경사 (10, 12, 14, 16, 18) → median으로 거의 변화 없음."""
+        from land.services.datum import calculator
+
+        slope = [10.0, 12.0, 14.0, 16.0, 18.0]
+        out = calculator._denoise_median_filter(slope, window=3)
+        # 양 끝은 circular wrap이라 약간 흔들리지만 중앙 (index 2)는 그대로.
+        self.assertEqual(out[2], 14.0)
+        # 전체 평균 차이 < 1m (실제 경사 보존)
+        self.assertAlmostEqual(
+            sum(out) / len(out), sum(slope) / len(slope), delta=1.0,
+        )
+
+    def test_median_filter_short_seq_passthrough(self):
+        """길이 < window → 원본 그대로."""
+        from land.services.datum import calculator
+
+        out = calculator._denoise_median_filter([10.0, 20.0], window=3)
+        self.assertEqual(out, [10.0, 20.0])
+
+    def test_short_edge_below_threshold_no_subsample(self):
+        """edge < THRESHOLD_M (10m default) 면 sub-sample 안 함 (단일 중점만)."""
+        from land.services.datum import calculator
+        from shapely.geometry import Polygon
+
+        # 매우 작은 사각형 (위경도 0.00005 ≈ 5.5m × 4.4m, 모든 edge < 10m)
+        tiny = Polygon([
+            (127.0, 37.5), (127.00005, 37.5),
+            (127.00005, 37.50005), (127.0, 37.50005),
+            (127.0, 37.5),
+        ])
+        with self._mock_per_edge({"bottom": 100.0, "right": 100.0,
+                                  "top": 100.0, "left": 100.0}):
+            _, segments = calculator.parcel_datum_119(tiny)
+        # 4 edges 그대로 (sub-sample 미적용)
+        self.assertEqual(len(segments), 4)
 
 
 # ──────────────────────────────────────────────────────
@@ -2214,6 +2414,14 @@ class SetbackGeometryDatumTest(TestCase):
     def setUp(self):
         from land.services.datum import elevation_api
         elevation_api.cache_clear()
+        # ELEVATION_PROVIDER 환경 의존 격리 (Session 4에서 동적 default)
+        from land import config as land_config
+        self._orig_provider = land_config.ELEVATION_PROVIDER
+        land_config.ELEVATION_PROVIDER = "open_meteo"
+
+    def tearDown(self):
+        from land import config as land_config
+        land_config.ELEVATION_PROVIDER = self._orig_provider
 
     def _parcel_geojson(self):
         """위경도 사각형 GeoJSON (강남 근처, 약 88m × 111m)."""

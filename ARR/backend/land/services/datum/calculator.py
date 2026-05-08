@@ -18,6 +18,7 @@ from shapely.geometry import LineString, Polygon
 from shapely.ops import transform
 from pyproj import Transformer
 
+from land import config as land_config
 from land.services.datum import elevation_api
 
 logger = logging.getLogger(__name__)
@@ -30,11 +31,40 @@ def _wgs_to_utm(geom):
     return transform(_to_utm.transform, geom)
 
 
+def _denoise_median_filter(values: list[float], window: int = 3) -> list[float]:
+    """1D circular median filter (polygon ring 가정).
+
+    각 점을 자신과 좌우 (window-1)/2 이웃의 중앙값으로 대체. 90m DEM 격자 인접
+    셀 차이는 spike 형태(한 점만 튐)라 median이 흡수하고, 실제 경사면(점진적
+    증가)은 그대로 유지된다.
+
+    window<2 또는 len(values)<window면 원본 그대로 반환.
+    """
+    if window < 2 or len(values) < window:
+        return list(values)
+    n = len(values)
+    radius = window // 2
+    out: list[float] = []
+    for i in range(n):
+        # circular neighborhood (polygon ring)
+        nb = sorted(values[(i + k - radius) % n] for k in range(window))
+        out.append(nb[len(nb) // 2])
+    return out
+
+
 def parcel_datum_119(parcel_wgs: Polygon) -> tuple[float, list[dict]]:
     """
     §119②: 외벽 둘레 가중평균 datum.
 
-    각 polygon edge의 중점에서 표고를 sample → edge 길이 가중 평균.
+    각 polygon edge에서 표고를 sample → segment 길이 가중평균.
+
+    `config.DATUM_EDGE_SUBSAMPLE=true` (default) 면 길이 > THRESHOLD_M(10m)인 edge를
+    STEP_M(5m) 간격 sub-segment로 분할하고 각 sub-segment 중점에서 sample. §119②
+    "수평거리에 따라 가중평균"의 수치적분 정밀도가 향상됨 (큰 필지에서 edge 1점
+    대표의 손실 제거).
+
+    `config.DATUM_MEDIAN_FILTER=true` (default) 면 fetch 직후 ring 형태로 median
+    filter 적용 (window=3). 90m DEM 격자 인접 셀 spike noise 흡수, 실제 경사 유지.
 
     Args:
         parcel_wgs: 필지 polygon (WGS84 lng,lat)
@@ -43,29 +73,55 @@ def parcel_datum_119(parcel_wgs: Polygon) -> tuple[float, list[dict]]:
         (datum_m, segments)
         segments[i] = {"edge_idx", "length_m", "midpoint_lng", "midpoint_lat",
                        "midpoint_elev_m"}
+        sub-sample 활성시 같은 edge_idx가 여러 segment에 나타날 수 있음.
     """
     parcel_utm = _wgs_to_utm(parcel_wgs)
     coords_wgs = list(parcel_wgs.exterior.coords)
     coords_utm = list(parcel_utm.exterior.coords)
 
+    use_subsample = land_config.DATUM_EDGE_SUBSAMPLE
+    sub_threshold = land_config.DATUM_EDGE_SUBSAMPLE_THRESHOLD_M
+    sub_step = land_config.DATUM_EDGE_SUBSAMPLE_STEP_M
+    use_median = land_config.DATUM_MEDIAN_FILTER
+    median_window = land_config.DATUM_MEDIAN_FILTER_WINDOW
+
     midpoints_wgs: list[tuple[float, float]] = []   # (lat, lng) for elevation_api
-    edge_lengths_m: list[float] = []
-    edge_midpoints_lnglat: list[tuple[float, float]] = []
+    sample_lengths_m: list[float] = []
+    sample_midpoints_lnglat: list[tuple[float, float]] = []
+    sample_edge_indices: list[int] = []
 
     for i in range(len(coords_utm) - 1):
         x1, y1 = coords_utm[i][0], coords_utm[i][1]
         x2, y2 = coords_utm[i + 1][0], coords_utm[i + 1][1]
-        length = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
-        if length < 0.1:
+        L_total = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+        if L_total < 0.1:
             continue
-        # midpoint in WGS84
-        mlng = (coords_wgs[i][0] + coords_wgs[i + 1][0]) / 2.0
-        mlat = (coords_wgs[i][1] + coords_wgs[i + 1][1]) / 2.0
-        edge_lengths_m.append(length)
-        edge_midpoints_lnglat.append((mlng, mlat))
-        midpoints_wgs.append((mlat, mlng))
 
-    if not edge_lengths_m:
+        lng1, lat1 = coords_wgs[i][0], coords_wgs[i][1]
+        lng2, lat2 = coords_wgs[i + 1][0], coords_wgs[i + 1][1]
+
+        if not use_subsample or L_total <= sub_threshold:
+            # 단일 중점 (기존 동작)
+            mlng = (lng1 + lng2) / 2.0
+            mlat = (lat1 + lat2) / 2.0
+            sample_lengths_m.append(L_total)
+            sample_midpoints_lnglat.append((mlng, mlat))
+            midpoints_wgs.append((mlat, mlng))
+            sample_edge_indices.append(i)
+        else:
+            # 긴 edge 분할: STEP_M 간격 sub-segment, 각 중점에서 sample.
+            n_sub = max(2, int(round(L_total / sub_step)))
+            seg_len = L_total / n_sub
+            for k in range(n_sub):
+                t = (k + 0.5) / n_sub   # k-th sub-segment midpoint
+                slng = lng1 + (lng2 - lng1) * t
+                slat = lat1 + (lat2 - lat1) * t
+                sample_lengths_m.append(seg_len)
+                sample_midpoints_lnglat.append((slng, slat))
+                midpoints_wgs.append((slat, slng))
+                sample_edge_indices.append(i)
+
+    if not sample_lengths_m:
         raise ValueError(
             "parcel_datum_119: polygon has no usable edges "
             "(all edges < 0.1m or empty). Provide a valid Polygon."
@@ -73,23 +129,26 @@ def parcel_datum_119(parcel_wgs: Polygon) -> tuple[float, list[dict]]:
 
     elevations = elevation_api.fetch_elevations(midpoints_wgs)
 
-    total_length = sum(edge_lengths_m)
+    if use_median:
+        elevations = _denoise_median_filter(list(elevations), window=median_window)
+
+    total_length = sum(sample_lengths_m)
     if total_length <= 0:
         return 0.0, []
 
-    weighted_sum = sum(L * h for L, h in zip(edge_lengths_m, elevations))
+    weighted_sum = sum(L * h for L, h in zip(sample_lengths_m, elevations))
     datum_m = weighted_sum / total_length
 
     segments = [
         {
-            "edge_idx": i,
+            "edge_idx": ei,
             "length_m": round(L, 3),
             "midpoint_lng": round(mp[0], 6),
             "midpoint_lat": round(mp[1], 6),
             "midpoint_elev_m": round(h, 3),
         }
-        for i, (L, mp, h) in enumerate(
-            zip(edge_lengths_m, edge_midpoints_lnglat, elevations)
+        for ei, L, mp, h in zip(
+            sample_edge_indices, sample_lengths_m, sample_midpoints_lnglat, elevations
         )
     ]
     return datum_m, segments

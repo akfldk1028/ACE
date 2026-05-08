@@ -310,17 +310,22 @@ def _emit_slanted_polygon_and_walls(
             inner_poly = parcel_utm
 
         ring_utm = list(inner_poly.exterior.coords)[:-1]
-        # Phase C (2026-05-08) — cardinal North distance fix.
-        # 이전: d = north_mls.distance(Point) — 비-정방형 polygon에서 north_mls 단일 edge의
-        #       수직 거리가 한쪽으로 치우쳐 사선이 비스듬히 길게 뻗는 버그 (사용자 지적).
-        # 변경: d = (parcel.max_y - vertex.y) — UTM EPSG:32652 +y가 정북 (Korea Central
-        #       Meridian, 수렴각 < 0.5°, setback_geometry.py:267 명시). polygon 모양 무관.
-        # LOCKED SPEC 영향: 정방형 polygon에서는 동일 (north edge 수직거리 == y 차이).
-        # 비-정방형에서는 사선이 모든 vertex에 균일하게 적용되어 비대칭 사라짐.
-        parcel_max_y = parcel_utm.bounds[3]
+        # 2026-05-08 Phase C revert — §86 정확한 정의.
+        # 이전 Phase C: d = (parcel.max_y - vertex.y) — 모든 vertex를 polygon 최북 1점으로
+        #   reference. 결과: 정사각형에서도 가장 북쪽 vertex 1개만 d=0(H=10), 나머지 점진
+        #   증가(H 점점 큼) → envelope이 한쪽으로 솟는 비대칭 시각 (사용자 docs/img_31).
+        #
+        # 복귀: d = north_mls.distance(Point) — vertex에서 정북 boundary edge까지 최단
+        #   수직거리. §86 "정북방향 인접대지경계선으로부터 거리" 의미에 부합.
+        #   정사각형 axis-aligned: 여러 vertex가 같은 north edge에 가까이 → d≈0 다수 →
+        #   H=10m corner 다수 → envelope 베이스 균일.
+        #
+        # LOCKED SPEC (envelope-locked-spec.md, Session 14): 원래 north_mls.distance.
+        # Phase C는 비-정방형에서의 실제 §86 정의(정북 방향 거리)를 단순화하려다 정사각형
+        # 비대칭을 강화한 부작용. revert가 사용자 다이어그램(이재인 §86 그림)에 부합.
         corners_utm_h: list[list] = []
         for pt in ring_utm:
-            d = max(0.0, parcel_max_y - pt[1])
+            d = north_mls.distance(Point(pt[0], pt[1]))
             h = min(SLOPE * MAX_DEPTH_CAP_M, max(BASE_HEIGHT_M, d * SLOPE))
             corners_utm_h.append([pt[0], pt[1], h])
 

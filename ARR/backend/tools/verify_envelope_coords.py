@@ -2,10 +2,13 @@
 CLI: envelope polygon 좌표가 parcel 내부인지 **자동 검증**.
 
 사용자 피드백: "매번 브라우저로 확인 말고 자동 체크 필요". 이 CLI는
-- plateau polygon 모든 꼭지점이 parcel 내부 (또는 근처) 있는지
 - wall 라인이 parcel 내부 있는지
-- slope polygon 꼭지점 H 값이 법규 §86① 일치 (10→50m)
-- envelope centroid bearing이 필지 남쪽(180°±60°) 인지 (정북 경계에서 남향)
+- slope polygon 꼭지점 H 값이 §86① 범위 [10, 50] 안인지 (per-vertex 분포)
+- envelope 방향이 parcel 북쪽 절반인지
+
+LOCKED SPEC (envelope-locked-spec.md, 2026-04-21):
+- plateau 별도 polygon 폐기 (경사 지붕이 H=10m에서 시작, 중복)
+- slope corners 42개, H ∈ [10, 50] 분포 (vertex별 distance에 따라)
 
 Usage:
     cd ARR/backend
@@ -71,47 +74,58 @@ def verify(pnu: str, backend: str) -> int:
                 fails += 1
             print(f"  {mark} wall[{wi}]pt[{i}]: ({pt[0]:.6f}, {pt[1]:.6f})")
 
-    # 2. Plateau polygon — 모든 꼭지점 parcel 내부
-    print("\n─── 2. 평탄 지붕 (plateau corners in parcel) ───")
+    # 2. Slope corners 모두 parcel 내부 (LOCKED SPEC: parcel.buffer(-1.5m) inner ring)
+    print("\n─── 2. Slope corners parcel 내부 ───")
     for pi, p in enumerate(env.get("slanted_polygons") or []):
-        if p["kind"] != "plateau":
+        if p.get("kind") != "slope":
             continue
         all_in = True
+        out_count = 0
         for c in p["corners"]:
             if not in_parcel(c[0], c[1]):
                 all_in = False
-                print(f"  ✗ plateau[{pi}] OUT: ({c[0]:.6f}, {c[1]:.6f}, H={c[2]}m)")
-                fails += 1
+                out_count += 1
         if all_in:
-            print(f"  ✓ plateau[{pi}] 모든 {len(p['corners'])} corners parcel 내부")
+            print(f"  ✓ slope[{pi}] 모든 {len(p['corners'])} corners parcel 내부")
+        else:
+            print(f"  ✗ slope[{pi}] {out_count}/{len(p['corners'])} corners OUT of parcel")
+            fails += 1
 
-    # 3. Plateau 방향 — centroid bearing이 parcel centroid 기준 '내부'
-    # (즉 envelope이 parcel 안쪽을 향함)
-    print("\n─── 3. Envelope 방향 (centroid 기준) ───")
+    # 3. Envelope 방향 — slope corners 중 H≈10인 점들이 parcel 북쪽 절반에 위치
+    # (정북 경계 부근에서 H=10m로 시작 → 남쪽으로 가면서 H 증가)
+    print("\n─── 3. Envelope 방향 (북쪽 H=10 corner) ───")
     for pi, p in enumerate(env.get("slanted_polygons") or []):
-        if p["kind"] != "plateau":
+        if p.get("kind") != "slope":
             continue
-        ex = sum(c[0] for c in p["corners"]) / len(p["corners"])
-        ey = sum(c[1] for c in p["corners"]) / len(p["corners"])
-        dist = math.hypot(ex - cx, ey - cy)
-        # plateau는 필지 북쪽 근처여야 함 (parcel centroid보다 북쪽)
-        # dy > 0 ← plateau가 centroid보다 북쪽
-        is_north_half = ey > cy
-        mark = "✓" if is_north_half else "?"
-        print(f"  {mark} plateau[{pi}] center=({ex:.6f}, {ey:.6f}), "
-              f"centroid에서 {dist*111000:.1f}m, 북쪽 절반? {is_north_half}")
+        # H ≈ 10 인 corners (북쪽 부근)
+        north_corners = [c for c in p["corners"] if abs(c[2] - 10.0) < 0.5]
+        if not north_corners:
+            print(f"  ? slope[{pi}] H≈10 corner 없음 (parcel 매우 작거나 형태 특이)")
+            continue
+        ny = sum(c[1] for c in north_corners) / len(north_corners)
+        is_north_half = ny > cy
+        mark = "✓" if is_north_half else "✗"
+        if not is_north_half:
+            fails += 1
+        print(f"  {mark} slope[{pi}] H=10 corners 평균 lat={ny:.6f} "
+              f"(parcel centroid {cy:.6f}), 북쪽 절반? {is_north_half}")
 
-    # 4. Slope polygon — H 값이 법규 일치
-    print("\n─── 4. Slope 높이 (§86① H=2x) ───")
+    # 4. Slope corners H 값이 §86① 범위 [10, 50] (LOCKED SPEC: H = min(50, max(10, d×2)))
+    print("\n─── 4. Slope 높이 범위 (§86① 10≤H≤50) ───")
     for pi, p in enumerate(env.get("slanted_polygons") or []):
-        if p["kind"] != "slope":
+        if p.get("kind") != "slope":
             continue
-        heights = sorted({round(c[2], 1) for c in p["corners"]})
-        ok = heights == [10.0, 50.0]
+        heights = [c[2] for c in p["corners"]]
+        h_min = min(heights)
+        h_max = max(heights)
+        in_range = all(10.0 - 0.5 <= h <= 50.0 + 0.5 for h in heights)
+        has_10 = h_min < 10.5  # 북쪽 corner H≈10 (slope 시작점)
+        ok = in_range and has_10
         mark = "✓" if ok else "✗"
         if not ok:
             fails += 1
-        print(f"  {mark} slope[{pi}] heights={heights} (기대 [10.0, 50.0])")
+        print(f"  {mark} slope[{pi}] H range=[{h_min:.1f}, {h_max:.1f}] "
+              f"({len(p['corners'])} corners), in [10, 50]? {in_range}, has 10? {has_10}")
 
     # 5. Profile polyline — 수직 → 평탄 → 경사 3단 프로파일
     print("\n─── 5. Profile polyline (3단 꺾임) ───")

@@ -58,18 +58,20 @@ def verify(pnu: str, backend: str) -> int:
         key = (round(t["distance_m"], 2), round(t["max_height_m"], 2))
         unique[key] = t["kind"]
 
-    # Expected profile (new continuous-surface model):
-    #  1. vertical wall at x=1.5m, H=0→10m
-    #  2. plateau end at x=5m, H=10m (slope 시작점)
-    #  3. slope top at x=max_depth (동적), H=2×max_depth
-    max_depth = env.get("max_depth_m", 15.0)
+    # Expected profile (LOCKED SPEC, envelope-locked-spec.md):
+    #  thresholds 2개:
+    #   1. (distance=0, max_height=base_h≈10) — slope 시작 vertex (corners min H)
+    #   2. (distance=max_depth, max_height=slope×max_depth=50) — slope 끝
+    # plateau_end 별도 polygon 폐기 (경사 지붕이 H=10m에서 시작하므로 중복).
+    # base_height_m default 10.0 (§86①제1호 2023.9.12 개정 9→10m).
+    base_h = env.get("base_height_m", 10.0)
+    max_depth = env.get("max_depth_m", 25.0)
     slope_h = env.get("slope", 2.0) * max_depth
     expected = [
-        (1.5, 10.0, "vertical",     "수직 직각벽 at x=1.5m, H=0→10m"),
-        (min(5.0, max_depth), 10.0, "plateau_end",
-         "평탄부 한계 H=10m (slope 시작)"),
+        (0.0, base_h, "vertical",
+         f"수직벽 base (x=0, H={base_h:.1f}m, slope 시작점)"),
         (max_depth, slope_h, "slope_top",
-         f"경사 지붕 끝 H=2×{max_depth:.1f}={slope_h:.1f}m (필지 clip 적용)"),
+         f"경사 지붕 끝 H={slope_h:.1f}m (max_depth={max_depth}m)"),
     ]
 
     print(f"law_basis: {env.get('law_basis')}")

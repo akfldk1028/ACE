@@ -1697,15 +1697,31 @@ class DatumElevationApiTest(TestCase):
         self.assertEqual(elevs, [10.0, 99.0])
         self.assertEqual(mock_get.call_count, 1)
 
-    def test_provider_unknown_raises(self):
+    def test_provider_unknown_falls_back_via_opentopodata(self):
+        """Session 5 generic dispatch — 알 수 없는 provider도 opentopodata로 시도.
+
+        opentopodata 자체 실패시 Open-Meteo 자동 폴백 (silent fallback).
+        이전 동작(unknown → ValueError) 폐기 — 새 dataset(srtm30m 등) 자유 추가용.
+        """
+        from unittest.mock import patch, MagicMock
         from land import config as land_config
         from land.services.datum import elevation_api
 
+        class _R:
+            def raise_for_status(self): pass
+            def json(self): return {"elevation": [42.0]}
+
         original = land_config.ELEVATION_PROVIDER
-        land_config.ELEVATION_PROVIDER = "bogus"
+        land_config.ELEVATION_PROVIDER = "bogus_dataset"
         try:
-            with self.assertRaises(ValueError):
-                elevation_api.fetch_elevations([(37.5, 127.0)])
+            # opentopodata HTTP 실패 (bogus dataset) → Open-Meteo 폴백 → 정상 응답
+            ngii_mock = MagicMock(side_effect=RuntimeError("404 dataset not found"))
+            ome_mock = MagicMock(return_value=_R())
+            with patch.object(land_config.ngii_client, "get", ngii_mock), \
+                 patch.object(land_config.open_meteo_client, "get", ome_mock):
+                result = elevation_api.fetch_elevations([(37.5, 127.0)])
+            self.assertEqual(result, [42.0])  # Open-Meteo fallback 성공
+            self.assertTrue(ome_mock.called, "Open-Meteo 폴백이 호출되어야 함")
         finally:
             land_config.ELEVATION_PROVIDER = original
 

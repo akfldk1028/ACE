@@ -43,6 +43,9 @@ VWORLD_DATA_BASE = "https://api.vworld.kr/ned/data"
 #     도시 ±10cm, 미커버시 Open-Meteo 자동 폴백
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/elevation"
 NGII_LIDAR_URL: str = os.getenv("NGII_LIDAR_URL", "http://localhost:5000")
+# Step 4 — NGII 연속수치지형도(SHP) → 자체 DEM raster (.tif).
+# tools/ngii_contour_to_dem.py로 생성. provider=ngii_local_dem 일 때 사용.
+NGII_DEM_LOCAL_PATH: str = os.getenv("NGII_DEM_LOCAL_PATH", "")
 ELEVATION_PROVIDER: str = os.getenv("ELEVATION_PROVIDER", "open_meteo")
 
 # Datum 알고리즘 정확도 (Step 1 — 90m DEM 노이즈 흡수, edge sub-sample).

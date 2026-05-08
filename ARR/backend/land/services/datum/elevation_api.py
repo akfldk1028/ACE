@@ -19,6 +19,7 @@ caller(cases.py)가 catch하여 datum_source="failed" 로 표시.
 from __future__ import annotations
 
 import logging
+import os
 
 from land import config
 
@@ -64,6 +65,10 @@ def fetch_elevations(points: list[tuple[float, float]]) -> list[float]:
         return _open_meteo_batch(points)
     if provider == "ngii_lidar_1m":
         return _ngii_lidar_1m_batch(points)
+    if provider == "ngii_local_dem":
+        # Step 4 — 자체 호스팅 GeoTIFF (tools/ngii_contour_to_dem.py 결과).
+        # NGII_DEM_LOCAL_PATH 미설정/실패시 Open-Meteo 자동 폴백.
+        return _ngii_local_dem_batch(points)
     # 그 외 모두 opentopodata sidecar/공개 인스턴스 dataset name으로 처리.
     # 알려진 값: copernicus_glo30, ngii_5m, srtm30m, aster30m, mapzen, eudem25m, etc.
     # 미커버시 Open-Meteo 자동 폴백 (opentopodata 응답 None 또는 HTTP 실패).
@@ -241,4 +246,91 @@ def _opentopodata_http(
             out.append(float(elev))
         else:
             out.append(None)
+    return out
+
+
+# ─── NGII 자체 호스팅 DEM (Step 4 — 수치지형도 SHP → GeoTIFF) ─────
+# 데이터 출처: NGII 연속수치지형도 1:5,000 (data.go.kr/data/15059721, 무료).
+# 변환: tools/ngii_contour_to_dem.py (등고선 7111 + 표고점 7217 → TIN 보간).
+# 좌표계: EPSG:5186 (Korea 2000 / Central Belt).
+# 정확도: ±0.5~1m (도시 §119② 본래 임계값 3m 검증 충분).
+
+_ngii_dem_src = None  # rasterio.DatasetReader, lazy
+_to_5186_transformer = None  # pyproj.Transformer, lazy
+
+
+def _get_ngii_dem_src():
+    global _ngii_dem_src
+    if _ngii_dem_src is not None:
+        return _ngii_dem_src
+    path = config.NGII_DEM_LOCAL_PATH
+    if not path:
+        raise ElevationFetchError(
+            "NGII_DEM_LOCAL_PATH not set. .env에 설정 + tools/ngii_contour_to_dem.py "
+            "로 SHP→TIF 변환 후 path 지정."
+        )
+    if not os.path.exists(path):
+        raise ElevationFetchError(f"NGII DEM file not found: {path}")
+    try:
+        import rasterio
+    except ImportError as e:
+        raise ElevationFetchError(f"rasterio not installed: {e}") from e
+    _ngii_dem_src = rasterio.open(path)
+    logger.info("Opened NGII local DEM: %s (CRS=%s, %dx%d)", path, _ngii_dem_src.crs,
+                _ngii_dem_src.width, _ngii_dem_src.height)
+    return _ngii_dem_src
+
+
+def _get_5186_transformer():
+    global _to_5186_transformer
+    if _to_5186_transformer is None:
+        from pyproj import Transformer
+        _to_5186_transformer = Transformer.from_crs("EPSG:4326", "EPSG:5186", always_xy=True)
+    return _to_5186_transformer
+
+
+def _ngii_local_dem_batch(points: list[tuple[float, float]]) -> list[float]:
+    """자체 호스팅 NGII DEM에서 좌표별 sample. WGS84 (lat, lng) → EPSG:5186 → raster sample.
+
+    실패시 Open-Meteo 자동 폴백 (도시 외 영역 / 파일 미설정 / rasterio 미설치).
+    """
+    try:
+        src = _get_ngii_dem_src()
+        transformer = _get_5186_transformer()
+    except ElevationFetchError as e:
+        logger.warning("NGII local DEM unavailable, fallback to open_meteo: %s", e)
+        try:
+            return _open_meteo_batch(points)
+        except ElevationFetchError as e2:
+            logger.warning("open_meteo fallback also failed: %s", e2)
+            return [0.0] * len(points)
+
+    coords_5186 = [transformer.transform(lng, lat) for lat, lng in points]
+    nodata = src.nodata if src.nodata is not None else -9999.0
+    samples = list(src.sample(coords_5186))
+
+    out: list[float] = []
+    fallback_pts: list[tuple[float, float]] = []
+    fallback_idx: list[int] = []
+
+    for i, s in enumerate(samples):
+        v = float(s[0]) if len(s) > 0 else nodata
+        if v == nodata or not (-500.0 <= v <= 9000.0):
+            # raster 커버리지 밖 → Open-Meteo 폴백 후보
+            fallback_pts.append(points[i])
+            fallback_idx.append(i)
+            out.append(0.0)   # placeholder
+        else:
+            out.append(v)
+
+    if fallback_pts:
+        try:
+            fb = _open_meteo_batch(fallback_pts)
+            for j, val in zip(fallback_idx, fb):
+                out[j] = val
+        except ElevationFetchError as e:
+            logger.warning("NGII miss + open_meteo fallback failed: %s", e)
+            for j in fallback_idx:
+                out[j] = 0.0
+
     return out

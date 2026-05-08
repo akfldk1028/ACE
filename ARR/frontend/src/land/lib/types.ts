@@ -177,8 +177,20 @@ export interface SunlightEnvelope {
   datum_case?: string | null;
   /** "ground_weighted_avg"|"road_centerline"|... or null */
   datum_basis?: string | null;
-  /** 3-state: null=미계산(terrain fallback), "open_meteo"=정상, "failed"=fetch실패(terrain fallback) */
-  elevation_source?: 'open_meteo' | 'failed' | null;
+  /** elevation provider: open_meteo(90m) | copernicus_glo30(30m) | ngii_lidar_1m(14cm) | ngii_5m | failed | null */
+  elevation_source?: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'failed' | null;
+}
+
+/**
+ * envelope 미적용 zone (상업/녹지)에서 datum 단독 표시용.
+ * backend setback_geometry → setback_lines.datum_result 채움 (Phase 2D-2).
+ * design types와 동일 shape 유지.
+ */
+export interface DatumResultDict {
+  elevation_m: number;
+  case: string | null;
+  basis: string | null;
+  elevation_source: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'failed' | null;
 }
 
 /** 채광 인동간격 검증 결과 */
@@ -201,6 +213,7 @@ export interface SetbackLines {
   sunlight_envelope?: SunlightEnvelope | null;
   building_designation_line?: GeoJSONGeometry | null;
   daylight_diagonal_envelope?: SunlightEnvelope | null;
+  datum_result?: DatumResultDict | null;
 }
 
 /** POST /land/analyze/ 전체 응답 */

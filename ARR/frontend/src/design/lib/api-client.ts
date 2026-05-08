@@ -75,3 +75,43 @@ export async function generateFloorPlan(params: {
   if (!res.ok) throw new Error((await res.json()).error || 'Floor plan generation failed');
   return res.json();
 }
+
+export interface ConstraintsParams {
+  site_polygon: object;
+  bcr_limit_pct?: number;
+  far_limit_pct?: number;
+  height_limit_m?: number;
+  adjacent_setback_m?: number;
+  north_setback_m?: number;
+  road_setback_m?: number;
+  sunlight_slope?: number;
+  sunlight_base_height_m?: number;
+}
+
+export interface ConstraintsResult {
+  type: 'FeatureCollection';
+  features: Array<{
+    type: 'Feature';
+    geometry: { type: string; coordinates: unknown };
+    properties: {
+      kind: string;
+      label?: string;
+      color?: string;
+      stroke_width?: number;
+      stroke_dasharray?: number[];
+      fill_opacity?: number;
+      metadata?: Record<string, unknown>;
+    };
+  }>;
+  metadata?: { generator?: string; version?: string };
+}
+
+export async function visualizeConstraints(params: ConstraintsParams): Promise<ConstraintsResult> {
+  const res = await fetch(`${BASE}/constraints/visualize/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error((await res.json()).error || 'Constraints visualize failed');
+  return res.json();
+}

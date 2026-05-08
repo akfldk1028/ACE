@@ -13,7 +13,10 @@ const CASE_LABEL: Record<string, string> = {
 };
 
 const SOURCE_LABEL: Record<string, string> = {
-  open_meteo: 'Open-Meteo (90m DEM)',
+  open_meteo: 'Open-Meteo (90m, ±~11m)',
+  copernicus_glo30: 'Copernicus GLO-30 (30m, ±~2m)',
+  ngii_lidar_1m: 'NGII LiDAR (1m, ±14cm)',
+  ngii_5m: 'NGII 5m DEM (±~1m)',
   failed: '⚠ fetch 실패',
 };
 
@@ -52,8 +55,9 @@ interface Props {
  */
 const DatumInfoCard: React.FC<Props> = React.memo(({ envelope, datumResult }) => {
   // envelope 우선, 없으면 datumResult를 envelope-호환 shape로 변환
+  // elevation_source: Session 4부터 동적 (open_meteo / copernicus_glo30 / ngii_lidar_1m / ngii_5m / failed)
   const data: {
-    elevation_source: 'open_meteo' | 'failed' | null | undefined;
+    elevation_source: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'failed' | null | undefined;
     datum_elevation_m?: number;
     datum_case?: string | null;
     datum_basis?: string | null;

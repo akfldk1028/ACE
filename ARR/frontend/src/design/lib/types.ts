@@ -116,7 +116,7 @@ export interface DatumResultDict {
   elevation_m: number;
   case: string | null;
   basis: string | null;
-  elevation_source: 'open_meteo' | 'failed' | null;
+  elevation_source: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'failed' | null;
   parcel_datum_m?: number | null;
   notes?: string[] | null;
 }

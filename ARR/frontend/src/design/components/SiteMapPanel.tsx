@@ -4,12 +4,17 @@ import { reverse } from '../../land/lib/land-api-client';
 import type { GeoJSONFeature, SetbackGeometry, SetbackGeometriesMap } from '../lib/types';
 import type { SunlightEnvelope } from '../../land/lib/types';
 import { renderSunlightEnvelope } from '../lib/envelopes/sunlight';
+import { renderDatumPlane, clearDatumPlane } from '../lib/envelopes/datum-plane';
+import { renderElevationGrid, clearElevationGrid } from '../lib/envelopes/elevation-grid';
+import { elevationGrid as fetchElevationGrid } from '../../land/lib/land-api-client';
+import { visualizeConstraints, type ConstraintsResult } from '../lib/api-client';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const getCesium = (): any => (window as any).Cesium;
 
 const MASS_PREFIX = 'design-mass-';
 const SETBACK_PREFIX = 'design-setback-';
+const CONSTRAINTS_PREFIX = 'design-constraints-';
 
 interface Props {
   sitePolygon: object | null;
@@ -276,7 +281,7 @@ function renderSetbackEntities(
         },
       });
     } else if (geom.type === 'LineString') {
-      const coords = geom.coordinates as number[][];
+      const coords = geom.coordinates as unknown as number[][];
       if (!coords || coords.length < 2) continue;
       const flat = flattenRing(coords);
       viewer.entities.add({
@@ -321,6 +326,85 @@ function renderSetbackEntities(
   });
 
   // 채광사선제한 (daylight_diagonal_envelope) — 보라 수직벽, 사용자 요청으로 비활성.
+}
+
+/** Clear all constraint visualization entities */
+function clearConstraintEntities(viewer: any) {
+  const toRemove: any[] = [];
+  for (const e of viewer.entities.values) {
+    if (typeof e.id === 'string' && e.id.startsWith(CONSTRAINTS_PREFIX)) toRemove.push(e);
+  }
+  for (const e of toRemove) viewer.entities.remove(e);
+}
+
+/**
+ * Render constraint envelope features from /design/constraints/visualize/.
+ * setbackGeometries fallback path — PNU 검색 없이 임의 polygon에 envelope 시각.
+ *
+ * features per kind:
+ *   - site: 검정 outline (대지경계선)
+ *   - adjacent_setback: 빨간 점선 (대지 안의 공지) — Flexity 광고 매칭
+ *   - north_sunlight_base: 녹색 점선 + 반투명 fill (정북 일조 base 1.5m)
+ *   - sunlight_slope_info: 라벨용 (3D는 sunlight 모듈 별도)
+ *   - regulation_summary: metadata only (시각 X)
+ */
+function renderConstraintEntities(viewer: any, Cesium: any, result: ConstraintsResult) {
+  clearConstraintEntities(viewer);
+
+  for (const feature of result.features) {
+    const kind = feature.properties.kind;
+    const color = feature.properties.color || '#888888';
+    const dashArray = feature.properties.stroke_dasharray;
+    const fillOpacity = feature.properties.fill_opacity ?? 0.0;
+    const strokeWidth = feature.properties.stroke_width ?? 2;
+
+    // Skip metadata-only features
+    if (kind === 'regulation_summary' || kind === 'sunlight_slope_info') {
+      continue;
+    }
+
+    const geom = feature.geometry as { type: string; coordinates: any };
+    const ring = extractRing(geom);
+    if (!ring || ring.length < 3) {
+      continue;
+    }
+    const flat = flattenRing(ring);
+
+    // Polygon fill (when fill_opacity > 0)
+    if (fillOpacity > 0) {
+      viewer.entities.add({
+        id: `${CONSTRAINTS_PREFIX}${kind}-fill`,
+        polygon: {
+          hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
+          // Cesium: heightReference + CLAMP_TO_GROUND 사용 시 height 명시 필요.
+          // 0 = sea level, terrain 기반 자동 클램프 (renderSetbackEntities와 동일 패턴).
+          height: 0,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          material: Cesium.Color.fromCssColorString(color).withAlpha(fillOpacity),
+          outline: false,
+        },
+      });
+    }
+
+    // Outline polyline (dashed if stroke_dasharray present)
+    const cesiumColor = Cesium.Color.fromCssColorString(color);
+    const material = dashArray
+      ? new Cesium.PolylineDashMaterialProperty({
+          color: cesiumColor,
+          dashLength: (dashArray[0] + (dashArray[1] || 0)) * 4,
+        })
+      : cesiumColor;
+
+    viewer.entities.add({
+      id: `${CONSTRAINTS_PREFIX}${kind}-outline`,
+      polyline: {
+        positions: Cesium.Cartesian3.fromDegreesArray(flat),
+        width: strokeWidth * 2,
+        material,
+        clampToGround: true,
+      },
+    });
+  }
 }
 
 /** Fly camera to fit a GeoJSON geometry bounding box */
@@ -467,8 +551,53 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
       // 이미 parcel 위치로 이동시킴. zoomTo(entities)는 vworld map 자체 카메라 모션과
       // race condition 발생해 기존 위치 잃어버림 → entities 위치 이동 호출 제거.
       // 사용자가 carcel에 줌인 되어 있으면 envelope wall(H=10m)/slope(H=50m) 자동 보임.
+
+      // §119 datum 평면 + 라벨 — "지도에도 대지 레벨이 떠야 한다" 사용자 의도 반영.
+      // envelope 우선, 없으면 datum_result로 fallback (정북일조 미적용 zone 지원).
+      // LOCKED SPEC 비파괴: setback/envelope 시각은 그대로, datum 평면만 추가.
+      clearDatumPlane(viewer);
+      const datum_m = setbackGeometries.sunlight_envelope?.datum_elevation_m
+        ?? setbackGeometries.datum_result?.elevation_m
+        ?? null;
+      const ring = sitePolygon ? extractRing(sitePolygon as { type: string; coordinates: any }) : null;
+      renderDatumPlane(viewer, Cesium, datum_m, ring);
+
+      // 주변 표고 격자 (5×5, 25m 간격) — "주변 몇m 표고 다 나오게" 사용자 의도.
+      // parcel centroid 기준 100m 반경, 25m 간격 격자 점에 표고 라벨.
+      clearElevationGrid(viewer);
+      if (ring && ring.length > 0) {
+        let cx = 0, cy = 0;
+        for (const [lng, lat] of ring) { cx += lng; cy += lat; }
+        cx /= ring.length;
+        cy /= ring.length;
+        fetchElevationGrid(cx, cy, 50, 5)
+          .then(res => renderElevationGrid(viewer, Cesium, res.points))
+          .catch(err => console.warn('[ElevationGrid] fetch failed:', err));
+      }
+    } else {
+      clearDatumPlane(viewer);
+      clearElevationGrid(viewer);
     }
-  }, [setbackGeometries, ready, viewerRef]);
+  }, [setbackGeometries, sitePolygon, ready, viewerRef]);
+
+  // visualizeConstraints fallback — setbackGeometries 비어있을 때 임의 polygon에
+  // envelope/setback 시각 자동 생성 (Flexity 광고의 빨간 공지 + 녹색 사선 base 매칭).
+  // PNU 검색 성공 시 setbackGeometries가 채워지므로 이 fallback은 트리거 X.
+  React.useEffect(() => {
+    if (!ready) return;
+    const viewer = viewerRef.current;
+    const Cesium = getCesium();
+    if (!viewer || !Cesium) return;
+
+    const hasSetbacks = setbackGeometries && Object.keys(setbackGeometries).length > 0;
+    if (sitePolygon && !hasSetbacks) {
+      visualizeConstraints({ site_polygon: sitePolygon })
+        .then(result => renderConstraintEntities(viewer, Cesium, result))
+        .catch(err => console.warn('[visualizeConstraints] fallback failed:', err));
+    } else {
+      clearConstraintEntities(viewer);
+    }
+  }, [sitePolygon, setbackGeometries, ready, viewerRef]);
 
   return (
     <div style={{

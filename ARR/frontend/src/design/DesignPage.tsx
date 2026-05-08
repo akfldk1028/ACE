@@ -71,9 +71,16 @@ const DesignPage: React.FC = () => {
     setActivePnu(pnu);
     const boundary = await jobState.loadSiteBoundary(pnu);
     console.log('[Design] boundary:', boundary ? `geometry=${boundary.geometry?.type}, area=${boundary.area_m2}` : 'null');
+    // MultiPolygon → Polygon (first polygon) 변환. backend compute_setback_lines가 Polygon만
+    // 처리. 분할 필지(separated parcels)면 첫 번째만 사용 — 일부 데이터 손실 가능.
+    let site_polygon = boundary?.geometry as { type: string; coordinates: unknown } | undefined;
+    if (site_polygon?.type === 'MultiPolygon') {
+      const coords = site_polygon.coordinates as number[][][][];
+      site_polygon = { type: 'Polygon', coordinates: coords[0] as unknown as number[][][] };
+    }
     await jobState.loadConstraints({
       pnu,
-      site_polygon: boundary?.geometry,
+      site_polygon,
       building_type: buildingType,
     });
   }, [jobState, buildingType]);
@@ -91,6 +98,7 @@ const DesignPage: React.FC = () => {
     const numIslands = 5;
     const popPerIsland = Math.max(3, Math.round(options.populationSize / numIslands));
     const job = await jobState.startJob({
+      pnu: activePnu,
       job_spec: {
         options: {
           'Number of generations': options.maxGenerations,

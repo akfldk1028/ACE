@@ -73,7 +73,7 @@ export function useDesignJob() {
     }
   }, []);
 
-  const startJob = useCallback(async (params?: { job_spec?: object }) => {
+  const startJob = useCallback(async (params?: { job_spec?: object; pnu?: string; address?: string }) => {
     if (!state.sitePolygon) {
       setState(prev => ({ ...prev, error: 'No site polygon selected' }));
       return null;
@@ -84,6 +84,8 @@ export function useDesignJob() {
       const job = await createJob({
         site_polygon: state.sitePolygon,
         constraints: state.constraints,
+        pnu: params?.pnu,
+        address: params?.address,
         ...params,
       });
       setState(prev => ({ ...prev, job, loading: false }));

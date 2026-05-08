@@ -61,5 +61,24 @@ export async function reverse(x: number, y: number): Promise<ReverseGeocodeResul
   return res.json();
 }
 
+/** GET /land/elevation-grid/ — 주변 표고 격자 (Open-Meteo or NGII LiDAR) */
+export interface ElevationGridPoint { lng: number; lat: number; elev_m: number; }
+export interface ElevationGridResult {
+  center: { lng: number; lat: number };
+  radius_m: number;
+  n: number;
+  step_m: number;
+  provider: string;
+  points: ElevationGridPoint[];
+}
+export async function elevationGrid(
+  lng: number, lat: number, radius_m = 50, n = 5,
+): Promise<ElevationGridResult> {
+  const url = `/land/elevation-grid/?lng=${lng}&lat=${lat}&radius_m=${radius_m}&n=${n}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`elevation-grid failed: ${res.status}`);
+  return res.json();
+}
+
 // Re-export types for convenience
 export type { LandAnalysisResult, PnuResolveResult, ReverseGeocodeResult };

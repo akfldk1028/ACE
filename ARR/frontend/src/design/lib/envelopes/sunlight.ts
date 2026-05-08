@@ -60,16 +60,15 @@ export function renderSunlightEnvelope(
   const slopeC = Cesium.Color.fromCssColorString(colors.slope);
   const addedIds: string[] = [];
 
-  // 시각 z축은 항상 Cesium terrainH 사용 (LOCKED SPEC 원래 동작).
-  // datum_elevation_m은 §119 법적 H=0 metadata로 DatumInfoCard에 노출하나,
-  // Cesium 시각 렌더에는 사용 X. 이유:
-  //   - datum (Open-Meteo 90m DEM, EGM2008 절대표고) ≠ terrainH (Cesium globe)
-  //   - 두 값 수십 m 차이 → envelope만 공중에 떠 보임 (다른 setback은 지면)
-  //   - LOCKED SPEC 의도: envelope 베이스가 parcel 지면에서 솟아오르는 것
-  // datum_elevation_m은 envelope.datum_elevation_m 필드로 metadata 전달, 시각 X.
-  const groundH = sampleTerrainAt(
-    viewer, Cesium, envelope.slanted_polygons?.[0]?.corners?.[0],
-  );
+  // Step 3 (2026-05-08) — envelope base z = ring 모든 corner terrain 평균 (단일 평면).
+  // 이전: 첫 corner 1점 sample → 경사진 parcel에선 envelope 베이스가 한쪽 지면에 박혀
+  //       다른 쪽이 떠 보이고 사선이 한쪽으로 비스듬히 솟는 비대칭 발생 (img_28~30).
+  // 변경: 모든 corner terrain 평균 → §119② 가중평균 수평면(datum)에 해당.
+  //       모든 corner에 같은 groundH가 더해져 envelope이 단일 평면 위에서 균일하게 솟음.
+  // backend `envelope.datum_elevation_m` 은 §119 법적 H=0 절대값(EGM2008, Open-Meteo) —
+  // Cesium globe(EGM96 가능) 과 좌표 단위 차이로 시각엔 안 씀. DatumInfoCard 표시만.
+  const corners = envelope.slanted_polygons?.[0]?.corners ?? [];
+  const groundH = ringTerrainMean(viewer, Cesium, corners);
 
   // (1) 북쪽 수직벽 — 바닥 → H=10m (직선→사선 올라가는 면)
   if (Array.isArray(envelope.walls)) {
@@ -130,16 +129,29 @@ export function renderSunlightEnvelope(
 }
 
 /**
- * 첫 corner 위치에서 terrain 고도 sample.
- * 실패시 0 반환 (지형 데이터 없는 환경).
+ * Ring 모든 corner의 terrain 고도 평균 (Step 3 — datum 가중평균 시각).
+ *
+ * 모든 corner의 terrain.getHeight()를 sample해서 평균. parcel이 경사졌어도
+ * envelope 베이스가 단일 평면 위에서 균일하게 솟도록 단일 z 값으로 통일.
+ *
+ * 실패한 sample은 평균에서 제외. 모두 실패면 0.
  */
-function sampleTerrainAt(viewer: any, Cesium: any, corner: number[] | undefined): number {
-  if (!corner || corner.length < 2) return 0;
-  try {
-    const carto = Cesium.Cartographic.fromDegrees(corner[0], corner[1]);
-    const h = viewer.scene.globe.getHeight(carto);
-    return typeof h === 'number' && isFinite(h) ? h : 0;
-  } catch {
-    return 0;
+function ringTerrainMean(viewer: any, Cesium: any, corners: number[][]): number {
+  if (!corners || corners.length === 0) return 0;
+  let sum = 0;
+  let n = 0;
+  for (const c of corners) {
+    if (!c || c.length < 2) continue;
+    try {
+      const carto = Cesium.Cartographic.fromDegrees(c[0], c[1]);
+      const h = viewer.scene.globe.getHeight(carto);
+      if (typeof h === 'number' && isFinite(h)) {
+        sum += h;
+        n += 1;
+      }
+    } catch {
+      // sample 실패한 corner skip
+    }
   }
+  return n > 0 ? sum / n : 0;
 }

@@ -1,9 +1,12 @@
 import React from 'react';
 import { COLOR, STYLE } from '../lib/constants';
-import type { SunlightEnvelope } from '../lib/types';
+import type { SunlightEnvelope, DatumResultDict } from '../lib/types';
 
 interface DatumInfoCardProps {
-  envelope: SunlightEnvelope | null | undefined;
+  /** envelope 우선 (정북일조 적용 zone). 없으면 datumResult로 fallback. */
+  envelope?: SunlightEnvelope | null;
+  /** envelope 없는 zone(상업/녹지)에서 datum 단독 표시용 (Phase 2D-2). */
+  datumResult?: DatumResultDict | null;
 }
 
 const CASE_LABEL: Record<string, string> = {
@@ -17,7 +20,10 @@ const CASE_LABEL: Record<string, string> = {
 };
 
 const SOURCE_LABEL: Record<string, string> = {
-  open_meteo: 'Open-Meteo (90m DEM)',
+  open_meteo: 'Open-Meteo (90m, ±~11m)',
+  copernicus_glo30: 'Copernicus GLO-30 (30m, ±~2m)',
+  ngii_lidar_1m: 'NGII LiDAR (1m, ±14cm)',
+  ngii_5m: 'NGII 5m DEM (±~1m)',
   failed: '⚠ fetch 실패',
 };
 
@@ -32,11 +38,33 @@ const BASIS_LABEL: Record<string, string> = {
   elevation_fetch_failed: '⚠ fetch 실패 → 0.0 fallback',
 };
 
-export const DatumInfoCard = React.memo(function DatumInfoCard({ envelope }: DatumInfoCardProps) {
-  if (!envelope) return null;
+export const DatumInfoCard = React.memo(function DatumInfoCard({ envelope, datumResult }: DatumInfoCardProps) {
+  // envelope 우선, 없으면 datumResult를 envelope-호환 shape로 변환 (design 카드와 동일 패턴)
+  const data: {
+    elevation_source: 'open_meteo' | 'failed' | null | undefined;
+    datum_elevation_m?: number;
+    datum_case?: string | null;
+    datum_basis?: string | null;
+  } | null = envelope
+    ? {
+      elevation_source: envelope.elevation_source,
+      datum_elevation_m: envelope.datum_elevation_m,
+      datum_case: envelope.datum_case,
+      datum_basis: envelope.datum_basis,
+    }
+    : datumResult
+      ? {
+        elevation_source: datumResult.elevation_source,
+        datum_elevation_m: datumResult.elevation_m,
+        datum_case: datumResult.case,
+        datum_basis: datumResult.basis,
+      }
+      : null;
+
+  if (!data) return null;
 
   // datum 미계산 (ENABLE_DATUM_ELEVATION=false 또는 source=null)
-  if (envelope.elevation_source == null) {
+  if (data.elevation_source == null) {
     return (
       <div style={{
         borderRadius: 12,
@@ -57,13 +85,13 @@ export const DatumInfoCard = React.memo(function DatumInfoCard({ envelope }: Dat
     );
   }
 
-  const datum_m = envelope.datum_elevation_m ?? 0;
-  const caseLabel = envelope.datum_case ? (CASE_LABEL[envelope.datum_case] ?? envelope.datum_case) : '-';
-  const srcLabel = SOURCE_LABEL[envelope.elevation_source] ?? envelope.elevation_source;
-  const basisLabel = envelope.datum_basis
-    ? (BASIS_LABEL[envelope.datum_basis] ?? envelope.datum_basis)
+  const datum_m = data.datum_elevation_m ?? 0;
+  const caseLabel = data.datum_case ? (CASE_LABEL[data.datum_case] ?? data.datum_case) : '-';
+  const srcLabel = SOURCE_LABEL[data.elevation_source] ?? data.elevation_source;
+  const basisLabel = data.datum_basis
+    ? (BASIS_LABEL[data.datum_basis] ?? data.datum_basis)
     : null;
-  const isFailed = envelope.elevation_source === 'failed';
+  const isFailed = data.elevation_source === 'failed';
   const accent = isFailed ? COLOR.amber : COLOR.cyan;
 
   // sibling LandInfoSummary 와 동일한 surface (시각 일관성)

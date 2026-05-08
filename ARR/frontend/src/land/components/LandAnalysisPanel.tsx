@@ -351,7 +351,10 @@ export default React.memo(function LandAnalysisPanel({ analysis, address, onSele
 
       {/* ── 지반 레벨 (§119 datum) ── */}
       <motion.div custom={idx++} variants={fadeSlide}>
-        <DatumInfoCard envelope={analysis.setback_lines?.sunlight_envelope} />
+        <DatumInfoCard
+          envelope={analysis.setback_lines?.sunlight_envelope}
+          datumResult={analysis.setback_lines?.datum_result}
+        />
       </motion.div>
 
       {/* ── Law articles ── */}

@@ -16,6 +16,9 @@ import GeoJSON from 'ol/format/GeoJSON';
 import { fromLonLat, toLonLat } from 'ol/proj';
 import { Style, Fill, Stroke, Text as OlText } from 'ol/style';
 import Feature from 'ol/Feature';
+import Point from 'ol/geom/Point';
+import type Polygon from 'ol/geom/Polygon';
+import type MultiPolygon from 'ol/geom/MultiPolygon';
 import { MAP_CONFIG } from '../lib/constants';
 import type { SetbackLines } from '../lib/types';
 
@@ -160,6 +163,19 @@ export function useVworldMap({
           const h = feature.get('height_m') as number;
           if (h && SUNLIGHT_HEIGHT_STYLES[h]) return SUNLIGHT_HEIGHT_STYLES[h];
         }
+        // §119 datum 라벨 — "지도에도 대지 레벨이 떠야 한다" 의도 반영.
+        if (key === 'datum') {
+          const datum_m = feature.get('datum_m') as number;
+          return new Style({
+            text: new OlText({
+              text: `H₀ = ${datum_m.toFixed(2)}m`,
+              font: '700 13px ui-monospace, SFMono-Regular, Menlo, monospace',
+              fill: new Fill({ color: '#facc15' }),
+              stroke: new Stroke({ color: '#000', width: 3 }),
+              overflow: true,
+            }),
+          });
+        }
         return SETBACK_STYLES[key] || SETBACK_STYLES.adjacent_setback;
       },
       zIndex: 11,
@@ -222,6 +238,35 @@ export function useVworldMap({
     const src = setbackSourceRef.current;
     src.clear();
     const format = new GeoJSON();
+
+    // §119 datum 라벨 — buildable_area centroid 위에 "H₀ = X m" 텍스트 추가.
+    // envelope 우선 (정북일조 적용 zone), 없으면 datum_result fallback (상업/녹지 등).
+    const datum_m = lines.sunlight_envelope?.datum_elevation_m
+      ?? lines.datum_result?.elevation_m
+      ?? null;
+    if (datum_m && lines.buildable_area) {
+      try {
+        const baFeat = format.readFeature(lines.buildable_area, {
+          dataProjection: 'EPSG:4326',
+          featureProjection: 'EPSG:3857',
+        }) as Feature;
+        const geom = baFeat.getGeometry() as Polygon | MultiPolygon | undefined;
+        let coord: number[] | undefined;
+        if (geom && 'getInteriorPoint' in geom) {
+          coord = (geom as Polygon).getInteriorPoint().getCoordinates();
+        } else if (geom && 'getInteriorPoints' in geom) {
+          coord = (geom as MultiPolygon).getInteriorPoints().getFirstCoordinate();
+        }
+        if (coord) {
+          const datumFeat = new Feature({ geometry: new Point(coord) });
+          datumFeat.set('setbackType', 'datum');
+          datumFeat.set('datum_m', datum_m);
+          src.addFeature(datumFeat);
+        }
+      } catch (e) {
+        console.warn('Failed to add datum label:', e);
+      }
+    }
     const entries: [string, unknown][] = [
       ['buildable_area', lines.buildable_area],
       ['north_setback', lines.north_setback],

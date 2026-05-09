@@ -61,17 +61,22 @@ def verify(pnu: str, backend: str) -> int:
     # Expected profile (LOCKED SPEC, envelope-locked-spec.md):
     #  thresholds 2개:
     #   1. (distance=0, max_height=base_h≈10) — slope 시작 vertex (corners min H)
-    #   2. (distance=max_depth, max_height=slope×max_depth=50) — slope 끝
-    # plateau_end 별도 polygon 폐기 (경사 지붕이 H=10m에서 시작하므로 중복).
-    # base_height_m default 10.0 (§86①제1호 2023.9.12 개정 9→10m).
+    #   2. (distance=max_depth, max_height=actual max corner H) — slope 끝
+    # 작은 polygon에선 slope_top max_h가 50m 미만 (H = min(50, max(10, d×2))이라
+    # 도곡동 같이 좁은 parcel은 max H가 ~11m). thresholds[].max_height_m 실제값을
+    # backend 응답에서 그대로 사용 (cap 50m 가정 폐기).
     base_h = env.get("base_height_m", 10.0)
     max_depth = env.get("max_depth_m", 25.0)
-    slope_h = env.get("slope", 2.0) * max_depth
+    # backend thresholds에서 slope_top 실제 max_height 추출
+    actual_slope_top = next(
+        (t["max_height_m"] for t in thresholds if t.get("kind") == "slope_top"),
+        env.get("slope", 2.0) * max_depth,
+    )
     expected = [
         (0.0, base_h, "vertical",
          f"수직벽 base (x=0, H={base_h:.1f}m, slope 시작점)"),
-        (max_depth, slope_h, "slope_top",
-         f"경사 지붕 끝 H={slope_h:.1f}m (max_depth={max_depth}m)"),
+        (max_depth, round(actual_slope_top, 2), "slope_top",
+         f"경사 지붕 끝 H={actual_slope_top:.1f}m (max_depth={max_depth}m)"),
     ]
 
     print(f"law_basis: {env.get('law_basis')}")

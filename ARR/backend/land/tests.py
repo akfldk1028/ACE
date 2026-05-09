@@ -1956,8 +1956,9 @@ class DatumCasesTest(TestCase):
         from land.services.datum import compute_datum_elevation, DatumCase, DatumContext
 
         ctx = DatumContext(parcel_wgs=self._square_parcel())
-        # variance 4m (FLAT 임계값 2 초과, SLOPE_3M_THRESHOLD_M=8 이하) → SLOPE_LE3M
-        with self._mock_elev_per_call([[10.0, 11.0, 13.0, 14.0]]):
+        # variance 2m (FLAT 임계 0.5 초과, SLOPE_3M_THRESHOLD_M=3.0 이하) → SLOPE_LE3M
+        # §119② 본래 임계값 (NGII 5m 도입 후 2026-05-09 복귀)
+        with self._mock_elev_per_call([[10.0, 10.5, 11.5, 12.0]]):
             result = compute_datum_elevation(ctx)
         self.assertEqual(result.case, DatumCase.SLOPE_LE3M)
 
@@ -1965,7 +1966,7 @@ class DatumCasesTest(TestCase):
         from land.services.datum import compute_datum_elevation, DatumCase, DatumContext
 
         ctx = DatumContext(parcel_wgs=self._square_parcel())
-        # variance 12m (SLOPE_3M_THRESHOLD_M=8.0 초과) → SLOPE_GT3M
+        # variance 12m (SLOPE_3M_THRESHOLD_M=3.0 초과) → SLOPE_GT3M (§119② 단서)
         with self._mock_elev_per_call([[10.0, 13.0, 18.0, 22.0]]):
             result = compute_datum_elevation(ctx)
         self.assertEqual(result.case, DatumCase.SLOPE_GT3M)

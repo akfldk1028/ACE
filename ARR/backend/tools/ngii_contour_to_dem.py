@@ -35,11 +35,37 @@ def _setup_stdout():
             pass
 
 
+def _find_elev_column(cols: list[str]) -> str | None:
+    """표고/등고선 attribute column 자동 탐지.
+
+    NGII 1:5,000 수치지도 v2.0 표준:
+    - N3L_F0010000 등고선: '등고수치' (Float, m)
+    - N3P_H0020000 삼각점: '표고' (Float, m)
+    - 그 외 알려진 키: ELEV, HEIGHT_M, 고도
+
+    '높이' 단독은 건물·시설(높이 attribute, 표고 아님)이라 제외.
+    """
+    PRIMARY = ["등고수치", "표고", "ELEV", "ELEVATION", "HEIGHT_M", "고도", "Z_VALUE"]
+    for key in PRIMARY:
+        for c in cols:
+            if key.upper() == c.upper():
+                return c
+    # 부분 매칭 (등고선 변형 등)
+    for c in cols:
+        cu = c.upper()
+        if "등고" in c or "표고" in c or "CONT" in cu:
+            return c
+    return None
+
+
 def collect_z_features(shp_dir: str) -> tuple[list[tuple[float, float, float]], tuple[float, float, float, float]]:
-    """SHP 폴더 재귀 스캔. z 값 가진 LineString/Point/MultiLineString 모두에서
-    (x, y, z) 점군 추출. 반환: (점군, bbox xmin/ymin/xmax/ymax).
+    """SHP 폴더 재귀 스캔. z 추출 우선순위:
+    1) geometry.has_z (z 좌표 직접 들어있음)
+    2) attribute column ('등고수치', '표고') — vertex 모두 같은 z
+    z 없는 layer는 자동 skip. 반환: (점군, bbox xmin/ymin/xmax/ymax).
     """
     import geopandas as gpd
+    import pandas as pd
 
     points: list[tuple[float, float, float]] = []
     bbox = [float("inf"), float("inf"), float("-inf"), float("-inf")]
@@ -54,39 +80,97 @@ def collect_z_features(shp_dir: str) -> tuple[list[tuple[float, float, float]], 
         except Exception as e:
             print(f"  [skip] {os.path.basename(shp_path)}: {e}")
             continue
+        if len(gdf) == 0:
+            continue
+
         n_added_before = len(points)
-        for geom in gdf.geometry:
-            if geom is None or geom.is_empty or not geom.has_z:
+        cols = [c for c in gdf.columns if c != "geometry"]
+        elev_col = _find_elev_column(cols)
+
+        for idx, row in gdf.iterrows():
+            geom = row.geometry
+            if geom is None or geom.is_empty:
                 continue
-            t = geom.geom_type
-            if t == "Point":
-                points.append((geom.x, geom.y, geom.z))
-                _update_bbox(bbox, geom.x, geom.y)
-            elif t == "MultiPoint":
-                for pt in geom.geoms:
-                    if pt.has_z:
-                        points.append((pt.x, pt.y, pt.z))
-                        _update_bbox(bbox, pt.x, pt.y)
-            elif t == "LineString":
-                for x, y, z in geom.coords:
-                    points.append((x, y, z))
-                    _update_bbox(bbox, x, y)
-            elif t == "MultiLineString":
-                for line in geom.geoms:
-                    if line.has_z:
-                        for x, y, z in line.coords:
-                            points.append((x, y, z))
-                            _update_bbox(bbox, x, y)
+
+            # 우선순위 1: z 좌표 직접
+            if geom.has_z:
+                _extract_xyz(geom, points, bbox)
+                continue
+
+            # 우선순위 2: attribute column에서 z
+            if elev_col is None:
+                continue
+            z_raw = row[elev_col]
+            if z_raw is None or (isinstance(z_raw, float) and pd.isna(z_raw)):
+                continue
+            try:
+                z = float(z_raw)
+            except (TypeError, ValueError):
+                continue
+            _extract_xy_with_z(geom, z, points, bbox)
+
         added = len(points) - n_added_before
         if added > 0:
-            print(f"  [+] {os.path.basename(shp_path):50s} +{added:>7,} pts")
+            src = "z-coord" if (added > 0 and elev_col is None) else (elev_col or "z-coord")
+            print(f"  [+] {os.path.basename(shp_path):30s} +{added:>7,} pts  ({src})")
 
     if not points:
         raise ValueError(
-            "No z-valued features found. NGII SHP needs LineString z (등고선 7111) "
-            "or Point z (표고점 7217)."
+            "No elevation data found. NGII 1:5,000 수치지도 v2.0 expects N3L_F* (등고선, "
+            "'등고수치' attribute) or N3P_H* (삼각점, '표고' attribute)."
         )
     return points, tuple(bbox)
+
+
+def _extract_xyz(geom, points: list, bbox: list) -> None:
+    """geometry has_z 인 경우 (x, y, z) 직접 추출."""
+    t = geom.geom_type
+    if t == "Point":
+        points.append((geom.x, geom.y, geom.z))
+        _update_bbox(bbox, geom.x, geom.y)
+    elif t == "MultiPoint":
+        for pt in geom.geoms:
+            if pt.has_z:
+                points.append((pt.x, pt.y, pt.z))
+                _update_bbox(bbox, pt.x, pt.y)
+    elif t == "LineString":
+        for x, y, z in geom.coords:
+            points.append((x, y, z))
+            _update_bbox(bbox, x, y)
+    elif t == "MultiLineString":
+        for line in geom.geoms:
+            if line.has_z:
+                for x, y, z in line.coords:
+                    points.append((x, y, z))
+                    _update_bbox(bbox, x, y)
+
+
+def _extract_xy_with_z(geom, z: float, points: list, bbox: list) -> None:
+    """geometry는 2D, z는 attribute. 모든 vertex에 같은 z 부여."""
+    t = geom.geom_type
+    if t == "Point":
+        points.append((geom.x, geom.y, z))
+        _update_bbox(bbox, geom.x, geom.y)
+    elif t == "MultiPoint":
+        for pt in geom.geoms:
+            points.append((pt.x, pt.y, z))
+            _update_bbox(bbox, pt.x, pt.y)
+    elif t == "LineString":
+        for coord in geom.coords:
+            x, y = coord[0], coord[1]
+            points.append((x, y, z))
+            _update_bbox(bbox, x, y)
+    elif t == "MultiLineString":
+        for line in geom.geoms:
+            for coord in line.coords:
+                x, y = coord[0], coord[1]
+                points.append((x, y, z))
+                _update_bbox(bbox, x, y)
+    elif t == "Polygon":
+        for coord in geom.exterior.coords:
+            x, y = coord[0], coord[1]
+            points.append((x, y, z))
+            _update_bbox(bbox, x, y)
 
 
 def _update_bbox(bbox: list, x: float, y: float) -> None:

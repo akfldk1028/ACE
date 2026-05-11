@@ -95,6 +95,7 @@ function renderMassEntities(
   Cesium: any,
   features: GeoJSONFeature[],
   selectedId?: number,
+  datumZ?: number,  // 2026-05-11 Step 5: NGII §119 datum 절대 z (envelope과 통일)
 ) {
   clearMassEntities(viewer);
 
@@ -110,7 +111,11 @@ function renderMassEntities(
     const isSelected = selectedId != null && designId === selectedId;
     const shapeColor = SHAPE_COLORS[p.mass_shape || 'rectangle'] || '#60a5fa';
 
-    const groundH = getGroundHeight(Cesium, viewer, ring);
+    // Step 5: datumZ(NGII §119) 우선 → envelope/매스/datum 평면 단일 평면.
+    // 없으면 Cesium globe terrain fallback (LOCKED SPEC 이전 동작).
+    const groundH = (datumZ != null && isFinite(datumZ) && datumZ !== 0)
+      ? datumZ
+      : getGroundHeight(Cesium, viewer, ring);
     const flat = flattenRing(ring);
 
     const hasStepback = p.step_floor && p.upper_geometry && p.lower_height;
@@ -511,9 +516,12 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
     if (!viewer || !Cesium) return;
 
     const hasSetbacks = setbackGeometries && Object.keys(setbackGeometries).length > 0;
+    // Step 5: NGII datum 절대 z (envelope.datum_elevation_m) 추출 — 매스도 동일 기준
+    const datumZ = setbackGeometries?.sunlight_envelope?.datum_elevation_m
+      ?? setbackGeometries?.datum_result?.elevation_m;
     if (massFeatures && massFeatures.length > 0) {
       setBuildingsVisible(false);
-      renderMassEntities(viewer, Cesium, massFeatures, selectedDesignId);
+      renderMassEntities(viewer, Cesium, massFeatures, selectedDesignId, datumZ);
     } else if (hasSetbacks) {
       // 규제선만 있어도 기존 건물 숨기기 (Wall이 건물에 가려지지 않도록)
       setBuildingsVisible(false);

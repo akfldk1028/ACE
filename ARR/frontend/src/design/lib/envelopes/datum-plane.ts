@@ -62,29 +62,31 @@ export function renderDatumPlane(
   const flat: number[] = [];
   for (const [lng, lat] of parcelRing) flat.push(lng, lat);
 
+  // Step 5 (2026-05-11) — datum 평면을 NGII §119 절대 z에 배치 (clamp 제거).
+  // 매스/envelope과 동일 절대값 평면 → 시각 통일.
   const planeId = `${DATUM_PLANE_PREFIX}plane`;
   viewer.entities.add({
     id: planeId,
     polygon: {
       hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
-      // Cesium 요구: heightReference 사용 시 height도 정의 필수 (warning 회피)
-      height: 0,
-      heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+      height: datum_m,                 // §119 절대 z (envelope/매스와 동일)
       material: fillC.withAlpha(0.45),
-      outline: false,   // CLAMP_TO_GROUND는 outline 미지원 → polyline 별도
+      outline: true,
+      outlineColor: outlineC,
     },
   });
   addedIds.push(planeId);
 
-  // outline polyline (clampToGround로 terrain 따라감)
+  // outline polyline (절대 z, datum_m)
+  const flatWithH: number[] = [];
+  for (const [lng, lat] of parcelRing) flatWithH.push(lng, lat, datum_m);
   const outlineId = `${DATUM_PLANE_PREFIX}outline`;
   viewer.entities.add({
     id: outlineId,
     polyline: {
-      positions: Cesium.Cartesian3.fromDegreesArray(flat),
+      positions: Cesium.Cartesian3.fromDegreesArrayHeights(flatWithH),
       width: 4,
       material: outlineC,
-      clampToGround: true,
     },
   });
   addedIds.push(outlineId);

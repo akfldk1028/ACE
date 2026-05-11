@@ -60,15 +60,15 @@ export function renderSunlightEnvelope(
   const slopeC = Cesium.Color.fromCssColorString(colors.slope);
   const addedIds: string[] = [];
 
-  // Step 3 (2026-05-08) — envelope base z = ring 모든 corner terrain 평균 (단일 평면).
-  // 이전: 첫 corner 1점 sample → 경사진 parcel에선 envelope 베이스가 한쪽 지면에 박혀
-  //       다른 쪽이 떠 보이고 사선이 한쪽으로 비스듬히 솟는 비대칭 발생 (img_28~30).
-  // 변경: 모든 corner terrain 평균 → §119② 가중평균 수평면(datum)에 해당.
-  //       모든 corner에 같은 groundH가 더해져 envelope이 단일 평면 위에서 균일하게 솟음.
-  // backend `envelope.datum_elevation_m` 은 §119 법적 H=0 절대값(EGM2008, Open-Meteo) —
-  // Cesium globe(EGM96 가능) 과 좌표 단위 차이로 시각엔 안 씀. DatumInfoCard 표시만.
+  // Step 5 (2026-05-11) — envelope base z = NGII §119 datum 절대값 우선.
+  // backend `envelope.datum_elevation_m` (NGII 5m EGM2008) 가 있으면 그걸 사용 →
+  // 매스/envelope/datum 평면 모두 단일 절대 평면 위에서 솟음 (시각 통일).
+  // fallback: ring corner terrain 평균 (Step 3, NGII datum 없을 때).
   const corners = envelope.slanted_polygons?.[0]?.corners ?? [];
-  const groundH = ringTerrainMean(viewer, Cesium, corners);
+  const datumZ = envelope.datum_elevation_m;
+  const groundH = (datumZ != null && isFinite(datumZ) && datumZ !== 0)
+    ? datumZ
+    : ringTerrainMean(viewer, Cesium, corners);
 
   // (1) 북쪽 수직벽 — 바닥 → H=10m (직선→사선 올라가는 면)
   if (Array.isArray(envelope.walls)) {

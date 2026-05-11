@@ -70,63 +70,21 @@ export function renderSunlightEnvelope(
     ? datumZ
     : ringTerrainMean(viewer, Cesium, corners);
 
-  // Step 6 (2026-05-11) — 다이어그램(이재인 §86 그림) 부합:
-  // (A) 9m 이하 부분: parcel inner ring 위 수직 박스 (H=0→10m, 모든 면 수직)
-  // (B) 9m 초과 부분: 사선 polygon (corners H ≥ 10, 정북 → 정남 사선)
-  // 이전: 북쪽 단일 벽만 + 사선이 지면까지. 사용자 지적: "전부 이 다이어그램 모습".
-  const slopeCorners = envelope.slanted_polygons?.[0]?.corners ?? [];
-  if (slopeCorners.length >= 3) {
-    const baseFlat: number[] = [];
-    for (const c of slopeCorners) baseFlat.push(c[0], c[1]);
-    viewer.entities.add({
-      id: `${SUNLIGHT_ENVELOPE_PREFIX}base-box`,
-      polygon: {
-        hierarchy: Cesium.Cartesian3.fromDegreesArray(baseFlat),
-        height: groundH,
-        extrudedHeight: groundH + 10,    // 9m → 10m (2023.9.12 §86 개정)
-        material: wallC.withAlpha(0.30),
-        outline: true,
-        outlineColor: wallC,
-        outlineWidth: 3,
-      },
-    });
-    addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}base-box`);
-  }
+  // Step 7 (2026-05-11) — 사용자 의도: "정북사선만 제대로 나타내야지".
+  // 박스 (9m 이하)를 polygon 가득 채우면 시각 noise → 박스 제거.
+  // 정북 boundary 위 reference 선 (1.5m 이격 + H=10 indication) 만 outline으로 표시.
+  // 사선 윗면은 (B)에서 그대로 유지.
+  // 이게 §86 정북일조 사선 제한선의 가장 핵심: 사선 윗면 표현 + datum 평면 (별도 entity).
 
-  // (2) 사선면 prism — 사선 측면 walls (Step 6, 다이어그램 부합):
-  //   - 박스 윗면 (H=10m) → corner H_max (사선 끝)
-  //   - 정북 edge (H1≈H2≈10): wall 0 높이 skip
-  //   - 정남 edge: 거의 수직 wall (H_max → H_max)
-  //   - 동/서 edge: 사선 wall (10 → H_max)
-  // 그 위 사선 폴리곤 (perPositionHeight) — 윗면.
+  // (2) 사선면 polygon (Step 7) — 정북일조 사선 제한선만 표시.
+  // 단일 perPositionHeight polygon: 정북 corner H=10 → 정남 corner H=H_max.
+  // 측면 wall + 박스 모두 제거 (사용자: "평면 가득차면 못 알아봐").
   if (Array.isArray(envelope.slanted_polygons)) {
     for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
       const poly = envelope.slanted_polygons[pi];
       const corners = poly.corners as number[][];
       if (!corners || corners.length < 3) continue;
 
-      // 측면 wall — corner i → i+1, 박스 윗면(10) → corner z
-      for (let i = 0; i < corners.length; i++) {
-        const c1 = corners[i];
-        const c2 = corners[(i + 1) % corners.length];
-        const h1 = c1[2], h2 = c2[2];
-        if (h1 <= 10.5 && h2 <= 10.5) continue;  // 정북 edge 박스 위 평탄
-        viewer.entities.add({
-          id: `${SUNLIGHT_ENVELOPE_PREFIX}slope-side-${pi}-${i}`,
-          wall: {
-            positions: Cesium.Cartesian3.fromDegreesArray([c1[0], c1[1], c2[0], c2[1]]),
-            minimumHeights: [groundH + 10, groundH + 10],
-            maximumHeights: [groundH + h1, groundH + h2],
-            material: slopeC.withAlpha(0.40),
-            outline: true,
-            outlineColor: slopeC,
-            outlineWidth: 2,
-          },
-        });
-        addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}slope-side-${pi}-${i}`);
-      }
-
-      // 윗면 사선 폴리곤
       const roofFlat: number[] = [];
       for (const c of corners) roofFlat.push(c[0], c[1], c[2] + groundH);
 
@@ -136,7 +94,7 @@ export function renderSunlightEnvelope(
         polygon: {
           hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(roofFlat),
           perPositionHeight: true,
-          material: slopeC.withAlpha(0.40),
+          material: slopeC.withAlpha(0.35),
           outline: true,
           outlineColor: slopeC,
           outlineWidth: 3,

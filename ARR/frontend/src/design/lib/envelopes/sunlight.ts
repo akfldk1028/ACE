@@ -93,13 +93,40 @@ export function renderSunlightEnvelope(
     addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}base-box`);
   }
 
-  // (2) 경사 지붕 — H=10m → 50m (법규 사선, perPositionHeight)
+  // (2) 사선면 prism — 사선 측면 walls (Step 6, 다이어그램 부합):
+  //   - 박스 윗면 (H=10m) → corner H_max (사선 끝)
+  //   - 정북 edge (H1≈H2≈10): wall 0 높이 skip
+  //   - 정남 edge: 거의 수직 wall (H_max → H_max)
+  //   - 동/서 edge: 사선 wall (10 → H_max)
+  // 그 위 사선 폴리곤 (perPositionHeight) — 윗면.
   if (Array.isArray(envelope.slanted_polygons)) {
     for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
       const poly = envelope.slanted_polygons[pi];
       const corners = poly.corners as number[][];
       if (!corners || corners.length < 3) continue;
 
+      // 측면 wall — corner i → i+1, 박스 윗면(10) → corner z
+      for (let i = 0; i < corners.length; i++) {
+        const c1 = corners[i];
+        const c2 = corners[(i + 1) % corners.length];
+        const h1 = c1[2], h2 = c2[2];
+        if (h1 <= 10.5 && h2 <= 10.5) continue;  // 정북 edge 박스 위 평탄
+        viewer.entities.add({
+          id: `${SUNLIGHT_ENVELOPE_PREFIX}slope-side-${pi}-${i}`,
+          wall: {
+            positions: Cesium.Cartesian3.fromDegreesArray([c1[0], c1[1], c2[0], c2[1]]),
+            minimumHeights: [groundH + 10, groundH + 10],
+            maximumHeights: [groundH + h1, groundH + h2],
+            material: slopeC.withAlpha(0.40),
+            outline: true,
+            outlineColor: slopeC,
+            outlineWidth: 2,
+          },
+        });
+        addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}slope-side-${pi}-${i}`);
+      }
+
+      // 윗면 사선 폴리곤
       const roofFlat: number[] = [];
       for (const c of corners) roofFlat.push(c[0], c[1], c[2] + groundH);
 
@@ -109,7 +136,7 @@ export function renderSunlightEnvelope(
         polygon: {
           hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(roofFlat),
           perPositionHeight: true,
-          material: slopeC.withAlpha(0.28),
+          material: slopeC.withAlpha(0.40),
           outline: true,
           outlineColor: slopeC,
           outlineWidth: 3,

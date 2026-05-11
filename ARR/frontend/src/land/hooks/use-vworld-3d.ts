@@ -262,8 +262,6 @@ export function useVworld3D({
           bindEventHandlers(existingViewer, Cesium);
 
           // 2026-05-11 — HMR 시 imagery layer가 사라지는 케이스 fix.
-          // useEffect cleanup이 imageryLayers.removeAll() 호출 후 재mount 시
-          // 새 imagery 추가 안 되어 검정 globe ("우주") 발생.
           try {
             if (existingViewer.imageryLayers.length === 0) {
               existingViewer.imageryLayers.addImageryProvider(
@@ -276,6 +274,28 @@ export function useVworld3D({
             }
           } catch (e) {
             console.warn('HMR imagery 재추가 실패:', e);
+          }
+
+          // 2026-05-11 v2 — HMR 후 카메라가 우주(1700km)에 머물러 검정 화면.
+          // 카메라 height > 100km면 한국 default 위치로 강제 reset.
+          try {
+            const camH = existingViewer.camera.positionCartographic?.height;
+            if (!isFinite(camH) || camH > 100000) {
+              existingViewer.camera.setView({
+                destination: Cesium.Cartesian3.fromDegrees(
+                  MAP_CONFIG_3D.center[0],
+                  MAP_CONFIG_3D.center[1],
+                  MAP_CONFIG_3D.defaultAltitude,
+                ),
+                orientation: {
+                  heading: 0,
+                  pitch: Cesium.Math.toRadians(MAP_CONFIG_3D.defaultPitch),
+                  roll: 0,
+                },
+              });
+            }
+          } catch (e) {
+            console.warn('HMR 카메라 reset 실패:', e);
           }
 
           setReady(true);

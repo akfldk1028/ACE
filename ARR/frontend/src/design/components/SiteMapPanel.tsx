@@ -433,26 +433,24 @@ function flyToGeometryBbox(viewerRef: React.RefObject<any>, geometry: any) {
     if (lat > north) north = lat;
   }
 
-  // Add padding 작은 parcel에서 zoom too close 방지
-  // 작은 parcel (~20m, 0.0002°)일 때 800% padding → ~200m 거리
-  // 큰 parcel일 때 50% padding
+  // 2026-05-11 — Cartesian3 직접 좌표 fly-to (Rectangle은 envelope 시각엔 너무 멀게 잡음).
+  // parcel centroid 위 적정 height (~80m 이상)에서 pitch -45° 측면 시점.
   const spanLng = east - west;
   const spanLat = north - south;
-  const span = Math.max(spanLng, spanLat);
-  // span < 0.0003° (≈30m) → 800% padding (작은 필지)
-  // span > 0.001° (≈100m) → 50% padding (큰 필지)
-  const paddingFactor = span < 0.0003 ? 8.0 : span < 0.001 ? 3.0 : 0.5;
-  const dLng = spanLng * paddingFactor || 0.001;
-  const dLat = spanLat * paddingFactor || 0.001;
-  west -= dLng; east += dLng;
-  south -= dLat; north += dLat;
+  const cx = (west + east) / 2;
+  const cy = (south + north) / 2;
+  // span (°) → meters. lat 1° ≈ 111km. parcel 50m면 spanLat ≈ 0.00045
+  const parcelSizeM = Math.max(spanLng, spanLat) * 111000;
+  // 카메라 height: parcel 크기의 ~3배 (작은 parcel 80m 이상, 큰 parcel 300m 이상)
+  // envelope max H=50m라 최소 80m 위에서 측면 가능
+  const cameraHeight = Math.max(80, parcelSizeM * 3);
 
   viewer.camera.flyTo({
-    destination: Cesium.Rectangle.fromDegrees(west, south, east, north),
+    destination: Cesium.Cartesian3.fromDegrees(cx, cy - 0.0003, cameraHeight),
     orientation: {
-      heading: Cesium.Math.toRadians(0),
-      // pitch -35° → envelope wall (H=10m), slope (H=50m) 측면 보기 적합
-      pitch: Cesium.Math.toRadians(-35),
+      heading: Cesium.Math.toRadians(0),  // 정북 방향
+      // pitch -45° → envelope wall + slope roof 측면 보기 (사선 + 수직벽 둘 다 보임)
+      pitch: Cesium.Math.toRadians(-45),
       roll: 0,
     },
     duration: 1.5,

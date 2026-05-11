@@ -70,33 +70,27 @@ export function renderSunlightEnvelope(
     ? datumZ
     : ringTerrainMean(viewer, Cesium, corners);
 
-  // (1) 북쪽 수직벽 — 바닥 → H=10m (직선→사선 올라가는 면)
-  if (Array.isArray(envelope.walls)) {
-    for (let wi = 0; wi < envelope.walls.length; wi++) {
-      const wall = envelope.walls[wi];
-      const positions = wall.positions;
-      const maxH: number[] = wall.max_heights;
-      const minH: number[] = wall.min_heights;
-      if (!positions || positions.length < 2 || positions.length !== maxH.length) continue;
-
-      const flat: number[] = [];
-      for (const [lng, lat] of positions) flat.push(lng, lat);
-
-      const id = `${SUNLIGHT_ENVELOPE_PREFIX}wall-${wi}`;
-      viewer.entities.add({
-        id,
-        wall: {
-          positions: Cesium.Cartesian3.fromDegreesArray(flat),
-          minimumHeights: minH.map((h: number) => h + groundH),
-          maximumHeights: maxH.map((h: number) => h + groundH),
-          material: wallC.withAlpha(0.55),  // 0.25 → 0.55: 인접 건물 가림 줄임
-          outline: true,
-          outlineColor: wallC,
-          outlineWidth: 4,
-        },
-      });
-      addedIds.push(id);
-    }
+  // Step 6 (2026-05-11) — 다이어그램(이재인 §86 그림) 부합:
+  // (A) 9m 이하 부분: parcel inner ring 위 수직 박스 (H=0→10m, 모든 면 수직)
+  // (B) 9m 초과 부분: 사선 polygon (corners H ≥ 10, 정북 → 정남 사선)
+  // 이전: 북쪽 단일 벽만 + 사선이 지면까지. 사용자 지적: "전부 이 다이어그램 모습".
+  const slopeCorners = envelope.slanted_polygons?.[0]?.corners ?? [];
+  if (slopeCorners.length >= 3) {
+    const baseFlat: number[] = [];
+    for (const c of slopeCorners) baseFlat.push(c[0], c[1]);
+    viewer.entities.add({
+      id: `${SUNLIGHT_ENVELOPE_PREFIX}base-box`,
+      polygon: {
+        hierarchy: Cesium.Cartesian3.fromDegreesArray(baseFlat),
+        height: groundH,
+        extrudedHeight: groundH + 10,    // 9m → 10m (2023.9.12 §86 개정)
+        material: wallC.withAlpha(0.30),
+        outline: true,
+        outlineColor: wallC,
+        outlineWidth: 3,
+      },
+    });
+    addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}base-box`);
   }
 
   // (2) 경사 지붕 — H=10m → 50m (법규 사선, perPositionHeight)

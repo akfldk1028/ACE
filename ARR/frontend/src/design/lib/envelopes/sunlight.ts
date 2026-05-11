@@ -70,32 +70,29 @@ export function renderSunlightEnvelope(
     ? datumZ
     : ringTerrainMean(viewer, Cesium, corners);
 
-  // (1) 북쪽 수직벽 — 바닥 → H=10m (원래 LOCKED SPEC Session 14 복원)
-  // 사용자 검증: "이렇게 그리는거야" — 박스/측면 wall은 시각 noise라 폐기.
-  // walls[].kind = "north_vertical" 만 그리기 (정북 boundary 위 H=0→10m).
-  if (Array.isArray(envelope.walls)) {
-    for (let wi = 0; wi < envelope.walls.length; wi++) {
-      const wall = envelope.walls[wi];
-      const positions = wall.positions;
-      const maxH: number[] = wall.max_heights;
-      const minH: number[] = wall.min_heights;
-      if (!positions || positions.length < 2 || positions.length !== maxH.length) continue;
-      const flat: number[] = [];
-      for (const [lng, lat] of positions) flat.push(lng, lat);
-      const id = `${SUNLIGHT_ENVELOPE_PREFIX}wall-${wi}`;
+  // (1) Step 8 (2026-05-11) — 모든 측면에 수직벽 (H=0→10m). 다이어그램 4면 박스.
+  // 사용자 지적: "한쪽은 수평+사선, 한쪽은 그냥 사선 = 말 안 됨".
+  // 원래 backend walls는 정북 edge만 → 한쪽만 수직 + 다른 쪽 사선이 지면까지 (비대칭).
+  // Fix: corners ring 전체에 wall (각 edge H=0→10m) — 정북만 아닌 모든 면 수직 박스.
+  // 사선 polygon은 (2)에서 그 위 H>10 부분만.
+  const sunlightCorners = envelope.slanted_polygons?.[0]?.corners ?? [];
+  if (sunlightCorners.length >= 3) {
+    for (let i = 0; i < sunlightCorners.length; i++) {
+      const c1 = sunlightCorners[i];
+      const c2 = sunlightCorners[(i + 1) % sunlightCorners.length];
       viewer.entities.add({
-        id,
+        id: `${SUNLIGHT_ENVELOPE_PREFIX}wall-${i}`,
         wall: {
-          positions: Cesium.Cartesian3.fromDegreesArray(flat),
-          minimumHeights: minH.map((h: number) => h + groundH),
-          maximumHeights: maxH.map((h: number) => h + groundH),
-          material: wallC.withAlpha(0.5),
+          positions: Cesium.Cartesian3.fromDegreesArray([c1[0], c1[1], c2[0], c2[1]]),
+          minimumHeights: [groundH, groundH],
+          maximumHeights: [groundH + 10, groundH + 10],
+          material: wallC.withAlpha(0.45),
           outline: true,
           outlineColor: wallC,
-          outlineWidth: 4,
+          outlineWidth: 3,
         },
       });
-      addedIds.push(id);
+      addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}wall-${i}`);
     }
   }
 

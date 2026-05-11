@@ -89,10 +89,10 @@ export function renderSunlightEnvelope(
           positions: Cesium.Cartesian3.fromDegreesArray(flat),
           minimumHeights: minH.map((h: number) => h + groundH),
           maximumHeights: maxH.map((h: number) => h + groundH),
-          material: wallC.withAlpha(0.25),
+          material: wallC.withAlpha(0.55),  // 0.25 → 0.55: 인접 건물 가림 줄임
           outline: true,
           outlineColor: wallC,
-          outlineWidth: 3,
+          outlineWidth: 4,
         },
       });
       addedIds.push(id);

@@ -77,6 +77,7 @@ export function renderSunlightEnvelope(
   // 사선 polygon은 (2)에서 그 위 H>10 부분만.
   const sunlightCorners = envelope.slanted_polygons?.[0]?.corners ?? [];
   if (sunlightCorners.length >= 3) {
+    // 4면 수직벽 (H=0→10m)
     for (let i = 0; i < sunlightCorners.length; i++) {
       const c1 = sunlightCorners[i];
       const c2 = sunlightCorners[(i + 1) % sunlightCorners.length];
@@ -94,6 +95,24 @@ export function renderSunlightEnvelope(
       });
       addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}wall-${i}`);
     }
+
+    // Step 9: 박스 윗면 평탄 polygon (H=10m) — 다이어그램 평탄부 (1.5~5m H=10m)
+    // 사용자 지적: "수평인 부분이 없다". 사선이 박스 윗면에서 바로 시작 → 평탄부 없음.
+    // 평탄 polygon이 사선 polygon 정북 부분과 겹쳐 평탄 시각화.
+    const plateauFlat: number[] = [];
+    for (const c of sunlightCorners) plateauFlat.push(c[0], c[1]);
+    viewer.entities.add({
+      id: `${SUNLIGHT_ENVELOPE_PREFIX}plateau`,
+      polygon: {
+        hierarchy: Cesium.Cartesian3.fromDegreesArray(plateauFlat),
+        height: groundH + 10,
+        material: wallC.withAlpha(0.30),
+        outline: true,
+        outlineColor: wallC,
+        outlineWidth: 3,
+      },
+    });
+    addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}plateau`);
   }
 
   // (2) 사선면 polygon (Step 7) — 정북일조 사선 제한선만 표시.

@@ -70,11 +70,34 @@ export function renderSunlightEnvelope(
     ? datumZ
     : ringTerrainMean(viewer, Cesium, corners);
 
-  // Step 7 (2026-05-11) — 사용자 의도: "정북사선만 제대로 나타내야지".
-  // 박스 (9m 이하)를 polygon 가득 채우면 시각 noise → 박스 제거.
-  // 정북 boundary 위 reference 선 (1.5m 이격 + H=10 indication) 만 outline으로 표시.
-  // 사선 윗면은 (B)에서 그대로 유지.
-  // 이게 §86 정북일조 사선 제한선의 가장 핵심: 사선 윗면 표현 + datum 평면 (별도 entity).
+  // (1) 북쪽 수직벽 — 바닥 → H=10m (원래 LOCKED SPEC Session 14 복원)
+  // 사용자 검증: "이렇게 그리는거야" — 박스/측면 wall은 시각 noise라 폐기.
+  // walls[].kind = "north_vertical" 만 그리기 (정북 boundary 위 H=0→10m).
+  if (Array.isArray(envelope.walls)) {
+    for (let wi = 0; wi < envelope.walls.length; wi++) {
+      const wall = envelope.walls[wi];
+      const positions = wall.positions;
+      const maxH: number[] = wall.max_heights;
+      const minH: number[] = wall.min_heights;
+      if (!positions || positions.length < 2 || positions.length !== maxH.length) continue;
+      const flat: number[] = [];
+      for (const [lng, lat] of positions) flat.push(lng, lat);
+      const id = `${SUNLIGHT_ENVELOPE_PREFIX}wall-${wi}`;
+      viewer.entities.add({
+        id,
+        wall: {
+          positions: Cesium.Cartesian3.fromDegreesArray(flat),
+          minimumHeights: minH.map((h: number) => h + groundH),
+          maximumHeights: maxH.map((h: number) => h + groundH),
+          material: wallC.withAlpha(0.5),
+          outline: true,
+          outlineColor: wallC,
+          outlineWidth: 4,
+        },
+      });
+      addedIds.push(id);
+    }
+  }
 
   // (2) 사선면 polygon (Step 7) — 정북일조 사선 제한선만 표시.
   // 단일 perPositionHeight polygon: 정북 corner H=10 → 정남 corner H=H_max.
@@ -94,10 +117,10 @@ export function renderSunlightEnvelope(
         polygon: {
           hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(roofFlat),
           perPositionHeight: true,
-          material: slopeC.withAlpha(0.35),
+          material: slopeC.withAlpha(0.65),  // 0.35 → 0.65 (작은 polygon에서도 가시)
           outline: true,
           outlineColor: slopeC,
-          outlineWidth: 3,
+          outlineWidth: 5,                    // 3 → 5
         },
       });
       addedIds.push(id);

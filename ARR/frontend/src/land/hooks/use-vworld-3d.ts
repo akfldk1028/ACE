@@ -260,6 +260,24 @@ export function useVworld3D({
           const ws3d = getWs3d();
           if (ws3d?.map) mapInstanceRef.current = ws3d.map;
           bindEventHandlers(existingViewer, Cesium);
+
+          // 2026-05-11 — HMR 시 imagery layer가 사라지는 케이스 fix.
+          // useEffect cleanup이 imageryLayers.removeAll() 호출 후 재mount 시
+          // 새 imagery 추가 안 되어 검정 globe ("우주") 발생.
+          try {
+            if (existingViewer.imageryLayers.length === 0) {
+              existingViewer.imageryLayers.addImageryProvider(
+                new Cesium.UrlTemplateImageryProvider({
+                  url: `https://api.vworld.kr/req/wmts/1.0.0/${apiKeyRef.current}/Base/{z}/{y}/{x}.png`,
+                  maximumLevel: 19,
+                  credit: new Cesium.Credit('Vworld'),
+                }),
+              );
+            }
+          } catch (e) {
+            console.warn('HMR imagery 재추가 실패:', e);
+          }
+
           setReady(true);
           setLoading(false);
           return;

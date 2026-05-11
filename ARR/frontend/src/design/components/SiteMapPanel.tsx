@@ -433,25 +433,26 @@ function flyToGeometryBbox(viewerRef: React.RefObject<any>, geometry: any) {
     if (lat > north) north = lat;
   }
 
-  // 2026-05-11 — Cartesian3 직접 좌표 fly-to.
-  // parcel centroid 남쪽 + 충분히 높은 위치에서 envelope 측면 시점.
-  // 너무 낮으면 카메라가 지구면에 박혀 검정 화면.
+  // 2026-05-11 v3 — envelope 측면 view (pitch -30° + 남쪽 멀리에서 북쪽 보기).
+  // 작은 단독주택 (parcelSize ~30m) envelope 측면 시각화 최적화.
+  // 너무 위에서 보면 "우주" view, 너무 가까이면 지구면 검정. 균형 잡음.
   const spanLng = east - west;
   const spanLat = north - south;
   const cx = (west + east) / 2;
   const cy = (south + north) / 2;
   const parcelSizeM = Math.max(spanLng, spanLat) * 111000;
-  // 카메라 height: parcel 크기 4배, 최소 300m. envelope max H=50m + 위에서 보려면 충분.
-  const cameraHeight = Math.max(300, parcelSizeM * 4);
-  // 남쪽 offset: parcel 크기의 1.5배 (반대편에서 보기 위해)
-  const southOffsetDeg = Math.max(0.0008, (parcelSizeM * 1.5) / 111000);
+  // 카메라 height: parcel 크기의 1.5배, 최소 120m, 최대 400m.
+  // envelope max H=50m라 100m 위면 충분히 윗면 + 측면.
+  const cameraHeight = Math.min(400, Math.max(120, parcelSizeM * 1.5));
+  // 남쪽 offset: parcel 크기의 3배 (envelope 측면 깊이 보기).
+  const southOffsetDeg = Math.max(0.0015, (parcelSizeM * 3) / 111000);
 
   viewer.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(cx, cy - southOffsetDeg, cameraHeight),
     orientation: {
       heading: Cesium.Math.toRadians(0),  // 정북 방향 보기
-      // pitch -55° → envelope 윗면 + 측면 사선 + 수직벽 균형
-      pitch: Cesium.Math.toRadians(-55),
+      // pitch -30° → envelope 측면(수직벽 + 사선 roof) 위주 (위에서 거의 안 보고 측면)
+      pitch: Cesium.Math.toRadians(-30),
       roll: 0,
     },
     duration: 1.5,

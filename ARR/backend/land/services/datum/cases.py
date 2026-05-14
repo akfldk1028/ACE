@@ -50,12 +50,12 @@ class DatumCase(str, Enum):
 
 
 # basis 라벨 (DatumResult.basis 용)
-# SLOPE_GT3M은 Phase 4 분할 미구현이라 단일 가중평균 사용 → "ground_weighted_avg"로 표기.
-# Phase 4 분할 구현시 "ground_split_3m"으로 변경 + split_polygons 채움.
+# SLOPE_GT3M은 DEM 외곽 표고 profile 기반 3m band datum을 산출한다.
+# 실제 등고선 polygon clipping은 별도 단계로 남아 있으므로 basis에 profile을 명시.
 _BASIS_LABEL = {
     DatumCase.FLAT: "ground_flat",
     DatumCase.SLOPE_LE3M: "ground_weighted_avg",
-    DatumCase.SLOPE_GT3M: "ground_weighted_avg",
+    DatumCase.SLOPE_GT3M: "ground_split_3m_profile",
     DatumCase.ROAD_FLAT: "road_centerline",
     DatumCase.ROAD_SLOPED: "road_centerline_weighted_avg",
     DatumCase.SITE_ABOVE_ROAD: "site_above_road_half_raise",
@@ -93,6 +93,7 @@ class DatumContext:
     road_centerline_wgs: LineString | None = None
     neighbor_parcel_wgs: Polygon | None = None
     apply_86_neighbor_avg: bool = False
+    apply_road_datum: bool = False
 
 
 @dataclass(frozen=True)
@@ -109,10 +110,13 @@ class DatumResult:
     elevation_source: str = field(default_factory=lambda: land_config.ELEVATION_PROVIDER)
     parcel_segments: list[dict] | None = None
     road_samples: list[dict] | None = None
+    neighbor_segments: list[dict] | None = None
     parcel_datum_m: float | None = None
     road_datum_m: float | None = None
     neighbor_datum_m: float | None = None
-    split_polygons: list[dict] | None = None  # §119② 단서 (현재 None, Phase 4)
+    neighbor_avg_datum_m: float | None = None
+    split_polygons: list[dict] | None = None  # §119② 단서: 3m band datum metadata
+    split_bands: list[dict] | None = None      # 명시적 alias: 실제 polygon 아님
     notes: list[str] | None = None
 
 
@@ -168,18 +172,22 @@ def compute_datum_elevation(ctx: DatumContext) -> DatumResult:
     parcel_elevs = [s["midpoint_elev_m"] for s in parcel_segments]
     parcel_diff = (max(parcel_elevs) - min(parcel_elevs)) if parcel_elevs else 0.0
 
+    neighbor_datum_m = None
+    neighbor_segments = None
+    if ctx.neighbor_parcel_wgs is not None:
+        try:
+            neighbor_datum_m, neighbor_segments = calculator.parcel_datum_119(ctx.neighbor_parcel_wgs)
+        except ElevationFetchError as e:
+            notes.append(f"neighbor parcel datum failed: {e}")
+
     # 1. §86 정북인접지 평균
     if ctx.apply_86_neighbor_avg:
-        if ctx.neighbor_parcel_wgs is None:
+        if neighbor_datum_m is None:
             notes.append(
                 "apply_86_neighbor_avg=True지만 neighbor_parcel_wgs 없음 — "
                 "§86 신청 무시, 일반 §119 처리로 fallback."
             )
         else:
-            try:
-                neighbor_datum_m, _ = calculator.parcel_datum_119(ctx.neighbor_parcel_wgs)
-            except ElevationFetchError as e:
-                return _failed_result(f"neighbor parcel: {e}")
             elevation = calculator.neighbor_avg_datum_86(parcel_datum_m, neighbor_datum_m)
             if ctx.road_centerline_wgs is not None:
                 notes.append("§86 정북인접지 평균 적용 — road_centerline 무시됨.")
@@ -188,49 +196,73 @@ def compute_datum_elevation(ctx: DatumContext) -> DatumResult:
                 case=DatumCase.NEIGHBOR_AVG_86,
                 basis=_BASIS_LABEL[DatumCase.NEIGHBOR_AVG_86],
                 parcel_segments=parcel_segments,
+                neighbor_segments=neighbor_segments,
                 parcel_datum_m=parcel_datum_m,
                 neighbor_datum_m=neighbor_datum_m,
                 notes=notes,
             )
 
-    # 2. §119① 5호 도로 접지
+    # 2. §119① 5호 도로 접지. 기본은 metadata만 계산하고 parcel datum case를 유지한다.
+    road_datum_m = None
+    road_samples = None
+    road_case = None
     if ctx.road_centerline_wgs is not None:
         try:
             road_datum_m, road_samples = calculator.road_datum_119(ctx.road_centerline_wgs)
         except ElevationFetchError as e:
-            return _failed_result(f"road centerline: {e}")
-        road_elevs = [s["elev_m"] for s in road_samples]
+            notes.append(f"road centerline datum failed: {e}")
+            road_datum_m = None
+            road_samples = None
+        if road_datum_m is None or road_samples is None:
+            road_elevs = []
+        else:
+            road_elevs = [s["elev_m"] for s in road_samples]
         road_diff = (max(road_elevs) - min(road_elevs)) if road_elevs else 0.0
 
         # 대지 > 도로
-        if parcel_datum_m > road_datum_m + 0.1:
+        if road_datum_m is not None and parcel_datum_m > road_datum_m + 0.1:
+            road_case = DatumCase.SITE_ABOVE_ROAD
             elevation = calculator.site_above_road_119(parcel_datum_m, road_datum_m)
-            return DatumResult(
-                elevation_m=elevation,
-                case=DatumCase.SITE_ABOVE_ROAD,
-                basis=_BASIS_LABEL[DatumCase.SITE_ABOVE_ROAD],
-                parcel_segments=parcel_segments,
-                road_samples=road_samples,
-                parcel_datum_m=parcel_datum_m,
-                road_datum_m=road_datum_m,
-                notes=notes,
-            )
+            if ctx.apply_road_datum:
+                return DatumResult(
+                    elevation_m=elevation,
+                    case=DatumCase.SITE_ABOVE_ROAD,
+                    basis=_BASIS_LABEL[DatumCase.SITE_ABOVE_ROAD],
+                    parcel_segments=parcel_segments,
+                    road_samples=road_samples,
+                    neighbor_segments=neighbor_segments,
+                    parcel_datum_m=parcel_datum_m,
+                    road_datum_m=road_datum_m,
+                    neighbor_datum_m=neighbor_datum_m,
+                    neighbor_avg_datum_m=(
+                        calculator.neighbor_avg_datum_86(parcel_datum_m, neighbor_datum_m)
+                        if neighbor_datum_m is not None else None
+                    ),
+                    notes=notes,
+                )
 
         # 도로 노면 경사 여부
-        case = (
+        road_case = road_case or (
             DatumCase.ROAD_SLOPED if road_diff >= ROAD_SLOPE_THRESHOLD_M
             else DatumCase.ROAD_FLAT
         )
-        return DatumResult(
-            elevation_m=road_datum_m,
-            case=case,
-            basis=_BASIS_LABEL[case],
-            parcel_segments=parcel_segments,
-            road_samples=road_samples,
-            parcel_datum_m=parcel_datum_m,
-            road_datum_m=road_datum_m,
-            notes=notes,
-        )
+        if ctx.apply_road_datum and road_datum_m is not None:
+            return DatumResult(
+                elevation_m=road_datum_m,
+                case=road_case,
+                basis=_BASIS_LABEL[road_case],
+                parcel_segments=parcel_segments,
+                road_samples=road_samples,
+                neighbor_segments=neighbor_segments,
+                parcel_datum_m=parcel_datum_m,
+                road_datum_m=road_datum_m,
+                neighbor_datum_m=neighbor_datum_m,
+                neighbor_avg_datum_m=(
+                    calculator.neighbor_avg_datum_86(parcel_datum_m, neighbor_datum_m)
+                    if neighbor_datum_m is not None else None
+                ),
+                notes=notes,
+            )
 
     # 3. §119② 대지 자체 (single return for parcel-only)
     if parcel_diff < FLAT_VARIANCE_THRESHOLD_M:
@@ -240,8 +272,9 @@ def compute_datum_elevation(ctx: DatumContext) -> DatumResult:
     else:
         case = DatumCase.SLOPE_GT3M
         notes.append(
-            f"고저차 {parcel_diff:.2f}m > 3m: §119② 단서 적용 대상이나 "
-            "polygon 분할은 Phase 4 미구현. 단일 가중평균 datum으로 처리."
+            f"고저차 {parcel_diff:.2f}m > 3m: §119② 단서 적용. "
+            "DEM 외곽 표고 profile을 3m band로 분할해 split_polygons에 노출. "
+            "실제 등고선 면 polygon clipping은 후속 구현 필요."
         )
 
     split = calculator.split_3m_segments(ctx.parcel_wgs) if case == DatumCase.SLOPE_GT3M else None
@@ -252,6 +285,15 @@ def compute_datum_elevation(ctx: DatumContext) -> DatumResult:
         basis=_BASIS_LABEL[case],
         parcel_segments=parcel_segments,
         parcel_datum_m=parcel_datum_m,
+        road_samples=road_samples,
+        neighbor_segments=neighbor_segments,
+        road_datum_m=road_datum_m,
+        neighbor_datum_m=neighbor_datum_m,
+        neighbor_avg_datum_m=(
+            calculator.neighbor_avg_datum_86(parcel_datum_m, neighbor_datum_m)
+            if neighbor_datum_m is not None else None
+        ),
         split_polygons=split,
+        split_bands=split,
         notes=notes,
     )

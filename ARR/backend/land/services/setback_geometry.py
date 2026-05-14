@@ -16,6 +16,7 @@ land↔design 의존성을 피하기 위해 독립 인스턴스 사용.
 
 import logging
 import math
+from dataclasses import replace
 
 from shapely.geometry import LineString, MultiLineString, MultiPolygon, Point, Polygon, mapping, shape
 from shapely.ops import transform
@@ -43,6 +44,8 @@ def compute_setback_lines(
     regulations: dict,
     *,
     compute_datum: bool = False,
+    road_frontages: list[dict] | None = None,
+    neighbor_parcels: list[dict] | None = None,
 ) -> dict:
     """
     필지 polygon + 규제 수치 → 규제선 GeoJSON dict.
@@ -53,6 +56,8 @@ def compute_setback_lines(
         compute_datum: True면 §119 datum 계산 후 envelope에 주입 (Phase 2B opt-in,
             keyword-only). False (default) → envelope.elevation_source=None
             → frontend는 terrain.getHeight() fallback (LOCKED SPEC 동일).
+        road_frontages: Vworld 인접 도로 필지에서 추출한 공유변/도로폭 정보.
+            있으면 최장변 휴리스틱 대신 실제 도로 접면 기준으로 road edge를 분류.
 
     Returns:
         {
@@ -110,10 +115,12 @@ def compute_setback_lines(
     if not edges:
         return result
 
-    classified = _classify_edges(edges, parcel_utm)
+    classified = _classify_edges(edges, parcel_utm, road_frontages=road_frontages)
 
     # Phase 2B: datum 계산 (compute_datum=True 시)
-    datum_result = _maybe_compute_datum(parcel, compute_datum)
+    datum_result = _maybe_compute_datum(
+        parcel, compute_datum, road_frontages, neighbor_parcels, classified["north"],
+    )
     if datum_result is not None:
         result["datum_result"] = _datum_to_dict(datum_result)
 
@@ -124,7 +131,7 @@ def compute_setback_lines(
         )
         result["sunlight_envelope"] = compute_sunlight_envelope(
             classified["north"], parcel_utm, sunlight_rules,
-            datum=datum_result,
+            datum=_sunlight_datum(datum_result),
         )
 
     # 인접대지 이격선
@@ -134,10 +141,15 @@ def compute_setback_lines(
         )
 
     # 도로변 건축선 후퇴 (§46-47)
-    if classified["road"] and road_setback_m > 0:
-        result["road_setback"] = _offset_edges_inward(
-            classified["road"], parcel_utm, road_setback_m,
-        )
+    if classified["road"]:
+        road_lines = []
+        for idx, edge in enumerate(classified["road"]):
+            width = classified.get("road_widths", [])[idx] if idx < len(classified.get("road_widths", [])) else 0
+            setback_m = _road_setback_by_width(width) if width > 0 else road_setback_m
+            if setback_m > 0:
+                road_lines.append((edge, setback_m))
+        if road_lines:
+            result["road_setback"] = _offset_edges_with_distances_inward(road_lines, parcel_utm)
 
     # 가각전제 (령§31): 도로변 교차 꼭짓점에서 삼각 클립
     # cutoff_m: 조례/zone override 또는 도로폭 기반 동적 계산
@@ -165,7 +177,13 @@ def compute_setback_lines(
     return result
 
 
-def _maybe_compute_datum(parcel_wgs: Polygon, compute_datum: bool):
+def _maybe_compute_datum(
+    parcel_wgs: Polygon,
+    compute_datum: bool,
+    road_frontages: list[dict] | None = None,
+    neighbor_parcels: list[dict] | None = None,
+    north_edges_utm: list[LineString] | None = None,
+):
     """
     Phase 2B: 옵트인 datum 계산.
 
@@ -176,7 +194,11 @@ def _maybe_compute_datum(parcel_wgs: Polygon, compute_datum: bool):
         return None
     try:
         from land.services.datum import compute_datum_elevation, DatumContext
-        return compute_datum_elevation(DatumContext(parcel_wgs=parcel_wgs))
+        return compute_datum_elevation(DatumContext(
+            parcel_wgs=parcel_wgs,
+            road_centerline_wgs=_datum_road_centerline(road_frontages),
+            neighbor_parcel_wgs=_datum_neighbor_polygon(neighbor_parcels, north_edges_utm),
+        ))
     except ValueError as e:
         logger.warning(f"datum compute skipped (invalid polygon): {e}")
         return None
@@ -185,6 +207,98 @@ def _maybe_compute_datum(parcel_wgs: Polygon, compute_datum: bool):
         # but defend against unexpected errors anyway
         logger.warning(f"datum compute failed: {e}")
         return None
+
+
+def _datum_road_centerline(road_frontages: list[dict] | None) -> LineString | None:
+    if not road_frontages:
+        return None
+    candidates = []
+    for idx, frontage in enumerate(road_frontages):
+        coords = frontage.get("roadCenterline") or frontage.get("road_centerline")
+        if coords and len(coords) >= 2:
+            try:
+                line = LineString(coords)
+                width = float(frontage.get("roadWidthM") or frontage.get("road_width_m") or 0.0)
+                shared = frontage.get("sharedEdge") or frontage.get("shared_edge")
+                shared_len = 0.0
+                if shared and len(shared) >= 2:
+                    try:
+                        shared_len = LineString([
+                            _to_utm.transform(float(x), float(y)) for x, y in shared
+                        ]).length
+                    except Exception:
+                        shared_len = 0.0
+                candidates.append((width, shared_len, -idx, line))
+            except Exception:
+                continue
+    if candidates:
+        # Multiple road frontages are possible on corner lots. Use the primary
+        # frontage for §119 road datum: widest road first, then longer shared
+        # frontage. Per-edge building-line setbacks still use every road edge.
+        candidates.sort(key=lambda item: (item[0], item[1], item[2]), reverse=True)
+        return candidates[0][3]
+    return None
+
+
+def _datum_neighbor_polygon(
+    neighbor_parcels: list[dict] | None,
+    north_edges_utm: list[LineString] | None = None,
+) -> Polygon | None:
+    if not neighbor_parcels:
+        return None
+    candidates = []
+    for idx, neighbor in enumerate(neighbor_parcels):
+        geom = neighbor.get("geometry")
+        if not geom:
+            continue
+        try:
+            poly = shape(geom)
+            if isinstance(poly, MultiPolygon):
+                poly = max(poly.geoms, key=lambda g: g.area)
+            if isinstance(poly, Polygon) and not poly.is_empty and poly.is_valid:
+                shared = neighbor.get("sharedEdge") or neighbor.get("shared_edge")
+                shared_utm = None
+                if shared and len(shared) >= 2:
+                    try:
+                        shared_utm = LineString([_to_utm.transform(float(x), float(y)) for x, y in shared])
+                    except Exception:
+                        shared_utm = None
+                if shared_utm is not None:
+                    midpoint_y = shared_utm.interpolate(0.5, normalized=True).y
+                    north_distance = min((shared_utm.distance(edge) for edge in (north_edges_utm or [])), default=0.0)
+                else:
+                    poly_utm = _wgs_to_utm(poly)
+                    midpoint_y = poly_utm.representative_point().y
+                    north_distance = 999999.0 if north_edges_utm else 0.0
+                candidates.append((north_distance, -midpoint_y, idx, poly))
+        except Exception:
+            continue
+    if not candidates:
+        return None
+    # §86 uses the north-side neighboring lot. Prefer neighbors whose shared edge
+    # coincides with the north-facing parcel edge, then the northernmost edge.
+    candidates.sort(key=lambda item: (item[0], item[1], item[2]))
+    return candidates[0][3]
+    return None
+
+
+def _sunlight_datum(datum):
+    """정북일조 envelope는 인접대지 평균수평면이 있으면 그 기준면을 사용한다."""
+    if datum is None:
+        return None
+    neighbor_avg = getattr(datum, "neighbor_avg_datum_m", None)
+    if neighbor_avg is None:
+        return datum
+    try:
+        from land.services.datum import DatumCase
+        return replace(
+            datum,
+            elevation_m=float(neighbor_avg),
+            case=DatumCase.NEIGHBOR_AVG_86,
+            basis="neighbor_avg_86",
+        )
+    except Exception:
+        return datum
 
 
 def _datum_to_dict(datum) -> dict:
@@ -196,6 +310,14 @@ def _datum_to_dict(datum) -> dict:
         "basis": getattr(datum, "basis", None),
         "elevation_source": getattr(datum, "elevation_source", None),
         "parcel_datum_m": getattr(datum, "parcel_datum_m", None),
+        "road_datum_m": getattr(datum, "road_datum_m", None),
+        "neighbor_datum_m": getattr(datum, "neighbor_datum_m", None),
+        "neighbor_avg_datum_m": getattr(datum, "neighbor_avg_datum_m", None),
+        "parcel_segments": getattr(datum, "parcel_segments", None),
+        "road_samples": getattr(datum, "road_samples", None),
+        "neighbor_segments": getattr(datum, "neighbor_segments", None),
+        "split_bands": getattr(datum, "split_bands", None),
+        "split_polygons": getattr(datum, "split_polygons", None),
         "notes": getattr(datum, "notes", None),
     }
 
@@ -258,7 +380,8 @@ def _azimuth(p1: tuple, p2: tuple) -> float:
     return az
 
 
-def _classify_edges(edges: list[tuple], parcel_utm: Polygon) -> dict:
+def _classify_edges(edges: list[tuple], parcel_utm: Polygon,
+                    road_frontages: list[dict] | None = None) -> dict:
     """
     변의 바깥쪽 법선 방향으로 분류:
     - north: 바깥 법선이 정북(y+) 방향인 변 → 일조사선 적용
@@ -270,7 +393,7 @@ def _classify_edges(edges: list[tuple], parcel_utm: Polygon) -> dict:
       **최대 2개로 제한** (정사각형 필지가 전부 road 되는 버그 방지).
     - adjacent: 나머지 (인접대지) — 항상 최소 1개 이상 보존.
     """
-    classified = {"north": [], "road": [], "adjacent": []}
+    classified = {"north": [], "road": [], "adjacent": [], "road_widths": []}
 
     if not edges:
         return classified
@@ -300,7 +423,24 @@ def _classify_edges(edges: list[tuple], parcel_utm: Polygon) -> dict:
     if not edge_meta:
         return classified
 
-    # ── 2단계: 도로변 선정 (최장변 1개 + 선택적 코너 1개, 최대 2개)
+    matched_roads = _match_edges_to_road_frontages(edge_meta, road_frontages)
+
+    # ── 2단계: 도로변 선정
+    # 실제 Vworld 인접 도로 필지 공유변이 있으면 그 결과를 우선 사용.
+    if any(is_road for is_road, _ in matched_roads):
+        for (line, _, is_north_facing), (is_road, width_m) in zip(edge_meta, matched_roads):
+            if is_road:
+                classified["road"].append(line)
+                classified["road_widths"].append(width_m)
+                if is_north_facing:
+                    classified["north"].append(line)
+            elif is_north_facing:
+                classified["north"].append(line)
+            else:
+                classified["adjacent"].append(line)
+        return classified
+
+    # Vworld 도로 접면이 없을 때만 최장변 휴리스틱 사용.
     edge_meta.sort(key=lambda m: -m[1])  # 긴 순
     longest_line = edge_meta[0][0]
     max_length = edge_meta[0][1]
@@ -324,6 +464,7 @@ def _classify_edges(edges: list[tuple], parcel_utm: Polygon) -> dict:
     for line, _, is_north_facing in edge_meta:
         if id(line) in road_set:
             classified["road"].append(line)
+            classified["road_widths"].append(0.0)
             if is_north_facing:
                 classified["north"].append(line)
         elif is_north_facing:
@@ -338,6 +479,44 @@ def _classify_edges(edges: list[tuple], parcel_utm: Polygon) -> dict:
                 classified["adjacent"].append(line)
 
     return classified
+
+
+def _match_edges_to_road_frontages(
+    edge_meta: list[tuple], road_frontages: list[dict] | None,
+) -> list[tuple[bool, float]]:
+    if not road_frontages:
+        return [(False, 0.0) for _ in edge_meta]
+
+    road_lines = []
+    for frontage in road_frontages:
+        shared = frontage.get("sharedEdge") or frontage.get("shared_edge")
+        if not shared or len(shared) < 2:
+            continue
+        try:
+            line = LineString([_to_utm.transform(float(x), float(y)) for x, y in shared])
+            road_lines.append((line, float(frontage.get("roadWidthM") or frontage.get("road_width_m") or 0.0)))
+        except (TypeError, ValueError):
+            continue
+
+    matches = []
+    for line, _, _ in edge_meta:
+        mid = line.interpolate(0.5, normalized=True)
+        best_width = 0.0
+        best_dist = 999999.0
+        for road_line, width_m in road_lines:
+            dist = mid.distance(road_line)
+            if dist < best_dist:
+                best_dist = dist
+                best_width = width_m
+        matches.append((best_dist < 2.0, best_width if best_dist < 2.0 else 0.0))
+    return matches
+
+
+def _road_setback_by_width(road_width_m: float) -> float:
+    """건축법상 4m 미만 도로의 중심선 기준 확보를 시각화용 후퇴거리로 환산."""
+    if road_width_m >= 4.0:
+        return 0.0
+    return max(0.0, (4.0 - road_width_m) / 2.0)
 
 
 def _sunlight_offset(sunlight_rules: list) -> float:
@@ -483,6 +662,38 @@ def _offset_edges_inward(
 
     except Exception as e:
         logger.warning(f"offset_edges_inward failed: {e}")
+        return None
+
+
+def _offset_edges_with_distances_inward(
+    edges_with_distances: list[tuple[LineString, float]],
+    parcel_utm: Polygon,
+) -> dict | None:
+    """Offset road edges inward when each frontage has a different road width."""
+    try:
+        offset_lines = []
+        centroid = parcel_utm.centroid
+        for edge, distance in edges_with_distances:
+            nx, ny = _inward_normal(edge, centroid)
+            if nx == 0.0 and ny == 0.0:
+                continue
+            offset_coords = [
+                (c[0] + nx * distance, c[1] + ny * distance)
+                for c in edge.coords
+            ]
+            offset_line = LineString(offset_coords)
+            if not offset_line.is_empty and offset_line.length > 0.1:
+                offset_lines.append(offset_line)
+
+        if not offset_lines:
+            return None
+        if len(offset_lines) == 1:
+            result_geom = _utm_to_wgs(offset_lines[0])
+        else:
+            result_geom = _utm_to_wgs(MultiLineString(offset_lines))
+        return mapping(result_geom)
+    except Exception as e:
+        logger.warning(f"offset_edges_with_distances_inward failed: {e}")
         return None
 
 

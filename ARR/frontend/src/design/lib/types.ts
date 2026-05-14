@@ -116,13 +116,43 @@ export interface DatumResultDict {
   elevation_m: number;
   case: string | null;
   basis: string | null;
-  elevation_source: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'failed' | null;
+  elevation_source: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'ngii_local_dem' | 'failed' | null;
   parcel_datum_m?: number | null;
+  road_datum_m?: number | null;
+  neighbor_datum_m?: number | null;
+  neighbor_avg_datum_m?: number | null;
+  parcel_segments?: DatumBoundarySegment[] | null;
+  road_samples?: DatumPointSample[] | null;
+  neighbor_segments?: DatumBoundarySegment[] | null;
+  split_bands?: Array<{
+    band_index: number;
+    min_elevation_m: number;
+    max_elevation_m: number;
+    datum_m: number;
+    length_m: number;
+    sample_count: number;
+    basis: string;
+  }> | null;
+  split_polygons?: DatumResultDict['split_bands'];
   notes?: string[] | null;
 }
 
+export interface DatumBoundarySegment {
+  midpoint_lng?: number | null;
+  midpoint_lat?: number | null;
+  length_m?: number | null;
+  elevation_m?: number | null;
+}
+
+export interface DatumPointSample {
+  lng?: number | null;
+  lat?: number | null;
+  elevation_m?: number | null;
+  weight?: number | null;
+}
+
 export type SetbackGeometriesMap =
-  Record<string, SetbackGeometry> & {
+  Record<string, SetbackGeometry | SunlightEnvelope | DatumResultDict | null | undefined> & {
     sunlight_envelope?: SunlightEnvelope | null;
     daylight_diagonal_envelope?: SunlightEnvelope | null;
     datum_result?: DatumResultDict | null;

@@ -53,7 +53,7 @@ def _precompute_sunlight_envelope(job) -> dict | None:
     if not job.pnu and not job.site_polygon:
         return None
     try:
-        from land.services import land_api, regulation_calculator, zoning_mapper
+        from land.services import land_api, regulation_calculator, road_frontage, zoning_mapper
         from land.services.setback_geometry import compute_setback_lines
         from land import config as land_config
 
@@ -74,9 +74,27 @@ def _precompute_sunlight_envelope(job) -> dict | None:
         if not reg.get("sunlight_applies"):
             logger.info(f"[sunlight_clip] zone={zone_names} sunlight_applies=False → clip skip")
             return None
+        road_frontages = []
+        neighbor_parcels = []
+        if job.site_polygon:
+            try:
+                roads_result = road_frontage.fetch_neighbor_roads(job.site_polygon)
+                if roads_result.get("success"):
+                    road_frontages = roads_result.get("roads") or []
+            except Exception as e:
+                logger.warning(f"[sunlight_clip] road frontage lookup failed: {e}")
+            try:
+                neighbors_result = road_frontage.fetch_neighbor_parcels(job.site_polygon)
+                if neighbors_result.get("success"):
+                    neighbor_parcels = neighbors_result.get("neighbors") or []
+            except Exception as e:
+                logger.warning(f"[sunlight_clip] neighbor parcel lookup failed: {e}")
+
         lines = compute_setback_lines(
             job.site_polygon, reg,
             compute_datum=land_config.ENABLE_DATUM_ELEVATION,
+            road_frontages=road_frontages,
+            neighbor_parcels=neighbor_parcels,
         )
         env = lines.get("sunlight_envelope")
         if env:
@@ -491,7 +509,7 @@ def auto_constraints(request):
     # Call land/analyze internally
     try:
         from land.services import regulation_calculator
-        from land.services import zoning_mapper, land_api
+        from land.services import zoning_mapper, land_api, road_frontage
 
         # If PNU given but no zones, look up zones via Vworld Data API
         if not zones and pnu:
@@ -534,9 +552,26 @@ def auto_constraints(request):
             try:
                 from land.services.setback_geometry import compute_setback_lines
                 from land import config as land_config
+                road_frontages = []
+                neighbor_parcels = []
+                try:
+                    roads_result = road_frontage.fetch_neighbor_roads(site_geojson)
+                    if roads_result.get("success"):
+                        road_frontages = roads_result.get("roads") or []
+                except Exception as e:
+                    logger.warning(f"road frontage lookup failed: {e}")
+                try:
+                    neighbors_result = road_frontage.fetch_neighbor_parcels(site_geojson)
+                    if neighbors_result.get("success"):
+                        neighbor_parcels = neighbors_result.get("neighbors") or []
+                except Exception as e:
+                    logger.warning(f"neighbor parcel lookup failed: {e}")
+
                 lines = compute_setback_lines(
                     site_geojson, reg,
                     compute_datum=land_config.ENABLE_DATUM_ELEVATION,
+                    road_frontages=road_frontages,
+                    neighbor_parcels=neighbor_parcels,
                 )
                 adj_m = reg.get("adjacent_setback_m") or 0.5
                 sunlight_m = 1.5
@@ -558,7 +593,12 @@ def auto_constraints(request):
                         "distance_m": float(adj_m),
                         "label": f"인접대지 이격 {adj_m}m",
                     }
-                road_m = reg.get("building_line_setback_m") or 1.0
+                road_m = 0.0
+                if lines.get("road_setback"):
+                    road_setback_meta = lines.get("road_setback") or {}
+                    road_m = road_setback_meta.get("setback_m")
+                    if road_m is None:
+                        road_m = reg.get("building_line_setback_m") or 1.0
                 if lines.get("road_setback"):
                     setback_geometries["road_setback"] = {
                         "geometry": lines["road_setback"],
@@ -587,6 +627,43 @@ def auto_constraints(request):
                 # (정북일조 미적용 zone(상업 등)에서도 datum 표시 가능)
                 if lines.get("datum_result"):
                     setback_geometries["datum_result"] = lines["datum_result"]
+                    datum = lines["datum_result"]
+                    road_widths = [
+                        float(r.get("roadWidthM") or r.get("road_width_m") or 0.0)
+                        for r in road_frontages
+                        if float(r.get("roadWidthM") or r.get("road_width_m") or 0.0) > 0
+                    ]
+                    if road_widths:
+                        road_width = max(road_widths)
+                        road_diag_mult = reg.get("road_diagonal_multiplier")
+                        setback_geometries["front_road_diagonal_profile"] = {
+                            "road_width_m": road_width,
+                            "slope": float(road_diag_mult or 1.5),
+                            "applies": road_diag_mult is not None,
+                            "law_basis": reg.get("road_diagonal_article") or "건축법 시행령 §82 도로사선 기준 참고",
+                            "note": reg.get("road_diagonal_rule") or "현행 도로사선은 삭제/가로구역별 높이제한으로 대체. 1:1.5는 참고 단면.",
+                            "road_datum_m": datum.get("road_datum_m"),
+                            "parcel_datum_m": datum.get("parcel_datum_m"),
+                        }
+                    setback_geometries["road_frontages"] = [
+                        {
+                            "geometry": r.get("geometry"),
+                            "roadWidthM": float(r.get("roadWidthM") or r.get("road_width_m") or 0.0),
+                            "sharedEdge": r.get("sharedEdge") or r.get("shared_edge"),
+                            "roadCenterline": r.get("roadCenterline") or r.get("road_centerline"),
+                            "landCategory": r.get("landCategory") or r.get("land_category"),
+                        }
+                        for r in road_frontages
+                    ][:5]
+                    setback_geometries["neighbor_parcels"] = [
+                        {
+                            "geometry": n.get("geometry"),
+                            "sharedEdge": n.get("sharedEdge") or n.get("shared_edge"),
+                            "landCategory": n.get("landCategory") or n.get("land_category"),
+                            "pnu": n.get("pnu"),
+                        }
+                        for n in neighbor_parcels
+                    ][:10]
             except Exception as e:
                 logger.warning(f"setback_geometry failed, falling back: {e}")
                 # Fallback: simple buffer
@@ -610,6 +687,9 @@ def auto_constraints(request):
                 "sunlight_applies": reg.get("sunlight_applies"),
                 "sunlight_rules": reg.get("sunlight_rules"),
                 "corner_cutoff_required": reg.get("corner_cutoff_required"),
+                "road_diagonal_multiplier": reg.get("road_diagonal_multiplier"),
+                "road_diagonal_rule": reg.get("road_diagonal_rule"),
+                "road_diagonal_article": reg.get("road_diagonal_article"),
                 "daylight_diagonal_multiplier": reg.get("daylight_diagonal_multiplier"),
                 "zone_category": reg.get("zone_category"),
             },

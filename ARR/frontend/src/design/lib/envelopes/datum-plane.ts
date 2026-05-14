@@ -24,6 +24,22 @@ export interface DatumPlaneColors {
   label: string;    // 라벨 텍스트 색
 }
 
+export interface DatumPlaneOptions {
+  colors?: DatumPlaneColors;
+  idSuffix?: string;
+  labelText?: string;
+}
+
+export interface DatumMarker {
+  id: string;
+  label: string;
+  lng: number;
+  lat: number;
+  elevationM: number;
+  color: string;
+  labelOffset?: [number, number];
+}
+
 export const DEFAULT_DATUM_COLORS: DatumPlaneColors = {
   fill: '#facc15',     // 노랑 (datum 표고)
   outline: '#eab308',  // 진노랑
@@ -45,12 +61,16 @@ export function renderDatumPlane(
   Cesium: any,
   datum_m: number | null | undefined,
   parcelRing: number[][] | null | undefined,
-  colors: DatumPlaneColors = DEFAULT_DATUM_COLORS,
+  options: DatumPlaneColors | DatumPlaneOptions = DEFAULT_DATUM_COLORS,
 ): string[] {
   if (!viewer || !Cesium) return [];
   if (datum_m == null || !isFinite(datum_m) || datum_m === 0) return [];
   if (!parcelRing || parcelRing.length < 3) return [];
 
+  const opts: DatumPlaneOptions = 'fill' in options ? { colors: options } : options;
+  const colors = opts.colors ?? DEFAULT_DATUM_COLORS;
+  const suffix = opts.idSuffix ? `-${opts.idSuffix}` : '';
+  const labelText = opts.labelText ?? `§119 H₀ = ${datum_m.toFixed(2)}m`;
   const fillC = Cesium.Color.fromCssColorString(colors.fill);
   const outlineC = Cesium.Color.fromCssColorString(colors.outline);
   const labelC = Cesium.Color.fromCssColorString(colors.label);
@@ -64,7 +84,7 @@ export function renderDatumPlane(
 
   // Step 5 (2026-05-11) — datum 평면을 NGII §119 절대 z에 배치 (clamp 제거).
   // 매스/envelope과 동일 절대값 평면 → 시각 통일.
-  const planeId = `${DATUM_PLANE_PREFIX}plane`;
+  const planeId = `${DATUM_PLANE_PREFIX}plane${suffix}`;
   viewer.entities.add({
     id: planeId,
     polygon: {
@@ -80,7 +100,7 @@ export function renderDatumPlane(
   // outline polyline (절대 z, datum_m)
   const flatWithH: number[] = [];
   for (const [lng, lat] of parcelRing) flatWithH.push(lng, lat, datum_m);
-  const outlineId = `${DATUM_PLANE_PREFIX}outline`;
+  const outlineId = `${DATUM_PLANE_PREFIX}outline${suffix}`;
   viewer.entities.add({
     id: outlineId,
     polyline: {
@@ -101,13 +121,13 @@ export function renderDatumPlane(
   cx /= parcelRing.length;
   cy /= parcelRing.length;
 
-  const labelId = `${DATUM_PLANE_PREFIX}label`;
+  const labelId = `${DATUM_PLANE_PREFIX}label${suffix}`;
   viewer.entities.add({
     id: labelId,
     // 라벨은 terrain 표면 위로 클램프 (parcel 평면 위에 떠 있음)
     position: Cesium.Cartesian3.fromDegrees(cx, cy),
     label: {
-      text: `§119 H₀ = ${datum_m.toFixed(2)}m`,
+      text: labelText,
       heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
       font: '700 18px ui-monospace, SFMono-Regular, Menlo, monospace',
       fillColor: labelC,
@@ -127,6 +147,91 @@ export function renderDatumPlane(
     },
   });
   addedIds.push(labelId);
+
+  return addedIds;
+}
+
+/**
+ * Plan PNG와 같은 법규 기준점 표시.
+ *
+ * 전체 표고 격자나 넓은 평면 대신, 산정 근거의 대표 위치에만 점/라벨을 찍는다.
+ * - 대지 §119: parcel boundary weighted samples
+ * - 도로레벨: road centerline/samples
+ * - 인접대지레벨: north-side neighbor samples
+ * - §86 평균: 대지 기준점과 인접대지 기준점 사이
+ */
+export function renderDatumMarkers(
+  viewer: any,
+  Cesium: any,
+  markers: DatumMarker[],
+): string[] {
+  if (!viewer || !Cesium || !markers.length) return [];
+  const addedIds: string[] = [];
+
+  for (const marker of markers) {
+    if (
+      !isFinite(marker.lng)
+      || !isFinite(marker.lat)
+      || !isFinite(marker.elevationM)
+      || marker.elevationM === 0
+    ) {
+      continue;
+    }
+
+    const baseId = `${DATUM_PLANE_PREFIX}marker-${marker.id}`;
+    const color = Cesium.Color.fromCssColorString(marker.color);
+    const labelLiftM = 7;
+    const pointHeightM = marker.elevationM + 0.8;
+    const labelHeightM = marker.elevationM + labelLiftM;
+
+    viewer.entities.add({
+      id: `${baseId}-point`,
+      position: Cesium.Cartesian3.fromDegrees(marker.lng, marker.lat, pointHeightM),
+      point: {
+        pixelSize: 13,
+        color,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 3,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
+    addedIds.push(`${baseId}-point`);
+
+    viewer.entities.add({
+      id: `${baseId}-stem`,
+      polyline: {
+        positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+          marker.lng, marker.lat, marker.elevationM,
+          marker.lng, marker.lat, labelHeightM,
+        ]),
+        width: 3,
+        material: color.withAlpha(0.9),
+      },
+    });
+    addedIds.push(`${baseId}-stem`);
+
+    viewer.entities.add({
+      id: `${baseId}-label`,
+      position: Cesium.Cartesian3.fromDegrees(marker.lng, marker.lat, labelHeightM),
+      label: {
+        text: `${marker.label} = ${marker.elevationM.toFixed(2)}m`,
+        font: '700 15px ui-monospace, SFMono-Regular, Menlo, monospace',
+        fillColor: Cesium.Color.WHITE,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 4,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+        pixelOffset: new Cesium.Cartesian2(marker.labelOffset?.[0] ?? 0, marker.labelOffset?.[1] ?? -14),
+        backgroundColor: Cesium.Color.BLACK.withAlpha(0.68),
+        backgroundPadding: new Cesium.Cartesian2(8, 4),
+        showBackground: true,
+        scaleByDistance: new Cesium.NearFarScalar(50, 1.0, 5000, 0.65),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
+    addedIds.push(`${baseId}-label`);
+  }
 
   return addedIds;
 }

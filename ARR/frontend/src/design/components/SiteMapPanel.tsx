@@ -1,12 +1,11 @@
 import React, { useRef, useCallback, useState } from 'react';
 import { useVworld3D } from '../../land/hooks/use-vworld-3d';
 import { reverse } from '../../land/lib/land-api-client';
-import type { GeoJSONFeature, SetbackGeometry, SetbackGeometriesMap } from '../lib/types';
+import type { DatumBoundarySegment, DatumPointSample, GeoJSONFeature, SetbackGeometry, SetbackGeometriesMap } from '../lib/types';
 import type { SunlightEnvelope } from '../../land/lib/types';
 import { renderSunlightEnvelope } from '../lib/envelopes/sunlight';
-import { renderDatumPlane, clearDatumPlane } from '../lib/envelopes/datum-plane';
-import { renderElevationGrid, clearElevationGrid } from '../lib/envelopes/elevation-grid';
-import { elevationGrid as fetchElevationGrid } from '../../land/lib/land-api-client';
+import { clearDatumPlane, renderDatumMarkers, type DatumMarker } from '../lib/envelopes/datum-plane';
+import { clearElevationGrid } from '../lib/envelopes/elevation-grid';
 import { visualizeConstraints, type ConstraintsResult } from '../lib/api-client';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -47,6 +46,127 @@ function flattenRing(ring: number[][]): number[] {
   const flat: number[] = [];
   for (const [lng, lat] of ring) flat.push(lng, lat);
   return flat;
+}
+
+function numberOrNull(value: unknown): number | null {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function weightedPoint<T>(
+  items: T[] | null | undefined,
+  lngKey: keyof T,
+  latKey: keyof T,
+  weightKey?: keyof T,
+): { lng: number; lat: number } | null {
+  if (!items?.length) return null;
+  let sumLng = 0;
+  let sumLat = 0;
+  let sumWeight = 0;
+  for (const item of items) {
+    const lng = numberOrNull(item[lngKey]);
+    const lat = numberOrNull(item[latKey]);
+    if (lng == null || lat == null) continue;
+    const weight = weightKey ? (numberOrNull(item[weightKey]) ?? 1) : 1;
+    if (weight <= 0) continue;
+    sumLng += lng * weight;
+    sumLat += lat * weight;
+    sumWeight += weight;
+  }
+  if (sumWeight <= 0) return null;
+  return { lng: sumLng / sumWeight, lat: sumLat / sumWeight };
+}
+
+function ringCentroid(ring: number[][] | null | undefined): { lng: number; lat: number } | null {
+  if (!ring?.length) return null;
+  let lng = 0;
+  let lat = 0;
+  for (const [x, y] of ring) {
+    lng += x;
+    lat += y;
+  }
+  return { lng: lng / ring.length, lat: lat / ring.length };
+}
+
+function midpoint(a: { lng: number; lat: number }, b: { lng: number; lat: number }): { lng: number; lat: number } {
+  return { lng: (a.lng + b.lng) / 2, lat: (a.lat + b.lat) / 2 };
+}
+
+function buildDatumMarkers(setbacks: SetbackGeometriesMap, parcelRing: number[][] | null): DatumMarker[] {
+  const datum = setbacks.datum_result;
+  if (!datum) return [];
+
+  const parcelDatumM = datum.parcel_datum_m ?? datum.elevation_m ?? null;
+  const roadDatumM = datum.road_datum_m ?? null;
+  const neighborDatumM = datum.neighbor_datum_m ?? null;
+  const neighborAvgM = datum.neighbor_avg_datum_m ?? null;
+
+  const parcelBasis = weightedPoint<DatumBoundarySegment>(
+    datum.parcel_segments,
+    'midpoint_lng',
+    'midpoint_lat',
+    'length_m',
+  ) ?? ringCentroid(parcelRing);
+  const roadBasis = weightedPoint<DatumPointSample>(
+    datum.road_samples,
+    'lng',
+    'lat',
+    'weight',
+  );
+  const neighborBasis = weightedPoint<DatumBoundarySegment>(
+    datum.neighbor_segments,
+    'midpoint_lng',
+    'midpoint_lat',
+    'length_m',
+  );
+
+  const markers: DatumMarker[] = [];
+  if (parcelBasis && parcelDatumM != null) {
+    markers.push({
+      id: 'parcel-119',
+      label: '대지 §119',
+      lng: parcelBasis.lng,
+      lat: parcelBasis.lat,
+      elevationM: parcelDatumM,
+      color: '#facc15',
+      labelOffset: [0, -18],
+    });
+  }
+  if (roadBasis && roadDatumM != null) {
+    markers.push({
+      id: 'road',
+      label: '도로레벨',
+      lng: roadBasis.lng,
+      lat: roadBasis.lat,
+      elevationM: roadDatumM,
+      color: '#38bdf8',
+      labelOffset: [-16, -18],
+    });
+  }
+  if (neighborBasis && neighborDatumM != null) {
+    markers.push({
+      id: 'neighbor',
+      label: '인접대지레벨',
+      lng: neighborBasis.lng,
+      lat: neighborBasis.lat,
+      elevationM: neighborDatumM,
+      color: '#f472b6',
+      labelOffset: [16, -18],
+    });
+  }
+  if (parcelBasis && neighborBasis && neighborAvgM != null) {
+    const basis = midpoint(parcelBasis, neighborBasis);
+    markers.push({
+      id: 'neighbor-avg-86',
+      label: '§86 평균',
+      lng: basis.lng,
+      lat: basis.lat,
+      elevationM: neighborAvgM,
+      color: '#22c55e',
+      labelOffset: [0, -42],
+    });
+  }
+  return markers;
 }
 
 /** Get ground height at centroid */
@@ -222,10 +342,7 @@ function renderMassEntities(
 function renderSetbackEntities(
   viewer: any,
   Cesium: any,
-  setbacks: Record<string, SetbackGeometry> & {
-    sunlight_envelope?: SunlightEnvelope | null;
-    daylight_diagonal_envelope?: SunlightEnvelope | null;
-  },
+  setbacks: SetbackGeometriesMap,
 ) {
   // Clear old
   const toRemove: any[] = [];
@@ -330,7 +447,38 @@ function renderSetbackEntities(
     slope: colors.sunlight_envelope_slope,
   });
 
-  // 채광사선제한 (daylight_diagonal_envelope) — 보라 수직벽, 사용자 요청으로 비활성.
+  renderDaylightDiagonalEnvelope(viewer, Cesium, setbacks.daylight_diagonal_envelope, {
+    wall: colors.daylight_diagonal_envelope,
+  }, setbacks.datum_result?.parcel_datum_m ?? setbacks.datum_result?.elevation_m ?? 0);
+}
+
+function renderDaylightDiagonalEnvelope(
+  viewer: any,
+  Cesium: any,
+  envelope: { walls?: Array<{ positions?: number[][]; min_heights?: number[]; max_heights?: number[] }> } | null | undefined,
+  colors: { wall: string },
+  datumElevationM: number,
+) {
+  if (!envelope?.walls?.length) return;
+  const color = Cesium.Color.fromCssColorString(colors.wall);
+  for (let i = 0; i < envelope.walls.length; i++) {
+    const wall = envelope.walls[i];
+    if (!wall.positions || wall.positions.length < 2) continue;
+    const flat: number[] = [];
+    for (const p of wall.positions) flat.push(p[0], p[1]);
+    viewer.entities.add({
+      id: `${SETBACK_PREFIX}daylight_diagonal_envelope-${i}`,
+      wall: {
+        positions: Cesium.Cartesian3.fromDegreesArray(flat),
+        minimumHeights: (wall.min_heights ?? wall.positions.map(() => 0)).map(h => datumElevationM + h),
+        maximumHeights: (wall.max_heights ?? wall.positions.map(() => 0)).map(h => datumElevationM + h),
+        material: color.withAlpha(0.38),
+        outline: true,
+        outlineColor: color,
+        outlineWidth: 3,
+      },
+    });
+  }
 }
 
 /** Clear all constraint visualization entities */
@@ -516,8 +664,8 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
     if (!viewer || !Cesium) return;
 
     const hasSetbacks = setbackGeometries && Object.keys(setbackGeometries).length > 0;
-    // Step 5: NGII datum 절대 z (envelope.datum_elevation_m) 추출 — 매스도 동일 기준
-    const datumZ = setbackGeometries?.sunlight_envelope?.datum_elevation_m
+    // 매스는 정북일조 평균수평면이 아니라 대지 자체 §119 datum 위에 배치한다.
+    const datumZ = setbackGeometries?.datum_result?.parcel_datum_m
       ?? setbackGeometries?.datum_result?.elevation_m;
     if (massFeatures && massFeatures.length > 0) {
       setBuildingsVisible(false);
@@ -551,28 +699,14 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
       // race condition 발생해 기존 위치 잃어버림 → entities 위치 이동 호출 제거.
       // 사용자가 carcel에 줌인 되어 있으면 envelope wall(H=10m)/slope(H=50m) 자동 보임.
 
-      // §119 datum 평면 + 라벨 — "지도에도 대지 레벨이 떠야 한다" 사용자 의도 반영.
-      // envelope 우선, 없으면 datum_result로 fallback (정북일조 미적용 zone 지원).
-      // LOCKED SPEC 비파괴: setback/envelope 시각은 그대로, datum 평면만 추가.
+      // Plan PNG와 동일한 희소 법규 기준점만 표시한다.
+      // 전체 표고 격자/넓은 datum 면은 법규 기준점과 혼동되므로 기본 표시하지 않는다.
       clearDatumPlane(viewer);
-      const datum_m = setbackGeometries.sunlight_envelope?.datum_elevation_m
-        ?? setbackGeometries.datum_result?.elevation_m
-        ?? null;
       const ring = sitePolygon ? extractRing(sitePolygon as { type: string; coordinates: any }) : null;
-      renderDatumPlane(viewer, Cesium, datum_m, ring);
+      renderDatumMarkers(viewer, Cesium, buildDatumMarkers(setbackGeometries, ring));
 
-      // 주변 표고 격자 (5×5, 25m 간격) — "주변 몇m 표고 다 나오게" 사용자 의도.
-      // parcel centroid 기준 100m 반경, 25m 간격 격자 점에 표고 라벨.
+      // 자동 표고 격자는 법규 기준면과 혼동되므로 /design에서는 기본 표시하지 않는다.
       clearElevationGrid(viewer);
-      if (ring && ring.length > 0) {
-        let cx = 0, cy = 0;
-        for (const [lng, lat] of ring) { cx += lng; cy += lat; }
-        cx /= ring.length;
-        cy /= ring.length;
-        fetchElevationGrid(cx, cy, 50, 5)
-          .then(res => renderElevationGrid(viewer, Cesium, res.points))
-          .catch(err => console.warn('[ElevationGrid] fetch failed:', err));
-      }
     } else {
       clearDatumPlane(viewer);
       clearElevationGrid(viewer);

@@ -238,12 +238,176 @@ def site_above_road_119(parcel_datum_m: float, road_datum_m: float) -> float:
 
 def split_3m_segments(
     parcel_wgs: Polygon, max_diff_m: float = 3.0,
-) -> list[Polygon] | None:
+) -> list[dict] | None:
     """
     §119② 단서: 고저차 >3m면 3m 이내 영역마다 datum 분할.
 
-    Phase 1 stub — 미구현. 호출자가 None을 받으면 단일 datum 사용.
+    런타임에는 raw contour SHP가 아니라 DEM raster를 sample하므로, 여기서는
+    필지 외곽 표고 프로파일을 3m 이하 elevation band로 나누고 각 band별 외곽
+    길이 가중평균 datum을 산출한다.
 
-    Phase 4에서 구현 예정 (등고선 따라 polygon 분할).
+    주의: 이 함수는 아직 등고선으로 실제 면 polygon을 절단하지 않는다. 대신
+    "SLOPE_GT3M인데 단일 평균만 반환"하던 기존 상태를 개선해, API/CLI가
+    3m band별 datum과 길이 근거를 검증할 수 있게 하는 중간 산출물이다.
+
+    Returns:
+        None: 고저차가 max_diff_m 이하이거나 산출 불가.
+        list[dict]: band별 datum metadata.
     """
+    if max_diff_m <= 0:
+        raise ValueError("max_diff_m must be > 0")
+
+    profile = _boundary_elevation_profile(parcel_wgs)
+    if len(profile) < 2:
+        return None
+
+    elevs = [p["elev_m"] for p in profile]
+    min_e = min(elevs)
+    max_e = max(elevs)
+    if max_e - min_e <= max_diff_m:
+        return None
+
+    bands: list[dict] = []
+    lower = min_e
+    idx = 0
+    # 마지막 band가 매우 얇아지는 경우도 법적 경계값 검토에 필요하므로 보존.
+    while lower < max_e - 1e-9:
+        upper = min(lower + max_diff_m, max_e)
+        bands.append({
+            "band_index": idx,
+            "min_elevation_m": lower,
+            "max_elevation_m": upper,
+            "length_m": 0.0,
+            "weighted_sum": 0.0,
+            "sample_count": 0,
+            "basis": "boundary_elevation_band_3m",
+        })
+        lower = upper
+        idx += 1
+
+    for i in range(len(profile) - 1):
+        p0 = profile[i]
+        p1 = profile[i + 1]
+        _accumulate_segment_bands(p0, p1, bands)
+
+    out: list[dict] = []
+    for band in bands:
+        length_m = band["length_m"]
+        if length_m <= 0.01:
+            continue
+        datum_m = band["weighted_sum"] / length_m
+        out.append({
+            "band_index": band["band_index"],
+            "min_elevation_m": round(band["min_elevation_m"], 3),
+            "max_elevation_m": round(band["max_elevation_m"], 3),
+            "datum_m": round(datum_m, 3),
+            "length_m": round(length_m, 3),
+            "sample_count": band["sample_count"],
+            "basis": band["basis"],
+        })
+
+    return out or None
+
+
+def _boundary_elevation_profile(parcel_wgs: Polygon) -> list[dict]:
+    """외곽선을 5m 내외 간격으로 sample한 표고 profile."""
+    parcel_utm = _wgs_to_utm(parcel_wgs)
+    coords_wgs = list(parcel_wgs.exterior.coords)
+    coords_utm = list(parcel_utm.exterior.coords)
+    if len(coords_wgs) < 2 or len(coords_utm) < 2:
+        return []
+
+    step_m = max(1.0, land_config.DATUM_EDGE_SUBSAMPLE_STEP_M)
+    points_lnglat: list[tuple[float, float]] = []
+    distance_m: list[float] = []
+    cumulative = 0.0
+
+    for i in range(len(coords_utm) - 1):
+        x1, y1 = coords_utm[i][0], coords_utm[i][1]
+        x2, y2 = coords_utm[i + 1][0], coords_utm[i + 1][1]
+        length = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+        if length < 0.1:
+            continue
+
+        lng1, lat1 = coords_wgs[i][0], coords_wgs[i][1]
+        lng2, lat2 = coords_wgs[i + 1][0], coords_wgs[i + 1][1]
+        n_sub = max(1, int(round(length / step_m)))
+
+        if not points_lnglat:
+            points_lnglat.append((lng1, lat1))
+            distance_m.append(cumulative)
+
+        for k in range(1, n_sub + 1):
+            t = k / n_sub
+            points_lnglat.append((
+                lng1 + (lng2 - lng1) * t,
+                lat1 + (lat2 - lat1) * t,
+            ))
+            distance_m.append(cumulative + length * t)
+        cumulative += length
+
+    if len(points_lnglat) < 2:
+        return []
+
+    elevations = elevation_api.fetch_elevations([(lat, lng) for lng, lat in points_lnglat])
+    if land_config.DATUM_MEDIAN_FILTER:
+        elevations = _denoise_median_filter(
+            list(elevations), window=land_config.DATUM_MEDIAN_FILTER_WINDOW
+        )
+
+    return [
+        {
+            "lng": lng,
+            "lat": lat,
+            "dist_m": dist,
+            "elev_m": float(elev),
+        }
+        for (lng, lat), dist, elev in zip(points_lnglat, distance_m, elevations)
+    ]
+
+
+def _accumulate_segment_bands(p0: dict, p1: dict, bands: list[dict]) -> None:
+    length = float(p1["dist_m"] - p0["dist_m"])
+    if length <= 0.01:
+        return
+    e0 = float(p0["elev_m"])
+    e1 = float(p1["elev_m"])
+
+    if abs(e1 - e0) < 1e-9:
+        band = _band_for_elevation(e0, bands)
+        if band is None:
+            return
+        band["length_m"] += length
+        band["weighted_sum"] += length * e0
+        band["sample_count"] += 1
+        return
+
+    lo_e = min(e0, e1)
+    hi_e = max(e0, e1)
+    for band in bands:
+        overlap_lo = max(lo_e, band["min_elevation_m"])
+        overlap_hi = min(hi_e, band["max_elevation_m"])
+        if overlap_hi <= overlap_lo:
+            continue
+
+        t_a = (overlap_lo - e0) / (e1 - e0)
+        t_b = (overlap_hi - e0) / (e1 - e0)
+        t0 = max(0.0, min(t_a, t_b))
+        t1 = min(1.0, max(t_a, t_b))
+        if t1 <= t0:
+            continue
+
+        piece_len = length * (t1 - t0)
+        e_start = e0 + (e1 - e0) * t0
+        e_end = e0 + (e1 - e0) * t1
+        avg_e = (e_start + e_end) / 2.0
+        band["length_m"] += piece_len
+        band["weighted_sum"] += piece_len * avg_e
+        band["sample_count"] += 1
+
+
+def _band_for_elevation(elev: float, bands: list[dict]) -> dict | None:
+    for band in bands:
+        if band["min_elevation_m"] <= elev <= band["max_elevation_m"]:
+            return band
     return None

@@ -187,7 +187,11 @@ export function renderSunlightEnvelope(
   }
 
   const showProfileFill = params.get('profileFill') === '1' || params.get('layers') === 'all';
-  const showProfileLine = params.get('profile') === '1' || params.get('layers') === 'all';
+  // 정북일조는 매스 유무와 무관한 기본 법규 envelope다.
+  // 넓은 surface는 debug로 숨기더라도, 수직 시작선 + 사선 단면선은 항상 보여야
+  // 사용자가 "이 안에 매스가 들어갈 수 있는지" 판단할 수 있다.
+  const showProfileLine = params.get('profile') !== '0';
+  const detailedProfile = params.get('profile') === 'detail' || params.get('layers') === 'all';
   if ((showProfileFill || showProfileLine) && Array.isArray(envelope.profile_polylines)) {
     for (let i = 0; i < envelope.profile_polylines.length; i++) {
       const profile = envelope.profile_polylines[i];
@@ -208,15 +212,39 @@ export function renderSunlightEnvelope(
         addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}profile-fill-${i}`);
       }
       if (showProfileLine) {
+        const linePoints = detailedProfile || points.length < 4
+          ? points
+          : [points[0], points[1], points[points.length - 1]];
         viewer.entities.add({
           id: `${SUNLIGHT_ENVELOPE_PREFIX}profile-${i}`,
           polyline: {
-            positions: points.map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + p[2])),
-            width: 6,
+            positions: linePoints.map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + p[2])),
+            width: detailedProfile ? 6 : 5,
             material: slopeC,
           },
         });
         addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}profile-${i}`);
+        const labelPoint = linePoints[Math.max(1, Math.floor(linePoints.length / 2))];
+        if (i === 0 && labelPoint) {
+          viewer.entities.add({
+            id: `${SUNLIGHT_ENVELOPE_PREFIX}profile-label`,
+            position: Cesium.Cartesian3.fromDegrees(labelPoint[0], labelPoint[1], groundH + Math.max(12, labelPoint[2] + 2)),
+            label: {
+              text: `정북일조\n수직 10m + ${envelope.slope ?? 2}:1`,
+              font: '700 12px ui-monospace, SFMono-Regular, Menlo, monospace',
+              fillColor: Cesium.Color.WHITE,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 3,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              backgroundColor: Cesium.Color.BLACK.withAlpha(0.46),
+              backgroundPadding: new Cesium.Cartesian2(7, 4),
+              showBackground: true,
+              pixelOffset: new Cesium.Cartesian2(44, -30),
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            },
+          });
+          addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}profile-label`);
+        }
       }
     }
   }

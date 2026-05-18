@@ -37,7 +37,7 @@ def load_fixtures() -> list[dict]:
     return json.loads(FIXTURES.read_text(encoding="utf-8"))["parcels"]
 
 
-def verify_one(client: httpx.Client, parcel: dict) -> dict:
+def verify_one(client: httpx.Client, parcel: dict, timeout_s: float) -> dict:
     pnu = parcel["pnu"]
     expected = parcel["expected"]
 
@@ -48,7 +48,7 @@ def verify_one(client: httpx.Client, parcel: dict) -> dict:
         "error": None,
     }
     try:
-        sb = client.post("/design/site-boundary/", json={"pnu": pnu}, timeout=30.0).json()
+        sb = client.post("/design/site-boundary/", json={"pnu": pnu}, timeout=min(timeout_s, 60.0)).json()
         poly = sb.get("geometry")
         if not poly:
             r["error"] = "no boundary"
@@ -56,7 +56,7 @@ def verify_one(client: httpx.Client, parcel: dict) -> dict:
         ac = client.post(
             "/design/auto-constraints/",
             json={"pnu": pnu, "site_polygon": poly, "building_type": "공동주택"},
-            timeout=120.0,
+            timeout=timeout_s,
         ).json()
     except Exception as e:
         r["error"] = f"http: {e}"
@@ -67,7 +67,9 @@ def verify_one(client: httpx.Client, parcel: dict) -> dict:
     sg = ac.get("setback_geometries") or {}
     law = ac.get("law_articles") or {}
 
+    r["actual_zones"] = zones
     r["actual_zone"] = zones[0] if zones else None
+    r["zone_match"] = expected_zone_match = parcel["zone"] in zones
     r["bcr_match"] = reg.get("bcr_pct") == expected["bcr_pct"]
     r["far_match"] = reg.get("far_pct") == expected["far_pct"]
     r["sunlight_match"] = reg.get("sunlight_applies") == expected["sunlight_applies"]
@@ -109,7 +111,7 @@ def verify_one(client: httpx.Client, parcel: dict) -> dict:
 def format_result(r: dict) -> str:
     if r["error"]:
         return f"✗ {r['pnu']}  {r['address']}  → {r['error']}"
-    zone_ok = r["actual_zone"] == r["expected_zone"]
+    zone_ok = bool(r.get("zone_match"))
     mark = lambda ok: "✓" if ok else "✗"
     lines_ok = not r["lines_missing_bugs"]
 
@@ -124,7 +126,7 @@ def format_result(r: dict) -> str:
 
     return (
         f"{r['pnu']}  {r['address']}\n"
-        f"    {mark(zone_ok)} zone={r['actual_zone']}  (기대 {r['expected_zone']})\n"
+        f"    {mark(zone_ok)} zones={r.get('actual_zones') or []}  (기대 포함 {r['expected_zone']})\n"
         f"    {mark(r['bcr_match'])} BCR={r['actual_bcr']}%  "
         f"{mark(r['far_match'])} FAR={r['actual_far']}%  "
         f"{mark(r['sunlight_match'])} sunlight={r['actual_sunlight']}\n"
@@ -136,6 +138,8 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--backend", default="http://localhost:8000")
     p.add_argument("--filter", default=None, help="zone name filter (e.g. 주거)")
+    p.add_argument("--timeout", type=float, default=240.0, help="auto-constraints timeout seconds per PNU")
+    p.add_argument("--out", default=None, help="optional JSON result output path")
     args = p.parse_args()
 
     parcels = load_fixtures()
@@ -150,8 +154,10 @@ def main() -> int:
 
     all_pass = True
     zone_stats: dict[str, dict[str, int]] = {}
+    results = []
     for parcel in parcels:
-        result = verify_one(client, parcel)
+        result = verify_one(client, parcel, args.timeout)
+        results.append(result)
         print(format_result(result))
         print()
         zone = parcel["zone"]
@@ -159,6 +165,7 @@ def main() -> int:
         stat["total"] += 1
         ok = (
             not result.get("error")
+            and result.get("zone_match")
             and result.get("bcr_match")
             and result.get("far_match")
             and result.get("sunlight_match")
@@ -173,6 +180,26 @@ def main() -> int:
     for zone, stat in sorted(zone_stats.items()):
         m = "✓" if stat["pass"] == stat["total"] else "✗"
         print(f"  {m} {zone}: {stat['pass']}/{stat['total']}")
+
+    if args.out:
+        out_path = Path(args.out)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(
+            json.dumps(
+                {
+                    "backend": args.backend,
+                    "timeout": args.timeout,
+                    "pass": all_pass,
+                    "results": results,
+                    "zone_stats": zone_stats,
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        print(f"\nWrote {out_path}")
 
     return 0 if all_pass else 2
 

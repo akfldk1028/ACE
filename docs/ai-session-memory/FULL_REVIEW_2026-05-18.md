@@ -45,6 +45,19 @@ Plan PNG gate:
 
 The plan image verifier passed for dimensions/nonblank output. These PNGs are the reference for how VWorld should show sparse legal datum markers instead of an elevation grid.
 
+Representative 9-PNU legal/line batch:
+
+```text
+.venv/bin/python tools/verify_all.py --backend http://127.0.0.1:18000 --timeout 300 --out ../../cli/design-regulation-check/out/pnu-9-review.json
+Result: PASS, 9/9 representative parcels
+```
+
+This batch checks zone inclusion, BCR/FAR, sunlight applicability, and registry-driven regulation-line presence. It does not replace datum PNG / section PNG / VWorld capture review.
+
+Important PNU-specific finding:
+
+- `1129010100103300000` / 서울 성북구 성북동 330 returns multiple zones: `자연녹지지역`, `제1종전용주거지역`. The fixture expected zone is still valid because it is included, but any review that reads only `zones[0]` will misread the case.
+
 ## Legal Coverage Matrix
 
 | Area | Current State | Review Judgment |
@@ -108,8 +121,8 @@ Safe policy:
 ## Next Implementation Order
 
 1. Finish §119 >3m true polygon/area partitioning from DEM/contours.
-2. Add mass-aware daylight verification: wall/window candidates, perpendicular distance rays, same-site facing-building cases, and pass/fail section PNG.
-3. Implement current-law front-road / 가로구역 height envelope only after road datum and road width/opposite-boundary extraction are trusted.
-4. Convert VWorld into a clean review product: layer toggles, compact legend, stable labels, sparse defaults, debug layers opt-in.
-5. Expand PNU regression cases with known slope/road/neighbor scenarios after adding more NGII DEM tiles.
-
+2. Promote the 9 representative PNU set into the full visual gate: API, plan PNG, section PNG, and VWorld capture per PNU.
+3. Add mass-aware daylight verification: wall/window candidates, perpendicular distance rays, same-site facing-building cases, and pass/fail section PNG.
+4. Implement current-law front-road / 가로구역 height envelope only after road datum and road width/opposite-boundary extraction are trusted.
+5. Convert VWorld into a clean review product: layer toggles, compact legend, stable labels, sparse defaults, debug layers opt-in.
+6. Expand PNU regression cases with known slope/road/neighbor scenarios after adding more NGII DEM tiles.

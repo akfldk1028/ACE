@@ -1,0 +1,77 @@
+{
+  "id": "gui_test_team",
+  "name": "GUI Test Team",
+  "description": "GUI 자동화 테스트 팀. CLI Agent가 앱을 빌드하면 GUI Test Agent가 화면을 보고 테스트합니다.",
+  "category": "Testing",
+  "icon": "monitor",
+  "nodeType": "team",
+  "complexity": "advanced",
+  "roles": [
+    {
+      "id": "gui_tester",
+      "name": "GUI Test Agent",
+      "description": "PyAutoGUI 기반 GUI 자동화 전문가. 스크린샷, 마우스/키보드 제어, UI 요소 찾기.",
+      "isRequired": true,
+      "defaultAgent": "gui_test_agent",
+      "suggestedAgents": ["gui_test_agent"],
+      "a2aPort": 8120
+    },
+    {
+      "id": "cli_dev",
+      "name": "CLI Developer",
+      "description": "Claude CLI 기반 개발자. 앱 코드를 작성하고 빌드합니다.",
+      "isRequired": false,
+      "defaultAgent": "cli_backend_agent",
+      "suggestedAgents": ["cli_backend_agent", "cli_db_agent"],
+      "a2aPort": 8111
+    }
+  ],
+  "teamConfig": {
+    "teamType": "RoundRobinGroupChat",
+    "maxRounds": 10,
+    "terminationCondition": {
+      "type": "TextMentionTermination",
+      "text": "TERMINATE"
+    }
+  },
+  "requiredConfig": {
+    "allow_repeated_speaker": true
+  },
+  "useCases": [
+    "Unity/Flutter 앱 GUI 테스트",
+    "데스크톱 애플리케이션 자동화",
+    "게임 UI 테스트",
+    "스크린샷 기반 검증"
+  ],
+  "examplePrompts": [
+    "현재 화면 스크린샷 찍어서 보여줘",
+    "마우스를 500, 300 좌표로 이동해줘",
+    "start_button.png 이미지를 찾아서 클릭해줘",
+    "Hello World를 입력하고 Enter를 눌러줘",
+    "Ctrl+S를 눌러서 저장해줘"
+  ],
+  "workflow": {
+    "steps": [
+      {
+        "step": 1,
+        "actor": "gui_tester",
+        "action": "take_screenshot으로 현재 화면 캡처"
+      },
+      {
+        "step": 2,
+        "actor": "gui_tester",
+        "action": "get_screen_info로 화면 크기/마우스 위치 확인"
+      },
+      {
+        "step": 3,
+        "actor": "gui_tester",
+        "action": "click_at, type_text 등으로 UI 조작"
+      },
+      {
+        "step": 4,
+        "actor": "gui_tester",
+        "action": "스크린샷으로 결과 확인"
+      }
+    ]
+  }
+}

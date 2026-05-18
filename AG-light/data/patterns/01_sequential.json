@@ -1,0 +1,97 @@
+{
+  "id": "sequential",
+  "name": {
+    "en": "Sequential Orchestration",
+    "ko": "순차적 오케스트레이션"
+  },
+  "description": {
+    "en": "Chains AI agents in a predefined, linear order. Each agent processes the output from the previous agent, creating a pipeline of specialized transformations.",
+    "ko": "에이전트를 미리 정의된 선형 순서로 연결합니다. 각 에이전트는 이전 에이전트의 출력을 처리하여 전문화된 변환 파이프라인을 만듭니다."
+  },
+  "diagram": "Agent A → Agent B → Agent C → Result",
+  "complexity": "low",
+  "when_to_use": [
+    "명확한 선형 의존성이 있는 다단계 프로세스",
+    "각 단계가 이전 단계를 기반으로 하는 데이터 변환 파이프라인",
+    "병렬화할 수 없는 워크플로우 단계",
+    "점진적 개선 (초안 → 검토 → 수정)"
+  ],
+  "when_to_avoid": [
+    "병렬로 실행 가능한 독립적인 단계가 있을 때",
+    "한 에이전트가 처리할 수 있는 단계가 적을 때",
+    "역추적이나 반복이 필요한 워크플로우",
+    "중간 결과에 따른 동적 라우팅이 필요할 때"
+  ],
+  "pros": [
+    "구현이 간단하고 이해하기 쉬움",
+    "디버깅과 모니터링이 용이",
+    "예측 가능한 실행 흐름",
+    "컨텍스트 전달이 명확"
+  ],
+  "cons": [
+    "병목 현상 발생 가능",
+    "한 에이전트 실패 시 전체 파이프라인 중단",
+    "유연성이 낮음",
+    "복잡한 분기 로직 구현 어려움"
+  ],
+  "example_use_cases": [
+    {
+      "name": "법률 계약서 생성",
+      "flow": "템플릿 선택 → 조항 커스터마이징 → 규정 준수 검토 → 위험 평가"
+    },
+    {
+      "name": "콘텐츠 작성",
+      "flow": "리서치 → 초안 작성 → 편집 → 최종 검토"
+    },
+    {
+      "name": "데이터 분석",
+      "flow": "데이터 수집 → 전처리 → 분석 → 시각화"
+    }
+  ],
+  "autogen_implementation": {
+    "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+    "label": "Sequential Team (순차적 협업)",
+    "team_config": {
+      "participants": [
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "researcher",
+            "description": "리서치 담당 - 정보 수집 및 조사",
+            "system_message": "당신은 리서처입니다. 주어진 주제에 대해 조사하고 핵심 정보를 수집하세요."
+          }
+        },
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "writer",
+            "description": "작가 담당 - 콘텐츠 작성",
+            "system_message": "당신은 작가입니다. 리서처가 수집한 정보를 바탕으로 글을 작성하세요."
+          }
+        },
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "reviewer",
+            "description": "리뷰어 담당 - 검토 및 피드백",
+            "system_message": "당신은 리뷰어입니다. 작성된 글을 검토하세요. 완료되면 TERMINATE라고 말하세요."
+          }
+        }
+      ],
+      "termination_condition": {
+        "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+        "component_type": "termination",
+        "config": { "max_messages": 10 }
+      }
+    }
+  },
+  "references": [
+    {
+      "title": "Microsoft AI Agent Design Patterns",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns"
+    }
+  ]
+}

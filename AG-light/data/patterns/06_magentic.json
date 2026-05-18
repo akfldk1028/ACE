@@ -1,0 +1,112 @@
+{
+  "id": "magentic",
+  "name": {
+    "en": "Magentic-One (Dynamic Task Ledger)",
+    "ko": "마제닉원 (동적 작업 원장)"
+  },
+  "description": {
+    "en": "A sophisticated multi-agent system with a central Orchestrator that maintains a dynamic task ledger. The orchestrator plans, delegates to specialized agents, tracks progress, and adapts the plan based on results.",
+    "ko": "중앙 오케스트레이터가 동적 작업 원장을 유지하는 정교한 멀티 에이전트 시스템입니다. 오케스트레이터가 계획을 세우고, 전문 에이전트에게 위임하며, 진행 상황을 추적하고, 결과에 따라 계획을 조정합니다."
+  },
+  "diagram": "                    ┌─────────────────────┐\n                    │    Orchestrator     │\n                    │  ┌───────────────┐  │\n                    │  │ Task Ledger   │  │\n                    │  │ - Plan        │  │\n                    │  │ - Progress    │  │\n                    │  │ - Facts       │  │\n                    │  └───────────────┘  │\n                    └──────────┬──────────┘\n           ┌───────────────────┼───────────────────┐\n           │                   │                   │\n    ┌──────┴──────┐     ┌──────┴──────┐     ┌──────┴──────┐\n    │ WebSurfer   │     │   Coder     │     │ FileSurfer  │\n    └─────────────┘     └─────────────┘     └─────────────┘",
+  "complexity": "very-high",
+  "when_to_use": [
+    "복잡한 다단계 작업 해결",
+    "웹 브라우징, 코딩, 파일 처리 등 다양한 능력이 필요할 때",
+    "작업 진행 중 계획 수정이 필요할 때",
+    "자율적 문제 해결이 필요한 벤치마크",
+    "복잡한 연구나 분석 작업"
+  ],
+  "when_to_avoid": [
+    "단순하고 명확한 작업",
+    "실시간 응답이 필요한 경우",
+    "리소스 제약이 있는 환경",
+    "높은 정확도가 필요한 규제 환경"
+  ],
+  "pros": [
+    "복잡한 작업의 자율적 수행",
+    "동적 계획 조정 능력",
+    "다양한 도구와 능력 통합",
+    "진행 상황 추적 및 오류 복구"
+  ],
+  "cons": [
+    "높은 토큰 비용",
+    "복잡한 구현",
+    "예측 불가능한 실행 경로",
+    "디버깅 어려움"
+  ],
+  "core_components": {
+    "orchestrator": {
+      "role": "작업 계획 수립, 에이전트 조율, 진행 추적",
+      "maintains": ["task_ledger", "progress_ledger", "facts_ledger"]
+    },
+    "specialized_agents": [
+      {
+        "name": "WebSurfer",
+        "capability": "웹 브라우징 및 정보 검색"
+      },
+      {
+        "name": "Coder",
+        "capability": "코드 작성 및 실행"
+      },
+      {
+        "name": "FileSurfer",
+        "capability": "파일 시스템 탐색 및 처리"
+      },
+      {
+        "name": "ComputerTerminal",
+        "capability": "터미널 명령 실행"
+      }
+    ]
+  },
+  "task_ledger_structure": {
+    "plan": "현재 작업 계획 및 단계",
+    "progress": "완료된 작업 및 현재 상태",
+    "facts": "수집된 정보 및 발견 사항",
+    "next_action": "다음 수행할 작업"
+  },
+  "example_use_cases": [
+    {
+      "name": "시장 조사 보고서 작성",
+      "steps": ["웹 검색", "데이터 수집", "분석", "보고서 작성"]
+    },
+    {
+      "name": "소프트웨어 버그 수정",
+      "steps": ["코드 분석", "버그 식별", "수정 코드 작성", "테스트"]
+    }
+  ],
+  "autogen_implementation": {
+    "provider": "autogen_ext.teams.MagenticOneGroupChat",
+    "note": "AutoGen 확장 패키지에서 제공",
+    "config_template": {
+      "participants": ["orchestrator", "web_surfer", "coder", "file_surfer"],
+      "model_client": { "model": "gpt-4o" },
+      "max_rounds": 30
+    }
+  },
+  "best_practices": [
+    "명확한 최종 목표 설정",
+    "각 전문 에이전트의 능력 범위 정의",
+    "최대 라운드 수 제한으로 비용 관리",
+    "중간 결과 로깅"
+  ],
+  "visual_override": {
+    "layout": "tree",
+    "category": "hierarchical",
+    "icon": "Network",
+    "primaryColor": "#ec4899",
+    "secondaryColor": "#f9a8d4",
+    "centerNodeType": "supervisor",
+    "edgeStyle": "solid"
+  },
+  "references": [
+    {
+      "title": "Magentic-One: A Generalist Multi-Agent System",
+      "url": "https://www.microsoft.com/en-us/research/articles/magentic-one-a-generalist-multi-agent-system-for-solving-complex-tasks/"
+    },
+    {
+      "title": "Microsoft Research Paper",
+      "url": "https://arxiv.org/abs/2411.04468"
+    }
+  ]
+}

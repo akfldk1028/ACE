@@ -161,6 +161,18 @@ The PNG draws:
 
 Pass criteria include `ngii_local_dem`, parcel/road/neighbor datum presence, and basic geometry sanity: road/neighbor shared edges must be near the site boundary.
 
+Plan PNGs use a dedicated verifier. Do not run the section pixel verifier
+against plan PNGs because it expects section-only colors such as daylight
+purple and §86 horizontal lines.
+
+```bash
+ARR/backend/.venv/bin/python cli/design-regulation-check/verify_plan_images.py --summary cli/design-regulation-check/out/plan/summary.json
+```
+
+It checks that the PNG exists, is nonblank, uses `ngii_local_dem`, and has
+numeric parcel/road/neighbor/§86 datum values plus enough parcel/road/neighbor
+samples to make the displayed labels trustworthy.
+
 ## Verify Generated PNG Pixels
 
 `run-all.mjs` automatically runs this after Python rendering:

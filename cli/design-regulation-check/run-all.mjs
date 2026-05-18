@@ -112,6 +112,17 @@ const steps = [
     ],
   },
   {
+    name: 'Python plan datum image verification gate',
+    command: pythonBin,
+    args: [
+      path.join(__dirname, 'verify_plan_images.py'),
+      '--summary',
+      path.join(outDir, 'plan', 'summary.json'),
+      '--out',
+      path.join(outDir, 'plan', 'image-check.json'),
+    ],
+  },
+  {
     name: 'Python NGII DEM coverage report',
     command: pythonBin,
     args: [

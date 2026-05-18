@@ -18,7 +18,15 @@ This file is intentionally blunt: not every legal diagram in the user's referenc
 
 The reference image about front-road diagonal limits is not fully implemented.
 
-Current code has `road_diagonal_*` fields in static regulation data, but the practical envelope from:
+Current code now renders a 3D front-road reference plane in `/design` from
+`front_road_diagonal_profile`, `road_frontages`, and `datum_result`.
+
+Important: this is a visual reference/context plane, not a complete current-law
+hard constraint. When `road_diagonal_multiplier` is null, the frontend labels it
+as `전면도로 참고` and draws it faintly/dashed. Use `?roadDiag=0` to hide it or
+`?roadDiag=1` / `?layers=all` to emphasize it.
+
+Still not fully implemented: the practical envelope from:
 
 - opposite-side road boundary,
 - road width,
@@ -66,6 +74,12 @@ For future legal review, require all three visual checks before saying a case is
 - Plan view: parcel, roads, adjacent lots, and legal offset lines.
 - Section view: road level, parcel datum, adjacent-lot datum, §86 average plane, slope ratios, and sample mass pass/fail.
 - VWorld/Cesium view: the same legal geometry projected on the real cadastral map.
+
+2026-05-18 VWorld rendering update:
+
+- `daylight_diagonal_envelope` has an opt-in 3D Cesium surface; use `?daylight=1` or `?daylight=detail`.
+- `front_road_diagonal_profile` has an opt-in compact 3D Cesium reference ribbon based on the widest detected road frontage and road datum; use `?roadDiag=1`.
+- The API gate confirmed both bundled Gangnam cases return `front_road_diagonal_profile`, `road_frontages`, `daylight_diagonal_envelope`, `sunlight_envelope`, and `datum_result`.
 
 Slope labels must be vertical:horizontal. 정북일조 `H/2` and 공동주택 채광사선 multiplier `2` are `2:1`, not `1:2`. This interpretation was user-confirmed after checking the law text: distance >= height/2 is equivalent to height <= distance*2. The section PNG should show equal x/y aspect and an explicit slope marker (`수평 1`, `수직 2`, `2:1`) on the line. A mismatch between Python PNG and VWorld means datum/geometry is suspect.
 

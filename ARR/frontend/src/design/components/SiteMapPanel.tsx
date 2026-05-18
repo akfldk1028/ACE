@@ -111,6 +111,55 @@ function lineKey(coords: number[][]): string {
   return coords.map((p) => `${p[0]?.toFixed(7)},${p[1]?.toFixed(7)}`).join('|');
 }
 
+function metersPerDegreeLng(lat: number): number {
+  return Math.max(1, 111_320 * Math.cos((lat * Math.PI) / 180));
+}
+
+function lngLatToLocalMeters(point: { lng: number; lat: number }, origin: { lng: number; lat: number }) {
+  return {
+    x: (point.lng - origin.lng) * metersPerDegreeLng(origin.lat),
+    y: (point.lat - origin.lat) * 110_540,
+  };
+}
+
+function localMetersToLngLat(point: { x: number; y: number }, origin: { lng: number; lat: number }) {
+  return {
+    lng: origin.lng + point.x / metersPerDegreeLng(origin.lat),
+    lat: origin.lat + point.y / 110_540,
+  };
+}
+
+function offsetPointMeters(
+  point: { lng: number; lat: number },
+  origin: { lng: number; lat: number },
+  unit: { x: number; y: number },
+  meters: number,
+): { lng: number; lat: number } {
+  const local = lngLatToLocalMeters(point, origin);
+  return localMetersToLngLat({ x: local.x + unit.x * meters, y: local.y + unit.y * meters }, origin);
+}
+
+function clippedLineSegment(
+  a: { lng: number; lat: number },
+  b: { lng: number; lat: number },
+  origin: { lng: number; lat: number },
+  maxLengthM: number,
+): [{ lng: number; lat: number }, { lng: number; lat: number }] {
+  const al = lngLatToLocalMeters(a, origin);
+  const bl = lngLatToLocalMeters(b, origin);
+  const dx = bl.x - al.x;
+  const dy = bl.y - al.y;
+  const len = Math.hypot(dx, dy);
+  if (len <= maxLengthM || len < 0.01) return [a, b];
+  const ux = dx / len;
+  const uy = dy / len;
+  const half = maxLengthM / 2;
+  return [
+    localMetersToLngLat({ x: -ux * half, y: -uy * half }, origin),
+    localMetersToLngLat({ x: ux * half, y: uy * half }, origin),
+  ];
+}
+
 function buildDatumMarkers(setbacks: SetbackGeometriesMap, parcelRing: number[][] | null): DatumMarker[] {
   const datum = setbacks.datum_result;
   if (!datum) return [];
@@ -294,6 +343,126 @@ function renderRoadAndNeighborContext(viewer: any, Cesium: any, setbacks: Setbac
   return addedIds;
 }
 
+function renderFrontRoadDiagonalReference(
+  viewer: any,
+  Cesium: any,
+  setbacks: SetbackGeometriesMap,
+  parcelRing: number[][] | null,
+  colors: { surface: string; line: string },
+): string[] {
+  const params = new URLSearchParams(window.location.search);
+  const showReference = params.get('roadDiag') === '1' || params.get('layers') === 'all';
+  if (!showReference) return [];
+
+  const profile = (setbacks as Record<string, unknown>).front_road_diagonal_profile as Record<string, unknown> | undefined;
+  const datum = setbacks.datum_result;
+  const roadFrontages = (setbacks as Record<string, unknown>).road_frontages as Array<Record<string, unknown>> | undefined;
+  const parcelBasis = parcelRing ? ringCentroid(parcelRing) : null;
+  if (!profile || !datum || !roadFrontages?.length || !parcelBasis) return [];
+
+  const slope = numberOrNull(profile.slope) ?? 1.5;
+  const profileWidth = numberOrNull(profile.road_width_m) ?? 0;
+  const roadDatum = numberOrNull(profile.road_datum_m) ?? datum.road_datum_m ?? datum.elevation_m ?? 0;
+  const applies = Boolean(profile.applies);
+  const alpha = applies ? 0.14 : 0.09;
+
+  const roads = roadFrontages
+    .map((r, index) => {
+      const shared = lineCoords(r.sharedEdge ?? r.shared_edge);
+      const width = numberOrNull(r.roadWidthM ?? r.road_width_m) ?? profileWidth;
+      return { index, shared, width };
+    })
+    .filter((r) => r.shared && r.shared.length >= 2 && r.width > 0)
+    .sort((a, b) => b.width - a.width);
+  const road = roads[0];
+  if (!road?.shared) return [];
+
+  const shared = road.shared;
+  const rawA = { lng: shared[0][0], lat: shared[0][1] };
+  const rawB = { lng: shared[shared.length - 1][0], lat: shared[shared.length - 1][1] };
+  const edgeMid = midpoint(rawA, rawB);
+  const origin = edgeMid;
+  const [a, b] = clippedLineSegment(rawA, rawB, origin, 32);
+  const midLocal = lngLatToLocalMeters(edgeMid, origin);
+  const parcelLocal = lngLatToLocalMeters(parcelBasis, origin);
+  const inwardRaw = { x: parcelLocal.x - midLocal.x, y: parcelLocal.y - midLocal.y };
+  const inwardLen = Math.hypot(inwardRaw.x, inwardRaw.y);
+  if (inwardLen < 0.01) return [];
+  const inward = { x: inwardRaw.x / inwardLen, y: inwardRaw.y / inwardLen };
+  const roadWidth = road.width || profileWidth;
+  const displayDepth = Math.min(18, Math.max(10, roadWidth * 1.2));
+
+  // Clean reference ribbon: show the section plane only near the selected road
+  // frontage. The legal section starts at the opposite road boundary, so the
+  // shared-edge height includes roadWidth * slope; the ribbon then rises inward.
+  const edgeH = slope * roadWidth;
+  const innerB = offsetPointMeters(b, origin, inward, displayDepth);
+  const innerA = offsetPointMeters(a, origin, inward, displayDepth);
+  const innerH = edgeH + slope * displayDepth;
+  const positions = [
+    [a.lng, a.lat, roadDatum + edgeH],
+    [b.lng, b.lat, roadDatum + edgeH],
+    [innerB.lng, innerB.lat, roadDatum + innerH],
+    [innerA.lng, innerA.lat, roadDatum + innerH],
+  ];
+
+  const surfaceC = Cesium.Color.fromCssColorString(colors.surface);
+  const lineC = Cesium.Color.fromCssColorString(colors.line);
+  const addedIds: string[] = [];
+  const flatHeights: number[] = [];
+  positions.forEach((p) => flatHeights.push(p[0], p[1], p[2]));
+  viewer.entities.add({
+    id: `${SETBACK_PREFIX}front-road-diagonal-reference-surface`,
+    polygon: {
+      hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(flatHeights),
+      perPositionHeight: true,
+      material: surfaceC.withAlpha(alpha),
+      outline: false,
+    },
+  });
+  addedIds.push(`${SETBACK_PREFIX}front-road-diagonal-reference-surface`);
+
+  const outline = positions.map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2]));
+  outline.push(outline[0]);
+  viewer.entities.add({
+    id: `${SETBACK_PREFIX}front-road-diagonal-reference-outline`,
+    polyline: {
+      positions: outline,
+      width: applies ? 4 : 3,
+      material: applies
+        ? lineC.withAlpha(0.86)
+        : new Cesium.PolylineDashMaterialProperty({
+            color: lineC.withAlpha(0.72),
+            dashLength: 14,
+          }),
+    },
+  });
+  addedIds.push(`${SETBACK_PREFIX}front-road-diagonal-reference-outline`);
+
+  viewer.entities.add({
+    id: `${SETBACK_PREFIX}front-road-diagonal-reference-label`,
+    position: Cesium.Cartesian3.fromDegrees(edgeMid.lng, edgeMid.lat, roadDatum + Math.max(8, innerH * 0.35)),
+    label: {
+      text: applies
+        ? `전면도로 사선\n도로 ${roadWidth.toFixed(1)}m / ${slope}:1`
+        : `전면도로 참고\n${slope}:1`,
+      font: '700 12px ui-monospace, SFMono-Regular, Menlo, monospace',
+      fillColor: Cesium.Color.WHITE,
+      outlineColor: Cesium.Color.BLACK,
+      outlineWidth: 3,
+      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+      backgroundColor: Cesium.Color.BLACK.withAlpha(0.46),
+      backgroundPadding: new Cesium.Cartesian2(7, 4),
+      showBackground: true,
+      pixelOffset: new Cesium.Cartesian2(46, -34),
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    },
+  });
+  addedIds.push(`${SETBACK_PREFIX}front-road-diagonal-reference-label`);
+
+  return addedIds;
+}
+
 /** Get ground height at centroid */
 function getGroundHeight(Cesium: any, viewer: any, ring: number[][]): number {
   let cx = 0, cy = 0;
@@ -468,6 +637,7 @@ function renderSetbackEntities(
   viewer: any,
   Cesium: any,
   setbacks: SetbackGeometriesMap,
+  parcelRing: number[][] | null,
 ) {
   // Clear old
   const toRemove: any[] = [];
@@ -488,6 +658,7 @@ function renderSetbackEntities(
     road_setback: '#f97316',                   // 주황 — 건축선 후퇴
     corner_cutoff: '#eab308',                  // 노랑 — 가각전제
     daylight_diagonal_envelope: '#a855f7',     // 보라 — 채광사선 경사면
+    front_road_diagonal_reference: '#16a34a',  // 녹색 — 전면도로 사선/가로구역 높이 참고면
     building_designation_line: '#14b8a6',      // 청록 — 건축지정선 (지구단위)
     building_limit_line: '#06b6d4',            // 시안 — 건축한계선
     wall_designation_line: '#84cc16',          // 라임 — 벽면지정선
@@ -580,12 +751,17 @@ function renderSetbackEntities(
   });
 
   const params = new URLSearchParams(window.location.search);
-  const showDaylight = params.get('daylight') === '1' || params.get('layers') === 'all';
+  const showDaylight = params.get('daylight') === '1' || params.get('daylight') === 'detail' || params.get('layers') === 'all';
   if (showDaylight) {
     renderDaylightDiagonalEnvelope(viewer, Cesium, setbacks.daylight_diagonal_envelope, {
       wall: colors.daylight_diagonal_envelope,
     }, setbacks.datum_result?.parcel_datum_m ?? setbacks.datum_result?.elevation_m ?? 0);
   }
+
+  renderFrontRoadDiagonalReference(viewer, Cesium, setbacks, parcelRing, {
+    surface: colors.front_road_diagonal_reference,
+    line: colors.front_road_diagonal_reference,
+  });
 }
 
 function renderDaylightDiagonalEnvelope(
@@ -597,6 +773,8 @@ function renderDaylightDiagonalEnvelope(
 ) {
   if (!envelope?.walls?.length) return;
   const color = Cesium.Color.fromCssColorString(colors.wall);
+  const params = new URLSearchParams(window.location.search);
+  const detailed = params.get('daylight') === 'detail' || params.get('layers') === 'all';
   for (let i = 0; i < envelope.walls.length; i++) {
     const wall = envelope.walls[i];
     if (!wall.positions || wall.positions.length < 2) continue;
@@ -608,12 +786,33 @@ function renderDaylightDiagonalEnvelope(
         positions: Cesium.Cartesian3.fromDegreesArray(flat),
         minimumHeights: (wall.min_heights ?? wall.positions.map(() => 0)).map(h => datumElevationM + h),
         maximumHeights: (wall.max_heights ?? wall.positions.map(() => 0)).map(h => datumElevationM + h),
-        material: color.withAlpha(0.38),
+        material: color.withAlpha(detailed ? 0.30 : 0.14),
         outline: true,
         outlineColor: color,
-        outlineWidth: 3,
+        outlineWidth: detailed ? 3 : 2,
       },
     });
+    const labelPoint = wall.positions[Math.floor(wall.positions.length / 2)];
+    const maxHeight = Math.max(...(wall.max_heights ?? [0]));
+    if (i === 0 && labelPoint) {
+      viewer.entities.add({
+        id: `${SETBACK_PREFIX}daylight_diagonal_envelope-label`,
+        position: Cesium.Cartesian3.fromDegrees(labelPoint[0], labelPoint[1], datumElevationM + Math.max(8, maxHeight * 0.45)),
+        label: {
+          text: '채광사선',
+          font: '700 12px ui-monospace, SFMono-Regular, Menlo, monospace',
+          fillColor: Cesium.Color.WHITE,
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 3,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          backgroundColor: Cesium.Color.BLACK.withAlpha(0.44),
+          backgroundPadding: new Cesium.Cartesian2(7, 4),
+          showBackground: true,
+          pixelOffset: new Cesium.Cartesian2(-36, -28),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+      });
+    }
   }
 }
 
@@ -837,7 +1036,8 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
       try {
         if (viewer.scene?.globe) viewer.scene.globe.depthTestAgainstTerrain = false;
       } catch { /* ignore */ }
-      renderSetbackEntities(viewer, Cesium, setbackGeometries);
+      const ring = sitePolygon ? extractRing(sitePolygon as { type: string; coordinates: any }) : null;
+      renderSetbackEntities(viewer, Cesium, setbackGeometries, ring);
       // NOTE: 카메라 이동은 sitePolygon useEffect의 flyToGeometryBbox(line 407)이
       // 이미 parcel 위치로 이동시킴. zoomTo(entities)는 vworld map 자체 카메라 모션과
       // race condition 발생해 기존 위치 잃어버림 → entities 위치 이동 호출 제거.
@@ -846,7 +1046,6 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
       // Plan PNG와 동일한 희소 법규 기준점만 표시한다.
       // 전체 표고 격자/넓은 datum 면은 법규 기준점과 혼동되므로 기본 표시하지 않는다.
       clearDatumPlane(viewer);
-      const ring = sitePolygon ? extractRing(sitePolygon as { type: string; coordinates: any }) : null;
       renderDatumMarkers(viewer, Cesium, buildDatumMarkers(setbackGeometries, ring));
 
       // 자동 표고 격자는 법규 기준면과 혼동되므로 /design에서는 기본 표시하지 않는다.

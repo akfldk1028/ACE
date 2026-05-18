@@ -667,12 +667,45 @@ function renderSetbackEntities(
 
   for (const [key, sb] of Object.entries(setbacks)) {
     // sunlight_envelope has different structure — handled separately below
-    if (key === 'north_setback' && setbacks.sunlight_envelope) continue;
     if (key === 'sunlight_envelope' || !sb || !('geometry' in sb)) continue;
     const geom = (sb as SetbackGeometry).geometry;
     const color = colors[key] || '#f97316';
 
-    if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
+    if (geom.type === 'FeatureCollection') {
+      const features = (geom as unknown as { features?: Array<{ geometry?: { type: string; coordinates: any } }> }).features ?? [];
+      for (let i = 0; i < features.length; i++) {
+        const featureGeom = features[i]?.geometry;
+        if (!featureGeom) continue;
+        if (featureGeom.type === 'LineString') {
+          const coords = featureGeom.coordinates as number[][];
+          if (!coords || coords.length < 2) continue;
+          viewer.entities.add({
+            id: `${SETBACK_PREFIX}${key}-feature-${i}`,
+            polyline: {
+              positions: Cesium.Cartesian3.fromDegreesArray(flattenRing(coords)),
+              width: key === 'north_setback' ? 5 : 4,
+              material: new Cesium.PolylineDashMaterialProperty({
+                color: Cesium.Color.fromCssColorString(color),
+                dashLength: key === 'north_setback' ? 10 : 16,
+              }),
+              clampToGround: true,
+            },
+          });
+        } else if (featureGeom.type === 'Polygon' || featureGeom.type === 'MultiPolygon') {
+          const ring = extractRing(featureGeom);
+          if (!ring || ring.length < 3) continue;
+          viewer.entities.add({
+            id: `${SETBACK_PREFIX}${key}-feature-${i}-outline`,
+            polyline: {
+              positions: Cesium.Cartesian3.fromDegreesArray(flattenRing(ring)),
+              width: 3,
+              material: Cesium.Color.fromCssColorString(color),
+              clampToGround: true,
+            },
+          });
+        }
+      }
+    } else if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
       const ring = extractRing(geom);
       if (!ring || ring.length < 3) continue;
       const flat = flattenRing(ring);
@@ -751,7 +784,7 @@ function renderSetbackEntities(
   });
 
   const params = new URLSearchParams(window.location.search);
-  const showDaylight = params.get('daylight') === '1' || params.get('daylight') === 'detail' || params.get('layers') === 'all';
+  const showDaylight = params.get('daylight') !== '0';
   if (showDaylight) {
     renderDaylightDiagonalEnvelope(viewer, Cesium, setbacks.daylight_diagonal_envelope, {
       wall: colors.daylight_diagonal_envelope,
@@ -767,7 +800,10 @@ function renderSetbackEntities(
 function renderDaylightDiagonalEnvelope(
   viewer: any,
   Cesium: any,
-  envelope: { walls?: Array<{ positions?: number[][]; min_heights?: number[]; max_heights?: number[] }> } | null | undefined,
+  envelope: {
+    walls?: Array<{ positions?: number[][]; min_heights?: number[]; max_heights?: number[] }>;
+    multiplier?: number;
+  } | null | undefined,
   colors: { wall: string },
   datumElevationM: number,
 ) {
@@ -778,28 +814,71 @@ function renderDaylightDiagonalEnvelope(
   for (let i = 0; i < envelope.walls.length; i++) {
     const wall = envelope.walls[i];
     if (!wall.positions || wall.positions.length < 2) continue;
-    const flat: number[] = [];
-    for (const p of wall.positions) flat.push(p[0], p[1]);
+    const heights = wall.max_heights ?? wall.positions.map(() => 0);
+    const flatHeights: number[] = [];
+    for (let j = 0; j < wall.positions.length; j++) {
+      const p = wall.positions[j];
+      flatHeights.push(p[0], p[1], datumElevationM + (heights[j] ?? 0));
+    }
+
+    // Backend gives this daylight envelope as a sloped quadrilateral:
+    // boundary edge at H=0 and inward edge at H=d*multiplier.
+    // Rendering it as Cesium `wall` folds the 4-point polygon into vertical
+    // fence pieces, which is visually and legally misleading. Use an actual
+    // per-vertex-height polygon instead.
     viewer.entities.add({
       id: `${SETBACK_PREFIX}daylight_diagonal_envelope-${i}`,
-      wall: {
-        positions: Cesium.Cartesian3.fromDegreesArray(flat),
-        minimumHeights: (wall.min_heights ?? wall.positions.map(() => 0)).map(h => datumElevationM + h),
-        maximumHeights: (wall.max_heights ?? wall.positions.map(() => 0)).map(h => datumElevationM + h),
-        material: color.withAlpha(detailed ? 0.30 : 0.14),
-        outline: true,
-        outlineColor: color,
-        outlineWidth: detailed ? 3 : 2,
+      polygon: {
+        hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(flatHeights),
+        perPositionHeight: true,
+        material: color.withAlpha(detailed ? 0.20 : 0.11),
+        outline: false,
       },
     });
+    const outlinePositions = wall.positions.map((p, j) =>
+      Cesium.Cartesian3.fromDegrees(p[0], p[1], datumElevationM + (heights[j] ?? 0)),
+    );
+    outlinePositions.push(outlinePositions[0]);
+    viewer.entities.add({
+      id: `${SETBACK_PREFIX}daylight_diagonal_envelope-outline-${i}`,
+      polyline: {
+        positions: outlinePositions,
+        width: detailed ? 4 : 3,
+        material: color.withAlpha(detailed ? 0.90 : 0.68),
+      },
+    });
+
+    if (wall.positions.length >= 4) {
+      const edgeMid = midpoint(
+        { lng: wall.positions[0][0], lat: wall.positions[0][1] },
+        { lng: wall.positions[1][0], lat: wall.positions[1][1] },
+      );
+      const innerMid = midpoint(
+        { lng: wall.positions[wall.positions.length - 1][0], lat: wall.positions[wall.positions.length - 1][1] },
+        { lng: wall.positions[2][0], lat: wall.positions[2][1] },
+      );
+      const maxHeight = Math.max(...heights);
+      viewer.entities.add({
+        id: `${SETBACK_PREFIX}daylight_diagonal_profile-${i}`,
+        polyline: {
+          positions: [
+            Cesium.Cartesian3.fromDegrees(edgeMid.lng, edgeMid.lat, datumElevationM),
+            Cesium.Cartesian3.fromDegrees(innerMid.lng, innerMid.lat, datumElevationM + maxHeight),
+          ],
+          width: detailed ? 6 : 4,
+          material: color.withAlpha(0.92),
+        },
+      });
+    }
+
     const labelPoint = wall.positions[Math.floor(wall.positions.length / 2)];
-    const maxHeight = Math.max(...(wall.max_heights ?? [0]));
+    const maxHeight = Math.max(...heights);
     if (i === 0 && labelPoint) {
       viewer.entities.add({
         id: `${SETBACK_PREFIX}daylight_diagonal_envelope-label`,
         position: Cesium.Cartesian3.fromDegrees(labelPoint[0], labelPoint[1], datumElevationM + Math.max(8, maxHeight * 0.45)),
         label: {
-          text: '채광 참고\n벽면 기준 필요',
+          text: `채광사선\nH ≤ 거리 × ${((envelope as { multiplier?: number }).multiplier ?? 2).toFixed(0)}`,
           font: '700 12px ui-monospace, SFMono-Regular, Menlo, monospace',
           fillColor: Cesium.Color.WHITE,
           outlineColor: Cesium.Color.BLACK,

@@ -117,13 +117,16 @@ export function renderSunlightEnvelope(
   // plateau polygon은 단면 프로파일에 포함해서 표현한다. 별도 채움면은
   // VWorld 지적/도로/레벨 마커를 가려 검토성이 떨어진다.
 
-  // (2) 사선면은 기본 clean view에서 대표 면으로 단순화해 표시한다.
+  // (2) 사선면은 기본 clean view에서 끈다.
+  // 허용 볼륨 계산상 H<=10m 구간은 수평 plateau가 생길 수 있지만, VWorld에서
+  // 넓은 면으로 보이면 사용자가 "정북일조는 수직벽→사선"이라는 단면 규칙을
+  // 읽기 어렵다. 법규 debug가 필요할 때만 `?surface=1/detail`로 켠다.
   // backend 원본은 계산용 상세 geometry라 500+ corner가 될 수 있고,
   // 그대로 그리면 VWorld 위에서 contour/fence처럼 보여 사용자가 법규면을 읽기 어렵다.
-  // 숨김은 `?surface=0`, 정밀 geometry 확인은 `?surface=detail` 또는 `?layers=all`로 켠다.
+  // 정밀 geometry 확인은 `?surface=detail` 또는 `?layers=all`로 켠다.
   const surfaceMode = params.get('surface');
   const showDetailedSurface = surfaceMode === 'detail' || params.get('layers') === 'all';
-  const showSurface = surfaceMode !== '0';
+  const showSurface = surfaceMode === '1' || showDetailedSurface;
   if (showSurface && Array.isArray(envelope.slanted_polygons)) {
     for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
       const poly = envelope.slanted_polygons[pi];

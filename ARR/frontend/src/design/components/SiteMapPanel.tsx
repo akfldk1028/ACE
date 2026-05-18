@@ -657,7 +657,7 @@ function renderSetbackEntities(
     adjacent_setback: '#3b82f6',               // 파랑 — 인접대지 이격
     road_setback: '#f97316',                   // 주황 — 건축선 후퇴
     corner_cutoff: '#eab308',                  // 노랑 — 가각전제
-    daylight_diagonal_envelope: '#a855f7',     // 보라 — 채광사선 경사면
+    daylight_diagonal_envelope: '#a855f7',     // 보라 — 채광 검토 참고면 (정확 판정은 매스/채광창 벽면 필요)
     front_road_diagonal_reference: '#16a34a',  // 녹색 — 전면도로 사선/가로구역 높이 참고면
     building_designation_line: '#14b8a6',      // 청록 — 건축지정선 (지구단위)
     building_limit_line: '#06b6d4',            // 시안 — 건축한계선
@@ -799,7 +799,7 @@ function renderDaylightDiagonalEnvelope(
         id: `${SETBACK_PREFIX}daylight_diagonal_envelope-label`,
         position: Cesium.Cartesian3.fromDegrees(labelPoint[0], labelPoint[1], datumElevationM + Math.max(8, maxHeight * 0.45)),
         label: {
-          text: '채광사선',
+          text: '채광 참고\n벽면 기준 필요',
           font: '700 12px ui-monospace, SFMono-Regular, Menlo, monospace',
           fillColor: Cesium.Color.WHITE,
           outlineColor: Cesium.Color.BLACK,

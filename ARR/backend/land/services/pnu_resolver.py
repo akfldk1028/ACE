@@ -248,6 +248,61 @@ def reverse_geocode(x: float, y: float) -> dict:
     return result
 
 
+def fetch_parcel_geometry(pnu: str) -> dict:
+    """
+    Fetch parcel polygon by PNU from Vworld cadastral boundary layer.
+
+    This is the address/PNU-search counterpart to reverse_geocode(). The map
+    click flow already has geometry from POINT lookup, but direct PNU/address
+    analysis needs to resolve the polygon before setback/datum lines can be
+    drawn.
+    """
+    if not config.VWORLD_API_KEY:
+        return {"success": False, "geometry": None, "error": "VWORLD_API_KEY not configured"}
+
+    params = {
+        "key": config.VWORLD_API_KEY,
+        "service": "data",
+        "request": "GetFeature",
+        "data": "LP_PA_CBND_BUBUN",
+        "attrFilter": f"pnu:=:{pnu}",
+        "format": "json",
+        "crs": "EPSG:4326",
+        "size": "1",
+    }
+
+    try:
+        resp = config.vworld_client.get(config.VWORLD_DATA_URL, params=params)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        logger.warning("Vworld parcel geometry failed for PNU %s: %s", pnu, e)
+        return {"success": False, "geometry": None, "error": f"ParcelGeometry: {e}"}
+
+    try:
+        features = (
+            data.get("response", {})
+            .get("result", {})
+            .get("featureCollection", {})
+            .get("features", [])
+        )
+        if not features:
+            return {"success": False, "geometry": None, "error": "ParcelGeometry: no features"}
+
+        geom = features[0].get("geometry")
+        if not geom:
+            return {"success": False, "geometry": None, "error": "ParcelGeometry: no geometry"}
+
+        if geom.get("type") == "MultiPolygon":
+            coords = geom.get("coordinates") or []
+            if coords:
+                geom = {"type": "Polygon", "coordinates": coords[0]}
+
+        return {"success": True, "geometry": geom}
+    except (AttributeError, KeyError, TypeError, ValueError) as e:
+        return {"success": False, "geometry": None, "error": f"ParcelGeometry parse: {e}"}
+
+
 def _vworld_reverse_address(x: float, y: float) -> str | None:
     """
     Vworld Address API 역지오코딩 — 좌표 → 전체 지번주소.

@@ -24,6 +24,7 @@ const SOURCE_LABEL: Record<string, string> = {
   copernicus_glo30: 'Copernicus GLO-30 (30m, ±~2m)',
   ngii_lidar_1m: 'NGII LiDAR (1m, ±14cm)',
   ngii_5m: 'NGII 5m DEM (±~1m)',
+  ngii_local_dem: 'NGII 수치지형도 SHP→DEM (5m)',
   failed: '⚠ fetch 실패',
 };
 
@@ -41,7 +42,7 @@ const BASIS_LABEL: Record<string, string> = {
 export const DatumInfoCard = React.memo(function DatumInfoCard({ envelope, datumResult }: DatumInfoCardProps) {
   // envelope 우선, 없으면 datumResult를 envelope-호환 shape로 변환 (design 카드와 동일 패턴)
   const data: {
-    elevation_source: 'open_meteo' | 'failed' | null | undefined;
+    elevation_source: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'ngii_local_dem' | 'failed' | null | undefined;
     datum_elevation_m?: number;
     datum_case?: string | null;
     datum_basis?: string | null;

@@ -27,7 +27,7 @@ from land.persistence import save_analysis_result, log_query
 from land.services import pnu_resolver, zoning_mapper, land_api, law_enricher
 from land.services import regulation_calculator, regulation_calculator_ext
 from land.services import overlay_resolver
-from land.services import setback_geometry
+from land.services import road_frontage, setback_geometry
 
 logger = logging.getLogger(__name__)
 
@@ -133,6 +133,12 @@ def analyze(request):
         if land_info["success"] and land_info["zones"]:
             if not zone_names:
                 zone_names = land_info["zones"]
+        if not parcel_geometry:
+            geom_result = pnu_resolver.fetch_parcel_geometry(pnu_info["pnu"])
+            if geom_result.get("success") and geom_result.get("geometry"):
+                parcel_geometry = geom_result["geometry"]
+            elif geom_result.get("error"):
+                errors.append(geom_result["error"])
 
     # Step 3: No zones → warning
     if not zone_names:
@@ -412,9 +418,23 @@ def _core_analysis(pnu_info, zone_names, land_info, include_law=True,
     # Phase 2B: ENABLE_DATUM_ELEVATION=true 일 때 envelope에 §119 datum 주입
     setback_lines = None
     if parcel_geometry:
+        road_frontages = None
+        neighbor_parcels = None
+        roads_result = road_frontage.fetch_neighbor_roads(parcel_geometry)
+        if roads_result.get("success"):
+            road_frontages = roads_result.get("roads") or None
+        elif roads_result.get("error"):
+            errors.append(roads_result["error"])
+        neighbors_result = road_frontage.fetch_neighbor_parcels(parcel_geometry)
+        if neighbors_result.get("success"):
+            neighbor_parcels = neighbors_result.get("neighbors") or None
+        elif neighbors_result.get("error"):
+            errors.append(neighbors_result["error"])
         setback_lines = setback_geometry.compute_setback_lines(
             parcel_geometry, reg,
             compute_datum=config.ENABLE_DATUM_ELEVATION,
+            road_frontages=road_frontages,
+            neighbor_parcels=neighbor_parcels,
         )
 
     result = {

@@ -5,6 +5,7 @@ Elevation API — 좌표 → 표고 (datum elevation 계산용).
 
 Provider:
     - "open_meteo" (default): Open-Meteo Elevation API, 90m Copernicus GLO-90, 무료, 인증 X
+    - "ngii_local_dem": local NGII GeoTIFF made from digital topographic data
     - "ngii_5m" (향후): NGII 5m DEM self-host (R2 + opentopodata Docker)
 
 Vworld는 표고 API 없음 (2019 3D Open API 폐쇄).
@@ -13,7 +14,8 @@ Failure semantics
 -----------------
 한 batch(<=100점) 안에서 **전체 실패**시 ElevationFetchError 발생.
 caller(cases.py)가 catch하여 datum_source="failed" 로 표시.
-부분 실패는 0.0 fallback + warning log (주로 batch>100 multi-call에서만 발생 가능).
+For legal datum, provider="ngii_local_dem" is strict: missing dependency/file or
+DEM coverage raises ElevationFetchError instead of silently using Open-Meteo.
 """
 
 from __future__ import annotations
@@ -67,7 +69,6 @@ def fetch_elevations(points: list[tuple[float, float]]) -> list[float]:
         return _ngii_lidar_1m_batch(points)
     if provider == "ngii_local_dem":
         # Step 4 — 자체 호스팅 GeoTIFF (tools/ngii_contour_to_dem.py 결과).
-        # NGII_DEM_LOCAL_PATH 미설정/실패시 Open-Meteo 자동 폴백.
         return _ngii_local_dem_batch(points)
     # 그 외 모두 opentopodata sidecar/공개 인스턴스 dataset name으로 처리.
     # 알려진 값: copernicus_glo30, ngii_5m, srtm30m, aster30m, mapzen, eudem25m, etc.
@@ -263,7 +264,7 @@ def _get_ngii_dem_src():
     global _ngii_dem_src
     if _ngii_dem_src is not None:
         return _ngii_dem_src
-    path = config.NGII_DEM_LOCAL_PATH
+    path = _resolve_local_dem_path(config.NGII_DEM_LOCAL_PATH)
     if not path:
         raise ElevationFetchError(
             "NGII_DEM_LOCAL_PATH not set. .env에 설정 + tools/ngii_contour_to_dem.py "
@@ -281,6 +282,19 @@ def _get_ngii_dem_src():
     return _ngii_dem_src
 
 
+def _resolve_local_dem_path(path: str) -> str:
+    """Resolve Windows-style D:/ paths when the backend is running under WSL."""
+    if not path or os.path.exists(path):
+        return path
+    if os.name != "nt" and len(path) >= 3 and path[1] == ":" and path[2] in ("/", "\\"):
+        drive = path[0].lower()
+        rest = path[3:].replace("\\", "/")
+        wsl_path = f"/mnt/{drive}/{rest}"
+        if os.path.exists(wsl_path):
+            return wsl_path
+    return path
+
+
 def _get_5186_transformer():
     global _to_5186_transformer
     if _to_5186_transformer is None:
@@ -292,18 +306,16 @@ def _get_5186_transformer():
 def _ngii_local_dem_batch(points: list[tuple[float, float]]) -> list[float]:
     """자체 호스팅 NGII DEM에서 좌표별 sample. WGS84 (lat, lng) → EPSG:5186 → raster sample.
 
-    실패시 Open-Meteo 자동 폴백 (도시 외 영역 / 파일 미설정 / rasterio 미설치).
+    법규용 datum은 DEM 출처가 중요하므로 Open-Meteo로 묵시적 폴백하지 않는다.
+    파일 미설정, rasterio 미설치, 커버리지 밖 sample이 있으면 ElevationFetchError를
+    발생시켜 caller가 "ngii_local_dem"으로 잘못 표시하지 못하게 한다.
     """
     try:
         src = _get_ngii_dem_src()
         transformer = _get_5186_transformer()
     except ElevationFetchError as e:
-        logger.warning("NGII local DEM unavailable, fallback to open_meteo: %s", e)
-        try:
-            return _open_meteo_batch(points)
-        except ElevationFetchError as e2:
-            logger.warning("open_meteo fallback also failed: %s", e2)
-            return [0.0] * len(points)
+        logger.error("NGII local DEM unavailable: %s", e)
+        raise
 
     coords_5186 = [transformer.transform(lng, lat) for lat, lng in points]
     nodata = src.nodata if src.nodata is not None else -9999.0
@@ -311,26 +323,18 @@ def _ngii_local_dem_batch(points: list[tuple[float, float]]) -> list[float]:
 
     out: list[float] = []
     fallback_pts: list[tuple[float, float]] = []
-    fallback_idx: list[int] = []
 
     for i, s in enumerate(samples):
         v = float(s[0]) if len(s) > 0 else nodata
         if v == nodata or not (-500.0 <= v <= 9000.0):
-            # raster 커버리지 밖 → Open-Meteo 폴백 후보
             fallback_pts.append(points[i])
-            fallback_idx.append(i)
-            out.append(0.0)   # placeholder
         else:
             out.append(v)
 
     if fallback_pts:
-        try:
-            fb = _open_meteo_batch(fallback_pts)
-            for j, val in zip(fallback_idx, fb):
-                out[j] = val
-        except ElevationFetchError as e:
-            logger.warning("NGII miss + open_meteo fallback failed: %s", e)
-            for j in fallback_idx:
-                out[j] = 0.0
+        raise ElevationFetchError(
+            f"NGII local DEM missing {len(fallback_pts)}/{len(points)} samples; "
+            "refusing non-NGII fallback for legal datum."
+        )
 
     return out

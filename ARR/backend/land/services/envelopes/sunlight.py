@@ -171,7 +171,14 @@ def compute_sunlight_envelope(
             slanted_polygons, walls, thresholds,
         )
 
-        # ── 3. 2D 단면 프로파일 (수직→평탄→경사) ───────────
+        # ── 3a. plateau 영역 (정북 ~5m 띠) ────────────────────
+        # 2026-05-11 Step 13 — frontend가 박스 윗면 전체에 노랑 plateau를 깔면
+        # "사선이 plateau를 통과 안 함" 시각 오류 (사용자 docs/img_44 초록 ❌).
+        # backend가 정북 boundary ~ PLATEAU_END_M 띠 polygon을 따로 계산.
+        # frontend는 이 footprint로 plateau 시각화 → 그 너머는 사선만 보임.
+        plateau_polygon = _emit_plateau_polygon(north_edges, parcel_utm, centroid)
+
+        # ── 3b. 2D 단면 프로파일 (수직→평탄→경사) ───────────
         _emit_profile_polylines(primary_edges, centroid, profile_polylines)
 
         # ── 4. 계단식 envelope 층 (선택적 시각화) ──────────
@@ -188,12 +195,14 @@ def compute_sunlight_envelope(
         return {
             "walls": walls,
             "slanted_polygons": slanted_polygons,
+            "plateau_polygon": plateau_polygon,
             "profile_polylines": profile_polylines,
             "envelope_layers": envelope_layers,
             "slope": SLOPE,
             "base_setback_m": BASE_SETBACK_M,
             "base_height_m": BASE_HEIGHT_M,
             "max_depth_m": MAX_DEPTH_CAP_M,
+            "plateau_end_m": PLATEAU_END_M,
             "thresholds": thresholds,
             "law_basis": "건축법 §61①, 시행령 §86① (2023.9.12 개정 9→10m)",
             **datum_meta,
@@ -309,23 +318,45 @@ def _emit_slanted_polygon_and_walls(
         except Exception:
             inner_poly = parcel_utm
 
-        ring_utm = list(inner_poly.exterior.coords)[:-1]
-        # 2026-05-08 Phase C revert — §86 정확한 정의.
-        # 이전 Phase C: d = (parcel.max_y - vertex.y) — 모든 vertex를 polygon 최북 1점으로
-        #   reference. 결과: 정사각형에서도 가장 북쪽 vertex 1개만 d=0(H=10), 나머지 점진
-        #   증가(H 점점 큼) → envelope이 한쪽으로 솟는 비대칭 시각 (사용자 docs/img_31).
-        #
-        # 복귀: d = north_mls.distance(Point) — vertex에서 정북 boundary edge까지 최단
-        #   수직거리. §86 "정북방향 인접대지경계선으로부터 거리" 의미에 부합.
-        #   정사각형 axis-aligned: 여러 vertex가 같은 north edge에 가까이 → d≈0 다수 →
-        #   H=10m corner 다수 → envelope 베이스 균일.
-        #
-        # LOCKED SPEC (envelope-locked-spec.md, Session 14): 원래 north_mls.distance.
-        # Phase C는 비-정방형에서의 실제 §86 정의(정북 방향 거리)를 단순화하려다 정사각형
-        # 비대칭을 강화한 부작용. revert가 사용자 다이어그램(이재인 §86 그림)에 부합.
+        # 2026-05-11 Step 11 — ring densify (사용자 docs/img_41,42 요구).
+        # corner만 sample하면 plateau(d<5, H=10 평탄 영역)가 정북 edge 1차원 line에만 존재 →
+        # 사선 polygon이 정북 corner에서 바로 위로 솟아 "수평 plateau 없이 곧장 사선"으로 보임.
+        # inner_poly.segmentize(1.0)로 1m 간격 dense vertex 추가 → d=5 contour 통과 vertex 생성 →
+        # perPositionHeight polygon이 d=0~5 평탄(H=10) + d>5 사선 정확히 표현.
+        try:
+            inner_poly_dense = inner_poly.segmentize(1.0)
+            ring_utm = list(inner_poly_dense.exterior.coords)[:-1]
+        except Exception:
+            ring_utm = list(inner_poly.exterior.coords)[:-1]
+        # 2026-05-11 Step 12 — primary edge perpendicular distance (대칭 강제).
+        # 사용자 docs/img_42 좌우 비대칭 지적: parcel이 약간 비스듬하면 north_mls.distance
+        # (각 정북 edge segment까지 최단거리)가 좌우 corner에 다른 값 반환 → 한쪽 plateau ✅
+        # 다른쪽 사선 ❌. primary 정북 edge의 line(양방향 무한 확장)으로부터의 수직거리만
+        # 사용하면 같은 axis에 수직인 vertex는 같은 d → 좌우 대칭 plateau-사선 transition.
+        primary_full = _pick_primary_edge(north_lines, centroid)
+        if primary_full:
+            pe = primary_full[0]
+            pe_coords = list(pe.coords)
+            pe_p1 = pe_coords[0]
+            pe_p2 = pe_coords[-1]
+            pe_dx = pe_p2[0] - pe_p1[0]
+            pe_dy = pe_p2[1] - pe_p1[1]
+            pe_len = math.sqrt(pe_dx * pe_dx + pe_dy * pe_dy)
+        else:
+            pe_len = 0.0
+            pe_p1 = pe_p2 = None
+            pe_dx = pe_dy = 0.0
+
+        def _d_perp(pt: tuple) -> float:
+            """primary edge line으로부터의 perpendicular distance (대칭). fallback: north_mls."""
+            if pe_len > 0.01 and pe_p1 is not None:
+                # |dy*(x-x1) - dx*(y-y1)| / len
+                return abs(pe_dy * (pt[0] - pe_p1[0]) - pe_dx * (pt[1] - pe_p1[1])) / pe_len
+            return north_mls.distance(Point(pt[0], pt[1]))
+
         corners_utm_h: list[list] = []
         for pt in ring_utm:
-            d = north_mls.distance(Point(pt[0], pt[1]))
+            d = _d_perp(pt)
             h = min(SLOPE * MAX_DEPTH_CAP_M, max(BASE_HEIGHT_M, d * SLOPE))
             corners_utm_h.append([pt[0], pt[1], h])
 
@@ -358,6 +389,81 @@ def _emit_slanted_polygon_and_walls(
                 })
     except Exception as e:
         logger.warning(f"envelope from north boundary failed: {e}")
+
+
+def _emit_plateau_polygon(
+    north_edges: list[LineString],
+    parcel_utm: Polygon,
+    centroid: Point,
+) -> dict | None:
+    """
+    정북 boundary ~ PLATEAU_END_M 띠 polygon (H=10m 평탄부, §86①제1호).
+
+    사용자 docs/img_44 요구: plateau가 박스 윗면 전체가 아니라 정북 5m 부분만이어야.
+    inner_poly (parcel - 1.5m buffer) ∩ (primary edge inward 5m strip).
+
+    Returns dict {"corners": [[lng, lat, 10]...], "kind": "plateau"} or None.
+    """
+    try:
+        if not north_edges:
+            return None
+        primary = _pick_primary_edge(north_edges, centroid)
+        if not primary:
+            return None
+        edge, nx, ny = primary
+        coords = list(edge.coords)
+        a, b = coords[0], coords[-1]
+        edge_dx = b[0] - a[0]
+        edge_dy = b[1] - a[1]
+        edge_len = math.sqrt(edge_dx * edge_dx + edge_dy * edge_dy)
+        if edge_len < 0.01:
+            return None
+
+        # primary edge를 양옆 100m 확장 → inner_poly 완전 cross
+        ext = 100.0 / edge_len
+        ax = a[0] - edge_dx * ext
+        ay = a[1] - edge_dy * ext
+        bx = b[0] + edge_dx * ext
+        by = b[1] + edge_dy * ext
+
+        # primary edge에서 inward로 PLATEAU_END_M 영역 strip
+        strip_coords = [
+            (ax, ay),
+            (bx, by),
+            (bx + nx * PLATEAU_END_M, by + ny * PLATEAU_END_M),
+            (ax + nx * PLATEAU_END_M, ay + ny * PLATEAU_END_M),
+        ]
+        strip = Polygon(strip_coords)
+        if not strip.is_valid:
+            strip = strip.buffer(0)
+
+        # inner_poly (parcel - 1.5m) 와 교집합 → 정북 1.5m~5m 띠
+        try:
+            inner_poly = parcel_utm.buffer(-BASE_SETBACK_M)
+            if isinstance(inner_poly, MultiPolygon):
+                inner_poly = max(inner_poly.geoms, key=lambda g: g.area)
+            if not isinstance(inner_poly, Polygon) or inner_poly.area < 1.0:
+                inner_poly = parcel_utm
+        except Exception:
+            inner_poly = parcel_utm
+
+        plateau = inner_poly.intersection(strip)
+        if plateau.is_empty:
+            return None
+        if isinstance(plateau, MultiPolygon):
+            plateau = max(plateau.geoms, key=lambda g: g.area)
+        if not isinstance(plateau, Polygon) or plateau.area < 0.5:
+            return None
+
+        ring_wgs = [_wgs_pt(p) for p in list(plateau.exterior.coords)[:-1]]
+        return {
+            "corners": [[p[0], p[1], BASE_HEIGHT_M] for p in ring_wgs],
+            "label": f"정북 {PLATEAU_END_M:.0f}m 평탄부 (§86①제1호 H=10m)",
+            "kind": "plateau",
+        }
+    except Exception as e:
+        logger.warning(f"plateau polygon failed: {e}")
+        return None
 
 
 def _emit_profile_polylines(

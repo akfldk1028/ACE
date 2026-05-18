@@ -144,6 +144,14 @@ export interface SunlightEnvelope {
     label?: string;
     kind?: string;                        // 'slope'
   }[];
+  /** 정북 ~ PLATEAU_END_M(5m) 띠 평탄부 polygon (§86①제1호 H=10m). Step 13 (2026-05-11). */
+  plateau_polygon?: {
+    corners: [number, number, number][];  // [[lng, lat, 10], ...]
+    label?: string;
+    kind?: string;                        // 'plateau'
+  } | null;
+  /** plateau 띠 폭 (m). 보통 5.0 */
+  plateau_end_m?: number;
   /** 2D 단면도용 프로파일 (수직→평탄→경사) */
   profile_polylines?: {
     points: [number, number, number][];
@@ -177,8 +185,8 @@ export interface SunlightEnvelope {
   datum_case?: string | null;
   /** "ground_weighted_avg"|"road_centerline"|... or null */
   datum_basis?: string | null;
-  /** elevation provider: open_meteo(90m) | copernicus_glo30(30m) | ngii_lidar_1m(14cm) | ngii_5m | failed | null */
-  elevation_source?: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'failed' | null;
+  /** elevation provider: open_meteo(90m) | copernicus_glo30(30m) | ngii_lidar_1m(14cm) | ngii_local_dem(SHP→DEM) | failed | null */
+  elevation_source?: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'ngii_local_dem' | 'failed' | null;
 }
 
 /**
@@ -190,7 +198,7 @@ export interface DatumResultDict {
   elevation_m: number;
   case: string | null;
   basis: string | null;
-  elevation_source: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'failed' | null;
+  elevation_source: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'ngii_local_dem' | 'failed' | null;
 }
 
 /** 채광 인동간격 검증 결과 */

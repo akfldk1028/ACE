@@ -1752,6 +1752,56 @@ class DatumElevationApiTest(TestCase):
         finally:
             land_config.ELEVATION_PROVIDER = original
 
+    def test_provider_ngii_local_dem_does_not_fallback_to_open_meteo_when_unavailable(self):
+        """법규용 NGII DEM은 미설정/미설치시 Open-Meteo로 조용히 대체하지 않는다."""
+        from unittest.mock import patch, MagicMock
+        from land import config as land_config
+        from land.services.datum import elevation_api
+
+        original = land_config.ELEVATION_PROVIDER
+        land_config.ELEVATION_PROVIDER = "ngii_local_dem"
+        try:
+            open_meteo_mock = MagicMock(return_value=[42.0])
+            with patch.object(
+                elevation_api,
+                "_get_ngii_dem_src",
+                side_effect=elevation_api.ElevationFetchError("rasterio not installed"),
+            ), patch.object(elevation_api, "_open_meteo_batch", open_meteo_mock):
+                with self.assertRaises(elevation_api.ElevationFetchError):
+                    elevation_api.fetch_elevations([(37.5, 127.0)])
+            open_meteo_mock.assert_not_called()
+        finally:
+            land_config.ELEVATION_PROVIDER = original
+
+    def test_provider_ngii_local_dem_does_not_fallback_to_open_meteo_for_missing_coverage(self):
+        """DEM 밖 sample도 법규 datum에서는 failed 처리한다."""
+        from unittest.mock import patch, MagicMock
+        from land import config as land_config
+        from land.services.datum import elevation_api
+
+        class _Src:
+            nodata = -9999.0
+
+            def sample(self, _coords):
+                return [[-9999.0]]
+
+        class _Transformer:
+            def transform(self, lng, lat):
+                return lng, lat
+
+        original = land_config.ELEVATION_PROVIDER
+        land_config.ELEVATION_PROVIDER = "ngii_local_dem"
+        try:
+            open_meteo_mock = MagicMock(return_value=[42.0])
+            with patch.object(elevation_api, "_get_ngii_dem_src", return_value=_Src()), \
+                 patch.object(elevation_api, "_get_5186_transformer", return_value=_Transformer()), \
+                 patch.object(elevation_api, "_open_meteo_batch", open_meteo_mock):
+                with self.assertRaises(elevation_api.ElevationFetchError):
+                    elevation_api.fetch_elevations([(37.5, 127.0)])
+            open_meteo_mock.assert_not_called()
+        finally:
+            land_config.ELEVATION_PROVIDER = original
+
     def test_empty_input_returns_empty(self):
         from land.services.datum import elevation_api
         self.assertEqual(elevation_api.fetch_elevations([]), [])
@@ -1855,14 +1905,27 @@ class DatumCalculatorTest(TestCase):
         result = calculator.site_above_road_119(80.0, 90.0)
         self.assertAlmostEqual(result, 90.0)
 
-    def test_split_3m_returns_none_phase1(self):
+    def test_split_3m_segments_returns_bands_when_gt3m(self):
         from shapely.geometry import Polygon
         from land.services.datum import calculator
         parcel = Polygon([
             (127.0, 37.5), (127.001, 37.5),
             (127.001, 37.501), (127.0, 37.501),
         ])
-        self.assertIsNone(calculator.split_3m_segments(parcel))
+        with self._mock_elev(lambda points: [
+            10.0 + (idx / max(1, len(points) - 1)) * 8.0
+            for idx, _ in enumerate(points)
+        ]):
+            bands = calculator.split_3m_segments(parcel)
+        self.assertIsNotNone(bands)
+        self.assertGreaterEqual(len(bands), 3)
+        for band in bands:
+            self.assertLessEqual(
+                band["max_elevation_m"] - band["min_elevation_m"],
+                3.001,
+            )
+            self.assertGreater(band["length_m"], 0)
+            self.assertIn("datum_m", band)
 
     def test_parcel_datum_empty_polygon_raises(self):
         """vertex 없는 polygon → ValueError (silent 0.0 아님)."""
@@ -1924,6 +1987,8 @@ class DatumCasesTest(TestCase):
                 ) from exc
             if vals == "fail":
                 raise elevation_api.ElevationFetchError("simulated failure")
+            if callable(vals):
+                return vals(points)
             if isinstance(vals, (int, float)):
                 return [float(vals)] * len(points)
             vals = list(vals)
@@ -1967,11 +2032,19 @@ class DatumCasesTest(TestCase):
 
         ctx = DatumContext(parcel_wgs=self._square_parcel())
         # variance 12m (SLOPE_3M_THRESHOLD_M=3.0 초과) → SLOPE_GT3M (§119② 단서)
-        with self._mock_elev_per_call([[10.0, 13.0, 18.0, 22.0]]):
+        with self._mock_elev_per_call([
+            [10.0, 13.0, 18.0, 22.0],
+            lambda points: [
+                10.0 + (idx / max(1, len(points) - 1)) * 12.0
+                for idx, _ in enumerate(points)
+            ],
+        ]):
             result = compute_datum_elevation(ctx)
         self.assertEqual(result.case, DatumCase.SLOPE_GT3M)
         self.assertIsNotNone(result.notes)
         self.assertTrue(any("3m" in n for n in result.notes))
+        self.assertIsNotNone(result.split_polygons)
+        self.assertGreaterEqual(len(result.split_polygons), 2)
 
     def test_road_flat_when_centerline_provided(self):
         from shapely.geometry import LineString
@@ -1982,6 +2055,7 @@ class DatumCasesTest(TestCase):
         ctx = DatumContext(
             parcel_wgs=self._square_parcel(),
             road_centerline_wgs=line,
+            apply_road_datum=True,
         )
         with self._mock_elev_uniform(30.0):
             result = compute_datum_elevation(ctx)
@@ -1996,6 +2070,7 @@ class DatumCasesTest(TestCase):
         ctx = DatumContext(
             parcel_wgs=self._square_parcel(),
             road_centerline_wgs=line,
+            apply_road_datum=True,
         )
         # parcel 4 edges = 100m, road samples = 90m → 대지>도로 → 95m
         with self._mock_elev_per_call([100.0, 90.0]):
@@ -2502,6 +2577,44 @@ class SetbackGeometryDatumTest(TestCase):
         # datum_result 디버그용 dict
         self.assertIsNotNone(result.get("datum_result"))
         self.assertEqual(result["datum_result"]["elevation_source"], "open_meteo")
+
+    def test_sunlight_envelope_uses_neighbor_average_datum(self):
+        """정북일조 envelope H=0은 대지 datum이 아니라 §86 평균수평면을 사용."""
+        from unittest.mock import patch
+        from land.services.datum import elevation_api
+        from land.services.setback_geometry import compute_setback_lines
+
+        calls = {"n": 0}
+
+        def _elev(points):
+            calls["n"] += 1
+            value = 10.0 if calls["n"] == 1 else 20.0
+            return [value] * len(points)
+
+        neighbor = {
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [[
+                    [127.0395, 37.5015],
+                    [127.0405, 37.5015],
+                    [127.0405, 37.5025],
+                    [127.0395, 37.5025],
+                    [127.0395, 37.5015],
+                ]],
+            }
+        }
+        with patch.object(elevation_api, "fetch_elevations", side_effect=_elev):
+            result = compute_setback_lines(
+                self._parcel_geojson(), self._regs_with_sunlight(),
+                compute_datum=True,
+                neighbor_parcels=[neighbor],
+            )
+
+        self.assertAlmostEqual(result["datum_result"]["parcel_datum_m"], 10.0)
+        self.assertAlmostEqual(result["datum_result"]["neighbor_datum_m"], 20.0)
+        self.assertAlmostEqual(result["datum_result"]["neighbor_avg_datum_m"], 15.0)
+        self.assertAlmostEqual(result["sunlight_envelope"]["datum_elevation_m"], 15.0)
+        self.assertEqual(result["sunlight_envelope"]["datum_case"], "neighbor_avg_86")
 
     def test_compute_setback_lines_datum_failure_isolates(self):
         """elevation fetch 실패 → envelope 정상 생성 + source='failed'."""

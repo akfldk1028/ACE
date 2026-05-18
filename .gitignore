@@ -44,6 +44,7 @@ test_screenshots/
 test_output/
 .langgraph_api/
 .code-review-graph/
+.code-review-graphignore
 
 # Claude temp files
 .claude/
@@ -56,6 +57,16 @@ test_output/
 JSON_MODULES/test_screenshots/
 JSON_MODULES/__pycache__/
 cli/design-regulation-check/out/
+
+# Generated/vector artifacts
+AG-light/vectors.ndjson
+
+# Local external clones and scratch outputs
+clone/
+Data25_ACEtmp_resp.json
+test_e2e_stdout.txt
+test_e2e_stderr.txt
+tmp_plateau_check.py
 
 # Lock files
 *.lock

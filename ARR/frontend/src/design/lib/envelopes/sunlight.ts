@@ -34,9 +34,17 @@ export interface SunlightColors {
 }
 
 export const DEFAULT_SUNLIGHT_COLORS: SunlightColors = {
-  wall: '#dc2626',   // 진홍
-  slope: '#ec4899',  // 핑크
+  wall: '#22c55e',
+  slope: '#22c55e',
 };
+
+function simplifyClosedRing<T>(ring: T[], maxPoints: number): T[] {
+  if (ring.length <= maxPoints) return ring;
+  const step = Math.ceil(ring.length / maxPoints);
+  const simplified: T[] = [];
+  for (let i = 0; i < ring.length; i += step) simplified.push(ring[i]);
+  return simplified.length >= 3 ? simplified : ring.slice(0, Math.min(ring.length, maxPoints));
+}
 
 /**
  * Cesium viewer에 sunlight envelope 렌더링.
@@ -70,23 +78,28 @@ export function renderSunlightEnvelope(
     ? datumZ
     : ringTerrainMean(viewer, Cesium, corners);
 
-  // (1) Step 8 (2026-05-11) — 모든 측면에 수직벽 (H=0→10m). 다이어그램 4면 박스.
-  // 사용자 지적: "한쪽은 수평+사선, 한쪽은 그냥 사선 = 말 안 됨".
-  // 원래 backend walls는 정북 edge만 → 한쪽만 수직 + 다른 쪽 사선이 지면까지 (비대칭).
-  // Fix: corners ring 전체에 wall (각 edge H=0→10m) — 정북만 아닌 모든 면 수직 박스.
-  // 사선 polygon은 (2)에서 그 위 H>10 부분만.
-  const sunlightCorners = envelope.slanted_polygons?.[0]?.corners ?? [];
-  if (sunlightCorners.length >= 3) {
-    // 4면 수직벽 (H=0→10m)
-    for (let i = 0; i < sunlightCorners.length; i++) {
-      const c1 = sunlightCorners[i];
-      const c2 = sunlightCorners[(i + 1) % sunlightCorners.length];
+  // (1) 북쪽 수직벽 (H=0→10m).
+  // 기본 clean view에서는 울타리처럼 보이는 wall 반복을 숨긴다.
+  // 법규 디버그가 필요할 때만 URL에 `?walls=1` 또는 `?layers=all`로 켠다.
+  const params = new URLSearchParams(window.location.search);
+  const showWalls = params.get('walls') === '1' || params.get('layers') === 'all';
+  if (showWalls && Array.isArray(envelope.walls)) {
+    const wallStep = Math.max(1, Math.ceil(envelope.walls.length / 32));
+    for (let i = 0; i < envelope.walls.length; i += wallStep) {
+      const wall = envelope.walls[i];
+      if (!wall?.positions || wall.positions.length < 2) continue;
+      const c1 = wall.positions[0];
+      const c2 = wall.positions[1];
+      const min1 = wall.min_heights?.[0] ?? 0;
+      const min2 = wall.min_heights?.[1] ?? min1;
+      const max1 = wall.max_heights?.[0] ?? 10;
+      const max2 = wall.max_heights?.[1] ?? max1;
       viewer.entities.add({
         id: `${SUNLIGHT_ENVELOPE_PREFIX}wall-${i}`,
         wall: {
           positions: Cesium.Cartesian3.fromDegreesArray([c1[0], c1[1], c2[0], c2[1]]),
-          minimumHeights: [groundH, groundH],
-          maximumHeights: [groundH + 10, groundH + 10],
+          minimumHeights: [groundH + min1, groundH + min2],
+          maximumHeights: [groundH + max1, groundH + max2],
           material: wallC.withAlpha(0.45),
           outline: true,
           outlineColor: wallC,
@@ -95,51 +108,113 @@ export function renderSunlightEnvelope(
       });
       addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}wall-${i}`);
     }
-
-    // Step 9: 박스 윗면 평탄 polygon (H=10m) — 다이어그램 평탄부 (1.5~5m H=10m)
-    // 사용자 지적: "수평인 부분이 없다". 사선이 박스 윗면에서 바로 시작 → 평탄부 없음.
-    // 평탄 polygon이 사선 polygon 정북 부분과 겹쳐 평탄 시각화.
-    const plateauFlat: number[] = [];
-    for (const c of sunlightCorners) plateauFlat.push(c[0], c[1]);
-    viewer.entities.add({
-      id: `${SUNLIGHT_ENVELOPE_PREFIX}plateau`,
-      polygon: {
-        hierarchy: Cesium.Cartesian3.fromDegreesArray(plateauFlat),
-        height: groundH + 10,
-        material: wallC.withAlpha(0.30),
-        outline: true,
-        outlineColor: wallC,
-        outlineWidth: 3,
-      },
-    });
-    addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}plateau`);
   }
 
-  // (2) 사선면 polygon (Step 7) — 정북일조 사선 제한선만 표시.
-  // 단일 perPositionHeight polygon: 정북 corner H=10 → 정남 corner H=H_max.
-  // 측면 wall + 박스 모두 제거 (사용자: "평면 가득차면 못 알아봐").
-  if (Array.isArray(envelope.slanted_polygons)) {
+  // Step 13 (2026-05-11) — plateau footprint 분리. 사용자 docs/img_44 요구:
+  // plateau는 박스 윗면 전체가 아니라 정북 boundary ~ PLATEAU_END_M(5m) 띠만.
+  // backend가 envelope.plateau_polygon으로 정확한 footprint 제공 → 그걸 사용.
+  // backend가 못 제공하면 (정북 edge 없음 등) plateau 생략.
+  // plateau polygon은 단면 프로파일에 포함해서 표현한다. 별도 채움면은
+  // VWorld 지적/도로/레벨 마커를 가려 검토성이 떨어진다.
+
+  // (2) 사선면은 기본 clean view에서 대표 면으로 단순화해 표시한다.
+  // backend 원본은 계산용 상세 geometry라 500+ corner가 될 수 있고,
+  // 그대로 그리면 VWorld 위에서 contour/fence처럼 보여 사용자가 법규면을 읽기 어렵다.
+  // 숨김은 `?surface=0`, 정밀 geometry 확인은 `?surface=detail` 또는 `?layers=all`로 켠다.
+  const surfaceMode = params.get('surface');
+  const showDetailedSurface = surfaceMode === 'detail' || params.get('layers') === 'all';
+  const showSurface = surfaceMode !== '0';
+  if (showSurface && Array.isArray(envelope.slanted_polygons)) {
     for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
       const poly = envelope.slanted_polygons[pi];
-      const corners = poly.corners as number[][];
+      const sourceCorners = poly.corners as number[][];
+      const corners = showDetailedSurface ? sourceCorners : simplifyClosedRing(sourceCorners, 48);
       if (!corners || corners.length < 3) continue;
 
+      const id = `${SUNLIGHT_ENVELOPE_PREFIX}roof-${pi}`;
       const roofFlat: number[] = [];
       for (const c of corners) roofFlat.push(c[0], c[1], c[2] + groundH);
-
-      const id = `${SUNLIGHT_ENVELOPE_PREFIX}roof-${pi}`;
       viewer.entities.add({
-        id,
+        id: `${id}-surface`,
         polygon: {
           hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(roofFlat),
           perPositionHeight: true,
-          material: slopeC.withAlpha(0.65),  // 0.35 → 0.65 (작은 polygon에서도 가시)
-          outline: true,
-          outlineColor: slopeC,
-          outlineWidth: 5,                    // 3 → 5
+          material: slopeC.withAlpha(showDetailedSurface ? 0.26 : 0.10),
+          outline: false,
+        },
+      });
+      addedIds.push(`${id}-surface`);
+
+      const outlinePositions = corners.map((c) =>
+        Cesium.Cartesian3.fromDegrees(c[0], c[1], groundH + c[2]),
+      );
+      outlinePositions.push(outlinePositions[0]);
+      viewer.entities.add({
+        id,
+        polyline: {
+          positions: outlinePositions,
+          width: showDetailedSurface ? 5 : 3,
+          material: slopeC.withAlpha(showDetailedSurface ? 0.9 : 0.64),
         },
       });
       addedIds.push(id);
+    }
+  }
+
+  const showMesh = params.get('mesh') === '1' || params.get('layers') === 'all';
+  if (showMesh && Array.isArray(envelope.envelope_layers)) {
+    for (let i = 0; i < envelope.envelope_layers.length; i++) {
+      const layer = envelope.envelope_layers[i];
+      const ring = layer?.footprint_wgs;
+      if (!ring || ring.length < 3) continue;
+      const positions = ring.map((p) =>
+        Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + layer.h_top),
+      );
+      positions.push(positions[0]);
+      viewer.entities.add({
+        id: `${SUNLIGHT_ENVELOPE_PREFIX}mesh-layer-${i}`,
+        polyline: {
+          positions,
+          width: 3,
+          material: slopeC.withAlpha(0.78),
+        },
+      });
+      addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}mesh-layer-${i}`);
+    }
+  }
+
+  const showProfileFill = params.get('profileFill') === '1' || params.get('layers') === 'all';
+  const showProfileLine = params.get('profile') === '1' || params.get('layers') === 'all';
+  if ((showProfileFill || showProfileLine) && Array.isArray(envelope.profile_polylines)) {
+    for (let i = 0; i < envelope.profile_polylines.length; i++) {
+      const profile = envelope.profile_polylines[i];
+      const points = profile?.points;
+      if (!points || points.length < 2) continue;
+      if (showProfileFill && points.length >= 3) {
+        viewer.entities.add({
+          id: `${SUNLIGHT_ENVELOPE_PREFIX}profile-fill-${i}`,
+          polygon: {
+            hierarchy: new Cesium.PolygonHierarchy(
+              points.map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + p[2])),
+            ),
+            perPositionHeight: true,
+            material: slopeC.withAlpha(0.20),
+            outline: false,
+          },
+        });
+        addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}profile-fill-${i}`);
+      }
+      if (showProfileLine) {
+        viewer.entities.add({
+          id: `${SUNLIGHT_ENVELOPE_PREFIX}profile-${i}`,
+          polyline: {
+            positions: points.map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + p[2])),
+            width: 6,
+            material: slopeC,
+          },
+        });
+        addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}profile-${i}`);
+      }
     }
   }
 

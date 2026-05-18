@@ -54,11 +54,51 @@ export function useDesignJob() {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
       const result = await getAutoConstraints(params);
+      const setbacks = result.setback_geometries || {};
+      const datum = setbacks.datum_result;
+      const sunlight = setbacks.sunlight_envelope;
+      const daylight = setbacks.daylight_diagonal_envelope;
+      const roadFrontages = setbacks.road_frontages as unknown as Array<{
+        roadWidthM?: number;
+        roadCenterline?: unknown;
+      }> | undefined;
+      console.info('[Design][LegalQA] constraints', {
+        pnu: params.pnu,
+        zones: result.zones || [],
+        datum: datum ? {
+          parcel_datum_m: datum.parcel_datum_m,
+          road_datum_m: datum.road_datum_m,
+          neighbor_datum_m: datum.neighbor_datum_m,
+          neighbor_avg_datum_m: datum.neighbor_avg_datum_m,
+          source: datum.elevation_source,
+          parcel_samples: datum.parcel_segments?.length ?? 0,
+          road_samples: datum.road_samples?.length ?? 0,
+          neighbor_samples: datum.neighbor_segments?.length ?? 0,
+        } : null,
+        sunlight: sunlight ? {
+          formula: 'H <= 2D after 10m base height; base setback 1.5m',
+          slope_vertical_horizontal: `${sunlight.slope ?? 2}:1`,
+          datum_elevation_m: sunlight.datum_elevation_m,
+          datum_case: sunlight.datum_case,
+          walls: sunlight.walls?.length ?? 0,
+          mesh_layers: sunlight.envelope_layers?.length ?? 0,
+        } : null,
+        daylight: daylight ? {
+          formula: `H <= ${(daylight as { multiplier?: number }).multiplier ?? 2}D`,
+          multiplier: (daylight as { multiplier?: number }).multiplier,
+          walls: daylight.walls?.length ?? 0,
+        } : null,
+        road_frontages: roadFrontages?.map((r, i) => ({
+          i,
+          width_m: r.roadWidthM,
+          has_centerline: Boolean(r.roadCenterline),
+        })) ?? [],
+      });
       setState(prev => ({
         ...prev,
         constraints: result.constraints,
         zones: result.zones || [],
-        setbackGeometries: result.setback_geometries || {},
+        setbackGeometries: setbacks,
         lawArticles: result.law_articles || null,
         loading: false,
       }));

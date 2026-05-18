@@ -17,6 +17,7 @@ const SOURCE_LABEL: Record<string, string> = {
   copernicus_glo30: 'Copernicus GLO-30 (30m, ±~2m)',
   ngii_lidar_1m: 'NGII LiDAR (1m, ±14cm)',
   ngii_5m: 'NGII 5m DEM (±~1m)',
+  ngii_local_dem: 'NGII 수치지형도 SHP→DEM (5m)',
   failed: '⚠ fetch 실패',
 };
 
@@ -55,9 +56,9 @@ interface Props {
  */
 const DatumInfoCard: React.FC<Props> = React.memo(({ envelope, datumResult }) => {
   // envelope 우선, 없으면 datumResult를 envelope-호환 shape로 변환
-  // elevation_source: Session 4부터 동적 (open_meteo / copernicus_glo30 / ngii_lidar_1m / ngii_5m / failed)
+  // elevation_source: Session 4부터 동적 (open_meteo / copernicus_glo30 / ngii_lidar_1m / ngii_local_dem / failed)
   const data: {
-    elevation_source: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'failed' | null | undefined;
+    elevation_source: 'open_meteo' | 'copernicus_glo30' | 'ngii_lidar_1m' | 'ngii_5m' | 'ngii_local_dem' | 'failed' | null | undefined;
     datum_elevation_m?: number;
     datum_case?: string | null;
     datum_basis?: string | null;
@@ -77,10 +78,16 @@ const DatumInfoCard: React.FC<Props> = React.memo(({ envelope, datumResult }) =>
       }
       : null;
 
-  if (!data) return null;
+  const parcelDatumM = datumResult?.parcel_datum_m ?? datumResult?.elevation_m ?? null;
+  const roadDatumM = datumResult?.road_datum_m ?? null;
+  const neighborDatumM = datumResult?.neighbor_datum_m ?? null;
+  const neighborAvgM = datumResult?.neighbor_avg_datum_m ?? null;
+  const splitBandCount = datumResult?.split_bands?.length ?? datumResult?.split_polygons?.length ?? 0;
+
+  if (!data && !datumResult) return null;
 
   // datum 미계산 (env flag false 또는 backend 미전달)
-  if (data.elevation_source == null) {
+  if (data?.elevation_source == null) {
     return (
       <div style={{
         background: '#111827', borderRadius: 10, padding: 14, marginBottom: 10,
@@ -98,14 +105,28 @@ const DatumInfoCard: React.FC<Props> = React.memo(({ envelope, datumResult }) =>
     );
   }
 
-  const datum_m = data.datum_elevation_m ?? 0;
-  const caseLabel = data.datum_case
-    ? (CASE_LABEL[data.datum_case] ?? data.datum_case) : '-';
-  const srcLabel = SOURCE_LABEL[data.elevation_source] ?? data.elevation_source;
-  const basisLabel = data.datum_basis
-    ? (BASIS_LABEL[data.datum_basis] ?? data.datum_basis) : null;
-  const isFailed = data.elevation_source === 'failed';
+  const datum_m = data?.datum_elevation_m ?? datumResult?.elevation_m ?? 0;
+  const datumCase = data?.datum_case ?? null;
+  const datumBasis = data?.datum_basis ?? null;
+  const caseLabel = datumCase
+    ? (CASE_LABEL[datumCase] ?? datumCase) : '-';
+  const src = data?.elevation_source ?? datumResult?.elevation_source ?? null;
+  const srcLabel = src ? (SOURCE_LABEL[src] ?? src) : '-';
+  const basisLabel = datumBasis
+    ? (BASIS_LABEL[datumBasis] ?? datumBasis) : null;
+  const isFailed = src === 'failed';
   const accent = isFailed ? '#f59e0b' : '#22d3ee';   // amber / cyan (design 모듈은 hex 직접 사용 패턴)
+  const rows: Array<[string, string, boolean]> = [
+    ['정북일조 기준 H=0', `${datum_m.toFixed(2)} m`, true],
+    ...(parcelDatumM != null ? [['대지 §119 기준면', `${parcelDatumM.toFixed(2)} m`, true] as [string, string, boolean]] : []),
+    ...(roadDatumM != null ? [['전면도로 기준면', `${roadDatumM.toFixed(2)} m`, true] as [string, string, boolean]] : []),
+    ...(neighborDatumM != null ? [['인접대지 기준면', `${neighborDatumM.toFixed(2)} m`, true] as [string, string, boolean]] : []),
+    ...(neighborAvgM != null ? [['§86 평균수평면', `${neighborAvgM.toFixed(2)} m`, true] as [string, string, boolean]] : []),
+    ...(splitBandCount > 0 ? [['3m 분할 band', `${splitBandCount}개`, false] as [string, string, boolean]] : []),
+    ['§119/§86 케이스', caseLabel, false],
+    ...(basisLabel ? [['산정 방법', basisLabel, false] as [string, string, boolean]] : []),
+    ['데이터 소스', srcLabel, true],
+  ];
 
   return (
     <div style={{
@@ -126,7 +147,7 @@ const DatumInfoCard: React.FC<Props> = React.memo(({ envelope, datumResult }) =>
         borderBottom: '1px solid #1e293b',
         marginBottom: 6, marginTop: 4,
       }}>
-        <span style={{ color: '#94a3b8', fontSize: 12 }}>H = 0 절대 표고</span>
+        <span style={{ color: '#94a3b8', fontSize: 12 }}>정북일조 기준 H = 0</span>
         <span style={{ flex: 1 }} />
         <span style={{
           fontSize: 22, fontWeight: 700, color: accent,
@@ -139,11 +160,7 @@ const DatumInfoCard: React.FC<Props> = React.memo(({ envelope, datumResult }) =>
       </div>
 
       {/* 케이스 + 산정방법 + 소스 */}
-      {([
-        ['§119/§86 케이스', caseLabel, false],
-        ...(basisLabel ? [['산정 방법', basisLabel, false]] : []),
-        ['데이터 소스', srcLabel, true],
-      ] as Array<[string, string, boolean]>).map(([label, val, mono], i) => (
+      {rows.map(([label, val, mono], i) => (
         <div key={label} style={{
           display: 'flex', justifyContent: 'space-between',
           padding: '4px 0', fontSize: 11,

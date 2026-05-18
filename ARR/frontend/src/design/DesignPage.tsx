@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import type { DesignData, FloorPlanResult } from './lib/types';
 import { cancelJob, generateFloorPlan } from './lib/api-client';
 import { getRoomPreset } from './lib/room-presets';
@@ -7,6 +7,7 @@ import { useOptimizationStream } from './hooks/use-optimization-stream';
 import ControlPanel from './components/ControlPanel';
 import ConstraintSummary from './components/ConstraintSummary';
 import DatumInfoCard from './components/DatumInfoCard';
+import LegalBasisPanel from './components/LegalBasisPanel';
 import { SunlightSectionDiagram } from './components/SunlightSectionDiagram';
 import GenerationProgress from './components/GenerationProgress';
 import ParetoChart from './components/ParetoChart';
@@ -70,6 +71,8 @@ const DesignPage: React.FC = () => {
   const handlePnuSearch = useCallback(async (pnu: string) => {
     setActivePnu(pnu);
     const boundary = await jobState.loadSiteBoundary(pnu);
+    const resolvedPnu = boundary?.pnu || pnu;
+    setActivePnu(resolvedPnu);
     console.log('[Design] boundary:', boundary ? `geometry=${boundary.geometry?.type}, area=${boundary.area_m2}` : 'null');
     // MultiPolygon → Polygon (first polygon) 변환. backend compute_setback_lines가 Polygon만
     // 처리. 분할 필지(separated parcels)면 첫 번째만 사용 — 일부 데이터 손실 가능.
@@ -79,7 +82,7 @@ const DesignPage: React.FC = () => {
       site_polygon = { type: 'Polygon', coordinates: coords[0] as unknown as number[][][] };
     }
     await jobState.loadConstraints({
-      pnu,
+      pnu: resolvedPnu,
       site_polygon,
       building_type: buildingType,
     });
@@ -91,6 +94,13 @@ const DesignPage: React.FC = () => {
 
   const handleParcelClick = useCallback((pnu: string, _address: string) => {
     handlePnuSearchRef.current(pnu);
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const queryPnu = params.get('pnu') || params.get('address');
+    if (!queryPnu) return;
+    handlePnuSearchRef.current(queryPnu);
   }, []);
 
   const handleStart = useCallback(async (options: { maxGenerations: number; populationSize: number }) => {
@@ -256,6 +266,8 @@ const DesignPage: React.FC = () => {
           algorithm={algorithm}
           onAlgorithmChange={setAlgorithm}
         />
+
+        <LegalBasisPanel setbackGeometries={jobState.setbackGeometries} />
 
         <ConstraintSummary constraints={jobState.constraints} lawArticles={jobState.lawArticles} />
 

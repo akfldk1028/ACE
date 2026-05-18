@@ -142,13 +142,31 @@ export interface DatumBoundarySegment {
   midpoint_lat?: number | null;
   length_m?: number | null;
   elevation_m?: number | null;
+  midpoint_elev_m?: number | null;
 }
 
 export interface DatumPointSample {
   lng?: number | null;
   lat?: number | null;
   elevation_m?: number | null;
+  elev_m?: number | null;
+  dist_m?: number | null;
   weight?: number | null;
+}
+
+export interface RoadFrontageDict {
+  roadWidthM?: number | null;
+  road_width_m?: number | null;
+  sharedEdge?: unknown;
+  shared_edge?: unknown;
+  roadCenterline?: unknown;
+  road_centerline?: unknown;
+}
+
+export interface NeighborParcelDict {
+  sharedEdge?: unknown;
+  shared_edge?: unknown;
+  [key: string]: unknown;
 }
 
 export type SetbackGeometriesMap =
@@ -156,6 +174,8 @@ export type SetbackGeometriesMap =
     sunlight_envelope?: SunlightEnvelope | null;
     daylight_diagonal_envelope?: SunlightEnvelope | null;
     datum_result?: DatumResultDict | null;
+    road_frontages?: RoadFrontageDict[] | null;
+    neighbor_parcels?: NeighborParcelDict[] | null;
   };
 
 export interface LawArticle {

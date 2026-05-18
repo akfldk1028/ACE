@@ -32,10 +32,18 @@ null
 # Log files
 *.log
 
+# Dependency/build/cache directories across nested projects
+node_modules/
+dist/
+dist-ssr/
+.wrangler/
+.cache/
+
 # Generated images (test/temp)
 test_screenshots/
 test_output/
 .langgraph_api/
+.code-review-graph/
 
 # Claude temp files
 .claude/
@@ -47,6 +55,7 @@ test_output/
 .pytest_cache/
 JSON_MODULES/test_screenshots/
 JSON_MODULES/__pycache__/
+cli/design-regulation-check/out/
 
 # Lock files
 *.lock

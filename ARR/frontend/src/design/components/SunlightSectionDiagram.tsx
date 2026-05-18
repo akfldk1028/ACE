@@ -134,7 +134,7 @@ export function SunlightSectionDiagram({
               `${xScale(xSlope)},${yScale(Math.min(H, H))}`,
               // 확장: 필지 끝까지 slope 계속
               `${xScale(xSlope + 5)},${yScale(H + 10)}`,
-            ]}
+            ].join(' ')}
             fill="none"
             stroke="#dc2626"
             strokeWidth={2.5}

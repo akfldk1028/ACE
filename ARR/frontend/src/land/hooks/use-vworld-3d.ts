@@ -462,8 +462,8 @@ export function useVworld3D({
       );
       const collection = new vw.Collection(vwCoords);
       const polygon = new vw.geom.Polygon(collection);
-      polygon.setFillColor(new vw.Color(59, 130, 246, 40));
-      polygon.setWidth(2);
+      polygon.setFillColor(new vw.Color(34, 197, 94, 12));
+      polygon.setWidth(3);
       polygon.setId(PARCEL_HIGHLIGHT_ID);
       polygon.create();
     } catch (e) {
@@ -476,7 +476,7 @@ export function useVworld3D({
         viewer.dataSources.removeAll();
         Cesium.GeoJsonDataSource.load(geojson, {
           stroke: Cesium.Color.fromCssColorString('#3b82f6'),
-          fill: Cesium.Color.fromCssColorString('#3b82f6').withAlpha(0.15),
+          fill: Cesium.Color.fromCssColorString('#22c55e').withAlpha(0.04),
           strokeWidth: 3,
           clampToGround: true,
         })

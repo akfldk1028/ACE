@@ -180,7 +180,9 @@ export function renderDatumMarkers(
 
     const baseId = `${DATUM_PLANE_PREFIX}marker-${marker.id}`;
     const color = Cesium.Color.fromCssColorString(marker.color);
-    const labelLiftM = 7;
+    const params = new URLSearchParams(window.location.search);
+    const showStems = params.get('datumStems') === '1' || params.get('layers') === 'all';
+    const labelLiftM = 4;
     const pointHeightM = marker.elevationM + 0.8;
     const labelHeightM = marker.elevationM + labelLiftM;
 
@@ -188,45 +190,47 @@ export function renderDatumMarkers(
       id: `${baseId}-point`,
       position: Cesium.Cartesian3.fromDegrees(marker.lng, marker.lat, pointHeightM),
       point: {
-        pixelSize: 13,
+        pixelSize: 11,
         color,
         outlineColor: Cesium.Color.BLACK,
-        outlineWidth: 3,
+        outlineWidth: 2,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
     });
     addedIds.push(`${baseId}-point`);
 
-    viewer.entities.add({
-      id: `${baseId}-stem`,
-      polyline: {
-        positions: Cesium.Cartesian3.fromDegreesArrayHeights([
-          marker.lng, marker.lat, marker.elevationM,
-          marker.lng, marker.lat, labelHeightM,
-        ]),
-        width: 3,
-        material: color.withAlpha(0.9),
-      },
-    });
-    addedIds.push(`${baseId}-stem`);
+    if (showStems) {
+      viewer.entities.add({
+        id: `${baseId}-stem`,
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+            marker.lng, marker.lat, marker.elevationM,
+            marker.lng, marker.lat, labelHeightM,
+          ]),
+          width: 2,
+          material: color.withAlpha(0.65),
+        },
+      });
+      addedIds.push(`${baseId}-stem`);
+    }
 
     viewer.entities.add({
       id: `${baseId}-label`,
       position: Cesium.Cartesian3.fromDegrees(marker.lng, marker.lat, labelHeightM),
       label: {
-        text: `${marker.label} = ${marker.elevationM.toFixed(2)}m`,
-        font: '700 15px ui-monospace, SFMono-Regular, Menlo, monospace',
+        text: `${marker.label}\n${marker.elevationM.toFixed(2)}m`,
+        font: '700 12px ui-monospace, SFMono-Regular, Menlo, monospace',
         fillColor: Cesium.Color.WHITE,
         outlineColor: Cesium.Color.BLACK,
-        outlineWidth: 4,
+        outlineWidth: 3,
         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
         pixelOffset: new Cesium.Cartesian2(marker.labelOffset?.[0] ?? 0, marker.labelOffset?.[1] ?? -14),
-        backgroundColor: Cesium.Color.BLACK.withAlpha(0.68),
-        backgroundPadding: new Cesium.Cartesian2(8, 4),
+        backgroundColor: Cesium.Color.BLACK.withAlpha(0.55),
+        backgroundPadding: new Cesium.Cartesian2(7, 4),
         showBackground: true,
-        scaleByDistance: new Cesium.NearFarScalar(50, 1.0, 5000, 0.65),
+        scaleByDistance: new Cesium.NearFarScalar(50, 1.0, 5000, 0.72),
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
     });

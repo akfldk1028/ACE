@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Gangnam Dogok 467-3",
+    "input": "강남구 도곡동 467-3",
+    "buildingType": "공동주택",
+    "expectedCovered": true
+  },
+  {
+    "name": "Gangnam Daechi 1028",
+    "input": "강남구 대치동 1028",
+    "buildingType": "공동주택",
+    "expectedCovered": true
+  },
+  {
+    "name": "Gangnam Yeoksam 677",
+    "input": "강남구 역삼동 677",
+    "buildingType": "공동주택",
+    "expectedCovered": false
+  }
+]

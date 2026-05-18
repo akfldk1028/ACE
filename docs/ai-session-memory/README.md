@@ -6,10 +6,11 @@ Read this folder before touching the legal-design visualization work.
 
 1. `PROJECT_MAP.md` - three connected projects and ownership.
 2. `DESIGN_FLOW.md` - actual `/design` data path.
-3. `LEGAL_COVERAGE.md` - what is implemented vs missing.
-4. `VERIFY.md` - CLI and browser verification steps.
-5. `OPENCODE.md` - how OpenCode was used in this session.
-6. `REPO_CLEANUP.md` - dirty worktree triage and safe cleanup policy.
+3. `FULL_REVIEW_2026-05-18.md` - current blunt review verdict, verified gates, and remaining gaps.
+4. `LEGAL_COVERAGE.md` - what is implemented vs missing.
+5. `VERIFY.md` - CLI and browser verification steps.
+6. `OPENCODE.md` - how OpenCode was used in this session.
+7. `REPO_CLEANUP.md` - dirty worktree triage and safe cleanup policy.
 
 ## Current Priority
 

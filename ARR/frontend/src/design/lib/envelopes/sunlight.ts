@@ -186,7 +186,7 @@ export function renderSunlightEnvelope(
     }
   }
 
-  const showProfileFill = params.get('profileFill') === '1' || params.get('layers') === 'all';
+  const showProfileFill = params.get('profileFill') !== '0';
   // 정북일조는 매스 유무와 무관한 기본 법규 envelope다.
   // 넓은 surface는 debug로 숨기더라도, 수직 시작선 + 사선 단면선은 항상 보여야
   // 사용자가 "이 안에 매스가 들어갈 수 있는지" 판단할 수 있다.
@@ -198,18 +198,36 @@ export function renderSunlightEnvelope(
       const points = profile?.points;
       if (!points || points.length < 2) continue;
       if (showProfileFill && points.length >= 3) {
-        viewer.entities.add({
-          id: `${SUNLIGHT_ENVELOPE_PREFIX}profile-fill-${i}`,
-          polygon: {
-            hierarchy: new Cesium.PolygonHierarchy(
-              points.map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + p[2])),
-            ),
-            perPositionHeight: true,
-            material: slopeC.withAlpha(0.20),
-            outline: false,
-          },
-        });
-        addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}profile-fill-${i}`);
+        const ribbonWidthM = Math.max(1.2, Math.min(8, Number(params.get('profileWidth') ?? 2.8) || 2.8));
+        const wallRibbon = buildProfileWallRibbon(Cesium, points, groundH, ribbonWidthM);
+        if (wallRibbon) {
+          viewer.entities.add({
+            id: `${SUNLIGHT_ENVELOPE_PREFIX}profile-fill-wall-${i}`,
+            wall: {
+              positions: wallRibbon.positions,
+              minimumHeights: wallRibbon.minimumHeights,
+              maximumHeights: wallRibbon.maximumHeights,
+              material: wallC.withAlpha(0.18),
+              outline: true,
+              outlineColor: wallC.withAlpha(0.72),
+            },
+          });
+          addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}profile-fill-wall-${i}`);
+        }
+
+        const slopeRibbon = buildSlopedRibbon(Cesium, points, groundH, ribbonWidthM);
+        if (slopeRibbon) {
+          viewer.entities.add({
+            id: `${SUNLIGHT_ENVELOPE_PREFIX}profile-fill-slope-${i}`,
+            polygon: {
+              hierarchy: new Cesium.PolygonHierarchy(slopeRibbon),
+              perPositionHeight: true,
+              material: slopeC.withAlpha(0.22),
+              outline: false,
+            },
+          });
+          addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}profile-fill-slope-${i}`);
+        }
       }
       if (showProfileLine) {
         const linePoints = detailedProfile || points.length < 4
@@ -219,8 +237,12 @@ export function renderSunlightEnvelope(
           id: `${SUNLIGHT_ENVELOPE_PREFIX}profile-${i}`,
           polyline: {
             positions: linePoints.map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + p[2])),
-            width: detailedProfile ? 6 : 5,
-            material: slopeC,
+            width: detailedProfile ? 7 : 6,
+            material: new Cesium.PolylineGlowMaterialProperty({
+              color: slopeC,
+              glowPower: 0.16,
+              taperPower: 0.9,
+            }),
           },
         });
         addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}profile-${i}`);
@@ -250,6 +272,61 @@ export function renderSunlightEnvelope(
   }
 
   return addedIds;
+}
+
+type ProfilePoint = [number, number, number];
+
+function toLocalMeters(origin: ProfilePoint, point: ProfilePoint) {
+  const latRad = origin[1] * Math.PI / 180;
+  return {
+    x: (point[0] - origin[0]) * 111_320 * Math.cos(latRad),
+    y: (point[1] - origin[1]) * 110_540,
+  };
+}
+
+function offsetLngLat(point: ProfilePoint, nx: number, ny: number, offsetM: number): ProfilePoint {
+  const latRad = point[1] * Math.PI / 180;
+  return [
+    point[0] + (nx * offsetM) / (111_320 * Math.cos(latRad)),
+    point[1] + (ny * offsetM) / 110_540,
+    point[2],
+  ];
+}
+
+function profileNormal(start: ProfilePoint, end: ProfilePoint) {
+  const delta = toLocalMeters(start, end);
+  const len = Math.hypot(delta.x, delta.y);
+  if (!isFinite(len) || len < 0.05) return null;
+  return { nx: -delta.y / len, ny: delta.x / len };
+}
+
+function buildProfileWallRibbon(Cesium: any, points: number[][], groundH: number, widthM: number) {
+  const p0 = points[0] as ProfilePoint;
+  const p2 = (points[2] ?? points[1]) as ProfilePoint;
+  const normal = profileNormal(p0, p2);
+  if (!normal) return null;
+
+  const a = offsetLngLat(p0, normal.nx, normal.ny, widthM / 2);
+  const b = offsetLngLat(p2, normal.nx, normal.ny, widthM / 2);
+  return {
+    positions: Cesium.Cartesian3.fromDegreesArray([a[0], a[1], b[0], b[1]]),
+    minimumHeights: [groundH + (p0[2] ?? 0), groundH + (p2[2] ?? 10)],
+    maximumHeights: [groundH + 10, groundH + (p2[2] ?? 10)],
+  };
+}
+
+function buildSlopedRibbon(Cesium: any, points: number[][], groundH: number, widthM: number) {
+  const start = (points[2] ?? points[1]) as ProfilePoint;
+  const end = points[points.length - 1] as ProfilePoint;
+  const normal = profileNormal(start, end);
+  if (!normal) return null;
+
+  const half = widthM / 2;
+  const a1 = offsetLngLat(start, normal.nx, normal.ny, half);
+  const a2 = offsetLngLat(start, normal.nx, normal.ny, -half);
+  const b2 = offsetLngLat(end, normal.nx, normal.ny, -half);
+  const b1 = offsetLngLat(end, normal.nx, normal.ny, half);
+  return [a1, b1, b2, a2].map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + p[2]));
 }
 
 /**

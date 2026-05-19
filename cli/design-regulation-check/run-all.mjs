@@ -22,6 +22,7 @@ const outDir = argValue('--out-dir', path.join(__dirname, 'out'));
 const pythonBin = argValue('--python', path.join(repoRoot, 'ARR', 'backend', '.venv', 'bin', 'python'));
 const skipBackendTests = hasFlag('--skip-backend-tests');
 const withVworldCaptures = hasFlag('--with-vworld-captures');
+const withPnuVisualGate = hasFlag('--with-pnu-visual-gate');
 const frontendUrl = argValue('--frontend', 'http://127.0.0.1:5191');
 const requestTimeout = argValue('--request-timeout', '240');
 
@@ -162,6 +163,24 @@ if (withVworldCaptures) {
   });
 }
 
+if (withPnuVisualGate) {
+  steps.push({
+    name: 'Representative PNU visual gate',
+    command: 'node',
+    args: [
+      path.join(__dirname, 'run-pnu-visual-gate.mjs'),
+      '--base',
+      baseUrl,
+      '--cases',
+      path.join(__dirname, 'pnu-9-cases.json'),
+      '--out-dir',
+      path.join(outDir, 'pnu-visual-gate'),
+      '--timeout',
+      requestTimeout,
+    ],
+  });
+}
+
 const results = [];
 for (const step of steps) {
   // eslint-disable-next-line no-await-in-loop
@@ -179,6 +198,7 @@ const summary = {
     pythonSections: path.join(outDir, 'pysections'),
     imageCheck: path.join(outDir, 'pysections', 'image-check.json'),
     demCoverage: path.join(outDir, 'dem-coverage.json'),
+    pnuVisualGate: path.join(outDir, 'pnu-visual-gate'),
     vworldCaptures: path.join(outDir, 'vworld'),
   },
 };

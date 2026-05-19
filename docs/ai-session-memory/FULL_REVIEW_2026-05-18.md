@@ -75,6 +75,26 @@ Correct current wording:
 - 1/9 PNU: plan + section visual datum basis passed.
 - 0/9 PNU should be called complete VWorld/Flexity visual review until the corresponding VWorld capture is also inspected.
 
+Implemented gate:
+
+```bash
+node cli/design-regulation-check/run-pnu-visual-gate.mjs \
+  --base http://127.0.0.1:18000 \
+  --cases cli/design-regulation-check/pnu-9-cases.json \
+  --api-out cli/design-regulation-check/out/pnu-9-design-check.json \
+  --out-dir cli/design-regulation-check/out/pnu-visual-gate \
+  --reuse-existing \
+  --timeout 300
+```
+
+Latest summary: `cli/design-regulation-check/out/pnu-visual-gate/summary.json`.
+
+Current blocker classification:
+
+- DEM missing/failed: Yeoksam 677, Myeongdong 31-1, Jamsil 40-1, Seongbuk 330, Hwagok 1125, Samseong 159, Sajik 1.
+- Road datum missing despite local DEM: Seocho 1317-29 (`roadFrontages=0`, `roadDatum=null`).
+- Plan + section passed: Dogok 467-3.
+
 ## Legal Coverage Matrix
 
 | Area | Current State | Review Judgment |

@@ -76,6 +76,23 @@ Then render plan/section PNGs only for selected DEM-backed cases. As of 2026-05-
 - 1/9 passed plan + section datum basis (`Gangnam Dogok 467-3`).
 - Do not claim all 9 PNU have visually correct legal lines.
 
+The automated version is:
+
+```bash
+node cli/design-regulation-check/run-pnu-visual-gate.mjs \
+  --base http://127.0.0.1:18000 \
+  --cases cli/design-regulation-check/pnu-9-cases.json \
+  --out-dir cli/design-regulation-check/out/pnu-visual-gate
+```
+
+Or include it in the full gate:
+
+```bash
+node cli/design-regulation-check/run-all.mjs \
+  --base http://127.0.0.1:18000 \
+  --with-pnu-visual-gate
+```
+
 ## Run Everything
 
 Use this as the default gate before trusting `/design`:

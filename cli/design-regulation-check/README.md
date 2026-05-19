@@ -55,6 +55,27 @@ node cli/design-regulation-check/check-design.mjs --base http://127.0.0.1:8000 -
 
 Expected datum source for local Seoul cases is `ngii_local_dem`. If it falls back to `open_meteo`, do not trust the legal envelope height.
 
+For the broader representative 9-PNU set, split the work before rendering PNGs:
+
+```bash
+node cli/design-regulation-check/check-design.mjs \
+  --base http://127.0.0.1:18000 \
+  --cases cli/design-regulation-check/pnu-9-cases.json \
+  --out cli/design-regulation-check/out/pnu-9-design-check.json
+
+node cli/design-regulation-check/select-dem-cases.mjs \
+  --input cli/design-regulation-check/out/pnu-9-design-check.json \
+  --cases cli/design-regulation-check/pnu-9-cases.json \
+  --out cli/design-regulation-check/out/pnu-9-dem-selection.json
+```
+
+Then render plan/section PNGs only for selected DEM-backed cases. As of 2026-05-19:
+
+- 9/9 representative PNU passed coarse legal value / returned-key checks.
+- 2/9 returned `ngii_local_dem` in `pnu-9-design-check.json`.
+- 1/9 passed plan + section datum basis (`Gangnam Dogok 467-3`).
+- Do not claim all 9 PNU have visually correct legal lines.
+
 ## Run Everything
 
 Use this as the default gate before trusting `/design`:

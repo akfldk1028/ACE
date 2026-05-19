@@ -58,6 +58,23 @@ Important PNU-specific finding:
 
 - `1129010100103300000` / 서울 성북구 성북동 330 returns multiple zones: `자연녹지지역`, `제1종전용주거지역`. The fixture expected zone is still valid because it is included, but any review that reads only `zones[0]` will misread the case.
 
+2026-05-19 visual-line review correction:
+
+- Do not say all 9 PNU legal lines are visually correct.
+- The 9-PNU batch proved regulation values and returned geometry keys, not actual cadastral-map line placement or height datum correctness.
+- `cli/design-regulation-check/out/pnu-9-design-check.json` showed only 2 of 9 PNU returned `ngii_local_dem`; the other 7 returned `datum_result.elevation_source = failed`, so their 3D height/datum lines are not legally reliable.
+- `cli/design-regulation-check/out/pnu-9-dem-plan/summary.json` then narrowed this further:
+  - `1168011800104670003` / Gangnam Dogok 467-3: plan datum geometry PASS.
+  - `1165010800113170029` / Seocho Seocho 1317-29: `ngii_local_dem` parcel/neighbor datum exists, but road datum is missing and road frontages count is 0, so road-level/road-line review is not complete.
+- `cli/design-regulation-check/out/pnu-9-visual-sections/summary.json` confirmed only Dogok 467-3 passed the full datum/envelope section basis check in this 9-PNU visual subset.
+
+Correct current wording:
+
+- 9/9 PNU: regulation value / applicability / returned-key smoke check passed.
+- 2/9 PNU: local DEM datum source available.
+- 1/9 PNU: plan + section visual datum basis passed.
+- 0/9 PNU should be called complete VWorld/Flexity visual review until the corresponding VWorld capture is also inspected.
+
 ## Legal Coverage Matrix
 
 | Area | Current State | Review Judgment |

@@ -14,6 +14,7 @@ const getCesium = (): any => (window as any).Cesium;
 const MASS_PREFIX = 'design-mass-';
 const SETBACK_PREFIX = 'design-setback-';
 const CONSTRAINTS_PREFIX = 'design-constraints-';
+const CLEAN_CONTEXT_PREFIX = `${SETBACK_PREFIX}clean-context-`;
 
 interface Props {
   sitePolygon: object | null;
@@ -111,6 +112,17 @@ function lineKey(coords: number[][]): string {
   return coords.map((p) => `${p[0]?.toFixed(7)},${p[1]?.toFixed(7)}`).join('|');
 }
 
+function polygonRing(geom: unknown): number[][] | null {
+  const g = geom as { type?: string; coordinates?: unknown } | undefined;
+  if (!g?.coordinates) return null;
+  if (g.type === 'Polygon') return (g.coordinates as number[][][])[0] ?? null;
+  if (g.type === 'MultiPolygon') return (g.coordinates as number[][][][])[0]?.[0] ?? null;
+  if (g.type === 'Feature') {
+    return polygonRing((g as { geometry?: unknown }).geometry);
+  }
+  return null;
+}
+
 function metersPerDegreeLng(lat: number): number {
   return Math.max(1, 111_320 * Math.cos((lat * Math.PI) / 180));
 }
@@ -168,6 +180,7 @@ function buildDatumMarkers(setbacks: SetbackGeometriesMap, parcelRing: number[][
   const roadDatumM = datum.road_datum_m ?? null;
   const neighborDatumM = datum.neighbor_datum_m ?? null;
   const neighborAvgM = datum.neighbor_avg_datum_m ?? null;
+  const sunlightApplies = Boolean(setbacks.sunlight_envelope);
 
   const parcelBasis = weightedPoint<DatumBoundarySegment>(
     datum.parcel_segments,
@@ -192,7 +205,7 @@ function buildDatumMarkers(setbacks: SetbackGeometriesMap, parcelRing: number[][
   if (parcelBasis && parcelDatumM != null) {
     markers.push({
       id: 'parcel-119',
-      label: '대지',
+      label: '대지 §119',
       lng: parcelBasis.lng,
       lat: parcelBasis.lat,
       elevationM: parcelDatumM,
@@ -203,7 +216,7 @@ function buildDatumMarkers(setbacks: SetbackGeometriesMap, parcelRing: number[][
   if (roadBasis && roadDatumM != null) {
     markers.push({
       id: 'road',
-      label: '도로',
+      label: '도로레벨',
       lng: roadBasis.lng,
       lat: roadBasis.lat,
       elevationM: roadDatumM,
@@ -214,7 +227,7 @@ function buildDatumMarkers(setbacks: SetbackGeometriesMap, parcelRing: number[][
   if (neighborBasis && neighborDatumM != null) {
     markers.push({
       id: 'neighbor',
-      label: '인접',
+      label: '인접대지',
       lng: neighborBasis.lng,
       lat: neighborBasis.lat,
       elevationM: neighborDatumM,
@@ -222,7 +235,7 @@ function buildDatumMarkers(setbacks: SetbackGeometriesMap, parcelRing: number[][
       labelOffset: [-90, -28],
     });
   }
-  if (parcelBasis && neighborBasis && neighborAvgM != null) {
+  if (sunlightApplies && parcelBasis && neighborBasis && neighborAvgM != null) {
     const basis = midpoint(parcelBasis, neighborBasis);
     markers.push({
       id: 'neighbor-avg-86',
@@ -244,6 +257,7 @@ function renderRoadAndNeighborContext(viewer: any, Cesium: any, setbacks: Setbac
   const neighborParcels = (setbacks as Record<string, unknown>).neighbor_parcels as Array<Record<string, unknown>> | undefined;
   const params = new URLSearchParams(window.location.search);
   const showAllLabels = params.get('roadLabels') === 'all' || params.get('layers') === 'all';
+  const showRoadLabels = params.get('roadLabels') === '1' || showAllLabels;
   const roadC = Cesium.Color.fromCssColorString('#0ea5e9');
   const roadEdgeC = Cesium.Color.fromCssColorString('#f97316');
   const neighborC = Cesium.Color.fromCssColorString('#f472b6');
@@ -295,7 +309,7 @@ function renderRoadAndNeighborContext(viewer: any, Cesium: any, setbacks: Setbac
       addedIds.push(`${id}-centerline`);
     }
 
-    if (showAllLabels || order < 2) {
+    if (showRoadLabels && (showAllLabels || order < 2)) {
       const basis = lineMidpoint(road.center ?? shared);
       if (basis) {
         viewer.entities.add({
@@ -340,6 +354,70 @@ function renderRoadAndNeighborContext(viewer: any, Cesium: any, setbacks: Setbac
     addedIds.push(`${id}-edge`);
   });
 
+  return addedIds;
+}
+
+function renderCleanLegalContext(
+  viewer: any,
+  Cesium: any,
+  setbacks: SetbackGeometriesMap,
+  parcelRing: number[][] | null,
+): string[] {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('diagram') === '0' || params.get('layers') === 'all') return [];
+
+  const addedIds: string[] = [];
+  const roadFrontages = (setbacks as Record<string, unknown>).road_frontages as Array<Record<string, unknown>> | undefined;
+  const neighborParcels = (setbacks as Record<string, unknown>).neighbor_parcels as Array<Record<string, unknown>> | undefined;
+  const roadFill = Cesium.Color.fromCssColorString('#d8dadd');
+  const parcelFill = Cesium.Color.fromCssColorString('#f8fafc');
+  const parcelLine = Cesium.Color.fromCssColorString('#9ca3af');
+  const siteFill = Cesium.Color.fromCssColorString('#fbfff8');
+  const siteLine = Cesium.Color.fromCssColorString('#111827');
+
+  const drawPolygon = (
+    id: string,
+    ring: number[][] | null,
+    fill: any,
+    alpha: number,
+    outline: any,
+    width: number,
+    z = 0,
+  ) => {
+    if (!ring || ring.length < 3) return;
+    const flat = flattenRing(ring);
+    viewer.entities.add({
+      id: `${CLEAN_CONTEXT_PREFIX}${id}-fill`,
+      polygon: {
+        hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
+        height: z,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        material: fill.withAlpha(alpha),
+        outline: false,
+      },
+    });
+    addedIds.push(`${CLEAN_CONTEXT_PREFIX}${id}-fill`);
+    viewer.entities.add({
+      id: `${CLEAN_CONTEXT_PREFIX}${id}-outline`,
+      polyline: {
+        positions: Cesium.Cartesian3.fromDegreesArray(flat),
+        width,
+        material: outline,
+        clampToGround: true,
+      },
+    });
+    addedIds.push(`${CLEAN_CONTEXT_PREFIX}${id}-outline`);
+  };
+
+  (neighborParcels ?? []).slice(0, 12).forEach((neighbor, i) => {
+    drawPolygon(`neighbor-${i}`, polygonRing(neighbor.geometry), parcelFill, 0.62, parcelLine.withAlpha(0.34), 1);
+  });
+
+  (roadFrontages ?? []).slice(0, 8).forEach((road, i) => {
+    drawPolygon(`road-${i}`, polygonRing(road.geometry), roadFill, 0.48, roadFill.withAlpha(0.72), 1);
+  });
+
+  drawPolygon('site', parcelRing, siteFill, 0.92, siteLine, 2.2);
   return addedIds;
 }
 
@@ -474,6 +552,17 @@ function getGroundHeight(Cesium: any, viewer: any, ring: number[][]): number {
     if (typeof h === 'number' && isFinite(h)) return h;
   } catch { /* fallback */ }
   return 0;
+}
+
+function hideVworldBuildingTiles(viewer: any, Cesium: any) {
+  const primitives = viewer?.scene?.primitives;
+  if (!primitives) return;
+  for (let i = 0; i < primitives.length; i++) {
+    const p = primitives.get(i);
+    const isTileset = (Cesium?.Cesium3DTileset && p instanceof Cesium.Cesium3DTileset)
+      || (p && typeof p === 'object' && '_url' in p && '_root' in p);
+    if (isTileset) p.show = false;
+  }
 }
 
 /** Mass shape display labels */
@@ -649,13 +738,13 @@ function renderSetbackEntities(
   // 규제별 고유 색상 — 프런트/CLI 공통 레퍼런스.
   // 변경시 land/services/regulations/colors.py 와 동기화 필요.
   const colors: Record<string, string> = {
-    buildable_area: '#86efac',                 // 연녹 — 건축가능영역
-    north_setback: '#dc2626',                  // 진홍 — 정북 일조사선 (2D 선)
-    sunlight_envelope_wall: '#22c55e',         // 초록 — 정북 수직 직각벽 (3D)
-    sunlight_envelope_plateau: '#86efac',      // 연녹 — 정북 평탄부 (3D)
-    sunlight_envelope_slope: '#22c55e',        // 초록 — 정북 경사 메쉬 (3D)
-    adjacent_setback: '#3b82f6',               // 파랑 — 인접대지 이격
-    road_setback: '#f97316',                   // 주황 — 건축선 후퇴
+    buildable_area: '#ef4444',                 // 빨강 — 대지 안의 공지/건축가능 경계
+    north_setback: '#22c55e',                  // 초록 — 정북 일조 기준선
+    sunlight_envelope_wall: '#dc2626',         // 진홍 — 정북 수직 직각벽 (3D)
+    sunlight_envelope_plateau: '#f472b6',      // 분홍 — 정북 평탄부 (3D)
+    sunlight_envelope_slope: '#ec4899',        // 핑크 — 정북 경사 메쉬 (3D)
+    adjacent_setback: '#111827',               // 검정 — 인접대지 이격
+    road_setback: '#ef4444',                   // 빨강 — 도로/건축선 후퇴
     corner_cutoff: '#eab308',                  // 노랑 — 가각전제
     daylight_diagonal_envelope: '#a855f7',     // 보라 — 채광 검토 참고면 (정확 판정은 매스/채광창 벽면 필요)
     front_road_diagonal_reference: '#16a34a',  // 녹색 — 전면도로 사선/가로구역 높이 참고면
@@ -664,6 +753,8 @@ function renderSetbackEntities(
     wall_designation_line: '#84cc16',          // 라임 — 벽면지정선
     wall_limit_line: '#f43f5e',                // 산호 — 벽면한계선
   };
+
+  renderCleanLegalContext(viewer, Cesium, setbacks, parcelRing);
 
   for (const [key, sb] of Object.entries(setbacks)) {
     // sunlight_envelope has different structure — handled separately below
@@ -732,7 +823,7 @@ function renderSetbackEntities(
         polyline: {
           positions: Cesium.Cartesian3.fromDegreesArray(flat),
           width: key === 'buildable_area' ? 3 : 3,
-          material: Cesium.Color.fromCssColorString(key === 'buildable_area' ? '#10b981' : color),
+            material: Cesium.Color.fromCssColorString(key === 'buildable_area' ? '#ef4444' : color),
           clampToGround: true,
         },
       });
@@ -784,7 +875,7 @@ function renderSetbackEntities(
   });
 
   const params = new URLSearchParams(window.location.search);
-  const showDaylight = params.get('daylight') !== '0';
+  const showDaylight = params.get('daylight') === '1' || params.get('daylight') === 'detail' || params.get('layers') === 'all';
   if (showDaylight) {
     renderDaylightDiagonalEnvelope(viewer, Cesium, setbacks.daylight_diagonal_envelope, {
       wall: colors.daylight_diagonal_envelope,
@@ -1009,9 +1100,9 @@ function flyToGeometryBbox(viewerRef: React.RefObject<any>, geometry: any) {
 
   viewer.camera.flyToBoundingSphere(sphere, {
     offset: new Cesium.HeadingPitchRange(
-      0,                                  // heading 0 = 정북 보기
-      Cesium.Math.toRadians(-45),         // pitch -45° = 측면 + 윗면 균형
-      sphere.radius * 3,                  // range = 3× radius (적정 zoom)
+      Cesium.Math.toRadians(80),          // 정북 수직벽과 사선 리본이 겹치지 않는 검토용 기본 각도
+      Cesium.Math.toRadians(-32),         // 사선 볼륨과 대지 평면이 함께 읽히는 기본 투시
+      Math.max(125, sphere.radius * 6),   // 작은 필지도 읽히되 주변 도로/인접대지 맥락을 유지
     ),
     duration: 1.5,
   });
@@ -1089,10 +1180,16 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
       ?? setbackGeometries?.datum_result?.elevation_m;
     if (massFeatures && massFeatures.length > 0) {
       setBuildingsVisible(false);
+      hideVworldBuildingTiles(viewer, Cesium);
+      window.setTimeout(() => { setBuildingsVisible(false); hideVworldBuildingTiles(viewer, Cesium); }, 800);
+      window.setTimeout(() => { setBuildingsVisible(false); hideVworldBuildingTiles(viewer, Cesium); }, 2200);
       renderMassEntities(viewer, Cesium, massFeatures, selectedDesignId, datumZ);
     } else if (hasSetbacks) {
       // 규제선만 있어도 기존 건물 숨기기 (Wall이 건물에 가려지지 않도록)
       setBuildingsVisible(false);
+      hideVworldBuildingTiles(viewer, Cesium);
+      window.setTimeout(() => { setBuildingsVisible(false); hideVworldBuildingTiles(viewer, Cesium); }, 800);
+      window.setTimeout(() => { setBuildingsVisible(false); hideVworldBuildingTiles(viewer, Cesium); }, 2200);
       clearMassEntities(viewer);
     } else {
       clearMassEntities(viewer);
@@ -1117,6 +1214,9 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
       } catch { /* ignore */ }
       const ring = sitePolygon ? extractRing(sitePolygon as { type: string; coordinates: any }) : null;
       renderSetbackEntities(viewer, Cesium, setbackGeometries, ring);
+      hideVworldBuildingTiles(viewer, Cesium);
+      window.setTimeout(() => hideVworldBuildingTiles(viewer, Cesium), 800);
+      window.setTimeout(() => hideVworldBuildingTiles(viewer, Cesium), 2200);
       // NOTE: 카메라 이동은 sitePolygon useEffect의 flyToGeometryBbox(line 407)이
       // 이미 parcel 위치로 이동시킴. zoomTo(entities)는 vworld map 자체 카메라 모션과
       // race condition 발생해 기존 위치 잃어버림 → entities 위치 이동 호출 제거.

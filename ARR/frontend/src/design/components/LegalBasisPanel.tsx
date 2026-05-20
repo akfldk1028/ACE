@@ -112,7 +112,11 @@ const LegalBasisPanel: React.FC<Props> = React.memo(({ setbackGeometries }) => {
       <Row label="검출 도로폭" value={uniqueRoadWidths.length ? uniqueRoadWidths.map((v) => `${v}m`).join(', ') : '-'} />
       <Row label="전면도로 후보" value={`${roads.length}개`} />
       <Row label="인접대지 후보" value={`${neighborCount}개`} />
-      <Row label="정북일조 기준면" value={formatM(sunlight?.datum_elevation_m ?? datum.neighbor_avg_datum_m)} />
+      <Row
+        label="정북일조"
+        value={sunlight ? `적용 / 기준면 ${formatM(sunlight.datum_elevation_m)}` : '미적용'}
+        tone={sunlight ? valueStyle.color : '#f59e0b'}
+      />
       <Row label="채광사선 기준면" value={formatM(datum.parcel_datum_m ?? datum.elevation_m)} />
       <Row
         label="화면 기본 레이어"

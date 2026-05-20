@@ -55,6 +55,7 @@ interface Props {
  * Sibling: ConstraintSummary와 동일 surface(`#111827`/`#1e293b`).
  */
 const DatumInfoCard: React.FC<Props> = React.memo(({ envelope, datumResult }) => {
+  const sunlightApplies = Boolean(envelope);
   // envelope 우선, 없으면 datumResult를 envelope-호환 shape로 변환
   // elevation_source: Session 4부터 동적 (open_meteo / copernicus_glo30 / ngii_lidar_1m / ngii_local_dem / failed)
   const data: {
@@ -117,13 +118,13 @@ const DatumInfoCard: React.FC<Props> = React.memo(({ envelope, datumResult }) =>
   const isFailed = src === 'failed';
   const accent = isFailed ? '#f59e0b' : '#22d3ee';   // amber / cyan (design 모듈은 hex 직접 사용 패턴)
   const rows: Array<[string, string, boolean]> = [
-    ['정북일조 기준 H=0', `${datum_m.toFixed(2)} m`, true],
+    [sunlightApplies ? '정북일조 기준 H=0' : '정북일조', sunlightApplies ? `${datum_m.toFixed(2)} m` : '미적용', false],
     ...(parcelDatumM != null ? [['대지 §119 기준면', `${parcelDatumM.toFixed(2)} m`, true] as [string, string, boolean]] : []),
     ...(roadDatumM != null ? [['전면도로 기준면', `${roadDatumM.toFixed(2)} m`, true] as [string, string, boolean]] : []),
     ...(neighborDatumM != null ? [['인접대지 기준면', `${neighborDatumM.toFixed(2)} m`, true] as [string, string, boolean]] : []),
-    ...(neighborAvgM != null ? [['§86 평균수평면', `${neighborAvgM.toFixed(2)} m`, true] as [string, string, boolean]] : []),
+    ...(sunlightApplies && neighborAvgM != null ? [['§86 평균수평면', `${neighborAvgM.toFixed(2)} m`, true] as [string, string, boolean]] : []),
     ...(splitBandCount > 0 ? [['3m 분할 band', `${splitBandCount}개`, false] as [string, string, boolean]] : []),
-    ['§119/§86 케이스', caseLabel, false],
+    [sunlightApplies ? '§119/§86 케이스' : '§119 케이스', caseLabel, false],
     ...(basisLabel ? [['산정 방법', basisLabel, false] as [string, string, boolean]] : []),
     ['데이터 소스', srcLabel, true],
   ];
@@ -147,7 +148,9 @@ const DatumInfoCard: React.FC<Props> = React.memo(({ envelope, datumResult }) =>
         borderBottom: '1px solid #1e293b',
         marginBottom: 6, marginTop: 4,
       }}>
-        <span style={{ color: '#94a3b8', fontSize: 12 }}>정북일조 기준 H = 0</span>
+        <span style={{ color: '#94a3b8', fontSize: 12 }}>
+          {sunlightApplies ? '정북일조 기준 H = 0' : '대지 §119 기준면'}
+        </span>
         <span style={{ flex: 1 }} />
         <span style={{
           fontSize: 22, fontWeight: 700, color: accent,
@@ -177,8 +180,9 @@ const DatumInfoCard: React.FC<Props> = React.memo(({ envelope, datumResult }) =>
       <p style={{
         margin: '8px 0 0 0', fontSize: 10, color: '#64748b', lineHeight: 1.5,
       }}>
-        envelope walls/slanted_polygons 의 H는 이 datum 기준 상대값.
-        Cesium 렌더 시 datum_m 위에 envelope 위치 (3-state: open_meteo→datum, failed/null→terrainH).
+        {sunlightApplies
+          ? 'envelope walls/slanted_polygons 의 H는 이 datum 기준 상대값. Cesium 렌더 시 datum_m 위에 envelope 위치.'
+          : '정북일조 미적용 용도지역에서는 §86 envelope를 렌더하지 않고, §119 대지/도로/인접대지 기준면만 표시합니다.'}
       </p>
     </div>
   );

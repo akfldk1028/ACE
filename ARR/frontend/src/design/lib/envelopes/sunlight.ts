@@ -34,8 +34,8 @@ export interface SunlightColors {
 }
 
 export const DEFAULT_SUNLIGHT_COLORS: SunlightColors = {
-  wall: '#22c55e',
-  slope: '#22c55e',
+  wall: '#dc2626',
+  slope: '#ec4899',
 };
 
 function simplifyClosedRing<T>(ring: T[], maxPoints: number): T[] {
@@ -44,6 +44,16 @@ function simplifyClosedRing<T>(ring: T[], maxPoints: number): T[] {
   const simplified: T[] = [];
   for (let i = 0; i < ring.length; i += step) simplified.push(ring[i]);
   return simplified.length >= 3 ? simplified : ring.slice(0, Math.min(ring.length, maxPoints));
+}
+
+function layerRing(layer: unknown): number[][] | null {
+  const ring = (layer as { footprint_wgs?: unknown })?.footprint_wgs;
+  return Array.isArray(ring) && ring.length >= 4 ? ring as number[][] : null;
+}
+
+function layerHeight(layer: unknown): number | null {
+  const h = Number((layer as { h_top?: unknown })?.h_top);
+  return Number.isFinite(h) ? h : null;
 }
 
 /**
@@ -79,12 +89,13 @@ export function renderSunlightEnvelope(
     : ringTerrainMean(viewer, Cesium, corners);
 
   // (1) 북쪽 수직벽 (H=0→10m).
-  // 기본 clean view에서는 울타리처럼 보이는 wall 반복을 숨긴다.
-  // 법규 디버그가 필요할 때만 URL에 `?walls=1` 또는 `?layers=all`로 켠다.
+  // 기본 clean view에서도 북측 수직 시작면은 보여준다. 숨김은 `?walls=0`.
   const params = new URLSearchParams(window.location.search);
-  const showWalls = params.get('walls') === '1' || params.get('layers') === 'all';
+  const showWalls = params.get('walls') !== '0';
+  let wallTopLine: number[][] = [];
   if (showWalls && Array.isArray(envelope.walls)) {
-    const wallStep = Math.max(1, Math.ceil(envelope.walls.length / 32));
+    const wallSegments: WallSegment[] = [];
+    const wallStep = Math.max(1, Math.ceil(envelope.walls.length / 120));
     for (let i = 0; i < envelope.walls.length; i += wallStep) {
       const wall = envelope.walls[i];
       if (!wall?.positions || wall.positions.length < 2) continue;
@@ -94,19 +105,75 @@ export function renderSunlightEnvelope(
       const min2 = wall.min_heights?.[1] ?? min1;
       const max1 = wall.max_heights?.[0] ?? 10;
       const max2 = wall.max_heights?.[1] ?? max1;
+      wallSegments.push({
+        a: [c1[0], c1[1], groundH + max1],
+        b: [c2[0], c2[1], groundH + max2],
+        minA: groundH + min1,
+        minB: groundH + min2,
+      });
+    }
+    const primaryWall = buildPrimaryWallLine(wallSegments, envelope.profile_polylines?.[0]?.points);
+    const wallPositions = primaryWall.map((p) => [p[0], p[1]]);
+    const minHeights = primaryWall.map((p) => p[3]);
+    const maxHeights = primaryWall.map((p) => p[2]);
+    const topLine = primaryWall.map((p) => [p[0], p[1], p[2]]);
+    const baseLine = primaryWall.map((p) => [p[0], p[1], p[3]]);
+    const showWallFill = params.get('wallFill') !== '0' || params.get('layers') === 'all';
+    if (showWallFill && wallPositions.length >= 2) {
       viewer.entities.add({
-        id: `${SUNLIGHT_ENVELOPE_PREFIX}wall-${i}`,
+        id: `${SUNLIGHT_ENVELOPE_PREFIX}wall-continuous`,
         wall: {
-          positions: Cesium.Cartesian3.fromDegreesArray([c1[0], c1[1], c2[0], c2[1]]),
-          minimumHeights: [groundH + min1, groundH + min2],
-          maximumHeights: [groundH + max1, groundH + max2],
-          material: wallC.withAlpha(0.45),
-          outline: true,
-          outlineColor: wallC,
-          outlineWidth: 3,
+          positions: Cesium.Cartesian3.fromDegreesArray(wallPositions.flat()),
+          minimumHeights: minHeights,
+          maximumHeights: maxHeights,
+          material: wallC.withAlpha(0.13),
+          outline: false,
         },
       });
-      addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}wall-${i}`);
+      addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}wall-continuous`);
+    }
+    if (topLine.length >= 2) {
+      viewer.entities.add({
+        id: `${SUNLIGHT_ENVELOPE_PREFIX}wall-top-line`,
+        polyline: {
+          positions: topLine.map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2])),
+          width: 2,
+          material: wallC.withAlpha(0.72),
+        },
+      });
+      addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}wall-top-line`);
+      wallTopLine = topLine;
+    }
+    if (baseLine.length >= 2) {
+      viewer.entities.add({
+        id: `${SUNLIGHT_ENVELOPE_PREFIX}wall-base-line`,
+        polyline: {
+          positions: baseLine.map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2])),
+          width: 1,
+          material: wallC.withAlpha(0.28),
+        },
+      });
+      addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}wall-base-line`);
+    }
+    const showWallEndEdges = params.get('wallEdges') === '1' || params.get('layers') === 'all';
+    if (showWallEndEdges && topLine.length >= 2 && baseLine.length >= 2) {
+      for (const idx of [0, topLine.length - 1]) {
+        const base = baseLine[idx];
+        const top = topLine[idx];
+        if (!base || !top) continue;
+        viewer.entities.add({
+          id: `${SUNLIGHT_ENVELOPE_PREFIX}wall-vertical-edge-${idx}`,
+          polyline: {
+            positions: [
+              Cesium.Cartesian3.fromDegrees(base[0], base[1], base[2]),
+              Cesium.Cartesian3.fromDegrees(top[0], top[1], top[2]),
+            ],
+            width: 2,
+            material: wallC.withAlpha(0.74),
+          },
+        });
+        addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}wall-vertical-edge-${idx}`);
+      }
     }
   }
 
@@ -126,7 +193,227 @@ export function renderSunlightEnvelope(
   // 정밀 geometry 확인은 `?surface=detail` 또는 `?layers=all`로 켠다.
   const surfaceMode = params.get('surface');
   const showDetailedSurface = surfaceMode === 'detail' || params.get('layers') === 'all';
-  const showSurface = surfaceMode === '1' || showDetailedSurface;
+  const showSurface = surfaceMode !== '0';
+  const showFootprintSurface = surfaceMode === 'footprint' || params.get('layers') === 'all';
+  const cleanLayers = Array.isArray(envelope.envelope_layers)
+    ? envelope.envelope_layers
+      .map((layer) => ({ ring: layerRing(layer), h: layerHeight(layer) }))
+      .filter((layer): layer is { ring: number[][]; h: number } => Boolean(layer.ring) && layer.h != null)
+      .sort((a, b) => a.h - b.h)
+    : [];
+  if (showSurface && !showDetailedSurface && cleanLayers.length >= 2) {
+    const base = cleanLayers[0];
+    const top = cleanLayers[cleanLayers.length - 1];
+    if (surfaceMode === 'footprint') {
+      const fullSurfaceIds = renderParcelShapedSunlightSurface(viewer, Cesium, envelope, groundH, slopeC);
+      addedIds.push(...fullSurfaceIds);
+    }
+
+    const showConnectedParcelSurface = surfaceMode !== 'section' || params.get('layers') === 'all';
+    const connectedProfile = showConnectedParcelSurface
+      ? buildConnectedProfileSurface(envelope.profile_polylines?.[0]?.points, wallTopLine, groundH, top.h)
+      : null;
+    if (connectedProfile) {
+      const bands = [
+        { id: 'plateau', from: connectedProfile.wallTopLine, to: connectedProfile.plateauEndLine, alpha: 0.11 },
+        { id: 'slope', from: connectedProfile.plateauEndLine, to: connectedProfile.slopeTopLine, alpha: 0.14 },
+      ];
+      for (const band of bands) {
+        if (band.from.length < 2 || band.to.length < 2) continue;
+        for (let i = 0; i < Math.min(band.from.length, band.to.length) - 1; i++) {
+          const quad = [
+            band.from[i],
+            band.from[i + 1],
+            band.to[i + 1],
+            band.to[i],
+          ];
+          viewer.entities.add({
+            id: `${SUNLIGHT_ENVELOPE_PREFIX}profile-connected-${band.id}-surface-${i}`,
+            polygon: {
+              hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(quad.flat()),
+              perPositionHeight: true,
+              material: slopeC.withAlpha(band.alpha),
+              outline: false,
+            },
+          });
+          addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}profile-connected-${band.id}-surface-${i}`);
+        }
+      }
+
+      const connectedLines = [
+        { id: 'wall-top-line', line: connectedProfile.wallTopLine, width: 2.2, alpha: 0.82 },
+        { id: 'plateau-kink-line', line: connectedProfile.plateauEndLine, width: 2.8, alpha: 0.86 },
+        { id: 'slope-top-line', line: connectedProfile.slopeTopLine, width: 1.6, alpha: 0.64 },
+      ];
+      for (const item of connectedLines) {
+        if (item.line.length < 2) continue;
+        viewer.entities.add({
+          id: `${SUNLIGHT_ENVELOPE_PREFIX}profile-connected-${item.id}`,
+          polyline: {
+            positions: item.line.map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2])),
+            width: item.width,
+            material: slopeC.withAlpha(item.alpha),
+          },
+        });
+        addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}profile-connected-${item.id}`);
+      }
+    }
+
+    const showSectionProfile = params.get('profile') === 'section'
+      || params.get('profile') === '1'
+      || params.get('profile') === 'detail'
+      || params.get('layers') === 'all';
+    if (showSectionProfile && Array.isArray(envelope.profile_polylines)) {
+      const profile = envelope.profile_polylines[0];
+      const points = capProfilePoints(profile?.points, top.h);
+      if (points && points.length >= 3) {
+        const ribbonWidthM = Math.max(5, Math.min(14, Number(params.get('profileWidth') ?? 8) || 8));
+        const verticalRibbon = buildSectionVerticalRibbon(Cesium, points, groundH, ribbonWidthM);
+        if (verticalRibbon) {
+          viewer.entities.add({
+            id: `${SUNLIGHT_ENVELOPE_PREFIX}section-vertical-10m-surface`,
+            polygon: {
+              hierarchy: new Cesium.PolygonHierarchy(verticalRibbon),
+              perPositionHeight: true,
+              material: wallC.withAlpha(0.20),
+              outline: false,
+            },
+          });
+          addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}section-vertical-10m-surface`);
+        }
+
+        const upperRibbon = buildPolylineSegmentRibbons(Cesium, points.slice(1), groundH, ribbonWidthM);
+        upperRibbon.forEach((segmentRibbon, segmentIndex) => {
+          viewer.entities.add({
+            id: `${SUNLIGHT_ENVELOPE_PREFIX}section-slope-from-10m-surface-${segmentIndex}`,
+            polygon: {
+              hierarchy: new Cesium.PolygonHierarchy(segmentRibbon),
+              perPositionHeight: true,
+              material: slopeC.withAlpha(0.16),
+              outline: false,
+            },
+          });
+          addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}section-slope-from-10m-surface-${segmentIndex}`);
+        });
+
+        const vertical = [points[0], points[1]].map((p) =>
+          Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + p[2]),
+        );
+        viewer.entities.add({
+          id: `${SUNLIGHT_ENVELOPE_PREFIX}section-vertical-10m-line`,
+          polyline: {
+            positions: vertical,
+            width: 3,
+            material: wallC.withAlpha(0.9),
+          },
+        });
+        addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}section-vertical-10m-line`);
+
+        const slopeStartIdx = Math.min(2, points.length - 1);
+        const upper = points.slice(1).map((p) =>
+          Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + p[2]),
+        );
+        viewer.entities.add({
+          id: `${SUNLIGHT_ENVELOPE_PREFIX}section-slope-from-10m-line`,
+          polyline: {
+            positions: upper,
+            width: 3,
+            material: slopeC.withAlpha(0.86),
+          },
+        });
+        addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}section-slope-from-10m-line`);
+
+        const tenM = points[slopeStartIdx];
+        viewer.entities.add({
+          id: `${SUNLIGHT_ENVELOPE_PREFIX}section-10m-label`,
+          position: Cesium.Cartesian3.fromDegrees(tenM[0], tenM[1], groundH + tenM[2] + 1.2),
+          label: {
+            text: '10m',
+            font: '700 12px ui-monospace, SFMono-Regular, Menlo, monospace',
+            fillColor: Cesium.Color.WHITE,
+            outlineColor: Cesium.Color.BLACK,
+            outlineWidth: 3,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            backgroundColor: Cesium.Color.BLACK.withAlpha(0.38),
+            backgroundPadding: new Cesium.Cartesian2(6, 3),
+            showBackground: true,
+            pixelOffset: new Cesium.Cartesian2(18, -14),
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          },
+        });
+        addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}section-10m-label`);
+      }
+    }
+
+    if (showFootprintSurface) {
+      const mainPlane = [
+        [top.ring[3][0], top.ring[3][1], groundH + top.h],
+        [top.ring[2][0], top.ring[2][1], groundH + top.h],
+        [base.ring[2][0], base.ring[2][1], groundH + base.h],
+        [base.ring[3][0], base.ring[3][1], groundH + base.h],
+      ];
+      viewer.entities.add({
+        id: `${SUNLIGHT_ENVELOPE_PREFIX}roof-main-surface`,
+        polygon: {
+          hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(mainPlane.flat()),
+          perPositionHeight: true,
+          material: slopeC.withAlpha(0.18),
+          outline: false,
+        },
+      });
+      addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}roof-main-surface`);
+
+      const mainOutline = [...mainPlane, mainPlane[0]];
+      viewer.entities.add({
+        id: `${SUNLIGHT_ENVELOPE_PREFIX}roof-main-outline`,
+        polyline: {
+          positions: mainOutline.map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2])),
+          width: 4,
+          material: slopeC.withAlpha(0.78),
+        },
+      });
+      addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}roof-main-outline`);
+    }
+
+    const showLayerOutlines = params.get('mesh') === '1' || params.get('layers') === 'all';
+    if (showLayerOutlines) for (let i = 1; i < cleanLayers.length; i++) {
+      const curr = cleanLayers[i];
+      const layerOutline = [...curr.ring, curr.ring[0]].map((p) =>
+        Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + curr.h),
+      );
+      viewer.entities.add({
+        id: `${SUNLIGHT_ENVELOPE_PREFIX}roof-layer-outline-${i}`,
+        polyline: {
+          positions: layerOutline,
+          width: 3,
+          material: slopeC.withAlpha(0.72),
+        },
+      });
+      addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}roof-layer-outline-${i}`);
+    }
+
+    if (params.get('slopeLabel') === '1' || params.get('labels') === 'all') {
+      const labelPoint = top.ring[3] ?? top.ring[0];
+      viewer.entities.add({
+        id: `${SUNLIGHT_ENVELOPE_PREFIX}surface-label`,
+        position: Cesium.Cartesian3.fromDegrees(labelPoint[0], labelPoint[1], groundH + top.h + 3),
+        label: {
+          text: `정북일조 사선\n§86 / ${envelope.slope ?? 2}:1`,
+          font: '700 13px Pretendard, system-ui, sans-serif',
+          fillColor: Cesium.Color.fromCssColorString('#111827'),
+          outlineColor: Cesium.Color.WHITE,
+          outlineWidth: 4,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          backgroundColor: Cesium.Color.WHITE.withAlpha(0.72),
+          backgroundPadding: new Cesium.Cartesian2(8, 5),
+          showBackground: true,
+          pixelOffset: new Cesium.Cartesian2(38, -24),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+      });
+      addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}surface-label`);
+    }
+  } else
   if (showSurface && Array.isArray(envelope.slanted_polygons)) {
     for (let pi = 0; pi < envelope.slanted_polygons.length; pi++) {
       const poly = envelope.slanted_polygons[pi];
@@ -142,7 +429,7 @@ export function renderSunlightEnvelope(
         polygon: {
           hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(roofFlat),
           perPositionHeight: true,
-          material: slopeC.withAlpha(showDetailedSurface ? 0.26 : 0.10),
+          material: slopeC.withAlpha(showDetailedSurface ? 0.30 : 0.24),
           outline: false,
         },
       });
@@ -156,11 +443,36 @@ export function renderSunlightEnvelope(
         id,
         polyline: {
           positions: outlinePositions,
-          width: showDetailedSurface ? 5 : 3,
-          material: slopeC.withAlpha(showDetailedSurface ? 0.9 : 0.64),
+          width: showDetailedSurface ? 5 : 4,
+          material: slopeC.withAlpha(showDetailedSurface ? 0.9 : 0.72),
         },
       });
       addedIds.push(id);
+
+      const showLabels = params.get('labels') !== '0';
+      if (showLabels && pi === 0) {
+        const labelCorner = corners[Math.floor(corners.length * 0.55)];
+        if (labelCorner) {
+          viewer.entities.add({
+            id: `${SUNLIGHT_ENVELOPE_PREFIX}surface-label`,
+            position: Cesium.Cartesian3.fromDegrees(labelCorner[0], labelCorner[1], groundH + Math.max(14, labelCorner[2] + 3)),
+            label: {
+              text: `정북일조 사선\n§86 / ${envelope.slope ?? 2}:1`,
+              font: '700 13px Pretendard, system-ui, sans-serif',
+              fillColor: Cesium.Color.fromCssColorString('#111827'),
+              outlineColor: Cesium.Color.WHITE,
+              outlineWidth: 4,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              backgroundColor: Cesium.Color.WHITE.withAlpha(0.72),
+              backgroundPadding: new Cesium.Cartesian2(8, 5),
+              showBackground: true,
+              pixelOffset: new Cesium.Cartesian2(38, -24),
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            },
+          });
+          addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}surface-label`);
+        }
+      }
     }
   }
 
@@ -186,19 +498,22 @@ export function renderSunlightEnvelope(
     }
   }
 
-  const showProfileFill = params.get('profileFill') !== '0';
-  // 정북일조는 매스 유무와 무관한 기본 법규 envelope다.
-  // 넓은 surface는 debug로 숨기더라도, 수직 시작선 + 사선 단면선은 항상 보여야
-  // 사용자가 "이 안에 매스가 들어갈 수 있는지" 판단할 수 있다.
-  const showProfileLine = params.get('profile') !== '0';
+  const cleanMaxHeightM = cleanLayers.length ? cleanLayers[cleanLayers.length - 1].h : null;
+  const showProfileFill = params.get('profileFill') === '1' || params.get('layers') === 'all';
+  // 기본 VWorld 법규 검토 화면에서는 50m까지 뻗는 원본 단면 대신
+  // 현재 대지 envelope 높이까지만 잘라 정북일조 형태를 보여준다.
+  const showProfileLine = params.get('profile') === '1' || params.get('profile') === 'detail' || params.get('layers') === 'all';
   const detailedProfile = params.get('profile') === 'detail' || params.get('layers') === 'all';
+  const showLabels = params.get('labels') !== '0';
   if ((showProfileFill || showProfileLine) && Array.isArray(envelope.profile_polylines)) {
     for (let i = 0; i < envelope.profile_polylines.length; i++) {
       const profile = envelope.profile_polylines[i];
-      const points = profile?.points;
+      const points = cleanMaxHeightM != null
+        ? capProfilePoints(profile?.points, cleanMaxHeightM)
+        : profile?.points;
       if (!points || points.length < 2) continue;
       if (showProfileFill && points.length >= 3) {
-        const ribbonWidthM = Math.max(1.2, Math.min(8, Number(params.get('profileWidth') ?? 2.8) || 2.8));
+        const ribbonWidthM = Math.max(4, Math.min(22, Number(params.get('profileWidth') ?? 16) || 16));
         const wallRibbon = buildProfileWallRibbon(Cesium, points, groundH, ribbonWidthM);
         if (wallRibbon) {
           viewer.entities.add({
@@ -207,7 +522,7 @@ export function renderSunlightEnvelope(
               positions: wallRibbon.positions,
               minimumHeights: wallRibbon.minimumHeights,
               maximumHeights: wallRibbon.maximumHeights,
-              material: wallC.withAlpha(0.18),
+              material: wallC.withAlpha(0.16),
               outline: true,
               outlineColor: wallC.withAlpha(0.72),
             },
@@ -222,7 +537,7 @@ export function renderSunlightEnvelope(
             polygon: {
               hierarchy: new Cesium.PolygonHierarchy(slopeRibbon),
               perPositionHeight: true,
-              material: slopeC.withAlpha(0.22),
+              material: slopeC.withAlpha(0.28),
               outline: false,
             },
           });
@@ -247,19 +562,19 @@ export function renderSunlightEnvelope(
         });
         addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}profile-${i}`);
         const labelPoint = linePoints[Math.max(1, Math.floor(linePoints.length / 2))];
-        if (i === 0 && labelPoint) {
+        if (showLabels && i === 0 && labelPoint) {
           viewer.entities.add({
             id: `${SUNLIGHT_ENVELOPE_PREFIX}profile-label`,
             position: Cesium.Cartesian3.fromDegrees(labelPoint[0], labelPoint[1], groundH + Math.max(12, labelPoint[2] + 2)),
             label: {
               text: `정북일조\n수직 10m + ${envelope.slope ?? 2}:1`,
-              font: '700 12px ui-monospace, SFMono-Regular, Menlo, monospace',
-              fillColor: Cesium.Color.WHITE,
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 3,
+              font: '700 13px Pretendard, system-ui, sans-serif',
+              fillColor: Cesium.Color.fromCssColorString('#111827'),
+              outlineColor: Cesium.Color.WHITE,
+              outlineWidth: 4,
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              backgroundColor: Cesium.Color.BLACK.withAlpha(0.46),
-              backgroundPadding: new Cesium.Cartesian2(7, 4),
+              backgroundColor: Cesium.Color.WHITE.withAlpha(0.72),
+              backgroundPadding: new Cesium.Cartesian2(8, 5),
               showBackground: true,
               pixelOffset: new Cesium.Cartesian2(44, -30),
               disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -275,6 +590,205 @@ export function renderSunlightEnvelope(
 }
 
 type ProfilePoint = [number, number, number];
+type WallSegment = {
+  a: ProfilePoint;
+  b: ProfilePoint;
+  minA: number;
+  minB: number;
+};
+type WallLinePoint = [number, number, number, number];
+
+function renderParcelShapedSunlightSurface(
+  viewer: any,
+  Cesium: any,
+  envelope: SunlightEnvelope,
+  groundH: number,
+  slopeC: any,
+): string[] {
+  const addedIds: string[] = [];
+  const polygons = envelope.slanted_polygons ?? [];
+  for (let i = 0; i < polygons.length; i++) {
+    const sourceCorners = polygons[i]?.corners as number[][] | undefined;
+    const corners = sourceCorners ? simplifyClosedRing(sourceCorners, 96) : null;
+    if (!corners || corners.length < 3) continue;
+
+    const center = ringCenterWithHeight(corners, groundH);
+    for (let j = 0; j < corners.length; j++) {
+      const a = corners[j];
+      const b = corners[(j + 1) % corners.length];
+      const tri = [
+        center[0], center[1], center[2],
+        a[0], a[1], groundH + a[2],
+        b[0], b[1], groundH + b[2],
+      ];
+      viewer.entities.add({
+        id: `${SUNLIGHT_ENVELOPE_PREFIX}parcel-shaped-surface-${i}-${j}`,
+        polygon: {
+          hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(tri),
+          perPositionHeight: true,
+          material: slopeC.withAlpha(0.07),
+          outline: false,
+        },
+      });
+      addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}parcel-shaped-surface-${i}-${j}`);
+    }
+
+    const outline = corners.map((c) => Cesium.Cartesian3.fromDegrees(c[0], c[1], groundH + c[2]));
+    outline.push(outline[0]);
+    viewer.entities.add({
+      id: `${SUNLIGHT_ENVELOPE_PREFIX}parcel-shaped-outline-${i}`,
+      polyline: {
+        positions: outline,
+        width: 2,
+        material: slopeC.withAlpha(0.58),
+      },
+    });
+    addedIds.push(`${SUNLIGHT_ENVELOPE_PREFIX}parcel-shaped-outline-${i}`);
+  }
+  return addedIds;
+}
+
+function ringCenterWithHeight(corners: number[][], groundH: number): ProfilePoint {
+  let lng = 0;
+  let lat = 0;
+  let h = 0;
+  for (const c of corners) {
+    lng += c[0];
+    lat += c[1];
+    h += c[2];
+  }
+  const n = Math.max(1, corners.length);
+  return [lng / n, lat / n, groundH + h / n];
+}
+
+function buildPrimaryWallLine(
+  segments: WallSegment[],
+  profilePoints: number[][] | undefined,
+): WallLinePoint[] {
+  if (!segments.length) return [];
+  const profile = profilePoints;
+  if (!profile || profile.length < 3) return segmentsToWallLine(segments);
+
+  const origin = profile[0] as ProfilePoint;
+  const inwardTarget = profile[2] as ProfilePoint;
+  const inwardDelta = toLocalMeters(origin, inwardTarget);
+  const inwardLen = Math.hypot(inwardDelta.x, inwardDelta.y);
+  if (!Number.isFinite(inwardLen) || inwardLen < 0.05) return segmentsToWallLine(segments);
+
+  const ix = inwardDelta.x / inwardLen;
+  const iy = inwardDelta.y / inwardLen;
+  const ax = -iy;
+  const ay = ix;
+
+  const measured = segments.map((seg) => {
+    const mid: ProfilePoint = [
+      (seg.a[0] + seg.b[0]) / 2,
+      (seg.a[1] + seg.b[1]) / 2,
+      (seg.a[2] + seg.b[2]) / 2,
+    ];
+    const deltaMid = toLocalMeters(origin, mid);
+    const deltaSeg = toLocalMeters(seg.a, seg.b);
+    const len = Math.hypot(deltaSeg.x, deltaSeg.y);
+    const alongInward = deltaMid.x * ix + deltaMid.y * iy;
+    const dirInward = len > 0.05 ? Math.abs((deltaSeg.x / len) * ix + (deltaSeg.y / len) * iy) : 1;
+    return { seg, alongInward, dirInward };
+  });
+
+  const parallel = measured.filter((item) => item.dirInward < 0.35);
+  if (!parallel.length) return segmentsToWallLine(segments);
+
+  const minInward = Math.min(...parallel.map((item) => item.alongInward));
+  const selected = parallel
+    .filter((item) => Math.abs(item.alongInward - minInward) <= 1.8)
+    .map((item) => item.seg);
+  return segmentsToWallLine(selected.length ? selected : parallel.map((item) => item.seg), origin, ax, ay);
+}
+
+function segmentsToWallLine(
+  segments: WallSegment[],
+  origin?: ProfilePoint,
+  ax?: number,
+  ay?: number,
+): WallLinePoint[] {
+  if (!segments.length) return [];
+  if (origin && ax != null && ay != null) {
+    const points = new Map<string, WallLinePoint>();
+    for (const seg of segments) {
+      points.set(`${seg.a[0].toFixed(12)},${seg.a[1].toFixed(12)}`, [seg.a[0], seg.a[1], seg.a[2], seg.minA]);
+      points.set(`${seg.b[0].toFixed(12)},${seg.b[1].toFixed(12)}`, [seg.b[0], seg.b[1], seg.b[2], seg.minB]);
+    }
+    return [...points.values()].sort((a, b) => {
+      const da = toLocalMeters(origin, [a[0], a[1], a[2]]);
+      const db = toLocalMeters(origin, [b[0], b[1], b[2]]);
+      return (da.x * ax + da.y * ay) - (db.x * ax + db.y * ay);
+    });
+  }
+
+  const line: WallLinePoint[] = [[segments[0].a[0], segments[0].a[1], segments[0].a[2], segments[0].minA]];
+  for (const seg of segments) line.push([seg.b[0], seg.b[1], seg.b[2], seg.minB]);
+  return line;
+}
+
+function capProfilePoints(points: number[][] | undefined, maxHeightM: number): number[][] | undefined {
+  if (!points || points.length < 2) return points;
+  const capped: number[][] = [];
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    const h = Number(p?.[2]);
+    if (!p || !Number.isFinite(h)) continue;
+    if (h <= maxHeightM) {
+      capped.push(p);
+      continue;
+    }
+    const prev = points[i - 1];
+    const prevH = Number(prev?.[2]);
+    if (prev && Number.isFinite(prevH) && prevH < maxHeightM && h > prevH) {
+      const t = (maxHeightM - prevH) / (h - prevH);
+      capped.push([
+        prev[0] + (p[0] - prev[0]) * t,
+        prev[1] + (p[1] - prev[1]) * t,
+        maxHeightM,
+      ]);
+    }
+    break;
+  }
+  return capped.length >= 2 ? capped : points;
+}
+
+function offsetLngLatMeters(point: number[], dxM: number, dyM: number, h: number): ProfilePoint {
+  const latRad = point[1] * Math.PI / 180;
+  return [
+    point[0] + dxM / (111_320 * Math.cos(latRad)),
+    point[1] + dyM / 110_540,
+    h,
+  ];
+}
+
+function buildConnectedProfileSurface(
+  profilePoints: number[][] | undefined,
+  wallTopLine: number[][],
+  groundH: number,
+  maxHeightM: number,
+): { wallTopLine: ProfilePoint[]; plateauEndLine: ProfilePoint[]; slopeTopLine: ProfilePoint[] } | null {
+  const capped = capProfilePoints(profilePoints, maxHeightM);
+  if (!capped || capped.length < 4 || wallTopLine.length < 2) return null;
+  const wallTop = capped[1] as ProfilePoint;
+  const slopeStart = capped[2] as ProfilePoint;
+  const end = capped[capped.length - 1] as ProfilePoint;
+  const plateauDelta = toLocalMeters(wallTop, slopeStart);
+  const topDelta = toLocalMeters(wallTop, end);
+  if (!Number.isFinite(plateauDelta.x) || !Number.isFinite(plateauDelta.y)) return null;
+  if (!Number.isFinite(topDelta.x) || !Number.isFinite(topDelta.y)) return null;
+
+  const wallTopLineAbs = wallTopLine.map((p) => [p[0], p[1], groundH + 10] as ProfilePoint);
+  const plateauEndLine = wallTopLine.map((p) =>
+    offsetLngLatMeters(p, plateauDelta.x, plateauDelta.y, groundH + (slopeStart[2] ?? 10)),
+  );
+  const slopeTopLine = wallTopLine.map((p) =>
+    offsetLngLatMeters(p, topDelta.x, topDelta.y, groundH + (end[2] ?? maxHeightM)),
+  );
+  return { wallTopLine: wallTopLineAbs, plateauEndLine, slopeTopLine };
+}
 
 function toLocalMeters(origin: ProfilePoint, point: ProfilePoint) {
   const latRad = origin[1] * Math.PI / 180;
@@ -291,6 +805,51 @@ function offsetLngLat(point: ProfilePoint, nx: number, ny: number, offsetM: numb
     point[1] + (ny * offsetM) / 110_540,
     point[2],
   ];
+}
+
+function profileDirectionNormal(points: number[][]) {
+  if (points.length < 2) return null;
+  const start = points[0] as ProfilePoint;
+  const end = points[points.length - 1] as ProfilePoint;
+  const normal = profileNormal(start, end);
+  if (normal) return normal;
+  for (let i = 1; i < points.length; i++) {
+    const candidate = profileNormal(points[i - 1] as ProfilePoint, points[i] as ProfilePoint);
+    if (candidate) return candidate;
+  }
+  return null;
+}
+
+function buildPolylineSegmentRibbons(Cesium: any, points: number[][], groundH: number, widthM: number) {
+  if (points.length < 2) return [];
+  const half = widthM / 2;
+  const ribbons = [];
+  for (let i = 0; i < points.length - 1; i++) {
+    const start = points[i] as ProfilePoint;
+    const end = points[i + 1] as ProfilePoint;
+    const normal = profileNormal(start, end);
+    if (!normal) continue;
+    const a1 = offsetLngLat(start, normal.nx, normal.ny, half);
+    const a2 = offsetLngLat(end, normal.nx, normal.ny, half);
+    const b2 = offsetLngLat(end, normal.nx, normal.ny, -half);
+    const b1 = offsetLngLat(start, normal.nx, normal.ny, -half);
+    ribbons.push([a1, a2, b2, b1].map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + p[2])));
+  }
+  return ribbons;
+}
+
+function buildSectionVerticalRibbon(Cesium: any, points: number[][], groundH: number, widthM: number) {
+  if (points.length < 3) return null;
+  const normal = profileDirectionNormal(points.slice(1));
+  if (!normal) return null;
+  const p0 = points[0] as ProfilePoint;
+  const p1 = points[1] as ProfilePoint;
+  const half = widthM / 2;
+  const a1 = offsetLngLat(p0, normal.nx, normal.ny, half);
+  const a2 = offsetLngLat(p1, normal.nx, normal.ny, half);
+  const b2 = offsetLngLat(p1, normal.nx, normal.ny, -half);
+  const b1 = offsetLngLat(p0, normal.nx, normal.ny, -half);
+  return [a1, a2, b2, b1].map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1], groundH + p[2]));
 }
 
 function profileNormal(start: ProfilePoint, end: ProfilePoint) {

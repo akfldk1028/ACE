@@ -1245,13 +1245,19 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
     if (!viewer || !Cesium) return;
 
     const hasSetbacks = setbackGeometries && Object.keys(setbackGeometries).length > 0;
+    let cancelled = false;
     if (sitePolygon && !hasSetbacks) {
       visualizeConstraints({ site_polygon: sitePolygon })
-        .then(result => renderConstraintEntities(viewer, Cesium, result))
+        .then(result => {
+          if (!cancelled) renderConstraintEntities(viewer, Cesium, result);
+        })
         .catch(err => console.warn('[visualizeConstraints] fallback failed:', err));
     } else {
       clearConstraintEntities(viewer);
     }
+    return () => {
+      cancelled = true;
+    };
   }, [sitePolygon, setbackGeometries, ready, viewerRef]);
 
   return (

@@ -38,6 +38,19 @@ logger = logging.getLogger(__name__)
 _active_runners: dict[str, JobRunner] = {}
 
 
+def _daylight_diagonal_multiplier(zone_names: list[str], building_type: str) -> float | None:
+    """건축법 §61②/시행령 §86③ 채광사선 적용 배수."""
+    residential_types = ("공동주택", "아파트", "다세대", "연립", "다가구")
+    if not any(t in (building_type or "") for t in residential_types):
+        return None
+    # 법 §61②: 일반상업지역ㆍ중심상업지역에 건축하는 공동주택은 제외.
+    if any(z in ("일반상업지역", "중심상업지역") for z in zone_names):
+        return None
+    if any(z in ("근린상업지역", "준주거지역") for z in zone_names):
+        return 4.0
+    return 2.0
+
+
 def _precompute_sunlight_envelope(job) -> dict | None:
     """
     Phase B (2026-05-08) — job_stream에서 NSGA-II 시작 전에 sunlight envelope 계산.
@@ -522,14 +535,9 @@ def auto_constraints(request):
 
         reg = regulation_calculator.calculate_all(zone_names)
 
-        # 채광사선: 공동주택만 적용 (§86③)
-        residential_types = ("공동주택", "아파트", "다세대", "연립", "다가구")
-        if any(t in building_type for t in residential_types):
-            # 근린상업/준주거 → 4배, 그 외 → 2배
-            is_commercial_residential = any(
-                z in ("근린상업지역", "준주거지역") for z in zone_names
-            )
-            reg["daylight_diagonal_multiplier"] = 4.0 if is_commercial_residential else 2.0
+        daylight_multiplier = _daylight_diagonal_multiplier(zone_names, building_type)
+        if daylight_multiplier is not None:
+            reg["daylight_diagonal_multiplier"] = daylight_multiplier
 
         constraints = regulations_to_constraints(reg)
 

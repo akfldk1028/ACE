@@ -117,12 +117,16 @@ const LegalBasisPanel: React.FC<Props> = React.memo(({ setbackGeometries }) => {
         value={sunlight ? `적용 / 기준면 ${formatM(sunlight.datum_elevation_m)}` : '미적용'}
         tone={sunlight ? valueStyle.color : '#f59e0b'}
       />
-      <Row label="채광사선 기준면" value={formatM(datum.parcel_datum_m ?? datum.elevation_m)} />
+      <Row
+        label="채광사선 참고면"
+        value={daylight ? `${formatM(datum.parcel_datum_m ?? datum.elevation_m)} / 매스 창면 검토 필요` : '미표시'}
+        tone={daylight ? '#a855f7' : '#64748b'}
+      />
       <Row
         label="화면 기본 레이어"
         value={[
           sunlight ? '정북면' : null,
-          daylight ? '채광숨김' : null,
+          daylight ? '채광옵션' : null,
           roads.length ? '도로' : null,
           neighborCount ? '인접' : null,
         ].filter(Boolean).join(' / ') || '-'}

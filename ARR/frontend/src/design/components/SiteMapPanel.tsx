@@ -969,7 +969,7 @@ function renderDaylightDiagonalEnvelope(
         id: `${SETBACK_PREFIX}daylight_diagonal_envelope-label`,
         position: Cesium.Cartesian3.fromDegrees(labelPoint[0], labelPoint[1], datumElevationM + Math.max(8, maxHeight * 0.45)),
         label: {
-          text: `채광사선\nH ≤ 거리 × ${((envelope as { multiplier?: number }).multiplier ?? 2).toFixed(0)}`,
+          text: `채광사선 참고\n공동주택 창면 × ${((envelope as { multiplier?: number }).multiplier ?? 2).toFixed(0)}`,
           font: '700 12px ui-monospace, SFMono-Regular, Menlo, monospace',
           fillColor: Cesium.Color.WHITE,
           outlineColor: Cesium.Color.BLACK,

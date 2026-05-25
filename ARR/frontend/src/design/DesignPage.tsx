@@ -53,6 +53,15 @@ const ALGORITHMS = [
   { key: 'radial', label: '방사형 (Radial)' },
 ];
 
+type SiteGeometry = { type: string; coordinates: unknown };
+
+function normalizeSitePolygon(geometry: SiteGeometry | null | undefined): SiteGeometry | undefined {
+  if (!geometry) return undefined;
+  if (geometry.type !== 'MultiPolygon') return geometry;
+  const coords = geometry.coordinates as number[][][][];
+  return { type: 'Polygon', coordinates: coords[0] as unknown as number[][][] };
+}
+
 const DesignPage: React.FC = () => {
   const jobState = useDesignJob();
   const stream = useOptimizationStream();
@@ -67,6 +76,7 @@ const DesignPage: React.FC = () => {
   const [autoFloorPlan, setAutoFloorPlan] = useState(true);
   const [floorAlgorithm, setFloorAlgorithm] = useState('ga');
   const lastAutoDesignId = useRef<number | null>(null);
+  const buildingTypeRequestRef = useRef(buildingType);
 
   const handlePnuSearch = useCallback(async (pnu: string) => {
     setActivePnu(pnu);
@@ -74,13 +84,9 @@ const DesignPage: React.FC = () => {
     const resolvedPnu = boundary?.pnu || pnu;
     setActivePnu(resolvedPnu);
     console.log('[Design] boundary:', boundary ? `geometry=${boundary.geometry?.type}, area=${boundary.area_m2}` : 'null');
-    // MultiPolygon → Polygon (first polygon) 변환. backend compute_setback_lines가 Polygon만
-    // 처리. 분할 필지(separated parcels)면 첫 번째만 사용 — 일부 데이터 손실 가능.
-    let site_polygon = boundary?.geometry as { type: string; coordinates: unknown } | undefined;
-    if (site_polygon?.type === 'MultiPolygon') {
-      const coords = site_polygon.coordinates as number[][][][];
-      site_polygon = { type: 'Polygon', coordinates: coords[0] as unknown as number[][][] };
-    }
+    // MultiPolygon -> Polygon (first polygon) 변환. backend compute_setback_lines가 Polygon만
+    // 처리. 분할 필지(separated parcels)면 첫 번째만 사용 - 일부 데이터 손실 가능.
+    const site_polygon = normalizeSitePolygon(boundary?.geometry as SiteGeometry | undefined);
     await jobState.loadConstraints({
       pnu: resolvedPnu,
       site_polygon,
@@ -88,6 +94,20 @@ const DesignPage: React.FC = () => {
       include_law_articles: false,
     });
   }, [jobState, buildingType]);
+
+  const handleBuildingTypeChange = useCallback(async (nextType: string) => {
+    setBuildingType(nextType);
+    if (buildingTypeRequestRef.current === nextType) return;
+    buildingTypeRequestRef.current = nextType;
+    if (!activePnu || !jobState.sitePolygon) return;
+    const site_polygon = normalizeSitePolygon(jobState.sitePolygon as SiteGeometry);
+    await jobState.loadConstraints({
+      pnu: activePnu,
+      site_polygon,
+      building_type: nextType,
+      include_law_articles: false,
+    });
+  }, [activePnu, jobState]);
 
   // Stable ref to avoid SiteMapPanel re-renders (prevents camera reset)
   const handlePnuSearchRef = useRef(handlePnuSearch);
@@ -262,7 +282,7 @@ const DesignPage: React.FC = () => {
           pnuValue={activePnu}
           buildingTypes={BUILDING_TYPES}
           buildingType={buildingType}
-          onBuildingTypeChange={setBuildingType}
+          onBuildingTypeChange={handleBuildingTypeChange}
           algorithms={ALGORITHMS}
           algorithm={algorithm}
           onAlgorithmChange={setAlgorithm}

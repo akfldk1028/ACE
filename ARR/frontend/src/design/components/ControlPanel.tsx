@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Constraint } from '../lib/types';
 
 interface BuildingTypeOption {
@@ -52,6 +52,12 @@ const ControlPanel: React.FC<Props> = React.memo(({
   const [popSize, setPopSize] = useState(30);
 
   const isRunning = status === 'running' || status === 'connecting';
+  const buildingTypeSelectRef = useCallback((node: HTMLSelectElement | null) => {
+    if (!node) return;
+    const notify = () => onBuildingTypeChange?.(node.value);
+    node.oninput = notify;
+    node.onchange = notify;
+  }, [onBuildingTypeChange]);
 
   const inputStyle: React.CSSProperties = {
     width: '100%',
@@ -162,6 +168,7 @@ const ControlPanel: React.FC<Props> = React.memo(({
         <div style={{ marginBottom: 10 }}>
           <label style={labelStyle}>BUILDING USE TYPE</label>
           <select
+            ref={buildingTypeSelectRef}
             style={{
               ...inputStyle,
               cursor: isRunning ? 'not-allowed' : 'pointer',
@@ -172,6 +179,7 @@ const ControlPanel: React.FC<Props> = React.memo(({
               paddingRight: 28,
             }}
             value={buildingType || '공동주택'}
+            onInput={e => onBuildingTypeChange?.((e.target as HTMLSelectElement).value)}
             onChange={e => onBuildingTypeChange?.(e.target.value)}
             disabled={isRunning}
           >

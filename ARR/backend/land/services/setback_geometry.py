@@ -19,7 +19,7 @@ import math
 from dataclasses import replace
 
 from shapely.geometry import LineString, MultiLineString, MultiPolygon, Point, Polygon, mapping, shape
-from shapely.ops import transform
+from shapely.ops import transform, unary_union
 from pyproj import Transformer
 
 from land.services.envelopes.sunlight import compute_sunlight_envelope
@@ -738,6 +738,7 @@ def _compute_daylight_diagonal_envelope(
         if max_depth < 3.0:
             return None
         walls = []
+        strips = []
 
         for edge_idx, edge in enumerate(adjacent_edges):
             nx, ny = _inward_normal(edge, centroid)
@@ -753,6 +754,8 @@ def _compute_daylight_diagonal_envelope(
                     (p1[0] + nx * max_depth, p1[1] + ny * max_depth),
                 ])
                 clipped = strip.intersection(parcel_utm)
+                if not clipped.is_empty:
+                    strips.append(clipped)
                 if clipped.is_empty:
                     continue
                 if isinstance(clipped, MultiPolygon):
@@ -786,8 +789,16 @@ def _compute_daylight_diagonal_envelope(
         if not walls:
             return None
 
+        surface_domain = unary_union(strips).intersection(parcel_utm) if strips else None
+        surface_polygons = _daylight_reference_surface_shells(
+            surface_domain, adjacent_edges, multiplier, max_depth,
+        )
+        reference_edges = _daylight_reference_edges(adjacent_edges)
+
         return {
             "walls": walls,
+            "surface_polygons": surface_polygons,
+            "reference_edges": reference_edges,
             "multiplier": multiplier,
             "max_depth_m": max_depth,
             "reference_only": True,
@@ -798,6 +809,77 @@ def _compute_daylight_diagonal_envelope(
     except Exception as e:
         logger.warning(f"daylight_diagonal_envelope failed: {e}")
         return None
+
+
+def _daylight_reference_surface_shells(
+    domain,
+    adjacent_edges: list[LineString],
+    multiplier: float,
+    max_depth: float,
+) -> list[dict]:
+    """겹치는 strip들을 큰 외곽 surface 단위로 변환.
+
+    삼각 mesh를 여러 entity로 그리면 반투명 경계가 내부 대각선처럼 보인다.
+    기본 검토 화면은 정북일조처럼 하나의 얇은 면으로 읽혀야 하므로 union된
+    domain의 exterior shell만 보낸다. 정밀 샘플/디버그는 기존 walls를 사용한다.
+    """
+    if domain is None or domain.is_empty:
+        return []
+
+    geoms = list(domain.geoms) if isinstance(domain, MultiPolygon) else [domain]
+    surface_polygons: list[dict] = []
+    for poly in geoms:
+        if not isinstance(poly, Polygon) or poly.area < 0.1:
+            continue
+        coords = _densify_ring(list(poly.exterior.coords)[:-1], max(1.5, min(max_depth / 3.0, 3.0)))
+        if len(coords) < 3:
+            continue
+        positions_wgs = []
+        heights = []
+        for pt in coords:
+            point = Point(pt[0], pt[1])
+            dist_m = min(
+                max(min(edge.distance(point) for edge in adjacent_edges), 0.0),
+                max_depth,
+            )
+            wgs_pt = _utm_to_wgs(point)
+            positions_wgs.append([wgs_pt.x, wgs_pt.y])
+            heights.append(dist_m * multiplier)
+        surface_polygons.append({
+            "positions": positions_wgs,
+            "max_heights": heights,
+        })
+    return surface_polygons
+
+
+def _densify_ring(coords: list[tuple], max_segment_m: float) -> list[tuple[float, float]]:
+    dense: list[tuple[float, float]] = []
+    if not coords:
+        return dense
+    ring = coords + [coords[0]]
+    for a, b in zip(ring, ring[1:]):
+        ax, ay = float(a[0]), float(a[1])
+        bx, by = float(b[0]), float(b[1])
+        length = math.hypot(bx - ax, by - ay)
+        steps = max(1, int(math.ceil(length / max_segment_m)))
+        for i in range(steps):
+            t = i / steps
+            pt = (ax + (bx - ax) * t, ay + (by - ay) * t)
+            if not dense or dense[-1] != pt:
+                dense.append(pt)
+    return dense
+
+
+def _daylight_reference_edges(adjacent_edges: list[LineString]) -> list[dict]:
+    edges = []
+    for edge in adjacent_edges:
+        positions = []
+        for pt in edge.coords:
+            wgs_pt = _utm_to_wgs(Point(pt[0], pt[1]))
+            positions.append([wgs_pt.x, wgs_pt.y])
+        if len(positions) >= 2:
+            edges.append({"positions": positions, "height_m": 0.0})
+    return edges
 
 
 # ---------------------------------------------------------------------------

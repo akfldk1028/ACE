@@ -698,7 +698,7 @@ def _offset_edges_with_distances_inward(
 
 
 # ---------------------------------------------------------------------------
-# 3b. 도로사선제한 3D 경사면 (시행령 §82)
+# 3b. 채광사선 참고 3D 경사면 (건축법 §61②, 시행령 §86③)
 # ---------------------------------------------------------------------------
 
 def _compute_daylight_diagonal_envelope(
@@ -707,17 +707,21 @@ def _compute_daylight_diagonal_envelope(
     multiplier: float,
 ) -> dict | None:
     """
-    채광사선제한 3D 경사면 생성.
+    채광사선제한 참고 3D 경사면 생성.
 
     건축법 §61②, 시행령 §86③:
-    - 공동주택 채광창 → 인접대지경계선 수평거리 × multiplier 이하
+    - 공동주택 채광창이 있는 벽면 → 인접대지경계선 수평거리 × multiplier 이하
     - 일반: multiplier=2, 근린상업/준주거: multiplier=4
 
-    인접경계선에서 안쪽으로 경사면:
+    이 함수는 매스/채광창 벽면이 아직 없을 때의 검토 참고면만 만든다.
+    실제 판정은 건축물 각 부분과 채광창 벽면의 직각방향 거리로 해야 한다.
+
+    인접경계선 후보 전체에서 안쪽으로 경사면:
     - 경계선: H = 0
     - 안쪽 d미터: H = d × multiplier
 
-    구간별 별도 wall. max_depth = 필지 폭의 절반으로 제한 (밖으로 안 나감).
+    구간별 별도 polygon. 각 면은 대지 polygon으로 clip하여 밖으로 나가지
+    않고, 꼭짓점 높이는 해당 경계선과의 수평거리로 계산한다.
 
     Returns: {"walls": [...], "multiplier": float} or None
     """
@@ -735,39 +739,49 @@ def _compute_daylight_diagonal_envelope(
             return None
         walls = []
 
-        # 대표 edge 1개 선택 (가장 긴 adjacent edge만) — 너무 많은 edge에 wall 그리면 박스처럼 보임.
-        # 사용자 피드백 반영: "이쁜 사선"이 되려면 한 경계에만 slope 적용.
-        if adjacent_edges:
-            longest_edge = max(adjacent_edges, key=lambda e: e.length)
-            nx, ny = _inward_normal(longest_edge, centroid)
+        for edge_idx, edge in enumerate(adjacent_edges):
+            nx, ny = _inward_normal(edge, centroid)
             if nx != 0.0 or ny != 0.0:
-                edge_coords = list(longest_edge.coords)
-                h_end = max_depth * multiplier
-                positions = []
-                min_h = []
-                max_h = []
-                # edge 경계 (H=0)
-                for coord in edge_coords:
-                    positions.append(coord)
-                    min_h.append(0.0)
-                    max_h.append(0.0)
-                # edge 내측 max_depth (H=h_end)
-                for coord in reversed(edge_coords):
-                    positions.append((
-                        coord[0] + nx * max_depth,
-                        coord[1] + ny * max_depth,
-                    ))
-                    min_h.append(0.0)
-                    max_h.append(h_end)
-                positions_wgs = []
-                for pt in positions:
-                    wgs_pt = _utm_to_wgs(Point(pt[0], pt[1]))
-                    positions_wgs.append([wgs_pt.x, wgs_pt.y])
-                walls.append({
-                    "positions": positions_wgs,
-                    "min_heights": min_h,
-                    "max_heights": max_h,
-                })
+                edge_coords = list(edge.coords)
+                if len(edge_coords) < 2:
+                    continue
+                p1, p2 = edge_coords[0], edge_coords[-1]
+                strip = Polygon([
+                    p1,
+                    p2,
+                    (p2[0] + nx * max_depth, p2[1] + ny * max_depth),
+                    (p1[0] + nx * max_depth, p1[1] + ny * max_depth),
+                ])
+                clipped = strip.intersection(parcel_utm)
+                if clipped.is_empty:
+                    continue
+                if isinstance(clipped, MultiPolygon):
+                    polygons = [g for g in clipped.geoms if g.area > 0.1]
+                elif isinstance(clipped, Polygon):
+                    polygons = [clipped] if clipped.area > 0.1 else []
+                else:
+                    polygons = []
+
+                for poly_idx, poly in enumerate(polygons):
+                    coords = list(poly.exterior.coords)[:-1]
+                    if len(coords) < 3:
+                        continue
+                    positions_wgs = []
+                    min_h = []
+                    max_h = []
+                    for pt in coords:
+                        wgs_pt = _utm_to_wgs(Point(pt[0], pt[1]))
+                        positions_wgs.append([wgs_pt.x, wgs_pt.y])
+                        dist_m = min(max(edge.distance(Point(pt[0], pt[1])), 0.0), max_depth)
+                        min_h.append(0.0)
+                        max_h.append(dist_m * multiplier)
+                    walls.append({
+                        "positions": positions_wgs,
+                        "min_heights": min_h,
+                        "max_heights": max_h,
+                        "edge_index": edge_idx,
+                        "polygon_index": poly_idx,
+                    })
 
         if not walls:
             return None
@@ -776,6 +790,9 @@ def _compute_daylight_diagonal_envelope(
             "walls": walls,
             "multiplier": multiplier,
             "max_depth_m": max_depth,
+            "reference_only": True,
+            "law_basis": "건축법 §61②, 건축법 시행령 §86③",
+            "target_reference": "공동주택 채광창이 있는 벽면에서 직각방향 인접대지경계선까지의 수평거리",
         }
 
     except Exception as e:

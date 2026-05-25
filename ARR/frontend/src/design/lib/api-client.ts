@@ -50,6 +50,7 @@ export async function getAutoConstraints(params: {
   address?: string;
   site_polygon?: object;
   building_type?: string;
+  include_law_articles?: boolean;
 }): Promise<AutoConstraintsResult> {
   const res = await fetch(`${BASE}/auto-constraints/`, {
     method: 'POST',

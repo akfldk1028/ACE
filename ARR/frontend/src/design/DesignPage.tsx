@@ -85,6 +85,7 @@ const DesignPage: React.FC = () => {
       pnu: resolvedPnu,
       site_polygon,
       building_type: buildingType,
+      include_law_articles: false,
     });
   }, [jobState, buildingType]);
 

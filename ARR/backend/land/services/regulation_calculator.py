@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_all(zone_names: list[str], land_info: dict | None = None,
-                   sigungu_code: str = "") -> dict:
+                   sigungu_code: str = "", use_llm_extraction: bool | None = None) -> dict:
     """
     Compute all 11 regulations from zone names.
 
@@ -46,14 +46,14 @@ def calculate_all(zone_names: list[str], land_info: dict | None = None,
     result = {}
     result.update(_resolve_bcr_far(zones_data))
     result.update(_resolve_height(zones_data))
-    result.update(_resolve_sunlight(zones_data))
+    result.update(_resolve_sunlight(zones_data, use_llm_extraction=use_llm_extraction))
     result.update(_resolve_corner_cutoff(zones_data))
     result.update(_resolve_road_diagonal(zones_data))
     result.update(_resolve_building_line(zones_data))
-    result.update(_resolve_adjacent_setback(zones_data))
+    result.update(_resolve_adjacent_setback(zones_data, use_llm_extraction=use_llm_extraction))
     result.update(_resolve_parking(zones_data))
     result.update(_resolve_landscaping(zones_data, land_info))
-    result.update(_resolve_building_designation(zone_names))
+    result.update(_resolve_building_designation(zone_names, use_llm_extraction=use_llm_extraction))
     result["zone_category"] = zones_data[0].get("category", "")
     result["matched_zones"] = [z["zone_name"] for z in zones_data]
     result["unmatched_zones"] = [
@@ -116,14 +116,18 @@ def _resolve_height(zones_data: list[dict]) -> dict:
     }
 
 
-def _resolve_sunlight(zones_data: list[dict]) -> dict:
+def _use_llm_extraction(override: bool | None) -> bool:
+    return config.LLM_EXTRACTION_ENABLED if override is None else bool(override)
+
+
+def _resolve_sunlight(zones_data: list[dict], use_llm_extraction: bool | None = None) -> dict:
     """Sunlight setback: applies if ANY zone requires it. LLM override when enabled."""
     # Base: static JSON
     base = _resolve_sunlight_from_json(zones_data)
     base["sunlight_source"] = "static_json"
 
     # LLM override attempt
-    if config.LLM_EXTRACTION_ENABLED:
+    if _use_llm_extraction(use_llm_extraction):
         try:
             from land.services import law_enricher
             zone_names = [z["zone_name"] for z in zones_data]
@@ -238,7 +242,7 @@ def _resolve_building_line(zones_data: list[dict]) -> dict:
     }
 
 
-def _resolve_adjacent_setback(zones_data: list[dict]) -> dict:
+def _resolve_adjacent_setback(zones_data: list[dict], use_llm_extraction: bool | None = None) -> dict:
     """Adjacent setback: use strictest (largest setback). LLM override when enabled."""
     # Base: static JSON
     setbacks = [
@@ -258,7 +262,7 @@ def _resolve_adjacent_setback(zones_data: list[dict]) -> dict:
     }
 
     # LLM override attempt
-    if config.LLM_EXTRACTION_ENABLED:
+    if _use_llm_extraction(use_llm_extraction):
         try:
             from land.services import law_enricher
             zone_names = [z["zone_name"] for z in zones_data]
@@ -365,7 +369,9 @@ def _apply_ordinance_overrides(zones_data: list[dict], sigungu_code: str) -> lis
     return result
 
 
-def _resolve_building_designation(all_zone_names: list[str]) -> dict:
+def _resolve_building_designation(
+    all_zone_names: list[str], use_llm_extraction: bool | None = None,
+) -> dict:
     """Building designation line: applies in 지구단위계획구역. LLM override when enabled."""
     is_district_plan = any("지구단위계획" in z for z in all_zone_names)
 
@@ -382,7 +388,7 @@ def _resolve_building_designation(all_zone_names: list[str]) -> dict:
         return base
 
     # LLM override attempt
-    if config.LLM_EXTRACTION_ENABLED:
+    if _use_llm_extraction(use_llm_extraction):
         try:
             from land.services import law_enricher
             standard_zones = [

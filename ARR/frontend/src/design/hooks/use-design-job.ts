@@ -49,7 +49,7 @@ export function useDesignJob() {
   }, []);
 
   const loadConstraints = useCallback(async (params: {
-    pnu?: string; zones?: string[]; site_polygon?: object; building_type?: string;
+    pnu?: string; zones?: string[]; site_polygon?: object; building_type?: string; include_law_articles?: boolean;
   }) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {

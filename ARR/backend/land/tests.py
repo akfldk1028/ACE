@@ -2528,6 +2528,19 @@ class SetbackGeometryDatumTest(TestCase):
             ]],
         }
 
+    def _wide_parcel_geojson(self):
+        """도로 1변과 인접경계 여러 변이 명확히 분리되는 직사각형."""
+        return {
+            "type": "Polygon",
+            "coordinates": [[
+                [127.0390, 37.5005],
+                [127.0410, 37.5005],
+                [127.0410, 37.5011],
+                [127.0390, 37.5011],
+                [127.0390, 37.5005],
+            ]],
+        }
+
     def _regs_with_sunlight(self):
         """정북일조 적용되는 정규 dict."""
         return {
@@ -2538,6 +2551,11 @@ class SetbackGeometryDatumTest(TestCase):
             "corner_cutoff_required": False,
             "building_designation_applies": False,
         }
+
+    def _regs_with_daylight(self):
+        regs = self._regs_with_sunlight()
+        regs["daylight_diagonal_multiplier"] = 2.0
+        return regs
 
     def _mock_elev(self, value):
         from unittest.mock import patch
@@ -2683,6 +2701,26 @@ class SetbackGeometryDatumTest(TestCase):
         # 단, metadata는 다름
         self.assertNotEqual(env_off["datum_elevation_m"], env_on["datum_elevation_m"])
         self.assertNotEqual(env_off["elevation_source"], env_on["elevation_source"])
+
+    def test_daylight_reference_envelope_uses_all_adjacent_edges(self):
+        """채광 참고면은 대표 1변이 아니라 인접대지 경계 후보 전체에서 생성."""
+        from land.services.setback_geometry import compute_setback_lines
+
+        result = compute_setback_lines(
+            self._wide_parcel_geojson(), self._regs_with_daylight(),
+        )
+        env = result["daylight_diagonal_envelope"]
+
+        self.assertIsNotNone(env)
+        self.assertTrue(env["reference_only"])
+        self.assertEqual(env["multiplier"], 2.0)
+        edge_indexes = {wall["edge_index"] for wall in env["walls"]}
+        # 사각 필지에서 최장변 1개가 도로로 분류되고 나머지 인접경계 후보가 남는다.
+        self.assertGreaterEqual(len(edge_indexes), 2)
+        for wall in env["walls"]:
+            self.assertGreaterEqual(len(wall["positions"]), 3)
+            self.assertEqual(len(wall["positions"]), len(wall["max_heights"]))
+            self.assertGreater(max(wall["max_heights"]), 0.0)
 
     def test_views_analyze_passes_flag_to_compute_setback_lines(self):
         """views.py가 ENABLE_DATUM_ELEVATION을 실제 compute_setback_lines에 전달."""

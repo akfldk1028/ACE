@@ -82,7 +82,10 @@ def _precompute_sunlight_envelope(job) -> dict | None:
             return None
         limits = zoning_mapper.resolve_limits(zones)
         zone_names = [z["zone_name"] for z in (limits or {}).get("zones", [])] or zones
-        reg = regulation_calculator.calculate_all(zone_names)
+        reg = regulation_calculator.calculate_all(
+            zone_names,
+            use_llm_extraction=False,
+        )
 
         if not reg.get("sunlight_applies"):
             logger.info(f"[sunlight_clip] zone={zone_names} sunlight_applies=False → clip skip")
@@ -515,6 +518,7 @@ def auto_constraints(request):
     zones = body.get("zones", [])
     address = body.get("address", "")
     building_type = body.get("building_type", "")
+    include_law_articles = bool(body.get("include_law_articles", True))
 
     if not pnu and not zones and not address:
         return JsonResponse({"error": "pnu, zones, or address required"}, status=400)
@@ -533,7 +537,10 @@ def auto_constraints(request):
         limits = zoning_mapper.resolve_limits(zones) if zones else {}
         zone_names = [z["zone_name"] for z in limits.get("zones", [])] if limits else zones
 
-        reg = regulation_calculator.calculate_all(zone_names)
+        reg = regulation_calculator.calculate_all(
+            zone_names,
+            use_llm_extraction=include_law_articles,
+        )
 
         daylight_multiplier = _daylight_diagonal_multiplier(zone_names, building_type)
         if daylight_multiplier is not None:
@@ -543,7 +550,7 @@ def auto_constraints(request):
 
         # Query law articles for building-type-specific regulations
         law_articles = {}
-        if building_type and zone_names:
+        if include_law_articles and building_type and zone_names:
             try:
                 from land.services.law_enricher import search_for_building_type
                 law_result = search_for_building_type(building_type, zone_names)

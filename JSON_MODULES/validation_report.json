@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-02-08T00:37:35.339924",
-  "total_files": 98,
-  "pass": 98,
+  "timestamp": "2026-06-11T17:54:02.470624",
+  "total_files": 102,
+  "pass": 102,
   "fail": 0,
-  "warnings": 52,
+  "warnings": 56,
   "cross_module": {
     "registry": [],
     "gallery": [],
@@ -16,6 +16,10 @@
       "035_default_team17.json: identical model_context repeated 3x (could be team-level default)",
       "036_Auto-Claude + A2A Full Team.json: identical model_context repeated 11x (could be team-level default)",
       "037_Auto-Claude Sequential Pipeline.json: identical model_context repeated 8x (could be team-level default)",
+      "038_Land_Regulation_Analysis_Team.json: identical model_context repeated 3x (could be team-level default)",
+      "039_Land_Swarm_Analysis_Team.json: identical model_context repeated 3x (could be team-level default)",
+      "040_Land_Light_Team.json: identical model_context repeated 3x (could be team-level default)",
+      "041_MAAS_Legal_Design_Team.json: identical model_context repeated 4x (could be team-level default)",
       "cohub_01_Sequential_Team_(순차적_협업).json: identical model_context repeated 3x (could be team-level default)",
       "cohub_02_Selector_Team_(전문가_라우팅).json: identical model_context repeated 4x (could be team-level default)",
       "cohub_03_Handoff_Team_(고객_서비스).json: identical model_context repeated 4x (could be team-level default)",
@@ -44,199 +48,199 @@
   },
   "results": [
     {
-      "file": "a2a_agents\\calculator_agent.json",
+      "file": "a2a_agents/calculator_agent.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "a2a_agents\\gpu_agent.json",
+      "file": "a2a_agents/gpu_agent.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "a2a_agents\\graphics_agent.json",
+      "file": "a2a_agents/graphics_agent.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "a2a_agents\\gui_test_agent.json",
+      "file": "a2a_agents/gui_test_agent.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "a2a_agents\\history_agent.json",
+      "file": "a2a_agents/history_agent.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "a2a_agents\\history_helper_agent.json",
+      "file": "a2a_agents/history_helper_agent.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "a2a_agents\\math_agent.json",
+      "file": "a2a_agents/math_agent.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "a2a_agents\\philosophy_agent.json",
+      "file": "a2a_agents/philosophy_agent.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "a2a_agents\\poetry_agent.json",
+      "file": "a2a_agents/poetry_agent.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "a2a_agents\\remote_prime_checker.json",
+      "file": "a2a_agents/remote_prime_checker.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\auto_claude_01_Auto_Claude_Planner.json",
+      "file": "agents/auto_claude_01_Auto_Claude_Planner.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\auto_claude_02_Auto_Claude_Coder.json",
+      "file": "agents/auto_claude_02_Auto_Claude_Coder.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\auto_claude_03_Auto_Claude_QA_Reviewer.json",
+      "file": "agents/auto_claude_03_Auto_Claude_QA_Reviewer.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\auto_claude_04_Auto_Claude_QA_Fixer.json",
+      "file": "agents/auto_claude_04_Auto_Claude_QA_Fixer.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\auto_claude_05_Insights_Analyst.json",
+      "file": "agents/auto_claude_05_Insights_Analyst.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\auto_claude_06_Deep_Research_Agent.json",
+      "file": "agents/auto_claude_06_Deep_Research_Agent.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\auto_claude_07_Spec_Writer_Agent.json",
+      "file": "agents/auto_claude_07_Spec_Writer_Agent.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_01_Advocate_Debate.json",
+      "file": "agents/pattern_01_Advocate_Debate.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_02_Critic_Debate.json",
+      "file": "agents/pattern_02_Critic_Debate.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_03_Judge_Debate.json",
+      "file": "agents/pattern_03_Judge_Debate.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_04_Generator_Reflection.json",
+      "file": "agents/pattern_04_Generator_Reflection.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_05_Critic_Reflection.json",
+      "file": "agents/pattern_05_Critic_Reflection.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_06_Researcher_Sequential.json",
+      "file": "agents/pattern_06_Researcher_Sequential.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_07_Writer_Sequential.json",
+      "file": "agents/pattern_07_Writer_Sequential.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_08_Reviewer_Sequential.json",
+      "file": "agents/pattern_08_Reviewer_Sequential.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_09_Coordinator_Selector.json",
+      "file": "agents/pattern_09_Coordinator_Selector.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_10_History_Expert_Selector.json",
+      "file": "agents/pattern_10_History_Expert_Selector.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_11_Science_Expert_Selector.json",
+      "file": "agents/pattern_11_Science_Expert_Selector.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_12_Math_Expert_Selector.json",
+      "file": "agents/pattern_12_Math_Expert_Selector.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_13_Triage_Handoff.json",
+      "file": "agents/pattern_13_Triage_Handoff.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_14_Support_Handoff.json",
+      "file": "agents/pattern_14_Support_Handoff.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_15_Sales_Handoff.json",
+      "file": "agents/pattern_15_Sales_Handoff.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "agents\\pattern_16_Refund_Handoff.json",
+      "file": "agents/pattern_16_Refund_Handoff.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
@@ -250,7 +254,7 @@
       ]
     },
     {
-      "file": "e2e_logs\\e2e_run_20260207_150735.json",
+      "file": "e2e_logs/e2e_run_20260207_150735.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -258,7 +262,7 @@
       ]
     },
     {
-      "file": "e2e_logs\\e2e_run_20260207_151928.json",
+      "file": "e2e_logs/e2e_run_20260207_151928.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -266,7 +270,7 @@
       ]
     },
     {
-      "file": "e2e_logs\\e2e_run_20260207_153157.json",
+      "file": "e2e_logs/e2e_run_20260207_153157.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -282,49 +286,49 @@
       ]
     },
     {
-      "file": "models\\claude_01_Claude_Opus_4.5_Max_OAuth.json",
+      "file": "models/claude_01_Claude_Opus_4.5_Max_OAuth.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "models\\claude_02_Claude_Sonnet_4.5_Max_OAuth.json",
+      "file": "models/claude_02_Claude_Sonnet_4.5_Max_OAuth.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "models\\claude_03_Claude_Haiku_4.5_Max_OAuth.json",
+      "file": "models/claude_03_Claude_Haiku_4.5_Max_OAuth.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "models\\default_01_OpenAI_GPT_4o_Mini.json",
+      "file": "models/default_01_OpenAI_GPT_4o_Mini.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "models\\default_02_Mistral_7B_Local.json",
+      "file": "models/default_02_Mistral_7B_Local.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "models\\default_03_Anthropic_Claude_3_7.json",
+      "file": "models/default_03_Anthropic_Claude_3_7.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "models\\default_04_AzureOpenAI_GPT_4o_mini.json",
+      "file": "models/default_04_AzureOpenAI_GPT_4o_mini.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "patterns\\01_sequential.json",
+      "file": "patterns/01_sequential.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -332,7 +336,7 @@
       ]
     },
     {
-      "file": "patterns\\02_concurrent.json",
+      "file": "patterns/02_concurrent.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -340,7 +344,7 @@
       ]
     },
     {
-      "file": "patterns\\03_selector.json",
+      "file": "patterns/03_selector.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -348,7 +352,7 @@
       ]
     },
     {
-      "file": "patterns\\04_group_chat.json",
+      "file": "patterns/04_group_chat.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -356,7 +360,7 @@
       ]
     },
     {
-      "file": "patterns\\05_handoff.json",
+      "file": "patterns/05_handoff.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -364,7 +368,7 @@
       ]
     },
     {
-      "file": "patterns\\06_magentic.json",
+      "file": "patterns/06_magentic.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -372,7 +376,7 @@
       ]
     },
     {
-      "file": "patterns\\07_debate.json",
+      "file": "patterns/07_debate.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -380,7 +384,7 @@
       ]
     },
     {
-      "file": "patterns\\08_reflection.json",
+      "file": "patterns/08_reflection.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -388,7 +392,7 @@
       ]
     },
     {
-      "file": "patterns\\09_hierarchical.json",
+      "file": "patterns/09_hierarchical.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -396,7 +400,7 @@
       ]
     },
     {
-      "file": "patterns\\10_mixture_of_agents.json",
+      "file": "patterns/10_mixture_of_agents.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -404,7 +408,7 @@
       ]
     },
     {
-      "file": "patterns\\11_cli_collaboration.json",
+      "file": "patterns/11_cli_collaboration.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -412,7 +416,7 @@
       ]
     },
     {
-      "file": "patterns\\11_code_execution.json",
+      "file": "patterns/11_code_execution.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -420,7 +424,7 @@
       ]
     },
     {
-      "file": "patterns\\11_gui_test_team.json",
+      "file": "patterns/11_gui_test_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -428,7 +432,7 @@
       ]
     },
     {
-      "file": "patterns\\12_pseudo_hierarchical.json",
+      "file": "patterns/12_pseudo_hierarchical.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -436,7 +440,7 @@
       ]
     },
     {
-      "file": "providers\\providers.json",
+      "file": "providers/providers.json",
       "status": "PASS",
       "errors": [],
       "warnings": [
@@ -452,217 +456,241 @@
       ]
     },
     {
-      "file": "resolved\\auto_claude_dev_team.json",
+      "file": "resolved/auto_claude_dev_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "resolved\\debate_team.json",
+      "file": "resolved/debate_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "resolved\\handoff_team.json",
+      "file": "resolved/handoff_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "resolved\\hybrid_calculator_team.json",
+      "file": "resolved/hybrid_calculator_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "resolved\\reflection_team.json",
+      "file": "resolved/reflection_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "resolved\\selector_team.json",
+      "file": "resolved/selector_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "resolved\\sequential_team.json",
+      "file": "resolved/sequential_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\013_A2A_Multi_Agent_Team.json",
+      "file": "teams/013_A2A_Multi_Agent_Team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\027_AutoClaude.json",
+      "file": "teams/027_AutoClaude.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\029_Auto-Claude Build (Auto_Opus).json",
+      "file": "teams/029_Auto-Claude Build (Auto_Opus).json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\030_Auto-Claude Build (Balanced_Sonnet).json",
+      "file": "teams/030_Auto-Claude Build (Balanced_Sonnet).json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\031_Auto-Claude Spec Creation.json",
+      "file": "teams/031_Auto-Claude Spec Creation.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\032_Auto-Claude QA Loop.json",
+      "file": "teams/032_Auto-Claude QA Loop.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\033_Auto-Claude A2A Protocol Team.json",
+      "file": "teams/033_Auto-Claude A2A Protocol Team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\034_A2A Research Team.json",
+      "file": "teams/034_A2A Research Team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\035_default_team17.json",
+      "file": "teams/035_default_team17.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\036_Auto-Claude + A2A Full Team.json",
+      "file": "teams/036_Auto-Claude + A2A Full Team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\037_Auto-Claude Sequential Pipeline.json",
+      "file": "teams/037_Auto-Claude Sequential Pipeline.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\cohub_01_Sequential_Team_(순차적_협업).json",
+      "file": "teams/038_Land_Regulation_Analysis_Team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\cohub_02_Selector_Team_(전문가_라우팅).json",
+      "file": "teams/039_Land_Swarm_Analysis_Team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\cohub_03_Handoff_Team_(고객_서비스).json",
+      "file": "teams/040_Land_Light_Team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\cohub_04_Debate_Team_(찬반_토론).json",
+      "file": "teams/041_MAAS_Legal_Design_Team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "teams\\cohub_05_Reflection_Team_(품질_개선).json",
+      "file": "teams/cohub_01_Sequential_Team_(순차적_협업).json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates\\auto_claude_dev_team.json",
+      "file": "teams/cohub_02_Selector_Team_(전문가_라우팅).json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates\\debate_team.json",
+      "file": "teams/cohub_03_Handoff_Team_(고객_서비스).json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates\\handoff_team.json",
+      "file": "teams/cohub_04_Debate_Team_(찬반_토론).json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates\\reflection_team.json",
+      "file": "teams/cohub_05_Reflection_Team_(품질_개선).json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates\\selector_team.json",
+      "file": "templates/auto_claude_dev_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates\\sequential_team.json",
+      "file": "templates/debate_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates_compact\\auto_claude_dev_team.json",
+      "file": "templates/handoff_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates_compact\\debate_team.json",
+      "file": "templates/reflection_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates_compact\\handoff_team.json",
+      "file": "templates/selector_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates_compact\\hybrid_calculator_team.json",
+      "file": "templates/sequential_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates_compact\\reflection_team.json",
+      "file": "templates_compact/auto_claude_dev_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates_compact\\selector_team.json",
+      "file": "templates_compact/debate_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []
     },
     {
-      "file": "templates_compact\\sequential_team.json",
+      "file": "templates_compact/handoff_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates_compact/hybrid_calculator_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates_compact/reflection_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates_compact/selector_team.json",
+      "status": "PASS",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "file": "templates_compact/sequential_team.json",
       "status": "PASS",
       "errors": [],
       "warnings": []

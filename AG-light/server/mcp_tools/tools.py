@@ -1,11 +1,14 @@
-# AG-light MCP Tools — Slim version (~20 tools)
+# AG-light MCP Tools — Slim version (26 tools)
 # Wraps Cloudflare Worker APIs + in-process Message Bus / SharedMemory
 """
 Slim MCP tool layer for AG-light.
 
-20 tools covering:
+26 tools covering:
 - Law Search (4): law_search, law_search_domain, law_domains, law_health
 - Land (5): arr_land_analyze, arr_land_agent_analyze, arr_land_resolve, arr_land_zones, arr_land_stats
+- MAAS Evidence (2): arr_maas_evidence, arr_maas_review
+- Parking/MAAS Legal Design (4): arr_parking_graph_verify, arr_parking_count_check,
+  arr_parking_to_maas_layout_check, arr_maas_parking_layout_candidate
 - Message Bus (5): send_message, broadcast_message, get_conversation_log, get_agent_conversation, get_bus_status
 - SharedMemory (4): store_decision, get_all_decisions, publish_event, get_events
 - Utility (2): health_check, get_version
@@ -18,6 +21,7 @@ Removed from original ACE MCP (57 tools):
 
 Environment variables:
     WORKER_URL          = http://localhost:8787  (Cloudflare Worker)
+    ARR_BACKEND_URL     = http://127.0.0.1:18000 (ARR Django backend)
     MESSAGE_BUS_URL     = http://localhost:8200/bus   (same process)
     SHARED_MEMORY_URL   = http://localhost:8200/memory (same process)
 """
@@ -26,6 +30,8 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sys
+import asyncio
 from typing import Any
 
 import httpx
@@ -34,17 +40,23 @@ from mcp.server.fastmcp import FastMCP
 # --------------- Config ---------------
 
 WORKER_URL = os.environ.get("WORKER_URL", "http://localhost:8787")
+ARR_BACKEND_URL = os.environ.get("ARR_BACKEND_URL", "http://127.0.0.1:18000").rstrip("/")
 MESSAGE_BUS_URL = os.environ.get("MESSAGE_BUS_URL", "http://localhost:8200/bus")
 SHARED_MEMORY_URL = os.environ.get("SHARED_MEMORY_URL", "http://localhost:8200/memory")
+ARR_BACKEND_DIR = os.environ.get("ARR_BACKEND_DIR", "/mnt/d/Data/25_ACE/ARR/backend")
+ARR_PYTHON = os.environ.get("ARR_PYTHON", os.path.join(ARR_BACKEND_DIR, ".venv", "bin", "python"))
+NEO4J_URI = os.environ.get("NEO4J_URI", "bolt://172.27.80.1:7687")
+NEO4J_USER = os.environ.get("NEO4J_USER", "neo4j")
+NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD", "")
 
 logger = logging.getLogger("ag-light-mcp")
 
 mcp = FastMCP(
     "AG-light",
     instructions=(
-        "AG-light MCP server — 20 tools: law article search (Korean legal regulations), "
-        "land regulation analysis (건폐율/용적률/건축제한), "
-        "Message Bus conversations, SharedMemory events/decisions."
+        "AG-light MCP server — 26 tools: law article search (Korean legal regulations), "
+        "land regulation analysis (건폐율/용적률/건축제한), MAAS evidence review, "
+        "parking/legal-design checks, Message Bus conversations, SharedMemory events/decisions."
     ),
 )
 
@@ -65,6 +77,15 @@ async def _worker_client() -> httpx.AsyncClient:
     )
 
 
+async def _arr_client() -> httpx.AsyncClient:
+    """Short-lived httpx client for ARR Django backend calls."""
+    return httpx.AsyncClient(
+        base_url=ARR_BACKEND_URL,
+        timeout=httpx.Timeout(60.0, connect=10.0),
+        headers={"Content-Type": "application/json"},
+    )
+
+
 async def _bus_client() -> httpx.AsyncClient:
     """Short-lived httpx client for Message Bus calls (same process)."""
     return httpx.AsyncClient(base_url=MESSAGE_BUS_URL, timeout=5.0)
@@ -73,6 +94,37 @@ async def _bus_client() -> httpx.AsyncClient:
 async def _mem_client() -> httpx.AsyncClient:
     """Short-lived httpx client for SharedMemory calls (same process)."""
     return httpx.AsyncClient(base_url=SHARED_MEMORY_URL, timeout=5.0)
+
+
+async def _run_arr_python(args: list[str], timeout: int = 120) -> dict[str, Any]:
+    """Run an ARR backend Python command and return captured output."""
+    python_exe = ARR_PYTHON if os.path.exists(ARR_PYTHON) else sys.executable
+    proc: asyncio.subprocess.Process | None = None
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            python_exe,
+            *args,
+            cwd=ARR_BACKEND_DIR,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout_b, stderr_b = await asyncio.wait_for(proc.communicate(), timeout=timeout)
+        return {
+            "ok": proc.returncode == 0,
+            "returncode": proc.returncode,
+            "command": [python_exe, *args],
+            "stdout": stdout_b.decode("utf-8", errors="replace"),
+            "stderr": stderr_b.decode("utf-8", errors="replace"),
+        }
+    except asyncio.TimeoutError:
+        if proc and proc.returncode is None:
+            proc.kill()
+            await proc.wait()
+        return {"ok": False, "error": f"ARR command timed out after {timeout}s", "args": args}
+    except FileNotFoundError as e:
+        return {"ok": False, "error": str(e), "python": python_exe, "arr_backend_dir": ARR_BACKEND_DIR}
+    except Exception as e:
+        return {"ok": False, "error": str(e), "args": args}
 
 
 # ===============================================================
@@ -344,7 +396,221 @@ async def arr_land_stats() -> str:
 
 
 # ===============================================================
-# 3. Message Bus (5)
+# 3. MAAS Evidence (2)
+# ===============================================================
+
+
+@mcp.tool()
+async def arr_maas_evidence(job_id: str, design_id: int) -> str:
+    """Fetch the canonical ARR MAAS evidence bundle for one saved design candidate.
+
+    This calls ARR Django:
+    GET /design/jobs/{job_id}/results/{design_id}/evidence/
+
+    Args:
+        job_id: ARR design OptimizationJob UUID
+        design_id: Saved DesignResult design_id, e.g. 900000
+
+    Returns:
+        JSON evidence bundle following schema_version arr.maas.evidence.v0.
+        Missing legal/program/parking/VWorld evidence remains needs_evidence.
+    """
+    try:
+        async with await _arr_client() as client:
+            resp = await client.get(f"/design/jobs/{job_id}/results/{int(design_id)}/evidence/")
+            resp.raise_for_status()
+            return _dumps(resp.json())
+    except httpx.HTTPStatusError as e:
+        return _dumps({
+            "error": f"ARR Backend HTTP {e.response.status_code}",
+            "url": f"{ARR_BACKEND_URL}/design/jobs/{job_id}/results/{design_id}/evidence/",
+            "body": e.response.text[:500],
+        })
+    except httpx.ConnectError:
+        return _dumps({"error": f"ARR Backend not reachable at {ARR_BACKEND_URL}"})
+    except Exception as e:
+        return _dumps({"error": str(e)})
+
+
+@mcp.tool()
+async def arr_maas_review(job_id: str, design_id: int) -> str:
+    """Summarize the ARR MAAS evidence bundle for agent review.
+
+    This tool does not invent new legal pass/fail results. It reads the bundle's
+    checks, issues, and final_decision, then returns a compact review summary.
+
+    Args:
+        job_id: ARR design OptimizationJob UUID
+        design_id: Saved DesignResult design_id
+
+    Returns:
+        JSON summary with final_status, hard_failures, missing_evidence,
+        open_issues, and domain status counts.
+    """
+    try:
+        raw = await arr_maas_evidence(job_id, design_id)
+        bundle = json.loads(raw)
+        if bundle.get("error"):
+            return _dumps(bundle)
+
+        checks = bundle.get("checks") or []
+        issues = bundle.get("issues") or []
+        final_decision = bundle.get("final_decision") or {}
+        counts: dict[str, dict[str, int]] = {}
+        hard_failures = []
+        missing_evidence = []
+        for check in checks:
+            domain = str(check.get("domain") or "unknown")
+            status = str(check.get("status") or "unknown")
+            counts.setdefault(domain, {})
+            counts[domain][status] = counts[domain].get(status, 0) + 1
+            key = str(check.get("key") or check.get("id") or "")
+            if status == "fail" and check.get("severity") == "hard":
+                hard_failures.append(key)
+            if status in {"needs_evidence", "unknown"}:
+                missing_evidence.append(key)
+
+        return _dumps({
+            "schema_version": bundle.get("schema_version"),
+            "bundle_id": bundle.get("bundle_id"),
+            "candidate": bundle.get("candidate", {}),
+            "final_status": final_decision.get("status"),
+            "hard_failures": final_decision.get("blocking_failures") or hard_failures,
+            "missing_evidence": final_decision.get("missing_evidence") or missing_evidence,
+            "open_issues": [
+                {
+                    "id": issue.get("id"),
+                    "title": issue.get("title"),
+                    "severity": issue.get("severity"),
+                    "assignee": issue.get("assignee"),
+                }
+                for issue in issues
+                if issue.get("status") == "open"
+            ],
+            "domain_status_counts": counts,
+            "non_negotiable": "Do not mark final pass while hard failures or needs_evidence checks remain.",
+        })
+    except json.JSONDecodeError as e:
+        return _dumps({"error": f"ARR evidence response was not JSON: {e}"})
+    except Exception as e:
+        return _dumps({"error": str(e)})
+
+
+# ===============================================================
+# 4. Parking / MAAS Legal Design (4)
+# ===============================================================
+
+
+@mcp.tool()
+async def arr_parking_graph_verify(timeout: int = 120) -> str:
+    """Verify ARR parking law Graph DB coverage.
+
+    Runs:
+    law/scripts/verify_parking_law_graph.py
+
+    Returns stdout/stderr and pass/fail status. This checks law roots,
+    parking requirement rules, Seoul ordinance overrides, accessibility rules,
+    and small attached-parking layout rules.
+    """
+    result = await _run_arr_python(
+        [
+            "law/scripts/verify_parking_law_graph.py",
+            "--uri", NEO4J_URI,
+            "--user", NEO4J_USER,
+            "--password", NEO4J_PASSWORD,
+        ],
+        timeout=timeout,
+    )
+    return _dumps(result)
+
+
+@mcp.tool()
+async def arr_parking_count_check(timeout: int = 120) -> str:
+    """Run deterministic parking-count scenarios against the ARR law Graph DB.
+
+    Covers Seoul ordinance overrides, national fallback, note-6 rounding,
+    delegated housing rules, and accessible parking count status.
+    """
+    result = await _run_arr_python(
+        [
+            "law/scripts/check_parking_counts.py",
+            "--uri", NEO4J_URI,
+            "--user", NEO4J_USER,
+            "--password", NEO4J_PASSWORD,
+        ],
+        timeout=timeout,
+    )
+    return _dumps(result)
+
+
+@mcp.tool()
+async def arr_parking_to_maas_layout_check(timeout: int = 120) -> str:
+    """Run Graph DB -> parking count -> MAAS layout candidate integration checks.
+
+    This proves that selected parking rules can produce required counts and
+    deterministic stall polygon candidates for MAAS review.
+    """
+    result = await _run_arr_python(
+        [
+            "law/scripts/check_parking_to_maas_layout.py",
+            "--uri", NEO4J_URI,
+            "--user", NEO4J_USER,
+            "--password", NEO4J_PASSWORD,
+        ],
+        timeout=timeout,
+    )
+    return _dumps(result)
+
+
+@mcp.tool()
+async def arr_maas_parking_layout_candidate(
+    required_spaces: int,
+    envelope_width_m: float,
+    envelope_depth_m: float,
+    accessible_spaces: int = 0,
+    strategy: str = "ground_surface",
+    road_width_m: float | None = None,
+    has_sidewalk_separation: bool | None = None,
+    is_dead_end_road: bool = False,
+    timeout: int = 30,
+) -> str:
+    """Generate a deterministic MAAS parking layout candidate with stall coordinates.
+
+    This does not claim final legal compliance. It creates a first coordinate
+    candidate for agents to review before a future grid/MIP solver.
+    """
+    road_context = {
+        "road_width_m": road_width_m,
+        "has_sidewalk_separation": has_sidewalk_separation,
+        "is_dead_end_road": is_dead_end_road,
+    }
+    snippet = (
+        "import json\n"
+        "from shapely.geometry import box\n"
+        "from design.maas.parking_layout import generate_parking_layout_candidate\n"
+        f"road_context = {json.dumps(road_context, ensure_ascii=False)!r}\n"
+        "road_context = json.loads(road_context)\n"
+        "road_context = {k: v for k, v in road_context.items() if v is not None}\n"
+        "layout = generate_parking_layout_candidate(\n"
+        f"    box(0, 0, {float(envelope_width_m)}, {float(envelope_depth_m)}),\n"
+        f"    required_spaces={int(required_spaces)},\n"
+        f"    accessible_spaces={int(accessible_spaces)},\n"
+        f"    strategy={json.dumps(strategy)},\n"
+        "    road_context=road_context,\n"
+        ")\n"
+        "print(json.dumps(layout, ensure_ascii=False, indent=2))\n"
+    )
+    result = await _run_arr_python(["-c", snippet], timeout=timeout)
+    if result.get("ok"):
+        try:
+            result["layout"] = json.loads(result.get("stdout") or "{}")
+        except json.JSONDecodeError:
+            pass
+    return _dumps(result)
+
+
+# ===============================================================
+# 5. Message Bus (5)
 # ===============================================================
 
 
@@ -468,7 +734,7 @@ async def get_bus_status() -> str:
 
 
 # ===============================================================
-# 4. SharedMemory (4)
+# 5. SharedMemory (4)
 # ===============================================================
 
 
@@ -584,13 +850,13 @@ async def get_events(event_type: str = "", limit: int = 100) -> str:
 
 
 # ===============================================================
-# 5. Utility (2)
+# 7. Utility (2)
 # ===============================================================
 
 
 @mcp.tool()
 async def health_check() -> str:
-    """Check AG-light server health (Worker + Bus + Memory).
+    """Check AG-light server health (Worker + ARR Backend + Bus + Memory).
 
     Returns:
         JSON with status of each component
@@ -607,6 +873,22 @@ async def health_check() -> str:
         result["worker"] = {"status": False, "url": WORKER_URL, "error": str(e)}
         result["status"] = False
 
+    # Check ARR Backend
+    try:
+        async with await _arr_client() as client:
+            resp = await client.get("/design/jobs/")
+            # 405/404 still proves the backend is reachable; connection failure is what matters here.
+            result["arr_backend"] = {
+                "status": resp.status_code < 500,
+                "url": ARR_BACKEND_URL,
+                "http_status": resp.status_code,
+            }
+            if resp.status_code >= 500:
+                result["status"] = False
+    except Exception as e:
+        result["arr_backend"] = {"status": False, "url": ARR_BACKEND_URL, "error": str(e)}
+        result["status"] = False
+
     # Check Bus
     try:
         async with await _bus_client() as client:
@@ -615,6 +897,7 @@ async def health_check() -> str:
             result["bus"] = {"status": True, "url": MESSAGE_BUS_URL}
     except Exception as e:
         result["bus"] = {"status": False, "url": MESSAGE_BUS_URL, "error": str(e)}
+        result["status"] = False
 
     # Check Memory
     try:
@@ -624,6 +907,7 @@ async def health_check() -> str:
             result["memory"] = {"status": True, "url": SHARED_MEMORY_URL}
     except Exception as e:
         result["memory"] = {"status": False, "url": SHARED_MEMORY_URL, "error": str(e)}
+        result["status"] = False
 
     return _dumps(result)
 
@@ -638,6 +922,8 @@ async def get_version() -> str:
     return _dumps({
         "server": "AG-light",
         "version": "1.0.0",
-        "tools": 20,
+        "tools": 26,
         "worker_url": WORKER_URL,
+        "arr_backend_url": ARR_BACKEND_URL,
+        "arr_backend_dir": ARR_BACKEND_DIR,
     })

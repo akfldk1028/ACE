@@ -281,6 +281,10 @@
     "hybrid_calculator": {
       "file": "templates_compact/hybrid_calculator_team.json",
       "label": "Hybrid Calculator Team"
+    },
+    "maas_legal_design": {
+      "file": "teams/041_MAAS_Legal_Design_Team.json",
+      "label": "MAAS Legal Design Team (법규-주차-매스 협업팀)"
     }
   }
 }

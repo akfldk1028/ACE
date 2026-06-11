@@ -1,0 +1,242 @@
+{
+  "provider": "autogen_agentchat.teams.SelectorGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "label": "MAAS Legal Design Team (법규-주차-매스 협업팀)",
+  "description": "기존 AG/AutoGen SelectorGroupChat 패턴을 사용하여 ARR 법규 Graph DB, 주차 산정, MAAS 주차 좌표 후보, evidence review를 협업 검토하는 팀.",
+  "config": {
+    "name": "SelectorGroupChat",
+    "description": "law_graph_agent -> parking_agent -> maas_geometry_agent -> review_agent workflow for legal-design optimization.",
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "ARR 법규 Graph DB와 구조화 주차 규칙을 검증하고 법규 근거를 제공하는 에이전트",
+        "label": "Law Graph Agent (법규그래프)",
+        "config": {
+          "name": "law_graph_agent",
+          "description": "Verify and cite ARR law Graph DB parking rules.",
+          "system_message": "당신은 ARR 법규 Graph DB 담당 에이전트입니다.\n\n역할:\n1. verify_parking_graph 도구로 Graph DB 법규/조례/주차 layout rule 상태를 확인합니다.\n2. 법규 Graph DB에는 raw 대화를 저장하지 않습니다.\n3. 법규 근거는 rule_id, full_id, source article 중심으로 구조화해 다음 agent에게 전달합니다.\n4. 실패가 있으면 parking_agent로 넘기기 전에 무엇이 빠졌는지 명확히 말합니다.\n\n출력 형식:\n## Law Graph Evidence\n- Graph status:\n- Key law nodes/rules:\n- Missing evidence:\n- Next: parking_agent\n\n완료 시 'LAW_GRAPH_COMPLETE'를 포함하세요.",
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "ARR: Verify Parking Graph",
+              "config": {
+                "name": "verify_parking_graph",
+                "description": "ARR backend의 verify_parking_law_graph.py를 실행하여 주차 법규 Graph DB 상태를 검증합니다.",
+                "source_code": "def verify_parking_graph(timeout: int = 120) -> str:\n    \"\"\"Run ARR parking Graph DB verification.\"\"\"\n    import os, subprocess\n    backend = os.getenv('ARR_BACKEND_DIR', r'D:\\Data\\25_ACE\\ARR\\backend')\n    candidates = [\n        os.getenv('ARR_PYTHON', ''),\n        os.path.join(backend, '.venv', 'Scripts', 'python.exe'),\n        '/mnt/d/Data/25_ACE/ARR/backend/.venv/bin/python',\n        'python',\n    ]\n    python = next((p for p in candidates if p and (p == 'python' or os.path.exists(p))), 'python')\n    cmd = [python, 'law/scripts/verify_parking_law_graph.py', '--uri', os.getenv('NEO4J_URI', 'bolt://172.27.80.1:7687'), '--user', os.getenv('NEO4J_USER', 'neo4j'), '--password', os.getenv('NEO4J_PASSWORD', '')]\n    try:\n        result = subprocess.run(cmd, cwd=backend, text=True, capture_output=True, timeout=timeout)\n        return result.stdout + ('\\nSTDERR:\\n' + result.stderr if result.stderr else '')\n    except Exception as e:\n        return f'ERROR: {e}'\n",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "Graph DB 주차 산정과 MAAS 주차 좌표 후보 생성을 검증하는 에이전트",
+        "label": "Parking Agent (주차검토)",
+        "config": {
+          "name": "parking_agent",
+          "description": "Check parking counts and Graph DB to MAAS layout integration.",
+          "system_message": "당신은 ARR 주차 검토 에이전트입니다.\n\n역할:\n1. check_parking_counts로 서울 조례/국가 fallback/장애인 주차 상태를 검증합니다.\n2. check_graph_to_maas_layout으로 Graph DB 필요 대수 -> MAAS layout_candidate -> stall polygon 흐름을 검증합니다.\n3. 주차 실패는 raw 대화가 아니라 RejectedConstraint/RequestedRepair 후보로 정리합니다.\n4. layout_candidate는 최종 법적 적합 판정이 아니라 deterministic first candidate임을 명시합니다.\n\n출력 형식:\n## Parking Evidence\n- Required count status:\n- Layout candidate status:\n- Rejected constraints:\n- Requested repairs:\n- Next: maas_geometry_agent\n\n완료 시 'PARKING_COMPLETE'를 포함하세요.",
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "ARR: Check Parking Counts",
+              "config": {
+                "name": "check_parking_counts",
+                "description": "ARR backend의 check_parking_counts.py를 실행합니다.",
+                "source_code": "def check_parking_counts(timeout: int = 120) -> str:\n    \"\"\"Run ARR parking count scenario checks.\"\"\"\n    import os, subprocess\n    backend = os.getenv('ARR_BACKEND_DIR', r'D:\\Data\\25_ACE\\ARR\\backend')\n    candidates = [os.getenv('ARR_PYTHON', ''), os.path.join(backend, '.venv', 'Scripts', 'python.exe'), '/mnt/d/Data/25_ACE/ARR/backend/.venv/bin/python', 'python']\n    python = next((p for p in candidates if p and (p == 'python' or os.path.exists(p))), 'python')\n    cmd = [python, 'law/scripts/check_parking_counts.py', '--uri', os.getenv('NEO4J_URI', 'bolt://172.27.80.1:7687'), '--user', os.getenv('NEO4J_USER', 'neo4j'), '--password', os.getenv('NEO4J_PASSWORD', '')]\n    try:\n        result = subprocess.run(cmd, cwd=backend, text=True, capture_output=True, timeout=timeout)\n        return result.stdout + ('\\nSTDERR:\\n' + result.stderr if result.stderr else '')\n    except Exception as e:\n        return f'ERROR: {e}'\n",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            },
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "ARR: Check Graph To MAAS Layout",
+              "config": {
+                "name": "check_graph_to_maas_layout",
+                "description": "ARR backend의 check_parking_to_maas_layout.py를 실행합니다.",
+                "source_code": "def check_graph_to_maas_layout(timeout: int = 120) -> str:\n    \"\"\"Run Graph DB -> MAAS parking layout integration check.\"\"\"\n    import os, subprocess\n    backend = os.getenv('ARR_BACKEND_DIR', r'D:\\Data\\25_ACE\\ARR\\backend')\n    candidates = [os.getenv('ARR_PYTHON', ''), os.path.join(backend, '.venv', 'Scripts', 'python.exe'), '/mnt/d/Data/25_ACE/ARR/backend/.venv/bin/python', 'python']\n    python = next((p for p in candidates if p and (p == 'python' or os.path.exists(p))), 'python')\n    cmd = [python, 'law/scripts/check_parking_to_maas_layout.py', '--uri', os.getenv('NEO4J_URI', 'bolt://172.27.80.1:7687'), '--user', os.getenv('NEO4J_USER', 'neo4j'), '--password', os.getenv('NEO4J_PASSWORD', '')]\n    try:\n        result = subprocess.run(cmd, cwd=backend, text=True, capture_output=True, timeout=timeout)\n        return result.stdout + ('\\nSTDERR:\\n' + result.stderr if result.stderr else '')\n    except Exception as e:\n        return f'ERROR: {e}'\n",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "주차 repair request를 MAAS mass 조정 관점으로 해석하는 에이전트",
+        "label": "MAAS Geometry Agent (매스수정)",
+        "config": {
+          "name": "maas_geometry_agent",
+          "description": "Translate parking/legal repair requests into MAAS mass operations.",
+          "system_message": "당신은 MAAS geometry repair 에이전트입니다.\n\n역할:\n1. parking_agent의 RejectedConstraint/RequestedRepair 후보를 읽습니다.\n2. geometry repair operation으로 변환합니다: reserve_piloti_void, move_core, reduce_or_split_footprint, add_basement_parking, switch_to_mechanical_parking.\n3. 직접 법규를 새로 해석하지 말고, 법규 근거는 law_graph_agent/parking_agent 결과를 참조합니다.\n4. VWorld/실사 facade 문제는 별도 visual_qa_agent에서 다룹니다.\n\n출력 형식:\n## MAAS Geometry Repair Plan\n- Candidate impact:\n- Operations:\n- Required recheck:\n- Next: review_agent\n\n완료 시 'MAAS_GEOMETRY_COMPLETE'를 포함하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "법규 evidence, 주차 layout, geometry repair를 종합해 최종 판단을 내리는 에이전트",
+        "label": "Review Agent (최종검토)",
+        "config": {
+          "name": "review_agent",
+          "description": "Summarize structured evidence and decisions without polluting law Graph DB with raw chat.",
+          "system_message": "당신은 최종 검토 에이전트입니다.\n\n역할:\n1. 이전 agent들의 결과를 구조화 evidence로 요약합니다.\n2. Graph DB에 넣을 것과 넣지 않을 것을 분리합니다.\n3. 넣을 것: EvidenceArtifact, RequestedRepair, RejectedConstraint, Decision, CandidateLineage.\n4. 넣지 않을 것: raw agent dialogue.\n5. 하드 실패 또는 needs_evidence가 있으면 final pass라고 하지 않습니다.\n\n출력 형식:\n## Final Structured Review\n### EvidenceArtifact\n### RejectedConstraint\n### RequestedRepair\n### Decision\n### Remaining Needs Evidence\n\n완료 시 'TERMINATE'를 포함하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "model_client": {
+      "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+      "component_type": "model",
+      "version": 1,
+      "component_version": 1,
+      "label": "Claude Sonnet 4.5 (Max OAuth)",
+      "description": "Selector model for MAAS legal-design workflow routing.",
+      "config": {
+        "model": "claude-sonnet-4-5-20250929"
+      }
+    },
+    "selector_prompt": "MAAS 법규-주차-매스 협업팀 라우팅 규칙:\n1. 시작 또는 Graph DB/법규 상태 확인 필요: law_graph_agent\n2. LAW_GRAPH_COMPLETE 이후 또는 주차 산정/주차 좌표 후보 필요: parking_agent\n3. PARKING_COMPLETE 이후 또는 repair operation 변환 필요: maas_geometry_agent\n4. MAAS_GEOMETRY_COMPLETE 이후 또는 최종 evidence/decision 정리 필요: review_agent\n\n법규 Graph DB에 raw 대화를 넣지 않는다. 구조화 artifact와 law citation만 남긴다.\n\n{roles}\n{history}\n\n에이전트 이름만 반환.",
+    "allow_repeated_speaker": false,
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "label": "TextMentionTermination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "label": "MaxMessageTermination",
+            "config": {
+              "max_messages": 10,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

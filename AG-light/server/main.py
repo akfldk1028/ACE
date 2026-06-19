@@ -2,7 +2,7 @@
 # Single process: MCP tools + Message Bus + SharedMemory + Health
 """
 Integrates:
-- MCP tools via streamable-http at /mcp (20 tools)
+- MCP tools via streamable-http at /mcp/mcp (22 tools)
 - Message Bus API at /bus/*
 - SharedMemory API at /memory/*
 - Health at /health
@@ -15,10 +15,11 @@ from __future__ import annotations
 import json
 import logging
 import os
+import importlib
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,48 +39,107 @@ _DATA_DIR = Path(__file__).parent / "data"
 bus = AgentMessageBus()
 memory = SharedMemoryServer()
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Initialize data stores on startup."""
-    _DATA_DIR.mkdir(exist_ok=True)
-
-    # Optionally load persisted memory
-    storage_file = _DATA_DIR / "shared_memory.json"
-    if storage_file.exists():
-        memory.storage_path = storage_file
-        memory._load()
-    else:
-        memory.storage_path = storage_file
-
-    # Log path for bus
-    log_file = _DATA_DIR / f"dialogue_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    bus.log_path = log_file
-
-    logger.info(f"AG-light server starting (bus log: {log_file})")
-    yield
-    logger.info("AG-light server shutting down")
+_MCP_HTTP_PATH = "/mcp/mcp"
 
 
-app = FastAPI(
-    title="AG-light Server",
-    description="MCP tools + Message Bus + SharedMemory",
-    version="1.0.0",
-    lifespan=lifespan,
-)
+def _mount_mcp(app: FastAPI) -> tuple[Any | None, dict[str, Any]]:
+    app.router.routes = [route for route in app.router.routes if getattr(route, "path", None) != "/mcp"]
+    state: dict[str, Any] = {
+        "mounted": False,
+        "streamable_http_path": None,
+        "error": None,
+    }
+    try:
+        import mcp_tools.tools as tools_module  # noqa: E402
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+        try:
+            tools_module = importlib.reload(tools_module)
+            mcp_server = tools_module.mcp
+            mcp_app = mcp_server.streamable_http_app()
+            session_manager = mcp_server.session_manager
+            app.mount("/mcp", mcp_app)
+            state["mounted"] = True
+            state["streamable_http_path"] = _MCP_HTTP_PATH
+            logger.info("MCP tools mounted at /mcp/mcp (streamable-http)")
+            return session_manager, state
+        except AttributeError:
+            state["error"] = "FastMCP.streamable_http_app() not available"
+            logger.warning(
+                "FastMCP.streamable_http_app() not available. "
+                "MCP tools available via stdio only."
+            )
+    except ImportError as e:
+        state["error"] = str(e)
+        logger.warning(f"MCP tools not loaded (missing dependency: {e})")
+    return None, state
 
 
-# ===============================================================
-# Health
-# ===============================================================
+def create_app() -> FastAPI:
+    mcp_state: dict[str, Any] = {
+        "mounted": False,
+        "streamable_http_path": None,
+        "error": None,
+    }
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        """Initialize data stores on startup."""
+        _DATA_DIR.mkdir(exist_ok=True)
+
+        # Optionally load persisted memory
+        storage_file = _DATA_DIR / "shared_memory.json"
+        if storage_file.exists():
+            memory.storage_path = storage_file
+            memory._load()
+        else:
+            memory.storage_path = storage_file
+
+        # Log path for bus
+        log_file = _DATA_DIR / f"dialogue_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        bus.log_path = log_file
+
+        logger.info(f"AG-light server starting (bus log: {log_file})")
+
+        nonlocal mcp_state
+        mcp_session_manager, mcp_state = _mount_mcp(app)
+        app.state.mcp = mcp_state
+        if mcp_session_manager is not None:
+            async with mcp_session_manager.run():
+                yield
+        else:
+            yield
+
+        logger.info("AG-light server shutting down")
+
+    app = FastAPI(
+        title="AG-light Server",
+        description="MCP tools + Message Bus + SharedMemory",
+        version="1.0.0",
+        lifespan=lifespan,
+    )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    existing_app = globals().get("app")
+    if isinstance(existing_app, FastAPI):
+        current_paths = {getattr(route, "path", None) for route in app.router.routes}
+        for route in existing_app.router.routes:
+            path = getattr(route, "path", None)
+            if path and path not in current_paths and path != "/mcp":
+                app.router.routes.append(route)
+                current_paths.add(path)
+
+    app.state.mcp = mcp_state
+    return app
+
+
+app = create_app()
 
 
 @app.get("/health")
@@ -91,9 +151,9 @@ async def health():
         "components": {
             "bus": {"connected_agents": list(bus.connected_agents), "log_count": len(bus.log)},
             "memory": {"decisions": list(memory.decisions.keys()), "events_count": len(memory.events)},
+            "mcp": app.state.mcp,
         },
     }
-
 
 # ===============================================================
 # Message Bus Router (/bus/*)
@@ -199,27 +259,6 @@ async def memory_publish_event(req: PublishEventRequest):
 @app.get("/memory/events")
 async def memory_get_events(event_type: str = None, limit: int = 100):
     return memory.get_events(event_type, limit)
-
-
-# ===============================================================
-# MCP mount (streamable-http at /mcp)
-# ===============================================================
-
-# Import the MCP server instance
-try:
-    from mcp_tools.tools import mcp as mcp_server  # noqa: E402
-
-    try:
-        mcp_app = mcp_server.streamable_http_app()
-        app.mount("/mcp", mcp_app)
-        logger.info("MCP tools mounted at /mcp (streamable-http)")
-    except AttributeError:
-        logger.warning(
-            "FastMCP.streamable_http_app() not available. "
-            "MCP tools available via stdio only."
-        )
-except ImportError as e:
-    logger.warning(f"MCP tools not loaded (missing dependency: {e})")
 
 
 # ===============================================================

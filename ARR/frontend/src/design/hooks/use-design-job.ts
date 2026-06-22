@@ -14,6 +14,26 @@ interface DesignJobState {
   error: string | null;
 }
 
+function parkingRoadContextFromSetbacks(setbackGeometries: SetbackGeometriesMap) {
+  const roadFrontages = Array.isArray(setbackGeometries?.road_frontages)
+    ? setbackGeometries.road_frontages as Array<Record<string, unknown>>
+    : [];
+  const widths = roadFrontages
+    .map(frontage => Number(frontage.roadWidthM ?? frontage.road_width_m ?? 0))
+    .filter(width => Number.isFinite(width) && width > 0);
+  if (!roadFrontages.length && !widths.length) return undefined;
+  return {
+    road_width_m: widths.length ? Math.max(...widths) : undefined,
+    road_frontages: roadFrontages.map(frontage => ({
+      geometry: frontage.geometry,
+      sharedEdge: frontage.sharedEdge ?? frontage.shared_edge,
+      roadCenterline: frontage.roadCenterline ?? frontage.road_centerline,
+      roadWidthM: frontage.roadWidthM ?? frontage.road_width_m,
+      landCategory: frontage.landCategory ?? frontage.land_category,
+    })),
+  };
+}
+
 export function useDesignJob() {
   const [state, setState] = useState<DesignJobState>({
     job: null,
@@ -121,12 +141,28 @@ export function useDesignJob() {
 
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
+      const jobSpec = params?.job_spec && typeof params.job_spec === 'object'
+        ? { ...(params.job_spec as Record<string, unknown>) }
+        : {};
+      const options = jobSpec.options && typeof jobSpec.options === 'object'
+        ? { ...(jobSpec.options as Record<string, unknown>) }
+        : {};
+      if (!options.parking_road_context) {
+        const parkingRoadContext = parkingRoadContextFromSetbacks(state.setbackGeometries);
+        if (parkingRoadContext) {
+          options.parking_road_context = parkingRoadContext;
+        }
+      }
+      if (Object.keys(options).length > 0) {
+        jobSpec.options = options;
+      }
       const job = await createJob({
         site_polygon: state.sitePolygon,
         constraints: state.constraints,
         pnu: params?.pnu,
         address: params?.address,
         ...params,
+        job_spec: Object.keys(jobSpec).length > 0 ? jobSpec : params?.job_spec,
       });
       setState(prev => ({ ...prev, job, loading: false }));
       return job;
@@ -138,7 +174,7 @@ export function useDesignJob() {
       }));
       return null;
     }
-  }, [state.sitePolygon, state.constraints]);
+  }, [state.sitePolygon, state.constraints, state.setbackGeometries]);
 
   const reset = useCallback(() => {
     setState({

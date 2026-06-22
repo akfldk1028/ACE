@@ -1,0 +1,580 @@
+{
+  "optimizeWaitError": null,
+  "aestheticWaitError": null,
+  "state": {
+    "hasAestheticSection": true,
+    "hasReferenceImage": true,
+    "hasNeedsProvider": true,
+    "hasLegalEffectNone": true,
+    "aestheticOverlayEntities": [
+      "design-mass-aesthetic-overlay-900000"
+    ],
+    "hasProviderSelect": [
+      "공동주택 (아파트) (2.8m/층)",
+      "근린생활시설 (3.5m/층)",
+      "업무시설 (오피스) (3.8m/층)",
+      "판매시설 (상가) (4m/층)",
+      "숙박시설 (호텔) (3m/층)",
+      "문화 및 집회시설 (4.5m/층)",
+      "의료시설 (3.6m/층)",
+      "교육연구시설 (3.5m/층)",
+      "공장 (5m/층)",
+      "창고시설 (6m/층)",
+      "MAAS 법규 탐색",
+      "Legacy 10종 비교",
+      "GA",
+      "분할",
+      "MCTS",
+      "패킹",
+      "Graph2Plan",
+      "Reference only",
+      "GPT Image",
+      "Nano Banana"
+    ],
+    "body": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\n대지면적\n264.13 m²\n용도지역\n제2종일반주거지역\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n법규 산정 근거\n수치지형도 소스\nngii_local_dem\n대지 샘플\n14개 / 16.90-17.35m\n도로 샘플\n3개 / 16.34-16.61m\n인접대지 샘플\n13개 / 17.04-17.59m\n검출 도로폭\n37.5m\n전면도로 후보\n1개\n인접대지 후보\n4개\n정북일조\n적용 / 기준면 17.23m\n채광사선 참고면\n17.10m / 매스 창면 검토 필요\n화면 기본 레이어\n정북면 / 채광옵션 / 도로 / 인접\n\nVWorld 기본 화면은 검토용 요약 레이어입니다. 전체 디버그는 URL에 ?layers=all, 도로 라벨 전체는 ?roadLabels=all 을 붙여 확인합니다.\n\nCONSTRAINTS\n건폐율 ≤ 60%\n≤ 60%\n용적률 ≤ 250%\n≤ 250%\n인접대지 이격 ≥ 0.5m\n≥ 0.5m\n조경면적 ≥ 15%\n≥ 15%\n지반 레벨 (§119 DATUM)\n정북일조 기준 H = 0\n17.23m\n정북일조 기준 H=0\n17.23 m\n대지 §119 기준면\n17.10 m\n전면도로 기준면\n16.48 m\n인접대지 기준면\n17.35 m\n§86 평균수평면\n17.23 m\n§119/§86 케이스\n정북인접 평균 (§86)\n산정 방법\n인접지 평균\n데이터 소스\nNGII 수치지형도 SHP→DEM (5m)\n\nenvelope walls/slanted_polygons 의 H는 이 datum 기준 상대값. Cesium 렌더 시 datum_m 위에 envelope 위치.\n\n정북일조 사선제한 단면 (§86①, 2023.9.12 개정)\n인접대지 경계선\n1.5m 이격\nH ≤ 10m: 직각\nH > 10m: slope 2:1 (H = 2x)\n건물 (H = 18m)\n0m\n10m\n20m\n0m\n1.5m\n5m\n10m\n15m\n20m\n법규 envelope\n인접대지 경계\n건물 단면\nOPTIMIZATION\nCOMPLETE\n100%\n세대\n45/50\n적합\n2550\n파레토\n18\n총평가\n2800\nPARETO FRONT\n0 evaluated\n18 pareto\nGen\n0 → 50\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nDESIGN LIST\n18\n#\n매스\n형태\n연면적\n일조\n상태\n1\n법규엔벨로프\n463\n61.0\nOK\n2\n포디움/타워\n429\n62.4\nOK\n3\n다단 일조스텝\n463\n61.0\nOK\n4\n포디움+타워오프셋\n309\n61.0\nOK\n5\n오버랩+시프트+테라스\n287\n67.9\nOK\n6\n코너/오픈코트\n309\n61.0\nOK\n7\n중정형\n247\n68.8\nOK\n8\n바형\n134\n83.2\nOK\n9\n분절/브릿지\n208\n73.8\nOK\n10\n브랜치형\n162\n79.5\nOK\n11\n핀치형\n275\n65.3\nOK\n12\n인터락\n236\n70.2\nOK\n13\n오버랩\n264\n66.7\nOK\n14\n테이퍼\n283\n61.0\nOK\n15\n테라스\n448\n61.0\nOK\n16\n인셋\n261\n67.0\nOK\n17\n건폐확장\n259\n67.3\nOK\n18\n분절+브릿지+계단\n265\n69.6\nOK\nDESIGN\n#900000\nFEASIBLE\n연면적\n463.5\nm²\n일조점수\n61.0\n점\n연면적\n463.5\n일조점수\n61.0\n▶\nPARAMETERS (0 genes)\nGen 50\nRank 0.6096\nPen 0.00\n⊞ 평면 생성\n브이월드\n\n연속지적도를 포함한 모든 주제도는 참고용으로만 사용하시기 바랍니다.\n\n66 m\n32\n나침반\n현재위치\n확대\n축소\n초기화면\n이동컨트롤 열기\n거리\n면적\n높이\n초기화\n좌로 이동\n우로 이동\n위로 이동\n아래로 이동\n닫기\nBUILDING MASS\n형태\nmaas_legal_envelope\n층그룹\n4G / +116.9%\n패킹\n4/4G / 5실\n높이\n16.8m\n층수\n6F\n건폐율\n39.0%\n용적률\n175.5%\n연면적\n463m²\nAI 설계 협업\nMAAS Agent Workspace\n상호소통 설계 수정\n대화형 수정 · MAAS 법규 후보\n안 900000\n북측 상부를 4단으로 자연스럽게 후퇴시켜줘. 용적률은 5% 이상 잃지 말고.\n도로 쪽 저층부를 포디움처럼 더 강하게 만들어줘.\n코어가 가운데라 답답해. 동측 외곽으로 붙일 수 있는지 봐줘.\n수정 후보 만들기MAAS 법규 후보 바로 만들기\n층+\n층-\n폭+\n폭-\nE1+\nE2+\nE3+\nE4+\n외관 이미지 생성\n법규 매스는 고정하고 재료, 창호 리듬, 분위기만 생성합니다.\nReference only\nGPT Image\nNano Banana\n매스 기반 외관 생성\nplaceholder · needs_provider / needs_provider\nConfigure gpt-image, Nano Banana, or UniTEX worker to generate assets.\nlegal_status_effect: none",
+    "images": [
+      {
+        "src": "https://map.vworld.kr/js/ws3dmap/WS3DRelease3/Assets/Images/ion-credit.png",
+        "alt": "Cesium ion",
+        "naturalWidth": 138,
+        "naturalHeight": 28,
+        "rect": {
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "src": "http://127.0.0.1:5174/design/maas/aesthetic-assets/references/3eb00a148d7247ae.multi-view.png",
+        "alt": "Locked MAAS reference render",
+        "naturalWidth": 1536,
+        "naturalHeight": 1536,
+        "rect": {
+          "width": 317,
+          "height": 317
+        }
+      }
+    ]
+  },
+  "screenshot": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\windows_chrome_aesthetic_check.png",
+  "logs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "info",
+      "text": "🌐 i18next is maintained with support from Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙"
+    },
+    {
+      "type": "log",
+      "text": "[Design] boundary: geometry=MultiPolygon, area=264.13"
+    },
+    {
+      "type": "info",
+      "text": "[Design][LegalQA] constraints {pnu: 1168011800104170004, zones: Array(1), datum: Object, sunlight: Object, daylight: Object}"
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 27 Y: 11 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 27 Y: 12 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 26 Y: 11 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 26 Y: 12 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 27 Y: 13 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 26 Y: 13 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 28 Y: 10 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 28 Y: 11 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 29 Y: 11 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 29 Y: 10 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 13 Y: 5 Level: 4."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 13 Y: 6 Level: 4."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 14 Y: 5 Level: 4."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 28 Y: 12 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 14 Y: 6 Level: 4."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 15 Y: 5 Level: 4."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 15 Y: 6 Level: 4."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 27 Y: 10 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 7 Y: 2 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 7 Y: 3 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 3 Y: 1 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 0 Level: 1."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 28 Y: 13 Level: 5."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 0 Level: 0."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 6 Y: 2 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 6 Y: 3 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 2 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 3 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 1 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 13 Y: 7 Level: 4."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 14 Y: 7 Level: 4."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 4 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 0 Level: 1."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 2 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 3 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 4 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 1 Level: 1."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 2 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 7 Y: 4 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 7 Y: 0 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 7 Y: 1 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 3 Y: 2 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 3 Y: 0 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 6 Y: 0 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 6 Y: 1 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 0 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 1 Level: 1."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 0 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 1 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 2 Y: 2 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 2 Y: 3 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 0 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 1 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 1 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 5 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 5 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 6 Y: 4 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 5 Y: 0 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 2 Y: 0 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 5 Y: 1 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 5 Y: 2 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 2 Y: 4 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 2 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 2 Y: 1 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 2 Y: 0 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 2 Y: 1 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 0 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 5 Y: 3 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 7 Y: 5 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 3 Y: 0 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 3 Y: 1 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 3 Y: 2 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 2 Y: 5 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 4 Y: 0 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 4 Y: 1 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 4 Y: 2 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 5 Y: 4 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 3 Y: 3 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 6 Y: 5 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 6 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 7 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 6 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 2 Y: 2 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 7 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 3 Y: 4 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 7 Y: 6 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 0 Y: 3 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 7 Y: 7 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 2 Y: 6 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 2 Y: 7 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 3 Y: 5 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 3 Y: 3 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 1 Y: 3 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 4 Y: 3 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 6 Y: 6 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 6 Y: 7 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 3 Y: 6 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 3 Y: 7 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 5 Y: 5 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 5 Y: 6 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 5 Y: 7 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 4 Y: 4 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 4 Y: 5 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 2 Y: 3 Level: 2."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 4 Y: 6 Level: 3."
+    },
+    {
+      "type": "log",
+      "text": "An error occurred in \"nD\": Failed to obtain image tile X: 4 Y: 7 Level: 3."
+    }
+  ],
+  "errors": [],
+  "responses": [
+    {
+      "status": 202,
+      "url": "http://127.0.0.1:5174/design/jobs/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/stream"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/jobs/01c23b27-635c-48f3-bc66-60507028aab0/results/900000/aesthetic/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design/maas/aesthetic-assets/references/3eb00a148d7247ae.multi-view.png"
+    }
+  ]
+}

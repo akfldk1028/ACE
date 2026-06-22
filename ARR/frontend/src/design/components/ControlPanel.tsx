@@ -195,7 +195,7 @@ const ControlPanel: React.FC<Props> = React.memo(({
       {/* Algorithm selector */}
       {algorithms && algorithms.length > 0 && (
         <div style={{ marginBottom: 10 }}>
-          <label style={labelStyle}>MASS ALGORITHM</label>
+          <label style={labelStyle}>MASS SEARCH MODE</label>
           <select
             style={{
               ...inputStyle,

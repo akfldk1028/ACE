@@ -9,7 +9,10 @@ import json
 import logging
 import queue
 import threading
+from pathlib import Path
 
+from django.conf import settings
+from django.http import FileResponse, Http404
 from django.http import JsonResponse, StreamingHttpResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -31,11 +34,28 @@ from design.services.regulation_validator import (
 from design.services.site_geometry import (
     fetch_parcel_boundary, geojson_to_polygon, validate_site,
 )
+from design.services.interactive_patch import build_interactive_patch_plan
+from design.services.interactive_apply import build_interactive_preview
+from design.services.mass_operations import apply_mass_operation
+from design.maas import build_maas_evidence_bundle, export_mass_geojson_to_scad, generate_legal_mass_variants
+from design.maas.aesthetic import build_aesthetic_pipeline_result
+from design.maas.aesthetic.adapters import NanoBananaAdapter, OpenAIImageAdapter
+from design.maas.aesthetic.renderers import MultiViewReferencePackRenderer
 
 logger = logging.getLogger(__name__)
 
 # Active runners keyed by job_id for cancellation
 _active_runners: dict[str, JobRunner] = {}
+
+
+def _all_mode_budget_options(options: dict | None) -> dict[str, int]:
+    """Budget used for each algorithm when algorithm='all'."""
+    options = options or {}
+    return {
+        "Number of generations": int(options.get("Number of generations", 80)),
+        "num_islands": int(options.get("num_islands", 5)),
+        "pop_per_island": int(options.get("pop_per_island", 20)),
+    }
 
 
 def _daylight_diagonal_multiplier(zone_names: list[str], building_type: str) -> float | None:
@@ -242,34 +262,36 @@ def job_stream(request, job_id):
 
     event_queue = queue.Queue()
 
-    if algorithm == "all":
+    maas_mode = algorithm == "maas_legal_envelope"
+
+    if algorithm == "all" or maas_mode:
         # Multi-algorithm mode: run all 10 algorithms in parallel
         from design.services.constraint_bridge import ALL_ALGORITHMS, build_default_job_spec as build_spec
         constraints = job.constraints or []
+        base_options = job.job_spec.get("options", {})
+        budget_options = _all_mode_budget_options(base_options)
 
         algo_specs = {}
         evaluate_fns = {}
         for algo in ALL_ALGORITHMS:
             spec = build_spec(site_area_m2, constraints, building_type, algo)
-            # Budget per algorithm (10 algos in parallel)
-            # 80 gens × 5 islands × 20 pop = 100 initial + 400 children = 500 per algo
-            # Total: 5000 designs across 10 algorithms
-            spec["options"]["Number of generations"] = 80
-            spec["options"]["num_islands"] = 5
-            spec["options"]["pop_per_island"] = 20
+            # Respect caller/UI budget in "all" mode. Previously this was hard-coded
+            # to 80x5x20 per algorithm, making short test runs unexpectedly heavy.
+            spec["options"].update(base_options)
+            spec["options"].update(budget_options)
             spec["options"]["algorithm"] = algo
             algo_specs[algo] = spec
 
-            def make_eval(a):
+            def make_eval(a, outputs_def):
                 def fn(designs):
                     return evaluate_designs(
                         designs, site_polygon, site_area_m2,
-                        spec.get("outputs"), building_type, a,
+                        outputs_def, building_type, a,
                         enable_repair=True,
                         sunlight_envelope=sunlight_envelope,
                     )
                 return fn
-            evaluate_fns[algo] = make_eval(algo)
+            evaluate_fns[algo] = make_eval(algo, spec.get("outputs"))
 
         runner = MultiAlgoRunner(algo_specs, evaluate_fns, event_queue)
     else:
@@ -313,17 +335,56 @@ def job_stream(request, job_id):
                 # Throttle: only every 10th generation + complete (geometry pipeline is expensive)
                 gen_num = event.get("generation", 0)
                 if event_type == "complete" or (event_type == "generation" and gen_num % 10 == 0):
-                    # In "all" mode, each design has its own algorithm tag
-                    render_algo = "per_design" if algorithm == "all" else algorithm
-                    _enrich_event_geojson(event, site_polygon, site_area_m2, building_type, render_algo)
+                    # In all/MAAS mode, each seed design has its own legacy
+                    # algorithm tag. MAAS mode then replaces the client-facing
+                    # final front with legal-envelope variants.
+                    render_algo = "per_design" if (algorithm == "all" or maas_mode) else algorithm
+                    render_outputs = job.job_spec.get("outputs")
+                    if algorithm == "all" or maas_mode:
+                        render_outputs = list(algo_specs.values())[0].get("outputs")
+                    _enrich_event_geojson(
+                        event,
+                        site_polygon,
+                        site_area_m2,
+                        building_type,
+                        render_algo,
+                        outputs_def=render_outputs,
+                        enable_repair=True,
+                        sunlight_envelope=sunlight_envelope,
+                    )
 
-                yield f"event: {event_type}\ndata: {json.dumps(event, default=str)}\n\n"
+                client_event = event
+                if event_type == "complete" and maas_mode:
+                    client_event = _maas_client_event(
+                        event,
+                        site_polygon_geojson=job.site_polygon,
+                        constraints=job.constraints or [],
+                        building_type=building_type,
+                        sunlight_envelope=sunlight_envelope,
+                        pnu=job.pnu or None,
+                        job_options=job_options,
+                    )
 
                 if event_type in ("complete", "error", "cancelled"):
-                    # Save final results
+                    # Save/update before yielding the terminal event. EventSource
+                    # clients commonly close as soon as they receive "complete";
+                    # doing this after yield can skip persistence on disconnect.
                     if event_type == "complete":
-                        save_algo = "per_design" if algorithm == "all" else algorithm
-                        _save_final_results(job, event, site_polygon, site_area_m2, building_type, save_algo)
+                        save_algo = "per_design" if (algorithm == "all" or maas_mode) else algorithm
+                        save_outputs = job.job_spec.get("outputs")
+                        if algorithm == "all" or maas_mode:
+                            save_outputs = list(algo_specs.values())[0].get("outputs")
+                        _save_final_results(
+                            job,
+                            client_event if maas_mode else event,
+                            site_polygon,
+                            site_area_m2,
+                            building_type,
+                            save_algo,
+                            outputs_def=save_outputs,
+                            enable_repair=True,
+                            sunlight_envelope=sunlight_envelope,
+                        )
                         update_job_status(
                             job_id, "complete",
                             generation_count=event.get("generations", 0),
@@ -334,7 +395,10 @@ def job_stream(request, job_id):
                             job_id, "failed",
                             error=event.get("message", "Unknown error"),
                         )
+                    yield f"event: {event_type}\ndata: {json.dumps(client_event, default=str)}\n\n"
                     break
+
+                yield f"event: {event_type}\ndata: {json.dumps(client_event, default=str)}\n\n"
 
                 # Update generation count (throttled to every 10th)
                 if event_type == "generation" and gen_num % 10 == 0:
@@ -357,8 +421,161 @@ def job_stream(request, job_id):
     return response
 
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def run_job(request, job_id):
+    """POST /design/jobs/<id>/run/ — start optimization without holding SSE open.
+
+    This exists for browser automation/dev E2E where a long-lived SSE/fetch stream
+    can block page evaluation. Normal UI clients should keep using job_stream.
+    """
+    try:
+        job = OptimizationJob.objects.get(id=job_id)
+    except OptimizationJob.DoesNotExist:
+        return JsonResponse({"error": "Job not found"}, status=404)
+
+    if job.status in ("running", "complete", "failed", "cancelled"):
+        return JsonResponse({"id": str(job.id), "status": job.status}, status=202)
+
+    if str(job_id) in _active_runners:
+        return JsonResponse({"id": str(job.id), "status": "running"}, status=202)
+
+    site_polygon = geojson_to_polygon(job.site_polygon)
+    site_area_m2 = job.site_area_m2 or 0
+    job_options = job.job_spec.get("options", {})
+    building_type = job_options.get("building_type", "공동주택")
+    algorithm = job_options.get("algorithm", "additive")
+    sunlight_envelope = _precompute_sunlight_envelope(job)
+    event_queue = queue.Queue()
+    maas_mode = algorithm == "maas_legal_envelope"
+
+    if algorithm == "all" or maas_mode:
+        from design.services.constraint_bridge import ALL_ALGORITHMS, build_default_job_spec as build_spec
+        constraints = job.constraints or []
+        base_options = job.job_spec.get("options", {})
+        budget_options = _all_mode_budget_options(base_options)
+        algo_specs = {}
+        evaluate_fns = {}
+        for algo in ALL_ALGORITHMS:
+            spec = build_spec(site_area_m2, constraints, building_type, algo)
+            spec["options"].update(base_options)
+            spec["options"].update(budget_options)
+            spec["options"]["algorithm"] = algo
+            algo_specs[algo] = spec
+
+            def make_eval(a, outputs_def):
+                def fn(designs):
+                    return evaluate_designs(
+                        designs, site_polygon, site_area_m2,
+                        outputs_def, building_type, a,
+                        enable_repair=True,
+                        sunlight_envelope=sunlight_envelope,
+                    )
+                return fn
+            evaluate_fns[algo] = make_eval(algo, spec.get("outputs"))
+        runner = MultiAlgoRunner(algo_specs, evaluate_fns, event_queue)
+    else:
+        algo_specs = None
+
+        def evaluate_fn(designs):
+            return evaluate_designs(
+                designs, site_polygon, site_area_m2,
+                job.job_spec.get("outputs"), building_type, algorithm,
+                enable_repair=True,
+                sunlight_envelope=sunlight_envelope,
+            )
+        runner = JobRunner(job.job_spec, evaluate_fn, event_queue)
+
+    _active_runners[str(job_id)] = runner
+    update_job_status(job_id, "running")
+
+    def run_and_persist():
+        terminal_seen = False
+        try:
+            runner_thread = threading.Thread(target=runner.run, daemon=True)
+            runner_thread.start()
+            while True:
+                try:
+                    event = event_queue.get(timeout=1.0)
+                except queue.Empty:
+                    if not runner_thread.is_alive():
+                        if not terminal_seen:
+                            update_job_status(
+                                job_id,
+                                "failed",
+                                error="Optimization ended without a terminal event",
+                            )
+                        break
+                    continue
+
+                event_type = event.get("type", "update")
+                gen_num = event.get("generation", 0)
+                if event_type == "generation" and gen_num % 10 == 0:
+                    update_job_status(job_id, "running", generation_count=gen_num)
+
+                if event_type in ("complete", "error", "cancelled"):
+                    terminal_seen = True
+                    if event_type == "complete":
+                        save_algo = "per_design" if (algorithm == "all" or maas_mode) else algorithm
+                        save_outputs = job.job_spec.get("outputs")
+                        if algorithm == "all" or maas_mode:
+                            save_outputs = list(algo_specs.values())[0].get("outputs")
+                        render_algo = "per_design" if (algorithm == "all" or maas_mode) else algorithm
+                        _enrich_event_geojson(
+                            event,
+                            site_polygon,
+                            site_area_m2,
+                            building_type,
+                            render_algo,
+                            outputs_def=save_outputs,
+                            enable_repair=True,
+                            sunlight_envelope=sunlight_envelope,
+                        )
+                        client_event = event
+                        if maas_mode:
+                            client_event = _maas_client_event(
+                                event,
+                                site_polygon_geojson=job.site_polygon,
+                                constraints=job.constraints or [],
+                                building_type=building_type,
+                                sunlight_envelope=sunlight_envelope,
+                                pnu=job.pnu or None,
+                                job_options=job_options,
+                            )
+                        _save_final_results(
+                            job,
+                            client_event,
+                            site_polygon,
+                            site_area_m2,
+                            building_type,
+                            save_algo,
+                            outputs_def=save_outputs,
+                            enable_repair=True,
+                            sunlight_envelope=sunlight_envelope,
+                        )
+                        update_job_status(
+                            job_id, "complete",
+                            generation_count=event.get("generations", 0),
+                            completed_at=timezone.now(),
+                        )
+                    elif event_type == "error":
+                        update_job_status(job_id, "failed", error=event.get("message", "Unknown error"))
+                    else:
+                        update_job_status(job_id, "cancelled")
+                    break
+        finally:
+            _active_runners.pop(str(job_id), None)
+
+    threading.Thread(target=run_and_persist, daemon=True).start()
+    return JsonResponse({"id": str(job.id), "status": "running"}, status=202)
+
+
 def _enrich_event_geojson(event, site_polygon, site_area_m2,
-                          building_type="공동주택", algorithm="additive"):
+                          building_type="공동주택", algorithm="additive",
+                          *,
+                          outputs_def=None,
+                          enable_repair: bool = False,
+                          sunlight_envelope: dict | None = None):
     """Add best_geojson and pareto_geojson to SSE events for 3D visualization.
 
     When algorithm="per_design", each design dict must have an "algorithm" key.
@@ -373,9 +590,13 @@ def _enrich_event_geojson(event, site_polygon, site_area_m2,
         try:
             a = _algo_for(best)
             feat = design_to_geojson(best["inputs"], site_polygon, site_area_m2,
-                                     building_type, a)
+                                     building_type, a,
+                                     enable_repair=enable_repair,
+                                     outputs_def=outputs_def,
+                                     sunlight_envelope=sunlight_envelope)
             if feat:
                 feat["properties"]["design_id"] = best.get("id")
+                feat["properties"]["design_uid"] = best.get("uid")
                 feat["properties"]["algorithm"] = a
                 event["best_geojson"] = feat
         except Exception:
@@ -390,9 +611,13 @@ def _enrich_event_geojson(event, site_polygon, site_area_m2,
             try:
                 a = _algo_for(d)
                 feat = design_to_geojson(d["inputs"], site_polygon, site_area_m2,
-                                         building_type, a)
+                                         building_type, a,
+                                         enable_repair=enable_repair,
+                                         outputs_def=outputs_def,
+                                         sunlight_envelope=sunlight_envelope)
                 if feat:
                     feat["properties"]["design_id"] = d.get("id")
+                    feat["properties"]["design_uid"] = d.get("uid")
                     feat["properties"]["objectives"] = d.get("objectives", [])
                     feat["properties"]["algorithm"] = a
                     geojson_list.append(feat)
@@ -402,15 +627,202 @@ def _enrich_event_geojson(event, site_polygon, site_area_m2,
             event["pareto_geojson"] = geojson_list
 
 
+def _maas_design_from_feature(feature: dict, index: int, generation: int) -> dict:
+    props = feature.get("properties", {}) or {}
+    floor_area = float(props.get("floor_area") or 0.0)
+    open_pct = float(props.get("open_pct") or max(0.0, 100.0 - float(props.get("bcr") or 0.0)))
+    maas_score = float(props.get("maas_score") or 0.0)
+    variant_id = props.get("variant_id") or f"maas_{index + 1:02d}"
+    design_id = 900000 + index
+    return {
+        "id": design_id,
+        "uid": f"maas:{variant_id}",
+        "generation": generation,
+        "parents": [None, None],
+        "feasible": True,
+        "inputs": [],
+        "objectives": [floor_area, open_pct],
+        "penalty": 0.0,
+        "rank": maas_score,
+        "elite": 1,
+        "algorithm": "maas_legal_envelope",
+    }
+
+
+def _maas_client_event(
+    event: dict,
+    *,
+    site_polygon_geojson: dict,
+    constraints: list[dict],
+    building_type: str,
+    sunlight_envelope: dict | None = None,
+    pnu: str | None = None,
+    job_options: dict | None = None,
+) -> dict:
+    """Replace the final client Pareto front with legal-envelope MAAS variants.
+
+    The optimization runner still uses the legacy 10 algorithms as a seed
+    search. The user-facing MAAS mode must not expose those raw repaired boxes
+    as the final answer; it exposes floor-by-floor legal envelope variants.
+    """
+    seed_features = event.get("pareto_geojson") or []
+    seed = event.get("best_geojson") or (seed_features[0] if seed_features else None)
+    if not seed:
+        return event
+
+    try:
+        result = generate_legal_mass_variants(
+            mass_geojson=seed,
+            site_polygon_geojson=site_polygon_geojson,
+            constraints=constraints,
+            building_type=building_type,
+            max_variants=18,
+            sunlight_envelope=sunlight_envelope,
+            pnu=pnu,
+            parking_options=_parking_options_from_job_options(job_options, site_polygon_geojson=site_polygon_geojson),
+        )
+        features = result.get("feature_collection", {}).get("features", []) or []
+    except Exception as exc:
+        logger.warning(f"MAAS client event generation failed: {exc}")
+        return event
+
+    if not features:
+        return event
+
+    generation = int(event.get("generations") or event.get("generation") or 0)
+    pareto_front = []
+    pareto_geojson = []
+    for idx, feature in enumerate(features):
+        design = _maas_design_from_feature(feature, idx, generation)
+        feature.setdefault("properties", {})
+        feature["properties"]["design_id"] = design["id"]
+        feature["properties"]["design_uid"] = design["uid"]
+        feature["properties"]["objectives"] = design["objectives"]
+        feature["properties"]["algorithm"] = "maas_legal_envelope"
+        pareto_front.append(design)
+        pareto_geojson.append(feature)
+
+    def parking_candidate_score(item):
+        idx, feature = item
+        props = feature.get("properties") if isinstance(feature, dict) else {}
+        precheck = props.get("parking_precheck") if isinstance(props, dict) else {}
+        layout = precheck.get("layout_candidate") if isinstance(precheck, dict) else {}
+        if not isinstance(layout, dict):
+            return (0, 0, 0, 0, 0, 0, -idx)
+        status = str(layout.get("status") or "")
+        adjacency = layout.get("adjacency") if isinstance(layout.get("adjacency"), dict) else {}
+        turning = layout.get("turning_clearance") if isinstance(layout.get("turning_clearance"), dict) else {}
+        grid = layout.get("grid_solver") if isinstance(layout.get("grid_solver"), dict) else {}
+        required = int(layout.get("required_spaces") or 0)
+        provided = int(layout.get("provided_spaces") or 0)
+        frontage = int(turning.get("frontage_connected_stalls") or 0)
+        return (
+            1 if required > 0 and provided > 0 else 0,
+            1 if status == "pass" else 0,
+            1 if provided >= required else 0,
+            1 if required <= 1 or adjacency.get("contiguous_ok") else 0,
+            1 if grid.get("entrance_verified") else 0,
+            frontage,
+            -idx,
+        )
+
+    best_idx = max(range(len(pareto_geojson)), key=lambda idx: parking_candidate_score((idx, pareto_geojson[idx])))
+    client_event = dict(event)
+    client_event["pareto_front"] = pareto_front
+    client_event["pareto_geojson"] = pareto_geojson
+    client_event["best"] = pareto_front[best_idx]
+    client_event["best_geojson"] = pareto_geojson[best_idx]
+    client_event["pareto_count"] = len(pareto_front)
+    client_event["maas_result"] = {
+        "mode": result.get("mode"),
+        "algorithm": result.get("algorithm"),
+        "constraints": result.get("constraints"),
+        "rejected_count": len(result.get("rejected") or []),
+        "notes": result.get("notes") or [],
+    }
+    return client_event
+
+
+def _parking_options_from_job_options(job_options: dict | None, *, site_polygon_geojson: dict | None = None) -> dict:
+    options = job_options or {}
+    result = {}
+    for key in ("parking_rule_id", "parking_metric", "parking_metric_value"):
+        if options.get(key) is not None:
+            result[key] = options.get(key)
+    road_context = options.get("parking_road_context")
+    if isinstance(road_context, dict):
+        result["road_context"] = road_context
+    elif isinstance(site_polygon_geojson, dict):
+        inferred = _infer_parking_road_context(site_polygon_geojson)
+        if inferred:
+            result["road_context"] = inferred
+    return result
+
+
+def _infer_parking_road_context(site_polygon_geojson: dict) -> dict | None:
+    try:
+        from land.services import road_frontage
+        roads_result = road_frontage.fetch_neighbor_roads(site_polygon_geojson)
+        road_frontages = roads_result.get("roads") if isinstance(roads_result, dict) else None
+    except Exception:
+        return None
+    if not isinstance(road_frontages, list) or not road_frontages:
+        return None
+    widths = []
+    for road in road_frontages:
+        if not isinstance(road, dict):
+            continue
+        try:
+            width = float(road.get("roadWidthM") or road.get("road_width_m") or 0.0)
+        except (TypeError, ValueError):
+            width = 0.0
+        if width > 0:
+            widths.append(width)
+    return {
+        "road_width_m": max(widths) if widths else None,
+        "road_frontages": [
+            {
+                "geometry": road.get("geometry"),
+                "roadWidthM": road.get("roadWidthM") or road.get("road_width_m"),
+                "sharedEdge": road.get("sharedEdge") or road.get("shared_edge"),
+                "roadCenterline": road.get("roadCenterline") or road.get("road_centerline"),
+                "landCategory": road.get("landCategory") or road.get("land_category"),
+            }
+            for road in road_frontages
+            if isinstance(road, dict)
+        ][:5],
+    }
+
+
 def _save_final_results(job, event, site_polygon, site_area_m2,
-                        building_type="공동주택", algorithm="additive"):
+                        building_type="공동주택", algorithm="additive",
+                        *,
+                        outputs_def=None,
+                        enable_repair: bool = False,
+                        sunlight_envelope: dict | None = None):
     """Save Pareto-optimal designs to database."""
     pareto = event.get("pareto_front", [])
+    geojson_by_uid = {}
+    geojson_by_id = {}
+    for feature in event.get("pareto_geojson", []) or []:
+        props = feature.get("properties", {}) or {}
+        if props.get("design_uid") is not None:
+            geojson_by_uid[str(props.get("design_uid"))] = feature
+        if props.get("design_id") is not None:
+            geojson_by_id[str(props.get("design_id"))] = feature
     designs_to_save = []
     for d in pareto:
         a = d.get("algorithm", algorithm) if algorithm == "per_design" else algorithm
-        mass_geojson = design_to_geojson(d.get("inputs", []), site_polygon, site_area_m2,
-                                         building_type, a)
+        mass_geojson = (
+            geojson_by_uid.get(str(d.get("uid")))
+            or geojson_by_id.get(str(d.get("id")))
+        )
+        if mass_geojson is None and d.get("inputs"):
+            mass_geojson = design_to_geojson(d.get("inputs", []), site_polygon, site_area_m2,
+                                             building_type, a,
+                                             enable_repair=enable_repair,
+                                             outputs_def=outputs_def,
+                                             sunlight_envelope=sunlight_envelope)
         designs_to_save.append({
             "generation": d.get("generation", 0),
             "design_id": d.get("id", 0),
@@ -456,6 +868,306 @@ def design_detail(request, job_id, design_id):
         return JsonResponse({"error": "Design not found"}, status=404)
 
     return JsonResponse(format_design_response(design))
+
+
+@require_http_methods(["GET"])
+def design_evidence(request, job_id, design_id):
+    """GET /design/jobs/<id>/results/<design_id>/evidence/ — canonical MAAS evidence bundle."""
+    try:
+        design = DesignResult.objects.select_related("job").get(job_id=job_id, design_id=design_id)
+    except DesignResult.DoesNotExist:
+        return JsonResponse({"error": "Design not found"}, status=404)
+
+    return JsonResponse(build_maas_evidence_bundle(job=design.job, design=design))
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def design_aesthetic(request, job_id, design_id):
+    """POST /design/jobs/<id>/results/<design_id>/aesthetic/ — render locked mass then call image provider."""
+    try:
+        body = json.loads(request.body or b"{}")
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    try:
+        design = DesignResult.objects.select_related("job").get(job_id=job_id, design_id=design_id)
+    except DesignResult.DoesNotExist:
+        return JsonResponse({"error": "Design not found"}, status=404)
+
+    provider = body.get("provider") if isinstance(body.get("provider"), str) else "placeholder"
+    if provider not in {"placeholder", "gpt-image", "nano-banana"}:
+        return JsonResponse({"error": "provider must be one of: placeholder, gpt-image, nano-banana"}, status=400)
+
+    style = body.get("style") if isinstance(body.get("style"), str) else None
+    evidence = build_maas_evidence_bundle(job=design.job, design=design)
+    media_root = Path(settings.BASE_DIR) / "media" / "maas" / "aesthetic"
+    renderer = MultiViewReferencePackRenderer(media_root / "references")
+    adapter = None
+    if provider == "gpt-image":
+        adapter = OpenAIImageAdapter(output_dir=media_root / "generated")
+    elif provider == "nano-banana":
+        adapter = NanoBananaAdapter(output_dir=media_root / "generated")
+
+    try:
+        result = build_aesthetic_pipeline_result(
+            evidence,
+            provider=provider,
+            style=style,
+            renderer=renderer,
+            adapter=adapter,
+            attach_to_evidence=bool(body.get("attach_to_evidence", True)),
+        )
+    except Exception as e:
+        return JsonResponse({"error": f"MAAS aesthetic generation failed: {e}"}, status=400)
+    return JsonResponse(_with_aesthetic_asset_urls(result))
+
+
+@require_http_methods(["GET"])
+def maas_aesthetic_asset(request, asset_path):
+    """Serve local MAAS aesthetic reference/generated assets in development."""
+    media_root = (Path(settings.BASE_DIR) / "media" / "maas" / "aesthetic").resolve()
+    target = (media_root / asset_path).resolve()
+    if media_root not in target.parents and target != media_root:
+        raise Http404("Asset not found")
+    if not target.exists() or not target.is_file():
+        raise Http404("Asset not found")
+    return FileResponse(target.open("rb"), content_type=_image_content_type(target))
+
+
+def _image_content_type(path: Path) -> str:
+    suffix = path.suffix.lower()
+    if suffix in {".jpg", ".jpeg"}:
+        return "image/jpeg"
+    if suffix == ".webp":
+        return "image/webp"
+    if suffix == ".gltf":
+        return "model/gltf+json"
+    if suffix == ".json":
+        return "application/json"
+    return "image/png"
+
+
+def _with_aesthetic_asset_urls(result: dict) -> dict:
+    media_root = (Path(settings.BASE_DIR) / "media" / "maas" / "aesthetic").resolve()
+
+    def public_url(uri):
+        if not isinstance(uri, str):
+            return None
+        if uri.startswith("http://") or uri.startswith("https://"):
+            return uri
+        try:
+            path = Path(uri).resolve()
+        except Exception:
+            return None
+        if media_root in path.parents or path == media_root:
+            rel = path.relative_to(media_root).as_posix()
+            return f"/design/maas/aesthetic-assets/{rel}"
+        return None
+
+    reference = result.get("reference")
+    if isinstance(reference, dict):
+        url = public_url(reference.get("uri"))
+        if url:
+            reference["url"] = url
+        _add_nested_aesthetic_urls(reference.get("metadata"), public_url)
+
+    provider_result = result.get("provider_result")
+    if isinstance(provider_result, dict):
+        for asset in provider_result.get("assets") or []:
+            if isinstance(asset, dict):
+                url = public_url(asset.get("uri"))
+                if url:
+                    asset["url"] = url
+
+    evidence = result.get("evidence")
+    aesthetic_assets = ((evidence or {}).get("assets") or {}).get("aesthetic") if isinstance(evidence, dict) else None
+    if isinstance(aesthetic_assets, list):
+        for item in aesthetic_assets:
+            if not isinstance(item, dict):
+                continue
+            ref = item.get("reference")
+            if isinstance(ref, dict):
+                url = public_url(ref.get("uri"))
+                if url:
+                    ref["url"] = url
+            provider = item.get("provider_result")
+            if isinstance(provider, dict):
+                for asset in provider.get("assets") or []:
+                    if isinstance(asset, dict):
+                        url = public_url(asset.get("uri"))
+                        if url:
+                            asset["url"] = url
+    return result
+
+
+def _add_nested_aesthetic_urls(value, public_url):
+    if isinstance(value, dict):
+        url = public_url(value.get("uri"))
+        if url:
+            value["url"] = url
+        for child in value.values():
+            _add_nested_aesthetic_urls(child, public_url)
+    elif isinstance(value, list):
+        for child in value:
+            _add_nested_aesthetic_urls(child, public_url)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def interactive_patch(request):
+    """POST /design/interactive/patch/ — Dry-run natural language mass edit plan."""
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    user_text = body.get("message", "")
+    selected_design = body.get("selected_design")
+    mass_geojson = body.get("mass_geojson")
+    constraints = body.get("constraints", [])
+
+    if not isinstance(user_text, str) or not user_text.strip():
+        return JsonResponse({"error": "message is required"}, status=400)
+
+    plan = build_interactive_patch_plan(
+        user_text=user_text,
+        selected_design=selected_design if isinstance(selected_design, dict) else None,
+        mass_geojson=mass_geojson if isinstance(mass_geojson, dict) else None,
+        constraints=constraints if isinstance(constraints, list) else [],
+    )
+    return JsonResponse(plan)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def interactive_preview(request):
+    """POST /design/interactive/preview/ — Apply dry-run patch candidates to geometry."""
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    patch_plan = body.get("patch_plan")
+    selected_design = body.get("selected_design")
+    site_polygon = body.get("site_polygon")
+    site_area_m2 = body.get("site_area_m2")
+    constraints = body.get("constraints", [])
+    building_type = body.get("building_type", "공동주택")
+    algorithm = body.get("algorithm")
+
+    if not isinstance(patch_plan, dict):
+        return JsonResponse({"error": "patch_plan is required"}, status=400)
+    if not isinstance(selected_design, dict):
+        return JsonResponse({"error": "selected_design is required"}, status=400)
+    if not isinstance(site_polygon, dict):
+        return JsonResponse({"error": "site_polygon is required"}, status=400)
+    try:
+        site_area_m2 = float(site_area_m2)
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "site_area_m2 is required"}, status=400)
+
+    result = build_interactive_preview(
+        patch_plan=patch_plan,
+        selected_design=selected_design,
+        site_polygon_geojson=site_polygon,
+        site_area_m2=site_area_m2,
+        constraints=constraints if isinstance(constraints, list) else [],
+        building_type=building_type if isinstance(building_type, str) else "공동주택",
+        algorithm=algorithm if isinstance(algorithm, str) else None,
+    )
+    if "error" in result:
+        return JsonResponse(result, status=400)
+    return JsonResponse(result)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def interactive_operation(request):
+    """POST /design/interactive/operation/ — Apply push/pull-style mass operation."""
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    mass_geojson = body.get("mass_geojson")
+    site_polygon = body.get("site_polygon")
+    operation = body.get("operation")
+    if not isinstance(mass_geojson, dict):
+        return JsonResponse({"error": "mass_geojson is required"}, status=400)
+    if not isinstance(site_polygon, dict):
+        return JsonResponse({"error": "site_polygon is required"}, status=400)
+    if not isinstance(operation, dict):
+        return JsonResponse({"error": "operation is required"}, status=400)
+
+    try:
+        result = apply_mass_operation(
+            mass_geojson=mass_geojson,
+            site_polygon_geojson=site_polygon,
+            operation=operation,
+            constraints=body.get("constraints") if isinstance(body.get("constraints"), list) else [],
+            building_type=body.get("building_type") if isinstance(body.get("building_type"), str) else "공동주택",
+            sunlight_envelope=body.get("sunlight_envelope") if isinstance(body.get("sunlight_envelope"), dict) else None,
+            setback_geometries=body.get("setback_geometries") if isinstance(body.get("setback_geometries"), dict) else None,
+        )
+    except Exception as e:
+        return JsonResponse({"error": f"Interactive operation failed: {e}"}, status=400)
+    return JsonResponse(result)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def maas_export_scad(request):
+    """POST /design/maas/export-scad/ — Export ARR mass GeoJSON to OpenSCAD."""
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    mass_geojson = body.get("mass_geojson")
+    name = body.get("name")
+    if not isinstance(mass_geojson, dict):
+        return JsonResponse({"error": "mass_geojson is required"}, status=400)
+
+    try:
+        result = export_mass_geojson_to_scad(
+            mass_geojson,
+            name=name if isinstance(name, str) else None,
+        )
+    except Exception as e:
+        return JsonResponse({"error": f"MAAS SCAD export failed: {e}"}, status=400)
+    return JsonResponse(result)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def maas_legal_variants(request):
+    """POST /design/maas/legal-variants/ — Generate legal/diverse MAAS mass variants."""
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    mass_geojson = body.get("mass_geojson")
+    site_polygon = body.get("site_polygon")
+    if not isinstance(mass_geojson, dict):
+        return JsonResponse({"error": "mass_geojson is required"}, status=400)
+    if not isinstance(site_polygon, dict):
+        return JsonResponse({"error": "site_polygon is required"}, status=400)
+
+    try:
+        result = generate_legal_mass_variants(
+            mass_geojson=mass_geojson,
+            site_polygon_geojson=site_polygon,
+            constraints=body.get("constraints") if isinstance(body.get("constraints"), list) else [],
+            building_type=body.get("building_type") if isinstance(body.get("building_type"), str) else "공동주택",
+            max_variants=int(body.get("max_variants") or 6),
+            sunlight_envelope=body.get("sunlight_envelope") if isinstance(body.get("sunlight_envelope"), dict) else None,
+            setback_geometries=body.get("setback_geometries") if isinstance(body.get("setback_geometries"), dict) else None,
+        )
+    except Exception as e:
+        return JsonResponse({"error": f"MAAS legal variants failed: {e}"}, status=400)
+    return JsonResponse(result)
 
 
 @csrf_exempt

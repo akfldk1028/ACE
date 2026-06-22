@@ -1,0 +1,293 @@
+{
+  "schema_version": "arr.maas.evidence.v0",
+  "bundle_id": "maas-evidence:example-job:maas_01",
+  "created_at": "2026-06-08T00:00:00Z",
+  "source": {
+    "system": "ARR",
+    "algorithm": "maas_legal_envelope",
+    "generator_version": null,
+    "git_sha": null
+  },
+  "project": {
+    "project_id": null,
+    "review_stage": "precheck",
+    "application_type": "new_construction",
+    "jurisdiction": {
+      "country": "KR",
+      "sigungu_code": "11680"
+    },
+    "applicant": {},
+    "review_scope": {
+      "mass_only": true,
+      "includes_floor_plan": false,
+      "includes_parking_layout": false,
+      "includes_fire_strategy": false,
+      "includes_energy": false,
+      "includes_structural": false
+    },
+    "assumptions": [
+      "Concept massing precheck only."
+    ],
+    "exclusions": [
+      "No detailed parking layout.",
+      "No full fire strategy.",
+      "No structural design."
+    ]
+  },
+  "site": {
+    "pnu": "1168011800104170004",
+    "address": null,
+    "site_area_m2": 264.1,
+    "site_polygon": {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": []
+      }
+    },
+    "administrative_codes": {
+      "sigungu_code": "11680"
+    },
+    "zones": [],
+    "matched_zones": [],
+    "unmatched_zones": [],
+    "overlay_zones": [],
+    "district_unit_plan": {
+      "applies": null,
+      "plan_id": null,
+      "evidence_refs": []
+    },
+    "land_info": {
+      "land_area_m2": null,
+      "land_use": null,
+      "official_land_price": null,
+      "land_category": null,
+      "land_use_situation": null
+    },
+    "road_frontages": [],
+    "neighbor_parcels": []
+  },
+  "candidate": {
+    "job_id": "example-job",
+    "design_id": 900000,
+    "candidate_id": "maas_01",
+    "variant_id": "maas_01",
+    "mass_shape": "legal_layered_max",
+    "maas_concept": "legal capacity anchor",
+    "intended_use": {
+      "building_type": "공동주택",
+      "primary_use": "공동주택",
+      "secondary_uses": [],
+      "use_classification": null,
+      "units": null,
+      "households": null,
+      "occupancy_assumption": null
+    },
+    "score": 0.75,
+    "rank": 1,
+    "is_pareto_optimal": true,
+    "is_feasible": true,
+    "objectives": {},
+    "repair_actions": [],
+    "rejected_siblings": []
+  },
+  "geometry": {
+    "crs": "EPSG:4326",
+    "mass_geojson": {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": []
+      }
+    },
+    "bbox": [],
+    "floor_plates": [],
+    "floor_groups": [],
+    "mass_volumes": [],
+    "maas_model": {},
+    "verb_sequence": [],
+    "geometry_metrics": {
+      "height_m": 17.5,
+      "num_floors": 5,
+      "floor_height_m": 3.5,
+      "footprint_area_m2": 102.93,
+      "total_floor_area_m2": 361.28,
+      "min_floor_plate_area_m2": 28.96,
+      "min_setback_m": 0.5,
+      "open_space_pct": 61.03,
+      "shape_signature": ""
+    }
+  },
+  "legal": {
+    "summary": {
+      "status": "needs_evidence",
+      "hard_failures": [],
+      "warnings": [
+        "Precheck bundle: not all legal domains have computed validators."
+      ]
+    },
+    "limits": {
+      "bcr_pct": null,
+      "far_pct": null,
+      "height_limit_m": null
+    },
+    "metrics": {
+      "bcr_pct": 38.97,
+      "far_pct": 136.78,
+      "height_m": 17.5
+    },
+    "datum": {},
+    "setbacks": {},
+    "sunlight": {},
+    "daylight_spacing": {},
+    "road_building_line": {},
+    "corner_cutoff": {},
+    "landscaping": {},
+    "building_use": {},
+    "site_road_requirement": {},
+    "split_zoning": {},
+    "use_classification": {
+      "requested_use": "공동주택",
+      "normalized_use": "공동주택",
+      "allowed": null,
+      "prohibited": null,
+      "conditional": null,
+      "requires_discretionary_review": null,
+      "basis": {
+        "zone_tables": [],
+        "ordinance_refs": [],
+        "law_articles": []
+      },
+      "evidence_refs": []
+    },
+    "ordinance_overrides": [],
+    "law_articles": [],
+    "extended_regulations": {}
+  },
+  "program": {
+    "building_type": "공동주택",
+    "program_packing": [],
+    "core": {
+      "status": "needs_evidence"
+    },
+    "usable_depth": {},
+    "egress_precheck": {},
+    "floor_plate_viability": []
+  },
+  "mobility": {
+    "parking": {
+      "status": "needs_evidence",
+      "reason": "Parking count and layout feasibility are not computed."
+    },
+    "access": {
+      "status": "needs_evidence"
+    }
+  },
+  "life_safety": {
+    "fire": {
+      "status": "needs_evidence"
+    },
+    "evacuation": {
+      "status": "needs_evidence"
+    }
+  },
+  "environment": {
+    "energy_saving": {
+      "status": "needs_evidence"
+    },
+    "public_open_space": {
+      "status": "needs_evidence"
+    }
+  },
+  "checks": [
+    {
+      "id": "check:bulk_and_density.bcr",
+      "key": "bulk_and_density.bcr",
+      "domain": "bulk_and_density",
+      "label": "건폐율",
+      "status": "unknown",
+      "severity": "hard",
+      "source": "arr",
+      "basis": {
+        "law_articles": [],
+        "rule_text": ""
+      },
+      "required": {},
+      "provided": {
+        "bcr_pct": 38.97
+      },
+      "object_refs": [
+        "candidate:maas_01"
+      ],
+      "evidence_refs": [],
+      "warnings": [
+        "BCR limit missing in example bundle."
+      ],
+      "errors": []
+    },
+    {
+      "id": "check:parking_loading_and_mobility.parking_required_count",
+      "key": "parking_loading_and_mobility.parking_required_count",
+      "domain": "parking_loading_and_mobility",
+      "label": "주차대수",
+      "status": "needs_evidence",
+      "severity": "hard",
+      "source": "arr",
+      "basis": {
+        "law_articles": [
+          "주차장법 시행령 별표1"
+        ],
+        "rule_text": "Current bundle only has text-level parking rule."
+      },
+      "required": {},
+      "provided": {},
+      "object_refs": [
+        "candidate:maas_01"
+      ],
+      "evidence_refs": [],
+      "warnings": [],
+      "errors": []
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue:parking:missing-count",
+      "topic_type": "missing_evidence",
+      "severity": "hard",
+      "title": "주차대수 산정 미완료",
+      "description": "Parking rule text exists, but required/provided count and layout feasibility are missing.",
+      "status": "open",
+      "check_refs": [
+        "check:parking_loading_and_mobility.parking_required_count"
+      ],
+      "asset_refs": [],
+      "assignee": "mobility_reviewer"
+    }
+  ],
+  "validators": {
+    "overall_status": "needs_evidence",
+    "runs": []
+  },
+  "assets": {},
+  "provenance": {
+    "entities": [],
+    "activities": [],
+    "agents": [],
+    "relations": []
+  },
+  "agent_reviews": [],
+  "final_decision": {
+    "status": "needs_evidence",
+    "decided_by": null,
+    "blocking_failures": [],
+    "missing_evidence": [
+      "parking required/provided count",
+      "use allowance by zoning",
+      "real-browser VWorld confirmation"
+    ],
+    "accepted_risks": [],
+    "summary": "Example bundle validates structurally but is not a legal pass."
+  }
+}

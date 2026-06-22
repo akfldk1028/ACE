@@ -182,6 +182,7 @@ export function renderDatumMarkers(
     const color = Cesium.Color.fromCssColorString(marker.color);
     const params = new URLSearchParams(window.location.search);
     const showStems = params.get('datumStems') === '1' || params.get('layers') === 'all';
+    const showLabels = params.get('datumLabels') !== '0' && params.get('labels') !== '0';
     const labelLiftM = 4;
     const pointHeightM = marker.elevationM + 0.8;
     const labelHeightM = marker.elevationM + labelLiftM;
@@ -214,27 +215,29 @@ export function renderDatumMarkers(
       addedIds.push(`${baseId}-stem`);
     }
 
-    viewer.entities.add({
-      id: `${baseId}-label`,
-      position: Cesium.Cartesian3.fromDegrees(marker.lng, marker.lat, labelHeightM),
-      label: {
-        text: `${marker.label}\n${marker.elevationM.toFixed(2)}m`,
-        font: '700 12px ui-monospace, SFMono-Regular, Menlo, monospace',
-        fillColor: Cesium.Color.WHITE,
-        outlineColor: Cesium.Color.BLACK,
-        outlineWidth: 3,
-        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-        pixelOffset: new Cesium.Cartesian2(marker.labelOffset?.[0] ?? 0, marker.labelOffset?.[1] ?? -14),
-        backgroundColor: Cesium.Color.BLACK.withAlpha(0.55),
-        backgroundPadding: new Cesium.Cartesian2(7, 4),
-        showBackground: true,
-        scaleByDistance: new Cesium.NearFarScalar(50, 1.0, 5000, 0.72),
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
-      },
-    });
-    addedIds.push(`${baseId}-label`);
+    if (showLabels) {
+      viewer.entities.add({
+        id: `${baseId}-label`,
+        position: Cesium.Cartesian3.fromDegrees(marker.lng, marker.lat, labelHeightM),
+        label: {
+          text: `${marker.label}\n${marker.elevationM.toFixed(2)}m`,
+          font: '700 12px Pretendard, system-ui, sans-serif',
+          fillColor: Cesium.Color.fromCssColorString('#111827'),
+          outlineColor: Cesium.Color.WHITE,
+          outlineWidth: 4,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+          pixelOffset: new Cesium.Cartesian2(marker.labelOffset?.[0] ?? 0, marker.labelOffset?.[1] ?? -14),
+          backgroundColor: Cesium.Color.WHITE.withAlpha(0.74),
+          backgroundPadding: new Cesium.Cartesian2(8, 5),
+          showBackground: true,
+          scaleByDistance: new Cesium.NearFarScalar(50, 1.0, 5000, 0.72),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+      });
+      addedIds.push(`${baseId}-label`);
+    }
   }
 
   return addedIds;

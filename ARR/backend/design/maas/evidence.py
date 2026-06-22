@@ -112,6 +112,48 @@ def _needs_evidence_check(
     }
 
 
+def _apply_parking_check(checks: list[dict[str, Any]], parking_precheck: dict[str, Any]) -> None:
+    check = next((item for item in checks if item.get("key") == "parking_loading_and_mobility.parking_required_count"), None)
+    if not check:
+        return
+    required_count = parking_precheck.get("required_count") if isinstance(parking_precheck.get("required_count"), dict) else {}
+    layout = parking_precheck.get("layout_candidate") if isinstance(parking_precheck.get("layout_candidate"), dict) else {}
+    required_spaces = required_count.get("required_spaces")
+    provided_spaces = layout.get("provided_spaces")
+    if isinstance(required_spaces, int):
+        check["status"] = "pass" if layout.get("status") == "pass" and (provided_spaces or 0) >= required_spaces else "needs_evidence"
+        check["severity"] = "hard"
+        check["required"] = {
+            "parking_spaces": required_spaces,
+            "accessible": required_count.get("accessible") or {},
+        }
+        check["provided"] = {
+            "layout_status": layout.get("status"),
+            "provided_spaces": provided_spaces,
+            "provided_accessible_spaces": layout.get("provided_accessible_spaces"),
+            "placement_mode": layout.get("placement_mode"),
+            "unmet_spaces": layout.get("unmet_spaces"),
+        }
+        check["basis"]["formula"] = required_count.get("rounding_rule")
+        check["basis"]["rule_text"] = "Required count resolved from Graph DB parking law/ordinance rules; layout is a deterministic MAAS precheck, not final construction documentation."
+        check["evidence_refs"].append("evidence:parking_precheck")
+        if check["status"] != "pass":
+            check["warnings"].append("Parking count is computed, but detailed layout feasibility still needs solver/authority review.")
+    elif required_count.get("status") == "needs_external_rule":
+        check["status"] = "needs_evidence"
+        check["provided"] = {"calculation_status": "needs_external_rule", "reason": required_count.get("reason")}
+
+
+def _parking_status(parking_precheck: dict[str, Any]) -> str:
+    required_count = parking_precheck.get("required_count") if isinstance(parking_precheck.get("required_count"), dict) else {}
+    layout = parking_precheck.get("layout_candidate") if isinstance(parking_precheck.get("layout_candidate"), dict) else {}
+    if isinstance(required_count.get("required_spaces"), int) and layout.get("status") == "pass":
+        return "precheck_pass"
+    if isinstance(required_count.get("required_spaces"), int):
+        return "needs_layout_evidence"
+    return "needs_evidence"
+
+
 def _issue(issue_id: str, *, title: str, check_refs: list[str], description: str = "", assignee: str = "final_judge") -> dict[str, Any]:
     return {
         "id": issue_id,
@@ -309,9 +351,9 @@ def build_maas_evidence_bundle(
                 if ref not in check["evidence_refs"]:
                     check["evidence_refs"].append(ref)
 
-    hard_failures = [check["key"] for check in checks if check["status"] == "fail" and check["severity"] == "hard"]
-    missing_evidence = [check["key"] for check in checks if check["status"] in {"needs_evidence", "unknown"}]
-    overall_status = "fail" if hard_failures else ("needs_evidence" if missing_evidence else "pass")
+    hard_failures: list[str] = []
+    missing_evidence: list[str] = []
+    overall_status = "needs_evidence"
 
     issues = [
         *(
@@ -364,6 +406,16 @@ def build_maas_evidence_bundle(
             ),
         }
     parking_strategy = props.get("parking_strategy") or maas_model.get("parking_strategy")
+    _apply_parking_check(checks, parking_precheck)
+    parking_status = _parking_status(parking_precheck)
+    if parking_status != "needs_evidence":
+        issues = [
+            issue for issue in issues
+            if "check:parking_loading_and_mobility.parking_required_count" not in issue.get("check_refs", [])
+        ]
+    hard_failures = [check["key"] for check in checks if check["status"] == "fail" and check["severity"] == "hard"]
+    missing_evidence = [check["key"] for check in checks if check["status"] in {"needs_evidence", "unknown"}]
+    overall_status = "fail" if hard_failures else ("needs_evidence" if missing_evidence else "pass")
     signature_3d = props.get("shape_signature_3d")
     if not isinstance(signature_3d, dict) or not signature_3d:
         signature_3d = _saved_shape_signature_3d(
@@ -392,7 +444,7 @@ def build_maas_evidence_bundle(
             "review_scope": {
                 "mass_only": True,
                 "includes_floor_plan": bool(floor_groups),
-                "includes_parking_layout": False,
+                "includes_parking_layout": bool(parking_precheck.get("layout_candidate")),
                 "includes_fire_strategy": False,
                 "includes_energy": False,
                 "includes_structural": False,
@@ -512,10 +564,14 @@ def build_maas_evidence_bundle(
         },
         "mobility": {
             "parking": {
-                "status": "needs_evidence",
+                "status": parking_status,
                 "strategy": parking_strategy,
                 "precheck": parking_precheck,
-                "reason": "Parking strategy is recorded for mass-generation repair, but required count and layout feasibility are not computed yet.",
+                "reason": (
+                    "Graph DB required parking count and deterministic layout precheck are attached."
+                    if parking_status != "needs_evidence"
+                    else "Parking strategy is recorded for mass-generation repair, but required count and layout feasibility are not computed yet."
+                ),
             },
             "access": {"status": "needs_evidence"},
         },

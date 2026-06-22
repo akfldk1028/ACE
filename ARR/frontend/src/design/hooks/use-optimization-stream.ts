@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import type { SSEEvent, DesignData, GeoJSONFeature } from '../lib/types';
+import { getJobResults, runJob } from '../lib/api-client';
 
 interface ObjectiveInfo {
   name: string;
@@ -44,12 +45,89 @@ export function useOptimizationStream() {
 
   const scatterRef = useRef<ScatterPoint[]>([]);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const fallbackTimerRef = useRef<number | null>(null);
+
+  const clearFallbackTimer = useCallback(() => {
+    if (fallbackTimerRef.current != null) {
+      window.clearInterval(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+  }, []);
+
+  const applyPersistedResults = useCallback((payload: any): boolean => {
+    const designs = Array.isArray(payload?.designs) ? payload.designs : [];
+    const persisted = designs.filter((d: any) => d?.is_pareto_optimal && d?.mass_geojson);
+    if (!persisted.length) {
+      return false;
+    }
+
+    const paretoGeojson = persisted.map((d: any) => {
+      const feature = d.mass_geojson as GeoJSONFeature;
+      const props = { ...(feature?.properties || {}) };
+      delete (props as any).maas_model;
+      delete (props as any).floor_plates;
+      return { ...feature, properties: props };
+    });
+    const paretoFront: DesignData[] = persisted.map((d: any, index: number) => {
+      const props = d.mass_geojson?.properties || {};
+      const objectives = Array.isArray(d.outputs?.objectives)
+        ? d.outputs.objectives
+        : [
+          props.floor_area ?? props.floorArea ?? 0,
+          props.open_pct ?? props.openPct ?? 0,
+        ];
+      return {
+        id: d.design_id ?? props.design_id ?? index + 1,
+        uid: props.design_uid,
+        generation: d.generation ?? 0,
+        parents: [null, null],
+        feasible: d.is_feasible ?? true,
+        inputs: Array.isArray(d.inputs) ? d.inputs : [],
+        objectives,
+        penalty: d.outputs?.penalty ?? 0,
+        rank: d.ranking ?? 1,
+        elite: 0,
+        algorithm: props.algorithm,
+      };
+    });
+
+    setState(prev => ({
+      ...prev,
+      status: 'complete',
+      paretoFront,
+      best: paretoFront[0] ?? prev.best,
+      bestGeojson: paretoGeojson[0] ?? prev.bestGeojson,
+      paretoGeojson,
+      totalDesigns: payload?.total_designs ?? paretoFront.length,
+      progress: 100,
+      generation: Math.max(prev.generation, prev.maxGenerations || prev.generation),
+    }));
+    return true;
+  }, []);
+
+  const fetchPersistedResults = useCallback(async (jobId: string) => {
+    try {
+      const payload = await getJobResults(jobId);
+      if (applyPersistedResults(payload)) {
+        clearFallbackTimer();
+        if (eventSourceRef.current) {
+          eventSourceRef.current.close();
+          eventSourceRef.current = null;
+        }
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[Design][results-fallback] pending or failed', error);
+      }
+    }
+  }, [applyPersistedResults, clearFallbackTimer]);
 
   const connect = useCallback((jobId: string) => {
     // Close existing connection
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
     }
+    clearFallbackTimer();
 
     // Reset scatter history from previous run (fixes stale color bug)
     scatterRef.current = [];
@@ -68,6 +146,32 @@ export function useOptimizationStream() {
       feasibleCount: 0,
       totalDesigns: 0,
     }));
+
+    fallbackTimerRef.current = window.setInterval(() => {
+      fetchPersistedResults(jobId);
+    }, 1000);
+    fetchPersistedResults(jobId);
+
+    const usePollingOnly = import.meta.env.DEV
+      && new URLSearchParams(window.location.search).get('e2e') === '1';
+    if (usePollingOnly) {
+      setState(prev => ({
+        ...prev,
+        status: 'running',
+        maxGenerations: prev.maxGenerations || 50,
+      }));
+      runJob(jobId)
+        .catch((error) => {
+          setState(prev => {
+            if (prev.status === 'running' || prev.status === 'connecting') {
+              return { ...prev, status: 'error', error: error instanceof Error ? error.message : 'Optimization stream failed' };
+            }
+            return prev;
+          });
+          clearFallbackTimer();
+        });
+      return;
+    }
 
     const es = new EventSource(`/design/jobs/${jobId}/stream`);
     eventSourceRef.current = es;
@@ -110,6 +214,7 @@ export function useOptimizationStream() {
 
     es.addEventListener('complete', (e) => {
       const data: SSEEvent = JSON.parse(e.data);
+      clearFallbackTimer();
       setState(prev => ({
         ...prev,
         status: 'complete',
@@ -120,6 +225,7 @@ export function useOptimizationStream() {
         progress: 100,
       }));
       es.close();
+      eventSourceRef.current = null;
     });
 
     es.addEventListener('error', (e) => {
@@ -138,11 +244,15 @@ export function useOptimizationStream() {
         }));
       }
       es.close();
+      eventSourceRef.current = null;
+      clearFallbackTimer();
     });
 
     es.addEventListener('cancelled', () => {
       setState(prev => ({ ...prev, status: 'cancelled' }));
       es.close();
+      eventSourceRef.current = null;
+      clearFallbackTimer();
     });
 
     es.onerror = () => {
@@ -157,14 +267,15 @@ export function useOptimizationStream() {
         });
       }
     };
-  }, []);
+  }, [clearFallbackTimer, fetchPersistedResults]);
 
   const disconnect = useCallback(() => {
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
-  }, []);
+    clearFallbackTimer();
+  }, [clearFallbackTimer]);
 
   const reset = useCallback(() => {
     disconnect();

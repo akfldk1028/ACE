@@ -197,3 +197,229 @@ Pass criteria:
 - VWorld shows returned overlays, especially road, adjacent, north sunlight, and daylight where present.
 
 Playwright MCP was blocked in this environment because it requires `/opt/google/chrome/chrome` and `npx playwright install chrome` requires sudo. Direct Playwright with bundled Chromium was also unstable on the Cesium page. Manual Windows browser verification is expected.
+
+## MAAS Massing Gate
+
+Use this to verify the current MAAS legal-envelope mass generation path, separate from Cesium pixel rendering.
+
+Servers:
+
+```bash
+cd ARR/backend
+.venv/bin/python manage.py runserver 127.0.0.1:18000
+
+cd ARR/frontend
+VITE_ARR_BACKEND_URL=http://127.0.0.1:18000 npm run dev -- --host 127.0.0.1 --port 5174
+```
+
+Browser/API test PNU:
+
+```text
+1168011800104170004
+```
+
+Expected API flow:
+
+```text
+POST /design/site-boundary/
+POST /design/auto-constraints/
+POST /design/jobs/
+POST /design/jobs/<job_id>/run/
+GET  /design/jobs/<job_id>/results/
+```
+
+Latest verified result:
+
+- `maas_legal_envelope` returned 18 Pareto candidates.
+- First candidate:
+  - `mass_shape = legal_layered_max`
+  - `num_floors = 5`
+  - `height = 17.5`
+  - `far = 136.78`
+  - `bcr = 38.97`
+  - `floor_plates = [102.93, 102.93, 74.99, 51.47, 28.96]`
+  - `mass_volumes = 2`
+  - all generated floor groups had `program_packing.status = ok`.
+
+Important Playwright caveat:
+
+- Do not set global `Accept: text/html` headers in Playwright when testing `/design?e2e=1`; that also affects `fetch()` and can make API calls receive SPA HTML instead of JSON.
+- Headless Chromium in this environment cannot currently verify Cesium 3D pixels. The main `/design` route loads, but reports `WebGL을 사용할 수 없어 3D 지도를 비활성화했습니다.` with normal headless settings, and forced WebGL can hang.
+- Therefore Playwright can verify React/API mass generation here, but final VWorld/Cesium mass appearance still requires a real browser check.
+
+## Parking Grid Solver / VWorld PNG Gate
+
+Latest verified on 2026-06-15 with Windows Chrome CDP and VWorld/Cesium:
+
+```bash
+powershell.exe -NoProfile -Command "node D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\windows-cdp-vworld-pnu-batch.cjs --cases=D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\parking-stall-cases.json"
+```
+
+Case file:
+
+```text
+docs/playwright/design-route-live-verify/parking-stall-cases.json
+```
+
+Neo4j parking-law graph must be live for graph-backed runs:
+
+```bash
+cd ARR/backend
+NEO4J_URI=bolt://172.27.80.1:7687 NEO4J_PASSWORD=11111111 .venv/bin/python law/scripts/verify_parking_law_graph.py
+NEO4J_URI=bolt://172.27.80.1:7687 NEO4J_PASSWORD=11111111 .venv/bin/python law/scripts/check_parking_counts.py
+```
+
+Latest observed: `verify_parking_law_graph.py` passed `49/49`, and
+`check_parking_counts.py` passed `23/23`. Run the backend with the same env:
+
+```bash
+cd ARR/backend
+NEO4J_URI=bolt://172.27.80.1:7687 NEO4J_PASSWORD=11111111 .venv/bin/python manage.py runserver 127.0.0.1:18000
+```
+
+Pass criteria for these cases:
+
+- VWorld canvas exists and is not fallback/disabled.
+- `OPTIMIZATION COMPLETE` is reached.
+- MAAS `design-mass-*` entities exist.
+- Parking overlay entities exist.
+- `requireParkingStalls: true` means at least one `design-mass-parking-stall-*` Cesium polygon entity must exist.
+- PNG is written and must be visually inspected.
+
+Latest PNG outputs:
+
+```text
+docs/playwright/design-route-live-verify/pnu-batch/zoom_01_gangnam-small-neighborhood-stalls_1168011800104170004.png
+docs/playwright/design-route-live-verify/pnu-batch/zoom_02_gangnam-dogok-neighborhood-stalls_1168011800104670003.png
+docs/playwright/design-route-live-verify/pnu-batch/zoom_01_gangnam-small-apartment-visual-stalls_1168011800104170004.png
+docs/playwright/design-route-live-verify/pnu-batch/summary.json
+```
+
+Latest observed result:
+
+- PNU `1168011800104170004`
+  - strategy: `piloti_ground`
+  - layout status: `pass`
+  - required/provided: `3/3`
+  - placement: `grid_connected_90`
+  - `parkingStallEntities: 3`
+  - `pilotiEntities: 0`
+  - `adjacency.status: row_contiguous`
+  - `adjacency.gap_pairs: 0`
+  - `adjacency.max_gap_m: 0`
+  - `column_clearance.status: deferred_structural_review` remains in backend evidence only.
+    Frontend column/core row and piloti helper columns are intentionally hidden
+    until explicit structural column/core geometry exists.
+  - `drive_aisle_clearance.status: pass`
+  - `drive_aisle_clearance.provided_width_m: 6`
+  - `turning_clearance.status: v1_pass`
+  - `turning_clearance.method: stall_frontage_and_entrance_connector_v1`
+  - `turning_clearance.frontage_connected_stalls: 1`
+  - `turning_clearance.frontage_total_stalls: 3`
+  - `turning_clearance.contiguous_row_frontage_relief.available: true`
+  - `turning_clearance.contiguous_row_frontage_relief.basis: contiguous grid row with one generated 6m drive cell per stall`
+  - `grid_solver.entrance_connected: true`
+  - `grid_solver.entrance_verified: true`
+  - `grid_solver.entrance_connection_type: site_connector_v1`
+  - `grid_solver.entrance_min_distance_m: 8`
+  - `grid_solver.entrance_connector_length_m: 8`
+  - `grid_solver.entrance_connector_width_m: 3`
+  - `grid_solver.entrance_connector_polygon_wgs84: present`
+  - Interpretation: stall polygons render under/around piloti, legal count is met, the three stalls are one contiguous row, the 3m straight site connector is recorded/rendered, and column/core visuals are excluded for now. The v1 turning/frontage status is `pass` because row-contiguous grid stalls with one generated 6m drive cell per stall are accepted as row frontage connected. This is still not final authority approval or a real vehicle swept-path simulation.
+- PNU `1168011800104670003`
+  - strategy: `ground_surface`
+  - layout status: `needs_aisle_review`
+  - required/provided: `1/1`
+  - placement: `single_row_aisle_review`
+  - `parkingStallEntities: 1`
+  - `adjacency.status: single_or_none`
+  - `column_clearance.status: not_applicable`
+  - `drive_aisle_clearance.status: needs_review`
+  - `turning_clearance.status: needs_swept_path_review`
+  - Interpretation: exterior surface stall renders, but aisle/road-as-aisle and swept-path review remain.
+- PNU `1168011800104170004` with building type `공동주택`
+  - case file: `docs/playwright/design-route-live-verify/parking-stall-apartment-case.json`
+  - strategy: `piloti_ground`
+  - current selected strategy after housing estimator: `ground_surface`
+  - legal parking count: `computed_estimate` from mass-stage household/exclusive-area schedule.
+  - Neo4j selected rule: `seoul_parking_appendix2_row_05`, base rule `parking_appendix1_row_05`.
+  - source: `서울특별시 주차장 설치 및 관리 조례::별표2`.
+  - required count: `3`
+  - raw count basis: area ratio `1.3352`, Seoul household minimum `2.4`, ceil/max => `3`.
+  - layout status: `needs_swept_path_review`
+  - `parkingStallEntities: 3`
+  - `parkingEntities: 12`
+  - `pilotiEntities: 0`
+  - Interpretation: this fixes the default apartment UI where parking lines
+    disappeared and attaches a housing-law estimate. The remaining failure mode
+    is not parking count; it is final turning/swept-path review.
+
+Visual overlay update on 2026-06-15:
+
+- Files changed:
+  - `ARR/frontend/src/design/lib/cesium/mass-entities.ts`
+  - `ARR/frontend/src/design/components/DesignInspector.tsx`
+- Exact parking stalls now render as solid pink (`#ff2f92`) outline polylines
+  with dark shadow lines and a raised `groundH + 1.15m` visible line so small stalls remain
+  legible in VWorld PNGs.
+- Piloti support columns and the `PILOTI VOID` label are intentionally not
+  rendered. The current parking solver has no real structural column/core
+  polygons, so showing guessed columns was misleading.
+- The mass inspector no longer shows a column/core clearance row. Backend
+  `column_clearance` remains evidence-only until structural geometry is modeled.
+- The blue/review parking envelope fill was suppressed when exact stall
+  polygons exist.
+- The parking envelope boundary, hatch/guide lines, and teal mass edge helper
+  lines are hidden when exact stall polygons exist, because they visually read
+  as messy parking lines in VWorld PNG captures.
+- The parking count/status label is also hidden when exact stall polygons exist;
+  the left sidebar and mass inspector keep the legal/planned parking numbers.
+- The 3m site connector corridor now renders from
+  `grid_solver.entrance_connector_polygon_wgs84` as a low-alpha cyan polygon/outline
+  plus a thin cyan centerline, so it reads as a helper and not as a parking stall line.
+- Vite on `127.0.0.1:5174` had to be restarted before PNG verification reflected
+  the changed Cesium entity code. When this module stays stale, delete
+  `ARR/frontend/node_modules/.vite` and restart Vite with `--force`, then verify
+  the served source with `curl`.
+- Verified after restart/reload with the same Windows Chrome CDP batch:
+  - PNU `1168011800104170004`: `parkingStallEntities=3`, `parkingEntities=12`, `pilotiEntities=0`.
+  - PNU `1168011800104670003`: `parkingStallEntities=1`, `parkingEntities=3`, `pilotiEntities=0`.
+  - Latest PNGs are the same paths listed above.
+- Visual note: the large translucent pink diagonal surface visible in some PNGs
+  is the existing sunlight/legal envelope overlay, not a parking stall. It was
+  not changed because `design/lib/envelopes/sunlight.ts` is marked as a locked
+  visual spec; if it confuses parking QA, add a layer toggle/focus mode rather
+  than altering the envelope geometry.
+
+Implementation facts to preserve:
+
+- `ARR/backend/design/maas/parking_layout.py` grid solver records `x` stall candidates, `y` drive aisle cells, drive-cell component connectivity, and entrance edge connection metadata.
+- `ARR/backend/design/maas/parking_layout.py` now also records formula metadata,
+  row-contiguous adjacency metrics, `column_clearance`, `drive_aisle_clearance`,
+  `turning_clearance`, and `grid_solver.entrance_connection_type`. `turning_clearance.method=stall_frontage_and_entrance_connector_v1`
+  checks each stall's frontage against the generated 6m drive aisle and verifies
+  the aisle entrance connection before allowing parking status to remain `pass`.
+  For row-contiguous `grid_connected_90` stalls, `contiguous_row_frontage_relief`
+  accepts the row when there is one generated 6m drive cell per stall; this avoids
+  false failures from line-boundary intersection precision while preserving the
+  explicit note that this is not swept-path simulation.
+  `site_connector_v1`
+  means a 3m-wide straight connector corridor from drive cell to road frontage is
+  covered by the drive area and `road_frontage_geometry` is present; it is not a swept-path simulation. `column_clearance.status=deferred_structural_review`
+  means no structural drawing/core polygons are available, so it must not be displayed as OK.
+- `ARR/backend/design/maas/parking_strategy.py` converts WGS84 road frontage/sharedEdge geometry to UTM before parking layout checks.
+- `ARR/backend/design/views.py` has a backend fallback that infers `parking_road_context` from `land.services.road_frontage.fetch_neighbor_roads(site_polygon)` when the frontend job options do not provide it.
+- `ARR/backend/design/views.py` now chooses `best_geojson` by parking-aware score
+  when parking precheck data exists, preferring nonzero required/provided stalls,
+  layout pass, count satisfaction, contiguous small rows, verified entrance, and
+  frontage count before falling back to original candidate order.
+- VWorld road frontage `sharedEdge` may arrive as a raw coordinate array, not a GeoJSON LineString; the solver must keep supporting both.
+
+Current expected limitation:
+
+- This is still a mass-stage grid feasibility solver, not a BIM parking model.
+- Do not claim ramp geometry, real swept-path simulation, real column/core
+  conflicts, basement/mechanical equipment, or final authority approval are
+  complete. The current column/turning values are v1 assumptions.
+- Next quality step is to replace `site_connector_v1` with actual entrance
+  throat geometry, swept-path checks, and column/core polygons.

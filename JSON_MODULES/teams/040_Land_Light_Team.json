@@ -1,0 +1,193 @@
+{
+  "provider": "autogen_agentchat.teams.SelectorGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "label": "Land Light Team (AG-light 토지규제팀)",
+  "description": "AG-light Worker + korean-law-mcp 기반 3-agent 토지규제 분석팀. Neo4j/Django 불필요, Cloudflare Worker만으로 동작.",
+  "config": {
+    "name": "SelectorGroupChat",
+    "description": "3 tool-calling agents for land regulation analysis via AG-light Worker.",
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "AG-light Worker로 토지 규제 데이터를 조회하고 핵심 수치를 분석하는 에이전트",
+        "label": "Land Analyst (토지규제분석가)",
+        "config": {
+          "name": "land_analyst",
+          "description": "analyze_land 도구로 PNU/주소 기반 규제 데이터를 AG-light Worker에서 조회하여 분석하는 에이전트",
+          "system_message": "당신은 한국 토지 규제 분석 전문가입니다.\n\nanalyze_land 도구를 사용하여 토지 규제 데이터를 직접 조회하세요.\n\n작업:\n1. task에 포함된 PNU 또는 주소로 analyze_land 호출\n2. 반환된 데이터에서 핵심 정리: 용도지역, 건폐율(%), 용적률(%), 높이제한\n3. regulations 필드에서 핵심 제약 항목 식별\n4. 데이터를 간결하게 요약 (법률해석가가 참조할 수 있도록)\n\n핵심 수치와 규제 목록을 명확히 정리하세요. 한국어로 출력.",
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "analyze_land",
+              "config": {
+                "source_code": "def analyze_land(pnu_or_address: str, input_type: str = \"auto\", zones_json: str = \"[]\") -> str:\n    \"\"\"AG-light Worker로 토지 규제를 분석합니다. pnu_or_address는 PNU(19자리) 또는 주소.\"\"\"\n    import urllib.request\n    import json\n    import os\n    base_url = os.getenv(\"AG_LIGHT_URL\", \"https://law-light-api.<ACCOUNT>.workers.dev\")\n    url = f\"{base_url}/land/analyze\"\n    try:\n        zones = json.loads(zones_json) if zones_json else []\n    except json.JSONDecodeError:\n        zones = []\n    if input_type == \"auto\":\n        input_type = \"pnu\" if len(pnu_or_address) == 19 and pnu_or_address.isdigit() else \"address\"\n    payload = json.dumps({\"input\": pnu_or_address, \"input_type\": input_type, \"zones\": zones, \"include_law\": True}).encode(\"utf-8\")\n    req = urllib.request.Request(url, data=payload, headers={\"Content-Type\": \"application/json\"})\n    try:\n        with urllib.request.urlopen(req, timeout=60) as resp:\n            data = json.loads(resp.read().decode(\"utf-8\"))\n        parts = []\n        if data.get(\"pnu\"):\n            parts.append(f\"PNU: {data['pnu'].get('pnu', '')}\")\n        zi = data.get(\"zone_info\", {})\n        if zi.get(\"zones\"):\n            parts.append(f\"용도지역: {', '.join(zi['zones'])}\")\n        if zi.get(\"bcr_limit\") is not None:\n            parts.append(f\"건폐율 상한: {zi['bcr_limit']}%\")\n        if zi.get(\"far_limit\") is not None:\n            parts.append(f\"용적률 상한: {zi['far_limit']}%\")\n        regs = data.get(\"regulations\", {})\n        if regs.get(\"height_limit_m\"):\n            parts.append(f\"높이제한: {regs['height_limit_m']}m\")\n        if regs.get(\"sunlight_applies\"):\n            parts.append(\"정북일조 사선제한 적용\")\n        if regs.get(\"corner_cutoff_required\"):\n            parts.append(\"가각전제 적용\")\n        restrictions = data.get(\"restrictions\", [])\n        if restrictions:\n            parts.append(f\"규제 요약: {'; '.join(restrictions)}\")\n        laws = data.get(\"law_articles\", {})\n        if laws.get(\"total_count\"):\n            parts.append(f\"관련 법조항 {laws['total_count']}건\")\n        return \"\\n\".join(parts) if parts else json.dumps(data, ensure_ascii=False)[:3000]\n    except Exception as e:\n        return f\"분석 실패: {e}\"\n",
+                "name": "analyze_land",
+                "description": "AG-light Worker로 토지 규제를 분석합니다. pnu_or_address는 PNU(19자리) 또는 주소.",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "AG-light Worker의 /search로 법조항을 검색하고 해석하는 에이전트",
+        "label": "Legal Interpreter (법률해석가)",
+        "config": {
+          "name": "legal_interpreter",
+          "description": "search_laws 도구로 관련 법조항을 검색하고 법적 근거를 해석하는 에이전트",
+          "system_message": "당신은 한국 토지·건축 법률 해석 전문가입니다.\n\nsearch_laws 도구를 사용하여 관련 법조항을 직접 검색하세요.\n\n작업:\n1. land_analyst 결과에서 핵심 규제 키워드 추출\n2. search_laws로 관련 법조항 검색 (예: \"제1종일반주거지역 건폐율\", \"용적률 완화\", \"높이제한\" 등)\n3. 검색된 조항의 법적 의미 해석\n4. 준법성 이슈/예외 조항/완화 가능성 분석\n5. 구체적 조항 인용 (법률명 제N조 제N항)\n\n필요하면 search_laws를 여러 번 호출하세요. 한국어로 출력.",
+          "tools": [
+            {
+              "provider": "autogen_core.tools.FunctionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "search_laws",
+              "config": {
+                "source_code": "def search_laws(query: str, limit: int = 10, mode: str = \"hybrid\") -> str:\n    \"\"\"AG-light Worker로 법조항을 검색합니다. mode: hybrid(의미+키워드), keyword, semantic.\"\"\"\n    import urllib.request\n    import json\n    import os\n    base_url = os.getenv(\"AG_LIGHT_URL\", \"https://law-light-api.<ACCOUNT>.workers.dev\")\n    url = f\"{base_url}/search\"\n    payload = json.dumps({\"query\": query, \"limit\": limit, \"mode\": mode}).encode(\"utf-8\")\n    req = urllib.request.Request(url, data=payload, headers={\"Content-Type\": \"application/json\"})\n    try:\n        with urllib.request.urlopen(req, timeout=30) as resp:\n            data = json.loads(resp.read().decode(\"utf-8\"))\n        results = data.get(\"results\", [])\n        search_mode = data.get(\"mode\", \"unknown\")\n        if not results:\n            return f\"'{query}' 검색 결과 없음 (mode={search_mode})\"\n        lines = [f\"'{query}' 검색 결과 {len(results)}건 (mode={search_mode}):\"]\n        for r in results[:limit]:\n            law_name = r.get(\"law_name\", r.get(\"lawName\", \"\"))\n            article = r.get(\"article\", \"\")\n            content = r.get(\"content\", \"\")[:200]\n            score = r.get(\"score\", 0)\n            lines.append(f\"- [{law_name}] {article} (score={score:.3f})\")\n            if content:\n                lines.append(f\"  {content}\")\n        return \"\\n\".join(lines)\n    except Exception as e:\n        return f\"검색 실패: {e}\"\n",
+                "name": "search_laws",
+                "description": "AG-light Worker로 법조항을 검색합니다. mode: hybrid(의미+키워드), keyword, semantic.",
+                "global_imports": [],
+                "has_cancellation_support": false
+              }
+            }
+          ],
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "모든 분석을 종합하여 간결한 최종 결론을 도출하는 에이전트",
+        "label": "Synthesizer (종합분석가)",
+        "config": {
+          "name": "synthesizer",
+          "description": "토지분석 + 법률해석 결과를 종합하여 최종 결론을 도출하는 에이전트",
+          "system_message": "당신은 토지 규제 종합 분석가입니다.\n\nland_analyst와 legal_interpreter의 분석 결과를 종합하여 간결한 최종 결론을 작성하세요.\n\n출력 형식 (5개 섹션, 각 2-3줄):\n1. **핵심 규제**: 건폐율/용적률/높이제한 + 법적 근거\n2. **주요 제약**: 가장 중요한 규제 제한 3가지\n3. **법적 참고**: 핵심 법조항 인용 (조/항/호)\n4. **개발 가능성**: 최대 건축면적/연면적 계산\n5. **실무 권장**: 주의사항 + 추가 확인 필요 사항\n\n간결하게. 보고서 완료 후 TERMINATE 추가.\n한국어로 출력.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "model_client": {
+      "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+      "component_type": "model",
+      "version": 1,
+      "component_version": 1,
+      "label": "Claude Sonnet 4.5 (Max OAuth)",
+      "description": "Selector model - routes to appropriate agent based on conversation phase.",
+      "config": {
+        "model": "claude-sonnet-4-5-20250929"
+      }
+    },
+    "selector_prompt": "에이전트 선택 규칙:\n1. 분석 시작: land_analyst (토지 데이터 직접 조회)\n2. land_analyst 완료 후: legal_interpreter (법조항 검색·해석)\n3. legal_interpreter 완료 후: synthesizer (종합 결론)\n\n같은 에이전트 연속 불가. synthesizer가 마지막.\n\n{roles}\n{history}\n\n에이전트 이름만 반환.",
+    "allow_repeated_speaker": false,
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "label": "TextMentionTermination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "label": "MaxMessageTermination",
+            "config": {
+              "max_messages": 8,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

@@ -75,6 +75,22 @@ interface UseVworld3DReturn {
 
 let scriptPromise: Promise<void> | null = null;
 
+function canCreateWebGLContext(): boolean {
+  if (navigator.webdriver || /HeadlessChrome/i.test(navigator.userAgent)) {
+    return false;
+  }
+  try {
+    const canvas = document.createElement('canvas');
+    return Boolean(
+      canvas.getContext('webgl2')
+      || canvas.getContext('webgl')
+      || canvas.getContext('experimental-webgl'),
+    );
+  } catch {
+    return false;
+  }
+}
+
 function appendScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const s = document.createElement('script');
@@ -102,51 +118,100 @@ async function loadVworldScript(apiKey: string): Promise<void> {
   if (scriptPromise) return scriptPromise;
 
   scriptPromise = (async () => {
+    const subScripts: string[] = [];
+    const subStyles: string[] = [];
+    const origWrite = document.write.bind(document);
+    document.write = ((html: string) => {
+      const scriptMatch = html.match(/src=['"]([^'"]+)['"]/);
+      if (scriptMatch) {
+        subScripts.push(scriptMatch[1].replace(/^http:\/\//, 'https://'));
+      }
+      const styleMatch = html.match(/href=['"]([^'"]+\.css[^'"]*)['"]/);
+      if (styleMatch) {
+        subStyles.push(styleMatch[1].replace(/^http:\/\//, 'https://'));
+      }
+    }) as typeof document.write;
+
     try {
       // 1) jQuery 로드 — VWViewerStartup이 $ 의존
       if (!(window as any).jQuery) {
         await appendScript('https://code.jquery.com/jquery-3.7.1.min.js');
       }
 
-      // 2) document.write 오버라이드 — 부트스트랩이 호출할 때 URL 수집
-      const subScripts: string[] = [];
-      const origWrite = document.write.bind(document);
-      document.write = ((html: string) => {
-        const match = html.match(/src='([^']+)'/);
-        if (match) {
-          // localhost(http)에서 부트스트랩이 http:// URL 생성 → https 강제
-          subScripts.push(match[1].replace(/^http:\/\//, 'https://'));
-        }
-      }) as typeof document.write;
-
-      // 3) 부트스트랩 <script> 로드 (CORS 면제)
+      // 2) 부트스트랩 <script> 로드 (CORS 면제)
       await appendScript(
         `https://map.vworld.kr/js/webglMapInit.js.do?version=3.0&apiKey=${apiKey}`,
       );
 
-      // 4) document.write 복원
-      document.write = origWrite;
-
-      // 5) 전역변수 http→https 강제 (Cesium 워커 등이 이 변수 참조)
+      // 3) 전역변수 http→https 강제 (Cesium 워커 등이 이 변수 참조)
       const w = window as any;
       for (const k of ['vworldUrl', 'vworld2DCache', 'vworldBaseMapUrl', 'vworldStyledMapUrl']) {
         if (w[k]) w[k] = w[k].replace('http://', 'https://');
       }
 
-      // 6) 수집한 하위 스크립트 순차 로드 (Cesium → VW → OL, 순서 중요)
+      // 4) 수집한 CSS/하위 스크립트 로드 (Cesium → VW → OL, 순서 중요)
+      for (const href of subStyles) {
+        if (document.querySelector(`link[href="${href}"]`)) continue;
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
+      }
       for (const src of subScripts) {
         await appendScript(src);
       }
 
-      // 7) vw.Map 가용 대기
+      // 5) vw.Map 가용 대기
       await waitForVwMap(15_000);
     } catch (e) {
       scriptPromise = null;
       throw e;
+    } finally {
+      document.write = origWrite;
     }
   })();
 
   return scriptPromise;
+}
+
+function applyDiagramImageryStyle(layer: any) {
+  if (!layer) return;
+  try {
+    layer.saturation = 0.0;
+    layer.brightness = 1.18;
+    layer.contrast = 0.72;
+    layer.gamma = 1.08;
+    layer.alpha = 0.42;
+  } catch {
+    // Cesium imagery layer styling is best-effort; VWorld still works without it.
+  }
+}
+
+function ringArea(ring: number[][] | null | undefined): number {
+  if (!ring || ring.length < 3) return 0;
+  let total = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % ring.length];
+    total += a[0] * b[1] - b[0] * a[1];
+  }
+  return Math.abs(total) / 2;
+}
+
+function largestPolygonCoordinates(polygons: number[][][][] | null | undefined): number[][][] | null {
+  if (!Array.isArray(polygons) || polygons.length === 0) return null;
+  return polygons.reduce<number[][][] | null>((best, polygon) => {
+    if (!Array.isArray(polygon) || !polygon[0]) return best;
+    if (!best) return polygon;
+    return ringArea(polygon[0]) > ringArea(best[0]) ? polygon : best;
+  }, null);
+}
+
+function extractGeoJsonRing(geojson: any): number[][] | undefined {
+  const geo = geojson?.type === 'Feature' ? geojson.geometry : geojson;
+  if (geo?.type === 'Polygon') return geo.coordinates?.[0];
+  if (geo?.type === 'MultiPolygon') return largestPolygonCoordinates(geo.coordinates)?.[0] || undefined;
+  return undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -235,10 +300,24 @@ export function useVworld3D({
         setLoading(true);
         setError(null);
 
+        if (!canCreateWebGLContext()) {
+          setError('WebGL을 사용할 수 없어 3D 지도를 비활성화했습니다.');
+          setLoading(false);
+          return;
+        }
+
         // ── 1. Fetch API key ──────────────────────────────────────
         const configRes = await fetch('/land/map-config/');
-        if (!configRes.ok) throw new Error('API 키 조회 실패');
+        if (!configRes.ok) {
+          const message = await configRes.json()
+            .then((body) => body?.error)
+            .catch(() => null);
+          throw new Error(message || 'API 키 조회 실패');
+        }
         const cfg = await configRes.json();
+        if (!cfg?.api_key || typeof cfg.api_key !== 'string') {
+          throw new Error('VWORLD_API_KEY가 설정되지 않았습니다.');
+        }
         if (destroyed) return;
         apiKeyRef.current = cfg.api_key;
 
@@ -264,13 +343,14 @@ export function useVworld3D({
           // 2026-05-11 — HMR 시 imagery layer가 사라지는 케이스 fix.
           try {
             if (existingViewer.imageryLayers.length === 0) {
-              existingViewer.imageryLayers.addImageryProvider(
+              const layer = existingViewer.imageryLayers.addImageryProvider(
                 new Cesium.UrlTemplateImageryProvider({
                   url: `https://api.vworld.kr/req/wmts/1.0.0/${apiKeyRef.current}/Base/{z}/{y}/{x}.png`,
                   maximumLevel: 19,
                   credit: new Cesium.Credit('Vworld'),
                 }),
               );
+              applyDiagramImageryStyle(layer);
             }
           } catch (e) {
             console.warn('HMR imagery 재추가 실패:', e);
@@ -355,13 +435,14 @@ export function useVworld3D({
             const C = getCesium();
             if (v && C) {
               v.imageryLayers.removeAll();
-              v.imageryLayers.addImageryProvider(
+              const layer = v.imageryLayers.addImageryProvider(
                 new C.UrlTemplateImageryProvider({
                   url: `https://api.vworld.kr/req/wmts/1.0.0/${apiKeyRef.current}/Base/{z}/{y}/{x}.png`,
                   maximumLevel: 19,
                   credit: new C.Credit('Vworld'),
                 }),
               );
+              applyDiagramImageryStyle(layer);
             }
           } catch (e) {
             console.warn('다이어그램 basemap 교체 실패:', e);
@@ -437,19 +518,7 @@ export function useVworld3D({
     try { map.removeObjectById(PARCEL_HIGHLIGHT_ID); } catch { /* no-op */ }
 
     try {
-      const geo = geojson as any;
-
-      // GeoJSON → coordinates 추출
-      let ring: number[][] | undefined;
-      if (geo.type === 'Polygon') {
-        ring = geo.coordinates?.[0];
-      } else if (geo.type === 'Feature' && geo.geometry?.type === 'Polygon') {
-        ring = geo.geometry.coordinates?.[0];
-      } else if (geo.type === 'MultiPolygon') {
-        ring = geo.coordinates?.[0]?.[0];
-      } else if (geo.type === 'Feature' && geo.geometry?.type === 'MultiPolygon') {
-        ring = geo.geometry.coordinates?.[0]?.[0];
-      }
+      const ring = extractGeoJsonRing(geojson);
 
       if (!ring || ring.length < 3) {
         console.warn('하이라이트 실패: 유효하지 않은 지오메트리');
@@ -501,12 +570,7 @@ export function useVworld3D({
     try { map.removeObjectById(PARCEL_HOVER_ID); } catch { /* no-op */ }
 
     try {
-      const geo = geojson as any;
-      let ring: number[][] | undefined;
-      if (geo.type === 'Polygon') ring = geo.coordinates?.[0];
-      else if (geo.type === 'Feature' && geo.geometry?.type === 'Polygon') ring = geo.geometry.coordinates?.[0];
-      else if (geo.type === 'MultiPolygon') ring = geo.coordinates?.[0]?.[0];
-      else if (geo.type === 'Feature' && geo.geometry?.type === 'MultiPolygon') ring = geo.geometry.coordinates?.[0]?.[0];
+      const ring = extractGeoJsonRing(geojson);
 
       if (!ring || ring.length < 3) return;
 
@@ -586,7 +650,6 @@ export function useVworld3D({
       if (layer) {
         if (visible) layer.show();
         else layer.hide();
-        return;
       }
     } catch { /* fallback to Cesium */ }
 

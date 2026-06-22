@@ -1,0 +1,96 @@
+{
+  "state": {
+    "hasAgLightBlock": true,
+    "hasAgButton": true,
+    "hasReviews": [
+      "법규",
+      "주차",
+      "정북일조",
+      "대지레벨",
+      "디자인"
+    ],
+    "placeholder": false,
+    "excerpt": "AG-light 협업모드\n법규 · 주차 · 정북일조 · 대지레벨 · 디자인 비평\nON · log 5\n현재 안 AG-light 검토 시작\n법규\n최종 unknown\nhard 0 · missing 0 · issue 0\n주차\n주차 산정 근거 확인 필요\n소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토\n정북일조\n적용 외 또는 envelope 없음\n기준면 수치 확인 필요\n대지레벨\ndatum_result 없음\n§119 가중평균 및 §86 인접대지 평균 기준 분리 검토\n디자인\nFAR 111.1 · BCR 37.0 · H 8.4m\n법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토\n최근 bus\ndesign_critic -> design_orchestrator · 디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성,...\ndatum_agent -> design_orchestrator · 대지레벨: datum_result 없음 (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)\nsunlight_agent -> design_orchestrator · 정북일조: 적용 외 또는 envelope 없음 (기준면 수치 확인 필요)\n북측 상부를 4단으로 자연스럽게 후퇴시켜줘. 용적률은 5% 이상 잃지 말고.\n도로 쪽 저층부를 포디움처럼 더 강하게 만들어줘.\n코어가 가운데라 답답해. 동측 외곽으로 붙일 수 있는지 봐줘.\n수정 후보 만들기MAAS 법규 후보 바로 만들기\n층+\n층-\n폭+\n폭-\nE1+\nE2+\nE3+\nE4+\n외관 이미지 생성\n법규 매스는 고정하고 재료, 창호 리듬, 분위기만 생성합니다.\nReference only\nGPT Image\nNano Banana\n매스 기반 외관 생성"
+  },
+  "agClick": true,
+  "screenshotPath": "/mnt/d/Data/25_ACE/docs/playwright/design-route-live-verify/ag-light/ag-light-after-restart.png",
+  "bus": [
+    {
+      "timestamp": "2026-06-16T16:45:37.959315",
+      "from_agent": "law_agent",
+      "to_agent": "design_orchestrator",
+      "message": "법규: 최종 unknown (hard 0 · missing 0 · issue 0)",
+      "event_type": "dialogue",
+      "metadata": {
+        "job_id": "ee1f81bd-4ea2-412e-b58a-50da0d1277e0",
+        "design_id": 900000,
+        "source": "arr_design_ui",
+        "final_status": "unknown",
+        "status": "pass",
+        "label": "법규"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T16:45:37.982512",
+      "from_agent": "parking_agent",
+      "to_agent": "design_orchestrator",
+      "message": "주차: 주차 산정 근거 확인 필요 (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+      "event_type": "dialogue",
+      "metadata": {
+        "job_id": "ee1f81bd-4ea2-412e-b58a-50da0d1277e0",
+        "design_id": 900000,
+        "source": "arr_design_ui",
+        "final_status": "unknown",
+        "status": "check",
+        "label": "주차"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T16:45:37.987169",
+      "from_agent": "sunlight_agent",
+      "to_agent": "design_orchestrator",
+      "message": "정북일조: 적용 외 또는 envelope 없음 (기준면 수치 확인 필요)",
+      "event_type": "dialogue",
+      "metadata": {
+        "job_id": "ee1f81bd-4ea2-412e-b58a-50da0d1277e0",
+        "design_id": 900000,
+        "source": "arr_design_ui",
+        "final_status": "unknown",
+        "status": "info",
+        "label": "정북일조"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T16:45:37.991850",
+      "from_agent": "datum_agent",
+      "to_agent": "design_orchestrator",
+      "message": "대지레벨: datum_result 없음 (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+      "event_type": "dialogue",
+      "metadata": {
+        "job_id": "ee1f81bd-4ea2-412e-b58a-50da0d1277e0",
+        "design_id": 900000,
+        "source": "arr_design_ui",
+        "final_status": "unknown",
+        "status": "check",
+        "label": "대지레벨"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T16:45:37.996785",
+      "from_agent": "design_critic",
+      "to_agent": "design_orchestrator",
+      "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+      "event_type": "dialogue",
+      "metadata": {
+        "job_id": "ee1f81bd-4ea2-412e-b58a-50da0d1277e0",
+        "design_id": 900000,
+        "source": "arr_design_ui",
+        "final_status": "unknown",
+        "status": "info",
+        "label": "디자인"
+      }
+    }
+  ],
+  "errors": [],
+  "consoleProblems": []
+}

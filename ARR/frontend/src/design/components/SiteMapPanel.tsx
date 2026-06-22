@@ -7,6 +7,8 @@ import { renderSunlightEnvelope } from '../lib/envelopes/sunlight';
 import { clearDatumPlane, renderDatumMarkers, type DatumMarker } from '../lib/envelopes/datum-plane';
 import { clearElevationGrid } from '../lib/envelopes/elevation-grid';
 import { visualizeConstraints, type ConstraintsResult } from '../lib/api-client';
+import { clearMassEntities, renderMassEntities } from '../lib/cesium/mass-entities';
+import { SHAPE_COLORS, SHAPE_LABELS } from '../lib/cesium/mass-styles';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const getCesium = (): any => (window as any).Cesium;
@@ -20,6 +22,13 @@ interface Props {
   sitePolygon: object | null;
   massFeatures?: GeoJSONFeature[];
   selectedDesignId?: number;
+  aestheticOverlayUrl?: string | null;
+  aestheticOverlayStatus?: string | null;
+  aestheticFacadeStyle?: string | null;
+  aestheticFacadeTextureUrl?: string | null;
+  aestheticFacadeTexturePanelUrls?: Record<string, string> | null;
+  aestheticTexturedGltfUrl?: string | null;
+  aestheticPreviewMode?: boolean;
   onParcelClick?: (pnu: string, address: string) => void;
   setbackGeometries?: SetbackGeometriesMap;
 }
@@ -27,20 +36,241 @@ interface Props {
 /** Extract outer ring from Polygon or MultiPolygon geometry */
 function extractRing(geometry: { type: string; coordinates: any }): number[][] | null {
   if (geometry.type === 'Polygon') return geometry.coordinates[0];
-  if (geometry.type === 'MultiPolygon') return geometry.coordinates[0]?.[0];
+  if (geometry.type === 'MultiPolygon') return largestPolygonCoordinates(geometry.coordinates)?.[0] || null;
   return null;
 }
 
-/** Clear all 3D mass entities from viewer */
-function clearMassEntities(viewer: any) {
-  const toRemove: any[] = [];
-  for (const e of viewer.entities.values) {
-    if (typeof e.id === 'string' && e.id.startsWith(MASS_PREFIX)) {
-      toRemove.push(e);
+function ringArea(ring: number[][] | null | undefined): number {
+  if (!ring || ring.length < 3) return 0;
+  let sum = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % ring.length];
+    sum += a[0] * b[1] - b[0] * a[1];
+  }
+  return Math.abs(sum) / 2;
+}
+
+function largestPolygonCoordinates(polygons: number[][][][] | null | undefined): number[][][] | null {
+  if (!Array.isArray(polygons) || polygons.length === 0) return null;
+  return polygons.reduce<number[][][] | null>((best, polygon) => {
+    if (!Array.isArray(polygon) || !polygon[0]) return best;
+    if (!best) return polygon;
+    return ringArea(polygon[0]) > ringArea(best[0]) ? polygon : best;
+  }, null);
+}
+
+function featureRing(feature: GeoJSONFeature | null | undefined): number[][] | null {
+  const geometry = feature?.geometry as { type: string; coordinates: any } | undefined;
+  if (!geometry) return null;
+  return extractRing(geometry);
+}
+
+const PARKING_STRATEGY_LABELS: Record<string, string> = {
+  none: '없음',
+  ground_surface: '외부 지상',
+  piloti_ground: '필로티',
+  basement: '지하',
+  semi_basement: '반지하',
+  mechanical: '기계식',
+  mixed: '혼합',
+};
+
+function parkingInfo(feature: GeoJSONFeature) {
+  const p = feature.properties as any;
+  const precheck = p.parking_precheck;
+  const strategy = precheck?.selected_strategy || precheck?.strategy || p.parking_strategy;
+  const requiredCount = precheck?.required_count || p.parking_required_count;
+  const layout = precheck?.layout_candidate;
+  const authorityReview = layout?.authority_review_check || layout?.turning_clearance?.authority_review_check;
+  const evidenceNeeded = Array.isArray(authorityReview?.external_evidence_needed)
+    ? authorityReview.external_evidence_needed.length
+    : 0;
+  const blockers = Array.isArray(authorityReview?.blockers)
+    ? authorityReview.blockers.length
+    : 0;
+  return {
+    strategy,
+    strategyLabel: strategy ? (PARKING_STRATEGY_LABELS[strategy] || String(strategy)) : '검토',
+    required: typeof requiredCount?.required_spaces === 'number' ? requiredCount.required_spaces : null,
+    provided: typeof layout?.provided_spaces === 'number' ? layout.provided_spaces : null,
+    status: layout?.status || precheck?.status || requiredCount?.status || 'needs_review',
+    authorityLabel: authorityReview?.status
+      ? blockers > 0
+        ? `보완필요 ${blockers}`
+        : evidenceNeeded > 0
+          ? `증빙필요 ${evidenceNeeded}`
+          : '예비OK'
+      : '',
+  };
+}
+
+function featureBounds(rings: Array<number[][] | null>): { west: number; south: number; east: number; north: number } | null {
+  let west = Infinity;
+  let south = Infinity;
+  let east = -Infinity;
+  let north = -Infinity;
+  for (const ring of rings) {
+    if (!ring) continue;
+    for (const [lng, lat] of ring) {
+      west = Math.min(west, lng);
+      south = Math.min(south, lat);
+      east = Math.max(east, lng);
+      north = Math.max(north, lat);
     }
   }
-  for (const e of toRemove) viewer.entities.remove(e);
+  if (![west, south, east, north].every(Number.isFinite)) return null;
+  return { west, south, east, north };
 }
+
+function projectFallbackPoint(
+  point: number[],
+  bounds: { west: number; south: number; east: number; north: number },
+  width: number,
+  height: number,
+): [number, number] {
+  const pad = 44;
+  const spanX = Math.max(bounds.east - bounds.west, 1e-12);
+  const spanY = Math.max(bounds.north - bounds.south, 1e-12);
+  const scale = Math.min((width - pad * 2) / spanX, (height - pad * 2) / spanY);
+  const x = width / 2 + (point[0] - (bounds.west + bounds.east) / 2) * scale;
+  const y = height / 2 - (point[1] - (bounds.south + bounds.north) / 2) * scale;
+  return [x, y];
+}
+
+function pathFromRing(
+  ring: number[][],
+  bounds: { west: number; south: number; east: number; north: number },
+  width: number,
+  height: number,
+): string {
+  return ring
+    .map((point, index) => {
+      const [x, y] = projectFallbackPoint(point, bounds, width, height);
+      return `${index === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ') + ' Z';
+}
+
+const MassFallback2D: React.FC<{
+  sitePolygon: object | null;
+  massFeatures?: GeoJSONFeature[];
+  selectedDesignId?: number;
+  reason?: string;
+}> = ({ sitePolygon, massFeatures, selectedDesignId, reason }) => {
+  const siteRing = sitePolygon ? extractRing(sitePolygon as { type: string; coordinates: any }) : null;
+  const massRings = (massFeatures || []).map(featureRing);
+  const bounds = featureBounds([siteRing, ...massRings]);
+  const width = 760;
+  const height = 760;
+  const selectedFeature = (massFeatures || [])[0];
+  const selectedProps = selectedFeature?.properties || {};
+  if (!bounds || !massFeatures?.length) {
+    return (
+      <div style={{ color: '#f87171', fontSize: 13 }}>
+        {reason || '3D 지도를 사용할 수 없습니다.'}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      width: '100%', height: '100%',
+      display: 'grid', gridTemplateRows: 'auto 1fr auto',
+      background: 'linear-gradient(180deg, #101827 0%, #0b1220 100%)',
+      color: '#e2e8f0',
+      padding: 20,
+      boxSizing: 'border-box',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start' }}>
+        <div>
+          <div style={{ color: '#60a5fa', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em' }}>
+            2D MASS PREVIEW
+          </div>
+          <div style={{ color: '#94a3b8', fontSize: 12, marginTop: 4 }}>
+            WebGL fallback · legal MAAS geometry from mass_geojson
+          </div>
+        </div>
+        <div style={{ color: '#f87171', fontSize: 12, textAlign: 'right', maxWidth: 360 }}>
+          {reason || '3D 지도 비활성화'}
+        </div>
+      </div>
+
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: '100%', minHeight: 0 }}>
+        <defs>
+          <filter id="mass-shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="12" stdDeviation="10" floodColor="#020617" floodOpacity="0.38" />
+          </filter>
+          <linearGradient id="mass-fill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.86" />
+            <stop offset="100%" stopColor="#22c55e" stopOpacity="0.68" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width={width} height={height} rx="18" fill="#0f172a" />
+        <g opacity="0.18">
+          {Array.from({ length: 13 }, (_, i) => (
+            <line key={`v-${i}`} x1={44 + i * 56} y1="44" x2={44 + i * 56} y2={height - 44} stroke="#475569" strokeWidth="1" />
+          ))}
+          {Array.from({ length: 13 }, (_, i) => (
+            <line key={`h-${i}`} x1="44" y1={44 + i * 56} x2={width - 44} y2={44 + i * 56} stroke="#475569" strokeWidth="1" />
+          ))}
+        </g>
+        {siteRing && (
+          <path
+            d={pathFromRing(siteRing, bounds, width, height)}
+            fill="#1e293b"
+            stroke="#94a3b8"
+            strokeWidth="2"
+            strokeDasharray="8 7"
+            opacity="0.78"
+          />
+        )}
+        {(massFeatures || []).map((feature, index) => {
+          const ring = featureRing(feature);
+          if (!ring) return null;
+          const props = feature.properties || {};
+          const designId = props.design_id ?? props.variant_id ?? index;
+          const selected = selectedDesignId ? designId === selectedDesignId : index === 0;
+          const color = SHAPE_COLORS[props.mass_shape || props.algorithm || ''] || '#60a5fa';
+          const dx = selected ? 0 : (index % 4) * 5 - 8;
+          const dy = selected ? 0 : Math.floor(index / 4) * 5 - 8;
+          return (
+            <g key={`${designId}-${index}`} transform={`translate(${dx} ${dy})`} opacity={selected ? 1 : 0.42}>
+              <path
+                d={pathFromRing(ring, bounds, width, height)}
+                fill={selected ? 'url(#mass-fill)' : color}
+                fillOpacity={selected ? 0.78 : 0.22}
+                stroke={selected ? '#fbbf24' : color}
+                strokeWidth={selected ? 5 : 2}
+                filter={selected ? 'url(#mass-shadow)' : undefined}
+              />
+            </g>
+          );
+        })}
+      </svg>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+        gap: 8,
+        fontSize: 12,
+      }}>
+        {[
+          ['형태', selectedProps.mass_shape || selectedProps.algorithm || '-'],
+          ['높이', selectedProps.height ? `${Number(selectedProps.height).toFixed(1)}m` : '-'],
+          ['층수', selectedProps.num_floors ? `${selectedProps.num_floors}F` : '-'],
+          ['건폐율', selectedProps.bcr ? `${Number(selectedProps.bcr).toFixed(1)}%` : '-'],
+          ['용적률', selectedProps.far ? `${Number(selectedProps.far).toFixed(1)}%` : '-'],
+        ].map(([label, value]) => (
+          <div key={label} style={{ background: '#111827', border: '1px solid #1e293b', borderRadius: 8, padding: '8px 10px' }}>
+            <div style={{ color: '#64748b', fontSize: 10, marginBottom: 3 }}>{label}</div>
+            <div style={{ color: '#e2e8f0', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 /** Flatten a coordinate ring to [lng, lat, lng, lat, ...] */
 function flattenRing(ring: number[][]): number[] {
@@ -116,7 +346,7 @@ function polygonRing(geom: unknown): number[][] | null {
   const g = geom as { type?: string; coordinates?: unknown } | undefined;
   if (!g?.coordinates) return null;
   if (g.type === 'Polygon') return (g.coordinates as number[][][])[0] ?? null;
-  if (g.type === 'MultiPolygon') return (g.coordinates as number[][][][])[0]?.[0] ?? null;
+  if (g.type === 'MultiPolygon') return largestPolygonCoordinates(g.coordinates as number[][][][])?.[0] ?? null;
   if (g.type === 'Feature') {
     return polygonRing((g as { geometry?: unknown }).geometry);
   }
@@ -541,19 +771,6 @@ function renderFrontRoadDiagonalReference(
   return addedIds;
 }
 
-/** Get ground height at centroid */
-function getGroundHeight(Cesium: any, viewer: any, ring: number[][]): number {
-  let cx = 0, cy = 0;
-  for (const [lng, lat] of ring) { cx += lng; cy += lat; }
-  cx /= ring.length; cy /= ring.length;
-  try {
-    const carto = Cesium.Cartographic.fromDegrees(cx, cy);
-    const h = viewer.scene?.globe?.getHeight?.(carto);
-    if (typeof h === 'number' && isFinite(h)) return h;
-  } catch { /* fallback */ }
-  return 0;
-}
-
 function hideVworldBuildingTiles(viewer: any, Cesium: any) {
   const primitives = viewer?.scene?.primitives;
   if (!primitives) return;
@@ -565,160 +782,12 @@ function hideVworldBuildingTiles(viewer: any, Cesium: any) {
   }
 }
 
-/** Mass shape display labels */
-const SHAPE_LABELS: Record<string, string> = {
-  additive: '자유형', subtractive: '감산형', grid: '격자형',
-  lshape: 'ㄱ자형', ushape: 'ㄷ자형', cross: '십자형',
-  courtyard: '중정형', tower_podium: '타워+기단', hshape: 'H자형',
-  radial: '방사형',
-  freeform: '자유형', rectangle: '직사각형', L: 'L형', U: 'U형',
-};
-
-/** Mass shape color palette — 10 distinct colors for 10 algorithms */
-const SHAPE_COLORS: Record<string, string> = {
-  additive: '#60a5fa',       // blue
-  subtractive: '#a78bfa',    // purple
-  grid: '#34d399',           // emerald
-  lshape: '#f97316',         // orange
-  ushape: '#06b6d4',         // cyan
-  cross: '#ef4444',          // red
-  courtyard: '#f472b6',      // pink
-  tower_podium: '#eab308',   // yellow
-  hshape: '#8b5cf6',         // violet
-  radial: '#14b8a6',         // teal
-  freeform: '#60a5fa',
-  rectangle: '#60a5fa',
-  L: '#f97316',
-  U: '#06b6d4',
-};
-
-/** Render 3D building mass on Cesium viewer */
-function renderMassEntities(
-  viewer: any,
-  Cesium: any,
-  features: GeoJSONFeature[],
-  selectedId?: number,
-  datumZ?: number,  // 2026-05-11 Step 5: NGII §119 datum 절대 z (envelope과 통일)
-) {
-  clearMassEntities(viewer);
-
-  for (const feature of features) {
-    const ring = extractRing(feature.geometry);
-    if (!ring || ring.length < 3) continue;
-
-    const p = feature.properties;
-    const height = p.height || 15;
-    const numFloors = p.num_floors || 1;
-    const floorH = p.floor_height || (height / numFloors);
-    const designId = p.design_id ?? 0;
-    const isSelected = selectedId != null && designId === selectedId;
-    const shapeColor = SHAPE_COLORS[p.mass_shape || 'rectangle'] || '#60a5fa';
-
-    // Step 5: datumZ(NGII §119) 우선 → envelope/매스/datum 평면 단일 평면.
-    // 없으면 Cesium globe terrain fallback (LOCKED SPEC 이전 동작).
-    const groundH = (datumZ != null && isFinite(datumZ) && datumZ !== 0)
-      ? datumZ
-      : getGroundHeight(Cesium, viewer, ring);
-    const flat = flattenRing(ring);
-
-    const hasStepback = p.step_floor && p.upper_geometry && p.lower_height;
-
-    if (hasStepback) {
-      // Two-tier mass: lower (base polygon) + upper (smaller polygon)
-      const lowerTop = groundH + p.lower_height!;
-
-      // Lower tier
-      viewer.entities.add({
-        id: `${MASS_PREFIX}lower-${designId}`,
-        polygon: {
-          hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
-          height: groundH,
-          extrudedHeight: lowerTop,
-          material: isSelected
-            ? Cesium.Color.fromCssColorString('#f59e0b').withAlpha(0.3)
-            : Cesium.Color.fromCssColorString(shapeColor).withAlpha(0.2),
-          outline: true,
-          outlineColor: isSelected
-            ? Cesium.Color.fromCssColorString('#fbbf24')
-            : Cesium.Color.fromCssColorString(shapeColor),
-        },
-      });
-
-      // Upper tier
-      const upperRing = extractRing(p.upper_geometry!);
-      if (upperRing && upperRing.length >= 3) {
-        const upperFlat = flattenRing(upperRing);
-        viewer.entities.add({
-          id: `${MASS_PREFIX}upper-${designId}`,
-          polygon: {
-            hierarchy: Cesium.Cartesian3.fromDegreesArray(upperFlat),
-            height: lowerTop,
-            extrudedHeight: groundH + height,
-            material: isSelected
-              ? Cesium.Color.fromCssColorString('#f59e0b').withAlpha(0.25)
-              : Cesium.Color.fromCssColorString(shapeColor).withAlpha(0.15),
-            outline: true,
-            outlineColor: isSelected
-              ? Cesium.Color.fromCssColorString('#fbbf24')
-              : Cesium.Color.fromCssColorString(shapeColor).withAlpha(0.8),
-          },
-        });
-      }
-    } else {
-      // Single-tier mass
-      viewer.entities.add({
-        id: `${MASS_PREFIX}body-${designId}`,
-        polygon: {
-          hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
-          height: groundH,
-          extrudedHeight: groundH + height,
-          material: isSelected
-            ? Cesium.Color.fromCssColorString('#f59e0b').withAlpha(0.3)
-            : Cesium.Color.fromCssColorString(shapeColor).withAlpha(0.2),
-          outline: true,
-          outlineColor: isSelected
-            ? Cesium.Color.fromCssColorString('#fbbf24')
-            : Cesium.Color.fromCssColorString(shapeColor),
-        },
-      });
-    }
-
-    // Floor plate lines
-    for (let i = 1; i < numFloors; i++) {
-      const plateH = groundH + floorH * i;
-      // Use upper geometry for floors above step
-      const useUpper = hasStepback && p.step_floor && i >= p.step_floor;
-      let plateFlat = flat;
-      if (useUpper && p.upper_geometry) {
-        const uRing = extractRing(p.upper_geometry);
-        if (uRing && uRing.length >= 3) plateFlat = flattenRing(uRing);
-      }
-      viewer.entities.add({
-        id: `${MASS_PREFIX}floor-${designId}-${i}`,
-        polygon: {
-          hierarchy: Cesium.Cartesian3.fromDegreesArray(plateFlat),
-          height: plateH,
-          material: Cesium.Color.fromCssColorString('#93c5fd').withAlpha(0.06),
-          outline: true,
-          outlineColor: isSelected
-            ? Cesium.Color.fromCssColorString('#fbbf24').withAlpha(0.3)
-            : Cesium.Color.fromCssColorString(shapeColor).withAlpha(0.15),
-        },
-      });
-    }
-
-    // Ground footprint outline (orange)
-    viewer.entities.add({
-      id: `${MASS_PREFIX}footprint-${designId}`,
-      polygon: {
-        hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
-        height: groundH + 0.3,
-        material: Cesium.Color.fromCssColorString('#f97316').withAlpha(0.15),
-        outline: true,
-        outlineColor: Cesium.Color.fromCssColorString('#f97316'),
-      },
-    });
+function clearSetbackEntities(viewer: any) {
+  const toRemove: any[] = [];
+  for (const e of viewer.entities.values) {
+    if (typeof e.id === 'string' && e.id.startsWith(SETBACK_PREFIX)) toRemove.push(e);
   }
+  for (const e of toRemove) viewer.entities.remove(e);
 }
 
 /** Clear and render setback geometry lines + 3D envelopes */
@@ -728,12 +797,7 @@ function renderSetbackEntities(
   setbacks: SetbackGeometriesMap,
   parcelRing: number[][] | null,
 ) {
-  // Clear old
-  const toRemove: any[] = [];
-  for (const e of viewer.entities.values) {
-    if (typeof e.id === 'string' && e.id.startsWith(SETBACK_PREFIX)) toRemove.push(e);
-  }
-  for (const e of toRemove) viewer.entities.remove(e);
+  clearSetbackEntities(viewer);
 
   // 규제별 고유 색상 — 프런트/CLI 공통 레퍼런스.
   // 변경시 land/services/regulations/colors.py 와 동기화 필요.
@@ -1117,6 +1181,9 @@ function renderDaylightDiagonalEnvelope(
       });
     }
   }
+  try {
+    viewer.scene?.requestRender?.();
+  } catch { /* ignore */ }
 }
 
 /** Clear all constraint visualization entities */
@@ -1204,15 +1271,9 @@ function flyToGeometryBbox(viewerRef: React.RefObject<any>, geometry: any) {
   const viewer = viewerRef.current;
   if (!Cesium || !viewer) return;
 
-  // Extract ring from geometry
-  let ring: number[][] | null = null;
-  if (geometry.type === 'Polygon') ring = geometry.coordinates?.[0];
-  else if (geometry.type === 'MultiPolygon') ring = geometry.coordinates?.[0]?.[0];
-  else if (geometry.type === 'Feature') {
-    const g = geometry.geometry;
-    if (g?.type === 'Polygon') ring = g.coordinates?.[0];
-    else if (g?.type === 'MultiPolygon') ring = g.coordinates?.[0]?.[0];
-  }
+  const ring = geometry.type === 'Feature'
+    ? polygonRing(geometry.geometry)
+    : polygonRing(geometry);
   if (!ring || ring.length < 3) return;
 
   // Calculate bounding box
@@ -1242,7 +1303,18 @@ function flyToGeometryBbox(viewerRef: React.RefObject<any>, geometry: any) {
 }
 
 const SiteMapPanel: React.FC<Props> = React.memo(({
-  sitePolygon, massFeatures, selectedDesignId, onParcelClick, setbackGeometries,
+  sitePolygon,
+  massFeatures,
+  selectedDesignId,
+  aestheticOverlayUrl,
+  aestheticOverlayStatus,
+  aestheticFacadeStyle,
+  aestheticFacadeTextureUrl,
+  aestheticFacadeTexturePanelUrls,
+  aestheticTexturedGltfUrl,
+  aestheticPreviewMode,
+  onParcelClick,
+  setbackGeometries,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState('');
@@ -1316,19 +1388,32 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
       hideVworldBuildingTiles(viewer, Cesium);
       window.setTimeout(() => { setBuildingsVisible(false); hideVworldBuildingTiles(viewer, Cesium); }, 800);
       window.setTimeout(() => { setBuildingsVisible(false); hideVworldBuildingTiles(viewer, Cesium); }, 2200);
-      renderMassEntities(viewer, Cesium, massFeatures, selectedDesignId, datumZ);
+      renderMassEntities({
+        viewer,
+        Cesium,
+        features: massFeatures,
+        entityPrefix: MASS_PREFIX,
+        selectedId: selectedDesignId,
+        datumZ,
+        aestheticOverlayUrl,
+        aestheticOverlayStatus,
+        aestheticFacadeStyle,
+        aestheticFacadeTextureUrl,
+        aestheticFacadeTexturePanelUrls,
+        aestheticTexturedGltfUrl,
+      });
     } else if (hasSetbacks) {
       // 규제선만 있어도 기존 건물 숨기기 (Wall이 건물에 가려지지 않도록)
       setBuildingsVisible(false);
       hideVworldBuildingTiles(viewer, Cesium);
       window.setTimeout(() => { setBuildingsVisible(false); hideVworldBuildingTiles(viewer, Cesium); }, 800);
       window.setTimeout(() => { setBuildingsVisible(false); hideVworldBuildingTiles(viewer, Cesium); }, 2200);
-      clearMassEntities(viewer);
+      clearMassEntities(viewer, MASS_PREFIX);
     } else {
-      clearMassEntities(viewer);
+      clearMassEntities(viewer, MASS_PREFIX);
       setBuildingsVisible(true);
     }
-  }, [massFeatures, selectedDesignId, setbackGeometries, ready, viewerRef, setBuildingsVisible]);
+  }, [massFeatures, selectedDesignId, aestheticOverlayUrl, aestheticOverlayStatus, aestheticFacadeStyle, aestheticFacadeTextureUrl, aestheticFacadeTexturePanelUrls, aestheticTexturedGltfUrl, setbackGeometries, ready, viewerRef, setBuildingsVisible]);
 
   // Render setback geometry lines (regulation boundaries)
   React.useEffect(() => {
@@ -1336,8 +1421,25 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
     const viewer = viewerRef.current;
     const Cesium = getCesium();
     if (!viewer || !Cesium) return;
+    try {
+      (window as unknown as { __arrDesignSetbackGeometries?: SetbackGeometriesMap | null }).__arrDesignSetbackGeometries = setbackGeometries ?? null;
+    } catch {
+      // Debug/export helper only.
+    }
 
     if (setbackGeometries && Object.keys(setbackGeometries).length > 0) {
+      if (aestheticPreviewMode) {
+        clearHighlight();
+        clearSetbackEntities(viewer);
+        clearConstraintEntities(viewer);
+        clearDatumPlane(viewer);
+        clearElevationGrid(viewer);
+        hideVworldBuildingTiles(viewer, Cesium);
+        try {
+          viewer.scene?.requestRender?.();
+        } catch { /* ignore */ }
+        return;
+      }
       clearHighlight();
       clearConstraintEntities(viewer);
       // Terrain이 envelope polygon (H=10~50m)을 가리는 것 방지 — depth test 끔.
@@ -1366,7 +1468,7 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
       clearDatumPlane(viewer);
       clearElevationGrid(viewer);
     }
-  }, [setbackGeometries, sitePolygon, ready, viewerRef, clearHighlight]);
+  }, [setbackGeometries, sitePolygon, ready, viewerRef, clearHighlight, aestheticPreviewMode]);
 
   // visualizeConstraints fallback — setbackGeometries 비어있을 때 임의 polygon에
   // envelope/setback 시각 자동 생성 (Flexity 광고의 빨간 공지 + 녹색 사선 base 매칭).
@@ -1433,7 +1535,16 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: '#0f172a', zIndex: 10,
         }}>
-          <div style={{ color: '#f87171', fontSize: 13 }}>{error}</div>
+          {massFeatures?.length ? (
+            <MassFallback2D
+              sitePolygon={sitePolygon}
+              massFeatures={massFeatures}
+              selectedDesignId={selectedDesignId}
+              reason={error}
+            />
+          ) : (
+            <div style={{ color: '#f87171', fontSize: 13 }}>{error}</div>
+          )}
         </div>
       )}
 
@@ -1453,16 +1564,48 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
           </div>
           {massFeatures.map((f, i) => {
             const p = f.properties;
-            const algoKey = p.algorithm || p.mass_shape || 'rectangle';
+            const algoKey = p.mass_shape || p.algorithm || 'rectangle';
             const algoColor = SHAPE_COLORS[algoKey] || '#60a5fa';
+            const parking = parkingInfo(f);
             return (
               <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                   <span style={{ color: '#94a3b8' }}>형태</span>
                   <span style={{ fontFamily: 'monospace', color: algoColor, fontWeight: 600 }}>
-                    {SHAPE_LABELS[algoKey] || algoKey}
+            {SHAPE_LABELS[algoKey] || algoKey}
                   </span>
                 </div>
+                {(() => {
+                  const groups = Array.isArray(p.maas_model?.floor_groups)
+                    ? p.maas_model.floor_groups
+                    : Array.isArray(p.floor_groups) ? p.floor_groups : [];
+                  if (!groups.length) return null;
+                  return (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                      <span style={{ color: '#94a3b8' }}>층그룹</span>
+                      <span style={{ fontFamily: 'monospace', color: '#a7f3d0' }}>
+                        {groups.length}G / +{groups[0]?.far_contribution?.toFixed?.(1) ?? '-'}%
+                      </span>
+                    </div>
+                  );
+                })()}
+                {(() => {
+                  const groups = Array.isArray(p.maas_model?.floor_groups)
+                    ? p.maas_model.floor_groups
+                    : Array.isArray(p.floor_groups) ? p.floor_groups : [];
+                  const packed = groups.filter((g) => g.program_packing?.status === 'ok');
+                  const firstPacked = packed[0]?.program_packing?.preview_summary;
+                  if (!groups.length) return null;
+                  return (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                      <span style={{ color: '#94a3b8' }}>패킹</span>
+                      <span style={{ fontFamily: 'monospace', color: packed.length === groups.length ? '#22c55e' : '#f59e0b' }}>
+                        {packed.length}/{groups.length}G
+                        {firstPacked ? ` / ${firstPacked.room_count}실` : ''}
+                      </span>
+                    </div>
+                  );
+                })()}
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#94a3b8' }}>높이</span>
                   <span style={{ fontFamily: 'monospace' }}>{p.height?.toFixed(1)}m</span>
@@ -1488,6 +1631,42 @@ const SiteMapPanel: React.FC<Props> = React.memo(({
                     {p.floor_area >= 1000 ? (p.floor_area / 1000).toFixed(1) + 'k' : p.floor_area?.toFixed(0)}m²
                   </span>
                 </div>
+                <div style={{
+                  marginTop: 4,
+                  paddingTop: 5,
+                  borderTop: '1px solid rgba(148,163,184,0.16)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                }}>
+                  <span style={{ color: '#94a3b8' }}>주차</span>
+                  <span style={{
+                    fontFamily: 'monospace',
+                    color: parking.strategy === 'piloti_ground' ? '#facc15' : '#a7f3d0',
+                    fontWeight: 700,
+                  }}>
+                    {parking.strategyLabel}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                  <span style={{ color: '#94a3b8' }}>법정/계획</span>
+                  <span style={{ fontFamily: 'monospace', color: parking.required == null ? '#f59e0b' : '#e2e8f0' }}>
+                    {parking.required == null ? '산정필요' : `${parking.required}`}
+                    {' / '}
+                    {parking.provided == null ? '-' : parking.provided}
+                  </span>
+                </div>
+                {parking.authorityLabel ? (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                    <span style={{ color: '#94a3b8' }}>관청검토</span>
+                    <span style={{
+                      fontFamily: 'monospace',
+                      color: parking.authorityLabel.includes('OK') ? '#22c55e' : '#f59e0b',
+                    }}>
+                      {parking.authorityLabel}
+                    </span>
+                  </div>
+                ) : null}
               </div>
             );
           })}

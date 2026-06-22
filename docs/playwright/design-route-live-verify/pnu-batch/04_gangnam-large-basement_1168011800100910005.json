@@ -1,0 +1,75 @@
+{
+  "pnu": "1168011800100910005",
+  "name": "gangnam-large-basement",
+  "buildingType": "공동주택",
+  "algorithm": "maas_legal_envelope",
+  "maxGenerations": 5,
+  "populationSize": 10,
+  "requireParkingStalls": true,
+  "waitError": {
+    "name": "TimeoutError",
+    "message": "page.waitForFunction: Timeout 220000ms exceeded."
+  },
+  "pngPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\zoom_04_gangnam-large-basement_1168011800100910005.png",
+  "jsonPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\04_gangnam-large-basement_1168011800100910005.json",
+  "zoomState": {
+    "zoomed": false,
+    "reason": "missing-viewer"
+  },
+  "state": {
+    "hasDisabledText": false,
+    "hasFallback": false,
+    "hasComplete": false,
+    "hasDesignList": false,
+    "hasMassText": false,
+    "hasAuthorityReviewText": false,
+    "hasEvidenceNeededText": false,
+    "hasVworldCanvas": false,
+    "bodyHead": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n△\n왼쪽 지도에서 대지를 선택하고\n최적화를 시작하면\n파레토 프론트가 표시됩니다\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nFailed to execute 'json' on 'Response': Unexpected end of JSON input\nAPI 키 조회 실패\nAI 설계 협업\nMAAS Agent Workspace\n후보를 선택하면 대화형 수정이 열립니다.",
+    "entityCount": 0,
+    "designMassEntities": [],
+    "parkingEntities": [],
+    "parkingStallEntities": [],
+    "pilotiEntities": [],
+    "parkingRequiredSpaces": null,
+    "parkingProvidedSpaces": null,
+    "selectedParkingPrecheck": null,
+    "selectedMassFeature": null,
+    "parkingPrecheckSummaries": [],
+    "massDebug": null,
+    "canvases": []
+  },
+  "errorCount": 0,
+  "consoleProblems": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Vworld 3D init error: Error: API 키 조회 실패\n    at init (http://127.0.0.1:5174/src/land/hooks/use-vworld-3d.ts:172:34)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    }
+  ],
+  "responseErrors": [
+    {
+      "status": 500,
+      "url": "http://127.0.0.1:5174/land/map-config/"
+    },
+    {
+      "status": 500,
+      "url": "http://127.0.0.1:5174/design/site-boundary/"
+    },
+    {
+      "status": 500,
+      "url": "http://127.0.0.1:5174/design/auto-constraints/"
+    }
+  ]
+}

@@ -296,11 +296,22 @@ def fetch_parcel_geometry(pnu: str) -> dict:
         if geom.get("type") == "MultiPolygon":
             coords = geom.get("coordinates") or []
             if coords:
-                geom = {"type": "Polygon", "coordinates": coords[0]}
+                largest = max(coords, key=lambda polygon: _ring_area(polygon[0]) if polygon else 0)
+                geom = {"type": "Polygon", "coordinates": largest}
 
         return {"success": True, "geometry": geom}
     except (AttributeError, KeyError, TypeError, ValueError) as e:
         return {"success": False, "geometry": None, "error": f"ParcelGeometry parse: {e}"}
+
+
+def _ring_area(ring: list[list[float]] | None) -> float:
+    if not ring or len(ring) < 3:
+        return 0.0
+    total = 0.0
+    for idx, point in enumerate(ring):
+        nxt = ring[(idx + 1) % len(ring)]
+        total += float(point[0]) * float(nxt[1]) - float(nxt[0]) * float(point[1])
+    return abs(total) / 2.0
 
 
 def _vworld_reverse_address(x: float, y: float) -> str | None:

@@ -265,21 +265,21 @@ const ParetoChart: React.FC<Props> = React.memo(({
 
   }, [designs, scatterHistory, maxGeneration, selectedId, xLabel, yLabel]);
 
-  const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const selectNearest = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container || designs.length === 0) return;
 
     const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
+    const mx = clientX - rect.left;
+    const my = clientY - rect.top;
 
     const bounds = computeBounds(scatterHistory, designs, rect.width);
     if (!bounds) return;
     const { scaleX, scaleY } = bounds;
 
     let closest: DesignData | null = null;
-    let minDist = 40;
+    let minDist = 64;
     for (const d of designs) {
       const dx = scaleX(d.objectives[0] || 0) - mx;
       const dy = scaleY(d.objectives[1] || 0) - my;
@@ -287,6 +287,10 @@ const ParetoChart: React.FC<Props> = React.memo(({
       if (dist < minDist) { minDist = dist; closest = d; }
     }
     if (closest) onSelect(closest);
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    selectNearest(e.clientX, e.clientY);
   };
 
   const totalCount = scatterHistory.length;
@@ -345,7 +349,7 @@ const ParetoChart: React.FC<Props> = React.memo(({
       <div ref={containerRef} style={{ width: '100%' }}>
         <canvas
           ref={canvasRef}
-          onClick={handleClick}
+          onPointerDown={handlePointerDown}
           style={{ cursor: 'crosshair', borderRadius: 8 }}
         />
       </div>

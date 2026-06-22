@@ -236,8 +236,17 @@ def map_config(request):
     Return Vworld API key and WMS config for 3D map initialization.
     The frontend loads Vworld WebGL 3D script with this key.
     """
+    if not config.VWORLD_API_KEY:
+        return JsonResponse(
+            {
+                "error": "VWORLD_API_KEY is not configured",
+                "configured": False,
+            },
+            status=503,
+        )
     return JsonResponse({
         "api_key": config.VWORLD_API_KEY,
+        "configured": True,
         "wms_layers": "lp_pa_cbnd_bonbun,lp_pa_cbnd_bubun",
     })
 

@@ -1,0 +1,188 @@
+{
+  "steps": [
+    {
+      "step": "open_design",
+      "status": 200,
+      "title": "Eigent",
+      "text": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n△\n왼쪽 지도에서 대지를 선택하고\n최적화를 시작하면\n파레토 프론트가 표시됩니다\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nWebGL을 사용할 수 없어 3D 지도를 비활성화했습니다.\nAI 설계 협업\nMAAS Agent Workspace\n후보를 선택하면 대화형 수정이 열립니다."
+    },
+    {
+      "step": "pnu_lookup_force_click",
+      "text": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\n대지면적\n264.13 m²\n용도지역\n제2종일반주거지역\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n법규 산정 근거\n수치지형도 소스\nngii_local_dem\n대지 샘플\n14개 / 16.90-17.35m\n도로 샘플\n3개 / 16.34-16.61m\n인접대지 샘플\n13개 / 17.04-17.59m\n검출 도로폭\n37.5m\n전면도로 후보\n1개\n인접대지 후보\n4개\n정북일조\n적용 / 기준면 17.23m\n채광사선 참고면\n17.10m / 매스 창면 검토 필요\n화면 기본 레이어\n정북면 / 채광옵션 / 도로 / 인접\n\nVWorld 기본 화면은 검토용 요약 레이어입니다. 전체 디버그는 URL에 ?layers=all, 도로 라벨 전체는 ?roadLabels=all 을 붙여 확인합니다.\n\nCONSTRAINTS\n건폐율 ≤ 60%\n≤ 60%\n용적률 ≤ 250%\n≤ 250%\n인접대지 이격 ≥ 0.5m\n≥ 0.5m\n조경면적 ≥ 15%\n≥ 15%\n지반 레벨 (§119 DATUM)\n정북일조 기준 H = 0\n17.23m\n정북일조 기준 H=0\n17.23 m\n대지 §119 기준면\n17.10 m\n전면도로 기준면\n16.48 m\n인접대지 기준면\n17.35 m\n§86 평균수평면\n17.23 m\n§119/§86 케이스\n정북인접 평균 (§86)\n산정 방법\n인접지 평균\n데이터 소스\nNGII 수치지형도 SHP→DEM (5m)\n\nenvelope walls/slanted_polygons 의 H는 이 datum 기준 상대값. Cesium 렌더 시 datum_m 위에 envelope 위치.\n\n정북일조 사선제한 단면 (§86①, 2023.9.12 개정)\n인접대지 경계선\n1.5m 이격\nH ≤ 10m: 직각\nH > 10m: slope 2:1 (H = 2x)\n건물 (H = 18m)\n0m\n10m\n20m\n0m\n1.5m\n5m\n10m\n15m\n20m\n법규 envelope\n인접대지 경계\n건물 단면\n△\n왼쪽 지도에서 대지를 선택하고\n최적화를 시작하면\n파레토 프론트가 표시됩니다\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nWebGL을 사용할 수 없어 3D 지도를 비활성화했습니다.\nAI 설계 협업\nMAAS Agent Workspace\n후보를 선택하면 대화형 수정이 열립니다."
+    }
+  ],
+  "api": {
+    "siteBoundary": [
+      {
+        "url": "http://127.0.0.1:5174/design/site-boundary/",
+        "status": 200,
+        "method": "POST"
+      }
+    ],
+    "autoConstraints": [
+      {
+        "url": "http://127.0.0.1:5174/design/auto-constraints/",
+        "status": 200,
+        "method": "POST"
+      }
+    ],
+    "jobs": []
+  },
+  "detected": {
+    "hasMaasTitle": true,
+    "hasSiteArea": true,
+    "hasConstraintText": true,
+    "hasWebglFallback": true,
+    "hasAgentWorkspace": true
+  },
+  "events": [
+    {
+      "type": "console",
+      "level": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "console",
+      "level": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "🌐 i18next is maintained with support from Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙"
+    },
+    {
+      "type": "console",
+      "level": "log",
+      "text": "[Design] boundary: geometry=MultiPolygon, area=264.13"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "[Design][LegalQA] constraints {pnu: 1168011800104170004, zones: Array(1), datum: Object, sunlight: Object, daylight: Object}"
+    }
+  ],
+  "errorEvents": [],
+  "responses": [
+    {
+      "url": "http://127.0.0.1:5174/src/design/DesignPage.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/lib/api-client.ts",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/lib/room-presets.ts",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/hooks/use-design-job.ts",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/hooks/use-optimization-stream.ts",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/ControlPanel.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/ConstraintSummary.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/DatumInfoCard.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/SunlightSectionDiagram.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/LegalBasisPanel.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/ParetoChart.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/GenerationProgress.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/DesignInspector.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/DesignList.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/FloorPlanViewer.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/SiteMapPanel.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/InteractiveDesignPanel.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/lib/envelopes/datum-plane.ts",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/lib/envelopes/elevation-grid.ts",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/components/A2UISurfaceRenderer.tsx",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/src/design/lib/envelopes/sunlight.ts",
+      "status": 200,
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5174/design/site-boundary/",
+      "status": 200,
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:5174/design/auto-constraints/",
+      "status": 200,
+      "method": "POST"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "pnu": "1168011800104170004",
+    "name": "gangnam-small-current-pnu-housing",
+    "pass": true,
+    "strategy": "piloti_ground",
+    "voidHeight": 3,
+    "designMassEntities": 15,
+    "parkingEntities": 12,
+    "parkingStallEntities": 6,
+    "pilotiEntities": 0,
+    "sunlightContainment": {
+      "applies": true,
+      "status": "pass",
+      "baseHeightM": 10,
+      "datumElevationM": 17.2293387484479,
+      "datumCase": "neighbor_avg_86",
+      "baseSetbackM": 1.5,
+      "slope": 2,
+      "envelopeLayerCount": 4,
+      "maxMassTopM": 8.4,
+      "method": "base_1_5m_ring",
+      "checked_points": 7,
+      "outside_points": 0,
+      "inside": true,
+      "checks": [
+        {
+          "index": 0,
+          "top_height_m": 8.4,
+          "method": "base_1_5m_ring",
+          "checked_points": 7,
+          "outside_points": 0,
+          "inside": true
+        }
+      ]
+    },
+    "hasFallback": false,
+    "hasDisabledText": false,
+    "waitError": null,
+    "responseErrors": 0,
+    "pngPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\zoom_01_gangnam-small-current-pnu-housing_1168011800104170004.png",
+    "jsonPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\01_gangnam-small-current-pnu-housing_1168011800104170004.json"
+  }
+]

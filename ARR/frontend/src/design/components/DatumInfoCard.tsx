@@ -4,8 +4,8 @@ import type { DatumResultDict } from '../lib/types';
 
 const CASE_LABEL: Record<string, string> = {
   flat: '평탄지 (§119① 5호)',
-  slope_le3m: '경사지 ≤8m (§119② 가중평균)',
-  slope_gt3m: '경사지 >8m (§119② 단서)',
+  slope_le3m: '경사지 ≤3m (§119② 가중평균)',
+  slope_gt3m: '경사지 >3m (§119② 단서)',
   road_flat: '도로접지 평지 (§119① 5호 가목)',
   road_sloped: '도로접지 경사 (§119① 5호 가목 단서)',
   site_above_road: '대지>도로 (§119① 5호 나목)',

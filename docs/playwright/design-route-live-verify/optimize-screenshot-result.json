@@ -1,0 +1,40 @@
+{
+  "screenshot": {
+    "ok": true,
+    "path": "docs/playwright/design-route-live-verify/04_after_optimize_cdp.png"
+  },
+  "summary": {
+    "hasComplete": true,
+    "hasDesignList": true,
+    "hasFallback": true,
+    "hasWebglDisabled": true,
+    "snippet": "OPTIMIZATION\nCOMPLETE\n100%\n세대\n50/50\n적합\n2800\n파레토\n18\n총평가\n2800\nPARETO FRONT\n0 evaluated\n18 pareto\nGen\n0 → 50\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nDESIGN LIST\n18\n#\n매스\n형태\n연면적\n일조\n상태\n1\n법규엔벨로프\n463\n61.0\nOK\n2\n포디움/타워\n429\n62.4\nOK\n3\n다단 일조스텝\n463\n61.0\nOK\n4\n포디움+타워오프셋\n309\n61.0\nOK\n5\n오버랩+시프트+테라스\n287\n67.9\nOK\n6\n코너/오픈코트\n309\n61.0\nOK\n7\n중정형\n247\n68.8\nOK\n8\n바형\n134\n83.2\nOK\n9\n분절/브릿지\n208\n73.8\nOK\n10\n브랜치형\n162\n79.5\nOK\n11\n핀치형\n275\n65.3\nOK\n12\n인터락\n236\n70.2\nOK\n13\n오버랩\n264\n66.7\nOK\n14\n테이퍼\n283\n61.0\nOK\n15\n테라스\n448\n61.0\nOK\n16\n인셋\n261\n67.0\nOK\n17\n건폐확장\n278\n65.0\nOK\n18\n분절+브릿지+계단\n265\n69.6\nOK\n2D MASS PREVIEW\nWebGL fallback · legal MAAS geometry from mass_geojson\nWebGL을 사용할 수 없어 3D 지도를 비활성화했습니다.\n형태\nlegal_layered_max\n높이\n16.8m\n층수\n6F\n건폐율\n39.0%\n용적률\n175.5%\nBUILDING MASS\n형태\nmaas_legal_envelope\n층그룹\n4G / +116.9%\n패킹\n4/4G / 5실\n높이\n16.8m\n층수\n6F\n건폐율\n39.0%\n용적률\n175.5%\n연면적\n463m²\n"
+  },
+  "logs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "info",
+      "text": "🌐 i18next is maintained with support from Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙"
+    },
+    {
+      "type": "log",
+      "text": "[Design] boundary: geometry=MultiPolygon, area=264.13"
+    },
+    {
+      "type": "info",
+      "text": "[Design][LegalQA] constraints {pnu: 1168011800104170004, zones: Array(1), datum: Object, sunlight: Object, daylight: Object}"
+    }
+  ],
+  "errors": []
+}

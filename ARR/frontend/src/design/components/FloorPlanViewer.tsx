@@ -21,6 +21,26 @@ function centroid(coords: number[][]): [number, number] {
   return [cx / coords.length, cy / coords.length];
 }
 
+function ringArea(ring: number[][] | null | undefined): number {
+  if (!ring || ring.length < 3) return 0;
+  let sum = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % ring.length];
+    sum += a[0] * b[1] - b[0] * a[1];
+  }
+  return Math.abs(sum) / 2;
+}
+
+function largestPolygonCoordinates(polygons: number[][][][] | null | undefined): number[][][] | null {
+  if (!Array.isArray(polygons) || polygons.length === 0) return null;
+  return polygons.reduce<number[][][] | null>((best, polygon) => {
+    if (!Array.isArray(polygon) || !polygon[0]) return best;
+    if (!best) return polygon;
+    return ringArea(polygon[0]) > ringArea(best[0]) ? polygon : best;
+  }, null);
+}
+
 function drawFloorPlan(
   canvas: HTMLCanvasElement,
   design: FloorPlanDesign,
@@ -71,7 +91,7 @@ function drawFloorPlan(
     const coords = feat.geometry.type === 'Polygon'
       ? feat.geometry.coordinates[0]
       : feat.geometry.type === 'MultiPolygon'
-        ? (feat.geometry.coordinates as unknown as number[][][][])[0][0]
+        ? largestPolygonCoordinates(feat.geometry.coordinates as unknown as number[][][][])?.[0] || null
         : null;
     if (!coords || coords.length < 3) continue;
 

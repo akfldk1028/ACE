@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>DongHyeon Kim — Portfolio 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { font-family: 'Pretendard', 'Inter', sans-serif; color: #0A0A0A; background: #FFFFFF; -webkit-font-smoothing: antialiased; }
+  .page { width: 210mm; min-height: 297mm; padding: 18mm 20mm; page-break-after: always; position: relative; overflow: hidden; }
+  .page:last-child { page-break-after: auto; }
+  .accent { color: #4F46E5; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .num { font-variant-numeric: tabular-nums; }
+  .card { border: 1px solid #E5E7EB; border-radius: 12px; padding: 14px 16px; }
+  .card-accent { border-color: #4F46E5; background: #EEF2FF; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+  .grid-5 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 10px; }
+  h1 { font-size: 60px; font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; }
+  h2 { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 18px; }
+  h3 { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 4px; }
+  p, li { font-size: 12.5px; line-height: 1.55; color: #525252; }
+  .lede { font-size: 16px; line-height: 1.6; color: #0A0A0A; font-weight: 500; }
+  .metric-num { font-size: 44px; font-weight: 800; letter-spacing: -0.04em; color: #4F46E5; line-height: 1; }
+  .metric-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+  .chip { display: inline-block; padding: 3px 8px; border: 1px solid #E5E7EB; border-radius: 999px; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #0A0A0A; margin: 2px; }
+  .chip-accent { border-color: #4F46E5; color: #4F46E5; background: #EEF2FF; }
+  .blob { position: absolute; width: 380px; height: 380px; background: radial-gradient(circle, rgba(79,70,229,0.18) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+  .nav { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: #525252; letter-spacing: 0.15em; text-transform: uppercase; }
+  .footer-nav { position: absolute; bottom: 12mm; left: 20mm; right: 20mm; display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #A3A3A3; letter-spacing: 0.1em; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; padding: 8px 4px; border-bottom: 1px solid #0A0A0A; font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: #0A0A0A; }
+  td { padding: 8px 4px; border-bottom: 1px solid #E5E7EB; font-size: 12px; color: #0A0A0A; }
+  td.label { color: #525252; }
+  pre { font-family: 'JetBrains Mono', monospace; background: #0A0A0A; color: #E5E7EB; padding: 12px; border-radius: 8px; font-size: 10.5px; overflow-x: auto; line-height: 1.5; }
+  code { font-family: 'JetBrains Mono', monospace; background: #F8FAFC; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #4F46E5; }
+  .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .dot-green { background: #10B981; }
+  .divider { height: 1px; background: #E5E7EB; margin: 14px 0; }
+  .divider-strong { height: 1px; background: #0A0A0A; margin: 14px 0; }
+  .underline-accent { display: inline-block; border-bottom: 4px solid #4F46E5; padding-bottom: 0; line-height: 1; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+PAGE 1 — COVER
+============================================================ -->
+<section class="page">
+  <div class="blob" style="top: -120px; right: -100px;"></div>
+  <div class="blob" style="bottom: -180px; left: -120px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(79,70,229,0.10) 0%, transparent 70%);"></div>
+
+  <div class="nav">Portfolio · 2026 · DongHyeon Kim</div>
+
+  <div style="margin-top: 70mm;">
+    <h1>25_ACE<br><span class="accent">+ Multi-Agent</span><br>Termination Study</h1>
+    <p class="lede" style="margin-top: 24px; max-width: 140mm;">
+      Automated architectural intelligence pipeline + first systematic study of multi-agent LLM team termination dynamics.
+      End-to-end ownership: AI, geometry, 3D visualization, multi-agent orchestration, deployment.
+    </p>
+  </div>
+
+  <div class="footer-nav">
+    <div>DongHyeon Kim · AI Engineer / Architect</div>
+    <div>hanvit4303@gmail.com · 2026</div>
+  </div>
+</section>
+
+<!-- ============================================================
+PAGE 2 — ABOUT
+============================================================ -->
+<section class="page">
+  <div class="nav">01 · About</div>
+  <h2 style="margin-top: 4mm;">About</h2>
+
+  <div class="grid-2" style="gap: 24px; margin-bottom: 22px;">
+    <div>
+      <h3 style="font-size: 16px; margin-bottom: 8px;">Profile</h3>
+      <p style="margin-bottom: 10px; color: #0A0A0A;">
+        <strong>DongHyeon Kim</strong> — full-stack AI engineer working at the intersection of <span class="accent">architectural law, 3D computational geometry, and multi-agent orchestration</span>.
+      </p>
+      <p style="margin-bottom: 10px;">
+        Built <strong>25_ACE</strong> end-to-end: a production AI pipeline that turns a single Korean address into a fully-resolved 3D building envelope, traversing legal regulations, terrain elevation, and NSGA-II mass optimization automatically.
+      </p>
+      <p>
+        Authored <strong>Multi-Agent Termination Dynamics</strong> (COLM 2026 target) — first systematic 14-pattern × 7-experiment × 2,200-run unified study answering <em>"when should multi-agent LLM teams stop?"</em>
+      </p>
+    </div>
+
+    <div>
+      <h3 style="font-size: 16px; margin-bottom: 8px;">Core Skills</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h3>AI / ML</h3>
+          <p style="font-size: 11.5px;">Multi-agent (AutoGen), RAG, embeddings (3072d), G-Eval, NSGA-II, RF prediction</p>
+        </div>
+        <div class="card">
+          <h3>Backend</h3>
+          <p style="font-size: 11.5px;">Django · FastAPI · Python 3.13 · Neo4j · CF Workers · Railway · Oracle Cloud</p>
+        </div>
+        <div class="card">
+          <h3>Frontend / 3D</h3>
+          <p style="font-size: 11.5px;">React 19 · TypeScript · Vite · Tailwind v4 · Cesium 3D · Shapely + pyproj</p>
+        </div>
+        <div class="card">
+          <h3>Research</h3>
+          <p style="font-size: 11.5px;">Experimental design · Kruskal-Wallis · Cohen's d · 5-fold CV · cross-model validation</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider-strong"></div>
+
+  <h3 style="font-size: 13px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252;">Numbers at a glance</h3>
+  <div class="grid-5">
+    <div><div class="metric-num">31K</div><div class="metric-label">Neo4j legal nodes</div></div>
+    <div><div class="metric-num">178+</div><div class="metric-label">automated tests</div></div>
+    <div><div class="metric-num">11m</div><div class="metric-label">urban accuracy</div></div>
+    <div><div class="metric-num">14</div><div class="metric-label">agent topologies</div></div>
+    <div><div class="metric-num">2.2K</div><div class="metric-label">research runs</div></div>
+  </div>
+
+  <div class="footer-nav">
+    <div>About · DongHyeon Kim</div>
+    <div>02 / 12</div>
+  </div>
+</section>
+
+<!-- ============================================================
+PAGE 3 — 25_ACE HERO
+============================================================ -->
+<section class="page">
+  <div class="blob" style="top: -150px; right: -120px;"></div>
+  <div class="nav">02 · Project A</div>
+
+  <h2 style="margin-top: 4mm;">25_ACE</h2>
+  <h1 style="font-size: 38px; line-height: 1.1; margin-top: -8px; margin-bottom: 16px;">
+    One address.<br>Full <span class="underline-accent">3D building feasibility</span>.<br>Automatic.
+  </h1>
+
+  <p class="lede" style="max-width: 160mm; margin-bottom: 24px;">
+    Korean architectural feasibility traditionally requires weeks of manual legal cross-referencing, terrain surveys, and iterative sketching. 25_ACE compresses the entire pipeline into a deterministic chain reaction triggered by a single address string.
+  </p>
+
+  <div class="grid-3" style="margin-bottom: 18px;">
+    <div class="card-accent card"><div class="metric-num">90%</div><div class="metric-label">manual time saved</div></div>
+    <div class="card-accent card"><div class="metric-num">42</div><div class="metric-label">regulations resolved</div></div>
+    <div class="card-accent card"><div class="metric-num">&lt; 1s</div><div class="metric-label">law search</div></div>
+    <div class="card"><div class="metric-num">95%+</div><div class="metric-label">accuracy</div></div>
+    <div class="card"><div class="metric-num">300+</div><div class="metric-label">designs / min</div></div>
+    <div class="card"><div class="metric-num">9</div><div class="metric-label">commits to ship §119 datum</div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 8px;">Pipeline at a glance</h3>
+  <div class="mono" style="font-size: 11px; color: #0A0A0A; line-height: 1.8;">
+    Address → Vworld geocoding → PNU 19-digit → Neo4j 7-stage hybrid search → §119 datum → §86 envelope → NSGA-II Pareto → Cesium 3D
+  </div>
+
+  <div class="footer-nav">
+    <div>25_ACE · Project A</div>
+    <div>03 / 12</div>
+  </div>
+</section>
+
+<!-- ============================================================
+PAGE 4 — 25_ACE ARCHITECTURE
+============================================================ -->
+<section class="page">
+  <div class="nav">02 · Project A — System Architecture</div>
+  <h2 style="margin-top: 4mm;">System Architecture</h2>
+
+  <svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; margin-bottom: 14px;">
+    <!-- Layers -->
+    <line x1="0" y1="100" x2="760" y2="100" stroke="#E5E7EB" stroke-dasharray="4,4"/>
+    <line x1="0" y1="220" x2="760" y2="220" stroke="#E5E7EB" stroke-dasharray="4,4"/>
+    <text x="755" y="20" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="#A3A3A3" letter-spacing="2">CLIENT</text>
+    <text x="755" y="115" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="#A3A3A3" letter-spacing="2">BACKEND</text>
+    <text x="755" y="235" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="#A3A3A3" letter-spacing="2">DATA</text>
+
+    <!-- Browser -->
+    <rect x="60" y="30" width="120" height="50" rx="8" fill="#fff" stroke="#0A0A0A" stroke-width="1"/>
+    <text x="120" y="55" text-anchor="middle" font-family="Inter" font-size="13" font-weight="600">Browser</text>
+    <text x="120" y="70" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#525252">Cesium 3D</text>
+
+    <!-- AG-frontend -->
+    <rect x="60" y="130" width="160" height="60" rx="8" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.5"/>
+    <text x="140" y="155" text-anchor="middle" font-family="Inter" font-size="13" font-weight="700" fill="#4F46E5">AG-frontend</text>
+    <text x="140" y="172" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#525252">Vite 7 · React 19</text>
+    <text x="140" y="184" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#525252">CF Pages :443</text>
+
+    <!-- Pages Functions -->
+    <rect x="260" y="130" width="140" height="60" rx="8" fill="#fff" stroke="#0A0A0A" stroke-width="1"/>
+    <text x="330" y="158" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600">Pages Functions</text>
+    <text x="330" y="174" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#525252">CF edge proxy</text>
+
+    <!-- ARR Django -->
+    <rect x="430" y="130" width="140" height="60" rx="8" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.5"/>
+    <text x="500" y="155" text-anchor="middle" font-family="Inter" font-size="13" font-weight="700" fill="#4F46E5">ARR Django</text>
+    <text x="500" y="172" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#525252">Railway :8000</text>
+    <text x="500" y="184" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#525252">Python 3.13</text>
+
+    <!-- Law agent -->
+    <rect x="600" y="130" width="140" height="60" rx="8" fill="#fff" stroke="#0A0A0A" stroke-width="1"/>
+    <text x="670" y="158" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600">law-domain-agents</text>
+    <text x="670" y="174" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#525252">FastAPI :8011</text>
+
+    <!-- Neo4j -->
+    <ellipse cx="120" cy="285" rx="80" ry="32" fill="#fff" stroke="#0A0A0A" stroke-width="1"/>
+    <text x="120" y="285" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600">Neo4j Bolt</text>
+    <text x="120" y="298" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#525252">31K nodes · 3072d</text>
+
+    <!-- Vworld -->
+    <rect x="240" y="262" width="120" height="48" rx="8" fill="#fff" stroke="#0A0A0A" stroke-width="1"/>
+    <text x="300" y="285" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600">Vworld API</text>
+    <text x="300" y="300" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#525252">PNU + parcels</text>
+
+    <!-- Open-Meteo -->
+    <rect x="380" y="262" width="120" height="48" rx="8" fill="#fff" stroke="#0A0A0A" stroke-width="1"/>
+    <text x="440" y="285" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600">Open-Meteo</text>
+    <text x="440" y="300" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#525252">GLO-90 elevation</text>
+
+    <!-- OpenAI -->
+    <rect x="520" y="262" width="120" height="48" rx="8" fill="#fff" stroke="#0A0A0A" stroke-width="1"/>
+    <text x="580" y="285" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600">OpenAI Embed</text>
+    <text x="580" y="300" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#525252">3072d cosine</text>
+
+    <!-- Hermes Gateway -->
+    <rect x="60" y="345" width="200" height="38" rx="8" fill="#fff" stroke="#0A0A0A" stroke-width="1"/>
+    <text x="160" y="367" text-anchor="middle" font-family="Inter" font-size="11" font-weight="600">Hermes Gateway · Oracle VM</text>
+    <text x="160" y="378" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#525252">@DK_arch_bot · Telegram</text>
+
+    <!-- Worker -->
+    <rect x="540" y="345" width="200" height="38" rx="8" fill="#fff" stroke="#0A0A0A" stroke-width="1"/>
+    <text x="640" y="367" text-anchor="middle" font-family="Inter" font-size="11" font-weight="600">AG-light Worker · CF</text>
+    <text x="640" y="378" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#525252">256KB · Vectorize 2051</text>
+
+    <!-- Arrows -->
+    <line x1="120" y1="80" x2="140" y2="130" stroke="#0A0A0A" stroke-width="1" marker-end="url(#arr)"/>
+    <line x1="220" y1="160" x2="260" y2="160" stroke="#0A0A0A" stroke-width="1" marker-end="url(#arr)"/>
+    <line x1="400" y1="160" x2="430" y2="160" stroke="#0A0A0A" stroke-width="1" marker-end="url(#arr)"/>
+    <line x1="570" y1="160" x2="600" y2="160" stroke="#0A0A0A" stroke-width="1" marker-end="url(#arr)"/>
+    <text x="585" y="155" font-family="JetBrains Mono" font-size="8" fill="#4F46E5">A2A JSON-RPC</text>
+    <line x1="500" y1="190" x2="120" y2="253" stroke="#0A0A0A" stroke-width="1" marker-end="url(#arr)"/>
+    <line x1="500" y1="190" x2="300" y2="262" stroke="#0A0A0A" stroke-width="1" marker-end="url(#arr)"/>
+    <line x1="500" y1="190" x2="440" y2="262" stroke="#0A0A0A" stroke-width="1" marker-end="url(#arr)"/>
+    <line x1="500" y1="190" x2="580" y2="262" stroke="#0A0A0A" stroke-width="1" marker-end="url(#arr)"/>
+    <line x1="160" y1="345" x2="430" y2="195" stroke="#0A0A0A" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="640" y1="345" x2="570" y2="195" stroke="#0A0A0A" stroke-width="1" stroke-dasharray="3,3"/>
+
+    <defs>
+      <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 Z" fill="#0A0A0A"/>
+      </marker>
+    </defs>
+  </svg>
+
+  <div class="grid-3" style="font-size: 11px; line-height: 1.5;">
+    <div><strong>Frontend tier</strong> — single-page Vite/React 19 app, served via Cloudflare Pages, proxies API calls through Pages Functions to backend tier.</div>
+    <div><strong>Backend tier</strong> — Django on Railway is the stateful core; law-domain-agents (FastAPI) handles 7-stage hybrid search; communication via A2A JSON-RPC 2.0.</div>
+    <div><strong>Data tier</strong> — Neo4j (legal graph, 31K nodes), Vworld API (geocoding), Open-Meteo (DEM elevation), OpenAI (3072d embeddings).</div>
+  </div>
+
+  <div class="footer-nav">
+    <div>25_ACE · System Architecture</div>
+    <div>04 / 12</div>
+  </div>
+</section>
+
+<!-- ============================================================
+PAGE 5 — DATA FLOW
+============================================================ -->
+<section class="page">
+  <div class="nav">02 · Project A — Data Flow</div>
+  <h2 style="margin-top: 4mm;">Address → 3D Mass · 8 Steps</h2>
+
+  <svg viewBox="0 0 760 100" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; margin-bottom: 18px;">
+    <g font-family="Inter" font-size="11" font-weight="600">
+      <rect x="0" y="30" width="80" height="50" rx="6" fill="#fff" stroke="#0A0A0A"/><text x="40" y="55" text-anchor="middle">1. Address</text><text x="40" y="68" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#525252">string</text>
+
+      <line x1="80" y1="55" x2="100" y2="55" stroke="#0A0A0A" marker-end="url(#a)"/>
+
+      <rect x="100" y="30" width="80" height="50" rx="6" fill="#fff" stroke="#0A0A0A"/><text x="140" y="55" text-anchor="middle">2. Vworld</text><text x="140" y="68" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#525252">geocode</text>
+
+      <line x1="180" y1="55" x2="200" y2="55" stroke="#0A0A0A" marker-end="url(#a)"/>
+
+      <rect x="200" y="30" width="80" height="50" rx="6" fill="#fff" stroke="#0A0A0A"/><text x="240" y="55" text-anchor="middle">3. PNU</text><text x="240" y="68" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#525252">19 digits</text>
+
+      <line x1="280" y1="55" x2="300" y2="55" stroke="#0A0A0A" marker-end="url(#a)"/>
+
+      <rect x="300" y="30" width="80" height="50" rx="6" fill="#fff" stroke="#0A0A0A"/><text x="340" y="55" text-anchor="middle">4. Land use</text><text x="340" y="68" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#525252">zoning</text>
+
+      <line x1="380" y1="55" x2="400" y2="55" stroke="#0A0A0A" marker-end="url(#a)"/>
+
+      <rect x="400" y="30" width="80" height="50" rx="6" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.5"/><text x="440" y="55" text-anchor="middle" fill="#4F46E5">5. Neo4j</text><text x="440" y="68" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#4F46E5">7-stage</text>
+
+      <line x1="480" y1="55" x2="500" y2="55" stroke="#0A0A0A" marker-end="url(#a)"/>
+
+      <rect x="500" y="30" width="80" height="50" rx="6" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.5"/><text x="540" y="55" text-anchor="middle" fill="#4F46E5">6. §119</text><text x="540" y="68" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#4F46E5">datum</text>
+
+      <line x1="580" y1="55" x2="600" y2="55" stroke="#0A0A0A" marker-end="url(#a)"/>
+
+      <rect x="600" y="30" width="80" height="50" rx="6" fill="#EEF2FF" stroke="#4F46E5" stroke-width="1.5"/><text x="640" y="55" text-anchor="middle" fill="#4F46E5">7. §86</text><text x="640" y="68" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#4F46E5">envelope</text>
+
+      <line x1="680" y1="55" x2="700" y2="55" stroke="#0A0A0A" marker-end="url(#a)"/>
+
+      <rect x="700" y="30" width="60" height="50" rx="6" fill="#fff" stroke="#0A0A0A"/><text x="730" y="50" text-anchor="middle">8.NSGA</text><text x="730" y="62" text-anchor="middle">II</text><text x="730" y="74" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#525252">Pareto</text>
+    </g>
+    <defs>
+      <marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#0A0A0A"/></marker>
+    </defs>
+  </svg>
+
+  <table>
+    <thead>
+      <tr><th>Step</th><th>Tech</th><th>Output</th><th>Latency</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>1. Address</strong></td><td class="label">user input</td><td>"강남구 역삼동 677"</td><td class="mono">—</td></tr>
+      <tr><td><strong>2. Vworld geocoding</strong></td><td class="label">api.vworld.kr/req/address</td><td>WGS84 + refined.level4LC</td><td class="mono">~120ms</td></tr>
+      <tr><td><strong>3. PNU extraction</strong></td><td class="label">level4LC → 19 digit</td><td>1168010100106770003</td><td class="mono">~1ms</td></tr>
+      <tr><td><strong>4. Land use lookup</strong></td><td class="label">Vworld DataAPI</td><td>zoning + parcel area</td><td class="mono">~200ms</td></tr>
+      <tr><td><strong>5. Law search</strong></td><td class="label accent">Neo4j 7-stage hybrid</td><td>42 regulations + 170 articles</td><td class="mono accent">~800ms</td></tr>
+      <tr><td><strong>6. Datum dispatcher</strong></td><td class="label accent">§119 6-case + Open-Meteo</td><td>Z-axis reference plane H</td><td class="mono accent">~300ms</td></tr>
+      <tr><td><strong>7. Envelope generation</strong></td><td class="label accent">§86 slope 2:1 (LOCKED SPEC)</td><td>4-stage stair-step polygon</td><td class="mono accent">~50ms</td></tr>
+      <tr><td><strong>8. Mass optimization</strong></td><td class="label">NSGA-II (pop 30, gen 30)</td><td>Pareto front + Cesium 3D</td><td class="mono">~3-8s</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card-accent card" style="margin-top: 18px;">
+    <strong>End-to-end:</strong> &lt;5 sec law analysis · &lt;10 sec full 3D mass · 95%+ accuracy · 178+ tests passing.
+  </div>
+
+  <div class="footer-nav">
+    <div>25_ACE · Data Flow</div>
+    <div>05 / 12</div>
+  </div>
+</section>
+
+<!-- ============================================================
+PAGE 6 — ALGORITHMS
+============================================================ -->
+<section class="page">
+  <div class="nav">02 · Project A — Algorithms</div>
+  <h2 style="margin-top: 4mm;">Algorithm Stack</h2>
+  <p style="margin-bottom: 16px; max-width: 160mm;">Four algorithm families work in concert: <span class="accent">graph search</span> for legal articles, <span class="accent">decision dispatcher</span> for ground level, <span class="accent">multi-objective GA</span> for building mass, and <span class="accent">spatial algorithms</span> for floor plans.</p>
+
+  <div class="grid-2" style="gap: 12px;">
+
+    <div class="card">
+      <h3 style="font-size: 14px;">1 · Neo4j 7-Stage Hybrid Search</h3>
+      <p style="font-size: 11px; margin: 6px 0;">Korean legal articles as 7-tier graph (LAW → JANG → JEOL → JO → HANG → HO → MOK). Vector + fulltext + relationship boost.</p>
+      <div class="mono" style="font-size: 10px; color: #4F46E5; line-height: 1.5;">Exact → Fulltext (CJK bigram) → Vector 3072d → Rel boost → RRF → MMR → Domain re-rank</div>
+      <div style="margin-top: 6px;"><span class="chip-accent chip">31,126 nodes</span><span class="chip">95%+ accuracy</span></div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size: 14px;">2 · §119 Datum 6-Case Dispatcher</h3>
+      <p style="font-size: 11px; margin: 6px 0;">Decision tree for Korean Building Act §119 datum plane: 6 terrain cases × Open-Meteo GLO-90 elevation.</p>
+      <div class="mono" style="font-size: 10px; color: #525252; line-height: 1.5;">FLAT (&lt;2m) · SLOPE_LE3M · SLOPE_GT3M · ROAD_FLAT · ROAD_SLOPED · SITE_ABOVE_ROAD</div>
+      <div style="margin-top: 6px;"><span class="chip-accent chip">11m urban accuracy</span><span class="chip">9 commits</span></div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size: 14px;">3 · §86 Envelope · LOCKED SPEC</h3>
+      <p style="font-size: 11px; margin: 6px 0;">North-side sunlight envelope (slope 2:1, 4-stage stair-step). 3-layer protection: config flag · backend source enum · frontend ternary.</p>
+      <div class="mono" style="font-size: 10px; color: #525252; line-height: 1.5;">H = 2d · stages every 9m · walls + slanted polygons</div>
+      <div style="margin-top: 6px;"><span class="chip-accent chip">3-layer LOCKED</span><span class="chip">39 datum tests</span></div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size: 14px;">4 · NSGA-II Multi-Objective GA</h3>
+      <p style="font-size: 11px; margin: 6px 0;">Mass optimization: pop 30, gen 30, crossover 0.9, mutation 0.1. 3-objective: FAR vs sunlight vs landscaping.</p>
+      <div class="mono" style="font-size: 10px; color: #525252; line-height: 1.5;">Pareto front · 10 mass types · 300+ designs/min</div>
+      <div style="margin-top: 6px;"><span class="chip-accent chip">10 mass types</span><span class="chip">Pareto front</span></div>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 10px;">10 Mass Types · 4 Floor Plan Algorithms</h3>
+
+  <div class="grid-2">
+    <div>
+      <p style="font-size: 11px; color: #0A0A0A; margin-bottom: 6px;"><strong>Mass shape variants</strong> — NSGA-II searches within each:</p>
+      <div>
+        <span class="chip">Additive (K=5)</span>
+        <span class="chip">Subtractive</span>
+        <span class="chip">Grid 3×3</span>
+        <span class="chip">L-shape</span>
+        <span class="chip">U-shape</span>
+        <span class="chip">Cross</span>
+        <span class="chip">Courtyard</span>
+        <span class="chip">Tower+Podium</span>
+        <span class="chip">H-shape</span>
+        <span class="chip">Radial</span>
+      </div>
+    </div>
+    <div>
+      <p style="font-size: 11px; color: #0A0A0A; margin-bottom: 6px;"><strong>Floor plan generators</strong> — 4 algorithms compared, 104 tests:</p>
+      <div>
+        <span class="chip-accent chip">GA + Series Gene</span>
+        <span class="chip">Subdivision</span>
+        <span class="chip">MCTS (UCB tree)</span>
+        <span class="chip">Circle Packing</span>
+      </div>
+      <p style="font-size: 10px; color: #525252; margin-top: 6px;">GA: Pareto multi-obj · Subdivision: fastest deterministic · MCTS: ~300 LOC port · Circle Packing: physics → grid.</p>
+    </div>
+  </div>
+
+  <div class="footer-nav">
+    <div>25_ACE · Algorithms</div>
+    <div>06 / 12</div>
+  </div>
+</section>
+
+<!-- ============================================================
+PAGE 7 — LIVE + VALIDATION
+============================================================ -->
+<section class="page">
+  <div class="nav">02 · Project A — Production</div>
+  <h2 style="margin-top: 4mm;">Live Deployment + Validation</h2>
+
+  <div class="grid-2" style="gap: 18px;">
+
+    <div>
+      <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 10px;">4-Service Production</h3>
+
+      <div class="card" style="margin-bottom: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div><span class="dot dot-green"></span><strong>AG-frontend</strong></div>
+          <span class="mono" style="font-size: 10px; color: #4F46E5;">$0 / mo</span>
+        </div>
+        <div class="mono" style="font-size: 10px; color: #525252; margin-top: 4px;">ag-frontend-5s3.pages.dev</div>
+        <div style="font-size: 11px; color: #525252;">Cloudflare Pages · Vite 7 build</div>
+      </div>
+
+      <div class="card" style="margin-bottom: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div><span class="dot dot-green"></span><strong>ARR Backend</strong></div>
+          <span class="mono" style="font-size: 10px; color: #4F46E5;">$5 / mo</span>
+        </div>
+        <div class="mono" style="font-size: 10px; color: #525252; margin-top: 4px;">arr-backend-production.up.railway.app</div>
+        <div style="font-size: 11px; color: #525252;">Railway · Django 6 + WhiteNoise</div>
+      </div>
+
+      <div class="card" style="margin-bottom: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div><span class="dot dot-green"></span><strong>AG-light Worker</strong></div>
+          <span class="mono" style="font-size: 10px; color: #4F46E5;">$0 / mo</span>
+        </div>
+        <div class="mono" style="font-size: 10px; color: #525252; margin-top: 4px;">law-light-api.clickaround8.workers.dev</div>
+        <div style="font-size: 11px; color: #525252;">Cloudflare Workers · 256KB · Vectorize 2,051</div>
+      </div>
+
+      <div class="card" style="margin-bottom: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div><span class="dot dot-green"></span><strong>Hermes Gateway</strong></div>
+          <span class="mono" style="font-size: 10px; color: #4F46E5;">$22 / mo</span>
+        </div>
+        <div class="mono" style="font-size: 10px; color: #525252; margin-top: 4px;">158.180.66.165 · @DK_arch_bot</div>
+        <div style="font-size: 11px; color: #525252;">Oracle VM · Telegram bot · Hermes plugin</div>
+      </div>
+
+      <div class="card-accent card">
+        <strong>Total: ~$28 / mo</strong> for production-grade multi-region multi-channel system.
+      </div>
+    </div>
+
+    <div>
+      <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 10px;">Validation Stack</h3>
+
+      <div class="card" style="margin-bottom: 8px;">
+        <h3>Unit · 178+ tests</h3>
+        <p style="font-size: 11px; margin-top: 4px;">Django test suite. 39 datum-specific (§119 6-case full coverage), 167 land regression, 24 design / mass evaluator.</p>
+      </div>
+
+      <div class="card" style="margin-bottom: 8px;">
+        <h3>Integration · Playwright E2E</h3>
+        <p style="font-size: 11px; margin-top: 4px;">235 E2E tests across 25 spec files. Full-stack: frontend → backend → DB → 3D render.</p>
+        <div class="mono" style="font-size: 10px; color: #4F46E5; margin-top: 4px;">31s execution time</div>
+      </div>
+
+      <div class="card" style="margin-bottom: 8px;">
+        <h3>Live · 8 PNU production runs</h3>
+        <p style="font-size: 11px; margin-top: 4px;">강남 · 성북 · 한남 · 여의도 · 우동 · 평창 · 대관령 등 8개 실측 PNU.</p>
+        <div class="mono" style="font-size: 10px; margin-top: 4px;">
+          <span class="accent">11m</span> urban avg accuracy · <span class="accent">3.7m</span> coastal
+        </div>
+      </div>
+
+      <div class="card-accent card">
+        <strong>9 commits</strong> to ship §119 datum stable.<br>
+        Lean engineering · TDD-driven · zero regressions in 4 months.
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer-nav">
+    <div>25_ACE · Production</div>
+    <div>07 / 12</div>
+  </div>
+</section>
+
+<!-- ============================================================
+PAGE 8 — AG-RESEARCH HERO
+============================================================ -->
+<section class="page">
+  <div class="blob" style="top: -150px; right: -100px;"></div>
+  <div class="nav">03 · Project B</div>
+
+  <h2 style="margin-top: 4mm;">Multi-Agent Termination Study</h2>
+  <h1 style="font-size: 38px; line-height: 1.1; margin-top: -8px; margin-bottom: 16px;">
+    When should<br>multi-agent <span class="underline-accent">LLM teams</span> stop?
+  </h1>
+
+  <p class="lede" style="max-width: 160mm; margin-bottom: 22px;">
+    First systematic study of termination dynamics across 14 coordination topologies. 2,200+ unified runs. Six counterintuitive findings. COLM 2026 target.
+  </p>
+
+  <div class="grid-3" style="margin-bottom: 18px;">
+    <div class="card-accent card"><div class="metric-num">14</div><div class="metric-label">topologies</div></div>
+    <div class="card-accent card"><div class="metric-num">2,200+</div><div class="metric-label">unified runs</div></div>
+    <div class="card-accent card"><div class="metric-num">7</div><div class="metric-label">experiments</div></div>
+    <div class="card"><div class="metric-num">5</div><div class="metric-label">LLMs tested</div></div>
+    <div class="card"><div class="metric-num">η²=.36</div><div class="metric-label">difficulty effect (large)</div></div>
+    <div class="card"><div class="metric-num">R²=.54</div><div class="metric-label">cost predictable</div></div>
+  </div>
+
+  <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 8px;">14 Patterns · 6 Categories</h3>
+
+  <div class="card">
+    <table>
+      <tr><td><strong>S</strong></td><td>Baseline</td><td><span class="chip">Solo</span></td></tr>
+      <tr><td><strong>A</strong></td><td>Sequential Chain</td><td><span class="chip">RR-2</span><span class="chip">RR-3</span><span class="chip">RR-4</span></td></tr>
+      <tr><td><strong>B1</strong></td><td>Centralized Routing (Star)</td><td><span class="chip">Sel-3</span><span class="chip">Sel-4</span></td></tr>
+      <tr><td><strong>B2</strong></td><td>Decentralized Handoff (Mesh)</td><td><span class="chip">Swm-3</span><span class="chip">Swm-4</span></td></tr>
+      <tr><td><strong>C</strong></td><td>Structured Feedback</td><td><span class="chip">Refl-2</span><span class="chip">Refl-3</span><span class="chip">Deb-3</span><span class="chip">Deb-4</span></td></tr>
+      <tr><td><strong>D</strong></td><td>Composed</td><td><span class="chip">Pipe (5)</span><span class="chip">MoA (4)</span></td></tr>
+    </table>
+  </div>
+
+  <div class="footer-nav">
+    <div>AG-Research · Project B</div>
+    <div>08 / 12</div>
+  </div>
+</section>
+
+<!-- ============================================================
+PAGE 9 — AG-RESEARCH FINDINGS
+============================================================ -->
+<section class="page">
+  <div class="nav">03 · Project B — Findings</div>
+  <h2 style="margin-top: 4mm;">Six Counterintuitive Findings</h2>
+
+  <div class="grid-2" style="gap: 10px;">
+
+    <div class="card-accent card">
+      <h3>Finding 1 · Cost Inversion</h3>
+      <p style="font-size: 11px; margin: 4px 0;">3-agent swarm <strong>cheaper than</strong> 2-agent chain.</p>
+      <div class="mono" style="font-size: 10px; color: #0A0A0A;">Swm-3: 3,203 tok &nbsp; vs &nbsp; RR-2: 4,759 tok</div>
+      <div class="mono" style="font-size: 10px; color: #4F46E5;">U=95, p&lt;0.001</div>
+    </div>
+
+    <div class="card-accent card">
+      <h3>Finding 2 · Debate Quality Decline</h3>
+      <p style="font-size: 11px; margin: 4px 0;"><strong>Monotonic decline</strong> across rounds (Du et al. ICML 2024 contradicted).</p>
+      <div class="mono" style="font-size: 10px; color: #0A0A0A;">3.8 → 3.4 → 3.3 (G-Eval Sonnet 4.5)</div>
+    </div>
+
+    <div class="card-accent card">
+      <h3>Finding 3 · B1 / B2 Split</h3>
+      <p style="font-size: 11px; margin: 4px 0;">Centralized vs decentralized scaling diverges.</p>
+      <div class="mono" style="font-size: 10px; color: #0A0A0A;">B1: <span class="accent">1.48× sub-linear</span> · B2: <span class="accent">3.17× super-linear</span></div>
+      <div class="mono" style="font-size: 10px; color: #525252;">New hierarchy: A ≈ B2 &lt; B1 ≈ C ≪ D</div>
+    </div>
+
+    <div class="card-accent card">
+      <h3>Finding 4 · Keyword Optimal · Negative Result</h3>
+      <p style="font-size: 11px; margin: 4px 0;">800-run controlled exp: ΔU adaptive vs keyword TERMINATE.</p>
+      <div class="mono" style="font-size: 10px; color: #0A0A0A;">7/8 patterns: keyword sufficient</div>
+      <div class="mono" style="font-size: 10px; color: #525252;">Refl-2 ΔU: <span class="accent">+258% overhead</span> · only Swm-4: −70%</div>
+    </div>
+
+    <div class="card-accent card">
+      <h3>Finding 5 · Cost Prediction Model</h3>
+      <p style="font-size: 11px; margin: 4px 0;">Random Forest, 5-fold CV.</p>
+      <div class="mono" style="font-size: 10px; color: #0A0A0A;">R² = <span class="accent">0.54</span> · top feature: agents × max_messages</div>
+      <div class="mono" style="font-size: 10px; color: #525252;">46% remains task-content (honest boundary)</div>
+    </div>
+
+    <div class="card-accent card">
+      <h3>Finding 6 · Difficulty Dominance</h3>
+      <p style="font-size: 11px; margin: 4px 0;">Task difficulty > pattern choice. 5 LLMs · 669 runs.</p>
+      <div class="mono" style="font-size: 10px; color: #0A0A0A;">η²(difficulty) = 0.363 vs η²(pattern) = 0.039</div>
+      <div class="mono" style="font-size: 10px; color: #525252;">Solo dominates · Refl-2 helps Haiku@medium d=1.26</div>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 10px;">ΔU Diagnostic Framework</h3>
+
+  <div class="card">
+    <div class="mono" style="font-size: 14px; color: #4F46E5; text-align: center; margin: 6px 0;">
+      ΔU(t) = ΔQ(t) − λ · ΔC(t)
+    </div>
+    <p style="font-size: 11px; margin-top: 4px;">All 14 patterns saturate within <strong>1.1–2.4 turns</strong>. λ-insensitive (0.0 → 0.5 yields ≤0.1 turn difference). Use as <em>diagnostic</em>, not replacement.</p>
+  </div>
+
+  <div class="footer-nav">
+    <div>AG-Research · Findings</div>
+    <div>09 / 12</div>
+  </div>
+</section>
+
+<!-- ============================================================
+PAGE 10 — TECH STACK
+============================================================ -->
+<section class="page">
+  <div class="nav">04 · Tech Stack</div>
+  <h2 style="margin-top: 4mm;">Engineering Stack</h2>
+
+  <div class="grid-4">
+    <div class="card"><h3>React 19</h3><p style="font-size: 10.5px;">Frontend rendering · concurrent mode</p></div>
+    <div class="card"><h3>TypeScript</h3><p style="font-size: 10.5px;">Strict type-safe client</p></div>
+    <div class="card"><h3>Vite 7</h3><p style="font-size: 10.5px;">Ultra-fast bundler · ESM-first</p></div>
+    <div class="card"><h3>Tailwind v4</h3><p style="font-size: 10.5px;">Utility-first CSS · semantic tokens</p></div>
+
+    <div class="card"><h3>Django 6</h3><p style="font-size: 10.5px;">Backend framework · REST + SSE</p></div>
+    <div class="card"><h3>Python 3.13</h3><p style="font-size: 10.5px;">Core algorithmic processing</p></div>
+    <div class="card"><h3>FastAPI</h3><p style="font-size: 10.5px;">law-domain-agents · :8011</p></div>
+    <div class="card"><h3>Neo4j 5</h3><p style="font-size: 10.5px;">31K-node legal graph + vector index</p></div>
+
+    <div class="card"><h3>Cesium 3D</h3><p style="font-size: 10.5px;">High-precision WebGL globe</p></div>
+    <div class="card"><h3>Shapely + pyproj</h3><p style="font-size: 10.5px;">Geometry · CRS transforms</p></div>
+    <div class="card"><h3>OpenAI</h3><p style="font-size: 10.5px;">text-embedding-3-large 3072d</p></div>
+    <div class="card"><h3>AutoGen</h3><p style="font-size: 10.5px;">Multi-agent (research project)</p></div>
+
+    <div class="card"><h3>Cloudflare</h3><p style="font-size: 10.5px;">Pages + Workers + Vectorize</p></div>
+    <div class="card"><h3>Railway</h3><p style="font-size: 10.5px;">Backend hosting · auto-deploy</p></div>
+    <div class="card"><h3>Oracle VM</h3><p style="font-size: 10.5px;">Hermes gateway · Telegram bot</p></div>
+    <div class="card"><h3>Playwright</h3><p style="font-size: 10.5px;">E2E · 235 tests · 31s execution</p></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 8px;">Statistics & Validation</h3>
+  <div>
+    <span class="chip">scipy</span>
+    <span class="chip">Kruskal-Wallis</span>
+    <span class="chip">Mann-Whitney U</span>
+    <span class="chip">Cohen's d</span>
+    <span class="chip">5-fold CV</span>
+    <span class="chip">Spearman ρ</span>
+    <span class="chip">G-Eval LLM-judge</span>
+    <span class="chip">sentence-transformers</span>
+  </div>
+
+  <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin: 14px 0 8px;">5 LLMs Tested (Cross-Validated)</h3>
+  <div>
+    <span class="chip-accent chip">Claude Haiku 4.5</span>
+    <span class="chip-accent chip">Claude Sonnet 4.5</span>
+    <span class="chip">GPT-4o-mini · ρ=0.900</span>
+    <span class="chip">Gemini</span>
+    <span class="chip">GPT-5.4</span>
+  </div>
+
+  <div class="footer-nav">
+    <div>Engineering Stack</div>
+    <div>10 / 12</div>
+  </div>
+</section>
+
+<!-- ============================================================
+PAGE 11 — ROADMAP
+============================================================ -->
+<section class="page">
+  <div class="nav">05 · Roadmap</div>
+  <h2 style="margin-top: 4mm;">Roadmap 2026</h2>
+
+  <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; margin-bottom: 18px;">
+    <!-- timeline -->
+    <line x1="40" y1="100" x2="720" y2="100" stroke="#0A0A0A" stroke-width="1"/>
+
+    <!-- milestones -->
+    <circle cx="100" cy="100" r="8" fill="#4F46E5"/>
+    <text x="100" y="80" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#525252">Q1</text>
+    <text x="100" y="130" text-anchor="middle" font-family="Inter" font-size="13" font-weight="700">MVP</text>
+    <text x="100" y="146" text-anchor="middle" font-family="Inter" font-size="10" fill="#525252">Pipeline + 178 tests</text>
+    <text x="100" y="158" text-anchor="middle" font-family="Inter" font-size="10" fill="#525252">+ 4-service deploy</text>
+
+    <circle cx="280" cy="100" r="8" fill="#4F46E5" fill-opacity="0.5" stroke="#4F46E5" stroke-width="1.5"/>
+    <text x="280" y="80" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#525252">Q2</text>
+    <text x="280" y="130" text-anchor="middle" font-family="Inter" font-size="13" font-weight="700">B2B Pilot</text>
+    <text x="280" y="146" text-anchor="middle" font-family="Inter" font-size="10" fill="#525252">5 architecture firms</text>
+    <text x="280" y="158" text-anchor="middle" font-family="Inter" font-size="10" fill="#525252">+ COLM 2026 paper</text>
+
+    <circle cx="460" cy="100" r="8" fill="#fff" stroke="#4F46E5" stroke-width="1.5"/>
+    <text x="460" y="80" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#525252">Q3</text>
+    <text x="460" y="130" text-anchor="middle" font-family="Inter" font-size="13" font-weight="700">Public Beta</text>
+    <text x="460" y="146" text-anchor="middle" font-family="Inter" font-size="10" fill="#525252">Full Korea coverage</text>
+    <text x="460" y="158" text-anchor="middle" font-family="Inter" font-size="10" fill="#525252">+ Telegram bot GA</text>
+
+    <circle cx="640" cy="100" r="8" fill="#fff" stroke="#4F46E5" stroke-width="1.5"/>
+    <text x="640" y="80" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#525252">Q4</text>
+    <text x="640" y="130" text-anchor="middle" font-family="Inter" font-size="13" font-weight="700">B2G Enterprise</text>
+    <text x="640" y="146" text-anchor="middle" font-family="Inter" font-size="10" fill="#525252">Municipal permitting</text>
+    <text x="640" y="158" text-anchor="middle" font-family="Inter" font-size="10" fill="#525252">+ Audit log + RBAC</text>
+  </svg>
+
+  <div class="divider"></div>
+
+  <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 12px;">What's Next · Technical</h3>
+
+  <div class="grid-3">
+    <div class="card">
+      <h3>NGII 5m DEM</h3>
+      <p style="font-size: 11px;">Self-host elevation tile server. 90m → 5m precision. 18× accuracy improvement. R2 + opentopodata.</p>
+    </div>
+    <div class="card">
+      <h3>Hybrid termination</h3>
+      <p style="font-size: 11px;">Combine TERMINATE keyword + ΔU only for B2 (decentralized handoff). Validated optimization for the one topology where keyword fails.</p>
+    </div>
+    <div class="card">
+      <h3>LangGraph / CrewAI port</h3>
+      <p style="font-size: 11px;">Cross-framework validation of 14-pattern findings. Test whether topology effects generalize beyond AutoGen.</p>
+    </div>
+  </div>
+
+  <div class="footer-nav">
+    <div>Roadmap 2026</div>
+    <div>11 / 12</div>
+  </div>
+</section>
+
+<!-- ============================================================
+PAGE 12 — CLOSING / CONTACT
+============================================================ -->
+<section class="page">
+  <div class="blob" style="bottom: -200px; right: -160px; width: 600px; height: 600px;"></div>
+  <div class="nav">06 · Contact</div>
+
+  <div style="margin-top: 50mm;">
+    <h1 style="font-size: 56px;">Let's build<br>the next standard<br>together.</h1>
+  </div>
+
+  <div style="margin-top: 60mm;">
+    <div class="divider-strong" style="margin-bottom: 20px;"></div>
+    <div class="grid-3">
+      <div>
+        <h3 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 4px;">Author</h3>
+        <p style="color: #0A0A0A; font-size: 14px; font-weight: 600;">DongHyeon Kim</p>
+        <p style="font-size: 11px;">AI Engineer · Architect</p>
+      </div>
+      <div>
+        <h3 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 4px;">Contact</h3>
+        <p style="color: #4F46E5; font-size: 12px; font-family: 'JetBrains Mono', monospace;">hanvit4303@gmail.com</p>
+        <p style="font-size: 11px; font-family: 'JetBrains Mono', monospace;">github.com/[username]</p>
+      </div>
+      <div>
+        <h3 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 4px;">Live Demo</h3>
+        <p style="color: #4F46E5; font-size: 11px; font-family: 'JetBrains Mono', monospace;">arr-frontend.pages.dev</p>
+        <p style="font-size: 11px; font-family: 'JetBrains Mono', monospace;">@DK_arch_bot · Telegram</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-nav">
+    <div>Portfolio · DongHyeon Kim · 2026</div>
+    <div>12 / 12</div>
+  </div>
+</section>
+
+</body>
+</html>

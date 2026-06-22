@@ -6,7 +6,7 @@ import tempfile
 
 from django.core.management import call_command
 from django.test import TestCase
-from shapely.geometry import box
+from shapely.geometry import Polygon, box
 from unittest.mock import patch
 
 from design.maas import export_mass_geojson_to_scad, generate_legal_mass_variants, mass_geojson_to_scad
@@ -17,7 +17,13 @@ from design.maas.aesthetic.projection_bake import attach_baked_projection_assets
 from design.maas.aesthetic.projection_export import attach_textured_mesh_assets
 from design.maas.aesthetic.renderers import MultiViewReferencePackRenderer, ReferencePngRenderer
 from design.maas.grammar import generate_grammar_variants, load_term_ontology, resolve_intent_to_sequence
-from design.maas.parking_layout import evaluate_small_attached_parking_relief, generate_parking_layout_candidate
+from design.maas.parking_layout import (
+    _drive_entrance_access,
+    _solve_grid_parking_layout,
+    evaluate_small_attached_parking_relief,
+    generate_parking_layout_candidate,
+)
+from design.maas.parking_requirements import resolve_candidate_parking_requirement
 from design.maas.parking_strategy import infer_parking_strategy
 from design.maas.training import build_examples_from_design_results, build_sft_examples, evidence_to_review_example, export_sft_seed
 from design.models import DesignResult, OptimizationJob
@@ -436,7 +442,11 @@ class MaasLegalVariantsTest(TestCase):
                 "mixed",
             })
             self.assertEqual(props["parking_precheck"]["schema_version"], "arr.maas.parking_strategy.v0")
-            self.assertEqual(props["parking_precheck"]["status"], "needs_parking_requirements")
+            self.assertEqual(props["parking_precheck"]["status"], "has_layout_candidate")
+            self.assertEqual(
+                props["parking_precheck"]["layout_candidate"]["legal_count_status"],
+                "unresolved_visual_layout_only",
+            )
             self.assertIn("small_attached_parking_relief", props["parking_precheck"])
             self.assertEqual(props["maas_model"]["parking_strategy"], props["parking_strategy"])
 
@@ -487,6 +497,15 @@ class MaasLegalVariantsTest(TestCase):
         self.assertEqual(layout["provided_accessible_spaces"], 1)
         self.assertEqual(layout["stalls"][0]["type"], "accessible")
         self.assertIn("polygon", layout["stalls"][0])
+        self.assertEqual(
+            layout["authority_review_check"]["status"],
+            "prechecked_needs_external_evidence",
+        )
+        self.assertTrue(layout["authority_review_check"]["checks"]["tandem_depth_count_ok"])
+        self.assertIn(
+            "authority_no_traffic_obstruction_confirmation",
+            layout["authority_review_check"]["external_evidence_needed"],
+        )
 
     def test_parking_layout_candidate_places_internal_double_loaded_stalls(self):
         layout = generate_parking_layout_candidate(
@@ -500,6 +519,191 @@ class MaasLegalVariantsTest(TestCase):
         self.assertEqual(layout["placement_mode"], "internal_double_loaded_90")
         self.assertEqual(layout["provided_spaces"], 8)
         self.assertEqual(layout["unmet_spaces"], 0)
+
+    def test_parking_layout_candidate_draws_small_single_row_review_stalls(self):
+        layout = generate_parking_layout_candidate(
+            box(0, 0, 14, 5.5),
+            required_spaces=5,
+            accessible_spaces=1,
+            strategy="ground_surface",
+        )
+
+        self.assertEqual(layout["status"], "needs_aisle_review")
+        self.assertEqual(layout["placement_mode"], "single_row_aisle_review")
+        self.assertEqual(layout["provided_spaces"], 5)
+        self.assertEqual(layout["provided_accessible_spaces"], 1)
+        self.assertEqual(layout["unmet_spaces"], 0)
+
+    def test_parking_layout_grid_solver_places_connected_drive_cells(self):
+        layout = _solve_grid_parking_layout(
+            box(0, 0, 14, 11.5),
+            required_spaces=3,
+            accessible_spaces=0,
+            strategy="piloti_ground",
+            road_context={"sharedEdge": [[0, 11.5], [14, 11.5]]},
+        )
+
+        self.assertEqual(layout["status"], "pass")
+        self.assertEqual(layout["placement_mode"], "grid_connected_90")
+        self.assertEqual(layout["provided_spaces"], 3)
+        self.assertEqual(layout["unmet_spaces"], 0)
+        self.assertEqual(layout["adjacency"]["status"], "row_contiguous")
+        self.assertEqual(layout["adjacency"]["gap_pairs"], 0)
+        self.assertEqual(layout["column_clearance"]["status"], "deferred_structural_review")
+        self.assertEqual(layout["drive_aisle_clearance"]["status"], "pass")
+        self.assertEqual(layout["turning_clearance"]["status"], "v1_pass")
+        self.assertEqual(layout["turning_clearance"]["method"], "stall_frontage_and_entrance_connector_v1")
+        self.assertEqual(layout["turning_clearance"]["frontage_connected_stalls"], 3)
+        self.assertEqual(layout["turning_clearance"]["frontage_total_stalls"], 3)
+        self.assertTrue(layout["turning_clearance"]["entrance_connected"])
+        self.assertIn("grid_solver", layout)
+        self.assertGreaterEqual(layout["grid_solver"]["candidate_stalls"], 3)
+        self.assertEqual(len(layout["grid_solver"]["drive_cells"]), 3)
+        self.assertTrue(layout["grid_solver"]["drive_components_connected"])
+        self.assertTrue(layout["grid_solver"]["entrance_connected"])
+        self.assertEqual(layout["grid_solver"]["entrance_connection_method"], "road_frontage_geometry")
+
+    def test_parking_layout_grid_solver_flags_disconnected_entrance_edge(self):
+        layout = _solve_grid_parking_layout(
+            box(0, 0, 14, 11.5),
+            required_spaces=3,
+            accessible_spaces=0,
+            strategy="piloti_ground",
+            road_context={"sharedEdge": [[0, 20], [14, 20]]},
+        )
+
+        self.assertEqual(layout["status"], "needs_drive_connectivity_review")
+        self.assertEqual(layout["provided_spaces"], 3)
+        self.assertFalse(layout["grid_solver"]["entrance_connected"])
+        self.assertEqual(layout["grid_solver"]["entrance_connection_method"], "road_frontage_geometry")
+        self.assertGreater(layout["grid_solver"]["entrance_min_distance_m"], 0)
+        self.assertEqual(layout["turning_clearance"]["status"], "needs_swept_path_review")
+        self.assertEqual(layout["turning_clearance"]["frontage_connected_stalls"], 3)
+        self.assertFalse(layout["turning_clearance"]["entrance_connected"])
+
+    def test_parking_layout_grid_solver_records_site_connector_turning_v1(self):
+        layout = _solve_grid_parking_layout(
+            box(0, 0, 14, 11.5),
+            drive_polygon=box(0, 0, 14, 17),
+            required_spaces=3,
+            accessible_spaces=0,
+            strategy="piloti_ground",
+            road_context={"sharedEdge": [[0, 17], [14, 17]]},
+        )
+
+        self.assertEqual(layout["status"], "pass")
+        self.assertEqual(layout["grid_solver"]["entrance_connection_type"], "site_connector_v1")
+        self.assertEqual(layout["grid_solver"]["entrance_connector_width_m"], 3.0)
+        self.assertEqual(layout["turning_clearance"]["status"], "v1_pass")
+        self.assertEqual(layout["turning_clearance"]["method"], "stall_frontage_and_entrance_connector_v1")
+        self.assertEqual(layout["turning_clearance"]["frontage_connected_stalls"], 3)
+        self.assertTrue(layout["turning_clearance"]["entrance_connected"])
+        self.assertEqual(layout["turning_clearance"]["entrance_connection_type"], "site_connector_v1")
+
+    def test_parking_drive_entrance_allows_site_connector_inside_drive_area(self):
+        access = _drive_entrance_access(
+            [box(2, 2, 4, 4)],
+            box(0, 0, 10, 10),
+            road_context={"sharedEdge": [[10, 2], [10, 4]]},
+        )
+
+        self.assertTrue(access["connected"])
+        self.assertEqual(access["connection_type"], "site_connector_v1")
+        self.assertEqual(access["connector_length_m"], 6.0)
+        self.assertEqual(access["connector_width_m"], 3.0)
+
+    def test_parking_drive_entrance_rejects_connector_without_min_width(self):
+        access = _drive_entrance_access(
+            [box(2, 2.8, 4, 3.2)],
+            box(0, 2.6, 10, 3.4),
+            road_context={"sharedEdge": [[10, 2.8], [10, 3.2]]},
+        )
+
+        self.assertFalse(access["connected"])
+        self.assertEqual(access["connection_type"], "none")
+
+    def test_parking_drive_entrance_rejects_connector_outside_drive_area(self):
+        access = _drive_entrance_access(
+            [box(2, 2, 4, 4)],
+            box(0, 0, 10, 10),
+            road_context={"sharedEdge": [[12, 2], [12, 4]]},
+        )
+
+        self.assertFalse(access["connected"])
+        self.assertEqual(access["connection_type"], "none")
+
+    def test_parking_layout_grid_solver_prefers_accessible_drive_edge(self):
+        layout = _solve_grid_parking_layout(
+            box(0, 0, 70, 11.5),
+            required_spaces=2,
+            accessible_spaces=0,
+            strategy="ground_surface",
+            road_context={"sharedEdge": [[0, 0], [70, 0]]},
+        )
+
+        self.assertEqual(layout["status"], "pass")
+        self.assertEqual(layout["adjacency"]["status"], "row_contiguous")
+        self.assertTrue(layout["grid_solver"]["entrance_connected"])
+        self.assertEqual(layout["grid_solver"]["entrance_min_distance_m"], 0.0)
+
+    def test_parking_layout_grid_solver_prefers_adjacent_small_stalls(self):
+        layout = _solve_grid_parking_layout(
+            box(0, 0, 70, 11.5),
+            required_spaces=2,
+            accessible_spaces=0,
+            strategy="ground_surface",
+            road_context={"sharedEdge": [[0, 11.5], [70, 11.5]]},
+        )
+
+        self.assertEqual(layout["provided_spaces"], 2)
+        first = Polygon(layout["stalls"][0]["polygon"])
+        second = Polygon(layout["stalls"][1]["polygon"])
+        self.assertLessEqual(first.distance(second), 0.05)
+        self.assertEqual(layout["adjacency"]["status"], "row_contiguous")
+        self.assertTrue(layout["adjacency"]["contiguous_ok"])
+        self.assertEqual(layout["layout_formula"]["schema_version"], "arr.maas.parking_formula.v1")
+        self.assertEqual(layout["layout_formula"]["module"]["double_loaded_90_depth_m"], 16.0)
+        self.assertEqual(layout["column_clearance"]["status"], "not_applicable")
+        self.assertEqual(layout["drive_aisle_clearance"]["status"], "pass")
+        self.assertEqual(layout["turning_clearance"]["status"], "v1_pass")
+
+    def test_parking_layout_grid_solver_fails_when_accessible_stall_is_missing(self):
+        layout = _solve_grid_parking_layout(
+            box(0, 0, 2.6, 11.5),
+            required_spaces=1,
+            accessible_spaces=1,
+            strategy="ground_surface",
+            road_context={"sharedEdge": [[0, 11.5], [2.6, 11.5]]},
+        )
+
+        self.assertEqual(layout["status"], "fail")
+        self.assertEqual(layout["provided_spaces"], 1)
+        self.assertEqual(layout["provided_accessible_spaces"], 0)
+        self.assertEqual(layout["unmet_spaces"], 0)
+        self.assertEqual(layout["unmet_accessible_spaces"], 1)
+        self.assertEqual(layout["reason"], "grid_solver_insufficient_accessible_stall_candidates")
+
+    def test_parking_strategy_keeps_searching_after_aisle_review_candidate(self):
+        strategy = infer_parking_strategy(
+            {
+                "footprint_area": 80.0,
+                "floor_area": 160.0,
+                "num_floors": 2,
+                "bcr": 50.0,
+                "required_parking_spaces": 2,
+                "parking_road_context": {
+                    "sharedEdge": [[0, 17], [14, 17]],
+                },
+            },
+            site_area_m2=238.0,
+            building_type="다가구주택",
+            footprint_utm=box(0, 0, 14, 5.5),
+            site_utm=box(0, 0, 14, 17),
+        )
+
+        self.assertEqual(strategy["selected_strategy"], "piloti_ground")
+        self.assertEqual(strategy["layout_candidate"]["status"], "pass")
+        self.assertEqual(strategy["layout_candidate"]["turning_clearance"]["frontage_connected_stalls"], 2)
 
     def test_parking_strategy_attaches_layout_candidate_when_required_count_exists(self):
         strategy = infer_parking_strategy(
@@ -524,6 +728,42 @@ class MaasLegalVariantsTest(TestCase):
         self.assertEqual(strategy["status"], "has_layout_candidate")
         self.assertEqual(strategy["layout_candidate"]["status"], "pass")
         self.assertEqual(strategy["layout_candidate"]["provided_spaces"], 5)
+        self.assertIn("parking_envelope_wgs84", strategy)
+        self.assertIn("polygon_wgs84", strategy["layout_candidate"]["stalls"][0])
+        self.assertEqual(len(strategy["layout_candidate"]["stalls"][0]["polygon_wgs84"][0]), 2)
+
+    def test_parking_requirement_local_seed_rules_compute_neighborhood_use(self):
+        rules = {
+            "national": {
+                "parking_appendix1_row_03": {
+                    "rule_id": "parking_appendix1_row_03",
+                    "row_no": "3",
+                    "spaces_per": 200.0,
+                    "rounding_rule": "appendix_note_6_half_up_total_under_one_zero",
+                }
+            },
+            "local": [
+                {
+                    "rule_id": "seoul_parking_appendix2_row_03",
+                    "base_rule_id": "parking_appendix1_row_03",
+                    "pnu_prefix": "11",
+                    "row_no": "3",
+                    "spaces_per": 134.0,
+                    "rounding_rule": "ordinance_note_6_half_up_total_under_one_zero",
+                }
+            ],
+        }
+        requirement = resolve_candidate_parking_requirement(
+            pnu="1168011800104170004",
+            building_type="근린생활시설",
+            facility_area_m2=264.0,
+            rules=rules,
+        )
+
+        self.assertEqual(requirement["status"], "computed")
+        self.assertEqual(requirement["selected_rule_id"], "seoul_parking_appendix2_row_03")
+        self.assertEqual(requirement["required_spaces"], 2)
+        self.assertEqual(requirement["accessible"]["accessible_min"], 0)
 
     def test_grammar_sequences_generate_composite_variants(self):
         variants = generate_grammar_variants(box(0, 0, 30, 20))

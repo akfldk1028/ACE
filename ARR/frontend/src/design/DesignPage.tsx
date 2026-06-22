@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import type { DesignData, FloorPlanResult } from './lib/types';
-import { cancelJob, generateFloorPlan } from './lib/api-client';
+import type { DesignData, FloorPlanResult, GeoJSONFeature, MaasAestheticResult } from './lib/types';
+import { cancelJob, createJob, generateFloorPlan, getAutoConstraints, getJobResults, getSiteBoundary, runJob } from './lib/api-client';
 import { getRoomPreset } from './lib/room-presets';
 import { useDesignJob } from './hooks/use-design-job';
 import { useOptimizationStream } from './hooks/use-optimization-stream';
@@ -15,6 +15,7 @@ import DesignInspector from './components/DesignInspector';
 import DesignList from './components/DesignList';
 import SiteMapPanel from './components/SiteMapPanel';
 import FloorPlanViewer from './components/FloorPlanViewer';
+import InteractiveDesignPanel from './components/InteractiveDesignPanel';
 
 const OBJECTIVE_LABELS: Record<string, string> = {
   floor_area: 'Floor Area (m\u00B2)',
@@ -40,52 +41,402 @@ const BUILDING_TYPES = [
 ];
 
 const ALGORITHMS = [
-  { key: 'all', label: '전체 탐색 (10종 동시)' },
-  { key: 'additive', label: '자유형 (Additive)' },
-  { key: 'subtractive', label: '감산형 (Subtractive)' },
-  { key: 'grid', label: '격자형 (Grid)' },
-  { key: 'lshape', label: 'ㄱ자형 (L-shape)' },
-  { key: 'ushape', label: 'ㄷ자형 (U-shape)' },
-  { key: 'cross', label: '십자형 (Cross)' },
-  { key: 'courtyard', label: '중정형 (Courtyard)' },
-  { key: 'tower_podium', label: '타워+기단 (Tower+Podium)' },
-  { key: 'hshape', label: 'H자형 (H-shape)' },
-  { key: 'radial', label: '방사형 (Radial)' },
+  { key: 'maas_legal_envelope', label: 'MAAS 법규 탐색' },
+  { key: 'all', label: 'Legacy 10종 비교' },
 ];
 
 type SiteGeometry = { type: string; coordinates: unknown };
+
+function outerRing(geometry: SiteGeometry | GeoJSONFeature['geometry'] | null | undefined): number[][] | null {
+  if (!geometry) return null;
+  if (geometry.type === 'Polygon') return (geometry.coordinates as number[][][])[0] || null;
+  if (geometry.type === 'MultiPolygon') return largestPolygonCoordinates(geometry.coordinates as unknown as number[][][][])?.[0] || null;
+  return null;
+}
+
+function ringArea(ring: number[][] | null | undefined): number {
+  if (!ring || ring.length < 3) return 0;
+  let sum = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % ring.length];
+    sum += a[0] * b[1] - b[0] * a[1];
+  }
+  return Math.abs(sum) / 2;
+}
+
+function largestPolygonCoordinates(polygons: number[][][][] | null | undefined): number[][][] | null {
+  if (!Array.isArray(polygons) || polygons.length === 0) return null;
+  return polygons.reduce<number[][][] | null>((best, polygon) => {
+    if (!Array.isArray(polygon) || !polygon[0]) return best;
+    if (!best) return polygon;
+    return ringArea(polygon[0]) > ringArea(best[0]) ? polygon : best;
+  }, null);
+}
+
+function pointInRing(point: [number, number], ring: number[][]): boolean {
+  const [x, y] = point;
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi > y) !== (yj > y))
+      && (x < ((xj - xi) * (y - yi)) / ((yj - yi) || 1e-12) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function orientation(a: number[], b: number[], c: number[]): number {
+  const value = (b[1] - a[1]) * (c[0] - b[0]) - (b[0] - a[0]) * (c[1] - b[1]);
+  if (Math.abs(value) < 1e-12) return 0;
+  return value > 0 ? 1 : 2;
+}
+
+function onSegment(a: number[], b: number[], c: number[]): boolean {
+  return b[0] <= Math.max(a[0], c[0]) + 1e-12
+    && b[0] + 1e-12 >= Math.min(a[0], c[0])
+    && b[1] <= Math.max(a[1], c[1]) + 1e-12
+    && b[1] + 1e-12 >= Math.min(a[1], c[1]);
+}
+
+function segmentsIntersect(a1: number[], a2: number[], b1: number[], b2: number[]): boolean {
+  const o1 = orientation(a1, a2, b1);
+  const o2 = orientation(a1, a2, b2);
+  const o3 = orientation(b1, b2, a1);
+  const o4 = orientation(b1, b2, a2);
+  if (o1 !== o2 && o3 !== o4) return true;
+  if (o1 === 0 && onSegment(a1, b1, a2)) return true;
+  if (o2 === 0 && onSegment(a1, b2, a2)) return true;
+  if (o3 === 0 && onSegment(b1, a1, b2)) return true;
+  if (o4 === 0 && onSegment(b1, a2, b2)) return true;
+  return false;
+}
+
+function closeRing(ring: number[][]): number[][] {
+  if (ring.length < 2) return ring;
+  const first = ring[0];
+  const last = ring[ring.length - 1];
+  return first[0] === last[0] && first[1] === last[1] ? ring : [...ring, first];
+}
+
+function ringsOverlap(siteRing: number[][], featureRing: number[][]): boolean {
+  if (siteRing.length < 3 || featureRing.length < 3) return true;
+  if (featureRing.some(p => pointInRing([p[0], p[1]], siteRing))) return true;
+  if (siteRing.some(p => pointInRing([p[0], p[1]], featureRing))) return true;
+  const site = closeRing(siteRing);
+  const feature = closeRing(featureRing);
+  for (let i = 0; i < site.length - 1; i++) {
+    for (let j = 0; j < feature.length - 1; j++) {
+      if (segmentsIntersect(site[i], site[i + 1], feature[j], feature[j + 1])) return true;
+    }
+  }
+  return false;
+}
+
+function pointOnRing(point: number[], ring: number[][]): boolean {
+  const closed = closeRing(ring);
+  for (let i = 0; i < closed.length - 1; i++) {
+    if (orientation(closed[i], point, closed[i + 1]) === 0 && onSegment(closed[i], point, closed[i + 1])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function pointInsideOrOnRing(point: number[], ring: number[][]): boolean {
+  return pointInRing([point[0], point[1]], ring) || pointOnRing(point, ring);
+}
+
+function ringContainedInSite(siteRing: number[][], featureRing: number[][]): boolean {
+  if (siteRing.length < 3 || featureRing.length < 3) return true;
+  const feature = closeRing(featureRing);
+  for (let i = 0; i < feature.length - 1; i++) {
+    const a = feature[i];
+    const b = feature[i + 1];
+    const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    const thirdA = [a[0] + (b[0] - a[0]) / 3, a[1] + (b[1] - a[1]) / 3];
+    const thirdB = [a[0] + (b[0] - a[0]) * 2 / 3, a[1] + (b[1] - a[1]) * 2 / 3];
+    if (![a, mid, thirdA, thirdB].every(p => pointInsideOrOnRing(p, siteRing))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function featureFitsSite(feature: GeoJSONFeature | null | undefined, sitePolygon: object | null): boolean {
+  if (!feature || !sitePolygon) return Boolean(feature);
+  const siteRing = outerRing(sitePolygon as SiteGeometry);
+  const featureRing = outerRing(feature.geometry);
+  if (!siteRing || !featureRing) return true;
+  return ringsOverlap(siteRing, featureRing) && ringContainedInSite(siteRing, featureRing);
+}
+
+function scoreParetoCandidate(design: DesignData, designs: DesignData[]): number {
+  const xs = designs.map(d => d.objectives[0] || 0);
+  const ys = designs.map(d => d.objectives[1] || 0);
+  const xMin = Math.min(...xs);
+  const xMax = Math.max(...xs);
+  const yMin = Math.min(...ys);
+  const yMax = Math.max(...ys);
+  const x = ((design.objectives[0] || 0) - xMin) / ((xMax - xMin) || 1);
+  const y = ((design.objectives[1] || 0) - yMin) / ((yMax - yMin) || 1);
+  return x * 0.72 + y * 0.28 - Math.max(0, design.penalty || 0) * 0.05;
+}
+
+function designShapeKey(design: DesignData, feature: GeoJSONFeature | null): string {
+  const props = feature?.properties;
+  return props?.mass_shape || props?.algorithm || design.algorithm || 'unknown';
+}
+
+function designIdentityKey(design: DesignData): string {
+  return design.uid || `${design.algorithm || 'unknown'}:${design.id}`;
+}
+
+function pickDiverseParetoDesigns(
+  designs: DesignData[],
+  features: GeoJSONFeature[],
+  sitePolygon: object | null,
+  limit: number,
+): DesignData[] {
+  const locationChecked = features.length > 0
+    ? designs.filter(d => {
+      const feat = features.find(f => matchesDesignFeature(f, d));
+      return !feat || featureFitsSite(feat, sitePolygon);
+    })
+    : designs;
+  const candidates = locationChecked.length > 0 ? locationChecked : designs;
+  if (candidates.length <= limit) return candidates;
+
+  const ranked = [...candidates]
+    .sort((a, b) => scoreParetoCandidate(b, candidates) - scoreParetoCandidate(a, candidates));
+  const selected: DesignData[] = [];
+  const usedShapes = new Set<string>();
+
+  for (const design of ranked) {
+    if (selected.length >= limit) break;
+    const feature = features.find(f => matchesDesignFeature(f, design)) || null;
+    const key = designShapeKey(design, feature);
+    if (usedShapes.has(key)) continue;
+    selected.push(design);
+    usedShapes.add(key);
+  }
+
+  for (const design of ranked) {
+    if (selected.length >= limit) break;
+    if (!selected.some(d => designIdentityKey(d) === designIdentityKey(design))) {
+      selected.push(design);
+    }
+  }
+  return selected;
+}
+
+const matchesDesignFeature = (feature: any, design: DesignData) => {
+  const props = feature.properties || {};
+  if (design.uid && props.design_uid) {
+    return props.design_uid === design.uid;
+  }
+  return props.design_id === design.id
+    && (!design.algorithm || props.algorithm === design.algorithm);
+};
 
 function normalizeSitePolygon(geometry: SiteGeometry | null | undefined): SiteGeometry | undefined {
   if (!geometry) return undefined;
   if (geometry.type !== 'MultiPolygon') return geometry;
   const coords = geometry.coordinates as number[][][][];
-  return { type: 'Polygon', coordinates: coords[0] as unknown as number[][][] };
+  const largest = largestPolygonCoordinates(coords);
+  return largest ? { type: 'Polygon', coordinates: largest as unknown as number[][][] } : undefined;
 }
 
+const DesignE2EHarness: React.FC = () => {
+  const [pnu, setPnu] = useState('1168011800104170004');
+  const [sitePolygon, setSitePolygon] = useState<object | null>(null);
+  const [siteArea, setSiteArea] = useState<number | null>(null);
+  const [constraints, setConstraints] = useState<object[]>([]);
+  const [designs, setDesigns] = useState<DesignData[]>([]);
+  const [features, setFeatures] = useState<GeoJSONFeature[]>([]);
+  const [status, setStatus] = useState('idle');
+  const [error, setError] = useState<string | null>(null);
+
+  const featureForDesign = useCallback((design: DesignData): GeoJSONFeature | null => {
+    return features.find(f => matchesDesignFeature(f, design)) || null;
+  }, [features]);
+
+  const handleSearch = useCallback(async () => {
+    setError(null);
+    setStatus('loading_site');
+    setDesigns([]);
+    setFeatures([]);
+    try {
+      const boundary = await getSiteBoundary(pnu);
+      const normalized = normalizeSitePolygon(boundary.geometry as SiteGeometry);
+      setSitePolygon(normalized || boundary.geometry);
+      setSiteArea(boundary.area_m2);
+      const legal = await getAutoConstraints({
+        pnu,
+        site_polygon: normalized || boundary.geometry,
+        building_type: '근린생활시설',
+        include_law_articles: false,
+      });
+      setConstraints(legal.constraints || []);
+      setStatus('ready');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'search failed');
+      setStatus('error');
+    }
+  }, [pnu]);
+
+  const handleOptimize = useCallback(async () => {
+    if (!sitePolygon) return;
+    setError(null);
+    setStatus('running');
+    setDesigns([]);
+    setFeatures([]);
+    try {
+      const job = await createJob({
+        pnu,
+        site_polygon: sitePolygon,
+        constraints,
+        job_spec: {
+          options: {
+            'Number of generations': 50,
+            num_islands: 5,
+            pop_per_island: 6,
+            building_type: '근린생활시설',
+            algorithm: 'maas_legal_envelope',
+          },
+        },
+      });
+      await runJob(job.id);
+      let payload: any = null;
+      for (let i = 0; i < 120; i++) {
+        await new Promise(resolve => window.setTimeout(resolve, 1000));
+        payload = await getJobResults(job.id);
+        const pareto = Array.isArray(payload?.designs)
+          ? payload.designs.filter((d: any) => d?.is_pareto_optimal && d?.mass_geojson)
+          : [];
+        if (payload?.job?.status === 'complete' && pareto.length) break;
+      }
+      const pareto = Array.isArray(payload?.designs)
+        ? payload.designs.filter((d: any) => d?.is_pareto_optimal && d?.mass_geojson)
+        : [];
+      const nextFeatures = pareto.map((d: any) => d.mass_geojson as GeoJSONFeature);
+      const nextDesigns: DesignData[] = pareto.map((d: any, index: number) => {
+        const props = d.mass_geojson?.properties || {};
+        const objectives = Array.isArray(d.outputs?.objectives)
+          ? d.outputs.objectives
+          : [props.floor_area ?? 0, props.open_pct ?? 0];
+        return {
+          id: d.design_id ?? props.design_id ?? index + 1,
+          uid: props.design_uid,
+          generation: d.generation ?? 0,
+          parents: [null, null],
+          feasible: d.is_feasible ?? true,
+          inputs: [],
+          objectives,
+          penalty: d.outputs?.penalty ?? 0,
+          rank: d.ranking ?? 1,
+          elite: 0,
+          algorithm: props.algorithm,
+        };
+      });
+      setFeatures(nextFeatures);
+      setDesigns(nextDesigns);
+      setStatus('complete');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'optimization failed');
+      setStatus('error');
+    }
+  }, [constraints, pnu, sitePolygon]);
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#0f172a', color: '#e2e8f0', padding: 24, fontFamily: 'sans-serif' }}>
+      <h1 style={{ fontSize: 18, margin: '0 0 12px' }}>MAAS E2E</h1>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <input
+          aria-label="PNU"
+          value={pnu}
+          onChange={e => setPnu(e.target.value)}
+          style={{ width: 240, padding: 8, background: '#0b1220', color: '#e2e8f0', border: '1px solid #334155', borderRadius: 6 }}
+        />
+        <button onClick={handleSearch} style={{ padding: '8px 14px', borderRadius: 6, border: 0, background: '#3b82f6', color: '#fff' }}>
+          조회
+        </button>
+        <button
+          onClick={handleOptimize}
+          disabled={!sitePolygon || status === 'running'}
+          style={{ padding: '8px 14px', borderRadius: 6, border: 0, background: sitePolygon ? '#22c55e' : '#334155', color: '#fff' }}
+        >
+          OPTIMIZE
+        </button>
+      </div>
+      <div data-testid="e2e-status" style={{ marginBottom: 12, color: '#94a3b8' }}>
+        {status} {siteArea ? `/ ${siteArea.toFixed(2)} m2` : ''} {error ? `/ ${error}` : ''}
+      </div>
+      {designs.length > 0 && (
+        <div data-testid="pareto-e2e-summary" style={{ marginBottom: 12, color: '#60c8ff' }}>
+          {designs.length} MAAS pareto candidates ready
+        </div>
+      )}
+      <DesignList
+        designs={designs}
+        selectedId={null}
+        selectedUid={null}
+        selectedAlgorithm={null}
+        onSelect={() => undefined}
+        objectiveNames={['floor_area', 'open_space']}
+        featureForDesign={featureForDesign}
+      />
+    </div>
+  );
+};
+
 const DesignPage: React.FC = () => {
+  const isE2ERoute = import.meta.env.DEV && new URLSearchParams(window.location.search).get('e2e') === '1';
+  if (isE2ERoute) return <DesignE2EHarness />;
+
   const jobState = useDesignJob();
   const stream = useOptimizationStream();
   const [selectedDesign, setSelectedDesign] = useState<DesignData | null>(null);
   const [activePnu, setActivePnu] = useState('');
   const [buildingType, setBuildingType] = useState('공동주택');
-  const [algorithm, setAlgorithm] = useState('all');
+  const [algorithm, setAlgorithm] = useState('maas_legal_envelope');
   const [viewTab, setViewTab] = useState<'mass' | 'floor'>('mass');
   const [floorPlanResult, setFloorPlanResult] = useState<FloorPlanResult | null>(null);
   const [floorPlanLoading, setFloorPlanLoading] = useState(false);
   const [floorPlanIndex, setFloorPlanIndex] = useState(0);
   const [autoFloorPlan, setAutoFloorPlan] = useState(true);
   const [floorAlgorithm, setFloorAlgorithm] = useState('ga');
-  const lastAutoDesignId = useRef<number | null>(null);
+  const [interactivePreview, setInteractivePreview] = useState<GeoJSONFeature | null>(null);
+  const [aestheticOverlay, setAestheticOverlay] = useState<{
+    url: string;
+    status: string;
+    provider: string;
+    style: string;
+    textureUrl: string | null;
+    texturePanelUrls: Record<string, string>;
+    texturedGltfUrl: string | null;
+  } | null>(null);
+  const [aestheticFacadeStyle, setAestheticFacadeStyle] = useState<string | null>(null);
+  const [showAllPareto, setShowAllPareto] = useState(false);
+  const isE2E = import.meta.env.DEV && new URLSearchParams(window.location.search).get('e2e') === '1';
+  const textureProbe = import.meta.env.DEV && new URLSearchParams(window.location.search).get('textureProbe') === 'reference';
+  const lastAutoDesignKey = useRef<string | null>(null);
+  const autoFloorPlanTimer = useRef<number | null>(null);
   const buildingTypeRequestRef = useRef(buildingType);
 
   const handlePnuSearch = useCallback(async (pnu: string) => {
+    setSelectedDesign(null);
+    setInteractivePreview(null);
+    setFloorPlanResult(null);
+    stream.disconnect();
     setActivePnu(pnu);
     const boundary = await jobState.loadSiteBoundary(pnu);
     const resolvedPnu = boundary?.pnu || pnu;
     setActivePnu(resolvedPnu);
     console.log('[Design] boundary:', boundary ? `geometry=${boundary.geometry?.type}, area=${boundary.area_m2}` : 'null');
-    // MultiPolygon -> Polygon (first polygon) 변환. backend compute_setback_lines가 Polygon만
-    // 처리. 분할 필지(separated parcels)면 첫 번째만 사용 - 일부 데이터 손실 가능.
+    // MultiPolygon -> largest Polygon 변환. backend compute_setback_lines가 Polygon만
+    // 처리하므로 분할 필지는 대표 대지 조각을 명시적으로 선택한다.
     const site_polygon = normalizeSitePolygon(boundary?.geometry as SiteGeometry | undefined);
     await jobState.loadConstraints({
       pnu: resolvedPnu,
@@ -93,7 +444,7 @@ const DesignPage: React.FC = () => {
       building_type: buildingType,
       include_law_articles: false,
     });
-  }, [jobState, buildingType]);
+  }, [jobState, buildingType, stream]);
 
   const handleBuildingTypeChange = useCallback(async (nextType: string) => {
     setBuildingType(nextType);
@@ -125,6 +476,13 @@ const DesignPage: React.FC = () => {
   }, []);
 
   const handleStart = useCallback(async (options: { maxGenerations: number; populationSize: number }) => {
+    setSelectedDesign(null);
+    setInteractivePreview(null);
+    setFloorPlanResult(null);
+    setViewTab('mass');
+    setShowAllPareto(false);
+    lastAutoDesignKey.current = null;
+    if (autoFloorPlanTimer.current) window.clearTimeout(autoFloorPlanTimer.current);
     // Decompose population into islands (5 islands default)
     const numIslands = 5;
     const popPerIsland = Math.max(3, Math.round(options.populationSize / numIslands));
@@ -152,11 +510,14 @@ const DesignPage: React.FC = () => {
     }
   }, [jobState.job, stream]);
 
-  const runFloorPlan = useCallback(async (designId: number, quick: boolean) => {
+  const findFeatureForDesign = useCallback((design: DesignData): GeoJSONFeature | null => {
+    if (!stream.paretoGeojson?.length) return null;
+    return stream.paretoGeojson.find(f => matchesDesignFeature(f, design)) || null;
+  }, [stream.paretoGeojson]);
+
+  const runFloorPlan = useCallback(async (design: DesignData, quick: boolean) => {
     if (!stream.paretoGeojson?.length) return;
-    const feat = stream.paretoGeojson.find(
-      f => f.properties.design_id === designId,
-    );
+    const feat = findFeatureForDesign(design);
     if (!feat) return;
 
     setFloorPlanLoading(true);
@@ -174,25 +535,79 @@ const DesignPage: React.FC = () => {
         options: genOpts,
       });
       setFloorPlanResult(result);
-      setViewTab('floor');
+      if (!quick) setViewTab('floor');
     } catch (e) {
       console.error('Floor plan generation failed:', e);
     } finally {
       setFloorPlanLoading(false);
     }
-  }, [stream.paretoGeojson, buildingType, floorAlgorithm]);
+  }, [stream.paretoGeojson, findFeatureForDesign, buildingType, floorAlgorithm]);
 
   const handleDesignSelect = useCallback((d: DesignData) => {
     setSelectedDesign(d);
-    if (autoFloorPlan && stream.paretoGeojson?.length && d.id !== lastAutoDesignId.current) {
-      lastAutoDesignId.current = d.id;
-      runFloorPlan(d.id, true);
+    setInteractivePreview(null);
+    setAestheticOverlay(null);
+    setAestheticFacadeStyle(null);
+    setViewTab('mass');
+    const designKey = designIdentityKey(d);
+    if (autoFloorPlan && stream.paretoGeojson?.length && designKey !== lastAutoDesignKey.current) {
+      lastAutoDesignKey.current = designKey;
+      if (autoFloorPlanTimer.current) window.clearTimeout(autoFloorPlanTimer.current);
+      autoFloorPlanTimer.current = window.setTimeout(() => {
+        runFloorPlan(d, true);
+      }, 250);
     }
   }, [autoFloorPlan, stream.paretoGeojson, runFloorPlan]);
 
+  const handleAestheticGenerated = useCallback((result: MaasAestheticResult | null, style = '') => {
+    const requestedStyle = style.trim();
+    if (!result) {
+      setAestheticOverlay(null);
+      setAestheticFacadeStyle(null);
+      return;
+    }
+    const assets = result.provider_result?.assets || [];
+    const generated = assets.find(asset => asset.role === 'generated_facade_image' && asset.url)?.url
+      || assets.find(asset => asset.url)?.url;
+    const bakeStatus = (result.provider_result?.metadata?.texture_bake as { status?: string } | undefined)?.status;
+    const projectionSkipped = bakeStatus === 'skipped'
+      || result.provider_result?.issues?.some(issue => issue.code === 'projection_panels_not_texture_ready');
+    setAestheticFacadeStyle(projectionSkipped ? null : (requestedStyle || null));
+    const texturedGltfUrl = projectionSkipped
+      ? null
+      : assets.find(asset => asset.role === 'textured_gltf' && asset.url)?.url || null;
+    const texturePanelUrls = projectionSkipped ? {} : assets
+      .filter(asset => asset.role === 'facade_panel_image' && asset.url && asset.metadata?.view)
+      .reduce<Record<string, string>>((acc, asset) => {
+        const view = String(asset.metadata?.view || '');
+        if (view) acc[view] = asset.url!;
+        return acc;
+      }, {});
+    const reference = result.reference?.url;
+    const url = generated || reference;
+    const textureUrl = projectionSkipped ? null : generated || (textureProbe ? reference : null);
+    if (!url) {
+      setAestheticOverlay(null);
+      return;
+    }
+    setAestheticOverlay({
+      url,
+      provider: result.provider_result?.provider || result.job.provider,
+      status: `${result.provider_result?.provider || result.job.provider} · ${result.status}${projectionSkipped ? ' / mesh skipped' : ''}`,
+      style: projectionSkipped ? '' : style,
+      textureUrl: textureUrl || null,
+      texturePanelUrls,
+      texturedGltfUrl,
+    });
+  }, [textureProbe]);
+
+  useEffect(() => () => {
+    if (autoFloorPlanTimer.current) window.clearTimeout(autoFloorPlanTimer.current);
+  }, []);
+
   const handleGenerateFloorPlan = useCallback(async () => {
     if (!selectedDesign) return;
-    runFloorPlan(selectedDesign.id, false);
+    runFloorPlan(selectedDesign, false);
   }, [selectedDesign, runFloorPlan]);
 
   // Derive Pareto axis labels from SSE objectives (per building type)
@@ -205,17 +620,75 @@ const DesignPage: React.FC = () => {
 
   // Compute mass features for 3D map rendering
   const massFeatures = useMemo(() => {
+    if (isE2E) return [];
+    if (interactivePreview && featureFitsSite(interactivePreview, jobState.sitePolygon)) return [interactivePreview];
     // If user selected a specific design, show only that one
     if (selectedDesign && stream.paretoGeojson?.length) {
       const found = stream.paretoGeojson.find(
-        f => f.properties.design_id === selectedDesign.id,
+        f => matchesDesignFeature(f, selectedDesign),
       );
-      if (found) return [found];
+      if (found && featureFitsSite(found, jobState.sitePolygon)) return [found];
+      return [];
     }
     // During optimization, show best design
-    if (stream.bestGeojson) return [stream.bestGeojson];
+    if (stream.bestGeojson && featureFitsSite(stream.bestGeojson, jobState.sitePolygon)) return [stream.bestGeojson];
     return [];
-  }, [selectedDesign, stream.paretoGeojson, stream.bestGeojson]);
+  }, [isE2E, interactivePreview, selectedDesign, stream.paretoGeojson, stream.bestGeojson, jobState.sitePolygon]);
+
+  const selectedMassGeojson = useMemo(() => {
+    if (isE2E) return null;
+    if (!selectedDesign || !stream.paretoGeojson?.length) return null;
+    const found = stream.paretoGeojson.find(
+      f => matchesDesignFeature(f, selectedDesign),
+    ) || null;
+    return featureFitsSite(found, jobState.sitePolygon) ? found : null;
+  }, [isE2E, selectedDesign, stream.paretoGeojson, jobState.sitePolygon]);
+  const activeMassGeojson = interactivePreview || selectedMassGeojson || (!selectedDesign ? massFeatures[0] : null) || null;
+  const activeMassDesignId = activeMassGeojson?.properties?.design_id ?? selectedDesign?.id ?? undefined;
+  const activePanelDesign = useMemo<DesignData | null>(() => {
+    if (selectedDesign) return selectedDesign;
+    if (!activeMassGeojson) return null;
+    const props = (activeMassGeojson.properties || {}) as Record<string, unknown>;
+    const designId = typeof props.design_id === 'number' ? props.design_id : 0;
+    return {
+      id: designId,
+      uid: typeof props.design_uid === 'string' ? props.design_uid : undefined,
+      generation: 0,
+      parents: [null, null],
+      feasible: props.legal_status !== 'fail',
+      inputs: [],
+      objectives: [
+        typeof props.floor_area === 'number' ? props.floor_area : 0,
+        typeof props.open_pct === 'number' ? props.open_pct : 0,
+      ],
+      penalty: 0,
+      rank: 1,
+      elite: 0,
+      algorithm: typeof props.algorithm === 'string' ? props.algorithm : algorithm,
+    };
+  }, [activeMassGeojson, algorithm, selectedDesign]);
+
+  const visibleParetoDesigns = useMemo(() => {
+    if (isE2E) return stream.paretoFront.slice(0, 18);
+    if (showAllPareto) {
+      const locationChecked = stream.paretoGeojson.length > 0
+        ? stream.paretoFront.filter(d => {
+          const feat = stream.paretoGeojson.find(f => matchesDesignFeature(f, d));
+          return !feat || featureFitsSite(feat, jobState.sitePolygon);
+        })
+        : stream.paretoFront;
+      return locationChecked.length > 0 ? locationChecked : stream.paretoFront;
+    }
+    return pickDiverseParetoDesigns(stream.paretoFront, stream.paretoGeojson, jobState.sitePolygon, 18);
+  }, [isE2E, showAllPareto, stream.paretoFront, stream.paretoGeojson, jobState.sitePolygon]);
+
+  useEffect(() => {
+    if (isE2E || selectedDesign || stream.status !== 'complete' || visibleParetoDesigns.length === 0) return;
+    setSelectedDesign(visibleParetoDesigns[0]);
+    setInteractivePreview(null);
+    setAestheticOverlay(null);
+    setAestheticFacadeStyle(null);
+  }, [isE2E, selectedDesign, stream.status, visibleParetoDesigns]);
 
   return (
     <div style={{
@@ -225,36 +698,20 @@ const DesignPage: React.FC = () => {
       background: '#0a0f1a',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
-      {/* Left: Map */}
+      {/* Left: Search, legal review, Pareto and candidates */}
       <div style={{
-        flex: 1,
-        padding: 12,
-        minWidth: 0,
-      }}>
-        <SiteMapPanel
-          sitePolygon={jobState.sitePolygon}
-          massFeatures={massFeatures.length > 0 ? massFeatures : undefined}
-          selectedDesignId={selectedDesign?.id ?? undefined}
-          onParcelClick={handleParcelClick}
-          setbackGeometries={jobState.setbackGeometries}
-        />
-      </div>
-
-      {/* Center: Controls */}
-      <div style={{
-        width: 320,
+        width: 410,
         padding: '12px 8px',
         overflowY: 'auto' as const,
         display: 'flex',
         flexDirection: 'column' as const,
-        gap: 0,
-        borderLeft: '1px solid #1e293b',
+        gap: 8,
         borderRight: '1px solid #1e293b',
         background: '#0f172a',
+        flexShrink: 0,
       }}>
         <div style={{
           padding: '4px 8px 14px',
-          marginBottom: 4,
         }}>
           <h2 style={{
             color: '#e2e8f0',
@@ -266,7 +723,7 @@ const DesignPage: React.FC = () => {
             건물 매스 최적화
           </h2>
           <p style={{ color: '#475569', fontSize: 11, margin: '4px 0 0', letterSpacing: '0.02em' }}>
-            SSIEA Island Evolutionary Algorithm
+            MAAS Legal Morphology Search
           </p>
         </div>
 
@@ -324,22 +781,27 @@ const DesignPage: React.FC = () => {
             error={stream.error}
           />
         )}
-      </div>
 
-      {/* Right: Pareto + List + Inspector */}
-      <div style={{
-        width: 460,
-        display: 'flex',
-        flexDirection: 'column' as const,
-        background: '#0f172a',
-        overflow: 'hidden',
-      }}>
-        {/* Pareto chart — fixed top */}
-        <div style={{ padding: '12px 12px 0', flexShrink: 0 }}>
-          {(stream.paretoFront.length > 0 || stream.scatterHistory.length > 0) ? (
+        <div style={{ flexShrink: 0 }}>
+          {isE2E && stream.paretoFront.length > 0 ? (
+            <div
+              data-testid="pareto-e2e-summary"
+              style={{
+                background: 'rgba(30,41,59,0.5)',
+                borderRadius: 10,
+                padding: 18,
+                color: '#94a3b8',
+                border: '1px solid rgba(96,200,255,0.12)',
+                fontSize: 12,
+              }}
+            >
+              <strong style={{ color: '#60c8ff' }}>{visibleParetoDesigns.length}</strong>
+              {' '}MAAS pareto candidates ready
+            </div>
+          ) : (stream.paretoFront.length > 0 || stream.scatterHistory.length > 0) ? (
             <ParetoChart
-              designs={stream.paretoFront}
-              scatterHistory={stream.scatterHistory}
+              designs={visibleParetoDesigns}
+              scatterHistory={showAllPareto ? stream.scatterHistory : []}
               maxGeneration={stream.maxGenerations}
               selectedId={selectedDesign?.id ?? null}
               onSelect={handleDesignSelect}
@@ -419,20 +881,57 @@ const DesignPage: React.FC = () => {
           </button>
         </div>
 
+        {stream.paretoFront.length > 18 && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '7px 12px 0',
+            color: '#64748b',
+            fontSize: 10,
+            flexShrink: 0,
+          }}>
+            <span>
+              {showAllPareto ? `전체 ${stream.paretoFront.length}개 표시` : `최적 후보 ${visibleParetoDesigns.length}개 우선 표시`}
+            </span>
+            <button
+              onClick={() => setShowAllPareto(prev => !prev)}
+              style={{
+                border: '1px solid rgba(96,200,255,0.22)',
+                background: showAllPareto ? 'rgba(96,200,255,0.08)' : 'rgba(16,185,129,0.12)',
+                color: showAllPareto ? '#60c8ff' : '#34d399',
+                borderRadius: 6,
+                padding: '3px 7px',
+                fontSize: 10,
+                cursor: 'pointer',
+              }}
+            >
+              {showAllPareto ? '최적만' : '전체보기'}
+            </button>
+          </div>
+        )}
+
         {/* Tab content */}
-        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ minHeight: 360, overflow: 'visible', display: 'flex', flexDirection: 'column' }}>
           {viewTab === 'mass' ? (
-            <div style={{ flex: 1, padding: '8px 12px', overflowY: 'auto', minHeight: 0 }}>
+            <div style={{ padding: '8px 12px', minHeight: 0 }}>
               <DesignList
-                designs={stream.paretoFront}
+                designs={visibleParetoDesigns}
                 selectedId={selectedDesign?.id ?? null}
+                selectedUid={selectedDesign?.uid ?? null}
+                selectedAlgorithm={selectedDesign?.algorithm ?? null}
                 onSelect={handleDesignSelect}
                 objectiveNames={stream.objectives.map(o => o.name)}
+                featureForDesign={findFeatureForDesign}
               />
 
               {selectedDesign && (
                 <div style={{ marginTop: 8 }}>
-                  <DesignInspector design={selectedDesign} objectiveNames={stream.objectives.map(o => o.name)} />
+                  <DesignInspector
+                    design={selectedDesign}
+                    objectiveNames={stream.objectives.map(o => o.name)}
+                    feature={selectedMassGeojson}
+                  />
                   {/* 평면 생성 버튼 */}
                   {stream.paretoGeojson?.length > 0 && (
                     <button
@@ -476,6 +975,93 @@ const DesignPage: React.FC = () => {
             flexShrink: 0,
           }}>
             {jobState.error}
+          </div>
+        )}
+      </div>
+
+      {/* Center: Map */}
+      <div style={{
+        flex: 1,
+        padding: 12,
+        minWidth: 0,
+      }}>
+        {isE2E ? (
+          <div data-testid="design-map-e2e-placeholder" style={{
+            height: '100%',
+            border: '1px dashed #334155',
+            borderRadius: 10,
+            background: '#020617',
+            color: '#64748b',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 13,
+          }}>
+            E2E map placeholder
+          </div>
+        ) : (
+          <SiteMapPanel
+            sitePolygon={jobState.sitePolygon}
+            massFeatures={massFeatures.length > 0 ? massFeatures : undefined}
+            selectedDesignId={activeMassDesignId}
+            aestheticOverlayUrl={aestheticOverlay?.url ?? null}
+            aestheticOverlayStatus={aestheticOverlay?.status ?? null}
+            aestheticFacadeStyle={aestheticOverlay?.status.includes('mesh skipped') ? null : aestheticFacadeStyle}
+            aestheticFacadeTextureUrl={aestheticOverlay?.textureUrl ?? null}
+            aestheticFacadeTexturePanelUrls={aestheticOverlay?.texturePanelUrls ?? null}
+            aestheticTexturedGltfUrl={aestheticOverlay?.texturedGltfUrl ?? null}
+            aestheticPreviewMode={Boolean(aestheticOverlay?.textureUrl)}
+            onParcelClick={handleParcelClick}
+            setbackGeometries={jobState.setbackGeometries}
+          />
+        )}
+      </div>
+
+      {/* Right: AI collaboration */}
+      <div style={{
+        width: 400,
+        height: '100vh',
+        flexShrink: 0,
+        borderLeft: '1px solid #1e293b',
+        background: '#0f172a',
+        overflowY: 'auto',
+        padding: 12,
+        boxSizing: 'border-box',
+      }}>
+        <div style={{ padding: '4px 2px 10px' }}>
+          <div style={{ color: '#e2e8f0', fontSize: 14, fontWeight: 700 }}>
+            AI 설계 협업
+          </div>
+          <div style={{ color: '#64748b', fontSize: 10, marginTop: 3, letterSpacing: '0.03em' }}>
+            MAAS Agent Workspace
+          </div>
+        </div>
+        {activePanelDesign ? (
+          <InteractiveDesignPanel
+            jobId={jobState.job?.id ?? null}
+            design={activePanelDesign}
+            massGeojson={activeMassGeojson}
+            constraints={jobState.constraints}
+            sitePolygon={jobState.sitePolygon}
+            siteArea={jobState.siteArea}
+            buildingType={buildingType}
+            algorithm={algorithm}
+            sunlightEnvelope={jobState.setbackGeometries?.sunlight_envelope ?? null}
+            setbackGeometries={jobState.setbackGeometries}
+            onPreviewCandidate={setInteractivePreview}
+            onAestheticGenerated={handleAestheticGenerated}
+          />
+        ) : (
+          <div style={{
+            border: '1px dashed rgba(96,200,255,0.18)',
+            borderRadius: 8,
+            padding: 14,
+            color: '#64748b',
+            fontSize: 12,
+            lineHeight: 1.6,
+            background: 'rgba(15,23,42,0.72)',
+          }}>
+            후보를 선택하면 대화형 수정이 열립니다.
           </div>
         )}
       </div>

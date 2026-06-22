@@ -51,6 +51,11 @@ build/
 autogen_a2a_kit/autogen_source/python/packages/autogen-studio/frontend/node_modules/
 autogen_a2a_kit/autogen_source/python/packages/autogen-studio/frontend/.cache/
 autogen_a2a_kit/autogen_source/python/packages/autogen-studio/frontend/public/
+autogen_a2a_kit/autogen_source/python/packages/autogen-studio/autogenstudio/web/ui/
+autogen_a2a_kit/AG-cli/tmpclaude-*
+tmpclaude-*
+agent/**/venv/
+agent/**/.venv/
 
 # Environment files with secrets
 .env
@@ -66,6 +71,8 @@ autogen_a2a_kit/autogen_source/python/packages/autogen-studio/frontend/public/
 
 # Batch files with keys
 *_with_key.bat
+*_with_key.ps1
+**/logs/security/
 
 # Test outputs
 nul
@@ -73,6 +80,7 @@ nul
 
 # Root-level files only (don't affect autogen_source subdirectories)
 /a2a_demo
+/agent/
 /requirements.txt
 /AI_HANDOFF.md
 /check_db.py

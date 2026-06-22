@@ -2,6 +2,38 @@
 
 Read this folder before touching the legal-design visualization work.
 
+## Project Goal Snapshot - 2026-06-22
+
+The project goal is not a generic parking CAD/BIM tool and not a final permit
+approval engine.
+
+The core target is an AI-assisted legal massing/design collaboration system:
+
+- ARR `/design` is the main product surface. It takes a PNU/site, reads land
+  geometry, roads, datum/elevation, zoning and law data, then generates MAAS
+  massing candidates with visible legal evidence.
+- The system should show why a candidate works: north daylight/sunlight,
+  height/datum, road/frontage, coverage/FAR, parking count/layout evidence,
+  and law/graph provenance.
+- Parking is a required mass-stage feasibility gate, not the whole product.
+  For small lots, adjacent stalls, row-contiguous stalls, and legal road-as-aisle
+  review paths are expected. Do not overbuild structural columns or final
+  swept-path/permit-level engineering before preserving useful mass candidates.
+- AG-light is the collaboration layer for law-to-design review. It should expose
+  AutoGen/A2A-style agents in the UI with React Flow-like graph state,
+  handoffs, tool calls, evidence references, and decisions.
+- Graph DB stores durable law basis, relationships, evidence/provenance,
+  candidate lineage, rejected constraints, and important decisions. It should
+  not become a raw chat log dump.
+- The research direction is multi-agent legal/design collaboration from law
+  retrieval through deterministic ARR tools to visible design decisions, not a
+  one-shot chatbot or standalone visualization demo.
+
+Next AI sessions must preserve this hierarchy: first keep ARR `/design`
+legally explainable and visually verifiable, then connect AG-light
+collaboration UI/agents, then broaden law/design coverage. Use Playwright PNG
+checks for visual claims.
+
 ## Read Order
 
 1. `PROJECT_MAP.md` - three connected projects and ownership.

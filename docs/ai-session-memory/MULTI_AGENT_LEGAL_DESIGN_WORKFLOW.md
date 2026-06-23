@@ -173,6 +173,7 @@ ARR/frontend/src/design/components/ag-light-flow/layout-generator.ts
 ARR/frontend/src/design/components/ag-light-flow/agentnode.tsx
 ARR/frontend/src/design/components/ag-light-flow/edge.tsx
 ARR/frontend/src/design/components/ag-light-flow/types.ts
+ARR/frontend/src/design/components/ag-light-flow/agents/
 ```
 
 Module boundary:
@@ -180,23 +181,57 @@ Module boundary:
 - `AGLightFlow.tsx`: React Flow provider/rendering, fullscreen state, viewport.
 - `AGLightFlowToolbar.tsx`: AG-frontend-style toolbar controls.
 - `layout-generator.ts`: ARR-specific selector/handoff graph generation from
-  current `/design` evidence reviews/messages.
+  current `/design` evidence reviews/messages and JSON_MODULES agent modules.
 - `agentnode.tsx` and `edge.tsx`: existing ARR React Flow node/edge components,
   reused and extended with compact/last-message rendering.
+- `agents/*`: one folder per visible JSON_MODULES participant, with shared
+  adapter code isolated under `agents/shared`.
 
-Current graph semantics:
+Current JSON/team source of truth:
+
+```text
+JSON_MODULES/registry.json
+  maas_legal_design -> teams/041_MAAS_Legal_Design_Team.json
+
+JSON_MODULES/teams/041_MAAS_Legal_Design_Team.json
+  SelectorGroupChat:
+    law_graph_agent
+    parking_agent
+    maas_geometry_agent
+    review_agent
+```
+
+ARR must not create a second local JSON source for this team. The visible
+React Flow graph reads the team participants from `JSON_MODULES/teams/041...`
+through `agents/shared/team-config.ts`.
+
+Current ARR visible graph semantics:
 
 ```text
 User
--> design_orchestrator (Selector/Handoff)
--> law_agent / parking_agent / sunlight_agent / datum_agent / design_critic
+-> design_orchestrator (Selector/Handoff UI hub)
+-> law_graph_agent / parking_agent / maas_geometry_agent / review_agent
 -> design_orchestrator report edges
 ```
 
-This is still AG-light visualization, not full AutoGen runtime orchestration.
-The visible panel now shows:
+`design_orchestrator` is an ARR UI hub representing the SelectorGroupChat
+router. It is intentionally not a separate participant in `041_MAAS...json`.
 
-- law, parking, sunlight, datum, and design critic nodes,
+Runtime evidence mapping:
+
+```text
+law_graph_agent      <- ARR review/message agent id: law_agent
+parking_agent        <- ARR review/message agent id: parking_agent
+maas_geometry_agent  <- ARR review/message agent ids: sunlight_agent + datum_agent
+review_agent         <- ARR review/message agent id: design_critic
+```
+
+This is still AG-light visualization plus deterministic ARR evidence review,
+not full AutoGen runtime orchestration. The visible panel now shows:
+
+- JSON_MODULES agent ids in the nodes:
+  `law_graph_agent`, `parking_agent`, `maas_geometry_agent`, `review_agent`,
+- readable Korean labels: law, parking, mass/datum, final review,
 - live bus-derived last messages in the nodes,
 - request/report edge labels,
 - fullscreen graph mode,
@@ -209,12 +244,20 @@ docs/playwright/design-route-live-verify/ag-light/verify-current-ag-light.cjs
 docs/playwright/design-route-live-verify/ag-light/verify-current-ag-light-fullscreen.cjs
 docs/playwright/design-route-live-verify/ag-light/ag-light-current-result.json
 docs/playwright/design-route-live-verify/ag-light/ag-light-current-fullscreen-result.json
+docs/playwright/design-route-live-verify/ag-light/ag-light-json-modules-agent-flow.json
 ```
 
 Known dev-server note: on WSL-mounted `D:\Data\25_ACE`, Vite HMR sometimes keeps
 old `ag-light-flow` modules. If DOM still shows old node text like
-`orchestrator / Routes review outcomes`, restart `ARR/frontend` dev server on
-`127.0.0.1:5174` before judging screenshots.
+`orchestrator / Routes review outcomes`, or if node text omits JSON ids like
+`law_graph_agent`, restart `ARR/frontend` dev server on `127.0.0.1:5174` before
+judging screenshots.
+
+Latest verified screenshot after the JSON_MODULES wiring:
+
+```text
+docs/playwright/design-route-live-verify/ag-light/ag-light-json-modules-agent-flow-1782185181473.png
+```
 
 ## What Goes Into Graph DB
 

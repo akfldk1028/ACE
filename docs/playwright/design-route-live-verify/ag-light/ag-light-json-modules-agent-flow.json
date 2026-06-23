@@ -1,0 +1,66 @@
+{
+  "state": {
+    "hasReactFlow": true,
+    "reactFlowNodes": 6,
+    "reactFlowEdges": 0,
+    "nodeTexts": [
+      "UseruserHuman user",
+      "design_orchestratorSelector/Handoff법규-설계 협업 라우터",
+      "법규law_graph_agent법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+      "주차parking_agent주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+      "매스/기준면maas_geometry_agent대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+      "최종검토review_agent디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)"
+    ],
+    "hasLawGraphAgent": true,
+    "hasParkingAgent": true,
+    "hasMaasGeometryAgent": true,
+    "hasReviewAgent": true,
+    "hasLabels": true,
+    "hasOldDatumAgent": true,
+    "hasOldSunlightAgent": true,
+    "hasErrorOverlay": false,
+    "text": "(H = 18m)\n0m\n10m\n20m\n0m\n1.5m\n5m\n10m\n15m\n20m\n법규 envelope\n인접대지 경계\n건물 단면\nOPTIMIZATION\nCOMPLETE\n100%\n세대\n36/50\n적합\n2059\n파레토\n18\n총평가\n2800\nPARETO FRONT\n0 evaluated\n18 pareto\nGen\n0 → 50\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nDESIGN LIST\n18\n#\n매스\n형태\n연면적\n일조\n주차\n1\n코너/오픈코트\n293\n63.0\n필로티\n2\nparking_repair_shrink\n208\n86.9\n외부지상\n3\n코너/오픈코트\n294\n63.0\n외부지상\n4\n건폐확장\n287\n63.8\n외부지상\n5\n핀치형\n275\n65.3\n외부지상\n6\n인셋\n261\n67.0\n기계식\n7\n오버랩\n264\n66.7\n외부지상\n8\n중정형\n247\n68.8\n외부지상\n9\n인터락\n236\n70.2\n외부지상\n10\n분절/브릿지\n208\n73.8\n외부지상\n11\n브랜치형\n162\n79.5\n외부지상\n12\n바형\n134\n83.2\n외부지상\n13\n법규엔벨로프\n463\n61.0\n필로티\n14\n다단 일조스텝\n463\n61.0\n필로티\n15\n테라스\n448\n61.0\n필로티\n16\n포디움/타워\n429\n62.4\n필로티\n17\n다단 일조스텝\n426\n64.3\n필로티\n18\n포디움+타워오프셋\n309\n61.0\n필로티\nDESIGN\n#900000\nFEASIBLE\n연면적\n293.5\nm²\n일조점수\n63.0\n점\nPARKING\n필로티 주차\n법정 주차대수\n3대\n계획 제공대수\n3대\n상태\n배치 가능\n공동주택 추정 3세대 / 면적비 2.93대 / 세대최소 3.00대 → 3대\nrule: seoul_parking_appendix2_row_05\n배치공식\ngrid_connected_90\n모듈\n단면 11m / 양면 16m\n연접\n연접 OK (2쌍 접촉)\n차로\n차로 OK (6m)\n진입\n진입 OK (3m x 8m)\n회전\n회전 예비 OK\n연면적\n293.5\n일조점수\n63.0\n▶\nPARAMETERS (0 genes)\nGen 50\nRank 0.426\nPen 0.00\n⊞ 평면 생성\n2D MASS PREVIEW\nWebGL fallback · legal MAAS geometry from mass_geojson\nWebGL을 사용할 수 없어 3D 지도를 비활성화했습니다.\n형태\nnotch_south_west\n높이\n8.4m\n층수\n3F\n건폐율\n37.0%\n용적률\n111.1%\nBUILDING MASS\n형태\nnotch_south_west\n높이\n8.4m\n층수\n3F\n건폐율\n37.0%\n용적률\n111.1%\n연면적\n293m²\n주차\n필로티\n법정/계획\n3 / 3\nAI 설계 협업\nMAAS Agent Workspace\n상호소통 설계 수정\n대화형 수정 · MAAS 법규 후보\n안 900000\nAG-light 협업모드\n법규 · 주차 · 정북일조 · 대지레벨 · 디자인 비평\nON · log 135\n현재 안 AG-light 검토 시작\n법규\nlaw_graph_agent\n법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)\n주차\nparking_agent\n주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)\n매스/기준면\nmaas_geometry_agent\n대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)\n최종검토\nreview_agent\n디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)\n법규\n최종 evidence_loaded\nhard 0 · missing 0 · issue 0\n주차\n3/3대 · piloti_ground\n소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토\n정북일조\n§86 envelope 적용\n기준면 17.10m 기반\n대지레벨\nngii_local_dem 기준면 17.10m\n§119 가중평균 및 §86 인접대지 평균 기준 분리 검토\n디자인\nFAR 111.1 · BCR 37.0 · H 8.4m\n법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토\n최근 bus\ndesign_critic -> design_orchestrator · 디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성,...\ndatum_agent -> design_orchestrator · 대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기...\nsunlight_agent -> design_orchestrator · 정북일조: §86 envelope 적용 (기준면 17.10m 기반)\n북측 상부를 4단으로 자연스럽게 후퇴시켜줘. 용적률은 5% 이상 잃지 말고.\n도로 쪽 저층부를 포디움처럼 더 강하게 만들어줘.\n코어가 가운데라 답답해. 동측 외곽으로 붙일 수 있는지 봐줘.\n수정 후보 만들기MAAS 법규 후보 바로 만들기\n층+\n층-\n폭+\n폭-\nE1+\nE2+\nE3+\nE4+\n외관 이미지 생성\n법규 매스는 고정하고 재료, 창호 리듬, 분위기만 생성합니다.\nReference only\nGPT Image\nNano Banana\n매스 기반 외관 생성"
+  },
+  "screenshotPath": "/mnt/d/Data/25_ACE/docs/playwright/design-route-live-verify/ag-light/ag-light-json-modules-agent-flow-1782185181473.png",
+  "pageErrors": [],
+  "consoleProblems": [],
+  "responseErrors": [],
+  "agLightResponses": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8200/health"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8200/bus/log?limit=20"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8200/bus/send"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8200/bus/send"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8200/bus/send"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8200/bus/send"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8200/bus/send"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8200/bus/log?limit=40"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8200/health"
+    }
+  ]
+}

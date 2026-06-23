@@ -1,6 +1,6 @@
 # Multi-Agent Legal-to-Design Workflow
 
-Updated: 2026-06-11
+Updated: 2026-06-23
 
 ## Decision From Professor Discussion
 
@@ -151,6 +151,70 @@ ARR/frontend/src/design/lib/agent-events.ts
 The panel should reuse the AG-frontend interaction model, but keep ARR's design
 frontend ownership and styling local. Do not import the AG-frontend app directly
 unless the projects are intentionally merged later.
+
+## 2026-06-23 ARR `/design` AG-frontend AgentFlow Port
+
+The user explicitly clarified that the multi-agent UI should reuse the existing
+AG/AG-frontend work instead of being newly invented. Current implementation
+decision:
+
+- `AG/` contains the heavier AutoGen Studio original and A2A experiments.
+- `AG-frontend/src/features/team-builder/agentflow/` is the cleaner port of
+  AutoGen Studio `AgentFlow` and is the correct reference for ARR.
+- ARR must not import the AG-frontend app directly. ARR owns `/design`, so the
+  AG-frontend interaction model is adapted into ARR-local modules.
+
+Current ARR-local files:
+
+```text
+ARR/frontend/src/design/components/ag-light-flow/AGLightFlow.tsx
+ARR/frontend/src/design/components/ag-light-flow/AGLightFlowToolbar.tsx
+ARR/frontend/src/design/components/ag-light-flow/layout-generator.ts
+ARR/frontend/src/design/components/ag-light-flow/agentnode.tsx
+ARR/frontend/src/design/components/ag-light-flow/edge.tsx
+ARR/frontend/src/design/components/ag-light-flow/types.ts
+```
+
+Module boundary:
+
+- `AGLightFlow.tsx`: React Flow provider/rendering, fullscreen state, viewport.
+- `AGLightFlowToolbar.tsx`: AG-frontend-style toolbar controls.
+- `layout-generator.ts`: ARR-specific selector/handoff graph generation from
+  current `/design` evidence reviews/messages.
+- `agentnode.tsx` and `edge.tsx`: existing ARR React Flow node/edge components,
+  reused and extended with compact/last-message rendering.
+
+Current graph semantics:
+
+```text
+User
+-> design_orchestrator (Selector/Handoff)
+-> law_agent / parking_agent / sunlight_agent / datum_agent / design_critic
+-> design_orchestrator report edges
+```
+
+This is still AG-light visualization, not full AutoGen runtime orchestration.
+The visible panel now shows:
+
+- law, parking, sunlight, datum, and design critic nodes,
+- live bus-derived last messages in the nodes,
+- request/report edge labels,
+- fullscreen graph mode,
+- panel compact mode for the narrow right sidebar.
+
+Verification artifacts:
+
+```text
+docs/playwright/design-route-live-verify/ag-light/verify-current-ag-light.cjs
+docs/playwright/design-route-live-verify/ag-light/verify-current-ag-light-fullscreen.cjs
+docs/playwright/design-route-live-verify/ag-light/ag-light-current-result.json
+docs/playwright/design-route-live-verify/ag-light/ag-light-current-fullscreen-result.json
+```
+
+Known dev-server note: on WSL-mounted `D:\Data\25_ACE`, Vite HMR sometimes keeps
+old `ag-light-flow` modules. If DOM still shows old node text like
+`orchestrator / Routes review outcomes`, restart `ARR/frontend` dev server on
+`127.0.0.1:5174` before judging screenshots.
 
 ## What Goes Into Graph DB
 

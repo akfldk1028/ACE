@@ -259,6 +259,31 @@ Latest verified screenshot after the JSON_MODULES wiring:
 docs/playwright/design-route-live-verify/ag-light/ag-light-json-modules-agent-flow-1782185181473.png
 ```
 
+Follow-up review/fix:
+
+- User clarified that the requirement is React Flow visibly present in the
+  actual `/design` route, not only a hidden or tiny side visualization.
+- `/design` right collaboration workspace width was increased and the panel now
+  labels the graph as `AG-light React Flow`.
+- `AGLightFlow` default panel height was increased so the graph reads as a
+  real workspace, with fullscreen still available.
+- React Flow edge rendering was fixed by giving nodes stable dimensions and
+  assigning explicit `sourceHandle: 'source'` / `targetHandle: 'target'` in
+  `createEdge`.
+- Latest Playwright result verified on `/design`:
+  - `reactFlowNodes: 6`
+  - `reactFlowEdges: 9`
+  - `edgePaths: 9`
+  - visible JSON agents:
+    `law_graph_agent`, `parking_agent`, `maas_geometry_agent`, `review_agent`
+
+Latest verified `/design` screenshot:
+
+```text
+docs/playwright/design-route-live-verify/ag-light/design-route-react-flow-1782186313839.png
+docs/playwright/design-route-live-verify/ag-light/design-route-react-flow-result.json
+```
+
 ## What Goes Into Graph DB
 
 Do not store every agent-to-agent chat message in Neo4j.

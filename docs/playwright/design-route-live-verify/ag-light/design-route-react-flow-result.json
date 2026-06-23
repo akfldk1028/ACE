@@ -1,0 +1,25 @@
+{
+  "state": {
+    "hasDesignRouteReactFlowTitle": true,
+    "hasReactFlowRoot": true,
+    "reactFlowNodes": 6,
+    "reactFlowEdges": 9,
+    "edgePaths": 9,
+    "svgPaths": 38,
+    "visibleNodeTexts": [
+      "UseruserHuman user",
+      "design_orchestratorSelector/Handoff법규-설계 협업 라우터",
+      "법규law_graph_agent법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+      "주차parking_agent주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+      "매스/기준면maas_geometry_agent대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+      "최종검토review_agent디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)"
+    ],
+    "hasAgents": true,
+    "panelWidth": 453,
+    "panelHeight": 420,
+    "hasErrorOverlay": false
+  },
+  "screenshotPath": "/mnt/d/Data/25_ACE/docs/playwright/design-route-live-verify/ag-light/design-route-react-flow-1782186313839.png",
+  "pageErrors": [],
+  "responseErrors": []
+}

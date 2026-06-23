@@ -2,41 +2,10 @@
   "attrNodes": "6",
   "attrEdges": "5",
   "overlayEdges": 5,
-  "selectedParkingTarget": true,
-  "directChatVisible": true,
-  "nodePositions": [
-    {
-      "id": "user",
-      "style": "z-index: 0; transform: translate(8px, 154px); pointer-events: all; visibility: visible; width: 176px; height: 102px;"
-    },
-    {
-      "id": "design_orchestrator",
-      "style": "z-index: 0; transform: translate(154px, 154px); pointer-events: all; visibility: visible; width: 128px; height: 86px;"
-    },
-    {
-      "id": "law_graph_agent",
-      "style": "z-index: 0; transform: translate(300px, 24px); pointer-events: all; visibility: visible; width: 128px; height: 86px;"
-    },
-    {
-      "id": "parking_agent",
-      "style": "z-index: 0; transform: translate(300px, 106px); pointer-events: all; visibility: visible; width: 128px; height: 86px;"
-    },
-    {
-      "id": "maas_geometry_agent",
-      "style": "z-index: 0; transform: translate(300px, 188px); pointer-events: all; visibility: visible; width: 128px; height: 86px;"
-    },
-    {
-      "id": "review_agent",
-      "style": "z-index: 0; transform: translate(300px, 270px); pointer-events: all; visibility: visible; width: 128px; height: 86px;"
-    }
-  ],
-  "paths": [
-    "M 96 256 C 96 205, 218 205, 218 154",
-    "M 218 240 C 218 132, 364 132, 364 24",
-    "M 364 110 C 364 108, 364 108, 364 106",
-    "M 364 192 C 364 190, 364 190, 364 188",
-    "M 364 274 C 364 272, 364 272, 364 270"
-  ],
-  "errors": [],
-  "screenshotError": "page.screenshot: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m    - disabled all CSS animations\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+  "reactFlowInternalEdges": 0,
+  "overlayZIndex": "1",
+  "reactFlowLayerZIndex": "2",
+  "messageVisibleInLawNode": true,
+  "lawNodeText": "법규law_graph_agentlaw_graph_agent 직접 메시지 표시 검증",
+  "errors": []
 }

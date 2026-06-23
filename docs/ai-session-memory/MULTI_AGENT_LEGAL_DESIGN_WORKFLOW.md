@@ -437,6 +437,106 @@ after font loading / element stability on the full `/design` page, likely due to
 the heavy map/WebGL layer. DOM verification succeeded and older PNGs remain in
 the same folder, but the latest cleaned-flow verification is recorded as JSON.
 
+## 2026-06-23 Follow-Up Code Review Fixes
+
+User reviewed the React Flow and clarified the expected direction:
+
+- keep the graph readable, not a dense hub-and-spoke spider graph;
+- keep modules maintainable and ARR-local;
+- direct commands to each visible JSON_MODULES agent must show up in that
+  agent's node/flow state;
+- next-session AI should not confuse the overlay edge renderer with a dead
+  custom React Flow edge component.
+
+Current AG-light React Flow architecture:
+
+```text
+AGLightFlow.tsx
+  owns React Flow provider, nodes, viewport, controls, fullscreen, settings.
+  Passes edges=[] to React Flow intentionally.
+
+EdgeOverlay.tsx
+  single source for visible edge lines.
+  It consumes the same generated edge model and useViewport().
+  Overlay layer is z-index 1.
+
+React Flow node/control layer
+  wrapped above overlay at z-index 2.
+  This prevents visual lines from crossing over node cards and toolbar.
+
+layout-generator.ts
+  creates nodes and the simple five-edge visible sequence:
+  user -> design_orchestrator -> law_graph_agent -> parking_agent
+  -> maas_geometry_agent -> review_agent.
+
+agents/shared/review-adapter.ts
+  separates evidence review ids from visible JSON_MODULES agent ids.
+```
+
+Important implementation detail:
+
+```text
+reviewAgentIds
+  ARR deterministic/evidence ids, e.g. law_agent, design_critic,
+  sunlight_agent, datum_agent.
+
+participant.config.name
+  visible JSON_MODULES/AG-light agent id, e.g. law_graph_agent,
+  parking_agent, maas_geometry_agent, review_agent.
+```
+
+Do not use `reviewAgentIds` alone for message matching. Direct commands use the
+visible JSON_MODULES agent ids. The helper below is the correct message id set:
+
+```text
+getAgentMessageIds(participant, mapping)
+  -> [participant.config.name, ...mapping.reviewAgentIds] unique
+```
+
+Current message matching rules:
+
+- evidence reviews still map by `mapping.reviewAgentIds`;
+- node `lastMessage` uses `getAgentMessageIds(...)`;
+- edge message counts/use data use `getAgentMessageIds(...)`;
+- `law_graph_agent` direct command now appears in the law node even though
+  deterministic ARR evidence uses `law_agent`.
+
+Deleted stale component:
+
+```text
+ARR/frontend/src/design/components/ag-light-flow/edge.tsx
+```
+
+Reason: `createEdge()` no longer uses `type: 'agLightEdge'`; visible edges are
+owned by `EdgeOverlay.tsx`, and React Flow receives `edges=[]` to prevent
+duplicate/internal edge rendering.
+
+Latest DOM verification after this follow-up:
+
+```json
+{
+  "attrNodes": "6",
+  "attrEdges": "5",
+  "overlayEdges": 5,
+  "reactFlowInternalEdges": 0,
+  "overlayZIndex": "1",
+  "reactFlowLayerZIndex": "2",
+  "messageVisibleInLawNode": true,
+  "errors": []
+}
+```
+
+Required regression checks for the next session:
+
+```bash
+cd /mnt/d/Data/25_ACE/ARR/frontend
+npm run type-check
+npm run compile-babel && npx tsc && npx vite build --mode web
+
+cd /mnt/d/Data/25_ACE
+python3 ARR/backend/design/scripts/ag_light_agent_flow_cli.py --runs 3
+```
+
 ## What Goes Into Graph DB
 
 Do not store every agent-to-agent chat message in Neo4j.

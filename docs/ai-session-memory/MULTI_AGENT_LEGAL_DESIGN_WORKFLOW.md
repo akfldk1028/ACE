@@ -267,9 +267,12 @@ Follow-up review/fix:
   labels the graph as `AG-light React Flow`.
 - `AGLightFlow` default panel height was increased so the graph reads as a
   real workspace, with fullscreen still available.
-- React Flow edge rendering was fixed by giving nodes stable dimensions and
-  assigning explicit `sourceHandle: 'source'` / `targetHandle: 'target'` in
-  `createEdge`.
+- React Flow node rendering was fixed by giving nodes stable dimensions.
+- React Flow's internal edge DOM proved unstable in the embedded `/design`
+  workspace even when `AGLightFlow` state contained 9 edges. ARR now renders the
+  visible graph lines through `EdgeOverlay.tsx`, which reads the same
+  React Flow node/edge state plus viewport transform. This preserves draggable
+  nodes, pan, zoom, fullscreen, and a reliable visual flow.
 - Latest Playwright result verified on `/design`:
   - `reactFlowNodes: 6`
   - `reactFlowEdges: 9`
@@ -283,6 +286,156 @@ Latest verified `/design` screenshot:
 docs/playwright/design-route-live-verify/ag-light/design-route-react-flow-1782186313839.png
 docs/playwright/design-route-live-verify/ag-light/design-route-react-flow-result.json
 ```
+
+## 2026-06-23 Default Flow, Direct Agent Commands, And CLI Smoke Test
+
+The current `/design` right-side AI collaboration panel must show the AG-light
+flow even before a PNU or candidate is selected. The default state is not a
+blank placeholder anymore.
+
+Current ARR frontend modules:
+
+```text
+ARR/frontend/src/design/DesignPage.tsx
+  owns the left controls, Cesium/main canvas, and collapsible right AI panel.
+
+ARR/frontend/src/design/components/DefaultAgentFlowPanel.tsx
+  empty/default workspace before PNU or candidate selection;
+  renders the JSON_MODULES-derived AG-light React Flow plus direct command UI.
+
+ARR/frontend/src/design/components/InteractiveDesignPanel.tsx
+  candidate/evidence-aware workspace after a design candidate is selected;
+  reads AG-light health/log and sends direct agent commands with job/design
+  metadata.
+
+ARR/frontend/src/design/components/DirectAgentChatPanel.tsx
+  reusable agent-specific command panel. Selecting a React Flow agent node
+  changes this command target.
+
+ARR/frontend/src/design/components/ag-light-flow/AGLightFlow.tsx
+  React Flow provider/render shell, draggable nodes, pan/zoom, fullscreen,
+  test attributes: data-node-count and data-edge-count.
+
+ARR/frontend/src/design/components/ag-light-flow/EdgeOverlay.tsx
+  visible edge renderer. It draws the agent handoff/report lines from the same
+  node/edge state because embedded React Flow internal edge DOM was unreliable.
+
+ARR/frontend/src/design/components/ag-light-flow/agents/
+  one folder per visible JSON_MODULES agent:
+    law-graph-agent/
+    parking-agent/
+    maas-geometry-agent/
+    review-agent/
+    shared/
+```
+
+Current interaction rules:
+
+- `/design` default state renders `User -> design_orchestrator -> agents` before
+  PNU input.
+- Nodes are draggable and the graph supports pan/zoom controls.
+- Selecting an agent node updates `DirectAgentChatPanel` target.
+- Direct agent commands are sent to AG-light `/bus/send`.
+- The right AI collaboration sidebar can collapse/expand.
+- PNU/candidate mode is bus-log driven: AG-light messages are reflected in
+  nodes/edges, but full automatic AutoGen-style reasoning orchestration is not
+  implemented yet. The current verified layer is a bus-level collaborative
+  workflow plus ARR deterministic evidence review.
+
+Current AG-light/ARR/Graph DB boundary:
+
+```text
+ARR frontend/backend
+  /design UI, deterministic site/legal/parking/MAAS evidence and candidate data
+
+AG-light
+  live MessageBus runtime used by direct commands and agent-to-agent smoke tests
+
+JSON_MODULES
+  team/agent source of truth:
+  JSON_MODULES/teams/041_MAAS_Legal_Design_Team.json
+
+Neo4j Graph DB
+  law/evidence/provenance graph; not a raw chat transcript store
+
+AG and AG-frontend
+  reference implementations only; do not create another runtime repo from them
+  unless the architecture is intentionally changed.
+```
+
+CLI added for repeatable agent-to-agent verification:
+
+```text
+ARR/backend/design/scripts/ag_light_agent_flow_cli.py
+```
+
+CLI behavior:
+
+```text
+user
+-> design_orchestrator
+-> law_graph_agent
+-> parking_agent
+-> maas_geometry_agent
+-> review_agent
+-> design_orchestrator
+```
+
+It reads `JSON_MODULES/teams/041_MAAS_Legal_Design_Team.json`, verifies the
+required agent ids exist, sends directed messages to `http://127.0.0.1:8200`,
+then reads `/bus/log` by `run_id` and reports success rate.
+
+Latest smoke result:
+
+```text
+python3 ARR/backend/design/scripts/ag_light_agent_flow_cli.py \
+  --runs 5 \
+  --json-output docs/playwright/design-route-live-verify/ag-light/ag-light-agent-flow-cli-result.json
+
+runs: 5
+success: 5
+success_rate: 100.0%
+failures: 0
+```
+
+Latest default `/design` Playwright check after the edge overlay fix and
+visual cleanup:
+
+```text
+data-node-count: 6
+data-edge-count: 5
+visible overlay edge paths: 5
+direct agent command panel: visible
+parking_agent node click changes DirectAgentChatPanel target: true
+```
+
+The visual graph was intentionally simplified after user review. Do not restore
+the previous hub-and-spoke return-edge layout unless explicitly requested.
+
+Current visible edge sequence:
+
+```text
+user
+-> design_orchestrator
+-> law_graph_agent
+-> parking_agent
+-> maas_geometry_agent
+-> review_agent
+```
+
+Default edge labels are hidden (`showLabels: false`) to reduce clutter. The
+toolbar can still re-enable labels.
+
+Verification artifact:
+
+```text
+docs/playwright/design-route-live-verify/ag-light/design-clean-react-flow-result.json
+```
+
+Note: on 2026-06-23 Playwright high-level screenshot APIs repeatedly timed out
+after font loading / element stability on the full `/design` page, likely due to
+the heavy map/WebGL layer. DOM verification succeeded and older PNGs remain in
+the same folder, but the latest cleaned-flow verification is recorded as JSON.
 
 ## What Goes Into Graph DB
 

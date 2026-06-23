@@ -1,0 +1,33 @@
+{
+  "base_url": "http://127.0.0.1:8200",
+  "service_status": true,
+  "team_json": "/mnt/d/Data/25_ACE/JSON_MODULES/teams/041_MAAS_Legal_Design_Team.json",
+  "scenario": "maas_legal_design_agent_flow",
+  "runs": 3,
+  "success": 3,
+  "success_rate": 100.0,
+  "failures": [],
+  "run_results": [
+    {
+      "run_id": "arr-ag-light-af100c435034",
+      "success": true,
+      "expected_steps": 6,
+      "observed_steps": 6,
+      "missing": []
+    },
+    {
+      "run_id": "arr-ag-light-db5cdb8b24b4",
+      "success": true,
+      "expected_steps": 6,
+      "observed_steps": 6,
+      "missing": []
+    },
+    {
+      "run_id": "arr-ag-light-fa55c1e746f9",
+      "success": true,
+      "expected_steps": 6,
+      "observed_steps": 6,
+      "missing": []
+    }
+  ]
+}

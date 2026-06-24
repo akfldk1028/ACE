@@ -7,6 +7,8 @@ Read this folder before touching the legal-design visualization work.
 The latest MAAS design-quality, design-section grammar, and AG-light React Flow
 slice is committed in both relevant histories:
 
+- ARR repo: `35a8a26 Fix AG-light vertical edge routing`
+- ACE root repo: `ba79faa Record AG-light vertical edge verification`
 - ACE root repo: `460fcc7 Update AG-light verification evidence`
 - ACE root repo: `2ab0470 Align MAAS legal design team operators`
 - ARR repo: `c153efd Add MAAS design section grammar operators`

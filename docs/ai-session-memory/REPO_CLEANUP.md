@@ -7,6 +7,13 @@ Treat this workspace as a multi-repo/mixed-legacy workspace. Do not use
 
 Latest MAAS/AG-light work is now recorded in both places that track it:
 
+- ARR `master`: `35a8a26 Fix AG-light vertical edge routing`
+  - Fixes AG-light custom edge overlay to keep the original vertical React Flow
+    feel: no cubic `C` curves, direct vertical line when nodes share x, and
+    right-angle fallback otherwise.
+- ACE root `DK-BB`: `ba79faa Record AG-light vertical edge verification`
+  - Records the same ARR edge fix in the root index plus latest Playwright
+    evidence.
 - ACE root `DK-BB`: `460fcc7 Update AG-light verification evidence`
   - Latest Playwright verifier artifact for `/design` AG-light flow after the
     JSON_MODULES team update.
@@ -48,11 +55,11 @@ Verified latest files are clean in both root and ARR after the snapshot:
 - `ARR/backend/design/views.py`
 - `JSON_MODULES/teams/041_MAAS_Legal_Design_Team.json`
 - `docs/playwright/design-route-live-verify/ag-light/ag-light-current-result.json`
-- `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782269679800.png`
+- `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782277791093.png`
 
 Current repo status summary from this session:
 
-- ACE root `DK-BB` at `460fcc7`: still very dirty from old mixed legacy state
+- ACE root `DK-BB` at `ba79faa`: still very dirty from old mixed legacy state
   (`AG/`, `ARR/`, `JSON_MODULES/`, docs/tests, weird tracked Windows-path
   deletions, AUA/korean-law-mcp gitlinks). Current MAAS/AG-light and
   JSON_MODULES 041 work is no longer among the dirty target files.
@@ -83,7 +90,11 @@ Verification already passed for the latest MAAS/AG-light slice:
 - `node docs/playwright/design-route-live-verify/ag-light/verify-current-ag-light.cjs`
   passed.
 - Latest Playwright PNG:
-  `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782269679800.png`.
+  `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782277791093.png`.
+- Edge-specific DOM check after frontend restart:
+  `pathCount=5`, `badCurves=[]`, paths are vertical/right-angle `L` commands.
+  This addresses the user screenshot complaint that agent links looked like
+  strange sagging diagonal/curved lines. Keep the default AG-light flow vertical.
 - JSON_MODULES review note: 72 files initially appeared modified, but all except
   `041_MAAS_Legal_Design_Team.json` were CRLF/LF-only churn. They were
   normalized back to content-clean state and not committed.

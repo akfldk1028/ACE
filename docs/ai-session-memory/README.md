@@ -7,6 +7,31 @@ Read this folder before touching the legal-design visualization work.
 The latest MAAS design-quality, design-section grammar, and AG-light React Flow
 slice is committed in both relevant histories:
 
+- 2026-06-24 latest local update: AG-light `/design` flow now follows the
+  JSON_MODULES team IDs directly:
+  `law_graph_agent -> parking_agent -> maas_geometry_agent -> review_agent`.
+  `maas_geometry_agent` now carries the actual MAAS/mass evidence in the flow:
+  operator/shape, FAR, BCR, height, design-quality score,
+  `arr.maas.design_quality.v1`, datum/정북 references, and d4descent bridge
+  evidence. AG-light bus messages are now sequential handoffs instead of every
+  agent posting only back to `design_orchestrator`.
+- Latest verification after Vite cache clear and restart:
+  `cd ARR/frontend && npm run type-check` passed, and
+  `FRONTEND_URL=http://localhost:5174/design node docs/playwright/design-route-live-verify/ag-light/verify-current-ag-light.cjs`
+  passed for PNU `1168011800104170004`. The verifier checks React Flow nodes,
+  overlay edges, the four JSON_MODULES agent IDs, refs/formula/decision text,
+  and MAAS design-quality evidence.
+- Latest PNG evidence:
+  `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782298924488.png`,
+  right-panel crop
+  `docs/playwright/design-route-live-verify/ag-light/ag-light-current-flow-closeup-1782298924488.png`,
+  and enlarged flow crop
+  `docs/playwright/design-route-live-verify/ag-light/ag-light-current-flow-zoom-1782298924488.png`.
+- Latest live PNU result in that Playwright run: selected mass
+  `notch_south_west`, FAR `111.1`, BCR `37.0`, height `8.4m`,
+  parking `3/3`, design-quality source `arr.maas.design_quality.v1`,
+  d4descent bridge status `imported`.
+
 - ARR repo: `f71d07c Add MAAS algorithm benchmark command`; added
   `benchmark_maas_algorithms` management command to validate the paper/clone
   absorption path. Latest run wrote

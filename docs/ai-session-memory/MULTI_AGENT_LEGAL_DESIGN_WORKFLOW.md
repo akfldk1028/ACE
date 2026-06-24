@@ -1,6 +1,6 @@
 # Multi-Agent Legal-to-Design Workflow
 
-Updated: 2026-06-23
+Updated: 2026-06-24
 
 ## Decision From Professor Discussion
 
@@ -21,6 +21,43 @@ law graph / legal basis
 Agents may reason, debate, route, and request deterministic tools. They must not
 invent legal values, mutate mass geometry directly, or declare compliance without
 evidence.
+
+## Current `/design` UI Slice
+
+The active React Flow slice in `ARR/frontend/src/design/components/ag-light-flow/`
+is intentionally the compact JSON_MODULES team, not the older five-review-row
+debug surface:
+
+```text
+User -> design_orchestrator
+-> law_graph_agent
+-> parking_agent
+-> maas_geometry_agent
+-> review_agent
+```
+
+The latest implementation keeps datum/정북 evidence inside
+`maas_geometry_agent` for the visible UI so the user sees one coherent
+law/parking/mass/final-review pipeline. The detailed trace still records
+refs/formula/decision, but the graph nodes should use the same four agent IDs as
+`JSON_MODULES/teams/041_MAAS_Legal_Design_Team.json`.
+
+Latest Playwright gate:
+
+```bash
+FRONTEND_URL=http://localhost:5174/design node docs/playwright/design-route-live-verify/ag-light/verify-current-ag-light.cjs
+```
+
+Latest evidence:
+
+- `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782298924488.png`
+- `docs/playwright/design-route-live-verify/ag-light/ag-light-current-flow-closeup-1782298924488.png`
+- `docs/playwright/design-route-live-verify/ag-light/ag-light-current-flow-zoom-1782298924488.png`
+
+That run verified PNU `1168011800104170004`, selected mass
+`notch_south_west`, parking `3/3`, MAAS design-quality source
+`arr.maas.design_quality.v1`, d4descent bridge `imported`, four JSON_MODULES
+agent IDs, formula/ref/decision text, and five vertical overlay edges.
 
 ## Existing Assets To Reuse
 

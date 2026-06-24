@@ -89,6 +89,14 @@ async function main() {
       overlayEdges: flow ? flow.querySelectorAll('[data-testid="ag-light-edge-path"]').length : 0,
       transferStatusText: transfer ? transfer.textContent || "" : "",
       agBlockText: agBlock ? (agBlock.textContent || "").slice(0, 1600) : "",
+      hasLawGraphAgent: text.includes("law_graph_agent"),
+      hasParkingAgent: text.includes("parking_agent"),
+      hasMaasGeometryAgent: text.includes("maas_geometry_agent"),
+      hasReviewAgent: text.includes("review_agent"),
+      hasReasoningTrace: text.includes("Agent reasoning trace"),
+      hasFormulaRefsDecision: text.includes("공식") && text.includes("참조") && text.includes("판단"),
+      hasMaasAlgorithmEvidence: text.includes("MAAS") && (text.includes("quality") || text.includes("arr.maas.design_quality.v1")),
+      hasSequentialHandoff: text.includes("law_graph_agent") && text.includes("parking_agent") && text.includes("maas_geometry_agent") && text.includes("review_agent"),
       hasWebglFallback: text.includes("WebGL fallback"),
       designFeatureCount: features.length,
       selectedMassShape: selectedProps.mass_shape || null,
@@ -137,6 +145,14 @@ async function main() {
     !state.transferStatusText.includes(PNU) ||
     !state.transferStatusText.includes("법규") ||
     !state.transferStatusText.includes("주차") ||
+    !state.hasLawGraphAgent ||
+    !state.hasParkingAgent ||
+    !state.hasMaasGeometryAgent ||
+    !state.hasReviewAgent ||
+    !state.hasReasoningTrace ||
+    !state.hasFormulaRefsDecision ||
+    !state.hasMaasAlgorithmEvidence ||
+    !state.hasSequentialHandoff ||
     state.designFeatureCount < 1 ||
     !state.selectedDesignQualitySource
   ) {

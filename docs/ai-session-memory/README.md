@@ -33,9 +33,17 @@ slice is committed in both relevant histories:
   d4descent bridge status `imported`.
 - Latest MAAS CLI diversity verification:
   `benchmark_maas_algorithms --max-variants 6` wrote
-  `maas_algorithm_benchmark_20260624T114721Z.json` with `84` variants,
+  `maas_algorithm_benchmark_20260624T122507Z.json` with `84` variants,
   `19` unique mass shapes, `16` concepts, `16` verbs, and `6.0` average unique
-  shapes per scenario. Full `design.test_maas_export` still passes `57` tests.
+  shapes per scenario. The benchmark now reports section-connector survival:
+  `section_connector_scenario_count=14/14`,
+  `section_connector_feature_count=14`, and baseline scenarios show
+  `connectors=1`, so stepped massing is compared against diagonal/terrace/
+  sloped linking alternatives without forcing a preferred operator. Full
+  `design.test_maas_export` now passes `58` tests.
+  Follow-up code review added a guard: when legal parking count is resolved,
+  visible section-connector preservation must not replace a higher-priority
+  parking-pass candidate with a weaker parking candidate.
 
 - ARR repo: `f71d07c Add MAAS algorithm benchmark command`; added
   `benchmark_maas_algorithms` management command to validate the paper/clone

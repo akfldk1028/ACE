@@ -258,18 +258,32 @@ Additional benchmark harness update on 2026-06-24:
   `cd ARR/backend && .venv/bin/python manage.py benchmark_maas_algorithms --max-variants 6`.
 - Latest output:
   `docs/ai-session-memory/maas-benchmarks/latest.json` and timestamped
-  `maas_algorithm_benchmark_20260624T114721Z.json`.
+  `maas_algorithm_benchmark_20260624T122507Z.json`.
 - Latest aggregate:
   `scenario_count=14`, `successful_scenarios=14`, `feature_count=84`,
   `unique_mass_shape_count=19`, `unique_concept_count=16`,
   `unique_verb_count=16`, `average_unique_shapes_per_scenario=6.0`,
   `legal_pass_rate=1.0`, `preferred_survival_rate=1.0`,
-  `preferred_top_rate=1.0`, `average_design_quality=0.6413`,
-  `parking_evidence_feature_count=0`, `parking_pass_rate=null`.
+  `preferred_top_rate=1.0`, `average_design_quality=0.6424`,
+  `section_connector_feature_count=14`,
+  `section_connector_scenario_count=14`,
+  `section_connector_shape_count=7`, `parking_evidence_feature_count=0`,
+  `parking_pass_rate=null`.
 - The command now prints CLI-visible diversity evidence after the aggregate,
-  one line per scenario, e.g. `6 variants, 6 shapes, 7-9 verbs, top=...`.
+  one line per scenario, e.g.
+  `6 variants, 6 shapes, 7-9 verbs, connectors=1, top=...`.
   This is intended to catch regressions where the algorithm returns many
-  candidates but they collapse to the same mass family.
+  candidates but they collapse to the same mass family or lose the stepped-mass
+  connector alternatives.
+- Baseline scenarios now preserve at least one section connector candidate in
+  the visible top `max_variants` list. This matters because stepped massing
+  must be compared against diagonal/terrace/sloped linking alternatives, not
+  only against unrelated plan-shape variants or forced preferred operators.
+- Follow-up code review added a parking-gate guard for this preservation step:
+  if legal parking required count is resolved, the connector candidate may not
+  replace the visible tail unless its parking priority is at least as good.
+  Benchmark mode without `--with-parking` still preserves connector diversity
+  because it is measuring mass algorithm coverage, not parking evidence.
 - Parking field semantics were tightened after review: in parking-disabled
   mode each feature now has `parking_evidence_enabled=false` and
   `parking_status=null`. `parking_layout_status` may still record the local
@@ -277,7 +291,7 @@ Additional benchmark harness update on 2026-06-24:
   unless `--with-parking` provides a required-space count.
 - Latest full regression:
   `cd ARR/backend && .venv/bin/python manage.py test design.test_maas_export -v 1`
-  passed `57` tests.
+  passed `58` tests.
 
 ## Current Module Boundaries
 

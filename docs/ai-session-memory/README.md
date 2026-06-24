@@ -2,6 +2,22 @@
 
 Read this folder before touching the legal-design visualization work.
 
+## Latest Repo Handoff - 2026-06-24
+
+The latest MAAS design-quality and AG-light React Flow slice is committed in
+both relevant histories:
+
+- ARR repo: `dc0e6f1 Add MAAS design quality and AG-light flow evidence`
+- ACE root repo: `a7932c1 Record ARR MAAS design quality snapshot`
+- Root docs/evidence before that:
+  `f34f5b2 Document MAAS AG-light verification state`
+
+This duplicate recording is intentional because the workspace still has a mixed
+legacy structure where the ACE root repo tracks many files under `ARR/` while
+`ARR/` is also its own Git repo. Do not re-stage these latest files unless they
+change again. For cleanup status and next repo-by-repo order, read
+`REPO_CLEANUP.md`.
+
 ## Project Goal Snapshot - 2026-06-22
 
 The project goal is not a generic parking CAD/BIM tool and not a final permit

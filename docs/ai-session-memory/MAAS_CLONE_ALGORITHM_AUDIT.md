@@ -258,12 +258,17 @@ Additional benchmark harness update on 2026-06-24:
   `cd ARR/backend && .venv/bin/python manage.py benchmark_maas_algorithms --max-variants 6`.
 - Latest output:
   `docs/ai-session-memory/maas-benchmarks/latest.json` and timestamped
-  `maas_algorithm_benchmark_20260624T082131Z.json`.
+  `maas_algorithm_benchmark_20260624T100540Z.json`.
 - Latest aggregate:
   `scenario_count=14`, `successful_scenarios=14`, `feature_count=84`,
   `legal_pass_rate=1.0`, `preferred_survival_rate=1.0`,
   `preferred_top_rate=1.0`, `average_design_quality=0.6413`,
   `parking_evidence_feature_count=0`, `parking_pass_rate=null`.
+- Parking field semantics were tightened after review: in parking-disabled
+  mode each feature now has `parking_evidence_enabled=false` and
+  `parking_status=null`. `parking_layout_status` may still record the local
+  layout candidate status, but it is not counted as legal parking evidence
+  unless `--with-parking` provides a required-space count.
 - Latest full regression:
   `cd ARR/backend && .venv/bin/python manage.py test design.test_maas_export -v 1`
   passed `57` tests.

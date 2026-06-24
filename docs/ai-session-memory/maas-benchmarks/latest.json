@@ -1,0 +1,2124 @@
+{
+  "mode": "maas_algorithm_benchmark",
+  "created_at": "2026-06-24T08:21:31.041503+00:00",
+  "building_type": "공동주택",
+  "pnu": null,
+  "parking_mode": "disabled",
+  "operators": [
+    "grammar_diagonal_step_connector",
+    "grammar_terrace_ribbon_stepback",
+    "grammar_sloped_roof_envelope",
+    "diagonal_connect_step_x",
+    "terrace_link_north",
+    "sloped_roof_mass"
+  ],
+  "source": {
+    "grammar": "clone/MAAS verb-sequence philosophy absorbed as ARR grammar JSON/operators",
+    "optimizer_backend": {
+      "name": "d4descent",
+      "source": "clone/d4descent",
+      "status": "imported",
+      "backend": {
+        "name": "d4descent",
+        "remote": "https://github.com/milmillin/d4descent.git",
+        "license": "CC BY-NC 4.0 per clone/d4descent README",
+        "mode": "external_clone_bridge",
+        "integration_rule": "Use the clone path directly; do not duplicate/vendor d4descent source inside ARR.",
+        "source_path": "/mnt/d/Data/25_ACE/clone/d4descent/src",
+        "exists": true,
+        "status": "imported",
+        "interfaces": {
+          "optimizer": "d4descent.optimizer.optimize",
+          "optimizer_args": "d4descent.optimizer.OptimizeArgs",
+          "task_protocol": "d4descent.tasks._base.Task",
+          "object_collection": "d4descent.object_collection.ObjectCollection"
+        },
+        "imported": {
+          "optimize": true,
+          "OptimizeArgs": true,
+          "Task": true,
+          "ObjectCollection": true
+        }
+      },
+      "absorbed_pattern": {
+        "object": "candidate mass / floor-plate stack",
+        "task": "legal candidate ranking task",
+        "loss": "capacity + diversity + compactness + sequence richness",
+        "optimizer": "external d4descent bridge; ARR legal repair/evaluation remains deterministic",
+        "rewrite": "ARR grammar/morphology operators"
+      }
+    },
+    "legal_truth": "ARR deterministic legal repair/evaluation"
+  },
+  "aggregate": {
+    "scenario_count": 14,
+    "successful_scenarios": 14,
+    "feature_count": 84,
+    "legal_pass_rate": 1.0,
+    "parking_evidence_feature_count": 0,
+    "parking_pass_rate": null,
+    "preferred_survival_rate": 1.0,
+    "preferred_top_rate": 1.0,
+    "average_design_quality": 0.6413
+  },
+  "scenarios": [
+    {
+      "case_id": "rect_legal_envelope",
+      "scenario": "baseline_legal_envelope",
+      "preferred_operator": null,
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 1,
+      "preferred_survived": true,
+      "preferred_top": false,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "grammar_interlock_step_taper_layered",
+        "maas_concept": "인터락+스텝+테이퍼",
+        "bcr": 49.0,
+        "far": 249.95,
+        "height": 16.8,
+        "legal_pass": true,
+        "maas_score": 0.8753,
+        "design_quality_score": 0.778,
+        "sequence_verbs": [
+          "base",
+          "interlock",
+          "lift",
+          "taper"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 6
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "grammar_interlock_step_taper_layered",
+          "maas_concept": "인터락+스텝+테이퍼",
+          "bcr": 49.0,
+          "far": 249.95,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.8753,
+          "design_quality_score": 0.778,
+          "sequence_verbs": [
+            "base",
+            "interlock",
+            "lift",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.866,
+          "design_quality_score": 0.7054,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "overlap_slabs_y",
+          "maas_concept": "오버랩",
+          "bcr": 49.44,
+          "far": 247.19,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8554,
+          "design_quality_score": 0.6765,
+          "sequence_verbs": [
+            "base",
+            "overlap"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "interlock_cross_diagonal",
+          "maas_concept": "인터락",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8536,
+          "design_quality_score": 0.6738,
+          "sequence_verbs": [
+            "base",
+            "interlock",
+            "rotate_part"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "court_open_east",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.0,
+          "far": 245.02,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8365,
+          "design_quality_score": 0.6573,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "court_open_west",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.0,
+          "far": 245.02,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8365,
+          "design_quality_score": 0.6573,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "rect_legal_envelope",
+      "scenario": "preferred_grammar_diagonal_step_connector",
+      "preferred_operator": "grammar_diagonal_step_connector",
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 1,
+      "preferred_survived": true,
+      "preferred_top": true,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "grammar_diagonal_step_connector",
+        "maas_concept": "사선연결 스텝",
+        "bcr": 49.01,
+        "far": 249.95,
+        "height": 16.8,
+        "legal_pass": true,
+        "maas_score": 0.793,
+        "design_quality_score": 0.7006,
+        "sequence_verbs": [
+          "base",
+          "lift",
+          "diagonal_connect",
+          "taper"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 6
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "grammar_diagonal_step_connector",
+          "maas_concept": "사선연결 스텝",
+          "bcr": 49.01,
+          "far": 249.95,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.793,
+          "design_quality_score": 0.7006,
+          "sequence_verbs": [
+            "base",
+            "lift",
+            "diagonal_connect",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.866,
+          "design_quality_score": 0.7054,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "court_open_east",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.0,
+          "far": 245.02,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8365,
+          "design_quality_score": 0.6573,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.831,
+          "design_quality_score": 0.63,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "slender_bar_east",
+          "maas_concept": "바형",
+          "bcr": 45.73,
+          "far": 228.66,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8122,
+          "design_quality_score": 0.6321,
+          "sequence_verbs": [
+            "base",
+            "compress"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "courtyard_void",
+          "maas_concept": "중정형",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.796,
+          "design_quality_score": 0.5675,
+          "sequence_verbs": [
+            "base",
+            "puncture"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "rect_legal_envelope",
+      "scenario": "preferred_grammar_terrace_ribbon_stepback",
+      "preferred_operator": "grammar_terrace_ribbon_stepback",
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 1,
+      "preferred_survived": true,
+      "preferred_top": true,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "grammar_terrace_ribbon_stepback",
+        "maas_concept": "연속테라스 스텝백",
+        "bcr": 49.01,
+        "far": 249.86,
+        "height": 16.8,
+        "legal_pass": true,
+        "maas_score": 0.7928,
+        "design_quality_score": 0.755,
+        "sequence_verbs": [
+          "base",
+          "lift",
+          "terrace_link",
+          "shift"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 6
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "grammar_terrace_ribbon_stepback",
+          "maas_concept": "연속테라스 스텝백",
+          "bcr": 49.01,
+          "far": 249.86,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.755,
+          "sequence_verbs": [
+            "base",
+            "lift",
+            "terrace_link",
+            "shift"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.866,
+          "design_quality_score": 0.7054,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "court_open_east",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.0,
+          "far": 245.02,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8365,
+          "design_quality_score": 0.6573,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.831,
+          "design_quality_score": 0.63,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "slender_bar_east",
+          "maas_concept": "바형",
+          "bcr": 45.73,
+          "far": 228.66,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8122,
+          "design_quality_score": 0.6321,
+          "sequence_verbs": [
+            "base",
+            "compress"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "courtyard_void",
+          "maas_concept": "중정형",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.796,
+          "design_quality_score": 0.5675,
+          "sequence_verbs": [
+            "base",
+            "puncture"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "rect_legal_envelope",
+      "scenario": "preferred_grammar_sloped_roof_envelope",
+      "preferred_operator": "grammar_sloped_roof_envelope",
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 1,
+      "preferred_survived": true,
+      "preferred_top": true,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "grammar_sloped_roof_envelope",
+        "maas_concept": "사선지붕 엔벨로프",
+        "bcr": 49.01,
+        "far": 249.95,
+        "height": 16.8,
+        "legal_pass": true,
+        "maas_score": 0.793,
+        "design_quality_score": 0.6786,
+        "sequence_verbs": [
+          "base",
+          "sloped_roof_mass",
+          "taper"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 6
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "grammar_sloped_roof_envelope",
+          "maas_concept": "사선지붕 엔벨로프",
+          "bcr": 49.01,
+          "far": 249.95,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.793,
+          "design_quality_score": 0.6786,
+          "sequence_verbs": [
+            "base",
+            "sloped_roof_mass",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.866,
+          "design_quality_score": 0.7054,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "court_open_east",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.0,
+          "far": 245.02,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8365,
+          "design_quality_score": 0.6573,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.831,
+          "design_quality_score": 0.63,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "slender_bar_east",
+          "maas_concept": "바형",
+          "bcr": 45.73,
+          "far": 228.66,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8122,
+          "design_quality_score": 0.6321,
+          "sequence_verbs": [
+            "base",
+            "compress"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "courtyard_void",
+          "maas_concept": "중정형",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.796,
+          "design_quality_score": 0.5675,
+          "sequence_verbs": [
+            "base",
+            "puncture"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "rect_legal_envelope",
+      "scenario": "preferred_diagonal_connect_step_x",
+      "preferred_operator": "diagonal_connect_step_x",
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 1,
+      "preferred_survived": true,
+      "preferred_top": true,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "diagonal_connect_step_x",
+        "maas_concept": "사선연결",
+        "bcr": 49.01,
+        "far": 249.95,
+        "height": 16.8,
+        "legal_pass": true,
+        "maas_score": 0.793,
+        "design_quality_score": 0.6566,
+        "sequence_verbs": [
+          "base",
+          "diagonal_connect"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 6
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "diagonal_connect_step_x",
+          "maas_concept": "사선연결",
+          "bcr": 49.01,
+          "far": 249.95,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.793,
+          "design_quality_score": 0.6566,
+          "sequence_verbs": [
+            "base",
+            "diagonal_connect"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.866,
+          "design_quality_score": 0.7054,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "court_open_east",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.0,
+          "far": 245.02,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8365,
+          "design_quality_score": 0.6573,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.831,
+          "design_quality_score": 0.63,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "slender_bar_east",
+          "maas_concept": "바형",
+          "bcr": 45.73,
+          "far": 228.66,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8122,
+          "design_quality_score": 0.6321,
+          "sequence_verbs": [
+            "base",
+            "compress"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "courtyard_void",
+          "maas_concept": "중정형",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.796,
+          "design_quality_score": 0.5675,
+          "sequence_verbs": [
+            "base",
+            "puncture"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "rect_legal_envelope",
+      "scenario": "preferred_terrace_link_north",
+      "preferred_operator": "terrace_link_north",
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 1,
+      "preferred_survived": true,
+      "preferred_top": true,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "terrace_link_north",
+        "maas_concept": "테라스연결",
+        "bcr": 49.01,
+        "far": 249.89,
+        "height": 16.8,
+        "legal_pass": true,
+        "maas_score": 0.7929,
+        "design_quality_score": 0.6664,
+        "sequence_verbs": [
+          "base",
+          "terrace_link"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 6
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "terrace_link_north",
+          "maas_concept": "테라스연결",
+          "bcr": 49.01,
+          "far": 249.89,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.7929,
+          "design_quality_score": 0.6664,
+          "sequence_verbs": [
+            "base",
+            "terrace_link"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.866,
+          "design_quality_score": 0.7054,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "court_open_east",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.0,
+          "far": 245.02,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8365,
+          "design_quality_score": 0.6573,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.831,
+          "design_quality_score": 0.63,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "slender_bar_east",
+          "maas_concept": "바형",
+          "bcr": 45.73,
+          "far": 228.66,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8122,
+          "design_quality_score": 0.6321,
+          "sequence_verbs": [
+            "base",
+            "compress"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "courtyard_void",
+          "maas_concept": "중정형",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.796,
+          "design_quality_score": 0.5675,
+          "sequence_verbs": [
+            "base",
+            "puncture"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "rect_legal_envelope",
+      "scenario": "preferred_sloped_roof_mass",
+      "preferred_operator": "sloped_roof_mass",
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 1,
+      "preferred_survived": true,
+      "preferred_top": true,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "sloped_roof_mass",
+        "maas_concept": "사선지붕형",
+        "bcr": 49.01,
+        "far": 249.95,
+        "height": 16.8,
+        "legal_pass": true,
+        "maas_score": 0.793,
+        "design_quality_score": 0.6566,
+        "sequence_verbs": [
+          "base",
+          "sloped_roof_mass"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 6
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "sloped_roof_mass",
+          "maas_concept": "사선지붕형",
+          "bcr": 49.01,
+          "far": 249.95,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.793,
+          "design_quality_score": 0.6566,
+          "sequence_verbs": [
+            "base",
+            "sloped_roof_mass"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.866,
+          "design_quality_score": 0.7054,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "court_open_east",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.0,
+          "far": 245.02,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8365,
+          "design_quality_score": 0.6573,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.831,
+          "design_quality_score": 0.63,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "slender_bar_east",
+          "maas_concept": "바형",
+          "bcr": 45.73,
+          "far": 228.66,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8122,
+          "design_quality_score": 0.6321,
+          "sequence_verbs": [
+            "base",
+            "compress"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "courtyard_void",
+          "maas_concept": "중정형",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.796,
+          "design_quality_score": 0.5675,
+          "sequence_verbs": [
+            "base",
+            "puncture"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "long_bar_repair",
+      "scenario": "baseline_legal_envelope",
+      "preferred_operator": null,
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 0,
+      "preferred_survived": true,
+      "preferred_top": false,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "court_open_west",
+        "maas_concept": "코너/오픈코트",
+        "bcr": 49.01,
+        "far": 245.03,
+        "height": 14.0,
+        "legal_pass": true,
+        "maas_score": 0.8383,
+        "design_quality_score": 0.6438,
+        "sequence_verbs": [
+          "base",
+          "cave"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 5
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "court_open_west",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8383,
+          "design_quality_score": 0.6438,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "court_open_east",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.0,
+          "far": 245.02,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8382,
+          "design_quality_score": 0.6438,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "grammar_cave_inset_puncture",
+          "maas_concept": "케이브+인셋+보이드",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8344,
+          "design_quality_score": 0.6795,
+          "sequence_verbs": [
+            "base",
+            "cave",
+            "inset",
+            "courtyard"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8325,
+          "design_quality_score": 0.5962,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "lift_overlap_slabs_layered",
+          "maas_concept": "포디움/타워",
+          "bcr": 49.01,
+          "far": 249.95,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.8291,
+          "design_quality_score": 0.7387,
+          "sequence_verbs": [
+            "base",
+            "overlap",
+            "lift"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "court_open_north",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.0,
+          "far": 245.02,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8289,
+          "design_quality_score": 0.648,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "long_bar_repair",
+      "scenario": "preferred_grammar_diagonal_step_connector",
+      "preferred_operator": "grammar_diagonal_step_connector",
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 0,
+      "preferred_survived": true,
+      "preferred_top": true,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "grammar_diagonal_step_connector",
+        "maas_concept": "사선연결 스텝",
+        "bcr": 49.01,
+        "far": 249.95,
+        "height": 16.8,
+        "legal_pass": true,
+        "maas_score": 0.793,
+        "design_quality_score": 0.6956,
+        "sequence_verbs": [
+          "base",
+          "lift",
+          "diagonal_connect",
+          "taper"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 6
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "grammar_diagonal_step_connector",
+          "maas_concept": "사선연결 스텝",
+          "bcr": 49.01,
+          "far": 249.95,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.793,
+          "design_quality_score": 0.6956,
+          "sequence_verbs": [
+            "base",
+            "lift",
+            "diagonal_connect",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "court_open_west",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8383,
+          "design_quality_score": 0.6438,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8325,
+          "design_quality_score": 0.5962,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.8254,
+          "design_quality_score": 0.6604,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "courtyard_void",
+          "maas_concept": "중정형",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.7961,
+          "design_quality_score": 0.5591,
+          "sequence_verbs": [
+            "base",
+            "puncture"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "slender_bar_north",
+          "maas_concept": "바형",
+          "bcr": 44.49,
+          "far": 222.47,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.7924,
+          "design_quality_score": 0.613,
+          "sequence_verbs": [
+            "base",
+            "compress"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "long_bar_repair",
+      "scenario": "preferred_grammar_terrace_ribbon_stepback",
+      "preferred_operator": "grammar_terrace_ribbon_stepback",
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 0,
+      "preferred_survived": true,
+      "preferred_top": true,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "grammar_terrace_ribbon_stepback",
+        "maas_concept": "연속테라스 스텝백",
+        "bcr": 49.01,
+        "far": 249.93,
+        "height": 19.6,
+        "legal_pass": true,
+        "maas_score": 0.7929,
+        "design_quality_score": 0.7383,
+        "sequence_verbs": [
+          "base",
+          "lift",
+          "terrace_link",
+          "shift"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 7
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "grammar_terrace_ribbon_stepback",
+          "maas_concept": "연속테라스 스텝백",
+          "bcr": 49.01,
+          "far": 249.93,
+          "height": 19.6,
+          "legal_pass": true,
+          "maas_score": 0.7929,
+          "design_quality_score": 0.7383,
+          "sequence_verbs": [
+            "base",
+            "lift",
+            "terrace_link",
+            "shift"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 7
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "court_open_west",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8383,
+          "design_quality_score": 0.6438,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8325,
+          "design_quality_score": 0.5962,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.8254,
+          "design_quality_score": 0.6604,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "courtyard_void",
+          "maas_concept": "중정형",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.7961,
+          "design_quality_score": 0.5591,
+          "sequence_verbs": [
+            "base",
+            "puncture"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "slender_bar_north",
+          "maas_concept": "바형",
+          "bcr": 44.49,
+          "far": 222.47,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.7924,
+          "design_quality_score": 0.613,
+          "sequence_verbs": [
+            "base",
+            "compress"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "long_bar_repair",
+      "scenario": "preferred_grammar_sloped_roof_envelope",
+      "preferred_operator": "grammar_sloped_roof_envelope",
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 0,
+      "preferred_survived": true,
+      "preferred_top": true,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "grammar_sloped_roof_envelope",
+        "maas_concept": "사선지붕 엔벨로프",
+        "bcr": 49.01,
+        "far": 249.95,
+        "height": 16.8,
+        "legal_pass": true,
+        "maas_score": 0.793,
+        "design_quality_score": 0.6736,
+        "sequence_verbs": [
+          "base",
+          "sloped_roof_mass",
+          "taper"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 6
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "grammar_sloped_roof_envelope",
+          "maas_concept": "사선지붕 엔벨로프",
+          "bcr": 49.01,
+          "far": 249.95,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.793,
+          "design_quality_score": 0.6736,
+          "sequence_verbs": [
+            "base",
+            "sloped_roof_mass",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "court_open_west",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8383,
+          "design_quality_score": 0.6438,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8325,
+          "design_quality_score": 0.5962,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.8254,
+          "design_quality_score": 0.6604,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "courtyard_void",
+          "maas_concept": "중정형",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.7961,
+          "design_quality_score": 0.5591,
+          "sequence_verbs": [
+            "base",
+            "puncture"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "slender_bar_north",
+          "maas_concept": "바형",
+          "bcr": 44.49,
+          "far": 222.47,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.7924,
+          "design_quality_score": 0.613,
+          "sequence_verbs": [
+            "base",
+            "compress"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "long_bar_repair",
+      "scenario": "preferred_diagonal_connect_step_x",
+      "preferred_operator": "diagonal_connect_step_x",
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 0,
+      "preferred_survived": true,
+      "preferred_top": true,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "diagonal_connect_step_x",
+        "maas_concept": "사선연결",
+        "bcr": 49.01,
+        "far": 249.95,
+        "height": 16.8,
+        "legal_pass": true,
+        "maas_score": 0.793,
+        "design_quality_score": 0.6516,
+        "sequence_verbs": [
+          "base",
+          "diagonal_connect"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 6
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "diagonal_connect_step_x",
+          "maas_concept": "사선연결",
+          "bcr": 49.01,
+          "far": 249.95,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.793,
+          "design_quality_score": 0.6516,
+          "sequence_verbs": [
+            "base",
+            "diagonal_connect"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "court_open_west",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8383,
+          "design_quality_score": 0.6438,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8325,
+          "design_quality_score": 0.5962,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.8254,
+          "design_quality_score": 0.6604,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "courtyard_void",
+          "maas_concept": "중정형",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.7961,
+          "design_quality_score": 0.5591,
+          "sequence_verbs": [
+            "base",
+            "puncture"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "slender_bar_north",
+          "maas_concept": "바형",
+          "bcr": 44.49,
+          "far": 222.47,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.7924,
+          "design_quality_score": 0.613,
+          "sequence_verbs": [
+            "base",
+            "compress"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "long_bar_repair",
+      "scenario": "preferred_terrace_link_north",
+      "preferred_operator": "terrace_link_north",
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 0,
+      "preferred_survived": true,
+      "preferred_top": true,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "terrace_link_north",
+        "maas_concept": "테라스연결",
+        "bcr": 49.0,
+        "far": 249.89,
+        "height": 16.8,
+        "legal_pass": true,
+        "maas_score": 0.7928,
+        "design_quality_score": 0.6616,
+        "sequence_verbs": [
+          "base",
+          "terrace_link"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 6
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "terrace_link_north",
+          "maas_concept": "테라스연결",
+          "bcr": 49.0,
+          "far": 249.89,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6616,
+          "sequence_verbs": [
+            "base",
+            "terrace_link"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "court_open_west",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8383,
+          "design_quality_score": 0.6438,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8325,
+          "design_quality_score": 0.5962,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.8254,
+          "design_quality_score": 0.6604,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "courtyard_void",
+          "maas_concept": "중정형",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.7961,
+          "design_quality_score": 0.5591,
+          "sequence_verbs": [
+            "base",
+            "puncture"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "slender_bar_north",
+          "maas_concept": "바형",
+          "bcr": 44.49,
+          "far": 222.47,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.7924,
+          "design_quality_score": 0.613,
+          "sequence_verbs": [
+            "base",
+            "compress"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    },
+    {
+      "case_id": "long_bar_repair",
+      "scenario": "preferred_sloped_roof_mass",
+      "preferred_operator": "sloped_roof_mass",
+      "status": "ok",
+      "feature_count": 6,
+      "rejected_count": 0,
+      "preferred_survived": true,
+      "preferred_top": true,
+      "top": {
+        "variant_id": "maas_01",
+        "mass_shape": "sloped_roof_mass",
+        "maas_concept": "사선지붕형",
+        "bcr": 49.01,
+        "far": 249.95,
+        "height": 16.8,
+        "legal_pass": true,
+        "maas_score": 0.793,
+        "design_quality_score": 0.6516,
+        "sequence_verbs": [
+          "base",
+          "sloped_roof_mass"
+        ],
+        "optimizer_backend_status": "imported",
+        "parking_status": "pass",
+        "parking_required": null,
+        "parking_provided": 6
+      },
+      "features": [
+        {
+          "variant_id": "maas_01",
+          "mass_shape": "sloped_roof_mass",
+          "maas_concept": "사선지붕형",
+          "bcr": 49.01,
+          "far": 249.95,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.793,
+          "design_quality_score": 0.6516,
+          "sequence_verbs": [
+            "base",
+            "sloped_roof_mass"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_02",
+          "mass_shape": "court_open_west",
+          "maas_concept": "코너/오픈코트",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8383,
+          "design_quality_score": 0.6438,
+          "sequence_verbs": [
+            "base",
+            "cave"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_03",
+          "mass_shape": "split_bridge_y",
+          "maas_concept": "분절/브릿지",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.8325,
+          "design_quality_score": 0.5962,
+          "sequence_verbs": [
+            "base",
+            "split"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_04",
+          "mass_shape": "legal_layered_max",
+          "maas_concept": "법규엔벨로프",
+          "bcr": 49.5,
+          "far": 249.98,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.8254,
+          "design_quality_score": 0.6604,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 6
+        },
+        {
+          "variant_id": "maas_05",
+          "mass_shape": "courtyard_void",
+          "maas_concept": "중정형",
+          "bcr": 49.01,
+          "far": 245.03,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.7961,
+          "design_quality_score": 0.5591,
+          "sequence_verbs": [
+            "base",
+            "puncture"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        },
+        {
+          "variant_id": "maas_06",
+          "mass_shape": "slender_bar_north",
+          "maas_concept": "바형",
+          "bcr": 44.49,
+          "far": 222.47,
+          "height": 14.0,
+          "legal_pass": true,
+          "maas_score": 0.7924,
+          "design_quality_score": 0.613,
+          "sequence_verbs": [
+            "base",
+            "compress"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_status": "pass",
+          "parking_required": null,
+          "parking_provided": 5
+        }
+      ]
+    }
+  ]
+}

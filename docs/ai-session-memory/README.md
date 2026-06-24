@@ -7,6 +7,14 @@ Read this folder before touching the legal-design visualization work.
 The latest MAAS design-quality, design-section grammar, and AG-light React Flow
 slice is committed in both relevant histories:
 
+- ARR repo: `f71d07c Add MAAS algorithm benchmark command`; added
+  `benchmark_maas_algorithms` management command to validate the paper/clone
+  absorption path. Latest run wrote
+  `docs/ai-session-memory/maas-benchmarks/latest.json` with
+  `14/14` successful scenarios, `legal_pass_rate=1.0`,
+  `preferred_survival_rate=1.0`, `preferred_top_rate=1.0`, and
+  `average_design_quality=0.6413`. Full
+  `design.test_maas_export` regression now passes `57` tests.
 - ARR repo: `1796359 Show AG-light legal design reasoning trace`;
   changes modularize the AG-light collaboration UI by adding
   `ARR/frontend/src/design/lib/ag-light-collaboration.ts`, sharing the

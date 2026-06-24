@@ -245,6 +245,29 @@ Latest result after design-quality/d4descent integration:
   needed by the bridge, `PyYAML>=6.0.2` and `scikit-video>=1.1.11`. The bridge
   path exists and records the real optimizer/task interfaces.
 
+Additional benchmark harness update on 2026-06-24:
+
+- Added `ARR/backend/design/management/commands/benchmark_maas_algorithms.py`.
+  This is the first deterministic benchmark harness for the paper/clone
+  absorption path. It compares baseline legal-envelope output and preferred
+  MAAS grammar/design operators over fixed geometry fixtures.
+- Default benchmark mode is parking-disabled so mass/design algorithm checks do
+  not block on Neo4j or local parking evidence. Use `--with-parking` when
+  explicitly testing parking count/layout evidence.
+- Latest command:
+  `cd ARR/backend && .venv/bin/python manage.py benchmark_maas_algorithms --max-variants 6`.
+- Latest output:
+  `docs/ai-session-memory/maas-benchmarks/latest.json` and timestamped
+  `maas_algorithm_benchmark_20260624T082131Z.json`.
+- Latest aggregate:
+  `scenario_count=14`, `successful_scenarios=14`, `feature_count=84`,
+  `legal_pass_rate=1.0`, `preferred_survival_rate=1.0`,
+  `preferred_top_rate=1.0`, `average_design_quality=0.6413`,
+  `parking_evidence_feature_count=0`, `parking_pass_rate=null`.
+- Latest full regression:
+  `cd ARR/backend && .venv/bin/python manage.py test design.test_maas_export -v 1`
+  passed `57` tests.
+
 ## Current Module Boundaries
 
 - `design.maas.grammar.*`
@@ -266,11 +289,12 @@ Latest result after design-quality/d4descent integration:
 
 ## Next Implementation Order
 
-1. Add a benchmark harness across fixed PNU cases.
-   - baseline legal box
-   - current morphology variants
-   - grammar sequence variants
-   - preferred operator variants
+1. Extend the benchmark harness beyond fixed geometry fixtures to live PNU
+   cases only after keeping deterministic fixture output stable.
+   - baseline legal box: implemented in `benchmark_maas_algorithms`
+   - current morphology variants: implemented in `benchmark_maas_algorithms`
+   - grammar sequence variants: implemented in `benchmark_maas_algorithms`
+   - preferred operator variants: implemented in `benchmark_maas_algorithms`
 2. Keep d4descent as an external research backend, not as the legal geometry
    source.
    - Current bridge import status: `imported`.

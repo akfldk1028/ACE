@@ -7,13 +7,13 @@ Treat this workspace as a multi-repo/mixed-legacy workspace. Do not use
 
 Latest MAAS/AG-light work is now recorded in both places that track it:
 
-- ARR `master`: pending commit after `35a8a26`
+- ARR `master`: `430f80a Harden AG-light design collaboration UI`
   - Hardens `/design` AG-light interaction without replacing the existing
     modules: default flow now merges template, PNU context, live AG-light bus
     messages, and direct-agent commands; direct-agent controls and right
     collaboration panel have stable test ids; the toolbar no longer exposes the
     horizontal layout toggle, preserving the project-standard vertical flow.
-- ACE root `DK-BB`: pending companion commit after `423c271`
+- ACE root `DK-BB`: `eae24c3 Record AG-light collaboration UI hardening`
   - Records the same ARR code slice plus latest Playwright evidence
     `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782280160228.png`
     and updated

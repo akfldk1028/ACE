@@ -7,12 +7,13 @@ Read this folder before touching the legal-design visualization work.
 The latest MAAS design-quality, design-section grammar, and AG-light React Flow
 slice is committed in both relevant histories:
 
-- ARR repo: pending commit for AG-light interaction hardening after
-  `35a8a26`; changes keep the vertical flow, add live bus/PNU messages to the
+- ARR repo: `430f80a Harden AG-light design collaboration UI`; changes keep
+  the vertical flow, add live bus/PNU messages to the
   default AG-light panel, add right-panel/direct-agent test hooks, and remove
   the horizontal layout toggle that could reintroduce confusing non-vertical
   links.
-- ACE root repo: pending companion commit for the same code slice plus latest
+- ACE root repo: `eae24c3 Record AG-light collaboration UI hardening` for the
+  same code slice plus latest
   Playwright evidence
   `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782280160228.png`.
 - ARR repo: `35a8a26 Fix AG-light vertical edge routing`

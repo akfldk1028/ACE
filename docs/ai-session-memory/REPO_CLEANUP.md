@@ -69,10 +69,8 @@ Current repo status summary from this session:
 
 Cleanup order from here:
 
-1. AG research/autogen generated artifacts: separate AG pass; avoid committing
-   generated `autogenstudio/web/ui/**` unless intentionally preserving a build.
-2. AUA and korean-law-mcp: separate project-specific review/commit/push passes.
-3. Root weird Windows-path tracked deletions and PPT generator deletions need an
+1. AUA and korean-law-mcp: separate project-specific review/commit/push passes.
+2. Root weird Windows-path tracked deletions and PPT generator deletions need an
    explicit decision before committing or restoring; do not silently decide.
 
 Verification already passed for the latest MAAS/AG-light slice:
@@ -89,6 +87,13 @@ Verification already passed for the latest MAAS/AG-light slice:
 - JSON_MODULES review note: 72 files initially appeared modified, but all except
   `041_MAAS_Legal_Design_Team.json` were CRLF/LF-only churn. They were
   normalized back to content-clean state and not committed.
+- AG review note: the AG repo still reports a large dirty set. With
+  `git -C AG diff --ignore-space-at-eol --stat`, the substantive diff collapses
+  to 24 files, all under generated/upstream assets such as
+  `autogen_a2a_kit/autogen_source/.../autogenstudio/web/ui/**` and bundled image
+  assets. Do not commit these in the legal-design cleanup path. The remaining
+  apparent research/autogen changes are EOL churn and need a dedicated AG
+  normalization policy before any commit.
 
 ## Repository Cleanup - 2026-05-18
 

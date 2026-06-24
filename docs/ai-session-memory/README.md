@@ -49,7 +49,9 @@ checks for visual claims.
 11. `MAAS_EVIDENCE_BUNDLE.md` - proposed canonical evidence JSON for MAAS/AG-light/Graph DB review.
 12. `MAAS_TERM_ONTOLOGY.md` - architecture terms mapped to MAAS grammar verbs/operators.
 13. `MAAS_FINE_TUNING_PLAN.md` - fine-tuning plan: intent-to-sequence/review model, not raw mesh generation.
-14. `maas-aesthetic-texturing/` - research/code/method memory for multi-view facade generation and texture projection.
+14. `MAAS_EXTERNAL_REPO_ABSORPTION.md` - cloned research repo inventory, license guardrails, and what can be absorbed into ARR MAAS.
+15. `MAAS_CLONE_ALGORITHM_AUDIT.md` - detailed clone-by-clone algorithm, license, and ARR integration review.
+16. `maas-aesthetic-texturing/` - research/code/method memory for multi-view facade generation and texture projection.
 
 ## Current Priority
 
@@ -738,6 +740,66 @@ curl -s http://127.0.0.1:5174/src/design/components/InteractiveDesignPanel.tsx |
   session should pass the already-loaded `setbackGeometries.datum_result` and
   `sunlight_envelope` into the AG-light review path more reliably, or include
   those values in ARR evidence.
+
+AG-light React Flow / Playwright correction on 2026-06-23:
+
+- User pointed out that WSL headless Playwright is not the full VWorld method.
+  Correct memory: true Cesium/VWorld checks use Windows Chrome remote debugging
+  on port `9222`, then run
+  `docs/playwright/design-route-live-verify/windows-cdp-vworld-pnu-batch.cjs`.
+- Commands used:
+
+```bash
+powershell.exe -NoProfile -Command "\$chrome='C:\Program Files\Google\Chrome\Application\chrome.exe'; if (!(Test-Path \$chrome)) { \$chrome='C:\Program Files (x86)\Google\Chrome\Application\chrome.exe' }; Start-Process -FilePath \$chrome -ArgumentList @('--remote-debugging-port=9222','--user-data-dir=C:\Temp\ace-cdp-profile','--new-window','http://127.0.0.1:5174/design')"
+powershell.exe -NoProfile -Command "node D:\Data\25_ACE\docs\playwright\design-route-live-verify\windows-cdp-vworld-pnu-batch.cjs --cases=D:\Data\25_ACE\docs\playwright\design-route-live-verify\parking-stall-cases.json"
+```
+
+- Latest CDP/VWorld result:
+  - PNU `1168011800104670003` passed with VWorld canvas, design mass entities,
+    parking entities, stall entities, and site containment.
+  - PNU `1168011800104170004` rendered VWorld/parking entities but the batch
+    summary still marks it fail because north-sunlight containment is
+    `needs_height_layer_check`; do not call this a full legal pass until the
+    height-layer envelope check is implemented.
+- AG-light flow UI was corrected in `ARR/frontend/src/design/components/ag-light-flow/`:
+  - default layout is vertical (`TB`), not the cluttered left-to-right mini graph.
+  - compact node coordinates are a single pipeline:
+    `User -> design_orchestrator -> law_graph_agent -> parking_agent -> maas_geometry_agent -> review_agent`.
+  - `AGLightFlow` now shows a transfer pill:
+    `PNU ... 전달됨 -> 법규 -> 주차 -> 매스/기하 -> 최종검토`.
+  - `DefaultAgentFlowPanel`, `InteractiveDesignPanel`, and `DesignPage` pass the
+    active PNU into the flow so the user can see PNU handoff before and after
+    selecting a candidate.
+- Vite can serve stale transformed AG-light modules. If PNG does not reflect
+  AG-light flow edits, use:
+
+```bash
+kill <vite-pid>
+rm -rf ARR/frontend/node_modules/.vite
+cd ARR/frontend && VITE_ARR_BACKEND_URL=http://127.0.0.1:18000 npm run dev -- --host 127.0.0.1 --port 5174 --force
+```
+
+- Latest AG-light Playwright gate:
+  `docs/playwright/design-route-live-verify/ag-light/verify-current-ag-light.cjs`
+  now asserts `reactFlowNodes >= 6`, custom overlay edges
+  `data-testid="ag-light-edge-path" >= 5`, and PNU transfer status text includes
+  the PNU plus law/parking handoff labels.
+- Latest artifact:
+  `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782262074594.png`.
+  It shows the headless 2D fallback for the map, but the right AG-light panel is
+  the corrected vertical PNU handoff graph. Use Windows CDP for real VWorld
+  pixels and this headless gate for React/API/AG-light UI regression checks.
+- 2026-06-24 cleanup/verification update:
+  - ARR backend tests passed: `cd ARR/backend && .venv/bin/python manage.py test design.test_maas_export` (56 tests).
+  - ARR frontend type-check passed after reinstalling `ARR/frontend/node_modules` with `npm ci`.
+  - AG-light Playwright passed after restarting Vite and Django. Latest result
+    reports `selectedOptimizerBackend.status = imported` for `clone/d4descent`.
+  - d4descent bridge needs minimal backend deps from the clone: `PyYAML>=6.0.2`
+    and `scikit-video>=1.1.11`; both are now in `ARR/backend/requirements.txt`.
+  - Cleanup caution: never run a broad `find . -name dist -exec rm -rf` in this
+    repo. It can delete `node_modules/*/dist` package contents. Restrict cleanup
+    to explicit project build outputs and exclude `.venv`, `venv`, and
+    `node_modules`.
 
 Parking/VWorld note from 2026-06-14:
 

@@ -63,10 +63,13 @@ async function main() {
 
   const state = await page.evaluate(() => {
     const text = document.body.innerText || "";
-    const agBlock = [...document.querySelectorAll("*")].find((el) =>
-      (el.textContent || "").includes("AG-light 협업모드")
-    );
     const flow = document.querySelector('[data-testid="ag-light-react-flow"]');
+    const transfer = document.querySelector('[data-testid="ag-light-transfer-status"]');
+    const agBlock = flow?.closest("section, aside, div") || flow;
+    const features = window.__arrDesignLastMassFeatures || [];
+    const selectedFeature = features[0] || null;
+    const selectedProps = selectedFeature?.properties || {};
+    const designQuality = selectedProps.design_quality || selectedProps.maas_model?.design_quality || null;
     const entityIds = (() => {
       try {
         return window.ws3d?.viewer?.entities?.values?.map((e) => String(e.id || "")).filter(Boolean) || [];
@@ -78,12 +81,20 @@ async function main() {
       hasBody: text.trim().length > 0,
       hasComplete: text.includes("COMPLETE"),
       hasBuildingMass: text.includes("BUILDING MASS"),
-      hasAgLightBlock: text.includes("AG-light 협업모드"),
+      hasAgLightBlock: text.includes("AI 설계 협업") && text.includes("AG-light React Flow"),
       hasAgButton: text.includes("현재 안 AG-light 검토 시작"),
       hasReactFlow: Boolean(flow),
       reactFlowNodes: flow ? flow.querySelectorAll(".react-flow__node").length : 0,
       reactFlowEdges: flow ? flow.querySelectorAll(".react-flow__edge").length : 0,
+      overlayEdges: flow ? flow.querySelectorAll('[data-testid="ag-light-edge-path"]').length : 0,
+      transferStatusText: transfer ? transfer.textContent || "" : "",
       agBlockText: agBlock ? (agBlock.textContent || "").slice(0, 1600) : "",
+      hasWebglFallback: text.includes("WebGL fallback"),
+      designFeatureCount: features.length,
+      selectedMassShape: selectedProps.mass_shape || null,
+      selectedDesignQualityScore: selectedProps.design_quality_score || designQuality?.score || null,
+      selectedDesignQualitySource: designQuality?.source || null,
+      selectedOptimizerBackend: designQuality?.optimizer_backend || null,
       designMassEntities: entityIds.filter((id) => id.startsWith("design-mass-")).length,
       parkingStallEntities: entityIds.filter((id) => id.includes("parking-stall")).length,
       pilotiEntities: entityIds.filter((id) => id.includes("piloti")).length,
@@ -121,7 +132,13 @@ async function main() {
     result.responseErrors.length ||
     !state.hasAgLightBlock ||
     !state.hasReactFlow ||
-    state.reactFlowNodes < 2
+    state.reactFlowNodes < 6 ||
+    state.overlayEdges < 5 ||
+    !state.transferStatusText.includes(PNU) ||
+    !state.transferStatusText.includes("법규") ||
+    !state.transferStatusText.includes("주차") ||
+    state.designFeatureCount < 1 ||
+    !state.selectedDesignQualitySource
   ) {
     process.exit(1);
   }

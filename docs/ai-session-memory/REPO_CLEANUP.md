@@ -7,6 +7,12 @@ Treat this workspace as a multi-repo/mixed-legacy workspace. Do not use
 
 Latest MAAS/AG-light work is now recorded in both places that track it:
 
+- ACE root `DK-BB`: `b4d8ab2 Record ARR MAAS design section grammar snapshot`
+  - Records the ARR grammar/operator cleanup pass in the root index.
+- ARR `master`: `c153efd Add MAAS design section grammar operators`
+  - Adds diagonal/terrace/sloped-roof MAAS grammar operators, interpreter
+    support, deterministic morphology variants, API option forwarding, and
+    tests.
 - ACE root `DK-BB`: `a7932c1 Record ARR MAAS design quality snapshot`
   - This records the ARR MAAS design-quality/research-backend/frontend flow
     files in the root index because the root repo still tracks ARR files.
@@ -25,6 +31,13 @@ Verified latest files are clean in both root and ARR after the snapshot:
 - `ARR/frontend/src/design/components/DefaultAgentFlowPanel.tsx`
 - `ARR/frontend/src/design/components/InteractiveDesignPanel.tsx`
 - `ARR/frontend/src/design/components/ag-light-flow/`
+- `ARR/backend/design/maas/grammar/data/maas_sequences.v0.json`
+- `ARR/backend/design/maas/grammar/data/maas_terms.v0.json`
+- `ARR/backend/design/maas/grammar/legal_interpreter.py`
+- `ARR/backend/design/maas/grammar/vocab.py`
+- `ARR/backend/design/maas/morphology_operators.py`
+- `ARR/backend/design/test_maas_export.py`
+- `ARR/backend/design/views.py`
 
 Current repo status summary from this session:
 
@@ -32,11 +45,9 @@ Current repo status summary from this session:
   (`AG/`, `ARR/`, `JSON_MODULES/`, docs/tests, weird tracked Windows-path
   deletions, AUA/korean-law-mcp gitlinks). The current MAAS/AG-light work is
   no longer among the dirty target files.
-- ARR `master` at `dc0e6f1`: latest AG-light/MAAS files are clean. The repo
-  still has a large pre-existing dirty set, including older MAAS grammar/operator
-  files such as `backend/design/maas/grammar/*` and
-  `backend/design/maas/morphology_operators.py`. Review and commit those as a
-  separate ARR pass only.
+- ARR `master` at `c153efd`: latest AG-light/MAAS files and the first
+  grammar/operator cleanup pass are clean. The repo still has a large
+  pre-existing dirty set outside this slice.
 - AG `master` at `179fe49`: dirty research/autogen tree. Keep separate from ARR
   legal-design work.
 - AUA `main` at `2214165`: dirty, separate project pass.
@@ -47,18 +58,18 @@ Current repo status summary from this session:
 
 Cleanup order from here:
 
-1. ARR old MAAS grammar/operator changes: inspect intent, run ARR backend tests,
-   commit only if they are coherent with the MAAS sequence/vocab direction.
-2. JSON_MODULES agent/team configs: separate root commit after validating that
+1. JSON_MODULES agent/team configs: separate root commit after validating that
    AG-light flow still maps agents/teams correctly.
-3. AG research/autogen generated artifacts: separate AG pass; avoid committing
+2. AG research/autogen generated artifacts: separate AG pass; avoid committing
    generated `autogenstudio/web/ui/**` unless intentionally preserving a build.
-4. AUA and korean-law-mcp: separate project-specific review/commit/push passes.
-5. Root weird Windows-path tracked deletions and PPT generator deletions need an
+3. AUA and korean-law-mcp: separate project-specific review/commit/push passes.
+4. Root weird Windows-path tracked deletions and PPT generator deletions need an
    explicit decision before committing or restoring; do not silently decide.
 
 Verification already passed for the latest MAAS/AG-light slice:
 
+- `cd ARR/backend && .venv/bin/python manage.py test design.test_maas_export -v 1`
+  passed 56 tests again after the design-section grammar cleanup.
 - `cd ARR/backend && .venv/bin/python manage.py test design.test_maas_export`
   passed 56 tests.
 - `cd ARR/frontend && npm run type-check` passed.

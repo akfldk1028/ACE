@@ -4,9 +4,11 @@ Read this folder before touching the legal-design visualization work.
 
 ## Latest Repo Handoff - 2026-06-24
 
-The latest MAAS design-quality and AG-light React Flow slice is committed in
-both relevant histories:
+The latest MAAS design-quality, design-section grammar, and AG-light React Flow
+slice is committed in both relevant histories:
 
+- ARR repo: `c153efd Add MAAS design section grammar operators`
+- ACE root repo: `b4d8ab2 Record ARR MAAS design section grammar snapshot`
 - ARR repo: `dc0e6f1 Add MAAS design quality and AG-light flow evidence`
 - ACE root repo: `a7932c1 Record ARR MAAS design quality snapshot`
 - Root docs/evidence before that:

@@ -7,6 +7,26 @@ Treat this workspace as a multi-repo/mixed-legacy workspace. Do not use
 
 Latest MAAS/AG-light work is now recorded in both places that track it:
 
+- Current 2026-06-24 AG-light reasoning trace slice is ready to commit:
+  - New shared module:
+    `ARR/frontend/src/design/lib/ag-light-collaboration.ts`.
+  - Updated panels:
+    `ARR/frontend/src/design/components/DefaultAgentFlowPanel.tsx` and
+    `ARR/frontend/src/design/components/InteractiveDesignPanel.tsx`.
+  - Purpose: make the user-facing workflow explicit as
+    law -> parking -> MAAS/design -> final review, not just a decorative graph.
+    After AG-light review, the right panel shows per-agent refs, formula/rule,
+    and decision text. The law trace must not fall back to "근거 없음" when the
+    ARR evidence bundle has check keys; it should expose check refs such as
+    `bulk_and_density.bcr:pass` and missing-evidence refs.
+  - Verification:
+    `cd ARR/frontend && npm run type-check` passed.
+    `node docs/playwright/design-route-live-verify/ag-light/verify-current-ag-light.cjs`
+    passed and wrote
+    `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782283250052.png`.
+    A focused trace screenshot wrote
+    `docs/playwright/design-route-live-verify/ag-light/ag-light-reasoning-trace-1782283360025.png`
+    with law refs and parking refs visible.
 - ARR `master`: `430f80a Harden AG-light design collaboration UI`
   - Hardens `/design` AG-light interaction without replacing the existing
     modules: default flow now merges template, PNU context, live AG-light bus

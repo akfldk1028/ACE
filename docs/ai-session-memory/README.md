@@ -7,6 +7,20 @@ Read this folder before touching the legal-design visualization work.
 The latest MAAS design-quality, design-section grammar, and AG-light React Flow
 slice is committed in both relevant histories:
 
+- ARR repo: `1796359 Show AG-light legal design reasoning trace`;
+  changes modularize the AG-light collaboration UI by adding
+  `ARR/frontend/src/design/lib/ag-light-collaboration.ts`, sharing the
+  law->parking->MAAS/design->review step definition between the default and
+  selected-candidate panels, and showing a visible `Agent reasoning trace`
+  after AG-light review. The trace must show refs/formula/decision per agent,
+  including law check refs such as `bulk_and_density.bcr:pass`, parking refs
+  such as `seoul_parking_appendix2_row_05`, datum source `ngii_local_dem`,
+  and MAAS design-quality source `arr.maas.design_quality.v1`.
+- Latest Playwright evidence for that slice:
+  `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782283250052.png`
+  and trace close-up
+  `docs/playwright/design-route-live-verify/ag-light/ag-light-reasoning-trace-1782283360025.png`.
+  The close-up verified `includesLawRefs=true` and `includesParkingRefs=true`.
 - ARR repo: `430f80a Harden AG-light design collaboration UI`; changes keep
   the vertical flow, add live bus/PNU messages to the
   default AG-light panel, add right-panel/direct-agent test hooks, and remove

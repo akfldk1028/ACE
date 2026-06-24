@@ -7,6 +7,14 @@ Treat this workspace as a multi-repo/mixed-legacy workspace. Do not use
 
 Latest MAAS/AG-light work is now recorded in both places that track it:
 
+- ACE root `DK-BB`: `460fcc7 Update AG-light verification evidence`
+  - Latest Playwright verifier artifact for `/design` AG-light flow after the
+    JSON_MODULES team update.
+- ACE root `DK-BB`: `2ab0470 Align MAAS legal design team operators`
+  - Updates `JSON_MODULES/teams/041_MAAS_Legal_Design_Team.json` so
+    `maas_geometry_agent` can propose deterministic design-section operators
+    (`diagonal_connect`, `terrace_link`, `sloped_roof_mass`, etc.) while still
+    requiring ARR validator recheck.
 - ACE root `DK-BB`: `b4d8ab2 Record ARR MAAS design section grammar snapshot`
   - Records the ARR grammar/operator cleanup pass in the root index.
 - ARR `master`: `c153efd Add MAAS design section grammar operators`
@@ -38,13 +46,16 @@ Verified latest files are clean in both root and ARR after the snapshot:
 - `ARR/backend/design/maas/morphology_operators.py`
 - `ARR/backend/design/test_maas_export.py`
 - `ARR/backend/design/views.py`
+- `JSON_MODULES/teams/041_MAAS_Legal_Design_Team.json`
+- `docs/playwright/design-route-live-verify/ag-light/ag-light-current-result.json`
+- `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782269679800.png`
 
 Current repo status summary from this session:
 
-- ACE root `DK-BB` at `a7932c1`: still very dirty from old mixed legacy state
+- ACE root `DK-BB` at `460fcc7`: still very dirty from old mixed legacy state
   (`AG/`, `ARR/`, `JSON_MODULES/`, docs/tests, weird tracked Windows-path
-  deletions, AUA/korean-law-mcp gitlinks). The current MAAS/AG-light work is
-  no longer among the dirty target files.
+  deletions, AUA/korean-law-mcp gitlinks). Current MAAS/AG-light and
+  JSON_MODULES 041 work is no longer among the dirty target files.
 - ARR `master` at `c153efd`: latest AG-light/MAAS files and the first
   grammar/operator cleanup pass are clean. The repo still has a large
   pre-existing dirty set outside this slice.
@@ -58,12 +69,10 @@ Current repo status summary from this session:
 
 Cleanup order from here:
 
-1. JSON_MODULES agent/team configs: separate root commit after validating that
-   AG-light flow still maps agents/teams correctly.
-2. AG research/autogen generated artifacts: separate AG pass; avoid committing
+1. AG research/autogen generated artifacts: separate AG pass; avoid committing
    generated `autogenstudio/web/ui/**` unless intentionally preserving a build.
-3. AUA and korean-law-mcp: separate project-specific review/commit/push passes.
-4. Root weird Windows-path tracked deletions and PPT generator deletions need an
+2. AUA and korean-law-mcp: separate project-specific review/commit/push passes.
+3. Root weird Windows-path tracked deletions and PPT generator deletions need an
    explicit decision before committing or restoring; do not silently decide.
 
 Verification already passed for the latest MAAS/AG-light slice:
@@ -76,7 +85,10 @@ Verification already passed for the latest MAAS/AG-light slice:
 - `node docs/playwright/design-route-live-verify/ag-light/verify-current-ag-light.cjs`
   passed.
 - Latest Playwright PNG:
-  `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782262074594.png`.
+  `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782269679800.png`.
+- JSON_MODULES review note: 72 files initially appeared modified, but all except
+  `041_MAAS_Legal_Design_Team.json` were CRLF/LF-only churn. They were
+  normalized back to content-clean state and not committed.
 
 ## Repository Cleanup - 2026-05-18
 

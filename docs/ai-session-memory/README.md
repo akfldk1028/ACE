@@ -33,7 +33,7 @@ slice is committed in both relevant histories:
   d4descent bridge status `imported`.
 - Latest MAAS CLI diversity verification:
   `benchmark_maas_algorithms --max-variants 6` wrote
-  `maas_algorithm_benchmark_20260624T122507Z.json` with `84` variants,
+  `maas_algorithm_benchmark_20260624T130531Z.json` with `84` variants,
   `19` unique mass shapes, `16` concepts, `16` verbs, and `6.0` average unique
   shapes per scenario. The benchmark now reports section-connector survival:
   `section_connector_scenario_count=14/14`,
@@ -44,6 +44,12 @@ slice is committed in both relevant histories:
   Follow-up code review added a guard: when legal parking count is resolved,
   visible section-connector preservation must not replace a higher-priority
   parking-pass candidate with a weaker parking candidate.
+  The benchmark also runs a direct `clone/MAAS/src` reference baseline through
+  `maas_clone_bridge`: original MAAS `VerbSequence -> compile_sequence`
+  compiles (`status=compiled`) and compares reference verbs `cave,taper`
+  against ARR verbs. The expected `clone/MAAS/data/case_studies/labels.json`
+  artifact is missing in this checkout and is recorded as `missing_artifact`,
+  so book case-study baseline remains blocked until that data is restored.
 
 - ARR repo: `f71d07c Add MAAS algorithm benchmark command`; added
   `benchmark_maas_algorithms` management command to validate the paper/clone

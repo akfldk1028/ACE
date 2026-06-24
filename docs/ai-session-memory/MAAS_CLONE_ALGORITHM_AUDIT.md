@@ -29,7 +29,7 @@ deterministic operators, not copied external geometry code.
 
 | Repo | Algorithm core | License/status | Use now? | ARR action |
 | --- | --- | --- | --- | --- |
-| `clone/MAAS` | VerbSequence grammar, vocabulary, OpenSCAD-style compiler, sequence metrics | Internal repo, no external license file found in clone | Yes | Absorb vocabulary, sequence schema, intent mapping, and sequence metrics into ARR-native Shapely/legal pipeline. Do not replace ARR geometry. |
+| `clone/MAAS` | VerbSequence grammar, vocabulary, OpenSCAD-style compiler, sequence metrics | Internal repo, no external license file found in clone | Yes | Use direct clone bridge as reference baseline and absorb vocabulary, sequence schema, intent mapping, and sequence metrics into ARR-native Shapely/legal pipeline. Do not replace ARR geometry. |
 | `clone/d4descent` | Shape grammar optimization with task/loss/object separation, rewrite proposals, differentiable objectives | README says CC BY-NC 4.0 | Yes, as external research backend | ARR now connects to `clone/d4descent/src` through a bridge that records optimizer/task interfaces and import status. Do not silently turn it into legal geometry truth. |
 | `clone/archcomplete` | VQGAN + Transformer + DDPM voxel completion/variation/upsampling | MIT | Not in legal path | Future optional design inspiration/preview. Heavy GPU/stochastic output cannot be a legal massing source. |
 | `clone/evolutionary-optimization` | GA, PSO, differential evolution black-box optimizer examples | MIT | Later | Use as a pattern for small in-house population search, not as vendored dependency. |
@@ -64,6 +64,7 @@ ARR mapping:
 - `ARR/backend/design/maas/grammar/legal_interpreter.py`
 - `ARR/backend/design/maas/morphology_operators.py`
 - `ARR/backend/design/maas/legal_mesh_optimizer.py`
+- `ARR/backend/design/maas/research_backends/maas_clone_bridge.py`
 
 This is the main valid absorption path.
 
@@ -221,6 +222,12 @@ Additional implementation on 2026-06-23:
     `OptimizeArgs`, `Task`, and `ObjectCollection` by default.
   - Captures dependency failures in candidate evidence instead of breaking the
     `/design` legal massing endpoint.
+- `ARR/backend/design/maas/research_backends/maas_clone_bridge.py`
+  - Directly imports `clone/MAAS/src` as an external reference baseline.
+  - Runs original MAAS `VerbSequence -> compile_sequence` for a fixed reference
+    sequence from the clone tests and records SCAD hash/metrics in the
+    benchmark evidence.
+  - Does not make original MAAS the legal geometry source.
 - `ARR/backend/design/maas/legal_mesh_optimizer.py`
   - Attaches `design_quality` and `design_quality_score` to selected variants
     and parking-repair variants after legal utilization metrics are computed.
@@ -258,13 +265,14 @@ Additional benchmark harness update on 2026-06-24:
   `cd ARR/backend && .venv/bin/python manage.py benchmark_maas_algorithms --max-variants 6`.
 - Latest output:
   `docs/ai-session-memory/maas-benchmarks/latest.json` and timestamped
-  `maas_algorithm_benchmark_20260624T122507Z.json`.
+  `maas_algorithm_benchmark_20260624T130531Z.json`.
 - Latest aggregate:
   `scenario_count=14`, `successful_scenarios=14`, `feature_count=84`,
   `unique_mass_shape_count=19`, `unique_concept_count=16`,
   `unique_verb_count=16`, `average_unique_shapes_per_scenario=6.0`,
   `legal_pass_rate=1.0`, `preferred_survival_rate=1.0`,
   `preferred_top_rate=1.0`, `average_design_quality=0.6424`,
+  `original_maas_baseline_status=compiled`,
   `section_connector_feature_count=14`,
   `section_connector_scenario_count=14`,
   `section_connector_shape_count=7`, `parking_evidence_feature_count=0`,
@@ -284,6 +292,12 @@ Additional benchmark harness update on 2026-06-24:
   replace the visible tail unless its parking priority is at least as good.
   Benchmark mode without `--with-parking` still preserves connector diversity
   because it is measuring mass algorithm coverage, not parking evidence.
+- Original MAAS baseline status:
+  `maas_clone_bridge` imports `clone/MAAS/src`, compiles the original
+  `VerbSequence` fixture to SCAD, records a SCAD hash, and compares reference
+  verbs `cave,taper` against ARR benchmark verbs. The expected
+  `clone/MAAS/data/case_studies/labels.json` is missing in this checkout, so
+  book case-study baseline is recorded as `missing_artifact` until restored.
 - Parking field semantics were tightened after review: in parking-disabled
   mode each feature now has `parking_evidence_enabled=false` and
   `parking_status=null`. `parking_layout_status` may still record the local

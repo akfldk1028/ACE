@@ -10,6 +10,12 @@ Latest MAAS/AG-light work is now recorded in both places that track it:
 - Current 2026-06-24 AG-light reasoning trace slice is committed:
   - ARR `master`: `1796359 Show AG-light legal design reasoning trace`.
   - ACE root `DK-BB`: `f334cda Record AG-light legal reasoning trace`.
+  - Root memory hash update: `60a9dd5 Update AG-light reasoning trace memory hashes`.
+  - Push attempt from WSL failed for both ARR and ACE root because GitHub HTTPS
+    auth was unavailable: `could not read Username for 'https://github.com'`.
+    A Windows-authenticated session should run `git -C D:\Data\25_ACE\ARR push
+    origin master` and `git -C D:\Data\25_ACE push origin DK-BB`, or configure a
+    credential helper/token in WSL first.
   - New shared module:
     `ARR/frontend/src/design/lib/ag-light-collaboration.ts`.
   - Updated panels:

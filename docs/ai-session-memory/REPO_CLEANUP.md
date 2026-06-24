@@ -7,7 +7,9 @@ Treat this workspace as a multi-repo/mixed-legacy workspace. Do not use
 
 Latest MAAS/AG-light work is now recorded in both places that track it:
 
-- Current 2026-06-24 AG-light reasoning trace slice is ready to commit:
+- Current 2026-06-24 AG-light reasoning trace slice is committed:
+  - ARR `master`: `1796359 Show AG-light legal design reasoning trace`.
+  - ACE root `DK-BB`: `f334cda Record AG-light legal reasoning trace`.
   - New shared module:
     `ARR/frontend/src/design/lib/ag-light-collaboration.ts`.
   - Updated panels:

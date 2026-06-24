@@ -21,6 +21,9 @@ slice is committed in both relevant histories:
   and trace close-up
   `docs/playwright/design-route-live-verify/ag-light/ag-light-reasoning-trace-1782283360025.png`.
   The close-up verified `includesLawRefs=true` and `includesParkingRefs=true`.
+- ACE root repo: `f334cda Record AG-light legal reasoning trace` records the
+  same ARR code slice plus the two Playwright PNG evidence files and current
+  `ag-light-current-result.json`.
 - ARR repo: `430f80a Harden AG-light design collaboration UI`; changes keep
   the vertical flow, add live bus/PNU messages to the
   default AG-light panel, add right-panel/direct-agent test hooks, and remove

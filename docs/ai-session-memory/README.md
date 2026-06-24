@@ -31,6 +31,11 @@ slice is committed in both relevant histories:
   `notch_south_west`, FAR `111.1`, BCR `37.0`, height `8.4m`,
   parking `3/3`, design-quality source `arr.maas.design_quality.v1`,
   d4descent bridge status `imported`.
+- Latest MAAS CLI diversity verification:
+  `benchmark_maas_algorithms --max-variants 6` wrote
+  `maas_algorithm_benchmark_20260624T114721Z.json` with `84` variants,
+  `19` unique mass shapes, `16` concepts, `16` verbs, and `6.0` average unique
+  shapes per scenario. Full `design.test_maas_export` still passes `57` tests.
 
 - ARR repo: `f71d07c Add MAAS algorithm benchmark command`; added
   `benchmark_maas_algorithms` management command to validate the paper/clone

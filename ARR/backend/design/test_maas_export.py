@@ -855,11 +855,29 @@ class MaasLegalVariantsTest(TestCase):
             with open(latest, encoding="utf-8") as fh:
                 data = json.load(fh)
             self.assertEqual(data["mode"], "maas_algorithm_benchmark")
+            self.assertEqual(data["parking_mode"], "disabled")
             self.assertEqual(data["source"]["legal_truth"], "ARR deterministic legal repair/evaluation")
             self.assertGreaterEqual(data["aggregate"]["scenario_count"], 2)
             self.assertEqual(data["aggregate"]["successful_scenarios"], data["aggregate"]["scenario_count"])
+            self.assertEqual(data["aggregate"]["parking_evidence_feature_count"], 0)
+            self.assertIsNone(data["aggregate"]["parking_pass_rate"])
             self.assertEqual(data["aggregate"]["preferred_survival_rate"], 1.0)
             self.assertGreaterEqual(data["aggregate"]["legal_pass_rate"], 0.99)
+            self.assertGreaterEqual(data["aggregate"]["unique_mass_shape_count"], 3)
+            self.assertGreaterEqual(data["aggregate"]["unique_concept_count"], 3)
+            self.assertGreaterEqual(data["aggregate"]["unique_verb_count"], 3)
+            self.assertGreaterEqual(data["aggregate"]["average_unique_shapes_per_scenario"], 3.0)
+            self.assertIn("mass_shape_histogram", data["aggregate"])
+            self.assertFalse(any(
+                feature.get("parking_evidence_enabled")
+                for scenario in data["scenarios"]
+                for feature in scenario.get("features", [])
+            ))
+            self.assertTrue(all(
+                scenario.get("unique_mass_shape_count", 0) >= 3
+                for scenario in data["scenarios"]
+                if scenario.get("status") == "ok"
+            ))
             self.assertTrue(any(
                 scenario.get("preferred_operator") == "grammar_diagonal_step_connector"
                 and scenario.get("preferred_top")

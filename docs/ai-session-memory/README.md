@@ -7,6 +7,14 @@ Read this folder before touching the legal-design visualization work.
 The latest MAAS design-quality, design-section grammar, and AG-light React Flow
 slice is committed in both relevant histories:
 
+- ARR repo: pending commit for AG-light interaction hardening after
+  `35a8a26`; changes keep the vertical flow, add live bus/PNU messages to the
+  default AG-light panel, add right-panel/direct-agent test hooks, and remove
+  the horizontal layout toggle that could reintroduce confusing non-vertical
+  links.
+- ACE root repo: pending companion commit for the same code slice plus latest
+  Playwright evidence
+  `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782280160228.png`.
 - ARR repo: `35a8a26 Fix AG-light vertical edge routing`
 - ACE root repo: `ba79faa Record AG-light vertical edge verification`
 - ACE root repo: `460fcc7 Update AG-light verification evidence`
@@ -78,6 +86,10 @@ checks for visual claims.
 ## Current Priority
 
 The current verified local target is `http://127.0.0.1:5174/design`, not `/land`.
+For Windows browser access from WSL, run Vite with
+`npm run dev -- --host 0.0.0.0 --port 5174 --force` from `ARR/frontend`.
+Use `http://localhost:5174/design` first; if Windows localhost forwarding is
+stale, use the Vite network URL printed by the server.
 
 The key correctness gate is datum/elevation first:
 

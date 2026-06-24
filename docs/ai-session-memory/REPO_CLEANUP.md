@@ -7,6 +7,17 @@ Treat this workspace as a multi-repo/mixed-legacy workspace. Do not use
 
 Latest MAAS/AG-light work is now recorded in both places that track it:
 
+- ARR `master`: pending commit after `35a8a26`
+  - Hardens `/design` AG-light interaction without replacing the existing
+    modules: default flow now merges template, PNU context, live AG-light bus
+    messages, and direct-agent commands; direct-agent controls and right
+    collaboration panel have stable test ids; the toolbar no longer exposes the
+    horizontal layout toggle, preserving the project-standard vertical flow.
+- ACE root `DK-BB`: pending companion commit after `423c271`
+  - Records the same ARR code slice plus latest Playwright evidence
+    `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782280160228.png`
+    and updated
+    `docs/playwright/design-route-live-verify/ag-light/ag-light-current-result.json`.
 - ARR `master`: `35a8a26 Fix AG-light vertical edge routing`
   - Fixes AG-light custom edge overlay to keep the original vertical React Flow
     feel: no cubic `C` curves, direct vertical line when nodes share x, and
@@ -82,6 +93,18 @@ Cleanup order from here:
 
 Verification already passed for the latest MAAS/AG-light slice:
 
+- `cd ARR/frontend && npm run type-check` passed after AG-light interaction
+  hardening.
+- `cd ARR/backend && .venv/bin/python manage.py test design.test_maas_export -v 1`
+  passed 56 tests after AG-light interaction hardening.
+- `node docs/playwright/design-route-live-verify/ag-light/verify-current-ag-light.cjs`
+  passed again; latest PNG:
+  `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782280160228.png`.
+- Extra Playwright DOM interaction check passed:
+  `initialPaths=5`, direct-agent target changed
+  `law_graph_agent -> parking_agent`, right panel collapsed `true` then
+  expanded `false`, final `pathCount=5`, `badCurves=[]`, and paths remained
+  vertical/right-angle `L` commands.
 - `cd ARR/backend && .venv/bin/python manage.py test design.test_maas_export -v 1`
   passed 56 tests again after the design-section grammar cleanup.
 - `cd ARR/backend && .venv/bin/python manage.py test design.test_maas_export`

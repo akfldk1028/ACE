@@ -6,6 +6,32 @@ Read this folder before touching the legal-design visualization work.
 
 Latest MAAS clone/paper-path verification:
 
+- 2026-06-25 Neo4j/runtime correction:
+  - WSL `127.0.0.1:7687` is closed for Neo4j; Windows host gateway
+    `172.27.80.1:7687` is open.
+  - The running backend had `NEO4J_URI=neo4j://127.0.0.1:7687`, which caused
+    Neo4j routing discovery failures. Use
+    `NEO4J_URI=bolt://172.27.80.1:7687 NEO4J_PASSWORD=11111111`.
+  - `ARR/backend/graph_db/services/neo4j_service.py` default URI was changed
+    to `bolt://172.27.80.1:7687` so single-instance Neo4j does not try routing.
+  - Verified Neo4j connection returned `MATCH (n) RETURN count(n)=31167`.
+    Top labels included `HANG=12069`, `HO=11550`, `JO=4928`, and
+    `LocalParkingRequirementRule=14`.
+  - Backend is verified at `http://127.0.0.1:18000`; frontend remains
+    `http://127.0.0.1:5174/design`.
+- 2026-06-25 MAAS mass/parking PNG:
+  - Direct backend MAAS generation for PNU `1168011800104170004`, 공동주택,
+    `max_variants=6`, with Neo4j parking rules, wrote:
+    `docs/playwright/design-route-live-verify/maas-direct-neo4j-latest.json`
+    and visual summary PNG
+    `docs/playwright/design-route-live-verify/maas-direct-neo4j-latest.png`.
+  - Runtime was about `95.5s`. This is slow but no longer a Neo4j routing
+    failure.
+  - Current result is not “perfect”: `maas_01 parking_repair_shrink` provides
+    `4/4` spaces but is `needs_drive_connectivity_review` and low FAR
+    (`62.3`). The high-FAR candidates (`~249.8 FAR`) provide `3/7` parking and
+    fail. Next mass work should optimize parking and FAR together, not only add
+    more shape styles.
 - ARR now uses `clone/MAAS/src` directly as the executable reference baseline
   and recovers the 10 book case-study gold verb pairs from
   `clone/MAAS/outputs/sprint15_coma/book_case_eval.json`.

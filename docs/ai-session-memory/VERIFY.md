@@ -241,6 +241,39 @@ Latest verified result:
   - `mass_volumes = 2`
   - all generated floor groups had `program_packing.status = ok`.
 
+2026-06-25 paper-code/mass-review update:
+
+- Reference code reviewed:
+  - `clone/MAAS` is an Operative Design-style verb grammar pipeline: `VerbSequence`
+    -> OpenSCAD CSG -> mesh/render. ARR imports it through
+    `ARR/backend/design/maas/research_backends/maas_clone_bridge.py`, compiles
+    reference sequences, and reuses the verb/metric philosophy. It is not yet the
+    live geometry generator for Korean parcel/legal candidates.
+  - `clone/d4descent` is the SIGGRAPH Asia 2025 "Design for Descent" optimizer
+    implementation. ARR imports it through
+    `ARR/backend/design/maas/research_backends/d4descent_bridge.py` as research
+    optimizer evidence/design-quality context. It is not yet running its shape
+    grammar optimizer loop inside `/design/maas/legal-variants/`.
+  - Live ARR mass generation remains `ARR/backend/design/maas/legal_mesh_optimizer.py`
+    + Shapely morphology operators + legal repair/evaluation + parking precheck.
+- New default mass-review evidence generator:
+  - `node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+  - Writes `maas-20-alt-latest.html`, `maas-20-alt-latest.png`, and
+    `maas-20-alt-latest.json`.
+  - Backend must be restarted after editing `legal_mesh_optimizer.py`; the usual
+    runserver was started with `--noreload`, so stale backend code can silently
+    produce old PNGs.
+- Latest 20-alt PNG for PNU `1168011800104170004`, `공동주택`:
+  - 20/20 candidates generated in about 83s.
+  - Candidate order now promotes visible plan diversity before repeated stepback
+    candidates: 7 `plan_diverse`, 6 `near_duplicate`, 7 `section_diverse`.
+  - Parking result is still weak: only `parking_repair_shrink` has
+    `P 4/4 needs_drive_connectivity_review`; the other 19 are parking `fail`.
+  - Therefore the next algorithmic milestone is not more cosmetic mass sorting.
+    It is parking-first mass generation: reserve legal/usable parking + entrance
+    area before high-FAR mass generation, then optimize FAR/BCR/section diversity
+    within the remaining buildable footprint.
+
 Important Playwright caveat:
 
 - Do not set global `Accept: text/html` headers in Playwright when testing `/design?e2e=1`; that also affects `fetch()` and can make API calls receive SPA HTML instead of JSON.

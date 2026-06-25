@@ -2,6 +2,25 @@
 
 Date: 2026-06-23
 
+Update 2026-06-25:
+
+- `ARR/backend/design/maas/research_backends/maas_clone_bridge.py` now imports
+  `clone/MAAS/src` directly and compiles both the original simple grammar
+  sanity sequence and the recovered 10 book case-study gold verb sequences.
+- The exact `clone/MAAS/data/case_studies/labels.json` file is still missing
+  and remains recorded as `missing_artifact`.
+- The 10-case baseline is recovered from the original output artifact
+  `clone/MAAS/outputs/sprint15_coma/book_case_eval.json::per_case.gold`.
+  Latest verified benchmark:
+  `docs/ai-session-memory/maas-benchmarks/maas_algorithm_benchmark_20260625T051624Z.json`.
+- Result: original MAAS case baseline `compiled`, `10/10` cases compiled.
+  Recovered original verbs:
+  `bend`, `branch`, `cave`, `embed`, `expand`, `extrude`, `lift`, `nest`,
+  `overlap`, `rotate_part`, `shift`, `stack`, `taper`.
+- ARR currently shares `cave`, `lift`, `overlap`, `rotate_part`, `shift`,
+  `taper`; the remaining absorption gap is `bend`, `branch`, `embed`,
+  `expand`, `extrude`, `nest`, `stack`.
+
 Purpose: record the detailed review of cloned algorithm repositories before
 absorbing them into ARR MAAS. This project is a legal massing/design
 collaboration system. Cloned code must not turn ARR into a generic ML geometry

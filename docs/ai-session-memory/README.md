@@ -2,7 +2,35 @@
 
 Read this folder before touching the legal-design visualization work.
 
-## Latest Repo Handoff - 2026-06-24
+## Latest Repo Handoff - 2026-06-25
+
+Latest MAAS clone/paper-path verification:
+
+- ARR now uses `clone/MAAS/src` directly as the executable reference baseline
+  and recovers the 10 book case-study gold verb pairs from
+  `clone/MAAS/outputs/sprint15_coma/book_case_eval.json`.
+- The original `clone/MAAS/data/case_studies/labels.json` artifact is still
+  missing in this checkout, so do not claim the exact labels file was restored.
+  What is verified is stronger than the old one-off sample: 10 recovered
+  original-output cases compile through the original MAAS
+  `VerbSequence -> compile_sequence` path.
+- Latest benchmark:
+  `docs/ai-session-memory/maas-benchmarks/maas_algorithm_benchmark_20260625T051624Z.json`
+  and `latest.json`.
+  Result: `original_maas_case_baseline_status=compiled`,
+  `original_maas_compiled_case_count=10/10`, `legal_pass_rate=1.0`,
+  `scenario_count=14`, `feature_count=84`, `unique_mass_shape_count=19`,
+  `unique_concept_count=16`, `unique_verb_count=16`, and
+  `average_unique_shapes_per_scenario=6.0`.
+- ARR currently shares these original MAAS verbs:
+  `cave`, `lift`, `overlap`, `rotate_part`, `shift`, `taper`.
+  Gaps still to absorb into ARR-native legal mass generation:
+  `bend`, `branch`, `embed`, `expand`, `extrude`, `nest`, `stack`.
+- `--with-parking` benchmark was attempted on 2026-06-25 but Neo4j routing
+  lookup stalled; it was terminated without changing benchmark evidence. Use
+  the parking-specific tests/routes separately until Neo4j is responsive.
+
+## Previous Repo Handoff - 2026-06-24
 
 The latest MAAS design-quality, design-section grammar, and AG-light React Flow
 slice is committed in both relevant histories:

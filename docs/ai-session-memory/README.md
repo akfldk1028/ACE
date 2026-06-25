@@ -32,6 +32,17 @@ Latest MAAS clone/paper-path verification:
     (`62.3`). The high-FAR candidates (`~249.8 FAR`) provide `3/7` parking and
     fail. Next mass work should optimize parking and FAR together, not only add
     more shape styles.
+  - Mass-only review PNG was added at
+    `docs/playwright/design-route-live-verify/maas-mass-review-latest.png`
+    with source HTML
+    `docs/playwright/design-route-live-verify/maas-mass-review-latest.html`.
+    It renders each candidate from backend `mass_volumes`/`floor_plates`.
+    Visual verdict: `maas_01` is a narrow parking-repair tower and loses FAR;
+    `maas_02` through `maas_06` are high-FAR stepped/terrace/diagonal variants
+    but their footprints are nearly identical, so the current design diversity
+    is mostly vertical-section styling rather than true plan/massing variety.
+    Next code work should create high-FAR candidates that reserve/shape ground
+    parking from the beginning instead of shrinking only after parking failure.
 - ARR now uses `clone/MAAS/src` directly as the executable reference baseline
   and recovers the 10 book case-study gold verb pairs from
   `clone/MAAS/outputs/sprint15_coma/book_case_eval.json`.

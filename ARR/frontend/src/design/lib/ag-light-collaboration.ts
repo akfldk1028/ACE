@@ -99,6 +99,7 @@ export const buildAgentTrace = (
   const layoutFormula = asRecord(layout.layout_formula);
   const maasModel = asRecord(props.maas_model || evidenceCandidate.maas_model);
   const designQuality = asRecord(props.design_quality || maasModel.design_quality);
+  const sectionProfile = asRecord(props.section_profile || maasModel.section_profile);
   const datum = asRecord(getNested(setbackGeometries, ['datum_result']));
   const sunlightEnvelope = asRecord(getNested(setbackGeometries, ['sunlight_envelope']));
   const massShape = asString(props.mass_shape) || asString(maasModel.operator) || asString(props.algorithm) || 'maas_legal_envelope';
@@ -131,6 +132,7 @@ export const buildAgentTrace = (
     asNumber(designQuality.score) !== undefined ? `quality ${asNumber(designQuality.score)?.toFixed(3)}` : '',
     asString(designQuality.source),
     verbSequence.length ? `verbs ${verbSequence.join('->')}` : '',
+    asString(sectionProfile.kind) ? `section ${asString(sectionProfile.kind)}` : '',
   ].filter(Boolean);
 
   const reviewByAgent = new Map(reviews.map((review) => [review.agent, review]));
@@ -277,6 +279,9 @@ export const makeAgentReviews = (
   const designQuality = asRecord(props.design_quality || asRecord(props.maas_model).design_quality);
   const designQualityScore = asNumber(props.design_quality_score) ?? asNumber(designQuality.score);
   const verbSequence = extractVerbSequence(props.maas_verb_sequence, asRecord(props.maas_model).verb_sequence);
+  const sectionProfile = asRecord(props.section_profile || asRecord(props.maas_model).section_profile);
+  const sectionKind = asString(sectionProfile.kind);
+  const sectionHint = asString(sectionProfile.render_hint);
 
   const parkingStatus: AGLightReview['status'] = requiredParking && providedParking !== undefined
     ? (providedParking >= requiredParking ? 'pass' : 'fail')
@@ -314,6 +319,7 @@ export const makeAgentReviews = (
       detail: [
         designQualityScore !== undefined ? `quality ${designQualityScore.toFixed(3)}` : 'quality 확인 필요',
         verbSequence.length ? `verbs ${verbSequence.join('->')}` : 'verb sequence 없음',
+        sectionKind ? `section ${sectionKind}${sectionHint ? ` (${sectionHint})` : ''}` : 'section profile 없음',
         datumElevation !== undefined ? `${datumSource} ${datumElevation.toFixed(2)}m` : 'datum_result 확인 필요',
         sunlightApplies ? '§86 envelope 적용' : '정북 envelope 없음/적용 외',
       ].join(' · '),

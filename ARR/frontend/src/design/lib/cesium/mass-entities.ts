@@ -19,6 +19,8 @@ export type RenderMassEntitiesOptions = {
   aestheticTexturedGltfUrl?: string | null;
 };
 
+type SectionRenderSegment = { ring: number[][]; bottom: number; top: number };
+
 function extractRing(geometry: { type: string; coordinates: any }): number[][] | null {
   if (geometry.type === 'Polygon') return geometry.coordinates[0];
   if (geometry.type === 'MultiPolygon') return largestPolygonCoordinates(geometry.coordinates)?.[0] || null;
@@ -97,6 +99,176 @@ function getGroundHeight(Cesium: any, viewer: any, ring: number[][]): number {
     if (typeof h === 'number' && isFinite(h)) return h;
   } catch { /* fallback */ }
   return 0;
+}
+
+function extractSectionProfile(props: any): any | null {
+  const model = props?.maas_model;
+  const profile = props?.section_profile || model?.section_profile;
+  return profile && typeof profile === 'object' ? profile : null;
+}
+
+function ringFromRenderableGeometry(item: any): number[][] | null {
+  const geometry = item?.geometry;
+  if (!geometry || typeof geometry !== 'object') return null;
+  return extractRing(geometry);
+}
+
+type BuildSectionRenderSegmentsOptions = {
+  floorGroups: any[];
+  massVolumes: any[];
+  floorPlates: any[];
+  fallbackRing: number[][];
+  height: number;
+  floorH: number;
+};
+
+function buildSectionRenderSegments(options: BuildSectionRenderSegmentsOptions): SectionRenderSegment[] {
+  const { floorGroups, massVolumes, floorPlates, fallbackRing, height, floorH } = options;
+  const source = floorGroups.length > 0
+    ? floorGroups
+    : massVolumes.length > 0
+      ? massVolumes
+      : floorPlates.length > 0
+        ? floorPlates
+        : [];
+  const segments: SectionRenderSegment[] = [];
+  if (source.length > 0) {
+    for (let i = 0; i < source.length; i++) {
+      const item = source[i];
+      const itemRing = ringFromRenderableGeometry(item);
+      if (!itemRing || itemRing.length < 3) continue;
+      const prev = i > 0 ? source[i - 1] : null;
+      const bottom = Number(item.bottom_height ?? prev?.top_height ?? 0) || 0;
+      const top = Number(item.top_height ?? ((i + 1) * floorH)) || height;
+      segments.push({ ring: itemRing, bottom, top });
+    }
+  }
+  if (segments.length === 0) {
+    segments.push({ ring: fallbackRing, bottom: 0, top: height });
+  }
+  return segments;
+}
+
+type RenderSectionProfileOverlayOptions = {
+  viewer: any;
+  Cesium: any;
+  entityPrefix: string;
+  designId: number;
+  groundH: number;
+  profile: any;
+  segments: SectionRenderSegment[];
+  isSelected: boolean;
+};
+
+function renderSectionProfileOverlay(options: RenderSectionProfileOverlayOptions) {
+  const { viewer, Cesium, entityPrefix, designId, groundH, profile, segments, isSelected } = options;
+  if (!profile || !Array.isArray(segments) || segments.length === 0) return;
+  const kind = String(profile.kind || '');
+  const allPoints = segments.flatMap(segment => segment.ring);
+  if (allPoints.length < 3) return;
+  const bounds = ringBounds(allPoints);
+  const minTop = Math.min(...segments.map(segment => Number(segment.top) || 0));
+  const maxTop = Math.max(...segments.map(segment => Number(segment.top) || 0));
+  const accent = isSelected ? '#ff2f92' : '#ec4899';
+  const accentColor = Cesium.Color.fromCssColorString(accent);
+  const zOffset = 1.2;
+
+  if (kind === 'sloped_roof' || kind === 'sloped_roof_mass') {
+    const high = groundH + maxTop + zOffset;
+    const low = groundH + Math.max(minTop, maxTop * 0.56) + zOffset;
+    const roofPositions = Cesium.Cartesian3.fromDegreesArrayHeights([
+      bounds.minLng, bounds.minLat, high,
+      bounds.maxLng, bounds.minLat, high,
+      bounds.maxLng, bounds.maxLat, low,
+      bounds.minLng, bounds.maxLat, low,
+    ]);
+    viewer.entities.add({
+      id: `${entityPrefix}section-profile-sloped-${designId}`,
+      properties: {
+        interactionKind: 'section_profile',
+        designId,
+        target: { kind: 'section_profile', profile_kind: kind },
+      },
+      polygon: {
+        hierarchy: new Cesium.PolygonHierarchy(roofPositions),
+        perPositionHeight: true,
+        material: Cesium.Color.fromCssColorString('#fed7aa').withAlpha(isSelected ? 0.46 : 0.34),
+        outline: true,
+        outlineColor: accentColor.withAlpha(0.95),
+      },
+    });
+    for (const ratio of [0, 0.33, 0.66, 1]) {
+      const lng = bounds.minLng + (bounds.maxLng - bounds.minLng) * ratio;
+      viewer.entities.add({
+        id: `${entityPrefix}section-profile-sloped-rib-${designId}-${ratio}`,
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+            lng, bounds.minLat, high + 0.15,
+            lng, bounds.maxLat, low + 0.15,
+          ]),
+          width: ratio === 0 || ratio === 1 ? 4 : 2,
+          material: accentColor.withAlpha(ratio === 0 || ratio === 1 ? 0.95 : 0.72),
+          clampToGround: false,
+        },
+      });
+    }
+    return;
+  }
+
+  if (kind === 'diagonal_connector' || kind === 'diagonal_connect') {
+    const lower = segments[0];
+    const upper = segments[segments.length - 1];
+    const lowerCenter = ringCentroid(lower.ring);
+    const upperCenter = ringCentroid(upper.ring);
+    if (!lowerCenter || !upperCenter) return;
+    viewer.entities.add({
+      id: `${entityPrefix}section-profile-diagonal-${designId}`,
+      properties: {
+        interactionKind: 'section_profile',
+        designId,
+        target: { kind: 'section_profile', profile_kind: kind },
+      },
+      polyline: {
+        positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+          lowerCenter.lng, lowerCenter.lat, groundH + lower.top + zOffset,
+          upperCenter.lng, upperCenter.lat, groundH + upper.top + zOffset,
+        ]),
+        width: isSelected ? 9 : 7,
+        material: accentColor.withAlpha(isSelected ? 0.98 : 0.78),
+        clampToGround: false,
+      },
+    });
+    return;
+  }
+
+  if (kind === 'terrace_ribbon') {
+    const side = String(profile.side || 'north');
+    const terraceCount = 4;
+    for (let i = 0; i < terraceCount; i++) {
+      const t = (i + 1) / (terraceCount + 1);
+      const lat = side === 'south'
+        ? bounds.minLat + (bounds.maxLat - bounds.minLat) * t * 0.56
+        : bounds.maxLat - (bounds.maxLat - bounds.minLat) * t * 0.56;
+      const top = groundH + maxTop * (0.40 + i * 0.13) + zOffset;
+      viewer.entities.add({
+        id: `${entityPrefix}section-profile-terrace-${designId}-${i}`,
+        properties: {
+          interactionKind: 'section_profile',
+          designId,
+          target: { kind: 'section_profile', profile_kind: kind, band_index: i },
+        },
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+            bounds.minLng, lat, top,
+            bounds.maxLng, lat, top,
+          ]),
+          width: isSelected ? 6 : 4,
+          material: accentColor.withAlpha(isSelected ? 0.95 : 0.72),
+          clampToGround: false,
+        },
+      });
+    }
+  }
 }
 
 function renderParkingPrecheckOverlay({
@@ -679,6 +851,15 @@ export function renderMassEntities({
     const massVolumes = Array.isArray(maasModel?.volumes)
       ? maasModel.volumes
       : Array.isArray(p.mass_volumes) ? p.mass_volumes : [];
+    const sectionProfile = extractSectionProfile(p);
+    const sectionSegments = buildSectionRenderSegments({
+      floorGroups,
+      massVolumes,
+      floorPlates,
+      fallbackRing: ring,
+      height,
+      floorH,
+    });
     const hasStepback = p.step_floor && p.upper_geometry && p.lower_height;
     const visibleBottom = (relativeHeight: number) => Math.max(relativeHeight, pilotiVoidHeight);
     const shouldRenderBand = (top: number) => textureFacadeMode || top > pilotiVoidHeight + 0.05;
@@ -922,6 +1103,19 @@ export function renderMassEntities({
             ? Cesium.Color.fromCssColorString('#fbbf24').withAlpha(0.3)
             : Cesium.Color.fromCssColorString(shapeColor).withAlpha(0.15),
         },
+      });
+    }
+
+    if (!textureFacadeMode && sectionProfile) {
+      renderSectionProfileOverlay({
+        viewer,
+        Cesium,
+        entityPrefix,
+        designId,
+        groundH,
+        profile: sectionProfile,
+        segments: sectionSegments,
+        isSelected,
       });
     }
 

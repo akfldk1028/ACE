@@ -77,6 +77,53 @@ Updated: 2026-06-25
     while keeping legal FAR/BCR checks based on the conservative floor-plate
     accounting.
 
+## 2026-06-26 Frontend Section Profile / Goal Alignment
+
+- Goal reminder from `/mnt/d/Data/25_ACE/goal.md`:
+  - The product target is not a generic BIM/CAD generator. It is a legal
+    massing/design collaboration system where law, parking, MAAS geometry,
+    design review, and final QA agents expose their reasoning in the `/design`
+    UI.
+  - Mesh/OpenSCAD/IFC-style outputs are useful as export or verification
+    adapters, but the ARR design result remains the source of truth:
+    `mass_geojson + maas_model + legal evidence + section_profile`.
+- Implemented frontend bridge:
+  - `ARR/frontend/src/design/lib/cesium/mass-entities.ts` now reads
+    `properties.section_profile` or `properties.maas_model.section_profile`.
+  - It overlays section-design geometry on top of existing legal extrusions:
+    `sloped_roof` uses a per-position-height sloped roof plane and ribs;
+    `diagonal_connector` uses a raised diagonal connector polyline;
+    `terrace_ribbon` uses raised terrace band polylines.
+  - Legal volume rendering was not replaced. FAR/BCR/height calculations still
+    come from the conservative floor plates and `mass_volumes`.
+  - `ARR/frontend/src/design/lib/types.ts` now types `section_profile`.
+  - `ARR/frontend/src/design/lib/ag-light-collaboration.ts` now includes
+    section profile kind/render hint in the `maas_geometry_agent` trace so the
+    collaboration UI can explain the section-design choice.
+- Verification:
+  - `cd ARR/frontend && npm run type-check` passed.
+  - WSL headless Playwright opened `/design`, queried PNU
+    `1168011800104170004`, optimized, and saved
+    `docs/playwright/design-route-live-verify/section-profile-cesium-check.png`.
+    In WSL headless it fell back to `2D MASS PREVIEW` because WebGL was
+    unavailable, so Cesium entity pixels were not verified there.
+  - Backend shell check confirmed 20 MAAS candidates include section profiles:
+    `grammar_diagonal_step_connector_layered -> diagonal_connector` and
+    `grammar_sloped_roof_envelope_layered -> sloped_roof`.
+- Next verification to run from Windows Chrome CDP:
+  ```powershell
+  cd D:\Data\25_ACE
+  node docs\playwright\design-route-live-verify\windows-cdp-vworld-optimize-check.cjs
+  ```
+  Then inspect `window.__arrLastMassRender`, entity ids containing
+  `section-profile`, and the screenshot. WSL headless cannot prove WebGL pixels.
+- OpenAI/aesthetic boundary:
+  - `gpt-image` already exists under
+    `ARR/backend/design/maas/aesthetic/adapters/openai_image.py`.
+  - It is for locked-geometry facade/material visualization only. It must not
+    create, legalize, or mutate the mass. Keep geometry first, multi-view
+    reference second, image/material generation third, projection/export last.
+
 ## 2026-06-25 MAAS Agent Modularization / AG-light Flow State
 
 - User goal: the right-side "AI 설계 협업" must show a real law-to-design

@@ -149,6 +149,7 @@ export interface GeoJSONFeature {
       floor_groups?: FloorGroup[];
       legal_metrics?: Record<string, number | undefined>;
       design_quality?: MaasDesignQuality;
+      section_profile?: GeoJSONFeature['properties']['section_profile'];
     };
     // MAAS legal-envelope floor-by-floor massing
     floor_plates?: Array<{
@@ -171,6 +172,21 @@ export interface GeoJSONFeature {
       verb: string;
       params?: Record<string, unknown>;
     }>;
+    section_profile?: {
+      kind: 'diagonal_connector' | 'diagonal_connect' | 'terrace_ribbon' | 'sloped_roof' | 'sloped_roof_mass' | string;
+      source?: string;
+      operator?: string;
+      render_hint?: string;
+      axis?: string;
+      side?: string;
+      upper_ratio?: number;
+      distance_ratio?: number;
+      lower_floor_fraction?: number;
+      width_ratio?: number;
+      depth_ratio?: number;
+      x_ratio?: number;
+      y_ratio?: number;
+    };
     // Step-back (two-tier) massing
     step_floor?: number;
     upper_scale?: number;

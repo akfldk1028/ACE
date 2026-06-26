@@ -231,3 +231,44 @@ Interpretation:
 - It is still not final design quality. Several top and bottom candidates share similar high-FAR stepped envelopes, so the selector should add a stronger family-level diversity gate.
 - Parking remains the hard blocker for this PNU/building type. The latest 20-alt PNG has no green parking-pass candidates; high-FAR design variants mostly fail required/provided parking. Do not present these as approved masses.
 - Next loop should keep legal/section diversity while explicitly optimizing for parking-feasible candidates, not merely ranking high FAR/BCR outputs.
+
+## 2026-06-26 Late Loop: Design-Family Balance / Parking Floating Fix
+
+User correctly rejected the previous PNG as not competition/design quality:
+
+- Too many candidates were still legal stepback boxes.
+- Pink `diagonal_connector`, `terrace_ribbon`, and `sloped_roof` read as visual overlays, not true mass geometry.
+- Parking lines in the live Cesium view could read as floating because exact stall outlines had both ground-clamped lines and elevated duplicate visible lines.
+
+Changes made:
+
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - Added final design-balanced selection for the 20-card review set.
+  - The selector now keeps at most a compact parking signal, then reserves family representatives before backfill.
+  - For `max_variants >= 8`, the early K-medoid branch now preserves plan-diverse families: `interlock`, `overlap`, `split`, `branch`, `pinch`, `courtyard`, `void_notch`, and `slender_bar`.
+  - Duplicate `mass_shape` entries are avoided until there are no unique shapes left to fill the sheet.
+- `ARR/frontend/src/design/lib/cesium/mass-entities.ts`
+  - Removed elevated duplicate parking stall visible-lines from the default view.
+  - Parking guide lines are ground-clamped.
+  - Parking labels are lowered close to ground level.
+- `docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+  - Section profile drawing was toned down so it reads less like arbitrary pink markup: diagonal connector is a width-bearing connector face, terrace ribbons are tighter edge bands, and sloped roof is closer to the top mass.
+
+Latest regenerated evidence:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- Unique `mass_shape` count: 19
+- Section-profile candidates: 6
+- Parking pass count: 0
+- Generation time: about 138 seconds
+- Visible families now include `interlock_cross_diagonal`, `overlap_slabs_y`, `split_bridge_y`, `branch_y_wide`, `pinch_waist_x`, `courtyard_void`, `slender_bar_south`, and the section-design grammar candidates.
+
+Remaining hard truth:
+
+- This is better review evidence, but it is still not paper-grade architectural massing.
+- `sloped_roof`, `terrace_ribbon`, and `diagonal_connector` are still section/render evidence layered over conservative legal floor plates. They are not yet true non-orthogonal mesh solids in the source geometry.
+- The actual PNU/common-housing run still has `parkingPass=0`, so no candidate should be called permit-ready or final.
+- Next real improvement is not another overlay pass. It should create source geometry for sloped/diagonal/terrace solids and optimize against parking feasibility at generation time.

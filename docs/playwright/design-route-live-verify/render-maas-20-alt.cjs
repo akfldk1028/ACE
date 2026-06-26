@@ -98,13 +98,13 @@ function renderSectionProfile(feature, volumes, project) {
   const label = `<text x="10" y="38" font-size="10" font-weight="800" fill="${accent}">${escapeHtml(kind)}</text>`;
 
   if (kind === "sloped_roof" || kind === "sloped_roof_mass") {
-    const high = maxTop + 1.2;
-    const low = Math.max(minTop, maxTop * 0.56) + 1.2;
+    const high = maxTop + 0.35;
+    const low = Math.max(minTop, maxTop * 0.70) + 0.35;
     const roof = [
-      [b.minX, b.minY, high],
-      [b.maxX, b.minY, high],
-      [b.maxX, b.maxY, low],
-      [b.minX, b.maxY, low],
+      [b.minX + (b.maxX - b.minX) * 0.05, b.minY + (b.maxY - b.minY) * 0.05, high],
+      [b.maxX - (b.maxX - b.minX) * 0.05, b.minY + (b.maxY - b.minY) * 0.05, high],
+      [b.maxX - (b.maxX - b.minX) * 0.05, b.maxY - (b.maxY - b.minY) * 0.05, low],
+      [b.minX + (b.maxX - b.minX) * 0.05, b.maxY - (b.maxY - b.minY) * 0.05, low],
     ];
     const roofPath = roof.map(([x, y, z], index) => {
       const [px, py] = project([x, y], z);
@@ -114,9 +114,9 @@ function renderSectionProfile(feature, volumes, project) {
       const x = b.minX + (b.maxX - b.minX) * ratio;
       const a = project([x, b.minY], high);
       const c = project([x, b.maxY], low);
-      return `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${c[0].toFixed(1)}" y2="${c[1].toFixed(1)}" stroke="#fb7185" stroke-width="2"/>`;
+      return `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${c[0].toFixed(1)}" y2="${c[1].toFixed(1)}" stroke="#be123c" stroke-width="1.4" opacity=".7"/>`;
     }).join("");
-    return `${label}<path d="${roofPath}" fill="rgba(254,215,170,.62)" stroke="${accent}" stroke-width="4"/>${ribs}`;
+    return `${label}<path d="${roofPath}" fill="rgba(251,146,60,.45)" stroke="#be123c" stroke-width="2.2"/>${ribs}`;
   }
 
   if (kind === "diagonal_connector" || kind === "diagonal_connect") {
@@ -125,18 +125,29 @@ function renderSectionProfile(feature, volumes, project) {
     const upper = ordered[ordered.length - 1];
     const lowerCenter = project(centroid(geomCoords(lower.geometry)), Number(lower.top_height || maxTop) + 1.2);
     const upperCenter = project(centroid(geomCoords(upper.geometry)), Number(upper.top_height || maxTop) + 1.2);
-    return `${label}<line x1="${lowerCenter[0].toFixed(1)}" y1="${lowerCenter[1].toFixed(1)}" x2="${upperCenter[0].toFixed(1)}" y2="${upperCenter[1].toFixed(1)}" stroke="${accent}" stroke-width="7" stroke-linecap="round"/><line x1="${lowerCenter[0].toFixed(1)}" y1="${lowerCenter[1].toFixed(1)}" x2="${upperCenter[0].toFixed(1)}" y2="${upperCenter[1].toFixed(1)}" stroke="#fdf2f8" stroke-width="2" stroke-linecap="round"/>`;
+    const dx = upperCenter[0] - lowerCenter[0];
+    const dy = upperCenter[1] - lowerCenter[1];
+    const len = Math.max(1, Math.hypot(dx, dy));
+    const nx = -dy / len * 9;
+    const ny = dx / len * 9;
+    const path = [
+      [lowerCenter[0] + nx, lowerCenter[1] + ny],
+      [upperCenter[0] + nx, upperCenter[1] + ny],
+      [upperCenter[0] - nx, upperCenter[1] - ny],
+      [lowerCenter[0] - nx, lowerCenter[1] - ny],
+    ].map(([x, y], index) => `${index ? "L" : "M"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ") + " Z";
+    return `${label}<path d="${path}" fill="rgba(236,72,153,.36)" stroke="#be185d" stroke-width="2"/><line x1="${lowerCenter[0].toFixed(1)}" y1="${lowerCenter[1].toFixed(1)}" x2="${upperCenter[0].toFixed(1)}" y2="${upperCenter[1].toFixed(1)}" stroke="#fdf2f8" stroke-width="1.5" stroke-linecap="round"/>`;
   }
 
   if (kind === "terrace_ribbon") {
     const lines = [];
     for (let index = 0; index < 4; index += 1) {
       const t = (index + 1) / 5;
-      const y = b.maxY - (b.maxY - b.minY) * t * 0.56;
+      const y = b.maxY - (b.maxY - b.minY) * t * 0.34;
       const z = maxTop * (0.40 + index * 0.13) + 1.2;
-      const a = project([b.minX, y], z);
-      const c = project([b.maxX, y], z);
-      lines.push(`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${c[0].toFixed(1)}" y2="${c[1].toFixed(1)}" stroke="${accent}" stroke-width="4" stroke-linecap="round"/>`);
+      const a = project([b.minX + (b.maxX - b.minX) * 0.06, y], z);
+      const c = project([b.maxX - (b.maxX - b.minX) * 0.06, y], z);
+      lines.push(`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${c[0].toFixed(1)}" y2="${c[1].toFixed(1)}" stroke="#be185d" stroke-width="3" stroke-linecap="round"/>`);
     }
     return `${label}${lines.join("")}`;
   }

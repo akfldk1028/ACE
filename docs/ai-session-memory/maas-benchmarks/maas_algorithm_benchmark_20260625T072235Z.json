@@ -1,6 +1,6 @@
 {
   "mode": "maas_algorithm_benchmark",
-  "created_at": "2026-06-25T07:27:44.687941+00:00",
+  "created_at": "2026-06-25T07:22:35.074223+00:00",
   "building_type": "공동주택",
   "pnu": null,
   "parking_mode": "disabled",
@@ -915,11 +915,11 @@
       "lift_overlap_slabs_layered": 14,
       "courtyard_void": 14,
       "grade_terrace_north_layered": 14,
-      "inset_light": 14,
+      "tapered_slab_layered": 14,
       "interlock_cross_diagonal": 13,
+      "inset_light": 13,
       "terrace_link_north_layered": 12,
       "diagonal_connect_step_x_layered": 11,
-      "grammar_bar_notch_grade": 9,
       "court_open_east": 8,
       "court_open_west": 8,
       "pinch_waist_y": 8,
@@ -927,12 +927,12 @@
       "sloped_roof_mass_layered": 8,
       "slender_bar_east": 7,
       "branch_y_wide": 7,
-      "bcr_fill_light": 7,
       "grammar_podium_tower_offset_layered": 7,
       "slender_bar_north": 7,
-      "tapered_slab": 6,
+      "bcr_fill_light": 6,
       "grammar_terrace_ribbon_stepback_layered": 6,
       "branch_y_soft": 6,
+      "grammar_bar_notch_grade": 3,
       "court_open_north": 2,
       "grammar_diagonal_step_connector_layered": 2,
       "grammar_diagonal_step_connector": 2,
@@ -955,42 +955,42 @@
       "중정형": 14,
       "테라스연결": 14,
       "테라스": 14,
-      "인셋": 14,
+      "테이퍼": 14,
       "인터락": 13,
+      "인셋": 13,
       "브랜치형": 13,
       "사선연결": 13,
       "사선지붕형": 10,
-      "바+코너비움+테라스": 9,
       "연속테라스 스텝백": 8,
-      "건폐확장": 7,
       "포디움+타워오프셋": 7,
-      "테이퍼": 6,
+      "건폐확장": 6,
       "사선연결 스텝": 4,
+      "바+코너비움+테라스": 3,
       "사선지붕 엔벨로프": 2
     },
     "verb_histogram": {
       "base": 280,
+      "taper": 55,
       "lift": 47,
-      "taper": 47,
-      "compress": 42,
+      "compress": 40,
       "cave": 32,
       "overlap": 28,
       "interlock": 27,
-      "grade": 23,
       "terrace_link": 22,
       "diagonal_connect": 17,
+      "grade": 17,
       "pinch": 16,
       "shift": 15,
       "inset": 14,
       "courtyard": 14,
       "split": 14,
       "puncture": 14,
-      "expand": 14,
       "rotate_part": 13,
       "branch": 13,
+      "expand": 12,
       "sloped_roof_mass": 12,
-      "bar": 9,
-      "notch": 9
+      "bar": 3,
+      "notch": 3
     },
     "original_maas_baseline_status": "compiled",
     "original_maas_case_baseline_status": "compiled",
@@ -1065,7 +1065,7 @@
     "parking_pass_rate": null,
     "preferred_survival_rate": 1.0,
     "preferred_top_rate": 1.0,
-    "average_design_quality": 0.6563
+    "average_design_quality": 0.6591
   },
   "scenarios": [
     {
@@ -1076,9 +1076,8 @@
       "feature_count": 20,
       "unique_mass_shape_count": 20,
       "unique_concept_count": 17,
-      "unique_verb_count": 18,
+      "unique_verb_count": 17,
       "unique_mass_shapes": [
-        "bcr_fill_light",
         "branch_y_wide",
         "court_open_east",
         "court_open_north",
@@ -1097,10 +1096,10 @@
         "pinch_waist_y",
         "slender_bar_east",
         "split_bridge_y",
+        "tapered_slab_layered",
         "terrace_link_north_layered"
       ],
       "unique_concepts": [
-        "건폐확장",
         "바형",
         "법규엔벨로프",
         "분절/브릿지",
@@ -1115,6 +1114,7 @@
         "코너/오픈코트",
         "테라스",
         "테라스연결",
+        "테이퍼",
         "포디움/타워",
         "핀치형"
       ],
@@ -1125,7 +1125,6 @@
         "compress",
         "courtyard",
         "diagonal_connect",
-        "expand",
         "grade",
         "inset",
         "interlock",
@@ -1573,6 +1572,29 @@
         },
         {
           "variant_id": "maas_18",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.83,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6756,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 6,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_19",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -1596,7 +1618,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_19",
+          "variant_id": "maas_20",
           "mass_shape": "branch_y_wide",
           "maas_concept": "브랜치형",
           "bcr": 39.5,
@@ -1616,30 +1638,6 @@
           "parking_status": null,
           "parking_required": null,
           "parking_provided": 6,
-          "is_section_connector": false
-        },
-        {
-          "variant_id": "maas_20",
-          "mass_shape": "bcr_fill_light",
-          "maas_concept": "건폐확장",
-          "bcr": 45.16,
-          "far": 225.79,
-          "height": 14.0,
-          "legal_pass": true,
-          "maas_score": 0.7382,
-          "design_quality_score": 0.6149,
-          "sequence_verbs": [
-            "base",
-            "expand",
-            "expand"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 5,
           "is_section_connector": false
         }
       ],
@@ -1673,7 +1671,7 @@
         "slender_bar_east",
         "sloped_roof_mass_layered",
         "split_bridge_y",
-        "tapered_slab",
+        "tapered_slab_layered",
         "terrace_link_north_layered"
       ],
       "unique_concepts": [
@@ -2087,6 +2085,29 @@
         },
         {
           "variant_id": "maas_15",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.83,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6756,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 6,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_16",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -2110,7 +2131,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_16",
+          "variant_id": "maas_17",
           "mass_shape": "branch_y_wide",
           "maas_concept": "브랜치형",
           "bcr": 39.5,
@@ -2133,7 +2154,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_17",
+          "variant_id": "maas_18",
           "mass_shape": "bcr_fill_light",
           "maas_concept": "건폐확장",
           "bcr": 45.16,
@@ -2157,7 +2178,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_18",
+          "variant_id": "maas_19",
           "mass_shape": "diagonal_connect_step_x_layered",
           "maas_concept": "사선연결",
           "bcr": 36.0,
@@ -2180,7 +2201,7 @@
           "is_section_connector": true
         },
         {
-          "variant_id": "maas_19",
+          "variant_id": "maas_20",
           "mass_shape": "sloped_roof_mass_layered",
           "maas_concept": "사선지붕형",
           "bcr": 36.0,
@@ -2201,29 +2222,6 @@
           "parking_required": null,
           "parking_provided": 8,
           "is_section_connector": true
-        },
-        {
-          "variant_id": "maas_20",
-          "mass_shape": "tapered_slab",
-          "maas_concept": "테이퍼",
-          "bcr": 36.0,
-          "far": 132.13,
-          "height": 16.8,
-          "legal_pass": true,
-          "maas_score": 0.4898,
-          "design_quality_score": 0.4901,
-          "sequence_verbs": [
-            "base",
-            "taper"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 6,
-          "is_section_connector": false
         }
       ],
       "alt_grid_png": "/mnt/d/Data/25_ACE/docs/ai-session-memory/maas-benchmarks/alt_grids/rect_legal_envelope__preferred_grammar_diagonal_step_connector.png"
@@ -2256,7 +2254,7 @@
         "slender_bar_east",
         "sloped_roof_mass_layered",
         "split_bridge_y",
-        "tapered_slab",
+        "tapered_slab_layered",
         "terrace_link_north_layered"
       ],
       "unique_concepts": [
@@ -2694,6 +2692,29 @@
         },
         {
           "variant_id": "maas_16",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.83,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6756,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 6,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_17",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -2717,7 +2738,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_17",
+          "variant_id": "maas_18",
           "mass_shape": "branch_y_wide",
           "maas_concept": "브랜치형",
           "bcr": 39.5,
@@ -2740,7 +2761,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_18",
+          "variant_id": "maas_19",
           "mass_shape": "bcr_fill_light",
           "maas_concept": "건폐확장",
           "bcr": 45.16,
@@ -2764,7 +2785,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_19",
+          "variant_id": "maas_20",
           "mass_shape": "sloped_roof_mass_layered",
           "maas_concept": "사선지붕형",
           "bcr": 36.0,
@@ -2785,29 +2806,6 @@
           "parking_required": null,
           "parking_provided": 8,
           "is_section_connector": true
-        },
-        {
-          "variant_id": "maas_20",
-          "mass_shape": "tapered_slab",
-          "maas_concept": "테이퍼",
-          "bcr": 36.0,
-          "far": 132.13,
-          "height": 16.8,
-          "legal_pass": true,
-          "maas_score": 0.4898,
-          "design_quality_score": 0.4901,
-          "sequence_verbs": [
-            "base",
-            "taper"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 6,
-          "is_section_connector": false
         }
       ],
       "alt_grid_png": "/mnt/d/Data/25_ACE/docs/ai-session-memory/maas-benchmarks/alt_grids/rect_legal_envelope__preferred_grammar_terrace_ribbon_stepback.png"
@@ -2840,7 +2838,7 @@
         "slender_bar_east",
         "sloped_roof_mass_layered",
         "split_bridge_y",
-        "tapered_slab",
+        "tapered_slab_layered",
         "terrace_link_north_layered"
       ],
       "unique_concepts": [
@@ -3252,6 +3250,29 @@
         },
         {
           "variant_id": "maas_15",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.83,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6756,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 6,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_16",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -3275,7 +3296,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_16",
+          "variant_id": "maas_17",
           "mass_shape": "branch_y_wide",
           "maas_concept": "브랜치형",
           "bcr": 39.5,
@@ -3298,7 +3319,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_17",
+          "variant_id": "maas_18",
           "mass_shape": "bcr_fill_light",
           "maas_concept": "건폐확장",
           "bcr": 45.16,
@@ -3322,7 +3343,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_18",
+          "variant_id": "maas_19",
           "mass_shape": "diagonal_connect_step_x_layered",
           "maas_concept": "사선연결",
           "bcr": 36.0,
@@ -3345,7 +3366,7 @@
           "is_section_connector": true
         },
         {
-          "variant_id": "maas_19",
+          "variant_id": "maas_20",
           "mass_shape": "sloped_roof_mass_layered",
           "maas_concept": "사선지붕형",
           "bcr": 36.0,
@@ -3366,29 +3387,6 @@
           "parking_required": null,
           "parking_provided": 8,
           "is_section_connector": true
-        },
-        {
-          "variant_id": "maas_20",
-          "mass_shape": "tapered_slab",
-          "maas_concept": "테이퍼",
-          "bcr": 36.0,
-          "far": 132.13,
-          "height": 16.8,
-          "legal_pass": true,
-          "maas_score": 0.4898,
-          "design_quality_score": 0.4901,
-          "sequence_verbs": [
-            "base",
-            "taper"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 6,
-          "is_section_connector": false
         }
       ],
       "alt_grid_png": "/mnt/d/Data/25_ACE/docs/ai-session-memory/maas-benchmarks/alt_grids/rect_legal_envelope__preferred_grammar_sloped_roof_envelope.png"
@@ -3421,7 +3419,7 @@
         "slender_bar_east",
         "sloped_roof_mass_layered",
         "split_bridge_y",
-        "tapered_slab",
+        "tapered_slab_layered",
         "terrace_link_north_layered"
       ],
       "unique_concepts": [
@@ -3857,6 +3855,29 @@
         },
         {
           "variant_id": "maas_16",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.83,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6756,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 6,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_17",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -3880,7 +3901,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_17",
+          "variant_id": "maas_18",
           "mass_shape": "branch_y_wide",
           "maas_concept": "브랜치형",
           "bcr": 39.5,
@@ -3903,7 +3924,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_18",
+          "variant_id": "maas_19",
           "mass_shape": "bcr_fill_light",
           "maas_concept": "건폐확장",
           "bcr": 45.16,
@@ -3927,7 +3948,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_19",
+          "variant_id": "maas_20",
           "mass_shape": "sloped_roof_mass_layered",
           "maas_concept": "사선지붕형",
           "bcr": 36.0,
@@ -3948,29 +3969,6 @@
           "parking_required": null,
           "parking_provided": 8,
           "is_section_connector": true
-        },
-        {
-          "variant_id": "maas_20",
-          "mass_shape": "tapered_slab",
-          "maas_concept": "테이퍼",
-          "bcr": 36.0,
-          "far": 132.13,
-          "height": 16.8,
-          "legal_pass": true,
-          "maas_score": 0.4898,
-          "design_quality_score": 0.4901,
-          "sequence_verbs": [
-            "base",
-            "taper"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 6,
-          "is_section_connector": false
         }
       ],
       "alt_grid_png": "/mnt/d/Data/25_ACE/docs/ai-session-memory/maas-benchmarks/alt_grids/rect_legal_envelope__preferred_diagonal_connect_step_x.png"
@@ -4003,7 +4001,7 @@
         "slender_bar_east",
         "sloped_roof_mass_layered",
         "split_bridge_y",
-        "tapered_slab",
+        "tapered_slab_layered",
         "terrace_link_north"
       ],
       "unique_concepts": [
@@ -4439,6 +4437,29 @@
         },
         {
           "variant_id": "maas_16",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.83,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6756,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 6,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_17",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -4462,7 +4483,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_17",
+          "variant_id": "maas_18",
           "mass_shape": "branch_y_wide",
           "maas_concept": "브랜치형",
           "bcr": 39.5,
@@ -4485,7 +4506,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_18",
+          "variant_id": "maas_19",
           "mass_shape": "bcr_fill_light",
           "maas_concept": "건폐확장",
           "bcr": 45.16,
@@ -4509,7 +4530,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_19",
+          "variant_id": "maas_20",
           "mass_shape": "sloped_roof_mass_layered",
           "maas_concept": "사선지붕형",
           "bcr": 36.0,
@@ -4530,29 +4551,6 @@
           "parking_required": null,
           "parking_provided": 8,
           "is_section_connector": true
-        },
-        {
-          "variant_id": "maas_20",
-          "mass_shape": "tapered_slab",
-          "maas_concept": "테이퍼",
-          "bcr": 36.0,
-          "far": 132.13,
-          "height": 16.8,
-          "legal_pass": true,
-          "maas_score": 0.4898,
-          "design_quality_score": 0.4901,
-          "sequence_verbs": [
-            "base",
-            "taper"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 6,
-          "is_section_connector": false
         }
       ],
       "alt_grid_png": "/mnt/d/Data/25_ACE/docs/ai-session-memory/maas-benchmarks/alt_grids/rect_legal_envelope__preferred_terrace_link_north.png"
@@ -4585,7 +4583,7 @@
         "slender_bar_east",
         "sloped_roof_mass",
         "split_bridge_y",
-        "tapered_slab",
+        "tapered_slab_layered",
         "terrace_link_north_layered"
       ],
       "unique_concepts": [
@@ -5021,6 +5019,29 @@
         },
         {
           "variant_id": "maas_16",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.83,
+          "height": 16.8,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6756,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 6,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_17",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -5044,7 +5065,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_17",
+          "variant_id": "maas_18",
           "mass_shape": "branch_y_wide",
           "maas_concept": "브랜치형",
           "bcr": 39.5,
@@ -5067,7 +5088,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_18",
+          "variant_id": "maas_19",
           "mass_shape": "bcr_fill_light",
           "maas_concept": "건폐확장",
           "bcr": 45.16,
@@ -5091,7 +5112,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_19",
+          "variant_id": "maas_20",
           "mass_shape": "diagonal_connect_step_x_layered",
           "maas_concept": "사선연결",
           "bcr": 36.0,
@@ -5112,29 +5133,6 @@
           "parking_required": null,
           "parking_provided": 8,
           "is_section_connector": true
-        },
-        {
-          "variant_id": "maas_20",
-          "mass_shape": "tapered_slab",
-          "maas_concept": "테이퍼",
-          "bcr": 36.0,
-          "far": 132.13,
-          "height": 16.8,
-          "legal_pass": true,
-          "maas_score": 0.4898,
-          "design_quality_score": 0.4901,
-          "sequence_verbs": [
-            "base",
-            "taper"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 6,
-          "is_section_connector": false
         }
       ],
       "alt_grid_png": "/mnt/d/Data/25_ACE/docs/ai-session-memory/maas-benchmarks/alt_grids/rect_legal_envelope__preferred_sloped_roof_mass.png"
@@ -5160,7 +5158,6 @@
         "grammar_interlock_step_taper_layered",
         "grammar_podium_tower_offset_layered",
         "grammar_terrace_ribbon_stepback_layered",
-        "inset_light",
         "legal_layered_max",
         "lift_overlap_slabs_layered",
         "overlap_slabs_y",
@@ -5168,6 +5165,7 @@
         "pinch_waist_y",
         "slender_bar_north",
         "split_bridge_y",
+        "tapered_slab_layered",
         "terrace_link_north_layered"
       ],
       "unique_concepts": [
@@ -5178,13 +5176,13 @@
         "사선연결 스텝",
         "연속테라스 스텝백",
         "오버랩",
-        "인셋",
         "인터락+스텝+테이퍼",
         "중정형",
         "케이브+인셋+보이드",
         "코너/오픈코트",
         "테라스",
         "테라스연결",
+        "테이퍼",
         "포디움+타워오프셋",
         "포디움/타워",
         "핀치형"
@@ -5668,6 +5666,29 @@
         },
         {
           "variant_id": "maas_19",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.87,
+          "height": 19.6,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6643,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 7,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_20",
           "mass_shape": "slender_bar_north",
           "maas_concept": "바형",
           "bcr": 44.49,
@@ -5678,30 +5699,6 @@
           "design_quality_score": 0.613,
           "sequence_verbs": [
             "base",
-            "compress"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 5,
-          "is_section_connector": false
-        },
-        {
-          "variant_id": "maas_20",
-          "mass_shape": "inset_light",
-          "maas_concept": "인셋",
-          "bcr": 49.01,
-          "far": 245.03,
-          "height": 14.0,
-          "legal_pass": true,
-          "maas_score": 0.7841,
-          "design_quality_score": 0.5825,
-          "sequence_verbs": [
-            "base",
-            "compress",
             "compress"
           ],
           "optimizer_backend_status": "imported",
@@ -5724,14 +5721,13 @@
       "feature_count": 20,
       "unique_mass_shape_count": 20,
       "unique_concept_count": 20,
-      "unique_verb_count": 20,
+      "unique_verb_count": 18,
       "unique_mass_shapes": [
         "branch_y_soft",
         "court_open_west",
         "courtyard_void",
         "diagonal_connect_step_x_layered",
         "grade_terrace_north_layered",
-        "grammar_bar_notch_grade",
         "grammar_cave_inset_puncture",
         "grammar_diagonal_step_connector",
         "grammar_interlock_step_taper_layered",
@@ -5745,10 +5741,10 @@
         "pinch_waist_x",
         "slender_bar_north",
         "split_bridge_y",
+        "tapered_slab_layered",
         "terrace_link_north_layered"
       ],
       "unique_concepts": [
-        "바+코너비움+테라스",
         "바형",
         "법규엔벨로프",
         "분절/브릿지",
@@ -5765,12 +5761,12 @@
         "코너/오픈코트",
         "테라스",
         "테라스연결",
+        "테이퍼",
         "포디움+타워오프셋",
         "포디움/타워",
         "핀치형"
       ],
       "unique_verbs": [
-        "bar",
         "base",
         "branch",
         "cave",
@@ -5781,7 +5777,6 @@
         "inset",
         "interlock",
         "lift",
-        "notch",
         "overlap",
         "pinch",
         "puncture",
@@ -6185,6 +6180,29 @@
         },
         {
           "variant_id": "maas_16",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.87,
+          "height": 19.6,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6643,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 7,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_17",
           "mass_shape": "slender_bar_north",
           "maas_concept": "바형",
           "bcr": 44.49,
@@ -6207,7 +6225,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_17",
+          "variant_id": "maas_18",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -6220,31 +6238,6 @@
             "base",
             "compress",
             "compress"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 5,
-          "is_section_connector": false
-        },
-        {
-          "variant_id": "maas_18",
-          "mass_shape": "grammar_bar_notch_grade",
-          "maas_concept": "바+코너비움+테라스",
-          "bcr": 45.03,
-          "far": 210.22,
-          "height": 14.0,
-          "legal_pass": true,
-          "maas_score": 0.7814,
-          "design_quality_score": 0.7406,
-          "sequence_verbs": [
-            "base",
-            "bar",
-            "notch",
-            "grade"
           ],
           "optimizer_backend_status": "imported",
           "parking_evidence_enabled": false,
@@ -6313,14 +6306,13 @@
       "feature_count": 20,
       "unique_mass_shape_count": 20,
       "unique_concept_count": 20,
-      "unique_verb_count": 21,
+      "unique_verb_count": 19,
       "unique_mass_shapes": [
         "branch_y_soft",
         "court_open_west",
         "courtyard_void",
         "diagonal_connect_step_x_layered",
         "grade_terrace_north_layered",
-        "grammar_bar_notch_grade",
         "grammar_cave_inset_puncture",
         "grammar_interlock_step_taper_layered",
         "grammar_podium_tower_offset_layered",
@@ -6334,10 +6326,10 @@
         "slender_bar_north",
         "sloped_roof_mass_layered",
         "split_bridge_y",
+        "tapered_slab_layered",
         "terrace_link_north_layered"
       ],
       "unique_concepts": [
-        "바+코너비움+테라스",
         "바형",
         "법규엔벨로프",
         "분절/브릿지",
@@ -6354,12 +6346,12 @@
         "코너/오픈코트",
         "테라스",
         "테라스연결",
+        "테이퍼",
         "포디움+타워오프셋",
         "포디움/타워",
         "핀치형"
       ],
       "unique_verbs": [
-        "bar",
         "base",
         "branch",
         "cave",
@@ -6370,7 +6362,6 @@
         "inset",
         "interlock",
         "lift",
-        "notch",
         "overlap",
         "pinch",
         "puncture",
@@ -6773,6 +6764,29 @@
         },
         {
           "variant_id": "maas_16",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.87,
+          "height": 19.6,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6643,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 7,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_17",
           "mass_shape": "slender_bar_north",
           "maas_concept": "바형",
           "bcr": 44.49,
@@ -6795,7 +6809,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_17",
+          "variant_id": "maas_18",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -6808,31 +6822,6 @@
             "base",
             "compress",
             "compress"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 5,
-          "is_section_connector": false
-        },
-        {
-          "variant_id": "maas_18",
-          "mass_shape": "grammar_bar_notch_grade",
-          "maas_concept": "바+코너비움+테라스",
-          "bcr": 45.03,
-          "far": 210.22,
-          "height": 14.0,
-          "legal_pass": true,
-          "maas_score": 0.7814,
-          "design_quality_score": 0.7406,
-          "sequence_verbs": [
-            "base",
-            "bar",
-            "notch",
-            "grade"
           ],
           "optimizer_backend_status": "imported",
           "parking_evidence_enabled": false,
@@ -6901,14 +6890,13 @@
       "feature_count": 20,
       "unique_mass_shape_count": 20,
       "unique_concept_count": 20,
-      "unique_verb_count": 21,
+      "unique_verb_count": 19,
       "unique_mass_shapes": [
         "branch_y_soft",
         "court_open_west",
         "courtyard_void",
         "diagonal_connect_step_x_layered",
         "grade_terrace_north_layered",
-        "grammar_bar_notch_grade",
         "grammar_cave_inset_puncture",
         "grammar_interlock_step_taper_layered",
         "grammar_podium_tower_offset_layered",
@@ -6922,10 +6910,10 @@
         "pinch_waist_x",
         "slender_bar_north",
         "split_bridge_y",
+        "tapered_slab_layered",
         "terrace_link_north_layered"
       ],
       "unique_concepts": [
-        "바+코너비움+테라스",
         "바형",
         "법규엔벨로프",
         "분절/브릿지",
@@ -6942,12 +6930,12 @@
         "코너/오픈코트",
         "테라스",
         "테라스연결",
+        "테이퍼",
         "포디움+타워오프셋",
         "포디움/타워",
         "핀치형"
       ],
       "unique_verbs": [
-        "bar",
         "base",
         "branch",
         "cave",
@@ -6958,7 +6946,6 @@
         "inset",
         "interlock",
         "lift",
-        "notch",
         "overlap",
         "pinch",
         "puncture",
@@ -7361,6 +7348,29 @@
         },
         {
           "variant_id": "maas_16",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.87,
+          "height": 19.6,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6643,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 7,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_17",
           "mass_shape": "slender_bar_north",
           "maas_concept": "바형",
           "bcr": 44.49,
@@ -7383,7 +7393,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_17",
+          "variant_id": "maas_18",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -7396,31 +7406,6 @@
             "base",
             "compress",
             "compress"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 5,
-          "is_section_connector": false
-        },
-        {
-          "variant_id": "maas_18",
-          "mass_shape": "grammar_bar_notch_grade",
-          "maas_concept": "바+코너비움+테라스",
-          "bcr": 45.03,
-          "far": 210.22,
-          "height": 14.0,
-          "legal_pass": true,
-          "maas_score": 0.7814,
-          "design_quality_score": 0.7406,
-          "sequence_verbs": [
-            "base",
-            "bar",
-            "notch",
-            "grade"
           ],
           "optimizer_backend_status": "imported",
           "parking_evidence_enabled": false,
@@ -7489,14 +7474,13 @@
       "feature_count": 20,
       "unique_mass_shape_count": 20,
       "unique_concept_count": 20,
-      "unique_verb_count": 21,
+      "unique_verb_count": 19,
       "unique_mass_shapes": [
         "branch_y_soft",
         "court_open_west",
         "courtyard_void",
         "diagonal_connect_step_x",
         "grade_terrace_north_layered",
-        "grammar_bar_notch_grade",
         "grammar_cave_inset_puncture",
         "grammar_interlock_step_taper_layered",
         "grammar_podium_tower_offset_layered",
@@ -7510,10 +7494,10 @@
         "slender_bar_north",
         "sloped_roof_mass_layered",
         "split_bridge_y",
+        "tapered_slab_layered",
         "terrace_link_north_layered"
       ],
       "unique_concepts": [
-        "바+코너비움+테라스",
         "바형",
         "법규엔벨로프",
         "분절/브릿지",
@@ -7530,12 +7514,12 @@
         "코너/오픈코트",
         "테라스",
         "테라스연결",
+        "테이퍼",
         "포디움+타워오프셋",
         "포디움/타워",
         "핀치형"
       ],
       "unique_verbs": [
-        "bar",
         "base",
         "branch",
         "cave",
@@ -7546,7 +7530,6 @@
         "inset",
         "interlock",
         "lift",
-        "notch",
         "overlap",
         "pinch",
         "puncture",
@@ -7947,6 +7930,29 @@
         },
         {
           "variant_id": "maas_16",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.87,
+          "height": 19.6,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6643,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 7,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_17",
           "mass_shape": "slender_bar_north",
           "maas_concept": "바형",
           "bcr": 44.49,
@@ -7969,7 +7975,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_17",
+          "variant_id": "maas_18",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -7982,31 +7988,6 @@
             "base",
             "compress",
             "compress"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 5,
-          "is_section_connector": false
-        },
-        {
-          "variant_id": "maas_18",
-          "mass_shape": "grammar_bar_notch_grade",
-          "maas_concept": "바+코너비움+테라스",
-          "bcr": 45.03,
-          "far": 210.22,
-          "height": 14.0,
-          "legal_pass": true,
-          "maas_score": 0.7814,
-          "design_quality_score": 0.7406,
-          "sequence_verbs": [
-            "base",
-            "bar",
-            "notch",
-            "grade"
           ],
           "optimizer_backend_status": "imported",
           "parking_evidence_enabled": false,
@@ -8075,14 +8056,13 @@
       "feature_count": 20,
       "unique_mass_shape_count": 20,
       "unique_concept_count": 20,
-      "unique_verb_count": 21,
+      "unique_verb_count": 19,
       "unique_mass_shapes": [
         "branch_y_soft",
         "court_open_west",
         "courtyard_void",
         "diagonal_connect_step_x_layered",
         "grade_terrace_north_layered",
-        "grammar_bar_notch_grade",
         "grammar_cave_inset_puncture",
         "grammar_interlock_step_taper_layered",
         "grammar_podium_tower_offset_layered",
@@ -8096,10 +8076,10 @@
         "slender_bar_north",
         "sloped_roof_mass_layered",
         "split_bridge_y",
+        "tapered_slab_layered",
         "terrace_link_north"
       ],
       "unique_concepts": [
-        "바+코너비움+테라스",
         "바형",
         "법규엔벨로프",
         "분절/브릿지",
@@ -8116,12 +8096,12 @@
         "코너/오픈코트",
         "테라스",
         "테라스연결",
+        "테이퍼",
         "포디움+타워오프셋",
         "포디움/타워",
         "핀치형"
       ],
       "unique_verbs": [
-        "bar",
         "base",
         "branch",
         "cave",
@@ -8132,7 +8112,6 @@
         "inset",
         "interlock",
         "lift",
-        "notch",
         "overlap",
         "pinch",
         "puncture",
@@ -8533,6 +8512,29 @@
         },
         {
           "variant_id": "maas_16",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.87,
+          "height": 19.6,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6643,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 7,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_17",
           "mass_shape": "slender_bar_north",
           "maas_concept": "바형",
           "bcr": 44.49,
@@ -8555,7 +8557,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_17",
+          "variant_id": "maas_18",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -8568,31 +8570,6 @@
             "base",
             "compress",
             "compress"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 5,
-          "is_section_connector": false
-        },
-        {
-          "variant_id": "maas_18",
-          "mass_shape": "grammar_bar_notch_grade",
-          "maas_concept": "바+코너비움+테라스",
-          "bcr": 45.03,
-          "far": 210.22,
-          "height": 14.0,
-          "legal_pass": true,
-          "maas_score": 0.7814,
-          "design_quality_score": 0.7406,
-          "sequence_verbs": [
-            "base",
-            "bar",
-            "notch",
-            "grade"
           ],
           "optimizer_backend_status": "imported",
           "parking_evidence_enabled": false,
@@ -8661,14 +8638,13 @@
       "feature_count": 20,
       "unique_mass_shape_count": 20,
       "unique_concept_count": 20,
-      "unique_verb_count": 21,
+      "unique_verb_count": 19,
       "unique_mass_shapes": [
         "branch_y_soft",
         "court_open_west",
         "courtyard_void",
         "diagonal_connect_step_x_layered",
         "grade_terrace_north_layered",
-        "grammar_bar_notch_grade",
         "grammar_cave_inset_puncture",
         "grammar_interlock_step_taper_layered",
         "grammar_podium_tower_offset_layered",
@@ -8682,10 +8658,10 @@
         "slender_bar_north",
         "sloped_roof_mass",
         "split_bridge_y",
+        "tapered_slab_layered",
         "terrace_link_north_layered"
       ],
       "unique_concepts": [
-        "바+코너비움+테라스",
         "바형",
         "법규엔벨로프",
         "분절/브릿지",
@@ -8702,12 +8678,12 @@
         "코너/오픈코트",
         "테라스",
         "테라스연결",
+        "테이퍼",
         "포디움+타워오프셋",
         "포디움/타워",
         "핀치형"
       ],
       "unique_verbs": [
-        "bar",
         "base",
         "branch",
         "cave",
@@ -8718,7 +8694,6 @@
         "inset",
         "interlock",
         "lift",
-        "notch",
         "overlap",
         "pinch",
         "puncture",
@@ -9119,6 +9094,29 @@
         },
         {
           "variant_id": "maas_16",
+          "mass_shape": "tapered_slab_layered",
+          "maas_concept": "테이퍼",
+          "bcr": 49.01,
+          "far": 249.87,
+          "height": 19.6,
+          "legal_pass": true,
+          "maas_score": 0.7928,
+          "design_quality_score": 0.6643,
+          "sequence_verbs": [
+            "base",
+            "taper"
+          ],
+          "optimizer_backend_status": "imported",
+          "parking_evidence_enabled": false,
+          "parking_requirement_status": null,
+          "parking_layout_status": "pass",
+          "parking_status": null,
+          "parking_required": null,
+          "parking_provided": 7,
+          "is_section_connector": false
+        },
+        {
+          "variant_id": "maas_17",
           "mass_shape": "slender_bar_north",
           "maas_concept": "바형",
           "bcr": 44.49,
@@ -9141,7 +9139,7 @@
           "is_section_connector": false
         },
         {
-          "variant_id": "maas_17",
+          "variant_id": "maas_18",
           "mass_shape": "inset_light",
           "maas_concept": "인셋",
           "bcr": 49.01,
@@ -9154,31 +9152,6 @@
             "base",
             "compress",
             "compress"
-          ],
-          "optimizer_backend_status": "imported",
-          "parking_evidence_enabled": false,
-          "parking_requirement_status": null,
-          "parking_layout_status": "pass",
-          "parking_status": null,
-          "parking_required": null,
-          "parking_provided": 5,
-          "is_section_connector": false
-        },
-        {
-          "variant_id": "maas_18",
-          "mass_shape": "grammar_bar_notch_grade",
-          "maas_concept": "바+코너비움+테라스",
-          "bcr": 45.03,
-          "far": 210.22,
-          "height": 14.0,
-          "legal_pass": true,
-          "maas_score": 0.7814,
-          "design_quality_score": 0.7406,
-          "sequence_verbs": [
-            "base",
-            "bar",
-            "notch",
-            "grade"
           ],
           "optimizer_backend_status": "imported",
           "parking_evidence_enabled": false,

@@ -298,5 +298,5050 @@
       "status": "info",
       "label": "디자인"
     }
+  },
+  {
+    "timestamp": "2026-06-23T10:41:55.492539",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5bea6ac9-4124-495d-b30e-abedb090e013",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:41:55.551868",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5bea6ac9-4124-495d-b30e-abedb090e013",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:41:55.556839",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: 적용 외 또는 envelope 없음 (기준면 수치 확인 필요)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5bea6ac9-4124-495d-b30e-abedb090e013",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:41:55.561734",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: datum_result 없음 (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5bea6ac9-4124-495d-b30e-abedb090e013",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "check",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:41:55.566718",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5bea6ac9-4124-495d-b30e-abedb090e013",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:45:04.866644",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c430f821-449f-44d1-bdc8-04c24db0f6c8",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:45:04.873966",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c430f821-449f-44d1-bdc8-04c24db0f6c8",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:45:04.884718",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: 적용 외 또는 envelope 없음 (기준면 수치 확인 필요)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c430f821-449f-44d1-bdc8-04c24db0f6c8",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:45:04.889503",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: datum_result 없음 (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c430f821-449f-44d1-bdc8-04c24db0f6c8",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "check",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:45:04.894738",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c430f821-449f-44d1-bdc8-04c24db0f6c8",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:47:27.303423",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "27c9bb67-a958-4830-a466-a8ee3fdb0e49",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:47:27.310307",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "27c9bb67-a958-4830-a466-a8ee3fdb0e49",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:47:27.315522",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "27c9bb67-a958-4830-a466-a8ee3fdb0e49",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:47:27.320347",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "27c9bb67-a958-4830-a466-a8ee3fdb0e49",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:47:27.325837",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "27c9bb67-a958-4830-a466-a8ee3fdb0e49",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:49:29.318379",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "13c593ab-d2ac-4310-87ba-4954a07fa836",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:49:29.323295",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "13c593ab-d2ac-4310-87ba-4954a07fa836",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:49:29.327655",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "13c593ab-d2ac-4310-87ba-4954a07fa836",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:49:29.331630",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "13c593ab-d2ac-4310-87ba-4954a07fa836",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:49:29.335656",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.4 · BCR 37.1 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "13c593ab-d2ac-4310-87ba-4954a07fa836",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:51:47.402236",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "82f614a7-c960-49ff-9013-762a4f4ca058",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:51:47.407081",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "82f614a7-c960-49ff-9013-762a4f4ca058",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:51:47.411580",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "82f614a7-c960-49ff-9013-762a4f4ca058",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:51:47.416001",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "82f614a7-c960-49ff-9013-762a4f4ca058",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:51:47.419418",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "82f614a7-c960-49ff-9013-762a4f4ca058",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:53:39.994642",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "6558c449-5795-437c-b712-ee4833c0db50",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:53:39.999294",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "6558c449-5795-437c-b712-ee4833c0db50",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:53:40.003234",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "6558c449-5795-437c-b712-ee4833c0db50",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:53:40.006975",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "6558c449-5795-437c-b712-ee4833c0db50",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:53:40.011167",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "6558c449-5795-437c-b712-ee4833c0db50",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:55:11.400912",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "58052ea5-704c-4c62-a8d0-bedafea87344",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:55:11.405708",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "58052ea5-704c-4c62-a8d0-bedafea87344",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:55:11.411091",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "58052ea5-704c-4c62-a8d0-bedafea87344",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:55:11.415151",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "58052ea5-704c-4c62-a8d0-bedafea87344",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:55:11.418537",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "58052ea5-704c-4c62-a8d0-bedafea87344",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:57:24.773862",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "4d5043b9-a3a7-41b5-9f4b-84209f406f03",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:57:24.778915",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "4d5043b9-a3a7-41b5-9f4b-84209f406f03",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:57:24.783962",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "4d5043b9-a3a7-41b5-9f4b-84209f406f03",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:57:24.788336",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "4d5043b9-a3a7-41b5-9f4b-84209f406f03",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T10:57:24.792047",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "4d5043b9-a3a7-41b5-9f4b-84209f406f03",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:11:56.337969",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "639c9d4e-b2c9-470c-b9e0-e42a4d640990",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:11:56.344195",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "639c9d4e-b2c9-470c-b9e0-e42a4d640990",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:11:56.349552",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "639c9d4e-b2c9-470c-b9e0-e42a4d640990",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:11:56.353602",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "639c9d4e-b2c9-470c-b9e0-e42a4d640990",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:11:56.357679",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "639c9d4e-b2c9-470c-b9e0-e42a4d640990",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:13:23.776436",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "67e6fe84-918a-48b1-b1c0-5e87578f6764",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:13:23.782821",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "67e6fe84-918a-48b1-b1c0-5e87578f6764",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:13:23.799834",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "67e6fe84-918a-48b1-b1c0-5e87578f6764",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:13:23.807161",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "67e6fe84-918a-48b1-b1c0-5e87578f6764",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:13:23.813907",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "67e6fe84-918a-48b1-b1c0-5e87578f6764",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:16:22.014787",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5e37251c-bb99-4696-8847-bfdf0723120b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:16:22.020404",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5e37251c-bb99-4696-8847-bfdf0723120b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:16:22.026542",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5e37251c-bb99-4696-8847-bfdf0723120b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:16:22.032069",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5e37251c-bb99-4696-8847-bfdf0723120b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:16:22.037998",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5e37251c-bb99-4696-8847-bfdf0723120b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:18:30.053075",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "63598d53-a45d-437a-a463-f4c7d2090e85",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:18:30.059282",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "63598d53-a45d-437a-a463-f4c7d2090e85",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:18:30.064386",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "63598d53-a45d-437a-a463-f4c7d2090e85",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:18:30.069926",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "63598d53-a45d-437a-a463-f4c7d2090e85",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:18:30.075765",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "63598d53-a45d-437a-a463-f4c7d2090e85",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:20:08.767923",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "db265447-ca08-47d5-aba4-12d3785ff115",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:20:08.773532",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · ground_surface (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "db265447-ca08-47d5-aba4-12d3785ff115",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:20:08.779321",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "db265447-ca08-47d5-aba4-12d3785ff115",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:20:08.784529",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "db265447-ca08-47d5-aba4-12d3785ff115",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:20:08.789588",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 78.7 · BCR 13.1 · H 16.8m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "db265447-ca08-47d5-aba4-12d3785ff115",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:22:18.732309",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c55a01c7-0f5f-4dab-a334-6d6380dc936b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:22:18.738353",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c55a01c7-0f5f-4dab-a334-6d6380dc936b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:22:18.744240",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c55a01c7-0f5f-4dab-a334-6d6380dc936b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:22:18.750606",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c55a01c7-0f5f-4dab-a334-6d6380dc936b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:22:18.756988",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c55a01c7-0f5f-4dab-a334-6d6380dc936b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:23:42.630796",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c3a7a307-d7ce-4990-bfd1-aba400eb1f2a",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:23:42.636083",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c3a7a307-d7ce-4990-bfd1-aba400eb1f2a",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:23:42.641532",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c3a7a307-d7ce-4990-bfd1-aba400eb1f2a",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:23:42.646165",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c3a7a307-d7ce-4990-bfd1-aba400eb1f2a",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:23:42.650506",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c3a7a307-d7ce-4990-bfd1-aba400eb1f2a",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:25:26.253524",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5dc58e5d-b070-49d1-a8d5-22bea6489cd5",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:25:26.259393",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5dc58e5d-b070-49d1-a8d5-22bea6489cd5",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:25:26.265963",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5dc58e5d-b070-49d1-a8d5-22bea6489cd5",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:25:26.272371",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5dc58e5d-b070-49d1-a8d5-22bea6489cd5",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:25:26.278197",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "5dc58e5d-b070-49d1-a8d5-22bea6489cd5",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:27:02.258656",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "2492b9a1-e739-4fec-808d-05fe2d323e30",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:27:02.265435",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "2492b9a1-e739-4fec-808d-05fe2d323e30",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:27:02.271733",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "2492b9a1-e739-4fec-808d-05fe2d323e30",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:27:02.276823",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "2492b9a1-e739-4fec-808d-05fe2d323e30",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:27:02.281925",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "2492b9a1-e739-4fec-808d-05fe2d323e30",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:29:14.715724",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "f89dce94-f5aa-45dc-8968-3b415e0da1be",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:29:14.721022",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "f89dce94-f5aa-45dc-8968-3b415e0da1be",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:29:14.726325",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "f89dce94-f5aa-45dc-8968-3b415e0da1be",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:29:14.731466",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "f89dce94-f5aa-45dc-8968-3b415e0da1be",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:29:14.736533",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "f89dce94-f5aa-45dc-8968-3b415e0da1be",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:34:04.749815",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3e760496-6a25-4c8d-8dc8-f7774e3ff781",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:34:04.755162",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3e760496-6a25-4c8d-8dc8-f7774e3ff781",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:34:04.760618",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3e760496-6a25-4c8d-8dc8-f7774e3ff781",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:34:04.766382",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3e760496-6a25-4c8d-8dc8-f7774e3ff781",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:34:04.771547",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3e760496-6a25-4c8d-8dc8-f7774e3ff781",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:59:36.114761",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7166751c-ea8c-4ecd-890b-93cbdbbbe2c7",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:59:36.158322",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7166751c-ea8c-4ecd-890b-93cbdbbbe2c7",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:59:36.171328",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7166751c-ea8c-4ecd-890b-93cbdbbbe2c7",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:59:36.178823",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7166751c-ea8c-4ecd-890b-93cbdbbbe2c7",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T11:59:36.185778",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7166751c-ea8c-4ecd-890b-93cbdbbbe2c7",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:13:33.485725",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "8e062aa6-7d2e-4776-aeac-24622dac0652",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:13:33.492536",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "8e062aa6-7d2e-4776-aeac-24622dac0652",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:13:33.497640",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "8e062aa6-7d2e-4776-aeac-24622dac0652",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:13:33.503552",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "8e062aa6-7d2e-4776-aeac-24622dac0652",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:13:33.508639",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "8e062aa6-7d2e-4776-aeac-24622dac0652",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:24:55.252038",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "1abf1ec2-a92b-466d-b1cd-154d4a374846",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:24:55.263622",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "1abf1ec2-a92b-466d-b1cd-154d4a374846",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:24:55.270185",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "1abf1ec2-a92b-466d-b1cd-154d4a374846",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:24:55.277027",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "1abf1ec2-a92b-466d-b1cd-154d4a374846",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:24:55.284333",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "1abf1ec2-a92b-466d-b1cd-154d4a374846",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:27:44.768868",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e8629c0-b49e-4ab0-9e2b-af2e2ae29af9",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:27:44.776560",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e8629c0-b49e-4ab0-9e2b-af2e2ae29af9",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:27:44.783580",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e8629c0-b49e-4ab0-9e2b-af2e2ae29af9",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:27:44.789636",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e8629c0-b49e-4ab0-9e2b-af2e2ae29af9",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:27:44.796759",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e8629c0-b49e-4ab0-9e2b-af2e2ae29af9",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:40:57.675760",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "79027912-5db5-47ed-9d91-d28dc35b3e09",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:40:57.684190",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "79027912-5db5-47ed-9d91-d28dc35b3e09",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:40:57.689536",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "79027912-5db5-47ed-9d91-d28dc35b3e09",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:40:57.695492",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "79027912-5db5-47ed-9d91-d28dc35b3e09",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:40:57.700629",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "79027912-5db5-47ed-9d91-d28dc35b3e09",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:46:37.796778",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "9a23e7c8-b16b-48f3-b4d1-394fb9a361e0",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:46:37.804121",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "9a23e7c8-b16b-48f3-b4d1-394fb9a361e0",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:46:37.810265",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "9a23e7c8-b16b-48f3-b4d1-394fb9a361e0",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:46:37.818176",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "9a23e7c8-b16b-48f3-b4d1-394fb9a361e0",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T12:46:37.824828",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "9a23e7c8-b16b-48f3-b4d1-394fb9a361e0",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:26:10.897301",
+    "from_agent": "user",
+    "to_agent": "parking_agent",
+    "message": "parking_agent 직접 테스트: 연접주차와 차로 조건만 요약해줘.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_design_default_flow"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.106153",
+    "from_agent": "user",
+    "to_agent": "design_orchestrator",
+    "message": "PNU/design 후보를 받으면 법규-주차-매스-검토 순서로 협업을 시작해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-615c0dd7ce94",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 1
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.164961",
+    "from_agent": "design_orchestrator",
+    "to_agent": "law_graph_agent",
+    "message": "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-615c0dd7ce94",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 2
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.222519",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-615c0dd7ce94",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 3
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.278812",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차 조건을 반영해 가능한 MAAS 매스 repair operation을 제안해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-615c0dd7ce94",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 4
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.336085",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "법규/주차/매스 evidence를 묶어 통과/보류/실패 리스크를 판정해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-615c0dd7ce94",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 5
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.394202",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종 판단과 다음 수정 지시를 사용자에게 전달할 형태로 정리해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-615c0dd7ce94",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 6
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.456056",
+    "from_agent": "user",
+    "to_agent": "design_orchestrator",
+    "message": "PNU/design 후보를 받으면 법규-주차-매스-검토 순서로 협업을 시작해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-08836fc82d26",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 1
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.512195",
+    "from_agent": "design_orchestrator",
+    "to_agent": "law_graph_agent",
+    "message": "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-08836fc82d26",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 2
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.567978",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-08836fc82d26",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 3
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.623377",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차 조건을 반영해 가능한 MAAS 매스 repair operation을 제안해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-08836fc82d26",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 4
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.678873",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "법규/주차/매스 evidence를 묶어 통과/보류/실패 리스크를 판정해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-08836fc82d26",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 5
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.734788",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종 판단과 다음 수정 지시를 사용자에게 전달할 형태로 정리해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-08836fc82d26",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 6
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.794060",
+    "from_agent": "user",
+    "to_agent": "design_orchestrator",
+    "message": "PNU/design 후보를 받으면 법규-주차-매스-검토 순서로 협업을 시작해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-ece1b1c04616",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 1
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.849665",
+    "from_agent": "design_orchestrator",
+    "to_agent": "law_graph_agent",
+    "message": "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-ece1b1c04616",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 2
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.905876",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-ece1b1c04616",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 3
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:00.961903",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차 조건을 반영해 가능한 MAAS 매스 repair operation을 제안해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-ece1b1c04616",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 4
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.018137",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "법규/주차/매스 evidence를 묶어 통과/보류/실패 리스크를 판정해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-ece1b1c04616",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 5
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.074389",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종 판단과 다음 수정 지시를 사용자에게 전달할 형태로 정리해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-ece1b1c04616",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 6
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.133002",
+    "from_agent": "user",
+    "to_agent": "design_orchestrator",
+    "message": "PNU/design 후보를 받으면 법규-주차-매스-검토 순서로 협업을 시작해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-f74291216bf9",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 1
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.188950",
+    "from_agent": "design_orchestrator",
+    "to_agent": "law_graph_agent",
+    "message": "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-f74291216bf9",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 2
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.245112",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-f74291216bf9",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 3
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.300901",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차 조건을 반영해 가능한 MAAS 매스 repair operation을 제안해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-f74291216bf9",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 4
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.357573",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "법규/주차/매스 evidence를 묶어 통과/보류/실패 리스크를 판정해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-f74291216bf9",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 5
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.413942",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종 판단과 다음 수정 지시를 사용자에게 전달할 형태로 정리해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-f74291216bf9",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 6
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.474538",
+    "from_agent": "user",
+    "to_agent": "design_orchestrator",
+    "message": "PNU/design 후보를 받으면 법규-주차-매스-검토 순서로 협업을 시작해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-0fbc1a5560b8",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 1
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.530341",
+    "from_agent": "design_orchestrator",
+    "to_agent": "law_graph_agent",
+    "message": "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-0fbc1a5560b8",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 2
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.586836",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-0fbc1a5560b8",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 3
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.642701",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차 조건을 반영해 가능한 MAAS 매스 repair operation을 제안해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-0fbc1a5560b8",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 4
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.698796",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "법규/주차/매스 evidence를 묶어 통과/보류/실패 리스크를 판정해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-0fbc1a5560b8",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 5
+    }
+  },
+  {
+    "timestamp": "2026-06-23T13:51:01.755027",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종 판단과 다음 수정 지시를 사용자에게 전달할 형태로 정리해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-0fbc1a5560b8",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 6
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:33.447007",
+    "from_agent": "user",
+    "to_agent": "design_orchestrator",
+    "message": "PNU/design 후보를 받으면 법규-주차-매스-검토 순서로 협업을 시작해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-af100c435034",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 1
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:33.504651",
+    "from_agent": "design_orchestrator",
+    "to_agent": "law_graph_agent",
+    "message": "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-af100c435034",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 2
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:33.560691",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-af100c435034",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 3
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:33.616244",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차 조건을 반영해 가능한 MAAS 매스 repair operation을 제안해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-af100c435034",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 4
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:33.672457",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "법규/주차/매스 evidence를 묶어 통과/보류/실패 리스크를 판정해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-af100c435034",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 5
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:33.727924",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종 판단과 다음 수정 지시를 사용자에게 전달할 형태로 정리해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-af100c435034",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 6
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:33.785870",
+    "from_agent": "user",
+    "to_agent": "design_orchestrator",
+    "message": "PNU/design 후보를 받으면 법규-주차-매스-검토 순서로 협업을 시작해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-db5cdb8b24b4",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 1
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:33.841874",
+    "from_agent": "design_orchestrator",
+    "to_agent": "law_graph_agent",
+    "message": "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-db5cdb8b24b4",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 2
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:33.898728",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-db5cdb8b24b4",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 3
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:33.955491",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차 조건을 반영해 가능한 MAAS 매스 repair operation을 제안해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-db5cdb8b24b4",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 4
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:34.027328",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "법규/주차/매스 evidence를 묶어 통과/보류/실패 리스크를 판정해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-db5cdb8b24b4",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 5
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:34.084709",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종 판단과 다음 수정 지시를 사용자에게 전달할 형태로 정리해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-db5cdb8b24b4",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 6
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:34.144698",
+    "from_agent": "user",
+    "to_agent": "design_orchestrator",
+    "message": "PNU/design 후보를 받으면 법규-주차-매스-검토 순서로 협업을 시작해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-fa55c1e746f9",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 1
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:34.201524",
+    "from_agent": "design_orchestrator",
+    "to_agent": "law_graph_agent",
+    "message": "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-fa55c1e746f9",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 2
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:34.259531",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-fa55c1e746f9",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 3
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:34.317326",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차 조건을 반영해 가능한 MAAS 매스 repair operation을 제안해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-fa55c1e746f9",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 4
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:34.374629",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "법규/주차/매스 evidence를 묶어 통과/보류/실패 리스크를 판정해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-fa55c1e746f9",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 5
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:04:34.430791",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종 판단과 다음 수정 지시를 사용자에게 전달할 형태로 정리해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-fa55c1e746f9",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 6
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:30:39.200522",
+    "from_agent": "user",
+    "to_agent": "law_graph_agent",
+    "message": "law_graph_agent 직접 메시지 표시 검증",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_design_default_flow"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:33:24.590714",
+    "from_agent": "user",
+    "to_agent": "law_graph_agent",
+    "message": "law_graph_agent 직접 메시지 표시 검증",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_design_default_flow"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:13.749410",
+    "from_agent": "user",
+    "to_agent": "design_orchestrator",
+    "message": "PNU/design 후보를 받으면 법규-주차-매스-검토 순서로 협업을 시작해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-d8a35376196c",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 1
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:13.806747",
+    "from_agent": "design_orchestrator",
+    "to_agent": "law_graph_agent",
+    "message": "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-d8a35376196c",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 2
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:13.865061",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-d8a35376196c",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 3
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:13.921772",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차 조건을 반영해 가능한 MAAS 매스 repair operation을 제안해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-d8a35376196c",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 4
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:13.980539",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "법규/주차/매스 evidence를 묶어 통과/보류/실패 리스크를 판정해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-d8a35376196c",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 5
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.038653",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종 판단과 다음 수정 지시를 사용자에게 전달할 형태로 정리해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-d8a35376196c",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 6
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.099466",
+    "from_agent": "user",
+    "to_agent": "design_orchestrator",
+    "message": "PNU/design 후보를 받으면 법규-주차-매스-검토 순서로 협업을 시작해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-045ebf52bbe3",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 1
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.155523",
+    "from_agent": "design_orchestrator",
+    "to_agent": "law_graph_agent",
+    "message": "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-045ebf52bbe3",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 2
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.212160",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-045ebf52bbe3",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 3
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.269548",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차 조건을 반영해 가능한 MAAS 매스 repair operation을 제안해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-045ebf52bbe3",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 4
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.325942",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "법규/주차/매스 evidence를 묶어 통과/보류/실패 리스크를 판정해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-045ebf52bbe3",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 5
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.402511",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종 판단과 다음 수정 지시를 사용자에게 전달할 형태로 정리해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-045ebf52bbe3",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 6
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.461701",
+    "from_agent": "user",
+    "to_agent": "design_orchestrator",
+    "message": "PNU/design 후보를 받으면 법규-주차-매스-검토 순서로 협업을 시작해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-49babd44e22d",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 1
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.518346",
+    "from_agent": "design_orchestrator",
+    "to_agent": "law_graph_agent",
+    "message": "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-49babd44e22d",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 2
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.575504",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-49babd44e22d",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 3
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.633307",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차 조건을 반영해 가능한 MAAS 매스 repair operation을 제안해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-49babd44e22d",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 4
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.689716",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "법규/주차/매스 evidence를 묶어 통과/보류/실패 리스크를 판정해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-49babd44e22d",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 5
+    }
+  },
+  {
+    "timestamp": "2026-06-23T14:34:14.755124",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종 판단과 다음 수정 지시를 사용자에게 전달할 형태로 정리해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-49babd44e22d",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 6
+    }
+  },
+  {
+    "timestamp": "2026-06-23T20:40:38.700828",
+    "from_agent": "user",
+    "to_agent": "parking_agent",
+    "message": "parking_agent Playwright 직접 명령 검증",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_design_default_flow"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:43:17.182846",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e52a644-eb3a-4cd1-96bf-4c5e3ddef3de",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:43:17.198858",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e52a644-eb3a-4cd1-96bf-4c5e3ddef3de",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:43:17.207468",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e52a644-eb3a-4cd1-96bf-4c5e3ddef3de",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:43:17.215914",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e52a644-eb3a-4cd1-96bf-4c5e3ddef3de",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:43:17.224928",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e52a644-eb3a-4cd1-96bf-4c5e3ddef3de",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:44:49.623443",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "9242b1e0-b11b-46d8-9eaf-e1363aa77041",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:44:49.632436",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "9242b1e0-b11b-46d8-9eaf-e1363aa77041",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:44:49.642552",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "9242b1e0-b11b-46d8-9eaf-e1363aa77041",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:44:49.650578",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "9242b1e0-b11b-46d8-9eaf-e1363aa77041",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:44:49.659491",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "9242b1e0-b11b-46d8-9eaf-e1363aa77041",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:47:17.909697",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3bf10326-9752-4add-8dad-e708e1c4f2ef",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:47:17.917314",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · ground_surface (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3bf10326-9752-4add-8dad-e708e1c4f2ef",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:47:17.925114",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3bf10326-9752-4add-8dad-e708e1c4f2ef",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:47:17.931775",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3bf10326-9752-4add-8dad-e708e1c4f2ef",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:47:17.939168",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 78.7 · BCR 13.1 · H 16.8m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3bf10326-9752-4add-8dad-e708e1c4f2ef",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:49:18.804658",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3b0d3128-b771-4501-957c-fbd933d7512c",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:49:18.813450",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3b0d3128-b771-4501-957c-fbd933d7512c",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:49:18.821881",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3b0d3128-b771-4501-957c-fbd933d7512c",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:49:18.830272",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3b0d3128-b771-4501-957c-fbd933d7512c",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:49:18.840702",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3b0d3128-b771-4501-957c-fbd933d7512c",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:52:17.295948",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "d5940f17-e53f-4828-9b28-8ecbbe1ebb71",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:52:17.305080",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "d5940f17-e53f-4828-9b28-8ecbbe1ebb71",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:52:17.312933",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "d5940f17-e53f-4828-9b28-8ecbbe1ebb71",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:52:17.321330",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "d5940f17-e53f-4828-9b28-8ecbbe1ebb71",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:52:17.329944",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "d5940f17-e53f-4828-9b28-8ecbbe1ebb71",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:53:49.168046",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c00bc7ce-83f8-4ddb-ba26-570e15880a96",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:53:49.176403",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c00bc7ce-83f8-4ddb-ba26-570e15880a96",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:53:49.183650",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c00bc7ce-83f8-4ddb-ba26-570e15880a96",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:53:49.191157",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c00bc7ce-83f8-4ddb-ba26-570e15880a96",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T21:53:49.198720",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c00bc7ce-83f8-4ddb-ba26-570e15880a96",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:08:22.342997",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "19b351f9-07aa-4724-9e52-e15fd04d97c7",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:08:22.357259",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "19b351f9-07aa-4724-9e52-e15fd04d97c7",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:08:22.368390",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "19b351f9-07aa-4724-9e52-e15fd04d97c7",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:08:22.379843",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "19b351f9-07aa-4724-9e52-e15fd04d97c7",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:08:22.391312",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "19b351f9-07aa-4724-9e52-e15fd04d97c7",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:11:14.017356",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e5f8eca-e9f6-4edc-bf81-49ac18492fb3",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:11:14.026120",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · ground_surface (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e5f8eca-e9f6-4edc-bf81-49ac18492fb3",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:11:14.034321",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e5f8eca-e9f6-4edc-bf81-49ac18492fb3",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:11:14.043182",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e5f8eca-e9f6-4edc-bf81-49ac18492fb3",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:11:14.052393",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 78.7 · BCR 13.1 · H 16.8m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7e5f8eca-e9f6-4edc-bf81-49ac18492fb3",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:12:49.465951",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "afabc8c1-f8b7-4fd2-8921-72c33186289b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:12:49.474627",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "afabc8c1-f8b7-4fd2-8921-72c33186289b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:12:49.482878",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "afabc8c1-f8b7-4fd2-8921-72c33186289b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:12:49.490801",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "afabc8c1-f8b7-4fd2-8921-72c33186289b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-23T22:12:49.499811",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "afabc8c1-f8b7-4fd2-8921-72c33186289b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T09:43:46.654955",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "a0bd41d6-666d-4706-bb94-cd8b3178b97c",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T09:43:46.664328",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "a0bd41d6-666d-4706-bb94-cd8b3178b97c",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T09:43:46.672742",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "a0bd41d6-666d-4706-bb94-cd8b3178b97c",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T09:43:46.681318",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "a0bd41d6-666d-4706-bb94-cd8b3178b97c",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T09:43:46.690175",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "a0bd41d6-666d-4706-bb94-cd8b3178b97c",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T09:47:48.617645",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "66d2f71e-1716-4ab3-8940-3b633279e2f8",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T09:47:48.626254",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "66d2f71e-1716-4ab3-8940-3b633279e2f8",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T09:47:48.634024",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "66d2f71e-1716-4ab3-8940-3b633279e2f8",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T09:47:48.642626",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "66d2f71e-1716-4ab3-8940-3b633279e2f8",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T09:47:48.651049",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "66d2f71e-1716-4ab3-8940-3b633279e2f8",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T11:54:33.810182",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "17848a42-d160-481e-ba2d-bfe0383b5efb",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T11:54:33.820609",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "17848a42-d160-481e-ba2d-bfe0383b5efb",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T11:54:33.830066",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "17848a42-d160-481e-ba2d-bfe0383b5efb",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T11:54:33.838467",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "17848a42-d160-481e-ba2d-bfe0383b5efb",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T11:54:33.847465",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "17848a42-d160-481e-ba2d-bfe0383b5efb",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T13:59:21.423933",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "1d6c9ab9-c91a-49f0-9bda-d99da59d9c9e",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T13:59:21.434741",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "1d6c9ab9-c91a-49f0-9bda-d99da59d9c9e",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T13:59:21.444155",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "1d6c9ab9-c91a-49f0-9bda-d99da59d9c9e",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T13:59:21.453279",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "1d6c9ab9-c91a-49f0-9bda-d99da59d9c9e",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T13:59:21.461927",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "1d6c9ab9-c91a-49f0-9bda-d99da59d9c9e",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:01:04.873745",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "98294fba-0766-4e7b-80ef-6b76e1edc423",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:01:04.898539",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "98294fba-0766-4e7b-80ef-6b76e1edc423",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:01:04.907635",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "98294fba-0766-4e7b-80ef-6b76e1edc423",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:01:04.918137",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "98294fba-0766-4e7b-80ef-6b76e1edc423",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:01:04.928073",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "98294fba-0766-4e7b-80ef-6b76e1edc423",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:09:45.103245",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c314ff13-ee58-4fc6-9e57-91f21af85990",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:09:45.113047",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · ground_surface (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c314ff13-ee58-4fc6-9e57-91f21af85990",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:09:45.121638",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c314ff13-ee58-4fc6-9e57-91f21af85990",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:09:45.130709",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c314ff13-ee58-4fc6-9e57-91f21af85990",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:09:45.139855",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 78.7 · BCR 13.1 · H 16.8m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "c314ff13-ee58-4fc6-9e57-91f21af85990",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:46:13.763364",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "07692ea5-ee28-410b-9164-5b25ef4ebe76",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:46:13.783582",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "07692ea5-ee28-410b-9164-5b25ef4ebe76",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:46:13.793023",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "07692ea5-ee28-410b-9164-5b25ef4ebe76",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:46:13.802582",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "07692ea5-ee28-410b-9164-5b25ef4ebe76",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:46:13.811944",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "07692ea5-ee28-410b-9164-5b25ef4ebe76",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:49:14.237248",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7bf144f8-d1cd-45a7-8070-3f595ffebb04",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:49:14.251090",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · ground_surface (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7bf144f8-d1cd-45a7-8070-3f595ffebb04",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:49:14.260693",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7bf144f8-d1cd-45a7-8070-3f595ffebb04",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:49:14.270114",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7bf144f8-d1cd-45a7-8070-3f595ffebb04",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T14:49:14.279146",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 78.7 · BCR 13.1 · H 16.8m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7bf144f8-d1cd-45a7-8070-3f595ffebb04",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:16:10.872501",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7a854086-2564-4b5f-8650-b7aebf258d86",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:16:10.891904",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7a854086-2564-4b5f-8650-b7aebf258d86",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:16:10.908744",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 (기준면 17.10m 기반)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7a854086-2564-4b5f-8650-b7aebf258d86",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:16:10.925165",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7a854086-2564-4b5f-8650-b7aebf258d86",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:16:10.945027",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7a854086-2564-4b5f-8650-b7aebf258d86",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:27:04.157208",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded · 근거 none · 판단 {\"status\":\"needs_evidence\",\"decided_by\":null,\"blocking_failures\":[],\"missing_evidence\":[\"bulk_and_density.height\",\"zo...",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "4855225f-e77e-4e29-b31e-feb344327574",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규",
+      "refs": [],
+      "formula": "ARR constraint/evidence bundle",
+      "decision": "{\"status\":\"needs_evidence\",\"decided_by\":null,\"blocking_failures\":[],\"missing_evidence\":[\"bulk_and_density.height\",\"zo..."
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:27:04.172751",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground · 근거 seoul_parking_appendix2_row_05, parking_appendix1_row_05, evidence:parking_precheck, 주차장법 시행령 별표1 · 판단 {\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"piloti_ground\"}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "4855225f-e77e-4e29-b31e-feb344327574",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차",
+      "refs": [
+        "seoul_parking_appendix2_row_05",
+        "parking_appendix1_row_05",
+        "evidence:parking_precheck",
+        "주차장법 시행령 별표1"
+      ],
+      "formula": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
+      "decision": "{\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"piloti_ground\"}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:27:04.186228",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 · 근거 건축법 시행령 제86조, neighbor_avg_86 · 판단 {\"datum_m\":17.104988089373176}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "4855225f-e77e-4e29-b31e-feb344327574",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조",
+      "refs": [
+        "건축법 시행령 제86조",
+        "neighbor_avg_86"
+      ],
+      "formula": "slope 2",
+      "decision": "{\"datum_m\":17.104988089373176}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:27:04.197449",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m · 근거 건축법 시행령 §119, 건축법 시행령 §86, ngii_local_dem · 판단 {\"parcel\":17.104988089373176,\"road\":16.477179050445557,\"neighbor\":17.353689407522626,\"selected\":17.104988089373176}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "4855225f-e77e-4e29-b31e-feb344327574",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨",
+      "refs": [
+        "건축법 시행령 §119",
+        "건축법 시행령 §86",
+        "ngii_local_dem"
+      ],
+      "formula": "ground_flat",
+      "decision": "{\"parcel\":17.104988089373176,\"road\":16.477179050445557,\"neighbor\":17.353689407522626,\"selected\":17.104988089373176}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:27:04.208673",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m · 근거 notch_south_west · 판단 {\"shape\":\"notch_south_west\",\"far\":111.11,\"bcr\":37.04,\"height\":8.4}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "4855225f-e77e-4e29-b31e-feb344327574",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인",
+      "refs": [
+        "notch_south_west"
+      ],
+      "formula": "quality 0.471 · arr.maas.design_quality.v1",
+      "decision": "{\"shape\":\"notch_south_west\",\"far\":111.11,\"bcr\":37.04,\"height\":8.4}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:28:34.269141",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded · 근거 none · 판단 {\"status\":\"needs_evidence\",\"decided_by\":null,\"blocking_failures\":[],\"missing_evidence\":[\"bulk_and_density.height\",\"zo...",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3679f3f3-25df-423c-b896-5314e2f7055b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규",
+      "refs": [],
+      "formula": "ARR constraint/evidence bundle",
+      "decision": "{\"status\":\"needs_evidence\",\"decided_by\":null,\"blocking_failures\":[],\"missing_evidence\":[\"bulk_and_density.height\",\"zo..."
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:28:34.294818",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground · 근거 seoul_parking_appendix2_row_05, parking_appendix1_row_05, evidence:parking_precheck, 주차장법 시행령 별표1 · 판단 {\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"piloti_ground\"}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3679f3f3-25df-423c-b896-5314e2f7055b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차",
+      "refs": [
+        "seoul_parking_appendix2_row_05",
+        "parking_appendix1_row_05",
+        "evidence:parking_precheck",
+        "주차장법 시행령 별표1"
+      ],
+      "formula": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
+      "decision": "{\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"piloti_ground\"}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:28:34.304793",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 · 근거 건축법 시행령 제86조, neighbor_avg_86 · 판단 {\"datum_m\":17.104988089373176}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3679f3f3-25df-423c-b896-5314e2f7055b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조",
+      "refs": [
+        "건축법 시행령 제86조",
+        "neighbor_avg_86"
+      ],
+      "formula": "slope 2",
+      "decision": "{\"datum_m\":17.104988089373176}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:28:34.315247",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m · 근거 건축법 시행령 §119, 건축법 시행령 §86, ngii_local_dem · 판단 {\"parcel\":17.104988089373176,\"road\":16.477179050445557,\"neighbor\":17.353689407522626,\"selected\":17.104988089373176}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3679f3f3-25df-423c-b896-5314e2f7055b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨",
+      "refs": [
+        "건축법 시행령 §119",
+        "건축법 시행령 §86",
+        "ngii_local_dem"
+      ],
+      "formula": "ground_flat",
+      "decision": "{\"parcel\":17.104988089373176,\"road\":16.477179050445557,\"neighbor\":17.353689407522626,\"selected\":17.104988089373176}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:28:34.325835",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m · 근거 notch_south_west · 판단 {\"shape\":\"notch_south_west\",\"far\":111.11,\"bcr\":37.04,\"height\":8.4}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "3679f3f3-25df-423c-b896-5314e2f7055b",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인",
+      "refs": [
+        "notch_south_west"
+      ],
+      "formula": "quality 0.471 · arr.maas.design_quality.v1",
+      "decision": "{\"shape\":\"notch_south_west\",\"far\":111.11,\"bcr\":37.04,\"height\":8.4}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:37:00.098987",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded · 근거 none · 판단 {\"status\":\"needs_evidence\",\"decided_by\":null,\"blocking_failures\":[],\"missing_evidence\":[\"bulk_and_density.height\",\"zo...",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "45f61c1b-2450-48ef-ba62-4b7109d0b437",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규",
+      "refs": [],
+      "formula": "ARR constraint/evidence bundle",
+      "decision": "{\"status\":\"needs_evidence\",\"decided_by\":null,\"blocking_failures\":[],\"missing_evidence\":[\"bulk_and_density.height\",\"zo..."
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:37:00.110373",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · ground_surface · 근거 seoul_parking_appendix2_row_05, parking_appendix1_row_05, evidence:parking_precheck, 주차장법 시행령 별표1 · 판단 {\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"ground_surface\"}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "45f61c1b-2450-48ef-ba62-4b7109d0b437",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차",
+      "refs": [
+        "seoul_parking_appendix2_row_05",
+        "parking_appendix1_row_05",
+        "evidence:parking_precheck",
+        "주차장법 시행령 별표1"
+      ],
+      "formula": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
+      "decision": "{\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"ground_surface\"}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:37:00.121855",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 · 근거 건축법 시행령 제86조, neighbor_avg_86 · 판단 {\"datum_m\":17.104988089373176}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "45f61c1b-2450-48ef-ba62-4b7109d0b437",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조",
+      "refs": [
+        "건축법 시행령 제86조",
+        "neighbor_avg_86"
+      ],
+      "formula": "slope 2",
+      "decision": "{\"datum_m\":17.104988089373176}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:37:00.132581",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m · 근거 건축법 시행령 §119, 건축법 시행령 §86, ngii_local_dem · 판단 {\"parcel\":17.104988089373176,\"road\":16.477179050445557,\"neighbor\":17.353689407522626,\"selected\":17.104988089373176}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "45f61c1b-2450-48ef-ba62-4b7109d0b437",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨",
+      "refs": [
+        "건축법 시행령 §119",
+        "건축법 시행령 §86",
+        "ngii_local_dem"
+      ],
+      "formula": "ground_flat",
+      "decision": "{\"parcel\":17.104988089373176,\"road\":16.477179050445557,\"neighbor\":17.353689407522626,\"selected\":17.104988089373176}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:37:00.143862",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 78.7 · BCR 13.1 · H 16.8m · 근거 parking_repair_shrink · 판단 {\"shape\":\"parking_repair_shrink\",\"far\":78.66,\"bcr\":13.11,\"height\":16.8}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "45f61c1b-2450-48ef-ba62-4b7109d0b437",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인",
+      "refs": [
+        "parking_repair_shrink"
+      ],
+      "formula": "quality 0.272 · arr.maas.design_quality.v1",
+      "decision": "{\"shape\":\"parking_repair_shrink\",\"far\":78.66,\"bcr\":13.11,\"height\":16.8}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:40:44.070242",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded · 근거 bulk_and_density.bcr:pass, bulk_and_density.far:pass, bulk_and_density.height:needs_evidence, building_line_and_setbacks.adjacent_setback:pass, zoning_and_land_use.allowed_by_zone:needs_evidence · 판단 status=unknown · missing=bulk_and_density.height, zoning_and_land_use.allowed_by_zone, model_documents_and_artifacts....",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "69b01701-23f8-4e1b-b279-9ca9fa18b9b6",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규",
+      "refs": [
+        "bulk_and_density.bcr:pass",
+        "bulk_and_density.far:pass",
+        "bulk_and_density.height:needs_evidence",
+        "building_line_and_setbacks.adjacent_setback:pass",
+        "zoning_and_land_use.allowed_by_zone:needs_evidence"
+      ],
+      "formula": "ARR constraint/evidence bundle",
+      "decision": "status=unknown · missing=bulk_and_density.height, zoning_and_land_use.allowed_by_zone, model_documents_and_artifacts...."
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:40:44.081836",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground · 근거 seoul_parking_appendix2_row_05, parking_appendix1_row_05, evidence:parking_precheck, 주차장법 시행령 별표1 · 판단 {\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"piloti_ground\"}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "69b01701-23f8-4e1b-b279-9ca9fa18b9b6",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차",
+      "refs": [
+        "seoul_parking_appendix2_row_05",
+        "parking_appendix1_row_05",
+        "evidence:parking_precheck",
+        "주차장법 시행령 별표1"
+      ],
+      "formula": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
+      "decision": "{\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"piloti_ground\"}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:40:44.093019",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 · 근거 건축법 시행령 제86조, neighbor_avg_86 · 판단 {\"datum_m\":17.104988089373176}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "69b01701-23f8-4e1b-b279-9ca9fa18b9b6",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조",
+      "refs": [
+        "건축법 시행령 제86조",
+        "neighbor_avg_86"
+      ],
+      "formula": "slope 2",
+      "decision": "{\"datum_m\":17.104988089373176}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:40:44.104103",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m · 근거 건축법 시행령 §119, 건축법 시행령 §86, ngii_local_dem · 판단 {\"parcel\":17.104988089373176,\"road\":16.477179050445557,\"neighbor\":17.353689407522626,\"selected\":17.104988089373176}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "69b01701-23f8-4e1b-b279-9ca9fa18b9b6",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨",
+      "refs": [
+        "건축법 시행령 §119",
+        "건축법 시행령 §86",
+        "ngii_local_dem"
+      ],
+      "formula": "ground_flat",
+      "decision": "{\"parcel\":17.104988089373176,\"road\":16.477179050445557,\"neighbor\":17.353689407522626,\"selected\":17.104988089373176}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:40:44.115716",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m · 근거 notch_south_west · 판단 {\"shape\":\"notch_south_west\",\"far\":111.11,\"bcr\":37.04,\"height\":8.4}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "69b01701-23f8-4e1b-b279-9ca9fa18b9b6",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인",
+      "refs": [
+        "notch_south_west"
+      ],
+      "formula": "quality 0.471 · arr.maas.design_quality.v1",
+      "decision": "{\"shape\":\"notch_south_west\",\"far\":111.11,\"bcr\":37.04,\"height\":8.4}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:42:38.924754",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded · 근거 bulk_and_density.bcr:pass, bulk_and_density.far:pass, bulk_and_density.height:needs_evidence, building_line_and_setbacks.adjacent_setback:pass, zoning_and_land_use.allowed_by_zone:needs_evidence · 판단 status=unknown · missing=bulk_and_density.height, zoning_and_land_use.allowed_by_zone, model_documents_and_artifacts....",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "a0b02761-8126-4b3e-8c28-5d7fbc15f4ec",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규",
+      "refs": [
+        "bulk_and_density.bcr:pass",
+        "bulk_and_density.far:pass",
+        "bulk_and_density.height:needs_evidence",
+        "building_line_and_setbacks.adjacent_setback:pass",
+        "zoning_and_land_use.allowed_by_zone:needs_evidence"
+      ],
+      "formula": "ARR constraint/evidence bundle",
+      "decision": "status=unknown · missing=bulk_and_density.height, zoning_and_land_use.allowed_by_zone, model_documents_and_artifacts...."
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:42:38.936370",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · piloti_ground · 근거 seoul_parking_appendix2_row_05, parking_appendix1_row_05, evidence:parking_precheck, 주차장법 시행령 별표1 · 판단 {\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"piloti_ground\"}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "a0b02761-8126-4b3e-8c28-5d7fbc15f4ec",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차",
+      "refs": [
+        "seoul_parking_appendix2_row_05",
+        "parking_appendix1_row_05",
+        "evidence:parking_precheck",
+        "주차장법 시행령 별표1"
+      ],
+      "formula": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
+      "decision": "{\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"piloti_ground\"}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:42:38.948281",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 · 근거 건축법 시행령 제86조, neighbor_avg_86 · 판단 {\"datum_m\":17.104988089373176}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "a0b02761-8126-4b3e-8c28-5d7fbc15f4ec",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조",
+      "refs": [
+        "건축법 시행령 제86조",
+        "neighbor_avg_86"
+      ],
+      "formula": "slope 2",
+      "decision": "{\"datum_m\":17.104988089373176}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:42:38.959533",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m · 근거 건축법 시행령 §119, 건축법 시행령 §86, ngii_local_dem · 판단 {\"parcel\":17.104988089373176,\"road\":16.477179050445557,\"neighbor\":17.353689407522626,\"selected\":17.104988089373176}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "a0b02761-8126-4b3e-8c28-5d7fbc15f4ec",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨",
+      "refs": [
+        "건축법 시행령 §119",
+        "건축법 시행령 §86",
+        "ngii_local_dem"
+      ],
+      "formula": "ground_flat",
+      "decision": "{\"parcel\":17.104988089373176,\"road\":16.477179050445557,\"neighbor\":17.353689407522626,\"selected\":17.104988089373176}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T15:42:38.970546",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 111.1 · BCR 37.0 · H 8.4m · 근거 notch_south_west · 판단 {\"shape\":\"notch_south_west\",\"far\":111.11,\"bcr\":37.04,\"height\":8.4}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "a0b02761-8126-4b3e-8c28-5d7fbc15f4ec",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인",
+      "refs": [
+        "notch_south_west"
+      ],
+      "formula": "quality 0.471 · arr.maas.design_quality.v1",
+      "decision": "{\"shape\":\"notch_south_west\",\"far\":111.11,\"bcr\":37.04,\"height\":8.4}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T19:55:41.694063",
+    "from_agent": "law_agent",
+    "to_agent": "design_orchestrator",
+    "message": "법규: 최종 evidence_loaded · 근거 bulk_and_density.bcr:pass, bulk_and_density.far:pass, bulk_and_density.height:needs_evidence, building_line_and_setbacks.adjacent_setback:pass, zoning_and_land_use.allowed_by_zone:needs_evidence · 판단 status=unknown · missing=bulk_and_density.height, zoning_and_land_use.allowed_by_zone, model_documents_and_artifacts....",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7efc79e5-078d-4059-b650-e5fa2bcd6cdc",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규",
+      "refs": [
+        "bulk_and_density.bcr:pass",
+        "bulk_and_density.far:pass",
+        "bulk_and_density.height:needs_evidence",
+        "building_line_and_setbacks.adjacent_setback:pass",
+        "zoning_and_land_use.allowed_by_zone:needs_evidence"
+      ],
+      "formula": "ARR constraint/evidence bundle",
+      "decision": "status=unknown · missing=bulk_and_density.height, zoning_and_land_use.allowed_by_zone, model_documents_and_artifacts...."
+    }
+  },
+  {
+    "timestamp": "2026-06-24T19:55:41.741902",
+    "from_agent": "parking_agent",
+    "to_agent": "design_orchestrator",
+    "message": "주차: 3/3대 · ground_surface · 근거 seoul_parking_appendix2_row_05, parking_appendix1_row_05, evidence:parking_precheck, 주차장법 시행령 별표1 · 판단 {\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"ground_surface\"}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7efc79e5-078d-4059-b650-e5fa2bcd6cdc",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차",
+      "refs": [
+        "seoul_parking_appendix2_row_05",
+        "parking_appendix1_row_05",
+        "evidence:parking_precheck",
+        "주차장법 시행령 별표1"
+      ],
+      "formula": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
+      "decision": "{\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"ground_surface\"}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T19:55:41.766105",
+    "from_agent": "sunlight_agent",
+    "to_agent": "design_orchestrator",
+    "message": "정북일조: §86 envelope 적용 · 근거 건축법 시행령 제86조, neighbor_avg_86 · 판단 {\"datum_m\":17.104988089373176}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7efc79e5-078d-4059-b650-e5fa2bcd6cdc",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "정북일조",
+      "refs": [
+        "건축법 시행령 제86조",
+        "neighbor_avg_86"
+      ],
+      "formula": "slope 2",
+      "decision": "{\"datum_m\":17.104988089373176}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T19:55:41.792556",
+    "from_agent": "datum_agent",
+    "to_agent": "design_orchestrator",
+    "message": "대지레벨: ngii_local_dem 기준면 17.10m · 근거 건축법 시행령 §119, 건축법 시행령 §86, ngii_local_dem · 판단 {\"parcel\":17.104988089373176,\"road\":16.477179050445557,\"neighbor\":17.353689407522626,\"selected\":17.104988089373176}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7efc79e5-078d-4059-b650-e5fa2bcd6cdc",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "대지레벨",
+      "refs": [
+        "건축법 시행령 §119",
+        "건축법 시행령 §86",
+        "ngii_local_dem"
+      ],
+      "formula": "ground_flat",
+      "decision": "{\"parcel\":17.104988089373176,\"road\":16.477179050445557,\"neighbor\":17.353689407522626,\"selected\":17.104988089373176}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T19:55:41.813507",
+    "from_agent": "design_critic",
+    "to_agent": "design_orchestrator",
+    "message": "디자인: FAR 78.7 · BCR 13.1 · H 16.8m · 근거 parking_repair_shrink · 판단 {\"shape\":\"parking_repair_shrink\",\"far\":78.66,\"bcr\":13.11,\"height\":16.8}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "7efc79e5-078d-4059-b650-e5fa2bcd6cdc",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "info",
+      "label": "디자인",
+      "refs": [
+        "parking_repair_shrink"
+      ],
+      "formula": "quality 0.270 · arr.maas.design_quality.v1",
+      "decision": "{\"shape\":\"parking_repair_shrink\",\"far\":78.66,\"bcr\":13.11,\"height\":16.8}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T19:59:46.009469",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규: 최종 evidence_loaded · 공식 ARR constraint/evidence bundle · 근거 bulk_and_density.bcr:pass, bulk_and_density.far:pass, bulk_and_density.height:needs_evidence, building_line_and_setbacks.adjacent_setback:pass, zoning_and_land_use.allowed_by_zone:needs_evidence · 판단 status=unknown · missing=bulk_and_density.height, zoning_and_land_use.allowed_by_zone, model_documents_and_artifacts....",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "12db339e-c700-4fcf-b93c-6cd77fbe8893",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규",
+      "refs": [
+        "bulk_and_density.bcr:pass",
+        "bulk_and_density.far:pass",
+        "bulk_and_density.height:needs_evidence",
+        "building_line_and_setbacks.adjacent_setback:pass",
+        "zoning_and_land_use.allowed_by_zone:needs_evidence"
+      ],
+      "formula": "ARR constraint/evidence bundle",
+      "decision": "status=unknown · missing=bulk_and_density.height, zoning_and_land_use.allowed_by_zone, model_documents_and_artifacts...."
+    }
+  },
+  {
+    "timestamp": "2026-06-24T19:59:46.032869",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차: 3/3대 · piloti_ground · 공식 housing_standard_article_27_ceil_plus_seoul_household_minimum · 근거 seoul_parking_appendix2_row_05, parking_appendix1_row_05, evidence:parking_precheck, 주차장법 시행령 별표1 · 판단 {\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"piloti_ground\"}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "12db339e-c700-4fcf-b93c-6cd77fbe8893",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차",
+      "refs": [
+        "seoul_parking_appendix2_row_05",
+        "parking_appendix1_row_05",
+        "evidence:parking_precheck",
+        "주차장법 시행령 별표1"
+      ],
+      "formula": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
+      "decision": "{\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"piloti_ground\"}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T19:59:46.062724",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "매스/기하: notch_south_west · FAR 111.1 · BCR 37.0 · H 8.4m · 공식 quality 0.471 · arr.maas.design_quality.v1 · verbs base->notch | parcel 17.10m · road 16.48m · neighbor 17.35m | slop... · 근거 notch_south_west, base, notch, arr.maas.design_quality.v1, clone/d4descent, ngii_local_dem, 건축법 시행령 §86, 건축법 시행령 §119 · 판단 {\"shape\":\"notch_south_west\",\"far\":111.11,\"bcr\":37.04,\"height\":8.4,\"quality\":0.4708,\"volumes\":1,\"floor_groups\":0}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "12db339e-c700-4fcf-b93c-6cd77fbe8893",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "매스/기하",
+      "refs": [
+        "notch_south_west",
+        "base",
+        "notch",
+        "arr.maas.design_quality.v1",
+        "clone/d4descent",
+        "ngii_local_dem",
+        "건축법 시행령 §86",
+        "건축법 시행령 §119"
+      ],
+      "formula": "quality 0.471 · arr.maas.design_quality.v1 · verbs base->notch | parcel 17.10m · road 16.48m · neighbor 17.35m | slop...",
+      "decision": "{\"shape\":\"notch_south_west\",\"far\":111.11,\"bcr\":37.04,\"height\":8.4,\"quality\":0.4708,\"volumes\":1,\"floor_groups\":0}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T19:59:46.084053",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종검토: 법규·주차·MAAS evidence 통합 통과 · 공식 law_graph + parking + MAAS geometry evidence 종합 · 근거 needs_evidence, bulk_and_density.height, zoning_and_land_use.allowed_by_zone, model_documents_and_artifacts.vworld_visual_check, bulk_and_density.bcr:pass, bulk_and_density.far:pass, bulk_and_density.height:needs_evidence, building_line_and_setbacks.adjacent_setback:pass · 판단 {\"status\":\"unknown\",\"missing\":[\"bulk_and_density.height\",\"zoning_and_land_use.allowed_by_zone\",\"model_documents_and_a...",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "12db339e-c700-4fcf-b93c-6cd77fbe8893",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "최종검토",
+      "refs": [
+        "needs_evidence",
+        "bulk_and_density.height",
+        "zoning_and_land_use.allowed_by_zone",
+        "model_documents_and_artifacts.vworld_visual_check",
+        "bulk_and_density.bcr:pass",
+        "bulk_and_density.far:pass",
+        "bulk_and_density.height:needs_evidence",
+        "building_line_and_setbacks.adjacent_setback:pass"
+      ],
+      "formula": "law_graph + parking + MAAS geometry evidence 종합",
+      "decision": "{\"status\":\"unknown\",\"missing\":[\"bulk_and_density.height\",\"zoning_and_land_use.allowed_by_zone\",\"model_documents_and_a..."
+    }
+  },
+  {
+    "timestamp": "2026-06-24T20:01:58.505420",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규: 최종 evidence_loaded · 공식 ARR constraint/evidence bundle · 근거 bulk_and_density.bcr:pass, bulk_and_density.far:pass, bulk_and_density.height:needs_evidence, building_line_and_setbacks.adjacent_setback:pass, zoning_and_land_use.allowed_by_zone:needs_evidence · 판단 status=unknown · missing=bulk_and_density.height, zoning_and_land_use.allowed_by_zone, model_documents_and_artifacts....",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "0e1c9c54-503d-4ee2-b15a-3f99e962a649",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "법규",
+      "refs": [
+        "bulk_and_density.bcr:pass",
+        "bulk_and_density.far:pass",
+        "bulk_and_density.height:needs_evidence",
+        "building_line_and_setbacks.adjacent_setback:pass",
+        "zoning_and_land_use.allowed_by_zone:needs_evidence"
+      ],
+      "formula": "ARR constraint/evidence bundle",
+      "decision": "status=unknown · missing=bulk_and_density.height, zoning_and_land_use.allowed_by_zone, model_documents_and_artifacts...."
+    }
+  },
+  {
+    "timestamp": "2026-06-24T20:01:58.527582",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차: 3/3대 · piloti_ground · 공식 housing_standard_article_27_ceil_plus_seoul_household_minimum · 근거 seoul_parking_appendix2_row_05, parking_appendix1_row_05, evidence:parking_precheck, 주차장법 시행령 별표1 · 판단 {\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"piloti_ground\"}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "0e1c9c54-503d-4ee2-b15a-3f99e962a649",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "주차",
+      "refs": [
+        "seoul_parking_appendix2_row_05",
+        "parking_appendix1_row_05",
+        "evidence:parking_precheck",
+        "주차장법 시행령 별표1"
+      ],
+      "formula": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
+      "decision": "{\"required\":3,\"provided\":3,\"status\":\"pass\",\"strategy\":\"piloti_ground\"}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T20:01:58.550030",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "매스/기하: notch_south_west · FAR 111.1 · BCR 37.0 · H 8.4m · 공식 quality 0.471 · arr.maas.design_quality.v1 · verbs base->notch | parcel 17.10m · road 16.48m · neighbor 17.35m | slop... · 근거 notch_south_west, base, notch, arr.maas.design_quality.v1, clone/d4descent, ngii_local_dem, 건축법 시행령 §86, 건축법 시행령 §119 · 판단 {\"shape\":\"notch_south_west\",\"far\":111.11,\"bcr\":37.04,\"height\":8.4,\"quality\":0.4708,\"volumes\":1,\"floor_groups\":0}",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "0e1c9c54-503d-4ee2-b15a-3f99e962a649",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "매스/기하",
+      "refs": [
+        "notch_south_west",
+        "base",
+        "notch",
+        "arr.maas.design_quality.v1",
+        "clone/d4descent",
+        "ngii_local_dem",
+        "건축법 시행령 §86",
+        "건축법 시행령 §119"
+      ],
+      "formula": "quality 0.471 · arr.maas.design_quality.v1 · verbs base->notch | parcel 17.10m · road 16.48m · neighbor 17.35m | slop...",
+      "decision": "{\"shape\":\"notch_south_west\",\"far\":111.11,\"bcr\":37.04,\"height\":8.4,\"quality\":0.4708,\"volumes\":1,\"floor_groups\":0}"
+    }
+  },
+  {
+    "timestamp": "2026-06-24T20:01:58.573492",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종검토: 법규·주차·MAAS evidence 통합 통과 · 공식 law_graph + parking + MAAS geometry evidence 종합 · 근거 needs_evidence, bulk_and_density.height, zoning_and_land_use.allowed_by_zone, model_documents_and_artifacts.vworld_visual_check, bulk_and_density.bcr:pass, bulk_and_density.far:pass, bulk_and_density.height:needs_evidence, building_line_and_setbacks.adjacent_setback:pass · 판단 {\"status\":\"unknown\",\"missing\":[\"bulk_and_density.height\",\"zoning_and_land_use.allowed_by_zone\",\"model_documents_and_a...",
+    "event_type": "dialogue",
+    "metadata": {
+      "job_id": "0e1c9c54-503d-4ee2-b15a-3f99e962a649",
+      "design_id": 900000,
+      "source": "arr_design_ui",
+      "final_status": "unknown",
+      "status": "pass",
+      "label": "최종검토",
+      "refs": [
+        "needs_evidence",
+        "bulk_and_density.height",
+        "zoning_and_land_use.allowed_by_zone",
+        "model_documents_and_artifacts.vworld_visual_check",
+        "bulk_and_density.bcr:pass",
+        "bulk_and_density.far:pass",
+        "bulk_and_density.height:needs_evidence",
+        "building_line_and_setbacks.adjacent_setback:pass"
+      ],
+      "formula": "law_graph + parking + MAAS geometry evidence 종합",
+      "decision": "{\"status\":\"unknown\",\"missing\":[\"bulk_and_density.height\",\"zoning_and_land_use.allowed_by_zone\",\"model_documents_and_a..."
+    }
+  },
+  {
+    "timestamp": "2026-06-25T16:15:21.240466",
+    "from_agent": "user",
+    "to_agent": "design_orchestrator",
+    "message": "PNU/design 후보를 받으면 법규-주차-매스-검토 순서로 협업을 시작해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-8df21db40ddf",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 1
+    }
+  },
+  {
+    "timestamp": "2026-06-25T16:15:21.284986",
+    "from_agent": "design_orchestrator",
+    "to_agent": "law_graph_agent",
+    "message": "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-8df21db40ddf",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 2
+    }
+  },
+  {
+    "timestamp": "2026-06-25T16:15:21.299542",
+    "from_agent": "law_graph_agent",
+    "to_agent": "parking_agent",
+    "message": "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-8df21db40ddf",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 3
+    }
+  },
+  {
+    "timestamp": "2026-06-25T16:15:21.315629",
+    "from_agent": "parking_agent",
+    "to_agent": "maas_geometry_agent",
+    "message": "주차 조건을 반영해 가능한 MAAS 매스 repair operation을 제안해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-8df21db40ddf",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 4
+    }
+  },
+  {
+    "timestamp": "2026-06-25T16:15:21.329964",
+    "from_agent": "maas_geometry_agent",
+    "to_agent": "review_agent",
+    "message": "법규/주차/매스 evidence를 묶어 통과/보류/실패 리스크를 판정해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-8df21db40ddf",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 5
+    }
+  },
+  {
+    "timestamp": "2026-06-25T16:15:21.344900",
+    "from_agent": "review_agent",
+    "to_agent": "design_orchestrator",
+    "message": "최종 판단과 다음 수정 지시를 사용자에게 전달할 형태로 정리해.",
+    "event_type": "dialogue",
+    "metadata": {
+      "source": "arr_ag_light_agent_flow_cli",
+      "run_id": "arr-ag-light-8df21db40ddf",
+      "scenario": "maas_legal_design_agent_flow",
+      "step": 6
+    }
   }
 ]

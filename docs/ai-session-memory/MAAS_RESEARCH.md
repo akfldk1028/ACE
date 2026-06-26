@@ -206,3 +206,28 @@ A MAAS candidate is not "correct" unless these all agree:
 - Section PNG.
 - VWorld/Cesium placement in a real browser.
 - Summarized agent review trace with no unresolved hard failures.
+
+## 2026-06-26 MAAS 20-Alternative PNG Evidence
+
+Latest mass-diversity evidence for real PNU `1168011800104170004` was regenerated after restarting the ARR backend on `127.0.0.1:18000`.
+
+- Command/script: `node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- HTML: `docs/playwright/design-route-live-verify/maas-20-alt-latest.html`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- Result count: 20 alternatives.
+- Unique `mass_shape` names: 17.
+- Section-profile alternatives: 6.
+  - Rank 9: `diagonal_connect_step_x_layered` / `diagonal_connector`
+  - Rank 10: `terrace_link_north_layered` / `terrace_ribbon`
+  - Rank 11: `sloped_roof_mass_layered` / `sloped_roof`
+  - Rank 12: `grammar_diagonal_step_connector_layered` / `diagonal_connector`
+  - Rank 15: `grammar_sloped_roof_envelope_layered` / `sloped_roof`
+  - Rank 17: `grammar_terrace_ribbon_stepback_layered` / `terrace_ribbon`
+
+Interpretation:
+
+- The generator is no longer producing only identical legal boxes. The PNG now shows plan variation plus visible pink section overlays for sloped roof, diagonal connector, and terrace ribbon concepts.
+- It is still not final design quality. Several top and bottom candidates share similar high-FAR stepped envelopes, so the selector should add a stronger family-level diversity gate.
+- Parking remains the hard blocker for this PNU/building type. The latest 20-alt PNG has no green parking-pass candidates; high-FAR design variants mostly fail required/provided parking. Do not present these as approved masses.
+- Next loop should keep legal/section diversity while explicitly optimizing for parking-feasible candidates, not merely ranking high FAR/BCR outputs.

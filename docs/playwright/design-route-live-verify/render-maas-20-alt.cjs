@@ -78,6 +78,72 @@ function sidePaths(coords, project, bottom, top) {
   return paths;
 }
 
+function centroid(coords) {
+  if (!coords.length) return [0, 0];
+  const sum = coords.reduce((acc, point) => [acc[0] + point[0], acc[1] + point[1]], [0, 0]);
+  return [sum[0] / coords.length, sum[1] / coords.length];
+}
+
+function renderSectionProfile(feature, volumes, project) {
+  const props = feature.properties || {};
+  const profile = props.section_profile || props.maas_model?.section_profile;
+  if (!profile || !profile.kind) return "";
+  const allCoords = volumes.flatMap(volume => geomCoords(volume.geometry));
+  if (allCoords.length < 3) return "";
+  const b = bounds(allCoords);
+  const maxTop = Math.max(...volumes.map(volume => Number(volume.top_height || props.height || 0)));
+  const minTop = Math.min(...volumes.map(volume => Number(volume.top_height || props.height || 0)));
+  const kind = String(profile.kind);
+  const accent = "#ec4899";
+  const label = `<text x="10" y="38" font-size="10" font-weight="800" fill="${accent}">${escapeHtml(kind)}</text>`;
+
+  if (kind === "sloped_roof" || kind === "sloped_roof_mass") {
+    const high = maxTop + 1.2;
+    const low = Math.max(minTop, maxTop * 0.56) + 1.2;
+    const roof = [
+      [b.minX, b.minY, high],
+      [b.maxX, b.minY, high],
+      [b.maxX, b.maxY, low],
+      [b.minX, b.maxY, low],
+    ];
+    const roofPath = roof.map(([x, y, z], index) => {
+      const [px, py] = project([x, y], z);
+      return `${index ? "L" : "M"} ${px.toFixed(1)} ${py.toFixed(1)}`;
+    }).join(" ") + " Z";
+    const ribs = [0.33, 0.66].map(ratio => {
+      const x = b.minX + (b.maxX - b.minX) * ratio;
+      const a = project([x, b.minY], high);
+      const c = project([x, b.maxY], low);
+      return `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${c[0].toFixed(1)}" y2="${c[1].toFixed(1)}" stroke="#fb7185" stroke-width="2"/>`;
+    }).join("");
+    return `${label}<path d="${roofPath}" fill="rgba(254,215,170,.62)" stroke="${accent}" stroke-width="4"/>${ribs}`;
+  }
+
+  if (kind === "diagonal_connector" || kind === "diagonal_connect") {
+    const ordered = [...volumes].sort((a, b) => Number(a.bottom_height || 0) - Number(b.bottom_height || 0));
+    const lower = ordered[0];
+    const upper = ordered[ordered.length - 1];
+    const lowerCenter = project(centroid(geomCoords(lower.geometry)), Number(lower.top_height || maxTop) + 1.2);
+    const upperCenter = project(centroid(geomCoords(upper.geometry)), Number(upper.top_height || maxTop) + 1.2);
+    return `${label}<line x1="${lowerCenter[0].toFixed(1)}" y1="${lowerCenter[1].toFixed(1)}" x2="${upperCenter[0].toFixed(1)}" y2="${upperCenter[1].toFixed(1)}" stroke="${accent}" stroke-width="7" stroke-linecap="round"/><line x1="${lowerCenter[0].toFixed(1)}" y1="${lowerCenter[1].toFixed(1)}" x2="${upperCenter[0].toFixed(1)}" y2="${upperCenter[1].toFixed(1)}" stroke="#fdf2f8" stroke-width="2" stroke-linecap="round"/>`;
+  }
+
+  if (kind === "terrace_ribbon") {
+    const lines = [];
+    for (let index = 0; index < 4; index += 1) {
+      const t = (index + 1) / 5;
+      const y = b.maxY - (b.maxY - b.minY) * t * 0.56;
+      const z = maxTop * (0.40 + index * 0.13) + 1.2;
+      const a = project([b.minX, y], z);
+      const c = project([b.maxX, y], z);
+      lines.push(`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${c[0].toFixed(1)}" y2="${c[1].toFixed(1)}" stroke="${accent}" stroke-width="4" stroke-linecap="round"/>`);
+    }
+    return `${label}${lines.join("")}`;
+  }
+
+  return label;
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>]/g, char => ({
     "&": "&amp;",
@@ -151,6 +217,7 @@ function renderCard(feature, siteCoords, globalBounds) {
     });
     layers.push(`<path d="${polyPath(coords, project, top)}" fill="rgba(255,207,74,.65)" stroke="#ff7418" stroke-width="1.7"/>`);
   });
+  layers.push(renderSectionProfile(feature, volumes, project));
   const precheck = props.parking_precheck || {};
   const layout = precheck.layout_candidate || {};
   const required = precheck.required_count || {};
@@ -162,6 +229,7 @@ function renderCard(feature, siteCoords, globalBounds) {
     <svg viewBox="0 0 310 190">${site}${layers.join("")}<text x="10" y="20" font-size="13" font-weight="800" fill="#0d1a2d">${escapeHtml(props.variant_id)}</text></svg>
     <div class="meta">
       <div class="shape">${escapeHtml(props.mass_shape)}</div>
+      <div class="section">${escapeHtml((props.section_profile || props.maas_model?.section_profile || {}).kind || "no section profile")}</div>
       <div class="numbers">FAR ${Number(props.far || 0).toFixed(1)} · BCR ${Number(props.bcr || 0).toFixed(1)} · H ${Number(props.height || 0).toFixed(1)}m</div>
       <div class="${statusClass}">P ${escapeHtml(providedSpaces)}/${escapeHtml(requiredSpaces)} · ${escapeHtml(parkingStatus)}</div>
     </div>
@@ -179,7 +247,7 @@ async function render(payload) {
     h1{margin:0 0 8px;font-size:28px;letter-spacing:0}.sub{font-size:15px;color:#9fb2cc}
     main{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;padding:20px 32px}
     .card{height:282px;border:1px solid #263d5e;border-radius:8px;background:#101d32;overflow:hidden;display:grid;grid-template-rows:190px 1fr}
-    svg{background:#f7f9fb}.meta{padding:10px 12px;min-width:0}.shape{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.numbers{font-size:13px;color:#c2d0e3;margin-top:5px;white-space:nowrap}.good,.warn,.bad{font-size:13px;font-weight:800;margin-top:6px;white-space:nowrap}.good{color:#22d18b}.warn{color:#ffc12c}.bad{color:#ff5573}
+    svg{background:#f7f9fb}.meta{padding:10px 12px;min-width:0}.shape{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.section{font-size:12px;color:#f9a8d4;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.numbers{font-size:13px;color:#c2d0e3;margin-top:5px;white-space:nowrap}.good,.warn,.bad{font-size:13px;font-weight:800;margin-top:6px;white-space:nowrap}.good{color:#22d18b}.warn{color:#ffc12c}.bad{color:#ff5573}
     footer{position:absolute;left:32px;right:32px;bottom:14px;border-top:1px solid #233852;padding-top:10px;color:#9fb2cc;font-size:14px}
   </style></head><body>
   <header><h1>MAAS 20 Alternatives · PNU ${escapeHtml(payload.pnu)}</h1><div class="sub">${features.length}/${MAX_VARIANTS} candidates · ${escapeHtml(payload.building_type)} · generated in ${payload.elapsed_ms}ms · green=parking pass, yellow=review, red=parking fail</div></header>

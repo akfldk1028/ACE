@@ -84,6 +84,86 @@ function centroid(coords) {
   return [sum[0] / coords.length, sum[1] / coords.length];
 }
 
+function closeRing(coords) {
+  if (!coords.length) return coords;
+  const first = coords[0];
+  const last = coords[coords.length - 1];
+  if (first[0] === last[0] && first[1] === last[1]) return coords;
+  return [...coords, first];
+}
+
+function transformRing(coords, transform) {
+  const open = coords.length > 1 ? coords.slice(0, -1) : coords;
+  return closeRing(open.map(transform));
+}
+
+function scaleRing(coords, xScale, yScale, shiftX = 0, shiftY = 0) {
+  const [cx, cy] = centroid(coords.slice(0, -1));
+  return transformRing(coords, ([x, y]) => [
+    cx + (x - cx) * xScale + shiftX,
+    cy + (y - cy) * yScale + shiftY,
+  ]);
+}
+
+function terraceRing(coords, progress, side = "north") {
+  const b = bounds(coords);
+  const depth = b.maxY - b.minY;
+  const width = b.maxX - b.minX;
+  const cut = depth * 0.08 * progress;
+  const shift = width * 0.025 * progress;
+  if (side === "south") return scaleRing(coords, 1 - 0.03 * progress, 1, shift, cut);
+  return scaleRing(coords, 1 - 0.03 * progress, 1, shift, -cut);
+}
+
+function materializeSectionVolumes(feature, volumes) {
+  const props = feature.properties || {};
+  const profile = props.section_profile || props.maas_model?.section_profile;
+  const kind = String(profile?.kind || "");
+  if (!kind || volumes.length < 2) return volumes;
+
+  const allCoords = volumes.flatMap(volume => geomCoords(volume.geometry));
+  const b = bounds(allCoords);
+  const spanX = b.maxX - b.minX;
+  const spanY = b.maxY - b.minY;
+  const count = Math.max(1, volumes.length - 1);
+
+  return volumes.map((volume, index) => {
+    const coords = geomCoords(volume.geometry);
+    if (coords.length < 4) return volume;
+    const progress = index / count;
+    let nextCoords = coords;
+    let role = volume.role || "morphology_volume";
+
+    if (kind === "sloped_roof" || kind === "sloped_roof_mass") {
+      const xScale = 1 - 0.28 * progress;
+      const yScale = 1 - 0.10 * progress;
+      const shiftY = -spanY * 0.035 * progress;
+      nextCoords = scaleRing(coords, xScale, yScale, 0, shiftY);
+      role = "section_materialized_sloped_roof";
+    } else if (kind === "terrace_ribbon") {
+      nextCoords = terraceRing(coords, progress, profile.side || "north");
+      role = "section_materialized_terrace_ribbon";
+    } else if (kind === "diagonal_connector" || kind === "diagonal_connect") {
+      const axis = profile.axis || "x";
+      const shiftX = axis === "x" ? spanX * 0.13 * progress : spanX * 0.035 * progress;
+      const shiftY = axis === "y" ? spanY * 0.13 * progress : spanY * 0.045 * progress;
+      const scale = 1 - 0.12 * progress;
+      nextCoords = scaleRing(coords, scale, scale, shiftX, shiftY);
+      role = "section_materialized_diagonal_connector";
+    }
+
+    return {
+      ...volume,
+      role,
+      geometry: {
+        ...(volume.geometry || {}),
+        type: "Polygon",
+        coordinates: [nextCoords],
+      },
+    };
+  });
+}
+
 function renderSectionProfile(feature, volumes, project) {
   const props = feature.properties || {};
   const profile = props.section_profile || props.maas_model?.section_profile;
@@ -213,9 +293,10 @@ async function buildPayload() {
 
 function renderCard(feature, siteCoords, globalBounds) {
   const props = feature.properties || {};
-  const volumes = (props.mass_volumes || []).length
+  const rawVolumes = (props.mass_volumes || []).length
     ? props.mass_volumes
     : [{ bottom_height: 0, top_height: props.height || 10, geometry: feature.geometry }];
+  const volumes = materializeSectionVolumes(feature, rawVolumes);
   const project = projectFactory(globalBounds, 310, 190);
   const site = `<path d="${polyPath(siteCoords, project, 0)}" fill="#effaf2" stroke="#58d99b" stroke-width="1.2" stroke-dasharray="4 4"/>`;
   const layers = [];

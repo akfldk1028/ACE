@@ -272,3 +272,33 @@ Remaining hard truth:
 - `sloped_roof`, `terrace_ribbon`, and `diagonal_connector` are still section/render evidence layered over conservative legal floor plates. They are not yet true non-orthogonal mesh solids in the source geometry.
 - The actual PNU/common-housing run still has `parkingPass=0`, so no candidate should be called permit-ready or final.
 - Next real improvement is not another overlay pass. It should create source geometry for sloped/diagonal/terrace solids and optimize against parking feasibility at generation time.
+
+## 2026-06-27 PNG Review Loop: Render Tricks Are Not Enough
+
+User asked to keep reviewing the PNG visually, not just quote metrics. Latest
+loop regenerated `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+after changing `render-maas-20-alt.cjs` so section-profile candidates materialize
+their rendered volume rings instead of only drawing pink overlays.
+
+Latest visual/stat result:
+
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- Unique `mass_shape`: 19
+- Section-profile candidates: 6
+- Parking pass: 0
+- Generation time: about 120 seconds
+
+Visual judgment:
+
+- Plan-family diversity is now visible: interlock, overlap, split, branch,
+  pinch, courtyard, slender bar, legal layered, and section grammar candidates
+  all appear in the sheet.
+- The section-profile rendering is still not good enough for competition-grade
+  architectural massing. `diagonal_connector` still reads partly like a marker
+  on a stepped box, and `sloped_roof` still reads like a roof plane placed on
+  top rather than a true source solid.
+- Do not spend more time trying to make this pass by PNG overlay/render tricks.
+  The next real fix belongs in backend geometry generation: create actual
+  source volumes/solids for sloped, diagonal, and terrace/ribbon forms, then
+  validate those against legal envelope and parking feasibility.

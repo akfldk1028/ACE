@@ -302,3 +302,49 @@ Visual judgment:
   The next real fix belongs in backend geometry generation: create actual
   source volumes/solids for sloped, diagonal, and terrace/ribbon forms, then
   validate those against legal envelope and parking feasibility.
+
+## 2026-06-27 Backend Section Source Volumes
+
+User asked to do the backend geometry step, not just keep adjusting PNG. First
+backend implementation is now in `ARR/backend/design/maas/legal_mesh_optimizer.py`.
+
+What changed:
+
+- Section profile intent is materialized into `properties.mass_volumes` and
+  `properties.maas_model.volumes`.
+- Legal accounting still uses conservative `floor_plates`; generated section
+  volumes are clipped inside their legal floor-plate bands.
+- New metadata:
+  - `properties.section_profile_materialized.status =
+    materialized_inside_legal_floor_plates`
+  - volume roles include `section_source_sloped_roof`,
+    `section_source_terrace_ribbon`, `section_source_diagonal_connector`, and
+    `section_source_diagonal_connector_bridge`.
+- Diagonal connector variants now append a real bridge volume inside the union
+  of legal floor-plate bands instead of relying on a pink line overlay.
+- `render-maas-20-alt.cjs` no longer fabricates section geometry in the PNG.
+  It draws backend `mass_volumes`; connector bridge volumes get a darker orange
+  source-volume style so they are visible without a fake overlay.
+
+Latest PNU evidence:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- Unique `mass_shape`: 19
+- Section materialized candidates: 6
+- Diagonal bridge source-volume candidates: 2
+- Parking pass: 0
+- Generation time: about 116 seconds
+
+Visual judgment after opening the PNG:
+
+- This is a real backend source-volume improvement: the JSON now carries
+  materialized section volumes, not only `section_profile` labels.
+- It still does not reach competition-grade design quality. The output is a
+  conservative stepped/shifted solid approximation inside legal plates, not a
+  true freeform/non-orthogonal mesh optimizer.
+- Next required step is a proper 3D solid/mesh path for sloped faces and
+  connector surfaces, plus parking-feasible generation. Do not claim this is
+  final MAAS paper-quality massing.

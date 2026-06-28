@@ -158,6 +158,29 @@ function renderSectionProfile(feature, volumes, project) {
   return label;
 }
 
+function renderSectionSourceSurfaces(feature, project) {
+  const props = feature.properties || {};
+  const surfaces = Array.isArray(props.section_source_surfaces)
+    ? props.section_source_surfaces
+    : Array.isArray(props.maas_model?.section_source_surfaces) ? props.maas_model.section_source_surfaces : [];
+  if (!surfaces.length) return "";
+  return surfaces.map((surface) => {
+    const vertices = Array.isArray(surface.vertices_wgs84_h) ? surface.vertices_wgs84_h : [];
+    if (vertices.length < 3) return "";
+    const role = String(surface.role || "");
+    const kind = String(surface.kind || "");
+    const projected = vertices.map(([lng, lat, h]) => project([Number(lng), Number(lat)], Number(h) || 0));
+    const path = projected.map(([x, y], index) => `${index ? "L" : "M"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ") + " Z";
+    const style = kind === "sloped_roof"
+      ? { fill: "rgba(245,158,11,.50)", stroke: "#b45309", width: 2.2 }
+      : kind === "terrace_ribbon"
+        ? { fill: "rgba(217,119,6,.42)", stroke: "#92400e", width: 1.8 }
+        : { fill: "rgba(194,65,12,.54)", stroke: "#7c2d12", width: 2.4 };
+    const title = role ? `<title>${escapeHtml(role)}</title>` : "";
+    return `<path d="${path}" fill="${style.fill}" stroke="${style.stroke}" stroke-width="${style.width}">${title}</path>`;
+  }).join("");
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>]/g, char => ({
     "&": "&amp;",
@@ -237,6 +260,7 @@ function renderCard(feature, siteCoords, globalBounds) {
     });
     layers.push(`<path d="${polyPath(coords, project, top)}" fill="${topFill}" stroke="${stroke}" stroke-width="${isConnectorBridge ? 2.1 : 1.7}"/>`);
   });
+  layers.push(renderSectionSourceSurfaces(feature, project));
   layers.push(renderSectionProfile(feature, volumes, project));
   const precheck = props.parking_precheck || {};
   const layout = precheck.layout_candidate || {};

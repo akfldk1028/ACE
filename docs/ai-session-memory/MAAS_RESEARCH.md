@@ -348,3 +348,47 @@ Visual judgment after opening the PNG:
 - Next required step is a proper 3D solid/mesh path for sloped faces and
   connector surfaces, plus parking-feasible generation. Do not claim this is
   final MAAS paper-quality massing.
+
+## 2026-06-28 Backend Section Source Surfaces
+
+Loop goal: keep reviewing the PNG and move from source volumes to explicit
+source surfaces so sloped/terrace/diagonal intent reads as geometry, not labels.
+
+Changes:
+
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - Adds `section_source_surfaces` to `properties` and `maas_model`.
+  - Surface records use `vertices_wgs84_h`, `role`, `kind`, and
+    `surface_type`.
+  - Generated roles:
+    - `section_surface_sloped_roof_plane`
+    - `section_surface_terrace_band_1..3`
+    - `section_surface_diagonal_connector_deck`
+- `docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+  - Draws backend-provided `section_source_surfaces`.
+  - No frontend-only section geometry fabrication is needed for the PNG.
+
+Latest real-PNU evidence:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- Unique `mass_shape`: 19
+- Section materialized candidates: 6
+- Surface candidates: 6
+- Surface count: 10
+- Parking pass: 0
+- Generation time: about 138 seconds
+
+Visual judgment after opening PNG:
+
+- This loop is a visible improvement. `sloped_roof`, `terrace_ribbon`, and
+  `diagonal_connector` now read as backend source surfaces in the PNG rather
+  than pink overlay strokes.
+- Still not final competition-grade design. The geometry remains conservative
+  and coarse, but the evidence path is now correctly backend-driven:
+  floor plates -> materialized source volumes -> source surfaces -> PNG.
+- Next loop should either improve the actual shape grammar operators for more
+  architectural massing quality or start parking-feasible generation; do not
+  regress back to display-only overlays.

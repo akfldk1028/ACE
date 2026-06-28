@@ -2,7 +2,7 @@
   "pnu": "1168011800104170004",
   "building_type": "공동주택",
   "max_variants": 20,
-  "elapsed_ms": 115920,
+  "elapsed_ms": 138333,
   "boundary": {
     "pnu": "1168011800104170004",
     "geometry": {
@@ -8497,10 +8497,40 @@
                 "lower_floor_fraction": 0.4,
                 "render_hint": "draw_inclined_connector_between_lower_and_upper_masses"
               },
+              "section_source_surfaces": [
+                {
+                  "role": "section_surface_diagonal_connector_deck",
+                  "kind": "diagonal_connector",
+                  "surface_type": "polygon",
+                  "vertices_wgs84_h": [
+                    [
+                      127.0450532,
+                      37.48501798,
+                      19.72
+                    ],
+                    [
+                      127.04503951,
+                      37.48501417,
+                      19.72
+                    ],
+                    [
+                      127.04502768,
+                      37.48504119,
+                      19.72
+                    ],
+                    [
+                      127.04504137,
+                      37.485045,
+                      19.72
+                    ]
+                  ]
+                }
+              ],
               "section_profile_materialized": {
                 "status": "materialized_inside_legal_floor_plates",
                 "kind": "diagonal_connector",
                 "volume_count": 5,
+                "surface_count": 1,
                 "legal_accounting": "floor_plates"
               },
               "grammar_sequence": "diagonal_connect_step_x",
@@ -10486,10 +10516,40 @@
               "lower_floor_fraction": 0.4,
               "render_hint": "draw_inclined_connector_between_lower_and_upper_masses"
             },
+            "section_source_surfaces": [
+              {
+                "role": "section_surface_diagonal_connector_deck",
+                "kind": "diagonal_connector",
+                "surface_type": "polygon",
+                "vertices_wgs84_h": [
+                  [
+                    127.0450532,
+                    37.48501798,
+                    19.72
+                  ],
+                  [
+                    127.04503951,
+                    37.48501417,
+                    19.72
+                  ],
+                  [
+                    127.04502768,
+                    37.48504119,
+                    19.72
+                  ],
+                  [
+                    127.04504137,
+                    37.485045,
+                    19.72
+                  ]
+                ]
+              }
+            ],
             "section_profile_materialized": {
               "status": "materialized_inside_legal_floor_plates",
               "kind": "diagonal_connector",
               "volume_count": 5,
+              "surface_count": 1,
               "legal_accounting": "floor_plates"
             },
             "shape_signature_3d": {
@@ -12694,10 +12754,129 @@
                 "depth_ratio": 0.22,
                 "render_hint": "draw_continuous_terrace_bands_not_isolated_boxes"
               },
+              "section_source_surfaces": [
+                {
+                  "role": "section_surface_terrace_band_1",
+                  "kind": "terrace_ribbon",
+                  "surface_type": "polygon",
+                  "vertices_wgs84_h": [
+                    [
+                      127.0449512,
+                      37.48502634,
+                      8.5
+                    ],
+                    [
+                      127.04507437,
+                      37.48508463,
+                      8.5
+                    ],
+                    [
+                      127.04511725,
+                      37.48502471,
+                      8.5
+                    ],
+                    [
+                      127.04499342,
+                      37.48496741,
+                      8.5
+                    ],
+                    [
+                      127.04499125,
+                      37.48497039,
+                      8.5
+                    ],
+                    [
+                      127.04495564,
+                      37.48502014,
+                      8.5
+                    ]
+                  ]
+                },
+                {
+                  "role": "section_surface_terrace_band_2",
+                  "kind": "terrace_ribbon",
+                  "surface_type": "polygon",
+                  "vertices_wgs84_h": [
+                    [
+                      127.04495443,
+                      37.48502302,
+                      14.1
+                    ],
+                    [
+                      127.04507505,
+                      37.48508126,
+                      14.1
+                    ],
+                    [
+                      127.04511534,
+                      37.48502382,
+                      14.1
+                    ],
+                    [
+                      127.04499343,
+                      37.48496742,
+                      14.1
+                    ],
+                    [
+                      127.04495878,
+                      37.48501681,
+                      14.1
+                    ]
+                  ]
+                },
+                {
+                  "role": "section_surface_terrace_band_3",
+                  "kind": "terrace_ribbon",
+                  "surface_type": "polygon",
+                  "vertices_wgs84_h": [
+                    [
+                      127.0450704,
+                      37.48504622,
+                      19.7
+                    ],
+                    [
+                      127.04507062,
+                      37.48504623,
+                      19.7
+                    ],
+                    [
+                      127.04508627,
+                      37.48502345,
+                      19.7
+                    ],
+                    [
+                      127.0450061,
+                      37.48498636,
+                      19.7
+                    ],
+                    [
+                      127.04499271,
+                      37.4850047,
+                      19.7
+                    ],
+                    [
+                      127.04498625,
+                      37.4850141,
+                      19.7
+                    ],
+                    [
+                      127.04498338,
+                      37.48501828,
+                      19.7
+                    ],
+                    [
+                      127.0450258,
+                      37.48503919,
+                      19.7
+                    ]
+                  ]
+                }
+              ],
               "section_profile_materialized": {
                 "status": "materialized_inside_legal_floor_plates",
                 "kind": "terrace_ribbon",
                 "volume_count": 4,
+                "surface_count": 3,
                 "legal_accounting": "floor_plates"
               },
               "grammar_sequence": "terrace_link_north",
@@ -14653,10 +14832,129 @@
               "depth_ratio": 0.22,
               "render_hint": "draw_continuous_terrace_bands_not_isolated_boxes"
             },
+            "section_source_surfaces": [
+              {
+                "role": "section_surface_terrace_band_1",
+                "kind": "terrace_ribbon",
+                "surface_type": "polygon",
+                "vertices_wgs84_h": [
+                  [
+                    127.0449512,
+                    37.48502634,
+                    8.5
+                  ],
+                  [
+                    127.04507437,
+                    37.48508463,
+                    8.5
+                  ],
+                  [
+                    127.04511725,
+                    37.48502471,
+                    8.5
+                  ],
+                  [
+                    127.04499342,
+                    37.48496741,
+                    8.5
+                  ],
+                  [
+                    127.04499125,
+                    37.48497039,
+                    8.5
+                  ],
+                  [
+                    127.04495564,
+                    37.48502014,
+                    8.5
+                  ]
+                ]
+              },
+              {
+                "role": "section_surface_terrace_band_2",
+                "kind": "terrace_ribbon",
+                "surface_type": "polygon",
+                "vertices_wgs84_h": [
+                  [
+                    127.04495443,
+                    37.48502302,
+                    14.1
+                  ],
+                  [
+                    127.04507505,
+                    37.48508126,
+                    14.1
+                  ],
+                  [
+                    127.04511534,
+                    37.48502382,
+                    14.1
+                  ],
+                  [
+                    127.04499343,
+                    37.48496742,
+                    14.1
+                  ],
+                  [
+                    127.04495878,
+                    37.48501681,
+                    14.1
+                  ]
+                ]
+              },
+              {
+                "role": "section_surface_terrace_band_3",
+                "kind": "terrace_ribbon",
+                "surface_type": "polygon",
+                "vertices_wgs84_h": [
+                  [
+                    127.0450704,
+                    37.48504622,
+                    19.7
+                  ],
+                  [
+                    127.04507062,
+                    37.48504623,
+                    19.7
+                  ],
+                  [
+                    127.04508627,
+                    37.48502345,
+                    19.7
+                  ],
+                  [
+                    127.0450061,
+                    37.48498636,
+                    19.7
+                  ],
+                  [
+                    127.04499271,
+                    37.4850047,
+                    19.7
+                  ],
+                  [
+                    127.04498625,
+                    37.4850141,
+                    19.7
+                  ],
+                  [
+                    127.04498338,
+                    37.48501828,
+                    19.7
+                  ],
+                  [
+                    127.0450258,
+                    37.48503919,
+                    19.7
+                  ]
+                ]
+              }
+            ],
             "section_profile_materialized": {
               "status": "materialized_inside_legal_floor_plates",
               "kind": "terrace_ribbon",
               "volume_count": 4,
+              "surface_count": 3,
               "legal_accounting": "floor_plates"
             },
             "shape_signature_3d": {
@@ -16854,10 +17152,40 @@
                 "y_ratio": 0.92,
                 "render_hint": "draw_sloped_envelope_plane_over_mass"
               },
+              "section_source_surfaces": [
+                {
+                  "role": "section_surface_sloped_roof_plane",
+                  "kind": "sloped_roof",
+                  "surface_type": "quad",
+                  "vertices_wgs84_h": [
+                    [
+                      127.04496306,
+                      37.48497645,
+                      19.75
+                    ],
+                    [
+                      127.04510674,
+                      37.48497883,
+                      19.75
+                    ],
+                    [
+                      127.04510413,
+                      37.48507896,
+                      11.52
+                    ],
+                    [
+                      127.04496045,
+                      37.48507658,
+                      11.52
+                    ]
+                  ]
+                }
+              ],
               "section_profile_materialized": {
                 "status": "materialized_inside_legal_floor_plates",
                 "kind": "sloped_roof",
                 "volume_count": 4,
+                "surface_count": 1,
                 "legal_accounting": "floor_plates"
               },
               "grammar_sequence": "sloped_roof_mass",
@@ -18816,10 +19144,40 @@
               "y_ratio": 0.92,
               "render_hint": "draw_sloped_envelope_plane_over_mass"
             },
+            "section_source_surfaces": [
+              {
+                "role": "section_surface_sloped_roof_plane",
+                "kind": "sloped_roof",
+                "surface_type": "quad",
+                "vertices_wgs84_h": [
+                  [
+                    127.04496306,
+                    37.48497645,
+                    19.75
+                  ],
+                  [
+                    127.04510674,
+                    37.48497883,
+                    19.75
+                  ],
+                  [
+                    127.04510413,
+                    37.48507896,
+                    11.52
+                  ],
+                  [
+                    127.04496045,
+                    37.48507658,
+                    11.52
+                  ]
+                ]
+              }
+            ],
             "section_profile_materialized": {
               "status": "materialized_inside_legal_floor_plates",
               "kind": "sloped_roof",
               "volume_count": 4,
+              "surface_count": 1,
               "legal_accounting": "floor_plates"
             },
             "shape_signature_3d": {
@@ -39536,10 +39894,40 @@
                 "lower_floor_fraction": 0.4,
                 "render_hint": "draw_inclined_connector_between_lower_and_upper_masses"
               },
+              "section_source_surfaces": [
+                {
+                  "role": "section_surface_diagonal_connector_deck",
+                  "kind": "diagonal_connector",
+                  "surface_type": "polygon",
+                  "vertices_wgs84_h": [
+                    [
+                      127.04505282,
+                      37.48501909,
+                      19.72
+                    ],
+                    [
+                      127.04504126,
+                      37.48501474,
+                      19.72
+                    ],
+                    [
+                      127.04502593,
+                      37.48504062,
+                      19.72
+                    ],
+                    [
+                      127.04503749,
+                      37.48504497,
+                      19.72
+                    ]
+                  ]
+                }
+              ],
               "section_profile_materialized": {
                 "status": "materialized_inside_legal_floor_plates",
                 "kind": "diagonal_connector",
                 "volume_count": 5,
+                "surface_count": 1,
                 "legal_accounting": "floor_plates"
               },
               "design_quality": {
@@ -41621,10 +42009,40 @@
               "lower_floor_fraction": 0.4,
               "render_hint": "draw_inclined_connector_between_lower_and_upper_masses"
             },
+            "section_source_surfaces": [
+              {
+                "role": "section_surface_diagonal_connector_deck",
+                "kind": "diagonal_connector",
+                "surface_type": "polygon",
+                "vertices_wgs84_h": [
+                  [
+                    127.04505282,
+                    37.48501909,
+                    19.72
+                  ],
+                  [
+                    127.04504126,
+                    37.48501474,
+                    19.72
+                  ],
+                  [
+                    127.04502593,
+                    37.48504062,
+                    19.72
+                  ],
+                  [
+                    127.04503749,
+                    37.48504497,
+                    19.72
+                  ]
+                ]
+              }
+            ],
             "section_profile_materialized": {
               "status": "materialized_inside_legal_floor_plates",
               "kind": "diagonal_connector",
               "volume_count": 5,
+              "surface_count": 1,
               "legal_accounting": "floor_plates"
             },
             "far_utilization": 0.9994,
@@ -43757,10 +44175,40 @@
                 "y_ratio": 0.92,
                 "render_hint": "draw_sloped_envelope_plane_over_mass"
               },
+              "section_source_surfaces": [
+                {
+                  "role": "section_surface_sloped_roof_plane",
+                  "kind": "sloped_roof",
+                  "surface_type": "quad",
+                  "vertices_wgs84_h": [
+                    [
+                      127.04496306,
+                      37.48497645,
+                      19.75
+                    ],
+                    [
+                      127.04510674,
+                      37.48497883,
+                      19.75
+                    ],
+                    [
+                      127.04510413,
+                      37.48507896,
+                      11.52
+                    ],
+                    [
+                      127.04496045,
+                      37.48507658,
+                      11.52
+                    ]
+                  ]
+                }
+              ],
               "section_profile_materialized": {
                 "status": "materialized_inside_legal_floor_plates",
                 "kind": "sloped_roof",
                 "volume_count": 4,
+                "surface_count": 1,
                 "legal_accounting": "floor_plates"
               },
               "design_quality": {
@@ -45806,10 +46254,40 @@
               "y_ratio": 0.92,
               "render_hint": "draw_sloped_envelope_plane_over_mass"
             },
+            "section_source_surfaces": [
+              {
+                "role": "section_surface_sloped_roof_plane",
+                "kind": "sloped_roof",
+                "surface_type": "quad",
+                "vertices_wgs84_h": [
+                  [
+                    127.04496306,
+                    37.48497645,
+                    19.75
+                  ],
+                  [
+                    127.04510674,
+                    37.48497883,
+                    19.75
+                  ],
+                  [
+                    127.04510413,
+                    37.48507896,
+                    11.52
+                  ],
+                  [
+                    127.04496045,
+                    37.48507658,
+                    11.52
+                  ]
+                ]
+              }
+            ],
             "section_profile_materialized": {
               "status": "materialized_inside_legal_floor_plates",
               "kind": "sloped_roof",
               "volume_count": 4,
+              "surface_count": 1,
               "legal_accounting": "floor_plates"
             },
             "far_utilization": 0.9994,
@@ -47621,10 +48099,134 @@
                 "depth_ratio": 0.2,
                 "render_hint": "draw_continuous_terrace_bands_not_isolated_boxes"
               },
+              "section_source_surfaces": [
+                {
+                  "role": "section_surface_terrace_band_1",
+                  "kind": "terrace_ribbon",
+                  "surface_type": "polygon",
+                  "vertices_wgs84_h": [
+                    [
+                      127.04507272,
+                      37.48508388,
+                      8.5
+                    ],
+                    [
+                      127.04511561,
+                      37.48502395,
+                      8.5
+                    ],
+                    [
+                      127.04499342,
+                      37.48496741,
+                      8.5
+                    ],
+                    [
+                      127.0449904,
+                      37.48497155,
+                      8.5
+                    ],
+                    [
+                      127.04495561,
+                      37.48502016,
+                      8.5
+                    ],
+                    [
+                      127.04495117,
+                      37.48502636,
+                      8.5
+                    ]
+                  ]
+                },
+                {
+                  "role": "section_surface_terrace_band_2",
+                  "kind": "terrace_ribbon",
+                  "surface_type": "polygon",
+                  "vertices_wgs84_h": [
+                    [
+                      127.0450734,
+                      37.48508053,
+                      14.1
+                    ],
+                    [
+                      127.04511371,
+                      37.48502307,
+                      14.1
+                    ],
+                    [
+                      127.04499342,
+                      37.48496741,
+                      14.1
+                    ],
+                    [
+                      127.04499282,
+                      37.48496824,
+                      14.1
+                    ],
+                    [
+                      127.04495872,
+                      37.48501685,
+                      14.1
+                    ],
+                    [
+                      127.04495436,
+                      37.48502306,
+                      14.1
+                    ]
+                  ]
+                },
+                {
+                  "role": "section_surface_terrace_band_3",
+                  "kind": "terrace_ribbon",
+                  "surface_type": "polygon",
+                  "vertices_wgs84_h": [
+                    [
+                      127.04502778,
+                      37.48503848,
+                      19.7
+                    ],
+                    [
+                      127.0450728,
+                      37.48503922,
+                      19.7
+                    ],
+                    [
+                      127.04507279,
+                      37.48503944,
+                      19.7
+                    ],
+                    [
+                      127.04507308,
+                      37.48503945,
+                      19.7
+                    ],
+                    [
+                      127.04507297,
+                      37.48504382,
+                      19.7
+                    ],
+                    [
+                      127.04509034,
+                      37.48501855,
+                      19.7
+                    ],
+                    [
+                      127.04500402,
+                      37.48497861,
+                      19.7
+                    ],
+                    [
+                      127.04499271,
+                      37.4849941,
+                      19.7
+                    ]
+                  ]
+                }
+              ],
               "section_profile_materialized": {
                 "status": "materialized_inside_legal_floor_plates",
                 "kind": "terrace_ribbon",
                 "volume_count": 4,
+                "surface_count": 3,
                 "legal_accounting": "floor_plates"
               },
               "design_quality": {
@@ -49353,10 +49955,134 @@
               "depth_ratio": 0.2,
               "render_hint": "draw_continuous_terrace_bands_not_isolated_boxes"
             },
+            "section_source_surfaces": [
+              {
+                "role": "section_surface_terrace_band_1",
+                "kind": "terrace_ribbon",
+                "surface_type": "polygon",
+                "vertices_wgs84_h": [
+                  [
+                    127.04507272,
+                    37.48508388,
+                    8.5
+                  ],
+                  [
+                    127.04511561,
+                    37.48502395,
+                    8.5
+                  ],
+                  [
+                    127.04499342,
+                    37.48496741,
+                    8.5
+                  ],
+                  [
+                    127.0449904,
+                    37.48497155,
+                    8.5
+                  ],
+                  [
+                    127.04495561,
+                    37.48502016,
+                    8.5
+                  ],
+                  [
+                    127.04495117,
+                    37.48502636,
+                    8.5
+                  ]
+                ]
+              },
+              {
+                "role": "section_surface_terrace_band_2",
+                "kind": "terrace_ribbon",
+                "surface_type": "polygon",
+                "vertices_wgs84_h": [
+                  [
+                    127.0450734,
+                    37.48508053,
+                    14.1
+                  ],
+                  [
+                    127.04511371,
+                    37.48502307,
+                    14.1
+                  ],
+                  [
+                    127.04499342,
+                    37.48496741,
+                    14.1
+                  ],
+                  [
+                    127.04499282,
+                    37.48496824,
+                    14.1
+                  ],
+                  [
+                    127.04495872,
+                    37.48501685,
+                    14.1
+                  ],
+                  [
+                    127.04495436,
+                    37.48502306,
+                    14.1
+                  ]
+                ]
+              },
+              {
+                "role": "section_surface_terrace_band_3",
+                "kind": "terrace_ribbon",
+                "surface_type": "polygon",
+                "vertices_wgs84_h": [
+                  [
+                    127.04502778,
+                    37.48503848,
+                    19.7
+                  ],
+                  [
+                    127.0450728,
+                    37.48503922,
+                    19.7
+                  ],
+                  [
+                    127.04507279,
+                    37.48503944,
+                    19.7
+                  ],
+                  [
+                    127.04507308,
+                    37.48503945,
+                    19.7
+                  ],
+                  [
+                    127.04507297,
+                    37.48504382,
+                    19.7
+                  ],
+                  [
+                    127.04509034,
+                    37.48501855,
+                    19.7
+                  ],
+                  [
+                    127.04500402,
+                    37.48497861,
+                    19.7
+                  ],
+                  [
+                    127.04499271,
+                    37.4849941,
+                    19.7
+                  ]
+                ]
+              }
+            ],
             "section_profile_materialized": {
               "status": "materialized_inside_legal_floor_plates",
               "kind": "terrace_ribbon",
               "volume_count": 4,
+              "surface_count": 3,
               "legal_accounting": "floor_plates"
             },
             "far_utilization": 0.9992,

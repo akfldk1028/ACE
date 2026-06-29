@@ -541,3 +541,104 @@ Visual judgment:
      fetch, or
   2. a bounded deterministic placement rule that moves the upper mass inward
      once, not a broad offset search.
+
+## 2026-06-29 Strict Envelope Recheck / Mass Richness Gap
+
+User asked whether the diagonal/sloped/terrace candidates are actually inside
+the legal envelope, and noted that the massing still is not rich enough.
+
+Findings:
+
+- Latest pre-fix parking-feasible candidates had FAR/BCR and parking evidence,
+  but `min_setback` displayed as `0.48m` against the `0.5m` adjacent setback
+  constraint.
+- `failed_constraint_metrics()` has a `0.1m` tolerance for `Greater than`
+  constraints, so `0.48m` passed internally. For user-facing legal evidence,
+  that is too loose.
+
+Change:
+
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - Added `_strict_setback_footprint()` and `_strict_setback_limit_m()`.
+  - Parking repair footprints are clipped to `site_utm.buffer(-(setback +
+    0.02m))` before generating parking-preserving section variants.
+
+Latest strict-envelope evidence:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- Top parking-feasible candidates now show `min_setback=0.52m`, so the visible
+  setback check passes:
+  - `parking_repair_terrace_ribbon`: FAR `94.57`, `P 4/4`
+  - `parking_repair_sloped_roof_mass`: FAR `79.71`, `P 4/4`
+  - `parking_repair_diagonal_connector`: FAR `80.11`, `P 4/4`
+- All still remain final `needs_drive_connectivity_review`.
+
+Visual judgment:
+
+- Legal envelope safety improved, but mass richness got weaker. The top three
+  strict candidates are too simple and low-capacity.
+- Next loop should stop tuning scale factors manually and instead review the
+  MAAS/d4descent/reference code and paper-style shape grammar operators:
+  single mass, split mass, linked mass, diagonal connector, terrace ribbon,
+  courtyard/void, bridge, slab overlap, stepped/tapered tower, and hybrid
+  combinations. The generator needs richer morphology language, not just
+  parking repair shrink/scale.
+
+## 2026-06-29 MAAS Mass-Language Parking-Feasible Loop
+
+User asked whether we had already given the system many architectural massing
+languages. Yes: the local grammar/term files already include stepback,
+podium/tower, courtyard/void, split/bridge, bar/slab, corner open, taper,
+interlock/overlap, diagonal connector, terrace link, and sloped-roof mass.
+
+Code finding:
+
+- The language existed in `grammar/data/maas_terms.v0.json` and
+  `grammar/data/maas_sequences.v0.json`, but the strict parking-feasible
+  candidates were not carrying rich MAAS verb sequences.
+- `parking_repair_terrace_ribbon`, `parking_repair_sloped_roof_mass`, and
+  `parking_repair_diagonal_connector` were visually/family mapped, but their
+  sequence evidence collapsed to `base + parking_repair_*`.
+
+Change:
+
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - Added explicit parking-preserving language sequences:
+    - terrace: `base -> lift -> terrace_link -> shift`
+    - sloped: `base -> sloped_roof_mass -> taper`
+    - diagonal: `base -> lift -> diagonal_connect -> taper`
+    - tapered slab: `base -> lift -> taper`
+    - split bridge: `base -> split -> lift -> taper`
+    - single bar: `base -> compress -> taper`
+  - Added parking-preserving variants for `split_bridge`, `tapered_slab`, and
+    `single_bar`.
+  - Selection now surfaces up to six `mass-stage pass` parking candidates first
+    instead of hiding feasible candidates behind higher-FAR parking-fail masses.
+
+Latest verified PNG:
+
+- `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`, building type: `공동주택`.
+- Full Playwright/API render completed in about 71 seconds.
+- `massStagePass=6`, `uniqueShapes=20`, `sectionMaterialized=9`.
+- Top six candidates:
+  - `parking_repair_terrace_ribbon`: FAR `94.57`, `P 4/4`.
+  - `parking_repair_sloped_roof_mass`: FAR `79.71`, `P 4/4`.
+  - `parking_repair_diagonal_connector`: FAR `80.11`, `P 4/4`.
+  - `parking_repair_tapered_slab`: FAR `79.85`, `P 4/4`.
+  - `parking_repair_split_bridge`: FAR `84.88`, `P 4/4`.
+  - `parking_repair_single_bar`: FAR `63.53`, `P 4/4`.
+- All six remain final `needs_drive_connectivity_review`, which is correct:
+  this is mass-stage feasibility, not final permit approval.
+
+Visual judgment:
+
+- Better than the previous PNG because the review sheet now starts with six
+  parking-feasible design-language alternatives.
+- Still not finished. `split_bridge` and `single_bar` are too visually
+  conservative, and the parking-feasible set remains lower FAR than the
+  high-capacity legal envelope candidates. Next loop should improve actual
+  source geometry/materialized solids for split/bridge, diagonal connector, and
+  bar/slab forms rather than only changing labels or card order.

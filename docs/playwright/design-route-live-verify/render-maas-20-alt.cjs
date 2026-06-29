@@ -36,10 +36,18 @@ function bounds(coords) {
 function allFeatureCoords(feature) {
   const props = feature.properties || {};
   const stalls = props.parking_precheck?.layout_candidate?.stalls || [];
+  const surfaces = Array.isArray(props.section_source_surfaces)
+    ? props.section_source_surfaces
+    : Array.isArray(props.maas_model?.section_source_surfaces) ? props.maas_model.section_source_surfaces : [];
   return [
     ...coordsOf(feature),
     ...(props.mass_volumes || []).flatMap(volume => geomCoords(volume.geometry)),
     ...stalls.flatMap(stall => Array.isArray(stall.polygon_wgs84) ? stall.polygon_wgs84 : []),
+    ...surfaces.flatMap(surface => (
+      Array.isArray(surface.vertices_wgs84_h)
+        ? surface.vertices_wgs84_h.map(([lng, lat]) => [lng, lat])
+        : []
+    )),
   ];
 }
 
@@ -174,13 +182,46 @@ function renderSectionSourceSurfaces(feature, project) {
     const projected = vertices.map(([lng, lat, h]) => project([Number(lng), Number(lat)], Number(h) || 0));
     const path = projected.map(([x, y], index) => `${index ? "L" : "M"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ") + " Z";
     const style = kind === "sloped_roof"
-      ? { fill: "rgba(245,158,11,.50)", stroke: "#b45309", width: 2.2 }
+      ? { fill: "rgba(245,158,11,.60)", stroke: "#92400e", width: 3.2 }
       : kind === "terrace_ribbon"
-        ? { fill: "rgba(217,119,6,.42)", stroke: "#92400e", width: 1.8 }
-        : { fill: "rgba(194,65,12,.54)", stroke: "#7c2d12", width: 2.4 };
+        ? { fill: "rgba(236,72,153,.36)", stroke: "#be185d", width: 3.0 }
+        : { fill: "rgba(236,72,153,.42)", stroke: "#9d174d", width: 3.2 };
     const title = role ? `<title>${escapeHtml(role)}</title>` : "";
     return `<path d="${path}" fill="${style.fill}" stroke="${style.stroke}" stroke-width="${style.width}">${title}</path>`;
   }).join("");
+}
+
+function volumeVisualStyle({ role, designSynthesis }) {
+  const isConnectorBridge = role.includes("diagonal_connector_bridge");
+  const isSectionSource = role.startsWith("section_source_");
+  if (isConnectorBridge) {
+    return {
+      sideFillA: "rgba(190,24,93,.42)",
+      sideFillB: "rgba(190,24,93,.30)",
+      topFill: "rgba(236,72,153,.34)",
+      stroke: "#be185d",
+      sideStrokeWidth: 0.8,
+      topStrokeWidth: 1.2,
+    };
+  }
+  if (designSynthesis && isSectionSource) {
+    return {
+      sideFillA: "rgba(255,123,24,.18)",
+      sideFillB: "rgba(255,123,24,.12)",
+      topFill: "rgba(255,207,74,.24)",
+      stroke: "#fb923c",
+      sideStrokeWidth: 0.55,
+      topStrokeWidth: 0.9,
+    };
+  }
+  return {
+    sideFillA: "rgba(255,123,24,.48)",
+    sideFillB: "rgba(255,123,24,.38)",
+    topFill: "rgba(255,207,74,.65)",
+    stroke: "#ff7418",
+    sideStrokeWidth: 0.8,
+    topStrokeWidth: 1.7,
+  };
 }
 
 function renderParkingStalls(feature, project) {
@@ -291,6 +332,7 @@ function renderCard(feature, siteCoords, globalBounds) {
   const volumes = (props.mass_volumes || []).length
     ? props.mass_volumes
     : [{ bottom_height: 0, top_height: props.height || 10, geometry: feature.geometry }];
+  const designSynthesis = Boolean(props.section_profile_materialized?.design_synthesis);
   const project = projectFactory(globalBounds, 310, 190);
   const site = `<path d="${polyPath(siteCoords, project, 0)}" fill="#effaf2" stroke="#58d99b" stroke-width="1.2" stroke-dasharray="4 4"/>`;
   const layers = [];
@@ -299,15 +341,11 @@ function renderCard(feature, siteCoords, globalBounds) {
     const bottom = Number(volume.bottom_height || 0);
     const top = Number(volume.top_height || props.height || 0);
     const role = String(volume.role || "");
-    const isConnectorBridge = role.includes("diagonal_connector_bridge");
-    const sideFillA = isConnectorBridge ? "rgba(217,91,0,.58)" : "rgba(255,123,24,.48)";
-    const sideFillB = isConnectorBridge ? "rgba(217,91,0,.46)" : "rgba(255,123,24,.38)";
-    const topFill = isConnectorBridge ? "rgba(234,88,12,.74)" : "rgba(255,207,74,.65)";
-    const stroke = isConnectorBridge ? "#c2410c" : "#ff7418";
+    const visual = volumeVisualStyle({ role, designSynthesis });
     sidePaths(coords, project, bottom, top).forEach((side, sideIndex) => {
-      layers.push(`<path d="${side}" fill="${sideIndex % 2 ? sideFillB : sideFillA}" stroke="${stroke}" stroke-width="${isConnectorBridge ? 1.2 : 0.8}"/>`);
+      layers.push(`<path d="${side}" fill="${sideIndex % 2 ? visual.sideFillB : visual.sideFillA}" stroke="${visual.stroke}" stroke-width="${visual.sideStrokeWidth}"/>`);
     });
-    layers.push(`<path d="${polyPath(coords, project, top)}" fill="${topFill}" stroke="${stroke}" stroke-width="${isConnectorBridge ? 2.1 : 1.7}"/>`);
+    layers.push(`<path d="${polyPath(coords, project, top)}" fill="${visual.topFill}" stroke="${visual.stroke}" stroke-width="${visual.topStrokeWidth}"/>`);
   });
   layers.push(renderSectionSourceSurfaces(feature, project));
   layers.push(renderSectionProfile(feature, volumes, project));
@@ -321,11 +359,15 @@ function renderCard(feature, siteCoords, globalBounds) {
   const concept = props.maas_concept || props.operator_family || "";
   const family = props.operator_family || "";
   const verbs = sequenceVerbs(props).slice(0, 4).join(">");
+  const synthesis = props.section_profile_materialized?.design_synthesis
+    ? `synthesis:${props.section_profile_materialized.kind || "section"}`
+    : "";
   return `<section class="card">
     <svg viewBox="0 0 310 190">${site}${layers.join("")}<text x="10" y="20" font-size="13" font-weight="800" fill="#0d1a2d">${escapeHtml(props.variant_id)}</text></svg>
     <div class="meta">
       <div class="shape">${escapeHtml(props.mass_shape)}</div>
       <div class="section">${escapeHtml(concept)}${family ? ` · ${escapeHtml(family)}` : ""}</div>
+      ${synthesis ? `<div class="synthesis">${escapeHtml(synthesis)}</div>` : ""}
       <div class="verbs">${escapeHtml(verbs || "base")}</div>
       <div class="numbers">FAR ${Number(props.far || 0).toFixed(1)} · BCR ${Number(props.bcr || 0).toFixed(1)} · H ${Number(props.height || 0).toFixed(1)}m</div>
       <div class="${parking.className}">P ${escapeHtml(providedSpaces)}/${escapeHtml(requiredSpaces)} · ${escapeHtml(parking.label)}</div>
@@ -344,7 +386,7 @@ async function render(payload) {
     h1{margin:0 0 8px;font-size:28px;letter-spacing:0}.sub{font-size:15px;color:#9fb2cc}
     main{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;padding:20px 32px}
     .card{height:282px;border:1px solid #263d5e;border-radius:8px;background:#101d32;overflow:hidden;display:grid;grid-template-rows:190px 1fr}
-    svg{background:#f7f9fb}.meta{padding:9px 12px;min-width:0}.shape{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.section{font-size:12px;color:#f9a8d4;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.verbs{font-size:11px;color:#93c5fd;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.numbers{font-size:12px;color:#c2d0e3;margin-top:4px;white-space:nowrap}.good,.warn,.bad{font-size:12px;font-weight:800;margin-top:5px;white-space:nowrap}.good{color:#22d18b}.warn{color:#ffc12c}.bad{color:#ff5573}
+    svg{background:#f7f9fb}.meta{padding:8px 12px;min-width:0}.shape{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.section{font-size:12px;color:#f9a8d4;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.synthesis{font-size:11px;color:#fbbf24;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.verbs{font-size:11px;color:#93c5fd;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.numbers{font-size:12px;color:#c2d0e3;margin-top:3px;white-space:nowrap}.good,.warn,.bad{font-size:12px;font-weight:800;margin-top:4px;white-space:nowrap}.good{color:#22d18b}.warn{color:#ffc12c}.bad{color:#ff5573}
     footer{position:absolute;left:32px;right:32px;bottom:14px;border-top:1px solid #233852;padding-top:10px;color:#9fb2cc;font-size:14px}
   </style></head><body>
   <header><h1>MAAS 20 Alternatives · PNU ${escapeHtml(payload.pnu)}</h1><div class="sub">${features.length}/${MAX_VARIANTS} candidates · ${escapeHtml(payload.building_type)} · generated in ${payload.elapsed_ms}ms · green=parking pass or mass-stage pass, yellow=review, red=parking fail</div></header>

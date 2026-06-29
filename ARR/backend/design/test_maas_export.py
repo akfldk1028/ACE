@@ -7,7 +7,8 @@ from io import StringIO
 
 from django.core.management import call_command
 from django.test import TestCase
-from shapely.geometry import Polygon, box
+from shapely.geometry import Point, Polygon, box
+from shapely.ops import unary_union
 from unittest.mock import patch
 
 from design.maas import export_mass_geojson_to_scad, generate_legal_mass_variants, mass_geojson_to_scad
@@ -18,7 +19,11 @@ from design.maas.aesthetic.projection_bake import attach_baked_projection_assets
 from design.maas.aesthetic.projection_export import attach_textured_mesh_assets
 from design.maas.aesthetic.renderers import MultiViewReferencePackRenderer, ReferencePngRenderer
 from design.maas.grammar import generate_grammar_variants, load_term_ontology, resolve_intent_to_sequence
-from design.maas.legal_mesh_optimizer import _preserve_visible_section_connector
+from design.maas.legal_mesh_optimizer import (
+    _preserve_visible_section_connector,
+    _sloped_surface_from_polygon,
+    _surface_between_bounds_face,
+)
 from design.maas.parking_layout import (
     _drive_entrance_access,
     _solve_grid_parking_layout,
@@ -30,6 +35,7 @@ from design.maas.parking_strategy import infer_parking_strategy
 from design.maas.research_backends import inspect_maas_clone_backend, run_maas_clone_reference_baseline
 from design.maas.training import build_examples_from_design_results, build_sft_examples, evidence_to_review_example, export_sft_seed
 from design.models import DesignResult, OptimizationJob
+from design.services.site_geometry import wgs84_to_utm
 
 
 class MaasScadExportServiceTest(TestCase):
@@ -453,6 +459,83 @@ class MaasLegalVariantsTest(TestCase):
             self.assertIn("small_attached_parking_relief", props["parking_precheck"])
             self.assertEqual(props["maas_model"]["parking_strategy"], props["parking_strategy"])
 
+    def test_section_synthesis_surfaces_stay_inside_mass_volume_union(self):
+        lower = wgs84_to_utm(Polygon([
+            (127.00000, 37.00000),
+            (127.00100, 37.00010),
+            (127.00086, 37.00100),
+            (127.00008, 37.00088),
+            (127.00000, 37.00000),
+        ]))
+        upper = wgs84_to_utm(Polygon([
+            (127.00024, 37.00022),
+            (127.00078, 37.00028),
+            (127.00070, 37.00072),
+            (127.00030, 37.00068),
+            (127.00024, 37.00022),
+        ]))
+        surfaces = [
+            _sloped_surface_from_polygon(
+                role="section_surface_sloped_roof_plane",
+                kind="sloped_roof",
+                polygon_utm=upper,
+                high_m=18.0,
+                low_m=10.0,
+            ),
+            _surface_between_bounds_face(
+                role="section_surface_terrace_ribbon_north_skin_1",
+                kind="terrace_ribbon",
+                lower_utm=lower,
+                upper_utm=upper,
+                lower_height_m=8.0,
+                upper_height_m=18.0,
+                face="north",
+            ),
+            _surface_between_bounds_face(
+                role="section_surface_diagonal_connector_west_fold_1",
+                kind="diagonal_connector",
+                lower_utm=lower,
+                upper_utm=upper,
+                lower_height_m=8.0,
+                upper_height_m=18.0,
+                face="west",
+            ),
+        ]
+
+        allowed = unary_union([lower, upper]).buffer(0.05)
+        checked_vertices = 0
+        for surface in surfaces:
+            self.assertIsNotNone(surface)
+            for lng, lat, *_ in surface["vertices_wgs84_h"]:
+                checked_vertices += 1
+                point = wgs84_to_utm(Point(lng, lat))
+                self.assertTrue(
+                    allowed.contains(point) or allowed.touches(point),
+                    msg=f"leaked surface {surface.get('role')}",
+                )
+
+        self.assertGreater(checked_vertices, 0)
+
+    def test_generated_section_synthesis_surfaces_are_present(self):
+        result = generate_legal_mass_variants(
+            mass_geojson=self._mass(),
+            site_polygon_geojson=self._site(),
+            constraints=self._constraints(),
+            building_type="공동주택",
+            max_variants=8,
+        )
+
+        synthesis_features = 0
+        for feature in result["feature_collection"]["features"]:
+            props = feature["properties"]
+            materialized = props.get("section_profile_materialized") or {}
+            if materialized.get("design_synthesis"):
+                synthesis_features += 1
+                self.assertGreater(materialized.get("surface_count") or 0, 0)
+                self.assertTrue(props.get("section_source_surfaces"))
+
+        self.assertGreater(synthesis_features, 0)
+
     def test_small_attached_parking_relief_tracks_road_aisle_and_tandem_exceptions(self):
         relief = evaluate_small_attached_parking_relief(
             required_spaces=5,
@@ -734,6 +817,30 @@ class MaasLegalVariantsTest(TestCase):
         self.assertIn("parking_envelope_wgs84", strategy)
         self.assertIn("polygon_wgs84", strategy["layout_candidate"]["stalls"][0])
         self.assertEqual(len(strategy["layout_candidate"]["stalls"][0]["polygon_wgs84"][0]), 2)
+
+    def test_mechanical_parking_unlocks_high_far_mass_stage_without_final_pass(self):
+        strategy = infer_parking_strategy(
+            {
+                "footprint_area": 180.0,
+                "floor_area": 660.0,
+                "num_floors": 7,
+                "bcr": 68.0,
+                "required_parking_spaces": 7,
+            },
+            site_area_m2=264.0,
+            building_type="공동주택",
+            footprint_utm=box(0, 0, 13.5, 13.5),
+            site_utm=box(0, 0, 16, 16),
+        )
+
+        layout = strategy["layout_candidate"]
+        self.assertEqual(strategy["selected_strategy"], "mechanical")
+        self.assertEqual(layout["status"], "needs_mechanical_parking_review")
+        self.assertEqual(layout["provided_spaces"], 7)
+        self.assertEqual(layout["mass_stage_parking"]["status"], "pass")
+        self.assertTrue(layout["mass_stage_parking"]["authority_review_required"])
+        self.assertIn("mechanical_parking_equipment_type", layout["authority_review_check"]["external_evidence_needed"])
+        self.assertEqual(layout["stalls"], [])
 
     def test_parking_requirement_local_seed_rules_compute_neighborhood_use(self):
         rules = {

@@ -765,3 +765,83 @@ Architectural judgment:
   2. add basement parking as another strategy branch,
   3. improve grammar materialization for split/bridge and branch candidates,
   4. keep generating 20-alt PNG evidence after each massing change.
+
+## 2026-06-29 Section-Synthesis Envelope Fix / PNG Loop
+
+User rejected outputs that looked like only legal stepbacks with colored
+overlays. The correct implementation direction is to keep legal accounting on
+the conservative `floor_plates`, but materialize explicit section/design
+surfaces for review candidates so diagonal, terrace, and sloped-roof massing
+reads as architectural intent.
+
+Implemented in `ARR/backend/design/maas/legal_mesh_optimizer.py`:
+
+- `_final_design_balanced_selection()` now keeps the 20-card evidence sheet
+  from being dominated by high-FAR mechanical/stepped variants.
+  - It keeps one `legal_layered_max` anchor.
+  - It then promotes visible-stall parking review candidates.
+  - It reserves slots for `diagonal_connector`, `terrace_ribbon`, and
+    `sloped_roof` synthesis candidates.
+- `section_profile_materialized` now marks synthesis candidates with:
+  - `design_synthesis=True`
+  - `basis=maas_section_synthesis_v1`
+  - `surface_count`
+- `section_source_surfaces` now includes actual polygon-derived surfaces:
+  - sloped roof plane generated from the actual upper polygon vertices,
+  - north/south eave faces,
+  - terrace ribbon skins between adjacent bands,
+  - diagonal connector fold/skin/deck surfaces.
+- Important correction: avoid bbox-corner surfaces on non-rectangular parcels.
+  Bbox corners leaked outside the mass union. The fixed implementation derives
+  face points from actual polygon exterior coordinates.
+
+Implemented in
+`docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`:
+
+- The PNG renderer now includes `section_source_surfaces` in bounds
+  calculation.
+- Synthesis candidates fade the conservative legal/source volumes and draw
+  synthesis surfaces strongly, so the design operation is legible instead of
+  looking like a plain stepback stack.
+- Cards print `synthesis:<kind>` metadata.
+
+Latest verified evidence:
+
+- Command: `node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+- PNU: `1168011800104170004`
+- Building type: `공동주택`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- `count=20`
+- synthesis candidates: `10`
+  - `terrace_ribbon`: `4`
+  - `sloped_roof`: `3`
+  - `diagonal_connector`: `3`
+- parking statuses:
+  - `needs_mechanical_parking_review`: `14`
+  - `needs_drive_connectivity_review`: `4`
+  - `fail`: `2`
+- Envelope sanity check:
+  - surface vertices tested against each candidate mass-volume union,
+  - `surface_vertex_violations=0`.
+- Regression tests added in `ARR/backend/design/test_maas_export.py`:
+  - `test_section_synthesis_surfaces_stay_inside_mass_volume_union`
+  - `test_generated_section_synthesis_surfaces_are_present`
+  - Verified together with mechanical/parking tests: 4 tests passed in about
+    `31.8s`.
+
+Architectural judgment:
+
+- The latest PNG is a materially better review artifact than the earlier
+  all-step outputs: diagonal folded skins, terrace ribbons, and sloped roof
+  synthesis are visible.
+- This still must not be presented as final permit-ready parking. Most
+  high-FAR options are mechanical-review mass-stage branches. The low-FAR
+  visible-stall candidates remain review candidates because driveway/swept path
+  is not final.
+- Next useful work is not more fixed ratios. It is:
+  1. expose these exact `section_profile_materialized` and
+     `section_source_surfaces` reasons in the AG-light/React Flow panel,
+  2. add basement parking as a distinct strategy branch,
+  3. expand grammar materialization for split/bridge/branch candidates using
+     the same polygon-derived surface rule.

@@ -392,3 +392,58 @@ Visual judgment after opening PNG:
 - Next loop should either improve the actual shape grammar operators for more
   architectural massing quality or start parking-feasible generation; do not
   regress back to display-only overlays.
+
+## 2026-06-29 Parking Mass-Stage Pass / PNG Stall Evidence
+
+Loop goal: keep the 20-alt PNG review honest. The previous run had candidates
+that placed enough stalls but still read as generic parking failure because
+`layout.status` mixed permit-grade drive/swept-path review with early mass-stage
+feasibility.
+
+Changes:
+
+- `ARR/backend/design/maas/parking_layout.py`
+  - Adds `layout_candidate.mass_stage_parking`.
+  - This is a separate early-stage signal. It can be `pass` when required
+    stalls, accessible stalls, contiguous row/cluster, 6m aisle module,
+    frontage/attached-parking relief, and entrance connection are plausible.
+  - It does not overwrite `layout.status`; final swept-path/authority review
+    still remains visible.
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - Parking priority now ranks `mass_stage_parking.status == pass` above plain
+    review/fail candidates, while still keeping real `layout.status == pass`
+    highest.
+- `docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+  - Green label now means permit-precheck pass or mass-stage pass, not hidden
+    final approval.
+  - Draws actual `layout_candidate.stalls[*].polygon_wgs84` as magenta stall
+    outlines and `P1..Pn` labels on every 20-alt card.
+  - Supports `REUSE_JSON=1` for fast PNG-only rerender from the latest JSON.
+- `ARR/frontend/src/design/components/DesignInspector.tsx`
+  - Displays `mass_stage_pass` as "매스단계 가능" when the final layout status
+    is still under drive/swept-path review.
+
+Latest real-PNU evidence:
+
+- Command: `node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+- Fast rerender: `REUSE_JSON=1 node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- Unique `mass_shape`: 19
+- Permit-precheck parking pass: 0
+- Mass-stage parking pass: 1
+- Parking fail: 18
+- Generation time: about 124 seconds
+
+Visual judgment after opening PNG:
+
+- `maas_01` is the useful parking signal: `P 5/5`, contiguous row/cluster,
+  `mass-stage pass`, but final `needs_drive_connectivity_review` remains.
+- `maas_19` places `P 6/6` but the stalls are separated; it correctly remains
+  mass-stage fail.
+- Most high-FAR architectural candidates still fail because required parking
+  count is not fully placed. Do not present them as parking-feasible.
+- Next loop should improve geometry generation so more design-quality variants
+  preserve parking, instead of only shrinking into one low-FAR parking repair.

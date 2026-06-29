@@ -35,9 +35,11 @@ function bounds(coords) {
 
 function allFeatureCoords(feature) {
   const props = feature.properties || {};
+  const stalls = props.parking_precheck?.layout_candidate?.stalls || [];
   return [
     ...coordsOf(feature),
     ...(props.mass_volumes || []).flatMap(volume => geomCoords(volume.geometry)),
+    ...stalls.flatMap(stall => Array.isArray(stall.polygon_wgs84) ? stall.polygon_wgs84 : []),
   ];
 }
 
@@ -181,12 +183,42 @@ function renderSectionSourceSurfaces(feature, project) {
   }).join("");
 }
 
+function renderParkingStalls(feature, project) {
+  const props = feature.properties || {};
+  const layout = props.parking_precheck?.layout_candidate || {};
+  const stalls = Array.isArray(layout.stalls) ? layout.stalls : [];
+  if (!stalls.length) return "";
+  return stalls.map((stall, index) => {
+    const coords = Array.isArray(stall.polygon_wgs84) ? stall.polygon_wgs84 : [];
+    if (coords.length < 4) return "";
+    const path = polyPath(coords, project, 0.35);
+    const center = centroid(coords);
+    const [x, y] = project(center, 0.65);
+    return `<g><path d="${path}" fill="rgba(236,72,153,.16)" stroke="#ec4899" stroke-width="2.2"/><text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-size="8" font-weight="800" fill="#be185d">P${index + 1}</text></g>`;
+  }).join("");
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>]/g, char => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
   }[char]));
+}
+
+function parkingDisplay(layout) {
+  const status = layout.status || "no parking";
+  const massStage = layout.mass_stage_parking || {};
+  if (status === "pass") {
+    return { className: "good", label: "permit-precheck pass" };
+  }
+  if (massStage.status === "pass") {
+    return { className: "good", label: `mass-stage pass / ${status}` };
+  }
+  if (status === "fail") {
+    return { className: "bad", label: status };
+  }
+  return { className: "warn", label: status };
 }
 
 async function postJson(url, body) {
@@ -203,6 +235,10 @@ async function postJson(url, body) {
 }
 
 async function buildPayload() {
+  const cachedJsonPath = path.join(OUT_DIR, "maas-20-alt-latest.json");
+  if (process.env.REUSE_JSON === "1" && fs.existsSync(cachedJsonPath)) {
+    return JSON.parse(fs.readFileSync(cachedJsonPath, "utf8"));
+  }
   const boundary = await postJson(`${BACKEND}/design/site-boundary/`, { pnu: PNU });
   const constraints = await postJson(`${BACKEND}/design/auto-constraints/`, {
     pnu: PNU,
@@ -262,11 +298,11 @@ function renderCard(feature, siteCoords, globalBounds) {
   });
   layers.push(renderSectionSourceSurfaces(feature, project));
   layers.push(renderSectionProfile(feature, volumes, project));
+  layers.push(renderParkingStalls(feature, project));
   const precheck = props.parking_precheck || {};
   const layout = precheck.layout_candidate || {};
   const required = precheck.required_count || {};
-  const parkingStatus = layout.status || "no parking";
-  const statusClass = parkingStatus === "pass" ? "good" : parkingStatus === "fail" ? "bad" : "warn";
+  const parking = parkingDisplay(layout);
   const providedSpaces = layout.provided_spaces ?? "-";
   const requiredSpaces = layout.required_spaces ?? required.required_spaces ?? "-";
   return `<section class="card">
@@ -275,7 +311,7 @@ function renderCard(feature, siteCoords, globalBounds) {
       <div class="shape">${escapeHtml(props.mass_shape)}</div>
       <div class="section">${escapeHtml((props.section_profile || props.maas_model?.section_profile || {}).kind || "no section profile")}</div>
       <div class="numbers">FAR ${Number(props.far || 0).toFixed(1)} · BCR ${Number(props.bcr || 0).toFixed(1)} · H ${Number(props.height || 0).toFixed(1)}m</div>
-      <div class="${statusClass}">P ${escapeHtml(providedSpaces)}/${escapeHtml(requiredSpaces)} · ${escapeHtml(parkingStatus)}</div>
+      <div class="${parking.className}">P ${escapeHtml(providedSpaces)}/${escapeHtml(requiredSpaces)} · ${escapeHtml(parking.label)}</div>
     </div>
   </section>`;
 }
@@ -294,7 +330,7 @@ async function render(payload) {
     svg{background:#f7f9fb}.meta{padding:10px 12px;min-width:0}.shape{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.section{font-size:12px;color:#f9a8d4;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.numbers{font-size:13px;color:#c2d0e3;margin-top:5px;white-space:nowrap}.good,.warn,.bad{font-size:13px;font-weight:800;margin-top:6px;white-space:nowrap}.good{color:#22d18b}.warn{color:#ffc12c}.bad{color:#ff5573}
     footer{position:absolute;left:32px;right:32px;bottom:14px;border-top:1px solid #233852;padding-top:10px;color:#9fb2cc;font-size:14px}
   </style></head><body>
-  <header><h1>MAAS 20 Alternatives · PNU ${escapeHtml(payload.pnu)}</h1><div class="sub">${features.length}/${MAX_VARIANTS} candidates · ${escapeHtml(payload.building_type)} · generated in ${payload.elapsed_ms}ms · green=parking pass, yellow=review, red=parking fail</div></header>
+  <header><h1>MAAS 20 Alternatives · PNU ${escapeHtml(payload.pnu)}</h1><div class="sub">${features.length}/${MAX_VARIANTS} candidates · ${escapeHtml(payload.building_type)} · generated in ${payload.elapsed_ms}ms · green=parking pass or mass-stage pass, yellow=review, red=parking fail</div></header>
   <main>${cards}</main>
   <footer>Use this as the default mass review evidence. If many cards still share the same footprint, the algorithm is not producing true plan diversity.</footer>
   </body></html>`;

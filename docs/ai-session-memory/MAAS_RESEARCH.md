@@ -690,3 +690,78 @@ Judgment for next AI:
   3. expose the frontier in the UI as a design tradeoff, or
   4. implement an async grammar optimizer that searches parking strategy and
      massing together instead of only reshaping the upper mass.
+
+## 2026-06-29 Mechanical Parking Unlock / Latest PNG Loop
+
+User asked to keep looping with PNG evidence and not fake design quality with
+hardcoded ratios. The correct current state is a constraint-frontier branch,
+not final completion.
+
+Code changes:
+
+- `ARR/backend/design/maas/parking_layout.py`
+  - Added a `mechanical` layout candidate path.
+  - It does not place standard stall polygons.
+  - It returns `needs_mechanical_parking_review`, never final `pass`.
+  - It exposes conceptual capacity from module area / bay capacity and lists
+    external evidence needed: equipment type, pit/lift clearance, entry
+    queueing, manufacturer turning/safety clearance, local authority
+    acceptance.
+- `ARR/backend/design/maas/parking_strategy.py`
+  - Mechanical is scored below physical stall layouts. If a low-FAR candidate
+    can carry visible surface parking, it should stay surface/drive-review
+    instead of being replaced by conceptual mechanical parking.
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - `needs_mechanical_parking_review` is counted as a mass-stage reviewable
+    parking status.
+  - Every candidate now exposes `operator_family` and `maas_sequence_verbs`
+    so agents/PNG/UI can explain the massing language.
+- `docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+  - The 20-alt PNG now prints concept/family/verb evidence per card.
+
+Latest verified evidence:
+
+- PNU: `1168011800104170004`
+- Building type: `공동주택`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- Render time: about `58.8s`
+- `count=20`
+- `massStagePass=17`
+- `mechanical=14`
+- layout statuses:
+  - `needs_mechanical_parking_review`: 14
+  - `needs_drive_connectivity_review`: 3
+  - `fail`: 3
+- families represented include:
+  - legal layered, terrace link, sloped roof, diagonal connector, interlock,
+    overlap, split, branch, pinch, courtyard, void/notch, slender bar,
+    stepback tower, grammar terrace, grammar overlap/shift/terrace.
+- Low-FAR visible-stall candidates survived:
+  - `parking_repair_grammar_diagonal_step_connector`: FAR `54.99`, `P 4/4`,
+    `needs_drive_connectivity_review`
+  - `parking_repair_grammar_terrace_ribbon_stepback`: FAR `46.23`, `P 4/4`,
+    `needs_drive_connectivity_review`
+  - `parking_repair_grammar_sloped_roof_envelope`: FAR `63.06`, `P 4/4`,
+    `needs_drive_connectivity_review`
+- High-FAR candidates now survive as conceptual mechanical-review candidates:
+  - examples around FAR `219~249`, typically `P 7/7` or `P 8/8`,
+    `mass_stage_parking.status=pass`, but
+    `layout.status=needs_mechanical_parking_review`.
+
+Architectural judgment:
+
+- The latest PNG is materially better than the earlier all-step/all-same
+  outputs: it includes step, terrace ribbon, sloped roof/envelope, diagonal
+  connector, interlock, overlap, split, branch, pinch, courtyard, open-court,
+  slender bar, and podium/tower alternatives.
+- It is still not a final competition-grade massing engine. The high-FAR path
+  is unlocked by mechanical parking review, so it needs authority/equipment
+  evidence before being called permit-ready.
+- Do not reintroduce fixed coordinate ratio hacks. Use the grammar sequence
+  library, diversity metrics, and explicit parking strategy branches.
+- Next useful work:
+  1. expose this same evidence in the live AG-light/React Flow reasoning panel,
+  2. add basement parking as another strategy branch,
+  3. improve grammar materialization for split/bridge and branch candidates,
+  4. keep generating 20-alt PNG evidence after each massing change.

@@ -206,6 +206,19 @@ function escapeHtml(value) {
   }[char]));
 }
 
+function sequenceVerbs(props) {
+  if (Array.isArray(props.maas_sequence_verbs) && props.maas_sequence_verbs.length) {
+    return props.maas_sequence_verbs.map(String);
+  }
+  const sequence = Array.isArray(props.maas_verb_sequence)
+    ? props.maas_verb_sequence
+    : Array.isArray(props.maas_model?.verb_sequence) ? props.maas_model.verb_sequence : [];
+  return sequence
+    .map(call => typeof call === "string" ? call : call && typeof call === "object" ? call.verb : "")
+    .filter(Boolean)
+    .map(String);
+}
+
 function parkingDisplay(layout) {
   const status = layout.status || "no parking";
   const massStage = layout.mass_stage_parking || {};
@@ -305,11 +318,15 @@ function renderCard(feature, siteCoords, globalBounds) {
   const parking = parkingDisplay(layout);
   const providedSpaces = layout.provided_spaces ?? "-";
   const requiredSpaces = layout.required_spaces ?? required.required_spaces ?? "-";
+  const concept = props.maas_concept || props.operator_family || "";
+  const family = props.operator_family || "";
+  const verbs = sequenceVerbs(props).slice(0, 4).join(">");
   return `<section class="card">
     <svg viewBox="0 0 310 190">${site}${layers.join("")}<text x="10" y="20" font-size="13" font-weight="800" fill="#0d1a2d">${escapeHtml(props.variant_id)}</text></svg>
     <div class="meta">
       <div class="shape">${escapeHtml(props.mass_shape)}</div>
-      <div class="section">${escapeHtml((props.section_profile || props.maas_model?.section_profile || {}).kind || "no section profile")}</div>
+      <div class="section">${escapeHtml(concept)}${family ? ` · ${escapeHtml(family)}` : ""}</div>
+      <div class="verbs">${escapeHtml(verbs || "base")}</div>
       <div class="numbers">FAR ${Number(props.far || 0).toFixed(1)} · BCR ${Number(props.bcr || 0).toFixed(1)} · H ${Number(props.height || 0).toFixed(1)}m</div>
       <div class="${parking.className}">P ${escapeHtml(providedSpaces)}/${escapeHtml(requiredSpaces)} · ${escapeHtml(parking.label)}</div>
     </div>
@@ -327,7 +344,7 @@ async function render(payload) {
     h1{margin:0 0 8px;font-size:28px;letter-spacing:0}.sub{font-size:15px;color:#9fb2cc}
     main{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;padding:20px 32px}
     .card{height:282px;border:1px solid #263d5e;border-radius:8px;background:#101d32;overflow:hidden;display:grid;grid-template-rows:190px 1fr}
-    svg{background:#f7f9fb}.meta{padding:10px 12px;min-width:0}.shape{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.section{font-size:12px;color:#f9a8d4;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.numbers{font-size:13px;color:#c2d0e3;margin-top:5px;white-space:nowrap}.good,.warn,.bad{font-size:13px;font-weight:800;margin-top:6px;white-space:nowrap}.good{color:#22d18b}.warn{color:#ffc12c}.bad{color:#ff5573}
+    svg{background:#f7f9fb}.meta{padding:9px 12px;min-width:0}.shape{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.section{font-size:12px;color:#f9a8d4;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.verbs{font-size:11px;color:#93c5fd;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.numbers{font-size:12px;color:#c2d0e3;margin-top:4px;white-space:nowrap}.good,.warn,.bad{font-size:12px;font-weight:800;margin-top:5px;white-space:nowrap}.good{color:#22d18b}.warn{color:#ffc12c}.bad{color:#ff5573}
     footer{position:absolute;left:32px;right:32px;bottom:14px;border-top:1px solid #233852;padding-top:10px;color:#9fb2cc;font-size:14px}
   </style></head><body>
   <header><h1>MAAS 20 Alternatives · PNU ${escapeHtml(payload.pnu)}</h1><div class="sub">${features.length}/${MAX_VARIANTS} candidates · ${escapeHtml(payload.building_type)} · generated in ${payload.elapsed_ms}ms · green=parking pass or mass-stage pass, yellow=review, red=parking fail</div></header>

@@ -36,18 +36,10 @@ function bounds(coords) {
 function allFeatureCoords(feature) {
   const props = feature.properties || {};
   const stalls = props.parking_precheck?.layout_candidate?.stalls || [];
-  const surfaces = Array.isArray(props.section_source_surfaces)
-    ? props.section_source_surfaces
-    : Array.isArray(props.maas_model?.section_source_surfaces) ? props.maas_model.section_source_surfaces : [];
   return [
     ...coordsOf(feature),
     ...(props.mass_volumes || []).flatMap(volume => geomCoords(volume.geometry)),
     ...stalls.flatMap(stall => Array.isArray(stall.polygon_wgs84) ? stall.polygon_wgs84 : []),
-    ...surfaces.flatMap(surface => (
-      Array.isArray(surface.vertices_wgs84_h)
-        ? surface.vertices_wgs84_h.map(([lng, lat]) => [lng, lat])
-        : []
-    )),
   ];
 }
 
@@ -182,12 +174,12 @@ function renderSectionSourceSurfaces(feature, project) {
     const projected = vertices.map(([lng, lat, h]) => project([Number(lng), Number(lat)], Number(h) || 0));
     const path = projected.map(([x, y], index) => `${index ? "L" : "M"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ") + " Z";
     const style = kind === "sloped_roof"
-      ? { fill: "rgba(245,158,11,.60)", stroke: "#92400e", width: 3.2 }
+      ? { fill: "rgba(245,158,11,.08)", stroke: "#92400e", width: 1.4 }
       : kind === "terrace_ribbon"
-        ? { fill: "rgba(236,72,153,.36)", stroke: "#be185d", width: 3.0 }
-        : { fill: "rgba(236,72,153,.42)", stroke: "#9d174d", width: 3.2 };
+        ? { fill: "rgba(236,72,153,.06)", stroke: "#be185d", width: 1.2 }
+        : { fill: "rgba(236,72,153,.08)", stroke: "#9d174d", width: 1.3 };
     const title = role ? `<title>${escapeHtml(role)}</title>` : "";
-    return `<path d="${path}" fill="${style.fill}" stroke="${style.stroke}" stroke-width="${style.width}">${title}</path>`;
+    return `<path d="${path}" fill="${style.fill}" stroke="${style.stroke}" stroke-width="${style.width}" stroke-dasharray="4 3">${title}</path>`;
   }).join("");
 }
 
@@ -196,22 +188,22 @@ function volumeVisualStyle({ role, designSynthesis }) {
   const isSectionSource = role.startsWith("section_source_");
   if (isConnectorBridge) {
     return {
-      sideFillA: "rgba(190,24,93,.42)",
-      sideFillB: "rgba(190,24,93,.30)",
-      topFill: "rgba(236,72,153,.34)",
-      stroke: "#be185d",
+      sideFillA: "rgba(255,123,24,.34)",
+      sideFillB: "rgba(255,123,24,.26)",
+      topFill: "rgba(255,207,74,.44)",
+      stroke: "#f97316",
       sideStrokeWidth: 0.8,
       topStrokeWidth: 1.2,
     };
   }
   if (designSynthesis && isSectionSource) {
     return {
-      sideFillA: "rgba(255,123,24,.18)",
-      sideFillB: "rgba(255,123,24,.12)",
-      topFill: "rgba(255,207,74,.24)",
+      sideFillA: "rgba(255,123,24,.34)",
+      sideFillB: "rgba(255,123,24,.24)",
+      topFill: "rgba(255,207,74,.46)",
       stroke: "#fb923c",
-      sideStrokeWidth: 0.55,
-      topStrokeWidth: 0.9,
+      sideStrokeWidth: 0.7,
+      topStrokeWidth: 1.2,
     };
   }
   return {
@@ -347,8 +339,6 @@ function renderCard(feature, siteCoords, globalBounds) {
     });
     layers.push(`<path d="${polyPath(coords, project, top)}" fill="${visual.topFill}" stroke="${visual.stroke}" stroke-width="${visual.topStrokeWidth}"/>`);
   });
-  layers.push(renderSectionSourceSurfaces(feature, project));
-  layers.push(renderSectionProfile(feature, volumes, project));
   layers.push(renderParkingStalls(feature, project));
   const precheck = props.parking_precheck || {};
   const layout = precheck.layout_candidate || {};
@@ -357,7 +347,7 @@ function renderCard(feature, siteCoords, globalBounds) {
   const providedSpaces = layout.provided_spaces ?? "-";
   const requiredSpaces = layout.required_spaces ?? required.required_spaces ?? "-";
   const concept = props.maas_concept || props.operator_family || "";
-  const family = props.operator_family || "";
+  const family = props.typology_family || props.operator_family || "";
   const verbs = sequenceVerbs(props).slice(0, 4).join(">");
   const synthesis = props.section_profile_materialized?.design_synthesis
     ? `synthesis:${props.section_profile_materialized.kind || "section"}`
@@ -366,7 +356,7 @@ function renderCard(feature, siteCoords, globalBounds) {
     <svg viewBox="0 0 310 190">${site}${layers.join("")}<text x="10" y="20" font-size="13" font-weight="800" fill="#0d1a2d">${escapeHtml(props.variant_id)}</text></svg>
     <div class="meta">
       <div class="shape">${escapeHtml(props.mass_shape)}</div>
-      <div class="section">${escapeHtml(concept)}${family ? ` · ${escapeHtml(family)}` : ""}</div>
+      <div class="section">${escapeHtml(concept)}${family ? ` · typology:${escapeHtml(family)}` : ""}</div>
       ${synthesis ? `<div class="synthesis">${escapeHtml(synthesis)}</div>` : ""}
       <div class="verbs">${escapeHtml(verbs || "base")}</div>
       <div class="numbers">FAR ${Number(props.far || 0).toFixed(1)} · BCR ${Number(props.bcr || 0).toFixed(1)} · H ${Number(props.height || 0).toFixed(1)}m</div>

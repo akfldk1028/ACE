@@ -145,6 +145,24 @@ SECTION_CONNECTOR_SHAPE_TOKENS = (
     "step_connector",
     "ribbon_stepback",
 )
+TYPOLOGY_FIRST_FAMILIES = [
+    "legal_layered",
+    "interlock",
+    "overlap",
+    "split",
+    "courtyard",
+    "void_notch",
+    "branch",
+    "pinch",
+    "stepback_tower",
+    "terrace_link",
+    "diagonal_connect",
+    "sloped_roof",
+    "taper",
+    "grade",
+    "inset",
+    "legal_buildable",
+]
 
 CONCEPT_LABELS = {
     "legal_layered": "법규엔벨로프",
@@ -190,6 +208,88 @@ def _is_section_connector(feature: dict[str, Any]) -> bool:
     return any(
         isinstance(call, dict) and call.get("verb") in SECTION_CONNECTOR_VERBS
         for call in sequence
+    )
+
+
+def _is_parking_repair_operator(operator: str) -> bool:
+    return operator.startswith("parking_repair_")
+
+
+def _is_typology_first_candidate(feature: dict[str, Any]) -> bool:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    operator = str(props.get("mass_shape") or "")
+    if _is_parking_repair_operator(operator):
+        return False
+    return _operator_family(operator) in set(TYPOLOGY_FIRST_FAMILIES)
+
+
+def _polygon_min_dimension(poly) -> float:
+    try:
+        minx, miny, maxx, maxy = poly.bounds
+        return float(min(maxx - minx, maxy - miny))
+    except Exception:
+        return 0.0
+
+
+def _upper_typology_is_viable(footprint_utm, upper_footprint_utm) -> bool:
+    if upper_footprint_utm is None or upper_footprint_utm.is_empty:
+        return False
+    lower_area = float(getattr(footprint_utm, "area", 0.0) or 0.0)
+    upper_area = float(getattr(upper_footprint_utm, "area", 0.0) or 0.0)
+    if lower_area <= 0.0:
+        return False
+    if upper_area < max(20.0, lower_area * 0.25):
+        return False
+    if _polygon_min_dimension(upper_footprint_utm) < 3.0:
+        return False
+    return True
+
+
+def _feature_plan_min_dimension(feature: dict[str, Any]) -> float:
+    try:
+        geom = wgs84_to_utm(geojson_to_polygon(feature.get("geometry")))
+        return _polygon_min_dimension(geom)
+    except Exception:
+        return 0.0
+
+
+def _feature_height_to_min_dimension(feature: dict[str, Any]) -> float:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    height = float(props.get("height") or 0.0)
+    min_dim = _feature_plan_min_dimension(feature)
+    if min_dim <= 0.0:
+        return 999.0
+    return height / min_dim
+
+
+def _is_reviewable_architectural_mass(feature: dict[str, Any]) -> bool:
+    """Gate the 20-card review sheet to real massing candidates.
+
+    Parking-repair slivers and very thin towers are still useful diagnostic
+    evidence, but they should not be presented as architectural mass options.
+    """
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    operator = str(props.get("mass_shape") or "")
+    if _is_parking_repair_operator(operator):
+        return False
+    precheck = props.get("parking_precheck") if isinstance(props.get("parking_precheck"), dict) else {}
+    layout = precheck.get("layout_candidate") if isinstance(precheck.get("layout_candidate"), dict) else {}
+    if layout.get("status") == "fail":
+        return False
+    if _feature_plan_min_dimension(feature) < 4.2:
+        return False
+    if _feature_height_to_min_dimension(feature) > 6.2:
+        return False
+    return True
+
+
+def _design_review_quality_key(feature: dict[str, Any]) -> tuple[float, float, float, float]:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    return (
+        float(props.get("design_quality_score") or 0.0),
+        float(props.get("diversity_score") or 0.0),
+        float(props.get("maas_score") or 0.0),
+        _feature_plan_min_dimension(feature),
     )
 
 
@@ -277,16 +377,9 @@ def _final_design_balanced_selection(
         layout = precheck.get("layout_candidate") if isinstance(precheck.get("layout_candidate"), dict) else {}
         return str(layout.get("status") or "")
 
-    def synthesis_kind(feature: dict[str, Any]) -> str:
-        props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
-        materialized = props.get("section_profile_materialized") if isinstance(props.get("section_profile_materialized"), dict) else {}
-        if materialized.get("design_synthesis"):
-            return str(materialized.get("kind") or "")
-        return ""
-
     # The review sheet should start with architectural evidence, not six
-    # mechanical high-FAR variants. Keep one legal max anchor, then visible
-    # parking and section-synthesis alternatives.
+    # mechanical high-FAR variants or low-FAR parking repairs. Keep one legal
+    # max anchor, then one real typology representative per family.
     legal_anchor = next(
         (
             feature for feature in selected
@@ -297,62 +390,22 @@ def _final_design_balanced_selection(
     if legal_anchor is not None:
         add(legal_anchor)
 
-    visible_parking = [
-        feature for feature in selected
-        if parking_status_rank(feature) > 0
-        and layout_status(feature) != "needs_mechanical_parking_review"
-    ]
-    visible_parking.sort(key=_parking_priority_key, reverse=True)
-    for feature in visible_parking[:3]:
-        add(feature)
-
-    for kind in ("diagonal_connector", "terrace_ribbon", "sloped_roof"):
-        options = [
-            feature for feature in selected
-            if synthesis_kind(feature) == kind and feature not in result
-        ]
-        options.sort(
-            key=lambda feature: (
-                1 if layout_status(feature) != "needs_mechanical_parking_review" else 0,
-                float((feature.get("properties") or {}).get("diversity_score") or 0.0),
-                float((feature.get("properties") or {}).get("maas_score") or 0.0),
-            ),
-            reverse=True,
-        )
-        for feature in options[:2]:
-            add(feature)
-
-    family_order = [
-        "legal_layered",
-        "diagonal_connect",
-        "terrace_link",
-        "sloped_roof",
-        "interlock",
-        "overlap",
-        "split",
-        "branch",
-        "pinch",
-        "courtyard",
-        "void_notch",
-        "slender_bar",
-        "stepback_tower",
-        "taper",
-        "grade",
-        "inset",
-    ]
     by_family: dict[str, list[dict[str, Any]]] = {}
     for feature in selected:
         props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
         family = _operator_family(str(props.get("mass_shape") or ""))
         by_family.setdefault(family, []).append(feature)
 
-    for family in family_order:
+    for family in TYPOLOGY_FIRST_FAMILIES:
         options = sorted(
-            by_family.get(family, []),
+            [
+                feature for feature in by_family.get(family, [])
+                if _is_typology_first_candidate(feature)
+                and _is_reviewable_architectural_mass(feature)
+            ],
             key=lambda feature: (
-                1 if _is_section_connector(feature) else 0,
-                float((feature.get("properties") or {}).get("diversity_score") or 0.0),
-                float((feature.get("properties") or {}).get("maas_score") or 0.0),
+                1 if layout_status(feature) != "needs_mechanical_parking_review" else 0,
+                *_design_review_quality_key(feature),
             ),
             reverse=True,
         )
@@ -363,12 +416,13 @@ def _final_design_balanced_selection(
     grammar_candidates = [
         feature for feature in selected
         if str((feature.get("properties") or {}).get("mass_shape") or "").startswith("grammar_")
+        and _is_typology_first_candidate(feature)
+        and _is_reviewable_architectural_mass(feature)
     ]
     grammar_candidates.sort(
         key=lambda feature: (
             1 if _is_section_connector(feature) else 0,
-            float((feature.get("properties") or {}).get("diversity_score") or 0.0),
-            float((feature.get("properties") or {}).get("maas_score") or 0.0),
+            *_design_review_quality_key(feature),
         ),
         reverse=True,
     )
@@ -377,7 +431,22 @@ def _final_design_balanced_selection(
         if len(result) >= final_limit:
             break
 
-    for feature in selected:
+    reviewable_backfill = [
+        feature for feature in selected
+        if _is_reviewable_architectural_mass(feature)
+        and not _is_parking_repair_operator(str((feature.get("properties") or {}).get("mass_shape") or ""))
+    ]
+    reviewable_backfill.sort(key=_design_review_quality_key, reverse=True)
+    for feature in reviewable_backfill:
+        add(feature, allow_duplicate_shape=True)
+        if len(result) >= final_limit:
+            break
+
+    non_repair_backfill = [
+        feature for feature in selected
+        if not _is_parking_repair_operator(str((feature.get("properties") or {}).get("mass_shape") or ""))
+    ]
+    for feature in non_repair_backfill:
         add(feature, allow_duplicate_shape=True)
         if len(result) >= final_limit:
             break
@@ -482,16 +551,8 @@ def _should_use_floor_plate_stack(operator: str, preferred_operator: str | None 
     if operator == preferred_operator:
         return True
     if operator.startswith("grammar_"):
-        return any(token in operator for token in ("lift", "taper", "step", "terrace", "tower", "diagonal", "sloped"))
-    return _operator_family(operator) in {
-        "legal_layered",
-        "stepback_tower",
-        "taper",
-        "grade",
-        "diagonal_connect",
-        "terrace_link",
-        "sloped_roof",
-    }
+        return False
+    return _operator_family(operator) in {"legal_layered"}
 
 
 def _capacity_score(props: dict[str, Any]) -> float:
@@ -1118,34 +1179,8 @@ def _build_section_source_surfaces(
         )
         if roof:
             surfaces.append(roof)
-        for face in ("north", "south"):
-            surface = _surface_between_bounds_face(
-                role=f"section_surface_sloped_roof_{face}_eave",
-                kind=kind,
-                lower_utm=materialized_utms[0],
-                upper_utm=materialized_utms[-1],
-                lower_height_m=float(materialized[0].get("top_height") or low) + 0.08,
-                upper_height_m=top + 0.15,
-                face=face,
-                inset_ratio=0.08,
-            )
-            if surface:
-                surfaces.append(surface)
     elif kind == "terrace_ribbon":
         for index in range(1, len(materialized_utms)):
-            for face in ("north", "south"):
-                facade = _surface_between_bounds_face(
-                    role=f"section_surface_terrace_ribbon_{face}_skin_{index}",
-                    kind=kind,
-                    lower_utm=materialized_utms[index - 1],
-                    upper_utm=materialized_utms[index],
-                    lower_height_m=float(materialized[index - 1].get("top_height") or 0.0) + 0.08,
-                    upper_height_m=float(materialized[index].get("top_height") or top) + 0.08,
-                    face=face,
-                    inset_ratio=0.07,
-                )
-                if facade:
-                    surfaces.append(facade)
             surface = _surface_between_polygons(
                 role=f"section_surface_terrace_ribbon_link_{index}",
                 kind=kind,
@@ -1153,7 +1188,7 @@ def _build_section_source_surfaces(
                 upper_utm=materialized_utms[index],
                 lower_height_m=float(materialized[index - 1].get("top_height") or 0.0) + 0.08,
                 upper_height_m=float(materialized[index].get("top_height") or top) + 0.08,
-                width_ratio=0.13,
+                width_ratio=0.06,
             )
             if surface:
                 surfaces.append(surface)
@@ -1168,22 +1203,6 @@ def _build_section_source_surfaces(
             if surface:
                 surfaces.append(surface)
     elif kind in {"diagonal_connector", "diagonal_connect"}:
-        span_x = maxx - minx
-        span_y = maxy - miny
-        diagonal_faces = ("west", "east") if span_x >= span_y else ("south", "north")
-        for index, face in enumerate(diagonal_faces, start=1):
-            skin = _surface_between_bounds_face(
-                role=f"section_surface_diagonal_connector_{face}_fold_{index}",
-                kind=kind,
-                lower_utm=materialized_utms[0],
-                upper_utm=materialized_utms[-1],
-                lower_height_m=float(materialized[0].get("top_height") or 0.0) + 0.12,
-                upper_height_m=top + 0.12,
-                face=face,
-                inset_ratio=0.06,
-            )
-            if skin:
-                surfaces.append(skin)
         surface = _surface_between_polygons(
             role="section_surface_diagonal_connector_skin",
             kind=kind,
@@ -1191,7 +1210,7 @@ def _build_section_source_surfaces(
             upper_utm=materialized_utms[-1],
             lower_height_m=float(materialized[0].get("top_height") or 0.0) + 0.12,
             upper_height_m=top + 0.12,
-            width_ratio=0.20,
+            width_ratio=0.08,
         )
         if surface:
             surfaces.append(surface)
@@ -1393,7 +1412,6 @@ def _apply_variant_verb_sequence(feature: dict[str, Any], variant) -> None:
         model["grammar_sequence"] = variant.operator
         model["grammar_label"] = _concept_label(variant.operator)
     _attach_section_profile(feature)
-    _materialize_section_profile_volumes(feature)
 
 
 def _select_diverse_features(
@@ -1690,6 +1708,8 @@ def _mass_feature(
         "algorithm": "maas_legal_envelope",
         "mass_shape": operator,
         "operator_family": _operator_family(operator),
+        "typology_family": _operator_family(operator),
+        "typology_source": "typology_first",
         "maas_concept": _concept_label(operator),
         "height": round(height, 2),
         "num_floors": num_floors,
@@ -1709,6 +1729,29 @@ def _mass_feature(
         props["lower_height"] = round(lower_height, 2)
         props["step_floor"] = lower_floors
         props["upper_geometry"] = mapping(utm_to_wgs84(upper_footprint_utm))
+        props["typology_bands"] = [
+            {
+                "role": "lower",
+                "from_floor": 1,
+                "to_floor": lower_floors,
+                "geometry": mapping(utm_to_wgs84(footprint_utm)),
+            },
+            {
+                "role": "upper",
+                "from_floor": lower_floors + 1,
+                "to_floor": num_floors,
+                "geometry": mapping(utm_to_wgs84(upper_footprint_utm)),
+            },
+        ]
+    else:
+        props["typology_bands"] = [
+            {
+                "role": "single",
+                "from_floor": 1,
+                "to_floor": num_floors,
+                "geometry": mapping(utm_to_wgs84(footprint_utm)),
+            }
+        ]
 
     feature = {
         "type": "Feature",
@@ -1721,7 +1764,6 @@ def _mass_feature(
     props["maas_verb_sequence"] = model["verb_sequence"]
     props["maas_sequence_verbs"] = sequence_verbs(model["verb_sequence"])
     _attach_section_profile(feature)
-    _materialize_section_profile_volumes(feature)
     attach_parking_strategy(
         props,
         site_area_m2=site_area_m2,
@@ -1749,6 +1791,8 @@ def _floor_plate_feature(
         "algorithm": "maas_legal_envelope",
         "mass_shape": stack.operator,
         "operator_family": _operator_family(stack.operator),
+        "typology_family": _operator_family(stack.operator),
+        "typology_source": "legal_floor_plate_anchor",
         "maas_concept": _concept_label(stack.operator),
         "building_type": building_type,
         "height": round(stack.height_m, 2),
@@ -1792,7 +1836,6 @@ def _floor_plate_feature(
         "properties": props,
     }
     _attach_section_profile(feature)
-    _materialize_section_profile_volumes(feature)
     _attach_3d_diversity(feature)
     return feature
 
@@ -1895,6 +1938,14 @@ def generate_legal_mass_variants(
             upper = upper.intersection(repaired_fp)
             if upper.is_empty or upper.area < 1.0:
                 upper = None
+            elif not _upper_typology_is_viable(repaired_fp, upper):
+                rejected.append({
+                    "operator": variant.operator,
+                    "reason": "upper_typology_too_small_for_architectural_mass",
+                    "upper_area_m2": round(float(upper.area), 2),
+                    "lower_area_m2": round(float(repaired_fp.area), 2),
+                })
+                continue
 
         source_iou = round(1.0 - diversity_score(repaired_fp, [], repaired_source), 4)
         diversity = diversity_score(repaired_fp, selected_polygons, repaired_source)

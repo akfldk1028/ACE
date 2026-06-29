@@ -7,8 +7,7 @@ from io import StringIO
 
 from django.core.management import call_command
 from django.test import TestCase
-from shapely.geometry import Point, Polygon, box
-from shapely.ops import unary_union
+from shapely.geometry import Polygon, box
 from unittest.mock import patch
 
 from design.maas import export_mass_geojson_to_scad, generate_legal_mass_variants, mass_geojson_to_scad
@@ -21,9 +20,9 @@ from design.maas.aesthetic.renderers import MultiViewReferencePackRenderer, Refe
 from design.maas.grammar import generate_grammar_variants, load_term_ontology, resolve_intent_to_sequence
 from design.maas.legal_mesh_optimizer import (
     _preserve_visible_section_connector,
-    _sloped_surface_from_polygon,
-    _surface_between_bounds_face,
+    _upper_typology_is_viable,
 )
+from design.maas.morphology_operators import generate_morphology_variants
 from design.maas.parking_layout import (
     _drive_entrance_access,
     _solve_grid_parking_layout,
@@ -459,82 +458,35 @@ class MaasLegalVariantsTest(TestCase):
             self.assertIn("small_attached_parking_relief", props["parking_precheck"])
             self.assertEqual(props["maas_model"]["parking_strategy"], props["parking_strategy"])
 
-    def test_section_synthesis_surfaces_stay_inside_mass_volume_union(self):
-        lower = wgs84_to_utm(Polygon([
+    def test_typology_first_generator_produces_architectural_families(self):
+        base = wgs84_to_utm(Polygon([
             (127.00000, 37.00000),
             (127.00100, 37.00010),
             (127.00086, 37.00100),
             (127.00008, 37.00088),
             (127.00000, 37.00000),
         ]))
-        upper = wgs84_to_utm(Polygon([
-            (127.00024, 37.00022),
-            (127.00078, 37.00028),
-            (127.00070, 37.00072),
-            (127.00030, 37.00068),
-            (127.00024, 37.00022),
+
+        variants = generate_morphology_variants(base)
+        operators = {variant.operator for variant in variants}
+
+        self.assertIn("split_bridge_x", operators)
+        self.assertIn("courtyard_void", operators)
+        self.assertIn("interlock_cross_diagonal", operators)
+        self.assertIn("terrace_link_north", operators)
+        self.assertIn("sloped_roof_mass", operators)
+
+    def test_tiny_upper_mass_is_not_valid_typology(self):
+        lower = wgs84_to_utm(Polygon([
+            (127.00000, 37.00000),
+            (127.00100, 37.00000),
+            (127.00100, 37.00100),
+            (127.00000, 37.00100),
+            (127.00000, 37.00000),
         ]))
-        surfaces = [
-            _sloped_surface_from_polygon(
-                role="section_surface_sloped_roof_plane",
-                kind="sloped_roof",
-                polygon_utm=upper,
-                high_m=18.0,
-                low_m=10.0,
-            ),
-            _surface_between_bounds_face(
-                role="section_surface_terrace_ribbon_north_skin_1",
-                kind="terrace_ribbon",
-                lower_utm=lower,
-                upper_utm=upper,
-                lower_height_m=8.0,
-                upper_height_m=18.0,
-                face="north",
-            ),
-            _surface_between_bounds_face(
-                role="section_surface_diagonal_connector_west_fold_1",
-                kind="diagonal_connector",
-                lower_utm=lower,
-                upper_utm=upper,
-                lower_height_m=8.0,
-                upper_height_m=18.0,
-                face="west",
-            ),
-        ]
+        tiny_upper = lower.centroid.buffer(1.0)
 
-        allowed = unary_union([lower, upper]).buffer(0.05)
-        checked_vertices = 0
-        for surface in surfaces:
-            self.assertIsNotNone(surface)
-            for lng, lat, *_ in surface["vertices_wgs84_h"]:
-                checked_vertices += 1
-                point = wgs84_to_utm(Point(lng, lat))
-                self.assertTrue(
-                    allowed.contains(point) or allowed.touches(point),
-                    msg=f"leaked surface {surface.get('role')}",
-                )
-
-        self.assertGreater(checked_vertices, 0)
-
-    def test_generated_section_synthesis_surfaces_are_present(self):
-        result = generate_legal_mass_variants(
-            mass_geojson=self._mass(),
-            site_polygon_geojson=self._site(),
-            constraints=self._constraints(),
-            building_type="공동주택",
-            max_variants=8,
-        )
-
-        synthesis_features = 0
-        for feature in result["feature_collection"]["features"]:
-            props = feature["properties"]
-            materialized = props.get("section_profile_materialized") or {}
-            if materialized.get("design_synthesis"):
-                synthesis_features += 1
-                self.assertGreater(materialized.get("surface_count") or 0, 0)
-                self.assertTrue(props.get("section_source_surfaces"))
-
-        self.assertGreater(synthesis_features, 0)
+        self.assertFalse(_upper_typology_is_viable(lower, tiny_upper))
 
     def test_small_attached_parking_relief_tracks_road_aisle_and_tandem_exceptions(self):
         relief = evaluate_small_attached_parking_relief(

@@ -845,3 +845,72 @@ Architectural judgment:
   2. add basement parking as a distinct strategy branch,
   3. expand grammar materialization for split/bridge/branch candidates using
      the same polygon-derived surface rule.
+
+## 2026-06-29 Typology-First Correction / Bad Surface Output Rejected
+
+User rejected the surface-synthesis PNG again. The criticism was correct:
+even if generated surfaces were inside the legal volume union, the result read
+like colored decoration on top of boxes, not like credible architectural
+massing.
+
+Current correction:
+
+- `legal_mesh_optimizer.py` now treats the user-facing 20-card sheet as a
+  typology-first review artifact.
+- Conservative `floor_plates` and legal FAR/BCR/height checks remain the source
+  of truth.
+- Section surfaces are no longer allowed to dominate the PNG evidence. The
+  renderer shows actual `mass_volumes` as the primary shape.
+- `_should_use_floor_plate_stack()` now keeps plan typologies as their repaired
+  mass footprints instead of rebuilding every option into the same envelope
+  stack.
+- Tiny upper masses are rejected through `_upper_typology_is_viable()` before
+  they become tower/connector candidates.
+- The final selector now prioritizes one reviewable representative per
+  typology family:
+  `legal_layered`, `interlock`, `overlap`, `split`, `courtyard`, `void_notch`,
+  `branch`, `pinch`, `stepback_tower`, `terrace_link`, `diagonal_connect`,
+  `sloped_roof`, `taper`, `grade`, `inset`, `legal_buildable`.
+- Parking repair/sliver candidates and parking `fail` candidates are excluded
+  from the representative 20-card PNG. They remain diagnostic evidence, not
+  design options.
+- Thin tower-like candidates are gated by minimum plan dimension and
+  height/min-dimension ratio.
+
+Latest verified evidence:
+
+- Command: `node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+- Backend: ARR Django `127.0.0.1:18000 --noreload`, restarted after code edit.
+- PNU: `1168011800104170004`
+- Building type: `공동주택`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- `count=20`
+- Families visible:
+  - `legal_layered`, `interlock`, `overlap`, `split`, `courtyard`,
+    `void_notch`, `pinch`, `terrace_link`, `sloped_roof`, `inset`,
+    `legal_buildable`, `grammar_cave_inset_puncture`,
+    `grammar_sloped_roof_envelope`.
+- Parking status in this representative sheet:
+  - `needs_mechanical_parking_review`: `20`
+  - `fail`: `0`
+  - `parking_repair_*`: `0`
+- Tests:
+  - `py_compile` passed for `legal_mesh_optimizer.py`.
+  - Focused MAAS tests passed:
+    `test_typology_first_generator_produces_architectural_families`,
+    `test_tiny_upper_mass_is_not_valid_typology`,
+    `test_mechanical_parking_unlocks_high_far_mass_stage_without_final_pass`,
+    `test_parking_strategy_attaches_layout_candidate_when_required_count_exists`.
+
+Architectural judgment:
+
+- This is better than the rejected surface-decoration sheet because the 20-card
+  evidence now shows actual mass typologies and removes red fail/parking-repair
+  artifacts.
+- It is still not competition-grade mass design. It is a legal-envelope-first
+  typology generator with review gates.
+- Next real step is not more fixed coordinate ratios. Implement typed grammar
+  operations that produce floor/program-aware source geometry, then optimize
+  typology, parking strategy, program/core feasibility, and legal envelope
+  together.

@@ -596,6 +596,84 @@ Latest verified output:
 Do not regress to bbox-corner surface generation. It leaks on slanted parcels.
 Use polygon exterior points or clipped geometry for every future design surface.
 
+## 2026-06-29 Typology-First Representative Sheet
+
+The surface-synthesis direction was not enough. User rejected the PNG because
+the masses still read as boxes with decoration. Current code now pivots the
+review sheet to typology-first mass candidates.
+
+Implemented in `legal_mesh_optimizer.py`:
+
+- `TYPOLOGY_FIRST_FAMILIES` is the representative ordering for the 20-card
+  review PNG.
+- `_is_typology_first_candidate()` excludes `parking_repair_*` from design
+  representative selection.
+- `_upper_typology_is_viable()` rejects tiny upper footprints before they
+  become pseudo-towers/connectors.
+- `_is_reviewable_architectural_mass()` excludes:
+  - parking repair candidates,
+  - parking `fail` candidates,
+  - too-thin plan candidates,
+  - excessive height/min-plan-dimension candidates.
+- `_final_design_balanced_selection()` now selects one reviewable candidate
+  per typology family before backfilling, using `design_quality_score`,
+  `diversity_score`, `maas_score`, and minimum plan dimension.
+- `_should_use_floor_plate_stack()` now avoids rebuilding plan typologies into
+  the same legal stack. This preserves interlock/overlap/split/courtyard/notch
+  identity in `mass_volumes`.
+
+Implemented in
+`docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`:
+
+- `section_source_surfaces` are no longer included in render bounds.
+- Section source surfaces and section profile overlays are not drawn as primary
+  mass evidence in the 20-card sheet.
+- Card metadata now emphasizes `typology:<family>`.
+
+Latest verified command:
+
+```bash
+node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs
+```
+
+Latest verified output:
+
+- PNU: `1168011800104170004`
+- Building type: `공동주택`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- `count=20`
+- visible families include:
+  `legal_layered`, `interlock`, `overlap`, `split`, `courtyard`,
+  `void_notch`, `pinch`, `terrace_link`, `sloped_roof`, `inset`,
+  `legal_buildable`, and grammar variants.
+- parking statuses:
+  - `needs_mechanical_parking_review`: `20`
+  - `fail`: `0`
+- No `parking_repair_*` candidates appear in the representative PNG.
+
+Latest focused tests:
+
+```bash
+cd /mnt/d/Data/25_ACE/ARR/backend
+.venv/bin/python -m py_compile design/maas/legal_mesh_optimizer.py design/test_maas_export.py
+.venv/bin/python manage.py test \
+  design.test_maas_export.MaasLegalVariantsTest.test_typology_first_generator_produces_architectural_families \
+  design.test_maas_export.MaasLegalVariantsTest.test_tiny_upper_mass_is_not_valid_typology \
+  design.test_maas_export.MaasLegalVariantsTest.test_mechanical_parking_unlocks_high_far_mass_stage_without_final_pass \
+  design.test_maas_export.MaasLegalVariantsTest.test_parking_strategy_attaches_layout_candidate_when_required_count_exists \
+  -v 1
+```
+
+Judgment for next agent:
+
+- Do not claim this is final paper/competition-grade massing.
+- It is a cleaner legal-envelope-first typology review sheet.
+- Next meaningful work is a typed grammar compiler and optimizer, not more
+  coordinate-ratio patches. The grammar should produce source geometry that is
+  checked against legal envelope, parking strategy, program/core viability, and
+  rendered PNG/VWorld evidence.
+
 ## Key Files
 
 - `legal_envelope.py`: builds the legal envelope and per-floor `floor_plates`.

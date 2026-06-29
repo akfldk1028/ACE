@@ -447,3 +447,50 @@ Visual judgment after opening PNG:
   count is not fully placed. Do not present them as parking-feasible.
 - Next loop should improve geometry generation so more design-quality variants
   preserve parking, instead of only shrinking into one low-FAR parking repair.
+
+## 2026-06-29 Parking-Preserving Design Loop
+
+Loop goal: do not stop after finding one shrink-only parking candidate. Continue
+the PNG/JSON review loop and create multiple design variants that keep the
+verified parking ground footprint while changing the upper mass/section.
+
+Changes:
+
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - `_parking_repair_candidates()` now creates section-diverse parking
+    preserving candidates from the proven repaired parking footprint:
+    - `parking_repair_terrace_ribbon`
+    - `parking_repair_sloped_roof_mass`
+    - `parking_repair_diagonal_connector`
+  - `_final_design_balanced_selection()` now allows up to three
+    `mass_stage_parking.status == pass` candidates with different shapes,
+    instead of hiding all but one parking anchor.
+  - `_operator_family()` maps those parking-preserving operators back to the
+    canonical section families so `section_profile`, source volumes, and source
+    surfaces are generated.
+
+Latest real-PNU evidence:
+
+- Command: `node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- Unique `mass_shape`: 20
+- Permit-precheck parking pass: 0
+- Mass-stage parking pass: 3
+- Section materialized candidates: 9
+- Surface candidates: 9
+- Generation time: about 146 seconds
+
+Visual judgment after opening PNG:
+
+- The loop improved from one parking-feasible signal to three:
+  `parking_repair_terrace_ribbon`, `parking_repair_sloped_roof_mass`, and
+  `parking_repair_diagonal_connector`.
+- All three show actual magenta stall polygons and `P 5/5`; all remain final
+  `needs_drive_connectivity_review`, which is correct.
+- The result is still not competition-grade: the parking-feasible variants are
+  low-FAR, tower-like options. Next loop should increase design/capacity quality
+  while keeping `massStagePass >= 3`, rather than only producing skinny parking
+  towers.

@@ -642,3 +642,51 @@ Visual judgment:
   high-capacity legal envelope candidates. Next loop should improve actual
   source geometry/materialized solids for split/bridge, diagonal connector, and
   bar/slab forms rather than only changing labels or card order.
+
+## 2026-06-29 Hardcoding Rejected / Constraint Frontier
+
+User objected to numeric geometry tuning such as `cx - width * 0.34`. That
+objection is correct. It would only tune one PNG and would not be a defensible
+paper/product algorithm.
+
+Code correction:
+
+- Removed the direct materialization helper with hardcoded width/depth ratios.
+- Replaced the parking-preserving section tuple path with ARR's existing
+  data-backed grammar interpreter:
+  - `_parking_preserving_section_candidates()` now calls
+    `generate_grammar_variants(parking_footprint_utm)`.
+  - Upper masses for parking-preserving candidates come from
+    `grammar/data/maas_sequences.v0.json` interpreted by
+    `grammar/legal_interpreter.py`.
+  - Candidates are now named `parking_repair_grammar_*` and preserve the
+    JSON-backed `maas_verb_sequence`.
+
+Latest verified evidence:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`, building type: `공동주택`.
+- `massStagePass=5`, `uniqueShapes=20`, `sectionMaterialized=9`.
+- Parking-feasible frontier:
+  - `parking_repair_grammar_sloped_roof_envelope`: FAR `63.06`, `P 4/4`
+  - `parking_repair_grammar_diagonal_step_connector`: FAR `54.99`, `P 4/4`
+  - `parking_repair_grammar_overlap_shift_terrace`: FAR `54.20`, `P 4/4`
+  - `parking_repair_grammar_terrace_ribbon_stepback`: FAR `46.23`, `P 4/4`
+  - `parking_repair_shrink`: FAR `88.63`, `P 4/4`
+- High-FAR legal/design candidates around FAR `219~249` require `7~12` spaces
+  and fail with provided `0~4`.
+
+Judgment for next AI:
+
+- This is not impossible as a general architectural massing problem.
+- For this specific small parcel, `공동주택`, and surface/small attached
+  parking assumption, there is a hard frontier: parking-feasible masses are
+  low-FAR, while high-FAR legal envelope masses fail parking count/layout.
+- Do not keep tweaking hardcoded ratios to fake design quality.
+- Next meaningful branches:
+  1. add basement/mechanical parking strategy to unlock high-FAR massing,
+  2. run a different building use/program with lower parking demand,
+  3. expose the frontier in the UI as a design tradeoff, or
+  4. implement an async grammar optimizer that searches parking strategy and
+     massing together instead of only reshaping the upper mass.

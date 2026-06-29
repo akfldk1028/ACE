@@ -2,7 +2,7 @@
   "pnu": "1168011800104170004",
   "building_type": "공동주택",
   "max_variants": 20,
-  "elapsed_ms": 146449,
+  "elapsed_ms": 170035,
   "boundary": {
     "pnu": "1168011800104170004",
     "geometry": {
@@ -231,9 +231,9 @@
             "num_floors": 9,
             "floor_height": 2.8,
             "footprint_area": 28.49,
-            "floor_area": 186.42,
+            "floor_area": 280.6,
             "bcr": 10.79,
-            "far": 70.58,
+            "far": 106.24,
             "min_setback": 0.48,
             "open_pct": 89.21,
             "diversity_score": 0.1771,
@@ -249,91 +249,79 @@
               "parking_repair_layout_status=needs_drive_connectivity_review",
               "parking_preserve_operator=parking_repair_terrace_ribbon"
             ],
-            "lower_height": 8.4,
-            "step_floor": 3,
+            "lower_height": 5.6,
+            "step_floor": 2,
             "upper_geometry": {
               "type": "Polygon",
               "coordinates": [
                 [
                   [
-                    127.04501519375121,
-                    37.48502680776699
+                    127.04506342069445,
+                    37.48500234178633
                   ],
                   [
-                    127.04502812077067,
-                    37.485011210744126
+                    127.04503432635137,
+                    37.48499284789124
                   ],
                   [
-                    127.04501276124455,
-                    37.48500494829633
+                    127.04501691041098,
+                    37.48499255960286
                   ],
                   [
-                    127.04500354764888,
-                    37.48500479578109
+                    127.04501699449472,
+                    37.48498933396233
                   ],
                   [
-                    127.04500360370513,
-                    37.485002645354086
+                    127.04501704985232,
+                    37.48498721032112
                   ],
                   [
-                    127.04500364061045,
-                    37.48500122959327
+                    127.04498622485191,
+                    37.48497715167183
                   ],
                   [
-                    127.04498729929009,
-                    37.48499456683918
+                    127.04496056587827,
+                    37.48501230381772
                   ],
                   [
-                    127.04496380485068,
-                    37.48499417792262
+                    127.04496101061861,
+                    37.485012311179815
                   ],
                   [
-                    127.04495012568076,
-                    37.48501067873555
+                    127.04496092653235,
+                    37.485015536820235
                   ],
                   [
-                    127.04494932681312,
-                    37.485011642347416
+                    127.04496087136509,
+                    37.485017653097195
                   ],
                   [
-                    127.04496472542503,
-                    37.485017937745255
+                    127.04499036577884,
+                    37.48502730329607
                   ],
                   [
-                    127.04497390069898,
-                    37.485018089629214
+                    127.04499168976524,
+                    37.48502773648744
                   ],
                   [
-                    127.04497384464185,
-                    37.485020240056166
+                    127.04499176221692,
+                    37.48502776019269
                   ],
                   [
-                    127.0449738078639,
-                    37.48502165090747
+                    127.04503619024348,
+                    37.485028495620355
                   ],
                   [
-                    127.04498937850379,
-                    37.48502801663044
+                    127.04503678874084,
+                    37.4850279207862
                   ],
                   [
-                    127.04499007746034,
-                    37.485028302383796
+                    127.04503914625495,
+                    37.48502565648265
                   ],
                   [
-                    127.04499011570891,
-                    37.48502831802091
-                  ],
-                  [
-                    127.04501361956807,
-                    37.48502870708828
-                  ],
-                  [
-                    127.0450139382896,
-                    37.48502832253674
-                  ],
-                  [
-                    127.04501519375121,
-                    37.48502680776699
+                    127.04506342069445,
+                    37.48500234178633
                   ]
                 ]
               ]
@@ -357,7 +345,7 @@
                 {
                   "band": 0,
                   "bottom_height": 0,
-                  "top_height": 8.4,
+                  "top_height": 5.6,
                   "geometry": {
                     "type": "Polygon",
                     "coordinates": [
@@ -454,91 +442,79 @@
                 },
                 {
                   "band": 1,
-                  "bottom_height": 8.4,
+                  "bottom_height": 5.6,
                   "top_height": 25.2,
                   "geometry": {
                     "type": "Polygon",
                     "coordinates": [
                       [
                         [
-                          127.04502531757794,
-                          37.485010067815324
+                          127.04496657842122,
+                          37.48500749910881
                         ],
                         [
-                          127.04501276124455,
-                          37.48500494829633
+                          127.04496699647713,
+                          37.48500750602916
                         ],
                         [
-                          127.04500354764888,
-                          37.48500479578109
+                          127.04496691239115,
+                          37.4850107316696
                         ],
                         [
-                          127.04500360370513,
-                          37.485002645354086
+                          127.04496685722407,
+                          37.48501284794657
                         ],
                         [
-                          127.04500364061045,
-                          37.48500122959327
+                          127.04499456764813,
+                          37.48502246861286
                         ],
                         [
-                          127.04498729929009,
-                          37.48499456683918
+                          127.04499581155231,
+                          37.48502290047855
                         ],
                         [
-                          127.04496404029788,
-                          37.48499418182013
+                          127.0449958796217,
+                          37.48502292411126
                         ],
                         [
-                          127.04495497164274,
-                          37.485005804983814
+                          127.04503764196403,
+                          37.48502361541221
                         ],
                         [
-                          127.04495421918007,
-                          37.48500676936389
+                          127.04503820546567,
+                          37.485023039998744
                         ],
                         [
-                          127.04496868443096,
-                          37.48501304931059
+                          127.04504042512963,
+                          37.485020773413346
                         ],
                         [
-                          127.0449773091879,
-                          37.485013192081226
+                          127.04505967284679,
+                          37.48500111881123
                         ],
                         [
-                          127.04497725313091,
-                          37.485015342508184
+                          127.04503432635137,
+                          37.48499284789124
                         ],
                         [
-                          127.044977216353,
-                          37.485016753359496
+                          127.04501691041098,
+                          37.48499255960286
                         ],
                         [
-                          127.04499184320467,
-                          37.48502310345908
+                          127.04501699449472,
+                          37.48498933396233
                         ],
                         [
-                          127.04499249979514,
-                          37.485023388511124
+                          127.04501704985232,
+                          37.48498721032112
                         ],
                         [
-                          127.04499253572533,
-                          37.48502340410985
+                          127.04498721297972,
+                          37.48497747411258
                         ],
                         [
-                          127.04501462935151,
-                          37.48502376983282
-                        ],
-                        [
-                          127.04501492955919,
-                          37.48502338497482
-                        ],
-                        [
-                          127.04501611209363,
-                          37.48502186899788
-                        ],
-                        [
-                          127.04502531757794,
-                          37.485010067815324
+                          127.04496657842122,
+                          37.48500749910881
                         ]
                       ]
                     ]
@@ -553,12 +529,12 @@
               ],
               "floor_plates": [],
               "legal_metrics": {
-                "far": 70.58,
+                "far": 106.24,
                 "bcr": 10.79,
                 "height": 25.2,
                 "num_floors": 9,
                 "footprint_area": 28.49,
-                "floor_area": 186.42,
+                "floor_area": 280.6,
                 "min_setback": 0.48,
                 "open_pct": 89.21
               },
@@ -575,43 +551,43 @@
                   "surface_type": "polygon",
                   "vertices_wgs84_h": [
                     [
-                      127.04501282,
-                      37.48500499,
+                      127.04496705,
+                      37.48500755,
                       25.3
                     ],
                     [
-                      127.04500366,
-                      37.48500269,
+                      127.04496691,
+                      37.48501289,
                       25.3
                     ],
                     [
-                      127.04498735,
-                      37.48499461,
+                      127.04499587,
+                      37.48502295,
                       25.3
                     ],
                     [
-                      127.04495503,
-                      37.48500585,
+                      127.0450377,
+                      37.48502366,
                       25.3
                     ],
                     [
-                      127.04496874,
-                      37.4850131,
+                      127.04504048,
+                      37.48502082,
                       25.3
                     ],
                     [
-                      127.04497731,
-                      37.48501539,
+                      127.04503438,
+                      37.48499289,
                       25.3
                     ],
                     [
-                      127.0449919,
-                      37.48502315,
+                      127.04501705,
+                      37.48498938,
                       25.3
                     ],
                     [
-                      127.04499259,
-                      37.48502345,
+                      127.04498727,
+                      37.48497752,
                       25.3
                     ]
                   ]
@@ -641,7 +617,7 @@
                   "site_area_m2": 264.13,
                   "footprint_area_m2": 28.49,
                   "open_area_m2": 235.64,
-                  "total_floor_area_m2": 186.42,
+                  "total_floor_area_m2": 280.6,
                   "num_floors": 9,
                   "building_type": "공동주택",
                   "small_lot": true,
@@ -737,21 +713,21 @@
                   "selected_rule_id": "seoul_parking_appendix2_row_05",
                   "base_rule_id": "parking_appendix1_row_05",
                   "metric": "household_or_unit_area",
-                  "metric_value": 186.42,
+                  "metric_value": 280.6,
                   "required_spaces": 5,
                   "raw_spaces": 4.5,
                   "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
                   "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
                   "unit_schedule": {
                     "source": "mass_stage_estimate",
-                    "fallback_area_m2": 186.42,
-                    "area_ratio_raw_spaces": 1.8636,
+                    "fallback_area_m2": 280.6,
+                    "area_ratio_raw_spaces": 2.8056,
                     "household_min_raw_spaces": 4.5,
                     "units": [
                       {
                         "unit_type": "F01",
                         "count": 1,
-                        "exclusive_area_m2": 15.53,
+                        "exclusive_area_m2": 23.38,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -759,7 +735,7 @@
                       {
                         "unit_type": "F02",
                         "count": 1,
-                        "exclusive_area_m2": 15.53,
+                        "exclusive_area_m2": 23.38,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -767,7 +743,7 @@
                       {
                         "unit_type": "F03",
                         "count": 1,
-                        "exclusive_area_m2": 15.53,
+                        "exclusive_area_m2": 23.38,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -775,7 +751,7 @@
                       {
                         "unit_type": "F04",
                         "count": 1,
-                        "exclusive_area_m2": 15.53,
+                        "exclusive_area_m2": 23.38,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -783,7 +759,7 @@
                       {
                         "unit_type": "F05",
                         "count": 1,
-                        "exclusive_area_m2": 15.53,
+                        "exclusive_area_m2": 23.38,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -791,7 +767,7 @@
                       {
                         "unit_type": "F06",
                         "count": 1,
-                        "exclusive_area_m2": 15.53,
+                        "exclusive_area_m2": 23.38,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -799,7 +775,7 @@
                       {
                         "unit_type": "F07",
                         "count": 1,
-                        "exclusive_area_m2": 15.53,
+                        "exclusive_area_m2": 23.38,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -807,7 +783,7 @@
                       {
                         "unit_type": "F08",
                         "count": 1,
-                        "exclusive_area_m2": 15.53,
+                        "exclusive_area_m2": 23.38,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -815,7 +791,7 @@
                       {
                         "unit_type": "F09",
                         "count": 1,
-                        "exclusive_area_m2": 15.53,
+                        "exclusive_area_m2": 23.38,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -1611,7 +1587,7 @@
               {
                 "band": 0,
                 "bottom_height": 0,
-                "top_height": 8.4,
+                "top_height": 5.6,
                 "geometry": {
                   "type": "Polygon",
                   "coordinates": [
@@ -1708,91 +1684,79 @@
               },
               {
                 "band": 1,
-                "bottom_height": 8.4,
+                "bottom_height": 5.6,
                 "top_height": 25.2,
                 "geometry": {
                   "type": "Polygon",
                   "coordinates": [
                     [
                       [
-                        127.04502531757794,
-                        37.485010067815324
+                        127.04496657842122,
+                        37.48500749910881
                       ],
                       [
-                        127.04501276124455,
-                        37.48500494829633
+                        127.04496699647713,
+                        37.48500750602916
                       ],
                       [
-                        127.04500354764888,
-                        37.48500479578109
+                        127.04496691239115,
+                        37.4850107316696
                       ],
                       [
-                        127.04500360370513,
-                        37.485002645354086
+                        127.04496685722407,
+                        37.48501284794657
                       ],
                       [
-                        127.04500364061045,
-                        37.48500122959327
+                        127.04499456764813,
+                        37.48502246861286
                       ],
                       [
-                        127.04498729929009,
-                        37.48499456683918
+                        127.04499581155231,
+                        37.48502290047855
                       ],
                       [
-                        127.04496404029788,
-                        37.48499418182013
+                        127.0449958796217,
+                        37.48502292411126
                       ],
                       [
-                        127.04495497164274,
-                        37.485005804983814
+                        127.04503764196403,
+                        37.48502361541221
                       ],
                       [
-                        127.04495421918007,
-                        37.48500676936389
+                        127.04503820546567,
+                        37.485023039998744
                       ],
                       [
-                        127.04496868443096,
-                        37.48501304931059
+                        127.04504042512963,
+                        37.485020773413346
                       ],
                       [
-                        127.0449773091879,
-                        37.485013192081226
+                        127.04505967284679,
+                        37.48500111881123
                       ],
                       [
-                        127.04497725313091,
-                        37.485015342508184
+                        127.04503432635137,
+                        37.48499284789124
                       ],
                       [
-                        127.044977216353,
-                        37.485016753359496
+                        127.04501691041098,
+                        37.48499255960286
                       ],
                       [
-                        127.04499184320467,
-                        37.48502310345908
+                        127.04501699449472,
+                        37.48498933396233
                       ],
                       [
-                        127.04499249979514,
-                        37.485023388511124
+                        127.04501704985232,
+                        37.48498721032112
                       ],
                       [
-                        127.04499253572533,
-                        37.48502340410985
+                        127.04498721297972,
+                        37.48497747411258
                       ],
                       [
-                        127.04501462935151,
-                        37.48502376983282
-                      ],
-                      [
-                        127.04501492955919,
-                        37.48502338497482
-                      ],
-                      [
-                        127.04501611209363,
-                        37.48502186899788
-                      ],
-                      [
-                        127.04502531757794,
-                        37.485010067815324
+                        127.04496657842122,
+                        37.48500749910881
                       ]
                     ]
                   ]
@@ -1830,43 +1794,43 @@
                 "surface_type": "polygon",
                 "vertices_wgs84_h": [
                   [
-                    127.04501282,
-                    37.48500499,
+                    127.04496705,
+                    37.48500755,
                     25.3
                   ],
                   [
-                    127.04500366,
-                    37.48500269,
+                    127.04496691,
+                    37.48501289,
                     25.3
                   ],
                   [
-                    127.04498735,
-                    37.48499461,
+                    127.04499587,
+                    37.48502295,
                     25.3
                   ],
                   [
-                    127.04495503,
-                    37.48500585,
+                    127.0450377,
+                    37.48502366,
                     25.3
                   ],
                   [
-                    127.04496874,
-                    37.4850131,
+                    127.04504048,
+                    37.48502082,
                     25.3
                   ],
                   [
-                    127.04497731,
-                    37.48501539,
+                    127.04503438,
+                    37.48499289,
                     25.3
                   ],
                   [
-                    127.0449919,
-                    37.48502315,
+                    127.04501705,
+                    37.48498938,
                     25.3
                   ],
                   [
-                    127.04499259,
-                    37.48502345,
+                    127.04498727,
+                    37.48497752,
                     25.3
                   ]
                 ]
@@ -1904,7 +1868,7 @@
                 "site_area_m2": 264.13,
                 "footprint_area_m2": 28.49,
                 "open_area_m2": 235.64,
-                "total_floor_area_m2": 186.42,
+                "total_floor_area_m2": 280.6,
                 "num_floors": 9,
                 "building_type": "공동주택",
                 "small_lot": true,
@@ -2000,21 +1964,21 @@
                 "selected_rule_id": "seoul_parking_appendix2_row_05",
                 "base_rule_id": "parking_appendix1_row_05",
                 "metric": "household_or_unit_area",
-                "metric_value": 186.42,
+                "metric_value": 280.6,
                 "required_spaces": 5,
                 "raw_spaces": 4.5,
                 "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
                 "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
                 "unit_schedule": {
                   "source": "mass_stage_estimate",
-                  "fallback_area_m2": 186.42,
-                  "area_ratio_raw_spaces": 1.8636,
+                  "fallback_area_m2": 280.6,
+                  "area_ratio_raw_spaces": 2.8056,
                   "household_min_raw_spaces": 4.5,
                   "units": [
                     {
                       "unit_type": "F01",
                       "count": 1,
-                      "exclusive_area_m2": 15.53,
+                      "exclusive_area_m2": 23.38,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -2022,7 +1986,7 @@
                     {
                       "unit_type": "F02",
                       "count": 1,
-                      "exclusive_area_m2": 15.53,
+                      "exclusive_area_m2": 23.38,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -2030,7 +1994,7 @@
                     {
                       "unit_type": "F03",
                       "count": 1,
-                      "exclusive_area_m2": 15.53,
+                      "exclusive_area_m2": 23.38,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -2038,7 +2002,7 @@
                     {
                       "unit_type": "F04",
                       "count": 1,
-                      "exclusive_area_m2": 15.53,
+                      "exclusive_area_m2": 23.38,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -2046,7 +2010,7 @@
                     {
                       "unit_type": "F05",
                       "count": 1,
-                      "exclusive_area_m2": 15.53,
+                      "exclusive_area_m2": 23.38,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -2054,7 +2018,7 @@
                     {
                       "unit_type": "F06",
                       "count": 1,
-                      "exclusive_area_m2": 15.53,
+                      "exclusive_area_m2": 23.38,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -2062,7 +2026,7 @@
                     {
                       "unit_type": "F07",
                       "count": 1,
-                      "exclusive_area_m2": 15.53,
+                      "exclusive_area_m2": 23.38,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -2070,7 +2034,7 @@
                     {
                       "unit_type": "F08",
                       "count": 1,
-                      "exclusive_area_m2": 15.53,
+                      "exclusive_area_m2": 23.38,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -2078,7 +2042,7 @@
                     {
                       "unit_type": "F09",
                       "count": 1,
-                      "exclusive_area_m2": 15.53,
+                      "exclusive_area_m2": 23.38,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -2818,13 +2782,13 @@
               "volume_profile": [
                 {
                   "bottom_height": 0,
-                  "top_height": 8.4,
+                  "top_height": 5.6,
                   "area_m2": 28.5
                 },
                 {
-                  "bottom_height": 8.4,
+                  "bottom_height": 5.6,
                   "top_height": 25.2,
-                  "area_m2": 12.6
+                  "area_m2": 26
                 }
               ],
               "floor_plate_count": 0,
@@ -2841,20 +2805,20 @@
                 "volume_profile": [
                   {
                     "bottom_height": 0,
-                    "top_height": 8.4,
+                    "top_height": 5.6,
                     "area_m2": 28.5
                   },
                   {
-                    "bottom_height": 8.4,
+                    "bottom_height": 5.6,
                     "top_height": 25.2,
-                    "area_m2": 12.6
+                    "area_m2": 26
                   }
                 ],
                 "floor_plate_count": 0,
                 "floor_plate_area_profile": []
               }
             },
-            "maas_score": 0.5623,
+            "maas_score": 0.6123,
             "design_quality": {
               "source": "arr.maas.design_quality.v1",
               "score": 0.2831,
@@ -2973,21 +2937,21 @@
               "selected_rule_id": "seoul_parking_appendix2_row_05",
               "base_rule_id": "parking_appendix1_row_05",
               "metric": "household_or_unit_area",
-              "metric_value": 186.42,
+              "metric_value": 280.6,
               "required_spaces": 5,
               "raw_spaces": 4.5,
               "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
               "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
               "unit_schedule": {
                 "source": "mass_stage_estimate",
-                "fallback_area_m2": 186.42,
-                "area_ratio_raw_spaces": 1.8636,
+                "fallback_area_m2": 280.6,
+                "area_ratio_raw_spaces": 2.8056,
                 "household_min_raw_spaces": 4.5,
                 "units": [
                   {
                     "unit_type": "F01",
                     "count": 1,
-                    "exclusive_area_m2": 15.53,
+                    "exclusive_area_m2": 23.38,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -2995,7 +2959,7 @@
                   {
                     "unit_type": "F02",
                     "count": 1,
-                    "exclusive_area_m2": 15.53,
+                    "exclusive_area_m2": 23.38,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -3003,7 +2967,7 @@
                   {
                     "unit_type": "F03",
                     "count": 1,
-                    "exclusive_area_m2": 15.53,
+                    "exclusive_area_m2": 23.38,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -3011,7 +2975,7 @@
                   {
                     "unit_type": "F04",
                     "count": 1,
-                    "exclusive_area_m2": 15.53,
+                    "exclusive_area_m2": 23.38,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -3019,7 +2983,7 @@
                   {
                     "unit_type": "F05",
                     "count": 1,
-                    "exclusive_area_m2": 15.53,
+                    "exclusive_area_m2": 23.38,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -3027,7 +2991,7 @@
                   {
                     "unit_type": "F06",
                     "count": 1,
-                    "exclusive_area_m2": 15.53,
+                    "exclusive_area_m2": 23.38,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -3035,7 +2999,7 @@
                   {
                     "unit_type": "F07",
                     "count": 1,
-                    "exclusive_area_m2": 15.53,
+                    "exclusive_area_m2": 23.38,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -3043,7 +3007,7 @@
                   {
                     "unit_type": "F08",
                     "count": 1,
-                    "exclusive_area_m2": 15.53,
+                    "exclusive_area_m2": 23.38,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -3051,7 +3015,7 @@
                   {
                     "unit_type": "F09",
                     "count": 1,
-                    "exclusive_area_m2": 15.53,
+                    "exclusive_area_m2": 23.38,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -3173,9 +3137,9 @@
             "num_floors": 9,
             "floor_height": 2.8,
             "footprint_area": 28.49,
-            "floor_area": 209.26,
+            "floor_area": 245.44,
             "bcr": 10.79,
-            "far": 79.23,
+            "far": 92.93,
             "min_setback": 0.48,
             "open_pct": 89.21,
             "diversity_score": 0.1771,
@@ -3191,91 +3155,67 @@
               "parking_repair_layout_status=needs_drive_connectivity_review",
               "parking_preserve_operator=parking_repair_sloped_roof_mass"
             ],
-            "lower_height": 11.2,
-            "step_floor": 4,
+            "lower_height": 8.4,
+            "step_floor": 3,
             "upper_geometry": {
               "type": "Polygon",
               "coordinates": [
                 [
                   [
-                    127.0450316989772,
-                    37.48501237392281
+                    127.04505679563393,
+                    37.48499671404611
                   ],
                   [
-                    127.04504380180397,
-                    37.48499324969826
+                    127.04502962035546,
+                    37.484984140460604
                   ],
                   [
-                    127.04502961239105,
-                    37.48498567146624
+                    127.04501588502724,
+                    37.48498391309757
                   ],
                   [
-                    127.04502107296301,
-                    37.484985530111956
+                    127.04501596599678,
+                    37.48498080692519
                   ],
                   [
-                    127.04502114147554,
-                    37.484982901812245
+                    127.04501601930413,
+                    37.48497876193738
                   ],
                   [
-                    127.04502118658164,
-                    37.484981171437916
+                    127.04499104622944,
+                    37.4849705465019
                   ],
                   [
-                    127.0450060901699,
-                    37.48497310879363
+                    127.04496339833436,
+                    37.48500842342638
                   ],
                   [
-                    127.04498431484181,
-                    37.48497274833817
+                    127.04499053174027,
+                    37.4850173734339
                   ],
                   [
-                    127.04497150784593,
-                    37.48499298075884
+                    127.04499179584651,
+                    37.485017790401635
                   ],
                   [
-                    127.0449707599138,
-                    37.484994162288714
+                    127.04499186502142,
+                    37.4850178132191
                   ],
                   [
-                    127.04498498530332,
-                    37.48500178059475
+                    127.04503428661529,
+                    37.485018515434064
                   ],
                   [
-                    127.04499348921402,
-                    37.48500192136375
+                    127.04503485820746,
+                    37.48501796181163
                   ],
                   [
-                    127.04499342070048,
-                    37.485004549663415
+                    127.04503710974052,
+                    37.48501578106222
                   ],
                   [
-                    127.04499337575015,
-                    37.48500627403728
-                  ],
-                  [
-                    127.0450077600616,
-                    37.485013977447615
-                  ],
-                  [
-                    127.0450084057646,
-                    37.48501432324897
-                  ],
-                  [
-                    127.04500844109901,
-                    37.485014342172036
-                  ],
-                  [
-                    127.04503022515976,
-                    37.48501470276772
-                  ],
-                  [
-                    127.04503052356044,
-                    37.48501423125146
-                  ],
-                  [
-                    127.0450316989772,
-                    37.48501237392281
+                    127.04505679563393,
+                    37.48499671404611
                   ]
                 ]
               ]
@@ -3299,7 +3239,7 @@
                 {
                   "band": 0,
                   "bottom_height": 0,
-                  "top_height": 11.2,
+                  "top_height": 8.4,
                   "geometry": {
                     "type": "Polygon",
                     "coordinates": [
@@ -3396,103 +3336,79 @@
                 },
                 {
                   "band": 1,
-                  "bottom_height": 11.2,
+                  "bottom_height": 8.4,
                   "top_height": 25.2,
                   "geometry": {
                     "type": "Polygon",
                     "coordinates": [
                       [
                         [
-                          127.04503290619526,
-                          37.4849910490401
+                          127.0450249810969,
+                          37.48498406366641
                         ],
                         [
-                          127.04502511334498,
-                          37.48498559699301
+                          127.04501588502724,
+                          37.48498391309757
                         ],
                         [
-                          127.04502107296301,
-                          37.484985530111956
+                          127.04501591011271,
+                          37.484982950762706
                         ],
                         [
-                          127.04502111029694,
-                          37.48498409789539
+                          127.04501373041346,
+                          37.48498291468166
                         ],
                         [
-                          127.04501703810193,
-                          37.48498403048759
+                          127.04501380490551,
+                          37.48498005700308
                         ],
                         [
-                          127.04501710113358,
-                          37.484981612451854
+                          127.0450138539483,
+                          37.48497817561429
                         ],
                         [
-                          127.04501714263127,
-                          37.484980020507486
+                          127.04501258414635,
+                          37.484977631868006
                         ],
                         [
-                          127.04501104852591,
-                          37.48497575693726
+                          127.0449956586686,
+                          37.4849720638645
                         ],
                         [
-                          127.0450060901699,
-                          37.484973108793625
+                          127.04497684424715,
+                          37.48500565292151
                         ],
                         [
-                          127.04499115557978,
-                          37.48497286157599
+                          127.0449957889008,
+                          37.48501378730635
                         ],
                         [
-                          127.04498229510776,
-                          37.48499106480236
+                          127.04499667150488,
+                          37.485014166275484
                         ],
                         [
-                          127.04498176471135,
-                          37.484992154420425
+                          127.04499671980305,
+                          37.48501418701356
                         ],
                         [
-                          127.04499168016292,
-                          37.48499911075497
+                          127.04502641491729,
+                          37.48501467856439
                         ],
                         [
-                          127.0449976329002,
-                          37.48499920929299
+                          127.04502681825959,
+                          37.48501416720365
                         ],
                         [
-                          127.04499756986789,
-                          37.48500162732868
+                          127.04502840704718,
+                          37.485012152925435
                         ],
                         [
-                          127.04499752851369,
-                          37.485003213752634
+                          127.04504229833944,
+                          37.48499454142299
                         ],
                         [
-                          127.04500755473745,
-                          37.48501024779772
-                        ],
-                        [
-                          127.04500800480854,
-                          37.4850105635517
-                        ],
-                        [
-                          127.0450080294375,
-                          37.48501058083049
-                        ],
-                        [
-                          127.04502327827922,
-                          37.485010833247934
-                        ],
-                        [
-                          127.04502348989091,
-                          37.48501039841152
-                        ],
-                        [
-                          127.04502432344107,
-                          37.485008685566804
-                        ],
-                        [
-                          127.04503290619526,
-                          37.4849910490401
+                          127.0450249810969,
+                          37.48498406366641
                         ]
                       ]
                     ]
@@ -3507,12 +3423,12 @@
               ],
               "floor_plates": [],
               "legal_metrics": {
-                "far": 79.23,
+                "far": 92.93,
                 "bcr": 10.79,
                 "height": 25.2,
                 "num_floors": 9,
                 "footprint_area": 28.49,
-                "floor_area": 209.26,
+                "floor_area": 245.44,
                 "min_setback": 0.48,
                 "open_pct": 89.21
               },
@@ -3529,22 +3445,22 @@
                   "surface_type": "quad",
                   "vertices_wgs84_h": [
                     [
-                      127.04494943,
-                      37.48497315,
+                      127.04494983,
+                      37.48497316,
                       25.35
                     ],
                     [
-                      127.0450301,
-                      37.48497449,
+                      127.04503478,
+                      37.48497457,
                       25.35
                     ],
                     [
-                      127.04502907,
-                      37.48501379,
+                      127.04503376,
+                      37.48501387,
                       14.77
                     ],
                     [
-                      127.0449484,
+                      127.04494881,
                       37.48501246,
                       14.77
                     ]
@@ -3575,7 +3491,7 @@
                   "site_area_m2": 264.13,
                   "footprint_area_m2": 28.49,
                   "open_area_m2": 235.64,
-                  "total_floor_area_m2": 209.26,
+                  "total_floor_area_m2": 245.44,
                   "num_floors": 9,
                   "building_type": "공동주택",
                   "small_lot": true,
@@ -3671,21 +3587,21 @@
                   "selected_rule_id": "seoul_parking_appendix2_row_05",
                   "base_rule_id": "parking_appendix1_row_05",
                   "metric": "household_or_unit_area",
-                  "metric_value": 209.26,
+                  "metric_value": 245.44,
                   "required_spaces": 5,
                   "raw_spaces": 4.5,
                   "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
                   "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
                   "unit_schedule": {
                     "source": "mass_stage_estimate",
-                    "fallback_area_m2": 209.26,
-                    "area_ratio_raw_spaces": 2.0928,
+                    "fallback_area_m2": 245.44,
+                    "area_ratio_raw_spaces": 2.454,
                     "household_min_raw_spaces": 4.5,
                     "units": [
                       {
                         "unit_type": "F01",
                         "count": 1,
-                        "exclusive_area_m2": 17.44,
+                        "exclusive_area_m2": 20.45,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -3693,7 +3609,7 @@
                       {
                         "unit_type": "F02",
                         "count": 1,
-                        "exclusive_area_m2": 17.44,
+                        "exclusive_area_m2": 20.45,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -3701,7 +3617,7 @@
                       {
                         "unit_type": "F03",
                         "count": 1,
-                        "exclusive_area_m2": 17.44,
+                        "exclusive_area_m2": 20.45,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -3709,7 +3625,7 @@
                       {
                         "unit_type": "F04",
                         "count": 1,
-                        "exclusive_area_m2": 17.44,
+                        "exclusive_area_m2": 20.45,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -3717,7 +3633,7 @@
                       {
                         "unit_type": "F05",
                         "count": 1,
-                        "exclusive_area_m2": 17.44,
+                        "exclusive_area_m2": 20.45,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -3725,7 +3641,7 @@
                       {
                         "unit_type": "F06",
                         "count": 1,
-                        "exclusive_area_m2": 17.44,
+                        "exclusive_area_m2": 20.45,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -3733,7 +3649,7 @@
                       {
                         "unit_type": "F07",
                         "count": 1,
-                        "exclusive_area_m2": 17.44,
+                        "exclusive_area_m2": 20.45,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -3741,7 +3657,7 @@
                       {
                         "unit_type": "F08",
                         "count": 1,
-                        "exclusive_area_m2": 17.44,
+                        "exclusive_area_m2": 20.45,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -3749,7 +3665,7 @@
                       {
                         "unit_type": "F09",
                         "count": 1,
-                        "exclusive_area_m2": 17.44,
+                        "exclusive_area_m2": 20.45,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -4545,7 +4461,7 @@
               {
                 "band": 0,
                 "bottom_height": 0,
-                "top_height": 11.2,
+                "top_height": 8.4,
                 "geometry": {
                   "type": "Polygon",
                   "coordinates": [
@@ -4642,103 +4558,79 @@
               },
               {
                 "band": 1,
-                "bottom_height": 11.2,
+                "bottom_height": 8.4,
                 "top_height": 25.2,
                 "geometry": {
                   "type": "Polygon",
                   "coordinates": [
                     [
                       [
-                        127.04503290619526,
-                        37.4849910490401
+                        127.0450249810969,
+                        37.48498406366641
                       ],
                       [
-                        127.04502511334498,
-                        37.48498559699301
+                        127.04501588502724,
+                        37.48498391309757
                       ],
                       [
-                        127.04502107296301,
-                        37.484985530111956
+                        127.04501591011271,
+                        37.484982950762706
                       ],
                       [
-                        127.04502111029694,
-                        37.48498409789539
+                        127.04501373041346,
+                        37.48498291468166
                       ],
                       [
-                        127.04501703810193,
-                        37.48498403048759
+                        127.04501380490551,
+                        37.48498005700308
                       ],
                       [
-                        127.04501710113358,
-                        37.484981612451854
+                        127.0450138539483,
+                        37.48497817561429
                       ],
                       [
-                        127.04501714263127,
-                        37.484980020507486
+                        127.04501258414635,
+                        37.484977631868006
                       ],
                       [
-                        127.04501104852591,
-                        37.48497575693726
+                        127.0449956586686,
+                        37.4849720638645
                       ],
                       [
-                        127.0450060901699,
-                        37.484973108793625
+                        127.04497684424715,
+                        37.48500565292151
                       ],
                       [
-                        127.04499115557978,
-                        37.48497286157599
+                        127.0449957889008,
+                        37.48501378730635
                       ],
                       [
-                        127.04498229510776,
-                        37.48499106480236
+                        127.04499667150488,
+                        37.485014166275484
                       ],
                       [
-                        127.04498176471135,
-                        37.484992154420425
+                        127.04499671980305,
+                        37.48501418701356
                       ],
                       [
-                        127.04499168016292,
-                        37.48499911075497
+                        127.04502641491729,
+                        37.48501467856439
                       ],
                       [
-                        127.0449976329002,
-                        37.48499920929299
+                        127.04502681825959,
+                        37.48501416720365
                       ],
                       [
-                        127.04499756986789,
-                        37.48500162732868
+                        127.04502840704718,
+                        37.485012152925435
                       ],
                       [
-                        127.04499752851369,
-                        37.485003213752634
+                        127.04504229833944,
+                        37.48499454142299
                       ],
                       [
-                        127.04500755473745,
-                        37.48501024779772
-                      ],
-                      [
-                        127.04500800480854,
-                        37.4850105635517
-                      ],
-                      [
-                        127.0450080294375,
-                        37.48501058083049
-                      ],
-                      [
-                        127.04502327827922,
-                        37.485010833247934
-                      ],
-                      [
-                        127.04502348989091,
-                        37.48501039841152
-                      ],
-                      [
-                        127.04502432344107,
-                        37.485008685566804
-                      ],
-                      [
-                        127.04503290619526,
-                        37.4849910490401
+                        127.0450249810969,
+                        37.48498406366641
                       ]
                     ]
                   ]
@@ -4776,22 +4668,22 @@
                 "surface_type": "quad",
                 "vertices_wgs84_h": [
                   [
-                    127.04494943,
-                    37.48497315,
+                    127.04494983,
+                    37.48497316,
                     25.35
                   ],
                   [
-                    127.0450301,
-                    37.48497449,
+                    127.04503478,
+                    37.48497457,
                     25.35
                   ],
                   [
-                    127.04502907,
-                    37.48501379,
+                    127.04503376,
+                    37.48501387,
                     14.77
                   ],
                   [
-                    127.0449484,
+                    127.04494881,
                     37.48501246,
                     14.77
                   ]
@@ -4830,7 +4722,7 @@
                 "site_area_m2": 264.13,
                 "footprint_area_m2": 28.49,
                 "open_area_m2": 235.64,
-                "total_floor_area_m2": 209.26,
+                "total_floor_area_m2": 245.44,
                 "num_floors": 9,
                 "building_type": "공동주택",
                 "small_lot": true,
@@ -4926,21 +4818,21 @@
                 "selected_rule_id": "seoul_parking_appendix2_row_05",
                 "base_rule_id": "parking_appendix1_row_05",
                 "metric": "household_or_unit_area",
-                "metric_value": 209.26,
+                "metric_value": 245.44,
                 "required_spaces": 5,
                 "raw_spaces": 4.5,
                 "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
                 "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
                 "unit_schedule": {
                   "source": "mass_stage_estimate",
-                  "fallback_area_m2": 209.26,
-                  "area_ratio_raw_spaces": 2.0928,
+                  "fallback_area_m2": 245.44,
+                  "area_ratio_raw_spaces": 2.454,
                   "household_min_raw_spaces": 4.5,
                   "units": [
                     {
                       "unit_type": "F01",
                       "count": 1,
-                      "exclusive_area_m2": 17.44,
+                      "exclusive_area_m2": 20.45,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -4948,7 +4840,7 @@
                     {
                       "unit_type": "F02",
                       "count": 1,
-                      "exclusive_area_m2": 17.44,
+                      "exclusive_area_m2": 20.45,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -4956,7 +4848,7 @@
                     {
                       "unit_type": "F03",
                       "count": 1,
-                      "exclusive_area_m2": 17.44,
+                      "exclusive_area_m2": 20.45,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -4964,7 +4856,7 @@
                     {
                       "unit_type": "F04",
                       "count": 1,
-                      "exclusive_area_m2": 17.44,
+                      "exclusive_area_m2": 20.45,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -4972,7 +4864,7 @@
                     {
                       "unit_type": "F05",
                       "count": 1,
-                      "exclusive_area_m2": 17.44,
+                      "exclusive_area_m2": 20.45,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -4980,7 +4872,7 @@
                     {
                       "unit_type": "F06",
                       "count": 1,
-                      "exclusive_area_m2": 17.44,
+                      "exclusive_area_m2": 20.45,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -4988,7 +4880,7 @@
                     {
                       "unit_type": "F07",
                       "count": 1,
-                      "exclusive_area_m2": 17.44,
+                      "exclusive_area_m2": 20.45,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -4996,7 +4888,7 @@
                     {
                       "unit_type": "F08",
                       "count": 1,
-                      "exclusive_area_m2": 17.44,
+                      "exclusive_area_m2": 20.45,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -5004,7 +4896,7 @@
                     {
                       "unit_type": "F09",
                       "count": 1,
-                      "exclusive_area_m2": 17.44,
+                      "exclusive_area_m2": 20.45,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -5744,13 +5636,13 @@
               "volume_profile": [
                 {
                   "bottom_height": 0,
-                  "top_height": 11.2,
+                  "top_height": 8.4,
                   "area_m2": 28.5
                 },
                 {
-                  "bottom_height": 11.2,
+                  "bottom_height": 8.4,
                   "top_height": 25.2,
-                  "area_m2": 12.1
+                  "area_m2": 17
                 }
               ],
               "floor_plate_count": 0,
@@ -5767,20 +5659,20 @@
                 "volume_profile": [
                   {
                     "bottom_height": 0,
-                    "top_height": 11.2,
+                    "top_height": 8.4,
                     "area_m2": 28.5
                   },
                   {
-                    "bottom_height": 11.2,
+                    "bottom_height": 8.4,
                     "top_height": 25.2,
-                    "area_m2": 12.1
+                    "area_m2": 17
                   }
                 ],
                 "floor_plate_count": 0,
                 "floor_plate_area_profile": []
               }
             },
-            "maas_score": 0.5523,
+            "maas_score": 0.6023,
             "design_quality": {
               "source": "arr.maas.design_quality.v1",
               "score": 0.2831,
@@ -5899,21 +5791,21 @@
               "selected_rule_id": "seoul_parking_appendix2_row_05",
               "base_rule_id": "parking_appendix1_row_05",
               "metric": "household_or_unit_area",
-              "metric_value": 209.26,
+              "metric_value": 245.44,
               "required_spaces": 5,
               "raw_spaces": 4.5,
               "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
               "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
               "unit_schedule": {
                 "source": "mass_stage_estimate",
-                "fallback_area_m2": 209.26,
-                "area_ratio_raw_spaces": 2.0928,
+                "fallback_area_m2": 245.44,
+                "area_ratio_raw_spaces": 2.454,
                 "household_min_raw_spaces": 4.5,
                 "units": [
                   {
                     "unit_type": "F01",
                     "count": 1,
-                    "exclusive_area_m2": 17.44,
+                    "exclusive_area_m2": 20.45,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -5921,7 +5813,7 @@
                   {
                     "unit_type": "F02",
                     "count": 1,
-                    "exclusive_area_m2": 17.44,
+                    "exclusive_area_m2": 20.45,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -5929,7 +5821,7 @@
                   {
                     "unit_type": "F03",
                     "count": 1,
-                    "exclusive_area_m2": 17.44,
+                    "exclusive_area_m2": 20.45,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -5937,7 +5829,7 @@
                   {
                     "unit_type": "F04",
                     "count": 1,
-                    "exclusive_area_m2": 17.44,
+                    "exclusive_area_m2": 20.45,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -5945,7 +5837,7 @@
                   {
                     "unit_type": "F05",
                     "count": 1,
-                    "exclusive_area_m2": 17.44,
+                    "exclusive_area_m2": 20.45,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -5953,7 +5845,7 @@
                   {
                     "unit_type": "F06",
                     "count": 1,
-                    "exclusive_area_m2": 17.44,
+                    "exclusive_area_m2": 20.45,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -5961,7 +5853,7 @@
                   {
                     "unit_type": "F07",
                     "count": 1,
-                    "exclusive_area_m2": 17.44,
+                    "exclusive_area_m2": 20.45,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -5969,7 +5861,7 @@
                   {
                     "unit_type": "F08",
                     "count": 1,
-                    "exclusive_area_m2": 17.44,
+                    "exclusive_area_m2": 20.45,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -5977,7 +5869,7 @@
                   {
                     "unit_type": "F09",
                     "count": 1,
-                    "exclusive_area_m2": 17.44,
+                    "exclusive_area_m2": 20.45,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -6099,9 +5991,9 @@
             "num_floors": 9,
             "floor_height": 2.8,
             "footprint_area": 28.49,
-            "floor_area": 180.81,
+            "floor_area": 244.77,
             "bcr": 10.79,
-            "far": 68.46,
+            "far": 92.67,
             "min_setback": 0.48,
             "open_pct": 89.21,
             "diversity_score": 0.1771,
@@ -6117,91 +6009,67 @@
               "parking_repair_layout_status=needs_drive_connectivity_review",
               "parking_preserve_operator=parking_repair_diagonal_connector"
             ],
-            "lower_height": 8.4,
-            "step_floor": 3,
+            "lower_height": 5.6,
+            "step_floor": 2,
             "upper_geometry": {
               "type": "Polygon",
               "coordinates": [
                 [
                   [
-                    127.04503862422779,
-                    37.48499321983379
+                    127.04506176746784,
+                    37.484999014436454
                   ],
                   [
-                    127.04504947173952,
-                    37.48497539241315
+                    127.04503090736655,
+                    37.484984735941175
                   ],
                   [
-                    127.0450367830463,
-                    37.484968339706526
+                    127.04501890635224,
+                    37.48498453728673
                   ],
                   [
-                    127.04502914250715,
-                    37.484968213232186
+                    127.04501898265036,
+                    37.48498161031661
                   ],
                   [
-                    127.04502920634808,
-                    37.484965764134714
+                    127.04501903288218,
+                    37.48497968330885
                   ],
                   [
-                    127.04502924837854,
-                    37.484964151740435
+                    127.04499026295693,
+                    37.4849716195663
                   ],
                   [
-                    127.04501574861344,
-                    37.484956648214315
+                    127.04496347390709,
+                    37.48500831989371
                   ],
                   [
-                    127.04499626542926,
-                    37.48495632570344
+                    127.04499079319532,
+                    37.48501599732203
                   ],
                   [
-                    127.04498478679051,
-                    37.484975186176605
+                    127.04499220428362,
+                    37.48501639387422
                   ],
                   [
-                    127.04498411643483,
-                    37.484976287587735
+                    127.04499228150172,
+                    37.4850164155745
                   ],
                   [
-                    127.04499683727983,
-                    37.484983377612416
+                    127.04503957584546,
+                    37.48501719844814
                   ],
                   [
-                    127.04500444604022,
-                    37.48498350356284
+                    127.04504021056177,
+                    37.48501667835618
                   ],
                   [
-                    127.04500438219846,
-                    37.48498595266025
+                    127.04504271074418,
+                    37.4850146296852
                   ],
                   [
-                    127.04500434031317,
-                    37.48498755946319
-                  ],
-                  [
-                    127.04501720327141,
-                    37.48499472869108
-                  ],
-                  [
-                    127.0450177806818,
-                    37.48499505051331
-                  ],
-                  [
-                    127.04501781227908,
-                    37.484995068124185
-                  ],
-                  [
-                    127.04503730327589,
-                    37.484995390760936
-                  ],
-                  [
-                    127.04503757072622,
-                    37.48499495121795
-                  ],
-                  [
-                    127.04503862422779,
-                    37.48499321983379
+                    127.04506176746784,
+                    37.484999014436454
                   ]
                 ]
               ]
@@ -6225,7 +6093,7 @@
                 {
                   "band": 0,
                   "bottom_height": 0,
-                  "top_height": 8.4,
+                  "top_height": 5.6,
                   "geometry": {
                     "type": "Polygon",
                     "coordinates": [
@@ -6322,99 +6190,75 @@
                 },
                 {
                   "band": 1,
-                  "bottom_height": 8.4,
+                  "bottom_height": 5.6,
                   "top_height": 25.2,
                   "geometry": {
                     "type": "Polygon",
                     "coordinates": [
                       [
                         [
-                          127.04504467755929,
-                          37.484972903295485
+                          127.0450399958726,
+                          37.48498943439361
                         ],
                         [
-                          127.04503810669517,
-                          37.48497279452802
+                          127.04502967499958,
+                          37.48498926355162
                         ],
                         [
-                          127.04503816159814,
-                          37.48497068830418
+                          127.04502974061562,
+                          37.4849867463573
                         ],
                         [
-                          127.04503819774418,
-                          37.48496930164509
+                          127.04502978381477,
+                          37.48498508913064
                         ],
                         [
-                          127.04503645739972,
-                          37.484968334316086
+                          127.04502837408829,
+                          37.48498469400757
                         ],
                         [
-                          127.04502914250715,
-                          37.484968213232186
+                          127.04501890635224,
+                          37.48498453728673
                         ],
                         [
-                          127.04502920634808,
-                          37.484965764134714
+                          127.04501897096829,
+                          37.48498205846778
                         ],
                         [
-                          127.04502924386621,
-                          37.48496432484482
+                          127.04500504167581,
+                          37.484978154314625
                         ],
                         [
-                          127.04502658794445,
-                          37.48496284861356
+                          127.04498200309851,
+                          37.48500971659959
                         ],
                         [
-                          127.04500983240453,
-                          37.484962571255906
+                          127.04500549768827,
+                          37.485016319184695
                         ],
                         [
-                          127.04499996077756,
-                          37.48497879126409
+                          127.04500668935223,
+                          37.48501665407281
                         ],
                         [
-                          127.04499938427185,
-                          37.48497973847772
+                          127.04503957584546,
+                          37.48501719844814
                         ],
                         [
-                          127.04501032420019,
-                          37.48498583589766
+                          127.04504021056177,
+                          37.48501667835618
                         ],
                         [
-                          127.04501686773439,
-                          37.484985944214316
+                          127.04504271074418,
+                          37.485014629685196
                         ],
                         [
-                          127.04501681283082,
-                          37.484988050438105
+                          127.04506138267635,
+                          37.48499932973814
                         ],
                         [
-                          127.04501677680969,
-                          37.48498943228866
-                        ],
-                        [
-                          127.0450271663857,
-                          37.48499522296421
-                        ],
-                        [
-                          127.04503730327589,
-                          37.48499539076093
-                        ],
-                        [
-                          127.04503757072622,
-                          37.48499495121795
-                        ],
-                        [
-                          127.04503862422779,
-                          37.48499321983379
-                        ],
-                        [
-                          127.04504939188968,
-                          37.48497552364297
-                        ],
-                        [
-                          127.04504467755929,
-                          37.484972903295485
+                          127.0450399958726,
+                          37.48498943439361
                         ]
                       ]
                     ]
@@ -6428,31 +6272,31 @@
                 },
                 {
                   "band": "diagonal_connector",
-                  "bottom_height": 8.4,
+                  "bottom_height": 5.6,
                   "top_height": 25.2,
                   "geometry": {
                     "type": "Polygon",
                     "coordinates": [
                       [
                         [
-                          127.0450180430688,
-                          37.484968802989506
+                          127.04502374441134,
+                          37.484990464471615
                         ],
                         [
-                          127.04498277229798,
-                          37.48498389803823
+                          127.04499312476857,
+                          37.484983075293414
                         ],
                         [
-                          127.044995612018,
-                          37.485002949232054
+                          127.04498525954466,
+                          37.48500377197702
                         ],
                         [
-                          127.04503088279553,
-                          37.48498785417971
+                          127.04501587919495,
+                          37.48501116115746
                         ],
                         [
-                          127.0450180430688,
-                          37.484968802989506
+                          127.04502374441134,
+                          37.484990464471615
                         ]
                       ]
                     ]
@@ -6467,12 +6311,12 @@
               ],
               "floor_plates": [],
               "legal_metrics": {
-                "far": 68.46,
+                "far": 92.67,
                 "bcr": 10.79,
                 "height": 25.2,
                 "num_floors": 9,
                 "footprint_area": 28.49,
-                "floor_area": 180.81,
+                "floor_area": 244.77,
                 "min_setback": 0.48,
                 "open_pct": 89.21
               },
@@ -6489,23 +6333,23 @@
                   "surface_type": "polygon",
                   "vertices_wgs84_h": [
                     [
-                      127.0450181,
-                      37.48496885,
+                      127.0450238,
+                      37.48499051,
                       25.32
                     ],
                     [
-                      127.04498283,
-                      37.48498394,
+                      127.04499318,
+                      37.48498312,
                       25.32
                     ],
                     [
-                      127.04499567,
-                      37.485003,
+                      127.04498531,
+                      37.48500382,
                       25.32
                     ],
                     [
-                      127.04503094,
-                      37.4849879,
+                      127.04501593,
+                      37.48501121,
                       25.32
                     ]
                   ]
@@ -6535,7 +6379,7 @@
                   "site_area_m2": 264.13,
                   "footprint_area_m2": 28.49,
                   "open_area_m2": 235.64,
-                  "total_floor_area_m2": 180.81,
+                  "total_floor_area_m2": 244.77,
                   "num_floors": 9,
                   "building_type": "공동주택",
                   "small_lot": true,
@@ -6631,21 +6475,21 @@
                   "selected_rule_id": "seoul_parking_appendix2_row_05",
                   "base_rule_id": "parking_appendix1_row_05",
                   "metric": "household_or_unit_area",
-                  "metric_value": 180.81,
+                  "metric_value": 244.77,
                   "required_spaces": 5,
                   "raw_spaces": 4.5,
                   "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
                   "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
                   "unit_schedule": {
                     "source": "mass_stage_estimate",
-                    "fallback_area_m2": 180.81,
-                    "area_ratio_raw_spaces": 1.8084,
+                    "fallback_area_m2": 244.77,
+                    "area_ratio_raw_spaces": 2.448,
                     "household_min_raw_spaces": 4.5,
                     "units": [
                       {
                         "unit_type": "F01",
                         "count": 1,
-                        "exclusive_area_m2": 15.07,
+                        "exclusive_area_m2": 20.4,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -6653,7 +6497,7 @@
                       {
                         "unit_type": "F02",
                         "count": 1,
-                        "exclusive_area_m2": 15.07,
+                        "exclusive_area_m2": 20.4,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -6661,7 +6505,7 @@
                       {
                         "unit_type": "F03",
                         "count": 1,
-                        "exclusive_area_m2": 15.07,
+                        "exclusive_area_m2": 20.4,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -6669,7 +6513,7 @@
                       {
                         "unit_type": "F04",
                         "count": 1,
-                        "exclusive_area_m2": 15.07,
+                        "exclusive_area_m2": 20.4,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -6677,7 +6521,7 @@
                       {
                         "unit_type": "F05",
                         "count": 1,
-                        "exclusive_area_m2": 15.07,
+                        "exclusive_area_m2": 20.4,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -6685,7 +6529,7 @@
                       {
                         "unit_type": "F06",
                         "count": 1,
-                        "exclusive_area_m2": 15.07,
+                        "exclusive_area_m2": 20.4,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -6693,7 +6537,7 @@
                       {
                         "unit_type": "F07",
                         "count": 1,
-                        "exclusive_area_m2": 15.07,
+                        "exclusive_area_m2": 20.4,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -6701,7 +6545,7 @@
                       {
                         "unit_type": "F08",
                         "count": 1,
-                        "exclusive_area_m2": 15.07,
+                        "exclusive_area_m2": 20.4,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -6709,7 +6553,7 @@
                       {
                         "unit_type": "F09",
                         "count": 1,
-                        "exclusive_area_m2": 15.07,
+                        "exclusive_area_m2": 20.4,
                         "area_divisor_m2_per_space": 75,
                         "min_spaces_per_unit": 0.5,
                         "source": "mass_stage_estimate"
@@ -7505,7 +7349,7 @@
               {
                 "band": 0,
                 "bottom_height": 0,
-                "top_height": 8.4,
+                "top_height": 5.6,
                 "geometry": {
                   "type": "Polygon",
                   "coordinates": [
@@ -7602,99 +7446,75 @@
               },
               {
                 "band": 1,
-                "bottom_height": 8.4,
+                "bottom_height": 5.6,
                 "top_height": 25.2,
                 "geometry": {
                   "type": "Polygon",
                   "coordinates": [
                     [
                       [
-                        127.04504467755929,
-                        37.484972903295485
+                        127.0450399958726,
+                        37.48498943439361
                       ],
                       [
-                        127.04503810669517,
-                        37.48497279452802
+                        127.04502967499958,
+                        37.48498926355162
                       ],
                       [
-                        127.04503816159814,
-                        37.48497068830418
+                        127.04502974061562,
+                        37.4849867463573
                       ],
                       [
-                        127.04503819774418,
-                        37.48496930164509
+                        127.04502978381477,
+                        37.48498508913064
                       ],
                       [
-                        127.04503645739972,
-                        37.484968334316086
+                        127.04502837408829,
+                        37.48498469400757
                       ],
                       [
-                        127.04502914250715,
-                        37.484968213232186
+                        127.04501890635224,
+                        37.48498453728673
                       ],
                       [
-                        127.04502920634808,
-                        37.484965764134714
+                        127.04501897096829,
+                        37.48498205846778
                       ],
                       [
-                        127.04502924386621,
-                        37.48496432484482
+                        127.04500504167581,
+                        37.484978154314625
                       ],
                       [
-                        127.04502658794445,
-                        37.48496284861356
+                        127.04498200309851,
+                        37.48500971659959
                       ],
                       [
-                        127.04500983240453,
-                        37.484962571255906
+                        127.04500549768827,
+                        37.485016319184695
                       ],
                       [
-                        127.04499996077756,
-                        37.48497879126409
+                        127.04500668935223,
+                        37.48501665407281
                       ],
                       [
-                        127.04499938427185,
-                        37.48497973847772
+                        127.04503957584546,
+                        37.48501719844814
                       ],
                       [
-                        127.04501032420019,
-                        37.48498583589766
+                        127.04504021056177,
+                        37.48501667835618
                       ],
                       [
-                        127.04501686773439,
-                        37.484985944214316
+                        127.04504271074418,
+                        37.485014629685196
                       ],
                       [
-                        127.04501681283082,
-                        37.484988050438105
+                        127.04506138267635,
+                        37.48499932973814
                       ],
                       [
-                        127.04501677680969,
-                        37.48498943228866
-                      ],
-                      [
-                        127.0450271663857,
-                        37.48499522296421
-                      ],
-                      [
-                        127.04503730327589,
-                        37.48499539076093
-                      ],
-                      [
-                        127.04503757072622,
-                        37.48499495121795
-                      ],
-                      [
-                        127.04503862422779,
-                        37.48499321983379
-                      ],
-                      [
-                        127.04504939188968,
-                        37.48497552364297
-                      ],
-                      [
-                        127.04504467755929,
-                        37.484972903295485
+                        127.0450399958726,
+                        37.48498943439361
                       ]
                     ]
                   ]
@@ -7708,31 +7528,31 @@
               },
               {
                 "band": "diagonal_connector",
-                "bottom_height": 8.4,
+                "bottom_height": 5.6,
                 "top_height": 25.2,
                 "geometry": {
                   "type": "Polygon",
                   "coordinates": [
                     [
                       [
-                        127.0450180430688,
-                        37.484968802989506
+                        127.04502374441134,
+                        37.484990464471615
                       ],
                       [
-                        127.04498277229798,
-                        37.48498389803823
+                        127.04499312476857,
+                        37.484983075293414
                       ],
                       [
-                        127.044995612018,
-                        37.485002949232054
+                        127.04498525954466,
+                        37.48500377197702
                       ],
                       [
-                        127.04503088279553,
-                        37.48498785417971
+                        127.04501587919495,
+                        37.48501116115746
                       ],
                       [
-                        127.0450180430688,
-                        37.484968802989506
+                        127.04502374441134,
+                        37.484990464471615
                       ]
                     ]
                   ]
@@ -7770,23 +7590,23 @@
                 "surface_type": "polygon",
                 "vertices_wgs84_h": [
                   [
-                    127.0450181,
-                    37.48496885,
+                    127.0450238,
+                    37.48499051,
                     25.32
                   ],
                   [
-                    127.04498283,
-                    37.48498394,
+                    127.04499318,
+                    37.48498312,
                     25.32
                   ],
                   [
-                    127.04499567,
-                    37.485003,
+                    127.04498531,
+                    37.48500382,
                     25.32
                   ],
                   [
-                    127.04503094,
-                    37.4849879,
+                    127.04501593,
+                    37.48501121,
                     25.32
                   ]
                 ]
@@ -7824,7 +7644,7 @@
                 "site_area_m2": 264.13,
                 "footprint_area_m2": 28.49,
                 "open_area_m2": 235.64,
-                "total_floor_area_m2": 180.81,
+                "total_floor_area_m2": 244.77,
                 "num_floors": 9,
                 "building_type": "공동주택",
                 "small_lot": true,
@@ -7920,21 +7740,21 @@
                 "selected_rule_id": "seoul_parking_appendix2_row_05",
                 "base_rule_id": "parking_appendix1_row_05",
                 "metric": "household_or_unit_area",
-                "metric_value": 180.81,
+                "metric_value": 244.77,
                 "required_spaces": 5,
                 "raw_spaces": 4.5,
                 "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
                 "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
                 "unit_schedule": {
                   "source": "mass_stage_estimate",
-                  "fallback_area_m2": 180.81,
-                  "area_ratio_raw_spaces": 1.8084,
+                  "fallback_area_m2": 244.77,
+                  "area_ratio_raw_spaces": 2.448,
                   "household_min_raw_spaces": 4.5,
                   "units": [
                     {
                       "unit_type": "F01",
                       "count": 1,
-                      "exclusive_area_m2": 15.07,
+                      "exclusive_area_m2": 20.4,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -7942,7 +7762,7 @@
                     {
                       "unit_type": "F02",
                       "count": 1,
-                      "exclusive_area_m2": 15.07,
+                      "exclusive_area_m2": 20.4,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -7950,7 +7770,7 @@
                     {
                       "unit_type": "F03",
                       "count": 1,
-                      "exclusive_area_m2": 15.07,
+                      "exclusive_area_m2": 20.4,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -7958,7 +7778,7 @@
                     {
                       "unit_type": "F04",
                       "count": 1,
-                      "exclusive_area_m2": 15.07,
+                      "exclusive_area_m2": 20.4,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -7966,7 +7786,7 @@
                     {
                       "unit_type": "F05",
                       "count": 1,
-                      "exclusive_area_m2": 15.07,
+                      "exclusive_area_m2": 20.4,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -7974,7 +7794,7 @@
                     {
                       "unit_type": "F06",
                       "count": 1,
-                      "exclusive_area_m2": 15.07,
+                      "exclusive_area_m2": 20.4,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -7982,7 +7802,7 @@
                     {
                       "unit_type": "F07",
                       "count": 1,
-                      "exclusive_area_m2": 15.07,
+                      "exclusive_area_m2": 20.4,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -7990,7 +7810,7 @@
                     {
                       "unit_type": "F08",
                       "count": 1,
-                      "exclusive_area_m2": 15.07,
+                      "exclusive_area_m2": 20.4,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -7998,7 +7818,7 @@
                     {
                       "unit_type": "F09",
                       "count": 1,
-                      "exclusive_area_m2": 15.07,
+                      "exclusive_area_m2": 20.4,
                       "area_divisor_m2_per_space": 75,
                       "min_spaces_per_unit": 0.5,
                       "source": "mass_stage_estimate"
@@ -8738,18 +8558,18 @@
               "volume_profile": [
                 {
                   "bottom_height": 0,
-                  "top_height": 8.4,
+                  "top_height": 5.6,
                   "area_m2": 28.5
                 },
                 {
-                  "bottom_height": 8.4,
+                  "bottom_height": 5.6,
                   "top_height": 25.2,
-                  "area_m2": 10
+                  "area_m2": 18.4
                 },
                 {
-                  "bottom_height": 8.4,
+                  "bottom_height": 5.6,
                   "top_height": 25.2,
-                  "area_m2": 8.5
+                  "area_m2": 6.8
                 }
               ],
               "floor_plate_count": 0,
@@ -8766,25 +8586,25 @@
                 "volume_profile": [
                   {
                     "bottom_height": 0,
-                    "top_height": 8.4,
+                    "top_height": 5.6,
                     "area_m2": 28.5
                   },
                   {
-                    "bottom_height": 8.4,
+                    "bottom_height": 5.6,
                     "top_height": 25.2,
-                    "area_m2": 10
+                    "area_m2": 18.4
                   },
                   {
-                    "bottom_height": 8.4,
+                    "bottom_height": 5.6,
                     "top_height": 25.2,
-                    "area_m2": 8.5
+                    "area_m2": 6.8
                   }
                 ],
                 "floor_plate_count": 0,
                 "floor_plate_area_profile": []
               }
             },
-            "maas_score": 0.5423,
+            "maas_score": 0.5923,
             "design_quality": {
               "source": "arr.maas.design_quality.v1",
               "score": 0.2831,
@@ -8903,21 +8723,21 @@
               "selected_rule_id": "seoul_parking_appendix2_row_05",
               "base_rule_id": "parking_appendix1_row_05",
               "metric": "household_or_unit_area",
-              "metric_value": 180.81,
+              "metric_value": 244.77,
               "required_spaces": 5,
               "raw_spaces": 4.5,
               "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
               "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
               "unit_schedule": {
                 "source": "mass_stage_estimate",
-                "fallback_area_m2": 180.81,
-                "area_ratio_raw_spaces": 1.8084,
+                "fallback_area_m2": 244.77,
+                "area_ratio_raw_spaces": 2.448,
                 "household_min_raw_spaces": 4.5,
                 "units": [
                   {
                     "unit_type": "F01",
                     "count": 1,
-                    "exclusive_area_m2": 15.07,
+                    "exclusive_area_m2": 20.4,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -8925,7 +8745,7 @@
                   {
                     "unit_type": "F02",
                     "count": 1,
-                    "exclusive_area_m2": 15.07,
+                    "exclusive_area_m2": 20.4,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -8933,7 +8753,7 @@
                   {
                     "unit_type": "F03",
                     "count": 1,
-                    "exclusive_area_m2": 15.07,
+                    "exclusive_area_m2": 20.4,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -8941,7 +8761,7 @@
                   {
                     "unit_type": "F04",
                     "count": 1,
-                    "exclusive_area_m2": 15.07,
+                    "exclusive_area_m2": 20.4,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -8949,7 +8769,7 @@
                   {
                     "unit_type": "F05",
                     "count": 1,
-                    "exclusive_area_m2": 15.07,
+                    "exclusive_area_m2": 20.4,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -8957,7 +8777,7 @@
                   {
                     "unit_type": "F06",
                     "count": 1,
-                    "exclusive_area_m2": 15.07,
+                    "exclusive_area_m2": 20.4,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -8965,7 +8785,7 @@
                   {
                     "unit_type": "F07",
                     "count": 1,
-                    "exclusive_area_m2": 15.07,
+                    "exclusive_area_m2": 20.4,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -8973,7 +8793,7 @@
                   {
                     "unit_type": "F08",
                     "count": 1,
-                    "exclusive_area_m2": 15.07,
+                    "exclusive_area_m2": 20.4,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"
@@ -8981,7 +8801,7 @@
                   {
                     "unit_type": "F09",
                     "count": 1,
-                    "exclusive_area_m2": 15.07,
+                    "exclusive_area_m2": 20.4,
                     "area_divisor_m2_per_space": 75,
                     "min_spaces_per_unit": 0.5,
                     "source": "mass_stage_estimate"

@@ -494,3 +494,50 @@ Visual judgment after opening PNG:
   low-FAR, tower-like options. Next loop should increase design/capacity quality
   while keeping `massStagePass >= 3`, rather than only producing skinny parking
   towers.
+
+## 2026-06-29 Parking-Preserving FAR Improvement Loop
+
+Loop goal: continue after `massStagePass=3` and improve the capacity/design
+quality of the parking-feasible variants. The target was not only "more green
+cards", but higher FAR while keeping actual stall polygons visible in the PNG.
+
+Changes:
+
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - Parking-preserving section variants now expand their upper mass inside
+    `envelope.buildable_footprint` instead of being clipped to the original
+    source feature or left unconstrained to the whole site.
+  - Updated upper-scale factors:
+    - terrace ribbon: `1.55 x 1.08`
+    - sloped roof: `1.48 x 1.04`
+    - diagonal connector: `1.65 x 0.98`
+  - Tried an offset-search helper to maximize upper footprint area, but the
+    full API/PNG loop exceeded the Node fetch header timeout twice. That
+    expensive helper was removed. Do not reintroduce broad offset search without
+    moving it behind a bounded benchmark or async job.
+
+Latest accepted evidence:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- `massStagePass`: 3
+- top parking-feasible candidates:
+  - `parking_repair_terrace_ribbon`: FAR `106.24`, `P 5/5`
+  - `parking_repair_sloped_roof_mass`: FAR `92.93`, `P 5/5`
+  - `parking_repair_diagonal_connector`: FAR `92.67`, `P 5/5`
+- All three remain final `needs_drive_connectivity_review`, which is correct.
+- Latest successful full API generation took about 170 seconds. Cached PNG
+  rerender with `REUSE_JSON=1` took about 26 seconds.
+
+Visual judgment:
+
+- This is the best accepted loop so far: three parking-feasible design
+  variants, actual magenta stall lines, and materially higher FAR than the
+  first parking-preserving loop.
+- Still not final design quality. Next improvement should be either:
+  1. async/background MAAS generation so deeper search does not block Node
+     fetch, or
+  2. a bounded deterministic placement rule that moves the upper mass inward
+     once, not a broad offset search.

@@ -716,3 +716,61 @@ Judgment for next agent:
 - The tiny FAR-remainder floor issue has a first pass threshold now. It still needs architectural review for program-specific minimum plates, especially by building type and core feasibility.
 - Headless Playwright verifies the React/API flow, not final Cesium/WebGL pixels in this environment.
 - A candidate should be treated as reviewable only after API metrics, floor plates, legal datum/envelope basis, and real-browser VWorld placement all agree.
+
+## 2026-06-30 MAAS PNG Loop Update
+
+User asked to stop judging abstractly and keep looping through PNG evidence until the massing actually reads as architectural alternatives.
+
+What changed in this loop:
+
+- `legal_mesh_optimizer.py`
+  - `grammar_sunlight_multi_step` now uses the legal floor-plate stack instead of being rejected as `not_enough_floor_bands_for_multi_step`.
+  - Final review selection downranks pure capacity boxes (`bcr_fill`, `legal_buildable`) for the 20-card design evidence sheet.
+  - Section families are preserved in default 20-card output: `diagonal_connect`, `terrace_link`, `sloped_roof`, `stepback_tower`.
+  - Grammar candidates and visible multi-volume candidates are preferred over single-box morphology candidates within the same family.
+  - Upper/lower mass candidates now create interpolated legal-inside volumes instead of only two crude slabs. This is geometry interpolation from lower footprint to upper footprint, not fixed-coordinate hardcoding.
+
+- `render-maas-20-alt.cjs`
+  - Sends `site_polygon`, `sunlight_envelope`, and `setback_geometries` to the backend so the PNG loop uses the same legal context as the design route.
+  - Supports `PREFERRED_OPERATOR=...` for focused PNG/API checks.
+
+Latest verified command:
+
+```bash
+cd /mnt/d/Data/25_ACE
+MAX_VARIANTS=20 node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs
+```
+
+Latest output:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Building type: `공동주택`
+- Count: `20`
+- Notable selected candidates:
+  - `legal_layered_max`: 5-volume legal envelope anchor.
+  - `grammar_interlock_step_taper`: 5-volume grammar mass.
+  - `grammar_split_lift_stepback`: 5-volume split/step grammar mass.
+  - `grammar_sunlight_multi_step_layered`: 4-volume north daylight/sunlight step mass.
+  - `grammar_terrace_ribbon_stepback`: 5-volume terrace ribbon synthesis.
+  - `diagonal_connect_step_x`: 6-volume diagonal connector synthesis.
+  - `grammar_sloped_roof_envelope` and `sloped_roof_mass`: 5-volume sloped-roof synthesis.
+
+Latest focused tests passed:
+
+```bash
+cd /mnt/d/Data/25_ACE/ARR/backend
+.venv/bin/python -m py_compile design/maas/legal_mesh_optimizer.py design/test_maas_export.py
+.venv/bin/python manage.py test \
+  design.test_maas_export.MaasLegalVariantsTest.test_legal_layered_visual_volumes_preserve_sunlight_steps \
+  design.test_maas_export.MaasLegalVariantsTest.test_grammar_operator_family_maps_to_typology_family \
+  design.test_maas_export.MaasLegalVariantsTest.test_typology_selection_filters_fail_and_repair_even_when_under_limit \
+  -v 1
+```
+
+Current honest judgment:
+
+- Better than the previous PNGs: the sheet no longer looks like only identical extruded boxes, and section/grammar candidates survive default selection.
+- Still not final competition-grade architecture. Remaining issue is that some plan families (`overlap`, `void_notch`, `inset`, `slender_bar`) are still single-volume plan operations. Next real improvement is a typed grammar compiler/source mesh path for those families, plus legal envelope and parking checks after source mesh generation.
+- Do not fake sloped/diagonal faces outside legal envelope. The current conservative method keeps volumes clipped inside the legal footprint/envelope; future work should add true mesh faces with explicit legal validation.

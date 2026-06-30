@@ -160,7 +160,7 @@ CONCEPT_ORDER = [
 
 SECTION_CONCEPTS = {"stepback_tower", "taper", "grade", "diagonal_connect", "terrace_link", "sloped_roof"}
 MIN_GRAMMAR_CONCEPTS = 3
-MIN_SECTION_DESIGN_CONCEPTS = 3
+MIN_SECTION_DESIGN_CONCEPTS = 4
 SECTION_CONNECTOR_VERBS = {"diagonal_connect", "terrace_link", "sloped_roof_mass"}
 SECTION_CONNECTOR_SHAPE_TOKENS = (
     "diagonal_connect",
@@ -307,9 +307,47 @@ def _is_reviewable_architectural_mass(feature: dict[str, Any]) -> bool:
     return True
 
 
-def _design_review_quality_key(feature: dict[str, Any]) -> tuple[float, float, float, float]:
+def _is_plain_capacity_anchor(feature: dict[str, Any]) -> bool:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    family = _operator_family(str(props.get("mass_shape") or ""))
+    return family in {"bcr_fill", "legal_buildable"}
+
+
+def _is_grammar_candidate(feature: dict[str, Any]) -> bool:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    return str(props.get("mass_shape") or "").startswith("grammar_")
+
+
+def _visible_volume_count(feature: dict[str, Any]) -> int:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    volumes = props.get("mass_volumes")
+    if isinstance(volumes, list):
+        return len(volumes)
+    model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+    model_volumes = model.get("volumes")
+    return len(model_volumes) if isinstance(model_volumes, list) else 0
+
+
+def _design_synthesis_rank(feature: dict[str, Any]) -> int:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    materialized = props.get("section_profile_materialized")
+    if isinstance(materialized, dict) and materialized.get("design_synthesis"):
+        return 3
+    if _is_section_connector(feature):
+        return 2
+    family = _operator_family(str(props.get("mass_shape") or ""))
+    if family in SECTION_CONCEPTS:
+        return 1
+    return 0
+
+
+def _design_review_quality_key(feature: dict[str, Any]) -> tuple[float, float, float, float, float, float, float, float]:
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
     return (
+        1.0 if _is_grammar_candidate(feature) else 0.0,
+        float(min(_visible_volume_count(feature), 6)) / 6.0,
+        float(_design_synthesis_rank(feature)),
+        -1.0 if _is_plain_capacity_anchor(feature) else 0.0,
         float(props.get("design_quality_score") or 0.0),
         float(props.get("diversity_score") or 0.0),
         float(props.get("maas_score") or 0.0),
@@ -407,11 +445,14 @@ def _final_design_balanced_selection(
         by_family.setdefault(family, []).append(feature)
 
     for family in TYPOLOGY_FIRST_FAMILIES:
+        if family in {"legal_buildable", "bcr_fill"}:
+            continue
         options = sorted(
             [
                 feature for feature in by_family.get(family, [])
                 if _is_typology_first_candidate(feature)
                 and _is_reviewable_architectural_mass(feature)
+                and not _is_plain_capacity_anchor(feature)
             ],
             key=lambda feature: (
                 1 if layout_status(feature) != "needs_mechanical_parking_review" else 0,
@@ -445,12 +486,28 @@ def _final_design_balanced_selection(
         feature for feature in selected
         if _is_reviewable_architectural_mass(feature)
         and not _is_parking_repair_operator(str((feature.get("properties") or {}).get("mass_shape") or ""))
+        and not _is_plain_capacity_anchor(feature)
     ]
     reviewable_backfill.sort(key=_design_review_quality_key, reverse=True)
     for feature in reviewable_backfill:
         add(feature, allow_duplicate_shape=True)
         if len(result) >= final_limit:
             break
+
+    # Capacity-only boxes remain valid calculation anchors, but they are a poor
+    # design-review surface. Use them only if the legal pool cannot fill the
+    # requested evidence sheet with reviewable architectural masses.
+    if len(result) < final_limit:
+        capacity_backfill = [
+            feature for feature in selected
+            if _is_reviewable_architectural_mass(feature)
+            and not _is_parking_repair_operator(str((feature.get("properties") or {}).get("mass_shape") or ""))
+        ]
+        capacity_backfill.sort(key=_design_review_quality_key, reverse=True)
+        for feature in capacity_backfill:
+            add(feature, allow_duplicate_shape=True)
+            if len(result) >= final_limit:
+                break
 
     return result[:final_limit]
 
@@ -550,6 +607,8 @@ def _should_use_floor_plate_stack(operator: str, preferred_operator: str | None 
     repaired footprint and be checked by the normal legal repair/metric pass.
     """
     if operator == preferred_operator:
+        return True
+    if operator == "grammar_sunlight_multi_step":
         return True
     if operator.startswith("grammar_"):
         return False
@@ -738,15 +797,27 @@ def _compact_visual_volumes(floor_plates: list[dict[str, Any]], operator: str) -
         return []
     n = len(floor_plates)
     family = _operator_family(operator)
+    areas = [float(plate.get("area") or 0.0) for plate in floor_plates]
+    max_area = max(areas) if areas else 0.0
+    min_area = min(areas) if areas else 0.0
+    has_layered_envelope_steps = (
+        family == "legal_layered"
+        and n >= 3
+        and max_area > 0.0
+        and (max_area - min_area) / max_area >= 0.08
+    )
     wants_stepped_display = (
-        "step" in operator
+        has_layered_envelope_steps
+        or "step" in operator
         or "terrace" in operator
         or "grade" in operator
         or "diagonal_connect" in operator
         or "sloped_roof" in operator
         or family in {"stepback_tower", "grade"}
     )
-    if wants_stepped_display and n >= 4:
+    if has_layered_envelope_steps:
+        cuts = [(index, index) for index in range(n)]
+    elif wants_stepped_display and n >= 4:
         raw_cuts = [
             (0, max(0, n // 4 - 1)),
             (max(0, n // 4), max(0, n // 2 - 1)),
@@ -1352,6 +1423,63 @@ def _materialize_section_profile_volumes(feature: dict[str, Any]) -> None:
         model["section_profile_materialized"] = props["section_profile_materialized"]
 
 
+def _interpolated_upper_volumes(feature: dict[str, Any], *, steps: int = 4) -> list[dict[str, Any]]:
+    props = feature.get("properties", {}) or {}
+    if props.get("lower_height") is None or props.get("upper_geometry") is None:
+        return []
+    try:
+        lower_height = float(props.get("lower_height") or 0.0)
+        total_height = float(props.get("height") or lower_height)
+        lower = _largest_polygon_or_none(wgs84_to_utm(geojson_to_polygon(feature.get("geometry"))))
+        upper = _largest_polygon_or_none(wgs84_to_utm(geojson_to_polygon(props.get("upper_geometry"))))
+    except Exception:
+        return []
+    if lower is None or upper is None or total_height <= lower_height <= 0:
+        return []
+
+    usable_steps = max(2, min(5, steps))
+    upper_area_ratio = max(0.05, min(1.0, float(upper.area) / max(float(lower.area), 1e-9)))
+    lower_centroid = lower.centroid
+    upper_centroid = upper.centroid
+    stage_height = (total_height - lower_height) / usable_steps
+    volumes: list[dict[str, Any]] = [{
+        "band": 0,
+        "bottom_height": 0.0,
+        "top_height": round(lower_height, 2),
+        "geometry": feature.get("geometry"),
+        "role": "morphology_volume",
+    }]
+    previous_top = lower_height
+    for index in range(usable_steps):
+        progress = (index + 1) / usable_steps
+        if index == usable_steps - 1:
+            shaped = upper
+        else:
+            area_ratio = 1.0 + (upper_area_ratio - 1.0) * progress
+            factor = area_ratio ** 0.5
+            shaped = shapely_scale(lower, xfact=factor, yfact=factor, origin="centroid")
+            shaped = shapely_translate(
+                shaped,
+                xoff=(upper_centroid.x - lower_centroid.x) * progress,
+                yoff=(upper_centroid.y - lower_centroid.y) * progress,
+            )
+            shaped = _largest_polygon_or_none(shaped.intersection(lower).union(upper).intersection(lower))
+            if shaped is None:
+                shaped = upper
+        top_height = total_height if index == usable_steps - 1 else lower_height + stage_height * (index + 1)
+        if top_height <= previous_top:
+            continue
+        volumes.append({
+            "band": index + 1,
+            "bottom_height": round(previous_top, 2),
+            "top_height": round(top_height, 2),
+            "geometry": mapping(utm_to_wgs84(shaped)),
+            "role": "morphology_volume_interpolated",
+        })
+        previous_top = top_height
+    return volumes
+
+
 def _single_volume_model(operator: str, feature: dict[str, Any]) -> dict[str, Any]:
     props = feature.get("properties", {}) or {}
     volumes = [{
@@ -1361,26 +1489,9 @@ def _single_volume_model(operator: str, feature: dict[str, Any]) -> dict[str, An
         "geometry": feature.get("geometry"),
         "role": "morphology_volume",
     }]
-    if props.get("lower_height") is not None and props.get("upper_geometry") is not None:
-        lower_height = float(props.get("lower_height") or 0.0)
-        total_height = float(props.get("height") or lower_height)
-        if total_height > lower_height > 0:
-            volumes = [
-                {
-                    "band": 0,
-                    "bottom_height": 0.0,
-                    "top_height": round(lower_height, 2),
-                    "geometry": feature.get("geometry"),
-                    "role": "morphology_volume",
-                },
-                {
-                    "band": 1,
-                    "bottom_height": round(lower_height, 2),
-                    "top_height": round(total_height, 2),
-                    "geometry": props.get("upper_geometry"),
-                    "role": "morphology_volume",
-                },
-            ]
+    interpolated = _interpolated_upper_volumes(feature)
+    if interpolated:
+        volumes = interpolated
     return {
         "algorithm": "maas_legal_envelope",
         "operator": operator,
@@ -1413,6 +1524,7 @@ def _apply_variant_verb_sequence(feature: dict[str, Any], variant) -> None:
         model["grammar_sequence"] = variant.operator
         model["grammar_label"] = _concept_label(variant.operator)
     _attach_section_profile(feature)
+    _materialize_section_profile_volumes(feature)
 
 
 def _select_diverse_features(
@@ -1530,6 +1642,50 @@ def _select_diverse_features(
                     selected.pop(replace_index)
                 selected.append(feature)
                 section_design_count += 1
+        required_section_families = [
+            "diagonal_connect",
+            "terrace_link",
+            "sloped_roof",
+            "stepback_tower",
+        ]
+        for family in required_section_families:
+            if any(_operator_family(item["properties"].get("mass_shape", "")) == family for item in selected):
+                continue
+            options = [
+                feature for feature in by_family.get(family, [])
+                if feature not in selected and not is_near_duplicate(feature)
+            ]
+            if not options:
+                continue
+            options.sort(
+                key=lambda feature: (
+                    _design_synthesis_rank(feature),
+                    sequence_diversity_score(
+                        sequence_verbs(feature["properties"].get("maas_verb_sequence")),
+                        [
+                            sequence_verbs(item["properties"].get("maas_verb_sequence"))
+                            for item in selected
+                        ],
+                    ),
+                    float(feature["properties"].get("diversity_score") or 0.0),
+                    float(feature["properties"].get("maas_score") or 0.0),
+                ),
+                reverse=True,
+            )
+            if len(selected) < limit:
+                selected.append(options[0])
+                continue
+            replace_index = min(
+                range(len(selected)),
+                key=lambda i: (
+                    1 if str(selected[i]["properties"].get("mass_shape", "")) == "legal_layered_max" else 0,
+                    1 if _operator_family(selected[i]["properties"].get("mass_shape", "")) in required_section_families else 0,
+                    1 if _is_section_connector(selected[i]) else 0,
+                    float(selected[i]["properties"].get("diversity_score") or 0.0),
+                    float(selected[i]["properties"].get("maas_score") or 0.0),
+                ),
+            )
+            selected[replace_index] = options[0]
         required_plan_families = [
             "interlock",
             "overlap",
@@ -1551,6 +1707,8 @@ def _select_diverse_features(
                 continue
             options.sort(
                 key=lambda feature: (
+                    1 if _is_grammar_candidate(feature) else 0,
+                    _visible_volume_count(feature),
                     float(feature["properties"].get("diversity_score") or 0.0),
                     float(feature["properties"].get("maas_score") or 0.0),
                 ),
@@ -1765,6 +1923,7 @@ def _mass_feature(
     props["maas_verb_sequence"] = model["verb_sequence"]
     props["maas_sequence_verbs"] = sequence_verbs(model["verb_sequence"])
     _attach_section_profile(feature)
+    _materialize_section_profile_volumes(feature)
     attach_parking_strategy(
         props,
         site_area_m2=site_area_m2,
@@ -1837,6 +1996,7 @@ def _floor_plate_feature(
         "properties": props,
     }
     _attach_section_profile(feature)
+    _materialize_section_profile_volumes(feature)
     _attach_3d_diversity(feature)
     return feature
 

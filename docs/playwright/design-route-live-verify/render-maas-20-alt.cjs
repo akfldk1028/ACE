@@ -7,6 +7,7 @@ const BACKEND = process.env.ARR_BACKEND_URL || "http://127.0.0.1:18000";
 const PNU = process.env.PNU || "1168011800104170004";
 const BUILDING_TYPE = process.env.BUILDING_TYPE || "공동주택";
 const MAX_VARIANTS = Number(process.env.MAX_VARIANTS || 20);
+const PREFERRED_OPERATOR = process.env.PREFERRED_OPERATOR || "";
 
 function coordsOf(feature) {
   const geometry = feature.geometry || {};
@@ -174,12 +175,12 @@ function renderSectionSourceSurfaces(feature, project) {
     const projected = vertices.map(([lng, lat, h]) => project([Number(lng), Number(lat)], Number(h) || 0));
     const path = projected.map(([x, y], index) => `${index ? "L" : "M"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ") + " Z";
     const style = kind === "sloped_roof"
-      ? { fill: "rgba(245,158,11,.08)", stroke: "#92400e", width: 1.4 }
+      ? { fill: "rgba(255,207,74,.30)", stroke: "#f97316", width: 2.0 }
       : kind === "terrace_ribbon"
-        ? { fill: "rgba(236,72,153,.06)", stroke: "#be185d", width: 1.2 }
-        : { fill: "rgba(236,72,153,.08)", stroke: "#9d174d", width: 1.3 };
+        ? { fill: "rgba(255,207,74,.18)", stroke: "#f97316", width: 1.8 }
+        : { fill: "rgba(255,207,74,.22)", stroke: "#f97316", width: 1.8 };
     const title = role ? `<title>${escapeHtml(role)}</title>` : "";
-    return `<path d="${path}" fill="${style.fill}" stroke="${style.stroke}" stroke-width="${style.width}" stroke-dasharray="4 3">${title}</path>`;
+    return `<path d="${path}" fill="${style.fill}" stroke="${style.stroke}" stroke-width="${style.width}" opacity=".92">${title}</path>`;
   }).join("");
 }
 
@@ -286,11 +287,12 @@ async function buildPayload() {
     return JSON.parse(fs.readFileSync(cachedJsonPath, "utf8"));
   }
   const boundary = await postJson(`${BACKEND}/design/site-boundary/`, { pnu: PNU });
+  const coords = boundary.geometry.coordinates[0];
   const constraints = await postJson(`${BACKEND}/design/auto-constraints/`, {
     pnu: PNU,
     building_type: BUILDING_TYPE,
+    site_polygon: boundary.geometry,
   });
-  const coords = boundary.geometry.coordinates[0];
   const cx = coords.slice(0, -1).reduce((sum, point) => sum + point[0], 0) / (coords.length - 1);
   const cy = coords.slice(0, -1).reduce((sum, point) => sum + point[1], 0) / (coords.length - 1);
   const massCoords = coords.map(([x, y]) => [cx + (x - cx) * 0.72, cy + (y - cy) * 0.72]);
@@ -305,8 +307,11 @@ async function buildPayload() {
     site_polygon: boundary.geometry,
     mass_geojson: massGeojson,
     constraints: constraints.constraints,
+    sunlight_envelope: constraints.setback_geometries?.sunlight_envelope || null,
+    setback_geometries: constraints.setback_geometries || null,
     building_type: BUILDING_TYPE,
     max_variants: MAX_VARIANTS,
+    ...(PREFERRED_OPERATOR ? { preferred_operator: PREFERRED_OPERATOR } : {}),
   });
   return {
     pnu: PNU,
@@ -339,6 +344,9 @@ function renderCard(feature, siteCoords, globalBounds) {
     });
     layers.push(`<path d="${polyPath(coords, project, top)}" fill="${visual.topFill}" stroke="${visual.stroke}" stroke-width="${visual.topStrokeWidth}"/>`);
   });
+  if (designSynthesis) {
+    layers.push(renderSectionSourceSurfaces(feature, project));
+  }
   layers.push(renderSectionProfile(feature, volumes, project));
   layers.push(renderParkingStalls(feature, project));
   const precheck = props.parking_precheck || {};

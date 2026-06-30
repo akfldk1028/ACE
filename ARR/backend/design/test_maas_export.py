@@ -19,6 +19,8 @@ from design.maas.aesthetic.projection_export import attach_textured_mesh_assets
 from design.maas.aesthetic.renderers import MultiViewReferencePackRenderer, ReferencePngRenderer
 from design.maas.grammar import generate_grammar_variants, load_term_ontology, resolve_intent_to_sequence
 from design.maas.legal_mesh_optimizer import (
+    _final_design_balanced_selection,
+    _operator_family,
     _preserve_visible_section_connector,
     _upper_typology_is_viable,
 )
@@ -487,6 +489,54 @@ class MaasLegalVariantsTest(TestCase):
         tiny_upper = lower.centroid.buffer(1.0)
 
         self.assertFalse(_upper_typology_is_viable(lower, tiny_upper))
+
+    def test_grammar_operator_family_maps_to_typology_family(self):
+        self.assertEqual(_operator_family("grammar_cave_inset_puncture"), "void_notch")
+        self.assertEqual(_operator_family("grammar_diagonal_step_connector"), "diagonal_connect")
+        self.assertEqual(_operator_family("grammar_terrace_ribbon_stepback"), "terrace_link")
+        self.assertEqual(_operator_family("grammar_sloped_roof_envelope"), "sloped_roof")
+
+    def test_typology_selection_filters_fail_and_repair_even_when_under_limit(self):
+        def feature(shape: str, *, status: str = "needs_mechanical_parking_review", score: float = 0.5):
+            return {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[
+                        [127.0000, 37.0000],
+                        [127.0003, 37.0000],
+                        [127.0003, 37.0003],
+                        [127.0000, 37.0003],
+                        [127.0000, 37.0000],
+                    ]],
+                },
+                "properties": {
+                    "mass_shape": shape,
+                    "height": 18.0,
+                    "design_quality_score": score,
+                    "diversity_score": score,
+                    "maas_score": score,
+                    "parking_precheck": {
+                        "layout_candidate": {"status": status},
+                    },
+                },
+            }
+
+        selected = _final_design_balanced_selection(
+            [
+                feature("legal_layered_max", score=0.7),
+                feature("parking_repair_shrink", status="needs_drive_connectivity_review", score=0.9),
+                feature("branch_y_wide", status="fail", score=0.8),
+                feature("grammar_sloped_roof_envelope", score=0.6),
+            ],
+            final_limit=20,
+        )
+        shapes = [item["properties"]["mass_shape"] for item in selected]
+
+        self.assertIn("legal_layered_max", shapes)
+        self.assertIn("grammar_sloped_roof_envelope", shapes)
+        self.assertNotIn("parking_repair_shrink", shapes)
+        self.assertNotIn("branch_y_wide", shapes)
 
     def test_small_attached_parking_relief_tracks_road_aisle_and_tandem_exceptions(self):
         relief = evaluate_small_attached_parking_relief(

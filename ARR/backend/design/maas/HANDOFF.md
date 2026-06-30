@@ -674,6 +674,21 @@ Judgment for next agent:
   checked against legal envelope, parking strategy, program/core viability, and
   rendered PNG/VWorld evidence.
 
+2026-06-30 code review follow-up:
+
+- Fixed two selection bugs found after review:
+  - final selection no longer bypasses the typology/fail/repair filter when
+    `len(selected) <= final_limit`;
+  - `grammar_*` operators now map back to typology families, so grammar
+    candidates are selected intentionally rather than only through backfill.
+- Representative selection now prefers returning fewer reviewable candidates
+  over padding the sheet with parking repair or parking-fail candidates.
+- Added focused tests for grammar family mapping and under-limit fail/repair
+  filtering.
+- Playwright renderer retry hit a backend `HeadersTimeoutError` while waiting
+  for `/design/maas/legal-variants/`. The code tests passed, but full PNG
+  regeneration should be rerun after addressing endpoint runtime/timeout.
+
 ## Key Files
 
 - `legal_envelope.py`: builds the legal envelope and per-floor `floor_plates`.

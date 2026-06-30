@@ -106,6 +106,30 @@ def _operator_family(operator: str) -> str:
         return "grade"
     if operator in {"terrace_stepback", "shifted_tower", "lift_overlap_slabs"}:
         return "stepback_tower"
+    if operator == "grammar_sunlight_multi_step":
+        return "stepback_tower"
+    if operator == "grammar_courtyard_lift_taper":
+        return "courtyard"
+    if operator == "grammar_split_lift_stepback":
+        return "split"
+    if operator == "grammar_bar_notch_grade":
+        return "grade"
+    if operator == "grammar_overlap_shift_terrace":
+        return "overlap"
+    if operator == "grammar_branch_pinch_taper":
+        return "branch"
+    if operator == "grammar_podium_tower_offset":
+        return "stepback_tower"
+    if operator == "grammar_cave_inset_puncture":
+        return "void_notch"
+    if operator == "grammar_interlock_step_taper":
+        return "interlock"
+    if operator == "grammar_diagonal_step_connector":
+        return "diagonal_connect"
+    if operator == "grammar_terrace_ribbon_stepback":
+        return "terrace_link"
+    if operator == "grammar_sloped_roof_envelope":
+        return "sloped_roof"
     if operator.startswith("grammar_"):
         return operator
     if operator.startswith("inset"):
@@ -337,7 +361,7 @@ def _final_design_balanced_selection(
     compact parking signal, then reserve one representative for each spatial
     family before backfilling.
     """
-    if preferred_operator or final_limit <= 1 or len(selected) <= final_limit:
+    if preferred_operator or final_limit <= 1:
         return selected[:final_limit]
 
     result: list[dict[str, Any]] = []
@@ -356,20 +380,6 @@ def _final_design_balanced_selection(
         if shape:
             seen_shapes.add(shape)
         return True
-
-    def parking_status_rank(feature: dict[str, Any]) -> int:
-        props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
-        precheck = props.get("parking_precheck") if isinstance(props.get("parking_precheck"), dict) else {}
-        layout = precheck.get("layout_candidate") if isinstance(precheck.get("layout_candidate"), dict) else {}
-        mass_stage = layout.get("mass_stage_parking") if isinstance(layout.get("mass_stage_parking"), dict) else {}
-        status = layout.get("status")
-        if status == "pass":
-            return 3
-        if mass_stage.get("status") == "pass":
-            return 2
-        if status in {"needs_drive_connectivity_review", "needs_aisle_review", "needs_swept_path_review"}:
-            return 1
-        return 0
 
     def layout_status(feature: dict[str, Any]) -> str:
         props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
@@ -438,15 +448,6 @@ def _final_design_balanced_selection(
     ]
     reviewable_backfill.sort(key=_design_review_quality_key, reverse=True)
     for feature in reviewable_backfill:
-        add(feature, allow_duplicate_shape=True)
-        if len(result) >= final_limit:
-            break
-
-    non_repair_backfill = [
-        feature for feature in selected
-        if not _is_parking_repair_operator(str((feature.get("properties") or {}).get("mass_shape") or ""))
-    ]
-    for feature in non_repair_backfill:
         add(feature, allow_duplicate_shape=True)
         if len(result) >= final_limit:
             break

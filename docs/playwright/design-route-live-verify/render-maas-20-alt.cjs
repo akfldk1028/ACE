@@ -339,6 +339,7 @@ function renderCard(feature, siteCoords, globalBounds) {
     });
     layers.push(`<path d="${polyPath(coords, project, top)}" fill="${visual.topFill}" stroke="${visual.stroke}" stroke-width="${visual.topStrokeWidth}"/>`);
   });
+  layers.push(renderSectionProfile(feature, volumes, project));
   layers.push(renderParkingStalls(feature, project));
   const precheck = props.parking_precheck || {};
   const layout = precheck.layout_candidate || {};

@@ -313,6 +313,19 @@ def _is_plain_capacity_anchor(feature: dict[str, Any]) -> bool:
     return family in {"bcr_fill", "legal_buildable"}
 
 
+def _is_plain_review_mass(feature: dict[str, Any]) -> bool:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    shape = str(props.get("mass_shape") or "")
+    if shape == "legal_layered_max" or _is_grammar_candidate(feature):
+        return False
+    materialized = props.get("section_profile_materialized")
+    if isinstance(materialized, dict) and materialized.get("design_synthesis"):
+        return False
+    if _is_section_connector(feature):
+        return False
+    return _visible_volume_count(feature) <= 1
+
+
 def _is_grammar_candidate(feature: dict[str, Any]) -> bool:
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
     return str(props.get("mass_shape") or "").startswith("grammar_")
@@ -405,10 +418,16 @@ def _final_design_balanced_selection(
     result: list[dict[str, Any]] = []
     seen_ids: set[int] = set()
     seen_shapes: set[str] = set()
+    max_plain_review_masses = max(2, min(4, final_limit // 5))
 
     def add(feature: dict[str, Any], *, allow_duplicate_shape: bool = False) -> bool:
         marker = id(feature)
         if marker in seen_ids or len(result) >= final_limit:
+            return False
+        if (
+            _is_plain_review_mass(feature)
+            and sum(1 for item in result if _is_plain_review_mass(item)) >= max_plain_review_masses
+        ):
             return False
         shape = str((feature.get("properties") or {}).get("mass_shape") or "")
         if shape in seen_shapes and not allow_duplicate_shape:
@@ -2242,6 +2261,32 @@ def generate_legal_mass_variants(
     ]
     review_candidates.sort(key=_review_diversity_priority_key, reverse=True)
     selected = parking_visible + review_candidates
+    if not preferred_operator:
+        supplemental_design_candidates = [
+            feature for feature in legal_candidate_pool
+            if feature not in selected
+            and _is_reviewable_architectural_mass(feature)
+            and not _is_plain_capacity_anchor(feature)
+            and (
+                _is_grammar_candidate(feature)
+                or _design_synthesis_rank(feature) > 0
+                or _visible_volume_count(feature) > 1
+            )
+        ]
+        if supplemental_design_candidates:
+            _attach_parking_requirements(
+                supplemental_design_candidates,
+                pnu=pnu,
+                building_type=building_type,
+                site_utm=site_utm,
+                site_area_m2=site_area_m2,
+                parking_options=parking_options,
+            )
+        supplemental_design_candidates.sort(key=_design_review_quality_key, reverse=True)
+        for feature in supplemental_design_candidates:
+            selected.append(feature)
+            if len(selected) >= max_variants * 3:
+                break
     if preferred_operator:
         preferred_index = next(
             (

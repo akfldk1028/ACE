@@ -19,9 +19,9 @@
       "intent_tags": ["courtyard", "void", "taper", "section_diversity"],
       "calls": [
         {"verb": "base", "params": {"proportion": "site"}},
-        {"verb": "courtyard", "params": {"ratio": 0.28}},
-        {"verb": "lift", "params": {"upper_ratio": 0.62, "lower_floor_fraction": 0.48}},
-        {"verb": "taper", "params": {"x_ratio": 0.74, "y_ratio": 0.62}}
+        {"verb": "courtyard", "params": {"ratio": 0.20}},
+        {"verb": "lift", "params": {"upper_ratio": 0.82, "lower_floor_fraction": 0.48}},
+        {"verb": "taper", "params": {"x_ratio": 0.92, "y_ratio": 0.86}}
       ],
       "notes": ["courtyard void에 상부 매스를 얹고 taper로 사선/스카이라인 대응"]
     },
@@ -84,9 +84,9 @@
       "intent_tags": ["podium", "tower", "offset", "section_diversity"],
       "calls": [
         {"verb": "base", "params": {"proportion": "site"}},
-        {"verb": "lift", "params": {"upper_ratio": 0.58, "lower_floor_fraction": 0.40}},
+        {"verb": "lift", "params": {"upper_ratio": 0.72, "lower_floor_fraction": 0.40}},
         {"verb": "shift", "params": {"axis": "x", "distance_ratio": 0.10}},
-        {"verb": "taper", "params": {"x_ratio": 0.78, "y_ratio": 0.78}}
+        {"verb": "taper", "params": {"x_ratio": 0.88, "y_ratio": 0.88}}
       ],
       "notes": ["법규 포디움 위에 오프셋된 상부 타워를 올리는 조합"]
     },

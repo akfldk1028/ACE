@@ -774,3 +774,22 @@ Current honest judgment:
 - Better than the previous PNGs: the sheet no longer looks like only identical extruded boxes, and section/grammar candidates survive default selection.
 - Still not final competition-grade architecture. Remaining issue is that some plan families (`overlap`, `void_notch`, `inset`, `slender_bar`) are still single-volume plan operations. Next real improvement is a typed grammar compiler/source mesh path for those families, plus legal envelope and parking checks after source mesh generation.
 - Do not fake sloped/diagonal faces outside legal envelope. The current conservative method keeps volumes clipped inside the legal footprint/envelope; future work should add true mesh faces with explicit legal validation.
+
+2026-06-30 follow-up after user noticed too many ordinary masses:
+
+- Reduced plain single-volume review candidates from 9/20 to 2/20 by:
+  - capping plain review masses in `_final_design_balanced_selection`;
+  - widening small-lot grammar parameters for `grammar_courtyard_lift_taper`
+    and `grammar_podium_tower_offset` so they survive upper-mass viability;
+  - supplementing final review candidates from `legal_candidate_pool` with
+    law-passing grammar/section candidates before final selection;
+  - attaching parking precheck to those supplemental candidates so PNG cards
+    do not show `P -/- no parking`.
+- Latest PNG/JSON still use:
+  - `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+  - `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- Latest selected set is 20/20 candidates, with 2 plain single-volume masses
+  by metric. One grammar candidate (`grammar_cave_inset_puncture`) is still
+  visually plain-ish because it is currently a one-volume void/cave operation.
+  Next improvement should make cave/notch/inset produce real section/source
+  volumes rather than just a plan cut.

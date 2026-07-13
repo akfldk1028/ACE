@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import os
+
 from shapely.affinity import scale, translate
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
+from design.maas.grammar.agent_proposals import load_agent_proposal_sequences
 from design.maas.grammar.sequence_library import SEQUENCES
-from design.maas.grammar.verb_sequence import VerbSequence
+from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.morphology_operators import MorphologyVariant, largest_polygon
+from design.maas.source_geometry import compile_sequence_to_source_mass, source_mass_to_variant
 
 
 def _clean(poly) -> Polygon | None:
@@ -182,6 +186,10 @@ def interpret_sequence(base_footprint: Polygon, sequence: VerbSequence) -> Morph
     if base is None:
         return None
 
+    source_mass = compile_sequence_to_source_mass(base, sequence)
+    if source_mass is not None:
+        return source_mass_to_variant(source_mass, sequence)
+
     footprint = base
     upper = None
     lower_floor_fraction = None
@@ -294,15 +302,137 @@ def interpret_sequence(base_footprint: Polygon, sequence: VerbSequence) -> Morph
         lower_floor_fraction=lower_floor_fraction,
         notes=sequence.notes,
         verb_sequence=tuple(call.to_dict() for call in sequence.calls),
+        research_basis={
+            "basis": "operative_design_verb_grammar",
+            "optimization_mode": "deterministic_fixture_parameter_sweep_requires_llm_authoring"
+            if "__sweep_" in sequence.name else "deterministic_sequence_library",
+            "implemented_status": "arr_native_approximation",
+            "sequence_name": sequence.name,
+            "parameter_source": "deterministic_sequence_library",
+            "requires_llm_authoring": True,
+            "not_full_claim": ["not_full_evomass", "not_full_ssiea", "not_full_d4descent"],
+        },
     )
 
 
-def generate_grammar_variants(base_footprint: Polygon) -> list[MorphologyVariant]:
+def _with_param(call: VerbCall, **updates) -> VerbCall:
+    params = dict(call.params)
+    params.update({key: value for key, value in updates.items() if value is not None})
+    return VerbCall(call.verb, params)
+
+
+def _variant_sequence(sequence: VerbSequence, suffix: str, updates: dict[int, dict[str, float | str]]) -> VerbSequence:
+    calls = []
+    for index, verb_call in enumerate(sequence.calls):
+        calls.append(_with_param(verb_call, **updates.get(index, {})))
+    return VerbSequence(
+        name=f"{sequence.name}__sweep_{suffix}",
+        label=f"{sequence.label} {suffix}",
+        calls=tuple(calls),
+        notes=sequence.notes + (
+            "research_basis=deterministic_fixture_parameter_sweep_requires_llm_authoring",
+            f"source_sequence={sequence.name}",
+        ),
+    )
+
+
+def _deterministic_fixture_parameter_sweeps(sequence: VerbSequence) -> tuple[VerbSequence, ...]:
+    """Deterministic fixture variants used until an LLM/optimizer proposal exists.
+
+    This is not EvoMass, SSIEA, or a live architectural-language agent. It
+    expands each grammar typology into a small reproducible fixture space so
+    the legal pipeline can be tested while keeping the authoring gap explicit.
+    """
+    variants: list[VerbSequence] = [sequence]
+    verbs = [call.verb for call in sequence.calls]
+
+    def idx(verb: str) -> int | None:
+        try:
+            return verbs.index(verb)
+        except ValueError:
+            return None
+
+    if sequence.name == "grammar_sunlight_multi_step":
+        return tuple(variants)
+
+    if (i := idx("courtyard")) is not None:
+        variants.append(_variant_sequence(sequence, "court_open", {i: {"ratio": 0.30}}))
+        variants.append(_variant_sequence(sequence, "court_tight", {i: {"ratio": 0.18}}))
+    if (i := idx("split")) is not None:
+        variants.append(_variant_sequence(sequence, "split_wide", {i: {"gap_ratio": 0.30, "bridge_ratio": 0.16}}))
+        variants.append(_variant_sequence(sequence, "split_bridge", {i: {"gap_ratio": 0.18, "bridge_ratio": 0.28}}))
+    if (i := idx("bar")) is not None:
+        variants.append(_variant_sequence(sequence, "bar_slender", {i: {"factor": 0.46, "shift": -0.10}}))
+        variants.append(_variant_sequence(sequence, "bar_offset", {i: {"factor": 0.62, "shift": 0.14}}))
+    if (i := idx("overlap")) is not None:
+        variants.append(_variant_sequence(sequence, "overlap_long", {i: {"slab_ratio": 0.42, "shift_ratio": 0.24}}))
+        variants.append(_variant_sequence(sequence, "overlap_compact", {i: {"slab_ratio": 0.60, "shift_ratio": 0.12}}))
+    if (i := idx("branch")) is not None:
+        variants.append(_variant_sequence(sequence, "branch_wide", {i: {"angle": 46.0, "trunk_ratio": 0.26, "arm_ratio": 0.18}}))
+        variants.append(_variant_sequence(sequence, "branch_compact", {i: {"angle": 24.0, "trunk_ratio": 0.36, "arm_ratio": 0.24}}))
+    if (i := idx("cave")) is not None:
+        variants.append(_variant_sequence(sequence, "cave_deep", {i: {"width_ratio": 0.58, "depth_ratio": 0.34}}))
+        variants.append(_variant_sequence(sequence, "cave_side", {i: {"side": "east", "width_ratio": 0.44, "depth_ratio": 0.30}}))
+    if (i := idx("interlock")) is not None:
+        variants.append(_variant_sequence(sequence, "interlock_diag", {i: {"angle": -36.0, "bar_ratio": 0.30}}))
+        variants.append(_variant_sequence(sequence, "interlock_thick", {i: {"angle": 18.0, "bar_ratio": 0.42}}))
+    if (i := idx("lift")) is not None:
+        variants.append(_variant_sequence(sequence, "lift_high", {i: {"upper_ratio": 0.62, "lower_floor_fraction": 0.36}}))
+        variants.append(_variant_sequence(sequence, "lift_low", {i: {"upper_ratio": 0.82, "lower_floor_fraction": 0.58}}))
+    if (i := idx("diagonal_connect")) is not None:
+        variants.append(_variant_sequence(sequence, "diag_x", {i: {"axis": "x", "distance_ratio": 0.16, "upper_ratio": 0.74}}))
+        variants.append(_variant_sequence(sequence, "diag_y", {i: {"axis": "y", "distance_ratio": 0.16, "upper_ratio": 0.74}}))
+    if (i := idx("terrace_link")) is not None:
+        variants.append(_variant_sequence(sequence, "terrace_deep", {i: {"width_ratio": 0.72, "depth_ratio": 0.28, "upper_ratio": 0.80}}))
+        variants.append(_variant_sequence(sequence, "terrace_offset", {i: {"side": "east", "width_ratio": 0.56, "depth_ratio": 0.24}}))
+    if (i := idx("sloped_roof_mass")) is not None:
+        variants.append(_variant_sequence(sequence, "slope_long", {i: {"x_ratio": 0.58, "y_ratio": 0.96, "upper_ratio": 0.92}}))
+        variants.append(_variant_sequence(sequence, "slope_cross", {i: {"x_ratio": 0.82, "y_ratio": 0.68, "upper_ratio": 0.88}}))
+    if (i := idx("taper")) is not None:
+        variants.append(_variant_sequence(sequence, "taper_sharp", {i: {"top_ratio": 0.62, "x_ratio": 0.62, "y_ratio": 0.70}}))
+
+    deduped: list[VerbSequence] = []
+    seen: set[tuple[str, tuple[tuple[str, tuple[tuple[str, str], ...]], ...]]] = set()
+    for item in variants:
+        key = (
+            item.name,
+            tuple(
+                (call.verb, tuple(sorted((str(k), str(v)) for k, v in call.params.items())))
+                for call in item.calls
+            ),
+        )
+        if key not in seen:
+            seen.add(key)
+            deduped.append(item)
+    return tuple(deduped)
+
+
+def generate_grammar_variants(base_footprint: Polygon, *, building_type: str = "") -> list[MorphologyVariant]:
     variants: list[MorphologyVariant] = []
-    for sequence in SEQUENCES:
+    # This experimental archive currently fails the strict visual box-bias
+    # benchmark. Do not let it displace the stronger grammar/agent population
+    # in live legal generation until it passes that gate.
+    if os.getenv("MAAS_ENABLE_EXPERIMENTAL_CREATIVE_ARCHIVE") == "1":
+        from design.maas.program_massing import creative_archive_sequences
+        for sequence in creative_archive_sequences(base_footprint, target_count=20):
+            variant = interpret_sequence(base_footprint, sequence)
+            if variant is not None:
+                variants.append(variant)
+    for sequence in load_agent_proposal_sequences():
         variant = interpret_sequence(base_footprint, sequence)
         if variant is not None:
             variants.append(variant)
+    for sequence in SEQUENCES:
+        for expanded_sequence in _deterministic_fixture_parameter_sweeps(sequence):
+            variant = interpret_sequence(base_footprint, expanded_sequence)
+            if variant is not None:
+                variants.append(variant)
+    if building_type:
+        from design.maas.program_massing import program_seed_sequences
+        for sequence in program_seed_sequences(building_type):
+            variant = interpret_sequence(base_footprint, sequence)
+            if variant is not None:
+                variants.append(variant)
     return variants
 
 

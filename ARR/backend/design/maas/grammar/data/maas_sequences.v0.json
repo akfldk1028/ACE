@@ -153,6 +153,106 @@
         {"verb": "taper", "params": {"x_ratio": 0.88, "y_ratio": 0.94}}
       ],
       "notes": ["일조사선/높이 제한면을 단순 cut line이 아니라 사선지붕형 매스 후보로 표현"]
+    },
+    {
+      "name": "grammar_bend_ribbon_court",
+      "label": "벤드 리본 코트",
+      "aliases": ["bend ribbon", "curved bar", "벤드 매스"],
+      "intent_tags": ["bend", "ribbon", "plan_diversity"],
+      "calls": [
+        {"verb": "base", "params": {"proportion": "site"}},
+        {"verb": "bend", "params": {"axis": "y", "angle": 28.0, "factor": 0.58}},
+        {"verb": "lift", "params": {"upper_ratio": 0.78, "lower_floor_fraction": 0.44}},
+        {"verb": "taper", "params": {"top_ratio": 0.82}}
+      ],
+      "notes": ["Operative Design bend를 법규 footprint 내부의 각도 있는 리본 매스로 근사"]
+    },
+    {
+      "name": "grammar_embed_podium_void",
+      "label": "임베드 포디움 보이드",
+      "aliases": ["embed podium", "nested void", "임베드 보이드"],
+      "intent_tags": ["embed", "podium", "void"],
+      "calls": [
+        {"verb": "base", "params": {"proportion": "site"}},
+        {"verb": "embed", "params": {"guest_scale": 0.42, "position": [0.16, -0.10, 0.0]}},
+        {"verb": "lift", "params": {"upper_ratio": 0.72, "lower_floor_fraction": 0.38}},
+        {"verb": "shift", "params": {"axis": "x", "distance_ratio": 0.08}}
+      ],
+      "notes": ["embed/nest 계열을 내부 삽입 보이드와 오프셋 상부 매스로 근사"]
+    },
+    {
+      "name": "grammar_extrude_fin_tower",
+      "label": "익스트루드 핀 타워",
+      "aliases": ["extrude fin", "fin tower", "돌출 핀"],
+      "intent_tags": ["extrude", "fin", "tower"],
+      "calls": [
+        {"verb": "base", "params": {"proportion": "site"}},
+        {"verb": "extrude", "params": {"axis": "x", "length": 0.36, "size": 0.34}},
+        {"verb": "lift", "params": {"upper_ratio": 0.68, "lower_floor_fraction": 0.34}},
+        {"verb": "taper", "params": {"x_ratio": 0.70, "y_ratio": 0.88}}
+      ],
+      "notes": ["extrude를 법규 footprint 안의 핀형 돌출/상부 타워로 근사"]
+    },
+    {
+      "name": "grammar_nest_atrium_stack",
+      "label": "네스트 아트리움 스택",
+      "aliases": ["nest stack", "nested atrium", "중첩 스택"],
+      "intent_tags": ["nest", "stack", "atrium"],
+      "calls": [
+        {"verb": "base", "params": {"proportion": "site"}},
+        {"verb": "nest", "params": {"inner_scale": 0.46}},
+        {"verb": "stack", "params": {"n": 3, "gap": 0.04, "upper_ratio": 0.76}},
+        {"verb": "taper", "params": {"top_ratio": 0.80}}
+      ],
+      "notes": ["nest/stack 계열을 nested atrium과 계단형 상부 band로 근사"]
+    },
+    {
+      "name": "grammar_clean_podium_bar",
+      "label": "Clean podium bar",
+      "aliases": ["clean podium bar", "rectangular podium tower"],
+      "intent_tags": ["clean_mass", "podium", "bar"],
+      "calls": [
+        {"verb": "base", "params": {"proportion": "site"}},
+        {"verb": "bar", "params": {"axis": "x", "factor": 0.58, "shift": -0.08}},
+        {"verb": "lift", "params": {"upper_ratio": 0.64, "lower_floor_fraction": 0.38}}
+      ],
+      "notes": ["primary_language=clean_podium_bar", "dominant_gesture=rectangular podium supporting one legible bar"]
+    },
+    {
+      "name": "grammar_clean_courtyard_block",
+      "label": "Clean courtyard block",
+      "aliases": ["clean courtyard", "perimeter court block"],
+      "intent_tags": ["clean_mass", "courtyard", "perimeter_block"],
+      "calls": [
+        {"verb": "base", "params": {"proportion": "site"}},
+        {"verb": "courtyard", "params": {"width_ratio": 0.34, "depth_ratio": 0.30}},
+        {"verb": "lift", "params": {"upper_ratio": 0.78, "lower_floor_fraction": 0.46}}
+      ],
+      "notes": ["primary_language=clean_courtyard_block", "dominant_gesture=continuous perimeter mass framing one court"]
+    },
+    {
+      "name": "grammar_clean_twin_wing",
+      "label": "Clean twin wing",
+      "aliases": ["clean twin wing", "parallel wing mass"],
+      "intent_tags": ["clean_mass", "split", "parallel_wings"],
+      "calls": [
+        {"verb": "base", "params": {"proportion": "site"}},
+        {"verb": "split", "params": {"axis": "y", "gap_ratio": 0.18}},
+        {"verb": "lift", "params": {"upper_ratio": 0.72, "lower_floor_fraction": 0.42}}
+      ],
+      "notes": ["primary_language=clean_twin_wing", "dominant_gesture=two parallel wings separated by one clear gap"]
+    },
+    {
+      "name": "grammar_clean_shifted_slab",
+      "label": "Clean shifted slab",
+      "aliases": ["clean shifted slab", "offset upper slab"],
+      "intent_tags": ["clean_mass", "shift", "slab"],
+      "calls": [
+        {"verb": "base", "params": {"proportion": "site"}},
+        {"verb": "lift", "params": {"upper_ratio": 0.68, "lower_floor_fraction": 0.44}},
+        {"verb": "shift", "params": {"axis": "x", "distance_ratio": 0.14}}
+      ],
+      "notes": ["primary_language=clean_shifted_slab", "dominant_gesture=one upper slab shifted over a stable base"]
     }
   ]
 }

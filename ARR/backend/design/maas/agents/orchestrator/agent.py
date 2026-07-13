@@ -8,7 +8,7 @@ from design.maas.agents.shared.types import AgentCard, AgentContext, AgentResult
 class DesignOrchestratorAgent:
     agent_id = "design_orchestrator"
     display_name = "Design Orchestrator"
-    role = "Route PNU/design candidates through law, parking, MAAS geometry, and final review agents."
+    role = "Route PNU/design candidates through law, parking, MassDSL, MAAS geometry, grammar critique, and final review agents."
 
     def run(self, context: AgentContext) -> AgentResult:
         return AgentResult(

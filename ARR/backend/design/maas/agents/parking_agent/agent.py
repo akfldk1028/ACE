@@ -38,7 +38,7 @@ class ParkingAgent:
                 "unmet_spaces": unmet,
             },
             role=self.role,
-            next_agent="maas_geometry_agent",
+            next_agent="llm_architect_agent",
         )
 
     def build_card(self) -> dict[str, Any]:

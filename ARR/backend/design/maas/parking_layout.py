@@ -129,6 +129,13 @@ def generate_parking_layout_candidate(
             reason="missing_or_empty_envelope",
         )
 
+    if strategy == "mechanical":
+        return _mechanical_parking_review_candidate(
+            polygon,
+            required_spaces=required_spaces,
+            accessible_spaces=accessible_spaces,
+        )
+
     relief = evaluate_small_attached_parking_relief(
         required_spaces=required_spaces,
         road_context=road_context,
@@ -1408,7 +1415,184 @@ def _layout_result(
         ]
     else:
         result["repair_requests"] = []
+    result["mass_stage_parking"] = _mass_stage_parking_summary(result)
     return result
+
+
+def _mechanical_parking_review_candidate(
+    polygon: Polygon,
+    *,
+    required_spaces: int,
+    accessible_spaces: int,
+) -> dict[str, Any]:
+    area = float(polygon.area or 0.0)
+    long_side, short_side = _oriented_rect_dimensions(polygon)
+    module_area = 18.0
+    area_capacity = max(0, math.floor(area / module_area))
+    bay_capacity = max(0, math.floor(long_side / 2.7) * max(1, math.floor(short_side / 5.6)) * 2)
+    conceptual_capacity = max(area_capacity, bay_capacity)
+    provided = min(required_spaces, conceptual_capacity)
+    unmet = max(0, required_spaces - provided)
+    status = "needs_mechanical_parking_review" if unmet == 0 else "fail"
+    result = {
+        "schema_version": "arr.maas.parking_layout_candidate.v0",
+        "status": status,
+        "strategy": "mechanical",
+        "placement_mode": "mechanical_conceptual_stack",
+        "required_spaces": required_spaces,
+        "required_accessible_spaces": accessible_spaces,
+        "provided_spaces": provided,
+        "provided_accessible_spaces": 0,
+        "unmet_spaces": unmet,
+        "unmet_accessible_spaces": accessible_spaces,
+        "stalls": [],
+        "layout_formula": {
+            "schema_version": "arr.maas.parking_formula.v1",
+            "mode": "mechanical_conceptual_stack",
+            "required_spaces": required_spaces,
+            "module": {
+                "conceptual_module_area_m2_per_space": module_area,
+                "oriented_long_side_m": round(long_side, 2),
+                "oriented_short_side_m": round(short_side, 2),
+                "area_capacity_spaces": area_capacity,
+                "bay_capacity_spaces": bay_capacity,
+                "conceptual_capacity_spaces": conceptual_capacity,
+            },
+        },
+        "adjacency": {
+            "contiguous_ok": True,
+            "row_contiguous_ok": True,
+            "cluster_contiguous_ok": True,
+            "basis": "mechanical_stack_capacity_review_not_stall_row_geometry",
+        },
+        "column_clearance": {
+            "status": "needs_review",
+            "reason": "mechanical equipment bay, pit, and structural grid are not modeled.",
+        },
+        "drive_aisle_clearance": {
+            "status": "authority_review",
+            "reason": "mechanical parking uses equipment access/queueing rather than standard 6m stall aisle.",
+        },
+        "turning_clearance": {
+            "status": "authority_review",
+            "entrance_connected": True,
+            "frontage_connected_stalls": provided,
+            "reason": "entry queueing, turntable, and manufacturer equipment specification require review.",
+        },
+        "authority_review_check": {
+            "schema_version": "arr.maas.mechanical_parking_review.v0",
+            "status": "prechecked_needs_external_evidence" if unmet == 0 else "blocked",
+            "basis": "Mechanical parking conceptual capacity unlock for high-FAR MAAS candidates.",
+            "external_evidence_needed": [
+                "mechanical_parking_equipment_type",
+                "pit_or_lift_clearance",
+                "entry_queueing_space",
+                "manufacturer_turning_and_safety_clearance",
+                "local_authority_acceptance",
+            ],
+        },
+        "limitations": [
+            "conceptual_capacity_only_not_final_parking_approval",
+            "does_not_place_standard_stall_polygons",
+            "requires_mechanical_equipment_and_local_authority_review",
+        ],
+        "repair_requests": [] if unmet == 0 else [{
+            "operation": "increase_mechanical_parking_capacity_or_switch_strategy",
+            "reason": f"{unmet} required parking spaces remain unmet even with conceptual mechanical parking.",
+            "target_agent": "maas_geometry_agent",
+        }],
+    }
+    result["mass_stage_parking"] = _mass_stage_parking_summary(result)
+    return result
+
+
+def _mass_stage_parking_summary(layout: dict[str, Any]) -> dict[str, Any]:
+    """Separate mass-stage feasibility from final parking approval.
+
+    A deterministic early massing run should not pretend to be a permit-grade
+    swept-path/structural/core review. It still needs a clear signal when the
+    required stall count, accessible count, row grouping, and generated 6m
+    aisle module are plausible enough for design comparison.
+    """
+    required = int(layout.get("required_spaces") or 0)
+    provided = int(layout.get("provided_spaces") or 0)
+    accessible_required = int(layout.get("required_accessible_spaces") or 0)
+    accessible_provided = int(layout.get("provided_accessible_spaces") or 0)
+    unmet = int(layout.get("unmet_spaces") or 0)
+    unmet_accessible = int(layout.get("unmet_accessible_spaces") or 0)
+    if required <= 0:
+        return {
+            "status": "needs_requirement",
+            "reason": "No required parking count is attached to this candidate.",
+        }
+    if layout.get("strategy") == "mechanical":
+        count_ok = provided >= required and unmet == 0
+        return {
+            "schema_version": "arr.maas.parking_mass_stage.v0",
+            "status": "pass" if count_ok else "fail",
+            "count_ok": count_ok,
+            "accessible_ok": accessible_required == 0,
+            "row_or_cluster_ok": True,
+            "aisle_module_ok": True,
+            "frontage_or_relief_ok": True,
+            "entrance_ok": True,
+            "authority_review_required": True,
+            "final_layout_status": layout.get("status"),
+            "reason": None if count_ok else "Mechanical parking conceptual capacity is below required count.",
+        }
+    count_ok = provided >= required and unmet == 0
+    accessible_ok = accessible_provided >= accessible_required and unmet_accessible == 0
+    adjacency = layout.get("adjacency") if isinstance(layout.get("adjacency"), dict) else {}
+    row_ok = bool(
+        adjacency.get("row_contiguous_ok")
+        or adjacency.get("cluster_contiguous_ok")
+        or adjacency.get("contiguous_ok")
+        or provided <= 1
+    )
+    aisle = layout.get("drive_aisle_clearance") if isinstance(layout.get("drive_aisle_clearance"), dict) else {}
+    aisle_status = aisle.get("status")
+    aisle_ok = aisle_status in {"pass", "authority_review"} or layout.get("placement_mode") in {
+        "internal_double_loaded_90",
+        "internal_single_loaded_90",
+        "grid_connected_90",
+    }
+    turning = layout.get("turning_clearance") if isinstance(layout.get("turning_clearance"), dict) else {}
+    row_relief = turning.get("contiguous_row_frontage_relief") if isinstance(turning.get("contiguous_row_frontage_relief"), dict) else {}
+    tandem_relief = turning.get("small_attached_tandem_relief") if isinstance(turning.get("small_attached_tandem_relief"), dict) else {}
+    frontage_ok = (
+        turning.get("status") == "v1_pass"
+        or bool(row_relief.get("available"))
+        or bool(tandem_relief.get("available"))
+        or provided <= 1
+    )
+    entrance_ok = turning.get("entrance_connected") is not False
+    status = "pass" if count_ok and accessible_ok and row_ok and aisle_ok and frontage_ok and entrance_ok else "fail"
+    reason = None
+    if not count_ok:
+        reason = "Required parking spaces are not fully placed."
+    elif not accessible_ok:
+        reason = "Required accessible parking spaces are not fully placed."
+    elif not row_ok:
+        reason = "Placed stalls are not grouped as a contiguous mass-stage parking row or cluster."
+    elif not aisle_ok:
+        reason = "Generated aisle module is not sufficient for mass-stage review."
+    elif not frontage_ok:
+        reason = "Stalls need a frontage or small-attached relief check before mass-stage pass."
+    elif not entrance_ok:
+        reason = "Generated parking aisle is not connected to road/frontage access."
+    return {
+        "schema_version": "arr.maas.parking_mass_stage.v0",
+        "status": status,
+        "count_ok": count_ok,
+        "accessible_ok": accessible_ok,
+        "row_or_cluster_ok": row_ok,
+        "aisle_module_ok": aisle_ok,
+        "frontage_or_relief_ok": frontage_ok,
+        "entrance_ok": entrance_ok,
+        "authority_review_required": layout.get("status") != "pass",
+        "final_layout_status": layout.get("status"),
+        "reason": reason,
+    }
 
 
 def _layout_formula_metadata(placement_mode: str, *, required_spaces: int) -> dict[str, Any]:

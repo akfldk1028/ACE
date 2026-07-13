@@ -21,6 +21,7 @@ def generate_seed_variants(
     envelope: LegalEnvelope,
     *,
     include_interactive_seed: bool = False,
+    building_type: str = "",
 ) -> list[MorphologyVariant]:
     variants: list[MorphologyVariant] = []
     if include_interactive_seed:
@@ -35,9 +36,9 @@ def generate_seed_variants(
             envelope.buildable_footprint,
             notes=("법규 envelope 기준 최대 footprint anchor",),
         ))
-        variants.extend(generate_grammar_variants(envelope.buildable_footprint))
+        variants.extend(generate_grammar_variants(envelope.buildable_footprint, building_type=building_type))
         variants.extend(generate_morphology_variants(envelope.buildable_footprint))
-    variants.extend(generate_grammar_variants(base_footprint))
+    variants.extend(generate_grammar_variants(base_footprint, building_type=building_type))
     variants.extend(generate_morphology_variants(base_footprint))
     return variants
 

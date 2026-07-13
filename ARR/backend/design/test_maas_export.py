@@ -19,12 +19,27 @@ from design.maas.aesthetic.projection_export import attach_textured_mesh_assets
 from design.maas.aesthetic.renderers import MultiViewReferencePackRenderer, ReferencePngRenderer
 from design.maas.grammar import generate_grammar_variants, load_term_ontology, resolve_intent_to_sequence
 from design.maas.legal_mesh_optimizer import (
+    _compact_visual_volumes,
+    _feature_distance,
     _final_design_balanced_selection,
     _operator_family,
+    _promote_legal_floor_stack_source_geometry,
     _preserve_visible_section_connector,
     _upper_typology_is_viable,
 )
+from design.maas.llm_proposals import (
+    LLM_BATCH_SCHEMA_VERSION,
+    LLM_PARAMETER_SOURCE,
+    generate_llm_massdsl_batch,
+)
 from design.maas.morphology_operators import generate_morphology_variants
+from design.maas.source_geometry import compile_sequence_to_source_mass
+from design.maas.grammar.verb_sequence import VerbSequence, call
+from design.maas.grammar.component_graph import graph_from_sequence
+from design.maas.interactive.revision import apply_graph_operations, infer_graph_operations
+from design.maas.interactive.reference_intent import interpret_reference_intent_with_openai_vlm
+from design.maas.interactive.revision_evaluation import evaluate_reference_revision
+from design.maas.interactive.revision_learning import build_revision_learning_profile
 from design.maas.parking_layout import (
     _drive_entrance_access,
     _solve_grid_parking_layout,
@@ -370,6 +385,251 @@ class MaasEvidenceBundleEndpointTest(TestCase):
 
 
 class MaasLegalVariantsTest(TestCase):
+    def test_bounded_component_graph_revision_preserves_ids_and_clamps_parameter(self):
+        graph = graph_from_sequence(VerbSequence(
+            name="agent_revision_probe",
+            label="revision probe",
+            calls=(call("base", proportion="site"), call("bar", axis="x", factor=0.50)),
+        ))
+        node_id = graph.nodes[1].node_id
+
+        revised, diff = apply_graph_operations(graph, [{
+            "type": "scale_parameter",
+            "node_id": node_id,
+            "parameter": "factor",
+            "factor": 4.0,
+        }])
+
+        self.assertEqual(revised.nodes[1].node_id, node_id)
+        self.assertEqual(revised.nodes[1].operation.params["factor"], 0.90)
+        self.assertEqual(diff[0]["before"], 0.50)
+        self.assertEqual(diff[0]["after"], 0.90)
+        self.assertEqual(revised.validate(), [])
+
+        with self.assertRaisesRegex(ValueError, "root component cannot be revised directly"):
+            apply_graph_operations(graph, [{
+                "type": "set_parameter",
+                "node_id": graph.nodes[0].node_id,
+                "parameter": "factor",
+                "value": 0.5,
+            }])
+
+    def test_conversation_translates_height_instruction_to_stable_node_edit(self):
+        graph = graph_from_sequence(VerbSequence(
+            name="agent_conversation_probe",
+            label="conversation probe",
+            calls=(
+                call("base", proportion="site"),
+                call("lift", upper_ratio=0.72, lower_floor_fraction=0.40),
+            ),
+        ))
+
+        instruction = "\uc0c1\ubd80 \ub9e4\uc2a4\ub97c \uc870\uae08 \ub354 \ub0ae\ucdb0\uc918"
+        operations = infer_graph_operations(graph, instruction)
+
+        self.assertEqual(len(operations), 1)
+        self.assertEqual(operations[0]["node_id"], graph.nodes[1].node_id)
+        self.assertEqual(operations[0]["parameter"], "upper_ratio")
+        self.assertLess(operations[0]["factor"], 1.0)
+
+    def test_reference_vlm_translates_image_principle_to_bounded_graph_operation(self):
+        graph = graph_from_sequence(VerbSequence(
+            name="reference_intent_probe",
+            label="reference intent probe",
+            calls=(
+                call("base", proportion="site"),
+                call("lift", upper_ratio=0.72, lower_floor_fraction=0.40),
+            ),
+        ))
+        response = {
+            "id": "resp_reference_probe",
+            "output_text": json.dumps({
+                "reference_principles": ["low horizontal upper mass"],
+                "operations": [{
+                    "type": "scale_parameter",
+                    "node_id": graph.nodes[1].node_id,
+                    "parameter": "upper_ratio",
+                    "factor": 0.86,
+                    "value": None,
+                    "reason": "Transfer the reference's lower horizontal emphasis.",
+                }],
+                "confidence": 0.84,
+                "warnings": [],
+            }),
+        }
+
+        intent = interpret_reference_intent_with_openai_vlm(
+            graph=graph,
+            references=[{"data_url": "data:image/png;base64,AA==", "title": "client precedent"}],
+            instruction="이 이미지의 수평적인 비례를 반영해줘",
+            model="fake-reference-vlm",
+            response_override=response,
+        )
+
+        self.assertEqual(intent["schema_version"], "arr.maas.reference_intent.v1")
+        self.assertEqual(intent["operations"][0]["node_id"], graph.nodes[1].node_id)
+        self.assertEqual(intent["operations"][0]["inference_source"], "openai_reference_vlm_v1")
+        self.assertEqual(intent["reference_principles"], ["low horizontal upper mass"])
+
+    def test_reference_revision_evaluation_requires_measured_improvement(self):
+        before = {
+            "model": "fake-vlm", "response_id": "before", "cache_hit": True,
+            "concept_scores": {
+                "gesture_clarity": 0.70, "hierarchy": 0.70, "non_stair_silhouette": 0.70,
+                "void_publicness": 0.50, "repair_integrity": 0.75, "precedent_resonance": 0.52,
+            },
+        }
+        after = {
+            "model": "fake-vlm", "response_id": "after", "cache_hit": False,
+            "concept_scores": {
+                "gesture_clarity": 0.74, "hierarchy": 0.73, "non_stair_silhouette": 0.72,
+                "void_publicness": 0.51, "repair_integrity": 0.76, "precedent_resonance": 0.61,
+            },
+        }
+        scorer = patch("design.maas.interactive.revision_evaluation.openai_preview_preference_scorer")
+        with scorer as factory:
+            factory.return_value.side_effect = [before, after]
+            result = evaluate_reference_revision(
+                before_feature={"type": "Feature"},
+                after_feature={"type": "Feature"},
+                references=[{"data_url": "data:image/png;base64,AA=="}],
+                intent_confidence=0.82,
+                model="fake-vlm",
+            )
+
+        self.assertTrue(result["improvement_gate_pass"])
+        self.assertEqual(result["reference_adherence_delta"], 0.09)
+        self.assertEqual(result["cache_hit_count"], 1)
+        self.assertEqual(result["vlm_call_count"], 1)
+
+    def test_conversational_revision_endpoint_returns_graph_diff_and_history(self):
+        footprint = {
+            "type": "Polygon",
+            "coordinates": [[[127.0, 37.0], [127.0005, 37.0], [127.0005, 37.0004], [127.0, 37.0004], [127.0, 37.0]]],
+        }
+        graph = graph_from_sequence(VerbSequence(
+            name="agent_revision_endpoint",
+            label="revision endpoint",
+            calls=(call("base", proportion="site"), call("bar", axis="x", factor=0.50)),
+        ))
+        feature = {
+            "type": "Feature",
+            "geometry": footprint,
+            "properties": {
+                "height": 8.4,
+                "num_floors": 3,
+                "floor_height": 2.8,
+                "far": 60.0,
+                "bcr": 30.0,
+                "building_type": "공동주택",
+                "source_signature": {"component_graph": graph.to_dict()},
+                "maas_model": {"volumes": [], "legal_metrics": {}},
+            },
+        }
+        response = self.client.post(
+            "/design/maas/revision/",
+            data={
+                "accepted_feature": feature,
+                "site_polygon": footprint,
+                "project_key": "test-reference-project",
+                "building_type": "공동주택",
+                "instruction": "상부 바를 더 길게",
+                "graph_operations": [{
+                    "type": "scale_parameter",
+                    "node_id": graph.nodes[1].node_id,
+                    "parameter": "factor",
+                    "factor": 1.25,
+                }],
+                "references": [{"id": "ref-01", "uri": "client-upload://ref-01"}],
+            },
+            content_type="application/json",
+            HTTP_HOST="127.0.0.1",
+        )
+
+        self.assertEqual(response.status_code, 200, response.content)
+        data = response.json()
+        self.assertEqual(data["schema_version"], "arr.maas.conversational_revision.v1")
+        self.assertEqual(data["graph_diff"][0]["node_id"], graph.nodes[1].node_id)
+        self.assertEqual(data["reference_evidence"]["status"], "provided_with_explicit_operations")
+        self.assertEqual(len(data["revision_history"]), 1)
+        self.assertIn("coherence_pass", data["validation"])
+        self.assertTrue(data["revision_event_id"])
+
+        feedback = self.client.post(
+            f"/design/maas/revision/{data['revision_event_id']}/feedback/",
+            data={"decision": "accepted", "rating": 4.5, "note": "direction is useful"},
+            content_type="application/json",
+            HTTP_HOST="127.0.0.1",
+        )
+        self.assertEqual(feedback.status_code, 200, feedback.content)
+        self.assertEqual(feedback.json()["decision"], "accepted")
+        profile = build_revision_learning_profile("test-reference-project")
+        self.assertEqual(profile["feedback_event_count"], 1)
+        self.assertTrue(profile["preferred_operation_patterns"])
+
+        reference_intent = {
+            "schema_version": "arr.maas.reference_intent.v1",
+            "provider": "openai",
+            "model": "fake-reference-vlm",
+            "response_id": "resp_api_probe",
+            "reference_principles": ["stronger horizontal bar"],
+            "operations": [{
+                "type": "scale_parameter",
+                "node_id": graph.nodes[1].node_id,
+                "parameter": "factor",
+                "factor": 1.10,
+                "inference_source": "openai_reference_vlm_v1",
+            }],
+            "operation_rationales": ["Transfer the horizontal proportion."],
+            "confidence": 0.82,
+            "warnings": [],
+        }
+        revision_evaluation = {
+            "schema_version": "arr.maas.revision_evaluation.v1",
+            "status": "improved",
+            "improvement_gate_pass": True,
+            "reference_adherence_delta": 0.08,
+            "mass_quality_delta": 0.03,
+            "failures": [],
+        }
+        with patch(
+            "design.maas.interactive.revision.interpret_reference_intent_with_openai_vlm",
+            return_value=reference_intent,
+        ) as reference_vlm, patch(
+            "design.maas.interactive.revision.evaluate_reference_revision",
+            return_value=revision_evaluation,
+        ) as revision_evaluator, patch(
+            "design.maas.interactive.revision.final_mass_stage_parking_pass",
+            return_value=True,
+        ), patch(
+            "design.maas.interactive.revision._architectural_order_gate",
+            return_value=(True, []),
+        ):
+            vlm_response = self.client.post(
+                "/design/maas/revision/",
+                data={
+                    "accepted_feature": feature,
+                    "site_polygon": footprint,
+                    "building_type": "공동주택",
+                    "instruction": "이 레퍼런스의 수평 비례를 반영해줘",
+                    "references": [{"data_url": "data:image/png;base64,AA=="}],
+                },
+                content_type="application/json",
+                HTTP_HOST="127.0.0.1",
+            )
+
+        self.assertEqual(vlm_response.status_code, 200, vlm_response.content)
+        vlm_data = vlm_response.json()
+        self.assertEqual(vlm_data["intent_translation"]["source"], "openai_reference_vlm_v1")
+        self.assertEqual(vlm_data["reference_evidence"]["status"], "vlm_interpreted")
+        self.assertEqual(vlm_data["reference_evidence"]["intent"]["response_id"], "resp_api_probe")
+        self.assertTrue(vlm_data["revision_evaluation"]["improvement_gate_pass"])
+        reference_vlm.assert_called_once()
+        revision_evaluator.assert_called_once()
+
+    def test_final_balanced_selection_accepts_empty_preselection(self):
+        self.assertEqual(_final_design_balanced_selection([], final_limit=20), [])
+
     def _site(self):
         return {
             "type": "Polygon",
@@ -490,6 +750,54 @@ class MaasLegalVariantsTest(TestCase):
 
         self.assertFalse(_upper_typology_is_viable(lower, tiny_upper))
 
+    def test_legal_layered_visual_volumes_preserve_sunlight_steps(self):
+        floor_plates = []
+        for floor, size in enumerate([1.0, 1.0, 0.82, 0.62, 0.42], start=1):
+            floor_plates.append({
+                "floor": floor,
+                "top_height": floor * 2.8,
+                "area": round(size * 100.0, 2),
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[
+                        [127.0, 37.0],
+                        [127.0 + size * 0.001, 37.0],
+                        [127.0 + size * 0.001, 37.0 + size * 0.001],
+                        [127.0, 37.0 + size * 0.001],
+                        [127.0, 37.0],
+                    ]],
+                },
+            })
+
+        volumes = _compact_visual_volumes(floor_plates, "legal_layered_max")
+
+        self.assertLessEqual(len(volumes), 4)
+        self.assertGreaterEqual(len(volumes), 2)
+        self.assertEqual(volumes[0]["bottom_height"], 0.0)
+        self.assertEqual(volumes[-1]["top_height"], floor_plates[-1]["top_height"])
+
+    def test_legal_layered_anchor_has_graph_and_measured_coherence(self):
+        footprint = {
+            "type": "Polygon",
+            "coordinates": [[[127.0, 37.0], [127.0005, 37.0], [127.0005, 37.0004], [127.0, 37.0004], [127.0, 37.0]]],
+        }
+        feature = {"type": "Feature", "geometry": footprint, "properties": {
+            "height": 18.0,
+            "mass_shape": "legal_layered_max",
+            "mass_volumes": [
+            {"bottom_height": 0.0, "top_height": 6.0, "geometry": footprint},
+            {"bottom_height": 6.0, "top_height": 12.0, "geometry": footprint},
+            {"bottom_height": 12.0, "top_height": 18.0, "geometry": footprint},
+            ],
+        }}
+
+        _promote_legal_floor_stack_source_geometry(feature)
+
+        signature = feature["properties"]["source_signature"]
+        self.assertEqual(signature["component_graph"]["validation_errors"], [])
+        self.assertTrue(signature["coherence_evidence"]["hard_pass"])
+        self.assertEqual(signature["coherence_evidence"]["volume_count"], 3)
+
     def test_grammar_operator_family_maps_to_typology_family(self):
         self.assertEqual(_operator_family("grammar_cave_inset_puncture"), "void_notch")
         self.assertEqual(_operator_family("grammar_diagonal_step_connector"), "diagonal_connect")
@@ -537,6 +845,49 @@ class MaasLegalVariantsTest(TestCase):
         self.assertIn("grammar_sloped_roof_envelope", shapes)
         self.assertNotIn("parking_repair_shrink", shapes)
         self.assertNotIn("branch_y_wide", shapes)
+
+    def test_source_signature_contributes_to_candidate_distance(self):
+        def feature(family: str, verbs: list[str], upper_ratio: float):
+            return {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[
+                        [127.0000, 37.0000],
+                        [127.0003, 37.0000],
+                        [127.0003, 37.0003],
+                        [127.0000, 37.0003],
+                        [127.0000, 37.0000],
+                    ]],
+                },
+                "properties": {
+                    "mass_shape": f"grammar_{family}",
+                    "bcr": 40.0,
+                    "far": 120.0,
+                    "height": 12.0,
+                    "shape_signature": {"compactness": 16.0},
+                    "shape_signature_3d": {"volume_count": 2, "floor_plate_count": 4},
+                    "source_signature": {
+                        "family": family,
+                        "volume_count": 2,
+                        "upper_to_ground_ratio": upper_ratio,
+                        "area_profile_m2": [100.0, 70.0],
+                        "verb_profile": verbs,
+                    },
+                    "maas_verb_sequence": [{"verb": verb, "params": {}} for verb in ["base", *verbs]],
+                },
+            }
+
+        same_family = _feature_distance(
+            feature("terrace_link", ["lift", "terrace_link"], 0.68),
+            feature("terrace_link", ["lift", "terrace_link"], 0.68),
+        )
+        different_family = _feature_distance(
+            feature("terrace_link", ["lift", "terrace_link"], 0.68),
+            feature("diagonal_connect", ["lift", "diagonal_connect"], 0.52),
+        )
+
+        self.assertGreater(different_family, same_family)
 
     def test_small_attached_parking_relief_tracks_road_aisle_and_tandem_exceptions(self):
         relief = evaluate_small_attached_parking_relief(
@@ -889,9 +1240,25 @@ class MaasLegalVariantsTest(TestCase):
         self.assertIn("grammar_terrace_ribbon_stepback", operators)
         self.assertIn("grammar_sloped_roof_envelope", operators)
         for variant in variants:
-            self.assertTrue(variant.operator.startswith("grammar_"))
+            self.assertTrue(variant.operator.startswith(("grammar_", "agent_")))
             self.assertGreaterEqual(len(variant.verb_sequence), 2)
             self.assertEqual(variant.verb_sequence[0]["verb"], "base")
+            self.assertEqual(variant.source_geometry_status, "compiled")
+            self.assertIsNotNone(variant.source_signature)
+            self.assertGreaterEqual(variant.source_signature["volume_count"], 1)
+            self.assertGreaterEqual(variant.source_signature["surface_count"], 1)
+            self.assertGreaterEqual(len(variant.source_verb_trace), 2)
+            self.assertGreaterEqual(len(variant.source_volumes), 1)
+            self.assertGreaterEqual(len(variant.source_surfaces), 1)
+
+        source_rich = {
+            variant.operator: variant
+            for variant in variants
+            if variant.upper_footprint is not None
+        }
+        self.assertIn("grammar_cave_inset_puncture", source_rich)
+        self.assertIn("grammar_interlock_step_taper", source_rich)
+        self.assertGreaterEqual(len(source_rich), 8)
 
     def test_design_section_operators_create_upper_mass_hints(self):
         from design.maas.morphology_operators import generate_morphology_variants
@@ -1167,6 +1534,10 @@ class MaasLegalVariantsTest(TestCase):
             self.assertIn("shape_signature_3d", props)
             self.assertIn("candidate_diversity", props)
             self.assertIn(props["candidate_diversity"]["class"], {"plan_diverse", "section_diverse", "near_duplicate"})
+            if props["mass_shape"].startswith("grammar_"):
+                self.assertEqual(props["source_geometry_status"], "compiled")
+                self.assertIn("source_signature", props["maas_model"])
+                self.assertIn("source_verb_trace", props["maas_model"])
         self.assertTrue(any("floor_plates" in f["properties"] for f in features))
         diversity_classes = {f["properties"]["candidate_diversity"]["class"] for f in features}
         self.assertTrue({"plan_diverse", "section_diverse"} & diversity_classes)
@@ -1180,6 +1551,535 @@ class MaasLegalVariantsTest(TestCase):
             }
         ]
         self.assertTrue(connector_features)
+
+    def test_source_geometry_records_default_provenance_for_arch_language_verbs(self):
+        base = box(0, 0, 42, 32)
+        verbs = [
+            "notch",
+            "cave",
+            "courtyard",
+            "split",
+            "bar",
+            "branch",
+            "pinch",
+            "bend",
+            "embed",
+            "extrude",
+            "nest",
+            "stack",
+            "offset",
+            "array",
+            "reflect",
+            "interlock",
+            "overlap",
+            "taper",
+            "grade",
+            "shift",
+            "inset",
+            "expand",
+        ]
+
+        for verb in verbs:
+            sequence = VerbSequence(
+                name=f"llm_default_probe_{verb}",
+                label=verb,
+                calls=(call("base", proportion="site"), call(verb)),
+            )
+            source = compile_sequence_to_source_mass(base, sequence)
+
+            self.assertIsNotNone(source, verb)
+            signature = source.signature()
+            self.assertGreater(signature["parameter_default_count"], 0, verb)
+            self.assertTrue(signature["parameter_provenance"], verb)
+
+    def test_formal_principle_generates_architecture_grade_tapered_tower(self):
+        sequence = VerbSequence(
+            name="llm_architecture_probe_undercut",
+            label="undercut tapered tower",
+            calls=(
+                call("base", proportion="site"),
+                call("taper", x_ratio=0.62, y_ratio=0.58, lower_floor_fraction=0.40),
+            ),
+            notes=(
+                "formal_principle=undercut_tapered_tower",
+                "dominant_gesture=undercut podium with tapered upper mass",
+                "reference_basis=Vancouver House/BIG-like undercut/taper principle",
+            ),
+        )
+        source = compile_sequence_to_source_mass(box(0, 0, 42, 30), sequence)
+
+        self.assertIsNotNone(source)
+        signature = source.signature()
+        ambition = signature["architectural_ambition_evidence"]
+        roles = {volume.role for volume in source.volumes}
+        self.assertEqual(ambition["formal_principle"], "undercut_tapered_tower")
+        self.assertTrue(ambition["architecture_grade_pass"])
+        self.assertTrue(any("undercut" in role for role in roles))
+        self.assertTrue(any("tower" in role for role in roles))
+        self.assertGreaterEqual(len(source.volumes), 3)
+
+    def test_formal_principle_generates_stacked_platform_roles(self):
+        sequence = VerbSequence(
+            name="llm_architecture_probe_stack",
+            label="shifted platform stack",
+            calls=(
+                call("base", proportion="site"),
+                call("shift", distance_ratio=0.18, lower_floor_fraction=0.44),
+            ),
+            notes=(
+                "formal_principle=stacked_shifted_platforms",
+                "dominant_gesture=OMA/Seattle Library-like shifted platform diagram",
+                "reference_basis=stacked platform and diagrammatic section principle",
+            ),
+        )
+        source = compile_sequence_to_source_mass(box(0, 0, 42, 30), sequence)
+
+        self.assertIsNotNone(source)
+        signature = source.signature()
+        ambition = signature["architectural_ambition_evidence"]
+        roles = {volume.role for volume in source.volumes}
+        self.assertEqual(ambition["formal_principle"], "stacked_shifted_platforms")
+        self.assertTrue(ambition["architecture_grade_pass"])
+        self.assertGreaterEqual(sum(role.startswith("primary_shifted_platform_") for role in roles), 3)
+        self.assertTrue(source.signature()["coherence_evidence"]["hard_pass"])
+
+    def test_array_cluster_preserves_podium_scale_and_clean_coherence(self):
+        base = box(0, 0, 42, 30)
+        source = compile_sequence_to_source_mass(
+            base,
+            VerbSequence(
+                name="grammar_clean_program_box_cluster",
+                label="clean program box cluster",
+                calls=(
+                    call("base", proportion="site"),
+                    call("array", n=2, unit_scale=0.46, spacing_ratio=0.26),
+                ),
+                notes=("primary_language=clean_program_box_cluster",),
+            ),
+        )
+
+        self.assertIsNotNone(source)
+        signature = source.signature()
+        self.assertGreaterEqual(source.footprint.area / base.area, 0.95)
+        self.assertEqual(signature["volume_count"], 3)
+        self.assertTrue(signature["coherence_evidence"]["hard_pass"])
+        self.assertEqual(signature["coherence_evidence"]["small_fragment_count"], 0)
+
+    def test_massing_genome_prioritizes_family_over_taper_tokens(self):
+        cases = [
+            (
+                "grammar_courtyard_lift_taper__sweep_court_open",
+                (call("base", proportion="site"), call("courtyard", ratio=0.20), call("taper", x_ratio=0.92)),
+                "carved_atrium",
+            ),
+            (
+                "grammar_diagonal_step_connector__sweep_taper_sharp",
+                (call("base", proportion="site"), call("diagonal_connect", axis="x"), call("taper", x_ratio=0.82)),
+                "split_bridge_connector",
+            ),
+            (
+                "grammar_sloped_roof_envelope__sweep_taper_sharp",
+                (call("base", proportion="site"), call("sloped_roof_mass", x_ratio=0.70), call("taper", x_ratio=0.88)),
+                "folded_section",
+            ),
+            (
+                "grammar_interlock_step_taper__sweep_interlock_thick",
+                (call("base", proportion="site"), call("interlock", angle=28.0), call("taper", x_ratio=0.70)),
+                "torqued_stack",
+            ),
+            (
+                "grammar_overlap_shift_terrace__sweep_lift_low",
+                (call("base", proportion="site"), call("overlap", axis="x"), call("lift", upper_ratio=0.72)),
+                "stacked_shifted_platforms",
+            ),
+        ]
+
+        for name, calls, expected_principle in cases:
+            with self.subTest(name=name):
+                sequence = VerbSequence(name=name, label=name, calls=calls)
+                source = compile_sequence_to_source_mass(box(0, 0, 42, 30), sequence)
+
+                self.assertIsNotNone(source)
+                genome = source.signature()["massing_genome"]
+                self.assertEqual(genome["schema_version"], "arr.maas.massing_genome.v1")
+                self.assertEqual(genome["formal_principle"], expected_principle)
+                self.assertNotEqual(genome["formal_principle"], "undercut_tapered_tower")
+                self.assertEqual(genome["inference_source"], "family_priority")
+
+    def test_massing_genome_exports_layered_attribution_circuit(self):
+        sequence = VerbSequence(
+            name="grammar_diagonal_step_connector__sweep_taper_sharp",
+            label="diagonal connector with taper token",
+            calls=(
+                call("base", proportion="site"),
+                call("diagonal_connect", axis="x"),
+                call("taper", x_ratio=0.82),
+            ),
+        )
+        source = compile_sequence_to_source_mass(box(0, 0, 42, 30), sequence)
+
+        self.assertIsNotNone(source)
+        circuit = source.signature()["massing_genome_circuit"]
+        self.assertEqual(circuit["schema_version"], "arr.maas.genome_attribution_circuit.v1")
+        self.assertEqual(circuit["graph_type"], "layered_attribution_flow")
+        node_layers = {node["layer"] for node in circuit["nodes"]}
+        self.assertTrue({"source", "concept", "strategy", "critic", "agent_action"}.issubset(node_layers))
+        edge_kinds = {edge["kind"] for edge in circuit["edges"]}
+        self.assertIn("evidence_to_concept", edge_kinds)
+        self.assertIn("critic_to_action_gate", edge_kinds)
+        self.assertTrue(any(node["id"] == "concept.formal_principle" for node in circuit["nodes"]))
+
+    def test_formal_compiler_records_genome_strategy_specific_roles(self):
+        cases = [
+            (
+                "grammar_interlock_step_taper__sweep_interlock_thick",
+                (call("base", proportion="site"), call("interlock", angle=28.0), call("taper", x_ratio=0.70)),
+                "torqued_stack",
+                "rotated_stack",
+                "_torqued_plate_",
+            ),
+            (
+                "grammar_sloped_roof_envelope__sweep_taper_sharp",
+                (call("base", proportion="site"), call("sloped_roof_mass", x_ratio=0.70), call("taper", x_ratio=0.88)),
+                "folded_section",
+                "folded_planes",
+                "_folded_",
+            ),
+            (
+                "grammar_overlap_shift_terrace__sweep_lift_low",
+                (call("base", proportion="site"), call("overlap", axis="x"), call("lift", upper_ratio=0.72)),
+                "stacked_shifted_platforms",
+                "shifted_platforms",
+                "_shifted_platform_",
+            ),
+        ]
+
+        for name, calls, expected_principle, expected_strategy, expected_role_prefix in cases:
+            with self.subTest(name=name):
+                source = compile_sequence_to_source_mass(
+                    box(0, 0, 42, 30),
+                    VerbSequence(name=name, label=name, calls=calls),
+                )
+
+                self.assertIsNotNone(source)
+                signature = source.signature()
+                genome = signature["massing_genome"]
+                ambition = signature["architectural_ambition_evidence"]
+                roles = {volume.role for volume in source.volumes}
+                self.assertEqual(genome["formal_principle"], expected_principle)
+                self.assertEqual(genome["vertical_strategy"], expected_strategy)
+                self.assertEqual(ambition["formal_principle"], expected_principle)
+                self.assertEqual(ambition["vertical_strategy"], expected_strategy)
+                self.assertEqual(ambition["genome_strategy_evidence"]["vertical_strategy"], expected_strategy)
+                self.assertTrue(signature["primary_language"])
+                self.assertTrue(signature["secondary_language"])
+                self.assertGreater(signature["source_primitive_count"], 0)
+                self.assertTrue(any(expected_role_prefix in role for role in roles))
+
+    def test_final_selection_keeps_stepback_and_weak_llm_caps_after_replacement(self):
+        def feature(shape: str, family: str, *, score: float, quality: str = "reviewable") -> dict:
+            return {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[
+                        [127.0002, 37.0002],
+                        [127.0008, 37.0002],
+                        [127.0008, 37.0008],
+                        [127.0002, 37.0008],
+                        [127.0002, 37.0002],
+                    ]],
+                },
+                "properties": {
+                    "mass_shape": shape,
+                    "height": 24.0,
+                    "far": 120.0,
+                    "bcr": 35.0,
+                    "maas_score": score,
+                    "design_quality_score": score,
+                    "diversity_score": score,
+                    "source_geometry_status": "compiled",
+                    "geometry_resolution": {"status": "source_geometry_used"},
+                    "source_signature": {
+                        "family": family,
+                        "volume_count": 2,
+                        "surface_count": 8,
+                        "parameter_default_count": 0,
+                        "architectural_ambition_evidence": {
+                            "schema_version": "arr.maas.architectural_ambition.v1",
+                            "formal_principle": "stacked_shifted_platforms",
+                            "dominant_gesture": f"{family} review mass",
+                            "has_formal_principle": True,
+                            "has_dominant_gesture": True,
+                            "implemented_volume_roles": [
+                                "primary_shifted_platform_0",
+                                "primary_shifted_platform_1",
+                                "secondary_vertical_datum_core",
+                            ],
+                            "silhouette_strength": 0.82,
+                            "sectional_diagram_clarity": 0.82,
+                            "podium_or_ground_relationship": True,
+                            "architecture_grade_pass": True,
+                        },
+                    },
+                    "architectural_ambition_evidence": {
+                        "schema_version": "arr.maas.architectural_ambition.v1",
+                        "formal_principle": "stacked_shifted_platforms",
+                        "dominant_gesture": f"{family} review mass",
+                        "has_formal_principle": True,
+                        "has_dominant_gesture": True,
+                        "implemented_volume_roles": [
+                            "primary_shifted_platform_0",
+                            "primary_shifted_platform_1",
+                            "secondary_vertical_datum_core",
+                        ],
+                        "silhouette_strength": 0.82,
+                        "sectional_diagram_clarity": 0.82,
+                        "podium_or_ground_relationship": True,
+                        "architecture_grade_pass": True,
+                    },
+                    "orderliness_evidence": {
+                        "schema_version": "arr.maas.orderliness.v1",
+                        "status": "measured",
+                        "dominant_axis": "balanced",
+                        "main_role": "primary_mass",
+                        "main_mass_area_ratio": 0.45,
+                        "aligned_role_ratio": 0.85,
+                        "small_fragment_count": 0,
+                        "fragment_role_count": 0,
+                        "role_hierarchy_depth": 2,
+                        "unclear_language_mix": False,
+                        "orderliness_score": 0.82,
+                    },
+                    "mass_volumes": [
+                        {"bottom_height": 0.0, "top_height": 12.0, "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [[
+                                [127.0002, 37.0002],
+                                [127.0008, 37.0002],
+                                [127.0008, 37.0008],
+                                [127.0002, 37.0008],
+                                [127.0002, 37.0002],
+                            ]],
+                        }},
+                        {"bottom_height": 12.0, "top_height": 24.0, "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [[
+                                [127.00025, 37.00025],
+                                [127.00075, 37.00025],
+                                [127.00075, 37.00075],
+                                [127.00025, 37.00075],
+                                [127.00025, 37.00025],
+                            ]],
+                        }},
+                        {"bottom_height": 18.0, "top_height": 24.0, "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [[
+                                [127.0003, 37.0003],
+                                [127.0007, 37.0003],
+                                [127.0007, 37.0007],
+                                [127.0003, 37.0007],
+                                [127.0003, 37.0003],
+                            ]],
+                        }},
+                    ],
+                    "parking_precheck": {
+                        "layout_candidate": {"status": "pass", "provided_spaces": 6, "required_spaces": 4},
+                    },
+                    "llm_candidate_quality": {"status": quality},
+                },
+            }
+
+        selected = [feature("legal_layered_max", "legal_layered", score=1.0)]
+        for index, family in enumerate(["stepback_tower", "terrace_link", "grade", "taper", "stepback_tower"]):
+            selected.append(feature(f"llm_step_{index}", family, score=0.95 - index * 0.01))
+        for index, family in enumerate(["courtyard", "split", "slender_bar", "branch", "array_cluster", "interlock"]):
+            selected.append(feature(f"llm_good_{index}", family, score=0.80 - index * 0.01))
+        selected.append(feature("llm_weak_review", "overlap", score=0.99, quality="reject_final_review"))
+        for index, family in enumerate([
+            "overlap",
+            "bend",
+            "embed",
+            "extrude",
+            "nest",
+            "reflected_pair",
+            "pinch",
+            "sloped_roof",
+            "diagonal_connect",
+            "offset",
+        ]):
+            selected.append(feature(f"grammar_{family}_{index}", family, score=0.70 - index * 0.01))
+
+        result = _final_design_balanced_selection(selected, final_limit=20)
+        families = [item["properties"]["source_signature"]["family"] for item in result]
+        weak_llm = [
+            item for item in result
+            if item["properties"]["llm_candidate_quality"]["status"] == "reject_final_review"
+        ]
+
+        self.assertLessEqual(sum(family in {"stepback_tower", "terrace_link", "grade", "taper"} for family in families), 3)
+        self.assertLessEqual(len(weak_llm), 1)
+        self.assertGreaterEqual(sum(item["properties"]["mass_shape"].startswith("llm_") for item in result), 4)
+
+    def test_final_selection_limits_repeated_formal_principle_when_alternatives_exist(self):
+        def feature(
+            shape: str,
+            family: str,
+            formal_principle: str,
+            vertical_strategy: str,
+            *,
+            score: float,
+        ) -> dict:
+            ambition = {
+                "schema_version": "arr.maas.architectural_ambition.v1",
+                "formal_principle": formal_principle,
+                "dominant_gesture": f"{formal_principle} review mass",
+                "has_formal_principle": True,
+                "has_dominant_gesture": True,
+                "implemented_volume_roles": [
+                    f"primary_{formal_principle}_0",
+                    f"primary_{formal_principle}_1",
+                    f"secondary_{formal_principle}_datum",
+                ],
+                "massing_genome_schema_version": "arr.maas.massing_genome.v1",
+                "genome_strategy_evidence": {
+                    "vertical_strategy": vertical_strategy,
+                    "stair_like_risk": "low",
+                },
+                "vertical_strategy": vertical_strategy,
+                "stair_like_risk": "low",
+                "silhouette_strength": 0.86,
+                "sectional_diagram_clarity": 0.86,
+                "podium_or_ground_relationship": True,
+                "architecture_grade_pass": True,
+            }
+            return {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[
+                        [127.0002, 37.0002],
+                        [127.0008, 37.0002],
+                        [127.0008, 37.0008],
+                        [127.0002, 37.0008],
+                        [127.0002, 37.0002],
+                    ]],
+                },
+                "properties": {
+                    "mass_shape": shape,
+                    "height": 24.0,
+                    "far": 120.0,
+                    "bcr": 35.0,
+                    "maas_score": score,
+                    "design_quality_score": score,
+                    "diversity_score": score,
+                    "source_geometry_status": "compiled",
+                    "geometry_resolution": {"status": "source_geometry_used"},
+                    "source_signature": {
+                        "family": family,
+                        "volume_count": 3,
+                        "surface_count": 12,
+                        "parameter_default_count": 0,
+                        "massing_genome": {
+                            "schema_version": "arr.maas.massing_genome.v1",
+                            "formal_principle": formal_principle,
+                            "vertical_strategy": vertical_strategy,
+                            "stair_like_risk": "low",
+                        },
+                        "architectural_ambition_evidence": ambition,
+                    },
+                    "architectural_ambition_evidence": ambition,
+                    "orderliness_evidence": {
+                        "schema_version": "arr.maas.orderliness.v1",
+                        "status": "measured",
+                        "dominant_axis": "balanced",
+                        "main_role": "primary_mass",
+                        "main_mass_area_ratio": 0.50,
+                        "aligned_role_ratio": 0.88,
+                        "small_fragment_count": 0,
+                        "fragment_role_count": 0,
+                        "role_hierarchy_depth": 2,
+                        "unclear_language_mix": False,
+                        "orderliness_score": 0.86,
+                    },
+                    "mass_volumes": [
+                        {"bottom_height": 0.0, "top_height": 8.0, "geometry": {"type": "Polygon", "coordinates": [[[127.0002, 37.0002], [127.0008, 37.0002], [127.0008, 37.0008], [127.0002, 37.0008], [127.0002, 37.0002]]]}},
+                        {"bottom_height": 8.0, "top_height": 16.0, "geometry": {"type": "Polygon", "coordinates": [[[127.00025, 37.00025], [127.00075, 37.00025], [127.00075, 37.00075], [127.00025, 37.00075], [127.00025, 37.00025]]]}},
+                        {"bottom_height": 16.0, "top_height": 24.0, "geometry": {"type": "Polygon", "coordinates": [[[127.0003, 37.0003], [127.0007, 37.0003], [127.0007, 37.0007], [127.0003, 37.0007], [127.0003, 37.0003]]]}},
+                    ],
+                    "parking_precheck": {
+                        "layout_candidate": {"status": "pass", "provided_spaces": 6, "required_spaces": 4},
+                    },
+                    "llm_candidate_quality": {"status": "reviewable"},
+                },
+            }
+
+        repeated_families = [
+            "courtyard",
+            "split",
+            "slender_bar",
+            "branch",
+            "array_cluster",
+            "interlock",
+            "overlap",
+            "bend",
+            "embed",
+            "extrude",
+        ]
+        alternatives = [
+            ("void_notch", "carved_monolith", "central_void"),
+            ("nest", "carved_monolith", "nested_void"),
+            ("reflected_pair", "stacked_shifted_platforms", "shifted_platforms"),
+            ("pinch", "torqued_stack", "rotated_stack"),
+            ("diagonal_connect", "split_bridge_connector", "split_bridge"),
+            ("sloped_roof", "folded_section", "folded_planes"),
+            ("offset", "stacked_shifted_platforms", "shifted_platforms"),
+            ("terrace_link", "folded_section", "folded_planes"),
+            ("grade", "folded_section", "folded_planes"),
+            ("taper", "slender_podium_tower", "podium_tower"),
+            ("courtyard", "carved_atrium", "atrium_cut"),
+            ("split", "split_bridge_connector", "split_bridge"),
+            ("slender_bar", "slender_podium_tower", "podium_tower"),
+            ("branch", "torqued_stack", "rotated_stack"),
+            ("array_cluster", "stacked_shifted_platforms", "shifted_platforms"),
+            ("interlock", "torqued_stack", "rotated_stack"),
+            ("overlap", "stacked_shifted_platforms", "shifted_platforms"),
+        ]
+        selected = [
+            feature(
+                f"llm_repeated_{index}",
+                family,
+                "undercut_tapered_tower",
+                "undercut_taper",
+                score=0.99 - index * 0.01,
+            )
+            for index, family in enumerate(repeated_families)
+        ]
+        selected.extend(
+            feature(
+                f"llm_alt_{index}",
+                family,
+                formal_principle,
+                strategy,
+                score=0.70 - index * 0.01,
+            )
+            for index, (family, formal_principle, strategy) in enumerate(alternatives)
+        )
+
+        result = _final_design_balanced_selection(selected, final_limit=20)
+        principles = [
+            item["properties"]["architectural_ambition_evidence"]["formal_principle"]
+            for item in result
+        ]
+        strategies = [
+            item["properties"]["architectural_ambition_evidence"]["vertical_strategy"]
+            for item in result
+        ]
+
+        self.assertEqual(len(result), 20)
+        self.assertLessEqual(principles.count("undercut_tapered_tower"), 5)
+        self.assertLessEqual(strategies.count("undercut_taper"), 5)
+        self.assertGreaterEqual(len(set(principles)), 5)
 
     def test_section_connector_preservation_does_not_override_parking_gate(self):
         def feature(shape: str, *, provided: int, score: float) -> dict:
@@ -1395,7 +2295,9 @@ class MaasLegalVariantsTest(TestCase):
             "design_orchestrator",
             "law_graph_agent",
             "parking_agent",
+            "massdsl_agent",
             "maas_geometry_agent",
+            "grammar_critic_agent",
             "review_agent",
         ])
         self.assertTrue(all(agent_id in registry for agent_id in FLOW_AGENT_SEQUENCE))
@@ -1403,6 +2305,8 @@ class MaasLegalVariantsTest(TestCase):
         self.assertEqual([card["name"] for card in cards], list(FLOW_AGENT_SEQUENCE))
         self.assertEqual(FLOW_STEPS[1][0], "design_orchestrator")
         self.assertEqual(FLOW_STEPS[1][1], "law_graph_agent")
+        self.assertTrue(any(step[1] == "massdsl_agent" for step in FLOW_STEPS))
+        self.assertTrue(any(step[1] == "grammar_critic_agent" for step in FLOW_STEPS))
         self.assertTrue(all("skills" in card and "capabilities" in card for card in cards))
 
     def test_overheight_source_does_not_inflate_legal_seed_floors(self):
@@ -1442,6 +2346,166 @@ class MaasLegalVariantsTest(TestCase):
         self.assertEqual(data["mode"], "maas_legal_variants")
         self.assertEqual(data["feature_collection"]["type"], "FeatureCollection")
         self.assertLessEqual(data["count"], 3)
+        self.assertGreaterEqual(len(data["agent_reviews"]), 6)
+        self.assertTrue(any(review["agent"] == "massdsl_agent" for review in data["agent_reviews"]))
+        self.assertTrue(any(review["agent"] == "grammar_critic_agent" for review in data["agent_reviews"]))
+        self.assertEqual(data["a2ui_messages"][0]["version"], "v0.9")
+        self.assertIn("massdsl_proposals", data)
+        self.assertIn("grammar_reviews", data)
+        first_props = data["feature_collection"]["features"][0]["properties"]
+        self.assertIn("massdsl_proposal", first_props)
+        self.assertIn("grammar_review", first_props)
+        self.assertIn("validation_status", first_props["massdsl_proposal"])
+        self.assertIn("status", first_props["grammar_review"])
+
+    def test_massdsl_agent_contract_compiles_from_candidate_evidence(self):
+        from design.maas.agents.grammar_critic_agent import build_grammar_review
+        from design.maas.agents.massdsl_agent import build_massdsl_proposal
+
+        feature = {
+            "type": "Feature",
+            "properties": {
+                "variant_id": "maas_01",
+                "mass_shape": "grammar_diagonal_step_connector",
+                "maas_verb_sequence": [
+                    {"verb": "base", "params": {}},
+                    {"verb": "lift", "params": {"upper_ratio": 0.78}},
+                    {"verb": "diagonal_connect", "params": {"axis": "x"}},
+                ],
+                "source_geometry_status": "compiled",
+                "source_signature": {
+                    "family": "diagonal_connect",
+                    "volume_count": 2,
+                    "surface_count": 8,
+                    "verb_profile": ["lift", "diagonal_connect"],
+                },
+                "source_surfaces": [
+                    {"role": "source_roof_upper", "surface_type": "roof_polygon", "vertex_count": 4},
+                ],
+                "geometry_resolution": {
+                    "status": "source_geometry_used",
+                    "source": "massdsl_proposal_source_geometry",
+                    "legal_action": "repaired_and_clipped_to_legal_envelope",
+                },
+                "visual_diversity_evidence": {
+                    "visual_family": "diagonal_connect",
+                    "volume_count": 2,
+                    "hole_count": 0,
+                    "stepback_like": False,
+                },
+                "parking_precheck": {
+                    "layout_candidate": {"status": "pass", "provided_spaces": 3},
+                },
+            },
+        }
+
+        proposal = build_massdsl_proposal(
+            feature,
+            operation_type="maas_legal_variants",
+            constraints={"far_limit": 250, "bcr_limit": 60, "height_limit": 35},
+        )
+        review = build_grammar_review(feature)
+
+        self.assertEqual(proposal["schema_version"], "arr.maas.massdsl.proposal.v1")
+        self.assertEqual(proposal["proposal_source"], "deterministic_agent_contract")
+        self.assertEqual(proposal["validation_status"], "valid")
+        self.assertIn("design_parameters", proposal)
+        self.assertEqual(proposal["design_parameters"]["family"], "diagonal_connect")
+        self.assertEqual(
+            proposal["design_parameters"]["parameter_source"],
+            "deterministic_sequence_library",
+        )
+        self.assertTrue(proposal["design_parameters"]["requires_llm_authoring"])
+        self.assertIn("authoring_gap", proposal["design_parameters"])
+        self.assertIn("fallback_rank", proposal)
+        self.assertEqual(proposal["source_refs"]["source_geometry_status"], "compiled")
+        self.assertEqual(proposal["source_refs"]["source_surface_count"], 1)
+        self.assertEqual(review["schema_version"], "arr.maas.grammar_review.v1")
+        self.assertEqual(review["status"], "pass")
+        self.assertTrue(review["has_section_language"])
+        self.assertTrue(review["has_source_surface_contract"])
+        self.assertEqual(review["geometry_resolution"]["status"], "source_geometry_used")
+        self.assertEqual(review["visual_diversity_evidence"]["visual_family"], "diagonal_connect")
+
+    def test_llm_massdsl_batch_contract_compiles_structured_population(self):
+        response = self._llm_batch_response()
+
+        batch = generate_llm_massdsl_batch(
+            site_context={"site_area_m2": 264.1, "limits": {"far": 250, "bcr": 60, "height": 50}},
+            target_count=120,
+            model="test-model",
+            response_override=response,
+        )
+
+        self.assertEqual(batch.artifact["schema_version"], LLM_BATCH_SCHEMA_VERSION)
+        self.assertEqual(batch.artifact["provider"], "openai")
+        self.assertGreaterEqual(batch.artifact["raw_candidate_count"], 120)
+        self.assertGreaterEqual(batch.artifact["compiled_sequence_count"], 120)
+        self.assertGreaterEqual(len(batch.sequences), 120)
+        self.assertTrue(batch.sequences[0].name.startswith("llm_"))
+        self.assertIn(f"parameter_source={LLM_PARAMETER_SOURCE}", batch.sequences[0].notes)
+        self.assertFalse(batch.sequences[0].validate())
+
+    def _llm_batch_response(self):
+        def candidate(index):
+            patterns = [
+                [
+                    {"verb": "base", "params": {"proportion": "site"}},
+                    {"verb": "array", "params": {"n": 3, "axis": "x", "spacing_ratio": 0.18, "unit_scale": 0.34, "lower_floor_fraction": 0.34}},
+                    {"verb": "terrace_link", "params": {"side": "north", "upper_ratio": 0.78, "width_ratio": 0.46, "depth_ratio": 0.18, "lower_floor_fraction": 0.38}},
+                ],
+                [
+                    {"verb": "base", "params": {"proportion": "site"}},
+                    {"verb": "split", "params": {"axis": "y", "gap_ratio": 0.24, "bridge_ratio": 0.22, "upper_ratio": 0.78, "lower_floor_fraction": 0.40}},
+                    {"verb": "diagonal_connect", "params": {"axis": "x", "upper_ratio": 0.72, "distance_ratio": 0.10, "angle": 28.0, "lower_floor_fraction": 0.38}},
+                ],
+                [
+                    {"verb": "base", "params": {"proportion": "site"}},
+                    {"verb": "bar", "params": {"axis": "x", "factor": 0.42, "shift": 0.04, "upper_ratio": 0.82, "lower_floor_fraction": 0.44}},
+                    {"verb": "offset", "params": {"axis": "y", "distance_ratio": 0.24, "other_scale": 0.72, "upper_ratio": 0.78, "lower_floor_fraction": 0.38}},
+                ],
+                [
+                    {"verb": "base", "params": {"proportion": "site"}},
+                    {"verb": "branch", "params": {"angle": 42.0, "trunk_ratio": 0.26, "arm_ratio": 0.2, "upper_ratio": 0.78, "lower_floor_fraction": 0.42}},
+                    {"verb": "taper", "params": {"x_ratio": 0.72, "y_ratio": 0.78, "lower_floor_fraction": 0.42}},
+                ],
+            ]
+            return {
+                "name": f"proposal_{index:03d}",
+                "label": f"LLM proposal {index:03d}",
+                "typology": ["array_cluster", "split_bridge", "offset_bar", "branch_taper"][index % 4],
+                "architectural_language": "clustered connector massing",
+                "intent_tags": ["cluster", "connector", "legal_solver_validated"],
+                "calls": patterns[index % len(patterns)],
+                "rationale": "Test proposal keeps authored MassDSL parameters separate from legal validation.",
+            }
+
+        return {
+            "language_palette": [f"language_{i}" for i in range(30)],
+            "combination_rules": [f"rule_{i}" for i in range(10)],
+            "candidates": [candidate(i) for i in range(120)],
+        }
+
+    def test_llm_sequence_compiles_to_source_variant_with_llm_provenance(self):
+        from design.maas.grammar.legal_interpreter import interpret_sequence
+
+        batch = generate_llm_massdsl_batch(
+            site_context={"site_area_m2": 264.1, "limits": {"far": 250, "bcr": 60, "height": 50}},
+            target_count=120,
+            model="test-model",
+            response_override=self._llm_batch_response(),
+        )
+
+        variant = interpret_sequence(wgs84_to_utm(Polygon(self._site()["coordinates"][0])), batch.sequences[0])
+
+        self.assertIsNotNone(variant)
+        self.assertTrue(variant.operator.startswith("llm_"))
+        self.assertEqual(
+            variant.research_basis["parameter_source"],
+            LLM_PARAMETER_SOURCE,
+        )
+        self.assertFalse(variant.research_basis["requires_llm_authoring"])
+        self.assertEqual(variant.research_basis["optimization_mode"], "llm_arch_language_proposal")
 
 
 class MaasIntentTrainingContractTest(TestCase):

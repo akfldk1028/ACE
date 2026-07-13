@@ -1,0 +1,444 @@
+"""Image-backed second-stage preference loop for MAAS review candidates."""
+
+from __future__ import annotations
+
+import os
+import re
+import tempfile
+import hashlib
+import json
+import uuid
+from math import cos, radians, sin
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Callable
+
+from shapely.geometry import shape
+
+from design.maas.morphology_operators import largest_polygon
+from design.maas.preference.concept_schema import build_preference_distillation
+from design.maas.preference.reference_corpus import (
+    default_reference_root,
+    load_reference_tree,
+    match_reference_context,
+)
+from design.maas.preference.vlm_scorer import score_candidate_with_openai_vlm
+
+
+Feature = dict[str, Any]
+
+
+@dataclass(frozen=True)
+class PreferenceLoopCallbacks:
+    design_review_quality_key: Callable[[Feature], tuple[float, ...]]
+    final_mass_stage_parking_pass: Callable[[Feature], bool]
+    has_review_source_geometry: Callable[[Feature], bool]
+    is_plain_capacity_anchor: Callable[[Feature], bool]
+    is_reviewable_architectural_mass: Callable[[Feature], bool]
+    source_family: Callable[[Feature], str]
+
+
+def preference_score(feature: Feature) -> float:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    preference = props.get("preference_distillation") if isinstance(props.get("preference_distillation"), dict) else {}
+    return float(preference.get("distilled_preference_score") or 0.0)
+
+
+def preference_vlm_scored(feature: Feature) -> bool:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    preference = props.get("preference_distillation") if isinstance(props.get("preference_distillation"), dict) else {}
+    return preference.get("mode") == "vlm_scored" and preference.get("vlm_status") == "scored"
+
+
+def preference_loop_config(parking_options: dict[str, Any] | None) -> dict[str, Any]:
+    options = parking_options or {}
+    raw = options.get("maas_preference_loop") if isinstance(options.get("maas_preference_loop"), dict) else {}
+    enabled = bool(raw.get("enabled") or raw.get("require_vlm"))
+    require_vlm = bool(raw.get("require_vlm"))
+    min_final_raw = raw.get("min_final_vlm_scored") or os.getenv("MAAS_PREFERENCE_LOOP_MIN_FINAL_VLM")
+    return {
+        "enabled": enabled,
+        "require_vlm": require_vlm,
+        "top_k": max(1, int(raw.get("top_k") or 40)),
+        "parallel_workers": max(1, int(raw.get("parallel_workers") or os.getenv("MAAS_PREFERENCE_LOOP_WORKERS") or 4)),
+        "min_final_vlm_scored": max(0, int(min_final_raw if min_final_raw is not None else (16 if require_vlm else 0))),
+        "model": raw.get("model") if isinstance(raw.get("model"), str) else os.getenv("MAAS_PREFERENCE_VLM_MODEL", ""),
+        "reference_root": raw.get("reference_root") if isinstance(raw.get("reference_root"), str) else "",
+        "image_uri": raw.get("image_uri") if isinstance(raw.get("image_uri"), str) else "",
+        "cache_dir": raw.get("cache_dir") if isinstance(raw.get("cache_dir"), str) else os.getenv(
+            "MAAS_PREFERENCE_VLM_CACHE_DIR", "docs/ai-session-memory/reference-corpus/vlm-cache"
+        ),
+    }
+
+
+def preference_reference_root(config: dict[str, Any]) -> Path:
+    raw = str(config.get("reference_root") or "").strip()
+    if raw:
+        path = Path(raw).expanduser()
+        if path.is_absolute():
+            return path
+        workspace_root = Path(__file__).resolve().parents[5]
+        return workspace_root / path
+    return default_reference_root()
+
+
+def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
+    """Write a small temporary massing preview for VLM scoring."""
+    try:
+        from PIL import Image, ImageDraw
+    except Exception as exc:
+        raise ValueError(f"Pillow is required for MAAS preference VLM previews: {exc}") from exc
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    volumes = props.get("mass_volumes")
+    if not isinstance(volumes, list) or not volumes:
+        volumes = [{"geometry": feature.get("geometry"), "bottom_height": 0.0, "top_height": props.get("height") or 8.4}]
+    explicit_surfaces: list[dict[str, Any]] = []
+    for surface in props.get("source_surfaces") or []:
+        if not isinstance(surface, dict) or not str(surface.get("surface_type") or "").startswith("profiled_"):
+            continue
+        vertices = _surface_vertices_world(surface, feature)
+        if vertices and len(vertices) >= 3:
+            explicit_surfaces.append(surface)
+    profiled_roles = {str(item.get("volume_role") or "") for item in explicit_surfaces}
+    rings: list[tuple[list[tuple[float, float]], float, float, str]] = []
+    for volume in volumes:
+        if not isinstance(volume, dict):
+            continue
+        geometry = volume.get("geometry")
+        try:
+            geom = shape(geometry) if isinstance(geometry, dict) else None
+        except Exception:
+            geom = None
+        if geom is None or geom.is_empty:
+            continue
+        polygon = largest_polygon(geom)
+        coords = [(float(x), float(y)) for x, y in list(polygon.exterior.coords)]
+        if len(coords) >= 4:
+            rings.append((
+                coords,
+                float(volume.get("bottom_height") or 0.0),
+                float(volume.get("top_height") or props.get("height") or 8.4),
+                str(volume.get("role") or ""),
+            ))
+    if not rings:
+        raise ValueError("candidate has no previewable geometry")
+    xs = [x for coords, _, _, _ in rings for x, _ in coords]
+    ys = [y for coords, _, _, _ in rings for _, y in coords]
+    xs.extend(float(vertex[0]) for surface in explicit_surfaces for vertex in _surface_vertices_world(surface, feature))
+    ys.extend(float(vertex[1]) for surface in explicit_surfaces for vertex in _surface_vertices_world(surface, feature))
+    minx, maxx = min(xs), max(xs)
+    miny, maxy = min(ys), max(ys)
+    # A single isometric view hid rear-side collisions and made the VLM reward
+    # silhouettes that failed from another direction.  LayoutVLM/VLM3D-style
+    # test-time criticism needs spatially redundant evidence, so score a fixed
+    # four-view contact sheet for every candidate.
+    width, height = 720, 520
+    view_width, view_height = 350, 235
+    plan_span = max(maxx - minx, maxy - miny, 1e-9)
+    scale = min((view_width - 70) / plan_span, (view_height - 70) / plan_span)
+    image = Image.new("RGB", (width, height), "#f7f9fb")
+    draw = ImageDraw.Draw(image, "RGBA")
+    shape_name = str(props.get("mass_shape") or props.get("variant_id") or "maas")
+    views = (
+        ("isometric", 35.0, False, 0, 0),
+        ("opposite", 215.0, False, 360, 0),
+        ("front", 0.0, False, 0, 250),
+        ("top", 0.0, True, 360, 250),
+    )
+    cx, cy = (minx + maxx) / 2.0, (miny + maxy) / 2.0
+    for label, angle, top_view, ox, oy in views:
+        theta = radians(angle)
+
+        def project(point: tuple[float, float], z: float = 0.0) -> tuple[float, float]:
+            x, y = point[0] - cx, point[1] - cy
+            rx = x * cos(theta) - y * sin(theta)
+            ry = x * sin(theta) + y * cos(theta)
+            if top_view:
+                return (ox + view_width * 0.50 + rx * scale, oy + view_height * 0.55 - ry * scale)
+            return (
+                ox + view_width * 0.50 + rx * scale,
+                oy + view_height * 0.68 + ry * scale * 0.34 - z * 3.2,
+            )
+
+        draw.rectangle((ox + 5, oy + 5, ox + view_width - 5, oy + view_height - 5), outline=(203, 213, 225, 255))
+        draw.text((ox + 14, oy + 12), label, fill=(71, 85, 105, 255))
+        for coords, bottom, top, role in sorted(rings, key=lambda item: item[1]):
+            if role in profiled_roles:
+                continue
+            top_points = [project(point, 0.0 if top_view else top) for point in coords]
+            base_points = [project(point, 0.0 if top_view else bottom) for point in coords]
+            if not top_view:
+                for index in range(len(coords) - 1):
+                    side = [base_points[index], base_points[index + 1], top_points[index + 1], top_points[index]]
+                    draw.polygon(side, fill=(255, 123, 24, 105), outline=(249, 115, 22, 230))
+            draw.polygon(top_points, fill=(255, 207, 74, 185), outline=(234, 88, 12, 255))
+        for surface in sorted(explicit_surfaces, key=lambda item: sum(float(v[2]) for v in _surface_vertices_world(item, feature)) / len(_surface_vertices_world(item, feature))):
+            vertices = _surface_vertices_world(surface, feature)
+            points = [project((float(v[0]), float(v[1])), 0.0 if top_view else float(v[2])) for v in vertices]
+            is_roof = surface.get("surface_type") == "profiled_roof_strip"
+            draw.polygon(
+                points,
+                fill=(255, 214, 82, 205) if is_roof else (255, 132, 36, 125),
+                outline=(190, 24, 93, 255) if is_roof else (234, 88, 12, 235),
+            )
+    draw.rectangle((8, height - 28, width - 8, height - 5), fill=(247, 249, 251, 245))
+    draw.text((14, height - 24), shape_name[:80], fill=(15, 23, 42, 255))
+    output_dir.mkdir(parents=True, exist_ok=True)
+    unique_suffix = f"{id(feature):x}"
+    path = output_dir / f"{re.sub(r'[^A-Za-z0-9_.-]+', '_', shape_name)[:68]}_{unique_suffix}.png"
+    temporary_path = path.with_suffix(".tmp.png")
+    image.save(temporary_path)
+    temporary_path.replace(path)
+    return path
+
+
+def _surface_vertices_world(surface: dict[str, Any], feature: Feature) -> list[list[float]]:
+    vertices = surface.get("vertices_world_m")
+    if isinstance(vertices, list) and vertices:
+        return vertices
+    local = surface.get("vertices_m")
+    if not isinstance(local, list) or not local:
+        return []
+    geometry = feature.get("geometry") or {}
+    try:
+        geom = shape(geometry)
+        centroid = geom.centroid
+        cx, cy = float(centroid.x), float(centroid.y)
+    except Exception:
+        return []
+    height = float((feature.get("properties") or {}).get("height") or 1.0)
+    return [[cx + float(vertex[0]), cy + float(vertex[1]), height * float(vertex[2])] for vertex in local if isinstance(vertex, list) and len(vertex) >= 3]
+
+
+def _vlm_cache_key(feature: Feature, reference_matches: list[dict[str, Any]], model: str | None) -> str:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    volumes = props.get("mass_volumes") if isinstance(props.get("mass_volumes"), list) else []
+    payload = {
+        "schema": "arr.maas.vlm_cache.v1",
+        "model": model or "",
+        "geometry": feature.get("geometry"),
+        "volumes": [
+            {
+                "geometry": item.get("geometry"),
+                "bottom": item.get("bottom_height"),
+                "top": item.get("top_height"),
+            }
+            for item in volumes if isinstance(item, dict)
+        ],
+        "references": [
+            (item.get("source"), item.get("source_id"), item.get("local_path"))
+            for item in reference_matches[:3] if isinstance(item, dict)
+        ],
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def openai_preview_preference_scorer(*, preview_dir: Path, cache_dir: Path | None = None):
+    def score(*, feature: Feature, reference_matches: list[dict[str, Any]], model: str | None = None) -> dict[str, Any]:
+        cache_path: Path | None = None
+        if cache_dir is not None:
+            cache_path = cache_dir / f"{_vlm_cache_key(feature, reference_matches, model)}.json"
+            try:
+                cached = json.loads(cache_path.read_text(encoding="utf-8"))
+                if isinstance(cached, dict) and isinstance(cached.get("concept_scores"), dict):
+                    return {**cached, "cache_hit": True}
+            except (OSError, ValueError, TypeError):
+                pass
+        image_path = feature_preview_png(feature, preview_dir)
+        result = score_candidate_with_openai_vlm(
+            feature=feature,
+            image_path=image_path,
+            reference_matches=reference_matches,
+            model=model,
+        )
+        result = {**result, "cache_hit": False}
+        if cache_path is not None:
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            temporary = cache_path.with_suffix(f".{os.getpid()}.{uuid.uuid4().hex}.tmp")
+            temporary.write_text(json.dumps(result, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+            temporary.replace(cache_path)
+        return result
+
+    return score
+
+
+def apply_preference_loop(
+    features: list[Feature],
+    *,
+    config: dict[str, Any],
+    callbacks: PreferenceLoopCallbacks,
+    scorer: Any | None = None,
+) -> dict[str, Any]:
+    if not config.get("enabled"):
+        return {
+            "schema_version": "arr.maas.preference_loop.v1",
+            "enabled": False,
+            "status": "not_requested",
+        }
+    candidate_pool = [
+        feature for feature in features
+        if callbacks.has_review_source_geometry(feature)
+        and callbacks.is_reviewable_architectural_mass(feature)
+        and not callbacks.is_plain_capacity_anchor(feature)
+        and callbacks.final_mass_stage_parking_pass(feature)
+    ]
+    candidate_pool.sort(key=callbacks.design_review_quality_key, reverse=True)
+    top_k = int(config.get("top_k") or 40)
+
+    def review_stratum(feature: Feature) -> str:
+        props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+        signature = props.get("source_signature") if isinstance(props.get("source_signature"), dict) else {}
+        rule = signature.get("rule_evidence") if isinstance(signature.get("rule_evidence"), dict) else {}
+        descriptor = rule.get("research_diversity_descriptor") if isinstance(rule.get("research_diversity_descriptor"), dict) else {}
+        family = str(
+            callbacks.source_family(feature)
+            or descriptor.get("mass_language")
+            or signature.get("family")
+            or props.get("operator_family")
+            or "unknown"
+        )
+        height = float(props.get("height") or 0.0)
+        return f"{family}|h={height:.2f}"
+
+    # VLM input must represent the whole legal design population. A raw top-k
+    # slice over-samples one currently fashionable family and later forces the
+    # final guard to reinsert repeated VLM-scored forms. Select one best member
+    # per language first, then round-robin deeper representatives.
+    strata: dict[str, list[Feature]] = {}
+    for feature in candidate_pool:
+        strata.setdefault(review_stratum(feature), []).append(feature)
+    candidates: list[Feature] = []
+    depth = 0
+    while len(candidates) < top_k:
+        added = False
+        for key in sorted(strata):
+            bucket = strata[key]
+            if depth < len(bucket):
+                candidates.append(bucket[depth])
+                added = True
+                if len(candidates) >= top_k:
+                    break
+        if not added:
+            break
+        depth += 1
+    temp_dir: tempfile.TemporaryDirectory[str] | None = None
+    if scorer is None and config.get("require_vlm"):
+        temp_dir = tempfile.TemporaryDirectory(prefix="maas-preference-vlm-")
+        raw_cache_dir = str(config.get("cache_dir") or "").strip()
+        cache_dir = None
+        if raw_cache_dir:
+            cache_dir = Path(raw_cache_dir).expanduser()
+            if not cache_dir.is_absolute():
+                cache_dir = Path(__file__).resolve().parents[5] / cache_dir
+        scorer = openai_preview_preference_scorer(preview_dir=Path(temp_dir.name), cache_dir=cache_dir)
+    if config.get("require_vlm") and scorer is None:
+        raise ValueError("required MAAS preference VLM loop needs an image-backed scorer")
+    try:
+        references = load_reference_tree(preference_reference_root(config))
+    except Exception:
+        references = []
+    scored_count = 0
+    cache_hit_count = 0
+    failed_count = 0
+    proxy_count = 0
+    model_name = config.get("model") or None
+
+    def evaluate(feature: Feature) -> tuple[Feature, list[dict[str, Any]], dict[str, Any] | None, str]:
+        matches = match_reference_context(feature, references, limit=5)
+        if scorer is None:
+            return feature, matches, None, ""
+        try:
+            return feature, matches, scorer(feature=feature, reference_matches=matches, model=model_name), ""
+        except Exception as exc:
+            return feature, matches, None, str(exc)
+
+    def attach_result(
+        feature: Feature,
+        matches: list[dict[str, Any]],
+        vlm_result: dict[str, Any] | None,
+        vlm_error: str,
+    ) -> None:
+        props = feature.setdefault("properties", {})
+        preference = build_preference_distillation(
+            feature,
+            image_uri=str(config.get("image_uri") or ""),
+            vlm_model=(vlm_result or {}).get("model") if vlm_result else None,
+            vlm_scores=(vlm_result or {}).get("concept_scores") if vlm_result else None,
+            reference_matches=matches,
+            vlm_status="scored" if vlm_result else ("failed" if vlm_error else "not_requested"),
+            vlm_error=vlm_error,
+        )
+        preference["selection_stage"] = "pre_final_full_pool_top_k"
+        if vlm_result and isinstance(vlm_result.get("critic_actions"), list):
+            preference["critic_actions"] = list(vlm_result["critic_actions"])
+        props["preference_distillation"] = preference
+        model = props.get("maas_model")
+        if isinstance(model, dict):
+            model["preference_distillation"] = preference
+
+    try:
+        if scorer is not None and len(candidates) > 1 and int(config.get("parallel_workers") or 1) > 1:
+            worker_count = min(len(candidates), int(config.get("parallel_workers") or 1))
+            results_by_id: dict[int, tuple[Feature, list[dict[str, Any]], dict[str, Any] | None, str]] = {}
+            with ThreadPoolExecutor(max_workers=worker_count) as executor:
+                futures = {executor.submit(evaluate, feature): feature for feature in candidates}
+                for future in as_completed(futures):
+                    feature, matches, vlm_result, vlm_error = future.result()
+                    results_by_id[id(feature)] = (feature, matches, vlm_result, vlm_error)
+            for feature in candidates:
+                _, matches, vlm_result, vlm_error = results_by_id[id(feature)]
+                if vlm_error:
+                    failed_count += 1
+                    if config.get("require_vlm"):
+                        raise ValueError(f"required MAAS preference VLM scoring failed: {vlm_error}")
+                attach_result(feature, matches, vlm_result, vlm_error)
+                if vlm_result:
+                    scored_count += 1
+                    cache_hit_count += int(bool(vlm_result.get("cache_hit")))
+        else:
+            for feature in candidates:
+                feature, matches, vlm_result, vlm_error = evaluate(feature)
+                if scorer is None:
+                    proxy_count += 1
+                if vlm_error:
+                    failed_count += 1
+                    if config.get("require_vlm"):
+                        raise ValueError(f"required MAAS preference VLM scoring failed: {vlm_error}")
+                attach_result(feature, matches, vlm_result, vlm_error)
+                if vlm_result:
+                    scored_count += 1
+                    cache_hit_count += int(bool(vlm_result.get("cache_hit")))
+    finally:
+        if temp_dir is not None:
+            temp_dir.cleanup()
+    features.sort(key=callbacks.design_review_quality_key, reverse=True)
+    return {
+        "schema_version": "arr.maas.preference_loop.v1",
+        "enabled": True,
+        "status": "scored" if scored_count else "proxy_scored",
+        "require_vlm": bool(config.get("require_vlm")),
+        "top_k": top_k,
+        "candidate_pool_count": len(candidate_pool),
+        "attempted_count": len(candidates),
+        "vlm_scored_count": scored_count,
+        "vlm_cache_hit_count": cache_hit_count,
+        "vlm_cache_miss_count": max(0, scored_count - cache_hit_count),
+        "proxy_count": proxy_count,
+        "failed_count": failed_count,
+        "reference_count": len(references),
+        "parallel_workers": int(config.get("parallel_workers") or 1),
+        "model": str(config.get("model") or ""),
+    }
+
+
+__all__ = [
+    "PreferenceLoopCallbacks",
+    "apply_preference_loop",
+    "feature_preview_png",
+    "openai_preview_preference_scorer",
+    "preference_loop_config",
+    "preference_score",
+    "preference_vlm_scored",
+]

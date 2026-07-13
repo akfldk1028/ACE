@@ -27,7 +27,7 @@ class MaasGeometryAgent:
                 "diversity_score": props.get("diversity_score"),
             },
             role=self.role,
-            next_agent="review_agent",
+            next_agent="grammar_critic_agent",
         )
 
     def build_card(self) -> dict[str, Any]:

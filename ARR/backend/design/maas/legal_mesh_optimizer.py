@@ -8,10 +8,16 @@ available ARR legal constraints.
 
 from __future__ import annotations
 
+import copy
+import json
+import os
+import re
+from collections import Counter
+from pathlib import Path
 from typing import Any
 
-from shapely.geometry import LineString, box, mapping
-from shapely.affinity import scale as shapely_scale, translate as shapely_translate
+from shapely.geometry import LineString, box, mapping, shape
+from shapely.affinity import rotate as shapely_rotate, scale as shapely_scale, translate as shapely_translate
 from shapely.ops import unary_union
 
 from design.maas.diversity import (
@@ -23,29 +29,88 @@ from design.maas.diversity import (
     shape_signature,
 )
 from design.maas.design_quality import attach_design_quality_evidence
+from design.maas.agents import build_agent_review_a2ui_messages, build_agent_reviews
+from design.maas.agents.grammar_critic_agent import build_grammar_review
+from design.maas.agents.massdsl_agent import build_massdsl_proposal
 from design.maas.floor_groups import build_floor_groups
-from design.maas.grammar import generate_grammar_variants, get_sequence_label
+from design.maas.evolution import evolve_massdsl_islands, run_critic_geometry_loop
+from design.maas.evolution.island_loop import sequence_from_variant
+from design.maas.grammar import VerbCall, VerbSequence, generate_grammar_variants, get_sequence_label
+from design.maas.grammar.component_graph import graph_from_sequence
+from design.maas.grammar.legal_interpreter import interpret_sequence
 from design.maas.legal_envelope import (
     FloorPlateStack,
     build_floor_plate_stack,
     build_legal_envelope,
     failed_constraint_metrics,
 )
+from design.maas.agent_revision import build_agent_revision_trace
+from design.maas.llm_proposals import (
+    LLM_BATCH_SCHEMA_VERSION,
+    LLM_PARAMETER_SOURCE,
+    LlmProposalError,
+    build_site_context,
+    generate_llm_massdsl_batch,
+)
 from design.maas.morphology_operators import largest_polygon
+from design.maas.paper_alignment import attach_paper_alignment_and_preference_evidence
 from design.maas.parking_requirements import (
     apply_parking_requirement_to_props,
     load_parking_requirement_rules,
     resolve_candidate_parking_requirement,
 )
 from design.maas.parking_strategy import attach_parking_strategy
+from design.maas.performance_objectives import early_massing_performance_proxy
+from design.maas.preference import (
+    PreferenceLoopCallbacks,
+    apply_preference_loop,
+    preference_loop_config as build_preference_loop_config,
+    preference_score,
+    preference_vlm_scored,
+)
+from design.maas.program_massing import attach_program_massing_evidence
 from design.maas.research_backends import d4descent_design_evidence
+from design.maas.source_geometry import SourceVolume, evaluate_source_volume_coherence
 from design.maas.seed_library import generate_seed_variants, seed_library_metadata
+from design.maas.selection.integer_projection import ProjectionDescriptor, solve_final_integer_projection
+from design.maas.selection.visual_similarity import visual_precedent_signature
+from design.maas.selection import (
+    BalancedSelectionDeps,
+    FinalReviewRefinementCallbacks,
+    FinalMetricCallbacks,
+    FormalDiversityCallbacks,
+    IslandQuotaCallbacks,
+    RecoveryRefinementCallbacks,
+    ReviewSetConstraintCallbacks,
+    SelectionState,
+    enforce_formal_diversity_replacements,
+    enforce_island_quota_replacements,
+    enforce_initial_recovery_replacements,
+    final_hard_quotas_ok_after as selection_final_hard_quotas_ok_after,
+    final_metric_snapshot as selection_final_metric_snapshot,
+    final_metrics_ok_after as selection_final_metrics_ok_after,
+    final_structural_quotas_ok_after as selection_final_structural_quotas_ok_after,
+    final_mass_stage_parking_pass,
+    final_design_balanced_selection as selection_final_design_balanced_selection,
+    height_bucket,
+    layout_status,
+    PreferenceGuardCallbacks,
+    enforce_final_direct_llm_minimum,
+    enforce_final_vlm_preference_minimum,
+    refine_final_review_set,
+    recover_final_vlm_review_metrics,
+    review_set_constraints_ok as selection_review_set_constraints_ok,
+    review_set_geometry_ok as selection_review_set_geometry_ok,
+    source_reviewable as selection_source_reviewable,
+    unique_family_count_after as selection_unique_family_count_after,
+)
 from design.services.mass_evaluator import get_floor_height
 from design.services.repair_operator import repair_design
 from design.services.site_geometry import geojson_to_polygon, utm_to_wgs84, wgs84_to_utm
 
 
 def _operator_family(operator: str) -> str:
+    operator = operator.split("__sweep_", 1)[0]
     if operator.endswith("_layered"):
         operator = operator[:-8]
     if operator == "legal_layered_max":
@@ -130,6 +195,14 @@ def _operator_family(operator: str) -> str:
         return "terrace_link"
     if operator == "grammar_sloped_roof_envelope":
         return "sloped_roof"
+    if operator.startswith("grammar_bend"):
+        return "bend"
+    if operator.startswith("grammar_embed"):
+        return "embed"
+    if operator.startswith("grammar_extrude"):
+        return "extrude"
+    if operator.startswith("grammar_nest"):
+        return "nest"
     if operator.startswith("grammar_"):
         return operator
     if operator.startswith("inset"):
@@ -142,6 +215,9 @@ CONCEPT_ORDER = [
     "void_notch",
     "courtyard",
     "slender_bar",
+    "offset",
+    "array_cluster",
+    "reflected_pair",
     "split",
     "branch",
     "pinch",
@@ -153,6 +229,10 @@ CONCEPT_ORDER = [
     "stepback_tower",
     "taper",
     "grade",
+    "bend",
+    "embed",
+    "extrude",
+    "nest",
     "inset",
     "bcr_fill",
     "legal_buildable",
@@ -162,12 +242,61 @@ SECTION_CONCEPTS = {"stepback_tower", "taper", "grade", "diagonal_connect", "ter
 MIN_GRAMMAR_CONCEPTS = 3
 MIN_SECTION_DESIGN_CONCEPTS = 4
 SECTION_CONNECTOR_VERBS = {"diagonal_connect", "terrace_link", "sloped_roof_mass"}
+SECTION_PROFILE_KINDS = {
+    "sloped_roof",
+    "terrace_ribbon",
+    "diagonal_connector",
+    "diagonal_connect",
+    "array_cluster",
+    "offset_twin_bar",
+    "reflected_court_pair",
+    "cross_interlock",
+    "split_bridge",
+    "courtyard_atrium",
+    "branch_taper",
+    "overlap_slabs",
+    "bar_notch_terrace",
+    "notched_void",
+    "pinched_waist",
+    "stepped_tower",
+    "bend_ribbon",
+    "embedded_void",
+    "extruded_fin",
+    "nested_stack",
+}
 SECTION_CONNECTOR_SHAPE_TOKENS = (
     "diagonal_connect",
     "terrace_link",
     "sloped_roof",
     "step_connector",
     "ribbon_stepback",
+)
+RESEARCH_TARGET_FAMILIES = (
+    "array_cluster",
+    "offset",
+    "reflected_pair",
+    "slender_bar",
+    "bend",
+    "embed",
+    "extrude",
+    "nest",
+    "diagonal_connect",
+    "terrace_link",
+)
+SIGNATURE_PROPOSAL_PRIORITIES = {
+    "agent_big_terrace_cascade": 4,
+    "agent_vancouver_torque_stack": 4,
+    "agent_oma_diagonal_plate": 3,
+    "agent_trimaje_slender_pair": 3,
+}
+STEPBACK_DOMINANT_FAMILIES = {"stepback_tower", "terrace_link", "grade", "taper"}
+TYPOLOGY_REVIEW_QUOTAS = (
+    (("courtyard", "void_notch"), 2),
+    (("array_cluster", "offset", "reflected_pair"), 2),
+    (("split", "diagonal_connect"), 2),
+    (("slender_bar", "bend", "interlock", "overlap"), 4),
+    (("branch", "pinch", "embed", "extrude", "nest"), 2),
+    (("sloped_roof",), 1),
 )
 TYPOLOGY_FIRST_FAMILIES = [
     "legal_layered",
@@ -176,17 +305,44 @@ TYPOLOGY_FIRST_FAMILIES = [
     "split",
     "courtyard",
     "void_notch",
+    "slender_bar",
     "branch",
     "pinch",
+    "offset",
+    "array_cluster",
+    "reflected_pair",
     "stepback_tower",
     "terrace_link",
     "diagonal_connect",
     "sloped_roof",
+    "bend",
+    "embed",
+    "extrude",
+    "nest",
     "taper",
     "grade",
     "inset",
     "legal_buildable",
 ]
+
+# Review-sheet policy, not candidate-specific filtering. These values gate the
+# public 20-card architectural review surface; legal truth remains owned by the
+# legal/parking solvers.
+ARCHITECTURAL_ORDER_POLICY = {
+    "min_orderliness_score": 0.74,
+    "min_main_mass_area_ratio": 0.30,
+    "max_source_surfaces": 36,
+    "max_small_fragments": 1,
+    "max_fragment_roles": 0,
+    "max_visible_volumes": 5,
+    "max_plan_components": 2,
+    # A clean rectangular or podium/tower anchor may legitimately be only two
+    # volumes.  Requiring three here was manufacturing a decorative fragment
+    # solely to pass the review gate.
+    "min_visible_volumes": 2,
+    "min_review_bcr_pct": 8.0,
+    "min_review_far_pct": 12.0,
+}
 
 CONCEPT_LABELS = {
     "legal_layered": "법규엔벨로프",
@@ -195,6 +351,9 @@ CONCEPT_LABELS = {
     "void_notch": "코너/오픈코트",
     "courtyard": "중정형",
     "slender_bar": "바형",
+    "offset": "오프셋 동",
+    "array_cluster": "군집 배열",
+    "reflected_pair": "대칭 쌍동",
     "split": "분절/브릿지",
     "branch": "브랜치형",
     "pinch": "핀치형",
@@ -203,6 +362,10 @@ CONCEPT_LABELS = {
     "diagonal_connect": "사선연결",
     "terrace_link": "테라스연결",
     "sloped_roof": "사선지붕형",
+    "bend": "벤드형",
+    "embed": "임베드형",
+    "extrude": "익스트루드형",
+    "nest": "네스트형",
     "stepback_tower": "포디움/타워",
     "taper": "테이퍼",
     "grade": "테라스",
@@ -244,6 +407,8 @@ def _is_typology_first_candidate(feature: dict[str, Any]) -> bool:
     operator = str(props.get("mass_shape") or "")
     if _is_parking_repair_operator(operator):
         return False
+    if operator.startswith(("agent_", "llm_")):
+        return _source_family(feature) in set(TYPOLOGY_FIRST_FAMILIES)
     return _operator_family(operator) in set(TYPOLOGY_FIRST_FAMILIES)
 
 
@@ -262,7 +427,7 @@ def _upper_typology_is_viable(footprint_utm, upper_footprint_utm) -> bool:
     upper_area = float(getattr(upper_footprint_utm, "area", 0.0) or 0.0)
     if lower_area <= 0.0:
         return False
-    if upper_area < max(20.0, lower_area * 0.25):
+    if upper_area < max(8.0, lower_area * 0.12):
         return False
     if _polygon_min_dimension(upper_footprint_utm) < 3.0:
         return False
@@ -300,9 +465,20 @@ def _is_reviewable_architectural_mass(feature: dict[str, Any]) -> bool:
     layout = precheck.get("layout_candidate") if isinstance(precheck.get("layout_candidate"), dict) else {}
     if layout.get("status") == "fail":
         return False
-    if _feature_plan_min_dimension(feature) < 4.2:
+    far = float(props.get("far") or 0.0)
+    bcr = float(props.get("bcr") or 0.0)
+    shape = str(props.get("mass_shape") or "")
+    if shape.startswith(("agent_", "llm_")) and (far < 20.0 or bcr < 8.0):
         return False
-    if _feature_height_to_min_dimension(feature) > 6.2:
+    if _is_agent_authored_candidate(feature) and _has_review_source_geometry(feature):
+        min_dimension_limit = 1.5
+        height_ratio_limit = 12.0
+    else:
+        min_dimension_limit = 3.0 if _has_review_source_geometry(feature) else 4.2
+        height_ratio_limit = 8.0 if _has_review_source_geometry(feature) else 6.2
+    if _feature_plan_min_dimension(feature) < min_dimension_limit:
+        return False
+    if _feature_height_to_min_dimension(feature) > height_ratio_limit:
         return False
     return True
 
@@ -311,6 +487,19 @@ def _is_plain_capacity_anchor(feature: dict[str, Any]) -> bool:
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
     family = _operator_family(str(props.get("mass_shape") or ""))
     return family in {"bcr_fill", "legal_buildable"}
+
+
+def _is_clean_layered_anchor(feature: dict[str, Any]) -> bool:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    shape = str(props.get("mass_shape") or "")
+    family = _source_family(feature) or _operator_family(shape)
+    if shape == "legal_layered_max":
+        return True
+    return family == "stepback_tower" and shape in {
+        "grammar_sunlight_multi_step_layered",
+        "grammar_sunlight_multi_step",
+        "terrace_stepback",
+    }
 
 
 def _is_plain_review_mass(feature: dict[str, Any]) -> bool:
@@ -329,6 +518,30 @@ def _is_plain_review_mass(feature: dict[str, Any]) -> bool:
 def _is_grammar_candidate(feature: dict[str, Any]) -> bool:
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
     return str(props.get("mass_shape") or "").startswith("grammar_")
+
+
+def _is_agent_authored_candidate(feature: dict[str, Any]) -> bool:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    return str(props.get("mass_shape") or "").startswith(("agent_", "llm_"))
+
+
+def _is_llm_authored_candidate(feature: dict[str, Any]) -> bool:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    return str(props.get("mass_shape") or "").startswith("llm_")
+
+
+def _is_llm_coverage_repair_candidate(feature: dict[str, Any]) -> bool:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    shape = str(props.get("mass_shape") or "").lower()
+    return shape.startswith("llm_") and "coverage_repair" in shape
+
+
+def _is_direct_openai_llm_candidate(feature: dict[str, Any]) -> bool:
+    return _is_llm_authored_candidate(feature) and not _is_llm_coverage_repair_candidate(feature)
+
+
+def _is_authored_mass_candidate(feature: dict[str, Any]) -> bool:
+    return _is_grammar_candidate(feature) or _is_agent_authored_candidate(feature)
 
 
 def _visible_volume_count(feature: dict[str, Any]) -> int:
@@ -354,17 +567,191 @@ def _design_synthesis_rank(feature: dict[str, Any]) -> int:
     return 0
 
 
-def _design_review_quality_key(feature: dict[str, Any]) -> tuple[float, float, float, float, float, float, float, float]:
+def _design_review_quality_key(feature: dict[str, Any]) -> tuple[float, ...]:
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    signature = _source_signature(feature)
+    coherence = signature.get("coherence_evidence") if isinstance(signature.get("coherence_evidence"), dict) else {}
+    visual = props.get("visual_diversity_evidence") if isinstance(props.get("visual_diversity_evidence"), dict) else {}
+    ambition = props.get("architectural_ambition_evidence") if isinstance(props.get("architectural_ambition_evidence"), dict) else {}
+    if not ambition and isinstance(signature.get("architectural_ambition_evidence"), dict):
+        ambition = signature["architectural_ambition_evidence"]
+    orderliness = props.get("orderliness_evidence") if isinstance(props.get("orderliness_evidence"), dict) else {}
+    if not orderliness and isinstance(visual.get("orderliness_evidence"), dict):
+        orderliness = visual["orderliness_evidence"]
+    performance_proxy = props.get("performance_proxy_evidence") if isinstance(props.get("performance_proxy_evidence"), dict) else {}
+    program = props.get("program_massing_evidence") if isinstance(props.get("program_massing_evidence"), dict) else {}
+    if not performance_proxy:
+        performance_proxy = early_massing_performance_proxy(feature)
+        props["performance_proxy_evidence"] = performance_proxy
+    parameter_default_count = float(signature.get("parameter_default_count") or 0.0)
+    family = _source_family(feature)
+    shape = str(props.get("mass_shape") or "").lower()
+    sequence = props.get("maas_verb_sequence")
+    if not isinstance(sequence, list):
+        model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+        sequence = model.get("verb_sequence")
+    verbs = {
+        str(call.get("verb") or "").lower()
+        for call in sequence or []
+        if isinstance(call, dict)
+    }
+    visual_stair_penalty = (
+        1.0
+        if (
+            family not in {"legal_layered", "sloped_roof", "nest"}
+            and (
+                "step_envelope" in verbs
+                or "stepback" in shape
+                or "stair" in shape
+            )
+        )
+        else 0.0
+    )
+    surface_count = float(signature.get("surface_count") or 0.0)
+    visible_volume_count = _visible_volume_count(feature)
+    clean_mass_pass = (
+        surface_count <= float(ARCHITECTURAL_ORDER_POLICY["max_source_surfaces"])
+        and visible_volume_count <= int(ARCHITECTURAL_ORDER_POLICY["max_visible_volumes"])
+        and int(orderliness.get("small_fragment_count") or 0) <= int(ARCHITECTURAL_ORDER_POLICY["max_small_fragments"])
+    )
     return (
-        1.0 if _is_grammar_candidate(feature) else 0.0,
-        float(min(_visible_volume_count(feature), 6)) / 6.0,
+        1.0 if _architectural_order_gate(feature)[0] else 0.0,
+        1.0 if _has_review_source_geometry(feature) else 0.0,
+        1.0 if clean_mass_pass else 0.0,
+        1.0 if program.get("hard_pass", True) else 0.0,
+        float(program.get("program_fit_score") or 0.0),
+        1.0 if coherence.get("hard_pass", True) else 0.0,
+        float(coherence.get("score") or 0.0),
+        -max(0.0, surface_count - float(ARCHITECTURAL_ORDER_POLICY["max_source_surfaces"])) / 32.0,
+        -max(0.0, float(visible_volume_count - 5)) / 3.0,
+        1.0 if preference_vlm_scored(feature) else 0.0,
+        preference_score(feature),
+        1.0 if _is_llm_authored_candidate(feature) else 0.0,
+        1.0 if _is_direct_openai_llm_candidate(feature) else 0.0,
+        1.0 if _is_agent_authored_candidate(feature) else 0.0,
+        1.0 if _is_authored_mass_candidate(feature) else 0.0,
+        1.0 if ambition.get("architecture_grade_pass") else 0.0,
+        _repair_retention(feature),
+        _repair_retention(feature, source_volume=True),
+        float(ambition.get("silhouette_strength") or 0.0),
+        float(ambition.get("sectional_diagram_clarity") or 0.0),
+        min(float(len(ambition.get("implemented_volume_roles") or ())), 6.0) / 6.0,
+        float(orderliness.get("orderliness_score") or 0.0),
+        float(performance_proxy.get("aggregate_performance_proxy") or 0.0),
+        -min(float(orderliness.get("small_fragment_count") or 0.0), 6.0) / 6.0,
+        -min(float(orderliness.get("fragment_role_count") or 0.0), 6.0) / 6.0,
+        max(0.0, 1.0 - abs(float(visible_volume_count) - 3.5) / 3.5),
+        -visual_stair_penalty,
+        -1.0 if family in STEPBACK_DOMINANT_FAMILIES else 0.0,
+        -min(parameter_default_count, 8.0) / 8.0,
         float(_design_synthesis_rank(feature)),
         -1.0 if _is_plain_capacity_anchor(feature) else 0.0,
         float(props.get("design_quality_score") or 0.0),
         float(props.get("diversity_score") or 0.0),
         float(props.get("maas_score") or 0.0),
         _feature_plan_min_dimension(feature),
+    )
+
+
+def _architectural_order_gate(feature: dict[str, Any]) -> tuple[bool, tuple[str, ...]]:
+    """Return whether a candidate is clean enough for the user-facing review set.
+
+    This is intentionally evidence-based rather than shape-name based. A
+    candidate can be legal and diverse while still being too cluttered for the
+    architectural review sheet.
+    """
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    signature = _source_signature(feature)
+    coherence = signature.get("coherence_evidence") if isinstance(signature.get("coherence_evidence"), dict) else {}
+    repair_delta = props.get("repair_delta") if isinstance(props.get("repair_delta"), dict) else {}
+    visual = props.get("visual_diversity_evidence") if isinstance(props.get("visual_diversity_evidence"), dict) else {}
+    orderliness = props.get("orderliness_evidence") if isinstance(props.get("orderliness_evidence"), dict) else {}
+    if not orderliness and isinstance(visual.get("orderliness_evidence"), dict):
+        orderliness = visual["orderliness_evidence"]
+    ambition = props.get("architectural_ambition_evidence") if isinstance(props.get("architectural_ambition_evidence"), dict) else {}
+    if not ambition and isinstance(signature.get("architectural_ambition_evidence"), dict):
+        ambition = signature["architectural_ambition_evidence"]
+    policy = ARCHITECTURAL_ORDER_POLICY
+    issues: list[str] = []
+    score = float(orderliness.get("orderliness_score") or 0.0)
+    main_ratio = float(orderliness.get("main_mass_area_ratio") or 0.0)
+    small_fragments = int(orderliness.get("small_fragment_count") or 0)
+    fragment_roles = int(orderliness.get("fragment_role_count") or 0)
+    plan_components = int(orderliness.get("plan_component_count") or 1)
+    surface_count = int(signature.get("surface_count") or visual.get("source_primitive_count") or 0)
+    volume_count = _visible_volume_count(feature)
+    bcr = float(props.get("bcr") or 0.0)
+    far = float(props.get("far") or 0.0)
+    family = _source_family(feature)
+    shape = str(props.get("mass_shape") or "")
+    implemented_roles = ambition.get("implemented_volume_roles") if isinstance(ambition.get("implemented_volume_roles"), list) else []
+    if not orderliness:
+        issues.append("missing_orderliness_evidence")
+    if not ambition:
+        issues.append("missing_architectural_ambition_evidence")
+    if not ambition.get("formal_principle"):
+        issues.append("missing_formal_principle")
+    if not ambition.get("dominant_gesture"):
+        issues.append("missing_dominant_gesture")
+    if not ambition.get("architecture_grade_pass"):
+        issues.append("architecture_grade_not_implemented")
+    if len(implemented_roles) < 2:
+        issues.append("weak_formal_volume_roles")
+    if float(ambition.get("silhouette_strength") or 0.0) < 0.72:
+        issues.append("weak_silhouette_principle")
+    if float(ambition.get("sectional_diagram_clarity") or 0.0) < 0.70:
+        issues.append("weak_sectional_principle")
+    if score < float(policy["min_orderliness_score"]):
+        issues.append("low_orderliness_score")
+    if main_ratio and main_ratio < float(policy["min_main_mass_area_ratio"]):
+        issues.append("weak_main_support_hierarchy")
+    if small_fragments > int(policy["max_small_fragments"]):
+        issues.append("too_many_small_fragments")
+    if fragment_roles > int(policy["max_fragment_roles"]):
+        issues.append("fragment_role_names_present")
+    if surface_count > int(policy["max_source_surfaces"]):
+        issues.append("over_complex_source_surfaces")
+    if volume_count > int(policy["max_visible_volumes"]):
+        issues.append("too_many_visible_volumes")
+    if plan_components > int(policy["max_plan_components"]):
+        issues.append("disconnected_plan_fragments")
+    if bcr < float(policy["min_review_bcr_pct"]) or far < float(policy["min_review_far_pct"]):
+        issues.append("under_scaled_review_mass")
+    if coherence and not coherence.get("hard_pass"):
+        issues.append("component_graph_coherence_failure")
+    if repair_delta and float(repair_delta.get("area_retention") or 0.0) < 0.65:
+        issues.append("severe_legal_repair_distortion")
+    if volume_count < int(policy["min_visible_volumes"]) and family not in {"legal_layered", "slender_bar"}:
+        issues.append("too_few_visible_volumes_for_language")
+    if visual.get("unclear_language_mix") or orderliness.get("unclear_language_mix"):
+        issues.append("unclear_language_mix")
+    if shape == "legal_layered_max" and score < 0.70:
+        issues.append("capacity_anchor_not_review_clean")
+    if (
+        family == "legal_layered"
+        and ambition.get("formal_principle") == "legal_layered_envelope"
+        and volume_count >= 3
+        and small_fragments == 0
+        and fragment_roles == 0
+        and score >= 0.60
+    ):
+        issues = [
+            issue for issue in issues
+            if issue not in {
+                "low_orderliness_score",
+                "weak_main_support_hierarchy",
+                "capacity_anchor_not_review_clean",
+            }
+        ]
+    return (not issues, tuple(issues))
+
+
+def _is_vlm_review_candidate(feature: dict[str, Any]) -> bool:
+    """Match paid VLM evaluation to the later exact-selection eligibility."""
+    return (
+        _is_reviewable_architectural_mass(feature)
+        and _architectural_order_gate(feature)[0]
+        and float(_source_signature(feature).get("parameter_default_ratio") or 0.0) <= 0.50
     )
 
 
@@ -404,131 +791,47 @@ def _final_design_balanced_selection(
     final_limit: int,
     preferred_operator: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Keep the review set architectural, not just score/parking sorted.
-
-    The user-facing 20-card evidence sheet is used for design review. A raw
-    score sort tends to show many legal stepback variants and parking-repair
-    shrink variants first, which hides the actual grammar families. Keep a
-    compact parking signal, then reserve one representative for each spatial
-    family before backfilling.
-    """
-    if preferred_operator or final_limit <= 1:
-        return selected[:final_limit]
-
-    result: list[dict[str, Any]] = []
-    seen_ids: set[int] = set()
-    seen_shapes: set[str] = set()
-    max_plain_review_masses = max(2, min(4, final_limit // 5))
-
-    def add(feature: dict[str, Any], *, allow_duplicate_shape: bool = False) -> bool:
-        marker = id(feature)
-        if marker in seen_ids or len(result) >= final_limit:
-            return False
-        if (
-            _is_plain_review_mass(feature)
-            and sum(1 for item in result if _is_plain_review_mass(item)) >= max_plain_review_masses
-        ):
-            return False
-        shape = str((feature.get("properties") or {}).get("mass_shape") or "")
-        if shape in seen_shapes and not allow_duplicate_shape:
-            return False
-        result.append(feature)
-        seen_ids.add(marker)
-        if shape:
-            seen_shapes.add(shape)
-        return True
-
-    def layout_status(feature: dict[str, Any]) -> str:
-        props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
-        precheck = props.get("parking_precheck") if isinstance(props.get("parking_precheck"), dict) else {}
-        layout = precheck.get("layout_candidate") if isinstance(precheck.get("layout_candidate"), dict) else {}
-        return str(layout.get("status") or "")
-
-    # The review sheet should start with architectural evidence, not six
-    # mechanical high-FAR variants or low-FAR parking repairs. Keep one legal
-    # max anchor, then one real typology representative per family.
-    legal_anchor = next(
-        (
-            feature for feature in selected
-            if str((feature.get("properties") or {}).get("mass_shape") or "") == "legal_layered_max"
+    return selection_final_design_balanced_selection(
+        selected,
+        final_limit=final_limit,
+        preferred_operator=preferred_operator,
+        deps=BalancedSelectionDeps(
+            research_target_families=RESEARCH_TARGET_FAMILIES,
+            signature_proposal_priorities=SIGNATURE_PROPOSAL_PRIORITIES,
+            stepback_dominant_families=STEPBACK_DOMINANT_FAMILIES,
+            typology_first_families=TYPOLOGY_FIRST_FAMILIES,
+            typology_review_quotas=TYPOLOGY_REVIEW_QUOTAS,
+            architectural_ambition=_architectural_ambition,
+            architectural_order_gate=_architectural_order_gate,
+            design_review_quality_key=_design_review_quality_key,
+            design_synthesis_rank=_design_synthesis_rank,
+            formal_principle=_formal_principle,
+            has_review_source_geometry=_has_review_source_geometry,
+            is_agent_authored_candidate=_is_agent_authored_candidate,
+            is_authored_mass_candidate=_is_authored_mass_candidate,
+            is_clean_layered_anchor=_is_clean_layered_anchor,
+            is_direct_openai_llm_candidate=_is_direct_openai_llm_candidate,
+            is_llm_authored_candidate=_is_llm_authored_candidate,
+            is_llm_coverage_repair_candidate=_is_llm_coverage_repair_candidate,
+            is_parking_repair_operator=_is_parking_repair_operator,
+            is_plain_capacity_anchor=_is_plain_capacity_anchor,
+            is_plain_review_mass=_is_plain_review_mass,
+            is_reviewable_architectural_mass=_is_reviewable_architectural_mass,
+            is_section_connector=_is_section_connector,
+            is_typology_first_candidate=_is_typology_first_candidate,
+            operator_family=_operator_family,
+            repair_retention=_repair_retention,
+            research_diversity_descriptor=_research_diversity_descriptor,
+            research_mass_language=_research_mass_language,
+            research_quota_group=_research_quota_group,
+            research_role_pattern=_research_role_pattern,
+            source_family=_source_family,
+            source_signature=_source_signature,
+            stair_like_risk=_stair_like_risk,
+            vertical_strategy=_vertical_strategy,
+            visible_volume_count=_visible_volume_count,
         ),
-        None,
     )
-    if legal_anchor is not None:
-        add(legal_anchor)
-
-    by_family: dict[str, list[dict[str, Any]]] = {}
-    for feature in selected:
-        props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
-        family = _operator_family(str(props.get("mass_shape") or ""))
-        by_family.setdefault(family, []).append(feature)
-
-    for family in TYPOLOGY_FIRST_FAMILIES:
-        if family in {"legal_buildable", "bcr_fill"}:
-            continue
-        options = sorted(
-            [
-                feature for feature in by_family.get(family, [])
-                if _is_typology_first_candidate(feature)
-                and _is_reviewable_architectural_mass(feature)
-                and not _is_plain_capacity_anchor(feature)
-            ],
-            key=lambda feature: (
-                1 if layout_status(feature) != "needs_mechanical_parking_review" else 0,
-                *_design_review_quality_key(feature),
-            ),
-            reverse=True,
-        )
-        for feature in options:
-            if add(feature):
-                break
-
-    grammar_candidates = [
-        feature for feature in selected
-        if str((feature.get("properties") or {}).get("mass_shape") or "").startswith("grammar_")
-        and _is_typology_first_candidate(feature)
-        and _is_reviewable_architectural_mass(feature)
-    ]
-    grammar_candidates.sort(
-        key=lambda feature: (
-            1 if _is_section_connector(feature) else 0,
-            *_design_review_quality_key(feature),
-        ),
-        reverse=True,
-    )
-    for feature in grammar_candidates:
-        add(feature)
-        if len(result) >= final_limit:
-            break
-
-    reviewable_backfill = [
-        feature for feature in selected
-        if _is_reviewable_architectural_mass(feature)
-        and not _is_parking_repair_operator(str((feature.get("properties") or {}).get("mass_shape") or ""))
-        and not _is_plain_capacity_anchor(feature)
-    ]
-    reviewable_backfill.sort(key=_design_review_quality_key, reverse=True)
-    for feature in reviewable_backfill:
-        add(feature, allow_duplicate_shape=True)
-        if len(result) >= final_limit:
-            break
-
-    # Capacity-only boxes remain valid calculation anchors, but they are a poor
-    # design-review surface. Use them only if the legal pool cannot fill the
-    # requested evidence sheet with reviewable architectural masses.
-    if len(result) < final_limit:
-        capacity_backfill = [
-            feature for feature in selected
-            if _is_reviewable_architectural_mass(feature)
-            and not _is_parking_repair_operator(str((feature.get("properties") or {}).get("mass_shape") or ""))
-        ]
-        capacity_backfill.sort(key=_design_review_quality_key, reverse=True)
-        for feature in capacity_backfill:
-            add(feature, allow_duplicate_shape=True)
-            if len(result) >= final_limit:
-                break
-
-    return result[:final_limit]
 
 
 def _volume_profile(feature: dict[str, Any]) -> tuple[tuple[float, float, float], ...]:
@@ -605,7 +908,7 @@ def _attach_design_quality(feature: dict[str, Any], footprint_utm) -> None:
     attach_design_quality_evidence(
         feature,
         footprint_utm=footprint_utm,
-        optimizer_backend=d4descent_design_evidence(),
+        optimizer_backend=d4descent_design_evidence(enable_import=False),
     )
 
 
@@ -644,6 +947,7 @@ def _normalized_feature_vector(feature: dict[str, Any]) -> tuple[float, ...]:
     props = feature.get("properties", {}) or {}
     signature = props.get("shape_signature") if isinstance(props.get("shape_signature"), dict) else {}
     signature_3d = props.get("shape_signature_3d") if isinstance(props.get("shape_signature_3d"), dict) else {}
+    source_signature = _source_signature(feature)
     return (
         float(props.get("bcr") or 0.0) / 100.0,
         float(props.get("far") or 0.0) / 300.0,
@@ -651,6 +955,1266 @@ def _normalized_feature_vector(feature: dict[str, Any]) -> tuple[float, ...]:
         float(signature.get("compactness") or 0.0) / 100.0,
         float(signature_3d.get("volume_count") or 0.0) / 6.0,
         float(signature_3d.get("floor_plate_count") or 0.0) / 20.0,
+        float(source_signature.get("volume_count") or 0.0) / 6.0,
+        float(source_signature.get("surface_count") or 0.0) / 32.0,
+        float(source_signature.get("upper_to_ground_ratio") or 0.0),
+    )
+
+
+def _source_signature(feature: dict[str, Any]) -> dict[str, Any]:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    signature = props.get("source_signature")
+    if isinstance(signature, dict):
+        return signature
+    model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+    signature = model.get("source_signature")
+    return signature if isinstance(signature, dict) else {}
+
+
+def _architectural_ambition(feature: dict[str, Any]) -> dict[str, Any]:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    ambition = props.get("architectural_ambition_evidence")
+    if isinstance(ambition, dict) and ambition:
+        return ambition
+    signature = _source_signature(feature)
+    ambition = signature.get("architectural_ambition_evidence")
+    return ambition if isinstance(ambition, dict) else {}
+
+
+def _massing_genome(feature: dict[str, Any]) -> dict[str, Any]:
+    signature = _source_signature(feature)
+    genome = signature.get("massing_genome")
+    return genome if isinstance(genome, dict) else {}
+
+
+def _formal_principle(feature: dict[str, Any]) -> str:
+    ambition = _architectural_ambition(feature)
+    if ambition.get("formal_principle"):
+        return str(ambition.get("formal_principle") or "")
+    genome = _massing_genome(feature)
+    return str(genome.get("formal_principle") or "")
+
+
+def _vertical_strategy(feature: dict[str, Any]) -> str:
+    ambition = _architectural_ambition(feature)
+    strategy = ambition.get("vertical_strategy")
+    if strategy:
+        return str(strategy)
+    genome = _massing_genome(feature)
+    return str(genome.get("vertical_strategy") or "")
+
+
+def _stair_like_risk(feature: dict[str, Any]) -> str:
+    ambition = _architectural_ambition(feature)
+    risk = ambition.get("stair_like_risk")
+    if risk:
+        return str(risk)
+    genome = _massing_genome(feature)
+    return str(genome.get("stair_like_risk") or "")
+
+
+def _repair_retention(feature: dict[str, Any], *, source_volume: bool = False) -> float:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+    key = "source_volume_repair_delta" if source_volume else "repair_delta"
+    delta = props.get(key)
+    if not isinstance(delta, dict):
+        delta = model.get(key) if isinstance(model, dict) else {}
+    if not isinstance(delta, dict):
+        return 1.0
+    try:
+        return max(0.0, min(1.0, float(delta.get("area_retention", 1.0))))
+    except (TypeError, ValueError):
+        return 1.0
+
+
+def _attach_repair_delta(
+    feature: dict[str, Any],
+    *,
+    source_area_m2: float,
+    repaired_area_m2: float,
+    actions: tuple[str, ...] | list[str] = (),
+    scope: str = "legal_footprint",
+) -> None:
+    props = feature.setdefault("properties", {})
+    source_area = max(0.0, float(source_area_m2 or 0.0))
+    repaired_area = max(0.0, float(repaired_area_m2 or 0.0))
+    retention = repaired_area / source_area if source_area > 0 else 1.0
+    delta = {
+        "schema_version": "arr.maas.repair_delta.v1",
+        "scope": scope,
+        "source_area_m2": round(source_area, 2),
+        "repaired_area_m2": round(repaired_area, 2),
+        "area_delta_m2": round(source_area - repaired_area, 2),
+        "area_retention": round(retention, 4),
+        "severity": "severe" if retention < 0.65 else ("moderate" if retention < 0.85 else "minor"),
+        "actions": [str(action) for action in actions if action],
+    }
+    props["repair_delta"] = delta
+    model = props.get("maas_model")
+    if isinstance(model, dict):
+        model["repair_delta"] = delta
+
+
+def _has_review_source_geometry(feature: dict[str, Any]) -> bool:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+    resolution = props.get("geometry_resolution")
+    if not isinstance(resolution, dict):
+        resolution = model.get("geometry_resolution") if isinstance(model, dict) else {}
+    materialized = props.get("section_profile_materialized")
+    if not isinstance(materialized, dict):
+        materialized = model.get("section_profile_materialized") if isinstance(model, dict) else {}
+    return (
+        props.get("source_geometry_status") == "compiled"
+        or model.get("source_geometry_status") == "compiled"
+        or (isinstance(resolution, dict) and resolution.get("status") == "source_geometry_used")
+        or (isinstance(materialized, dict) and materialized.get("status") == "source_geometry_used")
+    )
+
+
+def _source_family(feature: dict[str, Any]) -> str:
+    signature = _source_signature(feature)
+    family = signature.get("family")
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    shape_name = str(props.get("mass_shape") or "")
+    roles_text = " ".join(str(role) for role in (signature.get("surface_roles") or []) if role)
+    if str(family or "") == "embed" and "reflected_court_pair" in shape_name:
+        return "reflected_pair"
+    if str(family or "") == "slender_bar" and "slender_bar_notch" in shape_name:
+        return "courtyard"
+    if str(family or "") == "slender_bar" and "bar_notch_terrace" in shape_name:
+        return "void_notch"
+    if str(family or "") == "overlap" and "tapered_tower" in roles_text:
+        return "tapered_tower"
+    if str(family or "") == "extrude" and "extruded_branching_fin" in shape_name and "__evo_param" in shape_name:
+        return "branch_fin"
+    if family:
+        return str(family)
+    return _operator_family(str(props.get("mass_shape") or ""))
+
+
+def _research_diversity_descriptor(feature: dict[str, Any]) -> dict[str, Any]:
+    signature = _source_signature(feature)
+    rule_evidence = signature.get("rule_evidence") if isinstance(signature.get("rule_evidence"), dict) else {}
+    descriptor = rule_evidence.get("research_diversity_descriptor") if isinstance(rule_evidence, dict) else {}
+    family = _source_family(feature)
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    shape_name = str(props.get("mass_shape") or "")
+    language_by_family = {
+        "array_cluster": "array_cluster",
+        "offset": "offset_twin_bar",
+        "reflected_pair": "reflected_court_pair",
+        "slender_bar": "bar_notch_terrace",
+        "extrude": "extruded_fin",
+        "branch_fin": "branching_fin",
+        "courtyard": "courtyard_atrium",
+        "void_notch": "notched_void",
+        "pinch": "pinched_waist",
+        "embed": "embedded_void",
+        "nest": "nested_atrium_stack",
+        "split": "split_bridge",
+        "bend": "bend_ribbon",
+        "interlock": "cross_interlock",
+        "overlap": "overlap_slabs",
+        "branch": "branch_taper",
+        "tapered_tower": "tapered_tower",
+        "diagonal_connect": "diagonal_connector",
+        "sloped_roof": "sloped_roof",
+        "terrace_link": "terrace_ribbon",
+        "stepback_tower": "stepped_tower",
+        "legal_layered": "legal_layered_anchor",
+    }
+    group_by_family = {
+        "array_cluster": "additive",
+        "offset": "additive",
+        "reflected_pair": "additive",
+        "slender_bar": "additive",
+        "extrude": "additive",
+        "branch_fin": "additive",
+        "courtyard": "subtractive",
+        "void_notch": "subtractive",
+        "pinch": "subtractive",
+        "embed": "subtractive",
+        "nest": "subtractive",
+        "split": "hybrid",
+        "bend": "hybrid",
+        "interlock": "hybrid",
+        "overlap": "hybrid",
+        "branch": "hybrid",
+        "tapered_tower": "hybrid",
+        "diagonal_connect": "sectional",
+        "sloped_roof": "sectional",
+        "stepback_tower": "sectional",
+        "terrace_link": "sectional",
+        "legal_layered": "legal_anchor",
+    }
+    group = group_by_family.get(family, "generic")
+    if family == "stack" and "terrace" in shape_name:
+        group = "sectional"
+        language_by_family = {**language_by_family, "stack": "terrace_ribbon"}
+    if family == "embed" and "reflected_court_pair" in shape_name:
+        group = "additive"
+        language_by_family = {**language_by_family, "embed": "reflected_court_pair"}
+    if family == "void_notch" and "bar_notch_terrace" in shape_name:
+        group = "subtractive"
+        language_by_family = {**language_by_family, "void_notch": "notched_void"}
+    if family == "courtyard" and "slender_bar_notch" in shape_name:
+        group = "subtractive"
+        language_by_family = {**language_by_family, "courtyard": "courtyard_atrium"}
+    if family == "branch" and "atrium" in shape_name:
+        group = "subtractive"
+        language_by_family = {**language_by_family, "branch": "branch_atrium"}
+    if family == "tapered_tower":
+        group = "hybrid"
+        language_by_family = {**language_by_family, "tapered_tower": "tapered_tower"}
+    if family == "branch_fin":
+        group = "additive"
+        language_by_family = {**language_by_family, "branch_fin": "branching_fin"}
+    if isinstance(descriptor, dict) and descriptor:
+        normalized = dict(descriptor)
+        if family and (
+            not normalized.get("mass_language")
+            or normalized.get("mass_language") == family
+            or (family == "stack" and "terrace" in shape_name)
+            or (family == "embed" and "reflected_court_pair" in shape_name)
+            or (family == "void_notch" and "bar_notch_terrace" in shape_name)
+            or (family == "courtyard" and "slender_bar_notch" in shape_name)
+            or (family == "branch" and "atrium" in shape_name)
+            or family == "tapered_tower"
+            or family == "branch_fin"
+        ):
+            normalized["mass_language"] = language_by_family.get(family, family)
+        if group != "generic" and (
+            not normalized.get("quota_group")
+            or normalized.get("quota_group") == "generic"
+            or (family == "stack" and "terrace" in shape_name)
+            or (family == "embed" and "reflected_court_pair" in shape_name)
+            or (family == "void_notch" and "bar_notch_terrace" in shape_name)
+            or (family == "courtyard" and "slender_bar_notch" in shape_name)
+            or (family == "branch" and "atrium" in shape_name)
+            or family == "tapered_tower"
+            or family == "branch_fin"
+        ):
+            normalized["quota_group"] = group
+            normalized["generator_mode"] = group
+        if family == "void_notch" and "bar_notch_terrace" in shape_name:
+            normalized["role_pattern"] = "notched_void_bar|primary_podium_slab|secondary_void_notch_court_liner"
+        if family == "courtyard" and "slender_bar_notch" in shape_name:
+            normalized["role_pattern"] = "courtyard_notched_bar|primary_slender_tower|secondary_court_liner"
+        if family == "branch_fin":
+            normalized["role_pattern"] = "branching_fin|primary_extruded_fin|secondary_branch_ordered_bar"
+        return normalized
+    roles = [
+        str(role)
+        for role in (signature.get("surface_roles") or [])
+        if role
+    ]
+    return {
+        "schema_version": "arr.maas.research_diversity_descriptor.v1",
+        "generator_mode": group,
+        "mass_language": language_by_family.get(family, family or "generic"),
+        "quota_group": group,
+        "primitive_types": [],
+        "topology_tags": [family] if family else [],
+        "volume_count": int(signature.get("volume_count") or _visible_volume_count(feature)),
+        "role_pattern": "|".join(roles),
+        "rectilinear_template": int(signature.get("volume_count") or 0) == 3,
+    }
+
+
+def _research_quota_group(feature: dict[str, Any]) -> str:
+    family = _source_family(feature)
+    group_by_family = {
+        "array_cluster": "additive",
+        "offset": "additive",
+        "reflected_pair": "additive",
+        "slender_bar": "additive",
+        "extrude": "additive",
+        "branch_fin": "additive",
+        "courtyard": "subtractive",
+        "void_notch": "subtractive",
+        "pinch": "subtractive",
+        "embed": "subtractive",
+        "nest": "subtractive",
+        "split": "hybrid",
+        "bend": "hybrid",
+        "interlock": "hybrid",
+        "overlap": "hybrid",
+        "branch": "hybrid",
+        "tapered_tower": "hybrid",
+        "diagonal_connect": "sectional",
+        "sloped_roof": "sectional",
+        "stepback_tower": "sectional",
+        "terrace_link": "sectional",
+        "legal_layered": "legal_anchor",
+    }
+    family_group = group_by_family.get(family)
+    descriptor_group = str(_research_diversity_descriptor(feature).get("quota_group") or "")
+    if family_group and (not descriptor_group or descriptor_group == "generic"):
+        return family_group
+    return descriptor_group or family_group or "generic"
+
+
+def _research_mass_language(feature: dict[str, Any]) -> str:
+    return str(_research_diversity_descriptor(feature).get("mass_language") or _source_family(feature) or "generic")
+
+
+def _projection_visual_language(feature: dict[str, Any]) -> str:
+    """Return the language actually visible on the final review card.
+
+    Research language is deliberately broad and useful for provenance, but it
+    grouped a notched bar, twin bar and terrace bar together while allowing
+    three visibly identical terrace-ribbon cards. The integer projection must
+    cap the materialized synthesis users compare, not the upstream label.
+    """
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    materialized = props.get("section_profile_materialized") if isinstance(props.get("section_profile_materialized"), dict) else {}
+    profile = props.get("section_profile") if isinstance(props.get("section_profile"), dict) else {}
+    family_language = {
+        "bend": "bend_ribbon",
+        "pinch": "pinched_waist",
+        "sloped_roof": "sloped_roof",
+        "terrace_link": "terrace_ribbon",
+        "array_cluster": "array_cluster",
+        "offset": "offset_twin_bar",
+        "reflected_pair": "reflected_court_pair",
+        "slender_bar": "slender_bar",
+        "stepback_tower": "stepped_tower",
+        "legal_layered": "stepped_tower",
+        "diagonal_connect": "diagonal_connector",
+        "split": "split_bridge",
+        "courtyard": "courtyard_atrium",
+        "embed": "embedded_void",
+        "nest": "nested_stack",
+        "interlock": "cross_interlock",
+        "overlap": "overlap_slabs",
+        "branch": "branch_taper",
+        "extrude": "extruded_fin",
+        "void_notch": "notched_void",
+    }.get(_source_family(feature), "")
+    return str(
+        family_language
+        or materialized.get("kind")
+        or profile.get("kind")
+        or _research_mass_language(feature)
+        or "generic"
+    )
+
+
+def _research_role_pattern(feature: dict[str, Any]) -> str:
+    descriptor = _research_diversity_descriptor(feature)
+    pattern = descriptor.get("role_pattern")
+    if pattern:
+        return str(pattern)
+    return "|".join(_source_signature(feature).get("verb_profile") or [])
+
+
+def _research_review_floors(variant, repaired_floors: int, floor_height: float, height_limit: float) -> int:
+    """Spread review heights by research island without exceeding legal repair floors."""
+    max_by_height = max(1, int(height_limit / max(floor_height, 0.1)))
+    max_legal = max(1, min(int(repaired_floors or 1), max_by_height))
+    signature = getattr(variant, "source_signature", None)
+    family = ""
+    if isinstance(signature, dict):
+        family = str(signature.get("family") or "")
+        evidence = signature.get("rule_evidence") if isinstance(signature.get("rule_evidence"), dict) else {}
+        descriptor = evidence.get("research_diversity_descriptor") if isinstance(evidence.get("research_diversity_descriptor"), dict) else {}
+        group = str(descriptor.get("quota_group") or "")
+        mass_language = str(descriptor.get("mass_language") or "")
+    else:
+        group = ""
+        mass_language = ""
+    if not group:
+        group = {
+            "array_cluster": "additive",
+            "offset": "additive",
+            "reflected_pair": "additive",
+            "slender_bar": "additive",
+            "extrude": "additive",
+            "courtyard": "subtractive",
+            "void_notch": "subtractive",
+            "pinch": "subtractive",
+            "embed": "subtractive",
+            "nest": "subtractive",
+            "split": "hybrid",
+            "bend": "hybrid",
+            "interlock": "hybrid",
+            "overlap": "hybrid",
+            "branch": "hybrid",
+            "diagonal_connect": "sectional",
+            "sloped_roof": "sectional",
+        }.get(family, "generic")
+    language_target = {
+        "courtyard_atrium": 4,
+        "notched_void": 4,
+        "pinched_waist": 2,
+        "embedded_void": 3,
+        "nested_atrium_stack": 2,
+        "array_cluster": 2,
+        "offset_twin_bar": 2,
+        "reflected_court_pair": 2,
+        "bar_notch_terrace": 2,
+        "extruded_fin": 2,
+        "split_bridge": 3,
+        "bend_ribbon": 2,
+        "cross_interlock": 2,
+        "overlap_slabs": 2,
+        "branch_taper": 2,
+        "diagonal_connector": 3,
+        "sloped_roof": 2,
+        "terrace_ribbon": 2,
+    }.get(mass_language)
+    if language_target is not None:
+        return max(1, min(max_legal, language_target))
+    target = {
+        "additive": 2,
+        "subtractive": 3,
+        "hybrid": 3,
+        "sectional": 4,
+    }.get(group, max_legal)
+    if family in {"array_cluster", "slender_bar"}:
+        target = 2
+    elif family in {"nest", "courtyard", "void_notch"}:
+        target = 3
+    elif family in {"sloped_roof", "terrace_link"}:
+        target = 2
+    elif family in {"diagonal_connect"}:
+        target = 3
+    return max(1, min(max_legal, target))
+
+
+def _llm_loop_config(parking_options: dict[str, Any] | None) -> dict[str, Any]:
+    options = parking_options or {}
+    raw = options.get("maas_llm_loop") if isinstance(options.get("maas_llm_loop"), dict) else {}
+    enabled = bool(raw.get("enabled") or raw.get("required"))
+    return {
+        "enabled": enabled,
+        "required": bool(raw.get("required")),
+        "target_count": int(raw.get("target_count") or 120),
+        "compile_limit": int(raw.get("compile_limit") or 90),
+        "model": raw.get("model") if isinstance(raw.get("model"), str) else None,
+        "timeout": float(raw.get("timeout") or 90.0),
+        "batch_size": int(raw.get("batch_size") or 30),
+        "batch_retries": int(raw.get("batch_retries") or 3),
+        "batch_workers": max(1, int(raw.get("batch_workers") or os.getenv("MAAS_LLM_BATCH_WORKERS") or 1)),
+        "batch_cache_path": raw.get("batch_cache_path") if isinstance(raw.get("batch_cache_path"), str) else os.getenv("MAAS_LLM_BATCH_CACHE_PATH", ""),
+        "max_openai_batches": int(raw.get("max_openai_batches") or os.getenv("MAAS_LLM_MAX_OPENAI_BATCHES") or 0),
+        "max_output_tokens": int(raw.get("max_output_tokens") or 12000),
+        "overgenerate_count": int(raw.get("overgenerate_count") or os.getenv("MAAS_LLM_OVERGENERATE_COUNT") or 0),
+        "generation_feedback": raw.get("generation_feedback") if isinstance(raw.get("generation_feedback"), dict) else None,
+        "generation_feedback_path": (
+            raw.get("generation_feedback_path")
+            if isinstance(raw.get("generation_feedback_path"), str)
+            else os.getenv("MAAS_LLM_GENERATION_FEEDBACK_JSON", "")
+        ),
+    }
+
+
+def _load_generation_feedback(config: dict[str, Any]) -> dict[str, Any] | None:
+    inline = config.get("generation_feedback")
+    if isinstance(inline, dict):
+        return inline
+    path = str(config.get("generation_feedback_path") or "").strip()
+    if not path:
+        return None
+    requested_path = Path(path).expanduser()
+    workspace_root = Path(__file__).resolve().parents[4]
+    candidate_paths = [
+        requested_path,
+        Path.cwd() / requested_path,
+        workspace_root / requested_path,
+    ]
+    resolved_path = next((candidate for candidate in candidate_paths if candidate.exists()), requested_path)
+    try:
+        with open(resolved_path, "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except OSError:
+        return {
+            "schema_version": "arr.maas.vlm_generation_feedback_load_error.v1",
+            "source_path": path,
+            "error": "file_not_found_or_unreadable",
+        }
+    if not isinstance(data, dict):
+        return None
+    data.setdefault("source_path", str(resolved_path))
+    return data
+
+
+def _llm_candidate_quality(feature: dict[str, Any]) -> dict[str, Any]:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    far = float(props.get("far") or 0.0)
+    bcr = float(props.get("bcr") or 0.0)
+    signature = _source_signature(feature)
+    parameter_default_count = int(signature.get("parameter_default_count") or 0)
+    parameter_authored_count = int(signature.get("parameter_authored_count") or 0)
+    parameter_default_ratio = float(signature.get("parameter_default_ratio") or 0.0)
+    weak_default_dependency = (
+        (parameter_default_count >= 8 and parameter_default_ratio > 0.70)
+        or (parameter_default_count >= 5 and parameter_authored_count < 4)
+    )
+    weak = far < 20.0 or bcr < 8.0 or weak_default_dependency
+    weak_reason = None
+    if far < 20.0 or bcr < 8.0:
+        weak_reason = "too_small_for_representative_review"
+    elif weak_default_dependency:
+        weak_reason = "too_many_compiler_default_parameters"
+    return {
+        "schema_version": "arr.maas.llm_candidate_quality.v1",
+        "status": "reject_final_review" if weak else "reviewable",
+        "far": round(far, 2),
+        "bcr": round(bcr, 2),
+        "parameter_default_count": parameter_default_count,
+        "parameter_authored_count": parameter_authored_count,
+        "parameter_default_ratio": round(parameter_default_ratio, 3),
+        "weak_reason": weak_reason,
+    }
+
+
+def _source_area_profile(feature: dict[str, Any]) -> tuple[float, ...]:
+    profile = _source_signature(feature).get("area_profile_m2")
+    if not isinstance(profile, list):
+        return ()
+    result: list[float] = []
+    for value in profile:
+        try:
+            result.append(round(float(value), 1))
+        except (TypeError, ValueError):
+            continue
+    return tuple(result)
+
+
+def _polygon_ring_count(geometry: dict[str, Any] | None) -> int:
+    if not isinstance(geometry, dict):
+        return 0
+    coords = geometry.get("coordinates")
+    if geometry.get("type") == "Polygon" and isinstance(coords, list):
+        return max(0, len(coords) - 1)
+    if geometry.get("type") == "MultiPolygon" and isinstance(coords, list):
+        return sum(max(0, len(poly) - 1) for poly in coords if isinstance(poly, list))
+    return 0
+
+
+def _volume_centroid_shift(volumes: list[dict[str, Any]]) -> float:
+    if len(volumes) < 2:
+        return 0.0
+    try:
+        first = _largest_polygon_or_none(wgs84_to_utm(geojson_to_polygon(volumes[0].get("geometry"))))
+        last = _largest_polygon_or_none(wgs84_to_utm(geojson_to_polygon(volumes[-1].get("geometry"))))
+    except Exception:
+        return 0.0
+    if first is None or last is None:
+        return 0.0
+    return round(float(first.centroid.distance(last.centroid)), 3)
+
+
+FRAGMENT_ROLE_RE = re.compile(
+    r"(counterweight|side_lock|edge_lip|short_tail|secondary_link|hinge_court_edge|random|fragment)",
+    re.IGNORECASE,
+)
+
+
+def _role_hierarchy_bucket(role: str) -> str:
+    lowered = role.lower()
+    if FRAGMENT_ROLE_RE.search(lowered):
+        return "fragment"
+    if any(token in lowered for token in ("void", "court", "atrium", "notch", "cut")):
+        return "void"
+    if any(token in lowered for token in ("primary", "main", "core", "trunk", "base", "plinth", "shell", "outer")):
+        return "primary"
+    if any(token in lowered for token in ("secondary", "bridge", "spine", "connector", "ribbon", "bar", "arm", "liner", "roof", "cap")):
+        return "secondary"
+    return "support"
+
+
+def _orderliness_evidence(
+    feature: dict[str, Any],
+    volumes: list[dict[str, Any]],
+    source_signature: dict[str, Any],
+    family: str,
+) -> dict[str, Any]:
+    parsed: list[dict[str, Any]] = []
+    for volume in volumes:
+        if not isinstance(volume, dict):
+            continue
+        try:
+            geom = _largest_polygon_or_none(wgs84_to_utm(geojson_to_polygon(volume.get("geometry"))))
+        except Exception:
+            geom = None
+        if geom is None or geom.is_empty:
+            continue
+        minx, miny, maxx, maxy = geom.bounds
+        parsed.append({
+            "role": str(volume.get("role") or ""),
+            "area": float(geom.area),
+            "centroid": geom.centroid,
+            "bounds": (minx, miny, maxx, maxy),
+            "geom": geom,
+        })
+    if not parsed:
+        return {
+            "schema_version": "arr.maas.orderliness.v1",
+            "status": "missing_geometry",
+            "dominant_axis": "unknown",
+            "orderliness_score": 0.0,
+        }
+    areas = [item["area"] for item in parsed]
+    total_area = max(sum(areas), 1e-6)
+    max_area = max(areas)
+    main_index = areas.index(max_area)
+    main = parsed[main_index]
+    minx, miny, maxx, maxy = main["bounds"]
+    main_width = max(maxx - minx, 1e-6)
+    main_depth = max(maxy - miny, 1e-6)
+    if main_width >= main_depth * 1.15:
+        dominant_axis = "x"
+    elif main_depth >= main_width * 1.15:
+        dominant_axis = "y"
+    else:
+        dominant_axis = "balanced"
+
+    aligned = 0
+    for item in parsed:
+        cx_delta = abs(float(item["centroid"].x - main["centroid"].x))
+        cy_delta = abs(float(item["centroid"].y - main["centroid"].y))
+        if dominant_axis == "x":
+            aligned += 1 if cy_delta <= main_depth * 0.42 else 0
+        elif dominant_axis == "y":
+            aligned += 1 if cx_delta <= main_width * 0.42 else 0
+        else:
+            aligned += 1 if cx_delta <= main_width * 0.45 and cy_delta <= main_depth * 0.45 else 0
+    aligned_role_ratio = aligned / max(1, len(parsed))
+
+    roles = [item["role"] for item in parsed]
+    role_buckets = [_role_hierarchy_bucket(role) for role in roles]
+    hierarchy_core = {bucket for bucket in role_buckets if bucket in {"primary", "secondary", "void"}}
+    role_hierarchy_depth = len(hierarchy_core)
+    small_fragment_count = sum(1 for area in areas if area < max_area * 0.18 and area < total_area * 0.12)
+    fragment_role_count = sum(1 for role in roles if FRAGMENT_ROLE_RE.search(role))
+    main_mass_area_ratio = max_area / total_area
+    primitive_count = int(source_signature.get("source_primitive_count") or 0)
+    surface_count = int(source_signature.get("surface_count") or 0)
+    visible_volume_count = len(parsed)
+    composition_roles = source_signature.get("composition_layer_roles")
+    composition_count = len(composition_roles) if isinstance(composition_roles, list) else 0
+    connected_union = unary_union([item["geom"].buffer(0.12) for item in parsed])
+    plan_component_count = len(getattr(connected_union, "geoms", (connected_union,)))
+    unclear_language_mix = (
+        (fragment_role_count > 2)
+        or (small_fragment_count > 3)
+        or (primitive_count > 0 and composition_count == 0 and len(parsed) > 3)
+    )
+    if family == "legal_layered" and len(parsed) >= 3:
+        role_hierarchy_depth = max(role_hierarchy_depth, 2)
+    if family in {"diagonal_connect", "split"} and len(parsed) >= 3:
+        role_hierarchy_depth = max(role_hierarchy_depth, 2)
+    hierarchy_score = min(max(role_hierarchy_depth, 1), 3) / 3.0
+    fragment_penalty_score = max(0.0, 1.0 - (small_fragment_count * 0.18) - (fragment_role_count * 0.16))
+    ambition = source_signature.get("architectural_ambition_evidence")
+    ambition = ambition if isinstance(ambition, dict) else {}
+    formal_principle = str(ambition.get("formal_principle") or "")
+    formal_series_prefixes = {
+        "torqued_stack": ("_torqued_plate_", "primary_torqued_plate_"),
+        "stacked_shifted_platforms": ("_shifted_platform_", "primary_shifted_platform_"),
+        "folded_section": ("_folded_", "primary_folded_"),
+        "terraced_ribbon_section": ("_folded_", "primary_folded_"),
+        "split_bridge_connector": (
+            "source_geometry_primary_diagonal_connect_",
+            "source_geometry_secondary_diagonal_connect_",
+            "source_geometry_primary_split_",
+            "source_geometry_secondary_split_",
+            "primary_diagonal_bridge_",
+            "secondary_diagonal_bridge_",
+        ),
+        "legal_layered_envelope": ("legal_floor_plate_band_", "primary_legal_", "secondary_legal_"),
+    }.get(formal_principle, ())
+    formal_series_mass_ratio = 0.0
+    if formal_series_prefixes:
+        formal_series_area = sum(
+            item["area"]
+            for item in parsed
+            if any(
+                prefix in str(item["role"])
+                for prefix in formal_series_prefixes
+            )
+        )
+        formal_series_mass_ratio = formal_series_area / total_area
+    main_mass_score = min(main_mass_area_ratio / 0.62, 1.0)
+    if formal_series_mass_ratio >= 0.72 and fragment_role_count == 0:
+        main_mass_score = max(main_mass_score, min(formal_series_mass_ratio / 0.88, 1.0))
+    formal_order_bonus = 0.08 if formal_series_mass_ratio >= 0.78 and small_fragment_count <= 1 and fragment_role_count == 0 else 0.0
+    score = (
+        0.36 * main_mass_score
+        + 0.28 * aligned_role_ratio
+        + 0.20 * hierarchy_score
+        + 0.16 * fragment_penalty_score
+        + formal_order_bonus
+    )
+    score -= min(0.30, max(0, surface_count - int(ARCHITECTURAL_ORDER_POLICY["max_source_surfaces"])) * 0.015)
+    score -= min(0.24, max(0, visible_volume_count - 5) * 0.12)
+    score -= min(0.30, max(0, plan_component_count - 1) * 0.15)
+    if family in STEPBACK_DOMINANT_FAMILIES:
+        score -= 0.12
+    if unclear_language_mix:
+        score -= 0.10
+    return {
+        "schema_version": "arr.maas.orderliness.v1",
+        "status": "measured",
+        "dominant_axis": dominant_axis,
+        "main_role": main["role"],
+        "main_mass_area_ratio": round(main_mass_area_ratio, 3),
+        "aligned_role_ratio": round(aligned_role_ratio, 3),
+        "small_fragment_count": int(small_fragment_count),
+        "fragment_role_count": int(fragment_role_count),
+        "plan_component_count": int(plan_component_count),
+        "role_hierarchy_depth": int(role_hierarchy_depth),
+        "unclear_language_mix": bool(unclear_language_mix),
+        "role_hierarchy": dict(sorted(Counter(role_buckets).items())),
+        "formal_series_mass_ratio": round(formal_series_mass_ratio, 3),
+        "formal_order_bonus": round(formal_order_bonus, 3),
+        "orderliness_score": round(max(0.0, min(1.0, score)), 3),
+    }
+
+
+def _visual_diversity_evidence(feature: dict[str, Any]) -> dict[str, Any]:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+    volumes = props.get("mass_volumes") if isinstance(props.get("mass_volumes"), list) else model.get("volumes")
+    volumes = volumes if isinstance(volumes, list) else []
+    profile = props.get("section_profile") if isinstance(props.get("section_profile"), dict) else model.get("section_profile")
+    profile = profile if isinstance(profile, dict) else {}
+    source_signature = _source_signature(feature)
+    family = str(source_signature.get("family") or props.get("operator_family") or "")
+    area_profile: list[float] = []
+    ring_count = 0
+    for volume in volumes:
+        if not isinstance(volume, dict):
+            continue
+        ring_count += _polygon_ring_count(volume.get("geometry"))
+        try:
+            geom = _largest_polygon_or_none(wgs84_to_utm(geojson_to_polygon(volume.get("geometry"))))
+        except Exception:
+            geom = None
+        if geom is not None:
+            area_profile.append(round(float(geom.area), 1))
+    unique_area_bands = len({round(area, 0) for area in area_profile})
+    volume_count = len(volumes)
+    stepback_like = (
+        volume_count >= 4
+        and unique_area_bands >= 3
+        and ring_count == 0
+        and (family in {"legal_layered", "stepback_tower"} or str(profile.get("kind") or "") == "stepped_tower")
+    )
+    stepback_dominant = stepback_like or family in STEPBACK_DOMINANT_FAMILIES
+    research_descriptor = _research_diversity_descriptor(feature)
+    volume_roles = [
+        str(volume.get("role") or "")
+        for volume in volumes
+        if isinstance(volume, dict) and volume.get("role")
+    ]
+    composition_layer_roles = [
+        role
+        for role in volume_roles
+        if role.startswith("secondary_") or role.startswith("source_geometry_secondary_")
+    ]
+    source_primitive_roles = source_signature.get("source_primitive_roles")
+    if not isinstance(source_primitive_roles, dict):
+        source_primitive_roles = {
+            "polygonal": [role for role in volume_roles if "polygonal_" in role],
+            "curvilinear": [role for role in volume_roles if "curvilinear_" in role],
+            "freeform": [role for role in volume_roles if "freeform_" in role],
+        }
+    primitive_count = sum(
+        len(roles)
+        for roles in source_primitive_roles.values()
+        if isinstance(roles, list)
+    )
+    primary_language = str(
+        source_signature.get("primary_language")
+        or research_descriptor.get("mass_language")
+        or family
+        or ""
+    )
+    secondary_language = str(source_signature.get("secondary_language") or "")
+    composition_rule = str(source_signature.get("composition_rule") or "")
+    if not composition_rule and primary_language and secondary_language and secondary_language != "legal_envelope_fit":
+        composition_rule = f"{primary_language}+{secondary_language}"
+    orderliness = _orderliness_evidence(feature, volumes, source_signature, family)
+    return {
+        "schema_version": "arr.maas.visual_diversity.v1",
+        "visual_family": family or str(profile.get("kind") or ""),
+        "section_profile_kind": profile.get("kind"),
+        "research_diversity_descriptor": research_descriptor,
+        "generator_mode": research_descriptor.get("generator_mode"),
+        "mass_language": research_descriptor.get("mass_language"),
+        "primary_language": primary_language,
+        "secondary_language": secondary_language,
+        "composition_rule": composition_rule,
+        "composition_layer_roles": composition_layer_roles,
+        "composition_layer_count": len(composition_layer_roles),
+        "source_primitive_roles": source_primitive_roles,
+        "source_primitive_count": primitive_count,
+        "quota_group": research_descriptor.get("quota_group"),
+        "topology_tags": research_descriptor.get("topology_tags", []),
+        "role_pattern": research_descriptor.get("role_pattern"),
+        "rectilinear_template": research_descriptor.get("rectilinear_template"),
+        "volume_count": volume_count,
+        "unique_area_bands": unique_area_bands,
+        "hole_count": ring_count,
+        "centroid_shift_m": _volume_centroid_shift(volumes),
+        "stepback_like": stepback_like,
+        "stepback_dominant": stepback_dominant,
+        "orderliness_evidence": orderliness,
+        "source_geometry_status": props.get("source_geometry_status") or model.get("source_geometry_status"),
+    }
+
+
+def _attach_visual_diversity_evidence(feature: dict[str, Any]) -> None:
+    props = feature.setdefault("properties", {})
+    evidence = _visual_diversity_evidence(feature)
+    props["visual_diversity_evidence"] = evidence
+    props["orderliness_evidence"] = evidence.get("orderliness_evidence")
+    source_signature = _source_signature(feature)
+    research_descriptor = evidence.get("research_diversity_descriptor")
+    if isinstance(source_signature, dict) and isinstance(research_descriptor, dict):
+        canonical_family = _source_family(feature)
+        if canonical_family and source_signature.get("family") != canonical_family:
+            source_signature.setdefault("raw_family", source_signature.get("family"))
+            source_signature["family"] = canonical_family
+        rule_evidence = source_signature.get("rule_evidence")
+        if isinstance(rule_evidence, dict):
+            rule_evidence["research_diversity_descriptor"] = dict(research_descriptor)
+            rule_evidence["generator_mode"] = research_descriptor.get("generator_mode")
+            rule_evidence["mass_language"] = research_descriptor.get("mass_language")
+            rule_evidence["quota_group"] = research_descriptor.get("quota_group")
+        source_signature["composition_rule"] = source_signature.get("composition_rule") or evidence.get("composition_rule")
+    ambition = source_signature.get("architectural_ambition_evidence")
+    if isinstance(ambition, dict):
+        props["architectural_ambition_evidence"] = dict(ambition)
+    model = props.get("maas_model")
+    if isinstance(model, dict):
+        model["visual_diversity_evidence"] = evidence
+        model["orderliness_evidence"] = evidence.get("orderliness_evidence")
+        if isinstance(ambition, dict):
+            model["architectural_ambition_evidence"] = dict(ambition)
+
+
+def _attach_geometry_resolution(
+    feature: dict[str, Any],
+    *,
+    status: str,
+    source: str,
+    legal_action: str,
+    fallback: str | None = None,
+) -> None:
+    props = feature.setdefault("properties", {})
+    resolution = {
+        "schema_version": "arr.maas.geometry_resolution.v1",
+        "status": status,
+        "source": source,
+        "legal_action": legal_action,
+    }
+    if fallback:
+        resolution["fallback"] = fallback
+    props["geometry_resolution"] = resolution
+    model = props.get("maas_model")
+    if isinstance(model, dict):
+        model["geometry_resolution"] = resolution
+
+
+def _apply_source_volumes_as_mass_geometry(feature: dict[str, Any]) -> bool:
+    props = feature.setdefault("properties", {})
+    model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+    source_volumes = props.get("source_volumes")
+    if not isinstance(source_volumes, list):
+        source_volumes = model.get("source_volumes") if isinstance(model, dict) else None
+    if not isinstance(source_volumes, list) or not source_volumes:
+        return False
+    try:
+        legal_footprint = _largest_polygon_or_none(wgs84_to_utm(geojson_to_polygon(feature.get("geometry"))))
+    except Exception:
+        legal_footprint = None
+    if legal_footprint is None:
+        return False
+    total_height = float(props.get("height") or 0.0)
+    if total_height <= 0.0:
+        return False
+
+    materialized: list[dict[str, Any]] = []
+    materialized_utms: list[Any] = []
+    source_area_total = 0.0
+    clipped_area_total = 0.0
+    clipped_volume_count = 0
+    for index, volume in enumerate(source_volumes):
+        if not isinstance(volume, dict) or not isinstance(volume.get("geometry_utm"), dict):
+            continue
+        try:
+            source_geom = _largest_polygon_or_none(shape(volume["geometry_utm"]))
+            geom = _largest_polygon_or_none(source_geom.intersection(legal_footprint)) if source_geom is not None else None
+        except Exception:
+            source_geom = None
+            geom = None
+        if geom is None:
+            continue
+        source_area = float(getattr(source_geom, "area", 0.0) or 0.0)
+        clipped_area = float(getattr(geom, "area", 0.0) or 0.0)
+        source_area_total += source_area
+        clipped_area_total += clipped_area
+        if source_area > clipped_area + 0.1:
+            clipped_volume_count += 1
+        bottom_fraction = float(volume.get("bottom_fraction") or 0.0)
+        top_fraction = float(volume.get("top_fraction") or 0.0)
+        bottom_height = max(0.0, min(total_height, total_height * bottom_fraction))
+        top_height = max(bottom_height, min(total_height, total_height * top_fraction))
+        if top_height <= bottom_height:
+            continue
+        materialized.append({
+            "band": index,
+            "bottom_height": round(bottom_height, 2),
+            "top_height": round(top_height, 2),
+            "geometry": mapping(utm_to_wgs84(geom)),
+            "role": f"source_geometry_{volume.get('role') or index}",
+            "source_geometry": {
+                "basis": "massdsl_source_volume",
+                "verb": volume.get("verb"),
+                "legal_accounting": "candidate_metrics_remain_from_repaired_legal_mass",
+            },
+        })
+        materialized_utms.append(geom)
+    if not materialized:
+        return False
+
+    profile = props.get("section_profile") if isinstance(props.get("section_profile"), dict) else model.get("section_profile")
+    kind = str((profile or {}).get("kind") or _source_family(feature) or "source_geometry")
+    props["mass_volumes"] = materialized
+    props["section_source_surfaces"] = _build_section_source_surfaces(
+        kind=kind,
+        profile=profile if isinstance(profile, dict) else {},
+        materialized=materialized,
+        materialized_utms=materialized_utms,
+    )
+    props["section_profile_materialized"] = {
+        "status": "source_geometry_used",
+        "kind": kind,
+        "design_synthesis": True,
+        "volume_count": len(materialized),
+        "surface_count": len(props["section_source_surfaces"]),
+        "legal_accounting": "floor_plates_or_repaired_mass_metrics",
+        "basis": "massdsl_source_geometry",
+    }
+    props["source_volume_repair_delta"] = {
+        "schema_version": "arr.maas.source_volume_repair_delta.v1",
+        "source_area_m2": round(source_area_total, 2),
+        "materialized_area_m2": round(clipped_area_total, 2),
+        "area_retention": round(clipped_area_total / source_area_total, 4) if source_area_total > 0 else 1.0,
+        "clipped_volume_count": clipped_volume_count,
+    }
+    if isinstance(model, dict):
+        model["volumes"] = materialized
+        model["section_source_surfaces"] = props["section_source_surfaces"]
+        model["section_profile_materialized"] = props["section_profile_materialized"]
+        model["source_volume_repair_delta"] = props["source_volume_repair_delta"]
+    _attach_geometry_resolution(
+        feature,
+        status="source_geometry_used",
+        source="massdsl_source_volume_geometry",
+        legal_action="source_volume_intersected_with_repaired_legal_footprint",
+    )
+    _attach_visual_diversity_evidence(feature)
+    return True
+
+
+def _promote_legal_floor_stack_source_geometry(feature: dict[str, Any]) -> None:
+    props = feature.setdefault("properties", {})
+    model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+    volumes = props.get("mass_volumes")
+    if not isinstance(volumes, list):
+        volumes = model.get("volumes") if isinstance(model, dict) else []
+    source_volumes: list[dict[str, Any]] = []
+    area_profile: list[float] = []
+    surface_count = 0
+    for index, volume in enumerate(volumes if isinstance(volumes, list) else []):
+        geometry = volume.get("geometry") if isinstance(volume, dict) else None
+        if not isinstance(geometry, dict):
+            continue
+        try:
+            geom_utm = _largest_polygon_or_none(wgs84_to_utm(geojson_to_polygon(geometry)))
+        except Exception:
+            geom_utm = None
+        if geom_utm is None:
+            continue
+        area_profile.append(round(float(geom_utm.area), 2))
+        surface_count += max(1, len(list(geom_utm.exterior.coords)) - 1)
+        role = "primary_legal_base" if index == 0 else f"secondary_legal_step_{index}"
+        source_volumes.append({
+            "role": role,
+            "verb": "legal_envelope",
+            "bottom_fraction": round(float(volume.get("bottom_height") or 0.0) / max(float(props.get("height") or 1.0), 1.0), 3),
+            "top_fraction": round(float(volume.get("top_height") or 0.0) / max(float(props.get("height") or 1.0), 1.0), 3),
+            "area_m2": round(float(geom_utm.area), 2),
+            "geometry_utm": mapping(geom_utm),
+            "geometry_crs": "EPSG:32652",
+        })
+    if not source_volumes:
+        return
+    source_volume_roles = [str(volume.get("role") or f"legal_floor_plate_band_{index}") for index, volume in enumerate(source_volumes)]
+    research_descriptor = {
+        "schema_version": "arr.maas.research_diversity_descriptor.v1",
+        "generator_mode": "legal_anchor",
+        "mass_language": "legal_layered_anchor",
+        "quota_group": "legal_anchor",
+        "primitive_types": ["legal_floor_plate"],
+        "topology_tags": ["legal_layered", "stepback", "sunlight_envelope"],
+        "volume_count": len(source_volumes),
+        "role_pattern": "|".join(source_volume_roles),
+        "rectilinear_template": False,
+    }
+    rule_evidence = {
+        "schema_version": "arr.maas.rule_evidence.v1",
+        "rule_name": "legal_envelope:floor_plate_stack",
+        "family": "legal_layered",
+        "generator_mode": "legal_anchor",
+        "mass_language": "legal_layered_anchor",
+        "quota_group": "legal_anchor",
+        "rule_inputs": {
+            "floor_count": len(source_volumes),
+            "area_profile_m2": area_profile,
+        },
+        "geometry_actions": [
+            "build_floor_plate_stack",
+            "clip_floor_plates_to_legal_envelope",
+            "preserve_sunlight_stepback_profile",
+        ],
+        "source_volume_roles": source_volume_roles,
+        "research_diversity_descriptor": research_descriptor,
+        "rule_prior_param_count": 0,
+        "llm_authored_param_count": 0,
+        "invalid_rule_param_count": 0,
+        "rule_prior_param_ratio": 0.0,
+    }
+    ambition_evidence = {
+        "schema_version": "arr.maas.architectural_ambition.v1",
+        "formal_principle": "legal_layered_envelope",
+        "dominant_gesture": "stepped legal envelope translated into readable floor-plate stack",
+        "implemented_volume_roles": source_volume_roles,
+        "architecture_grade_pass": True,
+        "silhouette_strength": 0.78,
+        "sectional_diagram_clarity": 0.92,
+        "vertical_strategy": "legal_stepback_stack",
+        "stair_like_risk": "managed",
+    }
+    typed_volumes = tuple(
+        SourceVolume(
+            role=str(volume["role"]),
+            footprint=shape(volume["geometry_utm"]),
+            bottom_fraction=float(volume["bottom_fraction"]),
+            top_fraction=float(volume["top_fraction"]),
+            verb=str(volume["verb"]),
+        )
+        for volume in source_volumes
+    )
+    coherence_evidence = evaluate_source_volume_coherence(typed_volumes)
+    graph_sequence = VerbSequence(
+        name="legal_layered_anchor",
+        label="Legal layered anchor",
+        calls=(VerbCall("base", {}),) + tuple(
+            VerbCall("stack", {"band": index})
+            for index in range(1, len(source_volumes))
+        ),
+        notes=("legal_envelope_source_of_truth",),
+    )
+    component_graph = graph_from_sequence(graph_sequence).to_dict()
+    props["source_geometry_status"] = "compiled"
+    props["source_volumes"] = source_volumes
+    props["source_signature"] = {
+        "schema_version": "arr.maas.source_geometry.signature.v1",
+        "status": "compiled",
+        "family": _operator_family(str(props.get("mass_shape") or "")),
+        "volume_count": len(source_volumes),
+        "surface_count": surface_count,
+        "ground_area_m2": area_profile[0] if area_profile else None,
+        "upper_area_m2": area_profile[-1] if len(area_profile) > 1 else None,
+        "upper_to_ground_ratio": round(area_profile[-1] / area_profile[0], 4) if len(area_profile) > 1 and area_profile[0] else None,
+        "area_profile_m2": area_profile,
+        "verb_profile": ["legal_envelope"],
+        "surface_roles": source_volume_roles,
+        "source_volume_roles": source_volume_roles,
+        "composition_layer_roles": source_volume_roles,
+        "composition_rule": "legal_envelope_floor_plate_stack",
+        "primary_language": "legal_layered_anchor",
+        "secondary_language": "sunlight_stepback_profile",
+        "rule_evidence": rule_evidence,
+        "architectural_ambition_evidence": ambition_evidence,
+        "formal_principle": "legal_layered_envelope",
+        "dominant_gesture": "stepped legal envelope translated into readable floor-plate stack",
+        "parameter_provenance": [],
+        "parameter_default_count": 0,
+        "parameter_authored_count": 0,
+        "parameter_default_ratio": 0.0,
+        "rule_prior_param_count": 0,
+        "llm_authored_param_count": 0,
+        "invalid_rule_param_count": 0,
+        "rule_prior_param_ratio": 0.0,
+        "asymmetry_hint": "legal_envelope_floor_plate_stack",
+        "component_graph": component_graph,
+        "coherence_evidence": coherence_evidence,
+    }
+    props["architectural_ambition_evidence"] = ambition_evidence
+    props["research_basis"] = {
+        "implemented_status": "arr_native_approximation",
+        "optimization_mode": "legal_envelope_solver",
+        "requires_llm_authoring": False,
+        "legal_solver_role": "source_of_truth",
+    }
+    props["section_profile_materialized"] = {
+        "status": "source_geometry_used",
+        "kind": "stepped_tower",
+        "design_synthesis": True,
+        "volume_count": len(source_volumes),
+        "surface_count": surface_count,
+        "legal_accounting": "floor_plates",
+        "basis": "legal_envelope_source_geometry",
+    }
+    if isinstance(model, dict):
+        model["source_geometry_status"] = props["source_geometry_status"]
+        model["source_volumes"] = source_volumes
+        model["source_signature"] = props["source_signature"]
+        model["section_profile_materialized"] = props["section_profile_materialized"]
+        model["architectural_ambition_evidence"] = ambition_evidence
+        model["research_basis"] = props["research_basis"]
+    notes = props.get("notes")
+    if not isinstance(notes, list):
+        notes = []
+    note_keys = {str(note).split("=", 1)[0] for note in notes if isinstance(note, str) and "=" in note}
+    if "rule_name" not in note_keys:
+        notes.append("rule_name=legal_envelope:floor_plate_stack")
+    if "rule_inputs" not in note_keys:
+        notes.append(f"rule_inputs={rule_evidence['rule_inputs']}")
+    if "expected_geometry_actions" not in note_keys:
+        notes.append(f"expected_geometry_actions={rule_evidence['geometry_actions']}")
+    props["notes"] = notes
+    if isinstance(model, dict):
+        model["notes"] = notes
+    _attach_geometry_resolution(
+        feature,
+        status="source_geometry_used",
+        source="legal_envelope_floor_plate_geometry",
+        legal_action="floor_plates_clipped_to_legal_envelope",
+    )
+
+
+def _apply_piloti_parking_void(feature: dict[str, Any]) -> None:
+    props = feature.setdefault("properties", {})
+    strategy = str(props.get("parking_strategy") or "")
+    precheck = props.get("parking_precheck") if isinstance(props.get("parking_precheck"), dict) else {}
+    layout = precheck.get("layout_candidate") if isinstance(precheck.get("layout_candidate"), dict) else {}
+    if strategy != "piloti_ground":
+        return
+    if not isinstance(layout.get("stalls"), list) or not layout["stalls"]:
+        return
+    volumes = props.get("mass_volumes")
+    if not isinstance(volumes, list) or not volumes:
+        return
+    floor_height = float(props.get("floor_height") or get_floor_height(str(props.get("building_type") or "")) or 0.0)
+    if floor_height <= 0.0:
+        return
+    void_height = round(max(2.3, min(floor_height, floor_height * 0.92)), 2)
+    updated: list[dict[str, Any]] = []
+    changed = False
+    for volume in volumes:
+        if not isinstance(volume, dict):
+            continue
+        next_volume = dict(volume)
+        bottom = float(next_volume.get("bottom_height") or 0.0)
+        top = float(next_volume.get("top_height") or 0.0)
+        if bottom < void_height and top > void_height:
+            next_volume["bottom_height"] = void_height
+            next_volume["parking_piloti_void"] = {
+                "status": "reserved",
+                "void_height_m": void_height,
+                "strategy": "piloti_ground",
+                "stall_count": len(layout["stalls"]),
+                "legal_accounting": "parking void is a mass-stage geometry reservation; legal FAR/BCR metrics remain separately audited",
+            }
+            source_geometry = next_volume.get("source_geometry")
+            if isinstance(source_geometry, dict):
+                source_geometry = dict(source_geometry)
+                source_geometry["parking_void_basis"] = "piloti_ground_reserved_void"
+                next_volume["source_geometry"] = source_geometry
+            changed = True
+        updated.append(next_volume)
+    if not changed:
+        return
+    grouped: dict[float, list[int]] = {}
+    for index, volume in enumerate(updated):
+        bottom = round(float(volume.get("bottom_height") or 0.0), 2)
+        top = float(volume.get("top_height") or 0.0)
+        if top > bottom + 0.8:
+            grouped.setdefault(bottom, []).append(index)
+    for indexes in grouped.values():
+        if len(indexes) < 3:
+            continue
+        for order, index in enumerate(indexes):
+            if order == 0:
+                continue
+            volume = updated[index]
+            bottom = float(volume.get("bottom_height") or 0.0)
+            top = float(volume.get("top_height") or 0.0)
+            offset = min(0.42, 0.18 * order)
+            if top - bottom > offset + 0.65:
+                volume["bottom_height"] = round(bottom + offset, 2)
+                source_geometry = volume.get("source_geometry")
+                if isinstance(source_geometry, dict):
+                    source_geometry = dict(source_geometry)
+                    source_geometry["parking_void_tier_relief"] = "role_staggered_above_piloti_void"
+                    volume["source_geometry"] = source_geometry
+    props["mass_volumes"] = updated
+    props["parking_piloti_void"] = {
+        "status": "reserved",
+        "void_height_m": void_height,
+        "strategy": "piloti_ground",
+        "stall_count": len(layout["stalls"]),
+    }
+    model = props.get("maas_model")
+    if isinstance(model, dict):
+        model["volumes"] = updated
+        model["parking_piloti_void"] = props["parking_piloti_void"]
+    _attach_visual_diversity_evidence(feature)
+
+
+def _source_profile_distance(a: dict[str, Any], b: dict[str, Any]) -> float:
+    """Distance between ARR-native source grammar signatures."""
+    left = _source_signature(a)
+    right = _source_signature(b)
+    if not left and not right:
+        return 0.0
+    if not left or not right:
+        return 0.65
+    family_distance = 0.0 if str(left.get("family") or "") == str(right.get("family") or "") else 1.0
+    verbs_distance = sequence_distance(
+        [str(item) for item in left.get("verb_profile") or []],
+        [str(item) for item in right.get("verb_profile") or []],
+    )
+    volume_distance = min(1.0, abs(float(left.get("volume_count") or 0.0) - float(right.get("volume_count") or 0.0)) / 4.0)
+    surface_distance = min(1.0, abs(float(left.get("surface_count") or 0.0) - float(right.get("surface_count") or 0.0)) / 24.0)
+    ratio_distance = min(1.0, abs(float(left.get("upper_to_ground_ratio") or 0.0) - float(right.get("upper_to_ground_ratio") or 0.0)))
+    left_profile = _source_area_profile(a)
+    right_profile = _source_area_profile(b)
+    if left_profile and right_profile:
+        pairs = zip(left_profile, right_profile)
+        denom = max(max(left_profile), max(right_profile), 1.0)
+        area_distance = min(1.0, sum(abs(x - y) for x, y in pairs) / (denom * max(len(left_profile), len(right_profile), 1)))
+        area_distance = max(area_distance, min(1.0, abs(len(left_profile) - len(right_profile)) / 4.0))
+    else:
+        area_distance = 0.0
+    return round(
+        family_distance * 0.32
+        + verbs_distance * 0.28
+        + volume_distance * 0.10
+        + surface_distance * 0.08
+        + ratio_distance * 0.12
+        + area_distance * 0.10,
+        4,
     )
 
 
@@ -668,11 +2232,13 @@ def _feature_distance(a: dict[str, Any], b: dict[str, Any]) -> float:
         sequence_verbs((b.get("properties") or {}).get("maas_verb_sequence")),
     )
     concept_distance = 0.0 if _operator_family((a.get("properties") or {}).get("mass_shape", "")) == _operator_family((b.get("properties") or {}).get("mass_shape", "")) else 1.0
+    source_distance = _source_profile_distance(a, b)
     return round(
-        geom_distance * 0.30
-        + metric_distance * 0.25
-        + seq_distance * 0.35
-        + concept_distance * 0.10,
+        geom_distance * 0.24
+        + metric_distance * 0.18
+        + seq_distance * 0.24
+        + concept_distance * 0.10
+        + source_distance * 0.24,
         4,
     )
 
@@ -730,6 +2296,43 @@ def _kmedoid_representatives(
         ))
 
     return picked
+
+
+def _critic_objective_vector(feature: dict[str, Any]) -> tuple[float, ...]:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    order = props.get("orderliness_evidence") if isinstance(props.get("orderliness_evidence"), dict) else {}
+    signature = _source_signature(feature)
+    coherence = signature.get("coherence_evidence") if isinstance(signature.get("coherence_evidence"), dict) else {}
+    performance = props.get("performance_proxy_evidence") if isinstance(props.get("performance_proxy_evidence"), dict) else {}
+    return (
+        1.0 if _architectural_order_gate(feature)[0] else 0.0,
+        1.0 if final_mass_stage_parking_pass(feature) else 0.0,
+        1.0 if coherence.get("hard_pass", True) else 0.0,
+        float(coherence.get("score") or 0.0),
+        preference_score(feature),
+        float(order.get("orderliness_score") or 0.0),
+        _repair_retention(feature),
+        float(performance.get("aggregate_performance_proxy") or 0.0),
+        -float(signature.get("surface_count") or 0.0) / float(ARCHITECTURAL_ORDER_POLICY["max_source_surfaces"]),
+        -float(_visible_volume_count(feature)) / 4.0,
+        -float(order.get("small_fragment_count") or 0.0),
+        -float(order.get("plan_component_count") or 1.0),
+    )
+
+
+def _pareto_front(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    vectors = {id(feature): _critic_objective_vector(feature) for feature in candidates}
+
+    def dominates(left: tuple[float, ...], right: tuple[float, ...]) -> bool:
+        return all(a >= b for a, b in zip(left, right)) and any(a > b for a, b in zip(left, right))
+
+    return [
+        feature for feature in candidates
+        if not any(
+            other is not feature and dominates(vectors[id(other)], vectors[id(feature)])
+            for other in candidates
+        )
+    ]
 
 
 def _maas_verb_sequence(operator: str) -> list[dict[str, Any]]:
@@ -835,7 +2438,35 @@ def _compact_visual_volumes(floor_plates: list[dict[str, Any]], operator: str) -
         or family in {"stepback_tower", "grade"}
     )
     if has_layered_envelope_steps:
-        cuts = [(index, index) for index in range(n)]
+        # A legal floor stack may change at every floor, but exposing every
+        # legal slice as a design volume produces the fragmented 6--7 piece
+        # masses the visual critic is intended to reject. Preserve the legal
+        # profile with at most four architectural bands: the top, bottom and
+        # the strongest relative step changes in between.
+        change_endpoints = list(range(n - 1))
+        if len(change_endpoints) > 3:
+            ranked_changes = sorted(
+                range(1, n),
+                key=lambda index: (
+                    abs(areas[index] - areas[index - 1]) / max(areas[index - 1], 1e-9),
+                    index,
+                ),
+                reverse=True,
+            )
+            selected = {n - 1}
+            selected.update(index - 1 for index in ranked_changes[:3])
+            change_endpoints = sorted(selected)[:4]
+            if n - 1 not in change_endpoints:
+                change_endpoints[-1] = n - 1
+                change_endpoints.sort()
+        cuts = []
+        start = 0
+        for end in change_endpoints:
+            if start <= end:
+                cuts.append((start, end))
+                start = end + 1
+        if start < n:
+            cuts.append((start, n - 1))
     elif wants_stepped_display and n >= 4:
         raw_cuts = [
             (0, max(0, n // 4 - 1)),
@@ -920,6 +2551,123 @@ def _section_profile_from_sequence(
     stacked boxes.
     """
     calls = [call for call in sequence or [] if isinstance(call, dict)]
+    verb_params = {
+        str(call.get("verb") or ""): call.get("params") if isinstance(call.get("params"), dict) else {}
+        for call in calls
+    }
+
+    def profile_for(verb_name: str) -> dict[str, Any] | None:
+        for candidate in calls:
+            if str(candidate.get("verb") or "") == verb_name:
+                params = candidate.get("params") if isinstance(candidate.get("params"), dict) else {}
+                return params
+        return None
+
+    signature = props.get("source_signature")
+    if not isinstance(signature, dict):
+        model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+        signature = model.get("source_signature") if isinstance(model.get("source_signature"), dict) else {}
+    declared_family = str(signature.get("family") or "")
+    family_profile = {
+        "courtyard": ("courtyard_atrium", "derive_courtyard_section_from_llm_declared_family"),
+        "void_notch": ("notched_void", "derive_void_section_from_llm_declared_family"),
+        "slender_bar": ("bar_notch_terrace", "derive_bar_section_from_llm_declared_family"),
+        "offset": ("offset_twin_bar", "derive_offset_section_from_llm_declared_family"),
+        "array_cluster": ("array_cluster", "derive_array_cluster_section_from_llm_declared_family"),
+        "reflected_pair": ("reflected_court_pair", "derive_reflected_pair_section_from_llm_declared_family"),
+        "split": ("split_bridge", "derive_split_section_from_llm_declared_family"),
+        "branch": ("branch_taper", "derive_branch_section_from_llm_declared_family"),
+        "pinch": ("pinched_waist", "derive_pinch_section_from_llm_declared_family"),
+        "interlock": ("cross_interlock", "derive_interlock_section_from_llm_declared_family"),
+        "overlap": ("overlap_slabs", "derive_overlap_section_from_llm_declared_family"),
+        "diagonal_connect": ("diagonal_connector", "derive_diagonal_section_from_llm_declared_family"),
+        "sloped_roof": ("sloped_roof", "derive_roof_section_from_llm_declared_family"),
+        "bend": ("bend_ribbon", "derive_bend_section_from_llm_declared_family"),
+        "embed": ("embedded_void", "derive_embed_section_from_llm_declared_family"),
+        "extrude": ("extruded_fin", "derive_extrude_section_from_llm_declared_family"),
+        "nest": ("nested_stack", "derive_nest_section_from_llm_declared_family"),
+    }.get(declared_family)
+    if operator.startswith("llm_") and family_profile is not None:
+        profile_kind, render_hint = family_profile
+        return {
+            "kind": profile_kind,
+            "source": "llm_declared_source_family",
+            "operator": operator,
+            "render_hint": render_hint,
+        }
+
+    # Section-defining verbs should win over generic cut/stack verbs even when
+    # the sequence introduces the legal split or void first.
+    diagonal_params = profile_for("diagonal_connect")
+    if diagonal_params is not None:
+        params = diagonal_params
+        return {
+            "kind": "diagonal_connector",
+            "source": "maas_verb_sequence",
+            "operator": operator,
+            "axis": params.get("axis", "x"),
+            "upper_ratio": float(params.get("upper_ratio", 0.72)),
+            "distance_ratio": float(params.get("distance_ratio", 0.10)),
+            "lower_floor_fraction": float(params.get("lower_floor_fraction", props.get("step_floor", 0.40) or 0.40)),
+            "render_hint": "draw_inclined_connector_between_lower_and_upper_masses",
+        }
+    terrace_params = profile_for("terrace_link")
+    if terrace_params is not None:
+        params = terrace_params
+        return {
+            "kind": "terrace_ribbon",
+            "source": "maas_verb_sequence",
+            "operator": operator,
+            "side": params.get("side", "north"),
+            "upper_ratio": float(params.get("upper_ratio", 0.84)),
+            "width_ratio": float(params.get("width_ratio", 0.62)),
+            "depth_ratio": float(params.get("depth_ratio", 0.20)),
+            "render_hint": "draw_continuous_terrace_bands_not_isolated_boxes",
+        }
+    sloped_params = profile_for("sloped_roof_mass")
+    if sloped_params is not None:
+        params = sloped_params
+        return {
+            "kind": "sloped_roof",
+            "source": "maas_verb_sequence",
+            "operator": operator,
+            "upper_ratio": float(params.get("upper_ratio", 0.90)),
+            "x_ratio": float(params.get("x_ratio", 0.70)),
+            "y_ratio": float(params.get("y_ratio", 0.92)),
+            "render_hint": "draw_sloped_envelope_plane_over_mass",
+        }
+    if operator.startswith(("agent_", "llm_")):
+        offset_params = profile_for("offset")
+        if offset_params is not None:
+            return {
+                "kind": "offset_twin_bar",
+                "source": "authored_maas_verb_sequence",
+                "operator": operator,
+                "axis": offset_params.get("axis", "x"),
+                "distance_ratio": float(offset_params.get("distance_ratio", 0.16)),
+                "render_hint": "derive_offset_twin_bars_from_authored_arch_language",
+            }
+        reflect_params = profile_for("reflect")
+        if reflect_params is not None:
+            return {
+                "kind": "reflected_court_pair",
+                "source": "authored_maas_verb_sequence",
+                "operator": operator,
+                "axis": reflect_params.get("axis", "x"),
+                "render_hint": "derive_reflected_court_pair_from_authored_arch_language",
+            }
+        array_params = profile_for("array")
+        if array_params is not None:
+            return {
+                "kind": "array_cluster",
+                "source": "authored_maas_verb_sequence",
+                "operator": operator,
+                "count": int(array_params.get("count", 3) or 3),
+                "axis": array_params.get("axis", "x"),
+                "spacing_ratio": float(array_params.get("spacing_ratio", 0.08)),
+                "render_hint": "derive_clustered_multi_volume_array_from_authored_arch_language",
+            }
+
     for call in calls:
         verb = str(call.get("verb") or "")
         params = call.get("params") if isinstance(call.get("params"), dict) else {}
@@ -955,6 +2703,124 @@ def _section_profile_from_sequence(
                 "y_ratio": float(params.get("y_ratio", 0.92)),
                 "render_hint": "draw_sloped_envelope_plane_over_mass",
             }
+        if verb == "split":
+            lift_params = verb_params.get("lift", {})
+            return {
+                "kind": "split_bridge",
+                "source": "maas_verb_sequence",
+                "operator": operator,
+                "axis": params.get("axis", "x"),
+                "gap_ratio": float(params.get("gap_ratio", 0.14)),
+                "bridge_ratio": float(params.get("bridge_ratio", 0.18)),
+                "upper_ratio": float(lift_params.get("upper_ratio", 0.76)),
+                "lower_floor_fraction": float(lift_params.get("lower_floor_fraction", props.get("step_floor", 0.35) or 0.35)),
+                "render_hint": "derive_split_bridge_from_maas_split_and_lift_params",
+            }
+        if verb == "overlap":
+            offset_vec = params.get("offset_vec") if isinstance(params.get("offset_vec"), list) else [0.35, 0.18, 0.0]
+            return {
+                "kind": "overlap_slabs",
+                "source": "maas_verb_sequence",
+                "operator": operator,
+                "offset_vec": [float(item or 0.0) for item in offset_vec[:3]],
+                "render_hint": "derive_alternating_offsets_from_maas_overlap_vector",
+            }
+        if verb == "interlock":
+            rotate_params = verb_params.get("rotate_part", {})
+            return {
+                "kind": "cross_interlock",
+                "source": "maas_verb_sequence",
+                "operator": operator,
+                "cross_axis": params.get("cross_axis", "z"),
+                "angle": float(rotate_params.get("angle", 24.0)),
+                "render_hint": "derive_cross_interlock_from_interlock_and_rotate_part_verbs",
+            }
+        if verb == "branch":
+            return {
+                "kind": "branch_taper",
+                "source": "maas_verb_sequence",
+                "operator": operator,
+                "angle": float(params.get("angle", 30.0)),
+                "render_hint": "derive_branch_shift_from_maas_branch_angle",
+            }
+        if verb == "bend":
+            return {
+                "kind": "bend_ribbon",
+                "source": "maas_verb_sequence",
+                "operator": operator,
+                "axis": params.get("axis", "y"),
+                "angle": float(params.get("angle", 28.0)),
+                "factor": float(params.get("factor", 0.58)),
+                "render_hint": "derive_bent_ribbon_from_maas_bend_angle",
+            }
+        if verb == "embed":
+            return {
+                "kind": "embedded_void",
+                "source": "maas_verb_sequence",
+                "operator": operator,
+                "guest_scale": float(params.get("guest_scale", 0.42)),
+                "position": params.get("position") if isinstance(params.get("position"), list) else [0.0, 0.0, 0.0],
+                "render_hint": "derive_inner_void_and_offset_upper_from_maas_embed",
+            }
+        if verb == "extrude":
+            return {
+                "kind": "extruded_fin",
+                "source": "maas_verb_sequence",
+                "operator": operator,
+                "axis": params.get("axis", "x"),
+                "length": float(params.get("length", 0.36)),
+                "size": float(params.get("size", 0.34)),
+                "render_hint": "derive_fin_like_extension_from_maas_extrude",
+            }
+        if verb in {"nest", "stack"}:
+            nest_params = verb_params.get("nest", {})
+            stack_params = verb_params.get("stack", {})
+            return {
+                "kind": "nested_stack",
+                "source": "maas_verb_sequence",
+                "operator": operator,
+                "inner_scale": float(nest_params.get("inner_scale", 0.46)),
+                "stack_count": int(stack_params.get("n", 3) or 3),
+                "stack_gap": float(stack_params.get("gap", 0.04)),
+                "upper_ratio": float(stack_params.get("upper_ratio", 0.76)),
+                "render_hint": "derive_nested_atrium_stack_from_maas_nest_stack",
+            }
+        if verb == "pinch":
+            return {
+                "kind": "pinched_waist",
+                "source": "maas_verb_sequence",
+                "operator": operator,
+                "axis": params.get("axis", "x"),
+                "render_hint": "derive_upper_waist_from_maas_pinch_axis",
+            }
+        if verb == "taper":
+            return {
+                "kind": "stepped_tower",
+                "source": "maas_verb_sequence",
+                "operator": operator,
+                "top_ratio": float(params.get("top_ratio", params.get("x_ratio", 0.72))),
+                "x_ratio": float(params.get("x_ratio", params.get("top_ratio", 0.72))),
+                "y_ratio": float(params.get("y_ratio", params.get("top_ratio", 0.72))),
+                "render_hint": "derive_stepback_from_maas_taper_params",
+            }
+        if verb in {"notch", "cave", "puncture"}:
+            return {
+                "kind": "notched_void",
+                "source": "maas_verb_sequence",
+                "operator": operator,
+                "face": params.get("face") or params.get("corner") or params.get("axis") or "+y",
+                "render_hint": "derive_void_from_maas_notch_cave_or_puncture_verb",
+            }
+        if verb == "grade":
+            taper_params = verb_params.get("taper", {})
+            return {
+                "kind": "bar_notch_terrace",
+                "source": "maas_verb_sequence",
+                "operator": operator,
+                "axis": params.get("axis", "+z"),
+                "top_ratio": float(taper_params.get("top_ratio", 0.72)),
+                "render_hint": "derive_terrace_recession_from_maas_grade_axis",
+            }
     family = _operator_family(operator)
     if family in {"diagonal_connect", "terrace_link", "sloped_roof"}:
         profile_kind = {
@@ -967,6 +2833,24 @@ def _section_profile_from_sequence(
             "source": "operator_family",
             "operator": operator,
             "render_hint": "derive_section_profile_from_operator_family",
+        }
+    family_profile = {
+        "slender_bar": ("bar_notch_terrace", "derive_bar_recession_from_operator_family_when_sequence_has_only_compress"),
+        "courtyard": ("courtyard_atrium", "derive_courtyard_upper_recession_from_operator_family_when_sequence_has_only_puncture"),
+        "void_notch": ("notched_void", "derive_notch_from_operator_family_when_sequence_has_only_footprint_cut"),
+        "bend": ("bend_ribbon", "derive_bend_ribbon_from_operator_family"),
+        "embed": ("embedded_void", "derive_embedded_void_from_operator_family"),
+        "extrude": ("extruded_fin", "derive_extruded_fin_from_operator_family"),
+        "nest": ("nested_stack", "derive_nested_stack_from_operator_family"),
+    }.get(family)
+    if family_profile is not None:
+        profile_kind, render_hint = family_profile
+        return {
+            "kind": profile_kind,
+            "source": "operator_family",
+            "operator": operator,
+            "family": family,
+            "render_hint": render_hint,
         }
     return None
 
@@ -1012,6 +2896,8 @@ def _section_materialized_polygon(base_utm, *, profile: dict[str, Any], progress
     span_x = maxx - minx
     span_y = maxy - miny
     kind = str(profile.get("kind") or "")
+    def clamp(value: float, low: float, high: float) -> float:
+        return max(low, min(high, value))
 
     if kind == "sloped_roof":
         x_ratio = max(0.42, 1.0 - (1.0 - float(profile.get("x_ratio") or 0.70)) * progress)
@@ -1042,6 +2928,205 @@ def _section_materialized_polygon(base_utm, *, profile: dict[str, Any], progress
             shapely_scale(base_utm, xfact=max(0.76, 1.0 - 0.14 * progress), yfact=max(0.76, 1.0 - 0.14 * progress), origin="centroid"),
             xoff=x_shift,
             yoff=y_shift,
+        )
+        return shaped.intersection(base_utm)
+
+    if kind == "cross_interlock":
+        angle = clamp(float(profile.get("angle") or 0.0), -42.0, 42.0) * progress
+        rotation_factor = min(1.0, abs(angle) / 42.0)
+        shaped = shapely_rotate(
+            shapely_scale(
+                base_utm,
+                xfact=clamp(1.0 - 0.18 * rotation_factor * progress, 0.70, 1.0),
+                yfact=clamp(1.0 - 0.10 * rotation_factor * progress, 0.76, 1.0),
+                origin="centroid",
+            ),
+            angle,
+            origin="centroid",
+        )
+        shaped = shapely_translate(shaped, xoff=span_x * 0.025 * rotation_factor * progress, yoff=-span_y * 0.018 * rotation_factor * progress)
+        return shaped.intersection(base_utm)
+
+    if kind == "split_bridge":
+        gap_ratio = clamp(float(profile.get("gap_ratio") or 0.14), 0.04, 0.28)
+        bridge_ratio = clamp(float(profile.get("bridge_ratio") or 0.18), 0.08, 0.36)
+        axis = str(profile.get("axis") or "x")
+        direction = -1 if int(progress * 10) % 2 else 1
+        x_shift = direction * span_x * gap_ratio * 0.25 * progress if axis == "x" else 0.0
+        y_shift = direction * span_y * gap_ratio * 0.25 * progress if axis == "y" else span_y * bridge_ratio * 0.12 * progress
+        shaped = shapely_translate(
+            shapely_scale(
+                base_utm,
+                xfact=clamp(1.0 - (gap_ratio + bridge_ratio * 0.35) * progress, 0.64, 1.0) if axis == "x" else clamp(1.0 - bridge_ratio * 0.30 * progress, 0.78, 1.0),
+                yfact=clamp(1.0 - (gap_ratio + bridge_ratio * 0.35) * progress, 0.64, 1.0) if axis == "y" else clamp(1.0 - bridge_ratio * 0.30 * progress, 0.78, 1.0),
+                origin="centroid",
+            ),
+            xoff=x_shift,
+            yoff=y_shift,
+        )
+        return shaped.intersection(base_utm)
+
+    if kind == "courtyard_atrium":
+        shaped = shapely_translate(
+            shapely_scale(
+                base_utm,
+                xfact=max(0.72, 1.0 - 0.14 * progress),
+                yfact=max(0.72, 1.0 - 0.14 * progress),
+                origin="centroid",
+            ),
+            yoff=-span_y * 0.035 * progress,
+        )
+        return shaped.intersection(base_utm)
+
+    if kind == "branch_taper":
+        angle = clamp(float(profile.get("angle") or 0.0), -45.0, 45.0)
+        angle_factor = min(1.0, abs(angle) / 45.0)
+        shaped = shapely_rotate(
+            shapely_scale(
+                base_utm,
+                xfact=clamp(1.0 - 0.24 * angle_factor * progress, 0.62, 1.0),
+                yfact=clamp(1.0 - 0.10 * progress, 0.74, 1.0),
+                origin="centroid",
+            ),
+            angle * 0.28 * progress,
+            origin="centroid",
+        )
+        return shapely_translate(shaped, xoff=-span_x * 0.05 * angle_factor * progress, yoff=span_y * 0.05 * progress).intersection(base_utm)
+
+    if kind == "bend_ribbon":
+        angle = clamp(float(profile.get("angle") or 28.0), -42.0, 42.0)
+        shaped = shapely_rotate(
+            shapely_scale(
+                base_utm,
+                xfact=clamp(1.0 - 0.18 * progress, 0.70, 1.0),
+                yfact=clamp(1.0 - 0.08 * progress, 0.80, 1.0),
+                origin="centroid",
+            ),
+            angle * 0.22 * progress,
+            origin="centroid",
+        )
+        return shapely_translate(shaped, xoff=span_x * 0.06 * progress, yoff=span_y * 0.03 * progress).intersection(base_utm)
+
+    if kind == "embedded_void":
+        guest_scale = clamp(float(profile.get("guest_scale") or 0.32), 0.12, 0.58)
+        position = profile.get("position") if isinstance(profile.get("position"), list) else [0.0, 0.0, 0.0]
+        px = clamp(float(position[0] if len(position) > 0 else 0.0), -0.35, 0.35)
+        py = clamp(float(position[1] if len(position) > 1 else 0.0), -0.35, 0.35)
+        shifted = shapely_translate(
+            shapely_scale(
+                base_utm,
+                xfact=clamp(1.0 - guest_scale * 0.24 * progress, 0.78, 1.0),
+                yfact=clamp(1.0 - guest_scale * 0.24 * progress, 0.78, 1.0),
+                origin="centroid",
+            ),
+            xoff=span_x * px * 0.35 * progress,
+            yoff=span_y * py * 0.35 * progress,
+        ).intersection(base_utm)
+        sx0, sy0, sx1, sy1 = shifted.bounds
+        sdx = sx1 - sx0
+        sdy = sy1 - sy0
+        cx = shifted.centroid.x + sdx * px * 0.12
+        cy = shifted.centroid.y + sdy * py * 0.12
+        void_scale = clamp(guest_scale * (0.42 + 0.28 * progress), 0.10, 0.30)
+        void = box(
+            cx - sdx * void_scale / 2,
+            cy - sdy * void_scale / 2,
+            cx + sdx * void_scale / 2,
+            cy + sdy * void_scale / 2,
+        )
+        return shifted.difference(void)
+
+    if kind == "extruded_fin":
+        axis = str(profile.get("axis") or "x")
+        shaped = shapely_scale(
+            base_utm,
+            xfact=clamp(1.0 - 0.22 * progress, 0.66, 1.0) if axis == "x" else clamp(1.0 - 0.08 * progress, 0.82, 1.0),
+            yfact=clamp(1.0 - 0.22 * progress, 0.66, 1.0) if axis == "y" else clamp(1.0 - 0.08 * progress, 0.82, 1.0),
+            origin="centroid",
+        )
+        return shapely_translate(shaped, xoff=span_x * 0.08 * progress, yoff=span_y * 0.02 * progress).intersection(base_utm)
+
+    if kind == "nested_stack":
+        inner_scale = clamp(float(profile.get("inner_scale") or 0.38), 0.12, 0.58)
+        upper_ratio = clamp(float(profile.get("upper_ratio") or 0.76), 0.50, 0.96)
+        shaped = shapely_scale(
+            base_utm,
+            xfact=clamp(1.0 - (1.0 - upper_ratio) * progress, 0.60, 1.0),
+            yfact=clamp(1.0 - (1.0 - upper_ratio) * progress, 0.60, 1.0),
+            origin="centroid",
+        )
+        shaped = shapely_translate(shaped, yoff=-span_y * float(profile.get("stack_gap") or 0.04) * progress).intersection(base_utm)
+        sx0, sy0, sx1, sy1 = shaped.bounds
+        sdx = sx1 - sx0
+        sdy = sy1 - sy0
+        cx = shaped.centroid.x
+        cy = shaped.centroid.y
+        atrium_scale = clamp(inner_scale * (0.34 + 0.18 * progress), 0.10, 0.28)
+        atrium = box(
+            cx - sdx * atrium_scale / 2,
+            cy - sdy * atrium_scale / 2,
+            cx + sdx * atrium_scale / 2,
+            cy + sdy * atrium_scale / 2,
+        )
+        return shaped.difference(atrium)
+
+    if kind == "overlap_slabs":
+        offset_vec = profile.get("offset_vec") if isinstance(profile.get("offset_vec"), list) else [0.35, 0.18, 0.0]
+        ox = clamp(float(offset_vec[0] if len(offset_vec) > 0 else 0.0), -0.65, 0.65)
+        oy = clamp(float(offset_vec[1] if len(offset_vec) > 1 else 0.0), -0.65, 0.65)
+        direction = -1 if progress < 0.5 else 1
+        shaped = shapely_translate(
+            shapely_scale(
+                base_utm,
+                xfact=clamp(1.0 - abs(ox) * 0.18 * progress, 0.72, 1.0),
+                yfact=clamp(1.0 - abs(oy) * 0.18 * progress, 0.72, 1.0),
+                origin="centroid",
+            ),
+            xoff=direction * span_x * ox * 0.16 * progress,
+            yoff=-direction * span_y * oy * 0.16 * progress,
+        )
+        return shaped.intersection(base_utm)
+
+    if kind in {"bar_notch_terrace", "notched_void"}:
+        top_ratio = clamp(float(profile.get("top_ratio") or 0.72), 0.50, 0.92)
+        recession = (1.0 - top_ratio) * progress
+        notch_depth = span_y * clamp(recession, 0.04, 0.26)
+        notch_width = span_x * clamp(0.24 + recession, 0.24, 0.46)
+        cut = box(
+            minx + span_x * 0.50 - notch_width / 2,
+            maxy - notch_depth,
+            minx + span_x * 0.50 + notch_width / 2,
+            maxy + span_y * 0.02,
+        )
+        shaped = base_utm.difference(cut)
+        if kind == "bar_notch_terrace":
+            shaped = shapely_translate(shapely_scale(shaped, xfact=clamp(1.0 - recession * 0.25, 0.78, 1.0), yfact=1.0, origin="centroid"), yoff=-span_y * recession * 0.28)
+        else:
+            shaped = shapely_scale(shaped, xfact=clamp(1.0 - recession * 0.24, 0.82, 1.0), yfact=clamp(1.0 - recession * 0.24, 0.82, 1.0), origin="centroid")
+        return shaped.intersection(base_utm)
+
+    if kind == "pinched_waist":
+        axis = str(profile.get("axis") or "x")
+        shaped = shapely_scale(
+            base_utm,
+            xfact=clamp(1.0 - 0.26 * progress, 0.58, 1.0) if axis == "x" else clamp(1.0 - 0.08 * progress, 0.82, 1.0),
+            yfact=clamp(1.0 - 0.26 * progress, 0.58, 1.0) if axis == "y" else clamp(1.0 - 0.08 * progress, 0.82, 1.0),
+            origin="centroid",
+        )
+        return shaped.intersection(base_utm)
+
+    if kind == "stepped_tower":
+        x_ratio = clamp(float(profile.get("x_ratio") or profile.get("top_ratio") or 0.72), 0.50, 0.96)
+        y_ratio = clamp(float(profile.get("y_ratio") or profile.get("top_ratio") or 0.72), 0.50, 0.96)
+        shaped = shapely_translate(
+            shapely_scale(
+                base_utm,
+                xfact=clamp(1.0 - (1.0 - x_ratio) * progress, 0.50, 1.0),
+                yfact=clamp(1.0 - (1.0 - y_ratio) * progress, 0.50, 1.0),
+                origin="centroid",
+            ),
+            xoff=span_x * (1.0 - x_ratio) * 0.16 * progress,
+            yoff=-span_y * (1.0 - y_ratio) * 0.16 * progress,
         )
         return shaped.intersection(base_utm)
 
@@ -1342,7 +3427,7 @@ def _materialize_section_profile_volumes(feature: dict[str, Any]) -> None:
     if not isinstance(profile, dict):
         return
     kind = str(profile.get("kind") or "")
-    if kind not in {"sloped_roof", "terrace_ribbon", "diagonal_connector", "diagonal_connect"}:
+    if kind not in SECTION_PROFILE_KINDS:
         return
     existing = props.get("section_profile_materialized")
     if isinstance(existing, dict) and existing.get("kind") == kind:
@@ -1363,6 +3448,16 @@ def _materialize_section_profile_volumes(feature: dict[str, Any]) -> None:
             parsed.append((volume, geom))
     if len(parsed) < 2:
         return
+
+    if kind in {"bend_ribbon", "embedded_void", "extruded_fin", "nested_stack"} and len(parsed) > 5:
+        mid = parsed[len(parsed) // 2]
+        parsed = [parsed[0], parsed[1], mid, parsed[-2], parsed[-1]]
+
+    # A diagonal connector is itself the fourth compositional gesture. Keep
+    # three ordered source masses before adding it, rather than displaying a
+    # fifth helper volume.
+    if kind in {"diagonal_connector", "diagonal_connect"} and len(parsed) > 3:
+        parsed = [parsed[0], parsed[len(parsed) // 2], parsed[-1]]
 
     minx = min(geom.bounds[0] for _, geom in parsed)
     miny = min(geom.bounds[1] for _, geom in parsed)
@@ -1440,6 +3535,16 @@ def _materialize_section_profile_volumes(feature: dict[str, Any]) -> None:
         model["volumes"] = materialized
         model["section_source_surfaces"] = section_surfaces
         model["section_profile_materialized"] = props["section_profile_materialized"]
+    existing_resolution = props.get("geometry_resolution")
+    if not isinstance(existing_resolution, dict):
+        _attach_geometry_resolution(
+            feature,
+            status="clipped_to_legal_envelope",
+            source="section_profile_materializer",
+            legal_action="materialized_inside_legal_floor_plates",
+            fallback="floor_plate_band_source",
+        )
+    _attach_visual_diversity_evidence(feature)
 
 
 def _interpolated_upper_volumes(feature: dict[str, Any], *, steps: int = 4) -> list[dict[str, Any]]:
@@ -1530,11 +3635,54 @@ def _single_volume_model(operator: str, feature: dict[str, Any]) -> dict[str, An
     }
 
 
+def _apply_variant_source_geometry(feature: dict[str, Any], variant) -> None:
+    props = feature.setdefault("properties", {})
+    status = getattr(variant, "source_geometry_status", None)
+    trace = tuple(getattr(variant, "source_verb_trace", ()) or ())
+    signature = getattr(variant, "source_signature", None)
+    volumes = tuple(getattr(variant, "source_volumes", ()) or ())
+    surfaces = tuple(getattr(variant, "source_surfaces", ()) or ())
+    research_basis = getattr(variant, "research_basis", None)
+    if not any((status, trace, signature, volumes, surfaces, research_basis)):
+        return
+    if status:
+        props["source_geometry_status"] = status
+    if trace:
+        props["source_verb_trace"] = [dict(item) for item in trace if isinstance(item, dict)]
+    if isinstance(signature, dict):
+        props["source_signature"] = dict(signature)
+    if volumes:
+        props["source_volumes"] = [dict(item) for item in volumes if isinstance(item, dict)]
+    if surfaces:
+        props["source_surfaces"] = [dict(item) for item in surfaces if isinstance(item, dict)]
+    if isinstance(research_basis, dict):
+        props["research_basis"] = dict(research_basis)
+    model = props.get("maas_model")
+    if isinstance(model, dict):
+        if status:
+            model["source_geometry_status"] = status
+        if trace:
+            model["source_verb_trace"] = [dict(item) for item in trace if isinstance(item, dict)]
+        if isinstance(signature, dict):
+            model["source_signature"] = dict(signature)
+        if volumes:
+            model["source_volumes"] = [dict(item) for item in volumes if isinstance(item, dict)]
+        if surfaces:
+            model["source_surfaces"] = [dict(item) for item in surfaces if isinstance(item, dict)]
+        if isinstance(research_basis, dict):
+            model["research_basis"] = dict(research_basis)
+
+
 def _apply_variant_verb_sequence(feature: dict[str, Any], variant) -> None:
     sequence = getattr(variant, "verb_sequence", ()) or ()
-    if not sequence:
-        return
+    _apply_variant_source_geometry(feature, variant)
     props = feature.get("properties", {}) or {}
+    if not sequence:
+        if props.get("source_geometry_status") == "compiled":
+            _apply_source_volumes_as_mass_geometry(feature)
+        _sync_rule_evidence_notes(feature)
+        _attach_visual_diversity_evidence(feature)
+        return
     sequence_list = [dict(item) for item in sequence]
     props["maas_verb_sequence"] = sequence_list
     model = props.get("maas_model")
@@ -1542,8 +3690,84 @@ def _apply_variant_verb_sequence(feature: dict[str, Any], variant) -> None:
         model["verb_sequence"] = sequence_list
         model["grammar_sequence"] = variant.operator
         model["grammar_label"] = _concept_label(variant.operator)
+        model.pop("section_profile", None)
+        model.pop("section_source_surfaces", None)
+    props.pop("section_profile", None)
+    props.pop("section_source_surfaces", None)
+    props.pop("section_profile_materialized", None)
     _attach_section_profile(feature)
-    _materialize_section_profile_volumes(feature)
+    if not _apply_source_volumes_as_mass_geometry(feature):
+        _materialize_section_profile_volumes(feature)
+    _sync_rule_evidence_notes(feature)
+    _attach_visual_diversity_evidence(feature)
+
+
+def _sync_rule_evidence_notes(feature: dict[str, Any]) -> None:
+    props = feature.setdefault("properties", {})
+    signature = _source_signature(feature)
+    rule_evidence = signature.get("rule_evidence") if isinstance(signature.get("rule_evidence"), dict) else {}
+    if not rule_evidence:
+        return
+    notes = props.get("notes")
+    if not isinstance(notes, list):
+        notes = []
+    existing = {str(note).split("=", 1)[0] for note in notes if isinstance(note, str) and "=" in note}
+    additions: list[str] = []
+    if rule_evidence.get("rule_name") and "rule_name" not in existing:
+        additions.append(f"rule_name={rule_evidence.get('rule_name')}")
+    if "rule_inputs" not in existing:
+        additions.append(f"rule_inputs={rule_evidence.get('rule_inputs') or {}}")
+    if rule_evidence.get("geometry_actions") and "expected_geometry_actions" not in existing:
+        additions.append(f"expected_geometry_actions={rule_evidence.get('geometry_actions')}")
+    if not additions:
+        return
+    props["notes"] = [*notes, *additions]
+    model = props.get("maas_model")
+    if isinstance(model, dict):
+        model["notes"] = props["notes"]
+
+
+def _constraints_agent_summary(envelope) -> dict[str, Any]:
+    return {
+        "bcr_limit": envelope.bcr_limit,
+        "far_limit": envelope.far_limit,
+        "height_limit": envelope.height_limit,
+    }
+
+
+def _attach_massdsl_agent_evidence(
+    feature: dict[str, Any],
+    *,
+    operation_type: str,
+    constraints: dict[str, Any],
+    rejected: list[dict[str, Any]],
+) -> None:
+    props = feature.setdefault("properties", {})
+    model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+    if not isinstance(props.get("section_profile"), dict) and not isinstance(model.get("section_profile"), dict):
+        _attach_section_profile(feature)
+    # Evidence attachment runs after exact integer projection. Rebuilding
+    # section volumes here changed the geometry after pairwise conflicts had
+    # already been solved, so the PNG could contain a duplicate the MILP never
+    # evaluated. Only materialize genuinely missing geometry; selected source
+    # volumes are immutable at this stage.
+    model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+    if not (isinstance(props.get("mass_volumes"), list) and props["mass_volumes"]):
+        if not (isinstance(model.get("volumes"), list) and model["volumes"]):
+            _materialize_section_profile_volumes(feature)
+    _attach_visual_diversity_evidence(feature)
+    proposal = build_massdsl_proposal(
+        feature,
+        operation_type=operation_type,
+        constraints=constraints,
+    )
+    grammar_review = build_grammar_review(feature, rejected=rejected)
+    props["massdsl_proposal"] = proposal
+    props["grammar_review"] = grammar_review
+    model = props.get("maas_model")
+    if isinstance(model, dict):
+        model["massdsl_proposal"] = proposal
+        model["grammar_review"] = grammar_review
 
 
 def _select_diverse_features(
@@ -1564,12 +3788,19 @@ def _select_diverse_features(
     by_score = sorted(features, key=lambda f: f["properties"].get("maas_score", 0), reverse=True)
     selected: list[dict[str, Any]] = []
 
-    # Keep an explicit user/agent-preferred operator first; otherwise keep the
-    # legal capacity anchor first. Family coverage is applied after that.
+    # Keep an explicit user/agent-preferred operator first. In live LLM/agent
+    # design mode, avoid pinning the legal capacity anchor as the first visual
+    # card; it is still available for legal evidence, but should not dominate
+    # the creative massing set.
     anchor = None
     if preferred_operator:
         anchor = next((f for f in by_score if f["properties"].get("mass_shape") == preferred_operator), None)
-    if anchor is None:
+    llm_design_count = sum(
+        1 for feature in by_score
+        if str(feature["properties"].get("mass_shape") or "").startswith(("llm_", "agent_"))
+    )
+    should_pin_legal_anchor = anchor is None and llm_design_count < max(4, limit // 2)
+    if should_pin_legal_anchor:
         anchor = next((f for f in by_score if f["properties"].get("mass_shape") == "legal_layered_max"), None)
     if anchor is not None:
         selected.append(anchor)
@@ -1583,14 +3814,26 @@ def _select_diverse_features(
             candidate_profile = _volume_profile(feature)
             candidate_is_connector = _is_section_connector(feature)
             candidate_verbs = sequence_verbs(feature["properties"].get("maas_verb_sequence"))
+            candidate_source_family = _source_family(feature)
+            candidate_source_profile = _source_area_profile(feature)
             for existing in selected:
                 existing_family = _operator_family(existing["properties"].get("mass_shape", ""))
                 existing_is_connector = _is_section_connector(existing)
                 iou = polygon_iou(candidate, geojson_to_polygon(existing["geometry"]))
                 existing_verbs = sequence_verbs(existing["properties"].get("maas_verb_sequence"))
+                existing_source_family = _source_family(existing)
+                existing_source_profile = _source_area_profile(existing)
                 if iou >= 0.98 and candidate_profile == _volume_profile(existing):
                     return True
                 if iou >= 0.94 and candidate_verbs == existing_verbs:
+                    return True
+                if (
+                    candidate_source_family
+                    and candidate_source_family == existing_source_family
+                    and candidate_source_profile
+                    and candidate_source_profile == existing_source_profile
+                    and iou >= 0.88
+                ):
                     return True
                 if family in {"bcr_fill", "legal_buildable"} and iou >= 0.96:
                     return True
@@ -1611,6 +3854,81 @@ def _select_diverse_features(
         family = _operator_family(feature["properties"].get("mass_shape", ""))
         by_family.setdefault(family, []).append(feature)
 
+    def signature_pool_priority(feature: dict[str, Any]) -> int:
+        shape = str((feature.get("properties") or {}).get("mass_shape") or "")
+        return SIGNATURE_PROPOSAL_PRIORITIES.get(shape, 0)
+
+    def selected_shape_set() -> set[str]:
+        return {
+            str((feature.get("properties") or {}).get("mass_shape") or "")
+            for feature in selected
+        }
+
+    def preserve_signature_review_pool() -> None:
+        if preferred_operator or limit < 12:
+            return
+        target_count = 4 if limit >= 20 else 2
+        signature_candidates = [
+            feature for feature in by_score
+            if signature_pool_priority(feature) > 0
+        ]
+        signature_candidates.sort(
+            key=lambda feature: (
+                signature_pool_priority(feature),
+                1 if _is_reviewable_architectural_mass(feature) else 0,
+                1 if _has_review_source_geometry(feature) else 0,
+                -float(_source_signature(feature).get("parameter_default_ratio") or 0.0),
+                _design_review_quality_key(feature),
+            ),
+            reverse=True,
+        )
+
+        def protected_pool_item(feature: dict[str, Any]) -> bool:
+            shape = str((feature.get("properties") or {}).get("mass_shape") or "")
+            if shape == "legal_layered_max" or _is_clean_layered_anchor(feature):
+                return True
+            if signature_pool_priority(feature) > 0:
+                return True
+            group = _research_quota_group(feature)
+            if group in {"legal_anchor", "additive", "subtractive", "hybrid", "sectional"}:
+                counts = Counter(_research_quota_group(item) for item in selected)
+                floor = 1 if group == "legal_anchor" else 3
+                if counts.get(group, 0) <= floor:
+                    return True
+            return False
+
+        def replacement_indexes() -> list[int]:
+            return [
+                index for index, feature in enumerate(selected)
+                if not protected_pool_item(feature)
+            ]
+
+        for candidate in signature_candidates:
+            if sum(1 for feature in selected if signature_pool_priority(feature) > 0) >= target_count:
+                break
+            candidate_shape = str((candidate.get("properties") or {}).get("mass_shape") or "")
+            if candidate_shape in selected_shape_set():
+                continue
+            if len(selected) < limit:
+                selected.append(candidate)
+                continue
+            indexes = replacement_indexes()
+            if not indexes:
+                continue
+            family_counts = Counter(_source_family(feature) for feature in selected)
+            language_counts = Counter(_research_mass_language(feature) for feature in selected)
+            replace_index = min(
+                indexes,
+                key=lambda index: (
+                    0 if _is_agent_authored_candidate(selected[index]) else -1,
+                    -family_counts.get(_source_family(selected[index]), 0),
+                    -language_counts.get(_research_mass_language(selected[index]), 0),
+                    -float(_source_signature(selected[index]).get("parameter_default_ratio") or 0.0),
+                    _design_review_quality_key(selected[index]),
+                ),
+            )
+            selected[replace_index] = candidate
+
     if limit >= 8:
         capped_by_score = by_score[: max(limit + 12, 32)]
         medoid_pool = [
@@ -1623,6 +3941,24 @@ def _select_diverse_features(
             k=limit - len(selected),
             anchors=selected,
         )
+        for medoid_index, feature in enumerate(medoids, start=1):
+            props = feature.setdefault("properties", {})
+            trace = props.setdefault("selection_trace", [])
+            if isinstance(trace, list):
+                trace.append({
+                    "schema_version": "arr.maas.selection_trace.v1",
+                    "stage": "kmedoid_representative_selection",
+                    "rank": medoid_index,
+                    "pool_size": len(medoid_pool),
+                    "anchor_count": len(selected),
+                    "distance_basis": [
+                        "footprint_iou",
+                        "normalized_mass_metrics",
+                        "verb_sequence_distance",
+                        "operator_family_distance",
+                        "source_profile_distance",
+                    ],
+                })
         selected.extend(medoids)
         min_section_design = min(MIN_SECTION_DESIGN_CONCEPTS, max(1, limit // 5))
         section_design_count = sum(1 for feature in selected if _is_section_connector(feature))
@@ -1752,6 +4088,26 @@ def _select_diverse_features(
             if feature in selected or is_near_duplicate(feature):
                 continue
             selected.append(feature)
+        authored_count = sum(
+            1 for feature in selected
+            if str(feature["properties"].get("mass_shape") or "").startswith(("llm_", "agent_"))
+        )
+        preserve_signature_review_pool()
+        authored_count = sum(
+            1 for feature in selected
+            if str(feature["properties"].get("mass_shape") or "").startswith(("llm_", "agent_"))
+        )
+        if authored_count >= max(4, limit // 2):
+            legal_index = next(
+                (
+                    index for index, feature in enumerate(selected)
+                    if str(feature["properties"].get("mass_shape") or "") == "legal_layered_max"
+                ),
+                None,
+            )
+            if legal_index == 0 and len(selected) > 5:
+                legal_anchor = selected.pop(legal_index)
+                selected.insert(min(5, len(selected)), legal_anchor)
         return selected[:limit]
 
     # Keep at least one sectional/stepback strategy when the parcel can support
@@ -1848,6 +4204,21 @@ def _select_diverse_features(
 
     if preferred_operator:
         return selected
+    authored_count = sum(
+        1 for feature in selected
+        if str(feature["properties"].get("mass_shape") or "").startswith(("llm_", "agent_"))
+    )
+    if authored_count >= max(4, limit // 2):
+        legal_index = next(
+            (
+                index for index, feature in enumerate(selected)
+                if str(feature["properties"].get("mass_shape") or "") == "legal_layered_max"
+            ),
+            None,
+        )
+        if legal_index == 0 and len(selected) > 5:
+            legal_anchor = selected.pop(legal_index)
+            selected.insert(min(5, len(selected)), legal_anchor)
     return selected[:limit]
 
 
@@ -1941,8 +4312,15 @@ def _mass_feature(
     props["mass_volumes"] = model["volumes"]
     props["maas_verb_sequence"] = model["verb_sequence"]
     props["maas_sequence_verbs"] = sequence_verbs(model["verb_sequence"])
+    _attach_geometry_resolution(
+        feature,
+        status="fallback_floor_plate_stack",
+        source="legacy_operator",
+        legal_action="single_or_interpolated_upper_mass",
+    )
     _attach_section_profile(feature)
     _materialize_section_profile_volumes(feature)
+    _attach_visual_diversity_evidence(feature)
     attach_parking_strategy(
         props,
         site_area_m2=site_area_m2,
@@ -2015,7 +4393,8 @@ def _floor_plate_feature(
         "properties": props,
     }
     _attach_section_profile(feature)
-    _materialize_section_profile_volumes(feature)
+    _promote_legal_floor_stack_source_geometry(feature)
+    _attach_visual_diversity_evidence(feature)
     _attach_3d_diversity(feature)
     return feature
 
@@ -2064,6 +4443,14 @@ def generate_legal_mass_variants(
     selected = []
     selected_polygons = []
     rejected = []
+    llm_loop_artifact: dict[str, Any] | None = None
+    llm_loop_config = _llm_loop_config(parking_options)
+    preference_loop_artifact: dict[str, Any] | None = None
+    final_vlm_completion_artifact: dict[str, Any] | None = None
+    preference_loop_config = build_preference_loop_config(parking_options)
+    preference_ranked_pool: list[dict[str, Any]] = []
+    evolution_trace_artifact: dict[str, Any] | None = None
+    critic_geometry_loop_artifact: dict[str, Any] | None = None
 
     layered_stack = build_floor_plate_stack(envelope, sunlight_envelope)
     if layered_stack is not None:
@@ -2078,6 +4465,13 @@ def generate_legal_mass_variants(
             source_iou=source_iou,
         )
         props = feature["properties"]
+        _attach_repair_delta(
+            feature,
+            source_area_m2=float(getattr(repaired_source, "area", 0.0) or 0.0),
+            repaired_area_m2=float(getattr(layered_stack.footprint, "area", 0.0) or 0.0),
+            actions=source_actions,
+            scope="legal_floor_plate_stack",
+        )
         failed_metrics = failed_constraint_metrics(props, envelope)
         if failed_metrics:
             rejected.append({
@@ -2092,6 +4486,7 @@ def generate_legal_mass_variants(
             props["bcr_utilization"] = round(bcr_utilization, 4)
             props["maas_score"] = round(far_utilization * 0.52 + bcr_utilization * 0.30 + diversity * 0.18, 4)
             _attach_design_quality(feature, layered_stack.footprint)
+            attach_program_massing_evidence(feature, building_type=building_type)
             selected.append(feature)
             selected_polygons.append(layered_stack.footprint)
 
@@ -2099,7 +4494,96 @@ def generate_legal_mass_variants(
         repaired_source,
         envelope,
         include_interactive_seed=include_interactive_seed,
+        building_type=building_type,
     )
+    if llm_loop_config["enabled"] and not preferred_operator:
+        generation_feedback = _load_generation_feedback(llm_loop_config)
+        site_context = build_site_context(
+            site_area_m2=site_area_m2,
+            building_type=building_type,
+            limits={
+                "far": envelope.far_limit,
+                "bcr": envelope.bcr_limit,
+                "height": envelope.height_limit,
+                "max_seed_floors": envelope.max_seed_floors,
+            },
+            max_variants=max_variants,
+        )
+        try:
+            llm_batch = generate_llm_massdsl_batch(
+                site_context=site_context,
+                target_count=int(llm_loop_config["target_count"]),
+                model=llm_loop_config["model"],
+                timeout=float(llm_loop_config["timeout"]),
+                batch_size=int(llm_loop_config["batch_size"]),
+                batch_retries=int(llm_loop_config["batch_retries"]),
+                batch_workers=int(llm_loop_config.get("batch_workers") or 1),
+                max_openai_batches=(
+                    int(llm_loop_config["max_openai_batches"])
+                    if int(llm_loop_config.get("max_openai_batches") or 0) > 0
+                    else None
+                ),
+                max_output_tokens=int(llm_loop_config["max_output_tokens"]),
+                overgenerate_count=int(llm_loop_config.get("overgenerate_count") or 0),
+                cache_path=llm_loop_config.get("batch_cache_path") or None,
+                generation_feedback=generation_feedback,
+            )
+            compile_limit = int(llm_loop_config.get("compile_limit") or 90)
+            llm_variants = [
+                variant
+                for sequence in llm_batch.sequences[:compile_limit]
+                for variant in [interpret_sequence(repaired_source, sequence)]
+                if variant is not None
+            ]
+            llm_loop_artifact = dict(llm_batch.artifact)
+            llm_loop_artifact["compiled_variant_count"] = len(llm_variants)
+            llm_loop_artifact["status"] = "compiled"
+            llm_loop_artifact["generation_feedback_enabled"] = bool(generation_feedback)
+            evolution_result = evolve_massdsl_islands(
+                base_footprint=repaired_source,
+                seed_sequences=llm_batch.sequences[:compile_limit],
+                interpret=interpret_sequence,
+                max_children=max(12, min(48, compile_limit // 2)),
+            )
+            evolution_trace_artifact = evolution_result.trace
+            if evolution_result.variants:
+                llm_loop_artifact["evolved_variant_count"] = len(evolution_result.variants)
+                variants = evolution_result.variants + llm_variants + variants
+            else:
+                variants = llm_variants + variants
+        except (LlmProposalError, ValueError) as exc:
+            llm_loop_artifact = {
+                "schema_version": LLM_BATCH_SCHEMA_VERSION,
+                "status": "failed",
+                "provider": "openai",
+                "error": str(exc),
+                "required": bool(llm_loop_config["required"]),
+            }
+            if llm_loop_config["required"]:
+                raise ValueError(f"required MAAS LLM proposal loop failed: {exc}") from exc
+
+    if evolution_trace_artifact is None and not preferred_operator:
+        seed_sequences = [
+            sequence
+            for variant in variants
+            for sequence in [sequence_from_variant(variant)]
+            if sequence is not None
+        ]
+        evolution_result = evolve_massdsl_islands(
+            base_footprint=repaired_source,
+            seed_sequences=seed_sequences,
+            interpret=interpret_sequence,
+            # Expand the deterministic topology search without allowing the
+            # much larger morphology seed pool to grow unbounded.
+            # Twenty final alternatives need enough clean, pairwise-separated
+            # candidates after legal/coherence rejection. 64 stopped after
+            # sixteen children per island and systematically omitted later
+            # seed typologies; 96 remains bounded while reviewing 24/island.
+            max_children=96,
+        )
+        evolution_trace_artifact = evolution_result.trace
+        if evolution_result.variants:
+            variants = evolution_result.variants + variants
 
     for variant in variants:
         repaired_fp, floors, actions = repair_design(
@@ -2118,7 +4602,10 @@ def generate_legal_mass_variants(
             upper = upper.intersection(repaired_fp)
             if upper.is_empty or upper.area < 1.0:
                 upper = None
-            elif not _upper_typology_is_viable(repaired_fp, upper):
+            elif (
+                not variant.operator.startswith(("agent_", "llm_"))
+                and not _upper_typology_is_viable(repaired_fp, upper)
+            ):
                 rejected.append({
                     "operator": variant.operator,
                     "reason": "upper_typology_too_small_for_architectural_mass",
@@ -2129,6 +4616,12 @@ def generate_legal_mass_variants(
 
         source_iou = round(1.0 - diversity_score(repaired_fp, [], repaired_source), 4)
         diversity = diversity_score(repaired_fp, selected_polygons, repaired_source)
+        review_floors = _research_review_floors(
+            variant,
+            floors,
+            get_floor_height(building_type),
+            envelope.height_limit,
+        ) if variant.operator.startswith(("agent_", "llm_")) else floors
         variant_stack = None
         if _should_use_floor_plate_stack(variant.operator, preferred_operator):
             variant_stack = build_floor_plate_stack(
@@ -2159,7 +4652,7 @@ def generate_legal_mass_variants(
                 operator=variant.operator,
                 footprint_utm=repaired_fp,
                 upper_footprint_utm=upper,
-                num_floors=floors,
+                num_floors=review_floors,
                 lower_floor_fraction=variant.lower_floor_fraction,
                 site_utm=site_utm,
                 site_area_m2=site_area_m2,
@@ -2170,6 +4663,13 @@ def generate_legal_mass_variants(
             )
             _apply_variant_verb_sequence(feature, variant)
         props = feature["properties"]
+        _attach_repair_delta(
+            feature,
+            source_area_m2=float(getattr(variant.footprint, "area", 0.0) or 0.0),
+            repaired_area_m2=float(getattr(repaired_fp, "area", 0.0) or 0.0),
+            actions=actions,
+            scope="legal_footprint",
+        )
         if (
             variant.operator == "grammar_sunlight_multi_step"
             and len(props.get("mass_volumes") or []) < 3
@@ -2193,7 +4693,10 @@ def generate_legal_mass_variants(
         props["far_utilization"] = round(far_utilization, 4)
         props["bcr_utilization"] = round(bcr_utilization, 4)
         props["maas_score"] = round(far_utilization * 0.45 + bcr_utilization * 0.35 + diversity * 0.20, 4)
+        if variant.operator.startswith("llm_"):
+            props["llm_candidate_quality"] = _llm_candidate_quality(feature)
         _attach_design_quality(feature, repaired_fp)
+        attach_program_massing_evidence(feature, building_type=building_type)
         selected.append(feature)
         selected_polygons.append(repaired_fp)
 
@@ -2213,7 +4716,7 @@ def generate_legal_mass_variants(
     parking_scan_features = list(selected)
     if not preferred_operator:
         parking_scan_features.extend(
-            feature for feature in legal_candidate_pool[:24]
+            feature for feature in legal_candidate_pool
             if feature not in parking_scan_features
         )
     _attach_parking_requirements(
@@ -2231,14 +4734,16 @@ def generate_legal_mass_variants(
     parking_viable_extras.sort(key=_parking_priority_key, reverse=True)
     for feature in parking_viable_extras[:3]:
         selected.append(feature)
-    parking_repairs = _parking_repair_candidates(
-        selected,
-        envelope=envelope,
-        site_utm=site_utm,
-        site_area_m2=site_area_m2,
-        building_type=building_type,
-        parking_options=parking_options,
-    )
+    parking_repairs = []
+    if pnu or (parking_options or {}).get("enable_parking_repair"):
+        parking_repairs = _parking_repair_candidates(
+            selected,
+            envelope=envelope,
+            site_utm=site_utm,
+            site_area_m2=site_area_m2,
+            building_type=building_type,
+            parking_options=parking_options,
+        )
     if parking_repairs:
         _attach_parking_requirements(
             parking_repairs,
@@ -2250,6 +4755,8 @@ def generate_legal_mass_variants(
         )
         _sync_parking_repair_metadata(parking_repairs)
         selected.extend(parking_repairs)
+    for feature in selected:
+        attach_program_massing_evidence(feature, building_type=building_type)
     parking_visible = [
         feature for feature in selected
         if _parking_priority_key(feature)[1] > 0
@@ -2268,7 +4775,7 @@ def generate_legal_mass_variants(
             and _is_reviewable_architectural_mass(feature)
             and not _is_plain_capacity_anchor(feature)
             and (
-                _is_grammar_candidate(feature)
+                _is_authored_mass_candidate(feature)
                 or _design_synthesis_rank(feature) > 0
                 or _visible_volume_count(feature) > 1
             )
@@ -2285,8 +4792,49 @@ def generate_legal_mass_variants(
         supplemental_design_candidates.sort(key=_design_review_quality_key, reverse=True)
         for feature in supplemental_design_candidates:
             selected.append(feature)
-            if len(selected) >= max_variants * 3:
+            if len(selected) >= max_variants * 5:
                 break
+        research_family_reps: list[dict[str, Any]] = []
+        for family in RESEARCH_TARGET_FAMILIES:
+            options = [
+                feature for feature in legal_candidate_pool
+                if _source_family(feature) == family
+                and _is_reviewable_architectural_mass(feature)
+            ]
+            options.sort(key=_design_review_quality_key, reverse=True)
+            if options:
+                research_family_reps.append(options[0])
+        if research_family_reps:
+            _attach_parking_requirements(
+                research_family_reps,
+                pnu=pnu,
+                building_type=building_type,
+                site_utm=site_utm,
+                site_area_m2=site_area_m2,
+                parking_options=parking_options,
+            )
+            pinned_ids = {id(feature) for feature in research_family_reps}
+            selected = research_family_reps + [
+                feature for feature in selected
+                if id(feature) not in pinned_ids
+            ]
+        agent_reps = [
+            feature for feature in legal_candidate_pool
+            if _is_agent_authored_candidate(feature)
+            and _has_review_source_geometry(feature)
+            and feature not in selected
+        ]
+        agent_reps.sort(key=_design_review_quality_key, reverse=True)
+        if agent_reps:
+            _attach_parking_requirements(
+                agent_reps,
+                pnu=pnu,
+                building_type=building_type,
+                site_utm=site_utm,
+                site_area_m2=site_area_m2,
+                parking_options=parking_options,
+            )
+            selected.extend(agent_reps[:max_variants])
     if preferred_operator:
         preferred_index = next(
             (
@@ -2297,23 +4845,957 @@ def generate_legal_mass_variants(
         )
         if preferred_index is not None:
             selected.insert(0, selected.pop(preferred_index))
+    elif max_variants >= 20:
+        agent_pins = [
+            feature for feature in legal_candidate_pool
+            if _is_agent_authored_candidate(feature)
+            and _has_review_source_geometry(feature)
+            and (feature.get("properties", {}).get("llm_candidate_quality", {}).get("status") != "reject_final_review")
+        ]
+        agent_pins.sort(key=_design_review_quality_key, reverse=True)
+        seen_agent_shapes: set[str] = set()
+        unique_agent_pins: list[dict[str, Any]] = []
+        for feature in agent_pins:
+            shape = str((feature.get("properties") or {}).get("mass_shape") or "")
+            if shape in seen_agent_shapes:
+                continue
+            seen_agent_shapes.add(shape)
+            unique_agent_pins.append(feature)
+        pinned_ids = {id(feature) for feature in unique_agent_pins}
+        selected = unique_agent_pins + [
+            feature for feature in selected
+            if id(feature) not in pinned_ids
+        ]
+    if not preferred_operator and max_variants >= 20:
+        selected_ids = {id(feature) for feature in selected}
+        architecture_pass_pool = [
+            feature for feature in legal_candidate_pool
+            if id(feature) not in selected_ids
+            and _has_review_source_geometry(feature)
+            and _is_reviewable_architectural_mass(feature)
+            and _architectural_order_gate(feature)[0]
+            and not _is_plain_capacity_anchor(feature)
+        ]
+        architecture_pass_pool.sort(key=_design_review_quality_key, reverse=True)
+        selected.extend(architecture_pass_pool)
+    if not preferred_operator:
+        preference_source_pool: list[dict[str, Any]] = []
+        seen_preference_ids: set[int] = set()
+        for feature in [*selected, *legal_candidate_pool]:
+            if id(feature) in seen_preference_ids:
+                continue
+            seen_preference_ids.add(id(feature))
+            preference_source_pool.append(feature)
+        preference_loop_artifact = apply_preference_loop(
+            preference_source_pool,
+            config=preference_loop_config,
+            callbacks=PreferenceLoopCallbacks(
+                design_review_quality_key=_design_review_quality_key,
+                final_mass_stage_parking_pass=final_mass_stage_parking_pass,
+                has_review_source_geometry=_has_review_source_geometry,
+                is_plain_capacity_anchor=_is_plain_capacity_anchor,
+                is_reviewable_architectural_mass=_is_vlm_review_candidate,
+                source_family=_source_family,
+            ),
+        )
+        preference_ranked_pool = list(preference_source_pool)
+        selected_ids = {id(feature) for feature in selected}
+        selected = [
+            feature for feature in preference_source_pool
+            if id(feature) in selected_ids
+        ] + [
+            feature for feature in preference_source_pool
+            if id(feature) not in selected_ids
+        ]
+        actionable = [
+            feature for feature in preference_source_pool
+            if isinstance(((feature.get("properties") or {}).get("preference_distillation") or {}).get("critic_actions"), list)
+            and ((feature.get("properties") or {}).get("preference_distillation") or {}).get("critic_actions")
+        ]
+        if actionable:
+            def evaluate_critic_variant(variant) -> dict[str, Any] | None:
+                repaired_fp, floors, actions = repair_design(
+                    variant.footprint,
+                    site_utm,
+                    max_seed_floors,
+                    limits,
+                    sunlight_envelope=sunlight_envelope,
+                )
+                if repaired_fp is None:
+                    return None
+                upper = variant.upper_footprint
+                if upper is not None:
+                    upper = upper.intersection(repaired_fp)
+                    if upper.is_empty or upper.area < 1.0:
+                        upper = None
+                review_floors = _research_review_floors(
+                    variant,
+                    floors,
+                    get_floor_height(building_type),
+                    envelope.height_limit,
+                )
+                feature = _mass_feature(
+                    operator=variant.operator,
+                    footprint_utm=repaired_fp,
+                    upper_footprint_utm=upper,
+                    num_floors=review_floors,
+                    lower_floor_fraction=variant.lower_floor_fraction,
+                    site_utm=site_utm,
+                    site_area_m2=site_area_m2,
+                    building_type=building_type,
+                    notes=variant.notes + tuple(actions),
+                    diversity=diversity_score(repaired_fp, selected_polygons, repaired_source),
+                    source_iou=round(1.0 - diversity_score(repaired_fp, [], repaired_source), 4),
+                )
+                _apply_variant_verb_sequence(feature, variant)
+                _attach_repair_delta(
+                    feature,
+                    source_area_m2=float(getattr(variant.footprint, "area", 0.0) or 0.0),
+                    repaired_area_m2=float(getattr(repaired_fp, "area", 0.0) or 0.0),
+                    actions=actions,
+                    scope="critic_legal_footprint",
+                )
+                props = feature["properties"]
+                if failed_constraint_metrics(props, envelope):
+                    return None
+                props["far_utilization"] = min(1.0, props["far"] / envelope.far_limit) if envelope.far_limit > 0 else 0.0
+                props["bcr_utilization"] = min(1.0, props["bcr"] / envelope.bcr_limit) if envelope.bcr_limit > 0 else 0.0
+                props["maas_score"] = round(props["far_utilization"] * 0.45 + props["bcr_utilization"] * 0.35, 4)
+                _attach_design_quality(feature, repaired_fp)
+                _attach_parking_requirements(
+                    [feature],
+                    pnu=pnu,
+                    building_type=building_type,
+                    site_utm=site_utm,
+                    site_area_m2=site_area_m2,
+                    parking_options=parking_options,
+                )
+                _attach_visual_diversity_evidence(feature)
+                if not final_mass_stage_parking_pass(feature) or not _architectural_order_gate(feature)[0]:
+                    return None
+                return feature
+
+            def rescore_critic_children(children: list[dict[str, Any]]) -> None:
+                if not children:
+                    return
+                revision_config = {**preference_loop_config, "top_k": len(children)}
+                apply_preference_loop(
+                    children,
+                    config=revision_config,
+                    callbacks=PreferenceLoopCallbacks(
+                        design_review_quality_key=_design_review_quality_key,
+                        final_mass_stage_parking_pass=final_mass_stage_parking_pass,
+                        has_review_source_geometry=_has_review_source_geometry,
+                        is_plain_capacity_anchor=_is_plain_capacity_anchor,
+                        is_reviewable_architectural_mass=_is_vlm_review_candidate,
+                        source_family=_source_family,
+                    ),
+                )
+
+            critic_result = run_critic_geometry_loop(
+                base_footprint=repaired_source,
+                scored_features=actionable,
+                interpret=interpret_sequence,
+                evaluate=evaluate_critic_variant,
+                rescore=rescore_critic_children,
+                quality_key=_design_review_quality_key,
+                objective_vector=_critic_objective_vector,
+                max_generations=2,
+            )
+            critic_geometry_loop_artifact = critic_result.trace
+            if critic_result.accepted:
+                accepted_ids = {id(feature) for feature in critic_result.accepted}
+                legal_candidate_pool.extend(critic_result.accepted)
+                pareto = _pareto_front(legal_candidate_pool)
+                medoids = _kmedoid_representatives(
+                    pareto,
+                    k=min(max_variants * 2, len(pareto)),
+                )
+                medoid_ids = {id(feature) for feature in medoids}
+                legal_candidate_pool = medoids + [
+                    feature for feature in legal_candidate_pool
+                    if id(feature) not in medoid_ids
+                ]
+                critic_geometry_loop_artifact["pareto_front_count"] = len(pareto)
+                critic_geometry_loop_artifact["kmedoid_representative_count"] = len(medoids)
+                critic_geometry_loop_artifact["kmedoid_representatives"] = [
+                    str((feature.get("properties") or {}).get("mass_shape") or "")
+                    for feature in medoids
+                ]
+                selected = critic_result.accepted + [feature for feature in selected if id(feature) not in accepted_ids]
+                preference_ranked_pool.extend(critic_result.accepted)
     final_limit = max(1, max_variants)
     selected = _preserve_visible_section_connector(
         selected,
         final_limit=final_limit,
         preferred_operator=preferred_operator,
     )
+    if not preferred_operator and max_variants >= 20:
+        selected_ids = {id(feature) for feature in selected}
+        selected = selected + [
+            feature for feature in legal_candidate_pool
+            if id(feature) not in selected_ids
+            and _has_review_source_geometry(feature)
+            and _is_reviewable_architectural_mass(feature)
+            and final_mass_stage_parking_pass(feature)
+        ]
     selected = _final_design_balanced_selection(
         selected,
         final_limit=final_limit,
         preferred_operator=preferred_operator,
     )
+    selected = refine_final_review_set(
+        selected,
+        legal_candidate_pool=legal_candidate_pool,
+        final_limit=final_limit,
+        preferred_operator=preferred_operator,
+        callbacks=FinalReviewRefinementCallbacks(
+            design_review_quality_key=_design_review_quality_key,
+            has_review_source_geometry=_has_review_source_geometry,
+            is_agent_authored_candidate=_is_agent_authored_candidate,
+            is_clean_layered_anchor=_is_clean_layered_anchor,
+            is_direct_openai_llm_candidate=_is_direct_openai_llm_candidate,
+            is_llm_authored_candidate=_is_llm_authored_candidate,
+            is_plain_capacity_anchor=_is_plain_capacity_anchor,
+            is_reviewable_architectural_mass=_is_reviewable_architectural_mass,
+            research_mass_language=_research_mass_language,
+            source_family=_source_family,
+            source_signature=_source_signature,
+        ),
+    )
+    if not preferred_operator:
+        preference_guard_callbacks = PreferenceGuardCallbacks(
+            architectural_order_gate=_architectural_order_gate,
+            design_review_quality_key=_design_review_quality_key,
+            final_mass_stage_parking_pass=final_mass_stage_parking_pass,
+            formal_principle=_formal_principle,
+            has_review_source_geometry=_has_review_source_geometry,
+            is_direct_openai_llm_candidate=_is_direct_openai_llm_candidate,
+            is_plain_capacity_anchor=_is_plain_capacity_anchor,
+            is_reviewable_architectural_mass=_is_reviewable_architectural_mass,
+            preference_vlm_scored=preference_vlm_scored,
+            research_mass_language=_research_mass_language,
+            source_family=_source_family,
+        )
+        selected = enforce_final_vlm_preference_minimum(
+            selected,
+            source_pool=legal_candidate_pool,
+            final_limit=final_limit,
+            min_count=min(14, int(preference_loop_config.get("min_final_vlm_scored") or 0)),
+            callbacks=preference_guard_callbacks,
+            preferred_operator=preferred_operator,
+        )
+        selected = enforce_final_direct_llm_minimum(
+            selected,
+            source_pool=legal_candidate_pool,
+            final_limit=final_limit,
+            callbacks=preference_guard_callbacks,
+            min_count=16,
+            preferred_operator=preferred_operator,
+        )
+        selected = recover_final_vlm_review_metrics(
+            selected,
+            source_pool=legal_candidate_pool,
+            final_limit=final_limit,
+            min_vlm_count=min(14, int(preference_loop_config.get("min_final_vlm_scored") or 0)),
+            min_direct_count=16,
+            callbacks=preference_guard_callbacks,
+            preferred_operator=preferred_operator,
+        )
+        # Jointly recover canonical language/role repetition and island
+        # coverage. Improvements may require two swaps, so do not require one
+        # candidate to solve every deficit at once.
+        visible = list(selected[:final_limit])
+        tail = list(selected[final_limit:])
+        for item in legal_candidate_pool:
+            _attach_visual_diversity_evidence(item)
+        island_targets = {"additive": 4, "subtractive": 4, "hybrid": 4, "sectional": 4}
+        def final_projection_score(items: list[dict[str, Any]]) -> int:
+            languages = Counter(_research_mass_language(item) for item in items if _research_mass_language(item))
+            roles = Counter(_research_role_pattern(item) for item in items if _research_role_pattern(item))
+            formal_principles = Counter(_formal_principle(item) for item in items if _formal_principle(item))
+            islands = Counter(_research_quota_group(item) for item in items if _research_quota_group(item))
+            heights = Counter(f"{float((item.get('properties') or {}).get('height') or 0.0):.2f}" for item in items)
+            families = {_source_family(item) for item in items if _source_family(item)}
+            shapes = [str((item.get("properties") or {}).get("mass_shape") or "").lower() for item in items]
+            evolved_count = sum(1 for shape in shapes if "__evo_" in shape or "__critic_" in shape)
+            crossover_count = sum(1 for shape in shapes if "__evo_cross_" in shape)
+            weak_llm_count = sum(
+                1 for item in items
+                if (((item.get("properties") or {}).get("llm_candidate_quality") or {}).get("status") == "reject_final_review")
+            )
+            anchor_groups = {
+                "rectangular": {"legal_layered", "slender_bar", "offset"},
+                "stepped": {"terrace_link", "stack", "sloped_roof"},
+                "podium_tower": {"tapered_tower", "slender_bar", "branch"},
+                "courtyard": {"courtyard", "embed", "nest", "void_notch"},
+                "sectional": {"diagonal_connect", "split", "sloped_roof", "terrace_link"},
+            }
+            anchor_deficit = sum(
+                1 for allowed in anchor_groups.values()
+                if not any(_source_family(item) in allowed for item in items)
+            )
+            clean_failures = 0
+            for item in items:
+                props = item.get("properties") if isinstance(item.get("properties"), dict) else {}
+                orderliness = props.get("orderliness_evidence") if isinstance(props.get("orderliness_evidence"), dict) else {}
+                signature = _source_signature(item)
+                coherence = signature.get("coherence_evidence") if isinstance(signature.get("coherence_evidence"), dict) else {}
+                repair_delta = props.get("repair_delta") if isinstance(props.get("repair_delta"), dict) else {}
+                volumes = props.get("mass_volumes") if isinstance(props.get("mass_volumes"), list) else []
+                tiers = {
+                    (
+                        round(float(volume.get("bottom_height") or 0.0), 2),
+                        round(float(volume.get("top_height") or 0.0), 2),
+                    )
+                    for volume in volumes
+                    if isinstance(volume, dict)
+                }
+                clean_failures += max(0, int(orderliness.get("small_fragment_count") or 0) - 1)
+                clean_failures += max(0, int(orderliness.get("plan_component_count") or 1) - 2)
+                # Complexity is a liability, not a target.  Two coherent
+                # masses/tiers are valid anchors; penalize only over-composed
+                # results and disconnected fragments.
+                clean_failures += max(0, len(volumes) - 4)
+                clean_failures += max(0, len(tiers) - 4)
+                clean_failures += 10 if coherence and not coherence.get("hard_pass") else 0
+                clean_failures += 10 if repair_delta and float(repair_delta.get("area_retention") or 0.0) < 0.65 else 0
+            return (
+                clean_failures * 12000
+                + max(0, 15 - len(families)) * 5000
+                + sum(max(0, count - 2) for count in languages.values()) * 8000
+                + sum(max(0, count - 2) for count in roles.values()) * 4000
+                + sum(max(0, count - 4) for count in formal_principles.values()) * 3000
+                + sum(max(0, target - islands.get(group, 0)) for group, target in island_targets.items()) * 7500
+                + max(0, weak_llm_count - 1) * 9000
+                + max(0, max(heights.values(), default=0) - 12) * 3600
+                + anchor_deficit * 4500
+                + max(0, evolved_count - 4) * 4200
+                + max(0, crossover_count - 2) * 5000
+            )
+
+        for _ in range(final_limit * 3):
+            current_score = final_projection_score(visible)
+            if current_score <= 0:
+                break
+            current_heights = Counter(
+                f"{float((item.get('properties') or {}).get('height') or 0.0):.2f}"
+                for item in visible
+            )
+            current_languages = Counter(
+                _research_mass_language(item)
+                for item in visible
+                if _research_mass_language(item)
+            )
+            selected_ids = {id(item) for item in visible}
+            selected_shapes = {str((item.get("properties") or {}).get("mass_shape") or "") for item in visible}
+            candidates = [
+                item for item in legal_candidate_pool
+                if id(item) not in selected_ids
+                and str((item.get("properties") or {}).get("mass_shape") or "") not in selected_shapes
+                and _architectural_order_gate(item)[0]
+                and final_mass_stage_parking_pass(item)
+            ]
+            candidates.sort(key=_design_review_quality_key, reverse=True)
+            best: tuple[int, int, dict[str, Any]] | None = None
+            min_vlm = min(14, int(preference_loop_config.get("min_final_vlm_scored") or 0))
+            for candidate in candidates[:160]:
+                for index, old in enumerate(visible):
+                    projected_vlm = sum(1 for item in visible if preference_vlm_scored(item)) - int(preference_vlm_scored(old)) + int(preference_vlm_scored(candidate))
+                    projected_direct = sum(1 for item in visible if _is_direct_openai_llm_candidate(item)) - int(_is_direct_openai_llm_candidate(old)) + int(_is_direct_openai_llm_candidate(candidate))
+                    if projected_vlm < min_vlm or projected_direct < 16:
+                        continue
+                    projected = list(visible)
+                    projected[index] = candidate
+                    projected_heights = Counter(
+                        f"{float((item.get('properties') or {}).get('height') or 0.0):.2f}"
+                        for item in projected
+                    )
+                    if max(projected_heights.values(), default=0) > max(12, max(current_heights.values(), default=0)):
+                        continue
+                    projected_languages = Counter(
+                        _research_mass_language(item)
+                        for item in projected
+                        if _research_mass_language(item)
+                    )
+                    if max(projected_languages.values(), default=0) > max(2, max(current_languages.values(), default=0)):
+                        continue
+                    projected_score = final_projection_score(projected)
+                    if projected_score >= current_score:
+                        continue
+                    rank = (projected_score, index, candidate)
+                    if best is None or rank[0] < best[0]:
+                        best = rank
+            if best is None:
+                # Some canonical-repeat repairs need a neutral bridge swap:
+                # first create one surplus representative in the crowded
+                # language's island, then replace the crowded member with a
+                # candidate from the temporarily reduced island.
+                visible_languages = Counter(_research_mass_language(item) for item in visible if _research_mass_language(item))
+                visible_islands = Counter(_research_quota_group(item) for item in visible if _research_quota_group(item))
+                crowded_languages = {key for key, count in visible_languages.items() if count > 2}
+                crowded_islands = {
+                    _research_quota_group(item)
+                    for item in visible
+                    if _research_mass_language(item) in crowded_languages
+                }
+                bridge_done = False
+                for candidate in candidates[:160]:
+                    candidate_group = _research_quota_group(candidate)
+                    if candidate_group not in crowded_islands or _research_mass_language(candidate) in crowded_languages:
+                        continue
+                    for index, old in enumerate(visible):
+                        old_group = _research_quota_group(old)
+                        if old_group == candidate_group or visible_islands.get(old_group, 0) <= island_targets.get(old_group, 0):
+                            continue
+                        projected_vlm = sum(1 for item in visible if preference_vlm_scored(item)) - int(preference_vlm_scored(old)) + int(preference_vlm_scored(candidate))
+                        projected_direct = sum(1 for item in visible if _is_direct_openai_llm_candidate(item)) - int(_is_direct_openai_llm_candidate(old)) + int(_is_direct_openai_llm_candidate(candidate))
+                        if projected_vlm < min_vlm or projected_direct < 16:
+                            continue
+                        visible[index] = candidate
+                        bridge_done = True
+                        break
+                    if bridge_done:
+                        break
+                if bridge_done:
+                    continue
+                break
+            _, replace_index, candidate = best
+            visible[replace_index] = candidate
+        selected = visible + [item for item in tail if id(item) not in {id(feature) for feature in visible}]
+        # Canonical evidence can collapse distinct raw labels after the joint
+        # solver. Perform one exhaustive final repair against the exact values
+        # consumed by the verifier, while preserving every hard gate.
+        visible = list(selected[:final_limit])
+        tail = list(selected[final_limit:])
+        for _ in range(final_limit * 2):
+            for item in [*visible, *legal_candidate_pool]:
+                _attach_visual_diversity_evidence(item)
+            language_counts = Counter(_research_mass_language(item) for item in visible if _research_mass_language(item))
+            crowded = {language for language, count in language_counts.items() if count > 2}
+            if not crowded:
+                break
+            selected_ids = {id(item) for item in visible}
+            best_exact: tuple[int, int, dict[str, Any]] | None = None
+            for candidate in legal_candidate_pool:
+                if id(candidate) in selected_ids or _research_mass_language(candidate) in crowded:
+                    continue
+                if not _architectural_order_gate(candidate)[0] or not final_mass_stage_parking_pass(candidate):
+                    continue
+                for index, old in enumerate(visible):
+                    if _research_mass_language(old) not in crowded:
+                        continue
+                    projected = list(visible)
+                    projected[index] = candidate
+                    projected_languages = Counter(_research_mass_language(item) for item in projected if _research_mass_language(item))
+                    projected_roles = Counter(_research_role_pattern(item) for item in projected if _research_role_pattern(item))
+                    projected_heights = Counter(f"{float((item.get('properties') or {}).get('height') or 0.0):.2f}" for item in projected)
+                    projected_islands = Counter(_research_quota_group(item) for item in projected)
+                    projected_families = {_source_family(item) for item in projected if _source_family(item)}
+                    if max(projected_languages.values(), default=0) > 2:
+                        continue
+                    if max(projected_roles.values(), default=0) > 2 or max(projected_heights.values(), default=0) > 12:
+                        continue
+                    if len(projected_families) < 15 or any(projected_islands.get(group, 0) < 4 for group in island_targets):
+                        continue
+                    if sum(1 for item in projected if _is_direct_openai_llm_candidate(item)) < 16:
+                        continue
+                    if sum(1 for item in projected if preference_vlm_scored(item)) < min_vlm:
+                        continue
+                    rank = final_projection_score(projected)
+                    if best_exact is None or rank < best_exact[0]:
+                        best_exact = (rank, index, candidate)
+            if best_exact is None:
+                break
+            _, index, candidate = best_exact
+            visible[index] = candidate
+
+        # A single-swap repair can be mathematically impossible when both a
+        # crowded language and a minimum family/island quota are tight: the
+        # first swap temporarily loses a quota and the second restores it.
+        # Search a small beam of multi-swap states so the projection can cross
+        # that neutral intermediate state instead of returning a verifier-only
+        # near miss (for example 3/3 language repeats or a 13/7 height split).
+        initial_projection_score = final_projection_score(visible)
+        if initial_projection_score > 0:
+            beam_pool = [
+                item for item in legal_candidate_pool
+                if _architectural_order_gate(item)[0]
+                and final_mass_stage_parking_pass(item)
+            ]
+            beam_pool.sort(key=_design_review_quality_key, reverse=True)
+            # The exact MILP below owns global feasibility.  Keep only a small
+            # warm-start beam for ordering quality; do not spend minutes
+            # approximating constraints that HiGHS solves exactly.
+            beam_pool = beam_pool[:120]
+            beam: list[list[dict[str, Any]]] = [list(visible)]
+            best_state = list(visible)
+            best_state_score = initial_projection_score
+            for _depth in range(2):
+                states: dict[tuple[str, ...], tuple[int, list[dict[str, Any]]]] = {}
+                for state in beam:
+                    state_ids = {id(item) for item in state}
+                    state_shapes = {
+                        str((item.get("properties") or {}).get("mass_shape") or "")
+                        for item in state
+                    }
+                    for candidate in beam_pool:
+                        candidate_shape = str((candidate.get("properties") or {}).get("mass_shape") or "")
+                        if id(candidate) in state_ids or candidate_shape in state_shapes:
+                            continue
+                        for index in range(len(state)):
+                            projected = list(state)
+                            projected[index] = candidate
+                            if sum(1 for item in projected if _is_direct_openai_llm_candidate(item)) < 16:
+                                continue
+                            if sum(1 for item in projected if preference_vlm_scored(item)) < min_vlm:
+                                continue
+                            score = final_projection_score(projected)
+                            key = tuple(sorted(
+                                str((item.get("properties") or {}).get("mass_shape") or "")
+                                for item in projected
+                            ))
+                            previous = states.get(key)
+                            if previous is None or score < previous[0]:
+                                states[key] = (score, projected)
+                            if score < best_state_score:
+                                best_state_score = score
+                                best_state = projected
+                if best_state_score == 0 or not states:
+                    break
+                ranked_states = sorted(
+                    states.values(),
+                    key=lambda pair: (
+                        pair[0],
+                        -sum(preference_score(item) for item in pair[1]),
+                    ),
+                )
+                beam = [state for _, state in ranked_states[:12]]
+            if best_state_score < initial_projection_score:
+                visible = best_state
+        selected = visible + [item for item in tail if id(item) not in {id(feature) for feature in visible}]
+    # Exact final projection.  Greedy/beam swaps are retained as a warm start,
+    # but the review-set quotas are a binary selection problem and should be
+    # solved globally rather than by ever-wider local search.
+    integer_pool: list[dict[str, Any]] = []
+    integer_seen_shapes: set[str] = set()
+    for feature in [*selected, *legal_candidate_pool]:
+        props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+        shape_name = str(props.get("mass_shape") or "")
+        if not shape_name or shape_name in integer_seen_shapes:
+            continue
+        if not _architectural_order_gate(feature)[0] or not final_mass_stage_parking_pass(feature):
+            continue
+        coherence = _source_signature(feature).get("coherence_evidence")
+        if not isinstance(coherence, dict) or not coherence.get("hard_pass"):
+            continue
+        # In required-VLM mode the image score must influence selection, not be
+        # attached after an unscored candidate has already won the MILP.
+        if preference_loop_config.get("require_vlm") and not preference_vlm_scored(feature):
+            continue
+        # A candidate that mostly relies on compiler defaults is not authored
+        # enough for the final review sheet, even when its geometry is clean.
+        if float(_source_signature(feature).get("parameter_default_ratio") or 0.0) > 0.50:
+            continue
+        integer_seen_shapes.add(shape_name)
+        integer_pool.append(feature)
+    integer_pool.sort(key=_design_review_quality_key, reverse=True)
+    integer_descriptors = [
+        ProjectionDescriptor(
+            feature=feature,
+            cost=(rank / max(1, len(integer_pool)))
+            + max(0.0, 0.72 - float((_source_signature(feature).get("coherence_evidence") or {}).get("score") or 0.0)) * 2.0,
+            family=_source_family(feature),
+            language=_projection_visual_language(feature),
+            formal_principle=_formal_principle(feature),
+            role_pattern=_research_role_pattern(feature),
+            island=_research_quota_group(feature),
+            height_band=f"{float((feature.get('properties') or {}).get('height') or 0.0):.2f}",
+            direct_llm=_is_direct_openai_llm_candidate(feature),
+            vlm_scored=preference_vlm_scored(feature),
+            weak_llm=(((feature.get("properties") or {}).get("llm_candidate_quality") or {}).get("status") == "reject_final_review"),
+            reference_ids=(visual_signature := visual_precedent_signature(feature))["references"],
+            concept_vector=visual_signature["concepts"],
+            visual_vector=tuple(visual_signature["visual_vector"]),
+        )
+        for rank, feature in enumerate(integer_pool)
+    ]
+    integer_selected: list[dict[str, Any]] = []
+    integer_attempts: list[dict[str, Any]] = []
+    final_integer_projection_artifact: dict[str, Any] = {}
+    requested_vlm = min(14, int(preference_loop_config.get("min_final_vlm_scored") or 0))
+    requested_direct_llm = 16 if llm_loop_config.get("enabled") else 0
+    # Relax quotas as coherent policy profiles. A Cartesian product obscured
+    # which contract was being attempted and needlessly solved hundreds of
+    # dominated MILPs.
+    projection_profiles = (
+        (4, 15, min(requested_direct_llm, 16), requested_vlm, 0.82, 2, 3),
+        (4, 13, min(requested_direct_llm, 14), min(requested_vlm, 12), 0.84, 2, 3),
+        (5, 12, min(requested_direct_llm, 12), min(requested_vlm, 10), 0.86, 2, 3),
+        (6, 10, min(requested_direct_llm, 10), min(requested_vlm, 10), 0.88, 2, 3),
+        (8, 8, min(requested_direct_llm, 8), min(requested_vlm, 8), 0.90, 2, 3),
+        (10, 8, min(requested_direct_llm, 8), min(requested_vlm, 8), 0.92, 3, 2),
+        (10, 8, min(requested_direct_llm, 8), min(requested_vlm, 8), 0.96, 3, 2),
+        # Keep visual separation hard while provenance/family/island counts
+        # become soft objectives. This prevents quota conflicts from jumping
+        # directly to the permissive service profile and admitting visibly
+        # repeated silhouettes.
+        (20, 1, 0, final_limit if preference_loop_config.get("require_vlm") else 0, 0.90, 2, 0),
+        (20, 1, 0, final_limit if preference_loop_config.get("require_vlm") else 0, 0.92, 2, 0),
+        (20, 1, 0, final_limit if preference_loop_config.get("require_vlm") else 0, 0.90, 3, 0),
+        (20, 1, 0, final_limit if preference_loop_config.get("require_vlm") else 0, 0.92, 3, 0),
+        # Guaranteed service-safe projection: only verified VLM candidates are
+        # in this pool. Preserve legal/coherence and true duplicate exclusions,
+        # while treating provenance/island/family counts as soft objectives.
+        (20, 1, 0, final_limit if preference_loop_config.get("require_vlm") else 0, 0.96, 4, 0),
+    )
+    for formal_cap, family_minimum, direct_minimum, vlm_minimum, similarity_threshold, language_cap, island_minimum in projection_profiles:
+        attempt_selected, attempt_trace = solve_final_integer_projection(
+                        integer_descriptors,
+                        final_count=final_limit,
+                        min_family_count=family_minimum,
+                        min_direct_llm=direct_minimum,
+                        min_vlm_scored=vlm_minimum,
+                        max_formal_repeat=formal_cap,
+                        max_language_repeat=language_cap,
+                        max_role_repeat=5,
+                        max_height_repeat=12,
+                        max_pairwise_similarity=similarity_threshold,
+                        island_minimums={name: island_minimum for name in ("additive", "subtractive", "hybrid", "sectional")},
+        )
+        integer_attempts.append({
+            "formal_cap": formal_cap,
+            "family_minimum": family_minimum,
+            "direct_llm_minimum": direct_minimum,
+            "vlm_minimum": vlm_minimum,
+            "pairwise_similarity_threshold": similarity_threshold,
+            "language_repeat_cap": language_cap,
+            "island_minimum": island_minimum,
+            **attempt_trace,
+        })
+        if len(attempt_selected) == final_limit:
+            integer_selected = attempt_selected
+            final_integer_projection_artifact = {
+                **attempt_trace,
+                "requested_formal_cap": 4,
+                "achieved_minimum_feasible_formal_cap": formal_cap,
+                "requested_family_minimum": 15,
+                "achieved_family_minimum": family_minimum,
+                "requested_direct_llm_minimum": requested_direct_llm,
+                "achieved_direct_llm_minimum": direct_minimum,
+                "requested_vlm_minimum": requested_vlm,
+                "achieved_vlm_minimum": vlm_minimum,
+                "achieved_pairwise_similarity_threshold": similarity_threshold,
+                "achieved_language_repeat_cap": language_cap,
+                "achieved_island_minimum": island_minimum,
+                "attempts": integer_attempts,
+            }
+            break
+    if not integer_selected:
+        final_integer_projection_artifact = {
+            "status": "infeasible_after_relaxation",
+            "requested_formal_cap": 4,
+            "eligible_pool_family_count": len({item.family for item in integer_descriptors if item.family}),
+            "eligible_pool_language_count": len({item.language for item in integer_descriptors if item.language}),
+            "attempts": integer_attempts,
+        }
+    if len(integer_selected) == final_limit:
+        integer_selected.sort(key=_design_review_quality_key, reverse=True)
+        # The exact projection is the final review set. Appending the previous
+        # heuristic tail leaked another ten candidates into a 20-card response
+        # and invalidated the very quotas the MILP had just satisfied.
+        selected = integer_selected
+
+    # The pre-final VLM samples a diverse pool for tractable selection. Once
+    # the exact set is known, complete image-backed scoring for every final
+    # card so no proxy-only candidate can reach the user-facing sheet.
+    if preference_loop_config.get("require_vlm") and len(selected) >= final_limit:
+        final_vlm_completion_artifact = apply_preference_loop(
+            selected[:final_limit],
+            config={**preference_loop_config, "top_k": final_limit, "min_final_vlm_scored": final_limit},
+            callbacks=PreferenceLoopCallbacks(
+                design_review_quality_key=_design_review_quality_key,
+                final_mass_stage_parking_pass=final_mass_stage_parking_pass,
+                has_review_source_geometry=_has_review_source_geometry,
+                is_plain_capacity_anchor=_is_plain_capacity_anchor,
+                is_reviewable_architectural_mass=_is_vlm_review_candidate,
+                source_family=_source_family,
+            ),
+        )
+        completed_vlm_count = sum(1 for feature in selected[:final_limit] if preference_vlm_scored(feature))
+        final_vlm_completion_artifact["final_vlm_scored_count"] = completed_vlm_count
+        if completed_vlm_count != final_limit:
+            raise ValueError(f"final MAAS VLM completion failed: {completed_vlm_count}/{final_limit}")
+
+    for feature in selected:
+        _apply_piloti_parking_void(feature)
     for i, feature in enumerate(selected, start=1):
         feature["properties"]["variant_id"] = f"maas_{i:02d}"
+    if isinstance(critic_geometry_loop_artifact, dict):
+        accepted_shapes = {
+            str(record.get("child_shape") or "")
+            for generation in critic_geometry_loop_artifact.get("generations") or []
+            for record in generation.get("records") or []
+            if record.get("status") == "accepted_after_revalidation"
+        }
+        final_shapes = {
+            str((feature.get("properties") or {}).get("mass_shape") or "")
+            for feature in selected[:final_limit]
+        }
+        survivors = sorted(accepted_shapes & final_shapes)
+        critic_geometry_loop_artifact["final_survivor_count"] = len(survivors)
+        critic_geometry_loop_artifact["final_survivor_shapes"] = survivors
+
+    agent_constraints = _constraints_agent_summary(envelope)
+    selected_geometry_fingerprints = {
+        id(feature): json.dumps(
+            (feature.get("properties") or {}).get("mass_volumes") or [],
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        for feature in selected
+    }
+    for feature in selected:
+        _attach_massdsl_agent_evidence(
+            feature,
+            operation_type="maas_legal_variants",
+            constraints=agent_constraints,
+            rejected=rejected,
+        )
+        attach_paper_alignment_and_preference_evidence(feature)
+        current_geometry_fingerprint = json.dumps(
+            (feature.get("properties") or {}).get("mass_volumes") or [],
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        if current_geometry_fingerprint != selected_geometry_fingerprints[id(feature)]:
+            raise ValueError("post-selection evidence attachment mutated final MAAS geometry")
+
+    top_feature = selected[0] if selected else {"type": "Feature", "properties": {}}
+    agent_reviews = build_agent_reviews(
+        operation_type="maas_legal_variants",
+        feature=top_feature,
+        constraints=agent_constraints,
+        rejected=rejected,
+        geometry_notes=[
+            "legal envelope first",
+            "MassDSL proposal compiled through ARR source geometry when sequence evidence exists",
+        ],
+    )
+    a2ui_messages = build_agent_review_a2ui_messages(
+        surface_id="maas-agent-review",
+        operation_type="maas_legal_variants",
+        feature=top_feature,
+        agent_reviews=agent_reviews,
+    )
+    massdsl_proposals = [
+        feature.get("properties", {}).get("massdsl_proposal")
+        for feature in selected
+        if isinstance(feature.get("properties", {}).get("massdsl_proposal"), dict)
+    ]
+    grammar_reviews = [
+        feature.get("properties", {}).get("grammar_review")
+        for feature in selected
+        if isinstance(feature.get("properties", {}).get("grammar_review"), dict)
+    ]
+    agent_revision_trace = build_agent_revision_trace(
+        selected=selected,
+        legal_candidate_pool=legal_candidate_pool,
+        agent_reviews=agent_reviews,
+        order_gate=_architectural_order_gate,
+        source_family=_source_family,
+        formal_principle=_formal_principle,
+        evolution_trace=evolution_trace_artifact,
+        critic_geometry_loop=critic_geometry_loop_artifact,
+    )
+    for candidate_revision in agent_revision_trace.get("candidate_revisions", []):
+        if not isinstance(candidate_revision, dict):
+            continue
+        variant_id = candidate_revision.get("variant_id")
+        if not variant_id:
+            continue
+        for feature in selected:
+            props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+            if props.get("variant_id") == variant_id:
+                props["agent_revision_evidence"] = {
+                    "schema_version": "arr.maas.agent_revision_evidence.v1",
+                    "revision_trace_schema": agent_revision_trace["schema_version"],
+                    "revision_type": agent_revision_trace["revision_type"],
+                    "revision_decision": candidate_revision.get("revision_decision"),
+                    "order_gate_pass": candidate_revision.get("order_gate_pass"),
+                    "performance_proxy": candidate_revision.get("performance_proxy"),
+                    "selection_trace_stages": candidate_revision.get("selection_trace_stages") or [],
+                }
+                model = props.get("maas_model")
+                if isinstance(model, dict):
+                    model["agent_revision_evidence"] = props["agent_revision_evidence"]
+                break
+    selection_debug = {
+        "schema_version": "arr.maas.selection_debug.v1",
+        "legal_candidate_pool_count": len(legal_candidate_pool),
+        "pre_final_selected_count": len(parking_scan_features),
+        "final_count": len(selected),
+        "legal_pool_parking_mass_stage_pass": sum(
+            1 for feature in legal_candidate_pool
+            if (
+                ((feature.get("properties") or {}).get("parking_precheck") or {})
+                .get("layout_candidate", {})
+                .get("mass_stage_parking", {})
+                .get("status")
+            ) == "pass"
+            or (
+                ((feature.get("properties") or {}).get("parking_precheck") or {})
+                .get("layout_candidate", {})
+                .get("status")
+            ) == "pass"
+        ),
+        "legal_pool_source_reviewable": sum(
+            1 for feature in legal_candidate_pool
+            if _has_review_source_geometry(feature) and _is_reviewable_architectural_mass(feature)
+        ),
+        "legal_pool_architecture_order_pass": sum(
+            1 for feature in legal_candidate_pool
+            if _architectural_order_gate(feature)[0]
+        ),
+        "legal_pool_final_review_geometry_pass": sum(
+            1 for feature in legal_candidate_pool
+            if _architectural_order_gate(feature)[0]
+            and not (
+                ((feature.get("properties") or {}).get("research_basis") or {}).get("requires_llm_authoring") is True
+                or ((((feature.get("properties") or {}).get("massdsl_proposal") or {}).get("design_parameters") or {}).get("requires_llm_authoring") is True)
+            )
+            and _visible_volume_count(feature) > 2
+        ),
+        "legal_pool_shape_prefixes": dict(Counter(
+            str((feature.get("properties") or {}).get("mass_shape") or "").split("_", 1)[0]
+            for feature in legal_candidate_pool
+        )),
+        "legal_pool_source_families": dict(Counter(
+            _source_family(feature) or "unknown"
+            for feature in legal_candidate_pool
+        )),
+        "final_source_families": dict(Counter(
+            _source_family(feature) or "unknown"
+            for feature in selected
+        )),
+        "priority_recovery_family_pool": {
+            family: {
+                "legal_pool": sum(1 for feature in legal_candidate_pool if (_source_family(feature) or "unknown") == family),
+                "reviewable": sum(
+                    1 for feature in legal_candidate_pool
+                    if (_source_family(feature) or "unknown") == family
+                    and _has_review_source_geometry(feature)
+                    and _is_reviewable_architectural_mass(feature)
+                ),
+                "order_pass": sum(
+                    1 for feature in legal_candidate_pool
+                    if (_source_family(feature) or "unknown") == family
+                    and _architectural_order_gate(feature)[0]
+                ),
+                "mass_stage_parking_pass": sum(
+                    1 for feature in legal_candidate_pool
+                    if (_source_family(feature) or "unknown") == family
+                    and (
+                        ((((feature.get("properties") or {}).get("parking_precheck") or {}).get("layout_candidate") or {}).get("mass_stage_parking") or {}).get("status") == "pass"
+                    )
+                ),
+                "candidate_names": [
+                    str((feature.get("properties") or {}).get("mass_shape") or "")
+                    for feature in legal_candidate_pool
+                    if (_source_family(feature) or "unknown") == family
+                    and _has_review_source_geometry(feature)
+                    and _is_reviewable_architectural_mass(feature)
+                ][:5],
+            }
+            for family in ("courtyard", "diagonal_connect", "array_cluster", "offset", "reflected_pair")
+        },
+        "legal_pool_formal_principles": dict(Counter(
+            _formal_principle(feature) or "unknown"
+            for feature in legal_candidate_pool
+        )),
+        "final_formal_principles": dict(Counter(
+            _formal_principle(feature) or "unknown"
+            for feature in selected
+        )),
+        "legal_pool_vertical_strategies": dict(Counter(
+            _vertical_strategy(feature) or "unknown"
+            for feature in legal_candidate_pool
+        )),
+        "legal_pool_architecture_order_formal_principles": dict(Counter(
+            _formal_principle(feature) or "unknown"
+            for feature in legal_candidate_pool
+            if _architectural_order_gate(feature)[0]
+        )),
+        "legal_pool_architecture_order_vertical_strategies": dict(Counter(
+            _vertical_strategy(feature) or "unknown"
+            for feature in legal_candidate_pool
+            if _architectural_order_gate(feature)[0]
+        )),
+        "final_vertical_strategies": dict(Counter(
+            _vertical_strategy(feature) or "unknown"
+            for feature in selected
+        )),
+        "final_stair_like_risk": dict(Counter(
+            _stair_like_risk(feature) or "unknown"
+            for feature in selected
+        )),
+        "final_selection_trace_evidence": sum(
+            1 for feature in selected
+            if isinstance((feature.get("properties") or {}).get("selection_trace"), list)
+        ),
+        "preference_loop": preference_loop_artifact or {
+            "schema_version": "arr.maas.preference_loop.v1",
+            "enabled": False,
+            "status": "not_requested",
+        },
+        "final_vlm_completion": final_vlm_completion_artifact,
+        "final_vlm_scored_count": sum(
+            1 for feature in selected
+            if preference_vlm_scored(feature)
+        ),
+        "final_preference_modes": dict(Counter(
+            str((((feature.get("properties") or {}).get("preference_distillation") or {}).get("mode") or "none"))
+            for feature in selected
+        )),
+        "final_kmedoid_representatives": sum(
+            1 for feature in selected
+            for event in ((feature.get("properties") or {}).get("selection_trace") or [])
+            if isinstance(event, dict)
+            and event.get("stage") == "kmedoid_representative_selection"
+        ),
+        "architecture_gate_failures_by_formal_principle": dict(Counter(
+            f"{_formal_principle(feature) or 'unknown'}:{issue}"
+            for feature in legal_candidate_pool
+            for issue in _architectural_order_gate(feature)[1]
+        )),
+        "architecture_gate_failures": dict(Counter(
+            issue
+            for feature in legal_candidate_pool
+            for issue in _architectural_order_gate(feature)[1]
+        )),
+        "final_integer_projection": final_integer_projection_artifact,
+    }
+
+    parking_pass_count = int(selection_debug["legal_pool_parking_mass_stage_pass"])
+    order_pass_count = int(selection_debug["legal_pool_architecture_order_pass"])
+    if selected:
+        generation_status = "complete"
+        infeasible_reason = None
+    elif legal_candidate_pool and parking_pass_count == 0:
+        generation_status = "infeasible"
+        infeasible_reason = "no_candidate_passed_mass_stage_parking_hard_constraint"
+    elif legal_candidate_pool and order_pass_count == 0:
+        generation_status = "infeasible"
+        infeasible_reason = "no_candidate_passed_architectural_order_hard_constraint"
+    else:
+        generation_status = "infeasible"
+        infeasible_reason = "exact_projection_has_insufficient_clean_candidates"
 
     return {
         "mode": "maas_legal_variants",
         "algorithm": "maas_legal_envelope",
+        "generation_status": generation_status,
+        "infeasible_reason": infeasible_reason,
         "count": len(selected),
         "seed_library": seed_library_metadata(),
         "source_repair_actions": source_actions,
@@ -2330,12 +5812,27 @@ def generate_legal_mass_variants(
             "features": selected,
         },
         "rejected": rejected,
+        "agent_reviews": agent_reviews,
+        "agent_trace": agent_reviews,
+        "agent_revision_trace": agent_revision_trace,
+        "evolution_trace": evolution_trace_artifact,
+        "critic_geometry_loop": critic_geometry_loop_artifact,
+        "final_integer_projection": final_integer_projection_artifact,
+        "a2ui_messages": a2ui_messages,
+        "massdsl_proposals": massdsl_proposals,
+        "grammar_review": grammar_reviews[0] if grammar_reviews else None,
+        "grammar_reviews": grammar_reviews,
+        "selection_debug": selection_debug,
+        "llm_proposal_loop": llm_loop_artifact,
+        "preference_loop": preference_loop_artifact,
+        "final_vlm_completion": final_vlm_completion_artifact,
         "notes": [
             "Legal envelope is the primary generator boundary.",
             "Layered MAAS candidates clip every floor plate by the legal envelope before FAR/BCR scoring.",
             "Selected ARR/legacy mass is treated as a seed for diversity, not as the capacity source.",
             "Each variant is repaired and checked against BCR/FAR/height/sunlight before return.",
             "Variants are ranked by legal FAR/BCR utilization plus geometric diversity.",
+            "MassDSL agent evidence is attached after final legal selection so UI/PNG review can explain each candidate.",
         ],
     }
 
@@ -2404,7 +5901,15 @@ def _parking_repair_candidates(
     road_context = options.get("road_context") if isinstance(options.get("road_context"), dict) else None
     repaired: list[dict[str, Any]] = []
     seen_signatures: set[tuple[float, float, float]] = set()
-    for feature in features:
+    repair_sources = sorted(
+        [feature for feature in features if _needs_parking_repair(feature)],
+        key=lambda feature: (
+            _parking_priority_key(feature),
+            _design_review_quality_key(feature),
+        ),
+        reverse=True,
+    )[:3]
+    for feature in repair_sources:
         props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
         precheck = props.get("parking_precheck") if isinstance(props.get("parking_precheck"), dict) else {}
         layout = precheck.get("layout_candidate") if isinstance(precheck.get("layout_candidate"), dict) else {}
@@ -2540,6 +6045,23 @@ def _parking_repair_candidates(
     return repaired
 
 
+def _needs_parking_repair(feature: dict[str, Any]) -> bool:
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    if _is_parking_repair_operator(str(props.get("mass_shape") or "")):
+        return False
+    precheck = props.get("parking_precheck") if isinstance(props.get("parking_precheck"), dict) else {}
+    layout = precheck.get("layout_candidate") if isinstance(precheck.get("layout_candidate"), dict) else {}
+    required_count = precheck.get("required_count") if isinstance(precheck.get("required_count"), dict) else {}
+    required = _int_or_none(required_count.get("required_spaces"))
+    if required is None or required <= 0:
+        required = _int_or_none(layout.get("required_spaces"))
+    if required is None or required <= 0:
+        required = _int_or_none(props.get("required_parking_spaces"))
+    if required is None or required <= 0:
+        return False
+    return not (layout.get("status") == "pass" and int(layout.get("provided_spaces") or 0) >= required)
+
+
 def _strict_setback_footprint(footprint_utm, *, site_utm, envelope):
     min_setback = _strict_setback_limit_m(envelope)
     if min_setback <= 0:
@@ -2587,7 +6109,7 @@ def _parking_preserving_section_candidates(
     if upper_limit is None or upper_limit.is_empty:
         upper_limit = site_utm
     grammar_variants = [
-        variant for variant in generate_grammar_variants(parking_footprint_utm)
+        variant for variant in generate_grammar_variants(parking_footprint_utm, building_type=building_type)
         if variant.upper_footprint is not None
         or any(
             token in variant.operator
@@ -2699,7 +6221,18 @@ def _find_parking_repair_footprint(
 
     best: tuple[tuple[Any, ...], Any, dict[str, Any], dict[str, Any]] | None = None
     source_area = float(footprint_utm.area or 0.0)
-    for candidate_fp, meta in _iter_parking_repair_footprints(footprint_utm):
+    repair_options = _iter_parking_repair_footprints(footprint_utm)
+    repair_options.sort(key=lambda item: (
+        float(item[1].get("movement_m") or 0.0),
+        0 if item[1].get("method") in {"uniform_shrink", "axis_compress"} else 1,
+        -float(item[0].area or 0.0),
+    ))
+    max_checks = 36 if required_spaces <= 4 else 56
+    checked = 0
+    for candidate_fp, meta in repair_options:
+        if checked >= max_checks and best is not None:
+            break
+        checked += 1
         if candidate_fp.is_empty or candidate_fp.area < 8.0:
             continue
         if not site_utm.buffer(1e-7).covers(candidate_fp):
@@ -2748,6 +6281,8 @@ def _find_parking_repair_footprint(
         )
         if best is None or score > best[0]:
             best = (score, candidate_fp, layout, meta)
+        if status == "pass" and area_retention >= 0.72 and adjacency.get("row_contiguous_ok"):
+            break
     if best is None:
         return None
     _score, candidate_fp, layout, meta = best

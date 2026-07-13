@@ -110,6 +110,9 @@ def _fixture_cases() -> list[dict[str, Any]]:
 
 def _feature_summary(feature: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]:
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+    section_profile = props.get("section_profile") if isinstance(props.get("section_profile"), dict) else model.get("section_profile")
+    section_materialized = props.get("section_profile_materialized") if isinstance(props.get("section_profile_materialized"), dict) else {}
     quality = props.get("design_quality") if isinstance(props.get("design_quality"), dict) else {}
     parking = props.get("parking_precheck") if isinstance(props.get("parking_precheck"), dict) else {}
     layout = parking.get("layout_candidate") if isinstance(parking.get("layout_candidate"), dict) else {}
@@ -135,6 +138,10 @@ def _feature_summary(feature: dict[str, Any], limits: dict[str, Any]) -> dict[st
             for call in props.get("maas_verb_sequence", [])
             if isinstance(call, dict) and call.get("verb")
         ],
+        "section_profile_kind": section_profile.get("kind") if isinstance(section_profile, dict) else None,
+        "section_profile_source": section_profile.get("source") if isinstance(section_profile, dict) else None,
+        "section_profile_materialized": section_materialized.get("status"),
+        "section_source_surface_count": section_materialized.get("surface_count"),
         "optimizer_backend_status": (
             quality.get("optimizer_backend", {}).get("status")
             if isinstance(quality.get("optimizer_backend"), dict)
@@ -435,6 +442,11 @@ def _scenario_summary(
         for verb in item.get("sequence_verbs", [])
         if verb
     })
+    unique_section_profiles = sorted({
+        str(item.get("section_profile_kind"))
+        for item in summaries
+        if item.get("section_profile_kind")
+    })
     section_connectors = [
         item for item in summaries
         if item.get("is_section_connector")
@@ -448,9 +460,11 @@ def _scenario_summary(
         "unique_mass_shape_count": len(unique_mass_shapes),
         "unique_concept_count": len(unique_concepts),
         "unique_verb_count": len(unique_verbs),
+        "unique_section_profile_count": len(unique_section_profiles),
         "unique_mass_shapes": unique_mass_shapes,
         "unique_concepts": unique_concepts,
         "unique_verbs": unique_verbs,
+        "unique_section_profiles": unique_section_profiles,
         "section_connector_count": len(section_connectors),
         "section_connector_shapes": sorted({
             str(item.get("mass_shape"))
@@ -507,6 +521,15 @@ def _aggregate(
         for verb in feature.get("sequence_verbs", [])
         if verb
     )
+    section_profile_counts = Counter(
+        str(feature.get("section_profile_kind"))
+        for feature in features
+        if feature.get("section_profile_kind")
+    )
+    section_materialized_features = [
+        feature for feature in features
+        if feature.get("section_profile_materialized") == "materialized_inside_legal_floor_plates"
+    ]
     parking_evidence_features = [
         feature for feature in features
         if feature.get("parking_evidence_enabled")
@@ -530,13 +553,24 @@ def _aggregate(
         "unique_mass_shape_count": len(mass_shape_counts),
         "unique_concept_count": len(concept_counts),
         "unique_verb_count": len(verb_counts),
+        "unique_section_profile_count": len(section_profile_counts),
         "average_unique_shapes_per_scenario": round(
             mean(float(item.get("unique_mass_shape_count") or 0.0) for item in ok),
+            4,
+        ) if ok else 0.0,
+        "average_unique_section_profiles_per_scenario": round(
+            mean(float(item.get("unique_section_profile_count") or 0.0) for item in ok),
             4,
         ) if ok else 0.0,
         "mass_shape_histogram": dict(mass_shape_counts.most_common()),
         "concept_histogram": dict(concept_counts.most_common()),
         "verb_histogram": dict(verb_counts.most_common()),
+        "section_profile_histogram": dict(section_profile_counts.most_common()),
+        "section_materialized_feature_count": len(section_materialized_features),
+        "section_materialized_rate": round(
+            len(section_materialized_features) / len(features),
+            4,
+        ) if features else 0.0,
         "original_maas_baseline_status": (
             original_baseline.get("status")
             if isinstance(original_baseline, dict)

@@ -23,6 +23,12 @@ class MorphologyVariant:
     lower_floor_fraction: float | None = None
     notes: tuple[str, ...] = ()
     verb_sequence: tuple[dict[str, Any], ...] = ()
+    source_geometry_status: str | None = None
+    source_verb_trace: tuple[dict[str, Any], ...] = ()
+    source_signature: dict[str, Any] | None = None
+    source_volumes: tuple[dict[str, Any], ...] = ()
+    source_surfaces: tuple[dict[str, Any], ...] = ()
+    research_basis: dict[str, Any] | None = None
 
 
 def largest_polygon(geometry: Polygon | MultiPolygon) -> Polygon:

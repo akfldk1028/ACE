@@ -182,6 +182,17 @@ def _housing_unit_schedule(value: Any) -> list[dict[str, Any]]:
 
 def load_parking_requirement_rules(*, options: dict[str, Any] | None = None) -> dict[str, Any]:
     opts = options or {}
+    if str(os.getenv("MAAS_DISABLE_PARKING_NEO4J", "")).strip().lower() in {"1", "true", "yes", "on"}:
+        fallback = _load_structured_seed_rules()
+        if fallback:
+            return {
+                "status": "loaded",
+                "rules": fallback,
+                "source": "local_structured_seed",
+                "graph_status": "disabled",
+                "graph_reason": "MAAS_DISABLE_PARKING_NEO4J=1",
+            }
+        return {"status": "graph_disabled", "reason": "MAAS_DISABLE_PARKING_NEO4J=1 and no local seed rules found"}
     uri = _string_or_none(opts.get("neo4j_uri")) or os.getenv("NEO4J_URI") or DEFAULT_NEO4J_URI
     user = _string_or_none(opts.get("neo4j_user")) or os.getenv("NEO4J_USER") or "neo4j"
     password = _string_or_none(opts.get("neo4j_password"))

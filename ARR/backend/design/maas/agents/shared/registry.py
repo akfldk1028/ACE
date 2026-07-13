@@ -6,9 +6,13 @@ from typing import Any
 
 from design.maas.agents.orchestrator.agent import DesignOrchestratorAgent
 from design.maas.agents.orchestrator.flow import FLOW_AGENT_SEQUENCE, REVIEW_AGENT_SEQUENCE
+from design.maas.agents.grammar_critic_agent.agent import GrammarCriticAgent
 from design.maas.agents.law_graph_agent.agent import LawGraphAgent
+from design.maas.agents.llm_architect_agent.agent import LLMArchitectAgent
 from design.maas.agents.maas_geometry_agent.agent import MaasGeometryAgent
+from design.maas.agents.massdsl_agent.agent import MassDSLAgent
 from design.maas.agents.parking_agent.agent import ParkingAgent
+from design.maas.agents.preference_distiller_agent.agent import PreferenceDistillerAgent
 from design.maas.agents.review_agent.agent import ReviewAgent
 from design.maas.agents.shared.types import AgentContext, MaasAgent
 
@@ -21,7 +25,11 @@ def build_agent_registry() -> dict[str, MaasAgent]:
         DesignOrchestratorAgent(),
         LawGraphAgent(),
         ParkingAgent(),
+        LLMArchitectAgent(),
+        MassDSLAgent(),
         MaasGeometryAgent(),
+        GrammarCriticAgent(),
+        PreferenceDistillerAgent(),
         ReviewAgent(),
     ]
     return {agent.agent_id: agent for agent in agents}

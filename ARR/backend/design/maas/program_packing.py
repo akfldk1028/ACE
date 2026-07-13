@@ -14,12 +14,31 @@ from shapely.geometry import mapping, shape
 
 from design.services.floor_packing import packing_floor_plan
 from design.services.site_geometry import geojson_to_polygon, utm_to_wgs84, wgs84_to_utm
+from design.maas.program_massing.profiles import resolve_program_profile
 
 
 def _program_template(building_type: str, typical_area: float) -> list[dict[str, Any]]:
     """Return a compact room program scaled to one typical floor."""
     label = building_type or ""
     usable = max(typical_area * 0.82, 1.0)
+    profile_id = resolve_program_profile(label)["id"]
+
+    if profile_id == "gymnasium":
+        return _fit_program([
+            {"name": "sports_hall", "area": max(48.0, usable * 0.62), "adjacency": ["entry", "storage"]},
+            {"name": "entry", "area": max(12.0, usable * 0.12), "adjacency": ["sports_hall", "changing"]},
+            {"name": "changing", "area": max(12.0, usable * 0.12), "adjacency": ["entry", "sports_hall"]},
+            {"name": "storage", "area": max(8.0, usable * 0.08), "adjacency": ["sports_hall"]},
+        ], usable)
+
+    if profile_id == "cafe":
+        return _fit_program([
+            {"name": "public_seating", "area": max(20.0, usable * 0.46), "adjacency": ["counter", "terrace"]},
+            {"name": "counter", "area": max(8.0, usable * 0.16), "adjacency": ["public_seating", "kitchen"]},
+            {"name": "kitchen", "area": max(8.0, usable * 0.16), "adjacency": ["counter", "service"]},
+            {"name": "terrace", "area": max(10.0, usable * 0.14), "adjacency": ["public_seating"]},
+            {"name": "service", "area": max(4.0, usable * 0.06), "adjacency": ["kitchen"]},
+        ], usable)
 
     if "업무" in label or "오피스" in label:
         return _fit_program([

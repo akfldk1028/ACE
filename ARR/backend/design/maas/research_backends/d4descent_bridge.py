@@ -86,7 +86,7 @@ def _inspect_d4descent_backend_cached(should_import: bool) -> dict[str, Any]:
 
 
 def inspect_d4descent_backend(*, enable_import: bool | None = None) -> dict[str, Any]:
-    should_import = enable_import if enable_import is not None else os.getenv("MAAS_D4DESCENT_IMPORT", "1") != "0"
+    should_import = enable_import if enable_import is not None else os.getenv("MAAS_D4DESCENT_IMPORT", "0") == "1"
     return dict(_inspect_d4descent_backend_cached(bool(should_import)))
 
 

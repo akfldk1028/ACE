@@ -25,6 +25,14 @@ SUPPORTED_VERBS = {
     "shift",
     "inset",
     "expand",
+    "bend",
+    "embed",
+    "extrude",
+    "nest",
+    "stack",
+    "offset",
+    "array",
+    "reflect",
 }
 
 PLAN_VERBS = {
@@ -40,6 +48,14 @@ PLAN_VERBS = {
     "shift",
     "inset",
     "expand",
+    "bend",
+    "embed",
+    "extrude",
+    "nest",
+    "stack",
+    "offset",
+    "array",
+    "reflect",
 }
 
 SECTION_VERBS = {"lift", "taper", "grade", "step_envelope"}

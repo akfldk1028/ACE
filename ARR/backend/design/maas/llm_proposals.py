@@ -1,0 +1,1196 @@
+"""OpenAI-backed MassDSL population proposal loop for MAAS."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import time
+import urllib.error
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+from design.maas.grammar.verb_sequence import VerbSequence, call
+from design.maas.grammar.vocab import SUPPORTED_VERBS
+
+
+LLM_BATCH_SCHEMA_VERSION = "arr.maas.llm_massdsl_batch.v1"
+LLM_PARAMETER_SOURCE = "llm_arch_language_proposal"
+DEFAULT_MODEL = "gpt-5.4-mini"
+
+ARCHITECTURAL_PRECEDENT_PRINCIPLES = (
+    "user-provided architecture book/reference formal principles",
+    "Trimage-like slender tower and disciplined podium/base relationship",
+    "Vancouver House/BIG-like undercut, taper, torque, and strong silhouette transition",
+    "OMA/Seattle Central Library-like stacked platforms, shifted volumes, and diagrammatic section",
+    "BIG/OMA-like single dominant gesture reinforced by one compatible secondary gesture",
+)
+
+GENERATOR_MODE_BY_FAMILY = {
+    "array_cluster": "additive",
+    "offset": "additive",
+    "reflected_pair": "additive",
+    "slender_bar": "additive",
+    "extrude": "additive",
+    "courtyard": "subtractive",
+    "void_notch": "subtractive",
+    "pinch": "subtractive",
+    "embed": "subtractive",
+    "nest": "subtractive",
+    "split": "hybrid",
+    "bend": "hybrid",
+    "interlock": "hybrid",
+    "overlap": "hybrid",
+    "branch": "hybrid",
+    "diagonal_connect": "sectional",
+    "terrace_link": "sectional",
+    "sloped_roof": "sectional",
+}
+
+MASS_LANGUAGE_BY_FAMILY = {
+    "courtyard": "courtyard_atrium",
+    "void_notch": "notched_void",
+    "split": "split_bridge",
+    "diagonal_connect": "diagonal_connector",
+    "array_cluster": "array_cluster",
+    "offset": "offset_twin_bar",
+    "reflected_pair": "reflected_court_pair",
+    "slender_bar": "bar_notch_terrace",
+    "bend": "bend_ribbon",
+    "interlock": "cross_interlock",
+    "overlap": "overlap_slabs",
+    "branch": "branch_taper",
+    "pinch": "pinched_waist",
+    "embed": "embedded_void",
+    "extrude": "extruded_fin",
+    "nest": "nested_atrium_stack",
+    "terrace_link": "terrace_ribbon",
+    "sloped_roof": "sloped_roof",
+}
+
+PARAMETER_ALIASES_BY_VERB = {
+    "notch": {"ratio": ("size", "depth_ratio", "void_ratio", "notch_ratio")},
+    "cave": {
+        "side": ("face",),
+        "width_ratio": ("aperture_ratio", "opening_ratio"),
+        "depth_ratio": ("depth", "void_ratio", "carve_ratio"),
+    },
+    "courtyard": {"ratio": ("court_ratio", "void_ratio", "atrium_ratio")},
+    "split": {"gap_ratio": ("gap", "void_ratio"), "bridge_ratio": ("bridge",)},
+    "pinch": {"waist_ratio": ("factor", "pinch_ratio")},
+    "offset": {"distance_ratio": ("distance", "magnitude_ratio", "offset_ratio")},
+    "shift": {"distance_ratio": ("distance", "magnitude_ratio", "offset_ratio")},
+    "array": {"spacing_ratio": ("spacing", "gap_ratio")},
+    "taper": {"x_ratio": ("top_ratio",), "y_ratio": ("top_ratio",)},
+    "sloped_roof_mass": {"x_ratio": ("roof_taper_ratio",), "y_ratio": ("roof_span_ratio",)},
+}
+
+REQUIRED_PARAMS_BY_VERB = {
+    "notch": ("corner", "ratio"),
+    "cave": ("side", "width_ratio", "depth_ratio"),
+    "courtyard": ("ratio", "upper_ratio", "lower_floor_fraction"),
+    "split": ("axis", "gap_ratio", "bridge_ratio", "upper_ratio", "lower_floor_fraction"),
+    "bar": ("axis", "factor", "shift", "upper_ratio", "lower_floor_fraction"),
+    "branch": ("angle", "trunk_ratio", "arm_ratio", "upper_ratio", "lower_floor_fraction"),
+    "pinch": ("axis", "waist_ratio", "depth_ratio", "upper_ratio", "lower_floor_fraction"),
+    "bend": ("axis", "angle", "factor", "upper_ratio", "lower_floor_fraction"),
+    "embed": ("guest_scale", "position", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
+    "extrude": ("axis", "length", "size", "upper_ratio", "lower_floor_fraction"),
+    "nest": ("inner_scale", "upper_ratio", "lower_floor_fraction"),
+    "stack": ("levels", "upper_ratio", "lower_floor_fraction"),
+    "offset": ("axis", "distance_ratio", "other_scale", "upper_ratio", "lower_floor_fraction"),
+    "array": ("axis", "n", "spacing_ratio", "unit_scale", "lower_floor_fraction"),
+    "reflect": ("axis", "gap_ratio", "unit_scale", "upper_ratio", "lower_floor_fraction"),
+    "interlock": ("angle", "bar_ratio", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
+    "overlap": ("axis", "slab_ratio", "shift_ratio", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
+    "lift": ("upper_ratio", "lower_floor_fraction"),
+    "taper": ("x_ratio", "y_ratio", "lower_floor_fraction"),
+    "grade": ("side", "width_ratio", "depth_ratio", "lower_floor_fraction"),
+    "shift": ("axis", "distance_ratio"),
+    "diagonal_connect": ("axis", "upper_ratio", "distance_ratio", "angle", "lower_floor_fraction"),
+    "terrace_link": ("side", "upper_ratio", "width_ratio", "depth_ratio", "lower_floor_fraction"),
+    "sloped_roof_mass": ("upper_ratio", "x_ratio", "y_ratio", "lower_floor_fraction"),
+}
+
+AXIS_PARAMS_BY_VERB = {
+    "bar",
+    "split",
+    "pinch",
+    "bend",
+    "extrude",
+    "offset",
+    "array",
+    "reflect",
+    "overlap",
+    "shift",
+    "diagonal_connect",
+}
+
+TYPOLOGY_FAMILY_ALIASES = {
+    "cluster": "array_cluster",
+    "array": "array_cluster",
+    "bridge": "diagonal_connect",
+    "connector": "diagonal_connect",
+    "bar_slab": "slender_bar",
+    "bar": "slender_bar",
+    "bent": "bend",
+    "roof_envelope": "sloped_roof",
+    "roof": "sloped_roof",
+    "terrace": "terrace_link",
+    "terrace_ribbon": "terrace_link",
+    "void_carve": "void_notch",
+    "void": "void_notch",
+    "nested": "nest",
+    "reflect": "reflected_pair",
+    "reflected": "reflected_pair",
+    "cave": "void_notch",
+    "carve": "void_notch",
+    "pinching": "pinch",
+    "branching": "branch",
+}
+
+REQUIRED_COVERAGE_FAMILIES = (
+    "courtyard",
+    "void_notch",
+    "split",
+    "diagonal_connect",
+    "array_cluster",
+    "offset",
+    "reflected_pair",
+    "slender_bar",
+    "bend",
+    "interlock",
+    "overlap",
+    "branch",
+    "pinch",
+    "embed",
+    "extrude",
+    "nest",
+    "terrace_link",
+    "sloped_roof",
+)
+
+BATCH_FAMILY_FOCUS = (
+    ("array_cluster", "offset", "reflected_pair", "slender_bar", "extrude"),
+    ("courtyard", "void_notch", "pinch", "embed", "nest"),
+    ("split", "bend", "interlock", "overlap", "branch"),
+    ("diagonal_connect", "terrace_link", "sloped_roof", "split", "overlap"),
+)
+
+COVERAGE_REPAIR_CALLS = {
+    "courtyard": [
+        ("base", {"coverage_ratio": 0.42}),
+        ("courtyard", {"ratio": 0.24, "upper_ratio": 0.86, "lower_floor_fraction": 0.42}),
+        ("offset", {"axis": "x", "distance_ratio": 0.06, "other_scale": 0.72, "upper_ratio": 0.80, "lower_floor_fraction": 0.42}),
+    ],
+    "void_notch": [
+        ("base", {"coverage_ratio": 0.44}),
+        ("notch", {"corner": "+x+y", "ratio": 0.18, "upper_ratio": 0.88, "lower_floor_fraction": 0.46}),
+        ("cave", {"side": "west", "width_ratio": 0.38, "depth_ratio": 0.16}),
+    ],
+    "split": [
+        ("base", {"coverage_ratio": 0.46}),
+        ("split", {"axis": "x", "gap_ratio": 0.20, "bridge_ratio": 0.24, "upper_ratio": 0.78, "distance_ratio": 0.06, "lower_floor_fraction": 0.40}),
+        ("lift", {"upper_ratio": 0.76, "lower_floor_fraction": 0.40}),
+    ],
+    "diagonal_connect": [
+        ("base", {"coverage_ratio": 0.42}),
+        ("diagonal_connect", {"axis": "x", "upper_ratio": 0.74, "distance_ratio": 0.10, "angle": 28.0, "lower_floor_fraction": 0.38}),
+        ("notch", {"corner": "-x+y", "ratio": 0.12}),
+    ],
+    "array_cluster": [
+        ("base", {"coverage_ratio": 0.46}),
+        ("array", {"axis": "x", "n": 3, "spacing_ratio": 0.18, "unit_scale": 0.34, "lower_floor_fraction": 0.34}),
+        ("shift", {"axis": "y", "distance_ratio": 0.05}),
+    ],
+    "offset": [
+        ("base", {"coverage_ratio": 0.44}),
+        ("offset", {"axis": "y", "distance_ratio": 0.18, "other_scale": 0.62, "upper_ratio": 0.78, "lower_floor_fraction": 0.38}),
+        ("bar", {"axis": "x", "factor": 0.58, "shift": 0.04, "upper_ratio": 0.82, "lower_floor_fraction": 0.46}),
+    ],
+    "reflected_pair": [
+        ("base", {"coverage_ratio": 0.44}),
+        ("reflect", {"axis": "x", "gap_ratio": 0.16, "unit_scale": 0.46, "upper_ratio": 0.80, "lower_floor_fraction": 0.40}),
+        ("courtyard", {"ratio": 0.18, "upper_ratio": 0.82, "lower_floor_fraction": 0.40}),
+    ],
+    "slender_bar": [
+        ("base", {"coverage_ratio": 0.42}),
+        ("bar", {"axis": "y", "factor": 0.48, "shift": 0.08, "upper_ratio": 0.88, "lower_floor_fraction": 0.56}),
+        ("notch", {"corner": "+x-y", "ratio": 0.12}),
+    ],
+    "bend": [
+        ("base", {"coverage_ratio": 0.44}),
+        ("bend", {"axis": "y", "angle": 30.0, "factor": 0.56, "upper_ratio": 0.80, "lower_floor_fraction": 0.42}),
+        ("shift", {"axis": "x", "distance_ratio": 0.05}),
+    ],
+    "interlock": [
+        ("base", {"coverage_ratio": 0.44}),
+        ("interlock", {"angle": 28.0, "bar_ratio": 0.34, "upper_ratio": 0.74, "distance_ratio": 0.06, "lower_floor_fraction": 0.42}),
+        ("cave", {"side": "south", "width_ratio": 0.34, "depth_ratio": 0.14}),
+    ],
+    "overlap": [
+        ("base", {"coverage_ratio": 0.44}),
+        ("overlap", {"axis": "x", "slab_ratio": 0.52, "shift_ratio": 0.18, "upper_ratio": 0.78, "distance_ratio": 0.06, "lower_floor_fraction": 0.42}),
+        ("notch", {"corner": "-x-y", "ratio": 0.10}),
+    ],
+    "branch": [
+        ("base", {"coverage_ratio": 0.42}),
+        ("branch", {"angle": 34.0, "trunk_ratio": 0.30, "arm_ratio": 0.20, "upper_ratio": 0.78, "lower_floor_fraction": 0.42}),
+        ("shift", {"axis": "y", "distance_ratio": 0.04}),
+    ],
+    "pinch": [
+        ("base", {"coverage_ratio": 0.44}),
+        ("pinch", {"axis": "x", "waist_ratio": 0.58, "depth_ratio": 0.34, "upper_ratio": 0.82, "lower_floor_fraction": 0.46}),
+        ("cave", {"side": "east", "width_ratio": 0.32, "depth_ratio": 0.12}),
+    ],
+    "embed": [
+        ("base", {"coverage_ratio": 0.44}),
+        ("embed", {"guest_scale": 0.38, "position": [0.12, -0.08, 0.0], "upper_ratio": 0.76, "distance_ratio": 0.06, "lower_floor_fraction": 0.38}),
+        ("lift", {"upper_ratio": 0.76, "lower_floor_fraction": 0.38}),
+    ],
+    "extrude": [
+        ("base", {"coverage_ratio": 0.42}),
+        ("extrude", {"axis": "x", "length": 0.34, "size": 0.30, "upper_ratio": 0.70, "lower_floor_fraction": 0.36}),
+        ("bar", {"axis": "y", "factor": 0.62, "shift": -0.04, "upper_ratio": 0.82, "lower_floor_fraction": 0.44}),
+    ],
+    "nest": [
+        ("base", {"coverage_ratio": 0.44}),
+        ("nest", {"inner_scale": 0.44, "upper_ratio": 0.76, "lower_floor_fraction": 0.40}),
+        ("stack", {"levels": 3, "z_step_ratio": 0.08, "upper_ratio": 0.74, "lower_floor_fraction": 0.36}),
+    ],
+    "terrace_link": [
+        ("base", {"coverage_ratio": 0.44}),
+        ("lift", {"upper_ratio": 0.82, "lower_floor_fraction": 0.40}),
+        ("terrace_link", {"side": "east", "upper_ratio": 0.84, "width_ratio": 0.58, "depth_ratio": 0.22, "lower_floor_fraction": 0.40}),
+        ("shift", {"axis": "x", "distance_ratio": 0.05}),
+    ],
+    "sloped_roof": [
+        ("base", {"coverage_ratio": 0.44}),
+        ("sloped_roof_mass", {"upper_ratio": 0.90, "x_ratio": 0.70, "y_ratio": 0.90, "lower_floor_fraction": 0.48}),
+        ("bar", {"axis": "x", "factor": 0.64, "shift": 0.03, "upper_ratio": 0.86, "lower_floor_fraction": 0.50}),
+    ],
+}
+
+
+class LlmProposalError(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True)
+class LlmProposalBatch:
+    artifact: dict[str, Any]
+    sequences: tuple[VerbSequence, ...]
+
+
+def _stable_hash(value: Any) -> str:
+    payload = json.dumps(value, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
+def _safe_float(value: Any, default: float) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _clamp(value: float, lower: float, upper: float) -> float:
+    return max(lower, min(upper, value))
+
+
+def _supports_reasoning_effort(model: str) -> bool:
+    model_name = str(model or "").lower()
+    return model_name.startswith(("gpt-5", "o1", "o3", "o4"))
+
+
+def _normalise_params(verb: str, params: dict[str, Any]) -> dict[str, Any]:
+    """Translate common architectural synonyms into compiler canonical keys."""
+    normalised = dict(params)
+    for canonical, aliases in PARAMETER_ALIASES_BY_VERB.get(verb, {}).items():
+        if canonical in normalised:
+            continue
+        for alias in aliases:
+            if alias in normalised:
+                normalised[canonical] = normalised[alias]
+                break
+    if verb == "cave":
+        if "side" not in normalised and normalised.get("axis") in {"x", "y"}:
+            normalised["side"] = "east" if normalised["axis"] == "x" else "north"
+        if "void_ratio" in normalised:
+            void_ratio = _safe_float(normalised.get("void_ratio"), 0.16)
+            normalised.setdefault("depth_ratio", _clamp(void_ratio, 0.08, 0.36))
+            normalised.setdefault("width_ratio", _clamp(void_ratio * 2.8, 0.28, 0.68))
+    if verb == "notch" and "ratio" not in normalised and "depth_ratio" in normalised:
+        normalised["ratio"] = normalised["depth_ratio"]
+    if verb in {"offset", "shift"} and "distance_ratio" not in normalised and "magnitude_ratio" in normalised:
+        normalised["distance_ratio"] = normalised["magnitude_ratio"]
+    if verb == "sloped_roof_mass" and "pitch_proxy" in normalised:
+        pitch = _clamp(_safe_float(normalised.get("pitch_proxy"), 0.18), 0.06, 0.32)
+        ridge_axis = str(normalised.get("ridge_axis") or normalised.get("axis") or "x")
+        if "x_ratio" not in normalised:
+            normalised["x_ratio"] = round(_clamp(1.0 - pitch * (1.5 if ridge_axis == "y" else 1.0), 0.58, 0.92), 3)
+        if "y_ratio" not in normalised:
+            normalised["y_ratio"] = round(_clamp(1.0 - pitch * (1.5 if ridge_axis == "x" else 1.0), 0.58, 0.92), 3)
+    return normalised
+
+
+def _validate_call_params(candidate_name: str, verb: str, params: dict[str, Any]) -> None:
+    required = REQUIRED_PARAMS_BY_VERB.get(verb, ())
+    missing = [key for key in required if key not in params]
+    if missing:
+        raise ValueError(f"{candidate_name}: {verb!r} missing required params {missing}")
+    if verb in AXIS_PARAMS_BY_VERB and "axis" in params and str(params["axis"]) not in {"x", "y"}:
+        raise ValueError(f"{candidate_name}: {verb!r} axis must be x or y, got {params['axis']!r}")
+    if verb == "array":
+        count = int(_safe_float(params.get("n"), 0))
+        if count < 3:
+            raise ValueError(f"{candidate_name}: array n must be >= 3, got {params.get('n')!r}")
+
+
+def _record_family(record: dict[str, Any]) -> str | None:
+    raw = " ".join([
+        str(record.get("name") or ""),
+        str(record.get("typology") or ""),
+        str(record.get("architectural_language") or ""),
+    ]).lower().replace("-", "_").replace(" ", "_")
+    for family in REQUIRED_COVERAGE_FAMILIES:
+        if family in raw:
+            return family
+    for alias, family in TYPOLOGY_FAMILY_ALIASES.items():
+        if alias in raw:
+            return family
+    return None
+
+
+def _coverage_repair_record(family: str, index: int) -> dict[str, Any]:
+    calls = [
+        {"verb": verb, "params": json.dumps(params, separators=(",", ":"))}
+        for verb, params in COVERAGE_REPAIR_CALLS[family]
+    ]
+    authored_keys = [
+        f"{verb}.{key}"
+        for verb, params in COVERAGE_REPAIR_CALLS[family]
+        for key in sorted(params)
+    ]
+    secondary_language = {
+        "array_cluster": "courtyard_atrium",
+        "offset": "sloped_roof",
+        "reflected_pair": "sloped_roof",
+        "slender_bar": "bend_ribbon",
+        "extrude": "offset_twin_bar",
+        "courtyard": "diagonal_connector",
+        "void_notch": "bar_notch_terrace",
+        "pinch": "diagonal_connector",
+        "embed": "courtyard_atrium",
+        "nest": "courtyard_atrium",
+        "split": "diagonal_connector",
+        "bend": "overlap_slabs",
+        "interlock": "diagonal_connector",
+        "overlap": "branch_taper",
+        "branch": "sloped_roof",
+        "diagonal_connect": "void_notch",
+        "terrace_link": "offset_twin_bar",
+        "sloped_roof": "offset_twin_bar",
+    }.get(family, "courtyard_atrium")
+    return {
+        "name": f"llm_coverage_repair_{family}_{index:03d}",
+        "label": f"coverage repair {family}",
+        "typology": family,
+        "architectural_language": f"{family} coverage repair from required LLM family contract",
+        "reference_basis": "fallback formal-principle coverage, not precedent copy",
+        "formal_principle": MASS_LANGUAGE_BY_FAMILY.get(family, family),
+        "dominant_gesture": f"{family}_dominant_gesture",
+        "generator_mode": GENERATOR_MODE_BY_FAMILY.get(family, "hybrid"),
+        "mass_language": MASS_LANGUAGE_BY_FAMILY.get(family, family),
+        "primary_language": MASS_LANGUAGE_BY_FAMILY.get(family, family),
+        "secondary_language": secondary_language,
+        "topology_intent": f"{family} source topology with explicit authored MassDSL parameters",
+        "primitive_intent": f"{family} primitives validated through ARR source geometry compiler",
+        "intent_tags": [family, "coverage_repair", "legal_solver_validated"],
+        "rule_name": f"{family}_coverage_rule",
+        "rule_inputs": authored_keys,
+        "expected_geometry_actions": [
+            f"compile {family} MassDSL verbs into source volumes",
+            "clip source volumes inside legal envelope",
+            "reject if FAR/BCR/height/parking checks fail",
+        ],
+        "calls": calls,
+        "rationale": "Added because the structured LLM population omitted this required family; still compiled and validated by ARR legal solver.",
+    }
+
+
+def _coverage_repair_population(target_count: int, *, start_index: int = 0) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    index = start_index
+    while len(records) < max(0, target_count):
+        family = REQUIRED_COVERAGE_FAMILIES[index % len(REQUIRED_COVERAGE_FAMILIES)]
+        cycle = index // len(REQUIRED_COVERAGE_FAMILIES)
+        record = _coverage_repair_record(family, index + 1)
+        record["name"] = f"{record['name']}_{cycle:02d}"
+        record["label"] = f"{record['label']} {cycle + 1}"
+        record["architectural_language"] = (
+            f"{record['architectural_language']}; timeout coverage cycle {cycle + 1}"
+        )
+        record["intent_tags"] = [*record["intent_tags"], "timeout_coverage_repair"]
+        records.append(record)
+        index += 1
+    return records
+
+
+def _ensure_family_coverage(data: dict[str, Any]) -> None:
+    candidates = data.get("candidates")
+    if not isinstance(candidates, list):
+        return
+    present: set[str] = set()
+    for record in candidates:
+        if not isinstance(record, dict):
+            continue
+        family = str(record.get("typology") or record.get("family") or "")
+        family = TYPOLOGY_FAMILY_ALIASES.get(family, family)
+        language = str(record.get("mass_language") or record.get("primary_language") or "")
+        for required in REQUIRED_COVERAGE_FAMILIES:
+            if family == required or language == MASS_LANGUAGE_BY_FAMILY.get(required):
+                present.add(required)
+    # Prefer actual LLM-authored diversity. Deterministic coverage records are a
+    # last-resort guard for sparse/failed LLM populations, not a normal source
+    # of architectural variety.
+    if len(candidates) >= 40 and len(present) >= 12:
+        return
+    missing = [family for family in REQUIRED_COVERAGE_FAMILIES if family not in present]
+    repairs = [_coverage_repair_record(family, len(candidates) + index + 1) for index, family in enumerate(missing)]
+    for record in repairs:
+        record["intent_tags"] = [*record["intent_tags"], "coverage_family_repair"]
+    data["candidates"] = [*candidates, *repairs]
+
+
+def _schema(
+    min_candidates: int = 120,
+    *,
+    min_palette: int = 30,
+    min_rules: int = 10,
+) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["language_palette", "combination_rules", "candidates"],
+        "properties": {
+            "language_palette": {
+                "type": "array",
+                "minItems": min_palette,
+                "items": {"type": "string"},
+            },
+            "combination_rules": {
+                "type": "array",
+                "minItems": min_rules,
+                "items": {"type": "string"},
+            },
+            "candidates": {
+                "type": "array",
+                "minItems": min_candidates,
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": [
+                        "name",
+                        "label",
+                        "typology",
+                        "architectural_language",
+                        "reference_basis",
+                        "formal_principle",
+                        "dominant_gesture",
+                        "generator_mode",
+                        "mass_language",
+                        "primary_language",
+                        "secondary_language",
+                        "topology_intent",
+                        "primitive_intent",
+                        "intent_tags",
+                        "rule_name",
+                        "rule_inputs",
+                        "expected_geometry_actions",
+                        "calls",
+                        "rationale",
+                    ],
+                    "properties": {
+                        "name": {"type": "string"},
+                        "label": {"type": "string"},
+                        "typology": {"type": "string"},
+                        "architectural_language": {"type": "string"},
+                        "reference_basis": {"type": "string"},
+                        "formal_principle": {"type": "string"},
+                        "dominant_gesture": {"type": "string"},
+                        "generator_mode": {"type": "string", "enum": ["additive", "subtractive", "hybrid", "sectional"]},
+                        "mass_language": {"type": "string"},
+                        "primary_language": {"type": "string"},
+                        "secondary_language": {"type": "string"},
+                        "topology_intent": {"type": "string"},
+                        "primitive_intent": {"type": "string"},
+                        "intent_tags": {"type": "array", "items": {"type": "string"}},
+                        "rule_name": {"type": "string"},
+                        "rule_inputs": {"type": "array", "items": {"type": "string"}},
+                        "expected_geometry_actions": {"type": "array", "items": {"type": "string"}},
+                        "rationale": {"type": "string"},
+                        "calls": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 7,
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": False,
+                                "required": ["verb", "params"],
+                                "properties": {
+                                    "verb": {"type": "string", "enum": sorted(SUPPORTED_VERBS)},
+                                    "params": {"type": "string"},
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    }
+
+
+def _batch_family_focus(batch_index: int | str, target_count: int) -> tuple[str, ...]:
+    raw_index = str(batch_index).split(".", 1)[0]
+    try:
+        index = max(1, int(raw_index))
+    except ValueError:
+        index = 1
+    focus = BATCH_FAMILY_FOCUS[(index - 1) % len(BATCH_FAMILY_FOCUS)]
+    return focus[: max(1, min(len(focus), int(target_count)))]
+
+
+def _batch_focus_payload(batch_index: int | str, target_count: int) -> dict[str, Any]:
+    focus = _batch_family_focus(batch_index, target_count)
+    return {
+        "families": list(focus),
+        "generator_modes": [GENERATOR_MODE_BY_FAMILY.get(family, "hybrid") for family in focus],
+        "mass_languages": [MASS_LANGUAGE_BY_FAMILY.get(family, family) for family in focus],
+    }
+
+
+def _prompt(
+    site_context: dict[str, Any],
+    target_count: int,
+    *,
+    batch_index: int = 1,
+    generation_feedback: dict[str, Any] | None = None,
+) -> list[dict[str, str]]:
+    verbs = ", ".join(sorted(SUPPORTED_VERBS))
+    required_params = "; ".join(
+        f"{verb}: {', '.join(params)}"
+        for verb, params in sorted(REQUIRED_PARAMS_BY_VERB.items())
+    )
+    batch_focus = _batch_focus_payload(batch_index, target_count)
+    system = (
+        "You are a rigorous architectural massing planner. Emit only MassDSL "
+        "proposal JSON that follows the schema. You propose design language; "
+        "a deterministic legal solver will validate, clip, or reject every candidate. "
+        "Do not rely on compiler defaults for design-critical geometry parameters."
+    )
+    feedback_text = ""
+    if generation_feedback:
+        feedback_text = (
+            "\nVLM generation feedback from the previous MAAS pass:\n"
+            f"{json.dumps(_feedback_prompt_payload(generation_feedback), ensure_ascii=False, sort_keys=True)}\n"
+            "This feedback is mandatory: generate new MassDSL candidates, not a rerank of the previous 20. "
+            "Use must_use, quota, formal_principle_targets, and reference_precedent_targets as positive design pressure, "
+            "and treat avoid terms as rejection risks. Translate reference_precedent_targets into executable massing operations: "
+            "Vancouver House/BIG-like torqued_stack or undercut tower must become pinch/taper/offset/bend/branch geometry; "
+            "OMA/Seattle/Qatar-like stacked_platform or folded_section must become split/overlap/diagonal_connect/sloped_roof geometry; "
+            "Mountain Dwellings/8 House-like terrace_ribbon must become terrace_link/grade/lift geometry. "
+            "For torqued_stack or undercut_tapered_tower candidates, author strong but legal-source parameters: "
+            "angle between 24 and 38 degrees, distance_ratio or shift_ratio between 0.18 and 0.32, "
+            "upper_ratio between 0.72 and 0.88, and lower_floor_fraction between 0.28 and 0.48. "
+            "For stacked_platform candidates, use overlap or split with 4 to 5 visible source tiers/roles where possible. "
+            "Do not merely write reference names in labels; the MassDSL calls must express the reference-backed massing principle. "
+        )
+    user = (
+        "Generate a broad MAAS massing population for early architectural review.\n"
+        "The goal is architecture-grade geometric massing, not just legal boxes. "
+        "Use the user's architecture book/reference principles and precedent principles without copying exact buildings: "
+        "Trimage-like slender tower/podium order; Vancouver House/BIG-like undercut, taper, torque, and strong silhouette transition; "
+        "OMA/Seattle Central Library-like stacked platforms, shifted volumes, and diagrammatic section. "
+        "Each candidate needs one dominant geometric gesture and one compatible secondary gesture. "
+        "Avoid random fragments and avoid legal-envelope stacks unless transformed into a clear architectural idea.\n"
+        f"Batch index: {batch_index}.\n"
+        f"Target candidate count for this batch: at least {target_count}.\n"
+        f"Required batch family focus JSON: {json.dumps(batch_focus, ensure_ascii=True, sort_keys=True)}.\n"
+        "For this batch, use each focused family at most once before any repeat. "
+        "If target_count equals the number of focused families, every candidate must use a different focused family. "
+        "Do not repeat mass_language, primary_language, formal_principle, or dominant role pattern inside this batch. "
+        "Do not emit more than one undercut_tapered_tower, stacked_shifted_platforms, or simple slab stack in this batch. "
+        "If a focused family is sectional, make the sectional move legible through diagonal_connect, terrace_link, or sloped_roof_mass rather than a stair-step envelope. "
+        f"Supported verbs: {verbs}.\n"
+        "Every candidate must start with base. Prefer creative combinations of "
+        "plan, section, void, connector, array, offset, stack, and roof language. "
+        "Do not overuse terrace/stepback/stair forms; reserve them for at most one or two reference anchors in a 20-candidate review set. "
+        "Avoid using stepped_tower, legal_envelope_stack, simple terraced podium, or taper-only podium tower as the primary language unless it is transformed by a non-stair gesture such as diagonal bridge, bend, void, courtyard, array, reflected pair, or embedded core. "
+        "Prefer non-stair silhouettes: diagonal split blocks, bent bars, reflected pairs, caved courtyards, interlocked volumes, nested atria, and offset clusters. "
+        "Use explicit typology language such as courtyard, cluster, bridge, bar_slab, "
+        "interlock, bent, branch, roof_envelope, or void_carve. "
+        "Across all batches the population must cover these source families; this batch should cover a different subset: "
+        "courtyard, void_notch, split, diagonal_connect, terrace_link, array_cluster, offset, reflected_pair, "
+        "slender_bar, bend, interlock, overlap, branch, pinch, embed, extrude, nest, sloped_roof. "
+        "Do not collapse massing language into only additive/subtractive/hybrid/sectional buckets. "
+        "Use specific mass_language values such as courtyard_atrium, notched_void, split_bridge, "
+        "diagonal_connector, array_cluster, offset_twin_bar, reflected_court_pair, bar_notch_terrace, "
+        "bend_ribbon, cross_interlock, overlap_slabs, branch_taper, pinched_waist, embedded_void, "
+        "extruded_fin, nested_atrium_stack, sloped_roof, terrace_ribbon. "
+        "Every candidate must declare primary_language and secondary_language. The two languages must be compatible and legible together, "
+        "for example bar_notch_terrace + courtyard_atrium, split_bridge + diagonal_connector, "
+        "offset_twin_bar + sloped_roof, bend_ribbon + overlap_slabs, or nested_atrium_stack + embedded_void. "
+        "Do not combine unrelated gestures as random add-ons; secondary_language should modify the primary mass by void, roof, bridge, court, offset, or terrace logic. "
+        "Do not use placeholder names; candidate names must describe the typology and primary verbs. "
+        "Keep language_palette and combination_rules concise for this batch; do not repeat long explanations. "
+        "For every non-base call, include all required canonical params; missing params cause rejection before legal review. "
+        f"Required canonical params by verb: {required_params}. "
+        "Axes must be x or y; do not use z-axis extrusion. "
+        "For each candidate include rule_name, rule_inputs, and expected_geometry_actions that explain the architectural grammar. "
+        "Also include reference_basis, formal_principle, and dominant_gesture. "
+        "reference_basis should cite a book/reference category or precedent principle, not a copied building shape. "
+        "formal_principle should use architectural language such as figure_ground, tower_base, carved_solid, slab_stack, datum_shift, torqued_taper, undercut_podium, split_bridge, or folded_section. "
+        "dominant_gesture must name the large readable mass gesture, not a list of fragments. "
+        "Encode the reference/formal principle inside architectural_language, primary_language, secondary_language, or rule_name using terms such as "
+        "slender_podium_tower, undercut_tapered_tower, torqued_stack, stacked_shifted_platforms, folded_roof_volume, carved_atrium, split_bridge_connector. "
+        "rule_inputs must cite authored parameter names, not prose only. "
+        "Use candidate names that include the batch index and do not repeat prior obvious typologies. "
+        "For every call, encode params as a compact JSON object string such as "
+        "{\"axis\":\"x\",\"upper_ratio\":0.72}; use \"{}\" when no parameters are needed. "
+        "Avoid making tiny demonstration masses; most candidates should use enough "
+        "site capacity to be reviewable. Do not claim legal compliance.\n"
+        f"{feedback_text}"
+        f"Site/legal summary JSON:\n{json.dumps(site_context, ensure_ascii=False, sort_keys=True)}"
+    )
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ]
+
+
+def _feedback_prompt_payload(feedback: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "schema_version": feedback.get("schema_version"),
+        "must_use": feedback.get("must_use") or [],
+        "avoid": feedback.get("avoid") or [],
+        "quota": feedback.get("quota") or {},
+        "formal_principle_targets": feedback.get("formal_principle_targets") or [],
+        "reference_precedent_targets": feedback.get("reference_precedent_targets") or [],
+        "reference_signal_diagnosis": feedback.get("reference_signal_diagnosis") or {},
+        "top_candidate_brief": (feedback.get("top_candidate_brief") or [])[:5],
+        "bottom_candidate_brief": (feedback.get("bottom_candidate_brief") or [])[:5],
+        "critic_actions": feedback.get("critic_actions") or {},
+    }
+
+
+def _extract_text(response: dict[str, Any]) -> str:
+    if isinstance(response.get("output_text"), str):
+        return response["output_text"]
+    chunks: list[str] = []
+    for item in response.get("output") or []:
+        if not isinstance(item, dict):
+            continue
+        for content in item.get("content") or []:
+            if isinstance(content, dict):
+                text = content.get("text")
+                if isinstance(text, str):
+                    chunks.append(text)
+    return "\n".join(chunks)
+
+
+def _call_openai(
+    messages: list[dict[str, str]],
+    *,
+    model: str,
+    timeout: float,
+    min_candidates: int,
+    min_palette: int = 3,
+    min_rules: int = 2,
+    max_output_tokens: int | None = None,
+) -> dict[str, Any]:
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise LlmProposalError("OPENAI_API_KEY is not set")
+    verbosity = os.getenv("MAAS_LLM_VERBOSITY")
+    if not verbosity:
+        verbosity = "low" if _supports_reasoning_effort(model) else "medium"
+    body = {
+        "model": model,
+        "input": messages,
+        "max_output_tokens": int(max_output_tokens or os.getenv("MAAS_LLM_MAX_OUTPUT_TOKENS", "12000")),
+        "text": {
+            "verbosity": verbosity,
+            "format": {
+                "type": "json_schema",
+                "name": "maas_llm_massdsl_batch",
+                "strict": True,
+                "schema": _schema(
+                    min_candidates,
+                    min_palette=min_palette,
+                    min_rules=min_rules,
+                ),
+            }
+        },
+    }
+    if _supports_reasoning_effort(model):
+        body["reasoning"] = {
+            "effort": os.getenv("MAAS_LLM_REASONING_EFFORT", "medium"),
+        }
+    req = urllib.request.Request(
+        "https://api.openai.com/v1/responses",
+        data=json.dumps(body).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        try:
+            detail = exc.read().decode("utf-8")[:500]
+        except Exception:
+            detail = str(exc)
+        raise LlmProposalError(f"OpenAI response failed: HTTP {exc.code}: {detail}") from exc
+    except Exception as exc:
+        raise LlmProposalError(f"OpenAI response failed: {exc}") from exc
+
+
+def _record_to_sequence(record: dict[str, Any], index: int, *, prompt_hash: str, model: str) -> VerbSequence:
+    raw_name = str(record.get("name") or f"candidate_{index:03d}")
+    safe_name = "".join(ch if ch.isalnum() or ch == "_" else "_" for ch in raw_name.lower())
+    if not safe_name.startswith("llm_"):
+        safe_name = f"llm_{safe_name}"
+    calls = []
+    for call_index, item in enumerate(record.get("calls") or []):
+        if not isinstance(item, dict):
+            raise ValueError(f"{safe_name}: call {call_index} must be an object")
+        verb = item.get("verb")
+        if verb not in SUPPORTED_VERBS:
+            raise ValueError(f"{safe_name}: unsupported verb {verb!r}")
+        raw_params = item.get("params")
+        if isinstance(raw_params, str):
+            try:
+                params = json.loads(raw_params)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"{safe_name}: params for {verb!r} must be JSON object string") from exc
+        else:
+            params = raw_params if isinstance(raw_params, dict) else {}
+        if not isinstance(params, dict):
+            raise ValueError(f"{safe_name}: params for {verb!r} must decode to an object")
+        params = _normalise_params(str(verb), params)
+        _validate_call_params(safe_name, str(verb), params)
+        clean_params = {}
+        for key, value in dict(params).items():
+            if value is None:
+                continue
+            if isinstance(value, list) and key not in {"offset_vec", "position"}:
+                continue
+            if isinstance(value, dict):
+                continue
+            clean_params[key] = value
+        calls.append(call(str(verb), **clean_params))
+    if not calls or calls[0].verb != "base":
+        calls.insert(0, call("base", proportion="site"))
+    sequence = VerbSequence(
+        name=f"{safe_name}_{index:03d}",
+        label=str(record.get("label") or safe_name),
+        calls=tuple(calls),
+        notes=(
+            "proposal_source=openai_responses_structured_output",
+            f"parameter_source={LLM_PARAMETER_SOURCE}",
+            "requires_llm_authoring=false",
+            f"prompt_hash={prompt_hash}",
+            f"model={model}",
+            f"architectural_language={record.get('architectural_language') or ''}",
+            f"reference_basis={record.get('reference_basis') or ''}",
+            f"formal_principle={record.get('formal_principle') or ''}",
+            f"dominant_gesture={record.get('dominant_gesture') or ''}",
+            f"generator_mode={record.get('generator_mode') or ''}",
+            f"mass_language={record.get('mass_language') or ''}",
+            f"primary_language={record.get('primary_language') or record.get('mass_language') or ''}",
+            f"secondary_language={record.get('secondary_language') or ''}",
+            f"topology_intent={record.get('topology_intent') or ''}",
+            f"primitive_intent={record.get('primitive_intent') or ''}",
+            f"typology={record.get('typology') or ''}",
+            f"rule_name={record.get('rule_name') or ''}",
+            f"rule_inputs={json.dumps(record.get('rule_inputs') or [], ensure_ascii=True, separators=(',', ':'))}",
+            f"expected_geometry_actions={json.dumps(record.get('expected_geometry_actions') or [], ensure_ascii=True, separators=(',', ':'))}",
+            str(record.get("rationale") or ""),
+        ),
+    )
+    errors = sequence.validate()
+    if errors:
+        raise ValueError(f"{sequence.name}: {'; '.join(errors)}")
+    return sequence
+
+
+def _validate_batch(
+    data: dict[str, Any],
+    *,
+    min_candidates: int,
+    min_palette: int = 30,
+    min_rules: int = 10,
+) -> None:
+    palette = data.get("language_palette")
+    rules = data.get("combination_rules")
+    candidates = data.get("candidates")
+    if not isinstance(palette, list) or len(palette) < min_palette:
+        raise LlmProposalError(f"LLM proposal must include at least {min_palette} language_palette items")
+    if not isinstance(rules, list) or len(rules) < min_rules:
+        raise LlmProposalError(f"LLM proposal must include at least {min_rules} combination_rules")
+    if not isinstance(candidates, list) or len(candidates) < min_candidates:
+        raise LlmProposalError(f"LLM proposal must include at least {min_candidates} candidates")
+
+
+def build_site_context(
+    *,
+    site_area_m2: float,
+    building_type: str,
+    limits: dict[str, Any],
+    max_variants: int,
+) -> dict[str, Any]:
+    from design.maas.program_massing import program_search_prior, resolve_program_profile
+    program = resolve_program_profile(building_type)
+    return {
+        "building_type": building_type,
+        "site_area_m2": round(float(site_area_m2), 2),
+        "max_variants": int(max_variants),
+        "limits": {
+            "far": limits.get("far"),
+            "bcr": limits.get("bcr"),
+            "height": limits.get("height"),
+            "max_seed_floors": limits.get("max_seed_floors"),
+        },
+        "selection_goal": "creative architectural language first; deterministic law solver remains source of truth",
+        "program_massing": {
+            "profile_id": program["id"],
+            "design_intent": program["design_intent"],
+            "target_volume_range": program["target_volume_range"],
+            "target_floor_range": program["target_floor_range"],
+            "preferred_families": program["preferred_families"],
+            "search_prior": program_search_prior(building_type),
+        },
+    }
+
+
+def generate_llm_massdsl_batch(
+    *,
+    site_context: dict[str, Any],
+    target_count: int = 120,
+    model: str | None = None,
+    timeout: float | None = None,
+    batch_size: int | None = None,
+    batch_retries: int | None = None,
+    batch_workers: int | None = None,
+    max_openai_batches: int | None = None,
+    max_output_tokens: int | None = None,
+    overgenerate_count: int | None = None,
+    cache_path: str | Path | None = None,
+    generation_feedback: dict[str, Any] | None = None,
+    response_override: dict[str, Any] | None = None,
+) -> LlmProposalBatch:
+    model = model or os.getenv("MAAS_LLM_MODEL") or DEFAULT_MODEL
+    timeout = timeout if timeout is not None else _safe_float(os.getenv("MAAS_LLM_TIMEOUT"), 90.0)
+    batch_size = max(3, min(40, int(batch_size or os.getenv("MAAS_LLM_BATCH_SIZE", "30"))))
+    started = time.time()
+    batch_errors: list[dict[str, Any]] = []
+    cache_path_raw = str(cache_path or os.getenv("MAAS_LLM_BATCH_CACHE_PATH", "")).strip()
+    resolved_cache_path = Path(cache_path_raw).expanduser() if cache_path_raw else None
+    cache_hit = False
+    if response_override is None and resolved_cache_path and resolved_cache_path.exists():
+        try:
+            cached = json.loads(resolved_cache_path.read_text(encoding="utf-8"))
+            response_override = cached.get("data") if isinstance(cached.get("data"), dict) else cached
+            cache_hit = isinstance(response_override, dict)
+        except Exception:
+            response_override = None
+            cache_hit = False
+    if response_override is None:
+        merged: dict[str, Any] = {
+            "language_palette": [],
+            "combination_rules": [],
+            "candidates": [],
+        }
+        raw_response = {"id": None, "batch_ids": []}
+        resolved_overgenerate_count = (
+            int(overgenerate_count)
+            if overgenerate_count is not None
+            else int(os.getenv("MAAS_LLM_OVERGENERATE_COUNT", "8"))
+        )
+        resolved_overgenerate_count = max(0, resolved_overgenerate_count)
+        request_count = target_count + resolved_overgenerate_count
+        batches = (request_count + batch_size - 1) // batch_size
+        if max_openai_batches is None:
+            raw_max_batches = os.getenv("MAAS_LLM_MAX_OPENAI_BATCHES")
+            max_openai_batches = int(raw_max_batches) if raw_max_batches else batches
+        batches = max(1, min(batches, int(max_openai_batches)))
+        prompt_hashes: list[str] = []
+        max_attempts = max(1, int(batch_retries or os.getenv("MAAS_LLM_BATCH_RETRIES", "3")))
+        messages: list[dict[str, str]] = []
+        batch_focuses: list[dict[str, Any]] = []
+
+        def merge_batch_data(batch_data: dict[str, Any]) -> None:
+            merged["language_palette"].extend(batch_data.get("language_palette") or [])
+            merged["combination_rules"].extend(batch_data.get("combination_rules") or [])
+            merged["candidates"].extend(batch_data.get("candidates") or [])
+
+        def request_llm_batch(batch_label: int | str, count: int, attempts: int) -> tuple[dict[str, Any] | None, Exception | None, dict[str, Any]]:
+            batch_messages = _prompt(site_context, count, batch_index=batch_label, generation_feedback=generation_feedback)
+            metadata = {
+                "prompt_hash": _stable_hash(batch_messages),
+                "message_count": len(batch_messages),
+                "focus": {
+                    "batch_label": str(batch_label),
+                    "target_count": count,
+                    **_batch_focus_payload(batch_label, count),
+                },
+                "response_ids": [],
+            }
+            last_error: Exception | None = None
+            for attempt in range(1, max(1, attempts) + 1):
+                attempt_messages = batch_messages
+                if attempt > 1:
+                    attempt_messages = [
+                        *batch_messages,
+                        {
+                            "role": "user",
+                            "content": (
+                                "The previous structured output for this batch was truncated or invalid JSON. "
+                                "Retry the same batch with complete valid JSON only, no omissions."
+                            ),
+                        },
+                    ]
+                try:
+                    response = _call_openai(
+                        attempt_messages,
+                        model=model,
+                        timeout=timeout,
+                        min_candidates=count,
+                        min_palette=3,
+                        min_rules=2,
+                        max_output_tokens=max_output_tokens,
+                    )
+                except LlmProposalError as exc:
+                    last_error = exc
+                    continue
+                response_id = response.get("id")
+                if response_id:
+                    metadata["response_ids"].append(response_id)
+                raw_text = _extract_text(response)
+                if not raw_text:
+                    last_error = LlmProposalError(f"OpenAI response did not include output text for batch {batch_label}")
+                    continue
+                try:
+                    parsed = json.loads(raw_text)
+                    _validate_batch(parsed, min_candidates=count, min_palette=3, min_rules=2)
+                    return parsed, None, metadata
+                except (json.JSONDecodeError, LlmProposalError) as exc:
+                    last_error = exc
+                    continue
+            return None, last_error, metadata
+
+        batch_plan = [
+            (batch_index, min(batch_size, max(0, request_count - (batch_index - 1) * batch_size)))
+            for batch_index in range(1, batches + 1)
+        ]
+        batch_plan = [(label, count) for label, count in batch_plan if count > 0]
+        worker_count = max(1, min(len(batch_plan), int(batch_workers or os.getenv("MAAS_LLM_BATCH_WORKERS", "1"))))
+        batch_results: list[tuple[int, int, dict[str, Any] | None, Exception | None, dict[str, Any]]] = []
+        if worker_count > 1:
+            with ThreadPoolExecutor(max_workers=worker_count) as executor:
+                futures = {
+                    executor.submit(request_llm_batch, batch_index, count, max_attempts): (batch_index, count)
+                    for batch_index, count in batch_plan
+                }
+                for future in as_completed(futures):
+                    batch_index, count = futures[future]
+                    batch_data, last_error, metadata = future.result()
+                    batch_results.append((batch_index, count, batch_data, last_error, metadata))
+        else:
+            for batch_index, count in batch_plan:
+                batch_data, last_error, metadata = request_llm_batch(batch_index, count, max_attempts)
+                batch_results.append((batch_index, count, batch_data, last_error, metadata))
+
+        for batch_index, count, batch_data, last_error, metadata in sorted(batch_results, key=lambda item: item[0]):
+            prompt_hashes.append(str(metadata.get("prompt_hash") or ""))
+            if metadata.get("focus"):
+                batch_focuses.append(metadata["focus"])
+            for response_id in metadata.get("response_ids") or []:
+                raw_response["batch_ids"].append(response_id)
+                raw_response["id"] = response_id
+            if batch_data is None:
+                recovered = 0
+                sub_count = max(3, min(5, count // 2 or 3))
+                sub_index = 1
+                while recovered < count:
+                    current_count = min(sub_count, count - recovered)
+                    if current_count < 3 and recovered > 0:
+                        break
+                    sub_data, sub_error, sub_metadata = request_llm_batch(f"{batch_index}.{sub_index}", current_count, 1)
+                    prompt_hashes.append(str(sub_metadata.get("prompt_hash") or ""))
+                    if sub_metadata.get("focus"):
+                        batch_focuses.append(sub_metadata["focus"])
+                    for response_id in sub_metadata.get("response_ids") or []:
+                        raw_response["batch_ids"].append(response_id)
+                        raw_response["id"] = response_id
+                    if sub_data is None:
+                        last_error = sub_error or last_error
+                        break
+                    merge_batch_data(sub_data)
+                    recovered += len(sub_data.get("candidates") or [])
+                    sub_index += 1
+                if recovered >= max(3, count // 2):
+                    continue
+                batch_errors.append({
+                    "batch_index": batch_index,
+                    "attempts": max_attempts,
+                    "error": str(last_error),
+                })
+                continue
+            merge_batch_data(batch_data)
+        if len(merged["language_palette"]) < 30:
+            needed_palette = 30 - len(merged["language_palette"])
+            merged["language_palette"].extend([
+                f"timeout coverage language {index + 1} {REQUIRED_COVERAGE_FAMILIES[index % len(REQUIRED_COVERAGE_FAMILIES)]}"
+                for index in range(needed_palette)
+            ])
+        if len(merged["combination_rules"]) < 10:
+            merged["combination_rules"].extend([
+                "combine one plan operation with one section or void operation",
+                "avoid repeating stepback as the primary language",
+                "prefer reviewable BCR/FAR before legal solver clipping",
+                "keep roof, bridge, courtyard, and array as separate families",
+                "treat parking and legal envelope as hard post checks",
+                "use asymmetric offsets to separate bars and courts",
+                "use voids to produce inhabitable atria rather than decorative holes",
+                "use connector verbs for sectionally legible masses",
+                "use single-slab overlap before adding stacked towers",
+                "reserve stack for nest, roof, and legal-envelope anchors",
+            ])
+        if len(merged["candidates"]) < target_count:
+            merged["candidates"].extend(
+                _coverage_repair_population(
+                    target_count - len(merged["candidates"]),
+                    start_index=len(merged["candidates"]),
+                )
+            )
+        data = merged
+        prompt_hash = _stable_hash(prompt_hashes)
+        if resolved_cache_path:
+            try:
+                resolved_cache_path.parent.mkdir(parents=True, exist_ok=True)
+                resolved_cache_path.write_text(json.dumps({
+                    "schema_version": "arr.maas.llm_massdsl_cache.v1",
+                    "model": model,
+                    "prompt_hash": prompt_hash,
+                    "created_at_unix": int(time.time()),
+                    "target_count": target_count,
+                    "batch_size": batch_size,
+                    "data": data,
+                }, ensure_ascii=False, indent=2), encoding="utf-8")
+            except Exception:
+                pass
+    else:
+        request_count = target_count
+        resolved_overgenerate_count = 0
+        raw_response = {"id": "test-response-override"}
+        data = response_override
+        messages = _prompt(site_context, target_count, generation_feedback=generation_feedback)
+        prompt_hash = _stable_hash(messages)
+        batch_focuses = [_batch_focus_payload(1, target_count)]
+    if not isinstance(data, dict):
+        raise LlmProposalError("LLM proposal response must be a JSON object")
+    _ensure_family_coverage(data)
+    _validate_batch(data, min_candidates=target_count)
+    sequence_list: list[VerbSequence] = []
+    rejected_records: list[str] = []
+    for index, record in enumerate(data.get("candidates") or []):
+        if not isinstance(record, dict):
+            rejected_records.append(f"{index}:not_object")
+            continue
+        try:
+            sequence_list.append(_record_to_sequence(record, index + 1, prompt_hash=prompt_hash, model=model))
+        except ValueError as exc:
+            rejected_records.append(str(exc))
+    if len(sequence_list) < target_count:
+        repair_records = _coverage_repair_population(
+            target_count - len(sequence_list),
+            start_index=len(data.get("candidates") or []),
+        )
+        for repair_index, record in enumerate(repair_records, start=len(data.get("candidates") or []) + 1):
+            try:
+                sequence_list.append(_record_to_sequence(record, repair_index, prompt_hash=prompt_hash, model=model))
+                data.setdefault("candidates", []).append(record)
+            except ValueError as exc:
+                rejected_records.append(str(exc))
+    sequences = tuple(sequence_list)
+    min_valid = max(10, int(target_count * 0.75))
+    if len(sequences) < min_valid:
+        raise LlmProposalError(f"only {len(sequences)} valid LLM sequences compiled; rejected={rejected_records[:5]}")
+    artifact = {
+        "schema_version": LLM_BATCH_SCHEMA_VERSION,
+        "run_id": f"maas-llm-{int(started)}-{prompt_hash}",
+        "model": model,
+        "provider": "openai",
+        "api": "responses",
+        "prompt_hash": prompt_hash,
+        "elapsed_ms": int((time.time() - started) * 1000),
+        "target_count": target_count,
+        "requested_candidate_count": request_count,
+        "overgenerate_count": resolved_overgenerate_count,
+        "batch_size": batch_size,
+        "batch_retries": max_attempts if response_override is None else None,
+        "max_output_tokens": int(max_output_tokens or os.getenv("MAAS_LLM_MAX_OUTPUT_TOKENS", "12000")),
+        "raw_candidate_count": len(data.get("candidates") or []),
+        "compiled_sequence_count": len(sequences),
+        "rejected_sequence_count": len(rejected_records),
+        "rejected_sequence_samples": rejected_records[:10],
+        "openai_batch_error_count": len(batch_errors) if response_override is None else 0,
+        "openai_batch_errors": batch_errors[:8] if response_override is None else [],
+        "timeout_coverage_repair_count": sum(
+            1
+            for record in data.get("candidates") or []
+            if isinstance(record, dict)
+            and "timeout_coverage_repair" in (record.get("intent_tags") or [])
+        ),
+        "language_palette_count": len(data.get("language_palette") or []),
+        "combination_rule_count": len(data.get("combination_rules") or []),
+        "site_summary": site_context,
+        "generation_feedback": _feedback_prompt_payload(generation_feedback) if generation_feedback else {},
+        "batch_family_focuses": batch_focuses[:40],
+        "cache": {
+            "enabled": bool(resolved_cache_path),
+            "hit": cache_hit,
+            "path": str(resolved_cache_path) if resolved_cache_path else "",
+        },
+        "transcript": {
+            "request": {
+                "model": model,
+                "message_count": len(messages),
+                "prompt_hash": prompt_hash,
+                "schema_version": LLM_BATCH_SCHEMA_VERSION,
+            },
+            "response": {
+                "id": raw_response.get("id"),
+                "candidate_count": len(data.get("candidates") or []),
+            },
+        },
+    }
+    return LlmProposalBatch(artifact=artifact, sequences=sequences)
+
+
+__all__ = [
+    "LLM_BATCH_SCHEMA_VERSION",
+    "LLM_PARAMETER_SOURCE",
+    "LlmProposalBatch",
+    "LlmProposalError",
+    "build_site_context",
+    "generate_llm_massdsl_batch",
+]

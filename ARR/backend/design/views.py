@@ -20,7 +20,7 @@ from django.views.decorators.http import require_http_methods
 
 from design.engine.runner import JobRunner, MultiAlgoRunner
 from design.formatters import format_job_response, format_design_response, format_pareto_front
-from design.models import OptimizationJob, DesignResult
+from design.models import OptimizationJob, DesignResult, MaasRevisionEvent
 from design.persistence import save_job, save_results, update_job_status
 from design.services.constraint_bridge import (
     regulations_to_constraints, build_default_job_spec, compute_setback_geometry,
@@ -38,6 +38,7 @@ from design.services.interactive_patch import build_interactive_patch_plan
 from design.services.interactive_apply import build_interactive_preview
 from design.services.mass_operations import apply_mass_operation
 from design.maas import build_maas_evidence_bundle, export_mass_geojson_to_scad, generate_legal_mass_variants
+from design.maas.interactive import apply_conversational_graph_revision, build_revision_learning_profile
 from design.maas.aesthetic import build_aesthetic_pipeline_result
 from design.maas.aesthetic.adapters import NanoBananaAdapter, OpenAIImageAdapter
 from design.maas.aesthetic.renderers import MultiViewReferencePackRenderer
@@ -1117,6 +1118,115 @@ def interactive_operation(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
+def maas_conversational_revision(request):
+    """Bounded edit of one accepted MAAS component graph; never regenerates a population."""
+    try:
+        body = json.loads(request.body or b"{}")
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+    job = None
+    job_id = body.get("job_id")
+    if job_id:
+        try:
+            job = OptimizationJob.objects.get(id=job_id)
+        except (OptimizationJob.DoesNotExist, ValueError):
+            return JsonResponse({"error": "unknown job_id"}, status=404)
+    accepted_feature = body.get("accepted_feature")
+    design_id = body.get("design_id")
+    if job is not None and isinstance(design_id, int):
+        try:
+            stored_design = DesignResult.objects.get(job=job, design_id=design_id)
+        except DesignResult.DoesNotExist:
+            return JsonResponse({"error": "unknown design_id for job"}, status=404)
+        if isinstance(stored_design.mass_geojson, dict):
+            accepted_feature = stored_design.mass_geojson
+    site_polygon = job.site_polygon if job is not None else body.get("site_polygon")
+    graph_operations = body.get("graph_operations")
+    references = body.get("references") if isinstance(body.get("references"), list) else []
+    if not isinstance(accepted_feature, dict):
+        return JsonResponse({"error": "accepted_feature is required"}, status=400)
+    if not isinstance(site_polygon, dict):
+        return JsonResponse({"error": "site_polygon is required"}, status=400)
+    instruction = body.get("instruction") if isinstance(body.get("instruction"), str) else ""
+    if graph_operations is not None and not isinstance(graph_operations, list):
+        return JsonResponse({"error": "graph_operations must be a list"}, status=400)
+    if not graph_operations and not instruction.strip() and not references:
+        return JsonResponse({"error": "instruction, references, or graph_operations is required"}, status=400)
+    try:
+        project_key = str((job.pnu if job is not None else body.get("project_key")) or "")
+        learning_profile = build_revision_learning_profile(project_key)
+        constraints = job.constraints if job is not None and isinstance(job.constraints, list) else (
+            body.get("constraints") if isinstance(body.get("constraints"), list) else []
+        )
+        result = apply_conversational_graph_revision(
+            accepted_feature=accepted_feature,
+            site_polygon_geojson=site_polygon,
+            graph_operations=graph_operations or [],
+            constraints=constraints,
+            building_type=body.get("building_type") if isinstance(body.get("building_type"), str) else "공동주택",
+            instruction=instruction,
+            references=references,
+            revision_history=body.get("revision_history") if isinstance(body.get("revision_history"), list) else [],
+            reference_vlm_model=body.get("reference_vlm_model") if isinstance(body.get("reference_vlm_model"), str) else None,
+            learning_profile=learning_profile,
+        )
+    except Exception as exc:
+        logger.exception("MAAS conversational revision failed")
+        return JsonResponse({"error": f"MAAS conversational revision failed: {exc}"}, status=400)
+    props = accepted_feature.get("properties") if isinstance(accepted_feature.get("properties"), dict) else {}
+    event = MaasRevisionEvent.objects.create(
+        job=job,
+        project_key=project_key,
+        variant_id=str(props.get("variant_id") or ""),
+        instruction=instruction,
+        inference_source=str((result.get("intent_translation") or {}).get("source") or ""),
+        accepted_by_gates=bool(result.get("accepted")),
+        graph_diff=result.get("graph_diff") if isinstance(result.get("graph_diff"), list) else [],
+        validation=result.get("validation") if isinstance(result.get("validation"), dict) else {},
+        reference_evidence=result.get("reference_evidence") if isinstance(result.get("reference_evidence"), dict) else {},
+        revision_evaluation=result.get("revision_evaluation") if isinstance(result.get("revision_evaluation"), dict) else {},
+    )
+    result["revision_event_id"] = str(event.id)
+    result["constraint_source"] = "stored_optimization_job" if job is not None else "request_payload"
+    result["learning_profile"] = learning_profile
+    return JsonResponse(result)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def maas_revision_feedback(request, revision_id):
+    """Persist architect/client acceptance, rejection, or undo for later calibration."""
+    try:
+        body = json.loads(request.body or b"{}")
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+    try:
+        event = MaasRevisionEvent.objects.get(id=revision_id)
+    except MaasRevisionEvent.DoesNotExist:
+        return JsonResponse({"error": "revision event not found"}, status=404)
+    decision = str(body.get("decision") or "").strip().lower()
+    if decision not in {"accepted", "rejected", "undo"}:
+        return JsonResponse({"error": "decision must be accepted, rejected, or undo"}, status=400)
+    rating = body.get("rating")
+    if rating is not None:
+        if not isinstance(rating, int | float) or not 1 <= float(rating) <= 5:
+            return JsonResponse({"error": "rating must be between 1 and 5"}, status=400)
+        event.user_rating = float(rating)
+    event.user_decision = decision
+    event.feedback_note = str(body.get("note") or "")[:4000]
+    event.feedback_at = timezone.now()
+    event.save(update_fields=["user_decision", "user_rating", "feedback_note", "feedback_at"])
+    return JsonResponse({
+        "schema_version": "arr.maas.revision_feedback.v1",
+        "revision_event_id": str(event.id),
+        "decision": event.user_decision,
+        "rating": event.user_rating,
+        "recorded": True,
+    })
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def maas_export_scad(request):
     """POST /design/maas/export-scad/ — Export ARR mass GeoJSON to OpenSCAD."""
     try:
@@ -1155,6 +1265,22 @@ def maas_legal_variants(request):
     if not isinstance(site_polygon, dict):
         return JsonResponse({"error": "site_polygon is required"}, status=400)
 
+    from design.maas.service_cache import load_verified_result, request_cache_key, store_verified_result
+
+    service_mode = str(body.get("service_mode") or "sync").strip().lower()
+    cache_key = request_cache_key(body)
+    if service_mode == "cached":
+        cached = load_verified_result(cache_key)
+        if cached is None:
+            return JsonResponse({
+                "status": "cache_miss",
+                "cache_key": cache_key,
+                "refresh_required": True,
+            }, status=404)
+        response = JsonResponse(cached)
+        response["X-MAAS-Cache"] = "hit"
+        return response
+
     try:
         result = generate_legal_mass_variants(
             mass_geojson=mass_geojson,
@@ -1170,7 +1296,13 @@ def maas_legal_variants(request):
             parking_options=body.get("parking_options") if isinstance(body.get("parking_options"), dict) else None,
         )
     except Exception as e:
+        logger.exception("MAAS legal variants generation failed")
         return JsonResponse({"error": f"MAAS legal variants failed: {e}"}, status=400)
+    if service_mode == "refresh":
+        try:
+            store_verified_result(cache_key, result)
+        except ValueError as exc:
+            return JsonResponse({"error": str(exc), "cache_key": cache_key}, status=409)
     return JsonResponse(result)
 
 

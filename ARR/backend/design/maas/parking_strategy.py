@@ -260,6 +260,7 @@ def _layout_strategy_score(layout: dict[str, Any]) -> tuple[int, int, int, int, 
         else 4 if status == "needs_swept_path_review"
         else 3 if status == "needs_drive_connectivity_review"
         else 2 if status == "needs_aisle_review"
+        else 1 if status == "needs_mechanical_parking_review"
         else 1 if unmet == 0
         else 0
     )

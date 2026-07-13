@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from design.maas.agents.orchestrator.flow import build_flow_edges
+
 
 ARR_MAAS_CATALOG_ID = "arr.maas.agent_review.v0"
 
@@ -27,6 +29,8 @@ def build_agent_review_a2ui_messages(
         "height": props.get("height"),
         "maas_score": props.get("maas_score"),
     }
+    massdsl = props.get("massdsl_proposal")
+    grammar_review = props.get("grammar_review")
     review_ids = [f"review-{i}" for i in range(len(agent_reviews))]
     components: list[dict[str, Any]] = [
         {"id": "root", "component": "Column", "children": ["title", "metrics", *review_ids]},
@@ -63,6 +67,9 @@ def build_agent_review_a2ui_messages(
                 "value": {
                     "title": f"MAAS agent review · {operation_type}",
                     "metrics": metrics,
+                    "flow_edges": build_flow_edges(),
+                    "massdsl_proposal": massdsl if isinstance(massdsl, dict) else None,
+                    "grammar_review": grammar_review if isinstance(grammar_review, dict) else None,
                     "agent_reviews": agent_reviews,
                 },
             },

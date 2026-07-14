@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from design.maas.grammar.component_graph import MassComponentGraph, MassComponentNode, graph_from_sequence
+from design.maas.grammar.parameter_schema import PARAMETER_BOUNDS, bounded_parameter
 from design.maas.grammar.verb_sequence import VerbSequence, call
 from design.maas.grammar.vocab import SUPPORTED_VERBS
 
@@ -88,7 +89,11 @@ PARAMETER_ALIASES_BY_VERB = {
     "pinch": {"waist_ratio": ("factor", "pinch_ratio")},
     "offset": {"distance_ratio": ("distance", "magnitude_ratio", "offset_ratio")},
     "shift": {"distance_ratio": ("distance", "magnitude_ratio", "offset_ratio")},
-    "array": {"spacing_ratio": ("spacing", "gap_ratio")},
+    "array": {
+        "spacing_ratio": ("spacing", "gap_ratio"),
+        "hierarchy_ratio": ("size_gradient", "scale_gradient"),
+        "stagger_ratio": ("stagger", "cross_shift_ratio"),
+    },
     "taper": {"x_ratio": ("top_ratio",), "y_ratio": ("top_ratio",)},
     "sloped_roof_mass": {"x_ratio": ("roof_taper_ratio",), "y_ratio": ("roof_span_ratio",)},
 }
@@ -107,7 +112,10 @@ REQUIRED_PARAMS_BY_VERB = {
     "nest": ("inner_scale", "upper_ratio", "lower_floor_fraction"),
     "stack": ("levels", "upper_ratio", "lower_floor_fraction"),
     "offset": ("axis", "distance_ratio", "other_scale", "upper_ratio", "lower_floor_fraction"),
-    "array": ("axis", "n", "spacing_ratio", "unit_scale", "lower_floor_fraction"),
+    "array": (
+        "axis", "n", "spacing_ratio", "unit_scale", "hierarchy_ratio",
+        "stagger_ratio", "lower_floor_fraction",
+    ),
     "reflect": ("axis", "gap_ratio", "unit_scale", "upper_ratio", "lower_floor_fraction"),
     "interlock": ("angle", "bar_ratio", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
     "overlap": ("axis", "slab_ratio", "shift_ratio", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
@@ -370,6 +378,18 @@ def _normalise_params(verb: str, params: dict[str, Any]) -> dict[str, Any]:
         normalised["ratio"] = normalised["depth_ratio"]
     if verb in {"offset", "shift"} and "distance_ratio" not in normalised and "magnitude_ratio" in normalised:
         normalised["distance_ratio"] = normalised["magnitude_ratio"]
+    if verb == "array":
+        # A cluster language needs controllable hierarchy and stagger. Older
+        # cached author records remain executable through explicit defaults,
+        # while new prompts expose both values to the authoring agent.
+        normalised["hierarchy_ratio"] = round(
+            _clamp(_safe_float(normalised.get("hierarchy_ratio"), 0.18), 0.08, 0.36),
+            4,
+        )
+        normalised["stagger_ratio"] = round(
+            _clamp(_safe_float(normalised.get("stagger_ratio"), 0.12), 0.04, 0.28),
+            4,
+        )
     if verb == "sloped_roof_mass" and "pitch_proxy" in normalised:
         pitch = _clamp(_safe_float(normalised.get("pitch_proxy"), 0.18), 0.06, 0.32)
         ridge_axis = str(normalised.get("ridge_axis") or normalised.get("axis") or "x")
@@ -414,6 +434,15 @@ def _normalise_params(verb: str, params: dict[str, Any]) -> dict[str, Any]:
                 _clamp(_safe_float(normalised.get(key), default), lower, upper),
                 4,
             )
+    # Persist the same typed numeric contract that the compiler consumes.
+    # Previously out-of-range LLM values survived in graph JSON while the
+    # compiler silently clamped them, so later agents edited a graph that did
+    # not actually describe the rendered geometry.
+    for key in set(normalised) & set(PARAMETER_BOUNDS):
+        try:
+            normalised[key] = bounded_parameter(key, float(normalised[key]))
+        except (TypeError, ValueError):
+            continue
     return normalised
 
 
@@ -695,6 +724,9 @@ def _prompt(
             "For stacked_platform candidates, use overlap or split with 4 to 5 visible source tiers/roles where possible. "
             "Do not merely write reference names in labels; the MassDSL calls must express the reference-backed massing principle. "
             "For each reference_language_brief, preserve primary_operation as the first non-base call so the compiler materializes the intended family. "
+            "When required_language_groups or language_group_repair is present, satisfy it with the executable primary graph operation and formal principle, "
+            "not with labels, typology names, or rationale text. Folded candidates need a real sloped_roof_mass/folded section; stepped candidates need an "
+            "occupiable stack, terrace_link, or grade sequence whose plates carry capacity. "
         )
     user = (
         "Generate a broad MAAS massing population for early architectural review.\n"
@@ -793,6 +825,8 @@ def _feedback_prompt_payload(feedback: dict[str, Any]) -> dict[str, Any]:
         "reference_signal_diagnosis": feedback.get("reference_signal_diagnosis") or {},
         "required_field_topologies": feedback.get("required_field_topologies") or {},
         "field_topology_repair": feedback.get("field_topology_repair") or {},
+        "required_language_groups": feedback.get("required_language_groups") or {},
+        "language_group_repair": feedback.get("language_group_repair") or {},
         "top_candidate_brief": (feedback.get("top_candidate_brief") or [])[:5],
         "bottom_candidate_brief": (feedback.get("bottom_candidate_brief") or [])[:5],
         "critic_actions": feedback.get("critic_actions") or {},
@@ -1027,6 +1061,87 @@ def _field_topology_counts(data: dict[str, Any]) -> dict[str, int]:
             topology = topology if topology in counts else "parallel"
             counts[topology] += 1
     return counts
+
+
+def _record_language_group(record: dict[str, Any]) -> str:
+    """Classify the executable primary operation, not the candidate label.
+
+    The author prompt has always carried family quotas, but a prose label could
+    satisfy the prompt while the primary graph node compiled to another form.
+    This mirrors the downstream archive groups closely enough to decide whether
+    a focused author repair batch is required before geometry search starts.
+    """
+    calls = [item for item in record.get("calls") or [] if isinstance(item, dict)]
+    primary = next((item for item in calls if item.get("role") == "primary"), None)
+    if primary is None:
+        primary = next((item for item in calls if item.get("verb") != "base"), None)
+    primary_verb = str((primary or {}).get("verb") or "").strip().lower()
+    principle = " ".join((
+        str(record.get("formal_principle") or ""),
+        str(record.get("mass_language") or ""),
+        str(record.get("primary_language") or ""),
+    )).strip().lower().replace("-", "_").replace(" ", "_")
+
+    if primary_verb == "bend" or any(token in principle for token in ("continuous_field", "ribbon_field")):
+        return "continuous_field"
+    if primary_verb == "sloped_roof_mass" or any(token in principle for token in ("folded_section", "folded_roof", "sloped_roof")):
+        return "folded_section"
+    if primary_verb in {"split", "diagonal_connect", "interlock"} or any(
+        token in principle for token in ("split_bridge", "bridge_connector", "interlock")
+    ):
+        return "bridge_interlock"
+    if primary_verb in {"array", "branch"}:
+        return "cluster_field"
+    if primary_verb in {"stack", "terrace_link", "grade"} or any(
+        token in principle for token in ("stepped_landform", "stepped_capacity", "terraced_ribbon", "stacked_shifted_platform")
+    ):
+        return "stepped_capacity"
+    if primary_verb in {"courtyard", "cave", "notch", "embed", "nest", "pinch"} or any(
+        token in principle for token in ("carved_atrium", "carved_monolith", "carved_solid", "courtyard_atrium", "notched_void", "embedded_void")
+    ):
+        return "carved_void"
+    return "calm_anchor"
+
+
+def _language_group_counts(data: dict[str, Any]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for record in data.get("candidates") or []:
+        if not isinstance(record, dict):
+            continue
+        group = _record_language_group(record)
+        counts[group] = counts.get(group, 0) + 1
+    return counts
+
+
+def _missing_requested_language_groups(
+    data: dict[str, Any],
+    generation_feedback: dict[str, Any] | None,
+) -> dict[str, int]:
+    requested = (
+        generation_feedback.get("required_language_groups")
+        if isinstance(generation_feedback, dict)
+        and isinstance(generation_feedback.get("required_language_groups"), dict)
+        else {}
+    )
+    counts = _language_group_counts(data)
+    return {
+        str(group): int(required) - counts.get(str(group), 0)
+        for group, required in requested.items()
+        if isinstance(required, int | float)
+        and counts.get(str(group), 0) < int(required)
+    }
+
+
+def _validate_requested_language_groups(
+    data: dict[str, Any],
+    generation_feedback: dict[str, Any] | None,
+) -> None:
+    missing = _missing_requested_language_groups(data, generation_feedback)
+    if missing:
+        raise LlmProposalError(
+            "LLM author batch missed required executable language groups: "
+            f"missing={missing}, counts={_language_group_counts(data)}"
+        )
 
 
 def _missing_requested_field_topologies(
@@ -1305,6 +1420,8 @@ def generate_llm_massdsl_batch(
                     _validate_batch(parsed, min_candidates=count, min_palette=3, min_rules=2)
                     if feedback_override and feedback_override.get("field_topology_repair"):
                         _validate_requested_field_topologies(parsed, feedback_override)
+                    if feedback_override and feedback_override.get("language_group_repair"):
+                        _validate_requested_language_groups(parsed, feedback_override)
                     return parsed, None, metadata
                 except (json.JSONDecodeError, LlmProposalError) as exc:
                     last_error = exc
@@ -1406,6 +1523,44 @@ def generate_llm_massdsl_batch(
                     "error": str(repair_error),
                 })
         _validate_requested_field_topologies(merged, generation_feedback)
+        missing_language_groups = _missing_requested_language_groups(merged, generation_feedback)
+        if missing_language_groups:
+            repair_feedback = dict(generation_feedback or {})
+            # Ask for a survival buffer because capacity, clean-mass and VLM
+            # gates legitimately reject some authored graphs downstream.
+            repair_feedback["language_group_repair"] = {
+                "missing": missing_language_groups,
+                "instruction": (
+                    "This supplemental batch is accepted only when the executable primary graph nodes close the listed language deficits. "
+                    "Use one dominant gesture, 1-3 clean legal solids, occupiable section depth and no decorative box attachments."
+                ),
+            }
+            repair_feedback["required_language_groups"] = {
+                group: max(1, int(deficit))
+                for group, deficit in missing_language_groups.items()
+            }
+            repair_count = max(3, sum(repair_feedback["required_language_groups"].values()) + 2)
+            repair_data, repair_error, repair_metadata = request_llm_batch(
+                "language-group-repair",
+                repair_count,
+                max_attempts,
+                feedback_override=repair_feedback,
+            )
+            prompt_hashes.append(str(repair_metadata.get("prompt_hash") or ""))
+            if repair_metadata.get("focus"):
+                batch_focuses.append(repair_metadata["focus"])
+            for response_id in repair_metadata.get("response_ids") or []:
+                raw_response["batch_ids"].append(response_id)
+                raw_response["id"] = response_id
+            if repair_data is not None:
+                merge_batch_data(repair_data)
+            else:
+                batch_errors.append({
+                    "batch_index": "language-group-repair",
+                    "attempts": max_attempts,
+                    "error": str(repair_error),
+                })
+        _validate_requested_language_groups(merged, generation_feedback)
         if len(merged["language_palette"]) < 30:
             needed_palette = 30 - len(merged["language_palette"])
             merged["language_palette"].extend([
@@ -1459,6 +1614,7 @@ def generate_llm_massdsl_batch(
     if not isinstance(data, dict):
         raise LlmProposalError("LLM proposal response must be a JSON object")
     _validate_requested_field_topologies(data, generation_feedback)
+    _validate_requested_language_groups(data, generation_feedback)
     if allow_deterministic_coverage_repair:
         _ensure_family_coverage(data)
     _validate_batch(data, min_candidates=target_count)
@@ -1526,6 +1682,7 @@ def generate_llm_massdsl_batch(
         "combination_rule_count": len(data.get("combination_rules") or []),
         "site_summary": site_context,
         "generation_feedback": _feedback_prompt_payload(generation_feedback) if generation_feedback else {},
+        "authored_language_group_counts": _language_group_counts(data),
         "batch_family_focuses": batch_focuses[:40],
         "cache": {
             "enabled": bool(resolved_cache_path),

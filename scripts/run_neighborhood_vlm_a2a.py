@@ -15,9 +15,9 @@ BACKEND_ROOT = REPO_ROOT / "ARR" / "backend"
 sys.path.insert(0, str(BACKEND_ROOT))
 load_dotenv(BACKEND_ROOT / ".env")
 
+from design.maas.program_massing.adaptive_loop import run_adaptive_neighborhood_vlm_a2a_loop  # noqa: E402
 from design.maas.program_massing.vlm_a2a import (  # noqa: E402
     generation_feedback_from_result,
-    run_neighborhood_vlm_a2a_loop,
 )
 from design.services.site_geometry import (  # noqa: E402
     fetch_parcel_boundary,
@@ -111,7 +111,15 @@ def main() -> int:
     parser.add_argument("--target-count", type=int, default=20)
     parser.add_argument("--review-pool-count", type=int, default=30)
     parser.add_argument("--critic-generations", type=int, default=3)
+    parser.add_argument("--search-generations", type=int, default=4)
+    parser.add_argument("--offspring-per-seed", type=int, default=10)
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument(
+        "--adaptive-rounds",
+        type=int,
+        default=1,
+        help="Run fresh graph-author replenishment rounds until the honest visual floor passes.",
+    )
     parser.add_argument("--pnu", help="Load the real parcel boundary from VWorld before generation.")
     parser.add_argument(
         "--site-boundary-from",
@@ -164,7 +172,7 @@ def main() -> int:
             args.pnu,
             args.site_boundary_from,
         )
-    result = run_neighborhood_vlm_a2a_loop(
+    result = run_adaptive_neighborhood_vlm_a2a_loop(
         output_json=output / f"maas-neighborhood-vlm-a2a-{version}.json",
         output_png=output / f"maas-neighborhood-vlm-a2a-{version}.png",
         model=args.model,
@@ -179,9 +187,12 @@ def main() -> int:
         accepted_seed_result_paths=tuple(args.accepted_seed_from),
         supplemental_vlm_cache_paths=tuple(args.supplemental_vlm_cache_from),
         reference_language_cache_path=output / "maas-reference-language-neighborhood-v4.json",
+        max_rounds=max(1, args.adaptive_rounds),
         target_count=max(1, args.target_count),
         review_pool_count=max(1, args.review_pool_count),
         critic_generations=max(1, args.critic_generations),
+        search_generations=max(1, args.search_generations),
+        offspring_per_seed=max(2, args.offspring_per_seed),
         workers=max(1, args.workers),
         generation_feedback=feedback,
         site_polygon=site_polygon,
@@ -195,7 +206,7 @@ def main() -> int:
         "status", "visual_status", "raw_evaluated_count", "clean_pool_count",
         "capacity_pool_count", "vlm_parent_count", "vlm_child_count",
         "selected_count", "capacity_target_met_count", "final_language_group_counts",
-        "near_duplicate_pairs", "morphology_repeat_pairs", "grl_audit",
+        "near_duplicate_pairs", "morphology_repeat_pairs", "silhouette_repeat_pairs", "grl_audit",
         "authored_field_topology_coverage",
         "selected_field_topology_coverage",
     )

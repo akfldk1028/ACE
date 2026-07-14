@@ -6,6 +6,16 @@ Read this file first before touching MAAS mass generation, prompts, source geome
 
 Critical latest handoff:
 
+- Read `v75-v79 adaptive replenishment, strict language evidence, and
+  hierarchical cluster grammar` at the end of the visual-failure handoff
+  before rerunning the current board. The latest stricter best artifact is
+  v79 round 1 at an honest 18/20, not 20/20 and not competition-grade. It has
+  all language minima including two non-uniform cluster fields, but only 18
+  candidates survive the visual, capacity and intrinsic-distance gates.
+  Round 2 regressed to 17; `adaptive_loop.py` now preserves best-so-far so a
+  later round cannot replace a better archive. Offline legal/parking
+  projection remains `not_run`.
+
 - Read `docs/ai-session-memory/MAAS_AGENT_COLLABORATION_FLOW_20260714.md`
   before calling the system multi-agent or A2A. It separates the real offline
   VLM -> typed graph mutation -> recompile loop from the synchronous

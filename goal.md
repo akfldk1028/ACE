@@ -2439,3 +2439,18 @@
 - v74 is still an honest 17/20 visual/technical fail. The accepted PNG remains
   too rectilinear, folded 1 and stepped 1 are missing, and legal/parking is
   `not_run`. Do not mark massing complete or competition-grade from this result.
+
+### v79 strict language-evidence checkpoint (2026-07-14)
+
+- Implement bounded adaptive author/compile/VLM replenishment with persistent
+  graph/VLM caches and honest no-padding behavior.
+- Bind box and weak-void critic failures; require real stepped progression and
+  coherent non-uniform cluster fields.
+- Extend typed MassDSL array grammar with parcel-relative hierarchy and stagger
+  parameters. Do not replace this with named-form or parcel-coordinate
+  templates.
+- Preserve monotonic best-so-far across adaptive rounds. The current stricter
+  best is v79 round 1 at 18/20; round 2 regressed and must not replace it.
+- Current board is improved but still not competition-grade. Next priority is
+  expressive graph-native section/surface/ground operations, then deterministic
+  legal/FAR/parking projection with geometry-retention measurement.

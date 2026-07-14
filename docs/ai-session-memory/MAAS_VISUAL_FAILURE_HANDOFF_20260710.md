@@ -2320,3 +2320,101 @@ Next work, without weakening gates:
    parking pass from the offline board.
 4. Continue direct PNG review. Counts, VLM pass and zero duplicates remain
    necessary but insufficient for a competition-grade claim.
+
+## 2026-07-14 v75-v79 adaptive replenishment, strict language evidence, and hierarchical cluster grammar
+
+Read this section first. It supersedes v74 as the current implementation and
+failure diagnosis, but it does not claim completion.
+
+What was implemented:
+
+1. `program_massing/adaptive_loop.py` now runs bounded author -> compile -> VLM
+   -> selector replenishment rounds. It carries accepted executable graphs,
+   author populations and geometry-keyed VLM caches forward. It never pads a
+   board with rejected or duplicate candidates.
+2. `generation_feedback_from_result()` separates an authored topology deficit
+   from a selector-retention deficit. A prior author archive that already has
+   parallel and branched fields is not forced to reauthor them every round.
+3. Missing language groups are classified from the executable primary graph
+   operation, not filename or language label. A focused author repair batch is
+   requested only for the measured deficit.
+4. Search cost is explicit through `search_generations` and
+   `offspring_per_seed`. Focused 1x3 runs take roughly 3-4 minutes with an
+   author-cache hit instead of the earlier 27-minute full-population search.
+5. `too_box_like` is binding unless the compiled geometry contains a profiled
+   surface or critic-confirmed strong void. A family label no longer rescues
+   arbitrary cuboids.
+6. `stepped_capacity` now requires actual centroid shift or plate-area change.
+   Three coincident slabs are not a stepped language.
+7. `carved_void` is rejected when VLM says `needs_carved_void` without also
+   confirming `good_void`. Bounding-envelope whitespace alone is insufficient.
+8. `cluster_field` now requires shared open-space ratio, local adjacency and
+   component-area hierarchy. Three or four equal detached boxes fail.
+9. MassDSL `array` gained typed `hierarchy_ratio` and `stagger_ratio`. The
+   author controls them and the compiler derives unequal, staggered members
+   from parcel dimensions. This is a reusable procedural grammar, not a named
+   building or parcel-coordinate template. Numeric author values are persisted
+   within the shared typed bounds instead of being silently clamped only at
+   render time.
+10. Adaptive orchestration is monotonic best-so-far. v79 round 1 produced
+    18/20, while round 2 regressed to 17/20. The coordinator now compares round
+    quality and returns the better artifact rather than blindly returning the
+    last round.
+
+Verified artifact chain on live PNU `1168011800104170004`:
+
+- v75d (`maas-neighborhood-vlm-a2a-v75d-focused-continuous-cluster`): 20/20,
+  seven language groups, parallel 1 / branched 1, no measured duplicates,
+  capacity target 12. This was before the stricter box/language evidence and
+  therefore is not the current quality truth.
+- v76 (`...v76-binding-box-critic`): 20/20, capacity target 10. It rejected
+  three box-like candidates but the direct PNG still contained many
+  conservative rectilinear masses.
+- v77 round 2 (`...v77-strict-language-evidence-r2`): honest 17/20. Uniform
+  array clusters and weak carved candidates were removed. This failure proved
+  that the compiler, not reference-data quantity, was collapsing authored
+  cluster intent.
+- v78 (`...v78-hierarchical-cluster`): the same cached graphs recompiled with
+  the new array grammar; cluster survival improved from 0 to 1 and total from
+  17 to 18 without a new OpenAI author call.
+- v79 round 1 (`...v79-authored-spatial-cluster`): current stricter best,
+  honest 18/20. Final groups are continuous 2, bridge 2, carved 5, cluster 2,
+  folded 3, stepped 3 and calm 1. Language minima are complete; two additional
+  intrinsically distinct visual-floor candidates are still missing. Round 2
+  regressed to 17 and exposed the best-so-far orchestration bug now fixed.
+
+Direct PNG verdict:
+
+- Continuous fields, bridge/interlock, folded roofs, terraces and two spatial
+  clusters are all present. The cluster fields are no longer equal-size array
+  copies.
+- The board is cleaner and semantically more honest, but several court,
+  carved and stepped candidates remain conservative rectilinear compositions.
+  It is not yet ArchDaily/BIG/OMA or competition-grade.
+- Do not weaken intrinsic distance or visual gates merely to reach 20. The
+  missing work is more expressive executable graph/surface representation and
+  stronger candidate generation, not counter repair.
+
+Reference-data conclusion:
+
+- The local corpus currently contains 12 collections, 274 unique records and
+  338 images across housing, cultural, commercial, office and sports domains.
+- Blindly crawling more ArchDaily images is not the current priority. First
+  improve typed reference-to-graph mutation and compiler expressivity. Add
+  data only when a measured language/usage gap is identified, then curate it
+  by formal principle rather than raw image count.
+
+Non-negotiable remaining work:
+
+1. Keep v79 round 1 as the best strict checkpoint and run future rounds through
+   the monotonic coordinator.
+2. Add stronger graph-native non-rectilinear sectional/roof/ground operations;
+   do not simulate them with more boxes or filename labels.
+3. Add a portfolio-level architectural ambition audit independent of language
+   quotas, then compare it with direct PNG review.
+4. Project the accepted executable graphs through deterministic law, FAR and
+   parking and measure geometry retention. Offline `legal_projection_status`
+   is still `not_run`; no legal or parking pass may be inferred here.
+5. Serve verified archive results immediately and run costly author/VLM
+   replenishment asynchronously. A fresh focused round is about 7-8 minutes;
+   this is not a synchronous request path.

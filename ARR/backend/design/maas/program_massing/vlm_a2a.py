@@ -60,6 +60,8 @@ def run_neighborhood_vlm_a2a_loop(
     capacity_mode: str = "capacity-first",
     workers: int = 4,
     critic_generations: int = 3,
+    search_generations: int = 4,
+    offspring_per_seed: int = 10,
     author_timeout: float = 180.0,
     require_live_graph_author: bool = True,
     vlm_cache_path: Path | None = None,
@@ -136,7 +138,10 @@ def run_neighborhood_vlm_a2a_loop(
             timeout=max(30.0, float(author_timeout)),
             allow_subbatch_recovery=False,
             cache_path=cache_path,
-            generation_feedback=feedback,
+            # Historical populations are archive evidence, not the fresh
+            # response to this round's deficits. Revalidating an old cache
+            # against new quotas incorrectly rejects useful graph diversity.
+            generation_feedback=None,
         )
         author_batches.append(supplemental)
     if require_live_graph_author:
@@ -189,8 +194,8 @@ def run_neighborhood_vlm_a2a_loop(
         building_type=building_type,
         height=15.0,
         floors=5,
-        generations=4,
-        offspring_per_seed=10,
+        generations=max(1, int(search_generations)),
+        offspring_per_seed=max(2, int(offspring_per_seed)),
         random_seed=417,
         target_count=target_count,
         seed_sequences=seeds,
@@ -417,7 +422,10 @@ def run_neighborhood_vlm_a2a_loop(
         # and the per-principle cap still prevent duplicates, so permit one
         # additional geometrically distinct void language when other groups
         # cannot fill the twentieth cell without violating distance.
-        "carved_void": 6,
+        # Six carved candidates made the board read as repeated notched boxes
+        # even when descriptor distance passed. Preserve room for an extra
+        # continuous, folded, bridge, or coherent field language instead.
+        "carved_void": 5,
         "stepped_capacity": 3,
         "continuous_field": 4,
         "bridge_interlock": 4,
@@ -649,6 +657,8 @@ def run_neighborhood_vlm_a2a_loop(
         "generation_feedback": feedback,
         "capacity_policy": capacity_policy,
         "critic_generations": max(1, int(critic_generations)),
+        "search_generations": max(1, int(search_generations)),
+        "offspring_per_seed": max(2, int(offspring_per_seed)),
         "graph_behavior_archive": behavior_archive.evidence(),
         "behavior_frontier_pool_count": len(behavior_frontier),
         "capacity_target_met_count": capacity_target_met_count,
@@ -760,16 +770,27 @@ def generation_feedback_from_result(result: dict[str, Any]) -> dict[str, Any]:
         elif brief["vlm_score"] >= 0.70:
             top.append(brief)
     missing = result.get("missing_language_groups") if isinstance(result.get("missing_language_groups"), dict) else {}
-    field_coverage = (
+    selected_field_coverage = (
         result.get("selected_field_topology_coverage")
         if isinstance(result.get("selected_field_topology_coverage"), dict)
         else {}
     )
-    missing_field_topologies = (
-        field_coverage.get("missing")
-        if isinstance(field_coverage.get("missing"), dict)
+    missing_selected_field_topologies = (
+        selected_field_coverage.get("missing")
+        if isinstance(selected_field_coverage.get("missing"), dict)
         else {}
     )
+    authored_field_coverage = (
+        result.get("authored_field_topology_coverage")
+        if isinstance(result.get("authored_field_topology_coverage"), dict)
+        else {}
+    )
+    missing_authored_field_topologies = (
+        authored_field_coverage.get("missing")
+        if isinstance(authored_field_coverage.get("missing"), dict)
+        else missing_selected_field_topologies
+    )
+    authored_topology_archive_ready = bool(authored_field_coverage.get("hard_pass"))
     quota = dict(feedback.get("quota") or {})
     group_to_quota = {
         "continuous_field": "continuous_or_bent",
@@ -783,10 +804,10 @@ def generation_feedback_from_result(result: dict[str, Any]) -> dict[str, Any]:
         key = group_to_quota.get(str(group))
         if key:
             quota[key] = max(int(quota.get(key) or 0), int(deficit) + 2)
-    if missing_field_topologies.get("branched"):
+    if missing_selected_field_topologies.get("branched"):
         quota["continuous_or_bent"] = max(
             int(quota.get("continuous_or_bent") or 0),
-            int(missing_field_topologies["branched"]) + 3,
+            int(missing_selected_field_topologies["branched"]) + 3,
         )
     feedback.update({
         "schema_version": "arr.maas.vlm_generation_feedback.v2",
@@ -797,17 +818,45 @@ def generation_feedback_from_result(result: dict[str, Any]) -> dict[str, Any]:
             "previous_visual_status": result.get("visual_status"),
             "selected_count": result.get("selected_count"),
             "missing_language_groups": missing,
-            "missing_field_topologies": missing_field_topologies,
+            "missing_selected_field_topologies": missing_selected_field_topologies,
+            "missing_authored_field_topologies": missing_authored_field_topologies,
+            # Backward-compatible diagnostic key means selected retention.
+            "missing_field_topologies": missing_selected_field_topologies,
             "critic_action_counts": dict(action_counts.most_common()),
         },
         "required_field_topologies": {
-            "parallel": 1,
-            "branched": max(2, int(missing_field_topologies.get("branched") or 0) + 1),
+            "parallel": 0 if authored_topology_archive_ready else 1,
+            # The adaptive archive already retains prior branched graphs. A
+            # fresh author round must prove one executable branched field;
+            # require extras only when the selected archive actually lost it.
+            "branched": (
+                0
+                if authored_topology_archive_ready
+                else max(1, int(missing_authored_field_topologies.get("branched") or 0) + 1)
+            ),
             "instruction": (
                 "Author genuinely branched continuous fields whose sole primary node is bend, with one joined trunk and occupiable branches; "
                 "do not relabel parallel bars as branched and do not fragment them into detached boxes."
             ),
         },
+        # These are executable-population minimums, not final-sheet quotas.
+        # A small survival buffer lets clean-mass, capacity and VLM gates reject
+        # weak graphs without erasing the requested language from the board.
+        "required_language_groups": {
+            # Hard author minimum closes the measured deficit only. The quota
+            # above still asks for a survival buffer, but failing to produce
+            # three examples must not discard one genuinely new executable
+            # graph before clean/VLM/novelty evaluation.
+            str(group): max(1, int(deficit))
+            for group, deficit in missing.items()
+        },
+        "language_group_repair": {
+            "missing": {str(group): int(deficit) for group, deficit in missing.items()},
+            "instruction": (
+                "Author new executable graph topologies for the missing groups. "
+                "Do not relabel an existing box, rotated duplicate, or previous accepted graph."
+            ),
+        } if missing else {},
         "top_candidate_brief": sorted(top, key=lambda item: item["vlm_score"], reverse=True)[:5],
         "bottom_candidate_brief": sorted(
             bottom,
@@ -1653,6 +1702,17 @@ def _has_legible_non_box_evidence(feature: dict[str, Any], actions: set[str]) ->
     return design_score >= 0.70 and strong_void
 
 
+def _binding_box_rejection(feature: dict[str, Any], actions: set[str]) -> bool:
+    """Keep a critic box rejection binding without geometric counter-evidence.
+
+    A cluster can be four valid components and a bridge can connect two valid
+    bodies while still reading as arbitrary cuboids. Family correctness is not
+    visual quality; only a profiled envelope or a strong critic-confirmed void
+    can overturn this image judgment.
+    """
+    return "too_box_like" in actions and not _has_legible_non_box_evidence(feature, actions)
+
+
 def _visual_floor_failure_reasons(item: ProgramElite, *, minimum_score: float) -> list[str]:
     props = item.feature.get("properties") if isinstance(item.feature.get("properties"), dict) else {}
     preference = props.get("preference_distillation") if isinstance(props.get("preference_distillation"), dict) else {}
@@ -1669,12 +1729,18 @@ def _visual_floor_failure_reasons(item: ProgramElite, *, minimum_score: float) -
     # A VLM box rejection is binding unless the compiled geometry contains
     # direct evidence that the label was over-broad. A token notch/courtyard is
     # no longer enough to turn a generic extrusion into a design language.
-    if (
-        "too_box_like" in actions
-        and not language_geometry_pass
-        and not _has_legible_non_box_evidence(item.feature, actions)
-    ):
+    if _binding_box_rejection(item.feature, actions):
         reasons.append("too_box_like_without_geometric_evidence")
+    if (
+        language_group == "carved_void"
+        and "needs_carved_void" in actions
+        and "good_void" not in actions
+    ):
+        # Envelope whitespace can be numerically large while the rendered
+        # mass still reads as stacked boxes. For a language whose primary
+        # claim is subtraction, the image critic's missing-void diagnosis is
+        # binding unless it also confirms a legible void.
+        reasons.append("critic_rejects_weak_carved_void")
     design_score = _feature_vlm_design_score(item.feature)
     raw_vlm_score = _feature_vlm_mean(item.feature)
     # A validated stepped/bridge/folded/courtyard diagram may recover the

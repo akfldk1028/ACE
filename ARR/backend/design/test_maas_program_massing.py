@@ -22,6 +22,10 @@ from design.maas.llm_proposals import (
     LlmProposalError,
     _feedback_prompt_payload,
     _field_topology_counts,
+    _language_group_counts,
+    _missing_requested_language_groups,
+    _normalise_params,
+    _validate_requested_language_groups,
     _validate_requested_field_topologies,
 )
 from design.maas.agents.llm_architect_agent import LLMArchitectAgent
@@ -30,7 +34,11 @@ from design.maas.program_massing import creative_archive_sequences, creative_see
 from design.maas.program_massing.benchmark import run_creative_20_archive_benchmark, run_neighborhood_20_language_benchmark, run_program_massing_benchmark, run_site_adaptation_benchmark
 from design.maas.program_massing.grl_contract import build_archive_grl_contract
 from design.maas.program_massing.graph_archive import bounded_behavior_frontier, field_topology_coverage
+from design.maas.program_massing.adaptive_loop import run_adaptive_neighborhood_vlm_a2a_loop
+from design.maas.program_massing.geometry_safety import safe_unary_union
+from design.maas.program_massing.language_quality import assess_language_geometry
 from design.maas.program_massing.vlm_a2a import (
+    _binding_box_rejection,
     _field_topology,
     _language_group,
     _same_source_geometry,
@@ -45,6 +53,7 @@ from design.maas.program_massing.creative import attach_creative_mass_evidence
 from design.maas.program_massing.spatial_evaluation import attach_program_spatial_evidence
 from design.maas.preference.reference_paths import resolve_reference_image_path
 from design.maas.source_geometry import compile_sequence_to_source_mass
+from design.maas.source_geometry.compiler import _array_units
 from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
 from design.maas.source_geometry.parametric_curves import swept_variable_ribbon
 from design.maas.agents.orchestrator.generative_loop import CriticDirective, GraphEditDirective, run_generative_a2a_loop
@@ -169,6 +178,279 @@ class MaasProgramMassingTest(SimpleTestCase):
             _feedback_prompt_payload(feedback)["required_field_topologies"]["branched"],
             2,
         )
+
+    def test_generation_feedback_does_not_reauthor_selector_only_topology_deficit(self):
+        feedback = generation_feedback_from_result({
+            "status": "technical_fail",
+            "visual_status": "automatic_visual_floor_failed",
+            "selected_count": 18,
+            "missing_language_groups": {"continuous_field": 1},
+            "selected_field_topology_coverage": {"missing": {"branched": 1}},
+            "authored_field_topology_coverage": {
+                "counts": {"parallel": 5, "branched": 3},
+                "missing": {},
+                "hard_pass": True,
+            },
+            "trace": [],
+        })
+
+        self.assertEqual(feedback["required_field_topologies"]["parallel"], 0)
+        self.assertEqual(feedback["required_field_topologies"]["branched"], 0)
+        self.assertEqual(
+            feedback["reference_signal_diagnosis"]["missing_selected_field_topologies"],
+            {"branched": 1},
+        )
+        self.assertEqual(
+            feedback["reference_signal_diagnosis"]["missing_authored_field_topologies"],
+            {},
+        )
+
+    def test_generation_feedback_requests_executable_missing_language_groups(self):
+        feedback = generation_feedback_from_result({
+            "status": "technical_fail",
+            "visual_status": "automatic_visual_floor_failed",
+            "selected_count": 17,
+            "missing_language_groups": {"folded_section": 1, "stepped_capacity": 1},
+            "selected_field_topology_coverage": {"missing": {}},
+            "trace": [],
+        })
+
+        self.assertEqual(feedback["required_language_groups"], {
+            "folded_section": 1,
+            "stepped_capacity": 1,
+        })
+        prompt_feedback = _feedback_prompt_payload(feedback)
+        self.assertEqual(prompt_feedback["required_language_groups"], feedback["required_language_groups"])
+
+    def test_author_language_coverage_uses_primary_graph_operation_not_label(self):
+        data = {"candidates": [
+            {
+                "name": "fake_folded_section_label",
+                "formal_principle": "carved_solid",
+                "mass_language": "notched_void",
+                "calls": [
+                    {"role": "root", "verb": "base", "params": "{}"},
+                    {"role": "primary", "verb": "notch", "params": "{}"},
+                ],
+            },
+            {
+                "name": "real_fold",
+                "formal_principle": "folded_section",
+                "mass_language": "sloped_roof",
+                "calls": [
+                    {"role": "root", "verb": "base", "params": "{}"},
+                    {"role": "primary", "verb": "sloped_roof_mass", "params": "{}"},
+                ],
+            },
+            {
+                "name": "real_terrace",
+                "formal_principle": "stepped_landform",
+                "mass_language": "terrace_ribbon",
+                "calls": [
+                    {"role": "root", "verb": "base", "params": "{}"},
+                    {"role": "primary", "verb": "terrace_link", "params": "{}"},
+                ],
+            },
+        ]}
+        feedback = {"required_language_groups": {"folded_section": 2, "stepped_capacity": 1}}
+
+        self.assertEqual(_language_group_counts(data), {
+            "carved_void": 1,
+            "folded_section": 1,
+            "stepped_capacity": 1,
+        })
+        self.assertEqual(_missing_requested_language_groups(data, feedback), {"folded_section": 1})
+        with self.assertRaises(LlmProposalError):
+            _validate_requested_language_groups(data, feedback)
+
+    def test_adaptive_loop_reauthors_from_honest_language_deficit(self):
+        failed = {
+            "status": "technical_fail",
+            "visual_status": "automatic_visual_floor_failed",
+            "selected_count": 17,
+            "missing_language_groups": {"folded_section": 1, "stepped_capacity": 1},
+            "selected_field_topology_coverage": {"missing": {}},
+            "trace": [],
+        }
+        passed = {
+            "status": "technical_pass",
+            "visual_status": "review_required",
+            "selected_count": 20,
+            "missing_language_groups": {},
+        }
+        with TemporaryDirectory() as temporary, patch(
+            "design.maas.program_massing.adaptive_loop.run_neighborhood_vlm_a2a_loop",
+            side_effect=[failed, passed],
+        ) as runner:
+            root = Path(temporary)
+            result = run_adaptive_neighborhood_vlm_a2a_loop(
+                output_json=root / "board.json",
+                output_png=root / "board.png",
+                max_rounds=3,
+            )
+
+        self.assertEqual(runner.call_count, 2)
+        second = runner.call_args_list[1].kwargs
+        self.assertEqual(second["generation_feedback"]["required_language_groups"], {
+            "folded_section": 1,
+            "stepped_capacity": 1,
+        })
+        self.assertEqual(second["generation_feedback"]["required_field_topologies"]["branched"], 1)
+        self.assertIn(root / "board.json", second["accepted_seed_result_paths"])
+        self.assertEqual(result["adaptive_replenishment"]["status"], "visual_floor_reached")
+        self.assertEqual(result["adaptive_replenishment"]["completed_rounds"], 2)
+
+    def test_adaptive_loop_returns_best_round_when_later_round_regresses(self):
+        better = {
+            "status": "technical_fail",
+            "visual_status": "automatic_visual_floor_failed",
+            "selected_count": 18,
+            "capacity_target_met_count": 10,
+            "geometric_language_count": 7,
+            "missing_language_groups": {},
+            "selected_field_topology_coverage": {"missing": {}},
+            "rows": [{"vlm_design_score": 0.74}],
+            "trace": [],
+        }
+        regressed = {
+            "status": "technical_fail",
+            "visual_status": "automatic_visual_floor_failed",
+            "selected_count": 17,
+            "capacity_target_met_count": 9,
+            "geometric_language_count": 6,
+            "missing_language_groups": {"cluster_field": 1},
+            "selected_field_topology_coverage": {"missing": {}},
+            "rows": [{"vlm_design_score": 0.76}],
+            "trace": [],
+        }
+        with TemporaryDirectory() as temporary, patch(
+            "design.maas.program_massing.adaptive_loop.run_neighborhood_vlm_a2a_loop",
+            side_effect=[better, regressed],
+        ):
+            root = Path(temporary)
+            result = run_adaptive_neighborhood_vlm_a2a_loop(
+                output_json=root / "board.json",
+                output_png=root / "board.png",
+                max_rounds=2,
+            )
+
+        self.assertEqual(result["selected_count"], 18)
+        self.assertEqual(result["adaptive_replenishment"]["best_round"], 1)
+        self.assertEqual(result["adaptive_replenishment"]["last_round"], 2)
+        self.assertTrue(result["adaptive_replenishment"]["monotonic_best_so_far"])
+
+    def test_box_critic_is_not_overridden_by_family_label_alone(self):
+        box_feature = {"properties": {
+            "program_spatial_evidence": {"spatial_role_projection": {
+                "profiled_roof_present": False,
+                "non_rectilinear_component_count": 0,
+                "envelope_void_ratio": 0.06,
+            }},
+            "source_signature": {"continuous_surface_evidence": {"hard_pass": False}},
+            "preference_distillation": {
+                "concept_scores": {"form_coherence": 0.78, "visual_quality": 0.72},
+                "critic_actions": ["too_box_like"],
+            },
+        }}
+        profiled_feature = {"properties": {
+            **box_feature["properties"],
+            "source_signature": {"continuous_surface_evidence": {"hard_pass": True}},
+        }}
+
+        self.assertTrue(_binding_box_rejection(box_feature, {"too_box_like"}))
+        self.assertFalse(_binding_box_rejection(profiled_feature, {"too_box_like"}))
+
+    def test_stepped_language_requires_real_sectional_progression(self):
+        footprint = box(0, 0, 20, 10)
+        flat_stack = SourceMass(
+            "flat_stack",
+            footprint,
+            volumes=(
+                SourceVolume("lower", footprint, 0.0, 0.34, "stack"),
+                SourceVolume("middle", footprint, 0.34, 0.67, "stack"),
+                SourceVolume("upper", footprint, 0.67, 1.0, "stack"),
+            ),
+        )
+        stepped_stack = SourceMass(
+            "stepped_stack",
+            footprint,
+            volumes=(
+                SourceVolume("lower", footprint, 0.0, 0.34, "stack"),
+                SourceVolume("middle", box(2, 0, 20, 10), 0.34, 0.67, "stack"),
+                SourceVolume("upper", box(5, 0, 20, 10), 0.67, 1.0, "stack"),
+            ),
+        )
+        feature = {"properties": {
+            "source_signature": {"coherence_evidence": {
+                "hard_pass": True,
+                "small_fragment_count": 0,
+                "redundant_overlap_pair_count": 0,
+                "collision_energy": 0.0,
+            }},
+            "program_spatial_evidence": {"spatial_role_projection": {}},
+        }}
+
+        flat = assess_language_geometry(flat_stack, feature, "stepped_capacity")
+        stepped = assess_language_geometry(stepped_stack, feature, "stepped_capacity")
+
+        self.assertFalse(flat["geometry_pass"])
+        self.assertFalse(flat["sectional_progression"])
+        self.assertTrue(stepped["geometry_pass"])
+        self.assertTrue(stepped["sectional_progression"])
+
+    def test_cluster_language_rejects_uniform_detached_lego_array(self):
+        equal_boxes = tuple(
+            SourceVolume(f"cell_{index}", translate(box(0, 0, 4, 4), xoff=index * 6), 0.0, 1.0, "array")
+            for index in range(3)
+        )
+        footprint = safe_unary_union([volume.footprint for volume in equal_boxes])
+        source = SourceMass("uniform_array", footprint, volumes=equal_boxes)
+        feature = {"properties": {
+            "source_signature": {"coherence_evidence": {
+                "hard_pass": True,
+                "small_fragment_count": 0,
+                "redundant_overlap_pair_count": 0,
+                "collision_energy": 0.0,
+            }},
+            "program_spatial_evidence": {"spatial_role_projection": {}},
+        }}
+
+        evidence = assess_language_geometry(source, feature, "cluster_field")
+
+        self.assertFalse(evidence["geometry_pass"])
+        self.assertEqual(evidence["normalized_component_area_spread"], 0.0)
+
+    def test_array_grammar_materializes_authored_component_hierarchy(self):
+        units = _array_units(
+            box(0, 0, 24, 18),
+            "x",
+            3,
+            0.22,
+            0.42,
+            hierarchy_ratio=0.24,
+            stagger_ratio=0.14,
+        )
+        areas = [float(unit.area) for unit in units]
+        normalized_spread = (max(areas) - min(areas)) / (sum(areas) / len(areas))
+
+        self.assertEqual(len(units), 3)
+        self.assertGreaterEqual(normalized_spread, 0.08)
+        self.assertLess(units[0].centroid.y, units[1].centroid.y)
+
+    def test_llm_array_parameters_are_persisted_within_typed_bounds(self):
+        params = _normalise_params("array", {
+            "axis": "y",
+            "n": 4,
+            "spacing_ratio": 0.22,
+            "unit_scale": 0.78,
+            "hierarchy_ratio": 0.64,
+            "stagger_ratio": 0.31,
+            "lower_floor_fraction": 0.42,
+        })
+
+        self.assertEqual(params["unit_scale"], 0.70)
+        self.assertEqual(params["hierarchy_ratio"], 0.36)
+        self.assertEqual(params["stagger_ratio"], 0.28)
 
     def test_profiled_surface_silhouette_is_translation_invariant(self):
         footprint = box(0, 0, 20, 10)

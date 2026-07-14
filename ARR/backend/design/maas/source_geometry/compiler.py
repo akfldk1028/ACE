@@ -691,7 +691,15 @@ def _offset_units(poly: Polygon, axis: str, distance_ratio: float, other_scale: 
     return units
 
 
-def _array_units(poly: Polygon, axis: str, count: int, spacing_ratio: float, unit_scale: float) -> list[Polygon]:
+def _array_units(
+    poly: Polygon,
+    axis: str,
+    count: int,
+    spacing_ratio: float,
+    unit_scale: float,
+    hierarchy_ratio: float = 0.18,
+    stagger_ratio: float = 0.12,
+) -> list[Polygon]:
     minx, miny, maxx, maxy, width, depth = _bounds(poly)
     count = max(2, min(6, count))
     # ``unit_scale`` describes the cross-axis depth of each member, not the
@@ -706,6 +714,8 @@ def _array_units(poly: Polygon, axis: str, count: int, spacing_ratio: float, uni
     gap_fraction = max(0.025, min(0.10, float(spacing_ratio) / count))
     unit_axis_fraction = max(0.08, (1.0 - gap_fraction * (count - 1)) / count)
     cross_fraction = max(0.28, min(0.72, float(unit_scale)))
+    hierarchy_ratio = max(0.08, min(0.36, float(hierarchy_ratio)))
+    stagger_ratio = max(0.04, min(0.28, float(stagger_ratio)))
     unit_span = span * unit_axis_fraction
     gap = span * gap_fraction
     used = unit_span * count + gap * (count - 1)
@@ -714,22 +724,34 @@ def _array_units(poly: Polygon, axis: str, count: int, spacing_ratio: float, uni
     units: list[Polygon] = []
     for index in range(count):
         along = cursor + index * (unit_span + gap)
-        # A restrained alternating cross-axis shift produces usable pockets
-        # without turning the field into a rigid grid or detached debris.
-        stagger = (1.0 if index % 2 else -1.0) * cross_span * (1.0 - cross_fraction) * 0.10
+        progression = 1.0 - 2.0 * index / max(count - 1, 1)
+        member_axis_span = unit_span * (1.0 + progression * hierarchy_ratio * 0.32)
+        member_cross_fraction = max(
+            0.24,
+            min(0.78, cross_fraction * (1.0 + progression * hierarchy_ratio)),
+        )
+        # The author controls both hierarchy and cross-axis stagger. The
+        # compiler derives every dimension from the parcel envelope; there
+        # are no named precedent coordinates or fixed building footprints.
+        stagger = (
+            (1.0 if index % 2 else -1.0)
+            * cross_span
+            * (1.0 - member_cross_fraction)
+            * stagger_ratio
+        )
         if axis == "x":
             cell = box(
-                cx + along - unit_span / 2.0,
-                cy + stagger - cross_span * cross_fraction / 2.0,
-                cx + along + unit_span / 2.0,
-                cy + stagger + cross_span * cross_fraction / 2.0,
+                cx + along - member_axis_span / 2.0,
+                cy + stagger - cross_span * member_cross_fraction / 2.0,
+                cx + along + member_axis_span / 2.0,
+                cy + stagger + cross_span * member_cross_fraction / 2.0,
             )
         else:
             cell = box(
-                cx + stagger - cross_span * cross_fraction / 2.0,
-                cy + along - unit_span / 2.0,
-                cx + stagger + cross_span * cross_fraction / 2.0,
-                cy + along + unit_span / 2.0,
+                cx + stagger - cross_span * member_cross_fraction / 2.0,
+                cy + along - member_axis_span / 2.0,
+                cx + stagger + cross_span * member_cross_fraction / 2.0,
+                cy + along + member_axis_span / 2.0,
             )
         clipped = _clean(cell.intersection(poly))
         if clipped is not None and clipped.area >= max(1.0, poly.area * 0.025):
@@ -2210,6 +2232,8 @@ def _compile_component_graph_to_source_mass(
                     sequence_source=sequence_source,
                 ),
                 _param_float(params, "unit_scale", 0.34, parameter_provenance, sequence_source=sequence_source),
+                _param_float(params, "hierarchy_ratio", 0.18, parameter_provenance, sequence_source=sequence_source),
+                _param_float(params, "stagger_ratio", 0.12, parameter_provenance, sequence_source=sequence_source),
             )
             # The repeated cells are program boxes above a common massing
             # datum. Shrinking the canonical footprint to their union reduced

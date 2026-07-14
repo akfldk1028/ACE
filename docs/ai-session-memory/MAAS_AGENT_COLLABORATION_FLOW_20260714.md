@@ -823,3 +823,63 @@ contract preserves the editable architectural section and is part of VLM cache
 identity. v74 proves the full loop retains one branched candidate, but the
 offline board remains 17/20 and box-dominant. Legal and parking still run only
 in the separate deterministic service path.
+
+## 2026-07-14 adaptive archive ownership correction
+
+The current offline collaboration loop is now:
+
+```text
+LLM Architect Agent
+  -> typed MassDSL component graph
+  -> shared parameter bounds
+  -> source-geometry compiler
+  -> clean/program/capacity gates
+  -> VLM critic + reference matches
+  -> typed graph edits
+  -> recompile (no image-only rerank mutation)
+  -> intrinsic diversity + language-balanced selector
+  -> honest accepted archive
+  -> deficit feedback
+  -> focused author replenishment round
+  -> compare with best-so-far archive
+```
+
+Ownership rules:
+
+- `llm_proposals.py` authors and validates executable graph language. It does
+  not decide law or parking.
+- `parameter_schema.py` is the shared editable numeric contract. A graph JSON
+  must contain the same bounded values the compiler uses.
+- `source_geometry/compiler.py` materializes the graph. Array/cluster hierarchy
+  is controlled by `hierarchy_ratio` and `stagger_ratio`, not a fixed precedent
+  footprint.
+- `language_quality.py` validates that the rendered geometry proves its claimed
+  language. Labels cannot substitute for sectional progression, spatial field
+  hierarchy or a legible void.
+- `vlm_a2a.py` owns critic scoring and final archive gates. VLM remains a critic
+  and typed graph-edit director, not a freeform 3D generator.
+- `adaptive_loop.py` owns bounded replenishment and best-so-far retention. A
+  later round may add candidates but cannot replace a better earlier archive
+  with a regression.
+- deterministic legal/FAR/parking services remain a separate downstream
+  projection. The current offline v79 evidence has not run that projection.
+
+Production timing boundary:
+
+```text
+synchronous request
+  -> PNU/site load
+  -> retrieve verified graph archive
+  -> bounded site adaptation + deterministic law/parking projection
+  -> return review candidates
+
+asynchronous quality job
+  -> fresh LLM author
+  -> search + VLM critique/revision
+  -> strict PNG/archive audit
+  -> promote only if best-so-far improves
+```
+
+Do not place the 7-15 minute fresh author/VLM replenishment loop directly in a
+normal service request. Neo4j/GRL may persist lineage and evidence, but neither
+is required to generate the current geometry and neither fixes a weak mass.

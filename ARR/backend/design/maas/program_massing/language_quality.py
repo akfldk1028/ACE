@@ -90,10 +90,43 @@ def assess_language_geometry(source: Any, feature: dict[str, Any], language_grou
         component_count = len(getattr(union, "geoms", (union,))) if union is not None else 0
         areas = [float(volume.footprint.area) for volume in volumes]
         dominant = max(areas, default=0.0) / max(sum(areas), 1e-9)
-        passed = 3 <= len(volumes) <= 4 and component_count >= 3 and 0.22 <= dominant <= 0.58
+        mean_area = mean(areas) if areas else 0.0
+        area_spread = (
+            (max(areas) - min(areas)) / max(mean_area, 1e-9)
+            if len(areas) >= 2
+            else 0.0
+        )
+        envelope_area = float(union.envelope.area) if union is not None and not union.is_empty else 0.0
+        open_space_ratio = 1.0 - float(union.area) / max(envelope_area, 1e-9) if union is not None else 0.0
+        nearest_gaps: list[float] = []
+        normalization = max(sqrt(sum(areas)), 1e-9)
+        for index, volume in enumerate(volumes):
+            other_distances = [
+                float(volume.footprint.distance(other.footprint))
+                for other_index, other in enumerate(volumes)
+                if other_index != index
+            ]
+            if other_distances:
+                nearest_gaps.append(min(other_distances) / normalization)
+        mean_nearest_gap = mean(nearest_gaps) if nearest_gaps else 1.0
+        # A field is not merely three detached equal boxes.  It needs a
+        # readable shared open-space figure, local adjacency, and at least a
+        # small hierarchy between its pieces.  This implements the authored
+        # reference brief's explicit rejection of uniform repetition.
+        passed = (
+            3 <= len(volumes) <= 4
+            and component_count >= 3
+            and 0.22 <= dominant <= 0.58
+            and 0.16 <= open_space_ratio <= 0.78
+            and mean_nearest_gap <= 0.32
+            and area_spread >= 0.08
+        )
         evidence.update({
             "plan_component_count": component_count,
             "dominant_volume_ratio": round(dominant, 4),
+            "open_space_ratio": round(open_space_ratio, 4),
+            "mean_normalized_nearest_gap": round(mean_nearest_gap, 4),
+            "normalized_component_area_spread": round(area_spread, 4),
             "geometry_pass": passed,
             "quality_score": 0.82 if passed else 0.0,
         })
@@ -108,24 +141,36 @@ def _assess_stepped(volumes: list[Any], evidence: dict[str, Any]) -> dict[str, A
     level_count = len({round(float(item.top_fraction), 2) for item in ordered})
     overlaps: list[float] = []
     upward_area_checks: list[bool] = []
+    area_changes: list[float] = []
     shifts: list[float] = []
     for lower, upper in zip(ordered, ordered[1:]):
         lower_area = max(float(lower.footprint.area), 1e-9)
         upper_area = max(float(upper.footprint.area), 1e-9)
         overlaps.append(float(lower.footprint.intersection(upper.footprint).area) / min(lower_area, upper_area))
         upward_area_checks.append(upper_area <= lower_area * 1.18)
+        area_changes.append(abs(upper_area - lower_area) / max(lower_area, upper_area))
         scale = max(sqrt(lower_area), 1e-9)
         shifts.append(float(lower.footprint.centroid.distance(upper.footprint.centroid)) / scale)
     overlap_mean = mean(overlaps) if overlaps else 0.0
     monotonic_ratio = mean(1.0 if value else 0.0 for value in upward_area_checks) if upward_area_checks else 0.0
     max_shift = max(shifts, default=0.0)
-    passed = level_count >= 2 and overlap_mean >= 0.48 and monotonic_ratio >= 0.50 and max_shift <= 0.72
+    max_area_change = max(area_changes, default=0.0)
+    sectional_progression = max_shift >= 0.045 or max_area_change >= 0.10
+    passed = (
+        level_count >= 2
+        and overlap_mean >= 0.48
+        and monotonic_ratio >= 0.50
+        and max_shift <= 0.72
+        and sectional_progression
+    )
     score = min(0.92, 0.45 + overlap_mean * 0.25 + monotonic_ratio * 0.15 + min(level_count, 3) * 0.04) if passed else 0.0
     evidence.update({
         "height_level_count": level_count,
         "adjacent_plan_overlap_mean": round(overlap_mean, 4),
         "upward_area_monotonic_ratio": round(monotonic_ratio, 4),
         "maximum_normalized_centroid_shift": round(max_shift, 4),
+        "maximum_normalized_area_change": round(max_area_change, 4),
+        "sectional_progression": sectional_progression,
         "geometry_pass": passed,
         "quality_score": round(score, 4),
     })

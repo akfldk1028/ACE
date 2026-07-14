@@ -7,7 +7,7 @@ volume hints that can be repaired and evaluated by the existing optimizer.
 
 from __future__ import annotations
 
-from math import atan2, cos, degrees, hypot, radians, sin, sqrt
+from math import atan2, cos, degrees, hypot, pi, radians, sin, sqrt
 from typing import Any
 
 from shapely.affinity import rotate, scale, translate
@@ -1605,7 +1605,10 @@ def _profiled_component_surfaces(
         points = list(spec.get("path_points") or [])
         profile = list(spec.get("roof_profile") or [])
         half_width = float(spec.get("path_width_m") or 0.0)
-        if len(points) < 2 or len(profile) != len(points) or half_width <= 0:
+        width_profile = [float(value) for value in spec.get("path_width_profile_m") or []]
+        if len(width_profile) != len(points):
+            width_profile = [half_width] * len(points)
+        if len(points) < 2 or len(profile) != len(points) or min(width_profile, default=0.0) <= 0:
             continue
         left: list[tuple[float, float]] = []
         right: list[tuple[float, float]] = []
@@ -1616,8 +1619,9 @@ def _profiled_component_surfaces(
             dy = float(following[1]) - float(previous[1])
             length = max(hypot(dx, dy), 1e-9)
             nx, ny = -dy / length, dx / length
-            left.append((float(point[0]) + nx * half_width, float(point[1]) + ny * half_width))
-            right.append((float(point[0]) - nx * half_width, float(point[1]) - ny * half_width))
+            local_half_width = width_profile[index]
+            left.append((float(point[0]) + nx * local_half_width, float(point[1]) + ny * local_half_width))
+            right.append((float(point[0]) - nx * local_half_width, float(point[1]) - ny * local_half_width))
         role = str(spec["role"])
         verb = str(spec["verb"])
         bottom = float(spec["bottom_fraction"])
@@ -1672,6 +1676,7 @@ def _profiled_formal_surfaces(
     volumes: tuple[SourceVolume, ...],
     origin_poly: Polygon,
     formal_principle: str,
+    formal_evidence: dict[str, Any] | None = None,
 ) -> tuple[tuple[SourceSurface, ...], set[str], dict[str, Any]]:
     """Materialize formal section intent as non-flat renderer/VLM geometry.
 
@@ -1691,6 +1696,25 @@ def _profiled_formal_surfaces(
             "surface_count": 0,
         }
     origin = (float(origin_poly.centroid.x), float(origin_poly.centroid.y))
+    design_field = (
+        (formal_evidence or {}).get("site_design_field")
+        if isinstance((formal_evidence or {}).get("site_design_field"), dict)
+        else {}
+    )
+    field_specs = design_field.get("surface_field_specs") if isinstance(design_field, dict) else None
+    if principle == "continuous_ribbon_field" and isinstance(field_specs, list) and field_specs:
+        spec_surfaces = _profiled_component_surfaces(tuple(field_specs), origin_poly)
+        roles = {str(spec.get("role") or "") for spec in field_specs if spec.get("role")}
+        return spec_surfaces, roles, {
+            "schema_version": "arr.maas.continuous_surface.v1",
+            "status": "materialized" if spec_surfaces else "missing",
+            "hard_pass": bool(spec_surfaces),
+            "principle": principle,
+            "representation": "agent_field_quad_strips",
+            "profiled_volume_count": len(roles),
+            "surface_count": len(spec_surfaces),
+            "profiled_roles": sorted(roles),
+        }
     surfaces: list[SourceSurface] = []
     profiled_roles: set[str] = set()
     for volume in volumes:
@@ -1711,7 +1735,9 @@ def _profiled_formal_surfaces(
             and volume.verb not in {"branch", "pinch", "interlock", "overlap", "offset"}
         ):
             continue
-        elif principle == "continuous_ribbon_field" and "continuous_ribbon" not in role:
+        elif principle == "continuous_ribbon_field" and not any(
+            token in role for token in ("continuous_ribbon", "branched_ribbon")
+        ):
             continue
         surface_footprint = volume.footprint
         if len(surface_footprint.exterior.coords) - 1 > 10:
@@ -1766,9 +1792,19 @@ def _profiled_formal_surfaces(
                 field = 0.5 + tier_direction * ((u - 0.5) * 0.55 + (v - 0.5) * 0.25)
                 z = volume.bottom_fraction + height_span * max(0.18, min(0.92, field))
             else:
-                # Coupled longitudinal and transverse rise creates a ruled,
-                # non-flat ribbon field from the graph-authored plan curve.
-                field = 0.30 + 0.52 * u + 0.18 * (1.0 - abs(v * 2.0 - 1.0))
+                # The agent-authored section field changes the executable
+                # renderer/VLM envelope while the SourceVolume remains the
+                # conservative legal/FAR proxy. Keeping these contracts
+                # separate makes the representation replaceable.
+                profile = list(design_field.get("height_profile_ratios") or (0.64, 0.96, 0.70))
+                if len(profile) != 3:
+                    profile = [0.64, 0.96, 0.70]
+                if u <= 0.5:
+                    field = float(profile[0]) + (float(profile[1]) - float(profile[0])) * u * 2.0
+                else:
+                    field = float(profile[1]) + (float(profile[2]) - float(profile[1])) * (u - 0.5) * 2.0
+                field += float(design_field.get("height_wave") or 0.0) * sin(u * 2.0 * pi)
+                field += 0.06 * (1.0 - abs(v * 2.0 - 1.0))
                 z = volume.bottom_fraction + height_span * max(0.18, min(0.96, field))
             return max(volume.bottom_fraction + 0.02, min(volume.top_fraction, z))
 
@@ -2481,6 +2517,7 @@ def _compile_component_graph_to_source_mass(
         volumes,
         footprint,
         formal_principle,
+        formal_result.evidence if formal_result is not None else None,
     )
     profiled_roles = component_profiled_roles | formal_profiled_roles
     standard_surface_volumes = tuple(volume for volume in volumes if volume.role not in profiled_roles)

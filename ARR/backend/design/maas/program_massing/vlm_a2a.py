@@ -33,8 +33,10 @@ from design.maas.source_geometry import compile_sequence_to_source_mass
 
 from .benchmark import _render_archive_sheet
 from .creative import creative_seed_sequences
-from .graph_archive import GraphBehaviorArchive
+from .graph_archive import GraphBehaviorArchive, bounded_behavior_frontier, field_topology_coverage
+from .grl_contract import build_archive_grl_contract
 from .language_quality import assess_language_geometry
+from .morphology import DEFAULT_NOVELTY_POLICY
 from .scoring import attach_program_massing_evidence
 from .search import ProgramElite, _descriptor_distance, _feature, _formal_principle, _geometric_language_count, _select_diverse_archive, _topology, search_program_elites
 from .sequences import program_seed_sequences
@@ -230,11 +232,16 @@ def run_neighborhood_vlm_a2a_loop(
     }
     behavior_archive = GraphBehaviorArchive()
     behavior_archive.extend(capacity_pool)
+    behavior_frontier = bounded_behavior_frontier(
+        capacity_pool,
+        per_cell=4,
+        minimum_count=max(120, int(review_pool_count) * 5),
+    )
     # MAP-Elites is an audit/archive and mutation source. Do not collapse the
     # review frontier to one item per coarse behavior cell before the stricter
     # geometric-distance selector has had a chance to build the 24-parent set.
     parents = _select_language_balanced_archive(
-        capacity_pool,
+        behavior_frontier,
         target_count=max(target_count, int(review_pool_count)),
         # This is a review frontier, not the final archive. A strict scalar
         # distance here discarded authored bend/fold/cluster graphs before the
@@ -444,6 +451,7 @@ def run_neighborhood_vlm_a2a_loop(
         if final_group_counts.get(group, 0) < required
     }
     near_duplicate_pairs = _near_duplicate_pairs(final_archive, threshold=0.20)
+    morphology_repeat_pairs = _morphology_repeat_pairs(final_archive)
     geometric_language_count = _geometric_language_count(final_archive, threshold=0.20)
     accepted_ids = {id(item) for item in final_archive}
     visual_reasons_by_name = {
@@ -510,6 +518,7 @@ def run_neighborhood_vlm_a2a_loop(
         preference = props.get("preference_distillation") or {}
         rows.append({
             "variant_id": props["variant_id"],
+            "language_group": _language_group(elite),
             "formal_principle": signature.get("formal_principle"),
             "volume_count": len(elite.source.volumes),
             "surface_count": signature.get("surface_count"),
@@ -532,8 +541,49 @@ def run_neighborhood_vlm_a2a_loop(
     )
     authored_selected_count = sum(1 for item in final_archive if _is_live_authored_graph(item))
     authored_selected_required_count = max(1, target_count // 2)
+    authored_field_topology_coverage = field_topology_coverage(authored_sequences)
+    selected_field_topology_coverage = field_topology_coverage(
+        item.sequence for item in final_archive
+    )
     persisted_selected_count = sum(1 for item in final_archive if _is_persisted_accepted_seed(item))
     fresh_selected_count = len(final_archive) - persisted_selected_count
+    site_record = {
+        "pnu": site_pnu,
+        "boundary_source": site_boundary_source,
+        "area_m2": round(float(base.area), 2),
+        "bounds_m": [round(float(value), 3) for value in base.bounds],
+        "far_limit_ratio": round(far_limit_ratio, 4),
+        "access_context": dict(site_access_context or {}),
+        "access_geometry": site_access_geometry,
+        "synthetic": site_polygon is None,
+    }
+    morphology_relations = [
+        {
+            "left": left_index,
+            "right": right_index,
+            "distance": round(distance, 4),
+            "repeat_kind": DEFAULT_NOVELTY_POLICY.repeat_kind(
+                distance,
+                same_principle=_formal_principle(left) == _formal_principle(right),
+                same_topology=_topology(left) == _topology(right),
+            ),
+        }
+        for left_index, left in enumerate(final_archive)
+        for right_index, right in enumerate(final_archive[left_index + 1:], start=left_index + 1)
+        if (distance := _descriptor_distance(left, right))
+        <= DEFAULT_NOVELTY_POLICY.graph_audit_neighbor
+    ]
+    grl_path = output_json.with_name(f"{output_json.stem}-grl.json")
+    grl_contract = build_archive_grl_contract(
+        dataset_id=f"maas:{site_pnu or output_json.stem}",
+        title=f"MAAS morphology audit - {site_pnu or 'synthetic site'}",
+        source_path=str(output_json),
+        site=site_record,
+        candidates=rows,
+        morphology_relations=morphology_relations,
+    )
+    output_json.parent.mkdir(parents=True, exist_ok=True)
+    grl_path.write_text(json.dumps(grl_contract, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     result = {
         "schema_version": "arr.maas.neighborhood_vlm_a2a_loop.v1",
         "status": "technical_pass" if len(rows) == target_count and all(row["reference_count"] > 0 for row in rows) else "technical_fail",
@@ -543,25 +593,19 @@ def run_neighborhood_vlm_a2a_loop(
                 len(final_archive) == target_count
                 and not missing_groups
                 and not near_duplicate_pairs
+                and not morphology_repeat_pairs
                 and geometric_language_count >= max(1, target_count - 2)
                 and capacity_target_met_count >= capacity_target_required_count
                 and authored_selected_count >= authored_selected_required_count
+                and authored_field_topology_coverage["hard_pass"]
+                and selected_field_topology_coverage["hard_pass"]
                 and persisted_selected_count <= max(1, (target_count * 4) // 5)
                 and fresh_selected_count >= max(2, target_count // 5)
             )
             else "automatic_visual_floor_failed"
         ),
         "legal_projection_status": "not_run",
-        "site": {
-            "pnu": site_pnu,
-            "boundary_source": site_boundary_source,
-            "area_m2": round(float(base.area), 2),
-            "bounds_m": [round(float(value), 3) for value in base.bounds],
-            "far_limit_ratio": round(far_limit_ratio, 4),
-            "access_context": dict(site_access_context or {}),
-            "access_geometry": site_access_geometry,
-            "synthetic": site_polygon is None,
-        },
+        "site": site_record,
         "raw_evaluated_count": search_report["evaluated_count"],
         "clean_pool_count": len(clean_pool),
         "capacity_pool_count": len(capacity_pool),
@@ -587,9 +631,12 @@ def run_neighborhood_vlm_a2a_loop(
         "capacity_policy": capacity_policy,
         "critic_generations": max(1, int(critic_generations)),
         "graph_behavior_archive": behavior_archive.evidence(),
+        "behavior_frontier_pool_count": len(behavior_frontier),
         "capacity_target_met_count": capacity_target_met_count,
         "capacity_target_required_count": capacity_target_required_count,
         "authored_selected_count": authored_selected_count,
+        "authored_field_topology_coverage": authored_field_topology_coverage,
+        "selected_field_topology_coverage": selected_field_topology_coverage,
         "authored_selected_required_count": authored_selected_required_count,
         "minimum_vlm_score": minimum_vlm_score,
         "visual_floor_pool_count": len(visual_floor_pool),
@@ -601,6 +648,15 @@ def run_neighborhood_vlm_a2a_loop(
         "missing_language_groups": missing_groups,
         "geometric_language_count": geometric_language_count,
         "near_duplicate_pairs": near_duplicate_pairs,
+        "morphology_repeat_pairs": morphology_repeat_pairs,
+        "morphology_neighbor_relations": morphology_relations,
+        "grl_audit": {
+            "schema_version": "arr.maas.grl_audit.v1",
+            "role": "evidence_and_lineage_viewer_not_geometry_generator",
+            "path": str(grl_path),
+            "relation_count": len(morphology_relations),
+            "rotation_invariant_duplicate_count": len(morphology_repeat_pairs),
+        },
         "reference_corpus_count": len(references),
         "reference_language_distillation": reference_distillation,
         "review_candidate_count": len(review_rows),
@@ -611,7 +667,6 @@ def run_neighborhood_vlm_a2a_loop(
         "png": str(output_png),
         "accepted_only_png": str(accepted_output_png),
     }
-    output_json.parent.mkdir(parents=True, exist_ok=True)
     output_json.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return result
 
@@ -796,12 +851,24 @@ def _select_language_balanced_archive(
         group = _language_group(item)
         if maximum_groups and language_group_counts.get(group, 0) >= int(maximum_groups.get(group, target_count)):
             return False
-        if selected and min(_descriptor_distance(item, other) for other in selected) < minimum_distance:
-            return False
+        for other in selected:
+            distance = _descriptor_distance(item, other)
+            if distance < minimum_distance:
+                return False
+            if (
+                _topology(item) == _topology(other)
+                and distance < DEFAULT_NOVELTY_POLICY.same_topology_repeat
+            ):
+                return False
+            if (
+                _formal_principle(item) == _formal_principle(other)
+                and distance < DEFAULT_NOVELTY_POLICY.same_principle_repeat
+            ):
+                return False
         # Variants of the same graph can differ numerically in FAR/height yet
         # remain the same visible idea. Require a substantially different 3D
         # diagram before a second mutation of one topology enters the sheet.
-        topology_distance = max(0.20, minimum_distance)
+        topology_distance = max(DEFAULT_NOVELTY_POLICY.same_topology_repeat, minimum_distance)
         if topology_peers and min(_descriptor_distance(item, other) for other in topology_peers) < topology_distance:
             return False
         return True
@@ -981,7 +1048,17 @@ def _rebalance_capacity_archive(
                 topology_peers = [item for item in remaining if _topology(item) == _topology(candidate)]
                 if len(topology_peers) >= 2:
                     continue
-                if topology_peers and min(_descriptor_distance(candidate, item) for item in topology_peers) < minimum_distance:
+                if topology_peers and min(
+                    _descriptor_distance(candidate, item) for item in topology_peers
+                ) < DEFAULT_NOVELTY_POLICY.same_topology_repeat:
+                    continue
+                principle_peers = [
+                    item for item in remaining
+                    if _formal_principle(item) == _formal_principle(candidate)
+                ]
+                if principle_peers and min(
+                    _descriptor_distance(candidate, item) for item in principle_peers
+                ) < DEFAULT_NOVELTY_POLICY.same_principle_repeat:
                     continue
                 principle_count = sum(_formal_principle(item) == _formal_principle(candidate) for item in remaining)
                 if principle_count >= 4:
@@ -1153,6 +1230,30 @@ def _near_duplicate_pairs(items: list[ProgramElite], *, threshold: float) -> lis
                     "left": left.sequence.name,
                     "right": right.sequence.name,
                     "distance": round(distance, 4),
+                })
+    return pairs
+
+
+def _morphology_repeat_pairs(items: list[ProgramElite]) -> list[dict[str, Any]]:
+    pairs: list[dict[str, Any]] = []
+    for left_index, left in enumerate(items):
+        for right_index, right in enumerate(items[left_index + 1:], start=left_index + 1):
+            distance = _descriptor_distance(left, right)
+            repeat_kind = DEFAULT_NOVELTY_POLICY.repeat_kind(
+                distance,
+                same_principle=_formal_principle(left) == _formal_principle(right),
+                same_topology=_topology(left) == _topology(right),
+            )
+            if repeat_kind:
+                pairs.append({
+                    "left_index": left_index,
+                    "right_index": right_index,
+                    "left": left.sequence.name,
+                    "right": right.sequence.name,
+                    "distance": round(distance, 4),
+                    "repeat_kind": repeat_kind,
+                    "left_principle": _formal_principle(left),
+                    "right_principle": _formal_principle(right),
                 })
     return pairs
 

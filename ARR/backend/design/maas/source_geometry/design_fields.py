@@ -20,6 +20,7 @@ from shapely.geometry import LineString, MultiLineString, Polygon
 class RibbonDesignField:
     paths: tuple[tuple[tuple[float, float], ...], ...]
     half_widths: tuple[float, ...]
+    half_width_profiles: tuple[tuple[float, ...], ...]
     vertical_bands: tuple[tuple[float, float], ...]
     evidence: dict[str, Any]
 
@@ -60,11 +61,24 @@ def build_ribbon_design_field(footprint: Polygon, params: dict[str, Any]) -> Rib
     phase = _number(params, ("field_phase", "phase"), 0.0, -1.0, 1.0)
     overlap = _number(params, ("vertical_overlap",), 0.22, 0.0, 0.38)
     width_gradient = _number(params, ("width_gradient",), 0.40, -0.48, 0.48)
+    width_start_ratio = _number(params, ("width_start_ratio",), 0.72, 0.45, 1.35)
+    width_mid_ratio = _number(params, ("width_mid_ratio",), 1.20, 0.65, 1.55)
+    width_end_ratio = _number(params, ("width_end_ratio",), 0.78, 0.45, 1.35)
+    width_wave = _number(params, ("width_wave",), 0.10, -0.28, 0.28)
+    field_topology = str(params.get("field_topology") or "parallel").strip().lower()
+    if field_topology not in {"parallel", "branched"}:
+        field_topology = "parallel"
+    branch_point_ratio = _number(params, ("branch_point_ratio",), 0.36, 0.22, 0.58)
+    height_start_ratio = _number(params, ("height_start_ratio",), 0.64, 0.40, 1.00)
+    height_mid_ratio = _number(params, ("height_mid_ratio",), 0.96, 0.50, 1.00)
+    height_end_ratio = _number(params, ("height_end_ratio",), 0.70, 0.40, 1.00)
+    height_wave = _number(params, ("height_wave",), 0.10, -0.24, 0.24)
     vertical_mode = str(params.get("vertical_mode") or "terraced").strip().lower()
     authored_controls = _control_points(params.get("control_points"))
 
     paths: list[tuple[tuple[float, float], ...]] = []
     widths: list[float] = []
+    width_profiles: list[tuple[float, ...]] = []
     for lane_index in range(lane_count):
         lane_position = (lane_index + 1.0) / (lane_count + 1.0)
         points: list[tuple[float, float]] = []
@@ -91,6 +105,13 @@ def build_ribbon_design_field(footprint: Polygon, params: dict[str, Any]) -> Rib
                 position = authored_position + lane_offset + curvature * wave * 0.28
             else:
                 position = lane_position + curvature * wave
+            if field_topology == "branched":
+                # Paths share a trunk until the authored branch point, then
+                # progressively diverge. This is normalized graph logic, not
+                # a parcel-coordinate template.
+                branch_progress = max(0.0, (t - branch_point_ratio) / max(1.0 - branch_point_ratio, 1e-9))
+                trunk_spread = 0.06 + branch_progress * 0.94
+                position = 0.5 + (position - 0.5) * trunk_spread
             position = max(margin, min(1.0 - margin, position))
             points.append(_rotate_point((x, low + available * position), frame_angle, origin))
             local_depths.append(available)
@@ -98,7 +119,18 @@ def build_ribbon_design_field(footprint: Polygon, params: dict[str, Any]) -> Rib
             return None
         paths.append(tuple(points))
         hierarchy = 1.0 + (0.5 - lane_index / max(lane_count - 1, 1)) * width_gradient
-        widths.append(min(local_depths) * width_ratio * hierarchy)
+        base_width = min(local_depths) * width_ratio * hierarchy
+        profile = []
+        for point_index in range(len(points)):
+            t = point_index / max(len(points) - 1, 1)
+            if t <= 0.5:
+                local_ratio = width_start_ratio + (width_mid_ratio - width_start_ratio) * t * 2.0
+            else:
+                local_ratio = width_mid_ratio + (width_end_ratio - width_mid_ratio) * (t - 0.5) * 2.0
+            local_ratio += width_wave * sin((t + phase * 0.08) * 2.0 * pi)
+            profile.append(base_width * max(0.48, min(1.55, local_ratio)))
+        width_profiles.append(tuple(profile))
+        widths.append(sum(profile) / len(profile))
 
     if vertical_mode == "grounded":
         bands = tuple((0.0, max(0.72, 1.0 - index * 0.10)) for index in range(lane_count))
@@ -117,10 +149,12 @@ def build_ribbon_design_field(footprint: Polygon, params: dict[str, Any]) -> Rib
     return RibbonDesignField(
         paths=tuple(paths),
         half_widths=tuple(widths),
+        half_width_profiles=tuple(width_profiles),
         vertical_bands=bands,
         evidence={
             "schema_version": "arr.maas.site_design_field.v1",
             "field_type": "parcel_cross_section_ribbon",
+            "field_topology": field_topology,
             "coordinate_frame": "minimum_rotated_long_axis",
             "dominant_axis_world_degrees": round(frame_angle, 4),
             "source": str(params.get("design_field_source") or "mass_graph_parameters"),
@@ -134,6 +168,34 @@ def build_ribbon_design_field(footprint: Polygon, params: dict[str, Any]) -> Rib
             "vertical_band_height": round(band_height if vertical_mode != "grounded" else 1.0, 4),
             "vertical_mode": vertical_mode,
             "width_gradient": round(width_gradient, 4),
+            "variable_width": True,
+            "width_profile_source": (
+                "agent_authored"
+                if any(key in params for key in (
+                    "width_start_ratio", "width_mid_ratio", "width_end_ratio", "width_wave"
+                ))
+                else "formal_rule_prior"
+            ),
+            "width_profile_ratios": [
+                round(width_start_ratio, 4),
+                round(width_mid_ratio, 4),
+                round(width_end_ratio, 4),
+            ],
+            "width_wave": round(width_wave, 4),
+            "branch_point_ratio": round(branch_point_ratio, 4),
+            "height_profile_source": (
+                "agent_authored"
+                if any(key in params for key in (
+                    "height_start_ratio", "height_mid_ratio", "height_end_ratio", "height_wave"
+                ))
+                else "formal_rule_prior"
+            ),
+            "height_profile_ratios": [
+                round(height_start_ratio, 4),
+                round(height_mid_ratio, 4),
+                round(height_end_ratio, 4),
+            ],
+            "height_wave": round(height_wave, 4),
             "authored_control_point_count": len(authored_controls),
             "parcel_area_m2": round(float(footprint.area), 2),
         },

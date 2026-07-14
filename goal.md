@@ -2384,3 +2384,46 @@
 - Direct PNG review still finds excessive rectilinear bars/podiums. The next
   design representation work remains variable-width sweep, branched lane
   field and continuous roof loft. Legal/parking projection is still `not_run`.
+
+### Rotation-invariant diversity correction (2026-07-14, in progress)
+
+- The user correctly rejected v58's `zero near duplicates`: the prior distance
+  metric was tied to world/site coordinates and treated a rotated or reflected
+  copy of one mass language as novel.
+- Intrinsic morphology is now isolated in
+  `program_massing/morphology.py`: center, principal-frame alignment, uniform
+  scale normalization, planar rotation/reflection matching and layered 3D
+  symmetric difference. Search/selection consumes the policy through one
+  function so a learned embedding or voxel metric can replace it later.
+- GRL is integrated through the separate `grl_contract.py` adapter only as an
+  evidence/lineage viewer. It is not the geometry generator and can be replaced
+  without changing MassDSL/compiler/search.
+- Do not call this verified until a same-PNU v59 full 20-card run is compared
+  with v58 on intrinsic duplicate count, language distribution, FAR capacity,
+  VLM quality and direct PNG review. An honest result may contain fewer than 20
+  if the old board depended on pose-only duplicates.
+
+### Editable field representation checkpoint (2026-07-14, v59-v66)
+
+- v59 verifies rotation/reflection-invariant selection but returns 18/20; this
+  is the correct failure, not a reason to refill with the same language.
+- The mass graph can now author parcel-conditioned `parallel` or `branched`
+  fields with variable plan width and continuous height profile. It compiles
+  to separate conservative law/FAR proxy volumes and path-aligned quad-strip
+  review/VLM surfaces.
+- v65 real-PNU probe passes 6/6; branched FAR is 0.6459-0.7435 without generic
+  box refill. The PNG is materially smoother than v64 but remains a
+  representation checkpoint, not competition-grade completion.
+- Fresh author populations must pass field topology coverage (parallel >= 1,
+  branched >= 1). The first v66 author cache has no branched graph, so the next
+  completed full loop must remain visually failed unless a genuinely new
+  authored batch closes that deficit.
+- v66 completed at 18/20 with FAR 12/8 and zero intrinsic repeats, but direct
+  PNG review remains box-dominant and only one profiled continuous field is
+  visible. Its status is correctly `automatic_visual_floor_failed`.
+- v67 recompiles the cached author with the current field materializer: 19/20,
+  FAR 12/8, no intrinsic repeats, but author parallel/branched is 3/0 and final
+  selected is 1/0. Keep both topology audits as hard visual-floor gates.
+- Preserve module boundaries: morphology policy, archive policy, GRL audit,
+  parametric sweep, site design field, formal materializer and law/parking
+  projection must remain replaceable independently.

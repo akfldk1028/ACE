@@ -6,6 +6,22 @@ Read this file first before touching MAAS mass generation, prompts, source geome
 
 Critical latest handoff:
 
+- First read `pose-invariant v59 and editable field representation v61-v65`
+  at the end of the visual-failure handoff. v59 honestly returned 18/20 after
+  removing pose duplicates. v65 is the current graph-editable width/height/
+  branch quad-strip representation probe; it is not a final 20-board. The v66
+  fresh author produced no branched field, so topology coverage is now a hard
+  audit rather than an assumed capability.
+- v67 is the current full PNU board: 19/20, FAR 12/8, no intrinsic repeats,
+  but continuous 1/2, stepped 2/3 and branched 0/1. Its PNG is still box
+  dominant; use the v65 six-form probe only to verify representation capacity,
+  never as evidence that the 20-board is solved.
+- First read the final section, `rotation-equivalent language correction and
+  GRL audit (in progress)`, in the visual-failure handoff. v58's zero-duplicate
+  claim was visually false because descriptor distance used absolute site
+  coordinates. The new modular morphology metric is rotation/reflection
+  invariant; GRL is connected only as an audit contract. The same-PNU v59
+  comparison is now complete and honestly returned 18/20.
 - Current real-project evidence is v58. Read `Real-PNU full-loop correction
   chain (v54-v58)` first: it records actual east road frontage, green parcel /
   blue access VLM evidence, 20/20, FAR target 13/8 and zero duplicates. It is

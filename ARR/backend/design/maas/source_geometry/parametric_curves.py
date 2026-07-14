@@ -67,6 +67,54 @@ def swept_ribbon(
     return swept
 
 
+def swept_variable_ribbon(
+    control_points: tuple[Point2D, ...],
+    *,
+    half_widths: tuple[float, ...],
+    clip: Polygon,
+    samples_per_span: int = 3,
+) -> Polygon | None:
+    """Sweep a continuously tapered ribbon through an authored path.
+
+    Width samples are graph parameters evaluated along the path. The operator
+    contains no parcel coordinates or precedent outline; it only constructs a
+    clean offset envelope and clips it to the supplied legal/design field.
+    """
+    if len(control_points) < 2 or len(half_widths) < 2 or clip.is_empty:
+        return None
+    path = catmull_rom_path(control_points, samples_per_span=samples_per_span)
+    if len(path) < 2:
+        return None
+    widths = _resample_profile(half_widths, len(path))
+    left_edge: list[Point2D] = []
+    right_edge: list[Point2D] = []
+    for index, ((x, y), width) in enumerate(zip(path, widths)):
+        previous = path[max(0, index - 1)]
+        following = path[min(len(path) - 1, index + 1)]
+        dx, dy = following[0] - previous[0], following[1] - previous[1]
+        length = hypot(dx, dy)
+        if length <= 1e-9:
+            continue
+        nx, ny = -dy / length, dx / length
+        local_width = max(0.01, float(width))
+        left_edge.append((x + nx * local_width, y + ny * local_width))
+        right_edge.append((x - nx * local_width, y - ny * local_width))
+    if len(left_edge) < 2 or len(right_edge) < 2:
+        return None
+    swept = Polygon((*left_edge, *reversed(right_edge))).buffer(0)
+    if isinstance(swept, MultiPolygon):
+        swept = max(swept.geoms, key=lambda item: item.area)
+    if not isinstance(swept, Polygon) or swept.is_empty:
+        return None
+    reference_width = max(widths)
+    swept = swept.simplify(max(reference_width * 0.05, 0.005), preserve_topology=True).intersection(clip)
+    if isinstance(swept, MultiPolygon):
+        swept = max(swept.geoms, key=lambda item: item.area)
+    if not isinstance(swept, Polygon) or swept.is_empty:
+        return None
+    return swept
+
+
 def path_curvature_evidence(points: tuple[Point2D, ...]) -> dict[str, float | int]:
     smooth = catmull_rom_path(points)
     length = sum(hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(smooth, smooth[1:]))
@@ -87,4 +135,24 @@ def _deduplicate(points: list[Point2D]) -> list[Point2D]:
     return result
 
 
-__all__ = ["catmull_rom_path", "path_curvature_evidence", "swept_ribbon"]
+def _resample_profile(values: tuple[float, ...], count: int) -> tuple[float, ...]:
+    if count <= 0:
+        return ()
+    if len(values) == 1:
+        return (float(values[0]),) * count
+    result = []
+    for index in range(count):
+        position = index * (len(values) - 1) / max(count - 1, 1)
+        lower = min(len(values) - 1, int(position))
+        upper = min(len(values) - 1, lower + 1)
+        blend = position - lower
+        result.append(float(values[lower]) * (1.0 - blend) + float(values[upper]) * blend)
+    return tuple(result)
+
+
+__all__ = [
+    "catmull_rom_path",
+    "path_curvature_evidence",
+    "swept_ribbon",
+    "swept_variable_ribbon",
+]

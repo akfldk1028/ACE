@@ -397,6 +397,23 @@ def _normalise_params(verb: str, params: dict[str, Any]) -> dict[str, Any]:
             "cascade": "terraced",
             "stacked": "terraced",
         }.get(vertical, vertical if vertical in {"terraced", "grounded"} else "terraced")
+        topology = str(normalised.get("field_topology") or "parallel").strip().lower()
+        normalised["field_topology"] = topology if topology in {"parallel", "branched"} else "parallel"
+        for key, default, lower, upper in (
+            ("width_start_ratio", 0.72, 0.45, 1.35),
+            ("width_mid_ratio", 1.20, 0.65, 1.55),
+            ("width_end_ratio", 0.78, 0.45, 1.35),
+            ("width_wave", 0.10, -0.28, 0.28),
+            ("branch_point_ratio", 0.36, 0.22, 0.58),
+            ("height_start_ratio", 0.64, 0.40, 1.00),
+            ("height_mid_ratio", 0.96, 0.50, 1.00),
+            ("height_end_ratio", 0.70, 0.40, 1.00),
+            ("height_wave", 0.10, -0.24, 0.24),
+        ):
+            normalised[key] = round(
+                _clamp(_safe_float(normalised.get(key), default), lower, upper),
+                4,
+            )
     return normalised
 
 
@@ -704,7 +721,13 @@ def _prompt(
         "two non-root nodes that share the same parent. For bend candidates, include lane_count 2-3, occupiable half-width "
         "lane_width_ratio 0.075-0.11, vertical_overlap 0.16-0.30, "
         "vertical_mode exactly terraced or grounded, curvature -0.18 to 0.18, "
-        "and 4 to 6 normalized control_points such as [[0.04,0.25],[0.32,0.62],[0.68,0.38],[0.96,0.72]]; vary these from the site and brief. "
+        "field_topology exactly parallel or branched, branch_point_ratio 0.22-0.58, and an intentional variable-width profile using "
+        "width_start_ratio 0.45-1.35, width_mid_ratio 0.65-1.55, width_end_ratio 0.45-1.35, and width_wave -0.28 to 0.28. "
+        "Author one continuous roof-section profile with height_start_ratio 0.40-1.00, height_mid_ratio 0.50-1.00, "
+        "height_end_ratio 0.40-1.00, and height_wave -0.24 to 0.24; this is a section field, not decorative facade variation. "
+        "Include 4 to 6 normalized control_points such as [[0.04,0.25],[0.32,0.62],[0.68,0.38],[0.96,0.72]]; vary these from the site and brief. "
+        "Across a 20-or-more candidate population, author at least two bend candidates: at least one parallel field and at least one branched field. "
+        "They must differ in topology and section profile, not merely direction, reflection, labels, or control-point order. "
         "For a public courtyard facing the supplied access edge, set courtyard open_side to south/north/east/west; use closed only when an enclosed atrium is intentional. "
         "Prefer creative combinations of "
         "plan, section, void, connector, array, offset, stack, and roof language. "

@@ -1,0 +1,2173 @@
+{
+  "schema_version": "arr.maas.llm_massdsl_cache.v1",
+  "model": "gpt-5.4-mini",
+  "prompt_hash": "7ee987be638055c2",
+  "created_at_unix": 1784006194,
+  "target_count": 24,
+  "batch_size": 8,
+  "data": {
+    "language_palette": [
+      "slender_podium_tower",
+      "carved_atrium",
+      "split_bridge_connector",
+      "torqued_stack",
+      "stacked_shifted_platforms",
+      "folded_section",
+      "courtyard_atrium",
+      "terrace_ribbon",
+      "offset_twin_bar",
+      "bend_ribbon",
+      "cross_interlock",
+      "notched_void",
+      "embedded_void",
+      "reflected_court_pair",
+      "carved-solid courtyard",
+      "torqued tower-base",
+      "split bridge section",
+      "terraced ribbon",
+      "embedded void",
+      "bent bar",
+      "courtyard_atrium",
+      "notched_void",
+      "split_bridge",
+      "diagonal_connector",
+      "terrace_ribbon",
+      "array_cluster",
+      "offset_twin_bar",
+      "reflected_court_pair",
+      "slender_bar",
+      "bend_ribbon",
+      "cross_interlock",
+      "overlap_slabs",
+      "branch_taper",
+      "pinched_waist",
+      "embedded_void",
+      "extruded_fin",
+      "nested_atrium_stack",
+      "sloped_roof",
+      "slender_bar",
+      "courtyard_atrium",
+      "terrace_ribbon",
+      "split_bridge",
+      "sloped_roof_volume",
+      "offset_twin_bar"
+    ],
+    "combination_rules": [
+      "Use one dominant gesture plus one compatible modifier.",
+      "Align or counterpoint the 28.99° site axis explicitly in every mass.",
+      "Keep east edge legible as access and open-space seam.",
+      "Prefer carved courts, bridges, terraces, or folds over box stacks.",
+      "one dominant gesture + one secondary void/roof/bridge/terrace modifier",
+      "keep east access legible and open",
+      "use only one focused family per candidate",
+      "avoid box stacking; make the section do the work",
+      "one dominant gesture + one legible modifier",
+      "start each graph with root/base",
+      "use east access as public arrival unless intentionally counterpointed",
+      "keep voids/bridges attached to their host mass",
+      "prefer carved, split, offset, or terraced operations over box stacking",
+      "east-edge access stays porous or framed by court/bridge",
+      "dominant-axis response is explicit: align, counterpoint, or diagonal-connect",
+      "one primary gesture per candidate; secondary language modifies via void, roof, terrace, or offset"
+    ],
+    "candidates": [
+      {
+        "name": "b1_array_cluster_court_axis_shift",
+        "label": "array cluster with east court and axis counterpoint",
+        "typology": "courtyard cluster",
+        "architectural_language": "continuous cluster field with carved court and slight axis counterpoint",
+        "reference_basis": "OMA-like diagrammatic circulation and neighborhood courtyard precedent",
+        "formal_principle": "figure_ground",
+        "dominant_gesture": "Clustered bars frame a shared court and hold the east edge as an entry seam",
+        "generator_mode": "additive",
+        "mass_language": "array_cluster",
+        "primary_language": "array_cluster",
+        "secondary_language": "courtyard_atrium",
+        "topology_intent": "porous field around a public interior court",
+        "primitive_intent": "distributed bars with one shared void",
+        "intent_tags": [
+          "courtyard",
+          "array",
+          "access_edge",
+          "figure_ground",
+          "public_ground"
+        ],
+        "rule_name": "terrain_loop_edge_cluster",
+        "rule_inputs": [
+          "axis=x",
+          "n=4",
+          "spacing_ratio=0.18",
+          "unit_scale=0.72",
+          "lower_floor_fraction=0.36",
+          "ratio=0.34",
+          "upper_ratio=0.74"
+        ],
+        "expected_geometry_actions": [
+          "array units along x to counter the parcel axis",
+          "carve a courtyard facing east",
+          "keep one shared ground opening at the access edge",
+          "nest the bars around the void"
+        ],
+        "rationale": "A compact cluster can preserve capacity while making a readable court and a clear public seam on the east side.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "array",
+            "params": "{\"axis\":\"x\",\"n\":4,\"spacing_ratio\":0.18,\"unit_scale\":0.72,\"lower_floor_fraction\":0.36}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "primary",
+            "relation": "deform",
+            "verb": "courtyard",
+            "params": "{\"ratio\":0.34,\"upper_ratio\":0.74,\"lower_floor_fraction\":0.36}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "input",
+            "verb": "lift",
+            "params": "{\"upper_ratio\":0.74,\"lower_floor_fraction\":0.36}"
+          },
+          {
+            "node_id": "n5",
+            "parent_node_id": "n3",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "terrace_link",
+            "params": "{\"side\":\"east\",\"upper_ratio\":0.68,\"width_ratio\":0.26,\"depth_ratio\":0.18,\"lower_floor_fraction\":0.36}"
+          }
+        ]
+      },
+      {
+        "name": "b1_offset_twin_bar_court_gap",
+        "label": "offset twin bar with south court and east slip",
+        "typology": "offset bar",
+        "architectural_language": "twin bars shifted to make a court and a porous edge",
+        "reference_basis": "BIG-like offset massing and urban interstice principle",
+        "formal_principle": "datum_shift",
+        "dominant_gesture": "Two bars offset to open a cleft court and thicken the east frontage",
+        "generator_mode": "additive",
+        "mass_language": "offset_twin_bar",
+        "primary_language": "offset_twin_bar",
+        "secondary_language": "sloped_roof",
+        "topology_intent": "paired bars with a shared gap and roof modulation",
+        "primitive_intent": "offset solids with a linking roof plane",
+        "intent_tags": [
+          "offset",
+          "court",
+          "datum_shift",
+          "access_edge",
+          "roof"
+        ],
+        "rule_name": "porous_civic_bar_shift",
+        "rule_inputs": [
+          "axis=y",
+          "distance_ratio=0.27",
+          "other_scale=0.84",
+          "upper_ratio=0.8",
+          "lower_floor_fraction=0.33",
+          "x_ratio=0.62",
+          "y_ratio=0.56"
+        ],
+        "expected_geometry_actions": [
+          "offset paired bars along y",
+          "hold a shared gap as court",
+          "use roof mass to connect the pair",
+          "keep the east edge porous for entry"
+        ],
+        "rationale": "The offset reads as a clean architectural move, not a box stack, and it gives the site a clear civic slit toward access.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "offset",
+            "params": "{\"axis\":\"y\",\"distance_ratio\":0.27,\"other_scale\":0.84,\"upper_ratio\":0.8,\"lower_floor_fraction\":0.33}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "primary",
+            "relation": "deform",
+            "verb": "sloped_roof_mass",
+            "params": "{\"upper_ratio\":0.8,\"x_ratio\":0.62,\"y_ratio\":0.56,\"lower_floor_fraction\":0.33}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "diagonal_connect",
+            "params": "{\"axis\":\"x\",\"upper_ratio\":0.8,\"distance_ratio\":0.24,\"angle\":31,\"lower_floor_fraction\":0.33}"
+          }
+        ]
+      },
+      {
+        "name": "b1_reflected_pair_court_cleave",
+        "label": "reflected court pair with east opening",
+        "typology": "reflected pair",
+        "architectural_language": "paired mirrored masses with a central court and side entry",
+        "reference_basis": "Trimage-like slender order and courtyard framing principle",
+        "formal_principle": "symmetry_break",
+        "dominant_gesture": "A reflected pair encloses a court while the east side stays open as a public threshold",
+        "generator_mode": "additive",
+        "mass_language": "reflected_court_pair",
+        "primary_language": "reflected_court_pair",
+        "secondary_language": "split_bridge",
+        "topology_intent": "mirror pair around a shared void and link",
+        "primitive_intent": "paired masses with a bridging connector",
+        "intent_tags": [
+          "reflect",
+          "courtyard",
+          "bridge",
+          "access_edge",
+          "slender"
+        ],
+        "rule_name": "mirror_court_bridge",
+        "rule_inputs": [
+          "axis=x",
+          "gap_ratio=0.21",
+          "unit_scale=0.78",
+          "upper_ratio=0.76",
+          "lower_floor_fraction=0.31",
+          "bridge_ratio=0.22"
+        ],
+        "expected_geometry_actions": [
+          "reflect a slender pair across x",
+          "open a court between the pair",
+          "connect upper portions with a diagonal link",
+          "keep east frontage open for access"
+        ],
+        "rationale": "The pair stays legible as two bodies, but the court and bridge make them act as one inhabited composition.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "reflect",
+            "params": "{\"axis\":\"x\",\"gap_ratio\":0.21,\"unit_scale\":0.78,\"upper_ratio\":0.76,\"lower_floor_fraction\":0.31}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "courtyard",
+            "params": "{\"ratio\":0.29,\"upper_ratio\":0.76,\"lower_floor_fraction\":0.31}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "diagonal_connect",
+            "params": "{\"axis\":\"y\",\"upper_ratio\":0.76,\"distance_ratio\":0.23,\"angle\":28,\"lower_floor_fraction\":0.31}"
+          }
+        ]
+      },
+      {
+        "name": "b1_bar_notch_terrace_east_ramp",
+        "label": "slender bar with notch and east terrace link",
+        "typology": "bar_slab",
+        "architectural_language": "slender bar cut by a public notch and inhabited terrace edge",
+        "reference_basis": "Vancouver House-like taper/undercut transition translated to neighborhood scale",
+        "formal_principle": "undercut_podium",
+        "dominant_gesture": "A slender bar is notched to make an occupied terrace and a clear eastward public opening",
+        "generator_mode": "additive",
+        "mass_language": "bar_notch_terrace",
+        "primary_language": "slender_bar",
+        "secondary_language": "notched_void",
+        "topology_intent": "continuous bar with a carved access notch",
+        "primitive_intent": "one bar mass modified by a public void and terrace",
+        "intent_tags": [
+          "slender",
+          "notch",
+          "terrace",
+          "access_edge",
+          "undercut"
+        ],
+        "rule_name": "undercut_tapered_bar_notch",
+        "rule_inputs": [
+          "axis=x",
+          "factor=0.81",
+          "shift=0.19",
+          "upper_ratio=0.82",
+          "lower_floor_fraction=0.34",
+          "corner=ne",
+          "ratio=0.27"
+        ],
+        "expected_geometry_actions": [
+          "form a long bar along x",
+          "cut a notch near the east access side",
+          "turn the notch into a terrace link",
+          "slightly taper the upper portion for silhouette"
+        ],
+        "rationale": "This keeps one strong primary body while using the notch to produce a civic void and a more articulated silhouette.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "bar",
+            "params": "{\"axis\":\"x\",\"factor\":0.81,\"shift\":0.19,\"upper_ratio\":0.82,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "notch",
+            "params": "{\"corner\":\"ne\",\"ratio\":0.27}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n3",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "terrace_link",
+            "params": "{\"side\":\"east\",\"upper_ratio\":0.72,\"width_ratio\":0.24,\"depth_ratio\":0.2,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n5",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "deform",
+            "verb": "taper",
+            "params": "{\"x_ratio\":0.74,\"y_ratio\":0.89,\"lower_floor_fraction\":0.34}"
+          }
+        ]
+      },
+      {
+        "name": "b1_extruded_fin_gap",
+        "label": "extruded fin with east gap and roof lift",
+        "typology": "roof_envelope",
+        "architectural_language": "thick extruded fin with a carved gap and lifted upper edge",
+        "reference_basis": "OMA sectional program diagram and slim urban fin precedent",
+        "formal_principle": "sectional_field",
+        "dominant_gesture": "A single extruded fin is split by a void and lifted into a sharper section profile",
+        "generator_mode": "additive",
+        "mass_language": "extruded_fin",
+        "primary_language": "extruded_fin",
+        "secondary_language": "embedded_void",
+        "topology_intent": "vertical fin with a carved insertion void",
+        "primitive_intent": "one extruded body modified by an embedded opening",
+        "intent_tags": [
+          "extrude",
+          "embed",
+          "section",
+          "access_edge",
+          "fin"
+        ],
+        "rule_name": "section_fin_void",
+        "rule_inputs": [
+          "axis=y",
+          "length=1.0",
+          "size=0.68",
+          "upper_ratio=0.79",
+          "lower_floor_fraction=0.32",
+          "guest_scale=0.36",
+          "position=mid"
+        ],
+        "expected_geometry_actions": [
+          "extrude a fin along y",
+          "embed a void to lighten the center",
+          "lift the upper edge to sharpen profile",
+          "keep east approach visually open"
+        ],
+        "rationale": "The fin remains monolithic enough for review while the embedded void creates programmatic relief and a stronger section.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "extrude",
+            "params": "{\"axis\":\"y\",\"length\":1.0,\"size\":0.68,\"upper_ratio\":0.79,\"lower_floor_fraction\":0.32}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "embed",
+            "params": "{\"guest_scale\":0.36,\"position\":\"mid\",\"upper_ratio\":0.79,\"distance_ratio\":0.22,\"lower_floor_fraction\":0.32}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "deform",
+            "verb": "lift",
+            "params": "{\"upper_ratio\":0.79,\"lower_floor_fraction\":0.32}"
+          }
+        ]
+      },
+      {
+        "name": "b1_bend_ribbon_terraced_lane",
+        "label": "bent ribbon with terraced east lane",
+        "typology": "bent bar",
+        "architectural_language": "continuous bent ribbon section with terraced lane and variable width",
+        "reference_basis": "Mountain Dwellings / 8 House-like terrace ribbon principle, sectionally reworked",
+        "formal_principle": "folded_section",
+        "dominant_gesture": "A bent ribbon holds the site edge and thickens into a terraced inhabitable section",
+        "generator_mode": "additive",
+        "mass_language": "bend_ribbon",
+        "primary_language": "bend_ribbon",
+        "secondary_language": "terrace_link",
+        "topology_intent": "continuous bent field with sectionally linked terraces",
+        "primitive_intent": "one ribbon mass shaped by terraces and roof profile",
+        "intent_tags": [
+          "bend",
+          "terrace",
+          "section",
+          "access_edge",
+          "continuous_field"
+        ],
+        "rule_name": "terrain_loop_edge_bend",
+        "rule_inputs": [
+          "axis=x",
+          "angle=18",
+          "factor=0.86",
+          "upper_ratio=0.8",
+          "lower_floor_fraction=0.33",
+          "lane_count=3",
+          "lane_width_ratio=0.09",
+          "vertical_overlap=0.21",
+          "vertical_mode=terraced",
+          "curvature=0.12",
+          "field_topology=parallel",
+          "branch_point_ratio=0.41",
+          "width_start_ratio=0.58",
+          "width_mid_ratio=1.18",
+          "width_end_ratio=0.67",
+          "width_wave=0.14",
+          "height_start_ratio=0.62",
+          "height_mid_ratio=0.86",
+          "height_end_ratio=0.64",
+          "height_wave=0.08",
+          "control_points=[[0.06,0.22],[0.31,0.64],[0.69,0.41],[0.95,0.71]]"
+        ],
+        "expected_geometry_actions": [
+          "bend the ribbon toward the site axis",
+          "keep terraced occupiable lanes within the section",
+          "link terraces continuously rather than as steps",
+          "hold the east edge as a public promenade"
+        ],
+        "rationale": "This is the requested sectional family made legible through a continuous terrace link rather than a stair-step stack.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "bend",
+            "params": "{\"axis\":\"x\",\"angle\":18,\"factor\":0.86,\"upper_ratio\":0.8,\"lower_floor_fraction\":0.33,\"lane_count\":3,\"lane_width_ratio\":0.09,\"vertical_overlap\":0.21,\"vertical_mode\":\"terraced\",\"curvature\":0.12,\"field_topology\":\"parallel\",\"branch_point_ratio\":0.41,\"width_start_ratio\":0.58,\"width_mid_ratio\":1.18,\"width_end_ratio\":0.67,\"width_wave\":0.14,\"height_start_ratio\":0.62,\"height_mid_ratio\":0.86,\"height_end_ratio\":0.64,\"height_wave\":0.08,\"control_points\":[[0.06,0.22],[0.31,0.64],[0.69,0.41],[0.95,0.71]]}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "terrace_link",
+            "params": "{\"side\":\"east\",\"upper_ratio\":0.76,\"width_ratio\":0.28,\"depth_ratio\":0.22,\"lower_floor_fraction\":0.33}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "deform",
+            "verb": "sloped_roof_mass",
+            "params": "{\"upper_ratio\":0.8,\"x_ratio\":0.61,\"y_ratio\":0.57,\"lower_floor_fraction\":0.33}"
+          }
+        ]
+      },
+      {
+        "name": "b1_cross_interlock_gap",
+        "label": "cross interlock with diagonal connector and court gap",
+        "typology": "interlock",
+        "architectural_language": "two bodies interlocked across a diagonal gap with a shared court",
+        "reference_basis": "Seattle Central Library-like diagrammatic section and interlocked program logic",
+        "formal_principle": "split_bridge",
+        "dominant_gesture": "Two masses cross and interlock around a gap, making the joint the main architectural event",
+        "generator_mode": "additive",
+        "mass_language": "cross_interlock",
+        "primary_language": "cross_interlock",
+        "secondary_language": "split_bridge",
+        "topology_intent": "interlocked masses with a bridged seam",
+        "primitive_intent": "crossing bars and connector spine",
+        "intent_tags": [
+          "interlock",
+          "bridge",
+          "court",
+          "diagrammatic",
+          "access_edge"
+        ],
+        "rule_name": "split_bridge_section",
+        "rule_inputs": [
+          "angle=33",
+          "bar_ratio=0.79",
+          "upper_ratio=0.8",
+          "distance_ratio=0.26",
+          "lower_floor_fraction=0.35",
+          "gap_ratio=0.23"
+        ],
+        "expected_geometry_actions": [
+          "interlock two bars at a diagonal angle",
+          "split the field into two readable masses",
+          "bridge the seam so circulation occupies the joint",
+          "leave a court-like opening toward the east edge"
+        ],
+        "rationale": "The interlock turns the joint into the dominant urban figure while still reading as a coherent single project.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "interlock",
+            "params": "{\"angle\":33,\"bar_ratio\":0.79,\"upper_ratio\":0.8,\"distance_ratio\":0.26,\"lower_floor_fraction\":0.35}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "diagonal_connect",
+            "params": "{\"axis\":\"x\",\"upper_ratio\":0.8,\"distance_ratio\":0.26,\"angle\":33,\"lower_floor_fraction\":0.35}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "courtyard",
+            "params": "{\"ratio\":0.28,\"upper_ratio\":0.8,\"lower_floor_fraction\":0.35}"
+          },
+          {
+            "node_id": "n5",
+            "parent_node_id": "n3",
+            "role": "support",
+            "relation": "attach",
+            "verb": "stack",
+            "params": "{\"levels\":2,\"upper_ratio\":0.72,\"lower_floor_fraction\":0.35}"
+          }
+        ]
+      },
+      {
+        "name": "b1_overlap_slabs_courtyard",
+        "label": "overlapping slabs with east courtyard seam",
+        "typology": "stacked platforms",
+        "architectural_language": "overlapping platforms with a public court and sectional shift",
+        "reference_basis": "OMA platform stacking and civic section precedent",
+        "formal_principle": "stacked_shifted_platforms",
+        "dominant_gesture": "Several slabs overlap to create a stepped but occupiable section around a central court",
+        "generator_mode": "additive",
+        "mass_language": "overlap_slabs",
+        "primary_language": "overlap_slabs",
+        "secondary_language": "courtyard_atrium",
+        "topology_intent": "stacked platforms held together by an interior court",
+        "primitive_intent": "overlapping slabs with a voided center",
+        "intent_tags": [
+          "overlap",
+          "stack",
+          "courtyard",
+          "section",
+          "platform"
+        ],
+        "rule_name": "stacked_platform_atrium",
+        "rule_inputs": [
+          "axis=y",
+          "slab_ratio=0.76",
+          "shift_ratio=0.24",
+          "upper_ratio=0.78",
+          "distance_ratio=0.28",
+          "lower_floor_fraction=0.34",
+          "ratio=0.31"
+        ],
+        "expected_geometry_actions": [
+          "overlap visible source tiers",
+          "shift each slab to keep usable terraces",
+          "carve a courtyard through the stack",
+          "use the east side as an open access face"
+        ],
+        "rationale": "This is the batch's clearest platform composition, but the court keeps it from reading as a plain stack.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "overlap",
+            "params": "{\"axis\":\"y\",\"slab_ratio\":0.76,\"shift_ratio\":0.24,\"upper_ratio\":0.78,\"distance_ratio\":0.28,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "courtyard",
+            "params": "{\"ratio\":0.31,\"upper_ratio\":0.78,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "attach",
+            "verb": "terrace_link",
+            "params": "{\"side\":\"east\",\"upper_ratio\":0.7,\"width_ratio\":0.27,\"depth_ratio\":0.2,\"lower_floor_fraction\":0.34}"
+          }
+        ]
+      },
+      {
+        "name": "b1_branch_taper_pinch_gap",
+        "label": "branch taper with pinched waist and east court",
+        "typology": "branch",
+        "architectural_language": "branched mass with pinched waist and court-side void",
+        "reference_basis": "BIG-like diagrammatic branching with carved public ground",
+        "formal_principle": "carved_solid",
+        "dominant_gesture": "A trunk branches and pinches at the center, producing a strong silhouette and a sheltered court",
+        "generator_mode": "additive",
+        "mass_language": "branch_taper",
+        "primary_language": "branch_taper",
+        "secondary_language": "pinched_waist",
+        "topology_intent": "branched volume with a constricted middle and open ground",
+        "primitive_intent": "branching trunk modified by pinch and court",
+        "intent_tags": [
+          "branch",
+          "pinch",
+          "court",
+          "silhouette",
+          "access_edge"
+        ],
+        "rule_name": "branch_civic_pinch",
+        "rule_inputs": [
+          "angle=29",
+          "trunk_ratio=0.83",
+          "arm_ratio=0.58",
+          "upper_ratio=0.8",
+          "lower_floor_fraction=0.37",
+          "axis=x",
+          "waist_ratio=0.34",
+          "depth_ratio=0.27"
+        ],
+        "expected_geometry_actions": [
+          "branch the mass into a trunk and arm",
+          "pinch the middle to sharpen the silhouette",
+          "open a courtyard at the east side",
+          "keep the branching joint readable at ground"
+        ],
+        "rationale": "The branching keeps the form compact while the pinch creates a clear architectural waist and a public opening.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "branch",
+            "params": "{\"angle\":29,\"trunk_ratio\":0.83,\"arm_ratio\":0.58,\"upper_ratio\":0.8,\"lower_floor_fraction\":0.37}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "deform",
+            "verb": "taper",
+            "params": "{\"x_ratio\":0.78,\"y_ratio\":0.64,\"lower_floor_fraction\":0.37}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "courtyard",
+            "params": "{\"ratio\":0.3,\"upper_ratio\":0.8,\"lower_floor_fraction\":0.37}"
+          },
+          {
+            "node_id": "n5",
+            "parent_node_id": "n2",
+            "role": "primary",
+            "relation": "deform",
+            "verb": "pinch",
+            "params": "{\"axis\":\"x\",\"waist_ratio\":0.34,\"depth_ratio\":0.27,\"upper_ratio\":0.8,\"lower_floor_fraction\":0.37}"
+          }
+        ]
+      },
+      {
+        "name": "batch2_courtyard_atrium_bar_01",
+        "label": "east-court bar with inner atrium",
+        "typology": "courtyard",
+        "architectural_language": "slender_podium_tower",
+        "reference_basis": "courtyard house principle and OMA-like public void ordering",
+        "formal_principle": "courtyard_atrium",
+        "dominant_gesture": "a compact bar wraps a sheltered internal court",
+        "generator_mode": "subtractive",
+        "mass_language": "courtyard_atrium",
+        "primary_language": "bar_notch_courtyard",
+        "secondary_language": "courtyard_atrium",
+        "topology_intent": "a street-edge bar opens to a protected inner void",
+        "primitive_intent": "public court carved from a readable bar mass",
+        "intent_tags": [
+          "courtyard",
+          "active_ground",
+          "carved_void",
+          "east_access"
+        ],
+        "rule_name": "east_court_wrap",
+        "rule_inputs": [
+          "side=east",
+          "ratio=0.34",
+          "upper_ratio=0.78",
+          "lower_floor_fraction=0.36"
+        ],
+        "expected_geometry_actions": [
+          "establish a base on the east access edge",
+          "carve a central courtyard through the mass",
+          "lift the upper bar slightly over the court",
+          "keep the ground porous at the entry seam"
+        ],
+        "rationale": "A legible bar stays coherent while the court creates light, privacy, and a clear public threshold from the east.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "bar",
+            "params": "{\"axis\":\"x\",\"factor\":0.86,\"shift\":0.12,\"upper_ratio\":0.78,\"lower_floor_fraction\":0.36}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "courtyard",
+            "params": "{\"ratio\":0.34,\"upper_ratio\":0.72,\"lower_floor_fraction\":0.36}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "attach",
+            "verb": "lift",
+            "params": "{\"upper_ratio\":0.78,\"lower_floor_fraction\":0.36}"
+          }
+        ]
+      },
+      {
+        "name": "batch2_notched_void_bar_02",
+        "label": "notched street bar with carved corner void",
+        "typology": "void_carve",
+        "architectural_language": "carved_atrium",
+        "reference_basis": "BIG-like incision and civic notch logic",
+        "formal_principle": "carved_solid",
+        "dominant_gesture": "a long bar is cut by a strong corner notch",
+        "generator_mode": "subtractive",
+        "mass_language": "notched_void",
+        "primary_language": "long_bar_notch",
+        "secondary_language": "embedded_void",
+        "topology_intent": "a linear mass opens one clear notch toward access",
+        "primitive_intent": "single incisive void organizes frontage and light",
+        "intent_tags": [
+          "notch",
+          "corner_void",
+          "street_edge",
+          "silhouette"
+        ],
+        "rule_name": "corner_notch_incision",
+        "rule_inputs": [
+          "corner=SE",
+          "ratio=0.27"
+        ],
+        "expected_geometry_actions": [
+          "anchor a bar parallel to the dominant parcel axis",
+          "cut a corner notch to expose the interior edge",
+          "pull the upper mass away from the access side",
+          "leave the notch as a readable public cavity"
+        ],
+        "rationale": "One incision organizes the building without fragmenting it, producing a clear figure-ground bite at the street edge.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "extrude",
+            "params": "{\"axis\":\"x\",\"length\":0.88,\"size\":0.74,\"upper_ratio\":0.76,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "notch",
+            "params": "{\"corner\":\"SE\",\"ratio\":0.27}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "deform",
+            "verb": "offset",
+            "params": "{\"axis\":\"y\",\"distance_ratio\":0.18,\"other_scale\":0.84,\"upper_ratio\":0.76,\"lower_floor_fraction\":0.34}"
+          }
+        ]
+      },
+      {
+        "name": "batch2_pinched_waist_tower_03",
+        "label": "pinched waist tower with undercut podium",
+        "typology": "undercut_tapered_tower",
+        "architectural_language": "torqued_tapered_tower",
+        "reference_basis": "Vancouver House / BIG-like taper, torque, and undercut silhouette principles",
+        "formal_principle": "torqued_taper",
+        "dominant_gesture": "a tower narrows at the middle and opens at the base",
+        "generator_mode": "subtractive",
+        "mass_language": "pinched_waist",
+        "primary_language": "undercut_taper_tower",
+        "secondary_language": "sloped_roof_volume",
+        "topology_intent": "a vertical mass pinches to preserve street light and silhouette drama",
+        "primitive_intent": "one clear tower form with a softened ground and tightened waist",
+        "intent_tags": [
+          "tower",
+          "pinch",
+          "undercut",
+          "silhouette"
+        ],
+        "rule_name": "pinch_taper_torque",
+        "rule_inputs": [
+          "axis=y",
+          "waist_ratio=0.56",
+          "depth_ratio=0.22",
+          "upper_ratio=0.82",
+          "lower_floor_fraction=0.38"
+        ],
+        "expected_geometry_actions": [
+          "establish a grounded base on the access edge",
+          "pinch the tower through the middle for a slender profile",
+          "taper the upper volume to sharpen the silhouette",
+          "keep the lower floors open and lighter at the street"
+        ],
+        "rationale": "This makes the tower read as a single controlled figure rather than a stacked box, while preserving ground openness.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "pinch",
+            "params": "{\"axis\":\"y\",\"waist_ratio\":0.56,\"depth_ratio\":0.22,\"upper_ratio\":0.82,\"lower_floor_fraction\":0.38}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "deform",
+            "verb": "taper",
+            "params": "{\"x_ratio\":0.78,\"y_ratio\":0.64,\"lower_floor_fraction\":0.38}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "deform",
+            "verb": "sloped_roof_mass",
+            "params": "{\"upper_ratio\":0.82,\"x_ratio\":0.18,\"y_ratio\":0.42,\"lower_floor_fraction\":0.38}"
+          }
+        ]
+      },
+      {
+        "name": "batch2_embedded_void_bar_04",
+        "label": "embedded-void bar with interior court pocket",
+        "typology": "embed",
+        "architectural_language": "embedded_court_volume",
+        "reference_basis": "stepped civic bar and carved interior pocket precedents",
+        "formal_principle": "figure_ground",
+        "dominant_gesture": "a solid bar absorbs a void rather than splitting apart",
+        "generator_mode": "subtractive",
+        "mass_language": "embedded_void",
+        "primary_language": "bar_embed_court",
+        "secondary_language": "nested_atrium",
+        "topology_intent": "a contained void is lodged inside a clear street bar",
+        "primitive_intent": "one mass with a clearly embedded public pocket",
+        "intent_tags": [
+          "embed",
+          "court",
+          "ground-seam",
+          "solid-void"
+        ],
+        "rule_name": "embedded_pocket",
+        "rule_inputs": [
+          "guest_scale=0.62",
+          "position=center-east",
+          "upper_ratio=0.74",
+          "distance_ratio=0.21",
+          "lower_floor_fraction=0.33"
+        ],
+        "expected_geometry_actions": [
+          "keep the bar continuous on the parcel edge",
+          "embed a void toward the access side",
+          "thicken the edges around the pocket",
+          "preserve a calm upper mass over the cavity"
+        ],
+        "rationale": "The embedded void gives the building a strong interior public focus without turning it into fragments.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "extrude",
+            "params": "{\"axis\":\"x\",\"length\":0.84,\"size\":0.78,\"upper_ratio\":0.74,\"lower_floor_fraction\":0.33}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "embed",
+            "params": "{\"guest_scale\":0.62,\"position\":\"center-east\",\"upper_ratio\":0.74,\"distance_ratio\":0.21,\"lower_floor_fraction\":0.33}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "deform",
+            "verb": "shift",
+            "params": "{\"axis\":\"y\",\"distance_ratio\":0.17}"
+          }
+        ]
+      },
+      {
+        "name": "batch2_nested_atrium_stack_05",
+        "label": "nested atrium stack with roof terrace link",
+        "typology": "nested_atrium_stack",
+        "architectural_language": "nested_section_stack",
+        "reference_basis": "OMA / Seattle-like stacked section and inhabitable void principles",
+        "formal_principle": "slab_stack",
+        "dominant_gesture": "a compact stack wraps a nested internal atrium",
+        "generator_mode": "subtractive",
+        "mass_language": "nested_atrium_stack",
+        "primary_language": "stacked_atrium_core",
+        "secondary_language": "terrace_link",
+        "topology_intent": "stacked floors remain readable while a central void ties them together",
+        "primitive_intent": "one sectional stack organized by an interior atrium",
+        "intent_tags": [
+          "stack",
+          "atrium",
+          "section",
+          "terrace"
+        ],
+        "rule_name": "nested_stack_atrium",
+        "rule_inputs": [
+          "levels=4",
+          "upper_ratio=0.80",
+          "lower_floor_fraction=0.31"
+        ],
+        "expected_geometry_actions": [
+          "stack four occupiable bands around a central void",
+          "nest the atrium deep enough to read in section",
+          "link the upper edge with a terrace",
+          "keep the base open as an urban room"
+        ],
+        "rationale": "The stack stays coherent and reviewable while the nested void and terrace give it sectional depth.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "stack",
+            "params": "{\"levels\":4,\"upper_ratio\":0.8,\"lower_floor_fraction\":0.31}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "nest",
+            "params": "{\"inner_scale\":0.58,\"upper_ratio\":0.8,\"lower_floor_fraction\":0.31}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "attach",
+            "verb": "terrace_link",
+            "params": "{\"side\":\"east\",\"upper_ratio\":0.8,\"width_ratio\":0.26,\"depth_ratio\":0.19,\"lower_floor_fraction\":0.31}"
+          }
+        ]
+      },
+      {
+        "name": "batch2_split_bridge_platform_06",
+        "label": "split platform with diagonal bridge",
+        "typology": "bridge",
+        "architectural_language": "split_bridge_connector",
+        "reference_basis": "stacked-platform and circulation-as-section precedents",
+        "formal_principle": "split_bridge",
+        "dominant_gesture": "one mass splits into two linked occupiable plates",
+        "generator_mode": "subtractive",
+        "mass_language": "split_bridge",
+        "primary_language": "split_platform_pair",
+        "secondary_language": "diagonal_connector",
+        "topology_intent": "the split creates a public gap that is bridged above",
+        "primitive_intent": "two large plates joined by a legible connector",
+        "intent_tags": [
+          "split",
+          "bridge",
+          "section",
+          "public_gap"
+        ],
+        "rule_name": "split_bridge_link",
+        "rule_inputs": [
+          "axis=x",
+          "gap_ratio=0.22",
+          "bridge_ratio=0.18",
+          "upper_ratio=0.76",
+          "lower_floor_fraction=0.35"
+        ],
+        "expected_geometry_actions": [
+          "split the main volume into two plates",
+          "keep the gap occupied by light and movement",
+          "bridge the plates diagonally",
+          "read the connector as an inhabitable section move"
+        ],
+        "rationale": "A single split-and-bridge operation produces a clear diagram with usable floors rather than decorative separation.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "split",
+            "params": "{\"axis\":\"x\",\"gap_ratio\":0.22,\"bridge_ratio\":0.18,\"upper_ratio\":0.76,\"lower_floor_fraction\":0.35}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "diagonal_connect",
+            "params": "{\"axis\":\"y\",\"upper_ratio\":0.76,\"distance_ratio\":0.24,\"angle\":31,\"lower_floor_fraction\":0.35}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "attach",
+            "verb": "lift",
+            "params": "{\"upper_ratio\":0.76,\"lower_floor_fraction\":0.35}"
+          }
+        ]
+      },
+      {
+        "name": "batch2_diagonal_connector_shift_07",
+        "label": "shifted twin bars with diagonal link",
+        "typology": "diagonal_connector",
+        "architectural_language": "diagonal_shift_connector",
+        "reference_basis": "diagrammatic circulation and offset massing principles",
+        "formal_principle": "datum_shift",
+        "dominant_gesture": "two bars offset and stitched by a diagonal connector",
+        "generator_mode": "subtractive",
+        "mass_language": "diagonal_connector",
+        "primary_language": "offset_twin_bar",
+        "secondary_language": "split_bridge",
+        "topology_intent": "the offset creates a joint where circulation becomes architecture",
+        "primitive_intent": "paired bars with a clear diagonal join",
+        "intent_tags": [
+          "offset",
+          "diagonal",
+          "connector",
+          "paired_bars"
+        ],
+        "rule_name": "offset_bridge_join",
+        "rule_inputs": [
+          "axis=y",
+          "distance_ratio=0.23",
+          "other_scale=0.88",
+          "upper_ratio=0.79",
+          "lower_floor_fraction=0.34"
+        ],
+        "expected_geometry_actions": [
+          "establish two offset bars against the parcel axis",
+          "join them with a diagonal connector",
+          "hold the lower gap open as public space",
+          "keep the upper mass calm and continuous"
+        ],
+        "rationale": "The offset pair produces a readable urban composition with a precise connective move rather than a random cluster.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "offset",
+            "params": "{\"axis\":\"y\",\"distance_ratio\":0.23,\"other_scale\":0.88,\"upper_ratio\":0.79,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "diagonal_connect",
+            "params": "{\"axis\":\"x\",\"upper_ratio\":0.79,\"distance_ratio\":0.24,\"angle\":28,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "deform",
+            "verb": "reflect",
+            "params": "{\"axis\":\"x\",\"gap_ratio\":0.12,\"unit_scale\":0.86,\"upper_ratio\":0.79,\"lower_floor_fraction\":0.34}"
+          }
+        ]
+      },
+      {
+        "name": "batch2_bent_ribbon_08",
+        "label": "bent ribbon bar with terraced access edge",
+        "typology": "bent",
+        "architectural_language": "bent_ribbon_section",
+        "reference_basis": "terrain-loop edge and continuous-field references",
+        "formal_principle": "folded_section",
+        "dominant_gesture": "a continuous bar bends to hold the site edge",
+        "generator_mode": "subtractive",
+        "mass_language": "bend_ribbon",
+        "primary_language": "bent_bar_field",
+        "secondary_language": "terrace_link",
+        "topology_intent": "the bar bends around the access edge and keeps a usable public slope",
+        "primitive_intent": "one continuous bent section with a terrace-linked roof profile",
+        "intent_tags": [
+          "bend",
+          "continuous",
+          "terrace",
+          "section"
+        ],
+        "rule_name": "continuous_bent_section",
+        "rule_inputs": [
+          "axis=x",
+          "angle=0.12",
+          "factor=0.84",
+          "upper_ratio=0.77",
+          "lower_floor_fraction=0.33",
+          "lane_count=2",
+          "lane_width_ratio=0.09",
+          "vertical_overlap=0.22",
+          "vertical_mode=terraced",
+          "curvature=0.08",
+          "field_topology=parallel",
+          "branch_point_ratio=0.41",
+          "width_start_ratio=0.78",
+          "width_mid_ratio=1.08",
+          "width_end_ratio=0.72",
+          "width_wave=0.11",
+          "height_start_ratio=0.62",
+          "height_mid_ratio=0.84",
+          "height_end_ratio=0.68",
+          "height_wave=0.09",
+          "control_points=[[0.04,0.25],[0.31,0.64],[0.67,0.41],[0.95,0.74]]"
+        ],
+        "expected_geometry_actions": [
+          "bend a single continuous mass along the dominant site axis",
+          "retain two occupiable lanes in section",
+          "use a terraced overlap so the curve remains inhabitable",
+          "link the roof and ground through a continuous edge condition"
+        ],
+        "rationale": "This converts the site axis into a legible continuous field, with a restrained bend that reads as architecture rather than a literal envelope trace.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "bend",
+            "params": "{\"axis\":\"x\",\"angle\":0.12,\"factor\":0.84,\"upper_ratio\":0.77,\"lower_floor_fraction\":0.33}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "attach",
+            "verb": "terrace_link",
+            "params": "{\"side\":\"east\",\"upper_ratio\":0.77,\"width_ratio\":0.28,\"depth_ratio\":0.21,\"lower_floor_fraction\":0.33}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "deform",
+            "verb": "shift",
+            "params": "{\"axis\":\"y\",\"distance_ratio\":0.19}"
+          }
+        ]
+      },
+      {
+        "name": "batch3_east_courtyard_notch_bar_01",
+        "label": "east courtyard bar with notch court",
+        "typology": "courtyard bar",
+        "architectural_language": "slender_podium_tower / courtyard_atrium",
+        "reference_basis": "BIG/OMA principle: one clear diagrammatic move with public ground and carved light court",
+        "formal_principle": "courtyard_atrium",
+        "dominant_gesture": "a compact bar is opened to the east and carved into a protected court",
+        "generator_mode": "hybrid",
+        "mass_language": "courtyard_atrium",
+        "primary_language": "slender_bar",
+        "secondary_language": "courtyard_atrium",
+        "topology_intent": "figure-ground court",
+        "primitive_intent": "long bar with protected void",
+        "intent_tags": [
+          "east_access",
+          "public_ground",
+          "carved_void",
+          "neighborhood_living"
+        ],
+        "rule_name": "court-bar carve",
+        "rule_inputs": [
+          "base",
+          "courtyard",
+          "notch"
+        ],
+        "expected_geometry_actions": [
+          "establish a clear street bar",
+          "carve a public court facing east",
+          "trim one corner to sharpen entry"
+        ],
+        "rationale": "A readable bar maintains capacity while the court gives shared outdoor relief at the access edge.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "input",
+            "verb": "bar",
+            "params": "{\"axis\":\"y\",\"factor\":0.86,\"shift\":0.12,\"upper_ratio\":0.78,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "courtyard",
+            "params": "{\"ratio\":0.28,\"upper_ratio\":0.74,\"lower_floor_fraction\":0.38}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "notch",
+            "params": "{\"corner\":\"east-south\",\"ratio\":0.19}"
+          }
+        ]
+      },
+      {
+        "name": "batch3_diagonal_split_bridge_02",
+        "label": "diagonal split bridge with layered connection",
+        "typology": "split bridge",
+        "architectural_language": "split_bridge_connector / diagonal_connector",
+        "reference_basis": "OMA sectional circulation + bridge-as-program principle",
+        "formal_principle": "split_bridge",
+        "dominant_gesture": "one mass splits and reconnects by a strong diagonal link",
+        "generator_mode": "hybrid",
+        "mass_language": "split_bridge",
+        "primary_language": "split_bridge_connector",
+        "secondary_language": "diagonal_connector",
+        "topology_intent": "split span",
+        "primitive_intent": "paired volumes with bridge",
+        "intent_tags": [
+          "split",
+          "bridge",
+          "east_access",
+          "sectional"
+        ],
+        "rule_name": "split-link diagonal section",
+        "rule_inputs": [
+          "base",
+          "split",
+          "diagonal_connect"
+        ],
+        "expected_geometry_actions": [
+          "divide the mass into two legible bars",
+          "span the gap with an occupiable diagonal link",
+          "keep ground porous beneath the connection"
+        ],
+        "rationale": "The split makes the void readable and the diagonal link turns circulation into the main architectural event.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "input",
+            "verb": "split",
+            "params": "{\"axis\":\"x\",\"gap_ratio\":0.22,\"bridge_ratio\":0.18,\"upper_ratio\":0.81,\"lower_floor_fraction\":0.36}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "diagonal_connect",
+            "params": "{\"axis\":\"y\",\"upper_ratio\":0.76,\"distance_ratio\":0.24,\"angle\":31,\"lower_floor_fraction\":0.33}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "attach",
+            "verb": "lift",
+            "params": "{\"upper_ratio\":0.84,\"lower_floor_fraction\":0.31}"
+          }
+        ]
+      },
+      {
+        "name": "batch3_bend_ribbon_terrace_03",
+        "label": "bent ribbon terrace bar",
+        "typology": "bent bar",
+        "architectural_language": "bend_ribbon / terrace_ribbon",
+        "reference_basis": "terrain-loop edge with inhabitable section and continuous frontage",
+        "formal_principle": "folded_section",
+        "dominant_gesture": "a continuous bar bends to hold the edge and rise as a terraced section",
+        "generator_mode": "hybrid",
+        "mass_language": "bend_ribbon",
+        "primary_language": "bend_ribbon",
+        "secondary_language": "terrace_ribbon",
+        "topology_intent": "continuous field",
+        "primitive_intent": "bent occupiable ribbon",
+        "intent_tags": [
+          "bend",
+          "terrace",
+          "east_access",
+          "section"
+        ],
+        "rule_name": "terraced bend field",
+        "rule_inputs": [
+          "base",
+          "bend",
+          "terrace_link"
+        ],
+        "expected_geometry_actions": [
+          "bend the bar around the site axis",
+          "thicken the lower edge for entry",
+          "step the roof as an occupiable terrace chain"
+        ],
+        "rationale": "This uses the bend as the primary form and the terrace as a sectional amplifier rather than a separate object.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "input",
+            "verb": "bend",
+            "params": "{\"axis\":\"x\",\"angle\":-0.14,\"factor\":0.88,\"upper_ratio\":0.79,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "primary",
+            "relation": "input",
+            "verb": "lift",
+            "params": "{\"upper_ratio\":0.82,\"lower_floor_fraction\":0.32}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "attach",
+            "verb": "terrace_link",
+            "params": "{\"side\":\"east\",\"upper_ratio\":0.76,\"width_ratio\":0.21,\"depth_ratio\":0.24,\"lower_floor_fraction\":0.37}"
+          }
+        ]
+      },
+      {
+        "name": "batch3_cross_interlock_cluster_04",
+        "label": "cross interlock cluster with shared court",
+        "typology": "interlock cluster",
+        "architectural_language": "cross_interlock / courtyard_atrium",
+        "reference_basis": "BIG-style interlocked program volumes with a communal void",
+        "formal_principle": "carved_solid",
+        "dominant_gesture": "two bars interlock across a shared court to form a single civic cluster",
+        "generator_mode": "hybrid",
+        "mass_language": "cross_interlock",
+        "primary_language": "cross_interlock",
+        "secondary_language": "courtyard_atrium",
+        "topology_intent": "interlocked cluster",
+        "primitive_intent": "crossed volumes around court",
+        "intent_tags": [
+          "interlock",
+          "courtyard",
+          "east_access",
+          "cluster"
+        ],
+        "rule_name": "interlock court cluster",
+        "rule_inputs": [
+          "base",
+          "interlock",
+          "courtyard"
+        ],
+        "expected_geometry_actions": [
+          "cross two bars at an angle",
+          "open a central court between them",
+          "keep both arms occupiable and connected"
+        ],
+        "rationale": "The cluster reads as one figure with a clear void at its center, not as fragments.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "input",
+            "verb": "interlock",
+            "params": "{\"angle\":27,\"bar_ratio\":0.62,\"upper_ratio\":0.8,\"distance_ratio\":0.23,\"lower_floor_fraction\":0.35}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "courtyard",
+            "params": "{\"ratio\":0.26,\"upper_ratio\":0.73,\"lower_floor_fraction\":0.36}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "attach",
+            "verb": "offset",
+            "params": "{\"axis\":\"y\",\"distance_ratio\":0.19,\"other_scale\":0.84,\"upper_ratio\":0.77,\"lower_floor_fraction\":0.34}"
+          }
+        ]
+      },
+      {
+        "name": "batch3_overlap_slabs_terrace_05",
+        "label": "overlapping slab stack with public terrace",
+        "typology": "overlap slabs",
+        "architectural_language": "overlap_slabs / terrace_ribbon",
+        "reference_basis": "OMA stacked-platform principle with sectional overlap and active roof edges",
+        "formal_principle": "slab_stack",
+        "dominant_gesture": "two thick slabs overlap and slide to produce a legible terrace section",
+        "generator_mode": "hybrid",
+        "mass_language": "overlap_slabs",
+        "primary_language": "overlap_slabs",
+        "secondary_language": "terrace_ribbon",
+        "topology_intent": "sectional overlap",
+        "primitive_intent": "stacked plates with terrace link",
+        "intent_tags": [
+          "overlap",
+          "terrace",
+          "east_access",
+          "platform"
+        ],
+        "rule_name": "overlap plate section",
+        "rule_inputs": [
+          "base",
+          "overlap",
+          "terrace_link"
+        ],
+        "expected_geometry_actions": [
+          "stack visible source plates",
+          "slide them to expose a terrace void",
+          "link the offset roofs with a usable edge"
+        ],
+        "rationale": "The overlap is the core grammar; the terrace makes the stacked section inhabitable.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "input",
+            "verb": "overlap",
+            "params": "{\"axis\":\"x\",\"slab_ratio\":0.58,\"shift_ratio\":0.21,\"upper_ratio\":0.79,\"distance_ratio\":0.22,\"lower_floor_fraction\":0.35}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "attach",
+            "verb": "terrace_link",
+            "params": "{\"side\":\"east\",\"upper_ratio\":0.75,\"width_ratio\":0.24,\"depth_ratio\":0.22,\"lower_floor_fraction\":0.33}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "attach",
+            "verb": "stack",
+            "params": "{\"levels\":4,\"upper_ratio\":0.77,\"lower_floor_fraction\":0.34}"
+          }
+        ]
+      },
+      {
+        "name": "batch3_branch_taper_angled_06",
+        "label": "branched taper with southward arms",
+        "typology": "branch",
+        "architectural_language": "branch_taper / reflected_pair",
+        "reference_basis": "neighborhood field logic with a dominant trunk and legible arms",
+        "formal_principle": "datum_shift",
+        "dominant_gesture": "a trunk splits into two tapered arms that frame open ground",
+        "generator_mode": "hybrid",
+        "mass_language": "branch_taper",
+        "primary_language": "branch_taper",
+        "secondary_language": "reflected_pair",
+        "topology_intent": "branched frame",
+        "primitive_intent": "trunk and tapered arms",
+        "intent_tags": [
+          "branch",
+          "taper",
+          "open_ground",
+          "east_access"
+        ],
+        "rule_name": "branched pair frame",
+        "rule_inputs": [
+          "base",
+          "branch",
+          "reflect"
+        ],
+        "expected_geometry_actions": [
+          "grow a trunk from the site edge",
+          "send two arms outward as a paired figure",
+          "thin the ends to keep the frame light"
+        ],
+        "rationale": "Branching preserves a strong central mass while creating a readable outdoor room between arms.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "input",
+            "verb": "branch",
+            "params": "{\"angle\":24,\"trunk_ratio\":0.58,\"arm_ratio\":0.31,\"upper_ratio\":0.78,\"lower_floor_fraction\":0.36}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "input",
+            "verb": "taper",
+            "params": "{\"x_ratio\":0.74,\"y_ratio\":0.83,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "diagonal_connect",
+            "params": "{\"axis\":\"x\",\"upper_ratio\":0.74,\"distance_ratio\":0.2,\"angle\":26,\"lower_floor_fraction\":0.32}"
+          }
+        ]
+      },
+      {
+        "name": "batch3_offset_notch_bar_07",
+        "label": "offset bar with civic notch",
+        "typology": "offset bar",
+        "architectural_language": "offset_twin_bar / bar_notch_terrace",
+        "reference_basis": "street-bar logic with a carved civic interruption and shifted upper mass",
+        "formal_principle": "datum_shift",
+        "dominant_gesture": "a bar slides off axis to make a public notch at the street edge",
+        "generator_mode": "hybrid",
+        "mass_language": "offset_twin_bar",
+        "primary_language": "offset_twin_bar",
+        "secondary_language": "bar_notch_terrace",
+        "topology_intent": "shifted bar",
+        "primitive_intent": "offset mass with void notch",
+        "intent_tags": [
+          "offset",
+          "notch",
+          "east_access",
+          "bar"
+        ],
+        "rule_name": "offset notch bar",
+        "rule_inputs": [
+          "base",
+          "offset",
+          "notch"
+        ],
+        "expected_geometry_actions": [
+          "shift the main bar off the site axis",
+          "cut a notch for entry and shared space",
+          "use the offset as a clear silhouette move"
+        ],
+        "rationale": "This keeps the mass coherent while producing a strong street-facing move and an inhabitable threshold.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "input",
+            "verb": "offset",
+            "params": "{\"axis\":\"x\",\"distance_ratio\":0.23,\"other_scale\":0.86,\"upper_ratio\":0.8,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "notch",
+            "params": "{\"corner\":\"east-north\",\"ratio\":0.22}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "attach",
+            "verb": "terrace_link",
+            "params": "{\"side\":\"east\",\"upper_ratio\":0.73,\"width_ratio\":0.2,\"depth_ratio\":0.18,\"lower_floor_fraction\":0.33}"
+          }
+        ]
+      },
+      {
+        "name": "batch3_reflected_court_pair_08",
+        "label": "reflected court pair with shared entry seam",
+        "typology": "reflected pair",
+        "architectural_language": "reflected_court_pair / courtyard_atrium",
+        "reference_basis": "paired-mass courtyard principle with a legible shared seam",
+        "formal_principle": "figure_ground",
+        "dominant_gesture": "two related masses mirror each other around a shared court seam",
+        "generator_mode": "hybrid",
+        "mass_language": "reflected_court_pair",
+        "primary_language": "reflected_court_pair",
+        "secondary_language": "courtyard_atrium",
+        "topology_intent": "paired court",
+        "primitive_intent": "reflected volumes around void",
+        "intent_tags": [
+          "reflect",
+          "courtyard",
+          "east_access",
+          "pair"
+        ],
+        "rule_name": "mirrored court pair",
+        "rule_inputs": [
+          "base",
+          "reflect",
+          "courtyard"
+        ],
+        "expected_geometry_actions": [
+          "mirror the mass to create a clear pair",
+          "hold a shared court between the halves",
+          "open the court toward the access edge"
+        ],
+        "rationale": "The pair is legible as one composition, while the court gives the two halves a shared public center.",
+        "calls": [
+          {
+            "node_id": "n1",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n2",
+            "parent_node_id": "n1",
+            "role": "primary",
+            "relation": "input",
+            "verb": "reflect",
+            "params": "{\"axis\":\"y\",\"gap_ratio\":0.14,\"unit_scale\":0.9,\"upper_ratio\":0.77,\"lower_floor_fraction\":0.35}"
+          },
+          {
+            "node_id": "n3",
+            "parent_node_id": "n2",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "courtyard",
+            "params": "{\"ratio\":0.24,\"upper_ratio\":0.72,\"lower_floor_fraction\":0.36}"
+          },
+          {
+            "node_id": "n4",
+            "parent_node_id": "n2",
+            "role": "support",
+            "relation": "attach",
+            "verb": "lift",
+            "params": "{\"upper_ratio\":0.81,\"lower_floor_fraction\":0.31}"
+          }
+        ]
+      },
+      {
+        "name": "b4_diagonal_connector_slender_bar_court_01",
+        "label": "diagonal connector bar with carved east court",
+        "typology": "bar_slab",
+        "architectural_language": "slender_podium_tower + courtyard_atrium",
+        "reference_basis": "BIG / Vancouver House principle of transformed silhouette and OMA-like carved public void",
+        "formal_principle": "undercut_podium",
+        "dominant_gesture": "a slender bar is diagonally pulled into a court-facing connector",
+        "generator_mode": "sectional",
+        "mass_language": "diagonal_connector",
+        "primary_language": "slender_bar",
+        "secondary_language": "courtyard_atrium",
+        "topology_intent": "counterpoint the 28.99° parcel axis while opening an east public court",
+        "primitive_intent": "one grounded bar is cut by a diagonal link to make a legible civic seam",
+        "intent_tags": [
+          "east_access",
+          "axis_counterpoint",
+          "courtyard",
+          "diagonal_connect",
+          "slender_bar"
+        ],
+        "rule_name": "terrain-loop diagonal bar with court notch",
+        "rule_inputs": [
+          "axis:x",
+          "upper_ratio:0.78",
+          "distance_ratio:0.26",
+          "angle:31",
+          "lower_floor_fraction:0.36",
+          "ratio:0.24"
+        ],
+        "expected_geometry_actions": [
+          "base",
+          "diagonal_connect",
+          "courtyard",
+          "offset"
+        ],
+        "rationale": "A clean anchored bar reads along the site and uses a diagonal connector to turn the east edge into a public threshold without fragmenting the mass.",
+        "calls": [
+          {
+            "node_id": "n4a_root",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n4a_primary",
+            "parent_node_id": "n4a_root",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "bar",
+            "params": "{\"axis\":\"y\",\"factor\":0.82,\"shift\":0.18,\"upper_ratio\":0.78,\"lower_floor_fraction\":0.36}"
+          },
+          {
+            "node_id": "n4a_connector",
+            "parent_node_id": "n4a_root",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "diagonal_connect",
+            "params": "{\"axis\":\"x\",\"upper_ratio\":0.78,\"distance_ratio\":0.26,\"angle\":31,\"lower_floor_fraction\":0.36}"
+          },
+          {
+            "node_id": "n4a_void",
+            "parent_node_id": "n4a_primary",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "courtyard",
+            "params": "{\"ratio\":0.24,\"upper_ratio\":0.78,\"lower_floor_fraction\":0.36}"
+          }
+        ]
+      },
+      {
+        "name": "b4_terrace_ribbon_offset_bar_court_02",
+        "label": "terrace ribbon bar with offset court",
+        "typology": "terrace_ribbon",
+        "architectural_language": "terrace_ribbon + reflected_court_pair",
+        "reference_basis": "Mountain Dwellings / terrace-field principle with a calm street-facing edge",
+        "formal_principle": "stepped_landform",
+        "dominant_gesture": "a continuous ribbon terraces toward the open east edge",
+        "generator_mode": "sectional",
+        "mass_language": "terrace_ribbon",
+        "primary_language": "terrace_ribbon",
+        "secondary_language": "reflected_court_pair",
+        "topology_intent": "use the east frontage as a stepped inhabited terrace and keep a clear public void",
+        "primitive_intent": "one ribbon mass shifts to produce two readable court edges without becoming fragmented",
+        "intent_tags": [
+          "east_access",
+          "terrace_link",
+          "public_void",
+          "offset",
+          "continuous_section"
+        ],
+        "rule_name": "ribbon terrace with reflected court gap",
+        "rule_inputs": [
+          "side:east",
+          "upper_ratio:0.74",
+          "width_ratio:0.27",
+          "depth_ratio:0.22",
+          "lower_floor_fraction:0.34",
+          "axis:x"
+        ],
+        "expected_geometry_actions": [
+          "base",
+          "terrace_link",
+          "offset",
+          "courtyard"
+        ],
+        "rationale": "A single terraced ribbon preserves continuity while the offset court creates a neighborhood-scale opening tied to the access edge.",
+        "calls": [
+          {
+            "node_id": "n4b_root",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n4b_primary",
+            "parent_node_id": "n4b_root",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "terrace_link",
+            "params": "{\"side\":\"east\",\"upper_ratio\":0.74,\"width_ratio\":0.27,\"depth_ratio\":0.22,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n4b_support",
+            "parent_node_id": "n4b_root",
+            "role": "support",
+            "relation": "attach",
+            "verb": "offset",
+            "params": "{\"axis\":\"x\",\"distance_ratio\":0.21,\"other_scale\":0.88,\"upper_ratio\":0.74,\"lower_floor_fraction\":0.34}"
+          },
+          {
+            "node_id": "n4b_void",
+            "parent_node_id": "n4b_primary",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "courtyard",
+            "params": "{\"ratio\":0.21,\"upper_ratio\":0.74,\"lower_floor_fraction\":0.34}"
+          }
+        ]
+      },
+      {
+        "name": "b4_sloped_roof_split_bridge_torque_03",
+        "label": "sloped roof split bridge with torqued section",
+        "typology": "roof_envelope",
+        "architectural_language": "folded_section + split_bridge_connector",
+        "reference_basis": "OMA / Seattle-style diagrammatic section and a BIG-like silhouette transition",
+        "formal_principle": "folded_section",
+        "dominant_gesture": "the mass splits and reconnects under one continuous sloped roof",
+        "generator_mode": "sectional",
+        "mass_language": "sloped_roof",
+        "primary_language": "sloped_roof_volume",
+        "secondary_language": "split_bridge",
+        "topology_intent": "counterpoint the long axis while preserving a public gap and bridge",
+        "primitive_intent": "a roof section ties two shifted halves into one legible inhabited section",
+        "intent_tags": [
+          "split",
+          "bridge",
+          "sloped_roof",
+          "sectional",
+          "east_access"
+        ],
+        "rule_name": "folded roof split bridge over public gap",
+        "rule_inputs": [
+          "axis:y",
+          "upper_ratio:0.80",
+          "x_ratio:0.61",
+          "y_ratio:0.44",
+          "lower_floor_fraction:0.32",
+          "gap_ratio:0.23",
+          "bridge_ratio:0.18"
+        ],
+        "expected_geometry_actions": [
+          "base",
+          "split",
+          "sloped_roof_mass",
+          "diagonal_connect"
+        ],
+        "rationale": "The split makes the section readable and the roof turns the connector into a public architectural event rather than a flat stack.",
+        "calls": [
+          {
+            "node_id": "n4c_root",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n4c_primary",
+            "parent_node_id": "n4c_root",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "split",
+            "params": "{\"axis\":\"y\",\"gap_ratio\":0.23,\"bridge_ratio\":0.18,\"upper_ratio\":0.80,\"lower_floor_fraction\":0.32}"
+          },
+          {
+            "node_id": "n4c_support",
+            "parent_node_id": "n4c_root",
+            "role": "support",
+            "relation": "deform",
+            "verb": "sloped_roof_mass",
+            "params": "{\"upper_ratio\":0.80,\"x_ratio\":0.61,\"y_ratio\":0.44,\"lower_floor_fraction\":0.32}"
+          },
+          {
+            "node_id": "n4c_connector",
+            "parent_node_id": "n4c_primary",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "diagonal_connect",
+            "params": "{\"axis\":\"x\",\"upper_ratio\":0.80,\"distance_ratio\":0.24,\"angle\":28,\"lower_floor_fraction\":0.32}"
+          }
+        ]
+      },
+      {
+        "name": "b4_split_bridge_reflect_pair_notch_04",
+        "label": "split bridge reflected pair with notch",
+        "typology": "interlock",
+        "architectural_language": "split_bridge_connector + notched_void",
+        "reference_basis": "Vancouver House / BIG torqued-stack principle translated into a compact neighborhood bridge",
+        "formal_principle": "split_bridge",
+        "dominant_gesture": "two bars separate, then interlock across a notch to form a shared bridge room",
+        "generator_mode": "hybrid",
+        "mass_language": "split_bridge",
+        "primary_language": "reflected_court_pair",
+        "secondary_language": "notched_void",
+        "topology_intent": "respond to the east edge with a split pair that frames access and a shared void",
+        "primitive_intent": "the pair remains legible as two masses while the notch preserves the ground opening",
+        "intent_tags": [
+          "split",
+          "bridge",
+          "notch",
+          "reflected_pair",
+          "shared_void"
+        ],
+        "rule_name": "reflected pair with bridged notch",
+        "rule_inputs": [
+          "axis:x",
+          "unit_scale:0.86",
+          "spacing_ratio:0.24",
+          "upper_ratio:0.76",
+          "lower_floor_fraction:0.38",
+          "corner:ne"
+        ],
+        "expected_geometry_actions": [
+          "base",
+          "reflect",
+          "interlock",
+          "notch"
+        ],
+        "rationale": "A reflected pair gives a clear twin reading, while the bridged notch keeps the ground active and avoids a boxy block.",
+        "calls": [
+          {
+            "node_id": "n4d_root",
+            "parent_node_id": "",
+            "role": "root",
+            "relation": "input",
+            "verb": "base",
+            "params": "{}"
+          },
+          {
+            "node_id": "n4d_primary",
+            "parent_node_id": "n4d_root",
+            "role": "primary",
+            "relation": "attach",
+            "verb": "reflect",
+            "params": "{\"axis\":\"x\",\"gap_ratio\":0.24,\"unit_scale\":0.86,\"upper_ratio\":0.76,\"lower_floor_fraction\":0.38}"
+          },
+          {
+            "node_id": "n4d_connector",
+            "parent_node_id": "n4d_root",
+            "role": "connector",
+            "relation": "connect",
+            "verb": "interlock",
+            "params": "{\"angle\":29,\"bar_ratio\":0.52,\"upper_ratio\":0.76,\"distance_ratio\":0.25,\"lower_floor_fraction\":0.38}"
+          },
+          {
+            "node_id": "n4d_void",
+            "parent_node_id": "n4d_primary",
+            "role": "void",
+            "relation": "subtract",
+            "verb": "notch",
+            "params": "{\"corner\":\"ne\",\"ratio\":0.22}"
+          }
+        ]
+      }
+    ]
+  }
+}

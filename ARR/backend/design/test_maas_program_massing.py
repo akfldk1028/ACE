@@ -1,11 +1,12 @@
 """Program-conditioned MAAS massing contracts."""
 
+from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
-from shapely.affinity import rotate
+from shapely.affinity import rotate, scale
 from shapely.geometry import Polygon, box
 
 from design.maas.grammar import generate_grammar_variants
@@ -15,14 +16,157 @@ from design.maas.agents.llm_architect_agent import LLMArchitectAgent
 from design.maas.interactive.language_brain import propose_language_mutation
 from design.maas.program_massing import creative_archive_sequences, creative_seed_sequences, program_archive_sequences, program_search_prior, program_seed_sequences, resolve_program_profile
 from design.maas.program_massing.benchmark import run_creative_20_archive_benchmark, run_neighborhood_20_language_benchmark, run_program_massing_benchmark, run_site_adaptation_benchmark
+from design.maas.program_massing.grl_contract import build_archive_grl_contract
+from design.maas.program_massing.graph_archive import bounded_behavior_frontier, field_topology_coverage
 from design.maas.program_massing.vlm_a2a import _source_far_utilization
+from design.maas.program_massing.scoring import attach_program_massing_evidence
+from design.maas.program_massing.search import ProgramElite, _descriptor_distance, _feature
 from design.maas.source_geometry import compile_sequence_to_source_mass
+from design.maas.source_geometry.parametric_curves import swept_variable_ribbon
 from design.maas.agents.orchestrator.generative_loop import CriticDirective, GraphEditDirective, run_generative_a2a_loop
 from design.maas.agents.llm_architect_agent.graph_revision import apply_critic_graph_edits
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 
 
 class MaasProgramMassingTest(SimpleTestCase):
+    def test_variable_width_sweep_materializes_tapered_continuous_mass(self):
+        sweep = swept_variable_ribbon(
+            ((1.0, 5.0), (5.0, 5.0), (9.0, 5.0)),
+            half_widths=(0.8, 2.4, 0.8),
+            clip=box(0, 0, 10, 10),
+        )
+
+        self.assertIsNotNone(sweep)
+        self.assertTrue(sweep.is_valid)
+        middle_depth = sweep.intersection(box(4.5, 0, 5.5, 10)).area
+        end_depth = sweep.intersection(box(1.0, 0, 2.0, 10)).area
+        self.assertGreater(middle_depth, end_depth * 1.5)
+
+    def test_behavior_frontier_keeps_multiple_elites_without_all_pair_pool(self):
+        sequence = VerbSequence(
+            "frontier_bar",
+            "frontier bar",
+            (VerbCall("base", {}), VerbCall("bar", {"axis": "x", "factor": 0.5})),
+        )
+        source = compile_sequence_to_source_mass(box(0, 0, 60, 40), sequence)
+        population = [
+            ProgramElite(sequence, source, {"properties": {}}, score / 10.0, 0)
+            for score in range(10)
+        ]
+
+        frontier = bounded_behavior_frontier(population, per_cell=3, minimum_count=0)
+
+        self.assertEqual(len(frontier), 3)
+        self.assertEqual([item.score for item in frontier], [0.9, 0.8, 0.7])
+
+    def test_field_topology_coverage_requires_geometry_not_pose_variants(self):
+        parallel = VerbSequence(
+            "parallel", "parallel", (VerbCall("base", {}), VerbCall("bend", {"field_topology": "parallel"})),
+        )
+        branched = VerbSequence(
+            "branched", "branched", (VerbCall("base", {}), VerbCall("bend", {"field_topology": "branched"})),
+        )
+
+        self.assertFalse(field_topology_coverage((parallel,))["hard_pass"])
+        self.assertTrue(field_topology_coverage((parallel, branched))["hard_pass"])
+
+    def test_grl_archive_contract_exposes_pose_invariant_duplicate_relation(self):
+        contract = build_archive_grl_contract(
+            dataset_id="maas:test",
+            title="test archive",
+            source_path="result.json",
+            site={"pnu": "test-pnu", "area_m2": 2400},
+            candidates=[
+                {
+                    "variant_id": "candidate_a",
+                    "formal_principle": "carved_atrium",
+                    "language_group": "carved_void",
+                    "vlm_design_score": 0.8,
+                    "normalized_far_utilization": 0.9,
+                    "volume_count": 2,
+                    "surface_count": 12,
+                },
+                {
+                    "variant_id": "candidate_b",
+                    "formal_principle": "carved_atrium",
+                    "language_group": "carved_void",
+                    "vlm_design_score": 0.75,
+                    "normalized_far_utilization": 0.92,
+                    "volume_count": 2,
+                    "surface_count": 12,
+                },
+            ],
+            morphology_relations=[{"left": 0, "right": 1, "distance": 0.04}],
+        )
+
+        self.assertEqual(contract["schemaVersion"], "grl/v1")
+        self.assertEqual(contract["relations"][0]["type"], "intrinsic_geometry_duplicate")
+        ids = [
+            item["id"]
+            for key in ("features", "evidence", "circuits", "relations")
+            for item in contract[key]
+        ]
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_archive_descriptor_treats_rotated_or_mirrored_mass_as_same_language(self):
+        sequence = VerbSequence(
+            "orientation_invariant_court",
+            "orientation invariant court",
+            (
+                VerbCall("base", {}),
+                VerbCall("bar", {"axis": "x", "factor": 0.58}),
+                VerbCall("courtyard", {"inner_scale": 0.42}),
+                VerbCall("lift", {"ratio": 0.18}),
+            ),
+        )
+        source = compile_sequence_to_source_mass(box(0, 0, 60, 40), sequence)
+        self.assertIsNotNone(source)
+
+        def elite(compiled, name):
+            named = replace(compiled, name=name)
+            feature = _feature(
+                named,
+                sequence,
+                building_type="neighborhood living",
+                height=18.0,
+                floors=5,
+                site_area=2400.0,
+            )
+            attach_program_massing_evidence(feature, building_type="neighborhood living")
+            return ProgramElite(sequence, named, feature, 0.9, 0)
+
+        center = source.footprint.centroid
+        rotated = replace(
+            source,
+            footprint=rotate(source.footprint, 90, origin=center),
+            upper_footprint=(
+                rotate(source.upper_footprint, 90, origin=center)
+                if source.upper_footprint is not None
+                else None
+            ),
+            volumes=tuple(
+                replace(volume, footprint=rotate(volume.footprint, 90, origin=center))
+                for volume in source.volumes
+            ),
+        )
+        mirrored = replace(
+            source,
+            footprint=scale(source.footprint, xfact=-1, yfact=1, origin=center),
+            upper_footprint=(
+                scale(source.upper_footprint, xfact=-1, yfact=1, origin=center)
+                if source.upper_footprint is not None
+                else None
+            ),
+            volumes=tuple(
+                replace(volume, footprint=scale(volume.footprint, xfact=-1, yfact=1, origin=center))
+                for volume in source.volumes
+            ),
+        )
+
+        original_elite = elite(source, "original")
+        self.assertLess(_descriptor_distance(original_elite, elite(rotated, "rotated")), 0.08)
+        self.assertLess(_descriptor_distance(original_elite, elite(mirrored, "mirrored")), 0.08)
+
     def test_default_continuous_ribbon_is_an_occupiable_capacity_mass(self):
         sequence = VerbSequence(
             "llm_capacity_ribbon",
@@ -44,6 +188,50 @@ class MaasProgramMassingTest(SimpleTestCase):
         self.assertGreaterEqual(utilization, 0.70)
         field = source.signature()["architectural_ambition_evidence"]["site_design_field"]
         self.assertGreaterEqual(field["vertical_band_height"], 0.80)
+        self.assertTrue(field["variable_width"])
+        self.assertEqual(field["width_profile_source"], "formal_rule_prior")
+
+    def test_agent_authored_branched_ribbon_compiles_as_one_field_with_two_arms(self):
+        sequence = VerbSequence(
+            "llm_branched_ribbon",
+            "one grounded field divides into two upper public arms",
+            (
+                VerbCall("base", {}),
+                VerbCall("bend", {
+                    "lane_count": 3,
+                    "field_topology": "branched",
+                    "branch_point_ratio": 0.38,
+                    "lane_width_ratio": 0.10,
+                    "width_start_ratio": 0.92,
+                    "width_mid_ratio": 1.28,
+                    "width_end_ratio": 0.68,
+                    "width_wave": 0.12,
+                    "height_start_ratio": 0.48,
+                    "height_mid_ratio": 0.96,
+                    "height_end_ratio": 0.62,
+                    "height_wave": 0.14,
+                    "vertical_overlap": 0.24,
+                    "curvature": 0.12,
+                }),
+            ),
+        )
+        source = compile_sequence_to_source_mass(box(0, 0, 60, 40), sequence)
+
+        self.assertIsNotNone(source)
+        roles = {volume.role for volume in source.volumes}
+        self.assertIn("primary_branched_ribbon_trunk", roles)
+        self.assertIn("primary_branched_ribbon_arm_0", roles)
+        self.assertIn("primary_branched_ribbon_arm_1", roles)
+        field = source.signature()["architectural_ambition_evidence"]["site_design_field"]
+        self.assertEqual(field["field_topology"], "branched")
+        self.assertEqual(field["width_profile_source"], "agent_authored")
+        self.assertEqual(field["height_profile_source"], "agent_authored")
+        self.assertEqual(field["branch_point_ratio"], 0.38)
+        self.assertTrue(source.signature()["coherence_evidence"]["hard_pass"])
+        surface = source.signature()["continuous_surface_evidence"]
+        self.assertEqual(surface["status"], "materialized")
+        self.assertEqual(surface["profiled_volume_count"], 3)
+        self.assertEqual(surface["representation"], "agent_field_quad_strips")
 
     def test_generative_a2a_loop_recompiles_typed_graph_edit(self):
         initial = VerbSequence(

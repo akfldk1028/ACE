@@ -17,7 +17,10 @@ def evaluate_source_volume_coherence(volumes: tuple[SourceVolume, ...]) -> dict[
     if not volumes:
         return {"schema_version": COHERENCE_SCHEMA_VERSION, "status": "missing", "score": 0.0, "hard_pass": False}
     areas = [max(float(volume.footprint.area), 1e-9) for volume in volumes]
-    continuous_field = all("continuous_ribbon_lane" in str(volume.role) for volume in volumes)
+    continuous_field = all(
+        "continuous_ribbon_lane" in str(volume.role) or "branched_ribbon" in str(volume.role)
+        for volume in volumes
+    )
     intentional_cluster = (
         len(volumes) >= 3
         and sum("_unit_" in str(volume.role).lower() for volume in volumes) >= 3

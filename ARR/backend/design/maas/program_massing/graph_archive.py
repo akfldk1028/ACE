@@ -77,4 +77,72 @@ def graph_behavior_key(elite: Any) -> tuple[str, ...]:
     )
 
 
-__all__ = ["GraphBehaviorArchive", "graph_behavior_key"]
+def bounded_behavior_frontier(
+    elites: Iterable[Any],
+    *,
+    per_cell: int = 4,
+    minimum_count: int = 120,
+) -> list[Any]:
+    """Keep a score-ranked multi-elite frontier per behavior cell.
+
+    A single MAP-Elites winner per coarse cell is too lossy for visual review,
+    while exact all-pairs morphology over thousands of legal candidates is too
+    slow. Keeping several representatives per cell preserves alternative graph
+    realizations and bounds the later precise pose-invariant comparison.
+    """
+    population = list(elites)
+    buckets: dict[tuple[str, ...], list[Any]] = {}
+    for elite in population:
+        buckets.setdefault(graph_behavior_key(elite), []).append(elite)
+    selected: list[Any] = []
+    selected_ids: set[int] = set()
+    for bucket in buckets.values():
+        for elite in sorted(bucket, key=lambda item: float(item.score), reverse=True)[:max(1, per_cell)]:
+            selected.append(elite)
+            selected_ids.add(id(elite))
+    if len(selected) < max(0, minimum_count):
+        for elite in sorted(population, key=lambda item: float(item.score), reverse=True):
+            if id(elite) in selected_ids:
+                continue
+            selected.append(elite)
+            selected_ids.add(id(elite))
+            if len(selected) >= minimum_count:
+                break
+    return sorted(selected, key=lambda item: float(item.score), reverse=True)
+
+
+def field_topology_coverage(
+    sequences: Iterable[Any],
+    *,
+    minimums: dict[str, int] | None = None,
+) -> dict[str, Any]:
+    """Audit whether the author used distinct field topologies, not poses."""
+    required = dict(minimums or {"parallel": 1, "branched": 1})
+    counts = {name: 0 for name in required}
+    for sequence in sequences:
+        for item in getattr(sequence, "calls", ()):
+            if str(getattr(item, "verb", "")) != "bend":
+                continue
+            params = getattr(item, "params", {}) or {}
+            topology = str(params.get("field_topology") or "parallel").strip().lower()
+            counts[topology] = counts.get(topology, 0) + 1
+    missing = {
+        name: required_count - counts.get(name, 0)
+        for name, required_count in required.items()
+        if counts.get(name, 0) < required_count
+    }
+    return {
+        "schema_version": "arr.maas.field_topology_coverage.v1",
+        "counts": counts,
+        "minimums": required,
+        "missing": missing,
+        "hard_pass": not missing,
+    }
+
+
+__all__ = [
+    "GraphBehaviorArchive",
+    "bounded_behavior_frontier",
+    "field_topology_coverage",
+    "graph_behavior_key",
+]

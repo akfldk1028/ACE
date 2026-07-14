@@ -8,6 +8,7 @@ clips, or rejects every candidate after these source volumes are created.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import pi, sin
 from typing import Any
 
 from shapely.affinity import rotate, scale, translate
@@ -15,7 +16,7 @@ from shapely.geometry import MultiPolygon, Polygon, box
 
 from .design_fields import build_ribbon_design_field
 from .ir import SourceVolume
-from .parametric_curves import swept_ribbon
+from .parametric_curves import swept_ribbon, swept_variable_ribbon
 
 
 CANONICAL_FORMAL_PRINCIPLES = {
@@ -106,10 +107,25 @@ def _poly(role: str, clip: Polygon, coords: list[tuple[float, float]], bottom: f
     return _clean_piece(role, Polygon(coords), bottom, top, verb, clip=clip, min_area=min_area)
 
 
-def _ribbon(role: str, clip: Polygon, points: list[tuple[float, float]], width: float, bottom: float, top: float, verb: str, *, min_area: float) -> SourceVolume | None:
+def _ribbon(
+    role: str,
+    clip: Polygon,
+    points: list[tuple[float, float]],
+    width: float,
+    bottom: float,
+    top: float,
+    verb: str,
+    *,
+    min_area: float,
+    width_profile: tuple[float, ...] = (),
+) -> SourceVolume | None:
     if len(points) < 2 or width <= 0:
         return None
-    sweep = swept_ribbon(tuple(points), half_width=width, clip=clip)
+    sweep = (
+        swept_variable_ribbon(tuple(points), half_widths=width_profile, clip=clip)
+        if len(width_profile) >= 2
+        else swept_ribbon(tuple(points), half_width=width, clip=clip)
+    )
     if sweep is None:
         return None
     return _clean_piece(role, sweep, bottom, top, verb, clip=clip, min_area=min_area)
@@ -178,6 +194,7 @@ def compile_formal_principle_volumes(
     angle = _param(language_params, ("angle",), 24.0, -42.0, 42.0)
     void_ratio = _param(language_params, ("ratio", "void_ratio", "guest_scale", "inner_scale"), 0.30, 0.16, 0.56)
     pieces: list[SourceVolume | None] = []
+    surface_field_specs: list[dict[str, Any]] = []
     genome = massing_genome or {}
 
     if principle == "slender_podium_tower":
@@ -206,15 +223,124 @@ def compile_formal_principle_volumes(
         design_field = build_ribbon_design_field(footprint, language_params)
         if design_field is None:
             return None
-        pieces = []
-        for index, (path, half_width, band) in enumerate(zip(
-            design_field.paths,
-            design_field.half_widths,
-            design_field.vertical_bands,
-        )):
-            role_prefix = "primary" if index < 2 else "secondary"
-            role = f"{role_prefix}_continuous_ribbon_lane_{index}"
-            pieces.append(_ribbon(role, footprint, list(path), half_width, band[0], band[1], "bend", min_area=min_area))
+        height_ratios = list(design_field.evidence.get("height_profile_ratios") or (0.64, 0.96, 0.70))
+        height_wave = float(design_field.evidence.get("height_wave") or 0.0)
+
+        def surface_spec(
+            role: str,
+            path: list[tuple[float, float]],
+            width_profile: list[float],
+            bottom: float,
+            top: float,
+            start_t: float = 0.0,
+            end_t: float = 1.0,
+        ) -> dict[str, Any]:
+            roof_profile: list[float] = []
+            for index in range(len(path)):
+                local_t = index / max(len(path) - 1, 1)
+                t = start_t + (end_t - start_t) * local_t
+                if t <= 0.5:
+                    factor = height_ratios[0] + (height_ratios[1] - height_ratios[0]) * t * 2.0
+                else:
+                    factor = height_ratios[1] + (height_ratios[2] - height_ratios[1]) * (t - 0.5) * 2.0
+                factor += height_wave * sin(t * 2.0 * pi)
+                roof_profile.append(bottom + (top - bottom) * max(0.18, min(0.98, factor)))
+            return {
+                "role": role,
+                "verb": "branch" if "branched" in role else "bend",
+                "bottom_fraction": bottom,
+                "path_points": [[float(x), float(y)] for x, y in path],
+                "path_width_m": sum(width_profile) / max(len(width_profile), 1),
+                "path_width_profile_m": [float(value) for value in width_profile],
+                "roof_profile": roof_profile,
+            }
+        if design_field.evidence.get("field_topology") == "branched" and len(design_field.paths) >= 2:
+            point_count = min(len(path) for path in design_field.paths)
+            branch_ratio = float(design_field.evidence.get("branch_point_ratio") or 0.36)
+            split_index = max(1, min(point_count - 2, round(branch_ratio * (point_count - 1))))
+            trunk_path = [
+                (
+                    sum(path[index][0] for path in design_field.paths) / len(design_field.paths),
+                    sum(path[index][1] for path in design_field.paths) / len(design_field.paths),
+                )
+                for index in range(split_index + 1)
+            ]
+            trunk_profile = [
+                max(profile[index] for profile in design_field.half_width_profiles) * 1.18
+                for index in range(split_index + 1)
+            ]
+            pieces = [
+                _ribbon(
+                    "primary_branched_ribbon_trunk",
+                    footprint,
+                    trunk_path,
+                    sum(trunk_profile) / len(trunk_profile),
+                    0.0,
+                    max(0.84, design_field.vertical_bands[len(design_field.vertical_bands) // 2][1]),
+                    "bend",
+                    min_area=min_area,
+                    width_profile=trunk_profile,
+                )
+            ]
+            trunk_top = max(0.84, design_field.vertical_bands[len(design_field.vertical_bands) // 2][1])
+            surface_field_specs.append(surface_spec(
+                "primary_branched_ribbon_trunk",
+                trunk_path,
+                trunk_profile,
+                0.0,
+                trunk_top,
+                0.0,
+                split_index / max(point_count - 1, 1),
+            ))
+            for arm_index, lane_index in enumerate((0, len(design_field.paths) - 1)):
+                path = list(design_field.paths[lane_index][split_index:])
+                profile = list(design_field.half_width_profiles[lane_index][split_index:])
+                arm_role = f"primary_branched_ribbon_arm_{arm_index}"
+                arm_top = max(0.84, design_field.vertical_bands[lane_index][1])
+                pieces.append(_ribbon(
+                    arm_role,
+                    footprint,
+                    path,
+                    sum(profile) / len(profile),
+                    0.0,
+                    arm_top,
+                    "branch",
+                    min_area=min_area,
+                    width_profile=profile,
+                ))
+                surface_field_specs.append(surface_spec(
+                    arm_role,
+                    path,
+                    profile,
+                    0.0,
+                    arm_top,
+                    split_index / max(point_count - 1, 1),
+                    1.0,
+                ))
+        else:
+            pieces = []
+            for index, (path, half_width, width_profile, band) in enumerate(zip(
+                design_field.paths,
+                design_field.half_widths,
+                design_field.half_width_profiles,
+                design_field.vertical_bands,
+            )):
+                role_prefix = "primary" if index < 2 else "secondary"
+                role = f"{role_prefix}_continuous_ribbon_lane_{index}"
+                pieces.append(_ribbon(
+                    role,
+                    footprint,
+                    list(path),
+                    half_width,
+                    band[0],
+                    band[1],
+                    "bend",
+                    min_area=min_area,
+                    width_profile=width_profile,
+                ))
+                surface_field_specs.append(surface_spec(
+                    role, list(path), list(width_profile), band[0], band[1],
+                ))
     elif principle == "torqued_stack":
         torque_angle = max(18.0, min(42.0, abs(angle)))
         torque_shift = max(0.18, min(0.34, abs(shift)))
@@ -392,7 +518,10 @@ def compile_formal_principle_volumes(
         "architecture_grade_pass": True,
     }
     if principle == "continuous_ribbon_field" and design_field is not None:
-        evidence["site_design_field"] = design_field.evidence
+        evidence["site_design_field"] = {
+            **design_field.evidence,
+            "surface_field_specs": surface_field_specs,
+        }
     return FormalPrincipleResult(principle=principle, volumes=volumes, evidence=evidence)
 
 

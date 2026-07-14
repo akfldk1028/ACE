@@ -2028,3 +2028,192 @@ Direct visual verdict:
 - Legal/parking projection remains `not_run` in v58. FAR capacity and real
   parcel containment pass, but permit law, parking layout and post-projection
   language retention remain the next hard stage.
+## 2026-07-14 rotation-equivalent language correction and GRL audit (in progress)
+
+User-visible failure after real-PNU v58:
+
+- Several cards express the same architectural language with only a rotated or
+  reflected placement. The v58 JSON reported `near_duplicate_pairs=[]`, but
+  direct PNG review correctly rejected that claim.
+- Root cause is now identified in
+  `program_massing/search.py::_descriptor_distance`: it compared layered
+  volumes and plan symmetric difference in absolute site coordinates. Rotating
+  the same mass therefore increased distance and incorrectly rewarded it as a
+  new language. This is an algorithm defect before it is a VLM-data problem.
+
+Implementation now present but not yet certified by a new full PNU board:
+
+- New modular policy module:
+  `ARR/backend/design/maas/program_massing/morphology.py`.
+- It centers each layered source mass, aligns its minimum-rotated-rectangle
+  major axis, normalizes uniform scale, and compares all planar rotation and
+  reflection symmetries while retaining plan proportion, void placement and
+  vertical band structure.
+- `_descriptor_distance` uses this intrinsic morphology channel. If compiled
+  geometry is equivalent, different LLM labels/principle prose cannot rescue
+  the duplicate. Site/access response stays a separate evaluation channel and
+  is not counted as a new formal language.
+- Regression tests cover a 90-degree rotation and reflection of the same
+  compiled mass.
+
+GRL decision:
+
+- `D:/Data/25_ACE/GRL/GRL` is a portable evidence/circuit/relation contract
+  viewer. It is not a generator, optimizer, graph database or learned geometry
+  model, so attaching it alone cannot improve form.
+- A replaceable adapter is now isolated in
+  `program_massing/grl_contract.py`. Each full loop writes a sibling
+  `*-grl.json` contract tracing site -> formal principle -> executable selected
+  mass and records pose-invariant morphology-neighbor/duplicate relations.
+- The selector/hard gate improves the archive; GRL makes the decision
+  inspectable. Do not move generation logic into GRL.
+
+Relevant 2026 research checked against the code:
+
+- Proc3D (arXiv:2601.12234): compact editable procedural graph and localized
+  parameter editing. It supports keeping MassDSL/component graphs compact and
+  executable; it does not supply architectural quality automatically.
+- 3D-Layout-R1 (arXiv:2603.22279): structured scene-graph edits plus geometric
+  IoU/collision reward. It supports graph-edit traces with deterministic
+  geometry rewards rather than prose-only critic output.
+- 3DCodeBench (arXiv:2606.01057): VLM procedural code generation still needs
+  execution feedback and pairwise human preference; disconnected/floating
+  geometry remains common. It supports the existing compile/gate/render/critic
+  loop and shows why VLM reranking alone is insufficient.
+- SimWorlds (arXiv:2607.01766): planner/coder/reviewer with a deterministic
+  verifier and runtime-state inspection. It supports modular agent roles and
+  executable stage gates, not one monolithic prompt.
+
+Required next verification after any session interruption:
+
+1. Finish `design.test_maas_program_massing` and the focused morphology/GRL
+   tests; do not claim pass until the command exits successfully.
+2. Run the same real PNU `1168011800104170004`, same target 20 and same v58
+   author/VLM caches as a v59 comparison. New paid calls are not required for
+   unchanged executable geometry.
+3. Compare v58 versus v59 on selected count, capacity target, language-group
+   histogram, intrinsic duplicate count, geometric-language count, VLM score,
+   and direct side-by-side PNG judgment.
+4. If strict pose-invariant novelty leaves fewer than 20 valid cards, report
+   the honest deficit and author genuinely new graphs. Never relax the metric
+   merely to refill the sheet.
+5. This patch only fixes false diversity. Competition-grade variable-width
+   sweeps, branched/tapered ribbon fields and continuous roof loft remain the
+   next representation-level generator work.
+
+## 2026-07-14 pose-invariant v59 and editable field representation v61-v65
+
+Same-PNU v59 result (do not overwrite with the earlier plan):
+
+- Artifact: `maas-neighborhood-vlm-a2a-v59-pnu-1168011800104170004-pose-invariant-grl.json/.png`
+  plus sibling `-grl.json`.
+- Strict rotation/reflection-invariant selection returned an honest 18/20,
+  `technical_fail` and `automatic_visual_floor_failed`; it did not refill the
+  board with pose variants. Raw/clean/capacity pools were 3,872 / 2,283 /
+  2,071. Capacity target was 12. Final groups were carved 6, continuous 1,
+  folded 3, bridge 3, cluster 2 and stepped 3.
+- Final `near_duplicate_pairs=[]` and `morphology_repeat_pairs=[]`. Re-auditing
+  v58 with the new metric found five repeated pairs that the old world-axis
+  metric missed: one intrinsic geometry duplicate plus four same-principle or
+  same-topology repeats.
+- Direct PNG review: v59 removes false rotated/reflected diversity, but the
+  remaining slots are filled mostly by conservative bar/court/box languages.
+  Quality did not become competition-grade. This proves the metric correction,
+  not design completion.
+
+Modular implementation boundaries:
+
+- `program_massing/morphology.py`: replaceable intrinsic D4 pose-invariant
+  morphology metric and novelty policy.
+- `program_massing/graph_archive.py`: bounded multi-elite frontier and authored
+  field-topology coverage audit. This avoids all-pairs work on 2,000+ legal
+  candidates while retaining several elites per behavior cell.
+- `program_massing/grl_contract.py`: GRL evidence/lineage adapter only.
+- `source_geometry/parametric_curves.py`: variable-width sweep primitive.
+- `source_geometry/design_fields.py`: parcel-frame path, width, branch and
+  height fields; it contains no PNU coordinate recipe.
+- `source_geometry/formal_principles.py`: graph field -> legal proxy volumes
+  and serializable surface-field specs.
+- `compiler.py`: consumes the field specs as quad-strip roof/facade surfaces;
+  legal/FAR proxy volumes remain separate. A future NURBS/neural field backend
+  can replace this materializer without changing selection or law stages.
+- `scripts/render_ribbon_topology_probe.py`: reproducible real-PNU
+  representation benchmark. It is not a production seed library.
+
+Representation loop and honest visual verdict:
+
+- v61 first branched topology: clean 3-volume trunk + two arms, but FAR was
+  only 0.31-0.36.
+- v62 made the field capacity-bearing without box refill: branched FAR rose to
+  0.65-0.74, but equal-height extrusions looked like curved walls.
+- v63 connected branched roles to the existing profiled surface path; still
+  relied on a non-planar polygon roof.
+- v64 exposed agent-authored width and height profiles, but renderer
+  triangulation produced jagged/tent-like roofs.
+- v65 replaced that representation with path-aligned variable-width
+  quad-strips. Artifact:
+  `maas-pnu-1168011800104170004-v65-quad-strip-field-probe.json/.png`.
+  Six of six variants compile, pass containment/coherence, parallel FAR is 1.0
+  and branched FAR is 0.6459-0.7435. Direct PNG review confirms smoother roof
+  strips and real plan/section change, but it is still a six-form
+  representation test, not an ArchDaily/competition-grade 20-board.
+
+Fresh-author audit in progress at handoff time:
+
+- v66 author cache contains 29 live `gpt-5.4-mini` candidates. Three contain a
+  bend call. Only one explicitly authored the full width/height field contract
+  and it selected `parallel`; two legacy-shaped bend calls normalize to the
+  parallel default. No authored `branched` candidate exists in that population.
+- The prompt now requires at least one parallel and one branched field, and the
+  separate `field_topology_coverage` gate makes a missing topology an honest
+  visual-floor failure. This is a population diversity constraint, not a
+  coordinate or precedent-outline hardcode.
+- If v66/v67 contains no branched field, run a new author batch; do not claim
+  the compiler capability proves the agent used it and do not weaken the gate.
+
+Completed v66 result:
+
+- `maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json/.png`
+  is `technical_fail`, `automatic_visual_floor_failed`, 18/20. It evaluated
+  3,784 raw / 2,662 clean / 2,478 capacity candidates, reviewed 24 VLM parents
+  and 27 critic children, and met FAR target on 12/8.
+- Final geometry has 18 languages and no pose-invariant repeat pairs, but is
+  short one continuous field and one stepped-capacity candidate. Thirteen of
+  18 selected candidates are live-authored.
+- Direct PNG review still rejects the board: one clear profiled field appears
+  at card 4, while most cards remain conservative rectilinear courts, bars and
+  stepbacks. Removal of duplicates exposed the generator's language deficit;
+  it did not create quality by itself.
+- The live author took about 200 seconds, returned 29/29 compiled graphs, no
+  OpenAI batch error and no deterministic repair. Do not rerun this author
+  payload synchronously in a service request.
+
+Current-code cached-author v67 result:
+
+- `maas-neighborhood-vlm-a2a-v67-pnu-1168011800104170004-current-field-audit.json/.png`
+  recompiles the same v66 author population with the quad-strip field
+  representation. Author cache lookup took 2 ms.
+- Result remains `technical_fail` / `automatic_visual_floor_failed`: 19/20,
+  FAR target 12/8, 19 geometric languages, no near/intrinsic duplicate pairs.
+  It is short one continuous field and one stepped candidate.
+- Authored topology audit is explicit: parallel 3, branched 0, hard fail.
+  Post-run selected-sequence audit is parallel 1, branched 0, also hard fail.
+  v67 started before the selected-coverage result field was added, so its JSON
+  has no selected audit object; the same public audit function produced these
+  counts immediately afterward and future runs persist both author and final
+  coverage.
+- Direct PNG review: the continuous field at card 10 has a smoother profiled
+  roof than v66, but the board remains overwhelmingly rectilinear. This is a
+  renderer/representation improvement, not a generator-quality completion.
+- Do not spend another full author call merely to refill a counter. The next
+  author batch must explicitly close the branched and stepped deficits, and
+  the final archive must retain both parallel and branched topologies.
+
+Verification known at this checkpoint:
+
+- Six focused tests pass: variable-width sweep, bounded behavior frontier,
+  GRL duplicate relation, rotation/reflection invariance, default capacity
+  ribbon and agent-authored branched quad-strip field.
+- Separate field-topology coverage tests also pass.
+- The full `design.test_maas_program_massing` module previously exceeded the
+  244-second command window; do not convert that timeout into a full-suite pass.

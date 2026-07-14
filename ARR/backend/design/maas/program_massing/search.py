@@ -16,6 +16,7 @@ from design.maas.source_geometry.ir import SourceMass
 
 from .assembly import component_mutation_limits, load_component_assemblies
 from .creative import attach_creative_mass_evidence, creative_seed_sequences
+from .morphology import intrinsic_shape_distance
 from .scoring import attach_program_massing_evidence
 from .sequences import program_seed_sequences
 
@@ -311,11 +312,13 @@ def _descriptor_distance(left: ProgramElite, right: ProgramElite) -> float:
             sum(height_bands) / max(len(height_bands), 1),
         )
     a, b = vector(left), vector(right)
-    left_plan = unary_union([volume.footprint for volume in left.source.volumes])
-    right_plan = unary_union([volume.footprint for volume in right.source.volumes])
-    plan_union = left_plan.union(right_plan)
-    plan_distance = float(left_plan.symmetric_difference(right_plan).area) / max(float(plan_union.area), 1e-9)
-    volume_distance = _volumetric_distance(left.source, right.source)
+    # Visual-language novelty is intrinsic to the mass, not to the world-axis
+    # direction in which that mass happened to be placed.  Comparing raw site
+    # coordinates made a 90-degree rotation or mirror of the same diagram look
+    # novel, so the archive could contain one language several times.  Align
+    # each source to its own principal frame, normalize scale, and compare all
+    # planar dihedral symmetries before adding semantic evidence.
+    volume_distance, plan_distance = intrinsic_shape_distance(left.source, right.source)
     scalar_distance = min(1.0, sum((x - y) ** 2 for x, y in zip(a, b)) ** 0.5 / 1.35)
     geometric = volume_distance * 0.55 + plan_distance * 0.25 + scalar_distance * 0.20
     left_primary = left.sequence.calls[1].verb if len(left.sequence.calls) > 1 else "base"
@@ -329,9 +332,14 @@ def _descriptor_distance(left: ProgramElite, right: ProgramElite) -> float:
         + (0.32 if _formal_principle(left) != _formal_principle(right) else 0.0)
         + role_distance * 0.30
     )
-    # Geometry remains the majority signal, but a bend graph and a courtyard
-    # graph must not collapse into one descriptor cell merely because their
-    # legal projection has similar coverage and FAR.
+    # Labels cannot rescue geometry-equivalent candidates. This is important
+    # for LLM-authored graphs, where different prose or node names can compile
+    # to the same mass. Site/access response is audited separately on each
+    # candidate and must not masquerade as a new formal language.
+    if volume_distance * 0.7 + plan_distance * 0.3 <= 0.075:
+        return min(0.075, geometric)
+    # Geometry remains the majority signal, but genuinely different bend and
+    # courtyard graphs should not collapse merely because FAR is similar.
     return min(1.0, geometric * 0.78 + semantic * 0.22)
 
 

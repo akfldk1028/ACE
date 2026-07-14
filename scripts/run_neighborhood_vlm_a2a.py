@@ -195,7 +195,9 @@ def main() -> int:
         "status", "visual_status", "raw_evaluated_count", "clean_pool_count",
         "capacity_pool_count", "vlm_parent_count", "vlm_child_count",
         "selected_count", "capacity_target_met_count", "final_language_group_counts",
-        "near_duplicate_pairs",
+        "near_duplicate_pairs", "morphology_repeat_pairs", "grl_audit",
+        "authored_field_topology_coverage",
+        "selected_field_topology_coverage",
     )
     print({key: result.get(key) for key in keys})
     author = result.get("author_artifact") or {}

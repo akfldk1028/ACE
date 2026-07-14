@@ -1,0 +1,1028 @@
+{
+  "schemaVersion": "grl/v1",
+  "dataset": {
+    "id": "maas:1168011800104170004",
+    "title": "MAAS morphology audit - 1168011800104170004",
+    "source": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+    "description": "MAAS site/principle/compiled-geometry/VLM archive audit"
+  },
+  "stages": [
+    {
+      "id": "site_context",
+      "label": "Site context"
+    },
+    {
+      "id": "architectural_language",
+      "label": "Architectural language"
+    },
+    {
+      "id": "selected_archive",
+      "label": "Selected executable mass"
+    }
+  ],
+  "features": [
+    {
+      "id": "feature:site",
+      "label": "1168011800104170004",
+      "kind": "site_constraint",
+      "confidence": 1.0,
+      "pipelineStage": "site_context",
+      "evidenceDensity": 1.0,
+      "metadata": {
+        "pnu": "1168011800104170004",
+        "boundary_source": "vworld_live_pnu",
+        "area_m2": "264.13",
+        "access_edge": "east"
+      }
+    },
+    {
+      "id": "feature:principle:stacked_shifted_platforms",
+      "label": "stacked_shifted_platforms",
+      "kind": "formal_principle",
+      "confidence": 1.0,
+      "pipelineStage": "architectural_language",
+      "evidenceDensity": 1.0,
+      "metadata": {
+        "principle": "stacked_shifted_platforms"
+      }
+    },
+    {
+      "id": "feature:candidate:01",
+      "label": "program_neighborhood_stepback_corner__search_g1_1",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.7667,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "stepped_capacity",
+        "formal_principle": "stacked_shifted_platforms",
+        "far_utilization": "0.9062",
+        "volume_count": "3",
+        "surface_count": "16"
+      }
+    },
+    {
+      "id": "feature:principle:continuous_ribbon_field",
+      "label": "continuous_ribbon_field",
+      "kind": "formal_principle",
+      "confidence": 1.0,
+      "pipelineStage": "architectural_language",
+      "evidenceDensity": 1.0,
+      "metadata": {
+        "principle": "continuous_ribbon_field"
+      }
+    },
+    {
+      "id": "feature:candidate:02",
+      "label": "creative_composed_bend_field_3__search_g0_3",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.75,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "continuous_field",
+        "formal_principle": "continuous_ribbon_field",
+        "far_utilization": "1.0",
+        "volume_count": "3",
+        "surface_count": "42"
+      }
+    },
+    {
+      "id": "feature:principle:torqued_stack",
+      "label": "torqued_stack",
+      "kind": "formal_principle",
+      "confidence": 1.0,
+      "pipelineStage": "architectural_language",
+      "evidenceDensity": 1.0,
+      "metadata": {
+        "principle": "torqued_stack"
+      }
+    },
+    {
+      "id": "feature:candidate:03",
+      "label": "llm_batch3_cross_interlock_cluster_04_021__search_g0_0__a2a_critic_revision",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.69,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "bridge_interlock",
+        "formal_principle": "torqued_stack",
+        "far_utilization": "0.72",
+        "volume_count": "2",
+        "surface_count": "10"
+      }
+    },
+    {
+      "id": "feature:principle:terraced_ribbon_section",
+      "label": "terraced_ribbon_section",
+      "kind": "formal_principle",
+      "confidence": 1.0,
+      "pipelineStage": "architectural_language",
+      "evidenceDensity": 1.0,
+      "metadata": {
+        "principle": "terraced_ribbon_section"
+      }
+    },
+    {
+      "id": "feature:candidate:04",
+      "label": "creative_composed_terrace_field_2__search_g3_2__a2a_critic_revision",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.72,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "stepped_capacity",
+        "formal_principle": "terraced_ribbon_section",
+        "far_utilization": "0.8646",
+        "volume_count": "3",
+        "surface_count": "35"
+      }
+    },
+    {
+      "id": "feature:principle:carved_atrium",
+      "label": "carved_atrium",
+      "kind": "formal_principle",
+      "confidence": 1.0,
+      "pipelineStage": "architectural_language",
+      "evidenceDensity": 1.0,
+      "metadata": {
+        "principle": "carved_atrium"
+      }
+    },
+    {
+      "id": "feature:candidate:05",
+      "label": "llm_accepted_seed_llm_b3_courtyard_barrow_east_void_01_018__search_g0_0",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.7683,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "carved_void",
+        "formal_principle": "carved_atrium",
+        "far_utilization": "0.8954",
+        "volume_count": "2",
+        "surface_count": "14"
+      }
+    },
+    {
+      "id": "feature:candidate:06",
+      "label": "llm_accepted_seed_llm_b01_array_courtyard_seam_001__search_g0_0__a2a_critic_revision__search_g0_0__search_g0_0__a2a_critic_revision",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.7533,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "cluster_field",
+        "formal_principle": "carved_atrium",
+        "far_utilization": "1.0",
+        "volume_count": "4",
+        "surface_count": "20"
+      }
+    },
+    {
+      "id": "feature:principle:carved_monolith",
+      "label": "carved_monolith",
+      "kind": "formal_principle",
+      "confidence": 1.0,
+      "pipelineStage": "architectural_language",
+      "evidenceDensity": 1.0,
+      "metadata": {
+        "principle": "carved_monolith"
+      }
+    },
+    {
+      "id": "feature:candidate:07",
+      "label": "llm_accepted_seed_llm_batch2_embedded_void_south_civic_court_04_012__search_g0_0__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.6333,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "carved_void",
+        "formal_principle": "carved_monolith",
+        "far_utilization": "0.7245",
+        "volume_count": "3",
+        "surface_count": "16"
+      }
+    },
+    {
+      "id": "feature:candidate:08",
+      "label": "llm_accepted_seed_llm_b04_south_diagonal_connector_courtyard_bar_026__search_g0_0__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.7233,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "bridge_interlock",
+        "formal_principle": "carved_atrium",
+        "far_utilization": "1.0",
+        "volume_count": "3",
+        "surface_count": "15"
+      }
+    },
+    {
+      "id": "feature:principle:folded_section",
+      "label": "folded_section",
+      "kind": "formal_principle",
+      "confidence": 1.0,
+      "pipelineStage": "architectural_language",
+      "evidenceDensity": 1.0,
+      "metadata": {
+        "principle": "folded_section"
+      }
+    },
+    {
+      "id": "feature:candidate:09",
+      "label": "llm_accepted_seed_llm_b4_folded_roof_inhabited_bar_028__search_g0_0__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.6967,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "folded_section",
+        "formal_principle": "folded_section",
+        "far_utilization": "0.8521",
+        "volume_count": "2",
+        "surface_count": "14"
+      }
+    },
+    {
+      "id": "feature:candidate:10",
+      "label": "llm_accepted_seed_llm_b1_terrace_ribbon_sloped_roof_walkup_009__search_g0_0__a2a_critic_revision",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.805,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "folded_section",
+        "formal_principle": "folded_section",
+        "far_utilization": "1.0",
+        "volume_count": "3",
+        "surface_count": "15"
+      }
+    },
+    {
+      "id": "feature:candidate:11",
+      "label": "llm_accepted_seed_llm_batch2_notched_void_bar_02_010__search_g0_0",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.77,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "carved_void",
+        "formal_principle": "carved_monolith",
+        "far_utilization": "1.0",
+        "volume_count": "2",
+        "surface_count": "14"
+      }
+    },
+    {
+      "id": "feature:candidate:12",
+      "label": "llm_batch3_overlap_slabs_terrace_05_022__search_g0_0",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.6833,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "calm_anchor",
+        "formal_principle": "stacked_shifted_platforms",
+        "far_utilization": "0.9474",
+        "volume_count": "2",
+        "surface_count": "22"
+      }
+    },
+    {
+      "id": "feature:candidate:13",
+      "label": "llm_accepted_seed_llm_b1_south_array_cluster_courtyard_field_001__search_g0_0__search_g0_0__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.6967,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "cluster_field",
+        "formal_principle": "stacked_shifted_platforms",
+        "far_utilization": "1.0",
+        "volume_count": "4",
+        "surface_count": "22"
+      }
+    },
+    {
+      "id": "feature:candidate:14",
+      "label": "llm_accepted_seed_llm_b3_east_courtyard_atrium_bar_01_017__search_g0_0",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.75,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "carved_void",
+        "formal_principle": "carved_atrium",
+        "far_utilization": "0.9738",
+        "volume_count": "2",
+        "surface_count": "10"
+      }
+    },
+    {
+      "id": "feature:principle:slender_podium_tower",
+      "label": "slender_podium_tower",
+      "kind": "formal_principle",
+      "confidence": 1.0,
+      "pipelineStage": "architectural_language",
+      "evidenceDensity": 1.0,
+      "metadata": {
+        "principle": "slender_podium_tower"
+      }
+    },
+    {
+      "id": "feature:candidate:15",
+      "label": "llm_accepted_seed_llm_batch1_east_bar_notch_terrace_04_004__search_g0_0",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.6967,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "carved_void",
+        "formal_principle": "slender_podium_tower",
+        "far_utilization": "1.0",
+        "volume_count": "3",
+        "surface_count": "25"
+      }
+    },
+    {
+      "id": "feature:principle:split_bridge_connector",
+      "label": "split_bridge_connector",
+      "kind": "formal_principle",
+      "confidence": 1.0,
+      "pipelineStage": "architectural_language",
+      "evidenceDensity": 1.0,
+      "metadata": {
+        "principle": "split_bridge_connector"
+      }
+    },
+    {
+      "id": "feature:candidate:16",
+      "label": "llm_accepted_seed_llm_b4_split_bridge_offset_pair_029__search_g0_0",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.71,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "bridge_interlock",
+        "formal_principle": "split_bridge_connector",
+        "far_utilization": "1.0",
+        "volume_count": "3",
+        "surface_count": "15"
+      }
+    },
+    {
+      "id": "feature:candidate:17",
+      "label": "llm_accepted_seed_creative_composed_folded_field_3__search_g3_6__search_g1_6",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.6667,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "folded_section",
+        "formal_principle": "folded_section",
+        "far_utilization": "0.9377",
+        "volume_count": "3",
+        "surface_count": "15"
+      }
+    },
+    {
+      "id": "feature:candidate:18",
+      "label": "llm_accepted_seed_program_neighborhood_active_bar__search_g2_3__a2a_critic_revision",
+      "kind": "compiled_mass_candidate",
+      "confidence": 0.6667,
+      "pipelineStage": "selected_archive",
+      "evidenceDensity": 5.0,
+      "metadata": {
+        "language_group": "carved_void",
+        "formal_principle": "slender_podium_tower",
+        "far_utilization": "0.7001",
+        "volume_count": "2",
+        "surface_count": "18"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evidence:candidate:01",
+      "featureId": "feature:candidate:01",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=stacked_shifted_platforms; group=stepped_capacity; VLM=0.7667; FAR-utilization=0.9062; volumes=3; surfaces=16",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:02",
+      "featureId": "feature:candidate:02",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=continuous_ribbon_field; group=continuous_field; VLM=0.7500; FAR-utilization=1.0; volumes=3; surfaces=42",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:03",
+      "featureId": "feature:candidate:03",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=torqued_stack; group=bridge_interlock; VLM=0.6900; FAR-utilization=0.72; volumes=2; surfaces=10",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:04",
+      "featureId": "feature:candidate:04",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=terraced_ribbon_section; group=stepped_capacity; VLM=0.7200; FAR-utilization=0.8646; volumes=3; surfaces=35",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:05",
+      "featureId": "feature:candidate:05",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=carved_atrium; group=carved_void; VLM=0.7683; FAR-utilization=0.8954; volumes=2; surfaces=14",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:06",
+      "featureId": "feature:candidate:06",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=carved_atrium; group=cluster_field; VLM=0.7533; FAR-utilization=1.0; volumes=4; surfaces=20",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:07",
+      "featureId": "feature:candidate:07",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=carved_monolith; group=carved_void; VLM=0.6333; FAR-utilization=0.7245; volumes=3; surfaces=16",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:08",
+      "featureId": "feature:candidate:08",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=carved_atrium; group=bridge_interlock; VLM=0.7233; FAR-utilization=1.0; volumes=3; surfaces=15",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:09",
+      "featureId": "feature:candidate:09",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=folded_section; group=folded_section; VLM=0.6967; FAR-utilization=0.8521; volumes=2; surfaces=14",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:10",
+      "featureId": "feature:candidate:10",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=folded_section; group=folded_section; VLM=0.8050; FAR-utilization=1.0; volumes=3; surfaces=15",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:11",
+      "featureId": "feature:candidate:11",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=carved_monolith; group=carved_void; VLM=0.7700; FAR-utilization=1.0; volumes=2; surfaces=14",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:12",
+      "featureId": "feature:candidate:12",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=stacked_shifted_platforms; group=calm_anchor; VLM=0.6833; FAR-utilization=0.9474; volumes=2; surfaces=22",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:13",
+      "featureId": "feature:candidate:13",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=stacked_shifted_platforms; group=cluster_field; VLM=0.6967; FAR-utilization=1.0; volumes=4; surfaces=22",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:14",
+      "featureId": "feature:candidate:14",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=carved_atrium; group=carved_void; VLM=0.7500; FAR-utilization=0.9738; volumes=2; surfaces=10",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:15",
+      "featureId": "feature:candidate:15",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=slender_podium_tower; group=carved_void; VLM=0.6967; FAR-utilization=1.0; volumes=3; surfaces=25",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:16",
+      "featureId": "feature:candidate:16",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=split_bridge_connector; group=bridge_interlock; VLM=0.7100; FAR-utilization=1.0; volumes=3; surfaces=15",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:17",
+      "featureId": "feature:candidate:17",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=folded_section; group=folded_section; VLM=0.6667; FAR-utilization=0.9377; volumes=3; surfaces=15",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    },
+    {
+      "id": "evidence:candidate:18",
+      "featureId": "feature:candidate:18",
+      "sourcePath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v66-pnu-1168011800104170004-fresh-field-contract.json",
+      "excerpt": "principle=slender_podium_tower; group=carved_void; VLM=0.6667; FAR-utilization=0.7001; volumes=2; surfaces=18",
+      "evidenceType": "executable_geometry_metrics",
+      "confidence": 1.0
+    }
+  ],
+  "circuits": [
+    {
+      "id": "circuit:site-candidate:01",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:01",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:01"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:01",
+      "sourceFeatureId": "feature:principle:stacked_shifted_platforms",
+      "targetFeatureId": "feature:candidate:01",
+      "type": "materializes_as",
+      "confidence": 0.7667,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:01"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:02",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:02",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:02"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:02",
+      "sourceFeatureId": "feature:principle:continuous_ribbon_field",
+      "targetFeatureId": "feature:candidate:02",
+      "type": "materializes_as",
+      "confidence": 0.75,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:02"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:03",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:03",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:03"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:03",
+      "sourceFeatureId": "feature:principle:torqued_stack",
+      "targetFeatureId": "feature:candidate:03",
+      "type": "materializes_as",
+      "confidence": 0.69,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:03"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:04",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:04",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:04"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:04",
+      "sourceFeatureId": "feature:principle:terraced_ribbon_section",
+      "targetFeatureId": "feature:candidate:04",
+      "type": "materializes_as",
+      "confidence": 0.72,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:04"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:05",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:05",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:05"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:05",
+      "sourceFeatureId": "feature:principle:carved_atrium",
+      "targetFeatureId": "feature:candidate:05",
+      "type": "materializes_as",
+      "confidence": 0.7683,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:05"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:06",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:06",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:06"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:06",
+      "sourceFeatureId": "feature:principle:carved_atrium",
+      "targetFeatureId": "feature:candidate:06",
+      "type": "materializes_as",
+      "confidence": 0.7533,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:06"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:07",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:07",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:07"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:07",
+      "sourceFeatureId": "feature:principle:carved_monolith",
+      "targetFeatureId": "feature:candidate:07",
+      "type": "materializes_as",
+      "confidence": 0.6333,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:07"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:08",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:08",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:08"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:08",
+      "sourceFeatureId": "feature:principle:carved_atrium",
+      "targetFeatureId": "feature:candidate:08",
+      "type": "materializes_as",
+      "confidence": 0.7233,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:08"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:09",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:09",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:09"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:09",
+      "sourceFeatureId": "feature:principle:folded_section",
+      "targetFeatureId": "feature:candidate:09",
+      "type": "materializes_as",
+      "confidence": 0.6967,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:09"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:10",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:10",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:10"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:10",
+      "sourceFeatureId": "feature:principle:folded_section",
+      "targetFeatureId": "feature:candidate:10",
+      "type": "materializes_as",
+      "confidence": 0.805,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:10"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:11",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:11",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:11"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:11",
+      "sourceFeatureId": "feature:principle:carved_monolith",
+      "targetFeatureId": "feature:candidate:11",
+      "type": "materializes_as",
+      "confidence": 0.77,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:11"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:12",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:12",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:12"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:12",
+      "sourceFeatureId": "feature:principle:stacked_shifted_platforms",
+      "targetFeatureId": "feature:candidate:12",
+      "type": "materializes_as",
+      "confidence": 0.6833,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:12"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:13",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:13",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:13"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:13",
+      "sourceFeatureId": "feature:principle:stacked_shifted_platforms",
+      "targetFeatureId": "feature:candidate:13",
+      "type": "materializes_as",
+      "confidence": 0.6967,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:13"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:14",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:14",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:14"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:14",
+      "sourceFeatureId": "feature:principle:carved_atrium",
+      "targetFeatureId": "feature:candidate:14",
+      "type": "materializes_as",
+      "confidence": 0.75,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:14"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:15",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:15",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:15"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:15",
+      "sourceFeatureId": "feature:principle:slender_podium_tower",
+      "targetFeatureId": "feature:candidate:15",
+      "type": "materializes_as",
+      "confidence": 0.6967,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:15"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:16",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:16",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:16"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:16",
+      "sourceFeatureId": "feature:principle:split_bridge_connector",
+      "targetFeatureId": "feature:candidate:16",
+      "type": "materializes_as",
+      "confidence": 0.71,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:16"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:17",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:17",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:17"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:17",
+      "sourceFeatureId": "feature:principle:folded_section",
+      "targetFeatureId": "feature:candidate:17",
+      "type": "materializes_as",
+      "confidence": 0.6667,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:17"
+      ]
+    },
+    {
+      "id": "circuit:site-candidate:18",
+      "sourceFeatureId": "feature:site",
+      "targetFeatureId": "feature:candidate:18",
+      "type": "constrains",
+      "confidence": 1.0,
+      "evidenceDensity": 1.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:18"
+      ]
+    },
+    {
+      "id": "circuit:principle-candidate:18",
+      "sourceFeatureId": "feature:principle:slender_podium_tower",
+      "targetFeatureId": "feature:candidate:18",
+      "type": "materializes_as",
+      "confidence": 0.6667,
+      "evidenceDensity": 5.0,
+      "edgeWeight": 1.0,
+      "evidenceIds": [
+        "evidence:candidate:18"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "id": "relation:morphology:001",
+      "sourceNodeId": "feature:candidate:11",
+      "targetNodeId": "feature:candidate:14",
+      "type": "morphology_neighbor",
+      "confidence": 0.7636,
+      "metadata": {
+        "intrinsic_distance": "0.2364",
+        "pose_invariant": "true"
+      }
+    },
+    {
+      "id": "relation:morphology:002",
+      "sourceNodeId": "feature:candidate:11",
+      "targetNodeId": "feature:candidate:15",
+      "type": "morphology_neighbor",
+      "confidence": 0.796,
+      "metadata": {
+        "intrinsic_distance": "0.2040",
+        "pose_invariant": "true"
+      }
+    },
+    {
+      "id": "relation:morphology:003",
+      "sourceNodeId": "feature:candidate:14",
+      "targetNodeId": "feature:candidate:15",
+      "type": "morphology_neighbor",
+      "confidence": 0.7549,
+      "metadata": {
+        "intrinsic_distance": "0.2451",
+        "pose_invariant": "true"
+      }
+    }
+  ],
+  "queryHints": [
+    "Find rotation-invariant duplicate candidates",
+    "Trace each formal principle to executable geometry evidence",
+    "Inspect which language groups repeat despite different graph names"
+  ]
+}

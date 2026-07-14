@@ -61,6 +61,20 @@ MASSING_TAGS = {
     "terrace_ribbon": {"terrace", "terraced", "ramp", "mountain", "stepped", "sectional"},
 }
 
+# A reference set made only of nearest neighbours creates a closed aesthetic
+# loop: a box-like candidate retrieves more box-like precedents and the VLM
+# learns no alternative spatial move.  These are generic formal principles,
+# not named-building templates.  They are used only to reserve one image slot
+# for a contrasting precedent; geometry still comes from the editable graph.
+ASPIRATIONAL_MASSING_TAGS = frozenset({
+    "atrium", "bend", "branch", "bridge", "campus", "carve", "connector",
+    "court", "courtyard", "curved", "diagonal", "field", "fold", "folded",
+    "gap", "interlock", "loop", "mountain", "notch", "ramp", "ribbon",
+    "section", "sectional", "shift", "shifted", "sloped", "split", "stack",
+    "stacked", "stepped", "terrace", "terraced", "torque", "torqued",
+    "twist", "twisted", "undercut", "void", "woven",
+})
+
 PRECEDENT_TAG_HINTS = {
     "seattle-central-library": {"oma", "library", "stack", "stacked", "platform", "platforms", "shift", "shifted", "section", "diagonal", "folded", "stacked_platform"},
     "qatar-national-library": {"oma", "library", "folded", "section", "sloped", "roof", "sloped_roof", "stacked_platform"},
@@ -570,8 +584,9 @@ def _preferred_archdaily_image(row: dict[str, Any]) -> str:
 
 def match_reference_context(feature: dict[str, Any], references: Iterable[ReferenceItem], *, limit: int = 5) -> list[dict[str, Any]]:
     tags = _feature_tags(feature)
+    reference_items = list(references)
     scored: list[tuple[int, ReferenceItem]] = []
-    for item in references:
+    for item in reference_items:
         haystack = _clean_tags(item.tags)
         haystack.update(_infer_tags(f"{item.title} {item.caption}"))
         haystack.update(_precedent_hint_tags(item))
@@ -579,7 +594,12 @@ def match_reference_context(feature: dict[str, Any], references: Iterable[Refere
         if score > 0:
             scored.append((score, item))
     scored.sort(key=lambda pair: (-pair[0], pair[1].source, pair[1].title))
-    selected = _select_diverse_references(scored, limit=limit)
+    selected = _select_diverse_references(
+        scored,
+        references=reference_items,
+        feature_tags=tags,
+        limit=limit,
+    )
     return [
         {
             "source": item.source,
@@ -590,33 +610,70 @@ def match_reference_context(feature: dict[str, Any], references: Iterable[Refere
             "local_path": item.local_path,
             "matched_tags": sorted(tags & (_clean_tags(item.tags) | _infer_tags(f"{item.title} {item.caption}") | _precedent_hint_tags(item))),
             "score": score,
+            "selection_role": selection_role,
         }
-        for score, item in selected
+        for score, item, selection_role in selected
     ]
 
 
-def _select_diverse_references(scored: list[tuple[int, ReferenceItem]], *, limit: int) -> list[tuple[int, ReferenceItem]]:
+def _select_diverse_references(
+    scored: list[tuple[int, ReferenceItem]],
+    *,
+    references: list[ReferenceItem],
+    feature_tags: set[str],
+    limit: int,
+) -> list[tuple[int, ReferenceItem, str]]:
     if limit <= 0:
         return []
-    selected: list[tuple[int, ReferenceItem]] = []
+    selected: list[tuple[int, ReferenceItem, str]] = []
     seen: set[tuple[str, str]] = set()
 
-    def add(pair: tuple[int, ReferenceItem]) -> None:
+    def add(pair: tuple[int, ReferenceItem], role: str) -> None:
         key = (pair[1].source, pair[1].source_id or pair[1].title)
         if key in seen or len(selected) >= limit:
             return
         seen.add(key)
-        selected.append(pair)
+        selected.append((pair[0], pair[1], role))
 
     for pair in scored[:2]:
-        add(pair)
-    if limit >= 3 and not any(item.source == "archdaily_api" for _, item in selected):
+        add(pair, "similar")
+
+    # The VLM currently receives three reference images.  Reserve the third
+    # position for an image-backed precedent that contributes a formal
+    # principle absent from the candidate.  This is counterfactual retrieval,
+    # not geometry copying or a handcrafted building recipe.
+    if limit >= 3:
+        contrast: list[tuple[int, int, int, str, ReferenceItem]] = []
+        for item in references:
+            key = (item.source, item.source_id or item.title)
+            if key in seen or not (item.local_path or item.image_url):
+                continue
+            item_tags = _clean_tags(item.tags)
+            item_tags.update(_infer_tags(f"{item.title} {item.caption}"))
+            item_tags.update(_precedent_hint_tags(item))
+            signature = item_tags & ASPIRATIONAL_MASSING_TAGS
+            novel = signature - feature_tags
+            if not novel:
+                continue
+            source_priority = 1 if item.source in {"archdaily", "archdaily_api"} else 0
+            contrast.append((len(novel), len(signature), source_priority, item.title, item))
+        contrast.sort(key=lambda row: (-row[0], -row[1], -row[2], row[3]))
+        if contrast:
+            item = contrast[0][-1]
+            overlap = len(feature_tags & (
+                _clean_tags(item.tags)
+                | _infer_tags(f"{item.title} {item.caption}")
+                | _precedent_hint_tags(item)
+            ))
+            add((overlap, item), "counterfactual")
+
+    if limit >= 4 and not any(item.source == "archdaily_api" for _, item, _ in selected):
         for pair in scored:
             if pair[1].source == "archdaily_api":
-                add(pair)
+                add(pair, "similar")
                 break
     for pair in scored:
-        add(pair)
+        add(pair, "similar")
     return selected[:limit]
 
 

@@ -27,7 +27,7 @@ from design.maas.preference.reference_language_distiller import (
     distill_reference_languages_with_openai,
     language_briefs_for_generation,
 )
-from design.maas.preference.vlm_scorer import score_candidate_with_openai_vlm
+from design.maas.preference.vlm_scorer import VLM_PROMPT_CONTRACT_VERSION, score_candidate_with_openai_vlm
 from design.maas.source_geometry import compile_sequence_to_source_mass
 
 from .benchmark import _render_archive_sheet
@@ -37,9 +37,31 @@ from .geometry_safety import safe_unary_union
 from .grl_contract import build_archive_grl_contract
 from .language_quality import assess_language_geometry
 from .morphology import DEFAULT_NOVELTY_POLICY, intrinsic_silhouette_distance
+from .portfolio_solver import PortfolioCandidateFacts, solve_portfolio_beam
 from .scoring import attach_program_massing_evidence
 from .search import ProgramElite, _descriptor_distance, _feature, _formal_principle, _geometric_language_count, _select_diverse_archive, _topology, search_program_elites
 from .sequences import program_seed_sequences
+
+
+def _historical_author_target(cache_path: Path, *, fallback: int) -> int:
+    """Validate a historical population against its own authored contract.
+
+    A supplemental cache is archive evidence, not a response to the current
+    round's larger population request. Requiring an old 24/29-candidate cache
+    to contain 32 candidates aborts after the fresh paid author call succeeds.
+    """
+    try:
+        payload = json.loads(Path(cache_path).read_text(encoding="utf-8"))
+        cached_target = int(payload.get("target_count") or 0)
+        data = payload.get("data") if isinstance(payload.get("data"), dict) else {}
+        candidate_count = len(data.get("candidates") or [])
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        return max(1, int(fallback))
+    if cached_target > 0 and candidate_count >= cached_target:
+        return cached_target
+    if candidate_count > 0:
+        return candidate_count
+    return max(1, int(fallback))
 
 
 def run_neighborhood_vlm_a2a_loop(
@@ -126,11 +148,15 @@ def run_neighborhood_vlm_a2a_loop(
     )
     author_batches = [author_batch]
     for cache_path in supplemental_author_cache_paths:
+        historical_target = _historical_author_target(
+            cache_path,
+            fallback=max(target_count, int(author_target_count)),
+        )
         supplemental = LLMArchitectAgent().propose_population(
             site_context=site_context,
-            target_count=max(target_count, int(author_target_count)),
+            target_count=historical_target,
             model=author_model,
-            batch_size=min(8, max(target_count, int(author_target_count))),
+            batch_size=min(8, historical_target),
             batch_retries=2,
             batch_workers=3,
             max_openai_batches=4,
@@ -254,6 +280,7 @@ def run_neighborhood_vlm_a2a_loop(
         minimum_distance=0.08,
         minimum_groups=review_group_minimums,
         minimum_field_topologies={"parallel": 1, "branched": 1},
+        minimum_editable_field_count=2,
         minimum_authored_count=max(8, int(review_pool_count) // 2),
         minimum_capacity_target_count=max(8, (int(review_pool_count) * 2 + 4) // 5),
         capacity_target_utilization=float(capacity_policy["target_far_utilization"]),
@@ -286,6 +313,13 @@ def run_neighborhood_vlm_a2a_loop(
             _attach_vlm(parent.feature, vlm, matches)
             parent = _with_dual_objective_score(parent, vlm)
             parent_scored[parent_index] = (parent, vlm, matches)
+        # Critic revision is a branching search, not destructive in-place
+        # optimization. Preserve every distinct VLM-scored geometry so a
+        # child that improves one scalar score but later fails the strict
+        # visual floor cannot erase its valid parent or an earlier generation.
+        critic_geometry_archive: dict[str, ProgramElite] = {}
+        for parent, _, _ in parent_scored:
+            _retain_geometry_best(critic_geometry_archive, parent)
         # The VLM parent frontier is an exploration budget, not the durable
         # accepted archive. Score every exact accepted seed (normally a cache
         # hit) so a proven diagram does not vanish merely because it was not
@@ -366,6 +400,7 @@ def run_neighborhood_vlm_a2a_loop(
             for (parent_index, child, child_record), (_, child_vlm_payload, child_matches) in zip(pending, rescored):
                 _attach_vlm(child.feature, child_vlm_payload, child_matches)
                 child = _with_dual_objective_score(child, child_vlm_payload)
+                _retain_geometry_best(critic_geometry_archive, child)
                 parent, parent_vlm_payload, _ = current_scored[parent_index]
                 parent_vlm = _feature_vlm_design_score(parent.feature)
                 child_vlm = _feature_vlm_design_score(child.feature)
@@ -384,14 +419,10 @@ def run_neighborhood_vlm_a2a_loop(
             trace.extend(generation_records)
             if accepted_count == 0:
                 break
-        finalists_by_name = {
-            item.sequence.name: item
-            for item in (
-                *(entry[0] for entry in current_scored),
-                *persisted_parent_elites,
-            )
-        }
-        finalists = list(finalists_by_name.values())
+        finalists_by_geometry = dict(critic_geometry_archive)
+        for item in persisted_parent_elites:
+            _retain_geometry_best(finalists_by_geometry, item)
+        finalists = list(finalists_by_geometry.values())
 
     visual_floor_rejections = [
         {
@@ -638,6 +669,7 @@ def run_neighborhood_vlm_a2a_loop(
         "capacity_pool_count": len(capacity_pool),
         "vlm_parent_count": len(parent_scored),
         "vlm_child_count": child_scored_count,
+        "critic_geometry_archive_count": len(critic_geometry_archive),
         "selected_count": len(rows),
         "model": model,
         "vlm_score_cache": {"path": str(resolved_vlm_cache), "entry_count": len(vlm_cache)},
@@ -878,6 +910,7 @@ def _reference_summary(match: dict[str, Any]) -> dict[str, Any]:
         "local_path": match.get("local_path"),
         "matched_tags": match.get("matched_tags") or [],
         "score": match.get("score"),
+        "selection_role": match.get("selection_role") or "similar",
     }
 
 
@@ -888,6 +921,7 @@ def _select_language_balanced_archive(
     minimum_distance: float,
     minimum_groups: dict[str, int],
     minimum_field_topologies: dict[str, int] | None = None,
+    minimum_editable_field_count: int = 0,
     minimum_authored_count: int = 0,
     maximum_groups: dict[str, int] | None = None,
     minimum_capacity_target_count: int = 0,
@@ -909,7 +943,18 @@ def _select_language_balanced_archive(
         # proxies with their surfaces.  A volume-only fingerprint erased those
         # visible differences before the surface-aware novelty gate ran.
         fingerprint = _source_geometry_fingerprint(item.source)
-        if fingerprint not in unique or item.score > unique[fingerprint].score:
+        incumbent = unique.get(fingerprint)
+        # For the same rendered/legal geometry, retain the genotype that can
+        # still respond to image critique. A tiny scalar advantage must not
+        # erase its editable path and strand the critic on a frozen proxy.
+        if (
+            incumbent is None
+            or (_has_editable_control_field(item) and not _has_editable_control_field(incumbent))
+            or (
+                _has_editable_control_field(item) == _has_editable_control_field(incumbent)
+                and item.score > incumbent.score
+            )
+        ):
             unique[fingerprint] = item
     candidates = sorted(unique.values(), key=lambda item: item.score, reverse=True)
     selected: list[ProgramElite] = []
@@ -985,6 +1030,26 @@ def _select_language_balanced_archive(
             ((item.feature.get("properties") or {}).get("normalized_far_utilization"))
             or 0.0
         )
+
+    # Reserve genuinely editable path genotypes before older scalar-only bend
+    # seeds consume the continuous-field cells. Without this exploration
+    # budget the VLM can see a ribbon but cannot ever receive a parent whose
+    # spatial path it is capable of mutating from the image critique.
+    while (
+        len(selected) < target_count
+        and sum(_has_editable_control_field(item) for item in selected)
+        < max(0, int(minimum_editable_field_count))
+    ):
+        eligible = [item for item in candidates if _has_editable_control_field(item) and admissible(item)]
+        if not eligible:
+            break
+        add(max(
+            eligible,
+            key=lambda item: (
+                item.score * 0.58
+                + (1.0 if not selected else min(_descriptor_distance(item, other) for other in selected)) * 0.42
+            ),
+        ))
 
     # A continuous-field quota is not enough: several parallel ribbons can
     # satisfy it while the authored branched topology disappears before VLM.
@@ -1095,6 +1160,57 @@ def _select_language_balanced_archive(
             ),
         )
         add(winner)
+    # The ordered quota passes above are fast but greedy: one early candidate
+    # can block two mutually compatible later candidates. On a bounded final
+    # pool, solve the same hard constraints as a combination problem. Gates
+    # are never weakened; the beam result replaces greedy output only when it
+    # produces a strictly larger valid portfolio.
+    if len(selected) < target_count and len(candidates) <= 64:
+        compatibility = [[True for _ in candidates] for _ in candidates]
+        for left_index, left in enumerate(candidates):
+            for right_index in range(left_index):
+                right = candidates[right_index]
+                distance = _descriptor_distance(left, right)
+                silhouette = intrinsic_silhouette_distance(left.source, right.source)
+                compatible = (
+                    distance >= minimum_distance
+                    and silhouette >= DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat
+                    and not (
+                        _topology(left) == _topology(right)
+                        and distance < DEFAULT_NOVELTY_POLICY.same_topology_repeat
+                    )
+                    and not (
+                        _formal_principle(left) == _formal_principle(right)
+                        and distance < DEFAULT_NOVELTY_POLICY.same_principle_repeat
+                    )
+                )
+                compatibility[left_index][right_index] = compatible
+                compatibility[right_index][left_index] = compatible
+        facts = [PortfolioCandidateFacts(
+            score=float(item.score),
+            group=_language_group(item),
+            principle=_formal_principle(item),
+            topology=_topology(item),
+            field_topology=_field_topology(item) or "",
+            persisted=_is_persisted_accepted_seed(item),
+            authored=_is_live_authored_graph(item),
+            capacity_target=capacity_utilization(item) >= capacity_target_utilization,
+        ) for item in candidates]
+        solved_indices = solve_portfolio_beam(
+            facts,
+            compatibility,
+            target_count=target_count,
+            minimum_groups=minimum_groups,
+            maximum_groups=maximum_groups,
+            minimum_field_topologies=minimum_field_topologies,
+            minimum_authored_count=minimum_authored_count,
+            minimum_capacity_target_count=minimum_capacity_target_count,
+            maximum_persisted_count=persisted_limit,
+            minimum_fresh_count=minimum_fresh_count,
+        )
+        solved = [candidates[index] for index in solved_indices]
+        if len(solved) > len(selected):
+            selected = solved
     return selected
 
 
@@ -1233,6 +1349,14 @@ def _source_geometry_fingerprint(source: Any) -> str:
         "volumes": source.source_volume_signatures(),
         "surfaces": source.source_surface_signatures(),
     }, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+
+
+def _retain_geometry_best(archive: dict[str, ProgramElite], elite: ProgramElite) -> None:
+    """Keep the best scored representative without deleting other geometry."""
+    key = _source_geometry_fingerprint(elite.source)
+    incumbent = archive.get(key)
+    if incumbent is None or elite.score > incumbent.score:
+        archive[key] = elite
 
 
 def _archive_selection_audit(
@@ -1374,6 +1498,12 @@ def _field_topology(item: ProgramElite) -> str:
     return ""
 
 
+def _has_editable_control_field(item: ProgramElite) -> bool:
+    primary = primary_operation_from_sequence(item.sequence)
+    controls = primary.params.get("control_points") if primary.verb == "bend" else None
+    return isinstance(controls, list) and 4 <= len(controls) <= 6
+
+
 def _near_duplicate_pairs(items: list[ProgramElite], *, threshold: float) -> list[dict[str, Any]]:
     pairs: list[dict[str, Any]] = []
     for index, left in enumerate(items):
@@ -1475,7 +1605,8 @@ def _vlm_cache_key(elite: ProgramElite, matches: list[dict[str, Any]], *, model:
     feature = getattr(elite, "feature", {})
     props = feature.get("properties") if isinstance(feature, dict) and isinstance(feature.get("properties"), dict) else {}
     payload = {
-        "schema": "arr.maas.program_vlm_cache.v5",
+        "schema": "arr.maas.program_vlm_cache.v6",
+        "prompt_contract_version": VLM_PROMPT_CONTRACT_VERSION,
         "model": model,
         "graph": _canonical_component_graph(elite.source.signature().get("component_graph") or {}),
         "volumes": [volume.signature() for volume in elite.source.volumes],

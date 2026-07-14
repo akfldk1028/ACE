@@ -2418,3 +2418,88 @@ Non-negotiable remaining work:
 5. Serve verified archive results immediately and run costly author/VLM
    replenishment asynchronously. A fresh focused round is about 7-8 minutes;
    this is not a synchronous request path.
+
+## 2026-07-15 v80-v86 closed-loop graph-mutation audit
+
+Read this section before treating v79 as the latest checkpoint. The mass loop
+is materially more capable, but it is still not competition-grade and it did
+not run deterministic legal/parking projection.
+
+Root causes fixed in code:
+
+1. The VLM prompt looked for `props.component_graph`, while the executable
+   graph is stored at `props.source_signature.component_graph`. The critic was
+   therefore often shown an empty graph and targeted an invented `root` node.
+   The prompt now exposes the real editable node ids and primary node id, and
+   forbids structural edits against `root`.
+2. Reference retrieval previously reinforced the candidate's current language.
+   It now keeps two similar precedents and reserves one image-backed
+   counterfactual formal principle. This is a generic retrieval policy, not a
+   named-building template.
+3. VLM graph revision is no longer limited to scalar tuning. A typed
+   `set_control_point` edit can move one existing bend control point within
+   bounded normalized coordinates while preserving path order. The canonical
+   parameter schema, orchestration directive and graph revision all share the
+   same contract.
+4. Geometry-fingerprint dedup previously discarded an editable bend genotype
+   when a frozen scalar candidate rendered similarly. Review-parent selection
+   now reserves executable control-field candidates and prefers mutation
+   capacity when geometry is otherwise identical.
+5. A paid fresh author run could be aborted by an older cache because the old
+   population was revalidated against the new target count. Historical caches
+   are now validated against their own persisted population contract.
+6. Critic replacement is non-destructive and final portfolio search uses a
+   constraint-aware beam solver. A worse child cannot erase a distinct good
+   parent merely because it was reviewed, and greedy early choices no longer
+   trivially block a better compatible portfolio.
+
+Real-PNU loop evidence for `1168011800104170004`:
+
+- v80 non-destructive critic archive: honest 18/20.
+- v81 constraint portfolio solver: still 18/20; the solver alone did not create
+  missing morphology.
+- v82 structural reference graph edits: 17/20. Structural edits executed, but
+  the empty/wrong graph target defect was exposed.
+- v83 counterfactual/node-aware prompt: 16/20. Eight of nineteen rescored
+  children improved, but stricter admission reduced the final board.
+- v84 fresh graph author: 15/20 despite 64 authored graphs. More candidates did
+  not solve the representation/capacity interaction.
+- **v85 control-point critic is the current best evidence**: honest 19/20,
+  capacity target 10 (minimum 8), all seven language groups present, and zero
+  intrinsic silhouette repeats. Artifact:
+  `docs/playwright/design-route-live-verify/maas-neighborhood-vlm-a2a-v85-control-point-critic-accepted-only.png`.
+- v86 editable-genotype archive also returned 19/20 and increased the review
+  frontier from 21 to 23, but lost one cluster quota and was not visually
+  better. Keep v85 as best-so-far.
+
+Direct PNG verdict:
+
+- v85 is cleaner than the earlier box-pile regressions and includes a credible
+  continuous ribbon plus stepped, folded, carved, bridge and cluster families.
+- Several candidates are still conservative boxes/steps and one thin
+  interlock is visually weak. This is not yet ArchDaily/BIG/OMA or
+  competition-grade massing.
+- The system emitted `set_control_point` edits, but no accepted improved child
+  yet proves that a VLM curve mutation survives compile, capacity and spatial
+  gates. Do not describe the typed edit contract itself as a solved visual
+  feedback loop.
+
+Current bottleneck and next bounded work:
+
+1. Make control-point review eligibility explicit: only request
+   `set_control_point` for an existing bend node that already has 4-6 controls,
+   then measure accepted-child improvement rather than operation count.
+2. Optimize continuous-field width and sectional height against the target FAR
+   before hard-gate evaluation. Current authored ribbons are frequently too
+   thin/low-capacity; weakening the gate or refilling with boxes is forbidden.
+3. Generate one more intrinsically distinct capacity-bearing cluster/field to
+   close 19 -> 20. Do not duplicate or rotate an existing language.
+4. After an honest 20/20 mass board, run deterministic law/FAR/parking
+   projection and report geometry retention. v80-v86 are mass-stage only.
+
+Data/model conclusion: the local corpus already has 274 references and 338
+images. Blind crawling or fine-tuning is not justified by this failure. The
+measured issue is executable representation, mutation admission and
+capacity-aware search. VLM is active as image critic and typed graph reviser;
+it is not a free-form mesh generator. Neo4j was not required for this offline
+loop.

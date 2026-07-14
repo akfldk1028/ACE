@@ -58,7 +58,37 @@ def apply_critic_graph_mutations(
     for edit_index, edit in enumerate(edits):
         operation = edit.operation
         index = next((i for i, node in enumerate(nodes) if node.node_id == edit.target_node_id), None)
-        if operation == "set_parameter":
+        if operation == "set_control_point":
+            if index is None or nodes[index].role == "root" or nodes[index].operation.verb != "bend":
+                continue
+            node = nodes[index]
+            raw_controls = node.operation.params.get("control_points")
+            if not isinstance(raw_controls, list) or not 4 <= len(raw_controls) <= 6:
+                continue
+            controls: list[list[float]] = []
+            try:
+                controls = [[float(point[0]), float(point[1])] for point in raw_controls]
+            except (TypeError, ValueError, IndexError):
+                continue
+            point_index = int(edit.control_point_index)
+            if point_index < 0 or point_index >= len(controls):
+                continue
+            lower_u = 0.03 if point_index == 0 else controls[point_index - 1][0] + 0.02
+            upper_u = 0.97 if point_index + 1 == len(controls) else controls[point_index + 1][0] - 0.02
+            if lower_u > upper_u:
+                continue
+            new_point = [
+                round(max(lower_u, min(upper_u, float(edit.control_point_u))), 4),
+                round(max(0.12, min(0.88, float(edit.control_point_v))), 4),
+            ]
+            if new_point == controls[point_index]:
+                continue
+            controls[point_index] = new_point
+            params = dict(node.operation.params)
+            params["control_points"] = controls
+            nodes[index] = replace(node, operation=VerbCall(node.operation.verb, params))
+            changed = True
+        elif operation == "set_parameter":
             if (
                 index is None
                 or nodes[index].role == "root"

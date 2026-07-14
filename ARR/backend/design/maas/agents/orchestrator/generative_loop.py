@@ -28,6 +28,9 @@ class GraphEditDirective:
     parameter_name: str = ""
     numeric_value: float = 0.0
     string_value: str = ""
+    control_point_index: int = 0
+    control_point_u: float = 0.0
+    control_point_v: float = 0.0
     rationale: str = ""
 
 
@@ -160,6 +163,9 @@ def critic_directive_from_feature(feature: Feature) -> CriticDirective:
             parameter_name=str(item.get("parameter_name") or ""),
             numeric_value=float(item.get("numeric_value") or 0.0),
             string_value=str(item.get("string_value") or ""),
+            control_point_index=int(item.get("control_point_index") or 0),
+            control_point_u=float(item.get("control_point_u") or 0.0),
+            control_point_v=float(item.get("control_point_v") or 0.0),
             rationale=str(item.get("rationale") or ""),
         )
         for item in preference.get("graph_edits") or [] if isinstance(item, dict)

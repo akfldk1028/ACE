@@ -40,18 +40,25 @@ from design.maas.program_massing.language_quality import assess_language_geometr
 from design.maas.program_massing.vlm_a2a import (
     _binding_box_rejection,
     _field_topology,
+    _has_editable_control_field,
+    _historical_author_target,
     _language_group,
+    _retain_geometry_best,
     _same_source_geometry,
     _source_far_utilization,
     _source_geometry_fingerprint,
+    _select_language_balanced_archive,
     generation_feedback_from_result,
 )
 from design.maas.program_massing.scoring import attach_program_massing_evidence
 from design.maas.program_massing.search import ProgramElite, _descriptor_distance, _feature, _with_overrides
 from design.maas.program_massing.morphology import intrinsic_shape_distance, intrinsic_silhouette_distance
+from design.maas.program_massing.portfolio_solver import PortfolioCandidateFacts, solve_portfolio_beam
 from design.maas.program_massing.creative import attach_creative_mass_evidence
 from design.maas.program_massing.spatial_evaluation import attach_program_spatial_evidence
 from design.maas.preference.reference_paths import resolve_reference_image_path
+from design.maas.preference.vlm_scorer import VLM_PROMPT_CONTRACT_VERSION, _prompt_text, _response_schema
+from design.maas.grammar.parameter_schema import PARAMETERS_BY_VERB
 from design.maas.source_geometry import compile_sequence_to_source_mass
 from design.maas.source_geometry.compiler import _array_units
 from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
@@ -451,6 +458,188 @@ class MaasProgramMassingTest(SimpleTestCase):
         self.assertEqual(params["unit_scale"], 0.70)
         self.assertEqual(params["hierarchy_ratio"], 0.36)
         self.assertEqual(params["stagger_ratio"], 0.28)
+
+    def test_critic_archive_preserves_parent_when_distinct_child_is_worse(self):
+        sequence = VerbSequence(
+            "critic_archive_parent",
+            "critic archive parent",
+            (VerbCall("base", {}), VerbCall("bar", {"axis": "x", "factor": 0.5})),
+        )
+        parent_footprint = box(0, 0, 12, 8)
+        child_footprint = box(0, 0, 9, 8)
+        parent = ProgramElite(
+            sequence,
+            SourceMass(
+                "parent",
+                parent_footprint,
+                volumes=(SourceVolume("parent", parent_footprint, 0.0, 1.0, "bar"),),
+            ),
+            {"properties": {}},
+            0.82,
+            0,
+        )
+        child = ProgramElite(
+            replace(sequence, name="critic_archive_child"),
+            SourceMass(
+                "child",
+                child_footprint,
+                volumes=(SourceVolume("child", child_footprint, 0.0, 1.0, "bar"),),
+            ),
+            {"properties": {}},
+            0.61,
+            1,
+        )
+        archive: dict[str, ProgramElite] = {}
+
+        _retain_geometry_best(archive, parent)
+        _retain_geometry_best(archive, child)
+
+        self.assertEqual(len(archive), 2)
+        self.assertIn(parent, archive.values())
+        self.assertIn(child, archive.values())
+
+    def test_portfolio_beam_escapes_greedy_one_blocks_two_failure(self):
+        facts = [
+            PortfolioCandidateFacts(0.99, "a", "p0", "t0"),
+            PortfolioCandidateFacts(0.82, "a", "p1", "t1"),
+            PortfolioCandidateFacts(0.81, "b", "p2", "t2"),
+            PortfolioCandidateFacts(0.80, "c", "p3", "t3"),
+        ]
+        compatibility = [[True] * 4 for _ in range(4)]
+        for other in (1, 2):
+            compatibility[0][other] = False
+            compatibility[other][0] = False
+
+        selected = solve_portfolio_beam(
+            facts,
+            compatibility,
+            target_count=3,
+            minimum_groups={"a": 1, "b": 1, "c": 1},
+        )
+
+        self.assertEqual(set(selected), {1, 2, 3})
+
+    def test_vlm_structural_edit_contract_rejects_invented_verbs(self):
+        verb_schema = _response_schema()["properties"]["graph_edits"]["items"]["properties"]["verb"]
+
+        self.assertIn("bend", verb_schema["enum"])
+        self.assertIn("sloped_roof_mass", verb_schema["enum"])
+        self.assertNotIn("void_link", verb_schema["enum"])
+        self.assertIn("graph_edit", VLM_PROMPT_CONTRACT_VERSION)
+
+    def test_vlm_prompt_exposes_source_graph_primary_instead_of_empty_root(self):
+        graph = MassComponentGraph(
+            "critic_graph",
+            "Critic graph",
+            (
+                MassComponentNode("root", "root", VerbCall("base", {})),
+                MassComponentNode(
+                    "primary_ribbon",
+                    "primary",
+                    VerbCall("bend", {"factor": 0.14}),
+                    parent_id="root",
+                ),
+            ),
+        )
+        feature = {"properties": {"source_signature": {"component_graph": graph.to_dict()}}}
+
+        prompt = _prompt_text(feature, [])
+
+        self.assertIn('"primary_node_id": "primary_ribbon"', prompt)
+        self.assertIn('"node_id": "primary_ribbon"', prompt)
+        self.assertIn("Never target the base/root node", prompt)
+
+    def test_historical_author_cache_keeps_its_original_population_contract(self):
+        with TemporaryDirectory() as tmp:
+            cache = Path(tmp) / "historical.json"
+            cache.write_text(
+                __import__("json").dumps({
+                    "target_count": 3,
+                    "data": {"candidates": [{}, {}, {}, {}]},
+                }),
+                encoding="utf-8",
+            )
+
+            target = _historical_author_target(cache, fallback=32)
+
+        self.assertEqual(target, 3)
+
+    def test_vlm_can_mutate_existing_bend_control_point_as_typed_graph_edit(self):
+        controls = [[0.04, 0.25], [0.32, 0.62], [0.68, 0.38], [0.96, 0.72]]
+        graph = MassComponentGraph(
+            "bend_graph",
+            "Bend graph",
+            (
+                MassComponentNode("root", "root", VerbCall("base", {})),
+                MassComponentNode(
+                    "primary_bend",
+                    "primary",
+                    VerbCall("bend", {"control_points": controls}),
+                    parent_id="root",
+                ),
+            ),
+        )
+        directive = CriticDirective(graph_edits=(GraphEditDirective(
+            operation="set_control_point",
+            target_node_id="primary_bend",
+            control_point_index=1,
+            control_point_u=0.40,
+            control_point_v=0.78,
+        ),))
+
+        revised = apply_critic_graph_edits(graph.to_sequence(), directive)
+
+        self.assertEqual(len(revised), 1)
+        revised_graph = graph_from_sequence(revised[0])
+        revised_controls = revised_graph.nodes[1].operation.params["control_points"]
+        self.assertEqual(revised_controls[1], [0.4, 0.78])
+        self.assertIn("control_points", PARAMETERS_BY_VERB["bend"])
+        operation_schema = _response_schema()["properties"]["graph_edits"]["items"]["properties"]["operation"]
+        self.assertIn("set_control_point", operation_schema["enum"])
+
+    def test_editable_control_field_requires_real_bend_control_points(self):
+        sequence = VerbSequence(
+            "editable_bend",
+            "Editable bend",
+            (
+                VerbCall("base", {}),
+                VerbCall("bend", {"control_points": [
+                    [0.04, 0.25], [0.32, 0.62], [0.68, 0.38], [0.96, 0.72],
+                ]}),
+            ),
+        )
+        source = compile_sequence_to_source_mass(box(0, 0, 30, 18), sequence)
+        feature = _feature(source, sequence, building_type="test", height=12, floors=3, site_area=540)
+        elite = ProgramElite(sequence, source, feature, 0.8, 0)
+
+        self.assertTrue(_has_editable_control_field(elite))
+
+    def test_review_dedup_preserves_editable_genotype_for_same_geometry(self):
+        controls = [[0.04, 0.25], [0.32, 0.62], [0.68, 0.38], [0.96, 0.72]]
+        editable = VerbSequence(
+            "editable",
+            "Editable",
+            (VerbCall("base", {}), VerbCall("bend", {"control_points": controls})),
+        )
+        frozen = VerbSequence(
+            "frozen",
+            "Frozen",
+            (VerbCall("base", {}), VerbCall("bend", {})),
+        )
+        source = compile_sequence_to_source_mass(box(0, 0, 30, 18), editable)
+        feature = _feature(source, editable, building_type="test", height=12, floors=3, site_area=540)
+        editable_elite = ProgramElite(editable, source, feature, 0.7, 0)
+        frozen_elite = ProgramElite(frozen, source, feature, 0.9, 0)
+
+        selected = _select_language_balanced_archive(
+            [frozen_elite, editable_elite],
+            target_count=1,
+            minimum_distance=0.0,
+            minimum_groups={},
+            minimum_editable_field_count=1,
+        )
+
+        self.assertEqual(selected[0].sequence.name, "editable")
 
     def test_profiled_surface_silhouette_is_translation_invariant(self):
         footprint = box(0, 0, 20, 10)

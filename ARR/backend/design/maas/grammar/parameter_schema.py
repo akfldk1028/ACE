@@ -80,7 +80,7 @@ PARAMETERS_BY_VERB: dict[str, tuple[str, ...]] = {
         "branch_point_ratio", "width_start_ratio", "width_mid_ratio",
         "width_end_ratio", "width_wave", "height_start_ratio",
         "height_mid_ratio", "height_end_ratio", "height_wave",
-        "field_topology", "vertical_mode",
+        "field_topology", "vertical_mode", "control_points",
     ),
     "embed": ("guest_scale", "position", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
     "extrude": ("axis", "length", "size", "upper_ratio", "lower_floor_fraction"),

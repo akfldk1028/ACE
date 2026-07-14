@@ -2454,3 +2454,23 @@
 - Current board is improved but still not competition-grade. Next priority is
   expressive graph-native section/surface/ground operations, then deterministic
   legal/FAR/parking projection with geometry-retention measurement.
+
+### v85 closed-loop graph-mutation checkpoint (2026-07-15)
+
+- The VLM now receives the actual executable component graph from
+  `source_signature`, not an empty top-level placeholder, and structural edits
+  target real node ids instead of invented `root` nodes.
+- Reference retrieval reserves an image-backed counterfactual formal principle;
+  VLM revision supports bounded typed bend control-point mutation; review
+  selection preserves editable genotypes; critic archive and portfolio search
+  are non-destructive and constraint-aware.
+- The best real-PNU board is v85 at an honest 19/20, capacity target 10/8, all
+  seven language groups and zero intrinsic silhouette repeats. v86 also reached
+  19 but was not visually better and lost a cluster quota.
+- This is meaningful progress, not completion. Several candidates remain
+  conservative rectilinear masses, no accepted improved control-point child is
+  yet proven, and legal/parking projection remains `not_run`.
+- Do not add blind reference data, weaken gates, or refill with rotated boxes.
+  Next close the capacity-bearing continuous-field/control-point admission gap,
+  produce one genuinely distinct twentieth mass, then project law/FAR/parking
+  and measure geometry retention.

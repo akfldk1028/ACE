@@ -1,10 +1,19 @@
 # MAAS Memory Index
 
-Updated: 2026-07-14
+Updated: 2026-07-15
 
 Read this file first before touching MAAS mass generation, prompts, source geometry, legal repair, parking, or PNG/verifier harnesses.
 
 Critical latest handoff:
+
+- Read `2026-07-15 v80-v86 closed-loop graph-mutation audit` at the end of the
+  visual-failure handoff first. The current best is v85 at an honest 19/20 on
+  live PNU `1168011800104170004`: capacity target 10/8, all seven language
+  groups, zero intrinsic silhouette repeats. It is cleaner but still contains
+  conservative boxes/steps, and legal/parking projection is `not_run`. v86 is
+  not the new best. The VLM now receives the real executable graph and can emit
+  a typed bend control-point edit, but no accepted improved control-point child
+  has yet closed the loop.
 
 - Read `v75-v79 adaptive replenishment, strict language evidence, and
   hierarchical cluster grammar` at the end of the visual-failure handoff

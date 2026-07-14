@@ -842,6 +842,38 @@ class MaasPreferenceDistillationTest(TestCase):
         self.assertEqual(matches[0]["source_id"], "1")
         self.assertIn("courtyard", matches[0]["matched_tags"])
 
+    def test_reference_matching_reserves_image_backed_counterfactual(self):
+        feature = self._feature(family="courtyard")
+        refs = [
+            ReferenceItem(
+                source="archdaily_api",
+                source_id="similar_1",
+                title="Courtyard atrium",
+                local_path="courtyard.jpg",
+                tags=("courtyard", "atrium"),
+            ),
+            ReferenceItem(
+                source="archdaily_api",
+                source_id="similar_2",
+                title="Public court",
+                local_path="court.jpg",
+                tags=("court", "void"),
+            ),
+            ReferenceItem(
+                source="archdaily_api",
+                source_id="contrast_1",
+                title="Continuous folded ribbon",
+                local_path="ribbon.jpg",
+                tags=("ribbon", "folded", "terraced", "bend"),
+            ),
+        ]
+
+        matches = match_reference_context(feature, refs, limit=3)
+
+        self.assertEqual(matches[0]["source_id"], "similar_1")
+        self.assertEqual(matches[2]["source_id"], "contrast_1")
+        self.assertEqual(matches[2]["selection_role"], "counterfactual")
+
     def test_reference_signal_changes_precedent_score(self):
         feature = self._feature(family="courtyard")
         without_refs = build_preference_distillation(feature)

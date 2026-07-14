@@ -12,10 +12,13 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from design.maas.grammar.vocab import SUPPORTED_VERBS
+
 from .reference_paths import resolve_reference_image_path
 
 
 VLM_SCORE_SCHEMA_VERSION = "arr.maas.vlm_concept_scores.v1"
+VLM_PROMPT_CONTRACT_VERSION = "arr.maas.vlm_prompt.control_point_graph_edit.v4"
 DEFAULT_VLM_MODEL = "gpt-5.4-mini"
 
 
@@ -126,6 +129,24 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
     source = props.get("source_signature") if isinstance(props.get("source_signature"), dict) else {}
     ambition = props.get("architectural_ambition_evidence") if isinstance(props.get("architectural_ambition_evidence"), dict) else {}
+    component_graph = source.get("component_graph") if isinstance(source.get("component_graph"), dict) else {}
+    if not component_graph and isinstance(props.get("component_graph"), dict):
+        component_graph = props["component_graph"]
+    graph_nodes = component_graph.get("nodes") if isinstance(component_graph.get("nodes"), list) else []
+    editable_nodes = [
+        {
+            "node_id": str(node.get("node_id") or ""),
+            "role": str(node.get("role") or ""),
+            "verb": str((node.get("operation") or {}).get("verb") or ""),
+            "parent_id": node.get("parent_id"),
+        }
+        for node in graph_nodes
+        if isinstance(node, dict) and str(node.get("role") or "") != "root"
+    ]
+    primary_node_id = next(
+        (node["node_id"] for node in editable_nodes if node["role"] == "primary"),
+        "",
+    )
     summary = {
         "variant_id": props.get("variant_id"),
         "mass_shape": props.get("mass_shape"),
@@ -135,7 +156,9 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "primary_language": source.get("primary_language"),
         "secondary_language": source.get("secondary_language"),
         "reference_matches": reference_matches[:5],
-        "component_graph": props.get("component_graph") or {},
+        "component_graph": component_graph,
+        "editable_graph_nodes": editable_nodes,
+        "primary_node_id": primary_node_id,
         "site_boundary_source": props.get("site_boundary_source"),
         "site_access_context": props.get("site_access_context") or {},
         "site_design_field": ambition.get("site_design_field") or source.get("site_design_field"),
@@ -150,10 +173,15 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "court, undercut, entry seam, or other legible ground response to that edge; penalize a sealed or "
         "semantically opposite access response.\n"
         "The first image is the candidate. Any following images are external architectural reference images "
-        "retrieved from the reference corpus. Use them only as massing-quality precedent signals; do not reward "
-        "facade rendering, photography quality, materials, or direct copying.\n"
+        "retrieved from the reference corpus. References marked similar explain the candidate's current language. "
+        "A reference marked counterfactual intentionally demonstrates a different spatial principle; use it to "
+        "propose a transferable graph operation, never to copy its building. Do not reward facade rendering, "
+        "photography quality, or materials.\n"
         "Return strict JSON. Each concept score must be between 0 and 1. Use component_graph node_id values "
-        "when proposing graph edits; do not invent parcel coordinates.\n"
+        "when proposing graph edits; do not invent parcel coordinates. Never target the base/root node. For a "
+        "dominant-form correction, target primary_node_id. replace_operation, set_parameter, remove_optional, "
+        "and reparent target_node_id must be one of editable_graph_nodes. add_operation parent_node_id must be "
+        "root or one of editable_graph_nodes, and its node_id must be new.\n"
         "Concepts:\n"
         "- gesture_clarity: one readable dominant massing idea.\n"
         "- hierarchy: clear main/support relationship, not random fragments.\n"
@@ -172,12 +200,21 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "rule; use needs_profiled_surface for a flat roof/section that should become folded or ribbon-like; "
         "use needs_carved_void when solid/void organization is missing. These actions must describe "
         "geometry changes for the next MassDSL generation, not legal or parking judgments.\n"
-        "For graph_edits return only bounded genotype edits: set_parameter, replace_operation, add_operation, "
-        "remove_optional, or reparent. For numeric parameters use numeric_value and leave string_value empty. "
+        "For graph_edits return only bounded genotype edits: set_parameter, set_control_point, replace_operation, "
+        "add_operation, remove_optional, or reparent. For numeric parameters use numeric_value and leave "
+        "string_value empty. set_control_point is valid only for an existing bend node that already has "
+        "control_points: supply its zero-based control_point_index plus normalized control_point_u and "
+        "control_point_v. Keep u ordered along the path; use this operation to correct the visible ribbon path. "
         "For axis/side/corner/open_side/field_topology/vertical_mode use string_value. A replace_operation or "
         "add_operation must be immediately followed by at least one valid set_parameter for the affected node; "
         "empty-default topology edits are rejected. add_operation may add only support, void, or connector nodes, "
         "and must identify a new node_id and an existing parent_node_id. Geometry and hard gates validate every edit.\n"
+        "When you apply too_box_like, needs_profiled_surface, or weak_form_continuity, scalar parameter tuning alone "
+        "is not an adequate correction. Include at least one replace_operation or add_operation followed by valid "
+        "set_parameter edits. If the existing primary is bend, one or more set_control_point edits are also a valid "
+        "structural correction because they change the executable spatial path. "
+        "Use only supported verbs from the response schema and preserve a good simple anchor when no structural "
+        "failure applies.\n"
         f"Candidate JSON summary:\n{json.dumps(summary, ensure_ascii=False, sort_keys=True)}"
     )
 
@@ -192,6 +229,7 @@ def _reference_image_content(reference_matches: list[dict[str, Any]], *, limit: 
             "type": "input_text",
             "text": (
                 f"Reference image {index}: {match.get('title') or match.get('source_id') or 'architecture reference'}; "
+                f"selection_role={match.get('selection_role') or 'similar'}; "
                 f"matched_tags={match.get('matched_tags') or []}; source={match.get('source') or ''}."
             ),
         })
@@ -271,18 +309,25 @@ def _response_schema() -> dict[str, Any]:
                     "additionalProperties": False,
                     "required": [
                         "operation", "target_node_id", "parent_node_id", "node_id", "role",
-                        "verb", "parameter_name", "numeric_value", "string_value", "rationale",
+                        "verb", "parameter_name", "numeric_value", "string_value",
+                        "control_point_index", "control_point_u", "control_point_v", "rationale",
                     ],
                     "properties": {
-                        "operation": {"type": "string", "enum": ["set_parameter", "replace_operation", "add_operation", "remove_optional", "reparent"]},
+                        "operation": {"type": "string", "enum": ["set_parameter", "set_control_point", "replace_operation", "add_operation", "remove_optional", "reparent"]},
                         "target_node_id": {"type": "string"},
                         "parent_node_id": {"type": "string"},
                         "node_id": {"type": "string"},
                         "role": {"type": "string", "enum": ["", "primary", "support", "void", "connector"]},
-                        "verb": {"type": "string"},
+                        "verb": {
+                            "type": "string",
+                            "enum": ["", *sorted(verb for verb in SUPPORTED_VERBS if verb != "base")],
+                        },
                         "parameter_name": {"type": "string"},
                         "numeric_value": {"type": "number", "minimum": -70, "maximum": 70},
                         "string_value": {"type": "string"},
+                        "control_point_index": {"type": "integer", "minimum": 0, "maximum": 5},
+                        "control_point_u": {"type": "number", "minimum": 0.03, "maximum": 0.97},
+                        "control_point_v": {"type": "number", "minimum": 0.12, "maximum": 0.88},
                         "rationale": {"type": "string"},
                     },
                 },
@@ -333,7 +378,7 @@ def _normalize_vlm_result(data: dict[str, Any], *, model: str, response_id: str)
     }
     for item in data.get("graph_edits") or []:
         if not isinstance(item, dict) or str(item.get("operation") or "") not in {
-            "set_parameter", "replace_operation", "add_operation", "remove_optional", "reparent",
+            "set_parameter", "set_control_point", "replace_operation", "add_operation", "remove_optional", "reparent",
         }:
             continue
         verb = str(item.get("verb") or "")[:48].strip().lower()
@@ -347,10 +392,14 @@ def _normalize_vlm_result(data: dict[str, Any], *, model: str, response_id: str)
             "parameter_name": str(item.get("parameter_name") or "")[:64],
             "numeric_value": max(-70.0, min(70.0, float(item.get("numeric_value") or 0.0))),
             "string_value": str(item.get("string_value") or "")[:64].strip().lower(),
+            "control_point_index": max(0, min(5, int(item.get("control_point_index") or 0))),
+            "control_point_u": max(0.03, min(0.97, float(item.get("control_point_u") or 0.03))),
+            "control_point_v": max(0.12, min(0.88, float(item.get("control_point_v") or 0.12))),
             "rationale": str(item.get("rationale") or "")[:500],
         })
     return {
         "schema_version": VLM_SCORE_SCHEMA_VERSION,
+        "prompt_contract_version": VLM_PROMPT_CONTRACT_VERSION,
         "provider": "openai",
         "model": model,
         "response_id": response_id,
@@ -385,4 +434,10 @@ def _image_data_url(path: Path) -> str:
     return f"data:{mime};base64,{encoded}"
 
 
-__all__ = ["DEFAULT_VLM_MODEL", "VLM_SCORE_SCHEMA_VERSION", "VlmScoringError", "score_candidate_with_openai_vlm"]
+__all__ = [
+    "DEFAULT_VLM_MODEL",
+    "VLM_PROMPT_CONTRACT_VERSION",
+    "VLM_SCORE_SCHEMA_VERSION",
+    "VlmScoringError",
+    "score_candidate_with_openai_vlm",
+]

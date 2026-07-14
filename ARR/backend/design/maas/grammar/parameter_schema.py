@@ -9,7 +9,7 @@ PARAMETER_BOUNDS: dict[str, tuple[float, float]] = {
     "upper_ratio": (0.18, 0.95),
     "top_ratio": (0.18, 0.95),
     "width_ratio": (0.05, 0.90),
-    "lane_width_ratio": (0.045, 0.16),
+    "lane_width_ratio": (0.045, 0.22),
     "arm_ratio": (0.10, 0.90),
     "branch_ratio": (0.10, 0.90),
     "width_gradient": (-0.30, 0.30),
@@ -31,18 +31,85 @@ PARAMETER_BOUNDS: dict[str, tuple[float, float]] = {
     "lower_floor_fraction": (0.12, 0.88),
     "gap_ratio": (0.04, 0.48),
     "angle": (-55.0, 55.0),
+    "shift": (-0.34, 0.34),
+    "x_ratio": (0.18, 1.0),
+    "y_ratio": (0.18, 1.0),
+    "waist_ratio": (0.18, 0.90),
+    "length": (0.10, 1.0),
+    "bridge_ratio": (0.04, 0.60),
+    "trunk_ratio": (0.10, 0.90),
+    "guest_scale": (0.12, 0.80),
+    "inner_scale": (0.12, 0.80),
+    "other_scale": (0.18, 0.90),
+    "spacing_ratio": (0.08, 0.50),
+    "unit_scale": (0.12, 0.70),
+    "size": (0.10, 0.80),
+    "levels": (2.0, 4.0),
     "n": (2.0, 4.0),
     "lane_count": (2.0, 3.0),
     "field_samples": (5.0, 9.0),
 }
 
 
+CATEGORICAL_PARAMETER_VALUES: dict[str, tuple[str, ...]] = {
+    "axis": ("x", "y"),
+    "side": ("north", "south", "east", "west"),
+    "corner": ("nw", "ne", "sw", "se"),
+    "open_side": ("closed", "north", "south", "east", "west"),
+    "field_topology": ("parallel", "branched"),
+    "vertical_mode": ("terraced", "grounded"),
+}
+
+
+# Canonical operation contract shared by the LLM author and VLM graph reviser.
+# Keeping this in the grammar layer prevents the author prompt from accepting a
+# parameter that the mutation layer will silently discard.
+PARAMETERS_BY_VERB: dict[str, tuple[str, ...]] = {
+    "notch": ("corner", "ratio"),
+    "cave": ("side", "width_ratio", "depth_ratio"),
+    "courtyard": ("ratio", "open_side", "upper_ratio", "lower_floor_fraction"),
+    "split": ("axis", "gap_ratio", "bridge_ratio", "upper_ratio", "lower_floor_fraction"),
+    "bar": ("axis", "factor", "shift", "upper_ratio", "lower_floor_fraction"),
+    "branch": ("angle", "trunk_ratio", "arm_ratio", "upper_ratio", "lower_floor_fraction"),
+    "pinch": ("axis", "waist_ratio", "depth_ratio", "upper_ratio", "lower_floor_fraction"),
+    "bend": (
+        "axis", "angle", "factor", "upper_ratio", "lower_floor_fraction",
+        "lane_count", "lane_width_ratio", "vertical_overlap", "curvature",
+        "branch_point_ratio", "width_start_ratio", "width_mid_ratio",
+        "width_end_ratio", "width_wave", "height_start_ratio",
+        "height_mid_ratio", "height_end_ratio", "height_wave",
+        "field_topology", "vertical_mode",
+    ),
+    "embed": ("guest_scale", "position", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
+    "extrude": ("axis", "length", "size", "upper_ratio", "lower_floor_fraction"),
+    "nest": ("inner_scale", "upper_ratio", "lower_floor_fraction"),
+    "stack": ("levels", "upper_ratio", "lower_floor_fraction"),
+    "offset": ("axis", "distance_ratio", "other_scale", "upper_ratio", "lower_floor_fraction"),
+    "array": ("axis", "n", "spacing_ratio", "unit_scale", "lower_floor_fraction"),
+    "reflect": ("axis", "gap_ratio", "unit_scale", "upper_ratio", "lower_floor_fraction"),
+    "interlock": ("angle", "bar_ratio", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
+    "overlap": ("axis", "slab_ratio", "shift_ratio", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
+    "lift": ("upper_ratio", "lower_floor_fraction"),
+    "taper": ("x_ratio", "y_ratio", "lower_floor_fraction"),
+    "grade": ("side", "width_ratio", "depth_ratio", "lower_floor_fraction"),
+    "shift": ("axis", "distance_ratio"),
+    "diagonal_connect": ("axis", "upper_ratio", "distance_ratio", "angle", "lower_floor_fraction"),
+    "terrace_link": ("side", "upper_ratio", "width_ratio", "depth_ratio", "lower_floor_fraction"),
+    "sloped_roof_mass": ("upper_ratio", "x_ratio", "y_ratio", "lower_floor_fraction"),
+}
+
+
 def bounded_parameter(name: str, value: float) -> float:
     low, high = PARAMETER_BOUNDS[name]
     bounded = max(low, min(high, float(value)))
-    if name in {"n", "lane_count", "field_samples"}:
+    if name in {"n", "lane_count", "field_samples", "levels"}:
         return int(round(bounded))
     return round(bounded, 4)
 
 
-__all__ = ["PARAMETER_BOUNDS", "bounded_parameter"]
+__all__ = [
+    "CATEGORICAL_PARAMETER_VALUES",
+    "PARAMETER_BOUNDS",
+    "PARAMETERS_BY_VERB",
+    "bounded_parameter",
+]

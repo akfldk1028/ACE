@@ -27,6 +27,7 @@ class GraphEditDirective:
     verb: str = ""
     parameter_name: str = ""
     numeric_value: float = 0.0
+    string_value: str = ""
     rationale: str = ""
 
 
@@ -158,6 +159,7 @@ def critic_directive_from_feature(feature: Feature) -> CriticDirective:
             verb=str(item.get("verb") or ""),
             parameter_name=str(item.get("parameter_name") or ""),
             numeric_value=float(item.get("numeric_value") or 0.0),
+            string_value=str(item.get("string_value") or ""),
             rationale=str(item.get("rationale") or ""),
         )
         for item in preference.get("graph_edits") or [] if isinstance(item, dict)

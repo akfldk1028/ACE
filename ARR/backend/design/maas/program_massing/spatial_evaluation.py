@@ -4,11 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from shapely.geometry import shape
-from shapely.ops import unary_union
-
 from .profiles import resolve_program_profile
 from .semantic_projection import project_spatial_roles
+from .geometry_safety import repaired_volume_records, safe_unary_union
 
 
 ROLE_GROUPS = {
@@ -25,14 +23,17 @@ COVERAGE_RANGES = {"housing": (0.28, 0.72), "cafe": (0.22, 0.62), "neighborhood_
 def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: str, site_area_m2: float | None = None) -> dict[str, Any]:
     props = feature.setdefault("properties", {})
     profile_id = resolve_program_profile(building_type)["id"]
-    records = [item for item in props.get("mass_volumes") or [] if isinstance(item, dict) and item.get("geometry")]
-    geometries = [shape(item["geometry"]) for item in records]
+    repaired = repaired_volume_records(feature)
+    records = [record for record, _ in repaired]
+    geometries = [geometry for _, geometry in repaired]
     areas = [float(item.area) for item in geometries]
     total_component_area = sum(areas)
-    union_area = float(unary_union(geometries).area) if geometries else 0.0
+    union = safe_unary_union(geometries)
+    union_area = float(union.area) if union is not None and not union.is_empty else 0.0
     denominator = float(site_area_m2 or props.get("benchmark_site_area_m2") or union_area or 1.0)
     coverage = union_area / max(denominator, 1e-9)
-    dominant = max(areas, default=0.0) / max(total_component_area, 1e-9)
+    geometric_dominant = max(areas, default=0.0) / max(total_component_area, 1e-9)
+    dominant = geometric_dominant
     roles = [str(item.get("role") or "").lower() for item in records]
     groups = ROLE_GROUPS.get(profile_id, ())
     role_projection = project_spatial_roles(feature)
@@ -50,6 +51,24 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
     hierarchy_score = min(1.0, (len(top_levels) - 1) / 2 + (0.2 if len(bottom_levels) > 1 else 0.0))
     signature = props.get("source_signature") if isinstance(props.get("source_signature"), dict) else {}
     coherence = signature.get("coherence_evidence") if isinstance(signature.get("coherence_evidence"), dict) else {}
+    continuous_surface = (
+        signature.get("continuous_surface_evidence")
+        if isinstance(signature.get("continuous_surface_evidence"), dict)
+        else {}
+    )
+    profiled_patch_count = int(continuous_surface.get("profiled_volume_count") or 0)
+    single_solid_profiled_field = bool(
+        len(geometries) == 1
+        and continuous_surface.get("hard_pass")
+        and profiled_patch_count >= 2
+    )
+    if single_solid_profiled_field:
+        # The legal/FAR proxy is deliberately one watertight union, while the
+        # executable roof field retains distinct trunk/arm patches.  Use those
+        # geometry patches for hierarchy rather than penalizing the clean
+        # solid as a monolithic box.
+        dominant = 1.0 / profiled_patch_count
+        hierarchy_score = max(hierarchy_score, min(1.0, (profiled_patch_count - 1) / 2.0))
     dominant_score = _range_score(dominant, DOMINANT_RANGES.get(profile_id, (0.3, 0.85)))
     if bool(coherence.get("intentional_cluster_exception")):
         # A balanced 3-4 member field intentionally has no 38% dominant
@@ -67,6 +86,9 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         "spatial_role_projection": role_projection,
         "role_coverage_score": round(role_score, 3),
         "dominant_component_ratio": round(dominant, 3),
+        "geometric_dominant_component_ratio": round(geometric_dominant, 3),
+        "profiled_design_patch_count": profiled_patch_count,
+        "single_solid_profiled_field": single_solid_profiled_field,
         "dominant_ratio_score": round(dominant_score, 3),
         "site_coverage_ratio": round(coverage, 3),
         "site_coverage_score": round(coverage_score, 3),

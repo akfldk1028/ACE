@@ -11,14 +11,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from shapely.geometry import shape
-from shapely.ops import unary_union
+from .geometry_safety import repaired_volume_records, safe_unary_union
 
 
 def project_spatial_roles(feature: dict[str, Any]) -> dict[str, Any]:
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
-    records = [item for item in props.get("mass_volumes") or [] if isinstance(item, dict) and item.get("geometry")]
-    geometries = [shape(item["geometry"]) for item in records]
+    repaired = repaired_volume_records(feature)
+    records = [record for record, _ in repaired]
+    geometries = [geometry for _, geometry in repaired]
     areas = [float(geometry.area) for geometry in geometries]
     total = sum(areas)
     primary_index = max(range(len(areas)), key=areas.__getitem__) if areas else None
@@ -29,7 +29,7 @@ def project_spatial_roles(feature: dict[str, Any]) -> dict[str, Any]:
     significant_grounded = [index for index in grounded if areas[index] / max(total, 1e-9) >= 0.10]
     top_levels = {round(float(item.get("top_height") or 0.0), 2) for item in records}
     bottom_levels = {round(float(item.get("bottom_height") or 0.0), 2) for item in records}
-    union = unary_union(geometries) if geometries else None
+    union = safe_unary_union(geometries)
     envelope_void_ratio = 0.0
     if union is not None and not union.is_empty and union.envelope.area > 0:
         envelope_void_ratio = max(0.0, 1.0 - float(union.area) / float(union.envelope.area))

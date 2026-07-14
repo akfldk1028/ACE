@@ -6,22 +6,46 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
-from shapely.affinity import rotate, scale
-from shapely.geometry import Polygon, box
+from shapely.affinity import rotate, scale, translate
+from shapely.geometry import Polygon, box, mapping
 
 from design.maas.grammar import generate_grammar_variants
+from design.maas.grammar.component_graph import (
+    MassComponentGraph,
+    MassComponentNode,
+    graph_from_sequence,
+    primary_operation_from_sequence,
+)
 from design.maas.llm_proposals import build_site_context
 from design.maas.llm_proposals import LlmProposalBatch
+from design.maas.llm_proposals import (
+    LlmProposalError,
+    _feedback_prompt_payload,
+    _field_topology_counts,
+    _validate_requested_field_topologies,
+)
 from design.maas.agents.llm_architect_agent import LLMArchitectAgent
 from design.maas.interactive.language_brain import propose_language_mutation
 from design.maas.program_massing import creative_archive_sequences, creative_seed_sequences, program_archive_sequences, program_search_prior, program_seed_sequences, resolve_program_profile
 from design.maas.program_massing.benchmark import run_creative_20_archive_benchmark, run_neighborhood_20_language_benchmark, run_program_massing_benchmark, run_site_adaptation_benchmark
 from design.maas.program_massing.grl_contract import build_archive_grl_contract
 from design.maas.program_massing.graph_archive import bounded_behavior_frontier, field_topology_coverage
-from design.maas.program_massing.vlm_a2a import _source_far_utilization
+from design.maas.program_massing.vlm_a2a import (
+    _field_topology,
+    _language_group,
+    _same_source_geometry,
+    _source_far_utilization,
+    _source_geometry_fingerprint,
+    generation_feedback_from_result,
+)
 from design.maas.program_massing.scoring import attach_program_massing_evidence
-from design.maas.program_massing.search import ProgramElite, _descriptor_distance, _feature
+from design.maas.program_massing.search import ProgramElite, _descriptor_distance, _feature, _with_overrides
+from design.maas.program_massing.morphology import intrinsic_shape_distance, intrinsic_silhouette_distance
+from design.maas.program_massing.creative import attach_creative_mass_evidence
+from design.maas.program_massing.spatial_evaluation import attach_program_spatial_evidence
+from design.maas.preference.reference_paths import resolve_reference_image_path
 from design.maas.source_geometry import compile_sequence_to_source_mass
+from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
 from design.maas.source_geometry.parametric_curves import swept_variable_ribbon
 from design.maas.agents.orchestrator.generative_loop import CriticDirective, GraphEditDirective, run_generative_a2a_loop
 from design.maas.agents.llm_architect_agent.graph_revision import apply_critic_graph_edits
@@ -29,6 +53,514 @@ from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 
 
 class MaasProgramMassingTest(SimpleTestCase):
+    def test_author_validator_counts_executable_field_topology_not_candidate_name(self):
+        data = {"candidates": [{
+            "name": "fake_branched_name",
+            "calls": [
+                {"verb": "base", "role": "root", "params": "{}"},
+                {"verb": "branch", "role": "primary", "params": "{}"},
+                {
+                    "verb": "bend",
+                    "role": "support",
+                    "params": '{"field_topology":"branched"}',
+                },
+            ],
+        }]}
+        feedback = {"required_field_topologies": {"parallel": 1, "branched": 1}}
+
+        self.assertEqual(_field_topology_counts(data), {"parallel": 0, "branched": 0})
+        with self.assertRaises(LlmProposalError):
+            _validate_requested_field_topologies(data, feedback)
+
+    def test_invalid_serialized_volume_is_repaired_without_aborting_population(self):
+        bowtie = Polygon(((0, 0), (10, 10), (0, 10), (10, 0), (0, 0)))
+        feature = {
+            "type": "Feature",
+            "geometry": mapping(box(0, 0, 10, 10)),
+            "properties": {
+                "benchmark_site_area_m2": 100.0,
+                "mass_volumes": [{
+                    "role": "primary_mass",
+                    "geometry": mapping(bowtie),
+                    "bottom_height": 0.0,
+                    "top_height": 9.0,
+                }],
+                "source_signature": {
+                    "surface_count": 6,
+                    "coherence_evidence": {"score": 0.8, "hard_pass": True},
+                },
+            },
+        }
+
+        spatial = attach_program_spatial_evidence(
+            feature,
+            building_type="제1종근린생활시설",
+            site_area_m2=100.0,
+        )
+        creative = attach_creative_mass_evidence(feature, site_area_m2=100.0)
+
+        self.assertIn("architectural_score", spatial)
+        self.assertIn("creative_score", creative)
+
+    def test_invalid_source_polygon_does_not_abort_morphology_archive(self):
+        bowtie = Polygon(((0, 0), (10, 10), (0, 10), (10, 0), (0, 0)))
+        invalid = SourceMass(
+            "invalid",
+            bowtie,
+            volumes=(SourceVolume("primary", bowtie, 0.0, 1.0, "bend"),),
+        )
+        valid_footprint = box(0, 0, 10, 10)
+        valid = SourceMass(
+            "valid",
+            valid_footprint,
+            volumes=(SourceVolume("primary", valid_footprint, 0.0, 1.0, "bar"),),
+        )
+
+        distance = intrinsic_silhouette_distance(invalid, valid)
+        volume_distance, plan_distance = intrinsic_shape_distance(invalid, valid)
+
+        self.assertGreaterEqual(distance, 0.0)
+        self.assertGreaterEqual(volume_distance, 0.0)
+        self.assertGreaterEqual(plan_distance, 0.0)
+
+    def test_invalid_source_polygon_does_not_abort_archive_descriptor(self):
+        bowtie = Polygon(((0, 0), (10, 10), (0, 10), (10, 0), (0, 0)))
+        valid = box(0, 0, 10, 10)
+        sequence = VerbSequence(
+            "descriptor_safety", "descriptor safety",
+            (VerbCall("base", {}), VerbCall("bar", {"axis": "x", "factor": 0.5})),
+        )
+
+        def elite(name, footprint):
+            source = SourceMass(
+                name,
+                footprint,
+                volumes=(SourceVolume("primary", footprint, 0.0, 1.0, "bar"),),
+            )
+            return ProgramElite(sequence, source, {"properties": {
+                "program_spatial_evidence": {
+                    "dominant_component_ratio": 1.0,
+                    "site_coverage_ratio": 0.5,
+                    "height_level_count": 1,
+                },
+            }}, 0.8, 0)
+
+        self.assertGreaterEqual(_descriptor_distance(elite("invalid", bowtie), elite("valid", valid)), 0.0)
+
+    def test_generation_feedback_carries_branched_field_deficit(self):
+        feedback = generation_feedback_from_result({
+            "status": "technical_fail",
+            "visual_status": "automatic_visual_floor_failed",
+            "selected_count": 13,
+            "missing_language_groups": {"continuous_field": 1},
+            "selected_field_topology_coverage": {
+                "missing": {"branched": 1},
+            },
+            "trace": [],
+        })
+
+        self.assertGreaterEqual(feedback["quota"]["continuous_or_bent"], 4)
+        self.assertEqual(feedback["required_field_topologies"]["branched"], 2)
+        self.assertEqual(
+            feedback["reference_signal_diagnosis"]["missing_field_topologies"],
+            {"branched": 1},
+        )
+        self.assertEqual(
+            _feedback_prompt_payload(feedback)["required_field_topologies"]["branched"],
+            2,
+        )
+
+    def test_profiled_surface_silhouette_is_translation_invariant(self):
+        footprint = box(0, 0, 20, 10)
+        volume = SourceVolume("profiled_main", footprint, 0.0, 1.0, "bend")
+        surface = SourceSurface(
+            "profiled_roof",
+            "profiled_main",
+            "bend",
+            "profiled_roof",
+            ((0.0, 0.0, 0.2), (20.0, 0.0, 0.2), (20.0, 10.0, 1.0), (0.0, 10.0, 0.6)),
+        )
+        source = SourceMass("profile", footprint, volumes=(volume,), surfaces=(surface,))
+        moved = SourceMass(
+            "profile_moved",
+            translate(footprint, xoff=312000.0, yoff=4150000.0),
+            volumes=(replace(volume, footprint=translate(volume.footprint, xoff=312000.0, yoff=4150000.0)),),
+            surfaces=(replace(
+                surface,
+                vertices_m=tuple((x + 312000.0, y + 4150000.0, z) for x, y, z in surface.vertices_m),
+            ),),
+        )
+
+        self.assertLess(intrinsic_silhouette_distance(source, moved), 0.001)
+
+    def test_archive_fingerprint_keeps_distinct_profiled_surfaces_with_same_proxy_volume(self):
+        footprint = box(0, 0, 20, 10)
+        volume = SourceVolume("profiled_main", footprint, 0.0, 1.0, "bend")
+
+        def candidate(name: str, heights: tuple[float, float, float, float], score: float) -> ProgramElite:
+            surface = SourceSurface(
+                f"{name}_roof",
+                "profiled_main",
+                "bend",
+                "profiled_roof",
+                (
+                    (0.0, 0.0, heights[0]),
+                    (20.0, 0.0, heights[1]),
+                    (20.0, 10.0, heights[2]),
+                    (0.0, 10.0, heights[3]),
+                ),
+            )
+            source = SourceMass(name, footprint, volumes=(volume,), surfaces=(surface,))
+            sequence = VerbSequence(name, name, (VerbCall("base", {}), VerbCall("bend", {})))
+            feature = _feature(
+                source,
+                sequence,
+                building_type="제1종근린생활시설",
+                height=12.0,
+                floors=3,
+                site_area=float(footprint.area),
+            )
+            feature["properties"]["program_spatial_evidence"] = {
+                "dominant_component_ratio": 1.0,
+                "site_coverage_ratio": 1.0,
+                "height_level_count": 2,
+            }
+            return ProgramElite(sequence, source, feature, score, 0)
+
+        low_fold = candidate("low_fold", (0.2, 0.2, 0.6, 0.6), 0.9)
+        diagonal_fold = candidate("diagonal_fold", (0.1, 0.9, 1.0, 0.2), 0.8)
+
+        self.assertEqual(low_fold.source.source_volume_signatures(), diagonal_fold.source.source_volume_signatures())
+        self.assertGreater(intrinsic_silhouette_distance(low_fold.source, diagonal_fold.source), 0.1)
+        self.assertNotEqual(
+            _source_geometry_fingerprint(low_fold.source),
+            _source_geometry_fingerprint(diagonal_fold.source),
+        )
+
+    def test_vlm_graph_edit_supports_typed_categorical_parameter(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        graph = MassComponentGraph(
+            "editable_court",
+            "editable court",
+            (
+                MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored),
+                MassComponentNode(
+                    "court_primary",
+                    "primary",
+                    VerbCall("courtyard", {
+                        "ratio": 0.28,
+                        "open_side": "closed",
+                        "upper_ratio": 0.82,
+                        "lower_floor_fraction": 0.38,
+                    }),
+                    "root",
+                    constraints=authored,
+                ),
+            ),
+        )
+        directive = CriticDirective(graph_edits=(GraphEditDirective(
+            operation="set_parameter",
+            target_node_id="court_primary",
+            parameter_name="open_side",
+            string_value="south",
+        ),))
+
+        revised = apply_critic_graph_edits(graph.to_sequence(), directive)
+
+        self.assertEqual(len(revised), 1)
+        self.assertEqual(
+            graph_from_sequence(revised[0]).nodes[1].operation.params["open_side"],
+            "south",
+        )
+
+    def test_vlm_topology_edit_requires_explicit_followup_parameter(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        graph = MassComponentGraph(
+            "editable_offset",
+            "editable offset",
+            (
+                MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored),
+                MassComponentNode(
+                    "offset_primary",
+                    "primary",
+                    VerbCall("offset", {
+                        "axis": "x",
+                        "distance_ratio": 0.2,
+                        "other_scale": 0.6,
+                        "upper_ratio": 0.78,
+                        "lower_floor_fraction": 0.38,
+                    }),
+                    "root",
+                    constraints=authored,
+                ),
+            ),
+        )
+        empty_replace = CriticDirective(graph_edits=(GraphEditDirective(
+            operation="replace_operation",
+            target_node_id="offset_primary",
+            verb="bend",
+        ),))
+        parameterized_replace = CriticDirective(graph_edits=(
+            GraphEditDirective(
+                operation="replace_operation",
+                target_node_id="offset_primary",
+                verb="bend",
+            ),
+            GraphEditDirective(
+                operation="set_parameter",
+                target_node_id="offset_primary",
+                parameter_name="angle",
+                numeric_value=24.0,
+            ),
+        ))
+
+        self.assertEqual(apply_critic_graph_edits(graph.to_sequence(), empty_replace), ())
+        revised = apply_critic_graph_edits(graph.to_sequence(), parameterized_replace)
+        self.assertEqual(len(revised), 1)
+        primary = graph_from_sequence(revised[0]).nodes[1]
+        self.assertEqual(primary.operation.verb, "bend")
+        self.assertEqual(primary.operation.params["angle"], 24.0)
+
+    def test_vlm_graph_edit_rejects_wrong_verb_parameter_and_applies_canonical_one(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        graph = MassComponentGraph(
+            "editable_offset",
+            "editable offset",
+            (
+                MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored),
+                MassComponentNode(
+                    "offset_primary",
+                    "primary",
+                    VerbCall("offset", {"axis": "x", "distance_ratio": 0.2, "other_scale": 0.6}),
+                    "root",
+                    constraints=authored,
+                ),
+            ),
+        )
+        wrong = CriticDirective(graph_edits=(GraphEditDirective(
+            operation="set_parameter",
+            target_node_id="offset_primary",
+            parameter_name="x_ratio",
+            numeric_value=0.4,
+        ),))
+        valid = CriticDirective(graph_edits=(GraphEditDirective(
+            operation="set_parameter",
+            target_node_id="offset_primary",
+            parameter_name="distance_ratio",
+            numeric_value=0.08,
+        ),))
+
+        self.assertEqual(apply_critic_graph_edits(graph.to_sequence(), wrong), ())
+        revised = apply_critic_graph_edits(graph.to_sequence(), valid)
+        self.assertEqual(len(revised), 1)
+        self.assertEqual(
+            graph_from_sequence(revised[0]).nodes[1].operation.params["distance_ratio"],
+            0.08,
+        )
+
+    def test_same_source_geometry_includes_profiled_surface_vertices(self):
+        sequence = VerbSequence(
+            "surface_identity",
+            "surface identity",
+            (VerbCall("base", {}), VerbCall("bend", {"height_mid_ratio": 0.7})),
+        )
+        first = compile_sequence_to_source_mass(box(0, 0, 60, 40), sequence)
+        second = compile_sequence_to_source_mass(
+            box(0, 0, 60, 40),
+            VerbSequence(
+                "surface_changed",
+                "surface changed",
+                (VerbCall("base", {}), VerbCall("bend", {"height_mid_ratio": 0.98})),
+            ),
+        )
+
+        self.assertIsNotNone(first)
+        self.assertIsNotNone(second)
+        self.assertFalse(_same_source_geometry(first, second))
+        self.assertGreater(intrinsic_silhouette_distance(first, second), 0.01)
+
+    def test_reference_path_resolver_recovers_historical_docs_relative_path(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            image = root / "docs" / "references" / "precedent.jpg"
+            image.parent.mkdir(parents=True)
+            image.write_bytes(b"reference")
+
+            resolved = resolve_reference_image_path(
+                "../../docs/references/precedent.jpg",
+                root=root,
+            )
+
+            self.assertEqual(resolved, image.resolve())
+
+    def test_graph_native_contract_rejects_multiple_primary_nodes(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        graph = MassComponentGraph(
+            "invalid_two_primary",
+            "invalid two primary",
+            (
+                MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored),
+                MassComponentNode(
+                    "array_primary", "primary", VerbCall("array", {"n": 3}),
+                    "root", constraints=authored,
+                ),
+                MassComponentNode(
+                    "court_primary", "primary", VerbCall("courtyard", {"ratio": 0.3}),
+                    "array_primary", constraints=authored, relation="deform",
+                ),
+            ),
+        )
+
+        self.assertIn(
+            "graph-native component graph requires exactly one primary node",
+            graph.validate(),
+        )
+
+    def test_graph_native_language_uses_primary_role_not_flat_call_position(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        graph = MassComponentGraph(
+            "branched_role_order",
+            "branched role order",
+            (
+                MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored),
+                MassComponentNode(
+                    "branch_support", "support", VerbCall("branch", {"count": 2}),
+                    "root", constraints=authored,
+                ),
+                MassComponentNode(
+                    "bend_primary", "primary",
+                    VerbCall("bend", {"field_topology": "branched", "lane_count": 3}),
+                    "root", constraints=authored,
+                ),
+            ),
+        )
+        sequence = graph.to_sequence()
+        footprint = box(0, 0, 30, 20)
+        source = SourceMass(
+            sequence.name,
+            footprint,
+            volumes=(SourceVolume("primary", footprint, 0.0, 1.0, "bend"),),
+        )
+        elite = ProgramElite(
+            sequence,
+            source,
+            {"properties": {"normalized_far_utilization": 0.8}},
+            0.8,
+            0,
+        )
+
+        self.assertEqual(primary_operation_from_sequence(sequence).verb, "bend")
+        self.assertEqual(_language_group(elite), "continuous_field")
+        self.assertEqual(_field_topology(elite), "branched")
+
+    def test_graph_native_compiler_uses_primary_family_over_support_label(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        graph = MassComponentGraph(
+            "llm_branched_bend_offset_twin_bar",
+            "primary bend with optional offset support",
+            (
+                MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored),
+                MassComponentNode(
+                    "bend_primary", "primary",
+                    VerbCall("bend", {
+                        "angle": 24.0,
+                        "factor": 0.8,
+                        "upper_ratio": 0.82,
+                        "lower_floor_fraction": 0.36,
+                        "field_topology": "branched",
+                        "lane_count": 3,
+                        "lane_width_ratio": 0.16,
+                    }),
+                    "root", constraints=authored,
+                ),
+                MassComponentNode(
+                    "offset_support", "support",
+                    VerbCall("offset", {
+                        "axis": "x", "distance_ratio": 0.2,
+                        "other_scale": 0.72, "upper_ratio": 0.8,
+                        "lower_floor_fraction": 0.36,
+                    }),
+                    "bend_primary", constraints=authored,
+                ),
+            ),
+        )
+
+        source = compile_sequence_to_source_mass(box(0, 0, 60, 40), graph.to_sequence())
+
+        self.assertIsNotNone(source)
+        self.assertEqual(source.signature()["formal_principle"], "continuous_ribbon_field")
+        self.assertEqual(len(source.volumes), 1)
+        self.assertTrue(all("branched_ribbon" in volume.role for volume in source.volumes))
+        feature = _feature(
+            source, graph.to_sequence(),
+            building_type="neighborhood living", height=15.0, floors=5, site_area=2400.0,
+        )
+        attach_program_massing_evidence(feature, building_type="neighborhood living")
+        spatial = feature["properties"]["program_spatial_evidence"]
+        self.assertTrue(spatial["single_solid_profiled_field"])
+        self.assertEqual(spatial["profiled_design_patch_count"], 3)
+        self.assertLess(spatial["dominant_component_ratio"], 1.0)
+        self.assertGreaterEqual(spatial["hierarchy_score"], 0.5)
+
+    def test_ribbon_width_contract_allows_capacity_search_to_thicken_field(self):
+        def compile_width(width):
+            return compile_sequence_to_source_mass(
+                box(0, 0, 60, 40),
+                VerbSequence(
+                    f"width_{width}", f"width {width}",
+                    (VerbCall("base", {}), VerbCall("bend", {
+                        "angle": 18.0,
+                        "factor": 0.8,
+                        "upper_ratio": 0.82,
+                        "lower_floor_fraction": 0.36,
+                        "field_topology": "branched",
+                        "lane_count": 3,
+                        "lane_width_ratio": width,
+                    })),
+                ),
+            )
+
+        narrow = compile_width(0.09)
+        wide = compile_width(0.16)
+
+        self.assertIsNotNone(narrow)
+        self.assertIsNotNone(wide)
+        narrow_area = sum(float(volume.footprint.area) for volume in narrow.volumes)
+        wide_area = sum(float(volume.footprint.area) for volume in wide.volumes)
+        self.assertGreater(wide_area, narrow_area * 1.25)
+
+    def test_graph_native_search_override_updates_executable_graph_envelope(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        root = MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored)
+        primary = MassComponentNode(
+            "offset_primary",
+            "primary",
+            VerbCall("offset", {
+                "axis": "x",
+                "distance_ratio": 0.27,
+                "other_scale": 0.62,
+                "upper_ratio": 0.78,
+                "lower_floor_fraction": 0.38,
+            }),
+            "root",
+            constraints=authored,
+        )
+        graph = MassComponentGraph("search_graph", "search graph", (root, primary))
+        seed = graph.to_sequence()
+
+        child = _with_overrides(seed, {"call_1__distance_ratio": 0.05}, 0, 1)
+
+        self.assertEqual(child.calls[1].params["distance_ratio"], 0.05)
+        self.assertEqual(
+            graph_from_sequence(child).nodes[1].operation.params["distance_ratio"],
+            0.05,
+        )
+        base = compile_sequence_to_source_mass(box(0, 0, 60, 40), seed)
+        changed = compile_sequence_to_source_mass(box(0, 0, 60, 40), child)
+        self.assertIsNotNone(base)
+        self.assertIsNotNone(changed)
+        self.assertNotEqual(base.source_volume_signatures(), changed.source_volume_signatures())
+
     def test_variable_width_sweep_materializes_tapered_continuous_mass(self):
         sweep = swept_variable_ribbon(
             ((1.0, 5.0), (5.0, 5.0), (9.0, 5.0)),
@@ -166,6 +698,8 @@ class MaasProgramMassingTest(SimpleTestCase):
         original_elite = elite(source, "original")
         self.assertLess(_descriptor_distance(original_elite, elite(rotated, "rotated")), 0.08)
         self.assertLess(_descriptor_distance(original_elite, elite(mirrored, "mirrored")), 0.08)
+        self.assertLess(intrinsic_silhouette_distance(source, rotated), 0.02)
+        self.assertLess(intrinsic_silhouette_distance(source, mirrored), 0.02)
 
     def test_default_continuous_ribbon_is_an_occupiable_capacity_mass(self):
         sequence = VerbSequence(

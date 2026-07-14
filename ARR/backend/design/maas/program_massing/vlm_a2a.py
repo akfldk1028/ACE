@@ -14,12 +14,11 @@ from threading import Lock
 from typing import Any
 
 from shapely.geometry import Polygon, box, mapping
-from shapely.ops import unary_union
-
 from design.maas.agents.llm_architect_agent.agent import LLMArchitectAgent
 from design.maas.agents.llm_architect_agent.graph_revision import apply_critic_graph_edits
 from design.maas.agents.orchestrator.generative_loop import critic_directive_from_feature
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
+from design.maas.grammar.component_graph import primary_operation_from_sequence
 from design.maas.llm_proposals import build_site_context
 from design.maas.capacity_policy import resolve_massing_capacity_policy
 from design.maas.preference.loop import feature_preview_png
@@ -34,9 +33,10 @@ from design.maas.source_geometry import compile_sequence_to_source_mass
 from .benchmark import _render_archive_sheet
 from .creative import creative_seed_sequences
 from .graph_archive import GraphBehaviorArchive, bounded_behavior_frontier, field_topology_coverage
+from .geometry_safety import safe_unary_union
 from .grl_contract import build_archive_grl_contract
 from .language_quality import assess_language_geometry
-from .morphology import DEFAULT_NOVELTY_POLICY
+from .morphology import DEFAULT_NOVELTY_POLICY, intrinsic_silhouette_distance
 from .scoring import attach_program_massing_evidence
 from .search import ProgramElite, _descriptor_distance, _feature, _formal_principle, _geometric_language_count, _select_diverse_archive, _topology, search_program_elites
 from .sequences import program_seed_sequences
@@ -248,6 +248,7 @@ def run_neighborhood_vlm_a2a_loop(
         # image critic ever saw them because their FAR/coverage resembled a bar.
         minimum_distance=0.08,
         minimum_groups=review_group_minimums,
+        minimum_field_topologies={"parallel": 1, "branched": 1},
         minimum_authored_count=max(8, int(review_pool_count) // 2),
         minimum_capacity_target_count=max(8, (int(review_pool_count) * 2 + 4) // 5),
         capacity_target_utilization=float(capacity_policy["target_far_utilization"]),
@@ -316,7 +317,15 @@ def run_neighborhood_vlm_a2a_loop(
                     "graph_edits": [edit.__dict__ for edit in directive.graph_edits],
                     "children": [],
                 }
-                for sequence in apply_critic_graph_edits(parent.sequence, directive):
+                revised_sequences = apply_critic_graph_edits(parent.sequence, directive)
+                record["graph_revision_status"] = (
+                    "candidate_emitted"
+                    if revised_sequences
+                    else "no_valid_edit_applied"
+                    if directive.graph_edits
+                    else "no_graph_edit_requested"
+                )
+                for sequence in revised_sequences:
                     graph_key = json.dumps(sequence.to_list(), sort_keys=True) + "|" + "|".join(sequence.notes)
                     if graph_key in seen_child_graphs:
                         continue
@@ -327,6 +336,12 @@ def run_neighborhood_vlm_a2a_loop(
                     )
                     if child is None:
                         record["children"].append({"sequence": sequence.name, "status": "compile_or_hard_gate_rejected"})
+                        continue
+                    if _same_source_geometry(parent.source, child.source):
+                        record["children"].append({
+                            "sequence": sequence.name,
+                            "status": "graph_edit_no_geometry_change",
+                        })
                         continue
                     child_record: dict[str, Any] = {"sequence": sequence.name, "status": "awaiting_vlm_recheck"}
                     record["children"].append(child_record)
@@ -417,6 +432,7 @@ def run_neighborhood_vlm_a2a_loop(
         target_count=target_count,
         minimum_distance=0.20,
         minimum_groups=final_group_minimums,
+        minimum_field_topologies={"parallel": 1, "branched": 1},
         minimum_authored_count=max(1, target_count // 2),
         maximum_groups=final_group_maximums,
         minimum_capacity_target_count=max(1, (target_count * 2 + 4) // 5),
@@ -433,6 +449,7 @@ def run_neighborhood_vlm_a2a_loop(
         required_count=capacity_target_required_count,
         target_utilization=float(capacity_policy["target_far_utilization"]),
         minimum_groups=final_group_minimums,
+        minimum_field_topologies={"parallel": 1, "branched": 1},
         maximum_groups=final_group_maximums,
         minimum_distance=0.20,
         minimum_authored_count=max(1, target_count // 2),
@@ -452,6 +469,7 @@ def run_neighborhood_vlm_a2a_loop(
     }
     near_duplicate_pairs = _near_duplicate_pairs(final_archive, threshold=0.20)
     morphology_repeat_pairs = _morphology_repeat_pairs(final_archive)
+    silhouette_repeat_pairs = _silhouette_repeat_pairs(final_archive)
     geometric_language_count = _geometric_language_count(final_archive, threshold=0.20)
     accepted_ids = {id(item) for item in final_archive}
     visual_reasons_by_name = {
@@ -594,6 +612,7 @@ def run_neighborhood_vlm_a2a_loop(
                 and not missing_groups
                 and not near_duplicate_pairs
                 and not morphology_repeat_pairs
+                and not silhouette_repeat_pairs
                 and geometric_language_count >= max(1, target_count - 2)
                 and capacity_target_met_count >= capacity_target_required_count
                 and authored_selected_count >= authored_selected_required_count
@@ -649,6 +668,7 @@ def run_neighborhood_vlm_a2a_loop(
         "geometric_language_count": geometric_language_count,
         "near_duplicate_pairs": near_duplicate_pairs,
         "morphology_repeat_pairs": morphology_repeat_pairs,
+        "silhouette_repeat_pairs": silhouette_repeat_pairs,
         "morphology_neighbor_relations": morphology_relations,
         "grl_audit": {
             "schema_version": "arr.maas.grl_audit.v1",
@@ -740,6 +760,16 @@ def generation_feedback_from_result(result: dict[str, Any]) -> dict[str, Any]:
         elif brief["vlm_score"] >= 0.70:
             top.append(brief)
     missing = result.get("missing_language_groups") if isinstance(result.get("missing_language_groups"), dict) else {}
+    field_coverage = (
+        result.get("selected_field_topology_coverage")
+        if isinstance(result.get("selected_field_topology_coverage"), dict)
+        else {}
+    )
+    missing_field_topologies = (
+        field_coverage.get("missing")
+        if isinstance(field_coverage.get("missing"), dict)
+        else {}
+    )
     quota = dict(feedback.get("quota") or {})
     group_to_quota = {
         "continuous_field": "continuous_or_bent",
@@ -753,6 +783,11 @@ def generation_feedback_from_result(result: dict[str, Any]) -> dict[str, Any]:
         key = group_to_quota.get(str(group))
         if key:
             quota[key] = max(int(quota.get(key) or 0), int(deficit) + 2)
+    if missing_field_topologies.get("branched"):
+        quota["continuous_or_bent"] = max(
+            int(quota.get("continuous_or_bent") or 0),
+            int(missing_field_topologies["branched"]) + 3,
+        )
     feedback.update({
         "schema_version": "arr.maas.vlm_generation_feedback.v2",
         "source": "previous_full_png_vlm_a2a_failure",
@@ -762,7 +797,16 @@ def generation_feedback_from_result(result: dict[str, Any]) -> dict[str, Any]:
             "previous_visual_status": result.get("visual_status"),
             "selected_count": result.get("selected_count"),
             "missing_language_groups": missing,
+            "missing_field_topologies": missing_field_topologies,
             "critic_action_counts": dict(action_counts.most_common()),
+        },
+        "required_field_topologies": {
+            "parallel": 1,
+            "branched": max(2, int(missing_field_topologies.get("branched") or 0) + 1),
+            "instruction": (
+                "Author genuinely branched continuous fields whose sole primary node is bend, with one joined trunk and occupiable branches; "
+                "do not relabel parallel bars as branched and do not fragment them into detached boxes."
+            ),
         },
         "top_candidate_brief": sorted(top, key=lambda item: item["vlm_score"], reverse=True)[:5],
         "bottom_candidate_brief": sorted(
@@ -794,6 +838,7 @@ def _select_language_balanced_archive(
     target_count: int,
     minimum_distance: float,
     minimum_groups: dict[str, int],
+    minimum_field_topologies: dict[str, int] | None = None,
     minimum_authored_count: int = 0,
     maximum_groups: dict[str, int] | None = None,
     minimum_capacity_target_count: int = 0,
@@ -809,14 +854,12 @@ def _select_language_balanced_archive(
     them.  This distinction prevents an append-only provenance store from
     turning the visible archive into a frozen, increasingly prefixed rerun.
     """
-    unique: dict[tuple[Any, ...], ProgramElite] = {}
+    unique: dict[str, ProgramElite] = {}
     for item in pool:
-        fingerprint = tuple(sorted((
-            volume.role,
-            *(round(value, 1) for value in volume.footprint.bounds),
-            round(volume.bottom_fraction, 2),
-            round(volume.top_fraction, 2),
-        ) for volume in item.source.volumes))
+        # Profiled/folded candidates deliberately share conservative volume
+        # proxies with their surfaces.  A volume-only fingerprint erased those
+        # visible differences before the surface-aware novelty gate ran.
+        fingerprint = _source_geometry_fingerprint(item.source)
         if fingerprint not in unique or item.score > unique[fingerprint].score:
             unique[fingerprint] = item
     candidates = sorted(unique.values(), key=lambda item: item.score, reverse=True)
@@ -824,6 +867,7 @@ def _select_language_balanced_archive(
     topology_counts: dict[str, int] = {}
     principle_counts: dict[str, int] = {}
     language_group_counts: dict[str, int] = {}
+    field_topology_counts: dict[str, int] = {}
     persisted_limit = (
         target_count
         if maximum_persisted_count is None
@@ -853,6 +897,9 @@ def _select_language_balanced_archive(
             return False
         for other in selected:
             distance = _descriptor_distance(item, other)
+            visual_distance = intrinsic_silhouette_distance(item.source, other.source)
+            if visual_distance < DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat:
+                return False
             if distance < minimum_distance:
                 return False
             if (
@@ -880,12 +927,25 @@ def _select_language_balanced_archive(
         principle_counts[principle] = principle_counts.get(principle, 0) + 1
         group = _language_group(item)
         language_group_counts[group] = language_group_counts.get(group, 0) + 1
+        field_topology = _field_topology(item)
+        if field_topology:
+            field_topology_counts[field_topology] = field_topology_counts.get(field_topology, 0) + 1
 
     def capacity_utilization(item: ProgramElite) -> float:
         return float(
             ((item.feature.get("properties") or {}).get("normalized_far_utilization"))
             or 0.0
         )
+
+    # A continuous-field quota is not enough: several parallel ribbons can
+    # satisfy it while the authored branched topology disappears before VLM.
+    for topology, required in (minimum_field_topologies or {}).items():
+        deficit = max(0, int(required) - field_topology_counts.get(topology, 0))
+        for _ in range(deficit):
+            eligible = [item for item in candidates if _field_topology(item) == topology and admissible(item)]
+            if not eligible:
+                break
+            add(max(eligible, key=lambda item: item.score))
 
     # Require a small replenishment frontier before stability fill. This is
     # gradual archive evolution: fresh candidates earn places through the same
@@ -996,6 +1056,7 @@ def _rebalance_capacity_archive(
     required_count: int,
     target_utilization: float,
     minimum_groups: dict[str, int],
+    minimum_field_topologies: dict[str, int] | None,
     maximum_groups: dict[str, int],
     minimum_distance: float,
     minimum_authored_count: int,
@@ -1034,6 +1095,12 @@ def _rebalance_capacity_archive(
                 groups = _language_group_counts(proposed)
                 if any(groups.get(group, 0) < required for group, required in minimum_groups.items()):
                     continue
+                topology_counts = Counter(_field_topology(item) for item in proposed if _field_topology(item))
+                if any(
+                    topology_counts.get(topology, 0) < required
+                    for topology, required in (minimum_field_topologies or {}).items()
+                ):
+                    continue
                 if any(groups.get(group, 0) > allowed for group, allowed in maximum_groups.items()):
                     continue
                 if sum(_is_live_authored_graph(item) for item in proposed) < minimum_authored_count:
@@ -1051,6 +1118,12 @@ def _rebalance_capacity_archive(
                 if topology_peers and min(
                     _descriptor_distance(candidate, item) for item in topology_peers
                 ) < DEFAULT_NOVELTY_POLICY.same_topology_repeat:
+                    continue
+                if any(
+                    intrinsic_silhouette_distance(candidate.source, item.source)
+                    < DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat
+                    for item in remaining
+                ):
                     continue
                 principle_peers = [
                     item for item in remaining
@@ -1097,6 +1170,22 @@ def _reason_counts(records: list[dict[str, Any]]) -> dict[str, int]:
     return dict(counts.most_common())
 
 
+def _same_source_geometry(left: Any, right: Any) -> bool:
+    """Reject critic edits that change graph prose but not rendered geometry."""
+    return (
+        left.source_volume_signatures() == right.source_volume_signatures()
+        and left.source_surface_signatures() == right.source_surface_signatures()
+    )
+
+
+def _source_geometry_fingerprint(source: Any) -> str:
+    """Lossless-enough archive key that does not erase profiled surfaces."""
+    return json.dumps({
+        "volumes": source.source_volume_signatures(),
+        "surfaces": source.source_surface_signatures(),
+    }, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+
+
 def _archive_selection_audit(
     pool: list[ProgramElite],
     selected: list[ProgramElite],
@@ -1122,16 +1211,24 @@ def _archive_selection_audit(
             reasons.append("same_topology_as_selected")
         if selected:
             nearest = min(_descriptor_distance(item, other) for other in selected)
+            nearest_silhouette = min(
+                intrinsic_silhouette_distance(item.source, other.source)
+                for other in selected
+            )
             if nearest < minimum_distance:
                 reasons.append("descriptor_too_close_to_selected")
+            if nearest_silhouette < DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat:
+                reasons.append("silhouette_too_close_to_selected")
         else:
             nearest = 1.0
+            nearest_silhouette = 1.0
         if not reasons:
             reasons.append("greedy_quota_or_cap_order")
         records.append({
             "candidate": item.sequence.name,
             "language_group": _language_group(item),
             "nearest_selected_distance": round(nearest, 4),
+            "nearest_selected_silhouette_distance": round(nearest_silhouette, 4),
             "reasons": reasons,
         })
     return {
@@ -1188,7 +1285,7 @@ def _sequence_from_record(record: Any) -> VerbSequence | None:
 def _language_group(item: ProgramElite) -> str:
     principle = _formal_principle(item)
     verbs = {call.verb for call in item.sequence.calls}
-    primary_verb = item.sequence.calls[1].verb if len(item.sequence.calls) > 1 else "base"
+    primary_verb = primary_operation_from_sequence(item.sequence).verb
     height_levels = len({round(volume.top_fraction, 2) for volume in item.source.volumes})
     if principle == "continuous_ribbon_field" or primary_verb == "bend":
         return "continuous_field"
@@ -1218,6 +1315,14 @@ def _language_group_counts(items: list[ProgramElite]) -> dict[str, int]:
         group = _language_group(item)
         counts[group] = counts.get(group, 0) + 1
     return counts
+
+
+def _field_topology(item: ProgramElite) -> str:
+    primary = primary_operation_from_sequence(item.sequence)
+    if primary.verb == "bend":
+        topology = str(primary.params.get("field_topology") or "parallel").strip().lower()
+        return topology if topology in {"parallel", "branched"} else "parallel"
+    return ""
 
 
 def _near_duplicate_pairs(items: list[ProgramElite], *, threshold: float) -> list[dict[str, Any]]:
@@ -1255,6 +1360,23 @@ def _morphology_repeat_pairs(items: list[ProgramElite]) -> list[dict[str, Any]]:
                     "left_principle": _formal_principle(left),
                     "right_principle": _formal_principle(right),
                 })
+    return pairs
+
+
+def _silhouette_repeat_pairs(items: list[ProgramElite]) -> list[dict[str, Any]]:
+    pairs: list[dict[str, Any]] = []
+    threshold = DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat
+    for left_index, left in enumerate(items):
+        for right_index, right in enumerate(items[left_index + 1:], start=left_index + 1):
+            distance = intrinsic_silhouette_distance(left.source, right.source)
+            if distance >= threshold:
+                continue
+            pairs.append({
+                "left": left_index,
+                "right": right_index,
+                "distance": round(distance, 4),
+                "kind": "three_view_silhouette_repeat",
+            })
     return pairs
 
 
@@ -1604,7 +1726,9 @@ def _source_far_utilization(source, *, site_area: float, floors: int, far_limit_
             if float(volume.bottom_fraction) <= level < float(volume.top_fraction)
         ]
         if active:
-            floor_area += float(unary_union(active).area)
+            union = safe_unary_union(active)
+            if union is not None:
+                floor_area += float(union.area)
     denominator = max(float(site_area) * float(far_limit_ratio), 1e-9)
     return round(min(1.0, floor_area / denominator), 4)
 

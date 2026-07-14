@@ -75,6 +75,14 @@ class MassComponentGraph:
         roots = [node for node in self.nodes if node.role == "root"]
         if len(roots) != 1 or roots[0].operation.verb != "base":
             errors.append("component graph requires exactly one base root")
+        graph_native = any(
+            bool(node.constraints.get("author_graph_native") or node.constraints.get("critic_authored"))
+            for node in self.nodes
+        )
+        if graph_native:
+            primaries = [node for node in self.nodes if node.role == "primary"]
+            if len(primaries) != 1:
+                errors.append("graph-native component graph requires exactly one primary node")
         known: set[str] = set()
         for node in self.nodes:
             if node.parent_id is not None and node.parent_id not in known:
@@ -200,6 +208,27 @@ def graph_from_sequence(sequence: VerbSequence) -> MassComponentGraph:
     return MassComponentGraph(sequence.name, sequence.label, tuple(nodes), sequence.notes)
 
 
+def primary_operation_from_sequence(sequence: VerbSequence) -> VerbCall:
+    """Return the semantic primary operation, independent of node ordering.
+
+    Graph-native authors are allowed to serialize a support node before the
+    primary node as long as their explicit parent graph remains valid.  Older
+    selector code treated ``calls[1]`` as the primary and therefore evaluated
+    those candidates as the wrong architectural language.  The component role
+    is authoritative for graph envelopes; the positional fallback only keeps
+    legacy flat sequences compatible.
+    """
+    graph = graph_from_sequence(sequence)
+    primary = next((node.operation for node in graph.nodes if node.role == "primary"), None)
+    if primary is not None:
+        return primary
+    if len(sequence.calls) > 1:
+        return sequence.calls[1]
+    if sequence.calls:
+        return sequence.calls[0]
+    return VerbCall("base", {})
+
+
 def graph_with_nodes(graph: MassComponentGraph, nodes: Iterable[MassComponentNode], *, suffix: str) -> MassComponentGraph:
     return MassComponentGraph(
         f"{graph.name}{suffix}",
@@ -223,6 +252,7 @@ __all__ = [
     "MassComponentGraph",
     "MassComponentNode",
     "graph_from_sequence",
+    "primary_operation_from_sequence",
     "graph_from_dict",
     "graph_with_nodes",
     "strengthen_node",

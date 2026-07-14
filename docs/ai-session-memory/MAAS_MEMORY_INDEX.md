@@ -6,16 +6,26 @@ Read this file first before touching MAAS mass generation, prompts, source geome
 
 Critical latest handoff:
 
+- Read `docs/ai-session-memory/MAAS_AGENT_COLLABORATION_FLOW_20260714.md`
+  before calling the system multi-agent or A2A. It separates the real offline
+  VLM -> typed graph mutation -> recompile loop from the synchronous
+  legal/parking service and from the post-hoc agent-review narration. It also
+  records that offline 20-board legal projection is not run and that VLM/GRL
+  are not geometry generators.
+
 - First read `pose-invariant v59 and editable field representation v61-v65`
   at the end of the visual-failure handoff. v59 honestly returned 18/20 after
   removing pose duplicates. v65 is the current graph-editable width/height/
   branch quad-strip representation probe; it is not a final 20-board. The v66
   fresh author produced no branched field, so topology coverage is now a hard
   audit rather than an assumed capability.
-- v67 is the current full PNU board: 19/20, FAR 12/8, no intrinsic repeats,
-  but continuous 1/2, stepped 2/3 and branched 0/1. Its PNG is still box
-  dominant; use the v65 six-form probe only to verify representation capacity,
-  never as evidence that the 20-board is solved.
+- v74 is the latest full PNU board. Read `v68-v74 clean-selector and unioned
+  branched-field correction` at the end of the visual-failure handoff. It is
+  an honest 17/20 technical/visual fail, but final topology coverage now passes
+  (parallel 1, branched 1), all three duplicate audits are empty, and 10
+  selected candidates meet the capacity target. The accepted PNG is still
+  box-dominant and legal/parking projection is `not_run`; do not call it
+  competition-grade or service-complete.
 - First read the final section, `rotation-equivalent language correction and
   GRL audit (in progress)`, in the visual-failure handoff. v58's zero-duplicate
   claim was visually false because descriptor distance used absolute site
@@ -153,21 +163,22 @@ Critical latest handoff:
 ## Canonical Reading Order
 
 1. `docs/ai-session-memory/MAAS_MEMORY_INDEX.md`
-2. `docs/ai-session-memory/MAAS_VISUAL_FAILURE_HANDOFF_20260710.md`
-3. `docs/ai-session-memory/MAAS_FAILURE_EVOLUTION.md`
-4. `docs/ai-session-memory/MAAS_PAPER_METHOD_AGENT_MATRIX.md`
-5. `docs/ai-session-memory/AGENT_FOLDER_STANDARD.md`
-6. `docs/ai-session-memory/MAAS_AGENT_FOLDER_BOUNDARIES.md`
-7. `docs/ai-session-memory/MAAS_PAPER_CODE_HARNESS_BLUEPRINT.md`
-8. `docs/ai-session-memory/MAAS_RESEARCH_CODE_MATRIX.md`
-9. `docs/ai-session-memory/MAAS_PAPER_ALIGNMENT_VERDICT_20260710.md`
-10. `docs/ai-session-memory/MAAS_GENERATOR_PAPER_ALIGNMENT_AUDIT.md`
-11. `docs/ai-session-memory/MAAS_SECOND_DISTILLATION_PLAN.md`
-12. `docs/ai-session-memory/MAAS_VLM_PREFERENCE_SOURCE_AUDIT.md`
-13. `docs/ai-session-memory/SECOND_MASS_DISTILLATION/README.md`
-14. `docs/ai-session-memory/SECOND_MASS_DISTILLATION/HARNESS.md`
-15. `docs/ai-session-memory/MAAS_SYSTEMATIC_PAPER_REVIEW_PLAN.md`
-16. `docs/ai-session-memory/VERIFY.md`
+2. `docs/ai-session-memory/MAAS_AGENT_COLLABORATION_FLOW_20260714.md`
+3. `docs/ai-session-memory/MAAS_VISUAL_FAILURE_HANDOFF_20260710.md`
+4. `docs/ai-session-memory/MAAS_FAILURE_EVOLUTION.md`
+5. `docs/ai-session-memory/MAAS_PAPER_METHOD_AGENT_MATRIX.md`
+6. `docs/ai-session-memory/AGENT_FOLDER_STANDARD.md`
+7. `docs/ai-session-memory/MAAS_AGENT_FOLDER_BOUNDARIES.md`
+8. `docs/ai-session-memory/MAAS_PAPER_CODE_HARNESS_BLUEPRINT.md`
+9. `docs/ai-session-memory/MAAS_RESEARCH_CODE_MATRIX.md`
+10. `docs/ai-session-memory/MAAS_PAPER_ALIGNMENT_VERDICT_20260710.md`
+11. `docs/ai-session-memory/MAAS_GENERATOR_PAPER_ALIGNMENT_AUDIT.md`
+12. `docs/ai-session-memory/MAAS_SECOND_DISTILLATION_PLAN.md`
+13. `docs/ai-session-memory/MAAS_VLM_PREFERENCE_SOURCE_AUDIT.md`
+14. `docs/ai-session-memory/SECOND_MASS_DISTILLATION/README.md`
+15. `docs/ai-session-memory/SECOND_MASS_DISTILLATION/HARNESS.md`
+16. `docs/ai-session-memory/MAAS_SYSTEMATIC_PAPER_REVIEW_PLAN.md`
+17. `docs/ai-session-memory/VERIFY.md`
 
 Older MAAS notes remain useful as history, but this index is the current handoff.
 

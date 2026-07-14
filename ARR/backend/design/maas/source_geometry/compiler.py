@@ -277,6 +277,28 @@ def _sequence_supports_declared_family(sequence: VerbSequence, declared_family: 
     return bool(verbs & family_verbs.get(declared_family, set()))
 
 
+def _graph_primary_family(component_graph: MassComponentGraph) -> str | None:
+    """Resolve the executable family from the graph's sole primary role.
+
+    LLM names and language notes are provenance, not execution authority.  A
+    graph whose primary is ``bend`` must not become an offset-box recipe just
+    because an optional support or its prose contains ``offset_twin_bar``.
+    """
+    primary = next((node for node in component_graph.nodes if node.role == "primary"), None)
+    if primary is None:
+        return None
+    return {
+        "bar": "slender_bar",
+        "array": "array_cluster",
+        "reflect": "reflected_pair",
+        "sloped_roof_mass": "sloped_roof",
+        "notch": "void_notch",
+        "cave": "void_notch",
+        "lift": "stepback_tower",
+        "step_envelope": "stepback_tower",
+    }.get(primary.operation.verb, _normalise_family_name(primary.operation.verb))
+
+
 def _param_float(
     params: dict[str, Any],
     key: str,
@@ -2389,7 +2411,10 @@ def _compile_component_graph_to_source_mass(
 
     declared_family = _declared_family(sequence)
     evolution_family = _evolution_family_override(sequence)
+    graph_primary_family = _graph_primary_family(component_graph) if is_graph_native(component_graph) else None
     effective_family = (
+        graph_primary_family
+        if graph_primary_family else
         evolution_family
         if evolution_family else
         declared_family

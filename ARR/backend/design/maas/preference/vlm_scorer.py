@@ -12,6 +12,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from .reference_paths import resolve_reference_image_path
+
 
 VLM_SCORE_SCHEMA_VERSION = "arr.maas.vlm_concept_scores.v1"
 DEFAULT_VLM_MODEL = "gpt-5.4-mini"
@@ -171,8 +173,11 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "use needs_carved_void when solid/void organization is missing. These actions must describe "
         "geometry changes for the next MassDSL generation, not legal or parking judgments.\n"
         "For graph_edits return only bounded genotype edits: set_parameter, replace_operation, add_operation, "
-        "remove_optional, or reparent. Keep unused string fields empty. add_operation must identify a new node_id, role, "
-        "and an existing parent_node_id. Geometry and hard gates will validate every edit.\n"
+        "remove_optional, or reparent. For numeric parameters use numeric_value and leave string_value empty. "
+        "For axis/side/corner/open_side/field_topology/vertical_mode use string_value. A replace_operation or "
+        "add_operation must be immediately followed by at least one valid set_parameter for the affected node; "
+        "empty-default topology edits are rejected. add_operation may add only support, void, or connector nodes, "
+        "and must identify a new node_id and an existing parent_node_id. Geometry and hard gates validate every edit.\n"
         f"Candidate JSON summary:\n{json.dumps(summary, ensure_ascii=False, sort_keys=True)}"
     )
 
@@ -200,26 +205,13 @@ def _reference_image_content(reference_matches: list[dict[str, Any]], *, limit: 
 def _reference_image_url(match: dict[str, Any]) -> str:
     local = str(match.get("local_path") or "")
     if local:
-        path = _resolve_existing_path(local)
+        path = resolve_reference_image_path(local)
         if path is not None:
             return _image_data_url(path)
     remote = str(match.get("image_url") or "")
     if remote.startswith(("http://", "https://", "data:")):
         return remote
     return ""
-
-
-def _resolve_existing_path(value: str) -> Path | None:
-    raw = Path(value)
-    candidates = [raw] if raw.is_absolute() else [
-        Path.cwd() / raw,
-        Path(__file__).resolve().parents[5] / raw,
-        Path(__file__).resolve().parents[6] / raw,
-    ]
-    for candidate in candidates:
-        if candidate.exists() and candidate.is_file():
-            return candidate
-    return None
 
 
 def _response_schema() -> dict[str, Any]:
@@ -279,7 +271,7 @@ def _response_schema() -> dict[str, Any]:
                     "additionalProperties": False,
                     "required": [
                         "operation", "target_node_id", "parent_node_id", "node_id", "role",
-                        "verb", "parameter_name", "numeric_value", "rationale",
+                        "verb", "parameter_name", "numeric_value", "string_value", "rationale",
                     ],
                     "properties": {
                         "operation": {"type": "string", "enum": ["set_parameter", "replace_operation", "add_operation", "remove_optional", "reparent"]},
@@ -290,6 +282,7 @@ def _response_schema() -> dict[str, Any]:
                         "verb": {"type": "string"},
                         "parameter_name": {"type": "string"},
                         "numeric_value": {"type": "number", "minimum": -70, "maximum": 70},
+                        "string_value": {"type": "string"},
                         "rationale": {"type": "string"},
                     },
                 },
@@ -336,6 +329,7 @@ def _normalize_vlm_result(data: dict[str, Any], *, model: str, response_id: str)
         "bridge": "diagonal_connect",
         "fold": "sloped_roof_mass",
         "sweep": "bend",
+        "terrace": "terrace_link",
     }
     for item in data.get("graph_edits") or []:
         if not isinstance(item, dict) or str(item.get("operation") or "") not in {
@@ -352,6 +346,7 @@ def _normalize_vlm_result(data: dict[str, Any], *, model: str, response_id: str)
             "verb": verb_aliases.get(verb, verb),
             "parameter_name": str(item.get("parameter_name") or "")[:64],
             "numeric_value": max(-70.0, min(70.0, float(item.get("numeric_value") or 0.0))),
+            "string_value": str(item.get("string_value") or "")[:64].strip().lower(),
             "rationale": str(item.get("rationale") or "")[:500],
         })
     return {

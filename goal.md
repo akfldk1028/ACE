@@ -2427,3 +2427,15 @@
 - Preserve module boundaries: morphology policy, archive policy, GRL audit,
   parametric sweep, site design field, formal materializer and law/parking
   projection must remain replaceable independently.
+
+### v74 visual failure correction (2026-07-14)
+
+- Graph-native primary role is now the executable source-family authority;
+  labels and optional support operations cannot turn a primary bend into an
+  offset/array box recipe.
+- Branched fields use one unioned clean legal/FAR solid plus editable profiled
+  trunk/arm surfaces. Same-PNU v74 retains parallel 1 and branched 1 with zero
+  measured duplicate pairs and 10 capacity-target candidates.
+- v74 is still an honest 17/20 visual/technical fail. The accepted PNG remains
+  too rectilinear, folded 1 and stepped 1 are missing, and legal/parking is
+  `not_run`. Do not mark massing complete or competition-grade from this result.

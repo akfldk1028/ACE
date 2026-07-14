@@ -52,7 +52,10 @@ def build_ribbon_design_field(footprint: Polygon, params: dict[str, Any]) -> Rib
     # strips on a 40 m parcel: attractive as lines, but incapable of carrying
     # neighborhood floor area. Keep the parameter authored while enforcing an
     # occupiable early-massing range for this building-scale operator.
-    width_ratio = _number(params, ("lane_width_ratio", "bar_ratio", "width_ratio"), 0.10, 0.075, 0.11)
+    # Keep this boundary identical to grammar.parameter_schema.  Search can
+    # then thicken an authored field to meet a program's coverage/FAR target
+    # instead of every candidate silently saturating at the old 0.11 cap.
+    width_ratio = _number(params, ("lane_width_ratio", "bar_ratio", "width_ratio"), 0.10, 0.075, 0.22)
     explicit_curvature = any(key in params for key in ("curvature", "distance_ratio", "shift_ratio"))
     curvature = _number(params, ("curvature", "distance_ratio", "shift_ratio"), 0.08, -0.18, 0.18)
     if not explicit_curvature:

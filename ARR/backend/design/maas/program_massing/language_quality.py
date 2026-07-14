@@ -13,7 +13,7 @@ from math import sqrt
 from statistics import mean
 from typing import Any
 
-from shapely.ops import unary_union
+from .geometry_safety import safe_unary_union
 
 
 def assess_language_geometry(source: Any, feature: dict[str, Any], language_group: str) -> dict[str, Any]:
@@ -86,8 +86,8 @@ def assess_language_geometry(source: Any, feature: dict[str, Any], language_grou
         return evidence
 
     if language_group == "cluster_field":
-        union = unary_union([volume.footprint for volume in volumes])
-        component_count = len(getattr(union, "geoms", (union,)))
+        union = safe_unary_union([volume.footprint for volume in volumes])
+        component_count = len(getattr(union, "geoms", (union,))) if union is not None else 0
         areas = [float(volume.footprint.area) for volume in volumes]
         dominant = max(areas, default=0.0) / max(sum(areas), 1e-9)
         passed = 3 <= len(volumes) <= 4 and component_count >= 3 and 0.22 <= dominant <= 0.58
@@ -141,7 +141,7 @@ def _assess_bridge(volumes: list[Any], evidence: dict[str, Any]) -> dict[str, An
     ]
     bodies = [volume for volume in volumes if volume not in connectors]
     elevated = [volume for volume in connectors if float(volume.bottom_fraction) >= 0.30]
-    body_union = unary_union([volume.footprint for volume in bodies]) if bodies else None
+    body_union = safe_unary_union([volume.footprint for volume in bodies])
     body_components = len(getattr(body_union, "geoms", (body_union,))) if body_union is not None else 0
     connector_touch_count = 0
     if connectors and bodies:

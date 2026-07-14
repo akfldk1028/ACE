@@ -4,13 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from shapely.geometry import shape
-from shapely.ops import unary_union
-
 from design.maas.grammar.sequence_library import SEQUENCES
 from design.maas.grammar.verb_sequence import VerbSequence
 
 from .graph_composer import composed_creative_graphs
+from .geometry_safety import repaired_volume_records, safe_unary_union
 
 
 def creative_seed_sequences() -> tuple[VerbSequence, ...]:
@@ -42,11 +40,13 @@ def creative_seed_sequences() -> tuple[VerbSequence, ...]:
 def attach_creative_mass_evidence(feature: dict[str, Any], *, site_area_m2: float) -> dict[str, Any]:
     """Score form coherence and legibility before any building-use projection."""
     props = feature.setdefault("properties", {})
-    records = [item for item in props.get("mass_volumes") or [] if isinstance(item, dict) and item.get("geometry")]
-    geometries = [shape(item["geometry"]) for item in records]
+    repaired = repaired_volume_records(feature)
+    records = [record for record, _ in repaired]
+    geometries = [geometry for _, geometry in repaired]
     areas = [float(item.area) for item in geometries]
     total_area = sum(areas)
-    union_area = float(unary_union(geometries).area) if geometries else 0.0
+    union = safe_unary_union(geometries)
+    union_area = float(union.area) if union is not None and not union.is_empty else 0.0
     coverage = union_area / max(float(site_area_m2), 1e-9)
     dominant = max(areas, default=0.0) / max(total_area, 1e-9)
     top_levels = {round(float(item.get("top_height") or 0.0), 2) for item in records}

@@ -2217,3 +2217,106 @@ Verification known at this checkpoint:
 - Separate field-topology coverage tests also pass.
 - The full `design.test_maas_program_massing` module previously exceeded the
   244-second command window; do not convert that timeout into a full-suite pass.
+
+## 2026-07-14 v68-v74 clean-selector and unioned branched-field correction
+
+Read this section before rerunning the current full PNU loop.
+
+Verified failure chain:
+
+- v68 had a surface-aware three-view metric but 16/20 technical failures and
+  visually repeated boxes.
+- v69 fixed graph-envelope search mutation, graph-native primary cardinality,
+  Windows/WSL reference paths and VLM graph-edit validation. It selected 15
+  but still contained three duplicate pairs.
+- v70 separated descriptor and silhouette hard gates. It honestly returned
+  13/20 with zero duplicate pairs.
+- v71/v73 exposed invalid Shapely polygons at multiple scoring boundaries.
+  `program_massing/geometry_safety.py` is now the shared repair/union boundary;
+  do not reintroduce raw population-wide `unary_union` calls.
+- v73b selected 17/20 with zero near/morphology/silhouette repeats, but final
+  topology coverage was parallel 1 / branched 0. Direct PNG review remained
+  box-heavy.
+
+Root causes fixed after v73b:
+
+1. Graph-native semantics were still partly positional. A shared
+   `primary_operation_from_sequence()` now resolves the component whose graph
+   role is `primary`; selectors and descriptor semantics no longer assume
+   `calls[1]`.
+2. More importantly, the compiler allowed filename/`mass_language` hints such
+   as `offset_twin_bar` to override an explicit primary `bend`. A graph-native
+   primary operation now determines the executable source family. Prose and
+   support operations remain provenance/secondary intent.
+3. The parameter schema allowed a larger ribbon width than the author and
+   design-field boundaries. `lane_width_ratio` now has one shared 0.045-0.22
+   typed contract, allowing capacity search to produce occupiable 8-10 m bars
+   on the real small parcel without coordinate templates.
+4. A branched continuous field used to serialize trunk plus two arms as three
+   overlapping legal solids. Widening them triggered collision gates and read
+   as LEGO fragments. The legal/FAR proxy is now one unioned branched solid;
+   editable trunk/arm roof and facade quad strips remain separate VLM/render
+   surface patches.
+5. The formal compiler's unconditional three-volume minimum discarded this
+   clean solid and silently restored the legacy two-box bend fallback. A
+   continuous field may now have one legal solid when profiled surface specs
+   are present.
+6. Program spatial evaluation previously treated every single solid as
+   dominant ratio 1.0 and hierarchy 0. A narrowly scoped exception now uses
+   executable profiled patch count for hierarchy/dominance only when the
+   continuous-surface hard evidence passes. Ordinary single boxes receive no
+   exception.
+
+Minimal same-PNU audit before the full run:
+
+- The three live-authored branched-bend repair seeds originally produced zero
+  accepted mutations out of 132.
+- After the source-family/union/spatial fixes, 64 clean program candidates
+  survive, 21 reach normalized FAR utilization >= 0.70, maximum utilization is
+  0.7708, and every survivor is `continuous_field / branched` with one visible
+  legal volume and coherence 1.0.
+
+Latest full artifact:
+
+- `docs/playwright/design-route-live-verify/maas-neighborhood-vlm-a2a-v74-primary-unioned-branch.json`
+- sibling `.png`, `-accepted-only.png`, `-grl.json`, and VLM score cache.
+- Real PNU `1168011800104170004`, VWorld live 264.13 m2 parcel and east road.
+- Raw / clean / capacity pools: 3,784 / 2,411 / 1,944.
+- VLM parents 23, critic children 17, selected 17/20.
+- Final groups: continuous 2, carved 6, stepped 2, bridge 3, cluster 2,
+  folded 1, calm 1. Missing quotas: folded 1 and stepped 1.
+- Capacity target met by 10 selected candidates. Parallel 1 / branched 1 final
+  topology coverage passes. Near, intrinsic-morphology and silhouette repeat
+  pairs are all empty.
+- The selected branched candidate has one legal volume, 44 profiled surfaces,
+  FAR utilization 0.8165 and VLM design score 0.6883.
+- The author cache was a real `gpt-5.4-mini` cache hit (3 ms); reference corpus
+  count remains 274. Geometry-changed candidates were keyed separately in the
+  VLM cache.
+
+Honest direct PNG verdict:
+
+- Card 2 is materially improved: a single joined branching/curved mass, not
+  three overlapping blocks. The parallel profiled field and several terrace/
+  bridge candidates remain legible.
+- Roughly half the board is still conservative rectilinear court, bar, box or
+  stepback language. The folded candidate is weak. This is not ArchDaily/BIG/
+  competition-grade completion and the 17/20 status must stay red.
+- The offline loop took about 1,100 seconds. It is an archive-improvement batch
+  job, not a synchronous service path. Production should consume a verified
+  graph archive and perform bounded site adaptation/legal projection.
+- `legal_projection_status` is still `not_run`. Neo4j being off did not cause
+  the geometry failures; the PNU/VWorld/source-geometry path works without it.
+
+Next work, without weakening gates:
+
+1. Generate a targeted live replenishment for genuinely distinct folded roof
+   and stepped landform graphs using v74 feedback; do not refill with rotations
+   or another court box.
+2. Add stage timing and descriptor/silhouette memoization. The full loop grows
+   slower as the clean archive grows.
+3. Run the resulting accepted graph archive through the deterministic service
+   legal/FAR/parking path and measure geometry retention. Do not infer legal or
+   parking pass from the offline board.
+4. Continue direct PNG review. Counts, VLM pass and zero duplicates remain
+   necessary but insufficient for a competition-grade claim.

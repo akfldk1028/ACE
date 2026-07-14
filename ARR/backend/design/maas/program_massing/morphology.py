@@ -12,11 +12,12 @@ from functools import lru_cache
 from math import atan2, degrees
 
 from shapely.affinity import rotate, scale, translate
-from shapely.geometry import Polygon
-from shapely.ops import unary_union
+from shapely.geometry import Polygon, box
 from shapely.wkb import loads as load_wkb
 
 from design.maas.source_geometry.ir import SourceMass
+from .geometry_safety import safe_unary_union
+from .visual_silhouette import visual_silhouette_distance
 
 
 LayeredFootprint = tuple[Polygon, float, float]
@@ -31,6 +32,11 @@ class MorphologyNoveltyPolicy:
     same_principle_repeat: float = 0.28
     same_topology_repeat: float = 0.30
     graph_audit_neighbor: float = 0.35
+    # Surface-aware top/front/side distance has a different scale from the
+    # former proxy-volume-only metric. 0.10 still rejects exact/twin box
+    # collapses (~0.00-0.03) while retaining genuinely different folded and
+    # profiled sections (>0.12 in the audited author population).
+    visual_silhouette_repeat: float = 0.10
 
     def repeat_kind(
         self,
@@ -65,6 +71,37 @@ def intrinsic_shape_distance(left: SourceMass, right: SourceMass) -> tuple[float
     return intrinsic_shape_distance_from_keys(left_key, right_key)
 
 
+def intrinsic_silhouette_distance(left: SourceMass, right: SourceMass) -> float:
+    """Compare pose-invariant top/front/side mass silhouettes.
+
+    Legal proxy volumes can have different roles or internal partitions while
+    reading as the same building in a review board. This metric deliberately
+    ignores labels and compares the three dominant orthographic figures.
+    """
+    return visual_silhouette_distance(left, right)
+
+
+@lru_cache(maxsize=131_072)
+def intrinsic_silhouette_distance_from_keys(
+    left_key: MorphologyKey,
+    right_key: MorphologyKey,
+) -> float:
+    left_volumes = _principal_frame_from_key(left_key)
+    right_variants = _symmetry_variants_from_key(right_key)
+    if not left_volumes or not right_variants:
+        return 1.0
+    left_views = _orthographic_silhouettes(left_volumes)
+    best = 1.0
+    for transformed in right_variants:
+        right_views = _orthographic_silhouettes(transformed)
+        distances = [
+            float(left.symmetric_difference(right).area) / max(float(left.union(right).area), 1e-9)
+            for left, right in zip(left_views, right_views)
+        ]
+        best = min(best, distances[0] * 0.40 + distances[1] * 0.30 + distances[2] * 0.30)
+    return min(1.0, best)
+
+
 @lru_cache(maxsize=131_072)
 def intrinsic_shape_distance_from_keys(
     left_key: MorphologyKey,
@@ -75,11 +112,15 @@ def intrinsic_shape_distance_from_keys(
     right_variants = _symmetry_variants_from_key(right_key)
     if not left_volumes or not right_variants:
         return 1.0, 1.0
-    left_plan = unary_union([footprint for footprint, _, _ in left_volumes])
+    left_plan = safe_unary_union([footprint for footprint, _, _ in left_volumes])
+    if left_plan is None:
+        return 1.0, 1.0
     best_volume = best_plan = 1.0
     best_joint = float("inf")
     for transformed in right_variants:
-        right_plan = unary_union([footprint for footprint, _, _ in transformed])
+        right_plan = safe_unary_union([footprint for footprint, _, _ in transformed])
+        if right_plan is None:
+            continue
         plan_union = left_plan.union(right_plan)
         plan_distance = float(left_plan.symmetric_difference(right_plan).area) / max(
             float(plan_union.area),
@@ -119,8 +160,8 @@ def _principal_frame_from_key(key: MorphologyKey) -> tuple[LayeredFootprint, ...
     footprints = [footprint for footprint, _, _ in volumes]
     if not footprints:
         return ()
-    union = unary_union(footprints)
-    if union.is_empty:
+    union = safe_unary_union(footprints)
+    if union is None or union.is_empty:
         return ()
     rectangle = union.minimum_rotated_rectangle
     coordinates = list(rectangle.exterior.coords)
@@ -173,6 +214,21 @@ def dihedral_transform(footprint: Polygon, *, angle: float, mirror_x: bool) -> P
     return transformed
 
 
+def _orthographic_silhouettes(
+    volumes: tuple[LayeredFootprint, ...] | list[LayeredFootprint],
+) -> tuple[Polygon, Polygon, Polygon]:
+    top = safe_unary_union([footprint for footprint, _, _ in volumes]) or Polygon()
+    front = safe_unary_union([
+        box(footprint.bounds[0], bottom, footprint.bounds[2], top_fraction)
+        for footprint, bottom, top_fraction in volumes
+    ]) or Polygon()
+    side = safe_unary_union([
+        box(footprint.bounds[1], bottom, footprint.bounds[3], top_fraction)
+        for footprint, bottom, top_fraction in volumes
+    ]) or Polygon()
+    return top, front, side
+
+
 def layered_volume_distance(left: list[LayeredFootprint], right: list[LayeredFootprint]) -> float:
     levels = sorted({
         round(value, 6)
@@ -188,8 +244,8 @@ def layered_volume_distance(left: list[LayeredFootprint], right: list[LayeredFoo
         middle = (lower + upper) / 2.0
         left_active = [footprint for footprint, bottom, top in left if bottom <= middle < top]
         right_active = [footprint for footprint, bottom, top in right if bottom <= middle < top]
-        left_slice = unary_union(left_active) if left_active else None
-        right_slice = unary_union(right_active) if right_active else None
+        left_slice = safe_unary_union(left_active)
+        right_slice = safe_unary_union(right_active)
         if left_slice is None and right_slice is None:
             continue
         if left_slice is None:
@@ -209,6 +265,8 @@ __all__ = [
     "MorphologyNoveltyPolicy",
     "intrinsic_shape_distance",
     "intrinsic_shape_distance_from_keys",
+    "intrinsic_silhouette_distance",
+    "intrinsic_silhouette_distance_from_keys",
     "principal_frame_volumes",
     "source_morphology_key",
 ]

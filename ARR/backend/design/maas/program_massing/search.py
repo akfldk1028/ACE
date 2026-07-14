@@ -3,19 +3,18 @@
 from __future__ import annotations
 
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from shapely.geometry import Polygon, mapping
-from shapely.ops import unary_union
-
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
-from design.maas.grammar.component_graph import graph_from_sequence
+from design.maas.grammar.component_graph import graph_from_sequence, primary_operation_from_sequence
 from design.maas.source_geometry import compile_sequence_to_source_mass
 from design.maas.source_geometry.ir import SourceMass
 
 from .assembly import component_mutation_limits, load_component_assemblies
 from .creative import attach_creative_mass_evidence, creative_seed_sequences
+from .geometry_safety import safe_unary_union
 from .morphology import intrinsic_shape_distance
 from .scoring import attach_program_massing_evidence
 from .sequences import program_seed_sequences
@@ -294,7 +293,9 @@ def _descriptor_distance(left: ProgramElite, right: ProgramElite) -> float:
         props = item.feature["properties"]
         evidence = props.get("creative_mass_evidence") or props.get("program_spatial_evidence") or {}
         signature = item.source.signature()
-        union = unary_union([volume.footprint for volume in item.source.volumes])
+        union = safe_unary_union([volume.footprint for volume in item.source.volumes])
+        if union is None or union.is_empty:
+            return (0.0,) * 8
         envelope = union.minimum_rotated_rectangle
         envelope_area = max(float(envelope.area), 1e-9)
         compactness = min(1.0, float(union.area) / envelope_area)
@@ -321,8 +322,8 @@ def _descriptor_distance(left: ProgramElite, right: ProgramElite) -> float:
     volume_distance, plan_distance = intrinsic_shape_distance(left.source, right.source)
     scalar_distance = min(1.0, sum((x - y) ** 2 for x, y in zip(a, b)) ** 0.5 / 1.35)
     geometric = volume_distance * 0.55 + plan_distance * 0.25 + scalar_distance * 0.20
-    left_primary = left.sequence.calls[1].verb if len(left.sequence.calls) > 1 else "base"
-    right_primary = right.sequence.calls[1].verb if len(right.sequence.calls) > 1 else "base"
+    left_primary = primary_operation_from_sequence(left.sequence).verb
+    right_primary = primary_operation_from_sequence(right.sequence).verb
     left_roles = {str(volume.role).split("_graph_", 1)[0] for volume in left.source.volumes}
     right_roles = {str(volume.role).split("_graph_", 1)[0] for volume in right.source.volumes}
     role_union = left_roles | right_roles
@@ -359,8 +360,8 @@ def _volumetric_distance(left: SourceMass, right: SourceMass) -> float:
         middle = (lower + upper) / 2.0
         left_active = [volume.footprint for volume in left.volumes if volume.bottom_fraction <= middle < volume.top_fraction]
         right_active = [volume.footprint for volume in right.volumes if volume.bottom_fraction <= middle < volume.top_fraction]
-        left_slice = unary_union(left_active) if left_active else None
-        right_slice = unary_union(right_active) if right_active else None
+        left_slice = safe_unary_union(left_active)
+        right_slice = safe_unary_union(right_active)
         if left_slice is None and right_slice is None:
             continue
         if left_slice is None:
@@ -460,12 +461,33 @@ def _with_overrides(seed: VerbSequence, overrides: dict[str, float], generation:
         changes = {key[len(prefix):]: value for key, value in overrides.items() if key.startswith(prefix)}
         if changes:
             calls[call_index] = VerbCall(operation.verb, {**operation.params, **changes})
-    return VerbSequence(
-        name=f"{seed.name}__search_g{generation}_{index}",
-        label=seed.label,
-        calls=tuple(calls),
-        notes=seed.notes + (f"{stage}_component_search=bounded_generate_evaluate_select",),
+    # Graph-native sequences carry the executable genotype in the
+    # ``component_graph_json`` note. Rebuilding only the flat calls leaves that
+    # envelope unchanged, so the compiler reads the parent graph and thousands
+    # of apparent search mutations become geometry-identical no-ops. Update
+    # node operations and reserialize one canonical graph envelope.
+    graph = graph_from_sequence(seed)
+    if len(graph.nodes) != len(calls):
+        # This should be impossible for a valid V2 envelope, but returning an
+        # explicitly invalid-free flat sequence is safer than indexing the
+        # wrong node. Compiler validation remains the final boundary.
+        return VerbSequence(
+            name=f"{seed.name}__search_g{generation}_{index}",
+            label=seed.label,
+            calls=tuple(calls),
+            notes=graph.notes + (f"{stage}_component_search=bounded_generate_evaluate_select",),
+        )
+    name = f"{seed.name}__search_g{generation}_{index}"
+    revised_graph = replace(
+        graph,
+        name=name,
+        nodes=tuple(
+            replace(node, operation=operation)
+            for node, operation in zip(graph.nodes, calls)
+        ),
+        notes=graph.notes + (f"{stage}_component_search=bounded_generate_evaluate_select",),
     )
+    return revised_graph.to_sequence(name=name)
 
 
 def _extract_overrides(sequence: VerbSequence) -> dict[str, float]:

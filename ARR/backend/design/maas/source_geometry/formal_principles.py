@@ -13,6 +13,7 @@ from typing import Any
 
 from shapely.affinity import rotate, scale, translate
 from shapely.geometry import MultiPolygon, Polygon, box
+from shapely.ops import unary_union
 
 from .design_fields import build_ribbon_design_field
 from .ir import SourceVolume
@@ -317,6 +318,22 @@ def compile_formal_principle_volumes(
                     split_index / max(point_count - 1, 1),
                     1.0,
                 ))
+            # A branch is one continuous occupiable solid, not three
+            # translucent boxes that happen to overlap.  Keep the individual
+            # trunk/arm surface specs for the profiled roof and VLM evidence,
+            # but union their conservative legal/FAR proxy into one volume.
+            branch_pieces = [piece for piece in pieces if piece is not None]
+            if branch_pieces:
+                merged = _clean_piece(
+                    "primary_branched_ribbon_field",
+                    unary_union([piece.footprint for piece in branch_pieces]),
+                    min(piece.bottom_fraction for piece in branch_pieces),
+                    max(piece.top_fraction for piece in branch_pieces),
+                    "bend",
+                    clip=footprint,
+                    min_area=min_area,
+                )
+                pieces = [merged] if merged is not None else branch_pieces
         else:
             pieces = []
             for index, (path, half_width, width_profile, band) in enumerate(zip(
@@ -487,7 +504,12 @@ def compile_formal_principle_volumes(
         ]
 
     volumes = tuple(piece for piece in pieces if piece is not None)
-    if len(volumes) < 3:
+    # A continuous field may be one watertight/unioned legal solid while its
+    # trunk and arms remain separate editable surface patches.  Requiring
+    # three solids here silently discarded that clean representation and sent
+    # it back to the legacy two-box bend fallback.
+    minimum_volume_count = 1 if principle == "continuous_ribbon_field" else 3
+    if len(volumes) < minimum_volume_count:
         return None
     roles = [volume.role for volume in volumes]
     genome_strategy_evidence = {

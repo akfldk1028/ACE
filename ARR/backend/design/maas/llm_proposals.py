@@ -385,7 +385,7 @@ def _normalise_params(verb: str, params: dict[str, Any]) -> dict[str, Any]:
         # candidate to the same maximum-width ribbon.
         if width > 0.20:
             width *= 0.12
-        normalised["lane_width_ratio"] = round(_clamp(width, 0.075, 0.11), 4)
+        normalised["lane_width_ratio"] = round(_clamp(width, 0.075, 0.22), 4)
         normalised["vertical_overlap"] = round(
             _clamp(_safe_float(normalised.get("vertical_overlap"), 0.22), 0.16, 0.30),
             4,
@@ -715,11 +715,13 @@ def _prompt(
         "Do not emit more than one undercut_tapered_tower, stacked_shifted_platforms, or simple slab stack in this batch. "
         "If a focused family is sectional, make the sectional move legible through diagonal_connect, terrace_link, or sloped_roof_mass rather than a stair-step envelope. "
         f"Supported verbs: {verbs}.\n"
-        "Every candidate must start with a root/base node and contain 4 to 6 graph nodes. Every call is a graph node: provide a unique node_id, "
+        "Every candidate must start with one root/base node, contain exactly one primary node, and contain 4 to 6 graph nodes total. "
+        "Every later operation must be support, void, or connector; never label a second operation as primary. "
+        "Every call is a graph node: provide a unique node_id, "
         "an earlier parent_node_id (empty only for root), an architectural role, and a typed relation. Branch voids, "
         "bridges, and supports from their actual host instead of describing a flat operation chain. At least half the batch must contain "
         "two non-root nodes that share the same parent. For bend candidates, include lane_count 2-3, occupiable half-width "
-        "lane_width_ratio 0.075-0.11, vertical_overlap 0.16-0.30, "
+        "lane_width_ratio 0.075-0.22, vertical_overlap 0.16-0.30, "
         "vertical_mode exactly terraced or grounded, curvature -0.18 to 0.18, "
         "field_topology exactly parallel or branched, branch_point_ratio 0.22-0.58, and an intentional variable-width profile using "
         "width_start_ratio 0.45-1.35, width_mid_ratio 0.65-1.55, width_end_ratio 0.45-1.35, and width_wave -0.28 to 0.28. "
@@ -789,6 +791,8 @@ def _feedback_prompt_payload(feedback: dict[str, Any]) -> dict[str, Any]:
         "reference_precedent_targets": feedback.get("reference_precedent_targets") or [],
         "reference_language_briefs": feedback.get("reference_language_briefs") or [],
         "reference_signal_diagnosis": feedback.get("reference_signal_diagnosis") or {},
+        "required_field_topologies": feedback.get("required_field_topologies") or {},
+        "field_topology_repair": feedback.get("field_topology_repair") or {},
         "top_candidate_brief": (feedback.get("top_candidate_brief") or [])[:5],
         "bottom_candidate_brief": (feedback.get("bottom_candidate_brief") or [])[:5],
         "critic_actions": feedback.get("critic_actions") or {},
@@ -999,6 +1003,64 @@ def _validate_batch(
         raise LlmProposalError(f"LLM proposal must include at least {min_candidates} candidates")
 
 
+def _field_topology_counts(data: dict[str, Any]) -> dict[str, int]:
+    counts = {"parallel": 0, "branched": 0}
+    for record in data.get("candidates") or []:
+        if not isinstance(record, dict):
+            continue
+        calls = [item for item in record.get("calls") or [] if isinstance(item, dict)]
+        primary = next((item for item in calls if item.get("role") == "primary"), None)
+        if primary is None:
+            primary = next((item for item in calls if item.get("verb") != "base"), None)
+        for item in (primary,):
+            if not isinstance(item, dict) or item.get("verb") != "bend":
+                continue
+            raw = item.get("params")
+            if isinstance(raw, str):
+                try:
+                    params = json.loads(raw)
+                except json.JSONDecodeError:
+                    params = {}
+            else:
+                params = raw if isinstance(raw, dict) else {}
+            topology = str(params.get("field_topology") or "parallel").strip().lower()
+            topology = topology if topology in counts else "parallel"
+            counts[topology] += 1
+    return counts
+
+
+def _missing_requested_field_topologies(
+    data: dict[str, Any],
+    generation_feedback: dict[str, Any] | None,
+) -> dict[str, int]:
+    requested = (
+        generation_feedback.get("required_field_topologies")
+        if isinstance(generation_feedback, dict)
+        and isinstance(generation_feedback.get("required_field_topologies"), dict)
+        else {}
+    )
+    counts = _field_topology_counts(data)
+    return {
+        topology: int(required) - counts.get(topology, 0)
+        for topology, required in requested.items()
+        if topology in counts
+        and isinstance(required, int | float)
+        and counts.get(topology, 0) < int(required)
+    }
+
+
+def _validate_requested_field_topologies(
+    data: dict[str, Any],
+    generation_feedback: dict[str, Any] | None,
+) -> None:
+    missing = _missing_requested_field_topologies(data, generation_feedback)
+    if missing:
+        raise LlmProposalError(
+            "LLM author batch missed required executable field topologies: "
+            f"missing={missing}, counts={_field_topology_counts(data)}"
+        )
+
+
 def build_site_context(
     *,
     site_area_m2: float,
@@ -1170,8 +1232,18 @@ def generate_llm_massdsl_batch(
             merged["combination_rules"].extend(batch_data.get("combination_rules") or [])
             merged["candidates"].extend(batch_data.get("candidates") or [])
 
-        def request_llm_batch(batch_label: int | str, count: int, attempts: int) -> tuple[dict[str, Any] | None, Exception | None, dict[str, Any]]:
-            batch_messages = _prompt(site_context, count, batch_index=batch_label, generation_feedback=generation_feedback)
+        def request_llm_batch(
+            batch_label: int | str,
+            count: int,
+            attempts: int,
+            feedback_override: dict[str, Any] | None = None,
+        ) -> tuple[dict[str, Any] | None, Exception | None, dict[str, Any]]:
+            batch_messages = _prompt(
+                site_context,
+                count,
+                batch_index=batch_label,
+                generation_feedback=feedback_override or generation_feedback,
+            )
             metadata = {
                 "prompt_hash": _stable_hash(batch_messages),
                 "message_count": len(batch_messages),
@@ -1231,6 +1303,8 @@ def generate_llm_massdsl_batch(
                 try:
                     parsed = json.loads(raw_text)
                     _validate_batch(parsed, min_candidates=count, min_palette=3, min_rules=2)
+                    if feedback_override and feedback_override.get("field_topology_repair"):
+                        _validate_requested_field_topologies(parsed, feedback_override)
                     return parsed, None, metadata
                 except (json.JSONDecodeError, LlmProposalError) as exc:
                     last_error = exc
@@ -1297,6 +1371,41 @@ def generate_llm_massdsl_batch(
                 })
                 continue
             merge_batch_data(batch_data)
+        missing_field_topologies = _missing_requested_field_topologies(merged, generation_feedback)
+        if missing_field_topologies:
+            repair_feedback = dict(generation_feedback or {})
+            repair_feedback["field_topology_repair"] = {
+                "missing": missing_field_topologies,
+                "instruction": (
+                    "This supplemental batch is accepted only if every candidate uses bend as its sole primary node "
+                    "with field_topology='branched'. Use one joined trunk and occupiable branches, not parallel bars; "
+                    "branch may appear only as an optional support operation."
+                ),
+            }
+            repair_feedback["required_field_topologies"] = {
+                "parallel": 0,
+                "branched": max(1, sum(missing_field_topologies.values())),
+            }
+            repair_count = max(3, sum(missing_field_topologies.values()) + 2)
+            repair_data, repair_error, repair_metadata = request_llm_batch(
+                "field-topology-repair",
+                repair_count,
+                max_attempts,
+                feedback_override=repair_feedback,
+            )
+            prompt_hashes.append(str(repair_metadata.get("prompt_hash") or ""))
+            for response_id in repair_metadata.get("response_ids") or []:
+                raw_response["batch_ids"].append(response_id)
+                raw_response["id"] = response_id
+            if repair_data is not None:
+                merge_batch_data(repair_data)
+            else:
+                batch_errors.append({
+                    "batch_index": "field-topology-repair",
+                    "attempts": max_attempts,
+                    "error": str(repair_error),
+                })
+        _validate_requested_field_topologies(merged, generation_feedback)
         if len(merged["language_palette"]) < 30:
             needed_palette = 30 - len(merged["language_palette"])
             merged["language_palette"].extend([
@@ -1349,6 +1458,7 @@ def generate_llm_massdsl_batch(
         batch_focuses = [_batch_focus_payload(1, target_count)]
     if not isinstance(data, dict):
         raise LlmProposalError("LLM proposal response must be a JSON object")
+    _validate_requested_field_topologies(data, generation_feedback)
     if allow_deterministic_coverage_repair:
         _ensure_family_coverage(data)
     _validate_batch(data, min_candidates=target_count)

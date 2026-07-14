@@ -182,17 +182,24 @@ def _housing_unit_schedule(value: Any) -> list[dict[str, Any]]:
 
 def load_parking_requirement_rules(*, options: dict[str, Any] | None = None) -> dict[str, Any]:
     opts = options or {}
-    if str(os.getenv("MAAS_DISABLE_PARKING_NEO4J", "")).strip().lower() in {"1", "true", "yes", "on"}:
+    disabled = str(os.getenv("MAAS_DISABLE_PARKING_NEO4J", "")).strip().lower() in {"1", "true", "yes", "on"}
+    enabled = str(os.getenv("MAAS_ENABLE_PARKING_NEO4J", "")).strip().lower() in {"1", "true", "yes", "on"}
+    explicit_graph = bool(_string_or_none(opts.get("neo4j_uri"))) or bool(opts.get("use_neo4j"))
+    # Local reviewed JSON is the deterministic service source. A graph lookup
+    # is an opt-in enrichment; merely having a PNU must not turn every massing
+    # request into a blocking network dependency.
+    if disabled or not (enabled or explicit_graph):
         fallback = _load_structured_seed_rules()
         if fallback:
             return {
                 "status": "loaded",
                 "rules": fallback,
                 "source": "local_structured_seed",
-                "graph_status": "disabled",
-                "graph_reason": "MAAS_DISABLE_PARKING_NEO4J=1",
+                "graph_status": "disabled" if disabled else "not_requested",
+                "graph_reason": "MAAS_DISABLE_PARKING_NEO4J=1" if disabled else "Neo4j parking enrichment was not requested",
             }
-        return {"status": "graph_disabled", "reason": "MAAS_DISABLE_PARKING_NEO4J=1 and no local seed rules found"}
+        reason = "MAAS_DISABLE_PARKING_NEO4J=1" if disabled else "Neo4j parking enrichment was not requested"
+        return {"status": "graph_disabled", "reason": f"{reason} and no local seed rules found"}
     uri = _string_or_none(opts.get("neo4j_uri")) or os.getenv("NEO4J_URI") or DEFAULT_NEO4J_URI
     user = _string_or_none(opts.get("neo4j_user")) or os.getenv("NEO4J_USER") or "neo4j"
     password = _string_or_none(opts.get("neo4j_password"))

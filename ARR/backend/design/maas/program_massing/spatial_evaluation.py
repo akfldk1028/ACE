@@ -8,16 +8,18 @@ from shapely.geometry import shape
 from shapely.ops import unary_union
 
 from .profiles import resolve_program_profile
+from .semantic_projection import project_spatial_roles
 
 
 ROLE_GROUPS = {
     "housing": (("living_",), ("entry_core", "circulation_bridge", "gateway"), ("north_living", "south_living", "west_living", "east_living", "podium", "gateway", "cantilever")),
     "cafe": (("room",), ("canopy", "roof"), ("service", "hearth", "court_room_west")),
+    "neighborhood_living": (("primary_",), ("podium", "terrace", "platform", "ribbon"), ("tower", "folded", "shifted", "upper", "canopy", "lane_2")),
     "gymnasium": (("main", "hall"), ("service",), ("entry", "daylight", "monitor", "canopy")),
 }
 
-DOMINANT_RANGES = {"housing": (0.28, 0.58), "cafe": (0.38, 0.74), "gymnasium": (0.62, 0.90)}
-COVERAGE_RANGES = {"housing": (0.28, 0.72), "cafe": (0.22, 0.62), "gymnasium": (0.48, 0.84)}
+DOMINANT_RANGES = {"housing": (0.28, 0.58), "cafe": (0.38, 0.74), "neighborhood_living": (0.38, 0.82), "gymnasium": (0.62, 0.90)}
+COVERAGE_RANGES = {"housing": (0.28, 0.72), "cafe": (0.22, 0.62), "neighborhood_living": (0.38, 0.92), "gymnasium": (0.48, 0.84)}
 
 
 def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: str, site_area_m2: float | None = None) -> dict[str, Any]:
@@ -33,15 +35,28 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
     dominant = max(areas, default=0.0) / max(total_component_area, 1e-9)
     roles = [str(item.get("role") or "").lower() for item in records]
     groups = ROLE_GROUPS.get(profile_id, ())
-    role_hits = [any(any(token in role for token in group) for role in roles) for group in groups]
+    role_projection = project_spatial_roles(feature)
+    if profile_id == "neighborhood_living":
+        role_hits = [
+            bool(role_projection["primary_mass_present"]),
+            bool(role_projection["active_ground_mass_present"]),
+            bool(role_projection["public_spatial_gesture_present"]),
+        ]
+    else:
+        role_hits = [any(any(token in role for token in group) for role in roles) for group in groups]
     role_score = sum(role_hits) / len(role_hits) if role_hits else 0.6
     top_levels = {round(float(item.get("top_height") or 0.0), 2) for item in records}
     bottom_levels = {round(float(item.get("bottom_height") or 0.0), 2) for item in records}
     hierarchy_score = min(1.0, (len(top_levels) - 1) / 2 + (0.2 if len(bottom_levels) > 1 else 0.0))
-    dominant_score = _range_score(dominant, DOMINANT_RANGES.get(profile_id, (0.3, 0.85)))
-    coverage_score = _range_score(coverage, COVERAGE_RANGES.get(profile_id, (0.2, 0.85)))
     signature = props.get("source_signature") if isinstance(props.get("source_signature"), dict) else {}
     coherence = signature.get("coherence_evidence") if isinstance(signature.get("coherence_evidence"), dict) else {}
+    dominant_score = _range_score(dominant, DOMINANT_RANGES.get(profile_id, (0.3, 0.85)))
+    if bool(coherence.get("intentional_cluster_exception")):
+        # A balanced 3-4 member field intentionally has no 38% dominant
+        # object. Judge its hierarchy by the expected 1/n share rather than a
+        # monolithic-building range; all other spatial hard gates still bind.
+        dominant_score = max(dominant_score, _range_score(dominant, (0.20, 0.42)))
+    coverage_score = _range_score(coverage, COVERAGE_RANGES.get(profile_id, (0.2, 0.85)))
     coherence_score = float(coherence.get("score") or 0.0)
     score = role_score * 0.34 + dominant_score * 0.20 + coverage_score * 0.18 + hierarchy_score * 0.14 + coherence_score * 0.14
     evidence = {
@@ -49,6 +64,7 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         "profile_id": profile_id,
         "roles": roles,
         "required_role_hits": role_hits,
+        "spatial_role_projection": role_projection,
         "role_coverage_score": round(role_score, 3),
         "dominant_component_ratio": round(dominant, 3),
         "dominant_ratio_score": round(dominant_score, 3),

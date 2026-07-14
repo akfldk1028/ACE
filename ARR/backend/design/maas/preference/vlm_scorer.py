@@ -133,25 +133,46 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "primary_language": source.get("primary_language"),
         "secondary_language": source.get("secondary_language"),
         "reference_matches": reference_matches[:5],
+        "component_graph": props.get("component_graph") or {},
+        "site_boundary_source": props.get("site_boundary_source"),
+        "site_access_context": props.get("site_access_context") or {},
+        "site_design_field": ambition.get("site_design_field") or source.get("site_design_field"),
     }
     return (
         "Score this MAAS candidate four-view PNG as an early-stage architectural massing diagram. "
         "Reject a form when it is coherent in only one view or when solids visibly collide across views.\n"
+        "When a thin green polygon is present it is the actual parcel boundary. Judge whether the dominant "
+        "gesture, open-space figure, and orientation respond coherently to that parcel; do not reward a mass "
+        "that merely fills a bounding box. Parcel containment itself remains a deterministic hard gate.\n"
+        "A thick blue segment marks the verified primary road frontage/access edge. Reward a public void, "
+        "court, undercut, entry seam, or other legible ground response to that edge; penalize a sealed or "
+        "semantically opposite access response.\n"
         "The first image is the candidate. Any following images are external architectural reference images "
         "retrieved from the reference corpus. Use them only as massing-quality precedent signals; do not reward "
         "facade rendering, photography quality, materials, or direct copying.\n"
-        "Return strict JSON. Each concept score must be between 0 and 1.\n"
+        "Return strict JSON. Each concept score must be between 0 and 1. Use component_graph node_id values "
+        "when proposing graph edits; do not invent parcel coordinates.\n"
         "Concepts:\n"
         "- gesture_clarity: one readable dominant massing idea.\n"
         "- hierarchy: clear main/support relationship, not random fragments.\n"
-        "- non_stair_silhouette: avoids relying mainly on stepback/stair massing.\n"
+        "- non_stair_silhouette (legacy field name): score silhouette resolution, not a blanket ban on steps. "
+        "Give a high score to a coherent capacity-bearing stepped landform, inhabited terrace section, or one "
+        "continuous cascading mass. Give a low score only to repetitive code-minimum stepbacks, arbitrary cake tiers, "
+        "or stairs without program/ground/void consequence.\n"
         "- void_publicness: meaningful void/courtyard/undercut/open ground logic.\n"
         "- repair_integrity: visually coherent and likely not over-clipped by legal repair.\n"
         "- precedent_resonance: resonates with reference massing principles without copying.\n"
         "Critic actions: return any applicable structured actions from this set: "
         "too_fragmented, weak_primary_mass, needs_clean_anchor, too_many_surface_pieces, overlapping_volumes, "
-        "good_void, good_step_mass, preserve_dominant_gesture. These actions must describe "
+        "too_box_like, weak_form_continuity, needs_profiled_surface, needs_carved_void, "
+        "good_void, good_step_mass, preserve_dominant_gesture. Use too_box_like when the proposal is mainly "
+        "generic rectangular extrusion/stacking; use weak_form_continuity when pieces do not form one spatial "
+        "rule; use needs_profiled_surface for a flat roof/section that should become folded or ribbon-like; "
+        "use needs_carved_void when solid/void organization is missing. These actions must describe "
         "geometry changes for the next MassDSL generation, not legal or parking judgments.\n"
+        "For graph_edits return only bounded genotype edits: set_parameter, replace_operation, add_operation, "
+        "remove_optional, or reparent. Keep unused string fields empty. add_operation must identify a new node_id, role, "
+        "and an existing parent_node_id. Geometry and hard gates will validate every edit.\n"
         f"Candidate JSON summary:\n{json.dumps(summary, ensure_ascii=False, sort_keys=True)}"
     )
 
@@ -206,7 +227,7 @@ def _response_schema() -> dict[str, Any]:
     return {
         "type": "object",
         "additionalProperties": False,
-        "required": ["concept_scores", "rationale", "warnings", "critic_actions"],
+        "required": ["concept_scores", "rationale", "warnings", "critic_actions", "graph_edits"],
         "properties": {
             "concept_scores": {
                 "type": "object",
@@ -240,10 +261,37 @@ def _response_schema() -> dict[str, Any]:
                         "needs_clean_anchor",
                         "too_many_surface_pieces",
                         "overlapping_volumes",
+                        "too_box_like",
+                        "weak_form_continuity",
+                        "needs_profiled_surface",
+                        "needs_carved_void",
                         "good_void",
                         "good_step_mass",
                         "preserve_dominant_gesture",
                     ],
+                },
+            },
+            "graph_edits": {
+                "type": "array",
+                "maxItems": 6,
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": [
+                        "operation", "target_node_id", "parent_node_id", "node_id", "role",
+                        "verb", "parameter_name", "numeric_value", "rationale",
+                    ],
+                    "properties": {
+                        "operation": {"type": "string", "enum": ["set_parameter", "replace_operation", "add_operation", "remove_optional", "reparent"]},
+                        "target_node_id": {"type": "string"},
+                        "parent_node_id": {"type": "string"},
+                        "node_id": {"type": "string"},
+                        "role": {"type": "string", "enum": ["", "primary", "support", "void", "connector"]},
+                        "verb": {"type": "string"},
+                        "parameter_name": {"type": "string"},
+                        "numeric_value": {"type": "number", "minimum": -70, "maximum": 70},
+                        "rationale": {"type": "string"},
+                    },
                 },
             },
         },
@@ -266,6 +314,7 @@ def _normalize_vlm_result(data: dict[str, Any], *, model: str, response_id: str)
     actions = [str(item) for item in data.get("critic_actions") or [] if str(item) in {
         "too_fragmented", "weak_primary_mass", "needs_clean_anchor",
         "too_many_surface_pieces", "overlapping_volumes", "good_void", "good_step_mass",
+        "too_box_like", "weak_form_continuity", "needs_profiled_surface", "needs_carved_void",
         "preserve_dominant_gesture",
     }]
     if scores["hierarchy"] < 0.55:
@@ -277,6 +326,34 @@ def _normalize_vlm_result(data: dict[str, Any], *, model: str, response_id: str)
     if scores["gesture_clarity"] >= 0.75 and scores["hierarchy"] >= 0.70:
         actions.append("preserve_dominant_gesture")
     actions = list(dict.fromkeys(actions))
+    graph_edits = []
+    # Critic language is intentionally architectural, while the executable
+    # genotype has a smaller typed vocabulary.  Translate common architectural
+    # edit words at this single boundary instead of silently dropping them in
+    # the graph reviser.
+    verb_aliases = {
+        "carve": "courtyard",
+        "bridge": "diagonal_connect",
+        "fold": "sloped_roof_mass",
+        "sweep": "bend",
+    }
+    for item in data.get("graph_edits") or []:
+        if not isinstance(item, dict) or str(item.get("operation") or "") not in {
+            "set_parameter", "replace_operation", "add_operation", "remove_optional", "reparent",
+        }:
+            continue
+        verb = str(item.get("verb") or "")[:48].strip().lower()
+        graph_edits.append({
+            "operation": str(item.get("operation") or ""),
+            "target_node_id": str(item.get("target_node_id") or "")[:80],
+            "parent_node_id": str(item.get("parent_node_id") or "")[:80],
+            "node_id": str(item.get("node_id") or "")[:80],
+            "role": str(item.get("role") or ""),
+            "verb": verb_aliases.get(verb, verb),
+            "parameter_name": str(item.get("parameter_name") or "")[:64],
+            "numeric_value": max(-70.0, min(70.0, float(item.get("numeric_value") or 0.0))),
+            "rationale": str(item.get("rationale") or "")[:500],
+        })
     return {
         "schema_version": VLM_SCORE_SCHEMA_VERSION,
         "provider": "openai",
@@ -286,6 +363,7 @@ def _normalize_vlm_result(data: dict[str, Any], *, model: str, response_id: str)
         "rationale": str(data.get("rationale") or ""),
         "warnings": [str(item) for item in data.get("warnings") or []],
         "critic_actions": actions,
+        "graph_edits": graph_edits[:6],
     }
 
 

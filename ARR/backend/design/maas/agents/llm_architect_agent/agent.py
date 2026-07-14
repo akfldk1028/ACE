@@ -100,6 +100,27 @@ class LLMArchitectAgent:
     display_name = "LLM Architect Agent"
     role = "Own LLM-authored architectural language before MassDSL validation."
 
+    def propose_population(self, *, site_context: dict[str, Any], **kwargs: Any):
+        """Generate the live architectural-language population owned by this agent.
+
+        Keeping the OpenAI adapter in ``llm_proposals`` preserves provider
+        modularity, while this method makes the runtime ownership match the
+        documented multi-agent flow instead of using the agent only as a
+        post-hoc reviewer.
+        """
+        from design.maas.llm_proposals import LlmProposalBatch, generate_llm_massdsl_batch
+
+        batch = generate_llm_massdsl_batch(site_context=site_context, **kwargs)
+        artifact = dict(batch.artifact)
+        artifact.update({
+            "owning_agent": self.agent_id,
+            "agent_operation": "architectural_language_population_proposal",
+            "site_geometry_status": str(
+                (site_context.get("site_geometry_intelligence") or {}).get("status") or "missing"
+            ),
+        })
+        return LlmProposalBatch(artifact=artifact, sequences=batch.sequences)
+
     def run(self, context: AgentContext) -> AgentResult:
         review = build_llm_architect_review(context.feature)
         return AgentResult(

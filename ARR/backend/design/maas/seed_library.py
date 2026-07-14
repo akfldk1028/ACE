@@ -38,9 +38,19 @@ def generate_seed_variants(
         ))
         variants.extend(generate_grammar_variants(envelope.buildable_footprint, building_type=building_type))
         variants.extend(generate_morphology_variants(envelope.buildable_footprint))
-    variants.extend(generate_grammar_variants(base_footprint, building_type=building_type))
-    variants.extend(generate_morphology_variants(base_footprint))
-    return variants
+    else:
+        variants.extend(generate_grammar_variants(base_footprint, building_type=building_type))
+        variants.extend(generate_morphology_variants(base_footprint))
+    # The same complete grammar/morphology library used to be evaluated once
+    # on the legal buildable footprint and again on the incoming seed. Their
+    # operator ids are identical, so downstream diversity selection retained
+    # at most one while every expensive geometry/parking/VLM stage paid twice.
+    # In legal ALT mode the buildable-envelope version is appended first and
+    # is the correct capacity anchor; preserve that deterministic precedence.
+    unique: dict[str, MorphologyVariant] = {}
+    for variant in variants:
+        unique.setdefault(str(variant.operator), variant)
+    return list(unique.values())
 
 
 def seed_library_metadata() -> dict[str, Any]:

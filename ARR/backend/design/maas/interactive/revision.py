@@ -7,8 +7,9 @@ from dataclasses import replace
 from typing import Any
 
 from design.maas.grammar.component_graph import MassComponentGraph, MassComponentNode
-from design.maas.grammar.component_graph import graph_from_sequence
+from design.maas.grammar.component_graph import graph_from_dict, graph_from_sequence
 from design.maas.grammar.verb_sequence import VerbCall
+from design.maas.grammar.parameter_schema import PARAMETER_BOUNDS, bounded_parameter
 from design.maas.legal_mesh_optimizer import (
     _apply_source_volumes_as_mass_geometry,
     _architectural_order_gate,
@@ -25,21 +26,6 @@ from .revision_evaluation import evaluate_reference_revision
 
 REVISION_SCHEMA_VERSION = "arr.maas.conversational_revision.v1"
 ALLOWED_OPERATION_TYPES = {"set_parameter", "scale_parameter", "remove_optional_node"}
-PARAMETER_BOUNDS = {
-    "factor": (0.18, 0.90),
-    "ratio": (0.12, 0.90),
-    "upper_ratio": (0.18, 0.95),
-    "top_ratio": (0.18, 0.95),
-    "width_ratio": (0.10, 0.90),
-    "depth_ratio": (0.10, 0.90),
-    "slab_ratio": (0.12, 0.70),
-    "distance_ratio": (-0.34, 0.34),
-    "shift_ratio": (-0.34, 0.34),
-    "angle": (-55.0, 55.0),
-    "n": (2.0, 4.0),
-}
-
-
 def infer_graph_operations(graph: MassComponentGraph, instruction: str) -> list[dict[str, Any]]:
     """Translate a small, deterministic conversational vocabulary into one bounded edit."""
     text = str(instruction or "").strip().lower()
@@ -69,38 +55,8 @@ def infer_graph_operations(graph: MassComponentGraph, instruction: str) -> list[
     return []
 
 
-def graph_from_dict(data: dict[str, Any]) -> MassComponentGraph:
-    if not isinstance(data, dict) or not isinstance(data.get("nodes"), list):
-        raise ValueError("component_graph.nodes is required")
-    nodes: list[MassComponentNode] = []
-    for item in data["nodes"]:
-        operation = item.get("operation") if isinstance(item, dict) else None
-        if not isinstance(operation, dict) or not operation.get("verb"):
-            raise ValueError("every component node requires operation.verb")
-        nodes.append(MassComponentNode(
-            node_id=str(item.get("node_id") or ""),
-            role=str(item.get("role") or "support"),
-            parent_id=str(item["parent_id"]) if item.get("parent_id") is not None else None,
-            optional=bool(item.get("optional")),
-            operation=VerbCall(str(operation["verb"]), dict(operation.get("params") or {})),
-            constraints=dict(item.get("constraints") or {}),
-        ))
-    graph = MassComponentGraph(
-        name=str(data.get("name") or "conversational_revision"),
-        label=str(data.get("label") or "Conversational revision"),
-        nodes=tuple(nodes),
-        notes=tuple(str(note) for note in data.get("notes") or ()),
-    )
-    errors = graph.validate()
-    if errors:
-        raise ValueError("invalid component graph: " + "; ".join(errors))
-    return graph
-
-
 def _bounded_parameter(name: str, value: float) -> float:
-    low, high = PARAMETER_BOUNDS.get(name, (-10_000.0, 10_000.0))
-    value = max(low, min(high, float(value)))
-    return int(round(value)) if name == "n" else round(value, 4)
+    return bounded_parameter(name, value)
 
 
 def _reference_provenance(reference: dict[str, Any]) -> dict[str, Any]:

@@ -8,13 +8,16 @@ in a flat list.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field, replace
 from typing import Any, Iterable
 
 from .verb_sequence import VerbCall, VerbSequence
 
 
-GRAPH_SCHEMA_VERSION = "arr.maas.component_graph.v1"
+GRAPH_SCHEMA_VERSION = "arr.maas.component_graph.v2"
+LEGACY_GRAPH_SCHEMA_VERSION = "arr.maas.component_graph.v1"
+GRAPH_NOTE_PREFIX = "component_graph_json="
 
 PRIMARY_VERBS = {"base", "bar", "extrude", "taper", "stack", "grade", "inset", "expand"}
 VOID_VERBS = {"notch", "cave", "courtyard", "puncture", "pinch", "embed", "nest"}
@@ -41,6 +44,7 @@ class MassComponentNode:
     parent_id: str | None = None
     optional: bool = False
     constraints: dict[str, Any] = field(default_factory=dict)
+    relation: str = "attach"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -50,6 +54,7 @@ class MassComponentNode:
             "optional": self.optional,
             "operation": self.operation.to_dict(),
             "constraints": dict(self.constraints),
+            "relation": self.relation,
         }
 
 
@@ -76,34 +81,94 @@ class MassComponentGraph:
                 errors.append(f"node {node.node_id}: parent must precede child")
             if node.role in {"void", "connector", "support"} and node.parent_id is None:
                 errors.append(f"node {node.node_id}: {node.role} requires a parent")
+            if node.relation not in {"attach", "input", "connect", "deform", "subtract"}:
+                errors.append(f"node {node.node_id}: unsupported relation {node.relation!r}")
             known.add(node.node_id)
         if len(self.nodes) > 6:
             errors.append("component graph exceeds six-node early-massing budget")
         return errors
 
     def to_sequence(self, *, name: str | None = None) -> VerbSequence:
+        # VerbSequence is still used by older service boundaries.  Carry the
+        # complete graph as an explicit envelope so a critic-authored branch is
+        # not silently flattened on the next compile/search pass.
+        graph_note = GRAPH_NOTE_PREFIX + json.dumps(
+            self.to_dict(include_validation=False),
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
         return VerbSequence(
             name or self.name,
             self.label,
             tuple(node.operation for node in self.nodes),
-            self.notes + ("component_graph=arr.maas.component_graph.v1",),
+            tuple(note for note in self.notes if not note.startswith(GRAPH_NOTE_PREFIX))
+            + (f"component_graph={GRAPH_SCHEMA_VERSION}", graph_note),
         )
 
-    def to_dict(self) -> dict[str, Any]:
-        return {
+    def to_dict(self, *, include_validation: bool = True) -> dict[str, Any]:
+        data = {
             "schema_version": GRAPH_SCHEMA_VERSION,
             "name": self.name,
             "label": self.label,
+            "notes": list(self.notes),
             "nodes": [node.to_dict() for node in self.nodes],
             "edges": [
-                {"parent": node.parent_id, "child": node.node_id, "relation": node.role}
+                {"parent": node.parent_id, "child": node.node_id, "relation": node.relation}
                 for node in self.nodes if node.parent_id is not None
             ],
-            "validation_errors": self.validate(),
         }
+        if include_validation:
+            data["validation_errors"] = self.validate()
+        return data
+
+
+def graph_from_dict(data: dict[str, Any]) -> MassComponentGraph:
+    """Parse both V1 and V2 graph payloads at one audited boundary."""
+    if not isinstance(data, dict) or not isinstance(data.get("nodes"), list):
+        raise ValueError("component_graph.nodes is required")
+    nodes: list[MassComponentNode] = []
+    for item in data["nodes"]:
+        operation = item.get("operation") if isinstance(item, dict) else None
+        if not isinstance(operation, dict) or not operation.get("verb"):
+            raise ValueError("every component node requires operation.verb")
+        role = str(item.get("role") or "support")
+        relation = str(item.get("relation") or ("subtract" if role == "void" else "connect" if role == "connector" else "attach"))
+        nodes.append(MassComponentNode(
+            node_id=str(item.get("node_id") or ""),
+            role=role,
+            parent_id=str(item["parent_id"]) if item.get("parent_id") is not None else None,
+            optional=bool(item.get("optional")),
+            operation=VerbCall(str(operation["verb"]), dict(operation.get("params") or {})),
+            constraints=dict(item.get("constraints") or {}),
+            relation=relation,
+        ))
+    graph = MassComponentGraph(
+        name=str(data.get("name") or "component_graph"),
+        label=str(data.get("label") or "Component graph"),
+        nodes=tuple(nodes),
+        notes=tuple(str(note) for note in data.get("notes") or ()),
+    )
+    errors = graph.validate()
+    if errors:
+        raise ValueError("invalid component graph: " + "; ".join(errors))
+    return graph
 
 
 def graph_from_sequence(sequence: VerbSequence) -> MassComponentGraph:
+    for note in reversed(sequence.notes):
+        if not note.startswith(GRAPH_NOTE_PREFIX):
+            continue
+        try:
+            graph = graph_from_dict(json.loads(note[len(GRAPH_NOTE_PREFIX):]))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            break
+        return MassComponentGraph(
+            name=sequence.name,
+            label=sequence.label,
+            nodes=graph.nodes,
+            notes=tuple(item for item in sequence.notes if not item.startswith(GRAPH_NOTE_PREFIX) and not item.startswith("component_graph=")),
+        )
     nodes: list[MassComponentNode] = []
     previous_id = "root"
     for index, operation in enumerate(sequence.calls):
@@ -129,6 +194,7 @@ def graph_from_sequence(sequence: VerbSequence) -> MassComponentGraph:
                 "requires_primary_support": role in {"support", "connector"},
                 "subtractive": role == "void",
             },
+            relation="subtract" if role == "void" else "connect" if role == "connector" else "attach",
         ))
         previous_id = node_id
     return MassComponentGraph(sequence.name, sequence.label, tuple(nodes), sequence.notes)
@@ -153,9 +219,11 @@ def strengthen_node(node: MassComponentNode) -> MassComponentNode:
 
 __all__ = [
     "GRAPH_SCHEMA_VERSION",
+    "GRAPH_NOTE_PREFIX",
     "MassComponentGraph",
     "MassComponentNode",
     "graph_from_sequence",
+    "graph_from_dict",
     "graph_with_nodes",
     "strengthen_node",
 ]

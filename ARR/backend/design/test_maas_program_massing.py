@@ -5,16 +5,102 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
-from shapely.geometry import box
+from shapely.affinity import rotate
+from shapely.geometry import Polygon, box
 
 from design.maas.grammar import generate_grammar_variants
 from design.maas.llm_proposals import build_site_context
+from design.maas.llm_proposals import LlmProposalBatch
+from design.maas.agents.llm_architect_agent import LLMArchitectAgent
 from design.maas.interactive.language_brain import propose_language_mutation
 from design.maas.program_massing import creative_archive_sequences, creative_seed_sequences, program_archive_sequences, program_search_prior, program_seed_sequences, resolve_program_profile
-from design.maas.program_massing.benchmark import run_creative_20_archive_benchmark, run_program_massing_benchmark
+from design.maas.program_massing.benchmark import run_creative_20_archive_benchmark, run_neighborhood_20_language_benchmark, run_program_massing_benchmark, run_site_adaptation_benchmark
+from design.maas.program_massing.vlm_a2a import _source_far_utilization
+from design.maas.source_geometry import compile_sequence_to_source_mass
+from design.maas.agents.orchestrator.generative_loop import CriticDirective, GraphEditDirective, run_generative_a2a_loop
+from design.maas.agents.llm_architect_agent.graph_revision import apply_critic_graph_edits
+from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 
 
 class MaasProgramMassingTest(SimpleTestCase):
+    def test_default_continuous_ribbon_is_an_occupiable_capacity_mass(self):
+        sequence = VerbSequence(
+            "llm_capacity_ribbon",
+            "occupiable layered ribbon",
+            (
+                VerbCall("base", {}),
+                VerbCall("bend", {"lane_count": 3, "vertical_overlap": 0.22, "curvature": 0.10}),
+            ),
+        )
+        source = compile_sequence_to_source_mass(box(0, 0, 60, 40), sequence)
+
+        self.assertIsNotNone(source)
+        utilization = _source_far_utilization(
+            source,
+            site_area=2400.0,
+            floors=5,
+            far_limit_ratio=3.0,
+        )
+        self.assertGreaterEqual(utilization, 0.70)
+        field = source.signature()["architectural_ambition_evidence"]["site_design_field"]
+        self.assertGreaterEqual(field["vertical_band_height"], 0.80)
+
+    def test_generative_a2a_loop_recompiles_typed_graph_edit(self):
+        initial = VerbSequence(
+            "agent_authored_initial",
+            "agent authored initial",
+            (VerbCall("base", {"proportion": "site"}), VerbCall("bar", {"axis": "x", "factor": 0.50})),
+        )
+        compiled_factors = []
+
+        def compile_candidate(sequence):
+            compiled_factors.append(float(sequence.calls[1].params["factor"]))
+            return {"type": "Feature", "geometry": None, "properties": {"variant_id": sequence.name, "factor": compiled_factors[-1]}}
+
+        def critic(feature):
+            if feature["properties"]["factor"] >= 0.70:
+                return CriticDirective(provider="test-vlm")
+            return CriticDirective(
+                actions=("weak_primary_mass",),
+                graph_edits=(GraphEditDirective(
+                    operation="set_parameter",
+                    target_node_id="primary_1_bar",
+                    parameter_name="factor",
+                    numeric_value=0.72,
+                    rationale="strengthen the primary street mass",
+                ),),
+                provider="test-vlm",
+            )
+
+        result = run_generative_a2a_loop(
+            context={"building_type": "근린생활시설"},
+            target_count=1,
+            author_population=lambda context: (initial,),
+            compile_candidate=compile_candidate,
+            hard_gate=lambda feature: True,
+            critic_agent=critic,
+            revise_graph=apply_critic_graph_edits,
+            quality_key=lambda feature: (feature["properties"]["factor"],),
+            select_archive=lambda features, count: sorted(features, key=lambda feature: feature["properties"]["factor"], reverse=True)[:count],
+            max_generations=3,
+        )
+        self.assertEqual(result.trace["status"], "completed")
+        self.assertEqual(compiled_factors, [0.5, 0.72])
+        self.assertEqual(result.archive[0]["properties"]["factor"], 0.72)
+
+    def test_gym_long_span_hall_materializes_a_real_ridge(self):
+        sequence = next(item for item in program_seed_sequences("체육관") if "long_span_hall" in item.name)
+        source = compile_sequence_to_source_mass(box(0, 0, 60, 40), sequence)
+        self.assertIsNotNone(source)
+        roofs = [
+            surface for surface in source.surfaces
+            if surface.surface_type == "profiled_formal_roof" and "main_long_span_hall" in surface.role
+        ]
+        self.assertEqual(len(roofs), 1)
+        self.assertGreaterEqual(len(roofs[0].vertices_m), 6)
+        self.assertGreaterEqual(len({round(vertex[2], 4) for vertex in roofs[0].vertices_m}), 2)
+        self.assertTrue(source.signature()["continuous_surface_evidence"]["hard_pass"])
+
     def test_building_use_aliases_resolve_to_distinct_profiles(self):
         self.assertEqual(resolve_program_profile("공동주택")["id"], "housing")
         self.assertEqual(resolve_program_profile("근린생활시설 카페")["id"], "cafe")
@@ -50,6 +136,50 @@ class MaasProgramMassingTest(SimpleTestCase):
         self.assertEqual(context["program_massing"]["search_prior"]["max_component_nodes"], 3)
         self.assertIn("hall_span_ratio", context["program_massing"]["search_prior"]["archive_descriptors"])
 
+    def test_llm_site_context_exposes_geometry_to_language_agent(self):
+        site = rotate(box(0, 0, 80, 30), 27, origin="centroid")
+        context = build_site_context(
+            site_area_m2=site.area,
+            building_type="cafe",
+            limits={"far": 200, "bcr": 60, "height": 24, "max_seed_floors": 5},
+            max_variants=20,
+            site_polygon=site,
+            access_context={"frontage": "southwest"},
+        )
+        intelligence = context["site_geometry_intelligence"]
+        self.assertEqual(intelligence["status"], "available")
+        self.assertAlmostEqual(abs(intelligence["dominant_axis_world_degrees"]), 27.0, delta=0.1)
+        self.assertAlmostEqual(intelligence["oriented_aspect_ratio"], 80 / 30, delta=0.01)
+        self.assertEqual(intelligence["access_context"]["frontage"], "southwest")
+
+        concave = Polygon([(0, 0), (60, 0), (60, 20), (25, 20), (25, 50), (0, 50)])
+        concave_context = build_site_context(
+            site_area_m2=concave.area,
+            building_type="cafe",
+            limits={},
+            max_variants=20,
+            site_polygon=concave,
+        )
+        self.assertTrue(concave_context["site_geometry_intelligence"]["is_concave"])
+        self.assertTrue(any("concavity" in item for item in concave_context["site_geometry_intelligence"]["design_directives"]))
+
+    def test_llm_architect_agent_owns_live_population_operation(self):
+        context = {
+            "site_geometry_intelligence": {"status": "available"},
+        }
+        with patch(
+            "design.maas.llm_proposals.generate_llm_massdsl_batch",
+            return_value=LlmProposalBatch(artifact={"status": "generated"}, sequences=()),
+        ):
+            batch = LLMArchitectAgent().propose_population(
+                site_context=context,
+                target_count=1,
+                response_override={},
+            )
+        self.assertEqual(batch.artifact["owning_agent"], "llm_architect_agent")
+        self.assertEqual(batch.artifact["agent_operation"], "architectural_language_population_proposal")
+        self.assertEqual(batch.artifact["site_geometry_status"], "available")
+
     def test_robotics_transfer_prior_is_program_specific_and_keeps_hard_gate_order(self):
         housing = program_search_prior("housing")
         gym = program_search_prior("gymnasium")
@@ -64,12 +194,14 @@ class MaasProgramMassingTest(SimpleTestCase):
                 output_png=Path(temporary) / "benchmark.png",
             )
         self.assertEqual(result["status"], "pass", result["failures"])
-        self.assertEqual(result["distinct_profile_fingerprint_count"], 3)
+        self.assertEqual(result["distinct_profile_fingerprint_count"], 2)
         self.assertGreaterEqual(result["mean_program_fit"], 0.75)
-        self.assertGreaterEqual(result["case_count"], 10)
-        self.assertGreaterEqual(sum(item["evaluated_count"] for item in result["search_reports"].values()), 300)
+        self.assertGreaterEqual(result["case_count"], 5)
+        self.assertGreaterEqual(sum(item["evaluated_count"] for item in result["search_reports"].values()), 200)
         self.assertGreater(sum(item["rejected_count"] for item in result["search_reports"].values()), 0)
         self.assertGreaterEqual(min(item["architectural_score"] for item in result["rows"]), 0.88)
+        self.assertLessEqual(max(item["surface_count"] for item in result["rows"]), 28)
+        self.assertLessEqual(max(item["volume_count"] for item in result["rows"]), 4)
 
     def test_creative_archive_precedes_program_and_legal_projection(self):
         with TemporaryDirectory() as temporary:
@@ -87,11 +219,36 @@ class MaasProgramMassingTest(SimpleTestCase):
         self.assertGreaterEqual(result["minimum_creative_score"], 0.75)
         self.assertTrue(all(item["hard_pass"] for item in result["rows"]))
 
+    def test_neighborhood_archive_has_twenty_grounded_clean_languages(self):
+        with TemporaryDirectory() as temporary:
+            result = run_neighborhood_20_language_benchmark(
+                output_json=Path(temporary) / "neighborhood-20.json",
+                output_png=Path(temporary) / "neighborhood-20.png",
+            )
+        self.assertEqual(result["status"], "pass", result["failures"])
+        self.assertEqual(result["selected_count"], 20)
+        self.assertGreaterEqual(result["topology_count"], 10)
+        self.assertGreaterEqual(result["formal_principle_count"], 6)
+        self.assertLessEqual(result["near_duplicate_pair_count"], 2)
+        self.assertTrue(all(row["grounded"] and row["hard_pass"] for row in result["rows"]))
+        self.assertLessEqual(max(row["surface_count"] for row in result["rows"]), 28)
+
     def test_creative_seeds_have_neutral_names(self):
         seeds = creative_seed_sequences()
         self.assertGreaterEqual(len(seeds), 20)
         self.assertTrue(all(item.name.startswith("creative_") for item in seeds))
         self.assertTrue(all("housing" not in item.name for item in seeds))
+
+    def test_site_adaptation_benchmark_uses_real_parcel_frames(self):
+        with TemporaryDirectory() as temporary:
+            result = run_site_adaptation_benchmark(
+                output_json=Path(temporary) / "site-adaptation.json",
+                output_png=Path(temporary) / "site-adaptation.png",
+            )
+        self.assertEqual(result["status"], "pass", result["failures"])
+        self.assertEqual(result["site_count"], 3)
+        self.assertEqual(result["language_count"], 4)
+        self.assertTrue(all(row["within_site"] for row in result["rows"]))
 
     def test_experimental_creative_archive_is_quarantined_from_live_pool(self):
         sequences = creative_archive_sequences(box(0, 0, 60, 40), target_count=20)

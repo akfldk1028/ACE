@@ -55,6 +55,12 @@ def _mutations(sequence: VerbSequence, actions: list[str], generation: int) -> l
     tail = list(sequence.calls[1:])
     notes = sequence.notes + (f"critic_generation={generation}", f"critic_actions={','.join(actions)}")
     candidates: list[VerbSequence] = []
+    numeric_params = {
+        key: float(value)
+        for call in tail
+        for key, value in call.params.items()
+        if isinstance(value, int | float) and not isinstance(value, bool)
+    }
     if any(action in actions for action in ("too_fragmented", "too_many_surface_pieces", "overlapping_volumes")) and tail:
         retained = [node for node in graph.nodes if not node.optional]
         if len(retained) == len(graph.nodes) and len(retained) > 2:
@@ -108,6 +114,43 @@ def _mutations(sequence: VerbSequence, actions: list[str], generation: int) -> l
             f"{sequence.label} critic podium tower",
             (base, taper),
             notes + ("critic_mutation=clean_podium_tower_anchor",),
+        ))
+    if any(action in actions for action in ("too_box_like", "weak_form_continuity", "needs_profiled_surface")):
+        # CAD-Assistant-style typed topology revision: the visual diagnosis is
+        # converted into a graph operation that the source compiler can render
+        # as a non-flat field. Parameters are inherited when possible and vary
+        # by critic generation; this is not a parcel-specific shape template.
+        angle = max(16.0, min(42.0, numeric_params.get("angle", 22.0 + generation * 4.0)))
+        lane_width = max(0.075, min(0.125, numeric_params.get("lane_width_ratio", 0.095 + generation * 0.006)))
+        curvature = max(0.045, min(0.16, abs(angle) / 260.0))
+        candidates.append(VerbSequence(
+            f"{sequence.name}__critic_ribbon_field_g{generation}",
+            f"{sequence.label} critic continuous ribbon field",
+            (base, VerbCall("bend", {
+                "lane_count": 3,
+                "field_samples": 5,
+                "lane_width_ratio": round(lane_width, 4),
+                "width_gradient": 0.20,
+                "curvature": round(curvature, 4),
+                "vertical_mode": "grounded",
+                "design_field_source": "vlm_critic_graph_edit",
+            })),
+            notes + ("critic_mutation=continuous_ribbon_field",),
+        ))
+        roof_x = max(0.56, min(0.82, numeric_params.get("x_ratio", 0.64 + generation * 0.04)))
+        candidates.append(VerbSequence(
+            f"{sequence.name}__critic_folded_field_g{generation}",
+            f"{sequence.label} critic folded section field",
+            (base, VerbCall("sloped_roof_mass", {"x_ratio": round(roof_x, 3), "y_ratio": 0.90})),
+            notes + ("critic_mutation=folded_section_field",),
+        ))
+    if "needs_carved_void" in actions:
+        void_ratio = max(0.18, min(0.42, numeric_params.get("ratio", 0.24 + generation * 0.03)))
+        candidates.append(VerbSequence(
+            f"{sequence.name}__critic_carved_void_g{generation}",
+            f"{sequence.label} critic carved public void",
+            (base, VerbCall("courtyard", {"ratio": round(void_ratio, 3), "upper_ratio": 0.84})),
+            notes + ("critic_mutation=carved_atrium",),
         ))
     unique: list[VerbSequence] = []
     seen: set[tuple[str, ...]] = set()

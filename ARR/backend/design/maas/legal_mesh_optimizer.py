@@ -29,8 +29,13 @@ from design.maas.diversity import (
     shape_signature,
 )
 from design.maas.design_quality import attach_design_quality_evidence
+from design.maas.capacity_policy import resolve_massing_capacity_policy as _massing_capacity_policy
+from design.maas.candidate_pipeline import build_bounded_review_pool
+from design.maas.generation_trace import GenerationTrace
+from design.maas.parking_stage import parking_repair_budget
 from design.maas.agents import build_agent_review_a2ui_messages, build_agent_reviews
 from design.maas.agents.grammar_critic_agent import build_grammar_review
+from design.maas.agents.llm_architect_agent import LLMArchitectAgent
 from design.maas.agents.massdsl_agent import build_massdsl_proposal
 from design.maas.floor_groups import build_floor_groups
 from design.maas.evolution import evolve_massdsl_islands, run_critic_geometry_loop
@@ -50,9 +55,9 @@ from design.maas.llm_proposals import (
     LLM_PARAMETER_SOURCE,
     LlmProposalError,
     build_site_context,
-    generate_llm_massdsl_batch,
 )
 from design.maas.morphology_operators import largest_polygon
+from design.maas.mass_brain import record_shadow_outcomes, request_shadow_variants
 from design.maas.paper_alignment import attach_paper_alignment_and_preference_evidence
 from design.maas.parking_requirements import (
     apply_parking_requirement_to_props,
@@ -331,10 +336,10 @@ TYPOLOGY_FIRST_FAMILIES = [
 ARCHITECTURAL_ORDER_POLICY = {
     "min_orderliness_score": 0.74,
     "min_main_mass_area_ratio": 0.30,
-    "max_source_surfaces": 36,
+    "max_source_surfaces": 28,
     "max_small_fragments": 1,
     "max_fragment_roles": 0,
-    "max_visible_volumes": 5,
+    "max_visible_volumes": 4,
     "max_plan_components": 2,
     # A clean rectangular or podium/tower anchor may legitimately be only two
     # volumes.  Requiring three here was manufacturing a decorative fragment
@@ -342,7 +347,13 @@ ARCHITECTURAL_ORDER_POLICY = {
     "min_visible_volumes": 2,
     "min_review_bcr_pct": 8.0,
     "min_review_far_pct": 12.0,
+    "min_review_far_utilization": 0.70,
 }
+
+def _feature_min_far_utilization(feature: dict[str, Any]) -> float:
+    props = feature.get("properties") or {}
+    capacity_policy = props.get("massing_capacity_policy") if isinstance(props.get("massing_capacity_policy"), dict) else {}
+    return float(capacity_policy.get("min_far_utilization", ARCHITECTURAL_ORDER_POLICY["min_review_far_utilization"]))
 
 CONCEPT_LABELS = {
     "legal_layered": "법규엔벨로프",
@@ -466,9 +477,12 @@ def _is_reviewable_architectural_mass(feature: dict[str, Any]) -> bool:
     if layout.get("status") == "fail":
         return False
     far = float(props.get("far") or 0.0)
+    far_utilization = float(props.get("far_utilization") or 0.0)
     bcr = float(props.get("bcr") or 0.0)
     shape = str(props.get("mass_shape") or "")
     if shape.startswith(("agent_", "llm_")) and (far < 20.0 or bcr < 8.0):
+        return False
+    if far_utilization and far_utilization < _feature_min_far_utilization(feature):
         return False
     if _is_agent_authored_candidate(feature) and _has_review_source_geometry(feature):
         min_dimension_limit = 1.5
@@ -607,7 +621,7 @@ def _design_review_quality_key(feature: dict[str, Any]) -> tuple[float, ...]:
         )
         else 0.0
     )
-    surface_count = float(signature.get("surface_count") or 0.0)
+    surface_count = float(signature.get("effective_surface_count") or signature.get("surface_count") or 0.0)
     visible_volume_count = _visible_volume_count(feature)
     clean_mass_pass = (
         surface_count <= float(ARCHITECTURAL_ORDER_POLICY["max_source_surfaces"])
@@ -618,14 +632,18 @@ def _design_review_quality_key(feature: dict[str, Any]) -> tuple[float, ...]:
         1.0 if _architectural_order_gate(feature)[0] else 0.0,
         1.0 if _has_review_source_geometry(feature) else 0.0,
         1.0 if clean_mass_pass else 0.0,
+        # Law, parking and capacity have already been hard-gated before this
+        # review key. Image-backed design quality must therefore participate
+        # before small differences in proxy program score; otherwise VLM runs
+        # but cannot change the final order.
+        1.0 if preference_vlm_scored(feature) else 0.0,
+        preference_score(feature),
         1.0 if program.get("hard_pass", True) else 0.0,
         float(program.get("program_fit_score") or 0.0),
         1.0 if coherence.get("hard_pass", True) else 0.0,
         float(coherence.get("score") or 0.0),
         -max(0.0, surface_count - float(ARCHITECTURAL_ORDER_POLICY["max_source_surfaces"])) / 32.0,
         -max(0.0, float(visible_volume_count - 5)) / 3.0,
-        1.0 if preference_vlm_scored(feature) else 0.0,
-        preference_score(feature),
         1.0 if _is_llm_authored_candidate(feature) else 0.0,
         1.0 if _is_direct_openai_llm_candidate(feature) else 0.0,
         1.0 if _is_agent_authored_candidate(feature) else 0.0,
@@ -664,6 +682,7 @@ def _architectural_order_gate(feature: dict[str, Any]) -> tuple[bool, tuple[str,
     signature = _source_signature(feature)
     coherence = signature.get("coherence_evidence") if isinstance(signature.get("coherence_evidence"), dict) else {}
     repair_delta = props.get("repair_delta") if isinstance(props.get("repair_delta"), dict) else {}
+    source_repair = props.get("source_volume_repair_delta") if isinstance(props.get("source_volume_repair_delta"), dict) else {}
     visual = props.get("visual_diversity_evidence") if isinstance(props.get("visual_diversity_evidence"), dict) else {}
     orderliness = props.get("orderliness_evidence") if isinstance(props.get("orderliness_evidence"), dict) else {}
     if not orderliness and isinstance(visual.get("orderliness_evidence"), dict):
@@ -678,10 +697,11 @@ def _architectural_order_gate(feature: dict[str, Any]) -> tuple[bool, tuple[str,
     small_fragments = int(orderliness.get("small_fragment_count") or 0)
     fragment_roles = int(orderliness.get("fragment_role_count") or 0)
     plan_components = int(orderliness.get("plan_component_count") or 1)
-    surface_count = int(signature.get("surface_count") or visual.get("source_primitive_count") or 0)
+    surface_count = int(signature.get("effective_surface_count") or signature.get("surface_count") or visual.get("source_primitive_count") or 0)
     volume_count = _visible_volume_count(feature)
     bcr = float(props.get("bcr") or 0.0)
     far = float(props.get("far") or 0.0)
+    far_utilization = float(props.get("far_utilization") or 0.0)
     family = _source_family(feature)
     shape = str(props.get("mass_shape") or "")
     implemented_roles = ambition.get("implemented_volume_roles") if isinstance(ambition.get("implemented_volume_roles"), list) else []
@@ -717,10 +737,14 @@ def _architectural_order_gate(feature: dict[str, Any]) -> tuple[bool, tuple[str,
         issues.append("disconnected_plan_fragments")
     if bcr < float(policy["min_review_bcr_pct"]) or far < float(policy["min_review_far_pct"]):
         issues.append("under_scaled_review_mass")
+    if far_utilization and far_utilization < _feature_min_far_utilization(feature):
+        issues.append("underused_legal_far_capacity")
     if coherence and not coherence.get("hard_pass"):
         issues.append("component_graph_coherence_failure")
     if repair_delta and float(repair_delta.get("area_retention") or 0.0) < 0.65:
         issues.append("severe_legal_repair_distortion")
+    if source_repair and float(source_repair.get("volume_retention") or source_repair.get("area_retention") or 0.0) < 0.80:
+        issues.append("source_language_lost_during_legal_projection")
     if volume_count < int(policy["min_visible_volumes"]) and family not in {"legal_layered", "slender_bar"}:
         issues.append("too_few_visible_volumes_for_language")
     if visual.get("unclear_language_mix") or orderliness.get("unclear_language_mix"):
@@ -956,7 +980,7 @@ def _normalized_feature_vector(feature: dict[str, Any]) -> tuple[float, ...]:
         float(signature_3d.get("volume_count") or 0.0) / 6.0,
         float(signature_3d.get("floor_plate_count") or 0.0) / 20.0,
         float(source_signature.get("volume_count") or 0.0) / 6.0,
-        float(source_signature.get("surface_count") or 0.0) / 32.0,
+        float(source_signature.get("effective_surface_count") or source_signature.get("surface_count") or 0.0) / 32.0,
         float(source_signature.get("upper_to_ground_ratio") or 0.0),
     )
 
@@ -1384,6 +1408,59 @@ def _research_review_floors(variant, repaired_floors: int, floor_height: float, 
     return max(1, min(max_legal, target))
 
 
+def _capacity_projected_floors(
+    footprint,
+    upper_footprint,
+    *,
+    lower_floor_fraction: float | None,
+    site_area_m2: float,
+    far_limit: float,
+    floor_height: float,
+    height_limit: float,
+) -> int:
+    """Choose the highest legal floor count below the FAR/height envelope.
+
+    Architectural language controls plan/section relationships; it must not
+    silently turn a legal-capacity ALT into a two-floor research maquette.
+    """
+    max_by_height = max(1, int(float(height_limit) / max(float(floor_height), 0.1)))
+    target_floor_area = max(0.0, float(site_area_m2) * float(far_limit) / 100.0)
+    ground_area = float(getattr(footprint, "area", 0.0) or 0.0)
+    upper_area = float(getattr(upper_footprint, "area", 0.0) or 0.0) if upper_footprint is not None else 0.0
+    fraction = float(lower_floor_fraction if lower_floor_fraction is not None else 0.5)
+    best_floors = 1
+    best_area = 0.0
+    for floors in range(1, max_by_height + 1):
+        if upper_footprint is not None and floors >= 2:
+            lower_floors = max(1, min(floors - 1, int(round(floors * fraction))))
+            floor_area = ground_area * lower_floors + upper_area * (floors - lower_floors)
+        else:
+            floor_area = ground_area * floors
+        if target_floor_area > 0 and floor_area > target_floor_area * 1.001:
+            continue
+        if floor_area >= best_area:
+            best_area = floor_area
+            best_floors = floors
+    return best_floors
+
+
+def _capacity_projected_floor_area(
+    footprint,
+    upper_footprint,
+    *,
+    floors: int,
+    lower_floor_fraction: float | None,
+) -> float:
+    """Cheap capacity estimate used before constructing full 3D evidence."""
+    ground_area = float(getattr(footprint, "area", 0.0) or 0.0)
+    upper_area = float(getattr(upper_footprint, "area", 0.0) or 0.0) if upper_footprint is not None else 0.0
+    if upper_footprint is None or floors < 2:
+        return ground_area * max(1, int(floors))
+    fraction = float(lower_floor_fraction if lower_floor_fraction is not None else 0.5)
+    lower_floors = max(1, min(int(floors) - 1, int(round(int(floors) * fraction))))
+    return ground_area * lower_floors + upper_area * (int(floors) - lower_floors)
+
+
 def _llm_loop_config(parking_options: dict[str, Any] | None) -> dict[str, Any]:
     options = parking_options or {}
     raw = options.get("maas_llm_loop") if isinstance(options.get("maas_llm_loop"), dict) else {}
@@ -1593,7 +1670,7 @@ def _orderliness_evidence(
     fragment_role_count = sum(1 for role in roles if FRAGMENT_ROLE_RE.search(role))
     main_mass_area_ratio = max_area / total_area
     primitive_count = int(source_signature.get("source_primitive_count") or 0)
-    surface_count = int(source_signature.get("surface_count") or 0)
+    surface_count = int(source_signature.get("effective_surface_count") or source_signature.get("surface_count") or 0)
     visible_volume_count = len(parsed)
     composition_roles = source_signature.get("composition_layer_roles")
     composition_count = len(composition_roles) if isinstance(composition_roles, list) else 0
@@ -1844,6 +1921,9 @@ def _apply_source_volumes_as_mass_geometry(feature: dict[str, Any]) -> bool:
     materialized_utms: list[Any] = []
     source_area_total = 0.0
     clipped_area_total = 0.0
+    source_volume_total = 0.0
+    clipped_volume_total = 0.0
+    weighted_iou_total = 0.0
     clipped_volume_count = 0
     for index, volume in enumerate(source_volumes):
         if not isinstance(volume, dict) or not isinstance(volume.get("geometry_utm"), dict):
@@ -1868,6 +1948,10 @@ def _apply_source_volumes_as_mass_geometry(feature: dict[str, Any]) -> bool:
         top_height = max(bottom_height, min(total_height, total_height * top_fraction))
         if top_height <= bottom_height:
             continue
+        band_height = top_height - bottom_height
+        source_volume_total += source_area * band_height
+        clipped_volume_total += clipped_area * band_height
+        weighted_iou_total += polygon_iou(source_geom, geom) * source_area * band_height
         materialized.append({
             "band": index,
             "bottom_height": round(bottom_height, 2),
@@ -1907,6 +1991,9 @@ def _apply_source_volumes_as_mass_geometry(feature: dict[str, Any]) -> bool:
         "source_area_m2": round(source_area_total, 2),
         "materialized_area_m2": round(clipped_area_total, 2),
         "area_retention": round(clipped_area_total / source_area_total, 4) if source_area_total > 0 else 1.0,
+        "volume_retention": round(clipped_volume_total / source_volume_total, 4) if source_volume_total > 0 else 1.0,
+        "weighted_plan_iou": round(weighted_iou_total / source_volume_total, 4) if source_volume_total > 0 else 1.0,
+        "language_retention_pass": bool(source_volume_total <= 0 or clipped_volume_total / source_volume_total >= 0.80),
         "clipped_volume_count": clipped_volume_count,
     }
     if isinstance(model, dict):
@@ -2313,7 +2400,7 @@ def _critic_objective_vector(feature: dict[str, Any]) -> tuple[float, ...]:
         float(order.get("orderliness_score") or 0.0),
         _repair_retention(feature),
         float(performance.get("aggregate_performance_proxy") or 0.0),
-        -float(signature.get("surface_count") or 0.0) / float(ARCHITECTURAL_ORDER_POLICY["max_source_surfaces"]),
+        -float(signature.get("effective_surface_count") or signature.get("surface_count") or 0.0) / float(ARCHITECTURAL_ORDER_POLICY["max_source_surfaces"]),
         -float(_visible_volume_count(feature)) / 4.0,
         -float(order.get("small_fragment_count") or 0.0),
         -float(order.get("plan_component_count") or 1.0),
@@ -3799,7 +3886,7 @@ def _select_diverse_features(
         1 for feature in by_score
         if str(feature["properties"].get("mass_shape") or "").startswith(("llm_", "agent_"))
     )
-    should_pin_legal_anchor = anchor is None and llm_design_count < max(4, limit // 2)
+    should_pin_legal_anchor = anchor is None
     if should_pin_legal_anchor:
         anchor = next((f for f in by_score if f["properties"].get("mass_shape") == "legal_layered_max"), None)
     if anchor is not None:
@@ -4414,6 +4501,8 @@ def generate_legal_mass_variants(
     parking_options: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return legal, diverse variants derived from a selected mass GeoJSON."""
+    generation_trace = GenerationTrace.from_environment()
+
     if mass_geojson.get("type") != "Feature":
         raise ValueError("mass_geojson must be a GeoJSON Feature")
 
@@ -4430,8 +4519,14 @@ def generate_legal_mass_variants(
         sunlight_envelope=sunlight_envelope,
         setback_geometries=setback_geometries,
     )
+    generation_trace.checkpoint("legal_envelope_ready")
     limits = envelope.limits
     max_seed_floors = envelope.max_seed_floors
+    capacity_policy = _massing_capacity_policy(
+        building_type=building_type,
+        site_area_m2=site_area_m2,
+        parking_options=parking_options,
+    )
 
     repaired_source, repaired_floors, source_actions = repair_design(
         source_utm, site_utm, max_seed_floors, limits,
@@ -4439,6 +4534,7 @@ def generate_legal_mass_variants(
     )
     if repaired_source is None:
         raise ValueError("source mass cannot be repaired into the site/legal envelope")
+    generation_trace.checkpoint("source_repair_ready")
 
     selected = []
     selected_polygons = []
@@ -4451,8 +4547,15 @@ def generate_legal_mass_variants(
     preference_ranked_pool: list[dict[str, Any]] = []
     evolution_trace_artifact: dict[str, Any] | None = None
     critic_geometry_loop_artifact: dict[str, Any] | None = None
+    mass_brain_shadow_artifact: dict[str, Any] = {
+        "schema_version": "arr.maas.mass_brain_shadow.v1",
+        "status": "not_requested",
+    }
+    mass_brain_proposals_by_operator: dict[str, dict[str, Any]] = {}
+    mass_brain_shadow_features: dict[str, dict[str, Any]] = {}
 
     layered_stack = build_floor_plate_stack(envelope, sunlight_envelope)
+    generation_trace.checkpoint("floor_plate_stack_ready", available=layered_stack is not None)
     if layered_stack is not None:
         source_iou = round(1.0 - diversity_score(layered_stack.footprint, [], repaired_source), 4)
         diversity = diversity_score(layered_stack.footprint, selected_polygons, repaired_source)
@@ -4484,6 +4587,7 @@ def generate_legal_mass_variants(
             bcr_utilization = min(1.0, props["bcr"] / envelope.bcr_limit) if envelope.bcr_limit > 0 else 0.0
             props["far_utilization"] = round(far_utilization, 4)
             props["bcr_utilization"] = round(bcr_utilization, 4)
+            props["massing_capacity_policy"] = dict(capacity_policy)
             props["maas_score"] = round(far_utilization * 0.52 + bcr_utilization * 0.30 + diversity * 0.18, 4)
             _attach_design_quality(feature, layered_stack.footprint)
             attach_program_massing_evidence(feature, building_type=building_type)
@@ -4496,6 +4600,7 @@ def generate_legal_mass_variants(
         include_interactive_seed=include_interactive_seed,
         building_type=building_type,
     )
+    generation_trace.checkpoint("seed_variants", count=len(variants))
     if llm_loop_config["enabled"] and not preferred_operator:
         generation_feedback = _load_generation_feedback(llm_loop_config)
         site_context = build_site_context(
@@ -4508,9 +4613,11 @@ def generate_legal_mass_variants(
                 "max_seed_floors": envelope.max_seed_floors,
             },
             max_variants=max_variants,
+            site_polygon=site_utm,
+            access_context=(parking_options or {}).get("road_context") or {},
         )
         try:
-            llm_batch = generate_llm_massdsl_batch(
+            llm_batch = LLMArchitectAgent().propose_population(
                 site_context=site_context,
                 target_count=int(llm_loop_config["target_count"]),
                 model=llm_loop_config["model"],
@@ -4573,19 +4680,40 @@ def generate_legal_mass_variants(
             base_footprint=repaired_source,
             seed_sequences=seed_sequences,
             interpret=interpret_sequence,
-            # Expand the deterministic topology search without allowing the
-            # much larger morphology seed pool to grow unbounded.
-            # Twenty final alternatives need enough clean, pairwise-separated
-            # candidates after legal/coherence rejection. 64 stopped after
-            # sixteen children per island and systematically omitted later
-            # seed typologies; 96 remains bounded while reviewing 24/island.
-            max_children=96,
+            # Candidate work must scale with the requested review set. The
+            # previous fixed 96-child expansion sent research debris through
+            # every expensive 3D/graph/parking stage and made a 20-card service
+            # call exceed ten minutes. Program seeds plus round-robin islands
+            # preserve typology coverage within this bounded over-generation.
+            max_children=max(24, min(48, int(max_variants) * 2)),
         )
         evolution_trace_artifact = evolution_result.trace
         if evolution_result.variants:
             variants = evolution_result.variants + variants
 
-    for variant in variants:
+    if not preferred_operator:
+        mass_brain_project_key = str(
+            pnu
+            or (mass_geojson.get("properties") or {}).get("project_key")
+            or (mass_geojson.get("properties") or {}).get("variant_id")
+            or "arr-mass-anonymous"
+        )
+        mass_brain_batch = request_shadow_variants(
+            base_footprint=repaired_source,
+            source_variants=variants,
+            project_key=mass_brain_project_key,
+            interpret=interpret_sequence,
+            parking_options=parking_options,
+        )
+        mass_brain_shadow_artifact = dict(mass_brain_batch.artifact)
+        mass_brain_proposals_by_operator = dict(mass_brain_batch.proposals_by_operator)
+        if mass_brain_batch.variants:
+            variants = list(mass_brain_batch.variants) + variants
+
+    generation_trace.checkpoint("candidate_pool_ready", count=len(variants))
+    for variant_index, variant in enumerate(variants, start=1):
+        if variant_index == 1 or variant_index % 10 == 0:
+            generation_trace.checkpoint("candidate_evaluation", index=variant_index, count=len(variants))
         repaired_fp, floors, actions = repair_design(
             variant.footprint,
             site_utm,
@@ -4616,12 +4744,37 @@ def generate_legal_mass_variants(
 
         source_iou = round(1.0 - diversity_score(repaired_fp, [], repaired_source), 4)
         diversity = diversity_score(repaired_fp, selected_polygons, repaired_source)
-        review_floors = _research_review_floors(
-            variant,
-            floors,
-            get_floor_height(building_type),
-            envelope.height_limit,
-        ) if variant.operator.startswith(("agent_", "llm_")) else floors
+        review_floors = _capacity_projected_floors(
+            repaired_fp,
+            upper,
+            lower_floor_fraction=variant.lower_floor_fraction,
+            site_area_m2=site_area_m2,
+            far_limit=envelope.far_limit,
+            floor_height=get_floor_height(building_type),
+            height_limit=envelope.height_limit,
+        )
+        # Capacity ALT is not a research-maquette lane. Reject an underfilled
+        # topology before building floor-by-floor geometry, graph evidence,
+        # parking evidence and VLM payloads. This both prevents thin LEGO-like
+        # fragments from reaching the selector and keeps the service bounded.
+        projected_floor_area = _capacity_projected_floor_area(
+            repaired_fp,
+            upper,
+            floors=review_floors,
+            lower_floor_fraction=variant.lower_floor_fraction,
+        )
+        projected_far_utilization = (
+            projected_floor_area / (site_area_m2 * envelope.far_limit / 100.0)
+            if site_area_m2 > 0 and envelope.far_limit > 0
+            else 0.0
+        )
+        if projected_far_utilization < float(capacity_policy["min_far_utilization"]):
+            rejected.append({
+                "operator": variant.operator,
+                "reason": "underused_legal_far_capacity_precheck",
+                "projected_far_utilization": round(projected_far_utilization, 4),
+            })
+            continue
         variant_stack = None
         if _should_use_floor_plate_stack(variant.operator, preferred_operator):
             variant_stack = build_floor_plate_stack(
@@ -4692,16 +4845,76 @@ def generate_legal_mass_variants(
         bcr_utilization = min(1.0, props["bcr"] / envelope.bcr_limit) if envelope.bcr_limit > 0 else 0.0
         props["far_utilization"] = round(far_utilization, 4)
         props["bcr_utilization"] = round(bcr_utilization, 4)
+        props["massing_capacity_policy"] = dict(capacity_policy)
         props["maas_score"] = round(far_utilization * 0.45 + bcr_utilization * 0.35 + diversity * 0.20, 4)
         if variant.operator.startswith("llm_"):
             props["llm_candidate_quality"] = _llm_candidate_quality(feature)
         _attach_design_quality(feature, repaired_fp)
         attach_program_massing_evidence(feature, building_type=building_type)
+        if variant.operator in mass_brain_proposals_by_operator:
+            proposal = mass_brain_proposals_by_operator[variant.operator]
+            props["mass_brain_shadow"] = {
+                "schema_version": "arr.maas.mass_brain_candidate.v1",
+                "proposal_id": proposal.get("proposalId"),
+                "lane": proposal.get("lane"),
+                "source_node_ids": proposal.get("sourceNodeIds") or [],
+                "evidence_ids": proposal.get("evidenceIds") or [],
+                "score_breakdown": proposal.get("scoreBreakdown") or {},
+                "selection_effect": "none_shadow_only",
+            }
+            mass_brain_shadow_features[variant.operator] = feature
+            continue
         selected.append(feature)
         selected_polygons.append(repaired_fp)
 
+    generation_trace.checkpoint("candidate_evaluation_complete", selected=len(selected), rejected=len(rejected))
+
+    if mass_brain_proposals_by_operator:
+        shadow_features = list(mass_brain_shadow_features.values())
+        if shadow_features:
+            _attach_parking_requirements(
+                shadow_features,
+                pnu=pnu,
+                building_type=building_type,
+                site_utm=site_utm,
+                site_area_m2=site_area_m2,
+                parking_options=parking_options,
+            )
+        mass_brain_project_key = str(mass_brain_shadow_artifact.get("project_key") or pnu or "arr-mass-anonymous")
+        mass_brain_shadow_artifact["outcomes"] = record_shadow_outcomes(
+            project_key=mass_brain_project_key,
+            proposals_by_operator=mass_brain_proposals_by_operator,
+            features_by_operator=mass_brain_shadow_features,
+            run_id=str(mass_brain_shadow_artifact.get("run_id") or "") or None,
+        )
+        mass_brain_shadow_artifact["evaluated_feature_count"] = len(shadow_features)
+        mass_brain_shadow_artifact["feature_collection"] = {
+            "type": "FeatureCollection",
+            "features": shadow_features,
+        }
+        rollout = mass_brain_shadow_artifact.get("rollout") if isinstance(mass_brain_shadow_artifact.get("rollout"), dict) else {}
+        active_slots = min(4, max(0, int(rollout.get("slots") or 0))) if rollout.get("mode") == "active" else 0
+        if active_slots:
+            promotable = [
+                feature for feature in shadow_features
+                if final_mass_stage_parking_pass(feature)
+                and _architectural_order_gate(feature)[0]
+                and _has_review_source_geometry(feature)
+            ]
+            promotable.sort(key=lambda feature: float((((feature.get("properties") or {}).get("mass_brain_shadow") or {}).get("score_breakdown") or {}).get("total") or 0.0), reverse=True)
+            for feature in promotable[:active_slots]:
+                feature["properties"]["mass_brain_shadow"]["selection_effect"] = "promotion_eligible_active_pool"
+                selected.append(feature)
+            mass_brain_shadow_artifact["promoted_pool_count"] = min(active_slots, len(promotable))
+
     selected.sort(key=lambda f: f["properties"].get("maas_score", 0), reverse=True)
-    legal_candidate_pool = list(selected)
+    legal_candidate_pool = build_bounded_review_pool(
+        selected,
+        max_variants=max_variants,
+        preferred_operator=preferred_operator,
+        select_diverse=_select_diverse_features,
+    )
+    selected = list(legal_candidate_pool)
     if preferred_operator:
         preferred_index = next(
             (
@@ -4713,6 +4926,7 @@ def generate_legal_mass_variants(
         if preferred_index is not None:
             selected.insert(0, selected.pop(preferred_index))
     selected = _select_diverse_features(selected, max(1, max_variants), preferred_operator=preferred_operator)
+    generation_trace.checkpoint("initial_selection", selected=len(selected), pool=len(legal_candidate_pool))
     parking_scan_features = list(selected)
     if not preferred_operator:
         parking_scan_features.extend(
@@ -4727,6 +4941,7 @@ def generate_legal_mass_variants(
         site_area_m2=site_area_m2,
         parking_options=parking_options,
     )
+    generation_trace.checkpoint("parking_scan_complete", scanned=len(parking_scan_features))
     parking_viable_extras = [
         feature for feature in parking_scan_features
         if feature not in selected and _parking_priority_key(feature)[0] > 0
@@ -4735,7 +4950,10 @@ def generate_legal_mass_variants(
     for feature in parking_viable_extras[:3]:
         selected.append(feature)
     parking_repairs = []
-    if pnu or (parking_options or {}).get("enable_parking_repair"):
+    # A PNU requests site/legal evaluation; it does not authorize an expensive
+    # geometry rewrite. Opt into repair explicitly after the mass-stage layout
+    # reports that a chosen design needs it.
+    if (parking_options or {}).get("enable_parking_repair"):
         parking_repairs = _parking_repair_candidates(
             selected,
             envelope=envelope,
@@ -4743,6 +4961,7 @@ def generate_legal_mass_variants(
             site_area_m2=site_area_m2,
             building_type=building_type,
             parking_options=parking_options,
+            max_results=parking_repair_budget(max_variants),
         )
     if parking_repairs:
         _attach_parking_requirements(
@@ -4755,6 +4974,7 @@ def generate_legal_mass_variants(
         )
         _sync_parking_repair_metadata(parking_repairs)
         selected.extend(parking_repairs)
+    generation_trace.checkpoint("parking_repairs_complete", repairs=len(parking_repairs), selected=len(selected))
     for feature in selected:
         attach_program_massing_evidence(feature, building_type=building_type)
     parking_visible = [
@@ -4886,6 +5106,7 @@ def generate_legal_mass_variants(
                 continue
             seen_preference_ids.add(id(feature))
             preference_source_pool.append(feature)
+        generation_trace.checkpoint("preference_loop_start", pool=len(preference_source_pool))
         preference_loop_artifact = apply_preference_loop(
             preference_source_pool,
             config=preference_loop_config,
@@ -4898,6 +5119,7 @@ def generate_legal_mass_variants(
                 source_family=_source_family,
             ),
         )
+        generation_trace.checkpoint("preference_loop_complete", pool=len(preference_source_pool))
         preference_ranked_pool = list(preference_source_pool)
         selected_ids = {id(feature) for feature in selected}
         selected = [
@@ -4928,11 +5150,14 @@ def generate_legal_mass_variants(
                     upper = upper.intersection(repaired_fp)
                     if upper.is_empty or upper.area < 1.0:
                         upper = None
-                review_floors = _research_review_floors(
-                    variant,
-                    floors,
-                    get_floor_height(building_type),
-                    envelope.height_limit,
+                review_floors = _capacity_projected_floors(
+                    repaired_fp,
+                    upper,
+                    lower_floor_fraction=variant.lower_floor_fraction,
+                    site_area_m2=site_area_m2,
+                    far_limit=envelope.far_limit,
+                    floor_height=get_floor_height(building_type),
+                    height_limit=envelope.height_limit,
                 )
                 feature = _mass_feature(
                     operator=variant.operator,
@@ -5749,6 +5974,7 @@ def generate_legal_mass_variants(
             "status": "not_requested",
         },
         "final_vlm_completion": final_vlm_completion_artifact,
+        "mass_brain_shadow": mass_brain_shadow_artifact,
         "final_vlm_scored_count": sum(
             1 for feature in selected
             if preference_vlm_scored(feature)
@@ -5826,6 +6052,7 @@ def generate_legal_mass_variants(
         "llm_proposal_loop": llm_loop_artifact,
         "preference_loop": preference_loop_artifact,
         "final_vlm_completion": final_vlm_completion_artifact,
+        "mass_brain_shadow": mass_brain_shadow_artifact,
         "notes": [
             "Legal envelope is the primary generator boundary.",
             "Layered MAAS candidates clip every floor plate by the legal envelope before FAR/BCR scoring.",
@@ -5896,6 +6123,7 @@ def _parking_repair_candidates(
     site_area_m2: float,
     building_type: str,
     parking_options: dict[str, Any] | None,
+    max_results: int,
 ) -> list[dict[str, Any]]:
     options = parking_options or {}
     road_context = options.get("road_context") if isinstance(options.get("road_context"), dict) else None
@@ -5908,8 +6136,10 @@ def _parking_repair_candidates(
             _design_review_quality_key(feature),
         ),
         reverse=True,
-    )[:3]
+    )[:1]
     for feature in repair_sources:
+        if len(repaired) >= max_results:
+            break
         props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
         precheck = props.get("parking_precheck") if isinstance(props.get("parking_precheck"), dict) else {}
         layout = precheck.get("layout_candidate") if isinstance(precheck.get("layout_candidate"), dict) else {}
@@ -5992,6 +6222,7 @@ def _parking_repair_candidates(
             "authority_review": repair_layout.get("status") != "pass",
         }
         repaired.append(candidate)
+        remaining = max(0, max_results - len(repaired))
         for section_candidate in _parking_preserving_section_candidates(
             repaired_fp,
             source_feature=feature,
@@ -6005,8 +6236,11 @@ def _parking_repair_candidates(
             source_score=source_score,
             diversity=diversity,
             source_iou=source_iou,
+            max_results=remaining,
         ):
             repaired.append(section_candidate)
+        if len(repaired) >= max_results:
+            break
         if floors >= 2 and footprint_utm.area > repaired_fp.area * 1.2:
             lifted_candidate = _mass_feature(
                 operator="parking_repair_ground_void",
@@ -6041,8 +6275,10 @@ def _parking_repair_candidates(
                 "upper_floor_start": lifted_props.get("step_floor"),
             }
             repaired.append(lifted_candidate)
+        if len(repaired) >= max_results:
+            break
         break
-    return repaired
+    return repaired[:max_results]
 
 
 def _needs_parking_repair(feature: dict[str, Any]) -> bool:
@@ -6102,6 +6338,7 @@ def _parking_preserving_section_candidates(
     source_score: float,
     diversity: float,
     source_iou: float,
+    max_results: int,
 ) -> list[dict[str, Any]]:
     """Create section-diverse masses while keeping the proven parking footprint."""
     source_props = source_feature.get("properties") if isinstance(source_feature.get("properties"), dict) else {}
@@ -6119,6 +6356,8 @@ def _parking_preserving_section_candidates(
     created: list[dict[str, Any]] = []
     seen: set[tuple[float, float, float]] = set()
     for variant in grammar_variants:
+        if len(created) >= max_results:
+            break
         operator = f"parking_repair_{variant.operator}"
         upper_source = variant.upper_footprint if variant.upper_footprint is not None else variant.footprint
         upper = _largest_polygon_or_none(upper_source.intersection(upper_limit).intersection(site_utm))
@@ -6227,10 +6466,13 @@ def _find_parking_repair_footprint(
         0 if item[1].get("method") in {"uniform_shrink", "axis_compress"} else 1,
         -float(item[0].area or 0.0),
     ))
-    max_checks = 36 if required_spaces <= 4 else 56
+    max_checks = 12 if required_spaces <= 4 else 16
     checked = 0
     for candidate_fp, meta in repair_options:
-        if checked >= max_checks and best is not None:
+        # A difficult or impossible small lot previously ignored the budget
+        # whenever no feasible repair had been found, then exhaustively tested
+        # hundreds of layouts. The live stage is bounded even on failure.
+        if checked >= max_checks:
             break
         checked += 1
         if candidate_fp.is_empty or candidate_fp.area < 8.0:

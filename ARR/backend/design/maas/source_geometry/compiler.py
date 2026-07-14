@@ -7,7 +7,7 @@ volume hints that can be repaired and evaluated by the existing optimizer.
 
 from __future__ import annotations
 
-from math import hypot
+from math import atan2, cos, degrees, hypot, radians, sin, sqrt
 from typing import Any
 
 from shapely.affinity import rotate, scale, translate
@@ -20,8 +20,10 @@ from design.maas.morphology_operators import MorphologyVariant
 from design.maas.program_massing.assembly import program_component_family, program_component_specs
 from .formal_principles import compile_formal_principle_volumes, normalize_formal_principle
 from .genome import build_massing_genome
+from .graph_materializer import is_graph_native, materialize_graph_states
 from .ir import SourceMass, SourceSurface, SourceVolume, VerbTrace
 from .coherence import evaluate_source_volume_coherence
+from .polygon_quality import repair_source_polygon
 from design.maas.grammar.component_graph import MassComponentGraph, graph_from_sequence
 from .rule_priors import (
     finalize_rule_evidence,
@@ -180,13 +182,14 @@ def _family_formal_principle(family: str | None, current: str | None) -> str:
         "diagonal_connect": "split_bridge_connector",
         "terrace_link": "terraced_ribbon_section",
         "sloped_roof": "folded_section",
-        "bend": "torqued_stack",
+        "bend": "continuous_ribbon_field",
         "interlock": "torqued_stack",
         "branch": "torqued_stack",
         "pinch": "torqued_stack",
         "offset": "stacked_shifted_platforms",
         "array_cluster": "stacked_shifted_platforms",
         "reflected_pair": "stacked_shifted_platforms",
+        "stack": "stacked_shifted_platforms",
         "courtyard": "carved_atrium",
         "nest": "carved_atrium",
         "embed": "carved_monolith",
@@ -466,7 +469,7 @@ def _largest_polygon(geometry) -> Polygon | None:
 
 
 def _clean(poly) -> Polygon | None:
-    return _largest_polygon(poly)
+    return repair_source_polygon(poly, minimum_area=1.0)
 
 
 def _bounds(poly: Polygon) -> tuple[float, float, float, float, float, float]:
@@ -496,7 +499,7 @@ def _corner_notch(poly: Polygon, corner: str, ratio: float) -> Polygon | None:
     return _clean(poly.difference(box(x0, y0, x1, y1)))
 
 
-def _courtyard(poly: Polygon, ratio: float) -> Polygon | None:
+def _courtyard(poly: Polygon, ratio: float, open_side: str = "closed") -> Polygon | None:
     minx, miny, maxx, maxy, width, depth = _bounds(poly)
     court = box(
         minx + width * (0.5 - ratio / 2),
@@ -504,6 +507,18 @@ def _courtyard(poly: Polygon, ratio: float) -> Polygon | None:
         minx + width * (0.5 + ratio / 2),
         miny + depth * (0.5 + ratio / 2),
     )
+    side = str(open_side or "closed").strip().lower()
+    if side in {"south", "north", "east", "west"}:
+        mouth_ratio = max(0.42, min(0.72, ratio * 1.8))
+        if side in {"south", "north"}:
+            mouth_width = width * ratio * mouth_ratio
+            x0, x1 = (minx + maxx - mouth_width) / 2, (minx + maxx + mouth_width) / 2
+            y0, y1 = (miny, court.bounds[3]) if side == "south" else (court.bounds[1], maxy)
+        else:
+            mouth_depth = depth * ratio * mouth_ratio
+            y0, y1 = (miny + maxy - mouth_depth) / 2, (miny + maxy + mouth_depth) / 2
+            x0, x1 = (minx, court.bounds[2]) if side == "west" else (court.bounds[0], maxx)
+        court = unary_union((court, box(x0, y0, x1, y1)))
     return _clean(poly.difference(court))
 
 
@@ -657,19 +672,47 @@ def _offset_units(poly: Polygon, axis: str, distance_ratio: float, other_scale: 
 def _array_units(poly: Polygon, axis: str, count: int, spacing_ratio: float, unit_scale: float) -> list[Polygon]:
     minx, miny, maxx, maxy, width, depth = _bounds(poly)
     count = max(2, min(6, count))
-    base_unit = _clean(scale(poly, xfact=unit_scale, yfact=unit_scale, origin="centroid").intersection(poly))
-    if base_unit is None:
-        return [poly]
+    # ``unit_scale`` describes the cross-axis depth of each member, not the
+    # size of a full-parcel copy.  The former implementation scaled the whole
+    # parcel by e.g. 0.78 and translated four copies by 0.19 of the span.  All
+    # copies overlapped and unary-union collapsed the authored cluster into a
+    # single box.  Allocate the long axis jointly from n and the requested
+    # spacing so every cell is a real, separated mass while remaining derived
+    # from the actual parcel envelope.
     span = width if axis == "x" else depth
-    start = -(count - 1) / 2
+    cross_span = depth if axis == "x" else width
+    gap_fraction = max(0.025, min(0.10, float(spacing_ratio) / count))
+    unit_axis_fraction = max(0.08, (1.0 - gap_fraction * (count - 1)) / count)
+    cross_fraction = max(0.28, min(0.72, float(unit_scale)))
+    unit_span = span * unit_axis_fraction
+    gap = span * gap_fraction
+    used = unit_span * count + gap * (count - 1)
+    cursor = -used / 2.0 + unit_span / 2.0
+    cx, cy = poly.centroid.x, poly.centroid.y
     units: list[Polygon] = []
     for index in range(count):
-        delta = (start + index) * span * spacing_ratio
-        moved = translate(base_unit, xoff=delta if axis == "x" else 0.0, yoff=delta if axis == "y" else 0.0)
-        moved = _clean(moved.intersection(poly))
-        if moved is not None:
-            units.append(moved)
-    return units or [base_unit]
+        along = cursor + index * (unit_span + gap)
+        # A restrained alternating cross-axis shift produces usable pockets
+        # without turning the field into a rigid grid or detached debris.
+        stagger = (1.0 if index % 2 else -1.0) * cross_span * (1.0 - cross_fraction) * 0.10
+        if axis == "x":
+            cell = box(
+                cx + along - unit_span / 2.0,
+                cy + stagger - cross_span * cross_fraction / 2.0,
+                cx + along + unit_span / 2.0,
+                cy + stagger + cross_span * cross_fraction / 2.0,
+            )
+        else:
+            cell = box(
+                cx + stagger - cross_span * cross_fraction / 2.0,
+                cy + along - unit_span / 2.0,
+                cx + stagger + cross_span * cross_fraction / 2.0,
+                cy + along + unit_span / 2.0,
+            )
+        clipped = _clean(cell.intersection(poly))
+        if clipped is not None and clipped.area >= max(1.0, poly.area * 0.025):
+            units.append(clipped)
+    return units or [poly]
 
 
 def _reflect_units(poly: Polygon, axis: str, gap_ratio: float, unit_scale: float) -> list[Polygon]:
@@ -924,11 +967,23 @@ def _family_plan_volumes(
         bridge = max(0.06, min(0.30, depth_ratio))
         b1, t1 = _height_band(lower_fraction, upper_ratio, 0.30, 0.80)
         b2, t2 = _height_band(lower_fraction, upper_ratio, 0.95, 1.0)
+        gap = width * wing_gap
+        bearing = width * 0.055
         pieces = [
-            _rect_piece("split_west_wing", footprint, minx, miny, cx - width * wing_gap, maxy, 0.0, upper_ratio, last_verb, min_area=min_area),
-            _rect_piece("split_east_wing", footprint, cx + width * wing_gap, miny, maxx, maxy, b1, t1, last_verb, min_area=min_area),
-            _rect_piece("split_bridge_bar", footprint, minx, cy - depth * bridge / 2, maxx, cy + depth * bridge / 2, b2, t2, "diagonal_connect" if last_verb == "diagonal_connect" else last_verb, min_area=min_area),
-            _rect_piece("split_threshold_core", footprint, cx - width * bridge / 2, miny, cx + width * bridge / 2, maxy, lower_fraction or 0.30, t1, last_verb, min_area=min_area),
+            _rect_piece("split_west_wing", footprint, minx, miny, cx - gap, maxy, 0.0, upper_ratio, last_verb, min_area=min_area),
+            _rect_piece("split_east_wing", footprint, cx + gap, miny, maxx, maxy, b1, t1, last_verb, min_area=min_area),
+            _rect_piece(
+                "split_bridge_bar",
+                footprint,
+                cx - gap - bearing,
+                cy - depth * bridge / 2,
+                cx + gap + bearing,
+                cy + depth * bridge / 2,
+                b2,
+                t2,
+                "diagonal_connect" if last_verb == "diagonal_connect" else last_verb,
+                min_area=min_area,
+            ),
         ]
     elif family == "diagonal_connect":
         connector = max(0.08, min(0.28, depth_ratio))
@@ -1129,6 +1184,15 @@ def _compose_secondary_language(
     if not volumes or not secondary_family or secondary_family == primary_family:
         return volumes
     if secondary_family in {"legal_envelope_fit", "generic"}:
+        return volumes
+    if primary_family in {"split", "diagonal_connect"} and secondary_family in {
+        "split",
+        "diagonal_connect",
+        "interlock",
+    }:
+        # The primary split/bridge principle already materializes its
+        # connector. Repeating the semantic label as another site-wide bar
+        # produced four colliding boxes and killed the authored graph.
         return volumes
     # Secondary language should clarify an existing composition, not turn a
     # readable primary mass into a six- or seven-piece review fragment.
@@ -1604,6 +1668,152 @@ def _profiled_component_surfaces(
     return tuple(surfaces)
 
 
+def _profiled_formal_surfaces(
+    volumes: tuple[SourceVolume, ...],
+    origin_poly: Polygon,
+    formal_principle: str,
+) -> tuple[tuple[SourceSurface, ...], set[str], dict[str, Any]]:
+    """Materialize formal section intent as non-flat renderer/VLM geometry.
+
+    SourceVolume remains the conservative solid used by FAR/BCR and legal
+    projection.  These surfaces are the authored roof/facade envelope carried
+    by the same graph, so a folded or torqued graph is no longer reviewed as a
+    stack of flat proxy boxes.
+    """
+    principle = normalize_formal_principle(formal_principle)
+    if principle not in {"folded_section", "terraced_ribbon_section", "torqued_stack", "continuous_ribbon_field"}:
+        return (), set(), {
+            "schema_version": "arr.maas.continuous_surface.v1",
+            "status": "not_applicable",
+            "hard_pass": False,
+            "principle": principle,
+            "profiled_volume_count": 0,
+            "surface_count": 0,
+        }
+    origin = (float(origin_poly.centroid.x), float(origin_poly.centroid.y))
+    surfaces: list[SourceSurface] = []
+    profiled_roles: set[str] = set()
+    for volume in volumes:
+        role = str(volume.role)
+        if principle in {"folded_section", "terraced_ribbon_section"}:
+            folded_role = any(token in role for token in (
+                "folded_low_plane",
+                "folded_high_plane",
+                "sloped_roof_low_plane",
+                "sloped_roof_high_plane",
+                "main_long_span_hall",
+            )) or volume.verb in {"sloped_roof_mass", "grade", "terrace_link"}
+            if not folded_role:
+                continue
+        elif (
+            principle == "torqued_stack"
+            and "torqued_plate" not in role
+            and volume.verb not in {"branch", "pinch", "interlock", "overlap", "offset"}
+        ):
+            continue
+        elif principle == "continuous_ribbon_field" and "continuous_ribbon" not in role:
+            continue
+        surface_footprint = volume.footprint
+        if len(surface_footprint.exterior.coords) - 1 > 10:
+            original_area = max(float(surface_footprint.area), 1e-9)
+            tolerance = sqrt(original_area) * 0.003
+            for _ in range(6):
+                candidate = repair_source_polygon(
+                    surface_footprint.simplify(tolerance, preserve_topology=True),
+                    minimum_area=1.0,
+                )
+                if candidate is not None and candidate.area / original_area >= 0.94:
+                    surface_footprint = candidate
+                    if len(candidate.exterior.coords) - 1 <= 10:
+                        break
+                tolerance *= 1.8
+        coordinates = list(surface_footprint.exterior.coords)
+        if len(coordinates) < 4:
+            continue
+        coordinates = coordinates[:-1]
+        minx, miny, maxx, maxy = surface_footprint.bounds
+        width = max(maxx - minx, 1e-9)
+        depth = max(maxy - miny, 1e-9)
+        # Long-span halls need a real ridge vertex. Four rectangle corners can
+        # only describe another flat/shed proxy, regardless of the formal
+        # label. Insert ridge points on the two long eaves so the renderer,
+        # VLM and downstream graph all see the same folded roof geometry.
+        if "main_long_span_hall" in role and len(coordinates) <= 6:
+            expanded: list[tuple[float, float]] = []
+            for index, left in enumerate(coordinates):
+                right = coordinates[(index + 1) % len(coordinates)]
+                expanded.append((float(left[0]), float(left[1])))
+                if abs(float(left[1]) - float(right[1])) <= depth * 0.02 and abs(float(left[0]) - float(right[0])) >= width * 0.72:
+                    expanded.append(((float(left[0]) + float(right[0])) / 2.0, (float(left[1]) + float(right[1])) / 2.0))
+            coordinates = expanded
+        height_span = max(volume.top_fraction - volume.bottom_fraction, 0.08)
+
+        def roof_height(point: tuple[float, float]) -> float:
+            u = max(0.0, min(1.0, (float(point[0]) - minx) / width))
+            v = max(0.0, min(1.0, (float(point[1]) - miny) / depth))
+            if principle in {"folded_section", "terraced_ribbon_section"}:
+                if "main_long_span_hall" in role:
+                    rise = 1.0 - abs(u * 2.0 - 1.0)
+                else:
+                    rise = u if "low_plane" in role else 1.0 - u
+                if principle == "terraced_ribbon_section":
+                    rise = max(0.0, min(1.0, rise * 0.78 + v * 0.22))
+                z = volume.bottom_fraction + height_span * (0.30 + 0.70 * rise)
+            elif principle == "torqued_stack":
+                # A shallow diagonal warp makes the rotated plates a coherent
+                # torque field while keeping every point inside its legal proxy.
+                tier_direction = -1.0 if role.endswith("_0") or role.endswith("_2") else 1.0
+                field = 0.5 + tier_direction * ((u - 0.5) * 0.55 + (v - 0.5) * 0.25)
+                z = volume.bottom_fraction + height_span * max(0.18, min(0.92, field))
+            else:
+                # Coupled longitudinal and transverse rise creates a ruled,
+                # non-flat ribbon field from the graph-authored plan curve.
+                field = 0.30 + 0.52 * u + 0.18 * (1.0 - abs(v * 2.0 - 1.0))
+                z = volume.bottom_fraction + height_span * max(0.18, min(0.96, field))
+            return max(volume.bottom_fraction + 0.02, min(volume.top_fraction, z))
+
+        def vertex(point: tuple[float, float], z: float) -> tuple[float, float, float]:
+            return (float(point[0]) - origin[0], float(point[1]) - origin[1], float(z))
+
+        roof_vertices = tuple(vertex(point, roof_height(point)) for point in coordinates)
+        surfaces.append(SourceSurface(
+            role=f"source_profiled_formal_roof_{role}",
+            volume_role=role,
+            verb=volume.verb,
+            surface_type="profiled_formal_roof",
+            vertices_m=roof_vertices,
+            operator="loft" if principle in {"folded_section", "terraced_ribbon_section"} else "sweep",
+            semantic_patch_id=f"{role}:roof",
+        ))
+        for edge_index, left in enumerate(coordinates):
+            right = coordinates[(edge_index + 1) % len(coordinates)]
+            surfaces.append(SourceSurface(
+                role=f"source_profiled_formal_facade_{role}_{edge_index}",
+                volume_role=role,
+                verb=volume.verb,
+                surface_type="profiled_formal_facade",
+                vertices_m=(
+                    vertex(left, volume.bottom_fraction),
+                    vertex(right, volume.bottom_fraction),
+                    vertex(right, roof_height(right)),
+                    vertex(left, roof_height(left)),
+                ),
+                operator="loft" if principle in {"folded_section", "terraced_ribbon_section"} else "sweep",
+                semantic_patch_id=f"{role}:facade",
+            ))
+        profiled_roles.add(role)
+    evidence = {
+        "schema_version": "arr.maas.continuous_surface.v1",
+        "status": "materialized" if profiled_roles else "missing",
+        "hard_pass": bool(profiled_roles),
+        "principle": principle,
+        "profiled_volume_count": len(profiled_roles),
+        "surface_count": len(surfaces),
+        "profiled_roles": sorted(profiled_roles),
+    }
+    return tuple(surfaces), profiled_roles, evidence
+
+
 def _compile_component_graph_to_source_mass(
     base_footprint: Polygon,
     sequence: VerbSequence,
@@ -1711,7 +1921,18 @@ def _compile_component_graph_to_source_mass(
             )
             family = family or "void_notch"
         elif call.verb == "courtyard":
-            next_fp = _courtyard(footprint, _param_float(params, "ratio", 0.22, parameter_provenance, sequence_source=sequence_source))
+            next_fp = _courtyard(
+                footprint,
+                _param_float(params, "ratio", 0.22, parameter_provenance, sequence_source=sequence_source),
+                _param_str_any(
+                    params,
+                    ("open_side", "side"),
+                    "closed",
+                    parameter_provenance,
+                    canonical_key="open_side",
+                    sequence_source=sequence_source,
+                ),
+            )
             upper = _upper_from(
                 next_fp,
                 _param_float(params, "upper_ratio", 0.88, parameter_provenance, sequence_source=sequence_source),
@@ -1800,16 +2021,13 @@ def _compile_component_graph_to_source_mass(
             )
             family = family or "pinch"
         elif call.verb == "bend":
-            next_fp = _bend(
-                footprint,
-                _param_str(params, "axis", "y", parameter_provenance, sequence_source=sequence_source),
-                _param_float(params, "angle", 28.0, parameter_provenance, sequence_source=sequence_source),
-                _param_float(params, "factor", 0.58, parameter_provenance, sequence_source=sequence_source),
-            )
-            upper = _upper_from(
-                next_fp,
-                _param_float(params, "upper_ratio", 0.80, parameter_provenance, sequence_source=sequence_source),
-            ) if next_fp is not None else upper
+            # Bend is a continuous design-field operation for every graph,
+            # including legacy sequences.  Pre-bending the parcel into two
+            # proxy bars left too little domain for the formal compiler and
+            # made a valid bend graph fall back to box geometry.
+            next_fp = footprint
+            upper = None
+            note = "site_design_field_deferred_to_formal_compiler"
             lower_fraction = _param_float(
                 params, "lower_floor_fraction", lower_fraction or 0.44, parameter_provenance, sequence_source=sequence_source
             )
@@ -2073,7 +2291,7 @@ def _compile_component_graph_to_source_mass(
                     footprint,
                 )
             lower_fraction = _param_float(params, "lower_floor_fraction", lower_fraction or 0.40, parameter_provenance, sequence_source=sequence_source)
-            family = "diagonal_connect"
+            family = family or "diagonal_connect"
         elif call.verb == "terrace_link":
             target = _upper_from(footprint, _param_float(params, "upper_ratio", 0.84, parameter_provenance, sequence_source=sequence_source)) or footprint
             upper = _edge_cut(
@@ -2083,7 +2301,7 @@ def _compile_component_graph_to_source_mass(
                 _param_float(params, "depth_ratio", 0.20, parameter_provenance, sequence_source=sequence_source),
             )
             lower_fraction = _param_float(params, "lower_floor_fraction", lower_fraction or 0.34, parameter_provenance, sequence_source=sequence_source)
-            family = "terrace_link"
+            family = family or "terrace_link"
         elif call.verb == "sloped_roof_mass":
             target = _upper_from(footprint, _param_float(params, "upper_ratio", 0.90, parameter_provenance, sequence_source=sequence_source)) or footprint
             upper = _clean(scale(
@@ -2093,11 +2311,11 @@ def _compile_component_graph_to_source_mass(
                 origin="centroid",
             ).intersection(footprint))
             lower_fraction = _param_float(params, "lower_floor_fraction", lower_fraction or 0.50, parameter_provenance, sequence_source=sequence_source)
-            family = "sloped_roof"
+            family = family or "sloped_roof"
         elif call.verb == "step_envelope":
             lower_fraction = None
             note = "legal_floor_plate_stack_required"
-            family = "stepback_tower"
+            family = family or "stepback_tower"
         elif call.verb in {"inset", "expand"}:
             factor = _param_float(
                 params,
@@ -2178,19 +2396,35 @@ def _compile_component_graph_to_source_mass(
         last_verb=last_verb,
         massing_genome=massing_genome.to_dict() if massing_genome is not None else None,
     )
-    if formal_result is not None:
+    graph_materialization_evidence: dict[str, Any] = {}
+    graph_native_volumes, graph_materialization_evidence = (
+        materialize_graph_states(component_graph, node_states)
+        if is_graph_native(component_graph)
+        else ((), {})
+    )
+    if graph_native_volumes and formal_principle != "continuous_ribbon_field":
+        # The executable graph is the geometry source of truth. A declared
+        # precedent/formal label may score the result but cannot replace its
+        # branches with a canned volume template.
+        volumes = graph_native_volumes
+    elif formal_result is not None:
         volumes = formal_result.volumes
         # The formal-principle compiler already materializes the effective
         # primary family. Re-composing that same family as a secondary gesture
         # duplicated bars/liners and forced every candidate to four pieces.
-        volumes = _compose_secondary_language(
-            volumes,
-            footprint,
-            effective_family,
-            secondary_family,
-            last_verb,
-            lower_fraction,
-        )
+        # A continuous ribbon's compatible secondary language is expressed in
+        # its profile/surface field. Adding a generic rectangular roof/terrace
+        # volume here created the exact box-on-ribbon collision visible in the
+        # review PNG and made all-lane coherence detection impossible.
+        if formal_principle != "continuous_ribbon_field":
+            volumes = _compose_secondary_language(
+                volumes,
+                footprint,
+                effective_family,
+                secondary_family,
+                last_verb,
+                lower_fraction,
+            )
     else:
         volumes = _layout_volumes(
             footprint,
@@ -2226,14 +2460,35 @@ def _compile_component_graph_to_source_mass(
         upper = None
         lower_fraction = None
         family = program_component_family(sequence.name) or family
+        if any(
+            spec.get("roof_profile")
+            or "main_long_span_hall" in str(spec.get("role") or "")
+            for spec in program_specs
+        ):
+            # Program assemblies carry semantic roof geometry of their own.
+            # A gym sequence starts with a bar for plan efficiency, but its
+            # authored long-span ridge must still reach the profiled folded
+            # surface compiler instead of inheriting `slender_podium_tower`
+            # from that first plan operation.
+            formal_principle = "folded_section"
     volumes = _prune_redundant_helper_volumes(volumes)
     review_volume_limit = 5 if sequence.name.startswith(("creative_voxel_cascade", "creative_cluster_village")) else 4
     volumes = _cap_review_volumes(volumes, limit=review_volume_limit)
     coherence_evidence = evaluate_source_volume_coherence(volumes)
     rule_evidence = finalize_rule_evidence(rule_evidence, [volume.role for volume in volumes])
-    profiled_roles = {str(spec["role"]) for spec in program_specs if spec.get("roof_profile")}
+    component_profiled_roles = {str(spec["role"]) for spec in program_specs if spec.get("roof_profile")}
+    formal_surfaces, formal_profiled_roles, continuous_surface_evidence = _profiled_formal_surfaces(
+        volumes,
+        footprint,
+        formal_principle,
+    )
+    profiled_roles = component_profiled_roles | formal_profiled_roles
     standard_surface_volumes = tuple(volume for volume in volumes if volume.role not in profiled_roles)
-    surfaces = _source_surfaces(standard_surface_volumes, footprint) + _profiled_component_surfaces(program_specs, footprint)
+    surfaces = (
+        _source_surfaces(standard_surface_volumes, footprint)
+        + _profiled_component_surfaces(program_specs, footprint)
+        + formal_surfaces
+    )
     parameter_source = sequence_source
     parameter_default_count = sum(1 for item in parameter_provenance if item.get("used_default"))
     if evolution_family:
@@ -2263,7 +2518,9 @@ def _compile_component_graph_to_source_mass(
             "massing_genome": massing_genome.to_dict() if massing_genome is not None else {},
             "massing_genome_circuit": massing_genome.to_circuit() if massing_genome is not None else {},
             "component_graph": component_graph.to_dict(),
+            "graph_materialization_evidence": graph_materialization_evidence,
             "coherence_evidence": coherence_evidence,
+            "continuous_surface_evidence": continuous_surface_evidence,
             "architectural_ambition_evidence": formal_result.evidence if formal_result is not None else {},
             "secondary_family": secondary_family,
             "requires_llm_authoring": not is_authored,
@@ -2278,13 +2535,102 @@ def compile_component_graph_to_source_mass(
 ) -> SourceMass | None:
     """Compile a hierarchy directly; parent state controls every node input."""
     sequence = component_graph.to_sequence(name=component_graph.name)
-    return _compile_component_graph_to_source_mass(base_footprint, sequence, component_graph)
+    return _compile_in_site_frame(base_footprint, sequence, component_graph)
 
 
 def compile_sequence_to_source_mass(base_footprint: Polygon, sequence: VerbSequence) -> SourceMass | None:
     """Compatibility adapter from legacy flat MassDSL into a dependency graph."""
     component_graph = graph_from_sequence(sequence)
-    return _compile_component_graph_to_source_mass(base_footprint, sequence, component_graph)
+    return _compile_in_site_frame(base_footprint, sequence, component_graph)
+
+
+def _site_frame_angle(footprint: Polygon) -> float:
+    """Return the dominant minimum-rectangle axis in world degrees."""
+    rectangle = footprint.minimum_rotated_rectangle
+    coordinates = list(rectangle.exterior.coords)
+    edges = [
+        (hypot(right[0] - left[0], right[1] - left[1]), left, right)
+        for left, right in zip(coordinates, coordinates[1:])
+    ]
+    if not edges:
+        return 0.0
+    _, left, right = max(edges, key=lambda item: item[0])
+    angle = degrees(atan2(right[1] - left[1], right[0] - left[0]))
+    while angle >= 90.0:
+        angle -= 180.0
+    while angle < -90.0:
+        angle += 180.0
+    return angle
+
+
+def _compile_in_site_frame(
+    base_footprint: Polygon,
+    sequence: VerbSequence,
+    component_graph: MassComponentGraph,
+) -> SourceMass | None:
+    """Generate along the parcel's own axis, then restore world coordinates."""
+    angle = _site_frame_angle(base_footprint)
+    center = (float(base_footprint.centroid.x), float(base_footprint.centroid.y))
+    aligned = rotate(base_footprint, -angle, origin=center) if abs(angle) > 1e-6 else base_footprint
+    source = _compile_component_graph_to_source_mass(aligned, sequence, component_graph)
+    if source is None:
+        return None
+    frame_evidence = {
+        "schema_version": "arr.maas.site_local_frame.v1",
+        "dominant_axis_world_degrees": round(angle, 4),
+        "generation_axis": "local_x",
+        "restored_to_world_coordinates": True,
+        "site_aspect_ratio": round(
+            max(aligned.bounds[2] - aligned.bounds[0], aligned.bounds[3] - aligned.bounds[1])
+            / max(min(aligned.bounds[2] - aligned.bounds[0], aligned.bounds[3] - aligned.bounds[1]), 1e-9),
+            4,
+        ),
+    }
+    if abs(angle) <= 1e-6:
+        return SourceMass(
+            name=source.name,
+            footprint=source.footprint,
+            upper_footprint=source.upper_footprint,
+            lower_floor_fraction=source.lower_floor_fraction,
+            volumes=source.volumes,
+            surfaces=source.surfaces,
+            verb_trace=source.verb_trace,
+            notes=source.notes,
+            status=source.status,
+            fallback_reason=source.fallback_reason,
+            metadata={**source.metadata, "site_frame_evidence": frame_evidence},
+        )
+    theta = radians(angle)
+
+    def rotate_vertex(vertex: tuple[float, float, float]) -> tuple[float, float, float]:
+        x, y, z = vertex
+        return (x * cos(theta) - y * sin(theta), x * sin(theta) + y * cos(theta), z)
+
+    return SourceMass(
+        name=source.name,
+        footprint=rotate(source.footprint, angle, origin=center),
+        upper_footprint=rotate(source.upper_footprint, angle, origin=center) if source.upper_footprint is not None else None,
+        lower_floor_fraction=source.lower_floor_fraction,
+        volumes=tuple(SourceVolume(
+            volume.role,
+            rotate(volume.footprint, angle, origin=center),
+            volume.bottom_fraction,
+            volume.top_fraction,
+            volume.verb,
+        ) for volume in source.volumes),
+        surfaces=tuple(SourceSurface(
+            surface.role,
+            surface.volume_role,
+            surface.verb,
+            surface.surface_type,
+            tuple(rotate_vertex(vertex) for vertex in surface.vertices_m),
+        ) for surface in source.surfaces),
+        verb_trace=source.verb_trace,
+        notes=source.notes,
+        status=source.status,
+        fallback_reason=source.fallback_reason,
+        metadata={**source.metadata, "site_frame_evidence": frame_evidence},
+    )
 
 
 def source_mass_to_variant(source: SourceMass, sequence: VerbSequence) -> MorphologyVariant:

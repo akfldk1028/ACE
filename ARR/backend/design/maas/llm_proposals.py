@@ -8,11 +8,13 @@ import os
 import time
 import urllib.error
 import urllib.request
+from math import atan2, degrees
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from design.maas.grammar.component_graph import MassComponentGraph, MassComponentNode, graph_from_sequence
 from design.maas.grammar.verb_sequence import VerbSequence, call
 from design.maas.grammar.vocab import SUPPORTED_VERBS
 
@@ -78,7 +80,10 @@ PARAMETER_ALIASES_BY_VERB = {
         "width_ratio": ("aperture_ratio", "opening_ratio"),
         "depth_ratio": ("depth", "void_ratio", "carve_ratio"),
     },
-    "courtyard": {"ratio": ("court_ratio", "void_ratio", "atrium_ratio")},
+    "courtyard": {
+        "ratio": ("court_ratio", "void_ratio", "atrium_ratio"),
+        "open_side": ("side", "court_open_side", "access_side"),
+    },
     "split": {"gap_ratio": ("gap", "void_ratio"), "bridge_ratio": ("bridge",)},
     "pinch": {"waist_ratio": ("factor", "pinch_ratio")},
     "offset": {"distance_ratio": ("distance", "magnitude_ratio", "offset_ratio")},
@@ -179,6 +184,44 @@ BATCH_FAMILY_FOCUS = (
     ("split", "bend", "interlock", "overlap", "branch"),
     ("diagonal_connect", "terrace_link", "sloped_roof", "split", "overlap"),
 )
+
+ROLE_VERBS = {
+    "root": {"base"},
+    # Primary is the dominant operation and may legitimately be subtractive
+    # (for example a courtyard or notched monolith).
+    "primary": set(SUPPORTED_VERBS) - {"base"},
+    "void": {"cave", "courtyard", "embed", "nest", "notch", "pinch"},
+    "connector": {"diagonal_connect", "interlock", "overlap", "terrace_link"},
+    "support": {"array", "bar", "branch", "extrude", "grade", "inset", "lift", "offset", "reflect", "shift", "sloped_roof_mass", "stack", "taper", "terrace_link"},
+}
+
+ROLE_RELATIONS = {
+    "root": {"input"},
+    "primary": {"attach", "deform", "input"},
+    "support": {"attach", "deform", "input"},
+    "void": {"subtract"},
+    "connector": {"connect"},
+}
+
+
+def _call_node_schema() -> dict[str, Any]:
+    """Role-discriminated node union accepted by Structured Outputs."""
+    variants = []
+    for role in sorted(ROLE_VERBS):
+        variants.append({
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["node_id", "parent_node_id", "role", "relation", "verb", "params"],
+            "properties": {
+                "node_id": {"type": "string"},
+                "parent_node_id": {"type": "string"},
+                "role": {"type": "string", "const": role},
+                "relation": {"type": "string", "enum": sorted(ROLE_RELATIONS[role])},
+                "verb": {"type": "string", "enum": sorted(ROLE_VERBS[role])},
+                "params": {"type": "string"},
+            },
+        })
+    return {"anyOf": variants}
 
 COVERAGE_REPAIR_CALLS = {
     "courtyard": [
@@ -334,6 +377,26 @@ def _normalise_params(verb: str, params: dict[str, Any]) -> dict[str, Any]:
             normalised["x_ratio"] = round(_clamp(1.0 - pitch * (1.5 if ridge_axis == "y" else 1.0), 0.58, 0.92), 3)
         if "y_ratio" not in normalised:
             normalised["y_ratio"] = round(_clamp(1.0 - pitch * (1.5 if ridge_axis == "x" else 1.0), 0.58, 0.92), 3)
+    if verb == "bend":
+        width = _safe_float(normalised.get("lane_width_ratio"), 0.10)
+        # Models sometimes express ribbon width as a full-depth factor (0.5)
+        # instead of the half-width ratio contract (0.06). Convert units at
+        # the typed boundary rather than letting the compiler clamp every such
+        # candidate to the same maximum-width ribbon.
+        if width > 0.20:
+            width *= 0.12
+        normalised["lane_width_ratio"] = round(_clamp(width, 0.075, 0.11), 4)
+        normalised["vertical_overlap"] = round(
+            _clamp(_safe_float(normalised.get("vertical_overlap"), 0.22), 0.16, 0.30),
+            4,
+        )
+        vertical = str(normalised.get("vertical_mode") or "terraced").strip().lower()
+        normalised["vertical_mode"] = {
+            "rise": "terraced",
+            "ramp": "terraced",
+            "cascade": "terraced",
+            "stacked": "terraced",
+        }.get(vertical, vertical if vertical in {"terraced", "grounded"} else "terraced")
     return normalised
 
 
@@ -366,10 +429,24 @@ def _record_family(record: dict[str, Any]) -> str | None:
 
 
 def _coverage_repair_record(family: str, index: int) -> dict[str, Any]:
-    calls = [
-        {"verb": verb, "params": json.dumps(params, separators=(",", ":"))}
-        for verb, params in COVERAGE_REPAIR_CALLS[family]
-    ]
+    calls = []
+    previous = "root"
+    for call_index, (verb, params) in enumerate(COVERAGE_REPAIR_CALLS[family]):
+        role = "root" if call_index == 0 else "primary" if call_index == 1 else (
+            "void" if verb in {"notch", "cave", "courtyard", "puncture", "pinch", "embed", "nest"}
+            else "connector" if verb in {"bridge", "diagonal_connect", "terrace_link", "interlock", "overlap"}
+            else "support"
+        )
+        node_id = "root" if call_index == 0 else f"{role}_{call_index}_{verb}"
+        calls.append({
+            "node_id": node_id,
+            "parent_node_id": "" if call_index == 0 else ("root" if role == "primary" else previous),
+            "role": role,
+            "relation": "input" if role == "root" else "subtract" if role == "void" else "connect" if role == "connector" else "attach",
+            "verb": verb,
+            "params": json.dumps(params, separators=(",", ":")),
+        })
+        previous = node_id
     authored_keys = [
         f"{verb}.{key}"
         for verb, params in COVERAGE_REPAIR_CALLS[family]
@@ -535,17 +612,9 @@ def _schema(
                         "rationale": {"type": "string"},
                         "calls": {
                             "type": "array",
-                            "minItems": 3,
-                            "maxItems": 7,
-                            "items": {
-                                "type": "object",
-                                "additionalProperties": False,
-                                "required": ["verb", "params"],
-                                "properties": {
-                                    "verb": {"type": "string", "enum": sorted(SUPPORTED_VERBS)},
-                                    "params": {"type": "string"},
-                                },
-                            },
+                            "minItems": 4,
+                            "maxItems": 6,
+                            "items": _call_node_schema(),
                         },
                     },
                 },
@@ -598,7 +667,7 @@ def _prompt(
             "\nVLM generation feedback from the previous MAAS pass:\n"
             f"{json.dumps(_feedback_prompt_payload(generation_feedback), ensure_ascii=False, sort_keys=True)}\n"
             "This feedback is mandatory: generate new MassDSL candidates, not a rerank of the previous 20. "
-            "Use must_use, quota, formal_principle_targets, and reference_precedent_targets as positive design pressure, "
+            "Use must_use, quota, formal_principle_targets, reference_precedent_targets, and reference_language_briefs as positive design pressure, "
             "and treat avoid terms as rejection risks. Translate reference_precedent_targets into executable massing operations: "
             "Vancouver House/BIG-like torqued_stack or undercut tower must become pinch/taper/offset/bend/branch geometry; "
             "OMA/Seattle/Qatar-like stacked_platform or folded_section must become split/overlap/diagonal_connect/sloped_roof geometry; "
@@ -608,10 +677,13 @@ def _prompt(
             "upper_ratio between 0.72 and 0.88, and lower_floor_fraction between 0.28 and 0.48. "
             "For stacked_platform candidates, use overlap or split with 4 to 5 visible source tiers/roles where possible. "
             "Do not merely write reference names in labels; the MassDSL calls must express the reference-backed massing principle. "
+            "For each reference_language_brief, preserve primary_operation as the first non-base call so the compiler materializes the intended family. "
         )
     user = (
         "Generate a broad MAAS massing population for early architectural review.\n"
         "The goal is architecture-grade geometric massing, not just legal boxes. "
+        "Read site_geometry_intelligence as mandatory design evidence: select an explicit dominant-axis response, "
+        "a boundary/concavity response, and an access/open-space response for every proposal. "
         "Use the user's architecture book/reference principles and precedent principles without copying exact buildings: "
         "Trimage-like slender tower/podium order; Vancouver House/BIG-like undercut, taper, torque, and strong silhouette transition; "
         "OMA/Seattle Central Library-like stacked platforms, shifted volumes, and diagrammatic section. "
@@ -626,10 +698,22 @@ def _prompt(
         "Do not emit more than one undercut_tapered_tower, stacked_shifted_platforms, or simple slab stack in this batch. "
         "If a focused family is sectional, make the sectional move legible through diagonal_connect, terrace_link, or sloped_roof_mass rather than a stair-step envelope. "
         f"Supported verbs: {verbs}.\n"
-        "Every candidate must start with base. Prefer creative combinations of "
+        "Every candidate must start with a root/base node and contain 4 to 6 graph nodes. Every call is a graph node: provide a unique node_id, "
+        "an earlier parent_node_id (empty only for root), an architectural role, and a typed relation. Branch voids, "
+        "bridges, and supports from their actual host instead of describing a flat operation chain. At least half the batch must contain "
+        "two non-root nodes that share the same parent. For bend candidates, include lane_count 2-3, occupiable half-width "
+        "lane_width_ratio 0.075-0.11, vertical_overlap 0.16-0.30, "
+        "vertical_mode exactly terraced or grounded, curvature -0.18 to 0.18, "
+        "and 4 to 6 normalized control_points such as [[0.04,0.25],[0.32,0.62],[0.68,0.38],[0.96,0.72]]; vary these from the site and brief. "
+        "For a public courtyard facing the supplied access edge, set courtyard open_side to south/north/east/west; use closed only when an enclosed atrium is intentional. "
+        "Prefer creative combinations of "
         "plan, section, void, connector, array, offset, stack, and roof language. "
-        "Do not overuse terrace/stepback/stair forms; reserve them for at most one or two reference anchors in a 20-candidate review set. "
-        "Avoid using stepped_tower, legal_envelope_stack, simple terraced podium, or taper-only podium tower as the primary language unless it is transformed by a non-stair gesture such as diagonal bridge, bend, void, courtyard, array, reflected pair, or embedded core. "
+        "Typed roles are executable constraints: void may use only cave/courtyard/embed/nest/notch/pinch; connector may use only "
+        "diagonal_connect/interlock/overlap/terrace_link; support may use bar/grade/inset/lift/offset/reflect/shift/sloped_roof_mass/stack/taper/terrace_link. "
+        "Do not label lift, shift, reflect, or inset as a void, and do not label a generic shift as a connector. "
+        "Distinguish arbitrary code-minimum stepback from an architectural stepped landform. In a 20-candidate set, author at least three "
+        "capacity-bearing stepped or terraced sections whose floor plates remain usable and whose cascade is one dominant gesture. "
+        "Avoid a simple cake-tier podium; transform stepped massing through a continuous terrace_link, grade, or stack rule plus a public void, courtyard, bridge, or inhabited roof. "
         "Prefer non-stair silhouettes: diagonal split blocks, bent bars, reflected pairs, caved courtyards, interlocked volumes, nested atria, and offset clusters. "
         "Use explicit typology language such as courtyard, cluster, bridge, bar_slab, "
         "interlock, bent, branch, roof_envelope, or void_carve. "
@@ -680,6 +764,7 @@ def _feedback_prompt_payload(feedback: dict[str, Any]) -> dict[str, Any]:
         "quota": feedback.get("quota") or {},
         "formal_principle_targets": feedback.get("formal_principle_targets") or [],
         "reference_precedent_targets": feedback.get("reference_precedent_targets") or [],
+        "reference_language_briefs": feedback.get("reference_language_briefs") or [],
         "reference_signal_diagnosis": feedback.get("reference_signal_diagnosis") or {},
         "top_candidate_brief": (feedback.get("top_candidate_brief") or [])[:5],
         "bottom_candidate_brief": (feedback.get("bottom_candidate_brief") or [])[:5],
@@ -711,6 +796,7 @@ def _call_openai(
     min_palette: int = 3,
     min_rules: int = 2,
     max_output_tokens: int | None = None,
+    reasoning_effort: str | None = None,
 ) -> dict[str, Any]:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -738,7 +824,7 @@ def _call_openai(
     }
     if _supports_reasoning_effort(model):
         body["reasoning"] = {
-            "effort": os.getenv("MAAS_LLM_REASONING_EFFORT", "medium"),
+            "effort": reasoning_effort or os.getenv("MAAS_LLM_REASONING_EFFORT", "medium"),
         }
     req = urllib.request.Request(
         "https://api.openai.com/v1/responses",
@@ -768,6 +854,7 @@ def _record_to_sequence(record: dict[str, Any], index: int, *, prompt_hash: str,
     if not safe_name.startswith("llm_"):
         safe_name = f"llm_{safe_name}"
     calls = []
+    graph_specs: list[dict[str, str]] = []
     for call_index, item in enumerate(record.get("calls") or []):
         if not isinstance(item, dict):
             raise ValueError(f"{safe_name}: call {call_index} must be an object")
@@ -790,14 +877,21 @@ def _record_to_sequence(record: dict[str, Any], index: int, *, prompt_hash: str,
         for key, value in dict(params).items():
             if value is None:
                 continue
-            if isinstance(value, list) and key not in {"offset_vec", "position"}:
+            if isinstance(value, list) and key not in {"offset_vec", "position", "control_points"}:
                 continue
             if isinstance(value, dict):
                 continue
             clean_params[key] = value
         calls.append(call(str(verb), **clean_params))
+        graph_specs.append({
+            "node_id": str(item.get("node_id") or ""),
+            "parent_node_id": str(item.get("parent_node_id") or ""),
+            "role": str(item.get("role") or ""),
+            "relation": str(item.get("relation") or ""),
+        })
     if not calls or calls[0].verb != "base":
         calls.insert(0, call("base", proportion="site"))
+        graph_specs.insert(0, {"node_id": "root", "parent_node_id": "", "role": "root", "relation": "input"})
     sequence = VerbSequence(
         name=f"{safe_name}_{index:03d}",
         label=str(record.get("label") or safe_name),
@@ -828,7 +922,40 @@ def _record_to_sequence(record: dict[str, Any], index: int, *, prompt_hash: str,
     errors = sequence.validate()
     if errors:
         raise ValueError(f"{sequence.name}: {'; '.join(errors)}")
-    return sequence
+    # Old caches remain readable through the compatibility graph. New model
+    # responses carry explicit topology and are embedded losslessly in the
+    # sequence envelope used by older service boundaries.
+    fallback = graph_from_sequence(sequence)
+    explicit = bool(graph_specs) and all(spec.get("node_id") and spec.get("role") for spec in graph_specs)
+    if not explicit:
+        return fallback.to_sequence(name=sequence.name)
+    nodes = []
+    for call_index, operation in enumerate(sequence.calls):
+        spec = graph_specs[call_index]
+        role = spec["role"]
+        if operation.verb not in ROLE_VERBS.get(role, set()):
+            raise ValueError(
+                f"{sequence.name}: role {role!r} cannot execute verb {operation.verb!r}"
+            )
+        relation = spec["relation"] or ("subtract" if role == "void" else "connect" if role == "connector" else "attach")
+        if relation not in ROLE_RELATIONS.get(role, set()):
+            raise ValueError(
+                f"{sequence.name}: role {role!r} cannot use relation {relation!r}"
+            )
+        nodes.append(MassComponentNode(
+            node_id=spec["node_id"],
+            role=role,
+            parent_id=spec["parent_node_id"] or None,
+            optional=role in {"support", "connector"},
+            operation=operation,
+            constraints={"inside_legal_envelope": True, "author_graph_native": True},
+            relation=relation,
+        ))
+    graph = MassComponentGraph(sequence.name, sequence.label, tuple(nodes), sequence.notes)
+    graph_errors = graph.validate()
+    if graph_errors:
+        raise ValueError(f"{sequence.name}: invalid authored graph: {'; '.join(graph_errors)}")
+    return graph.to_sequence(name=sequence.name)
 
 
 def _validate_batch(
@@ -855,6 +982,8 @@ def build_site_context(
     building_type: str,
     limits: dict[str, Any],
     max_variants: int,
+    site_polygon: Any | None = None,
+    access_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     from design.maas.program_massing import program_search_prior, resolve_program_profile
     program = resolve_program_profile(building_type)
@@ -869,6 +998,10 @@ def build_site_context(
             "max_seed_floors": limits.get("max_seed_floors"),
         },
         "selection_goal": "creative architectural language first; deterministic law solver remains source of truth",
+        "site_geometry_intelligence": _site_geometry_intelligence(
+            site_polygon,
+            access_context=access_context,
+        ),
         "program_massing": {
             "profile_id": program["id"],
             "design_intent": program["design_intent"],
@@ -878,6 +1011,77 @@ def build_site_context(
             "search_prior": program_search_prior(building_type),
         },
     }
+
+
+def _site_geometry_intelligence(
+    site_polygon: Any | None,
+    *,
+    access_context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Describe the parcel in design terms without asking the LLM to do GIS.
+
+    Coordinates remain in the deterministic geometry layer.  The language
+    agent receives stable shape/axis/access facts and must choose a compatible
+    formal strategy; the compiler then works in the same dominant-axis frame.
+    """
+    missing = {
+        "schema_version": "arr.maas.site_geometry_intelligence.v1",
+        "status": "geometry_not_supplied",
+        "design_directives": [
+            "do not claim parcel-specific alignment without site geometry",
+        ],
+    }
+    if site_polygon is None or getattr(site_polygon, "is_empty", True):
+        return missing
+    try:
+        hull = site_polygon.convex_hull
+        rectangle = site_polygon.minimum_rotated_rectangle
+        coords = list(rectangle.exterior.coords)
+        edges = []
+        for start, end in zip(coords, coords[1:]):
+            dx = float(end[0] - start[0])
+            dy = float(end[1] - start[1])
+            edges.append(((dx * dx + dy * dy) ** 0.5, dx, dy))
+        length, dx, dy = max(edges, key=lambda item: item[0])
+        width = min(item[0] for item in edges if item[0] > 1e-8)
+        axis = degrees(atan2(dy, dx))
+        while axis >= 90.0:
+            axis -= 180.0
+        while axis < -90.0:
+            axis += 180.0
+        exterior = list(site_polygon.exterior.coords)[:-1]
+        compactness = float(site_polygon.area) / max(float(rectangle.area), 1e-9)
+        convexity = float(site_polygon.area) / max(float(hull.area), 1e-9)
+        aspect = float(length) / max(float(width), 1e-9)
+        directives = [
+            "align or deliberately counterpoint the dominant parcel axis; record which choice is used",
+            "keep primary mass and public/open-space figure legible against the actual boundary",
+        ]
+        if aspect >= 2.0:
+            directives.append("test bar, ribbon, bridge, or terraced-section languages along the long axis")
+        elif aspect <= 1.25:
+            directives.append("test courtyard, carved-solid, cluster, or rotated-datum languages rather than one full-site slab")
+        if convexity < 0.92:
+            directives.append("use the concavity as court/entry/void logic; do not fill it with a bounding box")
+        if len(exterior) >= 7:
+            directives.append("simplify the dominant gesture; do not imitate every parcel edge as fragments")
+        access = access_context if isinstance(access_context, dict) else {}
+        return {
+            "schema_version": "arr.maas.site_geometry_intelligence.v1",
+            "status": "available",
+            "dominant_axis_world_degrees": round(axis, 3),
+            "oriented_aspect_ratio": round(aspect, 3),
+            "oriented_length_m": round(float(length), 2),
+            "oriented_width_m": round(float(width), 2),
+            "rectangle_compactness": round(compactness, 3),
+            "convexity_ratio": round(convexity, 3),
+            "boundary_vertex_count": len(exterior),
+            "is_concave": convexity < 0.995,
+            "access_context": access,
+            "design_directives": directives,
+        }
+    except Exception as exc:
+        return {**missing, "status": "geometry_analysis_failed", "error": str(exc)[:160]}
 
 
 def generate_llm_massdsl_batch(
@@ -895,6 +1099,8 @@ def generate_llm_massdsl_batch(
     cache_path: str | Path | None = None,
     generation_feedback: dict[str, Any] | None = None,
     response_override: dict[str, Any] | None = None,
+    allow_subbatch_recovery: bool = True,
+    allow_deterministic_coverage_repair: bool = False,
 ) -> LlmProposalBatch:
     model = model or os.getenv("MAAS_LLM_MODEL") or DEFAULT_MODEL
     timeout = timeout if timeout is not None else _safe_float(os.getenv("MAAS_LLM_TIMEOUT"), 90.0)
@@ -976,6 +1182,12 @@ def generate_llm_massdsl_batch(
                         min_palette=3,
                         min_rules=2,
                         max_output_tokens=max_output_tokens,
+                        # Reasoning tokens can consume the complete output
+                        # budget before strict JSON is emitted.  Preserve the
+                        # normal effort on the first pass, then recover with a
+                        # low-effort structured-output retry instead of a
+                        # deterministic geometry fallback.
+                        reasoning_effort="low" if attempt > 1 else None,
                     )
                 except LlmProposalError as exc:
                     last_error = exc
@@ -985,7 +1197,13 @@ def generate_llm_massdsl_batch(
                     metadata["response_ids"].append(response_id)
                 raw_text = _extract_text(response)
                 if not raw_text:
-                    last_error = LlmProposalError(f"OpenAI response did not include output text for batch {batch_label}")
+                    incomplete = response.get("incomplete_details")
+                    usage = response.get("usage")
+                    last_error = LlmProposalError(
+                        "OpenAI response did not include output text for batch "
+                        f"{batch_label}; status={response.get('status')!r}; "
+                        f"incomplete_details={incomplete!r}; usage={usage!r}"
+                    )
                     continue
                 try:
                     parsed = json.loads(raw_text)
@@ -1027,25 +1245,26 @@ def generate_llm_massdsl_batch(
                 raw_response["id"] = response_id
             if batch_data is None:
                 recovered = 0
-                sub_count = max(3, min(5, count // 2 or 3))
-                sub_index = 1
-                while recovered < count:
-                    current_count = min(sub_count, count - recovered)
-                    if current_count < 3 and recovered > 0:
-                        break
-                    sub_data, sub_error, sub_metadata = request_llm_batch(f"{batch_index}.{sub_index}", current_count, 1)
-                    prompt_hashes.append(str(sub_metadata.get("prompt_hash") or ""))
-                    if sub_metadata.get("focus"):
-                        batch_focuses.append(sub_metadata["focus"])
-                    for response_id in sub_metadata.get("response_ids") or []:
-                        raw_response["batch_ids"].append(response_id)
-                        raw_response["id"] = response_id
-                    if sub_data is None:
-                        last_error = sub_error or last_error
-                        break
-                    merge_batch_data(sub_data)
-                    recovered += len(sub_data.get("candidates") or [])
-                    sub_index += 1
+                if allow_subbatch_recovery:
+                    sub_count = max(3, min(5, count // 2 or 3))
+                    sub_index = 1
+                    while recovered < count:
+                        current_count = min(sub_count, count - recovered)
+                        if current_count < 3 and recovered > 0:
+                            break
+                        sub_data, sub_error, sub_metadata = request_llm_batch(f"{batch_index}.{sub_index}", current_count, 1)
+                        prompt_hashes.append(str(sub_metadata.get("prompt_hash") or ""))
+                        if sub_metadata.get("focus"):
+                            batch_focuses.append(sub_metadata["focus"])
+                        for response_id in sub_metadata.get("response_ids") or []:
+                            raw_response["batch_ids"].append(response_id)
+                            raw_response["id"] = response_id
+                        if sub_data is None:
+                            last_error = sub_error or last_error
+                            break
+                        merge_batch_data(sub_data)
+                        recovered += len(sub_data.get("candidates") or [])
+                        sub_index += 1
                 if recovered >= max(3, count // 2):
                     continue
                 batch_errors.append({
@@ -1074,7 +1293,7 @@ def generate_llm_massdsl_batch(
                 "use single-slab overlap before adding stacked towers",
                 "reserve stack for nest, roof, and legal-envelope anchors",
             ])
-        if len(merged["candidates"]) < target_count:
+        if allow_deterministic_coverage_repair and len(merged["candidates"]) < target_count:
             merged["candidates"].extend(
                 _coverage_repair_population(
                     target_count - len(merged["candidates"]),
@@ -1107,7 +1326,8 @@ def generate_llm_massdsl_batch(
         batch_focuses = [_batch_focus_payload(1, target_count)]
     if not isinstance(data, dict):
         raise LlmProposalError("LLM proposal response must be a JSON object")
-    _ensure_family_coverage(data)
+    if allow_deterministic_coverage_repair:
+        _ensure_family_coverage(data)
     _validate_batch(data, min_candidates=target_count)
     sequence_list: list[VerbSequence] = []
     rejected_records: list[str] = []
@@ -1119,7 +1339,7 @@ def generate_llm_massdsl_batch(
             sequence_list.append(_record_to_sequence(record, index + 1, prompt_hash=prompt_hash, model=model))
         except ValueError as exc:
             rejected_records.append(str(exc))
-    if len(sequence_list) < target_count:
+    if len(sequence_list) < target_count and allow_deterministic_coverage_repair:
         repair_records = _coverage_repair_population(
             target_count - len(sequence_list),
             start_index=len(data.get("candidates") or []),
@@ -1131,7 +1351,7 @@ def generate_llm_massdsl_batch(
             except ValueError as exc:
                 rejected_records.append(str(exc))
     sequences = tuple(sequence_list)
-    min_valid = max(10, int(target_count * 0.75))
+    min_valid = max(10, int(target_count * 0.75)) if allow_deterministic_coverage_repair else target_count
     if len(sequences) < min_valid:
         raise LlmProposalError(f"only {len(sequences)} valid LLM sequences compiled; rejected={rejected_records[:5]}")
     artifact = {
@@ -1159,6 +1379,15 @@ def generate_llm_massdsl_batch(
             for record in data.get("candidates") or []
             if isinstance(record, dict)
             and "timeout_coverage_repair" in (record.get("intent_tags") or [])
+        ),
+        "deterministic_coverage_repair_count": sum(
+            1
+            for record in data.get("candidates") or []
+            if isinstance(record, dict)
+            and any(
+                tag in {"timeout_coverage_repair", "coverage_family_repair"}
+                for tag in (record.get("intent_tags") or [])
+            )
         ),
         "language_palette_count": len(data.get("language_palette") or []),
         "combination_rule_count": len(data.get("combination_rules") or []),

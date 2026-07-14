@@ -1,6 +1,7 @@
 """Regression tests for MAAS review selection helpers."""
 
 from django.test import TestCase
+from unittest.mock import patch
 
 from design.maas.selection import (
     FinalMetricCallbacks,
@@ -22,6 +23,8 @@ from design.maas.selection import (
 from design.maas.selection_policy import SelectionState as ShimSelectionState
 from design.maas.selection.integer_projection import ProjectionDescriptor, solve_final_integer_projection
 from design.maas.selection.visual_similarity import pairwise_visual_similarity
+from design.maas.legal_mesh_optimizer import _massing_capacity_policy
+from design.maas.parking_requirements import load_parking_requirement_rules
 
 
 def _feature(
@@ -68,6 +71,35 @@ def _feature(
 
 
 class MaasSelectionPolicyTest(TestCase):
+    @patch("design.maas.parking_requirements.GraphDatabase.driver")
+    def test_parking_rules_are_local_first_without_explicit_graph_request(self, driver):
+        result = load_parking_requirement_rules(options={})
+        driver.assert_not_called()
+        self.assertEqual(result["status"], "loaded")
+        self.assertEqual(result["source"], "local_structured_seed")
+        self.assertEqual(result["graph_status"], "not_requested")
+
+    def test_capacity_policy_separates_small_commercial_and_design_led_programs(self):
+        neighborhood = _massing_capacity_policy(
+            building_type="근린생활시설",
+            site_area_m2=264.0,
+            parking_options=None,
+        )
+        gym = _massing_capacity_policy(
+            building_type="체육관",
+            site_area_m2=2400.0,
+            parking_options=None,
+        )
+        museum = _massing_capacity_policy(
+            building_type="미술관",
+            site_area_m2=6000.0,
+            parking_options=None,
+        )
+        self.assertEqual(neighborhood["mode"], "capacity-first")
+        self.assertEqual(neighborhood["min_far_utilization"], 0.70)
+        self.assertEqual(gym["mode"], "design-led")
+        self.assertEqual(museum["min_far_utilization"], 0.20)
+
     def test_pairwise_visual_similarity_detects_same_precedent_geometry(self):
         common = dict(
             cost=0.1,

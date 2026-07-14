@@ -78,6 +78,20 @@
       ]
     },
     {
+      "id": "neighborhood_living",
+      "aliases": ["근린생활시설", "근린생활", "근생", "neighborhood living", "neighborhood commercial"],
+      "design_intent": "compact capacity-aware street building with an active ground edge, one clear public void or terrace, and calm upper massing",
+      "target_volume_range": [1, 3],
+      "target_floor_range": [2, 8],
+      "preferred_families": ["slender_bar", "courtyard", "terrace_link", "void_notch", "offset", "bend"],
+      "sequences": [
+        {"name": "program_neighborhood_active_bar", "calls": [{"verb": "base", "params": {"proportion": "site"}}, {"verb": "bar", "params": {"axis": "x", "factor": 0.82}}, {"verb": "cave", "params": {"side": "south", "width_ratio": 0.24, "depth_ratio": 0.12}}]},
+        {"name": "program_neighborhood_court_terrace", "calls": [{"verb": "base", "params": {"proportion": "site"}}, {"verb": "courtyard", "params": {"ratio": 0.18, "upper_ratio": 0.90}}, {"verb": "terrace_link", "params": {"side": "south", "upper_ratio": 0.82, "lower_floor_fraction": 0.46}}]},
+        {"name": "program_neighborhood_stepback_corner", "calls": [{"verb": "base", "params": {"proportion": "site"}}, {"verb": "offset", "params": {"axis": "y", "distance_ratio": 0.10, "upper_ratio": 0.82, "lower_floor_fraction": 0.42}}]},
+        {"name": "program_neighborhood_landscape_ribbons", "calls": [{"verb": "base", "params": {"proportion": "site"}}, {"verb": "bend", "params": {"lane_count": 3, "field_samples": 5, "lane_width_ratio": 0.105, "width_gradient": 0.22, "curvature": 0.08, "field_phase": 0.0, "vertical_mode": "grounded", "vertical_overlap": 0.16, "lower_floor_fraction": 0.46, "design_field_source": "program_agent_graph"}}]}
+      ]
+    },
+    {
       "id": "retail",
       "aliases": ["판매시설", "상업시설", "retail", "shop"],
       "design_intent": "porous street-facing podium with clear entrances, internal court, and stacked public plates",

@@ -64,11 +64,12 @@ def attach_creative_mass_evidence(feature: dict[str, Any], *, site_area_m2: floa
     volume_count = len(records)
     roles = [str(item.get("role") or "") for item in records]
     uses_buffered_path = any("ribbon" in role for role in roles)
-    effective_surface_count = min(surface_count, volume_count * 6) if uses_buffered_path else surface_count
+    effective_surface_count = int(signature.get("effective_surface_count") or (min(surface_count, volume_count * 6) if uses_buffered_path else surface_count))
     economy_score = max(0.0, min(1.0, 1.0 - max(0, effective_surface_count - 24) / 48.0))
     profiled_roof_count = sum(
         1 for item in props.get("source_surfaces") or []
-        if isinstance(item, dict) and item.get("surface_type") == "profiled_roof_strip"
+        if isinstance(item, dict) and str(item.get("surface_type") or "").startswith("profiled_")
+        and "roof" in str(item.get("surface_type") or "")
     )
     non_rectilinear_volume_count = sum(
         1
@@ -79,10 +80,16 @@ def attach_creative_mass_evidence(feature: dict[str, Any], *, site_area_m2: floa
     # diagnostic only.  Do not call that sculptural.  This stricter archive
     # signal requires an authored continuous/branching/folded family or an
     # explicit profiled surface.
-    formal_family = str(signature.get("family") or "")
+    continuous = signature.get("continuous_surface_evidence") if isinstance(signature.get("continuous_surface_evidence"), dict) else {}
+    continuous_principle = str(continuous.get("principle") or "")
     sculptural_geometry = bool(
-        profiled_roof_count > 0
-        or formal_family in {"bend", "branch", "sloped_roof", "terrace_link"}
+        continuous.get("hard_pass")
+        and profiled_roof_count > 0
+        and continuous_principle in {
+            "continuous_ribbon_field",
+            "folded_section",
+            "terraced_ribbon_section",
+        }
     )
     interlock_pair_count = 0
     for left_index, left in enumerate(records):

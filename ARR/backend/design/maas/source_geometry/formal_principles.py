@@ -11,9 +11,11 @@ from dataclasses import dataclass
 from typing import Any
 
 from shapely.affinity import rotate, scale, translate
-from shapely.geometry import LineString, MultiPolygon, Polygon, box
+from shapely.geometry import MultiPolygon, Polygon, box
 
+from .design_fields import build_ribbon_design_field
 from .ir import SourceVolume
+from .parametric_curves import swept_ribbon
 
 
 CANONICAL_FORMAL_PRINCIPLES = {
@@ -26,6 +28,7 @@ CANONICAL_FORMAL_PRINCIPLES = {
     "carved_atrium",
     "split_bridge_connector",
     "carved_monolith",
+    "continuous_ribbon_field",
 }
 
 FORMAL_PRINCIPLE_ALIASES = {
@@ -48,6 +51,8 @@ FORMAL_PRINCIPLE_ALIASES = {
     "terrace_link": "terraced_ribbon_section",
     "terrace_ribbon": "terraced_ribbon_section",
     "terraced_ribbon": "terraced_ribbon_section",
+    "continuous_ribbon": "continuous_ribbon_field",
+    "ribbon_field": "continuous_ribbon_field",
     "figure_ground": "carved_atrium",
     "carved_solid": "carved_monolith",
     "embedded_void": "carved_monolith",
@@ -104,7 +109,10 @@ def _poly(role: str, clip: Polygon, coords: list[tuple[float, float]], bottom: f
 def _ribbon(role: str, clip: Polygon, points: list[tuple[float, float]], width: float, bottom: float, top: float, verb: str, *, min_area: float) -> SourceVolume | None:
     if len(points) < 2 or width <= 0:
         return None
-    return _clean_piece(role, LineString(points).buffer(width, cap_style=2, join_style=2), bottom, top, verb, clip=clip, min_area=min_area)
+    sweep = swept_ribbon(tuple(points), half_width=width, clip=clip)
+    if sweep is None:
+        return None
+    return _clean_piece(role, sweep, bottom, top, verb, clip=clip, min_area=min_area)
 
 
 def _param(params: dict[str, Any], keys: tuple[str, ...], fallback: float, low: float, high: float) -> float:
@@ -194,6 +202,19 @@ def compile_formal_principle_volumes(
             _clean_piece("secondary_tower_cap", cap, max(0.72, upper_ratio - 0.16), 1.0, "taper", clip=footprint, min_area=min_area),
             _rect("secondary_ground_void_marker", footprint, minx, miny, minx + width * 0.24, miny + depth * 0.22, 0.0, split * 0.55, "void", min_area=min_area),
         ]
+    elif principle == "continuous_ribbon_field":
+        design_field = build_ribbon_design_field(footprint, language_params)
+        if design_field is None:
+            return None
+        pieces = []
+        for index, (path, half_width, band) in enumerate(zip(
+            design_field.paths,
+            design_field.half_widths,
+            design_field.vertical_bands,
+        )):
+            role_prefix = "primary" if index < 2 else "secondary"
+            role = f"{role_prefix}_continuous_ribbon_lane_{index}"
+            pieces.append(_ribbon(role, footprint, list(path), half_width, band[0], band[1], "bend", min_area=min_area))
     elif principle == "torqued_stack":
         torque_angle = max(18.0, min(42.0, abs(angle)))
         torque_shift = max(0.18, min(0.34, abs(shift)))
@@ -231,11 +252,52 @@ def compile_formal_principle_volumes(
                     min_area=min_area,
                 ))
         else:
-            for index, (bottom, top, xsign, ysign) in enumerate(((0.0, 0.40, -1, 0), (0.36, 0.72, 1, -1), (0.68, 1.0, 0, 1))):
-                plate = scale(footprint, xfact=max(0.54, 0.86 - index * 0.12), yfact=max(0.48, 0.82 - index * 0.10), origin="centroid")
-                plate = translate(plate, xoff=xsign * width * shift * 0.45, yoff=ysign * depth * shift * 0.45)
-                pieces.append(_clean_piece(_role(f"primary_shifted_platform_{index}", genome), plate, bottom, top, "stack", clip=footprint, min_area=min_area))
-    elif principle in {"folded_section", "terraced_ribbon_section"}:
+            # A stack graph is an occupiable stepped section, not unrelated
+            # floating cuboids. The agent controls tier count, shrink and
+            # direction; this grammar projects that rule onto the parcel.
+            tier_count = int(round(_param(language_params, ("levels", "n"), 3.0, 3.0, 4.0)))
+            cascade_axis = str(language_params.get("slide_axis") or language_params.get("axis") or "x").lower()
+            upper_ratio = _param(language_params, ("upper_ratio", "top_ratio"), 0.76, 0.62, 0.88)
+            for index in range(tier_count):
+                progress = index / max(tier_count - 1, 1)
+                bottom = index / tier_count
+                top = (index + 1) / tier_count
+                factor = max(0.52, 1.0 - (1.0 - upper_ratio) * progress)
+                plate = scale(footprint, xfact=factor, yfact=max(0.50, factor * 0.96), origin="centroid")
+                run = shift * progress * 0.72
+                plate = translate(
+                    plate,
+                    xoff=width * run if cascade_axis == "x" else 0.0,
+                    yoff=depth * run if cascade_axis == "y" else 0.0,
+                )
+                pieces.append(_clean_piece(
+                    _role(f"primary_capacity_terrace_tier_{index}", genome),
+                    plate,
+                    bottom,
+                    top,
+                    "stack",
+                    clip=footprint,
+                    min_area=min_area,
+                ))
+    elif principle == "folded_section":
+        # A fold must be an authored object inside the parcel, not a roof drawn
+        # over a 100%-coverage site slab.  The latter made every folded seed
+        # fail the creative coverage gate and silently removed this entire
+        # architectural language from the archive.
+        plinth = scale(
+            footprint,
+            xfact=_param(language_params, ("x_ratio",), 0.84, 0.68, 0.90),
+            yfact=_param(language_params, ("y_ratio",), 0.80, 0.64, 0.88),
+            origin="centroid",
+        )
+        pminx, pminy, pmaxx, pmaxy, pwidth, _ = _bounds(plinth)
+        pcx = plinth.centroid.x
+        pieces = [
+            _clean_piece(_role("primary_folded_base", genome), plinth, 0.0, 0.38, "base", clip=footprint, min_area=min_area),
+            _rect(_role("primary_folded_low_plane", genome), plinth, pminx, pminy, pcx + pwidth * 0.04, pmaxy, 0.34, 0.70, "sloped_roof_mass", min_area=min_area),
+            _rect(_role("primary_folded_high_plane", genome), plinth, pcx - pwidth * 0.04, pminy, pmaxx, pmaxy, 0.66, 1.0, "sloped_roof_mass", min_area=min_area),
+        ]
+    elif principle == "terraced_ribbon_section":
         # A readable early-massing fold is a common plinth plus two roof
         # boxes meeting along one datum. The previous two full-plan polygons
         # occupied almost the same plan and produced crossed linework rather
@@ -256,11 +318,38 @@ def compile_formal_principle_volumes(
         ]
     elif principle == "split_bridge_connector":
         gap = width * max(0.05, min(0.22, shift))
+        # Keep the two inhabited wings genuinely separate and let a single,
+        # short connector resolve the composition.  The old implementation
+        # drew a diagonal bar across the entire site and added a full-depth
+        # core through the same space.  That created four mutually colliding
+        # boxes, so every authored bridge language failed the geometry
+        # coherence gate before VLM review.
+        #
+        # These dimensions are ratios supplied by the language graph/site
+        # envelope, not a card-specific footprint template.  The bearing is
+        # intentionally small: enough to make one connected architectural
+        # diagram, but not enough to turn the bridge into a third full wing.
+        bearing = width * _param(language_params, ("bearing_ratio",), 0.055, 0.035, 0.085)
+        bridge_half_depth = depth * _param(language_params, ("bridge_width_ratio", "factor"), 0.065, 0.045, 0.095)
+        bridge_angle = max(-18.0, min(18.0, angle))
         pieces = [
             _rect(_role("primary_split_wing_a", genome), footprint, minx, miny, cx - gap, maxy, 0.0, upper_ratio, "split", min_area=min_area),
             _rect(_role("primary_split_wing_b", genome), footprint, cx + gap, miny, maxx, maxy, split * 0.65, 1.0, "split", min_area=min_area),
-            _rot(_role("primary_diagonal_bridge_connector", genome), footprint, box(minx, cy - depth * 0.07, maxx, cy + depth * 0.07), angle, max(split, 0.45), 1.0, "diagonal_connect", min_area=min_area),
-            _rect(_role("secondary_threshold_core", genome), footprint, cx - width * 0.08, miny, cx + width * 0.08, maxy, split * 0.20, 0.86, "core", min_area=min_area),
+            _rot(
+                _role("primary_diagonal_bridge_connector", genome),
+                footprint,
+                box(
+                    cx - gap - bearing,
+                    cy - bridge_half_depth,
+                    cx + gap + bearing,
+                    cy + bridge_half_depth,
+                ),
+                bridge_angle,
+                max(split, 0.48),
+                min(1.0, max(split, 0.48) + 0.30),
+                "diagonal_connect",
+                min_area=min_area,
+            ),
         ]
     elif principle == "carved_monolith":
         cut = box(cx - width * void_ratio / 2, cy - depth * void_ratio / 2, cx + width * void_ratio / 2, cy + depth * void_ratio / 2)
@@ -302,6 +391,8 @@ def compile_formal_principle_volumes(
         "podium_or_ground_relationship": any("podium" in role or "ground" in role or "base" in role for role in roles),
         "architecture_grade_pass": True,
     }
+    if principle == "continuous_ribbon_field" and design_field is not None:
+        evidence["site_design_field"] = design_field.evidence
     return FormalPrincipleResult(principle=principle, volumes=volumes, evidence=evidence)
 
 

@@ -1275,3 +1275,756 @@ This supersedes the earlier "20 distinct topology/language seeds" claim.
   verification and parking mass-stage verification pass. The strict full JSON
   verifier fails only its expected LLM/VLM completion/evidence requirements;
   do not label this no-model artifact as a completed VLM run.
+
+## 2026-07-13 polygon-quality gate and honest representation limit
+
+- The system is not "paper-complete" and the current output is not the limit.
+  A clean polygon gate is necessary geometry hygiene, not the fundamental
+  competition-grade generator.
+- Added `source_geometry/polygon_quality.py` and integrated it into compiler
+  cleanup and coherence v2. Evidence is scale-independent and records validity,
+  exterior vertex count, holes, minimum edge ratio, short-edge count, minimum
+  rotated width ratio, and compactness.
+- Invalid/self-intersecting plans are repaired conservatively; topology-
+  preserving simplification removes clipping debris only when it retains at
+  least 97% of area. Hairline slivers, repeated short-edge/spike debris, invalid
+  plans, and plans with more than 96 exterior vertices now fail source
+  coherence rather than reaching the selector as acceptable masses.
+- Polygon/selection/preference/evolution regression is 49/49. A separate
+  broader command including the expensive program archive benchmark exceeded
+  four minutes and did not produce a final result; do not report that broader
+  suite as passed for this patch.
+- Fundamental next layer: replace `_rect_piece + extrusion` as the dominant
+  representation with graph-native continuous primitives: centerline/width/
+  height fields for ribbons, curved or folded roof fields, carved-monolith
+  solid/void operators, and explicit connection/section continuity. VLM must
+  evaluate rendered multi-view geometry and return typed failure signals to
+  those generator parameters. Reranking boxes cannot create this geometry.
+- Preserve the stronger recovered legal baseline while this research generator
+  remains behind its red box-bias benchmark. Never claim polygon cleanliness is
+  equivalent to architectural quality or continuous shell generation.
+
+## 2026-07-13 graph-native continuous surface implementation
+
+- Implemented the first fundamental representation change rather than another
+  selector weight. Formal MassDSL graphs now materialize explicit non-flat 3D
+  roof and facade surfaces for `folded_section`, `terraced_ribbon_section`,
+  `torqued_stack`, and the new `continuous_ribbon_field` principle.
+- Corrected the semantic collapse `bend -> torqued_stack`. Bend graphs now map
+  to `continuous_ribbon_field`: three connected, footprint-relative buffered
+  centerline ribbons with coupled longitudinal/transverse height fields. The
+  coordinates are normalized formal rules, not parcel-specific templates.
+- The conservative `SourceVolume` proxy remains the FAR/BCR/legal solid, while
+  `SourceSurface` is the authored review/VLM envelope. Flat proxy roofs for
+  profiled roles are suppressed by the existing VLM renderer, so it now sees
+  the actual varying-height field.
+- Added `continuous_surface_evidence` to the source signature. Raw tessellated
+  `surface_count` is preserved, while `effective_surface_count` records logical
+  complexity for profiled surfaces. Legal order gates now use the effective
+  count; they no longer force correct meshes to delete facade faces.
+- Direct 109-variant grammar probe: 33 candidates materialize profiled formal
+  surfaces across four principles. Maximum raw surface count is 49, maximum
+  effective count is 18, and none exceed the legal order limit of 36.
+- Targeted polygon/selection/preference/evolution regression is 51/51. Two
+  isolated legacy export tests still fail their pre-existing
+  `inference_source == family_priority` assertion for four non-bend cases; do
+  not attribute those failures to the new surface geometry or claim the entire
+  repository suite passes.
+- Visual probes are
+  `docs/playwright/design-route-live-verify/continuous-surface-probe/`.
+  The change produces connected non-flat ribbons and folded fields, but they
+  remain piecewise-linear early-massing surfaces, not smooth NURBS/subdivision
+  shells, structural form-finding, or a claim of universal competition grade.
+
+## 2026-07-13 six-board visual loop and paper-critical VLM correction
+
+- Ran six successive 20-mass creative boards and directly inspected every PNG;
+  do not use numeric pass alone as acceptance. Artifacts are
+  `maas-creative-20-continuous-latest.png` and `v2` through `v6` beside it.
+- Board 1 exposed label-driven prefill and repeated interlock/terrace forms.
+  Board 2 used geometry-distance greedy selection: 20 measured languages and
+  zero near-duplicate pairs, but only 7/20 sculptural, so it failed.
+- Boards 3--5 added an explicit sculptural quota and reached 8 then 12/20, but
+  direct PNG review rejected them: several cross-compositions were only named
+  sculptural, and repeated bend/terrace fields still dominated.
+- Removed family-name sculptural scoring. A candidate now counts only when
+  actual `continuous_surface_evidence.hard_pass` and a profiled roof exist for
+  continuous-ribbon, folded-section, or terraced-ribbon principles.
+- Added a formal-principle cap of four. Board 6 then selected 20, 17 topology
+  labels, 20 measured geometry clusters, zero near-duplicate pairs, but only
+  8/20 real profiled sculptural candidates. Benchmark correctly fails
+  `sculptural_geometry_count_below_12_competition_target`. Direct PNG review
+  agrees: the generator pool, not only the selector, lacks enough distinct
+  continuous/formal geometry operators.
+- Paper/code audit found the CAD-Assistant-style observe/critic/revise loop was
+  present but its VLM vocabulary could not say `too_box_like`,
+  `weak_form_continuity`, `needs_profiled_surface`, or `needs_carved_void`.
+  These typed actions are now in the VLM schema and compile to bounded MassDSL
+  topology mutations: continuous ribbon field, folded field, or carved atrium,
+  followed by the existing legal/parking/review revalidation.
+- The mutation parameters inherit parent numeric intent where possible and vary
+  by critic generation; they are not parcel-specific coordinates. Regression
+  proving `too_box_like -> bend -> continuous_ribbon_field` and the wider
+  polygon/selection/preference/evolution set passes 52/52.
+- Remaining fundamental task: add more independent graph-native formal
+  operators (smooth loft/subdivision ribbon, carved shell/atrium surface,
+  cantilever/fan field, bridge/canyon continuity) and let actual VLM actions
+  populate/evaluate those cells. More quotas cannot manufacture missing design
+  languages. Keep board 6 red until at least 12/20 actual profiled principles
+  pass direct PNG review, not only the counter.
+
+## 2026-07-13 site-aware agent flow and boards v7-v9
+
+- Full runtime audit found the documented multi-agent flow overstated runtime
+  ownership: `DesignOrchestratorAgent` routes/reviews only, and the live OpenAI
+  population was called directly from `legal_mesh_optimizer.py`. The live call
+  now goes through `LLMArchitectAgent.propose_population`; its artifact records
+  `owning_agent=llm_architect_agent` and the site-geometry status. The broader
+  orchestrator is still not a stateful bidirectional execution engine.
+- The LLM previously received only area, use, FAR/BCR and height. It now receives
+  `site_geometry_intelligence`: dominant world axis, oriented aspect/size,
+  compactness, convexity/concavity, boundary vertices, access context and typed
+  design directives. The source compiler uses the same dominant-axis local
+  frame and restores volumes/surfaces to world coordinates.
+- Added a clean-silhouette hard gate using exterior-only normalized perimeter
+  compactness. This rejects connected starburst/interlock debris while retaining
+  courtyards; novelty selection can no longer rescue those candidates merely
+  because they are different.
+- Folded-section seeds were silently absent because their formal compiler filled
+  100% of the parcel and failed coverage. Folded bases/roof planes are now
+  authored inside an inset plinth. This restored a third true non-flat family.
+- Board v7: 20 geometry languages and zero duplicates, but 8/20 actual profiled
+  geometry; direct PNG rejected fragmentary cards 4/5/9/10.
+- Board v8: silhouette gate removed the worst starbursts, but still 8/20 and
+  visually weak branch/podium cards; direct PNG rejected completion.
+- Board v9: benchmark passes with 20/20 selected, 14 topology labels, 20 measured
+  geometry languages, 12/20 real profiled candidates, 0 near duplicates. Direct
+  PNG is materially cleaner, but repeated folded/ribbon families and weak cards
+  6/12 mean this is not a claim of universal competition-grade design.
+- Multi-site evidence `maas-site-adaptation-v2.{json,png}` compiles four languages
+  across rotated-long, trapezoid and concave-L parcels: 12/12 compile, all source
+  volumes inside the parcel, and distinct site-frame angles 29, 5.553 and 0
+  degrees. This proves geometry-frame adaptation, not full road/context-aware
+  architectural reasoning.
+- Paper verdict after reading EvoMass and CAADRIA 2024 primary sources: topology,
+  population search, graph-native formal surfaces and critic-to-geometry revision
+  are partial matches. A general second-phase Volume-Based/Boundary-Based formal
+  variation optimizer, real daylight/solar simulation, and a stateful multi-agent
+  negotiation loop are still missing. VLM remains critic/reranker plus typed
+  mutation trigger, not a learned geometry generator.
+
+## 2026-07-13 capacity/program split and PNG-corrected program loop
+
+- Root live-ALT bug: `legal_mesh_optimizer.py` used `_research_review_floors`
+  to collapse agent/LLM candidates to 2--4 floor maquettes, while the selector
+  could omit `legal_layered_max`. Capacity alternatives therefore displayed
+  low-FAR fragments even when the legal envelope supported a full mass.
+- Live projection now chooses the highest legal floor count under FAR/height,
+  pins the legal anchor, and rejects under-capacity candidates before expensive
+  3D/graph/parking/VLM work. This is a pipeline correction, not per-card XYZ
+  hardcoding.
+- FAR utilization is brief-dependent, never a global 70% rule. Small
+  neighborhood-living/residential/commercial feasibility defaults to
+  `capacity-first` (0.70); gymnasium/museum/cultural/civic programs default to
+  `design-led` (0.20). Explicit `capacity-first`, `balanced`, `design-led`, or
+  `min_far_utilization` in `massing_brief` overrides the default.
+- Default visual benchmark is now neighborhood living + gymnasium, not housing.
+  Artifact v1 exposed generic box masses. Compiler audit found the gym's
+  `main_long_span_hall` role was excluded from `folded_section` surfaces, so the
+  semantic roof label rendered as a flat box. It now materializes a six-vertex
+  ridge and varying-height roof/facades.
+- PNG v3 deliberately tested a continuous neighborhood street ribbon. Numeric
+  fit was 0.971, but direct visual review rejected it as tangled/over-composed.
+  The seed was removed and program search now hard-rejects more than 4 volumes
+  or 28 raw source surfaces. Do not restore the ribbon because its score passed.
+- Current accepted artifact is
+  `docs/playwright/design-route-live-verify/maas-program-neighborhood-gym-v4.png`
+  with JSON beside it: 5 program elites, mean fit 0.972/0.980, max 23 surfaces,
+  max 3 volumes. It is cleaner and the gym roof is genuinely non-flat, but the
+  neighborhood masses remain early typology studies, not BIG/OMA competition
+  grade. Keep that distinction explicit.
+- Targeted regression after the correction: 43/43 program/polygon/selection/
+  evolution tests, plus 17/17 capacity-policy/selection tests. Full repository
+  suite was not run.
+# 2026-07-13 site-conditioned graph loop (IN PROGRESS, not solved)
+
+- User correctly rejected a patch that merely replaced one fixed ribbon coordinate template with another. Do not restore fixed `minx + width * ratio` path arrays and do not call them agent design.
+- Current target flow: `site geometry intelligence -> editable mass graph/design field -> compiler -> legal/parking projection -> multi-view PNG/VLM -> explicit graph edit -> recompile`.
+- New research material is local:
+  - `clone/shapecraft` at commit `2a09177` (official NeurIPS 2025 code).
+  - `clone/papers-2026/Proc3D_2601.12234.pdf` and extracted `.txt`.
+  - `clone/papers-2026/3D-Layout-R1_2603.22279.pdf` and extracted `.txt`.
+  - `clone/papers-2026/WACV2025_3D_Synthesis_Architectural_Design.pdf` and extracted `.txt`.
+- Important transferable mechanisms:
+  - ShapeCraft: component DAG + bounding-volume generation, multiple rendered sampling paths, VLM evaluation, best verified iteration.
+  - Proc3D: compact editable graph; localized node-parameter edits instead of regenerating an opaque mesh.
+  - 3D-Layout-R1: explicit intermediate scene-graph edits with format/IoU/collision rewards; direct final-coordinate prediction is weaker.
+- `source_geometry/design_fields.py` now maps graph-authored parameters to actual parcel cross-sections. It must remain coordinate-template-free. This is currently under test.
+- `continuous_ribbon_field` now consumes that site design field. It is not accepted until tests pass and a newly rendered PNG is directly inspected.
+- The first test after the rejected ribbon-template patch failed `sculptural_geometry_count_below_12_competition_target`; never hide or relabel that failure.
+- Parking performance root cause found: small-lot exact grid selection allowed 90C5 exhaustive combinations. It is now capped at 5,000 combinations and falls through to bounded selection; measured request time fell from about 46 seconds to about 1 second.
+- Neo4j being off was not the cause of the visual failure. Graph DB is the law/relationship authority; request-time deterministic rules may use a versioned local snapshot.
+- `legal_mesh_optimizer.py` is still far too large (~6.8k lines). Capacity, candidate-pool, trace and parking budget were extracted, but candidate generation, parking projection, and preference/final selection still need large stage extraction. Do not claim refactoring is complete.
+## 2026-07-13 Mass-Brain integration audit (useful memory, unsafe generator as-is)
+
+The independent service at `D:/Data/Mass-Brain` was read through its complete
+`docs/memory` handoff and its ARR bridge/recombination implementation.  It is a
+useful long-term append-only store for graph lineage, compile/legal/parking/VLM
+outcomes, and explicit architect feedback.  It does **not** currently solve the
+neighborhood-living 20-mass visual problem and must remain shadow-only.
+
+Concrete blockers found in code:
+
+- Its 774-feature bootstrap contains zero historical executable
+  `componentGraph` records; precedent images/metrics can be retrieved but cannot
+  yet be recombined into executable architectural languages.
+- `src/recombine.ts` splices structurally distant nodes by chaining them to the
+  last node without spatial/program compatibility, which can recreate the LEGO
+  fragment failure.
+- Numeric jitter clamps every numeric parameter to `12`; valid architectural
+  angles above 12 degrees are therefore silently destroyed.
+- `src/llm-assistant.ts` rejects any assistant edit whose role/verb signature
+  changes, so it can tune parameters but cannot author a new topology.
+- Learned reward is verb-signature based and is not yet conditioned on parcel,
+  access, program, scale, or building type.
+- ARR `_unique_sequences()` deduplicates only the verb sequence, losing distinct
+  parameterizations before Mass-Brain ingestion.
+
+Recommended use/order:
+
+1. Finish the ARR neighborhood-living 20-language graph/render/gate loop first.
+2. Store typed graph mutations and their context/outcomes in Mass-Brain.
+3. Add context-aware compatibility and parameter schemas before recombination.
+4. Run a fixed blind baseline-vs-brain PNG benchmark; do not promote based only
+   on counters, VLM scores, or the existing shadow promotion statistics.
+
+Do not describe Mass-Brain as a creativity model or as proof of aesthetic
+improvement.  Neo4j is unrelated to this visual bottleneck; SQLite/GRL memory is
+also not a substitute for a geometry-producing graph mutation loop.
+## 2026-07-13 neighborhood 20-language loop v1/v2 (NUMERIC PASS, VISUAL REJECT)
+
+Artifacts:
+
+- `docs/playwright/design-route-live-verify/maas-neighborhood-20-v1.png/.json`
+- `docs/playwright/design-route-live-verify/maas-neighborhood-20-v2.png/.json`
+
+Both runs selected 20 candidates with 14 topology labels, 6 formal principles,
+raw surface count <= 28, volume count <= 4, grounded program roles, and no
+duplicates under the then-current numeric threshold.  Neither run is accepted.
+
+Direct PNG verdict:
+
+- most candidates still share a low full-site podium plus one small upper box;
+- nominal terrace/fold/step principles compile to the same visual language;
+- the two curved/bent candidates read as clipped objects, not convincing usable
+  neighborhood-living architecture;
+- v2's height-integrated 3D distance improved selection ordering but could not
+  create diversity absent from the candidate pool.
+
+Root-cause update: selector repair alone is exhausted.  The language-author
+stage must produce topology-changing typed graph mutations from site/program,
+reference/book memory, and VLM critic evidence.  The current four program seeds
+plus parameter-only mutation cannot reach the objective.  Do not lower visual
+thresholds or add more coordinate templates to fill 20 cards.
+
+## 2026-07-13 real author + VLM A2A v4-v6 (TECHNICAL PASS, VISUAL FAIL)
+
+Artifacts:
+
+- `docs/playwright/design-route-live-verify/maas-neighborhood-vlm-a2a-v4.png/.json`
+- `docs/playwright/design-route-live-verify/maas-neighborhood-vlm-a2a-v5.png/.json`
+- `docs/playwright/design-route-live-verify/maas-neighborhood-vlm-a2a-v6.png/.json`
+- reusable author response: `maas-neighborhood-author-v4-cache.json`
+
+What is now real:
+
+- `program_massing/vlm_a2a.py` calls `LLMArchitectAgent.propose_population()`
+  before local search. gpt-5.4-mini authored 27 executable MassDSL graphs.
+- The correct 274-item reference corpus is matched and every shortlist image is
+  scored by the real VLM. Typed graph edits are compiled and re-rendered.
+- A normalized capacity gate now computes occupied union area per level rather
+  than rewarding a visual label. Neighborhood living uses the program/site
+  capacity policy before VLM selection.
+- The Korean capacity aliases in `capacity_policy.py` were repaired; the prior
+  mojibake silently selected the generic policy.
+
+Critical findings:
+
+- v4 took 772 seconds because one author batch failed and sub-batch recovery
+  ran. It produced 27 graphs (5 timeout coverage repairs), 2,904 evaluated
+  variants, 615 clean variants, and 20 final cards. Direct PNG: visual reject.
+- Authoring was not the bottleneck: zero authored sequences were schema-rejected
+  and verbs included bend/split/courtyard/interlock/overlap. The compiler and
+  gates collapsed this variety.
+- The raw-surface 28 gate systematically rejected profiled ribbons: one bend
+  had 38 raw surfaces but only 24 effective surfaces and four legal solids.
+  The corrected contract is raw <= 48, effective <= 28, volumes <= 4.
+- v5 admitted continuous geometry but also admitted tangled torqued examples.
+  Worse, a VLM 0.3667 candidate survived because the final selector still used
+  the old program-only `ProgramElite.score`.
+- v6 uses a 24-item VLM shortlist, a 0.55 automatic VLM floor, dual-objective
+  rescoring, and a normalized FAR floor. Counts: clean pool 782, capacity pool
+  587, VLM parents 24, VLM children 17, visual-floor pool 19, selected 20.
+  Correct status is `automatic_visual_floor_failed`; do not call it solved.
+- v6 is cleaner than v5 and removes the worst low-VLM torqued cards, but direct
+  review still sees excessive plinth/upper-box language and only a few credible
+  continuous ribbons. It is not competition-grade.
+
+Next mandatory loop:
+
+1. Do not lower the 0.55 VLM floor or fill the twentieth card with a failure.
+2. Add compiler-level 3D silhouette/section descriptors that distinguish a
+   coherent continuous field from transparent crossed plates; plan coherence
+   alone currently misses this visual failure.
+3. Feed the v6 bottom-card graph edits back to a new author population; do not
+   reuse only parameter mutation.
+4. Project the visual-floor archive onto real PNU law/parking. Require legal,
+   parking, program, and capacity hard pass, then rank by VLM design quality.
+5. Measure topology/geometry retention across legal projection. If repair turns
+   a good source into a box or drops below FAR policy, return to the graph author.
+6. Add a wall-clock/call budget to author recovery. Service requests must use a
+   cached author pool and bounded asynchronous shortlist, not the 772-second
+   research loop.
+
+## 2026-07-14 graph-semantics, honest visual-floor, and v29 checkpoint
+
+This is the latest checkpoint. The mass problem is **not complete** and the
+current output is **not competition grade**.
+
+Implemented correctness fixes:
+
+- `program_massing/vlm_a2a.py` and `preference/loop.py` now use surface-aware
+  VLM cache schema v2. A compiler change that alters visible profiled surfaces
+  cannot reuse a stale box-image score.
+- `source_geometry/design_fields.py`, `formal_principles.py`, and `compiler.py`
+  now materialize an occupiable continuous ribbon field without adding the old
+  rectangular box on top. The default ribbon reaches the neighborhood
+  capacity gate and remains polygon-quality hard-pass.
+- `source_geometry/graph_materializer.py` no longer emits every cumulative
+  terminal state as an overlapping solid. It emits section bands/deltas.
+- A confirmed graph-semantics defect was fixed: the live author correctly put
+  `courtyard` in a root-sibling node with `relation=subtract`, but the
+  materializer only inspected descendants of the primary. The v24 source
+  signature therefore said `subtractive_node_ids=[]` and compiled a hole-free
+  box. Subtractive deltas are now applied to the primary regardless of sibling
+  placement.
+- Root-sibling support states are not copied in parcel coordinates. Their
+  normalized mutation is affine-rebased into the primary mass frame before it
+  becomes a sectional layer. This is generic graph interpretation, not a
+  named typology or fixed parcel-coordinate template.
+- The final JSON now records `visual_floor_rejection_counts`, rejection
+  samples, and `final_selection_audit`. Do not diagnose a low selected count
+  from the selector alone.
+- The visual floor no longer treats three rectangular height levels as a
+  non-box language. A rectilinear envelope needs a real profiled surface,
+  non-rectilinear exterior, or VLM `good_void` plus a substantial measured
+  void. `too_box_like` is binding without direct geometry evidence.
+
+Live author and loop evidence:
+
+- Fresh live `gpt-5.4-mini` author cache:
+  `maas-neighborhood-author-v21-fresh-graph-cache.json`.
+  It contains 32 graph candidates, completed in about 43 seconds, with zero
+  OpenAI batch errors and zero deterministic coverage repair. It is not a
+  fallback-authored population.
+- v24 before sibling subtraction: 3,124 evaluated, 1,363 clean, 995 capacity,
+  21 VLM parents, 26 VLM children, only 3 selected. Rejection audit: 14 below
+  VLM design floor, 9 box-like without geometry evidence, 4 fragmented. Three
+  of six visual-floor survivors were duplicate ribbon descriptors.
+- v27 after sibling subtraction: 7 selected and capacity target 5/7; carved,
+  stepped, and folded counts increased. Direct PNG review rejected the numeric
+  improvement because cards 2--5 were still visually rectangular box stacks.
+- v29 after support rebasing and the stricter rectilinear gate: only 2 selected.
+  One is a valid continuous ribbon; the second courtyard still reads too much
+  like an assembled block despite `good_void`. This is an honest failed author
+  population, not a reason to relax the floor.
+- Latest full artifacts:
+  `docs/playwright/design-route-live-verify/maas-neighborhood-vlm-a2a-v29-rebased-support.png`
+  and `.json`.
+- Latest raw graph board:
+  `docs/playwright/design-route-live-verify/maas-graph-author-v28-rebased-support-probe.png`.
+- v29 counts: 3,124 evaluated, 1,275 clean, 995 capacity, 21 parents, 21
+  children, 2 selected, 2 capacity-target met. Language groups are continuous
+  1 and carved 1. Status is `automatic_visual_floor_failed`.
+- The primary v29 PNG was subsequently corrected to remain a 20-card human
+  review board: 2 cards are green `ACCEPT`, 18 are red `REJECT`, and each red
+  card displays its gate reason. The two-card view now lives only at
+  `maas-neighborhood-vlm-a2a-v29-rebased-support-accepted-only.png`. Never
+  hide generated stepped/folded candidates merely because the current critic
+  rejected them; generation and evaluation failures must remain distinguishable.
+
+Program and hard-gate verification:
+
+- Cross-program benchmark passed with 6 cases, neighborhood mean fit 0.9605,
+  gymnasium mean fit 0.98, and two distinct program geometry fingerprints.
+  Artifact: `maas-program-cross-v28.png/.json`. The gym correctly differs as a
+  long-span hall/service-entry composition, but the board is program-branch
+  evidence, not a competition-quality claim.
+- 34/34 graph/preference regressions pass, including root-sibling void and
+  support rebasing.
+- Seven targeted legal/parking regressions pass: repaired legal variants,
+  <=8-space attached/tandem road-aisle relief, >8 exception blocking, small
+  tandem layout, mechanical mass-stage parking, neighborhood local seed rule,
+  and proof that a section connector cannot override the parking gate.
+- Neo4j was not required for those deterministic hard-gate tests. Turning the
+  graph DB off is not the cause of the visual mass failure. Neo4j remains
+  useful for cited law provenance/memory, not for inventing geometry.
+
+Current diagnosis and mandatory next order:
+
+1. Do not fine-tune the VLM yet. The corpus is active and large; the latest
+   failure is still author graph expressiveness plus graph-to-silhouette
+   materialization. A better critic cannot generate an unavailable operator.
+2. Generate one fresh bounded author population using the v29 exact rejection
+   counts. Do not reuse v21 and claim a new result. Require independent
+   silhouette operators: open court/canyon, branched field, folded shell,
+   terraced landform, split bridge, and continuous ribbon.
+3. Add multi-view exterior-silhouette/section descriptors. Closed rectangular
+   courtyard holes and several stacked rectangles must not satisfy diversity
+   merely through volume/height counts or transparent isometric rendering.
+4. Feed critic edits into topology-level graph replacement, not only parameter
+   edits. Preserve graph IDs and verify that edited operations materially alter
+   source surfaces/volumes.
+5. Inspect every raw and final PNG. Never relax the 0.20 duplicate distance or
+   fill to 20 with known failures.
+6. Only after 20 source masses survive direct review, project them through a
+   real PNU legal/parking run and measure topology/geometry retention. Legal,
+   parking, capacity, and clean-mass checks remain hard.
+
+Mass-Brain remains useful as append-only graph/evaluation/feedback memory, but
+it does not fix this checkpoint by itself. Keep it shadow-only until its graph
+mutation contract can express and verify the missing topology changes.
+
+## 2026-07-13 reference-first A2A v7/v8 and bridge compiler correction
+
+This is the newest checkpoint. Read it before assuming that more ArchDaily
+images or VLM fine-tuning is the immediate fix.
+
+What the live run actually saw:
+
+- `preference/reference_language_distiller.py` now reads reference images
+  before graph authoring, not only after geometry exists. The v2 artifact is
+  `docs/playwright/design-route-live-verify/maas-reference-language-neighborhood-v2.json`.
+- That artifact used 10 real image-backed references including gymnasium,
+  sports/cultural, restaurant, club and civic projects. It distilled eight
+  coordinate-free graph recipes: continuous field, carved void, bridge/
+  interlock, folded section, cluster field, two stepped-capacity languages and
+  one hybrid civic language.
+- Candidate scoring still sends up to three real reference images beside each
+  candidate render. Therefore the current failure is not evidence that the VLM
+  or ArchDaily corpus was inactive.
+- No fine-tuning is justified yet. The strongest observed bottlenecks are typed
+  graph preservation, graph-to-geometry compiler semantics, missing surface
+  operators and final archive diversity. Fine-tuning a critic cannot create a
+  geometry family the compiler cannot represent.
+
+v7 artifact and verdict:
+
+- `maas-neighborhood-vlm-a2a-v7.png/.json` took about 700 seconds.
+- 27 authored graphs, 793 clean variants, 693 capacity-pass variants, 24 VLM
+  parents, 15 children, 22 above the VLM floor, 20 selected.
+- Direct PNG review: stepped/capacity forms returned, but bridge/interlock was
+  absent and ribbons/plinth boxes repeated. Status correctly remained
+  `automatic_visual_floor_failed`.
+
+Root bridge defect and correction:
+
+- The author did generate several split/diagonal/interlock graphs. They were
+  lost before final selection because `split_bridge_connector` compiled as two
+  wings plus a site-wide diagonal box plus a full-depth core. The redundant
+  overlaps/collision and compact-monolith polygon test killed the bridge family.
+- `source_geometry/formal_principles.py` now compiles the principle as two
+  separated inhabited wings plus one short, graph/site-ratio connector.
+- `source_geometry/compiler.py` no longer adds a second site-wide connector
+  when split/diagonal/interlock is already materialized, and the legacy split
+  path uses the same two-wing/short-bridge semantics.
+- `source_geometry/coherence.py` recognizes bridge/ribbon/connector/spine roles
+  as intentional linear elements for tortuosity only. Hairline width, overlap,
+  fragments, collision, polygon validity and solid count remain hard gates.
+- Probe artifact:
+  `docs/playwright/design-route-live-verify/split-bridge-compiler-probe-v8b.png`.
+  The main authored split bridge and coverage split both changed from coherence
+  failure to 3 volumes, 15 raw surfaces, zero redundant overlap and coherence
+  score 1.0.
+
+v8 full-loop artifact and honest visual verdict:
+
+- `docs/playwright/design-route-live-verify/maas-neighborhood-vlm-a2a-v8.png/.json`
+  is the current full-loop evidence. Runtime was 675.5 seconds with the author
+  and reference-distillation caches reused; candidate images and VLM graph
+  revision were recomputed.
+- Counts: 2,904 evaluated; 1,002 clean; 884 capacity-pass; 24 VLM parents; 18
+  VLM children; 22 visual-floor candidates; 20 selected.
+- Language groups: continuous 3, carved 5, bridge/interlock 3, folded 3,
+  stepped-capacity 4, cluster 1, calm anchor 1. Bridge/canyon is visibly present
+  in cards 6, 7 and 18; stepped/capacity hierarchy is visible around cards
+  8--12 and 19.
+- v8 is **not accepted**. Direct review found near copies 1/2, 3/5, 6/7,
+  10/12 and 11/19, plus remaining `large base + small upper box` cards. The
+  automatic status correctly remained `automatic_visual_floor_failed` because
+  cluster coverage was short.
+
+Post-v8 code corrections not yet validated by another expensive full run:
+
+- The final selector used to relax geometry distance from 0.16 to 0.099 and
+  allowed two variants of one topology; this explains why visually duplicated
+  cards filled the 20 count. Relaxed fill is removed. Final distance is 0.20,
+  and a second variant of one graph requires at least 0.28 3D distance.
+- The result now records `geometric_language_count` and explicit
+  `near_duplicate_pairs`; visual review status cannot pass with a near duplicate
+  or fewer than 18 measured geometry languages.
+- Reference v2 requested only one cluster language while final selection
+  required two. Distillation schema v3 now requests 10 recipes, including two
+  cluster-field, two stepped-capacity and two hybrid-civic recipes. Default
+  future cache is `maas-reference-language-neighborhood-v3.json`.
+- The v3 distillation call was executed successfully against 12 real images.
+  The artifact contains 10 validated recipes, including `Loose Cluster Commons`
+  (`array, shift, nest`) and `Terraced Cluster Porch`
+  (`array, offset, terrace_link`). This proves the new reference contract, not
+  the resulting geometry quality.
+- Do not reuse the v2 author cache to claim v3 geometry was tested. The next
+  research run must use a newly authored v3 population and strict selection.
+  It is acceptable and honest for that run to return fewer than 20 rather than
+  force duplicates.
+
+Regression state after these changes:
+
+- 35/35 targeted polygon/preference plus gym-ridge tests pass.
+- A new regression asserts a split bridge is exactly two wings + one connector,
+  zero redundant overlap, coherence hard-pass.
+- The larger 51-test group has one intentionally unresolved baseline failure:
+  `sculptural_geometry_count_below_12_competition_target`. Never lower or hide
+  it. A gym ridge regression found during the run was fixed by ensuring a
+  semantic `main_long_span_hall` roof profile reaches `folded_section` surfaces.
+
+Next mandatory order:
+
+1. Use the completed v3 image distillation to create a new author population
+   with a bounded call/wall-clock budget; do not pay for repeated authoring on
+   ordinary requests.
+2. Run strict final selection without relaxed duplicate fill. Inspect the PNG.
+3. If fewer than 20 survive, feed the exact missing groups and duplicate pairs
+   back to the architect agent for one bounded regeneration batch.
+4. Continue adding genuinely independent graph-native surface/solid operators;
+   do not solve missing diversity with labels, coordinates or selector quotas.
+5. Only after the source 20 pass direct visual review, project them through real
+   PNU legal/parking and measure geometry retention. Law/parking remain hard.
+
+### 2026-07-13 v8 FAR audit and stratified ArchDaily retrieval v4
+
+- Direct v8 capacity audit: mean normalized FAR utilization 0.7332, minimum
+  0.5542, maximum 1.0. Counts were 11/20 >= 0.70, 6/20 >= 0.80 and only 2/20
+  >= 0.90. Therefore v8 is not a full-FAR creative archive.
+- The reason was policy/ranking, not lack of feasible geometry: the 2,400 m2
+  neighborhood test used the large-site balanced minimum 0.55, and final VLM
+  ranking had no capacity target term.
+- `capacity_policy.py` now exposes a separate `target_far_utilization`:
+  capacity-first 0.90, balanced 0.75, design-led 0.55. The minimum hard gate
+  remains separate. Do not apply capacity-first globally to museums, gyms or
+  other design-led briefs.
+- The neighborhood VLM research loop now explicitly uses capacity-first, keeps
+  minimum 0.70, ranks capacity fit toward target 0.90 after hard gates, and
+  requires at least 8/20 final cards to reach target before visual status can
+  become reviewable. This code is tested but has not yet produced a new full
+  PNG; v8 remains the last complete board.
+- ArchDaily DB was not small: `DB_MANIFEST.json` reports 12 collections, 274
+  unique projects and 338 local images. v3 retrieval nevertheless chose 6/12
+  images from `sports_architecture`; the failure was retrieval concentration.
+- Reference distillation schema v4 uses collection-stratified sampling with a
+  two-image cap and priority for `iconic_precedents` and
+  `massing_diversity_20260711`. Actual v4 sampling covered 11 collections and
+  included `8 House / BIG`, `Hangzhou Prism / OMA`, sports, cultural, cafe,
+  apartments, houses, housing, office and current-project references.
+- Actual artifact:
+  `docs/playwright/design-route-live-verify/maas-reference-language-neighborhood-v4.json`.
+  It distilled 10 recipes, including two genuinely separate cluster briefs:
+  `porous settlement field` (`array, offset, courtyard`) and
+  `courtyard weave field` (`branch, nest, courtyard`).
+- Next full run must use v4 plus a newly authored population. Do not reuse v7
+  author cache and do not claim v4 improved geometry until its PNG is inspected.
+
+## 2026-07-14 durable quality archive / repeatability correction (v49-v53)
+
+Current best full-loop evidence:
+
+- `docs/playwright/design-route-live-verify/maas-neighborhood-vlm-a2a-v53-full-frontier-repeatability-contract.json`
+- `docs/playwright/design-route-live-verify/maas-neighborhood-vlm-a2a-v53-full-frontier-repeatability-contract.png`
+- Status: `technical_pass`, `visual_status=review_required`; 20/20 accepted,
+  20 measured geometry languages, zero near-duplicate pairs.
+- Capacity-first portfolio: 9/20 reach normalized FAR utilization 0.90; required
+  count is 8. Final groups are bridge 2, stepped 3, continuous 4, carved 6,
+  cluster 2, calm 1 and folded 2.
+- Archive evolution contract also passes: 14 persisted + 6 fresh, maximum
+  persisted 16 and minimum fresh 4. Authored selection is 13/20.
+- v49 independently passed the same 20/20, capacity and duplicate gates with a
+  30-parent frontier. v50 (20-parent frontier) returned 19; v52 returned 20 but
+  only 7/8 capacity. Therefore `review_pool_count=30` is the current quality
+  setting. A 20-parent quick mode must not claim equivalent reliability.
+
+Fundamental bugs fixed, not parcel-coordinate patches:
+
+- Component-graph verbs now have executable general semantics for separated
+  arrays, split bodies + connector and interlocking bodies. Cumulative graph
+  states no longer become overlapping solids or fill intended field gaps.
+- Language-specific geometry gates reject labels without direct geometric
+  evidence: continuous, folded, stepped, bridge/interlock, carved and cluster.
+- The quota loop now fills actual deficits. It previously added every minimum
+  again after persisted/authored reservation, causing early language groups to
+  overtake the board.
+- Durable accepted memory and mutation-parent frontier are separate. All exact
+  accepted graphs are cache-revalidated and remain eligible for the final
+  stability archive even when they are not selected as mutation parents.
+- Final selection reserves fresh candidates first, then authored/language/FAR
+  deficits, then fills remaining cells from accepted memory. One weak author
+  batch can no longer erase the good archive, and accepted memory can no longer
+  freeze every presentation slot.
+- Capacity rebalance now preserves language minima/maxima, descriptor distance,
+  topology/principle caps, authored minimum, persisted maximum and fresh
+  minimum. v51 exposed and v52 fixed a hidden fresh 4 -> 3 policy violation.
+- VLM cache schema is identity-independent for equivalent executable geometry;
+  repeated `llm_accepted_seed_` prefixes are normalized. Each completed paid
+  VLM evaluation is now written immediately with an atomic temp-file replace,
+  so a later timeout cannot discard prior completed scores.
+- Final carved maximum is 6, not because distance was relaxed, but because the
+  label contains distinct courtyard/atrium/notch/embed/monolith principles.
+  Descriptor distance remains 0.20 and per-principle maximum remains 4.
+
+Regression and visual verdict:
+
+- `python manage.py test design.test_maas_preference --verbosity 1` passes
+  42/42 after the final code change; `py_compile` also passes.
+- Direct v53 PNG review: fragmentation/collision regression is gone and the
+  sheet contains readable ribbon, split/bridge, stepped, courtyard, cluster and
+  folded alternatives. It is a stable clean mass-stage baseline.
+- Do **not** call this architecture-competition grade. Too many cards remain
+  conservative rectilinear podium/bar/box compositions; the compiler still
+  lacks a strong continuous curved sheet/roof language comparable to the user
+  reference. `review_required` means human review, not aesthetic completion.
+- `legal_projection_status` is still `not_run` in this neighborhood research
+  loop. Capacity is enforced, but real PNU law/parking projection and geometry
+  retention must run later as separate hard gates. Neo4j being off did not
+  cause the mass-language problem and is not needed for this isolated benchmark.
+
+Next mandatory work:
+
+1. Keep v53 (or a later passing archive) as the immediate service response;
+   replenish missing/weak cells asynchronously instead of running a 5-6 minute
+   full VLM loop inside every request.
+2. Move beyond the stable rectilinear baseline by adding graph-native curved
+   sheet, variable-width ribbon and continuous roof/section operators with the
+   same direct geometry gates. Do not add named coordinate templates.
+3. Add a blind human/reference comparison metric for silhouette continuity,
+   spatial consequence of voids and non-box curvature. VLM remains critic and
+   graph-edit author; it is not itself the geometry compiler.
+4. Run cross-program neighborhood/gym/cafe or museum benchmarks using their own
+   capacity policies. Never force neighborhood 0.90 FAR onto design-led briefs.
+5. Only after source-mass visual review, run real PNU legal/parking projection
+   and reject excessive geometry loss; law/parking remain hard constraints.
+
+## 2026-07-14 real-PNU site adaptation and curved-field target
+
+Verified site path:
+
+- Project PNU is `1168011800104170004`. A live VWorld parcel lookup returned
+  the matching polygon; WGS84 was transformed to UTM 52N and translated to a
+  local metric frame. Measured site area is 264.13 m2.
+- `scripts/run_neighborhood_vlm_a2a.py` now accepts `--pnu`,
+  `--site-boundary-from` and `--far-limit-ratio`. The real metric polygon is
+  passed into the graph author site context, compiler, FAR calculation and
+  result provenance. The cache fallback is accepted only when its stored PNU
+  matches the requested PNU.
+- `source_geometry/design_fields.py` derives its frame from the parcel minimum
+  rotated rectangle. Ribbon cross-sections follow the parcel long axis instead
+  of global X/Y coordinates. Evidence records the coordinate frame and world
+  angle. This is a general site rule, not a coordinate template for this PNU.
+- A separate archive adaptation probe compiled the v53 accepted graphs on the
+  real parcel: 20/20 compiled, 20/20 passed parcel containment and 16/20 reached
+  normalized FAR utilization 0.90 at FAR 250%. Evidence is
+  `maas-pnu-1168011800104170004-v53-adaptation.json/.png`.
+- Parcel containment now records both buffered predicate and outside area.
+  The only tolerance is 2 mm plus a capped 0.0005--0.005 m2 GEOS Boolean-area
+  tolerance; it cannot hide a meaningful setback or parcel breach. The former
+  strict `covers` check falsely rejected 17 candidates for at most 0.00035 m2
+  of clipping dust.
+
+Honest visual interpretation:
+
+- The adaptation PNG proves site fit, orientation and capacity transfer. It
+  does not prove that the agent authored new forms for the site, and it is not
+  a legal/parking projection. A fresh PNU-conditioned Author -> compiler ->
+  hard gate -> VLM loop is the next required evidence.
+- `docs/images.jpg` is a language target, not a building to copy. The useful
+  principles are parallel/branching curved bars, variable-width tapered ends,
+  layered continuous roof sheets, deliberate landscape courts and one coherent
+  field responding to the parcel/landscape axes.
+- Current `swept_ribbon` and Catmull-Rom paths can express curved centerlines,
+  but width is effectively constant and roofs are still assembled from bounded
+  profiled surfaces. Therefore the current compiler cannot yet reproduce the
+  reference's variable-width multi-body roof continuity at competition quality.
+- Required representation work is graph-native: variable-width sweep,
+  tapered/branched lane field, rail-to-rail roof loft, field-spacing/courtyard
+  gate and a site medial/access/landscape flow field. VLM edits must mutate
+  these typed parameters; adding named coordinate recipes is prohibited.
+
+Service/runtime boundary:
+
+- PNU is sufficient to retrieve and condition on the parcel. Neo4j is not
+  required for VWorld geometry or the isolated mass loop.
+- Keep a verified site archive as the immediate response and improve it in an
+  offline replenishment job. The existing cache refresh command supports
+  offline atomic publication, but a durable queue with crash-safe job state is
+  not yet implemented and must not be claimed complete.
+
+### Real-PNU full-loop correction chain (v54-v58)
+
+Current real-site checkpoint:
+
+- `docs/playwright/design-route-live-verify/maas-neighborhood-vlm-a2a-v58-pnu-1168011800104170004-access-step-replenish.json`
+- `docs/playwright/design-route-live-verify/maas-neighborhood-vlm-a2a-v58-pnu-1168011800104170004-access-step-replenish.png`
+- `docs/playwright/design-route-live-verify/maas-pnu-1168011800104170004-site-adaptation-latest.json/.png`
+- v58 status is `technical_pass`, `visual_status=review_required`: 20/20,
+  normalized FAR target 13/8, zero near duplicates. Groups are carved 5,
+  continuous 4, stepped 3, bridge/interlock 3, folded 3 and cluster 2.
+- Search/VLM counts: 4,356 raw evaluated, 2,834 clean, 2,594 capacity-pass,
+  30 VLM parents and 27 critic children. The live author produced 29 candidates
+  with no OpenAI batch errors or deterministic fallback repair.
+
+Why v54-v57 are not the final checkpoint:
+
+- v54 used the real parcel but an incorrect temporary `south` access fact and
+  returned only 19. v55 restored 20 but still lacked parcel/access visual
+  evidence and failed its folded-section quota. Never cite either as full PNU
+  site intelligence.
+- v56 corrected the author to the actual east frontage and drew the green
+  parcel outline for VLM. It passed, but did not yet show which parcel edge was
+  the road frontage.
+- v57 added the thick blue primary-access segment and made parcel/access
+  geometry part of VLM cache identity. It honestly failed with only two
+  stepped-capacity candidates. v58 fed that exact deficit to a new east-access
+  author batch and passed without relaxing any quota.
+
+Actual site/access evidence:
+
+- Live VWorld parcel area is 264.13 m2; dominant axis is about 28.99 degrees.
+- Live neighboring-road lookup found one east frontage, shared length 14.01 m,
+  estimated road-parcel width 37.48 m. The width is contextual evidence, not a
+  permit-final road-width certification.
+- Author prompts receive descriptive access facts, not coordinates. The
+  compiler receives the local metric polygon. VLM previews show the parcel as
+  a thin green polygon and verified frontage as a thick blue segment.
+- VLM cache schema now includes component graph, volumes, surfaces, parcel
+  geometry, access context, access geometry and reference IDs. Scores cannot
+  leak across a different site or road edge.
+
+Direct visual verdict:
+
+- v58 is more trustworthy than v53 as project-site evidence and preserves
+  ribbon, stepped, clustered, bridge, folded and carved alternatives on the
+  real parcel. It no longer hides site fit behind isolated orange masses.
+- It is still not competition-grade or comparable to `docs/images.jpg`.
+  Several cards remain conservative rectilinear bars/podiums, and the current
+  ribbon has a curved centerline but not a true variable-width multi-building
+  roof sheet. Do not convert `review_required` into aesthetic completion.
+- Legal/parking projection remains `not_run` in v58. FAR capacity and real
+  parcel containment pass, but permit law, parking layout and post-projection
+  language retention remain the next hard stage.

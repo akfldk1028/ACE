@@ -1,10 +1,47 @@
 # MAAS Memory Index
 
-Updated: 2026-07-13
+Updated: 2026-07-14
 
 Read this file first before touching MAAS mass generation, prompts, source geometry, legal repair, parking, or PNG/verifier harnesses.
 
 Critical latest handoff:
+
+- Current real-project evidence is v58. Read `Real-PNU full-loop correction
+  chain (v54-v58)` first: it records actual east road frontage, green parcel /
+  blue access VLM evidence, 20/20, FAR target 13/8 and zero duplicates. It is
+  still not competition-grade and legal/parking projection is not run.
+- Read `2026-07-14 real-PNU site adaptation and curved-field target` at the end
+  of the visual-failure handoff. It records the working PNU -> VWorld -> UTM
+  path, real 264.13 m2 parcel evidence, 20/20 containment adaptation, the
+  `images.jpg` language target and the remaining variable-width/roof-loft gap.
+- Read `2026-07-14 durable quality archive / repeatability correction
+  (v49-v53)` at the end of the visual-failure handoff first. v53 is the current
+  executable checkpoint: 20/20, capacity 9/8, zero near duplicates, and
+  14 persisted + 6 fresh with a 30-parent frontier. It is a clean mass-stage
+  baseline, not competition-grade and not a legal/parking projection.
+- Then read `2026-07-14 graph-semantics, honest visual-floor, and v29
+  checkpoint` for the historical failure chain. It records the root-sibling
+  subtraction bug, support-state rebasing and the honest 2/20 result that led
+  to the later archive/compiler corrections.
+
+- Read `site-aware agent flow and boards v7-v9` first. It records the runtime
+  ownership correction, site-geometry intelligence, clean-silhouette gate,
+  folded-family recovery, v9's strict 12/20 pass, the multi-site PNG benchmark,
+  and the remaining paper gaps. A v9 counter pass is not a claim of universal
+  competition-grade quality.
+
+- Latest 2026-07-13 correction adds a compiler/coherence polygon-quality hard
+  gate, but explicitly does not close the continuous-surface generator gap.
+  Read the `polygon-quality gate and honest representation limit` section of
+  the visual-failure handoff before treating clean polygons as solved massing.
+- The next section, `graph-native continuous surface implementation`, records
+  the first representation-level correction: bend is now a continuous ribbon
+  field, four formal principles emit explicit non-flat surfaces, and raw mesh
+  tessellation is separated from logical surface complexity.
+- Read `six-board visual loop and paper-critical VLM correction` next. It
+  records that six full 20-mass PNG loops were directly rejected, fixes the
+  missing VLM box/continuity actions, and leaves the strict board red at 8/20
+  true profiled sculptural candidates. Do not solve this with more quotas.
 
 - The latest JSON and PNG verifiers pass, but the user rejected the PNG as
   visually/architecturally poor.
@@ -172,6 +209,13 @@ Older MAAS notes remain useful as history, but this index is the current handoff
 - Do not hide severe legal repair behind a visually nice PNG.
 
 ## Current Evidence Shape
+
+Latest executable checkpoint (2026-07-14): read the final section of
+`MAAS_VISUAL_FAILURE_HANDOFF_20260710.md` before changing selection or geometry.
+The verified artifact is
+`maas-neighborhood-vlm-a2a-v53-full-frontier-repeatability-contract` (20/20,
+capacity 9/8, zero near duplicates, 14 persisted + 6 fresh). This is a clean
+mass-stage baseline, not competition-grade and not a legal/parking projection.
 
 Every strong MAAS candidate should carry:
 

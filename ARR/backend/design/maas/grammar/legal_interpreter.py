@@ -418,21 +418,50 @@ def generate_grammar_variants(base_footprint: Polygon, *, building_type: str = "
             variant = interpret_sequence(base_footprint, sequence)
             if variant is not None:
                 variants.append(variant)
-    for sequence in load_agent_proposal_sequences():
+    agent_sequences = list(load_agent_proposal_sequences())
+    fixture_sequences = list(SEQUENCES)
+    program_sequences: tuple[VerbSequence, ...] = ()
+    if building_type:
+        from design.maas.program_massing import program_seed_sequences, resolve_program_profile
+        program_sequences = program_seed_sequences(building_type)
+        profile_id = str(resolve_program_profile(building_type).get("id") or "generic")
+        fixture_names_by_profile = {
+            "neighborhood_living": {
+                "grammar_sunlight_multi_step", "grammar_bar_notch_grade",
+                "grammar_clean_podium_bar", "grammar_clean_courtyard_block",
+                "grammar_clean_shifted_slab", "grammar_sloped_roof_envelope",
+            },
+            "gymnasium": {
+                "grammar_bar_notch_grade", "grammar_clean_podium_bar",
+                "grammar_clean_shifted_slab", "grammar_sloped_roof_envelope",
+            },
+            "cultural": {
+                "grammar_courtyard_lift_taper", "grammar_diagonal_step_connector",
+                "grammar_clean_courtyard_block", "grammar_sloped_roof_envelope",
+            },
+        }
+        agent_names_by_profile = {
+            "neighborhood_living": {"agent_gallery_bar_piloti_court", "agent_east_terrace_bar"},
+            "gymnasium": {"agent_sawtooth_roof_mass", "agent_low_campus_cluster"},
+            "cultural": {"agent_courtyard_bridge_ring", "agent_oma_diagonal_plate"},
+        }
+        if profile_id in fixture_names_by_profile:
+            fixture_sequences = [item for item in fixture_sequences if item.name in fixture_names_by_profile[profile_id]]
+            agent_sequences = [item for item in agent_sequences if item.name in agent_names_by_profile[profile_id]]
+
+    for sequence in agent_sequences:
         variant = interpret_sequence(base_footprint, sequence)
         if variant is not None:
             variants.append(variant)
-    for sequence in SEQUENCES:
+    for sequence in fixture_sequences:
         for expanded_sequence in _deterministic_fixture_parameter_sweeps(sequence):
             variant = interpret_sequence(base_footprint, expanded_sequence)
             if variant is not None:
                 variants.append(variant)
-    if building_type:
-        from design.maas.program_massing import program_seed_sequences
-        for sequence in program_seed_sequences(building_type):
-            variant = interpret_sequence(base_footprint, sequence)
-            if variant is not None:
-                variants.append(variant)
+    for sequence in program_sequences:
+        variant = interpret_sequence(base_footprint, sequence)
+        if variant is not None:
+            variants.append(variant)
     return variants
 
 

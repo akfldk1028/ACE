@@ -39,6 +39,7 @@ from design.services.interactive_apply import build_interactive_preview
 from design.services.mass_operations import apply_mass_operation
 from design.maas import build_maas_evidence_bundle, export_mass_geojson_to_scad, generate_legal_mass_variants
 from design.maas.interactive import apply_conversational_graph_revision, build_revision_learning_profile
+from design.maas.mass_brain import record_proposal_feedback
 from design.maas.aesthetic import build_aesthetic_pipeline_result
 from design.maas.aesthetic.adapters import NanoBananaAdapter, OpenAIImageAdapter
 from design.maas.aesthetic.renderers import MultiViewReferencePackRenderer
@@ -1174,6 +1175,16 @@ def maas_conversational_revision(request):
         logger.exception("MAAS conversational revision failed")
         return JsonResponse({"error": f"MAAS conversational revision failed: {exc}"}, status=400)
     props = accepted_feature.get("properties") if isinstance(accepted_feature.get("properties"), dict) else {}
+    reference_evidence = result.get("reference_evidence") if isinstance(result.get("reference_evidence"), dict) else {}
+    mass_brain = props.get("mass_brain_shadow") if isinstance(props.get("mass_brain_shadow"), dict) else {}
+    if mass_brain.get("proposal_id"):
+        reference_evidence = {
+            **reference_evidence,
+            "mass_brain": {
+                "proposal_id": str(mass_brain["proposal_id"]),
+                "project_key": project_key,
+            },
+        }
     event = MaasRevisionEvent.objects.create(
         job=job,
         project_key=project_key,
@@ -1183,7 +1194,7 @@ def maas_conversational_revision(request):
         accepted_by_gates=bool(result.get("accepted")),
         graph_diff=result.get("graph_diff") if isinstance(result.get("graph_diff"), list) else [],
         validation=result.get("validation") if isinstance(result.get("validation"), dict) else {},
-        reference_evidence=result.get("reference_evidence") if isinstance(result.get("reference_evidence"), dict) else {},
+        reference_evidence=reference_evidence,
         revision_evaluation=result.get("revision_evaluation") if isinstance(result.get("revision_evaluation"), dict) else {},
     )
     result["revision_event_id"] = str(event.id)
@@ -1216,12 +1227,24 @@ def maas_revision_feedback(request, revision_id):
     event.feedback_note = str(body.get("note") or "")[:4000]
     event.feedback_at = timezone.now()
     event.save(update_fields=["user_decision", "user_rating", "feedback_note", "feedback_at"])
+    mass_brain = event.reference_evidence.get("mass_brain") if isinstance(event.reference_evidence, dict) else None
+    mass_brain_feedback = {"status": "not_mass_brain_proposal"}
+    if isinstance(mass_brain, dict) and mass_brain.get("proposal_id"):
+        mass_brain_feedback = record_proposal_feedback(
+            project_key=str(mass_brain.get("project_key") or event.project_key),
+            proposal_id=str(mass_brain["proposal_id"]),
+            feedback_id=str(event.id),
+            decision=decision,
+            rating=event.user_rating,
+            note=event.feedback_note,
+        )
     return JsonResponse({
         "schema_version": "arr.maas.revision_feedback.v1",
         "revision_event_id": str(event.id),
         "decision": event.user_decision,
         "rating": event.user_rating,
         "recorded": True,
+        "mass_brain_feedback": mass_brain_feedback,
     })
 
 

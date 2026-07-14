@@ -90,6 +90,23 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
     except Exception as exc:
         raise ValueError(f"Pillow is required for MAAS preference VLM previews: {exc}") from exc
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    site_boundary = None
+    site_boundary_geometry = props.get("site_boundary_geometry")
+    if isinstance(site_boundary_geometry, dict):
+        try:
+            candidate_boundary = largest_polygon(shape(site_boundary_geometry))
+            if candidate_boundary is not None and not candidate_boundary.is_empty:
+                site_boundary = candidate_boundary
+        except Exception:
+            site_boundary = None
+    site_access_coords: list[tuple[float, float]] = []
+    site_access_geometry = props.get("site_access_geometry")
+    if isinstance(site_access_geometry, dict):
+        try:
+            access_line = shape(site_access_geometry)
+            site_access_coords = [(float(x), float(y)) for x, y in access_line.coords]
+        except Exception:
+            site_access_coords = []
     volumes = props.get("mass_volumes")
     if not isinstance(volumes, list) or not volumes:
         volumes = [{"geometry": feature.get("geometry"), "bottom_height": 0.0, "top_height": props.get("height") or 8.4}]
@@ -125,6 +142,13 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
         raise ValueError("candidate has no previewable geometry")
     xs = [x for coords, _, _, _ in rings for x, _ in coords]
     ys = [y for coords, _, _, _ in rings for _, y in coords]
+    site_coords = (
+        [(float(x), float(y)) for x, y in site_boundary.exterior.coords]
+        if site_boundary is not None
+        else []
+    )
+    xs.extend(x for x, _ in site_coords)
+    ys.extend(y for _, y in site_coords)
     xs.extend(float(vertex[0]) for surface in explicit_surfaces for vertex in _surface_vertices_world(surface, feature))
     ys.extend(float(vertex[1]) for surface in explicit_surfaces for vertex in _surface_vertices_world(surface, feature))
     minx, maxx = min(xs), max(xs)
@@ -163,6 +187,13 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
 
         draw.rectangle((ox + 5, oy + 5, ox + view_width - 5, oy + view_height - 5), outline=(203, 213, 225, 255))
         draw.text((ox + 14, oy + 12), label, fill=(71, 85, 105, 255))
+        if site_coords:
+            boundary_points = [project(point, 0.0) for point in site_coords]
+            draw.polygon(boundary_points, fill=(52, 211, 153, 18))
+            draw.line(boundary_points, fill=(16, 185, 129, 210), width=2, joint="curve")
+        if site_access_coords:
+            access_points = [project(point, 0.02) for point in site_access_coords]
+            draw.line(access_points, fill=(37, 99, 235, 245), width=5)
         for coords, bottom, top, role in sorted(rings, key=lambda item: item[1]):
             if role in profiled_roles:
                 continue
@@ -214,8 +245,9 @@ def _surface_vertices_world(surface: dict[str, Any], feature: Feature) -> list[l
 def _vlm_cache_key(feature: Feature, reference_matches: list[dict[str, Any]], model: str | None) -> str:
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
     volumes = props.get("mass_volumes") if isinstance(props.get("mass_volumes"), list) else []
+    surfaces = props.get("source_surfaces") if isinstance(props.get("source_surfaces"), list) else []
     payload = {
-        "schema": "arr.maas.vlm_cache.v1",
+        "schema": "arr.maas.vlm_cache.v2",
         "model": model or "",
         "geometry": feature.get("geometry"),
         "volumes": [
@@ -225,6 +257,21 @@ def _vlm_cache_key(feature: Feature, reference_matches: list[dict[str, Any]], mo
                 "top": item.get("top_height"),
             }
             for item in volumes if isinstance(item, dict)
+        ],
+        # VLM judges the rendered preview, not only the footprint volumes.
+        # Include the actual profiled/mesh vertices so a geometry compiler
+        # change cannot inherit a stale score from a former box rendering.
+        "surfaces": [
+            {
+                "role": item.get("role"),
+                "volume_role": item.get("volume_role"),
+                "verb": item.get("verb"),
+                "surface_type": item.get("surface_type"),
+                "operator": item.get("operator"),
+                "vertices_m": item.get("vertices_m"),
+                "vertices_world_m": item.get("vertices_world_m"),
+            }
+            for item in surfaces if isinstance(item, dict)
         ],
         "references": [
             (item.get("source"), item.get("source_id"), item.get("local_path"))
@@ -373,6 +420,8 @@ def apply_preference_loop(
         preference["selection_stage"] = "pre_final_full_pool_top_k"
         if vlm_result and isinstance(vlm_result.get("critic_actions"), list):
             preference["critic_actions"] = list(vlm_result["critic_actions"])
+        if vlm_result and isinstance(vlm_result.get("graph_edits"), list):
+            preference["graph_edits"] = list(vlm_result["graph_edits"])
         props["preference_distillation"] = preference
         model = props.get("maas_model")
         if isinstance(model, dict):

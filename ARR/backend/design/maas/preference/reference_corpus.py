@@ -172,7 +172,10 @@ class ReferenceItem:
 
 
 def default_reference_root() -> Path:
-    return Path("docs/ai-session-memory/reference-corpus")
+    # Never depend on the server/test process cwd. The canonical corpus lives
+    # at the repository root; a stale backend-local copy previously made live
+    # VLM runs silently report zero reference matches.
+    return Path(__file__).resolve().parents[5] / "docs" / "ai-session-memory" / "reference-corpus"
 
 
 def ensure_reference_seed_files(root: Path | None = None) -> dict[str, str]:

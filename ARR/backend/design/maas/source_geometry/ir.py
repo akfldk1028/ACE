@@ -58,6 +58,8 @@ class SourceSurface:
     verb: str
     surface_type: str
     vertices_m: tuple[tuple[float, float, float], ...]
+    operator: str = "extrude"
+    semantic_patch_id: str = ""
 
     def signature(self) -> dict[str, Any]:
         return {
@@ -70,6 +72,8 @@ class SourceSurface:
                 [round(x, 3), round(y, 3), round(z, 3)]
                 for x, y, z in self.vertices_m
             ],
+            "operator": self.operator,
+            "semantic_patch_id": self.semantic_patch_id or f"{self.volume_role}:{self.surface_type}",
         }
 
 
@@ -119,9 +123,18 @@ class SourceMass:
         component_graph = self.metadata.get("component_graph")
         if not isinstance(component_graph, dict):
             component_graph = {}
+        graph_materialization_evidence = self.metadata.get("graph_materialization_evidence")
+        if not isinstance(graph_materialization_evidence, dict):
+            graph_materialization_evidence = {}
         coherence_evidence = self.metadata.get("coherence_evidence")
         if not isinstance(coherence_evidence, dict):
             coherence_evidence = {}
+        continuous_surface_evidence = self.metadata.get("continuous_surface_evidence")
+        if not isinstance(continuous_surface_evidence, dict):
+            continuous_surface_evidence = {}
+        site_frame_evidence = self.metadata.get("site_frame_evidence")
+        if not isinstance(site_frame_evidence, dict):
+            site_frame_evidence = {}
         secondary_family = str(self.metadata.get("secondary_family") or "")
         if not primary_language:
             rule_descriptor = rule_evidence.get("research_diversity_descriptor")
@@ -165,6 +178,7 @@ class SourceMass:
             "split_bridge_connector": ("polygonal_bridge_cut",),
             "carved_monolith": ("freeform_carved_void",),
             "carved_atrium": ("freeform_atrium_void",),
+            "continuous_ribbon_field": ("curvilinear_continuous_ribbon",),
         }.get(str(formal_principle), ())
         for primitive_role in principle_primitive_roles:
             bucket = "freeform" if primitive_role.startswith("freeform_") else (
@@ -194,6 +208,13 @@ class SourceMass:
                 and ambition_evidence["has_dominant_gesture"]
                 and len(composition_layer_roles) >= 1
             )
+        raw_surface_count = len(self.surfaces)
+        has_profiled_surfaces = any(surface.surface_type.startswith("profiled_") for surface in self.surfaces)
+        logical_surface_count = len({
+            surface.semantic_patch_id or f"{surface.volume_role}:{surface.surface_type}"
+            for surface in self.surfaces
+        })
+        effective_surface_count = logical_surface_count if has_profiled_surfaces else raw_surface_count
         return {
             "schema_version": "arr.maas.source_geometry.signature.v1",
             "status": self.status,
@@ -206,7 +227,10 @@ class SourceMass:
             "massing_genome": massing_genome,
             "massing_genome_circuit": massing_genome_circuit,
             "component_graph": component_graph,
+            "graph_materialization_evidence": graph_materialization_evidence,
             "coherence_evidence": coherence_evidence,
+            "continuous_surface_evidence": continuous_surface_evidence,
+            "site_frame_evidence": site_frame_evidence,
             "architectural_ambition_evidence": ambition_evidence,
             "secondary_family": secondary_family,
             "composition_rule": composition_rule,
@@ -215,7 +239,9 @@ class SourceMass:
             "source_primitive_roles": primitive_roles,
             "source_primitive_count": sum(len(roles) for roles in primitive_roles.values()),
             "volume_count": len(self.volumes),
-            "surface_count": len(self.surfaces),
+            "surface_count": raw_surface_count,
+            "logical_surface_count": logical_surface_count,
+            "effective_surface_count": effective_surface_count,
             "ground_area_m2": round(ground_area, 2),
             "upper_area_m2": round(upper_area, 2) if upper_area is not None else None,
             "upper_to_ground_ratio": round(upper_area / ground_area, 4) if upper_area and ground_area > 0 else None,

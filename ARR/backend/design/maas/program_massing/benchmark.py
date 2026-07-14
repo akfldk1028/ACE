@@ -10,16 +10,20 @@ from statistics import mean
 from typing import Any
 
 from PIL import Image, ImageDraw, ImageFont
-from shapely.geometry import box, mapping, shape
+from shapely.affinity import rotate
+from shapely.geometry import Polygon, box, mapping, shape
 
 from design.maas.preference.loop import feature_preview_png
+from design.maas.llm_proposals import build_site_context
+from design.maas.source_geometry import compile_sequence_to_source_mass
 from .profiles import resolve_program_profile
-from .search import search_creative_elites, search_program_elites
+from .creative import attach_creative_mass_evidence, creative_seed_sequences
+from .sequences import program_seed_sequences
+from .search import _descriptor_distance, _feature, search_creative_elites, search_program_elites
 
 
 PROGRAM_CASES = (
-    ("공동주택", "housing", 18.0, 6),
-    ("카페", "cafe", 6.0, 2),
+    ("근린생활시설", "neighborhood_living", 15.0, 5),
     ("체육관", "gymnasium", 12.0, 2),
 )
 
@@ -44,7 +48,8 @@ def run_program_massing_benchmark(*, output_json: Path, output_png: Path) -> dic
                 "verbs": [item.verb for item in sequence.calls],
                 "family": source.signature().get("family"),
                 "volume_count": len(source.volumes),
-                "surface_count": len(source.surfaces),
+                "surface_count": int(source.signature().get("effective_surface_count") or len(source.surfaces)),
+                "raw_surface_count": len(source.surfaces),
                 "footprint_area_ratio": round(source.footprint.area / base.area, 3),
                 "program_fit_score": evidence["program_fit_score"],
                 "program_hard_pass": evidence["hard_pass"],
@@ -53,7 +58,7 @@ def run_program_massing_benchmark(*, output_json: Path, output_png: Path) -> dic
             features.append(feature)
     profile_groups = {
         profile_id: [row for row in rows if row["profile_id"] == profile_id]
-        for profile_id in ("housing", "cafe", "gymnasium")
+        for profile_id in ("neighborhood_living", "gymnasium")
     }
     fingerprints = {
         profile_id: sorted({(tuple(row["verbs"]), row["family"], row["volume_count"]) for row in group}, key=str)
@@ -69,10 +74,10 @@ def run_program_massing_benchmark(*, output_json: Path, output_png: Path) -> dic
             failures.append(f"{profile_id}_architectural_floor_below_0.88")
         if not all(row["program_hard_pass"] for row in group):
             failures.append(f"{profile_id}_program_hard_gate_failure")
-    if len({json.dumps(value, sort_keys=True) for value in fingerprints.values()}) < 3:
+    if len({json.dumps(value, sort_keys=True) for value in fingerprints.values()}) < len(profile_groups):
         failures.append("program_geometry_fingerprints_not_distinct")
-    if sum(int(report.get("evaluated_count") or 0) for report in search_reports.values()) < 300:
-        failures.append("program_search_did_not_evaluate_300_candidates")
+    if sum(int(report.get("evaluated_count") or 0) for report in search_reports.values()) < 200:
+        failures.append("program_search_did_not_evaluate_200_candidates")
     if sum(int(report.get("rejected_count") or 0) for report in search_reports.values()) < 1:
         failures.append("program_search_rejected_no_invalid_candidates")
     result = {
@@ -92,6 +97,95 @@ def run_program_massing_benchmark(*, output_json: Path, output_png: Path) -> dic
         "png": str(output_png),
     }
     _render_contact_sheet(features, output_png)
+    output_json.parent.mkdir(parents=True, exist_ok=True)
+    output_json.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return result
+
+
+def run_neighborhood_20_language_benchmark(*, output_json: Path, output_png: Path) -> dict[str, Any]:
+    """Render one 20-language neighborhood-living archive for human review.
+
+    This is intentionally separate from the small cross-program smoke test.
+    Program seeds and the neutral architectural-language archive compete under
+    the same geometry-derived program gate; source names never satisfy roles.
+    """
+    base = box(0, 0, 60, 40)
+    seeds_by_name = {
+        sequence.name: sequence
+        for sequence in (*program_seed_sequences("근린생활시설"), *creative_seed_sequences())
+    }
+    elites, search_report = search_program_elites(
+        base,
+        building_type="근린생활시설",
+        height=15.0,
+        floors=5,
+        generations=4,
+        offspring_per_seed=10,
+        random_seed=417,
+        target_count=20,
+        seed_sequences=tuple(seeds_by_name.values()),
+        # The final visual archive still has strict hard geometry/program gates.
+        # This floor admits novel source languages for visual comparison instead
+        # of forcing every candidate back to the four hand-authored program seeds.
+        minimum_architectural_score=0.76,
+        selection_minimum_distance=0.16,
+    )
+    rows: list[dict[str, Any]] = []
+    for elite in elites:
+        props = elite.feature["properties"]
+        program = props["program_massing_evidence"]
+        spatial = props["program_spatial_evidence"]
+        signature = props["source_signature"]
+        projection = spatial["spatial_role_projection"]
+        rows.append({
+            "variant_id": props["variant_id"],
+            "topology": elite.sequence.name.split("__search_", 1)[0],
+            "formal_principle": signature.get("formal_principle"),
+            "program_fit_score": program["program_fit_score"],
+            "architectural_score": spatial["architectural_score"],
+            "volume_count": len(elite.source.volumes),
+            "surface_count": int(signature.get("effective_surface_count") or signature.get("surface_count") or 0),
+            "raw_surface_count": int(signature.get("surface_count") or 0),
+            "grounded": bool(projection["active_ground_mass_present"]),
+            "public_spatial_gesture": bool(projection["public_spatial_gesture_present"]),
+            "hard_pass": bool(program["hard_pass"]),
+        })
+    topology_count = len({row["topology"] for row in rows})
+    principle_count = len({row["formal_principle"] for row in rows})
+    near_duplicate_pair_count = sum(
+        1 for index, left in enumerate(elites) for right in elites[:index]
+        if _descriptor_distance(left, right) < 0.16
+    )
+    failures: list[str] = []
+    if len(rows) != 20:
+        failures.append("neighborhood_archive_did_not_select_20")
+    if topology_count < 10:
+        failures.append("neighborhood_topology_count_below_10")
+    if principle_count < 6:
+        failures.append("neighborhood_formal_principle_count_below_6")
+    if near_duplicate_pair_count > 2:
+        failures.append("neighborhood_near_duplicate_pair_count_above_2")
+    if not all(row["hard_pass"] and row["grounded"] for row in rows):
+        failures.append("neighborhood_program_or_ground_gate_failure")
+    if any(row["volume_count"] > 4 or row["surface_count"] > 28 for row in rows):
+        failures.append("neighborhood_clean_mass_gate_failure")
+    result = {
+        "schema_version": "arr.maas.neighborhood_20_language_benchmark.v1",
+        "status": "pass" if not failures else "fail",
+        "selected_count": len(rows),
+        "topology_count": topology_count,
+        "formal_principle_count": principle_count,
+        "near_duplicate_pair_count": near_duplicate_pair_count,
+        "search_report": search_report,
+        "rows": rows,
+        "failures": failures,
+        "png": str(output_png),
+    }
+    _render_archive_sheet(
+        [elite.feature for elite in elites],
+        output_png,
+        title="MAAS - neighborhood living: 20 program-conditioned mass languages",
+    )
     output_json.parent.mkdir(parents=True, exist_ok=True)
     output_json.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return result
@@ -157,6 +251,12 @@ def run_creative_20_archive_benchmark(*, output_json: Path, output_png: Path) ->
         })
     topology_count = len({row["topology"] for row in rows})
     geometric_language_count = int(search_report.get("geometric_language_count") or 0)
+    near_duplicate_pair_count = sum(
+        1
+        for index, left in enumerate(elites)
+        for right in elites[:index]
+        if _descriptor_distance(left, right) < 0.10
+    )
     failures = []
     if len(rows) != 20:
         failures.append("archive_did_not_select_20")
@@ -169,8 +269,10 @@ def run_creative_20_archive_benchmark(*, output_json: Path, output_png: Path) ->
     if not all(row["hard_pass"] for row in rows):
         failures.append("creative_archive_contains_clean_mass_gate_failure")
     sculptural_count = sum(1 for row in rows if row["sculptural_geometry"])
-    if sculptural_count < 8:
-        failures.append("sculptural_geometry_count_below_8_box_bias")
+    if sculptural_count < 12:
+        failures.append("sculptural_geometry_count_below_12_competition_target")
+    if near_duplicate_pair_count > 2:
+        failures.append("near_duplicate_geometry_pair_count_above_2")
     result = {
         "schema_version": "arr.maas.creative_archive_benchmark.v1",
         "stage": "creative_form_exploration",
@@ -184,6 +286,7 @@ def run_creative_20_archive_benchmark(*, output_json: Path, output_png: Path) ->
         "minimum_creative_score": min((row["creative_score"] for row in rows), default=0.0),
         "sculptural_geometry_count": sculptural_count,
         "rectilinear_extrusion_count": len(rows) - sculptural_count,
+        "near_duplicate_pair_count": near_duplicate_pair_count,
         "search_report": search_report,
         "rows": rows,
         "failures": failures,
@@ -227,21 +330,116 @@ def run_housing_20_archive_benchmark(*, output_json: Path, output_png: Path) -> 
     return run_creative_20_archive_benchmark(output_json=output_json, output_png=output_png)
 
 
-def _render_archive_sheet(features: list[dict[str, Any]], output: Path) -> None:
+def run_site_adaptation_benchmark(*, output_json: Path, output_png: Path) -> dict[str, Any]:
+    """Verify that the same languages respond to parcel axes and boundaries."""
+    sites = {
+        "rotated_long": rotate(box(0, 0, 80, 28), 29, origin="centroid"),
+        "trapezoid": Polygon([(0, 0), (72, 7), (61, 45), (8, 38)]),
+        "concave_l": Polygon([(0, 0), (68, 0), (68, 24), (31, 24), (31, 52), (0, 52)]),
+    }
+    wanted = {
+        "creative_composed_folded_field_1",
+        "creative_graph_bend_ribbon_court",
+        "creative_graph_overlap_shift_terrace",
+        "creative_graph_clean_courtyard_block",
+    }
+    sequences = [sequence for sequence in creative_seed_sequences() if sequence.name in wanted]
+    rows: list[dict[str, Any]] = []
+    features: list[dict[str, Any]] = []
+    contexts: dict[str, Any] = {}
+    for site_name, site in sites.items():
+        contexts[site_name] = build_site_context(
+            site_area_m2=float(site.area),
+            building_type="creative mass exploration",
+            limits={},
+            max_variants=len(sequences),
+            site_polygon=site,
+        )["site_geometry_intelligence"]
+        for sequence in sequences:
+            source = compile_sequence_to_source_mass(site, sequence)
+            if source is None:
+                rows.append({"site": site_name, "sequence": sequence.name, "compiled": False})
+                continue
+            feature = _feature(
+                source,
+                sequence,
+                building_type=f"site-adaptation:{site_name}",
+                height=18.0,
+                floors=6,
+                site_area=float(site.area),
+            )
+            feature["properties"]["archive_variant_id"] = f"{site_name}__{sequence.name}"
+            evidence = attach_creative_mass_evidence(feature, site_area_m2=float(site.area))
+            volumes = [shape(item["geometry"]) for item in feature["properties"]["mass_volumes"]]
+            within = all(site.buffer(1e-7).covers(volume) for volume in volumes)
+            frame = source.signature().get("site_frame_evidence") or {}
+            rows.append({
+                "site": site_name,
+                "sequence": sequence.name,
+                "compiled": True,
+                "within_site": within,
+                "hard_pass": bool(evidence["hard_pass"]),
+                "site_frame_angle": frame.get("dominant_axis_world_degrees"),
+                "coverage": evidence["site_coverage_ratio"],
+                "formal_principle": source.signature().get("formal_principle"),
+            })
+            features.append(feature)
+    failures: list[str] = []
+    if len(rows) != len(sites) * len(sequences):
+        failures.append("site_language_matrix_incomplete")
+    if not all(row.get("compiled") for row in rows):
+        failures.append("site_language_compile_failure")
+    if not all(row.get("within_site") for row in rows if row.get("compiled")):
+        failures.append("source_volume_outside_site")
+    if not all(context.get("status") == "available" for context in contexts.values()):
+        failures.append("site_geometry_intelligence_missing")
+    angles = {round(float(row.get("site_frame_angle") or 0.0), 1) for row in rows if row.get("compiled")}
+    if len(angles) < len(sites):
+        failures.append("site_axes_not_distinguished")
+    result = {
+        "schema_version": "arr.maas.site_adaptation_benchmark.v1",
+        "status": "pass" if not failures else "fail",
+        "site_count": len(sites),
+        "language_count": len(sequences),
+        "case_count": len(rows),
+        "site_geometry_intelligence": contexts,
+        "rows": rows,
+        "failures": failures,
+        "png": str(output_png),
+    }
+    _render_archive_sheet(
+        features,
+        output_png,
+        title="MAAS - site adaptation: 3 parcels x 4 architectural languages",
+    )
+    output_json.parent.mkdir(parents=True, exist_ok=True)
+    output_json.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return result
+
+
+def _render_archive_sheet(
+    features: list[dict[str, Any]],
+    output: Path,
+    *,
+    title: str = "MAAS - 20 program-neutral creative mass elites",
+) -> None:
     # Human review uses one large isometric image per candidate in the same 5x4
     # arrangement as the established legal board. The VLM still receives the
     # full four-view preview; front/top/opposite are diagnostic evidence and
     # must not visually multiply candidates on the primary review sheet.
-    card_w, card_h, columns = 384, 300, 5
+    card_w, card_h, columns = 384, 322, 5
     row_count = (len(features) + columns - 1) // columns
     canvas = Image.new("RGB", (card_w * columns, 72 + card_h * row_count), "#07111f")
     draw = ImageDraw.Draw(canvas)
     try:
         title_font = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", 25)
         label_font = ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", 13)
+        note_font = ImageFont.truetype("C:/Windows/Fonts/malgun.ttf", 11)
     except OSError:
-        title_font = label_font = ImageFont.load_default()
+        title_font = label_font = note_font = ImageFont.load_default()
     draw.text((24, 20), "MAAS — 20 program-neutral creative mass elites", fill="#f8fafc", font=title_font)
+    draw.rectangle((0, 0, canvas.width, 72), fill="#07111f")
+    draw.text((24, 20), title, fill="#f8fafc", font=title_font)
     with tempfile.TemporaryDirectory(prefix="maas-creative-archive-") as temporary:
         for index, feature in enumerate(features):
             raw = Image.open(feature_preview_png(feature, Path(temporary))).convert("RGBA")
@@ -252,14 +450,37 @@ def _render_archive_sheet(features: list[dict[str, Any]], output: Path) -> None:
             x, y = index % columns * card_w, 72 + index // columns * card_h
             canvas.paste(preview, (x, y))
             props = feature["properties"]
-            evidence = props["creative_mass_evidence"]
-            draw.rectangle((x, y + 260, x + card_w, y + card_h), fill="#101d32")
+            creative_evidence = props.get("creative_mass_evidence") if isinstance(props.get("creative_mass_evidence"), dict) else {}
+            program_evidence = props.get("program_massing_evidence") if isinstance(props.get("program_massing_evidence"), dict) else {}
+            display_score = float(creative_evidence.get("creative_score") or program_evidence.get("program_fit_score") or 0.0)
+            display_mode = "creative" if creative_evidence else ("program" if program_evidence else "unscored")
+            evidence = {"creative_score": display_score}
+            review_status = str(props.get("review_status") or "").strip().lower()
+            footer_fill = (
+                "#123524" if review_status == "accept"
+                else "#441d25" if review_status == "reject"
+                else "#101d32"
+            )
+            draw.rectangle((x, y + 260, x + card_w, y + card_h), fill=footer_fill)
             source_id = str(props.get("archive_variant_id") or props["variant_id"])
             topology = source_id.split("__search_", 1)[0].replace("creative_", "")
             label = f"{index + 1:02d} {topology} · creative {evidence['creative_score']:.3f}"
+            label = f"{index + 1:02d} {topology} - {display_mode} {display_score:.3f}"
             draw.text((x + 12, y + 274), label, fill="#f8fafc", font=label_font)
+            if review_status:
+                reasons = [str(value) for value in props.get("review_reasons") or []]
+                status_label = "ACCEPT" if review_status == "accept" else "REJECT"
+                note = f"{status_label} · {', '.join(reasons[:2]) or 'visual floor pass'}"
+                if len(note) > 63:
+                    note = note[:60] + "..."
+                draw.text(
+                    (x + 12, y + 298),
+                    note,
+                    fill="#86efac" if review_status == "accept" else "#fda4af",
+                    font=note_font,
+                )
     output.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(output)
 
 
-__all__ = ["run_creative_20_archive_benchmark", "run_housing_20_archive_benchmark", "run_program_massing_benchmark"]
+__all__ = ["run_creative_20_archive_benchmark", "run_housing_20_archive_benchmark", "run_neighborhood_20_language_benchmark", "run_program_massing_benchmark", "run_site_adaptation_benchmark"]

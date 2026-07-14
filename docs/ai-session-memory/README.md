@@ -2,6 +2,112 @@
 
 Read this folder before touching the legal-design visualization work.
 
+## Latest MAAS checkpoint - 2026-07-14
+
+Read `MAAS_MEMORY_INDEX.md`, then the final `real-PNU site adaptation` and
+`Real-PNU full-loop correction chain (v54-v58)` and `v49-v53` sections of
+`MAAS_VISUAL_FAILURE_HANDOFF_20260710.md`. Current best mass-stage evidence is
+v58 on real PNU `1168011800104170004`: 20/20, capacity 13/8, zero near
+duplicates and six required language groups. v53 remains the repeatable
+synthetic archive checkpoint. Neither is a competition-grade or completed
+legal/parking projection claim.
+
+## Latest MAAS Handoff - 2026-07-07
+
+Read `docs/ai-session-memory/MAAS_MEMORY_INDEX.md` and
+`docs/ai-session-memory/MAAS_FAILURE_EVOLUTION.md` before touching MAAS.
+
+- Latest MAAS artifacts:
+  - `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+  - `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+  - `docs/playwright/design-route-live-verify/maas-20-alt-latest.html`
+- Latest verification:
+  - JSON verifier passed.
+  - PNG verifier passed.
+  - parking verifier passed.
+  - `legalPass=20/20`
+  - `sourceGeometryUsed=20/20`
+  - `parkingCountSatisfied=20/20`
+  - `parkingMassStagePass=20/20`
+  - `parkingPermitPass=0/20` (permit-final approval is not claimed)
+  - `primarySecondaryEvidence=19`
+  - `languagePairDiversity=17`
+  - `sourcePrimitiveEvidence=5`
+  - `repairDeltaEvidence=20`
+  - `orderlinessEvidence=20`
+  - `avgOrderlinessScore=0.78`
+  - `twoTierMasses=0`
+  - `smallFragmentMasses=0`
+- Latest PNG copy:
+  - `docs/img_82.png`
+- Current judgment:
+  - Much better than repeated stepback outputs.
+  - Polygonal/curvilinear/freeform primitive evidence now exists, but is still
+    concentrated in a few families.
+  - Current MAAS work adds orderliness evidence so messy helper fragments,
+    unclear language mixing, and weak main/support hierarchy are verifier-visible
+    failures.
+  - Next MAAS work should broaden primitives and make the critic-revision
+    artifact into an automatic revise loop without weakening legal, parking, or
+    orderliness hard gates.
+- Presentation artifact:
+  - `docs/maas-logic-diagram-20260707.pptx`
+
+## Workspace Harness
+
+- Start from `docs/ai-session-memory/HARNESS.md` before changing cross-repo
+  agent/legal/mass/UI behavior.
+- Fast workspace gate:
+
+```bash
+node scripts/verify-workspace.mjs --quick
+```
+
+- Latest observed quick gate on 2026-06-30: PASS for JSON_MODULES team schema,
+  ARR MAAS agent contracts, ARR mass JSON diversity, ARR parking JSON,
+  ARR AG-light latest-result, AG source presence, and AG-frontend flow
+  source/spec presence.
+
+## Latest Repo Handoff - 2026-06-30
+
+ARR MassDSL multi-agent loop V1 is implemented and verified.
+
+- Current project direction: `/design` must show a law-first architectural
+  massing process, not only a final mass. The user expects the UI to show which
+  legal, parking, MassDSL, geometry, and review agents participated.
+- Canonical ARR MAAS flow:
+  `design_orchestrator -> law_graph_agent -> parking_agent -> massdsl_agent -> maas_geometry_agent -> grammar_critic_agent -> review_agent`.
+- Backend agent folders:
+  - `ARR/backend/design/maas/agents/massdsl_agent/`
+  - `ARR/backend/design/maas/agents/grammar_critic_agent/`
+- `/design/maas/legal-variants/` now returns response-level
+  `agent_reviews`, `agent_trace`, `a2ui_messages`, `massdsl_proposals`,
+  `grammar_review`, `grammar_reviews`; each candidate also has
+  `properties.massdsl_proposal` and `properties.grammar_review`.
+- `JSON_MODULES/teams/041_MAAS_Legal_Design_Team.json` is the frontend/team
+  source for this six-agent flow. Do not create a separate ad-hoc flow; extend
+  JSON_MODULES and `maas/agents` together.
+- Latest verification:
+  - Backend focused Django tests passed for registry, endpoint evidence,
+    MassDSL contract, grammar variants, and source-signature diversity.
+  - `cd ARR/frontend && npm run type-check` passed.
+  - 20-card PNG/JSON:
+    `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`,
+    `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`.
+  - AG-light Playwright:
+    `docs/playwright/design-route-live-verify/ag-light/ag-light-current-1782807801354.png`,
+    `docs/playwright/design-route-live-verify/ag-light/ag-light-current-result.json`.
+- Visual judgment: candidates now include interlock, split, courtyard, branch,
+  terrace ribbon, diagonal connector, sloped roof, bar/notch, and sunlight-step
+  families. This is better than the repeated step-only state, but still not a
+  full competition-grade generative design system. Next real mass step is
+  source-geometry rewrite/proposal generation or LLM-backed MassDSL using the
+  same deterministic contract.
+- Playwright caveat: `/design` Vite proxy requires HTML Accept only for the
+  navigation request. The verifier uses `page.route` for navigation-only
+  headers. Do not set a global Accept header; it breaks `/@vite/client` and
+  API fetches.
+
 ## Latest Repo Handoff - 2026-06-25
 
 Latest MAAS clone/paper-path verification:
@@ -1005,3 +1111,109 @@ ARR/backend/.venv/bin/python cli/design-regulation-check/render_section.py --bas
 ```
 
 Expected: PASS and visual files under `cli/design-regulation-check/out/sections/` or `cli/design-regulation-check/out/pysections/`.
+
+## 2026-06-30 MAAS Section Diversity Harness
+
+- User correctly rejected hardcoded-looking mass tweaks. Current rule:
+  design-section synthesis may use numeric clamps, but design intent must come
+  from `maas_verb_sequence` parameters and every display volume must be clipped
+  inside already legal floor plate/envelope geometry.
+- Updated `ARR/backend/design/maas/legal_mesh_optimizer.py`:
+  - `split`, `overlap`, `interlock`, `branch`, `pinch`, `taper`,
+    `notch/cave/puncture`, and `grade` now produce section profiles from actual
+    MAAS verbs, not only from operator-family names.
+  - `_apply_variant_verb_sequence()` clears stale section evidence and reapplies
+    section synthesis after a grammar variant sequence is attached.
+  - Legal metrics/FAR/BCR remain based on legal floor plates; visible section
+    source volumes are clipped inside those legal plates.
+- Added fast acceptance harness:
+  `docs/playwright/design-route-live-verify/verify-maas-20-alt-json.cjs`.
+  Run after:
+
+```bash
+node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs
+node docs/playwright/design-route-live-verify/verify-maas-20-alt-json.cjs
+```
+
+- Latest fast harness result for PNU `1168011800104170004`:
+  - PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+  - JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+  - `count=20`, `legalPass=20`, `uniqueShapes=15`, `uniqueFamilies=14`,
+    `uniqueSections=10`, `materialized=17`, `parkingCountSatisfied=20`,
+    `parkingMassStagePass=20`, `parkingPermitPass=0`.
+- Added parking-specific fast gate:
+  `docs/playwright/design-route-live-verify/verify-maas-parking-json.cjs`.
+  Latest result: `requiredComputed=20`, `formulaEvidence=20`,
+  `countSatisfied=20`, `exactOrMechanicalEvidence=20`,
+  `massStageParkingPass=20`, `permitParkingPass=0`,
+  with `13` mechanical review candidates and `7` drive-connectivity review
+  candidates.
+- Honest interpretation:
+  - Mass diversity is materially better than the previous repeated/label-only
+    state. Visible families include stepped tower, cross interlock, overlap
+    slabs, split bridge, notched void, branch taper, pinched waist, terrace
+    ribbon, diagonal connector, and sloped roof.
+  - Parking is now gated separately. Current parking is mass-stage count/formula
+    pass, not permit-final pass. Remaining work is mechanical type evidence and
+    drive/swept-path review.
+  - `benchmark_maas_algorithms` now records section-profile/materialization
+    counts, but it is too slow for every edit loop. Use it as final/periodic
+    benchmark, not the inner development loop.
+
+## 2026-07-01 Source Geometry V2 / Goal Loop
+
+- Goal mode was attached for the active continuation loop:
+  Source Geometry V2 must be integrated through source geometry candidates,
+  MassDSL/grammar critic evidence, representative selection, focused tests,
+  frontend type-check, and workspace quick gates.
+- `ARR/backend/design/maas/source_geometry/` now emits renderer-neutral source
+  surface evidence in addition to source volumes:
+  - `SourceSurface` records `role`, `volume_role`, `verb`, `surface_type`, and
+    local-meter `vertices_m`.
+  - `SourceMass.signature()` includes `surface_count` and `surface_roles`.
+  - `MorphologyVariant` carries `source_surfaces`.
+- `legal_mesh_optimizer.py` preserves `source_surfaces` into candidate
+  properties and `properties.maas_model`, and source signature distance now
+  includes source surface topology so same-family candidates are less likely to
+  collapse into near-duplicates.
+- `massdsl_agent` exposes `source_refs.source_surface_count`; `grammar_critic_agent`
+  exposes `surface_count` and `has_source_surface_contract`.
+- `ARR/frontend/src/design/lib/ag-light-collaboration.ts` now displays source
+  surface count in the MassDSL trace and source-surface contract status in the
+  grammar critic trace.
+- Latest generated JSON:
+  `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`.
+  Summary for PNU `1168011800104170004`: `20` candidates, `17` source-geometry
+  candidates, `17` with source surface signatures, `20` MassDSL proposals,
+  `20` grammar reviews, and `6` response-level agent reviews.
+- Latest gates passed:
+  - focused Django tests for grammar generation, source signature distance,
+    variant selection, MassDSL/grammar agent contract, endpoint response, and
+    registry cards;
+  - `cd ARR/frontend && npm run type-check`;
+  - `node docs/playwright/design-route-live-verify/verify-maas-20-alt-json.cjs`;
+  - `node docs/playwright/design-route-live-verify/verify-maas-parking-json.cjs`;
+  - `ARR/backend/.venv/bin/python docs/playwright/design-route-live-verify/verify-maas-png.py`;
+  - `node scripts/verify-workspace.mjs --quick`.
+- WSL Playwright screenshot capture currently times out even for a minimal page.
+  `render-maas-20-alt.cjs` now uses `SCREENSHOT_TIMEOUT_MS` and returns
+  a failure instead of hanging after writing HTML/JSON. If Chromium capture
+  fails, it automatically invokes the browserless Pillow fallback at
+  `docs/playwright/design-route-live-verify/render_maas_20_alt_png.py` so the
+  current 20-card sheet is still regenerated from the latest JSON.
+- Harness design status: this is a Mass/Agent/PNG regression harness, not a
+  permit-final design approval harness. It now gates candidate count, legal
+  envelope metrics, diversity, materialized section profiles, Source Geometry
+  V2 evidence across source signature/MassDSL/grammar critic, mass-stage
+  parking evidence, and PNG freshness/nonblank pixel evidence.
+- Latest PNG was regenerated from that fallback:
+  `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+  at 2026-07-01 11:40 KST, `2200x1400`, with pixel sanity check
+  `unique_colors=2086`, `non_bg=2590525`, `orange_pixels=65352`,
+  `green_pixels=17526`. It visibly contains all 20 alternatives, site outlines,
+  mass volumes, parking marks, and source-surface count badges.
+- Honest next loop: improve the actual V2 source surface generation for
+  cave/notch/inset/branch/split so the generated forms are not only
+  explainable by source surfaces, but also visibly stronger in the PNG/VWorld
+  review. Parking remains mass-stage only; permit-level parking is still not
+  solved.

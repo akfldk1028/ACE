@@ -818,7 +818,17 @@ def _select_exact_small_grid_group(
     """
     if required_spaces <= 1 or required_spaces > SMALL_ATTACHED_PARKING_MAX_SPACES:
         return []
-    if len(candidates) > 90:
+    # Exhaustive search is useful only while the combination space is truly
+    # small.  The previous ``len(candidates) <= 90`` guard still allowed
+    # 90C5 (43,949,268) groups and made one small-lot parking check take tens
+    # of seconds.  Above this deterministic budget the caller continues with
+    # the bounded seed/greedy selector below.
+    combination_budget = 5_000
+    try:
+        combination_count = math.comb(len(candidates), required_spaces)
+    except (TypeError, ValueError):
+        return []
+    if combination_count > combination_budget:
         return []
     best: list[dict[str, Any]] = []
     best_score: tuple[Any, ...] | None = None

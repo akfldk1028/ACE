@@ -10,6 +10,7 @@ from shapely.geometry import Polygon, mapping
 from shapely.ops import unary_union
 
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
+from design.maas.grammar.component_graph import graph_from_sequence
 from design.maas.source_geometry import compile_sequence_to_source_mass
 from design.maas.source_geometry.ir import SourceMass
 
@@ -38,12 +39,17 @@ def search_program_elites(
     offspring_per_seed: int = 12,
     random_seed: int = 417,
     target_count: int | None = None,
+    seed_sequences: tuple[VerbSequence, ...] | None = None,
+    minimum_architectural_score: float = 0.88,
+    selection_minimum_distance: float = 0.0,
+    accepted_sink: list[ProgramElite] | None = None,
 ) -> tuple[tuple[ProgramElite, ...], dict[str, Any]]:
     rng = random.Random(random_seed)
     elites: list[ProgramElite] = []
     archive_pool: list[ProgramElite] = []
     evaluated = rejected = 0
-    for seed in program_seed_sequences(building_type):
+    seeds = seed_sequences if seed_sequences is not None else program_seed_sequences(building_type)
+    for seed in seeds:
         parent_overrides: dict[str, float] = {}
         best: ProgramElite | None = None
         for generation in range(max(1, generations)):
@@ -57,15 +63,32 @@ def search_program_elites(
                 if source is None:
                     rejected += 1
                     continue
+                source_signature = source.signature()
+                # Program proposals are review masses, not free-form surface
+                # studies. A high semantic/program score must not rescue the
+                # tangled ribbon failure visible in the PNG contact sheet.
+                raw_surfaces = int(source_signature.get("surface_count") or 0)
+                effective_surfaces = int(source_signature.get("effective_surface_count") or raw_surfaces)
+                # Profiled roofs/ribbons need more raw render faces than a
+                # cuboid. Judge normalized complexity separately so the clean
+                # gate does not systematically select boxes over continuous
+                # geometry. The legal solid count remains hard-limited.
+                profiled = bool(source_signature.get("continuous_surface_evidence", {}).get("hard_pass"))
+                raw_surface_limit = 160 if profiled else 48
+                if len(source.volumes) > 4 or raw_surfaces > raw_surface_limit or effective_surfaces > 28:
+                    rejected += 1
+                    continue
                 feature = _feature(source, candidate, building_type=building_type, height=height, floors=floors, site_area=float(base.area))
                 evidence = attach_program_massing_evidence(feature, building_type=building_type)
                 spatial = feature["properties"]["program_spatial_evidence"]
-                if not evidence["hard_pass"] or float(spatial["architectural_score"]) < 0.88:
+                if not evidence["hard_pass"] or float(spatial["architectural_score"]) < minimum_architectural_score:
                     rejected += 1
                     continue
                 score = float(evidence["program_fit_score"]) * 0.55 + float(spatial["architectural_score"]) * 0.45
                 generation_elites.append(ProgramElite(candidate, source, feature, round(score, 6), generation))
             if generation_elites:
+                if accepted_sink is not None:
+                    accepted_sink.extend(generation_elites)
                 archive_pool.extend(generation_elites)
                 generation_elites.sort(key=lambda item: (item.score, item.source.signature()["coherence_evidence"].get("score", 0.0)), reverse=True)
                 best = generation_elites[0]
@@ -73,7 +96,11 @@ def search_program_elites(
         if best is not None:
             elites.append(best)
     if target_count is not None:
-        elites = _select_diverse_archive(archive_pool, target_count=max(1, target_count))
+        elites = _select_diverse_archive(
+            archive_pool,
+            target_count=max(1, target_count),
+            minimum_distance=max(0.0, min(1.0, selection_minimum_distance)),
+        )
     return tuple(elites), {
         "schema_version": "arr.maas.program_search_report.v1",
         "generations": max(1, generations),
@@ -84,6 +111,9 @@ def search_program_elites(
         "archive_pool_count": len(archive_pool),
         "target_count": target_count,
         "random_seed": random_seed,
+        "seed_count": len(seeds),
+        "minimum_architectural_score": minimum_architectural_score,
+        "selection_minimum_distance": selection_minimum_distance,
     }
 
 
@@ -132,7 +162,12 @@ def search_creative_elites(
                 archive_pool.extend(generation_elites)
                 generation_elites.sort(key=lambda item: item.score, reverse=True)
                 parent_overrides = _extract_overrides(generation_elites[0].sequence)
-    elites = _select_diverse_archive(archive_pool, target_count=max(1, target_count))
+    elites = _select_diverse_archive(
+        archive_pool,
+        target_count=max(1, target_count),
+        minimum_sculptural=min(12, target_count),
+        minimum_step_anchors=min(2, target_count),
+    )
     geometric_language_count = _geometric_language_count(list(elites))
     return tuple(elites), {
         "schema_version": "arr.maas.creative_search_report.v1",
@@ -151,7 +186,14 @@ def search_creative_elites(
     }
 
 
-def _select_diverse_archive(pool: list[ProgramElite], *, target_count: int) -> list[ProgramElite]:
+def _select_diverse_archive(
+    pool: list[ProgramElite],
+    *,
+    target_count: int,
+    minimum_sculptural: int = 0,
+    minimum_step_anchors: int = 0,
+    minimum_distance: float = 0.0,
+) -> list[ProgramElite]:
     unique: dict[tuple[Any, ...], ProgramElite] = {}
     for item in pool:
         fingerprint = _geometry_fingerprint(item)
@@ -161,30 +203,76 @@ def _select_diverse_archive(pool: list[ProgramElite], *, target_count: int) -> l
     candidates = [item for item in unique.values() if item.score >= 0.75]
     if len(candidates) < target_count:
         candidates = list(unique.values())
-    topology_count = max(1, len({_topology(item) for item in candidates}))
-    topology_cap = max(1, (target_count + topology_count - 1) // topology_count)
-    representatives: dict[str, ProgramElite] = {}
-    for item in candidates:
-        key = _topology(item)
-        current = representatives.get(key)
-        if current is None or item.score > current.score:
-            representatives[key] = item
-    selected = sorted(representatives.values(), key=lambda item: item.score, reverse=True)[:target_count]
-    topology_usage = {_topology(item): 1 for item in selected}
-    for item in selected:
-        candidates.remove(item)
+    # Do not pre-fill one item for every topology label. Several historical
+    # seeds have different names but compile to almost the same geometry; that
+    # policy forced near-duplicates onto the review sheet before novelty was
+    # ever considered. Select globally by measured plan/section distance and
+    # merely cap repetition of any one source graph.
+    topology_cap = 2
+    selected: list[ProgramElite] = []
+    topology_usage: dict[str, int] = {}
+    principle_usage: dict[str, int] = {}
+    principle_cap = 4
+    distance_cache: dict[tuple[int, int], float] = {}
+
+    def distance(left: ProgramElite, right: ProgramElite) -> float:
+        key = tuple(sorted((id(left), id(right))))
+        if key not in distance_cache:
+            distance_cache[key] = _descriptor_distance(left, right)
+        return distance_cache[key]
+
     while candidates and len(selected) < target_count:
-        eligible = [item for item in candidates if topology_usage.get(_topology(item), 0) < topology_cap]
+        eligible = [
+            item for item in candidates
+            if topology_usage.get(_topology(item), 0) < topology_cap
+            and principle_usage.get(_formal_principle(item), 0) < principle_cap
+            and (
+                not selected
+                or min(distance(item, other) for other in selected) >= minimum_distance
+            )
+        ]
         if not eligible:
             break
+        selected_sculptural = sum(1 for item in selected if _is_sculptural(item))
+        sculptural_needed = max(0, minimum_sculptural - selected_sculptural)
+        selected_step_anchors = sum(1 for item in selected if _is_step_anchor(item))
+        step_anchors_needed = max(0, minimum_step_anchors - selected_step_anchors)
+        remaining_slots = target_count - len(selected)
+        if step_anchors_needed >= remaining_slots:
+            step_eligible = [item for item in eligible if _is_step_anchor(item)]
+            if step_eligible:
+                eligible = step_eligible
+        elif sculptural_needed >= remaining_slots:
+            sculptural_eligible = [item for item in eligible if _is_sculptural(item)]
+            if sculptural_eligible:
+                eligible = sculptural_eligible
         def selection_key(item: ProgramElite) -> tuple[float, float]:
-            novelty = 1.0 if not selected else min(_descriptor_distance(item, other) for other in selected)
-            return item.score * 0.68 + novelty * 0.32, item.score
+            novelty = 1.0 if not selected else min(distance(item, other) for other in selected)
+            quota_bonus = 0.08 if sculptural_needed and _is_sculptural(item) else 0.0
+            step_bonus = 0.07 if step_anchors_needed and _is_step_anchor(item) else 0.0
+            return item.score * 0.46 + novelty * 0.54 + quota_bonus + step_bonus, item.score
         winner = max(eligible, key=selection_key)
         selected.append(winner)
         topology_usage[_topology(winner)] = topology_usage.get(_topology(winner), 0) + 1
+        principle = _formal_principle(winner)
+        principle_usage[principle] = principle_usage.get(principle, 0) + 1
         candidates.remove(winner)
     return selected
+
+
+def _is_sculptural(item: ProgramElite) -> bool:
+    evidence = item.feature.get("properties", {}).get("creative_mass_evidence") or {}
+    return bool(evidence.get("sculptural_geometry"))
+
+
+def _formal_principle(item: ProgramElite) -> str:
+    return str(item.source.signature().get("formal_principle") or "unclassified")
+
+
+def _is_step_anchor(item: ProgramElite) -> bool:
+    verbs = {call.verb for call in item.sequence.calls}
+    principle = _formal_principle(item)
+    return "step_envelope" in verbs or "terrace_link" in verbs or principle == "stacked_shifted_platforms"
 
 
 def _topology(item: ProgramElite) -> str:
@@ -227,8 +315,56 @@ def _descriptor_distance(left: ProgramElite, right: ProgramElite) -> float:
     right_plan = unary_union([volume.footprint for volume in right.source.volumes])
     plan_union = left_plan.union(right_plan)
     plan_distance = float(left_plan.symmetric_difference(right_plan).area) / max(float(plan_union.area), 1e-9)
+    volume_distance = _volumetric_distance(left.source, right.source)
     scalar_distance = min(1.0, sum((x - y) ** 2 for x, y in zip(a, b)) ** 0.5 / 1.35)
-    return min(1.0, plan_distance * 0.62 + scalar_distance * 0.38)
+    geometric = volume_distance * 0.55 + plan_distance * 0.25 + scalar_distance * 0.20
+    left_primary = left.sequence.calls[1].verb if len(left.sequence.calls) > 1 else "base"
+    right_primary = right.sequence.calls[1].verb if len(right.sequence.calls) > 1 else "base"
+    left_roles = {str(volume.role).split("_graph_", 1)[0] for volume in left.source.volumes}
+    right_roles = {str(volume.role).split("_graph_", 1)[0] for volume in right.source.volumes}
+    role_union = left_roles | right_roles
+    role_distance = 1.0 - len(left_roles & right_roles) / max(len(role_union), 1)
+    semantic = (
+        (0.38 if left_primary != right_primary else 0.0)
+        + (0.32 if _formal_principle(left) != _formal_principle(right) else 0.0)
+        + role_distance * 0.30
+    )
+    # Geometry remains the majority signal, but a bend graph and a courtyard
+    # graph must not collapse into one descriptor cell merely because their
+    # legal projection has similar coverage and FAR.
+    return min(1.0, geometric * 0.78 + semantic * 0.22)
+
+
+def _volumetric_distance(left: SourceMass, right: SourceMass) -> float:
+    """Normalized 3D symmetric difference for layered planar mass volumes."""
+    levels = sorted({
+        round(value, 6)
+        for source in (left, right)
+        for volume in source.volumes
+        for value in (volume.bottom_fraction, volume.top_fraction)
+    })
+    union_volume = difference_volume = 0.0
+    for lower, upper in zip(levels, levels[1:]):
+        thickness = upper - lower
+        if thickness <= 1e-9:
+            continue
+        middle = (lower + upper) / 2.0
+        left_active = [volume.footprint for volume in left.volumes if volume.bottom_fraction <= middle < volume.top_fraction]
+        right_active = [volume.footprint for volume in right.volumes if volume.bottom_fraction <= middle < volume.top_fraction]
+        left_slice = unary_union(left_active) if left_active else None
+        right_slice = unary_union(right_active) if right_active else None
+        if left_slice is None and right_slice is None:
+            continue
+        if left_slice is None:
+            slice_union = slice_difference = float(right_slice.area)
+        elif right_slice is None:
+            slice_union = slice_difference = float(left_slice.area)
+        else:
+            slice_union = float(left_slice.union(right_slice).area)
+            slice_difference = float(left_slice.symmetric_difference(right_slice).area)
+        union_volume += slice_union * thickness
+        difference_volume += slice_difference * thickness
+    return min(1.0, difference_volume / max(union_volume, 1e-9))
 
 
 def _geometric_language_count(items: list[ProgramElite], *, threshold: float = 0.16) -> int:
@@ -362,6 +498,8 @@ def _feature(source: SourceMass, sequence: VerbSequence, *, building_type: str, 
             } for volume in source.volumes],
             "source_surfaces": source_surfaces,
             "source_signature": source.signature(),
+            "component_graph": graph_from_sequence(sequence).to_dict(),
+            "maas_verb_sequence": sequence.to_list(),
             "maas_model": {},
         },
     }

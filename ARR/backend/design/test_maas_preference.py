@@ -3,6 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -26,6 +27,10 @@ from design.maas.preference.loop import (
     preference_loop_config,
     preference_vlm_scored,
 )
+from design.maas.program_massing.language_quality import assess_language_geometry
+from design.maas.program_massing.scoring import attach_program_massing_evidence
+from design.maas.program_massing.search import _feature as _program_feature
+from design.maas.program_massing.vlm_a2a import _sequence_from_record, _sequence_record, _vlm_cache_key
 from design.maas.selection.preference_guards import (
     PreferenceGuardCallbacks,
     clean_mass_failures,
@@ -43,17 +48,223 @@ from design.maas.legal_mesh_optimizer import (
     _source_family,
 )
 from design.maas.selection import final_mass_stage_parking_pass
-from design.maas.evolution.critic_loop import run_critic_geometry_loop
+from design.maas.evolution.critic_loop import _mutations, run_critic_geometry_loop
 from design.maas.grammar.component_graph import MassComponentGraph, MassComponentNode, graph_from_sequence
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.morphology_operators import MorphologyVariant
 from design.maas.source_geometry.coherence import evaluate_source_volume_coherence
-from design.maas.source_geometry.compiler import compile_component_graph_to_source_mass, compile_sequence_to_source_mass
+from design.maas.source_geometry.compiler import _array_units, compile_component_graph_to_source_mass, compile_sequence_to_source_mass
 from design.maas.source_geometry.ir import SourceVolume
+from design.maas.source_geometry.parametric_curves import catmull_rom_path, swept_ribbon
+from design.maas.source_geometry.design_fields import build_ribbon_design_field
+from shapely.affinity import rotate
 from shapely.geometry import box
 
 
 class MaasPreferenceDistillationTest(TestCase):
+    def test_vlm_cache_key_ignores_archive_name_for_identical_executable_geometry(self):
+        calls = (VerbCall("base", {}), VerbCall("bar", {"axis": "x", "factor": 0.62}))
+        first = VerbSequence("original", "original", calls)
+        restored = VerbSequence("llm_accepted_seed_original", "accepted", calls)
+        first_mass = compile_sequence_to_source_mass(box(0, 0, 30, 18), first)
+        restored_mass = compile_sequence_to_source_mass(box(0, 0, 30, 18), restored)
+
+        first_key = _vlm_cache_key(SimpleNamespace(source=first_mass), [], model="test-vlm")
+        restored_key = _vlm_cache_key(SimpleNamespace(source=restored_mass), [], model="test-vlm")
+
+        self.assertEqual(first_key, restored_key)
+
+    def test_vlm_cache_key_changes_with_visual_site_boundary(self):
+        sequence = VerbSequence(
+            "site_cache_key",
+            "site cache key",
+            (VerbCall("base", {}), VerbCall("bar", {"axis": "x", "factor": 0.62})),
+        )
+        source = compile_sequence_to_source_mass(box(0, 0, 30, 18), sequence)
+        first = SimpleNamespace(
+            source=source,
+            feature={"properties": {"site_boundary_geometry": box(0, 0, 30, 18).__geo_interface__}},
+        )
+        second = SimpleNamespace(
+            source=source,
+            feature={"properties": {"site_boundary_geometry": box(0, 0, 24, 22).__geo_interface__}},
+        )
+
+        self.assertNotEqual(
+            _vlm_cache_key(first, [], model="test-vlm"),
+            _vlm_cache_key(second, [], model="test-vlm"),
+        )
+
+        east_access = SimpleNamespace(
+            source=source,
+            feature={"properties": {
+                "site_boundary_geometry": box(0, 0, 30, 18).__geo_interface__,
+                "site_access_context": {"primary_access_edge": "east"},
+                "site_access_geometry": {
+                    "type": "LineString",
+                    "coordinates": [[30.0, 0.0], [30.0, 18.0]],
+                },
+            }},
+        )
+        west_access = SimpleNamespace(
+            source=source,
+            feature={"properties": {
+                "site_boundary_geometry": box(0, 0, 30, 18).__geo_interface__,
+                "site_access_context": {"primary_access_edge": "west"},
+                "site_access_geometry": {
+                    "type": "LineString",
+                    "coordinates": [[0.0, 0.0], [0.0, 18.0]],
+                },
+            }},
+        )
+        self.assertNotEqual(
+            _vlm_cache_key(east_access, [], model="test-vlm"),
+            _vlm_cache_key(west_access, [], model="test-vlm"),
+        )
+
+    def test_array_units_allocate_separated_cells_instead_of_overlapping_parcel_copies(self):
+        site = box(0, 0, 60, 40)
+
+        units = _array_units(site, "x", 4, 0.19, 0.78)
+
+        self.assertEqual(len(units), 4)
+        self.assertTrue(all(site.covers(unit) for unit in units))
+        self.assertTrue(all(left.disjoint(right) for index, left in enumerate(units) for right in units[index + 1:]))
+        self.assertGreater(sum(unit.area for unit in units) / site.area, 0.45)
+        self.assertLess(sum(unit.area for unit in units) / site.area, 0.65)
+
+    def test_replenishment_sequence_round_trip_marks_persisted_accepted_seed(self):
+        original = VerbSequence(
+            "llm_archive_step",
+            "accepted step",
+            (VerbCall("base", {}), VerbCall("stack", {"levels": 3})),
+            ("formal_principle=stacked_shifted_platforms",),
+        )
+
+        restored = _sequence_from_record(_sequence_record(original))
+
+        self.assertIsNotNone(restored)
+        self.assertTrue(restored.name.startswith("llm_accepted_seed_"))
+        self.assertFalse(restored.name.startswith("llm_accepted_seed_llm_accepted_seed_"))
+        self.assertIn("replenishment_accepted_seed=true", restored.notes)
+        self.assertEqual(restored.to_list(), original.to_list())
+
+    def test_language_quality_accepts_coherent_step_and_rejects_detached_box_stack(self):
+        feature = {
+            "properties": {
+                "source_signature": {"coherence_evidence": {
+                    "hard_pass": True,
+                    "small_fragment_count": 0,
+                    "redundant_overlap_pair_count": 0,
+                    "collision_energy": 0.0,
+                }},
+                "program_spatial_evidence": {"spatial_role_projection": {}},
+            }
+        }
+        coherent = SimpleNamespace(volumes=(
+            SourceVolume("primary_step_ground", box(0, 0, 10, 8), 0.0, 0.42, "stack"),
+            SourceVolume("support_step_middle", box(1, 1, 9, 7), 0.38, 0.72, "shift"),
+            SourceVolume("support_step_upper", box(2, 2, 8, 6), 0.68, 1.0, "terrace_link"),
+        ))
+        detached = SimpleNamespace(volumes=(
+            SourceVolume("primary_box", box(0, 0, 4, 4), 0.0, 0.42, "stack"),
+            SourceVolume("support_box", box(8, 0, 12, 4), 0.38, 0.72, "shift"),
+            SourceVolume("support_box_2", box(16, 0, 20, 4), 0.68, 1.0, "terrace_link"),
+        ))
+
+        coherent_evidence = assess_language_geometry(coherent, feature, "stepped_capacity")
+        detached_evidence = assess_language_geometry(detached, feature, "stepped_capacity")
+
+        self.assertTrue(coherent_evidence["geometry_pass"])
+        self.assertGreaterEqual(coherent_evidence["adjacent_plan_overlap_mean"], 0.9)
+        self.assertFalse(detached_evidence["geometry_pass"])
+
+    def test_language_quality_counts_interlock_bodies_separately_from_connector(self):
+        feature = {
+            "properties": {
+                "source_signature": {"coherence_evidence": {
+                    "hard_pass": True,
+                    "small_fragment_count": 0,
+                    "redundant_overlap_pair_count": 0,
+                    "collision_energy": 0.0,
+                }},
+                "program_spatial_evidence": {"spatial_role_projection": {}},
+            }
+        }
+        source = SimpleNamespace(volumes=(
+            SourceVolume("primary_interlock_bar", box(0, 2, 12, 6), 0.0, 0.46, "interlock"),
+            SourceVolume("support_interlock_bar", box(4, 0, 8, 10), 0.40, 0.78, "interlock"),
+            SourceVolume("connector_graph_link_bridge", box(3, 4, 9, 5), 0.56, 0.72, "diagonal_connect"),
+        ))
+
+        evidence = assess_language_geometry(source, feature, "bridge_interlock")
+
+        self.assertTrue(evidence["geometry_pass"])
+        self.assertEqual(evidence["body_count"], 2)
+        self.assertEqual(evidence["connector_count"], 1)
+
+    def test_parametric_ribbon_is_continuous_and_clipped(self):
+        site = box(0, 0, 30, 18)
+        controls = ((1.0, 4.0), (8.0, 9.0), (16.0, 6.0), (23.0, 12.0), (29.0, 8.0))
+
+        path = catmull_rom_path(controls, samples_per_span=3)
+        ribbon = swept_ribbon(controls, half_width=1.2, clip=site)
+
+        self.assertGreater(len(path), len(controls))
+        self.assertIsNotNone(ribbon)
+        self.assertTrue(site.covers(ribbon))
+        self.assertGreater(ribbon.area, 40.0)
+
+    def test_ribbon_field_consumes_graph_authored_normalized_controls(self):
+        field = build_ribbon_design_field(box(0, 0, 60, 40), {
+            "lane_count": 3,
+            "lane_width_ratio": 0.065,
+            "curvature": 0.14,
+            "vertical_mode": "terraced",
+            "control_points": [[0.04, 0.22], [0.31, 0.70], [0.69, 0.30], [0.96, 0.76]],
+        })
+
+        self.assertIsNotNone(field)
+        self.assertEqual(field.evidence["authored_control_point_count"], 4)
+        self.assertEqual(field.evidence["vertical_mode"], "terraced")
+        self.assertGreater(max(point[1] for point in field.paths[1]) - min(point[1] for point in field.paths[1]), 8.0)
+
+    def test_ribbon_field_follows_rotated_parcel_long_axis(self):
+        site = rotate(box(0, 0, 80, 28), 31.0, origin="centroid")
+
+        field = build_ribbon_design_field(site, {
+            "lane_count": 3,
+            "lane_width_ratio": 0.085,
+            "curvature": 0.10,
+        })
+
+        self.assertIsNotNone(field)
+        self.assertEqual(field.evidence["coordinate_frame"], "minimum_rotated_long_axis")
+        self.assertAlmostEqual(abs(field.evidence["dominant_axis_world_degrees"]), 31.0, delta=0.1)
+        for path, half_width in zip(field.paths, field.half_widths):
+            ribbon = swept_ribbon(path, half_width=half_width, clip=site)
+            self.assertIsNotNone(ribbon)
+            self.assertTrue(site.covers(ribbon))
+
+    def test_courtyard_open_side_turns_internal_hole_into_access_court(self):
+        closed = VerbSequence("closed_court", "closed", (
+            VerbCall("base", {}),
+            VerbCall("courtyard", {"ratio": 0.30, "open_side": "closed"}),
+        ))
+        open_south = VerbSequence("open_court", "open", (
+            VerbCall("base", {}),
+            VerbCall("courtyard", {"ratio": 0.30, "open_side": "south"}),
+        ))
+
+        closed_mass = compile_sequence_to_source_mass(box(0, 0, 30, 18), closed)
+        open_mass = compile_sequence_to_source_mass(box(0, 0, 30, 18), open_south)
+
+        self.assertIsNotNone(closed_mass)
+        self.assertIsNotNone(open_mass)
+        self.assertGreater(closed_mass.footprint.area, open_mass.footprint.area)
+        self.assertGreater(closed_mass.footprint.intersection(box(13, 0, 17, 1)).area, 0.0)
+        self.assertEqual(open_mass.footprint.intersection(box(13, 0, 17, 1)).area, 0.0)
+
     def test_component_graph_makes_mass_hierarchy_explicit(self):
         sequence = VerbSequence("graph", "graph", (
             VerbCall("base", {}),
@@ -66,7 +277,28 @@ class MaasPreferenceDistillationTest(TestCase):
         self.assertEqual(graph.validate(), [])
         self.assertEqual([node.role for node in graph.nodes], ["root", "primary", "void", "connector"])
         self.assertEqual(graph.nodes[2].parent_id, graph.nodes[1].node_id)
-        self.assertEqual(graph.to_dict()["schema_version"], "arr.maas.component_graph.v1")
+        self.assertEqual(graph.to_dict()["schema_version"], "arr.maas.component_graph.v2")
+
+    def test_component_graph_round_trip_preserves_branches_and_relations(self):
+        root = MassComponentNode("root", "root", VerbCall("base", {}))
+        primary = MassComponentNode(
+            "primary_bar", "primary", VerbCall("bar", {"axis": "x", "factor": 0.62}), "root"
+        )
+        void = MassComponentNode(
+            "court", "void", VerbCall("courtyard", {"ratio": 0.24}), "primary_bar", relation="subtract"
+        )
+        bridge = MassComponentNode(
+            "bridge", "connector", VerbCall("bridge", {"axis": "x"}), "primary_bar", relation="connect"
+        )
+        graph = MassComponentGraph("branched", "branched", (root, primary, void, bridge))
+
+        restored = graph_from_sequence(graph.to_sequence())
+
+        self.assertEqual(restored.validate(), [])
+        self.assertEqual(restored.nodes[2].parent_id, "primary_bar")
+        self.assertEqual(restored.nodes[3].parent_id, "primary_bar")
+        self.assertEqual(restored.nodes[2].relation, "subtract")
+        self.assertEqual(restored.nodes[3].relation, "connect")
 
     def test_coherence_objective_rejects_redundant_overlapping_solids(self):
         footprint = box(0, 0, 10, 10)
@@ -102,6 +334,234 @@ class MaasPreferenceDistillationTest(TestCase):
         self.assertIsNotNone(root_mass)
         self.assertNotAlmostEqual(child_mass.footprint.area, root_mass.footprint.area)
         self.assertNotEqual(child_mass.metadata["family"], root_mass.metadata["family"])
+
+    def test_graph_native_branches_are_not_replaced_by_formal_template(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        root = MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored)
+        primary = MassComponentNode(
+            "bar", "primary", VerbCall("bar", {"axis": "x", "factor": 0.68}), "root", constraints=authored
+        )
+        carved = MassComponentNode(
+            "court", "void", VerbCall("courtyard", {"ratio": 0.24}), "bar", constraints=authored, relation="subtract"
+        )
+        connector = MassComponentNode(
+            "link", "connector", VerbCall("diagonal_connect", {"axis": "x", "distance_ratio": 0.12}),
+            "bar", constraints=authored, relation="connect",
+        )
+        graph = MassComponentGraph("llm_branched", "branched", (root, primary, carved, connector))
+
+        mass = compile_component_graph_to_source_mass(box(0, 0, 30, 18), graph)
+
+        self.assertIsNotNone(mass)
+        evidence = mass.signature()["graph_materialization_evidence"]
+        self.assertEqual(evidence["branching_parent_count"], 1)
+        self.assertFalse(evidence["template_name_used"])
+        self.assertIn("court", evidence["subtractive_node_ids"])
+        self.assertFalse(evidence["cumulative_terminal_states_emitted"])
+        self.assertTrue(any("primary_graph" in volume.role for volume in mass.volumes))
+        # A subtractive node reshapes its parent; it must never be extruded as
+        # a positive "void solid" merely because it is a terminal branch.
+        self.assertFalse(any("void_graph" in volume.role for volume in mass.volumes))
+
+    def test_graph_native_root_sibling_void_subtracts_from_primary_mass(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        root = MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored)
+        primary = MassComponentNode(
+            "street_bar", "primary", VerbCall("bar", {"axis": "x", "factor": 0.68}),
+            "root", constraints=authored, relation="deform",
+        )
+        courtyard = MassComponentNode(
+            "root_court", "void", VerbCall("courtyard", {"ratio": 0.28}),
+            "root", constraints=authored, relation="subtract",
+        )
+        lift = MassComponentNode(
+            "root_lift", "support", VerbCall("lift", {"upper_ratio": 0.76}),
+            "root", constraints=authored, relation="attach",
+        )
+        graph = MassComponentGraph(
+            "llm_root_sibling_void", "root sibling void", (root, primary, courtyard, lift),
+            notes=("formal_principle=carved_atrium",),
+        )
+
+        mass = compile_component_graph_to_source_mass(box(0, 0, 30, 18), graph)
+
+        self.assertIsNotNone(mass)
+        evidence = mass.signature()["graph_materialization_evidence"]
+        self.assertIn("root_court", evidence["subtractive_node_ids"])
+        self.assertIn("root_lift", evidence["consumed_node_ids"])
+        self.assertGreaterEqual(sum(len(volume.footprint.interiors) for volume in mass.volumes), 1)
+        self.assertLess(max(volume.footprint.area for volume in mass.volumes), 30.0 * 18.0 * 0.68)
+
+    def test_graph_native_array_preserves_cells_and_treats_gap_as_field_void(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        root = MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored)
+        primary = MassComponentNode(
+            "array_primary", "primary",
+            VerbCall("array", {"axis": "x", "n": 4, "spacing_ratio": 0.19, "unit_scale": 0.78}),
+            "root", constraints=authored,
+        )
+        courtyard = MassComponentNode(
+            "field_void", "void", VerbCall("courtyard", {"ratio": 0.32}),
+            "array_primary", constraints=authored, relation="subtract",
+        )
+        lift = MassComponentNode(
+            "height_support", "support", VerbCall("lift", {"upper_ratio": 0.72}),
+            "array_primary", constraints=authored, relation="attach",
+        )
+        graph = MassComponentGraph(
+            "llm_array_field", "array field", (root, primary, courtyard, lift),
+            notes=("formal_principle=stacked_shifted_platforms",),
+        )
+
+        mass = compile_component_graph_to_source_mass(box(0, 0, 60, 40), graph)
+
+        self.assertIsNotNone(mass)
+        self.assertEqual(len(mass.volumes), 4)
+        self.assertTrue(all("_unit_" in volume.role for volume in mass.volumes))
+        evidence = mass.signature()["coherence_evidence"]
+        self.assertTrue(evidence["intentional_cluster_exception"])
+        self.assertTrue(evidence["hard_pass"])
+        self.assertEqual(evidence["plan_component_count"], 4)
+        self.assertIn("field_void", mass.signature()["graph_materialization_evidence"]["consumed_node_ids"])
+        self.assertIn("height_support", mass.signature()["graph_materialization_evidence"]["consumed_node_ids"])
+        feature = _program_feature(
+            mass, graph.to_sequence(), building_type="neighborhood living",
+            height=15.0, floors=5, site_area=2400.0,
+        )
+        program = attach_program_massing_evidence(feature, building_type="neighborhood living")
+        self.assertTrue(program["hard_pass"])
+        self.assertGreaterEqual(feature["properties"]["program_spatial_evidence"]["dominant_ratio_score"], 0.55)
+
+    def test_graph_native_split_materializes_two_clean_bodies_and_elevated_connector(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        root = MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored)
+        primary = MassComponentNode(
+            "split_primary", "primary",
+            VerbCall("split", {"axis": "x", "gap_ratio": 0.18, "bridge_ratio": 0.22}),
+            "root", constraints=authored,
+        )
+        connector = MassComponentNode(
+            "raised_link", "connector",
+            VerbCall("diagonal_connect", {"axis": "x", "angle": 24.0}),
+            "split_primary", constraints=authored, relation="connect",
+        )
+        support = MassComponentNode(
+            "section_support", "support", VerbCall("stack", {"levels": 4}),
+            "split_primary", constraints=authored, relation="attach",
+        )
+        graph = MassComponentGraph(
+            "llm_split_bridge", "split bridge", (root, primary, connector, support),
+            notes=("formal_principle=split_bridge_connector",),
+        )
+
+        mass = compile_component_graph_to_source_mass(box(0, 0, 60, 40), graph)
+
+        self.assertIsNotNone(mass)
+        self.assertEqual(sum("_body_" in volume.role for volume in mass.volumes), 2)
+        self.assertEqual(sum("bridge" in volume.role for volume in mass.volumes), 1)
+        self.assertTrue(mass.signature()["coherence_evidence"]["hard_pass"])
+        feature = _program_feature(
+            mass, graph.to_sequence(), building_type="neighborhood living",
+            height=15.0, floors=5, site_area=2400.0,
+        )
+        attach_program_massing_evidence(feature, building_type="neighborhood living")
+        quality = assess_language_geometry(mass, feature, "bridge_interlock")
+        self.assertTrue(quality["geometry_pass"])
+        self.assertEqual(quality["body_count"], 2)
+        self.assertEqual(quality["elevated_connector_count"], 1)
+
+    def test_graph_native_interlock_preserves_two_crossing_height_banded_bodies(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        root = MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored)
+        primary = MassComponentNode(
+            "cross_primary", "primary",
+            VerbCall("interlock", {"angle": 32.0, "bar_ratio": 0.66}),
+            "root", constraints=authored,
+        )
+        support = MassComponentNode(
+            "stack_support", "support", VerbCall("stack", {"levels": 4}),
+            "cross_primary", constraints=authored, relation="attach",
+        )
+        graph = MassComponentGraph(
+            "llm_interlock", "cross interlock", (root, primary, support),
+            notes=("formal_principle=split_bridge_connector",),
+        )
+
+        mass = compile_component_graph_to_source_mass(box(0, 0, 60, 40), graph)
+
+        self.assertIsNotNone(mass)
+        self.assertEqual(len(mass.volumes), 2)
+        self.assertTrue(all("_body_" in volume.role for volume in mass.volumes))
+        self.assertNotEqual(mass.volumes[0].bottom_fraction, mass.volumes[1].bottom_fraction)
+        self.assertTrue(mass.signature()["coherence_evidence"]["hard_pass"])
+        feature = _program_feature(
+            mass, graph.to_sequence(), building_type="neighborhood living",
+            height=15.0, floors=5, site_area=2400.0,
+        )
+        attach_program_massing_evidence(feature, building_type="neighborhood living")
+        quality = assess_language_geometry(mass, feature, "bridge_interlock")
+        self.assertTrue(quality["geometry_pass"])
+        self.assertGreaterEqual(quality["interlock_pair_count"], 1)
+
+    def test_graph_native_primary_verb_drives_profiled_surface_materialization(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        root = MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored)
+        primary = MassComponentNode(
+            "folded_primary",
+            "primary",
+            VerbCall("sloped_roof_mass", {"axis": "x", "factor": 0.68}),
+            "root",
+            constraints=authored,
+        )
+        graph = MassComponentGraph(
+            "llm_graph_folded",
+            "graph authored folded mass",
+            (root, primary),
+            notes=("formal_principle=folded_section",),
+        )
+
+        mass = compile_component_graph_to_source_mass(box(0, 0, 30, 18), graph)
+
+        self.assertIsNotNone(mass)
+        self.assertTrue(any(volume.verb == "sloped_roof_mass" for volume in mass.volumes))
+        roofs = [surface for surface in mass.surfaces if surface.surface_type == "profiled_formal_roof"]
+        self.assertGreaterEqual(len(roofs), 1)
+        self.assertTrue(all(len({round(vertex[2], 4) for vertex in roof.vertices_m}) >= 2 for roof in roofs))
+        self.assertTrue(mass.signature()["continuous_surface_evidence"]["hard_pass"])
+
+    def test_graph_support_chain_materializes_as_section_bands_not_cumulative_boxes(self):
+        authored = {"inside_legal_envelope": True, "author_graph_native": True}
+        root = MassComponentNode("root", "root", VerbCall("base", {}), constraints=authored)
+        primary = MassComponentNode(
+            "primary", "primary", VerbCall("bar", {"axis": "x", "factor": 0.82}),
+            "root", constraints=authored,
+        )
+        taper = MassComponentNode(
+            "taper", "support", VerbCall("taper", {"x_ratio": 0.74, "y_ratio": 0.82}),
+            "primary", constraints=authored, relation="deform",
+        )
+        roof = MassComponentNode(
+            "roof", "support", VerbCall("sloped_roof_mass", {"x_ratio": 0.58, "y_ratio": 0.76}),
+            "taper", constraints=authored, relation="deform",
+        )
+        graph = MassComponentGraph(
+            "llm_section_chain", "section chain", (root, primary, taper, roof),
+            notes=("formal_principle=folded_section",),
+        )
+
+        mass = compile_component_graph_to_source_mass(box(0, 0, 30, 18), graph)
+
+        self.assertIsNotNone(mass)
+        self.assertEqual(len(mass.volumes), 3)
+        self.assertEqual(
+            [(round(volume.bottom_fraction, 2), round(volume.top_fraction, 2)) for volume in mass.volumes],
+            [(0.0, 0.42), (0.38, 0.72), (0.68, 1.0)],
+        )
+        self.assertEqual([volume.verb for volume in mass.volumes], ["bar", "taper", "sloped_roof_mass"])
+        evidence = mass.signature()["graph_materialization_evidence"]
+        self.assertFalse(evidence["cumulative_terminal_states_emitted"])
+        self.assertIn("taper", evidence["consumed_node_ids"])
+        self.assertIn("roof", evidence["consumed_node_ids"])
 
     def test_executable_family_prevents_false_folded_principle_collapse(self):
         sequence = VerbSequence(
@@ -319,6 +779,24 @@ class MaasPreferenceDistillationTest(TestCase):
             result.accepted[0]["properties"]["critic_revision_evidence"]["critic_actions"],
             ["too_fragmented"],
         )
+
+    def test_box_bias_vlm_action_becomes_continuous_geometry_mutation(self):
+        parent = VerbSequence(
+            "box_parent",
+            "box parent",
+            (
+                VerbCall("base", {"proportion": "site"}),
+                VerbCall("stack", {"levels": 3, "upper_ratio": 0.76}),
+            ),
+        )
+        mutations = _mutations(parent, ["too_box_like", "needs_profiled_surface"], 1)
+        ribbon = next(sequence for sequence in mutations if any(call.verb == "bend" for call in sequence.calls))
+        source = compile_sequence_to_source_mass(box(0, 0, 42, 30), ribbon)
+
+        self.assertIsNotNone(source)
+        evidence = source.signature()["continuous_surface_evidence"]
+        self.assertTrue(evidence["hard_pass"])
+        self.assertEqual(evidence["principle"], "continuous_ribbon_field")
 
     def test_clean_mass_gate_rejects_surface_and_volume_fragmentation(self):
         feature = self._feature()

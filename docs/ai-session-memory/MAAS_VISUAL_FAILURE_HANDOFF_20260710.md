@@ -2503,3 +2503,77 @@ measured issue is executable representation, mutation admission and
 capacity-aware search. VLM is active as image critic and typed graph reviser;
 it is not a free-form mesh generator. Neo4j was not required for this offline
 loop.
+
+## 2026-07-15 v87-v90 capacity feedback, exact-author preservation, and 20-card portfolio closure
+
+This section supersedes v85 as the latest technical checkpoint. It does not
+supersede the direct visual verdict: v90 is a clean, diverse mass-stage board,
+not a competition-grade architectural design claim.
+
+Additional root causes fixed:
+
+1. A valid authored bend could fail only because FAR utilization was below the
+   0.70 mass-stage minimum. `program_massing/capacity_projection.py` now applies
+   at most two measured feedback projections to lane count, occupiable width
+   and vertical overlap. It preserves curve control points, topology and every
+   non-capacity parameter, carries explicit provenance, and contains no parcel
+   coordinates or named-building templates.
+2. The first projection raised one real authored curve from FAR 0.650 to 0.677;
+   a second measured pass reached 0.785. Invalid bend graphs that failed program
+   coherence were not rescued.
+3. Fresh authored exact graphs were not retained: only persisted accepted exact
+   graphs entered `clean_pool`, while fresh graphs were immediately replaced by
+   search mutations. This erased authored control paths before VLM review.
+   Fresh exact compiled graphs now enter the same non-destructive pool.
+4. VLM normalization now drops `set_control_point` unless the target is an
+   existing bend node with 4-6 executable controls. Prompt/cache contract is v5.
+5. The final 39-candidate visual-floor pool contained a compatible twentieth
+   candidate, but a 4096-state beam pruned the needed alternate history. The
+   bounded final pool now uses a 32768-state beam when it has at least 32
+   candidates. All distance, silhouette, topology, principle, language,
+   authorship and capacity constraints remain unchanged.
+
+Measured loop chain on live PNU `1168011800104170004`:
+
+- v87 capacity feedback: 18/20, capacity 11/8. The new exact curve passed an
+  isolated compile probe but exposed the fresh-author preservation bug.
+- v88 exact authored fields: 18/20, 35 exact authored graphs retained. This run
+  produced the first proven VLM geometry improvement: two typed control-point
+  edits raised a branched bend from VLM 0.4233 to 0.575 while retaining program
+  score 0.959; the child was accepted and selected.
+- v89 fresh morphology author: 19/20, capacity 11/8, 52 exact authored graphs,
+  four fresh selected. More author data alone did not close the board and the
+  PNG remained box-dominant.
+- **v90 wide portfolio beam is the current technical best**: 20/20,
+  `technical_pass`, `review_required`, capacity 11/8, seven language groups,
+  zero silhouette repeats, mean VLM design score 0.7194. Final groups are
+  continuous 2, stepped 3, folded 4, carved 4, bridge 4, cluster 2, calm 1.
+  Artifact:
+  `docs/playwright/design-route-live-verify/maas-neighborhood-vlm-a2a-v90-wide-portfolio-beam-accepted-only.png`.
+
+Direct v90 PNG verdict:
+
+- The board is materially cleaner than the historical Lego/pile regressions.
+  It contains a continuous profiled ribbon, VLM-revised branched field,
+  stepped/terraced masses, folded sections, carved courts, bridge/interlocks
+  and two cluster fields without rotation-only duplicates.
+- A majority of cards are still conservative rectilinear bars, courts and
+  stepped blocks. `technical_pass` means the current mass-stage contract found
+  twenty compatible candidates; it does not mean ArchDaily/BIG/OMA quality,
+  competition readiness, or superiority to a human architect.
+- Legal/FAR/parking projection is still `not_run`. The capacity number is the
+  mass-stage normalized FAR proxy, not a permit or parking approval.
+
+Next representation work, in order:
+
+1. Stop blind author/corpus expansion. v89 proved that 34 new graphs and 98
+   total authored sequences mostly reproduce the current executable vocabulary.
+2. Add graph-native continuous roof loft, non-orthogonal sectional fold and
+   ground/void field operations with typed edit contracts, then require several
+   of them in the review frontier without weakening visual gates.
+3. Measure accepted VLM geometry improvement per operation family, not merely
+   edit count. The bend control-point path is now proven; other operations are
+   still mostly scalar/box transformations.
+4. Project v90 through deterministic law/FAR/parking and measure geometry
+   retention before any service-complete claim. Keep expensive author/VLM
+   archive refresh asynchronous.

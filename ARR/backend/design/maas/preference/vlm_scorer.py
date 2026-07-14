@@ -18,7 +18,7 @@ from .reference_paths import resolve_reference_image_path
 
 
 VLM_SCORE_SCHEMA_VERSION = "arr.maas.vlm_concept_scores.v1"
-VLM_PROMPT_CONTRACT_VERSION = "arr.maas.vlm_prompt.control_point_graph_edit.v4"
+VLM_PROMPT_CONTRACT_VERSION = "arr.maas.vlm_prompt.control_point_graph_edit.v5"
 DEFAULT_VLM_MODEL = "gpt-5.4-mini"
 
 
@@ -122,7 +122,12 @@ def score_candidate_with_openai_vlm(
         parsed = json.loads(output_text)
     except json.JSONDecodeError as exc:
         raise VlmScoringError("OpenAI VLM response was not valid JSON") from exc
-    return _normalize_vlm_result(parsed, model=selected_model, response_id=str(data.get("id") or ""))
+    return _normalize_vlm_result(
+        parsed,
+        model=selected_model,
+        response_id=str(data.get("id") or ""),
+        feature=feature,
+    )
 
 
 def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]]) -> str:
@@ -336,7 +341,13 @@ def _response_schema() -> dict[str, Any]:
     }
 
 
-def _normalize_vlm_result(data: dict[str, Any], *, model: str, response_id: str) -> dict[str, Any]:
+def _normalize_vlm_result(
+    data: dict[str, Any],
+    *,
+    model: str,
+    response_id: str,
+    feature: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     raw_scores = data.get("concept_scores") if isinstance(data.get("concept_scores"), dict) else {}
     scores = {
         key: round(max(0.0, min(1.0, float(raw_scores.get(key, 0.0)))), 3)
@@ -376,15 +387,20 @@ def _normalize_vlm_result(data: dict[str, Any], *, model: str, response_id: str)
         "sweep": "bend",
         "terrace": "terrace_link",
     }
+    editable_control_nodes = _editable_control_node_ids(feature or {})
     for item in data.get("graph_edits") or []:
         if not isinstance(item, dict) or str(item.get("operation") or "") not in {
             "set_parameter", "set_control_point", "replace_operation", "add_operation", "remove_optional", "reparent",
         }:
             continue
+        operation = str(item.get("operation") or "")
+        target_node_id = str(item.get("target_node_id") or "")[:80]
+        if operation == "set_control_point" and target_node_id not in editable_control_nodes:
+            continue
         verb = str(item.get("verb") or "")[:48].strip().lower()
         graph_edits.append({
-            "operation": str(item.get("operation") or ""),
-            "target_node_id": str(item.get("target_node_id") or "")[:80],
+            "operation": operation,
+            "target_node_id": target_node_id,
             "parent_node_id": str(item.get("parent_node_id") or "")[:80],
             "node_id": str(item.get("node_id") or "")[:80],
             "role": str(item.get("role") or ""),
@@ -409,6 +425,24 @@ def _normalize_vlm_result(data: dict[str, Any], *, model: str, response_id: str)
         "critic_actions": actions,
         "graph_edits": graph_edits[:6],
     }
+
+
+def _editable_control_node_ids(feature: dict[str, Any]) -> set[str]:
+    """Return bend node ids whose authored path can actually be mutated."""
+    props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    source = props.get("source_signature") if isinstance(props.get("source_signature"), dict) else {}
+    component_graph = source.get("component_graph") if isinstance(source.get("component_graph"), dict) else {}
+    if not component_graph and isinstance(props.get("component_graph"), dict):
+        component_graph = props["component_graph"]
+    nodes = component_graph.get("nodes") if isinstance(component_graph.get("nodes"), list) else []
+    editable: set[str] = set()
+    for node in nodes:
+        operation = node.get("operation") if isinstance(node, dict) and isinstance(node.get("operation"), dict) else {}
+        params = operation.get("params") if isinstance(operation.get("params"), dict) else {}
+        controls = params.get("control_points")
+        if operation.get("verb") == "bend" and isinstance(controls, list) and 4 <= len(controls) <= 6:
+            editable.add(str(node.get("node_id") or ""))
+    return editable
 
 
 def _extract_text(response: dict[str, Any]) -> str:

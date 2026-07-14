@@ -54,10 +54,11 @@ from design.maas.program_massing.scoring import attach_program_massing_evidence
 from design.maas.program_massing.search import ProgramElite, _descriptor_distance, _feature, _with_overrides
 from design.maas.program_massing.morphology import intrinsic_shape_distance, intrinsic_silhouette_distance
 from design.maas.program_massing.portfolio_solver import PortfolioCandidateFacts, solve_portfolio_beam
+from design.maas.program_massing.capacity_projection import project_bend_capacity
 from design.maas.program_massing.creative import attach_creative_mass_evidence
 from design.maas.program_massing.spatial_evaluation import attach_program_spatial_evidence
 from design.maas.preference.reference_paths import resolve_reference_image_path
-from design.maas.preference.vlm_scorer import VLM_PROMPT_CONTRACT_VERSION, _prompt_text, _response_schema
+from design.maas.preference.vlm_scorer import VLM_PROMPT_CONTRACT_VERSION, _normalize_vlm_result, _prompt_text, _response_schema
 from design.maas.grammar.parameter_schema import PARAMETERS_BY_VERB
 from design.maas.source_geometry import compile_sequence_to_source_mass
 from design.maas.source_geometry.compiler import _array_units
@@ -596,6 +597,67 @@ class MaasProgramMassingTest(SimpleTestCase):
         self.assertIn("control_points", PARAMETERS_BY_VERB["bend"])
         operation_schema = _response_schema()["properties"]["graph_edits"]["items"]["properties"]["operation"]
         self.assertIn("set_control_point", operation_schema["enum"])
+
+    def test_capacity_projection_preserves_authored_curve_and_changes_only_occupiable_section(self):
+        controls = [[0.04, 0.25], [0.32, 0.62], [0.68, 0.38], [0.96, 0.72]]
+        sequence = VerbSequence(
+            "thin_curve",
+            "Thin curve",
+            (
+                VerbCall("base", {}),
+                VerbCall("bend", {
+                    "lane_count": 2,
+                    "lane_width_ratio": 0.08,
+                    "vertical_overlap": 0.18,
+                    "curvature": 0.12,
+                    "control_points": controls,
+                }),
+            ),
+        )
+
+        projected = project_bend_capacity(
+            sequence,
+            observed_utilization=0.42,
+            target_utilization=0.90,
+        )
+
+        self.assertIsNotNone(projected)
+        primary = primary_operation_from_sequence(projected)
+        self.assertEqual(primary.params["control_points"], controls)
+        self.assertEqual(primary.params["curvature"], 0.12)
+        self.assertEqual(primary.params["lane_count"], 3)
+        self.assertGreater(primary.params["lane_width_ratio"], 0.08)
+        self.assertGreater(primary.params["vertical_overlap"], 0.18)
+        self.assertTrue(any("capacity_projection=observed_far_feedback" in note for note in projected.notes))
+
+    def test_vlm_drops_control_point_edit_when_target_has_no_editable_curve(self):
+        feature = {
+            "properties": {
+                "source_signature": {
+                    "component_graph": {
+                        "nodes": [{
+                            "node_id": "primary_box",
+                            "role": "primary",
+                            "operation": {"verb": "bar", "params": {}},
+                        }],
+                    },
+                },
+            },
+        }
+        payload = {
+            "concept_scores": {},
+            "graph_edits": [{
+                "operation": "set_control_point",
+                "target_node_id": "primary_box",
+                "control_point_index": 1,
+                "control_point_u": 0.4,
+                "control_point_v": 0.7,
+            }],
+        }
+
+        normalized = _normalize_vlm_result(payload, model="test", response_id="r", feature=feature)
+
+        self.assertEqual(normalized["graph_edits"], [])
 
     def test_editable_control_field_requires_real_bend_control_points(self):
         sequence = VerbSequence(

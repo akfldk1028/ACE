@@ -6,6 +6,15 @@ Read this file first before touching MAAS mass generation, prompts, source geome
 
 Critical latest handoff:
 
+- Read `2026-07-15 v87-v90 capacity feedback, exact-author preservation, and
+  20-card portfolio closure` at the end of the visual-failure handoff first.
+  v90 is the current technical best on live PNU `1168011800104170004`: honest
+  20/20, capacity 11/8, all seven language groups, zero silhouette repeats and
+  a proven accepted VLM control-point geometry improvement. Direct PNG review
+  still finds a majority of conservative rectilinear masses, so this is not a
+  competition-grade or human-superiority claim. Legal/parking projection is
+  `not_run`.
+
 - Read `2026-07-15 v80-v86 closed-loop graph-mutation audit` at the end of the
   visual-failure handoff first. The current best is v85 at an honest 19/20 on
   live PNU `1168011800104170004`: capacity target 10/8, all seven language

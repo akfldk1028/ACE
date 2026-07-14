@@ -2474,3 +2474,21 @@
   Next close the capacity-bearing continuous-field/control-point admission gap,
   produce one genuinely distinct twentieth mass, then project law/FAR/parking
   and measure geometry retention.
+
+### v90 technical 20-card closure (2026-07-15)
+
+- Add bounded measured FAR feedback for authored bend fields. Preserve authored
+  control points and topology; change only occupiable lane count, width and
+  vertical overlap, with explicit provenance and at most two iterations.
+- Preserve fresh authored exact graphs before search mutation. The previous
+  boundary silently erased authored curve paths before VLM review.
+- Prove the typed VLM geometry loop: a real branched-bend child improved from
+  VLM 0.4233 to 0.575 with program score 0.959 and survived final selection.
+- Expand the final bounded portfolio beam without weakening any compatibility
+  gate. v90 reaches honest 20/20, capacity 11/8, seven language groups and zero
+  silhouette repeats on the live project PNU.
+- Keep the visual verdict strict: v90 is cleaner and diverse but still mostly
+  rectilinear, not ArchDaily/BIG/OMA or competition-grade. Legal/parking remains
+  `not_run`. Next work is graph-native roof-loft, non-orthogonal sectional fold
+  and ground/void field representation, followed by deterministic legal/FAR/
+  parking projection and geometry-retention measurement.

@@ -38,6 +38,7 @@ from .grl_contract import build_archive_grl_contract
 from .language_quality import assess_language_geometry
 from .morphology import DEFAULT_NOVELTY_POLICY, intrinsic_silhouette_distance
 from .portfolio_solver import PortfolioCandidateFacts, solve_portfolio_beam
+from .capacity_projection import project_bend_capacity
 from .scoring import attach_program_massing_evidence
 from .search import ProgramElite, _descriptor_distance, _feature, _formal_principle, _geometric_language_count, _select_diverse_archive, _topology, search_program_elites
 from .sequences import program_seed_sequences
@@ -211,10 +212,23 @@ def run_neighborhood_vlm_a2a_loop(
             far_limit_ratio=far_limit_ratio,
         )) is not None
     ]
+    authored_seed_elites = [
+        elite
+        for sequence in authored_sequences
+        if (elite := _compile_verified(
+            base,
+            sequence,
+            building_type=building_type,
+            capacity_policy=capacity_policy,
+            far_limit_ratio=far_limit_ratio,
+        )) is not None
+    ]
     # Search generations may mutate a seed immediately. Keep the exact
-    # previously accepted executable graph in the archive as well; otherwise
-    # an append-only seed silently becomes only its g0 child.
-    clean_pool: list[ProgramElite] = list(persisted_seed_elites)
+    # executable graph in the archive as well; otherwise both an append-only
+    # accepted seed and a fresh authored graph silently become only a g0 child.
+    # This distinction matters for curve control fields: a generic search
+    # mutation can erase the authored path before the VLM ever sees it.
+    clean_pool: list[ProgramElite] = [*persisted_seed_elites, *authored_seed_elites]
     _, search_report = search_program_elites(
         base,
         building_type=building_type,
@@ -681,6 +695,7 @@ def run_neighborhood_vlm_a2a_loop(
         "authored_sequence_count": len(authored_sequences),
         "persisted_accepted_seed_count": len(persisted_accepted_sequences),
         "persisted_accepted_exact_compile_count": len(persisted_seed_elites),
+        "authored_exact_compile_count": len(authored_seed_elites),
         "persisted_selected_count": persisted_selected_count,
         "persisted_selected_maximum": max(1, (target_count * 4) // 5),
         "fresh_selected_count": fresh_selected_count,
@@ -1207,6 +1222,11 @@ def _select_language_balanced_archive(
             minimum_capacity_target_count=minimum_capacity_target_count,
             maximum_persisted_count=persisted_limit,
             minimum_fresh_count=minimum_fresh_count,
+            # A 35-45 candidate visual-floor pool has many high-scoring but
+            # mutually blocking 19-card states. The smaller review frontiers
+            # stay cheap, while the final bounded pool retains enough alternate
+            # compatibility histories to discover a valid twentieth card.
+            beam_width=32768 if len(candidates) >= 32 else 4096,
         )
         solved = [candidates[index] for index in solved_indices]
         if len(solved) > len(selected):
@@ -1680,6 +1700,8 @@ def _compile_verified(
     building_type: str,
     capacity_policy: dict[str, Any] | None = None,
     far_limit_ratio: float = 3.0,
+    _allow_capacity_projection: bool = True,
+    _capacity_projection_depth: int = 0,
 ) -> ProgramElite | None:
     source = compile_sequence_to_source_mass(base, sequence)
     if source is None:
@@ -1706,11 +1728,29 @@ def _compile_verified(
     target = max(float(capacity_policy["target_far_utilization"]), 1e-9)
     feature["properties"]["capacity_target_fit"] = round(min(1.0, far_utilization / target), 4)
     spatial = feature["properties"]["program_spatial_evidence"]
-    if (
-        not evidence["hard_pass"]
-        or float(spatial["architectural_score"]) < 0.76
-        or far_utilization < float(capacity_policy["min_far_utilization"])
-    ):
+    if not evidence["hard_pass"] or float(spatial["architectural_score"]) < 0.76:
+        return None
+    minimum_utilization = float(capacity_policy["min_far_utilization"])
+    if far_utilization < minimum_utilization:
+        if _allow_capacity_projection and _capacity_projection_depth < 2:
+            projected = project_bend_capacity(
+                sequence,
+                observed_utilization=far_utilization,
+                target_utilization=max(
+                    minimum_utilization + 0.03,
+                    float(capacity_policy["target_far_utilization"]),
+                ),
+            )
+            if projected is not None:
+                return _compile_verified(
+                    base,
+                    projected,
+                    building_type=building_type,
+                    capacity_policy=capacity_policy,
+                    far_limit_ratio=far_limit_ratio,
+                    _allow_capacity_projection=True,
+                    _capacity_projection_depth=_capacity_projection_depth + 1,
+                )
         return None
     score = float(evidence["program_fit_score"]) * 0.55 + float(spatial["architectural_score"]) * 0.45
     return ProgramElite(sequence, source, feature, round(score, 6), 1)

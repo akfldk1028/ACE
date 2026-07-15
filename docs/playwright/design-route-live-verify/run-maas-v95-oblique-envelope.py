@@ -89,6 +89,7 @@ def main() -> None:
             "road_width_m": 37.48,
         },
         far_limit_ratio=3.0,
+        mass_brain_enabled=True,
     )
     scores = [float(row.get("vlm_design_score") or 0.0) for row in result.get("rows") or []]
     print({

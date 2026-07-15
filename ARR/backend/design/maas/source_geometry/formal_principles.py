@@ -20,7 +20,6 @@ from .ir import SourceVolume
 from .parametric_curves import swept_ribbon, swept_variable_ribbon
 from .section_fields import build_section_loft_field
 from .oblique_fields import build_oblique_envelope_field
-from .sectional_monolith_fields import build_sectional_monolith_field
 
 
 CANONICAL_FORMAL_PRINCIPLES = {
@@ -34,7 +33,6 @@ CANONICAL_FORMAL_PRINCIPLES = {
     "split_bridge_connector",
     "carved_monolith",
     "continuous_ribbon_field",
-    "sectional_monolith_cut",
 }
 
 FORMAL_PRINCIPLE_ALIASES = {
@@ -65,9 +63,6 @@ FORMAL_PRINCIPLE_ALIASES = {
     "carved_void": "carved_monolith",
     "split_bridge": "split_bridge_connector",
     "bridge_connector": "split_bridge_connector",
-    "sectional_monolith": "sectional_monolith_cut",
-    "plane_cut_monolith": "sectional_monolith_cut",
-    "mega_void_monolith": "sectional_monolith_cut",
 }
 
 
@@ -205,7 +200,6 @@ def compile_formal_principle_volumes(
     surface_field_specs: list[dict[str, Any]] = []
     section_field_evidence: dict[str, Any] = {}
     oblique_field_evidence: dict[str, Any] = {}
-    sectional_monolith_evidence: dict[str, Any] = {}
     genome = massing_genome or {}
 
     if principle == "slender_podium_tower":
@@ -251,28 +245,6 @@ def compile_formal_principle_volumes(
                     if key in language_params
                 },
             }
-    elif principle == "sectional_monolith_cut":
-        sectional_field = build_sectional_monolith_field(footprint, language_params)
-        if sectional_field is None:
-            return None
-        pieces = [SourceVolume(
-            role="primary_sectional_monolith_proxy",
-            footprint=sectional_field.proxy_footprint,
-            bottom_fraction=0.0,
-            top_fraction=1.0,
-            verb="extrude",
-        )]
-        sectional_monolith_evidence = {
-            **sectional_field.evidence,
-            "field_parameters": {
-                key: language_params[key]
-                for key in (
-                    "axis", "section_outer_control_points", "section_void_control_points",
-                    "section_depth_ratio", "section_depth_shift_ratio",
-                )
-                if key in language_params
-            },
-        }
     elif principle == "continuous_ribbon_field":
         design_field = build_ribbon_design_field(footprint, language_params)
         if design_field is None:
@@ -574,7 +546,7 @@ def compile_formal_principle_volumes(
     # trunk and arms remain separate editable surface patches.  Requiring
     # three solids here silently discarded that clean representation and sent
     # it back to the legacy two-box bend fallback.
-    minimum_volume_count = 1 if principle in {"continuous_ribbon_field", "sectional_monolith_cut"} else 3
+    minimum_volume_count = 1 if principle == "continuous_ribbon_field" else 3
     if len(volumes) < minimum_volume_count:
         return None
     roles = [volume.role for volume in volumes]
@@ -614,8 +586,6 @@ def compile_formal_principle_volumes(
         evidence["site_section_field"] = section_field_evidence
     if oblique_field_evidence:
         evidence["site_oblique_envelope"] = oblique_field_evidence
-    if sectional_monolith_evidence:
-        evidence["site_sectional_monolith"] = sectional_monolith_evidence
     return FormalPrincipleResult(principle=principle, volumes=volumes, evidence=evidence)
 
 

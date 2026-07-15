@@ -64,26 +64,17 @@ def apply_critic_graph_mutations(
             if (
                 index is None
                 or nodes[index].role == "root"
-                or nodes[index].operation.verb not in {"bend", "sloped_roof_mass", "taper", "extrude"}
+                or nodes[index].operation.verb not in {"bend", "sloped_roof_mass", "taper"}
             ):
                 continue
             node = nodes[index]
-            if node.operation.verb == "taper" and edit.parameter_name == "plan_control_points":
-                control_field = "plan_control_points"
-            elif (
-                node.operation.verb == "extrude"
-                and edit.parameter_name in {"section_outer_control_points", "section_void_control_points"}
-            ):
-                control_field = edit.parameter_name
-            else:
-                control_field = "control_points"
+            control_field = (
+                "plan_control_points"
+                if node.operation.verb == "taper" and edit.parameter_name == "plan_control_points"
+                else "control_points"
+            )
             raw_controls = node.operation.params.get(control_field)
-            if control_field == "section_outer_control_points":
-                minimum_count, maximum_count = 4, 8
-            elif control_field in {"plan_control_points", "section_void_control_points"}:
-                minimum_count, maximum_count = 3, 8
-            else:
-                minimum_count, maximum_count = 4, 6
+            minimum_count, maximum_count = ((3, 8) if control_field == "plan_control_points" else (4, 6))
             if not isinstance(raw_controls, list) or not minimum_count <= len(raw_controls) <= maximum_count:
                 continue
             controls: list[list[float]] = []
@@ -94,12 +85,10 @@ def apply_critic_graph_mutations(
             point_index = int(edit.control_point_index)
             if point_index < 0 or point_index >= len(controls):
                 continue
-            if control_field in {
-                "plan_control_points", "section_outer_control_points", "section_void_control_points",
-            }:
+            if control_field == "plan_control_points":
                 new_point = [
                     round(max(0.03, min(0.97, float(edit.control_point_u))), 4),
-                    round(max(0.0 if control_field.startswith("section_") else 0.03, min(0.97, float(edit.control_point_v))), 4),
+                    round(max(0.03, min(0.97, float(edit.control_point_v))), 4),
                 ]
             else:
                 lower_u = 0.03 if point_index == 0 else controls[point_index - 1][0] + 0.02
@@ -118,21 +107,6 @@ def apply_critic_graph_mutations(
                 polygon = Polygon(candidate_controls)
                 if not polygon.is_valid or polygon.area < 0.04:
                     continue
-            elif control_field.startswith("section_"):
-                candidate_params = dict(node.operation.params)
-                candidate_params[control_field] = candidate_controls
-                outer = candidate_params.get("section_outer_control_points")
-                void = candidate_params.get("section_void_control_points")
-                if not isinstance(outer, list):
-                    continue
-                outer_polygon = Polygon(outer)
-                if not outer_polygon.is_valid or outer_polygon.area < 0.16:
-                    continue
-                if isinstance(void, list):
-                    void_polygon = Polygon(void)
-                    remaining = outer_polygon.difference(void_polygon.intersection(outer_polygon))
-                    if not void_polygon.is_valid or void_polygon.area < 0.025 or not isinstance(remaining, Polygon) or remaining.area < 0.10:
-                        continue
             controls = candidate_controls
             params = dict(node.operation.params)
             params[control_field] = controls

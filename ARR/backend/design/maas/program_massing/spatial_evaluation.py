@@ -77,23 +77,10 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         and 3 <= int(oblique_field.get("plan_control_point_count") or 0) <= 8
         and float(oblique_field.get("oblique_displacement") or 0.0) >= 0.08
     )
-    sectional_field = (
-        continuous_surface.get("sectional_monolith_field")
-        if isinstance(continuous_surface.get("sectional_monolith_field"), dict)
-        else {}
-    )
-    agent_sectional_monolith = bool(
-        continuous_surface.get("representation") == "agent_sectional_monolith_mesh"
-        and 4 <= int(sectional_field.get("outer_control_point_count") or 0) <= 8
-        and (
-            int(sectional_field.get("diagonal_edge_count") or 0) >= 1
-            or float(sectional_field.get("section_void_ratio") or 0.0) >= 0.08
-        )
-    )
     single_solid_profiled_field = bool(
         len(geometries) == 1
         and continuous_surface.get("hard_pass")
-        and (profiled_patch_count >= 2 or agent_section_loft or agent_oblique_envelope or agent_sectional_monolith)
+        and (profiled_patch_count >= 2 or agent_section_loft or agent_oblique_envelope)
     )
     if single_solid_profiled_field:
         # The legal/FAR proxy is deliberately one watertight union, while the
@@ -110,7 +97,7 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
             # evidence and score the explicit internal field separately.
             hierarchy_score = max(hierarchy_score, 0.75)
     dominant_score = _range_score(dominant, DOMINANT_RANGES.get(profile_id, (0.3, 0.85)))
-    if agent_section_loft or agent_oblique_envelope or agent_sectional_monolith:
+    if agent_section_loft or agent_oblique_envelope:
         dominant_score = max(dominant_score, 0.85)
     if bool(coherence.get("intentional_cluster_exception")):
         # A balanced 3-4 member field intentionally has no 38% dominant
@@ -133,7 +120,6 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         "single_solid_profiled_field": single_solid_profiled_field,
         "agent_section_loft": agent_section_loft,
         "agent_oblique_envelope": agent_oblique_envelope,
-        "agent_sectional_monolith": agent_sectional_monolith,
         "dominant_ratio_score": round(dominant_score, 3),
         "site_coverage_ratio": round(coverage, 3),
         "site_coverage_score": round(coverage_score, 3),

@@ -12,7 +12,7 @@ from typing import Any
 
 from shapely.affinity import rotate, scale, translate
 from shapely.geometry import LineString, MultiPolygon, Point, Polygon, box
-from shapely.ops import triangulate, unary_union
+from shapely.ops import unary_union
 
 from design.maas.grammar.verb_sequence import VerbSequence
 from design.maas.llm_proposals import LLM_PARAMETER_SOURCE
@@ -26,11 +26,6 @@ from .coherence import evaluate_source_volume_coherence
 from .polygon_quality import repair_source_polygon
 from .section_fields import build_section_loft_field
 from .oblique_fields import build_oblique_envelope_field
-from .sectional_monolith_fields import (
-    SectionalMonolithField,
-    build_sectional_monolith_field,
-    sectional_vertex_world,
-)
 from design.maas.grammar.component_graph import MassComponentGraph, graph_from_sequence
 from .rule_priors import (
     finalize_rule_evidence,
@@ -59,7 +54,6 @@ CANONICAL_SOURCE_FAMILIES = {
     "pinch",
     "embed",
     "extrude",
-    "sectional_monolith",
     "nest",
     "sloped_roof",
     "terrace_link",
@@ -67,7 +61,6 @@ CANONICAL_SOURCE_FAMILIES = {
 }
 
 FAMILY_HINT_PRIORITY = (
-    "sectional_monolith",
     "reflected_pair",
     "extrude",
     "embed",
@@ -204,7 +197,6 @@ def _family_formal_principle(family: str | None, current: str | None) -> str:
         "embed": "carved_monolith",
         "void_notch": "carved_monolith",
         "extrude": "slender_podium_tower",
-        "sectional_monolith": "sectional_monolith_cut",
         "slender_bar": "slender_podium_tower",
     }.get(family, "")
     # Family is derived from the operations that actually compiled.  A free
@@ -279,7 +271,6 @@ def _sequence_supports_declared_family(sequence: VerbSequence, declared_family: 
         "pinch": {"pinch"},
         "embed": {"embed"},
         "extrude": {"extrude"},
-        "sectional_monolith": {"extrude"},
         "nest": {"nest", "stack"},
         "sloped_roof": {"sloped_roof_mass", "grade", "taper"},
         "terrace_link": {"terrace_link"},
@@ -298,14 +289,6 @@ def _graph_primary_family(component_graph: MassComponentGraph) -> str | None:
     primary = next((node for node in component_graph.nodes if node.role == "primary"), None)
     if primary is None:
         return None
-    if (
-        primary.operation.verb == "extrude"
-        and isinstance(primary.operation.params.get("section_outer_control_points"), list)
-    ):
-        # Executable section controls are stronger evidence than the generic
-        # ``extrude`` verb.  This keeps ordinary fins/podium towers unchanged
-        # while routing authored solid/void sections to the dedicated mesh.
-        return "sectional_monolith"
     return {
         "bar": "slender_bar",
         "array": "array_cluster",
@@ -1433,28 +1416,6 @@ def _consolidate_oblique_envelope_proxy(
     return (consolidated, *remaining)
 
 
-def _consolidate_sectional_monolith_proxy(
-    volumes: tuple[SourceVolume, ...],
-    origin_poly: Polygon,
-    formal_evidence: dict[str, Any] | None,
-) -> tuple[SourceVolume, ...]:
-    """Keep one legal/FAR proxy behind an authored sectional solid/void mesh."""
-    field_evidence = (formal_evidence or {}).get("site_sectional_monolith")
-    if not isinstance(field_evidence, dict):
-        return volumes
-    field_params = field_evidence.get("field_parameters") if isinstance(field_evidence.get("field_parameters"), dict) else {}
-    field = build_sectional_monolith_field(origin_poly, field_params)
-    if field is None:
-        return volumes
-    return (SourceVolume(
-        role="primary_agent_sectional_monolith_proxy",
-        footprint=field.proxy_footprint,
-        bottom_fraction=0.0,
-        top_fraction=1.0,
-        verb="extrude",
-    ),)
-
-
 def _prune_redundant_helper_volumes(volumes: tuple[SourceVolume, ...]) -> tuple[SourceVolume, ...]:
     """Remove helper solids that mostly occupy an already expressed solid.
 
@@ -1951,73 +1912,6 @@ def _oblique_envelope_surfaces(
     return tuple(surfaces)
 
 
-def _sectional_monolith_surfaces(
-    field: SectionalMonolithField,
-    *,
-    origin_poly: Polygon,
-    role: str,
-) -> tuple[SourceSurface, ...]:
-    """Extrude a polygon-with-void section into a watertight review mesh."""
-    origin = (float(origin_poly.centroid.x), float(origin_poly.centroid.y))
-
-    def vertex(point: tuple[float, float], *, back: bool) -> tuple[float, float, float]:
-        world_x, world_y, z = sectional_vertex_world(field, point, back=back)
-        return world_x - origin[0], world_y - origin[1], z
-
-    surfaces: list[SourceSurface] = []
-    face_index = 0
-    for triangle in triangulate(field.section_shape):
-        if triangle.is_empty or triangle.area <= 1e-8:
-            continue
-        retained = float(triangle.intersection(field.section_shape).area) / float(triangle.area)
-        if retained < 0.999:
-            continue
-        points = [(float(x), float(z)) for x, z in list(triangle.exterior.coords)[:3]]
-        surfaces.append(SourceSurface(
-            role=f"source_sectional_monolith_front_{role}_{face_index}",
-            volume_role=role,
-            verb="extrude",
-            surface_type="profiled_sectional_monolith_face",
-            vertices_m=tuple(vertex(point, back=False) for point in reversed(points)),
-            operator="section_solid_void_extrusion",
-            semantic_patch_id=f"{role}:sectional_monolith_front",
-        ))
-        surfaces.append(SourceSurface(
-            role=f"source_sectional_monolith_back_{role}_{face_index}",
-            volume_role=role,
-            verb="extrude",
-            surface_type="profiled_sectional_monolith_face",
-            vertices_m=tuple(vertex(point, back=True) for point in points),
-            operator="section_solid_void_extrusion",
-            semantic_patch_id=f"{role}:sectional_monolith_back",
-        ))
-        face_index += 1
-
-    rings = [field.section_shape.exterior, *field.section_shape.interiors]
-    for ring_index, ring in enumerate(rings):
-        points = [(float(x), float(z)) for x, z in list(ring.coords)[:-1]]
-        for edge_index, left in enumerate(points):
-            right = points[(edge_index + 1) % len(points)]
-            surfaces.append(SourceSurface(
-                role=f"source_sectional_monolith_reveal_{role}_{ring_index}_{edge_index}",
-                volume_role=role,
-                verb="extrude",
-                surface_type=(
-                    "profiled_sectional_monolith_void_reveal"
-                    if ring_index > 0 else "profiled_sectional_monolith_outer_reveal"
-                ),
-                vertices_m=(
-                    vertex(left, back=False),
-                    vertex(right, back=False),
-                    vertex(right, back=True),
-                    vertex(left, back=True),
-                ),
-                operator="section_solid_void_extrusion",
-                semantic_patch_id=f"{role}:sectional_monolith_reveal_{ring_index}",
-            ))
-    return tuple(surfaces)
-
-
 def _profiled_formal_surfaces(
     volumes: tuple[SourceVolume, ...],
     origin_poly: Polygon,
@@ -2038,7 +1932,6 @@ def _profiled_formal_surfaces(
         "torqued_stack",
         "continuous_ribbon_field",
         "undercut_tapered_tower",
-        "sectional_monolith_cut",
     }:
         return (), set(), {
             "schema_version": "arr.maas.continuous_surface.v1",
@@ -2133,32 +2026,6 @@ def _profiled_formal_surfaces(
                 "surface_count": len(spec_surfaces),
                 "profiled_roles": [role],
                 "oblique_field": field.evidence,
-            }
-    sectional_field_evidence = (
-        (formal_evidence or {}).get("site_sectional_monolith")
-        if isinstance((formal_evidence or {}).get("site_sectional_monolith"), dict)
-        else {}
-    )
-    if sectional_field_evidence:
-        field_params = (
-            sectional_field_evidence.get("field_parameters")
-            if isinstance(sectional_field_evidence.get("field_parameters"), dict)
-            else {}
-        )
-        field = build_sectional_monolith_field(origin_poly, field_params)
-        if field is not None:
-            role = "primary_agent_sectional_monolith_proxy"
-            spec_surfaces = _sectional_monolith_surfaces(field, origin_poly=origin_poly, role=role)
-            return spec_surfaces, {role}, {
-                "schema_version": "arr.maas.continuous_surface.v1",
-                "status": "materialized" if spec_surfaces else "missing",
-                "hard_pass": bool(spec_surfaces),
-                "principle": principle,
-                "representation": "agent_sectional_monolith_mesh",
-                "profiled_volume_count": 1,
-                "surface_count": len(spec_surfaces),
-                "profiled_roles": [role],
-                "sectional_monolith_field": field.evidence,
             }
     surfaces: list[SourceSurface] = []
     profiled_roles: set[str] = set()
@@ -2836,12 +2703,7 @@ def _compile_component_graph_to_source_mass(
 
     declared_family = _declared_family(sequence)
     evolution_family = _evolution_family_override(sequence)
-    executable_primary_family = _graph_primary_family(component_graph)
-    graph_primary_family = (
-        "sectional_monolith"
-        if executable_primary_family == "sectional_monolith"
-        else executable_primary_family if is_graph_native(component_graph) else None
-    )
+    graph_primary_family = _graph_primary_family(component_graph) if is_graph_native(component_graph) else None
     effective_family = (
         graph_primary_family
         if graph_primary_family else
@@ -2968,11 +2830,6 @@ def _compile_component_graph_to_source_mass(
         formal_result.volumes if formal_result is not None else (),
     )
     volumes = _consolidate_oblique_envelope_proxy(
-        volumes,
-        footprint,
-        formal_result.evidence if formal_result is not None else None,
-    )
-    volumes = _consolidate_sectional_monolith_proxy(
         volumes,
         footprint,
         formal_result.evidence if formal_result is not None else None,

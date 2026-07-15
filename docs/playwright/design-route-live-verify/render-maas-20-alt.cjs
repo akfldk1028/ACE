@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { execFileSync, spawnSync } = require("child_process");
 const { chromium } = require("../../../ARR/frontend/node_modules/playwright");
 
 const OUT_DIR = path.resolve(__dirname);
@@ -8,6 +9,37 @@ const PNU = process.env.PNU || "1168011800104170004";
 const BUILDING_TYPE = process.env.BUILDING_TYPE || "공동주택";
 const MAX_VARIANTS = Number(process.env.MAX_VARIANTS || 20);
 const PREFERRED_OPERATOR = process.env.PREFERRED_OPERATOR || "";
+const SERVICE_MODE = process.env.MAAS_SERVICE_MODE || "sync";
+const SCREENSHOT_TIMEOUT_MS = Number(process.env.SCREENSHOT_TIMEOUT_MS || 15000);
+const LLM_LOOP_REQUIRED = process.env.MAAS_LLM_LOOP_REQUIRED !== "0";
+const LLM_MODEL = process.env.MAAS_LLM_MODEL || "gpt-5.4-mini";
+const LLM_GENERATION_FEEDBACK_JSON = process.env.MAAS_LLM_GENERATION_FEEDBACK_JSON || "";
+const FEEDBACK_FAST_LOOP = Boolean(LLM_GENERATION_FEEDBACK_JSON) && process.env.MAAS_LLM_FEEDBACK_FULL_RUN !== "1";
+const LLM_TARGET_COUNT = Number(process.env.MAAS_LLM_TARGET_COUNT || (FEEDBACK_FAST_LOOP ? 120 : 120));
+const LLM_COMPILE_LIMIT = Number(process.env.MAAS_LLM_COMPILE_LIMIT || (FEEDBACK_FAST_LOOP ? 120 : 90));
+const LLM_TIMEOUT_SECONDS = Number(process.env.MAAS_LLM_TIMEOUT || (FEEDBACK_FAST_LOOP ? 120 : 240));
+const LLM_BATCH_SIZE = Number(process.env.MAAS_LLM_BATCH_SIZE || (FEEDBACK_FAST_LOOP ? 5 : 30));
+const LLM_BATCH_WORKERS = Number(process.env.MAAS_LLM_BATCH_WORKERS || 1);
+const LLM_BATCH_CACHE_PATH = process.env.MAAS_LLM_BATCH_CACHE_PATH || "";
+const LLM_OVERGENERATE_COUNT = Number(process.env.MAAS_LLM_OVERGENERATE_COUNT || (FEEDBACK_FAST_LOOP ? 8 : 0));
+const LLM_BATCH_RETRIES = Number(process.env.MAAS_LLM_BATCH_RETRIES || (FEEDBACK_FAST_LOOP ? 2 : 3));
+const LLM_MAX_OPENAI_BATCHES = Number(
+  process.env.MAAS_LLM_MAX_OPENAI_BATCHES
+  || (FEEDBACK_FAST_LOOP ? Math.ceil((LLM_TARGET_COUNT + LLM_OVERGENERATE_COUNT) / LLM_BATCH_SIZE) : 0),
+);
+const LLM_MAX_OUTPUT_TOKENS = Number(process.env.MAAS_LLM_MAX_OUTPUT_TOKENS || (FEEDBACK_FAST_LOOP ? 5000 : 12000));
+const API_MAX_TIME_SECONDS = Number(process.env.MAAS_RENDER_API_MAX_TIME || (FEEDBACK_FAST_LOOP ? 1200 : 900));
+const PREFERENCE_LOOP_ENABLED = process.env.MAAS_PREFERENCE_LOOP_ENABLED === "1";
+const PREFERENCE_LOOP_REQUIRE_VLM = process.env.MAAS_PREFERENCE_LOOP_REQUIRE_VLM === "1";
+const PREFERENCE_LOOP_TOP_K = Number(process.env.MAAS_PREFERENCE_LOOP_TOP_K || 40);
+const PREFERENCE_LOOP_WORKERS = Number(process.env.MAAS_PREFERENCE_LOOP_WORKERS || 4);
+const PREFERENCE_LOOP_MIN_FINAL_VLM = Number(process.env.MAAS_PREFERENCE_LOOP_MIN_FINAL_VLM || 16);
+const PREFERENCE_VLM_MODEL = process.env.MAAS_PREFERENCE_VLM_MODEL || "gpt-5.4-mini";
+const PREFERENCE_REFERENCE_ROOT = process.env.MAAS_PREFERENCE_REFERENCE_ROOT || "docs/ai-session-memory/reference-corpus";
+const PREFERENCE_VLM_CACHE_DIR = process.env.MAAS_PREFERENCE_VLM_CACHE_DIR || "docs/ai-session-memory/reference-corpus/vlm-cache";
+const PNG_FALLBACK = path.join(__dirname, "render_maas_20_alt_png.py");
+const PNG_FALLBACK_PYTHON = process.env.PNG_FALLBACK_PYTHON
+  || path.resolve(__dirname, "../../../ARR/backend/.venv/bin/python");
 
 function coordsOf(feature) {
   const geometry = feature.geometry || {};
@@ -20,6 +52,15 @@ function geomCoords(geometry) {
   if (!geometry) return [];
   if (geometry.type === "Polygon") return geometry.coordinates?.[0] || [];
   if (geometry.type === "MultiPolygon") return geometry.coordinates?.[0]?.[0] || [];
+  return [];
+}
+
+function geomRings(geometry) {
+  if (!geometry) return [];
+  if (geometry.type === "Polygon") return Array.isArray(geometry.coordinates) ? geometry.coordinates : [];
+  if (geometry.type === "MultiPolygon") {
+    return Array.isArray(geometry.coordinates?.[0]) ? geometry.coordinates[0] : [];
+  }
   return [];
 }
 
@@ -39,7 +80,7 @@ function allFeatureCoords(feature) {
   const stalls = props.parking_precheck?.layout_candidate?.stalls || [];
   return [
     ...coordsOf(feature),
-    ...(props.mass_volumes || []).flatMap(volume => geomCoords(volume.geometry)),
+    ...(props.mass_volumes || []).flatMap(volume => geomRings(volume.geometry).flat()),
     ...stalls.flatMap(stall => Array.isArray(stall.polygon_wgs84) ? stall.polygon_wgs84 : []),
   ];
 }
@@ -65,6 +106,15 @@ function polyPath(coords, project, z = 0) {
     const [x, y] = project(point, z);
     return `${index ? "L" : "M"} ${x.toFixed(1)} ${y.toFixed(1)}`;
   }).join(" ") + " Z";
+}
+
+function geometryPath(geometry, project, z = 0) {
+  const rings = geomRings(geometry);
+  if (!rings.length) return polyPath(geomCoords(geometry), project, z);
+  return rings
+    .filter(ring => Array.isArray(ring) && ring.length >= 4)
+    .map(ring => polyPath(ring, project, z))
+    .join(" ");
 }
 
 function sidePaths(coords, project, bottom, top) {
@@ -99,30 +149,19 @@ function renderSectionProfile(feature, volumes, project) {
   const kind = String(profile.kind);
   const accent = "#ec4899";
   const label = `<text x="10" y="38" font-size="10" font-weight="800" fill="${accent}">${escapeHtml(kind)}</text>`;
-  if (props.section_profile_materialized?.status === "materialized_inside_legal_floor_plates") {
+  if (
+    props.section_profile_materialized?.status === "materialized_inside_legal_floor_plates"
+    && kind !== "sloped_roof"
+    && kind !== "sloped_roof_mass"
+  ) {
     return label;
   }
 
   if (kind === "sloped_roof" || kind === "sloped_roof_mass") {
-    const high = maxTop + 0.35;
-    const low = Math.max(minTop, maxTop * 0.70) + 0.35;
-    const roof = [
-      [b.minX + (b.maxX - b.minX) * 0.05, b.minY + (b.maxY - b.minY) * 0.05, high],
-      [b.maxX - (b.maxX - b.minX) * 0.05, b.minY + (b.maxY - b.minY) * 0.05, high],
-      [b.maxX - (b.maxX - b.minX) * 0.05, b.maxY - (b.maxY - b.minY) * 0.05, low],
-      [b.minX + (b.maxX - b.minX) * 0.05, b.maxY - (b.maxY - b.minY) * 0.05, low],
-    ];
-    const roofPath = roof.map(([x, y, z], index) => {
-      const [px, py] = project([x, y], z);
-      return `${index ? "L" : "M"} ${px.toFixed(1)} ${py.toFixed(1)}`;
-    }).join(" ") + " Z";
-    const ribs = [0.33, 0.66].map(ratio => {
-      const x = b.minX + (b.maxX - b.minX) * ratio;
-      const a = project([x, b.minY], high);
-      const c = project([x, b.maxY], low);
-      return `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${c[0].toFixed(1)}" y2="${c[1].toFixed(1)}" stroke="#be123c" stroke-width="1.4" opacity=".7"/>`;
-    }).join("");
-    return `${label}<path d="${roofPath}" fill="rgba(251,146,60,.45)" stroke="#be123c" stroke-width="2.2"/>${ribs}`;
+    // Actual materialized source volumes already carry the folded section.
+    // A second synthetic roof polygon and ribs obscured that geometry with
+    // crossed linework, so the review renderer only labels the real mass.
+    return label;
   }
 
   if (kind === "diagonal_connector" || kind === "diagonal_connect") {
@@ -187,6 +226,28 @@ function renderSectionSourceSurfaces(feature, project) {
 function volumeVisualStyle({ role, designSynthesis }) {
   const isConnectorBridge = role.includes("diagonal_connector_bridge");
   const isSectionSource = role.startsWith("section_source_");
+  const isRoof = role.includes("sloped_roof") || role.includes("roof_plane");
+  const isOverlap = role.includes("overlap_slab");
+  if (isRoof) {
+    return {
+      sideFillA: "rgba(255,123,24,.28)",
+      sideFillB: "rgba(255,123,24,.20)",
+      topFill: "rgba(255,220,92,.58)",
+      stroke: "#be123c",
+      sideStrokeWidth: 0.7,
+      topStrokeWidth: 2.4,
+    };
+  }
+  if (isOverlap) {
+    return {
+      sideFillA: "rgba(255,123,24,.38)",
+      sideFillB: "rgba(255,123,24,.28)",
+      topFill: "rgba(255,207,74,.54)",
+      stroke: "#ea580c",
+      sideStrokeWidth: 0.8,
+      topStrokeWidth: 2.0,
+    };
+  }
   if (isConnectorBridge) {
     return {
       sideFillA: "rgba(255,123,24,.34)",
@@ -215,6 +276,60 @@ function volumeVisualStyle({ role, designSynthesis }) {
     sideStrokeWidth: 0.8,
     topStrokeWidth: 1.7,
   };
+}
+
+function visualFamily(feature) {
+  const props = feature.properties || {};
+  const signature = props.source_signature || props.maas_model?.source_signature || {};
+  return String(signature.family || props.operator_family || "");
+}
+
+function profileKind(feature) {
+  const props = feature.properties || {};
+  return String((props.section_profile || props.maas_model?.section_profile || {}).kind || "");
+}
+
+function shouldPreserveLayeredStack(feature) {
+  const family = visualFamily(feature);
+  const kind = profileKind(feature);
+  const shape = String((feature.properties || {}).mass_shape || "");
+  return (
+    family === "legal_layered"
+    || family === "stepback_tower"
+    || kind === "stepped_tower"
+    || shape.includes("stepback")
+    || shape.includes("step_envelope")
+  );
+}
+
+function volumesForRender(feature, volumes) {
+  if (shouldPreserveLayeredStack(feature)) return volumes;
+  const byStack = new Map();
+  const keep = [];
+  volumes.forEach((volume, index) => {
+    const role = String(volume.role || "");
+    const match = role.match(/^source_geometry_stack_(\d+)_(\d+)/);
+    if (!match) {
+      keep.push({ volume, index });
+      return;
+    }
+    const key = match[1];
+    const level = Number(match[2]);
+    const bucket = byStack.get(key) || [];
+    bucket.push({ volume, index, level });
+    byStack.set(key, bucket);
+  });
+  byStack.forEach((bucket) => {
+    bucket.sort((a, b) => a.level - b.level || a.index - b.index);
+    if (bucket.length <= 2) {
+      keep.push(...bucket);
+    } else {
+      keep.push(bucket[0], bucket[bucket.length - 1]);
+    }
+  });
+  return keep
+    .sort((a, b) => a.index - b.index)
+    .map(item => item.volume);
 }
 
 function renderParkingStalls(feature, project) {
@@ -260,7 +375,7 @@ function parkingDisplay(layout) {
     return { className: "good", label: "permit-precheck pass" };
   }
   if (massStage.status === "pass") {
-    return { className: "good", label: `mass-stage pass / ${status}` };
+    return { className: "good", label: `mass-stage count pass / ${status}` };
   }
   if (status === "fail") {
     return { className: "bad", label: status };
@@ -269,14 +384,36 @@ function parkingDisplay(layout) {
 }
 
 async function postJson(url, body) {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+  const result = spawnSync("curl", [
+    "-sS",
+    "--max-time",
+    String(API_MAX_TIME_SECONDS),
+    "-H",
+    "Content-Type: application/json",
+    "-X",
+    "POST",
+    "--data-binary",
+    "@-",
+    "-w",
+    "\n%{http_code}",
+    url,
+  ], {
+    input: JSON.stringify(body),
+    encoding: "utf-8",
+    maxBuffer: 1024 * 1024 * 256,
   });
-  const text = await response.text();
-  if (!response.ok) {
-    throw new Error(`${url} failed ${response.status}: ${text.slice(0, 500)}`);
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    throw new Error(`${url} curl failed: ${result.stderr || result.stdout}`);
+  }
+  const output = result.stdout || "";
+  const marker = output.lastIndexOf("\n");
+  const text = marker >= 0 ? output.slice(0, marker) : output;
+  const status = marker >= 0 ? Number(output.slice(marker + 1)) : 0;
+  if (status < 200 || status >= 300) {
+    throw new Error(`${url} failed ${status}: ${text.slice(0, 500)}`);
   }
   return JSON.parse(text);
 }
@@ -284,10 +421,13 @@ async function postJson(url, body) {
 async function buildPayload() {
   const cachedJsonPath = path.join(OUT_DIR, "maas-20-alt-latest.json");
   if (process.env.REUSE_JSON === "1" && fs.existsSync(cachedJsonPath)) {
+    console.error(`[maas-render] reusing ${cachedJsonPath}`);
     return JSON.parse(fs.readFileSync(cachedJsonPath, "utf8"));
   }
+  console.error(`[maas-render] loading boundary for PNU ${PNU}`);
   const boundary = await postJson(`${BACKEND}/design/site-boundary/`, { pnu: PNU });
   const coords = boundary.geometry.coordinates[0];
+  console.error("[maas-render] resolving legal constraints");
   const constraints = await postJson(`${BACKEND}/design/auto-constraints/`, {
     pnu: PNU,
     building_type: BUILDING_TYPE,
@@ -302,7 +442,9 @@ async function buildPayload() {
     properties: { height: 18, num_floors: 6, floor_height: 3.0, mass_shape: "seed" },
   };
   const started = Date.now();
+  console.error(`[maas-render] requesting ${MAX_VARIANTS} legal variants; llm=${LLM_LOOP_REQUIRED ? "on" : "off"} model=${LLM_MODEL || "server-default"} target=${LLM_TARGET_COUNT} feedback=${LLM_GENERATION_FEEDBACK_JSON ? "on" : "off"} fast=${FEEDBACK_FAST_LOOP ? "on" : "off"} preference=${PREFERENCE_LOOP_ENABLED || PREFERENCE_LOOP_REQUIRE_VLM ? "on" : "off"}`);
   const variants = await postJson(`${BACKEND}/design/maas/legal-variants/`, {
+    service_mode: SERVICE_MODE,
     pnu: PNU,
     site_polygon: boundary.geometry,
     mass_geojson: massGeojson,
@@ -311,8 +453,37 @@ async function buildPayload() {
     setback_geometries: constraints.setback_geometries || null,
     building_type: BUILDING_TYPE,
     max_variants: MAX_VARIANTS,
+    parking_options: {
+      maas_llm_loop: {
+        enabled: LLM_LOOP_REQUIRED,
+        required: LLM_LOOP_REQUIRED,
+        target_count: LLM_TARGET_COUNT,
+        compile_limit: LLM_COMPILE_LIMIT,
+        timeout: LLM_TIMEOUT_SECONDS,
+        batch_size: LLM_BATCH_SIZE,
+        batch_workers: LLM_BATCH_WORKERS,
+        ...(LLM_BATCH_CACHE_PATH ? { batch_cache_path: path.resolve(LLM_BATCH_CACHE_PATH) } : {}),
+        overgenerate_count: LLM_OVERGENERATE_COUNT,
+        batch_retries: LLM_BATCH_RETRIES,
+        ...(LLM_MAX_OPENAI_BATCHES > 0 ? { max_openai_batches: LLM_MAX_OPENAI_BATCHES } : {}),
+        max_output_tokens: LLM_MAX_OUTPUT_TOKENS,
+        ...(LLM_MODEL ? { model: LLM_MODEL } : {}),
+        ...(LLM_GENERATION_FEEDBACK_JSON ? { generation_feedback_path: path.resolve(LLM_GENERATION_FEEDBACK_JSON) } : {}),
+      },
+      maas_preference_loop: {
+        enabled: PREFERENCE_LOOP_ENABLED || PREFERENCE_LOOP_REQUIRE_VLM,
+        require_vlm: PREFERENCE_LOOP_REQUIRE_VLM,
+        top_k: PREFERENCE_LOOP_TOP_K,
+        parallel_workers: PREFERENCE_LOOP_WORKERS,
+        min_final_vlm_scored: PREFERENCE_LOOP_MIN_FINAL_VLM,
+        ...(PREFERENCE_VLM_MODEL ? { model: PREFERENCE_VLM_MODEL } : {}),
+        reference_root: PREFERENCE_REFERENCE_ROOT,
+        cache_dir: PREFERENCE_VLM_CACHE_DIR,
+      },
+    },
     ...(PREFERRED_OPERATOR ? { preferred_operator: PREFERRED_OPERATOR } : {}),
   });
+  console.error(`[maas-render] legal variants returned in ${Date.now() - started}ms`);
   return {
     pnu: PNU,
     building_type: BUILDING_TYPE,
@@ -329,11 +500,12 @@ function renderCard(feature, siteCoords, globalBounds) {
   const volumes = (props.mass_volumes || []).length
     ? props.mass_volumes
     : [{ bottom_height: 0, top_height: props.height || 10, geometry: feature.geometry }];
+  const renderVolumes = volumesForRender(feature, volumes);
   const designSynthesis = Boolean(props.section_profile_materialized?.design_synthesis);
   const project = projectFactory(globalBounds, 310, 190);
   const site = `<path d="${polyPath(siteCoords, project, 0)}" fill="#effaf2" stroke="#58d99b" stroke-width="1.2" stroke-dasharray="4 4"/>`;
   const layers = [];
-  [...volumes].sort((a, b) => (a.bottom_height || 0) - (b.bottom_height || 0)).forEach((volume, index) => {
+  [...renderVolumes].sort((a, b) => (a.bottom_height || 0) - (b.bottom_height || 0)).forEach((volume, index) => {
     const coords = geomCoords(volume.geometry);
     const bottom = Number(volume.bottom_height || 0);
     const top = Number(volume.top_height || props.height || 0);
@@ -342,12 +514,12 @@ function renderCard(feature, siteCoords, globalBounds) {
     sidePaths(coords, project, bottom, top).forEach((side, sideIndex) => {
       layers.push(`<path d="${side}" fill="${sideIndex % 2 ? visual.sideFillB : visual.sideFillA}" stroke="${visual.stroke}" stroke-width="${visual.sideStrokeWidth}"/>`);
     });
-    layers.push(`<path d="${polyPath(coords, project, top)}" fill="${visual.topFill}" stroke="${visual.stroke}" stroke-width="${visual.topStrokeWidth}"/>`);
+    layers.push(`<path d="${geometryPath(volume.geometry, project, top)}" fill="${visual.topFill}" stroke="${visual.stroke}" stroke-width="${visual.topStrokeWidth}" fill-rule="evenodd"/>`);
   });
   if (designSynthesis) {
     layers.push(renderSectionSourceSurfaces(feature, project));
   }
-  layers.push(renderSectionProfile(feature, volumes, project));
+  layers.push(renderSectionProfile(feature, renderVolumes, project));
   layers.push(renderParkingStalls(feature, project));
   const precheck = props.parking_precheck || {};
   const layout = precheck.layout_candidate || {};
@@ -384,11 +556,11 @@ async function render(payload) {
     header{height:92px;padding:24px 32px;border-bottom:1px solid #233852;background:#0d192b}
     h1{margin:0 0 8px;font-size:28px;letter-spacing:0}.sub{font-size:15px;color:#9fb2cc}
     main{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;padding:20px 32px}
-    .card{height:282px;border:1px solid #263d5e;border-radius:8px;background:#101d32;overflow:hidden;display:grid;grid-template-rows:190px 1fr}
-    svg{background:#f7f9fb}.meta{padding:8px 12px;min-width:0}.shape{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.section{font-size:12px;color:#f9a8d4;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.synthesis{font-size:11px;color:#fbbf24;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.verbs{font-size:11px;color:#93c5fd;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.numbers{font-size:12px;color:#c2d0e3;margin-top:3px;white-space:nowrap}.good,.warn,.bad{font-size:12px;font-weight:800;margin-top:4px;white-space:nowrap}.good{color:#22d18b}.warn{color:#ffc12c}.bad{color:#ff5573}
+    .card{height:282px;position:relative;border:1px solid #263d5e;border-radius:8px;background:#101d32;overflow:hidden;display:grid;grid-template-rows:190px 1fr}
+    svg{background:#f7f9fb}.meta{padding:8px 12px 22px;min-width:0}.shape{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.section{font-size:12px;color:#f9a8d4;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.synthesis{font-size:11px;color:#fbbf24;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.verbs{font-size:11px;color:#93c5fd;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.numbers{font-size:12px;color:#c2d0e3;margin-top:3px;white-space:nowrap}.good,.warn,.bad{position:absolute;left:12px;right:12px;bottom:4px;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.good{color:#22d18b}.warn{color:#ffc12c}.bad{color:#ff5573}
     footer{position:absolute;left:32px;right:32px;bottom:14px;border-top:1px solid #233852;padding-top:10px;color:#9fb2cc;font-size:14px}
   </style></head><body>
-  <header><h1>MAAS 20 Alternatives · PNU ${escapeHtml(payload.pnu)}</h1><div class="sub">${features.length}/${MAX_VARIANTS} candidates · ${escapeHtml(payload.building_type)} · generated in ${payload.elapsed_ms}ms · green=parking pass or mass-stage pass, yellow=review, red=parking fail</div></header>
+  <header><h1>MAAS 20 Alternatives · PNU ${escapeHtml(payload.pnu)}</h1><div class="sub">${features.length}/${MAX_VARIANTS} candidates · ${escapeHtml(payload.building_type)} · generated in ${payload.elapsed_ms}ms · green=mass-stage count satisfied, yellow=permit review, red=count/layout fail</div></header>
   <main>${cards}</main>
   <footer>Use this as the default mass review evidence. If many cards still share the same footprint, the algorithm is not producing true plan diversity.</footer>
   </body></html>`;
@@ -398,24 +570,61 @@ async function render(payload) {
   fs.writeFileSync(htmlPath, html, "utf8");
   fs.writeFileSync(jsonPath, JSON.stringify(payload, null, 2), "utf8");
 
-  const browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--disable-gpu"] });
-  const page = await browser.newPage({ viewport: { width: 2200, height: 1400 }, deviceScaleFactor: 1 });
-  await page.goto("file://" + htmlPath, { waitUntil: "domcontentloaded" });
-  const client = await page.context().newCDPSession(page);
-  const shot = await client.send("Page.captureScreenshot", {
-    format: "png",
-    fromSurface: true,
-    captureBeyondViewport: false,
-  });
-  fs.writeFileSync(pngPath, Buffer.from(shot.data, "base64"));
-  await browser.close();
-  return { htmlPath, pngPath, jsonPath, count: features.length };
+  let screenshotStatus = "not_attempted";
+  let screenshotError = null;
+  let browser = null;
+  try {
+    browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--disable-gpu"] });
+    const page = await browser.newPage({ viewport: { width: 2200, height: 1400 }, deviceScaleFactor: 1 });
+    page.setDefaultTimeout(SCREENSHOT_TIMEOUT_MS);
+    await page.goto("file://" + htmlPath, { waitUntil: "domcontentloaded", timeout: SCREENSHOT_TIMEOUT_MS });
+    const client = await page.context().newCDPSession(page);
+    const shot = await Promise.race([
+      client.send("Page.captureScreenshot", {
+        format: "png",
+        fromSurface: true,
+        captureBeyondViewport: false,
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error(`screenshot timeout after ${SCREENSHOT_TIMEOUT_MS}ms`)), SCREENSHOT_TIMEOUT_MS)),
+    ]);
+    fs.writeFileSync(pngPath, Buffer.from(shot.data, "base64"));
+    screenshotStatus = "updated";
+  } catch (error) {
+    screenshotStatus = "failed";
+    screenshotError = String(error && error.message ? error.message : error);
+  } finally {
+    if (browser) {
+      await browser.close().catch(() => {});
+    }
+  }
+  let fallback = null;
+  if (screenshotStatus === "failed" && process.env.NO_PNG_FALLBACK !== "1") {
+    try {
+      const python = fs.existsSync(PNG_FALLBACK_PYTHON) ? PNG_FALLBACK_PYTHON : "python3";
+      const output = execFileSync(python, [PNG_FALLBACK], {
+        cwd: OUT_DIR,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      fallback = JSON.parse(output);
+      screenshotStatus = "fallback_updated";
+    } catch (fallbackError) {
+      fallback = {
+        status: "failed",
+        error: String(fallbackError && fallbackError.message ? fallbackError.message : fallbackError),
+      };
+    }
+  }
+  return { htmlPath, pngPath, jsonPath, count: features.length, screenshotStatus, screenshotError, fallback };
 }
 
 (async () => {
   const payload = await buildPayload();
   const rendered = await render(payload);
   console.log(JSON.stringify(rendered, null, 2));
+  if (rendered.screenshotStatus === "failed") {
+    process.exit(1);
+  }
 })().catch(error => {
   console.error(error);
   process.exit(1);

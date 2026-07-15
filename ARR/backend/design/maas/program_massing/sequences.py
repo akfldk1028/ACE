@@ -8,6 +8,7 @@ from shapely.geometry import Polygon
 
 from design.maas.grammar.verb_sequence import VerbSequence, call
 from .profiles import resolve_program_profile
+from .section_graph import program_section_graph_note
 
 
 def program_seed_sequences(building_type: str) -> tuple[VerbSequence, ...]:
@@ -15,6 +16,8 @@ def program_seed_sequences(building_type: str) -> tuple[VerbSequence, ...]:
     sequences: list[VerbSequence] = []
     for record in profile.get("sequences") or []:
         calls = tuple(call(str(item["verb"]), **dict(item.get("params") or {})) for item in record.get("calls") or [])
+        section_graph = record.get("section_graph") if isinstance(record.get("section_graph"), dict) else None
+        section_notes = (program_section_graph_note(section_graph),) if section_graph is not None else ()
         sequence = VerbSequence(
             name=str(record.get("name") or f"program_{profile['id']}_seed"),
             label=f"{profile['id']} program seed",
@@ -23,6 +26,7 @@ def program_seed_sequences(building_type: str) -> tuple[VerbSequence, ...]:
                 f"program_profile={profile['id']}",
                 f"program_design_intent={profile['design_intent']}",
                 "parameter_source=program_massing_profile_v1",
+                *section_notes,
             ),
         )
         if not sequence.validate():

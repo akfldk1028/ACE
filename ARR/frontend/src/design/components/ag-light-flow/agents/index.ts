@@ -1,5 +1,8 @@
+import { grammarCriticEvidenceMapping, grammarCriticParticipant } from './grammar-critic-agent';
 import { lawGraphEvidenceMapping, lawGraphParticipant } from './law-graph-agent';
+import { llmArchitectEvidenceMapping, llmArchitectParticipant } from './llm-architect-agent';
 import { maasGeometryEvidenceMapping, maasGeometryParticipant } from './maas-geometry-agent';
+import { massdslEvidenceMapping, massdslParticipant } from './massdsl-agent';
 import { parkingEvidenceMapping, parkingParticipant } from './parking-agent';
 import { reviewEvidenceMapping, reviewParticipant } from './review-agent';
 import type { AgentEvidenceMapping } from './shared/review-adapter';
@@ -20,8 +23,20 @@ export const DESIGN_FLOW_AGENTS: DesignFlowAgentModule[] = [
     mapping: parkingEvidenceMapping,
   },
   {
+    participant: llmArchitectParticipant,
+    mapping: llmArchitectEvidenceMapping,
+  },
+  {
+    participant: massdslParticipant,
+    mapping: massdslEvidenceMapping,
+  },
+  {
     participant: maasGeometryParticipant,
     mapping: maasGeometryEvidenceMapping,
+  },
+  {
+    participant: grammarCriticParticipant,
+    mapping: grammarCriticEvidenceMapping,
   },
   {
     participant: reviewParticipant,

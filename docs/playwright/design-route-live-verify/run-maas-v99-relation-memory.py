@@ -73,7 +73,10 @@ def main() -> None:
             "road_width_m": 37.48,
         },
         far_limit_ratio=3.0,
-        mass_brain_enabled=True,
+        # Shadow memory is an explicit experiment. The fair v102/v104
+        # ablation proved no change in the final portfolio while slots=0, so
+        # routine generation must not pay for it accidentally.
+        mass_brain_enabled=os.getenv("MAAS_MASS_BRAIN_ENABLED", "0").strip().lower() in {"1", "true", "yes", "on"},
     )
     brain = result.get("mass_brain_shadow") or {}
     print({

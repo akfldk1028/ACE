@@ -202,6 +202,34 @@ Playwright MCP was blocked in this environment because it requires `/opt/google/
 
 Use this to verify the current MAAS legal-envelope mass generation path, separate from Cesium pixel rendering.
 
+Canonical current MAAS handoff:
+
+```text
+docs/ai-session-memory/MAAS_MEMORY_INDEX.md
+```
+
+Current 20-card verifier commands:
+
+```bash
+node docs/playwright/design-route-live-verify/verify-maas-20-alt-json.cjs docs/playwright/design-route-live-verify/maas-20-alt-latest.json
+ARR/backend/.venv/bin/python docs/playwright/design-route-live-verify/verify-maas-png.py docs/playwright/design-route-live-verify/maas-20-alt-latest.png
+node docs/playwright/design-route-live-verify/verify-maas-parking-json.cjs docs/playwright/design-route-live-verify/maas-20-alt-latest.json
+```
+
+Latest 2026-07-07 pass criteria include:
+
+- legal pass 20/20.
+- source geometry used 20/20.
+- parking required-count satisfied 20/20.
+- parking mass-stage pass 20/20.
+- primary/secondary language evidence.
+- physical composition-layer role evidence.
+- language-pair diversity.
+- non-rectilinear source primitive evidence.
+- repair delta evidence and severe repair cap.
+- irregular fragment cap.
+- no legacy fallback geometry.
+
 Servers:
 
 ```bash
@@ -456,3 +484,25 @@ Current expected limitation:
   complete. The current column/turning values are v1 assumptions.
 - Next quality step is to replace `site_connector_v1` with actual entrance
   throat geometry, swept-path checks, and column/core polygons.
+
+MAAS section-diversity fast gate from 2026-06-30:
+
+```bash
+node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs
+node docs/playwright/design-route-live-verify/verify-maas-20-alt-json.cjs
+```
+
+Latest observed for PNU `1168011800104170004`:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PASS: `count=20`, `legalPass=20`, `uniqueShapes=15`,
+  `uniqueFamilies=14`, `uniqueSections=10`, `materialized=17`.
+- Parking fast gate:
+  `node docs/playwright/design-route-live-verify/verify-maas-parking-json.cjs`
+- Latest parking PASS: `requiredComputed=20`, `formulaEvidence=20`,
+  `countSatisfied=20`, `exactOrMechanicalEvidence=20`,
+  `massStageParkingPass=20`, `permitParkingPass=0`.
+- Interpretation: parking count/formula/evidence is now harnessed at mass stage.
+  It is not permit-final; `needs_mechanical_parking_review` and
+  `needs_drive_connectivity_review` remain as explicit review statuses.

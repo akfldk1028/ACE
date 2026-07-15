@@ -4,23 +4,35 @@ Creates and manages different types of worker agents
 """
 
 import logging
-from typing import Dict, Any, Optional, Type
+from importlib import import_module
+from typing import Dict, Any, Optional, Type, Union
 
 from .base import BaseWorkerAgent
-from .implementations import GeneralWorkerAgent, FlightSpecialistWorkerAgent
 
 logger = logging.getLogger(__name__)
+
+WorkerClassOrPath = Union[Type[BaseWorkerAgent], str]
 
 class WorkerAgentFactory:
     """Factory for creating worker agents based on agent configuration"""
 
     # Registry of available worker agent types
-    WORKER_TYPES: Dict[str, Type[BaseWorkerAgent]] = {
+    WORKER_TYPES: Dict[str, WorkerClassOrPath] = {
         # 'general': GeneralWorkerAgent,  # 비활성화: Live API에서 직접 처리
-        'flight-specialist': FlightSpecialistWorkerAgent,
+        'flight-specialist': 'agents.worker_agents.modules.flight_specialist_worker.agent:FlightSpecialistWorkerAgent',
         # Add more worker types here as needed
         # 'test-agent': GeneralWorkerAgent,  # 비활성화: 테스트용 general worker
     }
+
+    @staticmethod
+    def _resolve_worker_class(worker_spec: WorkerClassOrPath) -> Type[BaseWorkerAgent]:
+        """Resolve a worker class lazily from a GitAgent-style module path."""
+        if isinstance(worker_spec, str):
+            module_path, class_name = worker_spec.split(":", 1)
+            module = import_module(module_path)
+            worker_class = getattr(module, class_name)
+            return worker_class
+        return worker_spec
 
     @classmethod
     def create_worker(cls, agent_slug: str, agent_config: Dict[str, Any]) -> Optional[BaseWorkerAgent]:
@@ -36,11 +48,12 @@ class WorkerAgentFactory:
             #     worker_type = 'general'  # 비활성화: general worker 사용 금지
 
             # Get worker class
-            worker_class = cls.WORKER_TYPES.get(worker_type)
-            if not worker_class:
+            worker_spec = cls.WORKER_TYPES.get(worker_type)
+            if not worker_spec:
                 logger.error(f"Unknown worker type: {worker_type}")
                 # No fallback - return None to prevent general worker usage
                 return None
+            worker_class = cls._resolve_worker_class(worker_spec)
 
             # Create worker instance
             worker = worker_class(agent_slug, agent_config)
@@ -62,8 +75,12 @@ class WorkerAgentFactory:
     def get_available_worker_types(cls) -> Dict[str, str]:
         """Get list of available worker types"""
         return {
-            worker_type: worker_class.__name__
-            for worker_type, worker_class in cls.WORKER_TYPES.items()
+            worker_type: (
+                worker_spec.split(":", 1)[1]
+                if isinstance(worker_spec, str)
+                else worker_spec.__name__
+            )
+            for worker_type, worker_spec in cls.WORKER_TYPES.items()
         }
 
     @classmethod

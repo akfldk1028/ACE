@@ -62,6 +62,13 @@ def repair_source_polygon(geometry, *, minimum_area: float = 0.0) -> Polygon | N
     area_retention = float(simplified.area) / max(original_area, 1e-9)
     if area_retention < 0.97 or simplified.area < minimum_area:
         return polygon
+    # ``preserve_topology`` preserves topology, not containment.  On a
+    # concave parcel it may bridge across a re-entrant corner and create a
+    # small but legally invalid sliver outside the input geometry.  A geometry
+    # cleanup must never enlarge the permitted source envelope.
+    outside_area = float(simplified.difference(polygon).area)
+    if outside_area > max(1e-9, original_area * 1e-9):
+        return polygon
     return simplified
 
 

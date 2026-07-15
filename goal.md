@@ -2533,3 +2533,80 @@
 - Do not call v98 competition-grade or permit-complete. Next close the third
   stepped-capacity survivor without padding a weak cake-tier box, then run
   deterministic law/FAR/parking projection and geometry-retention measurement.
+
+### v100 GRL relation-memory and shadow-isolation checkpoint (2026-07-15)
+
+- GRL/Mass-Brain must be an executable relation memory, not a post-hoc audit or
+  a novelty-only Lego mixer. Store coordinate-free formal relations and retrieve
+  proven executable graphs across append-only versions.
+- Preserve the complete v98 language portfolio. Clean-envelope proposals are
+  additive and must not replace step, courtyard, ribbon, bridge, fold, cluster
+  or oblique-envelope cells.
+- The program-massing loop now compiles and VLM-scores Mass-Brain proposals in
+  a shadow lane. With rollout `shadow/slots=0`, they must never enter search or
+  final selection. v99 violated this; v100 fixes it.
+- Current honest result is v100 at 19/20 with all seven language groups and no
+  final shadow contamination. It still fails the automatic visual floor and
+  legal/parking projection remains `not_run`; do not call it competition-grade.
+- Next improve evaluated-parent ingestion and typed coherent-subgraph/schema
+  preservation. The current Mass-Brain-only probes compile only 12/20 and
+  11/20, and v100 VLM-evaluates only 2/14 exact graph proposals.
+
+### v104-v105 fair GRL/Mass-Brain ablation (2026-07-15)
+
+- Routine MASS generation keeps GRL/Mass-Brain OFF until it proves final
+  portfolio benefit. Same-PNU, same-seed and same-VLM-cache v104 OFF versus
+  v105 ON produced identical 19-card rows and byte-identical accepted PNGs.
+- ON still generated 20 shadow proposals, compiled 15 and VLM-evaluated 6, but
+  slots remained 0 and no proposal entered final selection. Those counts are
+  learning/audit activity, not design improvement.
+- The invalid v103 OFF run exposed and led to removal of a feature-flag coupling
+  that also disabled baseline persisted/authored exact compilation.
+- Fundamental priority remains the architect BOOK -> typed operative graph ->
+  real-PNU compile/gate loop, then legal/FAR/parking projection; the current
+  19-card board is not competition-grade.
+
+### BOOK executable taxonomy checkpoint (2026-07-15)
+
+- Treat the architect BOOK as 69 provenance pages, 30 base operations, 20
+  combinations, nine aggregation recipes and ten compound case studies. Never
+  present seven coarse strategy filters as the BOOK principles.
+- All 30 base operations now compile with non-zero 2.5D change, parcel
+  containment, <=5 volumes and <=48 effective surfaces across rectangular,
+  narrow, trapezoid and concave audit parcels.
+- This is an operator-level milestone only. Completion still requires three
+  program-specific 20-candidate boards, measured diversity, same-run
+  legal/FAR/parking projection and direct PNG review.
+- Mass-Brain remains shadow-only. Its UI is evidence-linked and verified, but
+  the fair v104/v105 ablation still shows no final portfolio benefit.
+- The neighborhood 20-language benchmark currently exceeds a 240-second test
+  limit. Profile it and move long search behind an explicit asynchronous job;
+  do not make every service request wait for the full search.
+
+### BOOK full-grammar and live-program checkpoint (2026-07-15)
+
+- Preserve the BOOK as six p.3 relative base volumes, 30 base operations, 20
+  combinations, nine aggregations and ten compound case studies. All 59
+  executable principles pass four-site compiler/clean audits; aggregation
+  display and execution order are explicit.
+- Do not confuse 59/59 compiler coverage with completion. The live-PNU
+  silhouette-gated result is neighborhood 16/20, gym 16/20 and cultural 20/20;
+  direct PNG review remains conservative and not competition-grade.
+- Program projection can retain two relational BOOK bodies within the <=5
+  volume budget while keeping service, entry and public program roles.
+- Next fundamental task: graph-native BOOK p.3 scope materialization as
+  `dominant -> base-volume fraction -> orientation -> operation -> variation`.
+  The fractions are corpus records but not yet real sub-volume selection
+  geometry. Law/FAR/parking remains not run in this diagnostic.
+
+### BOOK p.3 scope correction and next target (2026-07-15 latest)
+
+- The six p.3 base-volume fractions are now real typed projection geometry;
+  the earlier “not yet materialized” statement is superseded.
+- Real PNU result is neighborhood 20/20 and cultural 20/20, but gym 13/20, so
+  the full benchmark remains failed and is not competition-grade.
+- Next: fix gym long-span section/roof graph diversity without weakening
+  clean/program gates, visually inspect the regenerated PNG, then run the
+  legal/FAR/parking handoff on the same accepted sources.
+- Current session transport repeatedly returns `{"detail":"Bad Request"}`;
+  continue from the memory checkpoint in a fresh session if necessary.

@@ -162,9 +162,9 @@ function AGLightFlowInner({
           overflow: 'hidden',
           textOverflow: 'ellipsis',
         }}
-        title={`${transferLabel} → 법규 → 주차 → 매스/기하 → 최종검토`}
+        title={`${transferLabel} → 법규 → 주차 → MassDSL → 매스/기하 → 문법검토 → 최종검토`}
       >
-        {transferLabel} → 법규 → 주차 → 매스/기하 → 최종검토
+        {transferLabel} → 법규 → 주차 → MassDSL → 매스/기하 → 문법검토 → 최종검토
       </div>
       <EdgeOverlay nodes={nodes} edges={edges} />
       <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>

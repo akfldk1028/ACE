@@ -30,10 +30,16 @@ function parkingSummary(feature?: GeoJSONFeature | null) {
   const strategy = precheck?.selected_strategy || precheck?.strategy || props?.parking_strategy;
   const requiredCount = precheck?.required_count || props?.parking_required_count;
   const layout = precheck?.layout_candidate;
+  const massStageParking = layout?.mass_stage_parking;
   const required = typeof requiredCount?.required_spaces === 'number' ? requiredCount.required_spaces : null;
   const provided = typeof layout?.provided_spaces === 'number' ? layout.provided_spaces : null;
   const unmet = typeof layout?.unmet_spaces === 'number' ? layout.unmet_spaces : null;
   const status = layout?.status || precheck?.status || requiredCount?.status || 'needs_review';
+  const displayStatus = status === 'pass'
+    ? status
+    : massStageParking?.status === 'pass'
+      ? 'mass_stage_pass'
+      : status;
   const metricValue = typeof requiredCount?.metric_value === 'number' ? requiredCount.metric_value : null;
   const rawSpaces = typeof requiredCount?.raw_spaces === 'number' ? requiredCount.raw_spaces : null;
   const spacesPer = metricValue != null && rawSpaces != null && rawSpaces > 0 ? metricValue / rawSpaces : null;
@@ -59,6 +65,7 @@ function parkingSummary(feature?: GeoJSONFeature | null) {
     provided,
     unmet,
     status,
+    displayStatus,
     reason: requiredCount?.reason || precheck?.reason || '',
     formula: unitSchedule?.source
       ? `공동주택 추정 ${unitSchedule.units?.length ?? '-'}세대 / 면적비 ${Number(unitSchedule.area_ratio_raw_spaces ?? 0).toFixed(2)}대 / 세대최소 ${Number(unitSchedule.household_min_raw_spaces ?? 0).toFixed(2)}대 → ${required ?? '-'}대`
@@ -92,6 +99,9 @@ function parkingSummary(feature?: GeoJSONFeature | null) {
           ? `증빙필요 ${evidenceNeeded}건`
           : '예비검토 OK'
       : '',
+    massStageLabel: massStageParking?.status === 'pass'
+      ? '매스단계 OK'
+      : massStageParking?.reason || '',
     connectorLabel: connector?.entrance_verified
       ? `진입 OK (${connector.entrance_connector_width_m ?? '-'}m x ${connector.entrance_connector_length_m ?? '-'}m)`
       : connector?.entrance_connection_type
@@ -103,6 +113,7 @@ function parkingSummary(feature?: GeoJSONFeature | null) {
 function parkingStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     pass: '배치 가능',
+    mass_stage_pass: '매스단계 가능',
     fail: '배치 부족',
     has_layout_candidate: '배치 후보',
     needs_aisle_review: '차로 검토 필요',
@@ -257,7 +268,7 @@ const DesignInspector: React.FC<Props> = React.memo(({ design, objectiveNames, f
         <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 10 }}>
           <span style={{ color: '#64748b' }}>상태</span>
           <span style={{ color: parking.status === 'fail' ? '#f87171' : parking.required == null ? '#f59e0b' : '#34d399', textAlign: 'right' as const }}>
-            {parkingStatusLabel(String(parking.status))}
+            {parkingStatusLabel(String(parking.displayStatus))}
             {parking.unmet && parking.unmet > 0 ? ` / 부족 ${parking.unmet}대` : ''}
           </span>
         </div>
@@ -339,6 +350,14 @@ const DesignInspector: React.FC<Props> = React.memo(({ design, objectiveNames, f
                 <span style={{ color: '#64748b' }}>관청검토</span>
                 <span style={{ color: parking.authorityReviewLabel.includes('OK') ? '#34d399' : '#f59e0b', textAlign: 'right' as const }}>
                   {parking.authorityReviewLabel}
+                </span>
+              </div>
+            ) : null}
+            {parking.massStageLabel ? (
+              <div style={{ marginTop: 3, display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+                <span style={{ color: '#64748b' }}>매스단계</span>
+                <span style={{ color: parking.massStageLabel.includes('OK') ? '#34d399' : '#f59e0b', textAlign: 'right' as const }}>
+                  {parking.massStageLabel}
                 </span>
               </div>
             ) : null}

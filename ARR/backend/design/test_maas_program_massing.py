@@ -31,7 +31,7 @@ from design.maas.llm_proposals import (
 )
 from design.maas.agents.llm_architect_agent import LLMArchitectAgent
 from design.maas.interactive.language_brain import propose_language_mutation
-from design.maas.program_massing import creative_archive_sequences, creative_seed_sequences, program_archive_sequences, program_search_prior, program_seed_sequences, resolve_program_profile
+from design.maas.program_massing import book_sentence_variants, compose_program_with_book_operations, creative_archive_sequences, creative_seed_sequences, program_archive_sequences, program_search_prior, program_seed_sequences, resolve_program_profile
 from design.maas.program_massing.benchmark import run_creative_20_archive_benchmark, run_neighborhood_20_language_benchmark, run_program_massing_benchmark, run_site_adaptation_benchmark
 from design.maas.program_massing.grl_contract import build_archive_grl_contract
 from design.maas.program_massing.graph_archive import bounded_behavior_frontier, field_topology_coverage
@@ -52,6 +52,7 @@ from design.maas.program_massing.vlm_a2a import (
     generation_feedback_from_result,
 )
 from design.maas.program_massing.scoring import attach_program_massing_evidence
+from design.maas.program_massing.section_graph import program_section_graph_from_sequence
 from design.maas.program_massing.search import (
     ProgramElite,
     _descriptor_distance,
@@ -1648,17 +1649,79 @@ class MaasProgramMassingTest(SimpleTestCase):
         self.assertEqual(result.archive[0]["properties"]["factor"], 0.72)
 
     def test_gym_long_span_hall_materializes_a_real_ridge(self):
-        sequence = next(item for item in program_seed_sequences("체육관") if "long_span_hall" in item.name)
+        sequence = next(item for item in program_seed_sequences("gymnasium") if "long_span_hall" in item.name)
         source = compile_sequence_to_source_mass(box(0, 0, 60, 40), sequence)
         self.assertIsNotNone(source)
         roofs = [
             surface for surface in source.surfaces
-            if surface.surface_type == "profiled_formal_roof" and "main_long_span_hall" in surface.role
+            if surface.surface_type == "profiled_program_section_roof"
+            and "main_long_span_hall" in surface.role
         ]
-        self.assertEqual(len(roofs), 1)
-        self.assertGreaterEqual(len(roofs[0].vertices_m), 6)
-        self.assertGreaterEqual(len({round(vertex[2], 4) for vertex in roofs[0].vertices_m}), 2)
+        self.assertEqual(len(roofs), 2)
+        self.assertEqual({surface.operator for surface in roofs}, {"ridge_roof"})
+        self.assertGreaterEqual(
+            len({round(vertex[2], 4) for surface in roofs for vertex in surface.vertices_m}),
+            2,
+        )
         self.assertTrue(source.signature()["continuous_surface_evidence"]["hard_pass"])
+        self.assertEqual(
+            source.signature()["program_section_graph_evidence"]["representation"],
+            "normalized_section_graph_planar_strips",
+        )
+
+    def test_gym_section_graph_families_compile_as_clean_typed_geometry(self):
+        sources = []
+        roof_operators = set()
+        control_fingerprints = set()
+        for sequence in program_seed_sequences("gymnasium"):
+            graph = program_section_graph_from_sequence(sequence)
+            self.assertTrue(graph)
+            self.assertLessEqual(len(graph["nodes"]), 6)
+            source = compile_sequence_to_source_mass(box(0, 0, 60, 40), sequence)
+            self.assertIsNotNone(source)
+            signature = source.signature()
+            self.assertLessEqual(signature["volume_count"], 5)
+            self.assertLessEqual(signature["effective_surface_count"], 48)
+            self.assertTrue(signature["coherence_evidence"]["hard_pass"])
+            evidence = signature["program_section_graph_evidence"]
+            self.assertEqual(evidence["status"], "materialized")
+            self.assertTrue(evidence["hard_pass"])
+            for node in evidence["materialized_nodes"]:
+                roof_operators.add(node["operator"])
+                control_fingerprints.add(tuple(tuple(item) for item in node["section_controls"]))
+            sources.append(source)
+        self.assertEqual(len(sources), 6)
+        self.assertTrue({"ridge_roof", "folded_roof", "sawtooth_roof", "stepped_section"}.issubset(roof_operators))
+        self.assertGreaterEqual(len(control_fingerprints), 6)
+        carved = next(source for source in sources if "carved_entry" in source.name)
+        carved_hall = max(carved.volumes, key=lambda volume: volume.footprint.area)
+        self.assertGreater(len(carved_hall.footprint.exterior.coords) - 1, 4)
+        self.assertLess(carved_hall.footprint.area, box(*carved_hall.footprint.bounds).area)
+
+    def test_book_operation_mutates_gym_section_controls_and_surface_geometry(self):
+        base = box(0, 0, 60, 40)
+        seed = next(item for item in program_seed_sequences("gymnasium") if "folded_service" in item.name)
+        projected = compose_program_with_book_operations(seed, (VerbCall("shift", {}),))
+        original = compile_sequence_to_source_mass(base, seed)
+        mutated = compile_sequence_to_source_mass(base, projected)
+        self.assertIsNotNone(original)
+        self.assertIsNotNone(mutated)
+        original_evidence = original.signature()["program_section_graph_evidence"]
+        mutated_evidence = mutated.signature()["program_section_graph_evidence"]
+        self.assertNotEqual(
+            original_evidence["materialized_nodes"][0]["section_controls"],
+            mutated_evidence["materialized_nodes"][0]["section_controls"],
+        )
+        original_roofs = [
+            surface.signature() for surface in original.surfaces
+            if surface.surface_type == "profiled_program_section_roof"
+        ]
+        mutated_roofs = [
+            surface.signature() for surface in mutated.surfaces
+            if surface.surface_type == "profiled_program_section_roof"
+        ]
+        self.assertNotEqual(original_roofs, mutated_roofs)
+        self.assertGreater(len(mutated_evidence["mutation_trace"]), 0)
 
     def test_building_use_aliases_resolve_to_distinct_profiles(self):
         self.assertEqual(resolve_program_profile("공동주택")["id"], "housing")
@@ -1676,6 +1739,53 @@ class MaasProgramMassingTest(SimpleTestCase):
             names = {variant.operator for variant in variants}
             self.assertTrue({sequence.name for sequence in sequences}.issubset(names))
         self.assertEqual(len({tuple(sorted(value)) for value in fingerprints.values()}), 3)
+
+    def test_book_operation_mutates_program_primary_without_erasing_program_roles(self):
+        base = box(0, 0, 60, 40)
+        seed = program_seed_sequences("체육관")[0]
+        projected = compose_program_with_book_operations(seed, (VerbCall("taper", {}),))
+        source = compile_sequence_to_source_mass(base, projected)
+
+        self.assertIsNotNone(source)
+        evidence = source.metadata["program_book_projection_evidence"]
+        self.assertEqual(evidence["status"], "materialized")
+        self.assertEqual(evidence["operations"], ["taper"])
+        self.assertLessEqual(len(source.volumes), 3)
+        self.assertTrue(any("gym_main_long_span_hall__book_taper" in volume.role for volume in source.volumes))
+        self.assertTrue(any("gym_service_spine" in volume.role for volume in source.volumes))
+        self.assertTrue(any("gym_entry_canopy" in volume.role for volume in source.volumes))
+        feature = _feature(source, projected, building_type="체육관", height=18.0, floors=3, site_area=base.area)
+        self.assertTrue(attach_program_massing_evidence(feature, building_type="체육관")["hard_pass"])
+
+    def test_program_book_projection_changes_real_geometry_not_only_label(self):
+        base = box(0, 0, 60, 40)
+        seed = program_seed_sequences("체육관")[0]
+        sources = [
+            compile_sequence_to_source_mass(
+                base,
+                compose_program_with_book_operations(seed, (VerbCall(verb, {}),)),
+            )
+            for verb in ("expand", "carve", "taper")
+        ]
+        self.assertTrue(all(source is not None for source in sources))
+        distances = [intrinsic_shape_distance(sources[index], sources[index - 1]) for index in range(1, len(sources))]
+        self.assertTrue(all(volume_distance > 0.02 or plan_distance > 0.02 for volume_distance, plan_distance in distances))
+
+    def test_program_book_aggregation_retains_relational_body_with_program_roles(self):
+        base = box(0, 0, 60, 40)
+        seed = program_seed_sequences("체육관")[0]
+        calls = book_sentence_variants(("expand", "reflect"))[0]
+        projected = compose_program_with_book_operations(seed, calls)
+        source = compile_sequence_to_source_mass(base, projected)
+
+        self.assertIsNotNone(source)
+        evidence = source.metadata["program_book_projection_evidence"]
+        self.assertEqual(evidence["operations"], ["expand", "reflect"])
+        self.assertEqual(evidence["requested_projected_volume_count"], 2)
+        self.assertEqual(evidence["retained_projected_volume_count"], 2)
+        self.assertLessEqual(len(source.volumes), 5)
+        self.assertTrue(any("gym_service_spine" in volume.role for volume in source.volumes))
+        self.assertTrue(any("gym_entry_canopy" in volume.role for volume in source.volumes))
 
     def test_housing_legal_pool_receives_twenty_program_sequences(self):
         sequences = program_archive_sequences(box(0, 0, 60, 40), "housing", target_count=20)

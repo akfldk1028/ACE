@@ -432,7 +432,7 @@ def _render_archive_sheet(
     canvas = Image.new("RGB", (card_w * columns, 72 + card_h * row_count), "#07111f")
     draw = ImageDraw.Draw(canvas)
     try:
-        title_font = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", 25)
+        title_font = ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", 25)
         label_font = ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", 13)
         note_font = ImageFont.truetype("C:/Windows/Fonts/malgun.ttf", 11)
     except OSError:
@@ -463,7 +463,7 @@ def _render_archive_sheet(
             )
             draw.rectangle((x, y + 260, x + card_w, y + card_h), fill=footer_fill)
             source_id = str(props.get("archive_variant_id") or props["variant_id"])
-            topology = source_id.split("__search_", 1)[0].replace("creative_", "")
+            topology = str(props.get("mass_shape") or source_id.split("__search_", 1)[0].replace("creative_", ""))
             label = f"{index + 1:02d} {topology} · creative {evidence['creative_score']:.3f}"
             label = f"{index + 1:02d} {topology} - {display_mode} {display_score:.3f}"
             draw.text((x + 12, y + 274), label, fill="#f8fafc", font=label_font)
@@ -479,8 +479,17 @@ def _render_archive_sheet(
                     fill="#86efac" if review_status == "accept" else "#fda4af",
                     font=note_font,
                 )
+        for index in range(len(features), row_count * columns):
+            x, y = index % columns * card_w, 72 + index // columns * card_h
+            draw.rectangle((x, y, x + card_w, y + 260), fill="#e8edf2")
+            draw.text((x + 24, y + 112), "NO DISTINCT HARD-PASS CANDIDATE", fill="#64748b", font=label_font)
+            draw.rectangle((x, y + 260, x + card_w, y + card_h), fill="#441d25")
+            draw.text((x + 12, y + 286), "REJECT · silhouette/program/clean gate", fill="#fda4af", font=note_font)
     output.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(output)
 
 
-__all__ = ["run_creative_20_archive_benchmark", "run_housing_20_archive_benchmark", "run_neighborhood_20_language_benchmark", "run_program_massing_benchmark", "run_site_adaptation_benchmark"]
+render_archive_sheet = _render_archive_sheet
+
+
+__all__ = ["render_archive_sheet", "run_creative_20_archive_benchmark", "run_housing_20_archive_benchmark", "run_neighborhood_20_language_benchmark", "run_program_massing_benchmark", "run_site_adaptation_benchmark"]

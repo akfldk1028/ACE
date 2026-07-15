@@ -458,9 +458,13 @@ def _upper_plate(
 _SECTIONAL_SUPPORT_VERBS = {
     "bar", "branch", "extrude", "grade", "inset", "interlock", "lift",
     "offset", "overlap", "pinch", "shift", "sloped_roof_mass", "stack",
-    "taper", "terrace_link",
+    "taper", "terrace_link", "inflate", "lodge", "merge", "rotate", "shear",
+    "skew", "twist",
 }
-_PROFILE_SUPPORT_VERBS = {"branch", "grade", "pinch", "sloped_roof_mass", "terrace_link"}
+_PROFILE_SUPPORT_VERBS = {
+    "branch", "grade", "inflate", "pinch", "rotate", "shear",
+    "skew", "sloped_roof_mass", "terrace_link", "twist",
+}
 
 
 def _sectional_layers(

@@ -14,10 +14,13 @@ from shapely.affinity import rotate, scale, translate
 from shapely.geometry import LineString, MultiPolygon, Point, Polygon, box
 from shapely.ops import unary_union
 
-from design.maas.grammar.verb_sequence import VerbSequence
+from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.llm_proposals import LLM_PARAMETER_SOURCE
 from design.maas.morphology_operators import MorphologyVariant
 from design.maas.program_massing.assembly import program_component_family, program_component_specs
+from design.maas.program_massing.book_projection import book_projection_calls, book_projection_scope
+from design.maas.program_massing.book_scope import materialize_book_scope
+from design.maas.program_massing.section_graph import program_section_graph_from_sequence
 from .formal_principles import compile_formal_principle_volumes, normalize_formal_principle
 from .genome import build_massing_genome
 from .graph_materializer import is_graph_native, materialize_graph_states
@@ -26,6 +29,7 @@ from .coherence import evaluate_source_volume_coherence
 from .polygon_quality import repair_source_polygon
 from .section_fields import build_section_loft_field
 from .oblique_fields import build_oblique_envelope_field
+from .operative_kernels import BOOK_KERNEL_VERBS, apply_book_plan_kernel
 from design.maas.grammar.component_graph import MassComponentGraph, graph_from_sequence
 from .rule_priors import (
     finalize_rule_evidence,
@@ -53,8 +57,12 @@ CANONICAL_SOURCE_FAMILIES = {
     "branch",
     "pinch",
     "embed",
+    "expand",
     "extrude",
+    "inflate",
+    "merge",
     "nest",
+    "oblique_transform",
     "sloped_roof",
     "terrace_link",
     "stepback_tower",
@@ -63,6 +71,8 @@ CANONICAL_SOURCE_FAMILIES = {
 FAMILY_HINT_PRIORITY = (
     "reflected_pair",
     "extrude",
+    "inflate",
+    "merge",
     "embed",
     "nest",
     "overlap",
@@ -101,6 +111,19 @@ TYPOLOGY_FAMILY_ALIASES = {
     "carve": "void_notch",
     "pinching": "pinch",
     "branching": "branch",
+    "pack": "array_cluster",
+    "join": "diagonal_connect",
+    "intersect": "interlock",
+    "skew": "oblique_transform",
+    "twist": "oblique_transform",
+    "rotate": "oblique_transform",
+    "shear": "oblique_transform",
+    "lodge": "nest",
+    "compress": "slender_bar",
+    "fracture": "split",
+    "extract": "void_notch",
+    "inscribe": "courtyard",
+    "puncture": "courtyard",
 }
 
 
@@ -188,6 +211,8 @@ def _family_formal_principle(family: str | None, current: str | None) -> str:
         "interlock": "torqued_stack",
         "branch": "torqued_stack",
         "pinch": "torqued_stack",
+        "oblique_transform": "torqued_stack",
+        "inflate": "folded_section",
         "offset": "stacked_shifted_platforms",
         "array_cluster": "stacked_shifted_platforms",
         "reflected_pair": "stacked_shifted_platforms",
@@ -270,8 +295,12 @@ def _sequence_supports_declared_family(sequence: VerbSequence, declared_family: 
         "branch": {"branch"},
         "pinch": {"pinch"},
         "embed": {"embed"},
+        "expand": {"expand"},
         "extrude": {"extrude"},
+        "inflate": {"inflate"},
+        "merge": {"merge"},
         "nest": {"nest", "stack"},
+        "oblique_transform": {"skew", "twist", "rotate", "shear"},
         "sloped_roof": {"sloped_roof_mass", "grade", "taper"},
         "terrace_link": {"terrace_link"},
         "stepback_tower": {"lift", "step_envelope"},
@@ -296,6 +325,22 @@ def _graph_primary_family(component_graph: MassComponentGraph) -> str | None:
         "sloped_roof_mass": "sloped_roof",
         "notch": "void_notch",
         "cave": "void_notch",
+        "carve": "void_notch",
+        "compress": "slender_bar",
+        "extract": "void_notch",
+        "fracture": "split",
+        "inflate": "inflate",
+        "inscribe": "courtyard",
+        "intersect": "interlock",
+        "join": "diagonal_connect",
+        "lodge": "nest",
+        "merge": "merge",
+        "pack": "array_cluster",
+        "puncture": "courtyard",
+        "rotate": "oblique_transform",
+        "shear": "oblique_transform",
+        "skew": "oblique_transform",
+        "twist": "oblique_transform",
         "lift": "stepback_tower",
         "step_envelope": "stepback_tower",
     }.get(primary.operation.verb, _normalise_family_name(primary.operation.verb))
@@ -996,6 +1041,30 @@ def _family_plan_volumes(
             _rect_piece("courtyard_east_bar", footprint, maxx - band_x, miny, maxx, maxy, b1, t1, last_verb, min_area=min_area),
             _rect_piece("courtyard_west_bar", footprint, minx, miny, minx + band_x, maxy, b0, t1, last_verb, min_area=min_area),
         ]
+    elif family == "expand":
+        # EXPAND is a sectional operation when the input already occupies the
+        # legal envelope: a compact ground plate grows to the full upper
+        # plate.  This preserves containment while producing a real 2.5D
+        # delta instead of scaling outward and clipping back to no-op.
+        inner_ratio = _profile_value(
+            language_params,
+            ("factor", "lower_ratio"),
+            0.78,
+            0.58,
+            0.90,
+            rule=rule,
+            prior_key="lower_ratio",
+            evidence=rule_evidence,
+        )
+        lower = repair_source_polygon(
+            scale(footprint, xfact=inner_ratio, yfact=inner_ratio, origin="centroid").intersection(footprint),
+            minimum_area=min_area,
+        )
+        if lower is not None:
+            pieces = [
+                SourceVolume("expand_compact_ground", lower, 0.0, 0.44, last_verb),
+                SourceVolume("expand_full_upper", footprint, 0.44, 1.0, last_verb),
+            ]
     elif family in {"void_notch", "embed"}:
         cut_ratio = _profile_value(language_params, ("guest_scale", "ratio", "depth_ratio"), 0.32, 0.12, 0.58, rule=rule, prior_key="cut_ratio", evidence=rule_evidence)
         lip = max(0.08, min(0.34, cut_ratio / 2))
@@ -2162,6 +2231,413 @@ def _profiled_formal_surfaces(
     return tuple(surfaces), profiled_roles, evidence
 
 
+def _profiled_program_section_surfaces(
+    specs: tuple[dict[str, Any], ...],
+    origin_poly: Polygon,
+    section_graph: dict[str, Any],
+) -> tuple[tuple[SourceSurface, ...], set[str], dict[str, Any]]:
+    """Materialize normalized program roof graphs as executable surfaces.
+
+    Section controls are expressed in the hall's local normalized field.  The
+    compiler intersects each control interval with the actual program
+    footprint, so the same typed ridge/fold/sawtooth/step graph works on every
+    parcel without storing parcel coordinates or a finished building shape.
+    """
+    roof_nodes = tuple(
+        node for node in (section_graph.get("nodes") or ())
+        if isinstance(node, dict)
+        and str(node.get("operator") or "") in {
+            "ridge_roof", "folded_roof", "sawtooth_roof", "stepped_section",
+        }
+    )
+    if not roof_nodes:
+        return (), set(), {
+            "schema_version": "arr.maas.program_section_surface.v1",
+            "status": "not_applicable",
+            "hard_pass": False,
+            "surface_count": 0,
+            "profiled_roles": [],
+        }
+    nodes_by_id = {
+        str(node.get("node_id") or ""): node
+        for node in (section_graph.get("nodes") or ())
+        if isinstance(node, dict)
+    }
+    origin = (float(origin_poly.centroid.x), float(origin_poly.centroid.y))
+    surfaces: list[SourceSurface] = []
+    profiled_roles: set[str] = set()
+    materialized_nodes: list[dict[str, Any]] = []
+
+    def polygon_parts(geometry: Any) -> tuple[Polygon, ...]:
+        if geometry is None or geometry.is_empty:
+            return ()
+        if geometry.geom_type == "Polygon":
+            return (geometry,)
+        return tuple(
+            part
+            for child in getattr(geometry, "geoms", ())
+            for part in polygon_parts(child)
+        )
+
+    for roof_node in roof_nodes:
+        params = roof_node.get("params") if isinstance(roof_node.get("params"), dict) else {}
+        controls = tuple(
+            (float(item[0]), float(item[1]))
+            for item in (params.get("section_controls") or ())
+            if isinstance(item, list) and len(item) == 2
+        )
+        if len(controls) < 3:
+            continue
+        parent = nodes_by_id.get(str(roof_node.get("parent_id") or ""), {})
+        parent_params = parent.get("params") if isinstance(parent.get("params"), dict) else {}
+        span_axis = str(parent_params.get("span_axis") or "x")
+        section_axis = "y" if span_axis == "x" else "x"
+        component_role = str(roof_node.get("component_role") or "")
+        applicable_specs = tuple(
+            spec for spec in specs
+            if str(spec.get("role") or "") == component_role
+            or str(spec.get("role") or "").startswith(f"{component_role}__book_")
+            or any(
+                str(node.get("node_id") or "") == str(roof_node.get("node_id") or "")
+                for node in (spec.get("section_nodes") or ())
+                if isinstance(node, dict)
+            )
+        )
+        node_surface_count = 0
+        for spec in applicable_specs:
+            role = str(spec["role"])
+            footprint = spec["footprint"]
+            bottom = float(spec["bottom_fraction"])
+            top = float(spec["top_fraction"])
+            height_span = max(0.08, top - bottom)
+            minx, miny, maxx, maxy = footprint.bounds
+            width = max(maxx - minx, 1e-9)
+            depth = max(maxy - miny, 1e-9)
+            axis_min = miny if section_axis == "y" else minx
+            axis_span = depth if section_axis == "y" else width
+            pad = max(width, depth) + 1.0
+
+            def normalized_position(point: tuple[float, float]) -> float:
+                coordinate = float(point[1]) if section_axis == "y" else float(point[0])
+                return max(0.0, min(1.0, (coordinate - axis_min) / axis_span))
+
+            def profile_height(position: float) -> float:
+                position = max(0.0, min(1.0, float(position)))
+                for index in range(len(controls) - 1):
+                    left, right = controls[index], controls[index + 1]
+                    if position <= right[0] + 1e-9:
+                        interval = max(right[0] - left[0], 1e-9)
+                        amount = max(0.0, min(1.0, (position - left[0]) / interval))
+                        value = left[1] + (right[1] - left[1]) * amount
+                        return max(bottom + 0.02, min(top, bottom + height_span * value))
+                return max(bottom + 0.02, min(top, bottom + height_span * controls[-1][1]))
+
+            def vertex(point: tuple[float, float], z: float) -> tuple[float, float, float]:
+                return (float(point[0]) - origin[0], float(point[1]) - origin[1], float(z))
+
+            # One planar patch per normalized control interval preserves real
+            # folds, vertical-ish sawtooth faces and stepped section changes.
+            for interval_index, (left, right) in enumerate(zip(controls, controls[1:])):
+                low = axis_min + axis_span * left[0]
+                high = axis_min + axis_span * right[0]
+                if high <= low + 1e-8:
+                    continue
+                clip = (
+                    box(minx - pad, low, maxx + pad, high)
+                    if section_axis == "y"
+                    else box(low, miny - pad, high, maxy + pad)
+                )
+                for part_index, part in enumerate(polygon_parts(footprint.intersection(clip))):
+                    if part.area < 0.05:
+                        continue
+                    coordinates = tuple((float(x), float(y)) for x, y in list(part.exterior.coords)[:-1])
+                    if len(coordinates) < 3:
+                        continue
+                    surfaces.append(SourceSurface(
+                        role=f"source_program_section_roof_{role}_{interval_index}_{part_index}",
+                        volume_role=role,
+                        verb=str(spec["verb"]),
+                        surface_type="profiled_program_section_roof",
+                        vertices_m=tuple(
+                            vertex(point, profile_height(normalized_position(point)))
+                            for point in coordinates
+                        ),
+                        operator=str(roof_node.get("operator") or "loft"),
+                        semantic_patch_id=f"{role}:program_section_roof:{roof_node.get('node_id')}:{interval_index}:{part_index}",
+                    ))
+                    node_surface_count += 1
+            # Facades close the authored roof envelope while SourceVolume
+            # remains the conservative legal/FAR proxy.
+            coordinates = tuple((float(x), float(y)) for x, y in list(footprint.exterior.coords)[:-1])
+            for edge_index, left in enumerate(coordinates):
+                right = coordinates[(edge_index + 1) % len(coordinates)]
+                surfaces.append(SourceSurface(
+                    role=f"source_program_section_facade_{role}_{edge_index}",
+                    volume_role=role,
+                    verb=str(spec["verb"]),
+                    surface_type="profiled_program_section_facade",
+                    vertices_m=(
+                        vertex(left, bottom),
+                        vertex(right, bottom),
+                        vertex(right, profile_height(normalized_position(right))),
+                        vertex(left, profile_height(normalized_position(left))),
+                    ),
+                    operator=str(roof_node.get("operator") or "loft"),
+                    semantic_patch_id=f"{role}:program_section_facade:{edge_index}",
+                ))
+                node_surface_count += 1
+            profiled_roles.add(role)
+        materialized_nodes.append({
+            "node_id": str(roof_node.get("node_id") or ""),
+            "operator": str(roof_node.get("operator") or ""),
+            "component_role": component_role,
+            "section_axis": section_axis,
+            "section_controls": [[round(x, 4), round(y, 4)] for x, y in controls],
+            "surface_count": node_surface_count,
+        })
+    evidence = {
+        "schema_version": "arr.maas.program_section_surface.v1",
+        "status": "materialized" if profiled_roles else "missing",
+        "hard_pass": bool(profiled_roles),
+        "representation": "normalized_section_graph_planar_strips",
+        "surface_count": len(surfaces),
+        "profiled_volume_count": len(profiled_roles),
+        "profiled_roles": sorted(profiled_roles),
+        "materialized_nodes": materialized_nodes,
+        "graph_operators": sorted({
+            str(node.get("operator") or "")
+            for node in (section_graph.get("nodes") or ())
+            if isinstance(node, dict) and node.get("operator")
+        }),
+        "graph_relations": sorted({
+            str(node.get("relation") or "")
+            for node in (section_graph.get("nodes") or ())
+            if isinstance(node, dict) and node.get("relation")
+        }),
+        "graph_schema_version": section_graph.get("schema_version"),
+        "mutation_trace": list(section_graph.get("mutation_trace") or ()),
+        "book_mutation": dict(section_graph.get("book_mutation") or {}),
+    }
+    return tuple(surfaces), profiled_roles, evidence
+
+
+def _project_program_specs_with_book_calls(
+    specs: tuple[dict[str, Any], ...],
+    sequence: VerbSequence,
+) -> tuple[tuple[dict[str, Any], ...], dict[str, Any]]:
+    """Mutate one dominant program component without erasing its role graph.
+
+    The program template remains the source of hall/service/entry semantics.
+    Explicitly marked BOOK calls are compiled on the largest occupiable
+    component and their real volumes replace that component.  This prevents
+    the former final program-template override from silently discarding every
+    architectural operation appended by the agent.
+    """
+    calls = book_projection_calls(sequence)
+    if not specs or not calls:
+        return specs, {}
+    dominant_index = max(
+        range(len(specs)),
+        key=lambda index: float(specs[index]["footprint"].area)
+        * max(0.0, float(specs[index]["top_fraction"]) - float(specs[index]["bottom_fraction"])),
+    )
+    dominant = specs[dominant_index]
+    scope_definition = book_projection_scope(sequence)
+    scope = materialize_book_scope(dominant["footprint"], scope_definition)
+    projection_sequence = VerbSequence(
+        name=f"book_projection_kernel_{'_'.join(call.verb for call in calls)}",
+        label="typed BOOK projection kernel",
+        calls=(VerbCall("base", {}), *calls),
+        notes=("parameter_source=book_program_projection_v1",),
+    )
+    projected = compile_sequence_to_source_mass(scope.footprint, projection_sequence)
+    if projected is None or not projected.volumes:
+        return specs, {
+            "schema_version": "arr.maas.program_book_projection.v1",
+            "status": "compile_failed",
+            "operations": [call.verb for call in calls],
+            "primary_role": str(dominant["role"]),
+            "scope": {
+                "base_volume_label": scope_definition.label,
+                "requested_fraction": scope.requested_fraction,
+                "measured_plan_fraction": scope.measured_plan_fraction,
+                "orientation": scope.orientation,
+            },
+        }
+    remaining_count = len(specs) - 1
+    # Program templates already satisfy their use-specific component-count
+    # range.  Replacing one primary with several operation states must not add
+    # components on top of that baseline. Reserve at least one subordinate
+    # anchor and trade the least significant supports for sectional states.
+    program_volume_cap = 5
+    # Preserve a second body only when the BOOK sentence ends in a genuinely
+    # relational/multi-volume operation.  The former unconditional one-volume
+    # truncation erased split/offset/aggregation grammar after it compiled.
+    # Subordinate service/entry/public anchors remain hard requirements, so the
+    # global clean-mass cap determines whether one or two projected bodies fit.
+    multi_result_verbs = {
+        "array", "branch", "embed", "extract", "inscribe", "interlock",
+        "intersect", "join", "lift", "lodge", "nest", "offset", "overlap",
+        "pack", "puncture", "reflect", "rotate", "shift", "split", "stack",
+    }
+    requested_projected = 2 if calls[-1].verb in multi_result_verbs else 1
+    program_host_count = 1 if (
+        scope.orientation == "vertical"
+        or scope.measured_plan_fraction < 1.0 - 1e-6
+    ) else 0
+    maximum_projected = max(
+        1,
+        min(requested_projected, program_volume_cap - remaining_count - program_host_count),
+    )
+    projected_volumes = sorted(
+        projected.volumes,
+        key=lambda volume: float(volume.footprint.area)
+        * max(0.0, float(volume.top_fraction) - float(volume.bottom_fraction)),
+        reverse=True,
+    )[:maximum_projected]
+    base_bottom = float(dominant["bottom_fraction"])
+    base_top = float(dominant["top_fraction"])
+    span = max(0.08, base_top - base_bottom)
+    replacements: list[dict[str, Any]] = []
+    host_replacements: list[dict[str, Any]] = []
+    operation_label = "_".join(call.verb for call in calls)
+    residual = dominant["footprint"].difference(scope.footprint)
+    section_split_fraction: float | None = None
+    additive_scope_growth_factor = 1.0
+    if scope.orientation == "vertical":
+        host_top = base_bottom + span * max(0.0, 1.0 - scope.height_fraction)
+        if host_top > base_bottom + 0.02:
+            # A vertical p.3 scope is a band of the dominant program volume,
+            # not a replacement for the whole hall.  Keeping the lower host
+            # makes 1/16 a real sectional mutation while retaining program
+            # capacity, hierarchy and the service/entry role graph.
+            host_replacements.append({
+                "role": f"{dominant['role']}__book_host",
+                "footprint": dominant["footprint"],
+                "bottom_fraction": base_bottom,
+                "top_fraction": host_top,
+                "verb": str(dominant["verb"]),
+                "section_nodes": (),
+                "subtractive_relations": tuple(dominant.get("subtractive_relations") or ()),
+            })
+    elif not residual.is_empty and scope.measured_plan_fraction < 1.0 - 1e-6:
+        # A partial plan scope becomes an upper sectional band over one clean
+        # continuous hall host.  Unioning the operated strip back into the
+        # residual produced 12-15-edge tortuous outlines at 1/8.  This graph
+        # relation keeps the early mass connected, preserves capacity and
+        # makes the selected BOOK fraction visible as a real step/roof body.
+        section_split_fraction = max(
+            0.38,
+            min(0.58, 0.42 + 0.16 * (1.0 - sqrt(scope.measured_plan_fraction))),
+        )
+        additive_count = sum(
+            call.verb in {"branch", "expand", "inflate", "merge"}
+            for call in calls
+        )
+        if additive_count:
+            additive_scope_growth_factor = min(
+                1.38,
+                1.0
+                + 0.28 * (1.0 - sqrt(scope.measured_plan_fraction))
+                + 0.12 * min(2, additive_count),
+            )
+        host_top = base_bottom + span * section_split_fraction
+        host_replacements.append({
+            "role": f"{dominant['role']}__book_host",
+            "footprint": dominant["footprint"],
+            "bottom_fraction": base_bottom,
+            "top_fraction": host_top,
+            "verb": str(dominant["verb"]),
+            "section_nodes": (),
+            "subtractive_relations": tuple(dominant.get("subtractive_relations") or ()),
+        })
+    for index, volume in enumerate(projected_volumes):
+        replacement_footprint = volume.footprint
+        if additive_scope_growth_factor > 1.0:
+            growth_basis = unary_union((replacement_footprint, scope.footprint))
+            grown = scale(
+                growth_basis,
+                xfact=additive_scope_growth_factor,
+                yfact=additive_scope_growth_factor,
+                origin="centroid",
+            ).intersection(dominant["footprint"])
+            repaired_grown = repair_source_polygon(grown, minimum_area=1.0)
+            if repaired_grown is not None:
+                replacement_footprint = repaired_grown
+        if scope.orientation == "vertical":
+            # The selected p.3 fraction is a sectional band. Preserve the
+            # lower host and apply the operation to the upper relative band.
+            mapped_bottom = max(0.0, 1.0 - scope.height_fraction + scope.height_fraction * float(volume.bottom_fraction))
+            mapped_top = max(mapped_bottom + 0.02, 1.0 - scope.height_fraction + scope.height_fraction * float(volume.top_fraction))
+        elif section_split_fraction is not None:
+            upper_span = 1.0 - section_split_fraction
+            mapped_bottom = section_split_fraction + upper_span * float(volume.bottom_fraction)
+            mapped_top = max(
+                mapped_bottom + 0.02,
+                section_split_fraction + upper_span * float(volume.top_fraction),
+            )
+        else:
+            mapped_bottom = float(volume.bottom_fraction)
+            mapped_top = float(volume.top_fraction)
+        replacement_footprint = repair_source_polygon(replacement_footprint, minimum_area=1.0)
+        if replacement_footprint is not None:
+            replacement_footprint = repair_source_polygon(
+                replacement_footprint.intersection(dominant["footprint"]),
+                minimum_area=1.0,
+            )
+        if replacement_footprint is None:
+            continue
+        band_marker = "__program_section_band" if section_split_fraction is not None else ""
+        replacements.append({
+            "role": f"{dominant['role']}{band_marker}__book_{operation_label}_{index}",
+            "footprint": replacement_footprint,
+            "bottom_fraction": base_bottom + span * mapped_bottom,
+            "top_fraction": base_bottom + span * min(1.0, mapped_top),
+            "verb": volume.verb,
+            "section_nodes": tuple(dominant.get("section_nodes") or ()),
+            "subtractive_relations": tuple(dominant.get("subtractive_relations") or ()),
+        })
+    subordinates = [dict(spec) for index, spec in enumerate(specs) if index != dominant_index]
+    result = [*host_replacements, *replacements, *subordinates]
+    return tuple(result), {
+        "schema_version": "arr.maas.program_book_projection.v1",
+        "status": "materialized",
+        "operations": [call.verb for call in calls],
+        "primary_role": str(dominant["role"]),
+        "source_volume_count": len(projected.volumes),
+        "retained_projected_volume_count": len(replacements),
+        "retained_vertical_host_volume_count": len(host_replacements) if scope.orientation == "vertical" else 0,
+        "retained_program_host_volume_count": len(host_replacements),
+        "section_split_fraction": round(section_split_fraction, 6) if section_split_fraction is not None else None,
+        "additive_scope_growth_factor": round(additive_scope_growth_factor, 6),
+        "requested_projected_volume_count": requested_projected,
+        "subordinate_role_count": remaining_count,
+        "clean_volume_cap": program_volume_cap,
+        "source_signature": projected.signature(),
+        "scope": {
+            "node_id": "book_scope",
+            "parent_role": str(dominant["role"]),
+            "relation": "select_relative_volume",
+            "base_volume_label": scope_definition.label,
+            "requested_fraction": scope.requested_fraction,
+            "measured_plan_fraction": scope.measured_plan_fraction,
+            "height_fraction": scope.height_fraction,
+            "orientation": scope.orientation,
+        },
+        "projection_graph": {
+            "schema_version": "arr.maas.book_projection_graph.v1",
+            "nodes": [
+                {"node_id": "program_dominant", "role": str(dominant["role"]), "operation": "program_anchor"},
+                {"node_id": "book_scope", "parent_id": "program_dominant", "operation": "select_book_scope", "params": {"base_volume_label": scope_definition.label, "orientation": scope.orientation}},
+                *[
+                    {"node_id": f"book_operation_{index}", "parent_id": "book_scope" if index == 0 else f"book_operation_{index - 1}", "operation": call.verb, "params": dict(call.params)}
+                    for index, call in enumerate(calls)
+                ],
+            ],
+        },
+    }
+
+
 def _compile_component_graph_to_source_mass(
     base_footprint: Polygon,
     sequence: VerbSequence,
@@ -2218,7 +2694,26 @@ def _compile_component_graph_to_source_mass(
         params = call.params
         next_fp: Polygon | None = footprint
         note = None
-        if call.verb == "notch":
+        if call.verb in BOOK_KERNEL_VERBS:
+            kernel = apply_book_plan_kernel(call.verb, footprint, base, params)
+            if kernel is None:
+                next_fp = None
+                note = "book_kernel_failed"
+            else:
+                next_fp = kernel.footprint
+                upper = kernel.upper if kernel.upper is not None else upper
+                if kernel.layout_units:
+                    layout_units = list(kernel.layout_units)
+                lower_fraction = _param_float(
+                    params,
+                    "lower_floor_fraction",
+                    lower_fraction or 0.52,
+                    parameter_provenance,
+                    sequence_source=sequence_source,
+                )
+                family = family or kernel.family
+                note = kernel.note
+        elif call.verb == "notch":
             corner = _param_str(params, "corner", "+x+y", parameter_provenance, sequence_source=sequence_source)
             ratio = _param_float_any(
                 params,
@@ -2666,11 +3161,11 @@ def _compile_component_graph_to_source_mass(
             lower_fraction = None
             note = "legal_floor_plate_stack_required"
             family = family or "stepback_tower"
-        elif call.verb in {"inset", "expand"}:
+        elif call.verb == "inset":
             factor = _param_float(
                 params,
                 "factor",
-                0.92 if call.verb == "inset" else 1.08,
+                0.92,
                 parameter_provenance,
                 sequence_source=sequence_source,
             )
@@ -2678,8 +3173,29 @@ def _compile_component_graph_to_source_mass(
             upper = _upper_from(
                 next_fp,
                 _param_float(params, "upper_ratio", 0.90, parameter_provenance, sequence_source=sequence_source),
-            ) if next_fp is not None and call.verb == "inset" else upper
-            family = family or call.verb
+            ) if next_fp is not None else upper
+            family = family or "inset"
+        elif call.verb == "expand":
+            # The base geometry is already the legal clip.  Outward scaling
+            # followed by clipping is necessarily a no-op, so EXPAND is
+            # represented by compact lower and full upper volume bands.
+            _param_float(
+                params,
+                "factor",
+                0.78,
+                parameter_provenance,
+                sequence_source=sequence_source,
+            )
+            next_fp = footprint
+            upper = footprint
+            lower_fraction = _param_float(
+                params,
+                "lower_floor_fraction",
+                lower_fraction or 0.44,
+                parameter_provenance,
+                sequence_source=sequence_source,
+            )
+            family = family or "expand"
         else:
             note = "unsupported_verb_kept_as_trace"
 
@@ -2798,8 +3314,19 @@ def _compile_component_graph_to_source_mass(
             last_verb,
             lower_fraction,
         )
-    program_specs = program_component_specs(sequence.name, base_footprint, language_params)
+    program_section_graph = program_section_graph_from_sequence(sequence)
+    program_specs = program_component_specs(
+        sequence.name,
+        base_footprint,
+        language_params,
+        program_section_graph,
+    )
+    program_book_projection_evidence: dict[str, Any] = {}
     if program_specs:
+        program_specs, program_book_projection_evidence = _project_program_specs_with_book_calls(
+            program_specs,
+            sequence,
+        )
         volumes = tuple(SourceVolume(
             role=str(spec["role"]),
             footprint=spec["footprint"],
@@ -2813,7 +3340,7 @@ def _compile_component_graph_to_source_mass(
         upper = None
         lower_fraction = None
         family = program_component_family(sequence.name) or family
-        if any(
+        if program_section_graph or any(
             spec.get("roof_profile")
             or "main_long_span_hall" in str(spec.get("role") or "")
             for spec in program_specs
@@ -2846,11 +3373,31 @@ def _compile_component_graph_to_source_mass(
         formal_principle,
         formal_result.evidence if formal_result is not None else None,
     )
-    profiled_roles = component_profiled_roles | formal_profiled_roles
+    program_section_surfaces, program_section_profiled_roles, program_section_graph_evidence = (
+        _profiled_program_section_surfaces(program_specs, footprint, program_section_graph)
+    )
+    if program_section_profiled_roles:
+        formal_surfaces = tuple(
+            surface for surface in formal_surfaces
+            if surface.volume_role not in program_section_profiled_roles
+        )
+        continuous_surface_evidence = {
+            "schema_version": "arr.maas.continuous_surface.v1",
+            "status": "materialized",
+            "hard_pass": True,
+            "principle": formal_principle,
+            "representation": "program_section_graph_planar_strips",
+            "profiled_volume_count": len(program_section_profiled_roles),
+            "surface_count": len(program_section_surfaces),
+            "profiled_roles": sorted(program_section_profiled_roles),
+            "program_section_graph": program_section_graph_evidence,
+        }
+    profiled_roles = component_profiled_roles | formal_profiled_roles | program_section_profiled_roles
     standard_surface_volumes = tuple(volume for volume in volumes if volume.role not in profiled_roles)
     surfaces = (
         _source_surfaces(standard_surface_volumes, footprint)
         + _profiled_component_surfaces(program_specs, footprint)
+        + program_section_surfaces
         + formal_surfaces
     )
     parameter_source = sequence_source
@@ -2885,6 +3432,8 @@ def _compile_component_graph_to_source_mass(
             "graph_materialization_evidence": graph_materialization_evidence,
             "coherence_evidence": coherence_evidence,
             "continuous_surface_evidence": continuous_surface_evidence,
+            "program_section_graph_evidence": program_section_graph_evidence,
+            "program_book_projection_evidence": program_book_projection_evidence,
             "architectural_ambition_evidence": formal_result.evidence if formal_result is not None else {},
             "secondary_family": secondary_family,
             "requires_llm_authoring": not is_authored,

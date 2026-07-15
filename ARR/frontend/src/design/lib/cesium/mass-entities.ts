@@ -302,7 +302,7 @@ function renderParkingPrecheckOverlay({
   const isReview = !isFail && !isPass;
   const mainColor = isFail ? '#ef4444' : isPass ? '#22c55e' : isReview ? '#f59e0b' : '#22c55e';
   const labelColor = isFail ? '#fecaca' : isPass ? '#bbf7d0' : '#fde68a';
-  const groundOffset = 1.4;
+  const groundOffset = 0.08;
   const envelopeRing = extractParkingEnvelopeRing(parkingPrecheck) || ring;
   const envelopeFlat = flattenRing(envelopeRing);
   const stalls = Array.isArray(layout?.stalls) ? layout.stalls : [];
@@ -349,7 +349,6 @@ function renderParkingPrecheckOverlay({
     const isAccessible = stall.type === 'accessible';
     const stallLine = '#ff2f92';
     const stallLinePositions = stallRing.map(([lng, lat]: number[]) => Cesium.Cartesian3.fromDegrees(lng, lat));
-    const visibleLinePositions = stallRing.map(([lng, lat]: number[]) => Cesium.Cartesian3.fromDegrees(lng, lat, groundH + 1.15));
     viewer.entities.add({
       id: `${entityPrefix}parking-line-shadow-${designId}-${i}`,
       properties: {
@@ -392,31 +391,11 @@ function renderParkingPrecheckOverlay({
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
     });
-    viewer.entities.add({
-      id: `${entityPrefix}parking-visible-line-${designId}-${i}`,
-      properties: {
-        interactionKind: 'parking_stall_outline',
-        designId,
-        target: {
-          kind: 'parking_stall',
-          stall_id: stall.stall_id,
-          stall_type: stall.type,
-          strategy,
-        },
-      },
-      polyline: {
-        positions: visibleLinePositions,
-        width: isAccessible ? 11 : 10,
-        material: Cesium.Color.fromCssColorString(stallLine).withAlpha(0.98),
-        clampToGround: false,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
-      },
-    });
     const labelPoint = ringCentroid(stallRing);
     if (labelPoint) {
       viewer.entities.add({
         id: `${entityPrefix}parking-stall-label-${designId}-${i}`,
-        position: Cesium.Cartesian3.fromDegrees(labelPoint.lng, labelPoint.lat, groundH + 1.85),
+        position: Cesium.Cartesian3.fromDegrees(labelPoint.lng, labelPoint.lat, groundH + 0.35),
         label: {
           text: String(stall.stall_id || `P${i + 1}`),
           font: '800 11px ui-monospace, SFMono-Regular, Menlo, monospace',
@@ -427,7 +406,7 @@ function renderParkingPrecheckOverlay({
           showBackground: true,
           backgroundColor: Cesium.Color.fromCssColorString('#be185d').withAlpha(0.82),
           backgroundPadding: new Cesium.Cartesian2(5, 3),
-          pixelOffset: new Cesium.Cartesian2(0, 0),
+          pixelOffset: new Cesium.Cartesian2(0, -8),
           verticalOrigin: Cesium.VerticalOrigin.CENTER,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
@@ -524,12 +503,12 @@ function renderParkingPrecheckOverlay({
         id,
         polyline: {
           positions: [
-            Cesium.Cartesian3.fromDegrees(bounds.minLng, lat, groundH + groundOffset + 0.08),
-            Cesium.Cartesian3.fromDegrees(bounds.maxLng, lat, groundH + groundOffset + 0.08),
+            Cesium.Cartesian3.fromDegrees(bounds.minLng, lat),
+            Cesium.Cartesian3.fromDegrees(bounds.maxLng, lat),
           ],
           width: 2,
           material: Cesium.Color.fromCssColorString(mainColor).withAlpha(0.42),
-          clampToGround: false,
+          clampToGround: true,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
       });
@@ -539,12 +518,12 @@ function renderParkingPrecheckOverlay({
         id,
         polyline: {
           positions: [
-            Cesium.Cartesian3.fromDegrees(lng, bounds.minLat, groundH + groundOffset + 0.08),
-            Cesium.Cartesian3.fromDegrees(lng, bounds.maxLat, groundH + groundOffset + 0.08),
+            Cesium.Cartesian3.fromDegrees(lng, bounds.minLat),
+            Cesium.Cartesian3.fromDegrees(lng, bounds.maxLat),
           ],
           width: 2,
           material: Cesium.Color.fromCssColorString(mainColor).withAlpha(0.42),
-          clampToGround: false,
+          clampToGround: true,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
       });
@@ -560,7 +539,7 @@ function renderParkingPrecheckOverlay({
     : String(parkingPrecheck.required_count?.status || 'needs requirement');
   viewer.entities.add({
     id: `${entityPrefix}parking-label-${designId}`,
-    position: Cesium.Cartesian3.fromDegrees(center.lng, center.lat, groundH + 2.2),
+    position: Cesium.Cartesian3.fromDegrees(center.lng, center.lat, groundH + 0.6),
     label: {
       text: `${String(strategy).toUpperCase()}\n${countText}`,
       font: '700 12px ui-monospace, SFMono-Regular, Menlo, monospace',

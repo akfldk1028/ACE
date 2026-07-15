@@ -1,0 +1,21 @@
+id: arr_global_agents
+name: ARR Global A2A Agents
+scope: global_infrastructure
+runtime:
+  framework: django
+  transport:
+    - a2a_json_rpc
+    - websocket
+  entrypoints:
+    - views.py
+    - urls.py
+    - well_known_urls.py
+memory:
+  path: memory/MEMORY.md
+children:
+  - worker_agents
+contracts:
+  path: contracts/README.md
+notes:
+  - Owns global agent registry, discovery, chat endpoints, worker lifecycle, and shared logs.
+  - Does not own MAAS-specific legal massing grammar or candidate geometry.

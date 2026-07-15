@@ -645,6 +645,22 @@ def _extract_overrides(sequence: VerbSequence) -> dict[str, float]:
     return result
 
 
+def program_seed_variants(
+    seed: VerbSequence,
+    *,
+    count: int = 3,
+    random_seed: int = 417,
+) -> tuple[VerbSequence, ...]:
+    """Return deterministic bounded component-graph parents for one program seed."""
+    count = max(1, min(8, int(count)))
+    rng = random.Random(random_seed)
+    variants = [seed]
+    for index in range(1, count):
+        overrides = _mutated_overrides(seed, {}, rng)
+        variants.append(_with_overrides(seed, overrides, 0, index, stage="program_parent"))
+    return tuple(variants)
+
+
 def _feature(source: SourceMass, sequence: VerbSequence, *, building_type: str, height: float, floors: int, site_area: float) -> dict[str, Any]:
     origin = source.footprint.centroid
     source_surfaces = []
@@ -680,4 +696,7 @@ def _feature(source: SourceMass, sequence: VerbSequence, *, building_type: str, 
     }
 
 
-__all__ = ["ProgramElite", "search_creative_elites", "search_program_elites"]
+source_feature = _feature
+
+
+__all__ = ["ProgramElite", "program_seed_variants", "search_creative_elites", "search_program_elites", "source_feature"]

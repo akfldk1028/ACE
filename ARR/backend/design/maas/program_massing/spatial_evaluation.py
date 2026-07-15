@@ -14,10 +14,11 @@ ROLE_GROUPS = {
     "cafe": (("room",), ("canopy", "roof"), ("service", "hearth", "court_room_west")),
     "neighborhood_living": (("primary_",), ("podium", "terrace", "platform", "ribbon"), ("tower", "folded", "shifted", "upper", "canopy", "lane_2")),
     "gymnasium": (("main", "hall"), ("service",), ("entry", "daylight", "monitor", "canopy")),
+    "cultural": (("gallery", "hall"), ("court", "public"), ("entry", "bridge", "ramp")),
 }
 
-DOMINANT_RANGES = {"housing": (0.28, 0.58), "cafe": (0.38, 0.74), "neighborhood_living": (0.38, 0.82), "gymnasium": (0.62, 0.90)}
-COVERAGE_RANGES = {"housing": (0.28, 0.72), "cafe": (0.22, 0.62), "neighborhood_living": (0.38, 0.92), "gymnasium": (0.48, 0.84)}
+DOMINANT_RANGES = {"housing": (0.28, 0.58), "cafe": (0.38, 0.74), "neighborhood_living": (0.38, 0.82), "gymnasium": (0.62, 0.90), "cultural": (0.32, 0.75)}
+COVERAGE_RANGES = {"housing": (0.28, 0.72), "cafe": (0.22, 0.62), "neighborhood_living": (0.38, 0.92), "gymnasium": (0.48, 0.84), "cultural": (0.24, 0.76)}
 
 
 def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: str, site_area_m2: float | None = None) -> dict[str, Any]:

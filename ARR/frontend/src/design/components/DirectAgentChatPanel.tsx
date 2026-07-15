@@ -12,7 +12,9 @@ interface Props {
 const PRESETS: Record<string, string> = {
   law_graph_agent: '이 후보의 법규 근거와 빠진 evidence를 rule_id 중심으로 확인해줘.',
   parking_agent: '주차 산정 대수, 연접 가능성, 차로/진입 조건을 다시 검토해줘.',
+  massdsl_agent: '법규와 주차 evidence를 MassDSL verb sequence proposal로 구조화해줘.',
   maas_geometry_agent: '법규/주차 조건을 만족하도록 매스 repair operation 후보를 제안해줘.',
+  grammar_critic_agent: '이 후보가 단순 extrusion 반복인지, 사선/테라스/분절 등 도형언어가 충분한지 검토해줘.',
   review_agent: '현재 evidence 기준으로 통과/보류/실패와 남은 리스크를 구조화해줘.',
 };
 
@@ -77,7 +79,7 @@ export default function DirectAgentChatPanel({
             Agent 직접 명령
           </div>
           <div style={{ color: '#64748b', fontSize: 9, marginTop: 2 }}>
-            법규/주차/매스/검토 agent별로 따로 지시
+            법규/주차/MassDSL/매스/문법검토 agent별로 따로 지시
           </div>
         </div>
         <select

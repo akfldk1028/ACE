@@ -6,7 +6,9 @@ import httpx
 from django.test import SimpleTestCase
 from shapely.geometry import box, mapping
 
-from design.maas.mass_brain import record_proposal_feedback, record_shadow_outcomes, request_shadow_variants
+from design.maas.mass_brain import _parameter_schema_for_verb, record_proposal_feedback, record_shadow_outcomes, request_shadow_variants, sync_book_language_corpus
+from design.maas.grammar.component_graph import graph_from_sequence
+from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.mass_brain_relation_profile import relation_profile_from_feature
 from design.maas.historical_memory import build_historical_envelope
 from design.maas.preference.reference_corpus import ReferenceItem
@@ -33,6 +35,23 @@ def _response(payload):
 
 
 class MassBrainBridgeTest(SimpleTestCase):
+    @patch("design.maas.mass_brain.config.mass_brain_client")
+    def test_book_corpus_sync_preserves_page_and_principle_counts(self, client):
+        client.post.return_value = _response({
+            "corpusId": "architect-book-69",
+            "pageCount": 69,
+            "baseOperativeCount": 30,
+            "principleCount": 59,
+        })
+
+        result = sync_book_language_corpus()
+
+        self.assertEqual(result["status"], "synced")
+        payload = client.post.call_args.kwargs["json"]
+        self.assertEqual(payload["page_count"], 69)
+        self.assertEqual(payload["base_operative_count"], 30)
+        self.assertEqual(len(payload["principles"]), 59)
+        self.assertEqual(len(payload["case_studies"]), 10)
     def test_historical_memory_uses_sparse_evidence_edges(self):
         envelope = build_historical_envelope(
             references=[
@@ -97,6 +116,35 @@ class MassBrainBridgeTest(SimpleTestCase):
         self.assertIn(first_payload["relationProfile"]["formalStrategy"], {"carve", "bridge", "bend", "cluster"})
         self.assertEqual(first_payload["context"]["programType"], "neighborhood_living")
         self.assertEqual(first_payload["context"]["siteAspectBucket"], "balanced")
+        primary = first_payload["componentGraph"]["nodes"][1]
+        self.assertEqual(primary["role"], "primary")
+        self.assertIn("parameterSchema", primary)
+        self.assertIn("constraints", primary)
+        self.assertIn("relation", primary)
+
+    def test_flat_sequence_first_design_operation_is_the_primary_language(self):
+        sequence = VerbSequence(
+            "court_primary",
+            "Court primary",
+            (
+                VerbCall("base", {}),
+                VerbCall("courtyard", {"ratio": 0.25}),
+                VerbCall("grade", {"side": "north", "depth_ratio": 0.2}),
+            ),
+        )
+        graph = graph_from_sequence(sequence)
+        self.assertEqual(graph.nodes[1].role, "primary")
+        self.assertEqual(graph.nodes[1].operation.verb, "courtyard")
+        self.assertEqual(graph.nodes[2].role, "support")
+
+    def test_exported_schema_preserves_verified_legacy_parent_values(self):
+        schema = _parameter_schema_for_verb(
+            "courtyard",
+            {"upper_ratio": 0.96, "width_ratio": 0.34, "open_side": "southwest"},
+        )
+        self.assertIn("width_ratio", schema["allowedParameters"])
+        self.assertEqual(schema["numericBounds"]["upper_ratio"]["maximum"], 0.96)
+        self.assertIn("southwest", schema["categoricalValues"]["open_side"])
 
     @patch("design.maas.mass_brain.config.mass_brain_client")
     def test_service_failure_is_fail_open(self, client):

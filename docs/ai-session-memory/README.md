@@ -2,6 +2,30 @@
 
 Read this folder before touching the legal-design visualization work.
 
+## BOOK executable-language checkpoint - 2026-07-15
+
+Read `MAAS_BOOK_EXECUTABLE_LANGUAGE_CHECKPOINT_20260715.md` before changing the
+Mass-Brain principle UI or adding form templates. It records the directly
+verified BOOK hierarchy, compound case-study languages, the canonical registry
+and the honest 26 active / 4 compile-tested base-operation state.
+
+## GRL relation-memory checkpoint - 2026-07-15
+
+Read `MAAS_GRL_RELATION_MEMORY_HANDOFF_20260715.md` first. GRL/Mass-Brain now
+participates in the program-massing/VLM flow as a strictly isolated shadow
+lane, with coordinate-free relation profiles and cross-version executable
+retrieval. v100 proves shadow isolation but returns only 19/20 and remains a
+visual failure. Do not claim competition-grade quality or active learning.
+
+## Component-graph / MAP-Elites / Mass-Brain audit - 2026-07-15
+
+Before adding another evolutionary optimizer or calling the system autonomous
+learning, read `MAAS_COMPONENT_GRAPH_MAP_ELITES_AUDIT_20260715.md`. It separates
+the already executable constrained MAP-Elites-like graph loop from explicit
+artifact reuse, the Mass-Brain shadow bridge, GRL evidence/query duties and the
+separate legal/parking service. The document includes an independent audit
+checklist and a prompt to give another AI session.
+
 ## Latest MAAS checkpoint - 2026-07-14
 
 Read `MAAS_MEMORY_INDEX.md`, then the final `real-PNU site adaptation` and

@@ -1,0 +1,18 @@
+id: flight_specialist_worker
+name: Flight Specialist Worker
+scope: global_reusable_worker
+runtime:
+  adapter: agent.py
+  implementation: ../../implementations/flight_specialist_worker.py
+  base: ../../base/base_worker.py
+card:
+  path: ../../cards/flight_specialist_card.json
+memory:
+  path: memory/MEMORY.md
+tools: []
+handoffs:
+  upstream:
+    - arr_worker_agents
+notes:
+  - Global travel-domain worker mirrored as a GitAgent-style folder.
+  - Not part of the MAAS legal massing flow.

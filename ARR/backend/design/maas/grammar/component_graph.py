@@ -19,20 +19,35 @@ GRAPH_SCHEMA_VERSION = "arr.maas.component_graph.v2"
 LEGACY_GRAPH_SCHEMA_VERSION = "arr.maas.component_graph.v1"
 GRAPH_NOTE_PREFIX = "component_graph_json="
 
-PRIMARY_VERBS = {"base", "bar", "extrude", "taper", "stack", "grade", "inset", "expand"}
-VOID_VERBS = {"notch", "cave", "courtyard", "puncture", "pinch", "embed", "nest"}
-CONNECTOR_VERBS = {"bridge", "diagonal_connect", "terrace_link", "interlock", "overlap"}
+PRIMARY_VERBS = {
+    "base", "bar", "branch", "compress", "expand", "extrude", "inflate",
+    "merge", "offset", "pack", "rotate", "skew", "stack", "taper", "twist",
+}
+VOID_VERBS = {
+    "carve", "cave", "courtyard", "embed", "extract", "fracture", "inscribe",
+    "nest", "notch", "pinch", "puncture",
+}
+CONNECTOR_VERBS = {
+    "bridge", "diagonal_connect", "interlock", "intersect", "join", "overlap",
+    "terrace_link",
+}
 
 
 def _role_for(verb: str, index: int) -> str:
     if index == 0 or verb == "base":
         return "root"
+    # A legacy flat VerbSequence has no explicit component ownership. Its first
+    # non-base operation is therefore the architectural primary regardless of
+    # whether the verb is additive, subtractive, connective or field-based.
+    # The previous allow-list left bend/array/offset/courtyard/step operations
+    # without a primary and Mass-Brain later promoted an arbitrary modifier,
+    # divorcing the advertised language from the compiled geometry.
+    if index == 1:
+        return "primary"
     if verb in VOID_VERBS:
         return "void"
     if verb in CONNECTOR_VERBS:
         return "connector"
-    if verb in PRIMARY_VERBS and index == 1:
-        return "primary"
     return "support"
 
 

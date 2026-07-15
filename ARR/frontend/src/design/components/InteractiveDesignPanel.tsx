@@ -473,7 +473,7 @@ const InteractiveDesignPanel: React.FC<Props> = ({
               AG-light React Flow
             </div>
             <div style={{ color: '#6b7280', fontSize: 9, marginTop: 2 }}>
-              JSON_MODULES 법규 · 주차 · 매스 · 최종검토 협업 그래프
+              JSON_MODULES 법규 · 주차 · MassDSL · 매스 · 문법검토 · 최종검토 협업 그래프
             </div>
           </div>
           <span style={{

@@ -5,8 +5,10 @@ import type { GeoJSONFeature, SetbackGeometriesMap } from './types';
 export const COLLABORATION_STEPS = [
   { label: '1 법규', agent: 'law_graph_agent', output: 'Graph DB 조항·제약·누락 evidence' },
   { label: '2 주차', agent: 'parking_agent', output: '법정대수·연접·전면도로/차로 검토' },
-  { label: '3 매스/디자인', agent: 'maas_geometry_agent', output: '법규를 만족하는 MAAS 형태·repair 근거' },
-  { label: '4 최종검토', agent: 'review_agent', output: '통과/보류/실패와 남은 리스크' },
+  { label: '3 MassDSL', agent: 'massdsl_agent', output: '법규·주차 evidence를 verb sequence로 구조화' },
+  { label: '4 매스/디자인', agent: 'maas_geometry_agent', output: '법규를 만족하는 MAAS 형태·repair 근거' },
+  { label: '5 문법검토', agent: 'grammar_critic_agent', output: '도형언어·section connector·evidence 완결성 검토' },
+  { label: '6 최종검토', agent: 'review_agent', output: '통과/보류/실패와 남은 리스크' },
 ];
 
 export type AgentTrace = AGLightReview & {
@@ -98,6 +100,9 @@ export const buildAgentTrace = (
   const layout = asRecord(sourceParking.layout_candidate);
   const layoutFormula = asRecord(layout.layout_formula);
   const maasModel = asRecord(props.maas_model || evidenceCandidate.maas_model);
+  const massdslProposal = asRecord(props.massdsl_proposal || maasModel.massdsl_proposal);
+  const grammarReview = asRecord(props.grammar_review || maasModel.grammar_review);
+  const massdslSourceRefs = asRecord(massdslProposal.source_refs);
   const designQuality = asRecord(props.design_quality || maasModel.design_quality);
   const sectionProfile = asRecord(props.section_profile || maasModel.section_profile);
   const datum = asRecord(getNested(setbackGeometries, ['datum_result']));
@@ -138,7 +143,9 @@ export const buildAgentTrace = (
   const reviewByAgent = new Map(reviews.map((review) => [review.agent, review]));
   const lawReview = reviewByAgent.get('law_graph_agent') || reviewByAgent.get('law_agent');
   const parkingReview = reviewByAgent.get('parking_agent');
+  const massdslReview = reviewByAgent.get('massdsl_agent');
   const maasReview = reviewByAgent.get('maas_geometry_agent');
+  const grammarCriticReview = reviewByAgent.get('grammar_critic_agent');
   const reviewAgent = reviewByAgent.get('review_agent') || reviewByAgent.get('design_critic');
   const legalMetrics = asRecord(maasModel.legal_metrics);
   const optimizerBackend = asRecord(designQuality.optimizer_backend);
@@ -178,6 +185,25 @@ export const buildAgentTrace = (
       }),
     },
     {
+      ...(massdslReview || { agent: 'massdsl_agent', label: 'MassDSL', status: 'info' as const, summary: 'MassDSL proposal 검증', detail: '' }),
+      agent: 'massdsl_agent',
+      refs: uniqueStrings([
+        asString(massdslProposal.schema_version),
+        asString(massdslProposal.proposal_id),
+        verbSequence,
+        asString(massdslSourceRefs.source_geometry_status),
+        asNumber(massdslSourceRefs.source_surface_count) !== undefined
+          ? `source surfaces ${asNumber(massdslSourceRefs.source_surface_count)}`
+          : '',
+      ], 8),
+      formula: compactText({
+        validation: massdslProposal.validation_status,
+        intent: asRecord(massdslProposal.intent),
+        constraints: asRecord(massdslProposal.constraints),
+      }, 'MassDSL proposal contract'),
+      decision: compactText(massdslProposal.rationale || 'MassDSL proposal evidence 확인'),
+    },
+    {
       ...(maasReview || { agent: 'maas_geometry_agent', label: '매스/기하', status: 'info' as const, summary: 'MAAS 매스 알고리즘 검증', detail: '' }),
       agent: 'maas_geometry_agent',
       refs: uniqueStrings([
@@ -202,6 +228,27 @@ export const buildAgentTrace = (
         quality: designQuality.score,
         volumes: asArray(maasModel.volumes).length || asArray(props.mass_volumes).length,
         floor_groups: asArray(maasModel.floor_groups || props.floor_groups).length,
+      }),
+    },
+    {
+      ...(grammarCriticReview || { agent: 'grammar_critic_agent', label: '문법검토', status: 'check' as const, summary: '도형언어/evidence 검토', detail: '' }),
+      agent: 'grammar_critic_agent',
+      refs: uniqueStrings([
+        asString(grammarReview.schema_version),
+        asString(grammarReview.family),
+        asArray(grammarReview.verbs),
+        asArray(grammarReview.issues),
+      ], 8),
+      formula: compactText({
+        section_language: grammarReview.has_section_language,
+        source_surfaces: grammarReview.has_source_surface_contract,
+        parking_evidence: grammarReview.has_parking_evidence,
+        volume_count: grammarReview.volume_count,
+        surface_count: grammarReview.surface_count,
+      }, 'grammar critic evidence'),
+      decision: compactText({
+        status: grammarReview.status,
+        issues: asArray(grammarReview.issues),
       }),
     },
     {

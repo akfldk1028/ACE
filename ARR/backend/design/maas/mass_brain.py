@@ -14,8 +14,14 @@ import httpx
 
 from design import config
 from design.maas.grammar.component_graph import graph_from_sequence
+from design.maas.grammar.parameter_schema import (
+    CATEGORICAL_PARAMETER_VALUES,
+    PARAMETERS_BY_VERB,
+    PARAMETER_BOUNDS,
+)
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.grammar.vocab import SUPPORTED_VERBS
+from design.maas.book_language import audited_book_language_registry
 from design.maas.morphology_operators import MorphologyVariant
 from design.maas.mass_brain_relation_profile import (
     relation_profile_from_feature,
@@ -39,6 +45,26 @@ class MassBrainSequenceBatch:
     sequences: tuple[VerbSequence, ...]
     proposals_by_sequence: dict[str, dict[str, Any]]
     artifact: dict[str, Any]
+
+
+def sync_book_language_corpus() -> dict[str, Any]:
+    """Idempotently publish ARR's audited BOOK registry to Mass-Brain.
+
+    This is explicit rather than coupled to routine generation because
+    Mass-Brain is intentionally OFF for selection after the fair ablation.
+    """
+    try:
+        response = config.mass_brain_client.post(
+            "/v1/corpora/ingest",
+            json=audited_book_language_registry(),
+        )
+        response.raise_for_status()
+        payload = response.json()
+        return {"status": "synced", **(payload if isinstance(payload, dict) else {})}
+    except (httpx.HTTPError, ValueError, TypeError) as exc:
+        response = getattr(exc, "response", None)
+        detail = response.text[:2000] if response is not None else ""
+        return {"status": "unavailable_fail_open", "error": f"{exc}{': ' + detail if detail else ''}"}
 
 
 def mass_brain_config(parking_options: dict[str, Any] | None) -> dict[str, Any]:
@@ -139,6 +165,7 @@ def request_shadow_sequences(
     program_type: str,
     site_aspect: str,
     parking_options: dict[str, Any] | None = None,
+    source_features_by_sequence: dict[str, dict[str, Any]] | None = None,
 ) -> MassBrainSequenceBatch:
     """Request graph-memory variants without coupling to legal geometry.
 
@@ -160,6 +187,7 @@ def request_shadow_sequences(
         project_key,
         sequences,
         context={"programType": program_type, "siteAspectBucket": site_aspect},
+        source_features_by_sequence=source_features_by_sequence,
     )
     payload, error = _request_proposals(envelope, project_key=project_key, settings=settings)
     if error:
@@ -222,8 +250,12 @@ def record_shadow_outcomes(
             "projectKey": project_key,
             "proposalId": proposal.get("proposalId"),
             "runId": f"{run_id}:{proposal.get('proposalId')}" if run_id else None,
-            "compilePassed": True,
-            "legalPassed": feature is not None,
+            # A proposal that never reached an ARR ProgramElite is a compile /
+            # hard-gate rejection, not a successful compile with a zero score.
+            "compilePassed": feature is not None,
+            # This shadow program loop has not run deterministic legal
+            # projection. Never turn mere feature existence into a legal pass.
+            "legalPassed": False,
             "parkingPassed": bool(layout.get("status") == "pass"),
             "geometryPassed": bool(feature and feature.get("geometry") and clean_mass_passed),
             "designQuality": _score01(design_quality.get("score") or design_quality.get("overall")),
@@ -233,6 +265,7 @@ def record_shadow_outcomes(
             "details": {
                 "operator": operator,
                 "shadow": True,
+                "legalProjectionStatus": "not_run",
                 "relationProfile": relation_profile,
                 "cleanMassPassed": clean_mass_passed,
                 "farUtilization": _score01(props.get("far_utilization")),
@@ -288,11 +321,13 @@ def _build_envelope(
     *,
     source_signatures: dict[str, dict[str, Any]] | None = None,
     context: dict[str, Any] | None = None,
+    source_features_by_sequence: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     features: list[dict[str, Any]] = []
     evidence: list[dict[str, Any]] = []
     payloads: dict[str, Any] = {}
     feature_ids: list[str] = []
+    relation_profiles: dict[str, dict[str, Any]] = {}
     for index, sequence in enumerate(sequences):
         feature_id = f"feature:arr-seed:{_safe_id(sequence.name)}"
         evidence_id = f"evidence:arr-seed:{_safe_id(sequence.name)}"
@@ -316,15 +351,30 @@ def _build_envelope(
             "confidence": 0.8,
         })
         component = graph_from_sequence(sequence).to_dict()
-        relation_profile = relation_profile_from_sequence(
-            sequence.calls,
-            source_signature=(source_signatures or {}).get(sequence.name),
+        source_feature = (source_features_by_sequence or {}).get(sequence.name)
+        relation_profile = (
+            relation_profile_from_feature(source_feature)
+            if isinstance(source_feature, dict)
+            else relation_profile_from_sequence(
+                sequence.calls,
+                source_signature=(source_signatures or {}).get(sequence.name),
+            )
         )
+        relation_profiles[feature_id] = relation_profile
+        evaluation = _evaluated_parent_evidence(source_feature, relation_profile)
+        features[-1]["pipelineStage"] = "evaluated_parent" if evaluation["eligibleForRecombination"] else "seed_generation"
+        features[-1]["metadata"]["formal_principle"] = relation_profile["formalStrategy"]
         payloads[feature_id] = {
             "family": family,
             "relationProfile": relation_profile,
             "context": dict(context or {}),
+            "evaluation": evaluation,
+            "source": {
+                "sequenceName": sequence.name,
+                "provenanceNotes": list(sequence.notes[:8]),
+            },
             "componentGraph": {
+                "schemaVersion": component.get("schema_version"),
                 "name": component["name"],
                 "label": component["label"],
                 "nodes": [
@@ -334,6 +384,12 @@ def _build_envelope(
                         "parentId": node["parent_id"],
                         "optional": node["optional"],
                         "operation": node["operation"],
+                        "constraints": dict(node.get("constraints") or {}),
+                        "relation": str(node.get("relation") or "attach"),
+                        "parameterSchema": _parameter_schema_for_verb(
+                            str((node.get("operation") or {}).get("verb") or ""),
+                            dict((node.get("operation") or {}).get("params") or {}),
+                        ),
                     }
                     for node in component["nodes"]
                 ],
@@ -341,7 +397,7 @@ def _build_envelope(
         }
     circuits = []
     relations = []
-    for index, (source, target) in enumerate(combinations(feature_ids, 2)):
+    for index, (source, target) in enumerate(_sparse_relation_pairs(feature_ids, payloads)):
         source_sequence = sequences[feature_ids.index(source)]
         target_sequence = sequences[feature_ids.index(target)]
         confidence = 0.9 if _family(source_sequence) != _family(target_sequence) else 0.68
@@ -359,7 +415,7 @@ def _build_envelope(
             "id": f"relation:arr-seed:{index}",
             "sourceNodeId": source,
             "targetNodeId": target,
-            "type": "recombination_candidate",
+            "type": "recombination_candidate" if confidence > 0.8 else "same_strategy_support",
             "confidence": confidence,
             "evidenceIds": [],
             "metadata": {"source": "arr_massdsl"},
@@ -370,7 +426,10 @@ def _build_envelope(
         "contract": {
             "schemaVersion": "grl/v1",
             "dataset": {"id": project_key, "title": f"ARR Mass Brain {project_key}", "source": "ARR/design/maas"},
-            "stages": [{"id": "seed_generation", "label": "Seed Generation"}],
+            "stages": [
+                {"id": "seed_generation", "label": "Seed Generation"},
+                {"id": "evaluated_parent", "label": "Evaluated Parent"},
+            ],
             "features": features,
             "evidence": evidence,
             "circuits": circuits,
@@ -379,6 +438,69 @@ def _build_envelope(
         },
         "domainPayloads": payloads,
     }
+
+
+def _evaluated_parent_evidence(
+    feature: dict[str, Any] | None,
+    relation_profile: dict[str, Any],
+) -> dict[str, Any]:
+    props = feature.get("properties") if isinstance(feature, dict) and isinstance(feature.get("properties"), dict) else {}
+    spatial = props.get("program_spatial_evidence") if isinstance(props.get("program_spatial_evidence"), dict) else {}
+    capacity = props.get("massing_capacity_policy") if isinstance(props.get("massing_capacity_policy"), dict) else {}
+    far_utilization = _score01(props.get("normalized_far_utilization"))
+    minimum_far = _score01(capacity.get("min_far_utilization"))
+    has_feature = isinstance(feature, dict)
+    compile_passed = bool(has_feature and feature.get("geometry"))
+    program_passed = bool(spatial.get("hard_pass", True)) if has_feature else False
+    capacity_passed = bool(has_feature and far_utilization + 1e-9 >= minimum_far)
+    clean_mass_passed = bool(has_feature and _clean_mass_pass(relation_profile))
+    eligible = bool(compile_passed and program_passed and capacity_passed and clean_mass_passed)
+    return {
+        "requiredForRecombination": True,
+        "eligibleForRecombination": eligible,
+        "compilePassed": compile_passed,
+        "geometryPassed": compile_passed,
+        "programPassed": program_passed,
+        "capacityPassed": capacity_passed,
+        "cleanMassPassed": clean_mass_passed,
+        "farUtilization": far_utilization,
+        "minimumFarUtilization": minimum_far,
+        "legalPassed": None,
+        "parkingPassed": None,
+    }
+
+
+def _sparse_relation_pairs(
+    feature_ids: list[str],
+    payloads: dict[str, Any],
+    *,
+    maximum_degree: int = 4,
+) -> list[tuple[str, str]]:
+    """Build a readable evidence graph without changing generation search.
+
+    Mass-Brain computes compatibility from typed payloads. GRL edges are for
+    evidence/navigation, so a complete n*(n-1)/2 graph adds no intelligence and
+    makes the activation UI unreadable. Each feature keeps one same-strategy
+    neighbor and up to three contrasting strategy/family neighbors.
+    """
+    if len(feature_ids) < 2:
+        return []
+    pairs: set[tuple[str, str]] = set()
+    for index, source in enumerate(feature_ids):
+        source_payload = payloads[source]
+        source_strategy = str((source_payload.get("relationProfile") or {}).get("formalStrategy") or "")
+        source_family = str(source_payload.get("family") or "")
+        candidates = [*feature_ids[index + 1:], *feature_ids[:index]]
+        same = [target for target in candidates if str((payloads[target].get("relationProfile") or {}).get("formalStrategy") or "") == source_strategy]
+        contrast = [
+            target for target in candidates
+            if str((payloads[target].get("relationProfile") or {}).get("formalStrategy") or "") != source_strategy
+            or str(payloads[target].get("family") or "") != source_family
+        ]
+        selected = same[:1] + contrast[: max(0, maximum_degree - min(1, len(same)))]
+        for target in selected:
+            pairs.add(tuple(sorted((source, target))))
+    return sorted(pairs)
 
 
 def _sequence_from_proposal(proposal: dict[str, Any]) -> VerbSequence | None:
@@ -395,6 +517,44 @@ def _sequence_from_proposal(proposal: dict[str, Any]) -> VerbSequence | None:
         notes=(f"mass_brain_sources={','.join(str(item) for item in proposal.get('sourceNodeIds') or [])}",),
     )
     return None if sequence.validate() else sequence
+
+
+def _parameter_schema_for_verb(verb: str, observed_params: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Export ARR's executable parameter contract with every graph node.
+
+    Mass-Brain must preserve these declared bounds/types when it recombines a
+    typed subgraph. This is metadata, not a parcel-specific hardcoded form.
+    """
+    observed = dict(observed_params or {})
+    # Persisted/LLM-authored graphs predate parts of the canonical contract.
+    # An already compiled parent must remain exactly reproducible, so export
+    # the canonical mutation domain plus any observed source fields instead of
+    # rejecting the complete envelope at the service boundary.
+    names = tuple(dict.fromkeys((*PARAMETERS_BY_VERB.get(verb, ()), *observed.keys())))
+    numeric_bounds: dict[str, dict[str, float]] = {}
+    categorical_values: dict[str, list[str]] = {}
+    for name in names:
+        value = observed.get(name)
+        if name in PARAMETER_BOUNDS:
+            low, high = PARAMETER_BOUNDS[name]
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                low = min(low, float(value))
+                high = max(high, float(value))
+            numeric_bounds[name] = {"minimum": low, "maximum": high}
+        if name in CATEGORICAL_PARAMETER_VALUES:
+            values = list(CATEGORICAL_PARAMETER_VALUES[name])
+            if isinstance(value, str) and value not in values:
+                values.append(value)
+            categorical_values[name] = values
+    return {
+        "allowedParameters": list(names),
+        "numericBounds": numeric_bounds,
+        "categoricalValues": categorical_values,
+        "structuredParameters": [
+            name for name in names
+            if name not in PARAMETER_BOUNDS and name not in CATEGORICAL_PARAMETER_VALUES
+        ],
+    }
 
 
 def _unique_sequences(variants: Iterable[MorphologyVariant]) -> list[VerbSequence]:
@@ -453,7 +613,9 @@ def _request_proposals(
         payload = proposal_response.json()
         return (payload if isinstance(payload, dict) else {}), None
     except (httpx.HTTPError, ValueError, TypeError) as exc:
-        return {}, str(exc)
+        response = getattr(exc, "response", None)
+        detail = response.text[:2000] if response is not None else ""
+        return {}, f"{exc}{': ' + detail if detail else ''}"
 
 
 def _family(sequence: VerbSequence) -> str:
@@ -502,4 +664,5 @@ __all__ = [
     "record_proposal_feedback",
     "request_shadow_sequences",
     "request_shadow_variants",
+    "sync_book_language_corpus",
 ]

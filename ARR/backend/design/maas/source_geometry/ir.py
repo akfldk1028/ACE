@@ -132,6 +132,9 @@ class SourceMass:
         continuous_surface_evidence = self.metadata.get("continuous_surface_evidence")
         if not isinstance(continuous_surface_evidence, dict):
             continuous_surface_evidence = {}
+        program_section_graph_evidence = self.metadata.get("program_section_graph_evidence")
+        if not isinstance(program_section_graph_evidence, dict):
+            program_section_graph_evidence = {}
         site_frame_evidence = self.metadata.get("site_frame_evidence")
         if not isinstance(site_frame_evidence, dict):
             site_frame_evidence = {}
@@ -230,6 +233,7 @@ class SourceMass:
             "graph_materialization_evidence": graph_materialization_evidence,
             "coherence_evidence": coherence_evidence,
             "continuous_surface_evidence": continuous_surface_evidence,
+            "program_section_graph_evidence": program_section_graph_evidence,
             "site_frame_evidence": site_frame_evidence,
             "architectural_ambition_evidence": ambition_evidence,
             "secondary_family": secondary_family,

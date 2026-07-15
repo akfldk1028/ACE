@@ -12,6 +12,7 @@ PARAMETER_BOUNDS: dict[str, tuple[float, float]] = {
     "lane_width_ratio": (0.045, 0.22),
     "arm_ratio": (0.10, 0.90),
     "branch_ratio": (0.10, 0.90),
+    "bar_ratio": (0.08, 0.48),
     "width_gradient": (-0.30, 0.30),
     "width_start_ratio": (0.45, 1.35),
     "width_mid_ratio": (0.65, 1.55),
@@ -71,6 +72,9 @@ CATEGORICAL_PARAMETER_VALUES: dict[str, tuple[str, ...]] = {
     "open_side": ("closed", "north", "south", "east", "west"),
     "field_topology": ("parallel", "branched"),
     "vertical_mode": ("terraced", "grounded"),
+    "position": ("center", "north", "south", "east", "west"),
+    "orientation": ("long_axis", "short_axis", "vertical"),
+    "base_volume_label": ("1/1", "3/8", "1/2", "1/4", "1/8", "1/16"),
 }
 
 
@@ -78,6 +82,7 @@ CATEGORICAL_PARAMETER_VALUES: dict[str, tuple[str, ...]] = {
 # Keeping this in the grammar layer prevents the author prompt from accepting a
 # parameter that the mutation layer will silently discard.
 PARAMETERS_BY_VERB: dict[str, tuple[str, ...]] = {
+    "select_book_scope": ("base_volume_label", "orientation"),
     "notch": ("corner", "ratio"),
     "cave": ("side", "width_ratio", "depth_ratio"),
     "courtyard": ("ratio", "open_side", "upper_ratio", "lower_floor_fraction"),
@@ -103,6 +108,22 @@ PARAMETERS_BY_VERB: dict[str, tuple[str, ...]] = {
         "stagger_ratio", "lower_floor_fraction",
     ),
     "reflect": ("axis", "gap_ratio", "unit_scale", "upper_ratio", "lower_floor_fraction"),
+    "inflate": ("factor", "upper_ratio", "lower_floor_fraction"),
+    "merge": ("axis", "gap_ratio", "unit_scale", "upper_ratio", "lower_floor_fraction"),
+    "skew": ("axis", "angle", "upper_ratio", "lower_floor_fraction"),
+    "twist": ("angle", "upper_ratio", "lower_floor_fraction"),
+    "intersect": ("angle", "factor", "upper_ratio", "lower_floor_fraction"),
+    "lodge": ("axis", "distance_ratio", "guest_scale", "upper_ratio", "lower_floor_fraction"),
+    "rotate": ("angle", "factor", "upper_ratio", "lower_floor_fraction"),
+    "carve": ("side", "width_ratio", "depth_ratio", "upper_ratio", "lower_floor_fraction"),
+    "compress": ("axis", "factor", "upper_ratio", "lower_floor_fraction"),
+    "fracture": ("axis", "gap_ratio", "angle", "upper_ratio", "lower_floor_fraction"),
+    "shear": ("axis", "angle", "upper_ratio", "lower_floor_fraction"),
+    "extract": ("side", "ratio", "distance_ratio", "upper_ratio", "lower_floor_fraction"),
+    "inscribe": ("ratio", "open_side", "upper_ratio", "lower_floor_fraction"),
+    "puncture": ("ratio", "axis", "n", "spacing_ratio", "upper_ratio", "lower_floor_fraction"),
+    "pack": ("axis", "n", "spacing_ratio", "unit_scale", "upper_ratio", "lower_floor_fraction"),
+    "join": ("axis", "gap_ratio", "unit_scale", "bridge_ratio", "upper_ratio", "lower_floor_fraction"),
     "interlock": ("angle", "bar_ratio", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
     "overlap": ("axis", "slab_ratio", "shift_ratio", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
     "lift": ("upper_ratio", "lower_floor_fraction"),

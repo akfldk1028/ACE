@@ -204,29 +204,9 @@ def run_neighborhood_vlm_a2a_loop(
             *creative_seed_sequences(),
         )
     }.values())
-    brain_options = {
-        "mass_brain": {"enabled": bool(mass_brain_enabled), "count": min(20, max(8, target_count))}
-    }
-    mass_brain_batch = request_shadow_sequences(
-        source_sequences=base_seeds,
-        project_key=str(site_pnu or output_json.stem),
-        program_type=building_type,
-        site_aspect=site_aspect_bucket(base),
-        parking_options=brain_options,
-    )
-    mass_brain_rollout = mass_brain_batch.artifact.get("rollout") if isinstance(mass_brain_batch.artifact.get("rollout"), dict) else {}
-    mass_brain_active_slots = (
-        min(4, max(0, int(mass_brain_rollout.get("slots") or 0)))
-        if mass_brain_rollout.get("mode") == "active"
-        else 0
-    )
-    seeds = tuple({
-        sequence.name: sequence
-        for sequence in (
-            *base_seeds,
-            *(mass_brain_batch.sequences if mass_brain_active_slots else ()),
-        )
-    }.values())
+    # Exact persisted/authored seeds belong to the baseline generator. They
+    # must remain available when Mass-Brain is disabled, otherwise an ON/OFF
+    # comparison also removes proven baseline geometry and is not an ablation.
     persisted_seed_elites = [
         elite
         for sequence in persisted_accepted_sequences
@@ -249,6 +229,53 @@ def run_neighborhood_vlm_a2a_loop(
             far_limit_ratio=far_limit_ratio,
         )) is not None
     ]
+
+    # Mass-Brain learns from executable geometry, not raw labels. Its stricter
+    # no-capacity-projection evidence pass is isolated from the baseline pool
+    # so disabling memory changes only memory/proposal work.
+    evaluated_base_seed_elites: dict[str, ProgramElite] = {}
+    if mass_brain_enabled:
+        for sequence in base_seeds:
+            elite = _compile_verified(
+                base,
+                sequence,
+                building_type=building_type,
+                capacity_policy=capacity_policy,
+                far_limit_ratio=far_limit_ratio,
+                _allow_capacity_projection=False,
+            )
+            if elite is not None:
+                evaluated_base_seed_elites[sequence.name] = elite
+    mass_brain_source_sequences = tuple(
+        elite.sequence for elite in evaluated_base_seed_elites.values()
+    )
+    brain_options = {
+        "mass_brain": {"enabled": bool(mass_brain_enabled), "count": min(20, max(8, target_count))}
+    }
+    mass_brain_batch = request_shadow_sequences(
+        source_sequences=mass_brain_source_sequences,
+        project_key=str(site_pnu or output_json.stem),
+        program_type=building_type,
+        site_aspect=site_aspect_bucket(base),
+        parking_options=brain_options,
+        source_features_by_sequence={
+            elite.sequence.name: elite.feature
+            for elite in evaluated_base_seed_elites.values()
+        },
+    )
+    mass_brain_rollout = mass_brain_batch.artifact.get("rollout") if isinstance(mass_brain_batch.artifact.get("rollout"), dict) else {}
+    mass_brain_active_slots = (
+        min(4, max(0, int(mass_brain_rollout.get("slots") or 0)))
+        if mass_brain_rollout.get("mode") == "active"
+        else 0
+    )
+    seeds = tuple({
+        sequence.name: sequence
+        for sequence in (
+            *base_seeds,
+            *(mass_brain_batch.sequences if mass_brain_active_slots else ()),
+        )
+    }.values())
     mass_brain_seed_elites = [
         elite
         for sequence in mass_brain_batch.sequences
@@ -701,6 +728,17 @@ def run_neighborhood_vlm_a2a_loop(
     )
     persisted_selected_count = sum(1 for item in final_archive if _is_persisted_accepted_seed(item))
     fresh_selected_count = len(final_archive) - persisted_selected_count
+    mass_brain_selected_count = sum(
+        1
+        for item in final_archive
+        if isinstance(item.feature.get("properties", {}).get("mass_brain_shadow"), dict)
+    )
+    mass_brain_artifact["final_selection_admitted_count"] = mass_brain_selected_count
+    mass_brain_artifact["final_selection_effect"] = (
+        "candidate_admitted"
+        if mass_brain_selected_count
+        else "none"
+    )
     site_record = {
         "pnu": site_pnu,
         "boundary_source": site_boundary_source,

@@ -544,6 +544,12 @@ export interface MaasLegalVariantsResult {
     features: GeoJSONFeature[];
   };
   rejected: Array<Record<string, unknown>>;
+  agent_reviews?: Array<Record<string, unknown>>;
+  agent_trace?: Array<Record<string, unknown>>;
+  a2ui_messages?: Array<Record<string, unknown>>;
+  massdsl_proposals?: Array<Record<string, unknown>>;
+  grammar_review?: Record<string, unknown> | null;
+  grammar_reviews?: Array<Record<string, unknown>>;
   notes: string[];
 }
 

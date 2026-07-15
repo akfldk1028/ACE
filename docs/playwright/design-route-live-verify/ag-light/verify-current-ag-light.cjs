@@ -28,8 +28,21 @@ async function main() {
     }
   });
 
+  await page.route("**/*", async (route) => {
+    const request = route.request();
+    if (request.isNavigationRequest()) {
+      await route.continue({
+        headers: {
+          ...request.headers(),
+          accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        },
+      });
+      return;
+    }
+    await route.continue();
+  });
   await page.goto(`${FRONTEND_URL}?verifyTs=${Date.now()}`, { waitUntil: "domcontentloaded", timeout: 60000 });
-  await page.waitForSelector('input[placeholder="PNU 코드 (19자리) 또는 주소"]', { timeout: 30000 });
+  await page.waitForSelector('input[placeholder="PNU 코드 (19자리) 또는 주소"]', { timeout: 60000 });
   await page.fill('input[placeholder="PNU 코드 (19자리) 또는 주소"]', PNU);
   await page.getByRole("button", { name: "조회" }).click({ force: true });
   await page.waitForTimeout(12000);
@@ -91,12 +104,14 @@ async function main() {
       agBlockText: agBlock ? (agBlock.textContent || "").slice(0, 1600) : "",
       hasLawGraphAgent: text.includes("law_graph_agent"),
       hasParkingAgent: text.includes("parking_agent"),
+      hasMassDSLAgent: text.includes("massdsl_agent"),
       hasMaasGeometryAgent: text.includes("maas_geometry_agent"),
+      hasGrammarCriticAgent: text.includes("grammar_critic_agent"),
       hasReviewAgent: text.includes("review_agent"),
       hasReasoningTrace: text.includes("Agent reasoning trace"),
       hasFormulaRefsDecision: text.includes("공식") && text.includes("참조") && text.includes("판단"),
       hasMaasAlgorithmEvidence: text.includes("MAAS") && (text.includes("quality") || text.includes("arr.maas.design_quality.v1")),
-      hasSequentialHandoff: text.includes("law_graph_agent") && text.includes("parking_agent") && text.includes("maas_geometry_agent") && text.includes("review_agent"),
+      hasSequentialHandoff: text.includes("law_graph_agent") && text.includes("parking_agent") && text.includes("massdsl_agent") && text.includes("maas_geometry_agent") && text.includes("grammar_critic_agent") && text.includes("review_agent"),
       hasWebglFallback: text.includes("WebGL fallback"),
       designFeatureCount: features.length,
       selectedMassShape: selectedProps.mass_shape || null,
@@ -140,14 +155,18 @@ async function main() {
     result.responseErrors.length ||
     !state.hasAgLightBlock ||
     !state.hasReactFlow ||
-    state.reactFlowNodes < 6 ||
-    state.overlayEdges < 5 ||
+    state.reactFlowNodes < 8 ||
+    state.overlayEdges < 7 ||
     !state.transferStatusText.includes(PNU) ||
     !state.transferStatusText.includes("법규") ||
     !state.transferStatusText.includes("주차") ||
+    !state.transferStatusText.includes("MassDSL") ||
+    !state.transferStatusText.includes("문법검토") ||
     !state.hasLawGraphAgent ||
     !state.hasParkingAgent ||
+    !state.hasMassDSLAgent ||
     !state.hasMaasGeometryAgent ||
+    !state.hasGrammarCriticAgent ||
     !state.hasReviewAgent ||
     !state.hasReasoningTrace ||
     !state.hasFormulaRefsDecision ||

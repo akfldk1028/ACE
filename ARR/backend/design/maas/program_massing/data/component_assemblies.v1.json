@@ -207,6 +207,83 @@
         {"role": "housing_east_shared_entry_core", "bounds": [0.68, 0.32, 0.86, 0.68], "height": [0.00, 0.82], "verb": "lift"}
       ]
     },
+    "program_neighborhood_active_bar": {
+      "profile_id": "neighborhood_living",
+      "family": "slender_bar",
+      "assembly_method": "normalized_role_graph_not_parcel_coordinates",
+      "mutation": {"coordinate_delta": 0.06, "height_delta": 0.10, "rotation_delta": 4.0},
+      "components": [
+        {"role": "neighborhood_primary_active_bar", "polygon": [[0.08, 0.22], [0.90, 0.16], [0.94, 0.58], [0.12, 0.64]], "height": [0.00, 0.78], "verb": "bar"},
+        {"role": "neighborhood_public_ground_platform", "polygon": [[0.02, 0.10], [0.72, 0.06], [0.76, 0.22], [0.06, 0.28]], "height": [0.00, 0.24], "verb": "cave"},
+        {"role": "neighborhood_entry_canopy", "polygon": [[0.34, 0.58], [0.88, 0.50], [0.90, 0.68], [0.38, 0.76]], "height": [0.50, 1.00], "verb": "lift"}
+      ]
+    },
+    "program_neighborhood_court_terrace": {
+      "profile_id": "neighborhood_living",
+      "family": "courtyard",
+      "assembly_method": "normalized_role_graph_not_parcel_coordinates",
+      "mutation": {"coordinate_delta": 0.055, "height_delta": 0.10, "rotation_delta": 3.0},
+      "components": [
+        {"role": "neighborhood_primary_north_terrace", "polygon": [[0.08, 0.62], [0.92, 0.56], [0.94, 0.84], [0.12, 0.90]], "height": [0.00, 1.00], "verb": "courtyard"},
+        {"role": "neighborhood_active_west_terrace", "polygon": [[0.06, 0.16], [0.30, 0.14], [0.34, 0.66], [0.10, 0.72]], "height": [0.00, 0.68], "verb": "courtyard"},
+        {"role": "neighborhood_public_east_terrace", "polygon": [[0.68, 0.28], [0.94, 0.22], [0.92, 0.60], [0.68, 0.64]], "height": [0.00, 0.48], "verb": "terrace_link"},
+        {"role": "neighborhood_entry_bridge", "polygon": [[0.26, 0.48], [0.76, 0.38], [0.80, 0.52], [0.30, 0.62]], "height": [0.42, 0.62], "verb": "terrace_link"}
+      ]
+    },
+    "program_neighborhood_stepback_corner": {
+      "profile_id": "neighborhood_living",
+      "family": "offset",
+      "assembly_method": "normalized_role_graph_not_parcel_coordinates",
+      "mutation": {"coordinate_delta": 0.055, "height_delta": 0.10, "rotation_delta": 4.0},
+      "components": [
+        {"role": "neighborhood_primary_ground_corner", "polygon": [[0.06, 0.14], [0.92, 0.10], [0.94, 0.44], [0.38, 0.50], [0.36, 0.82], [0.10, 0.86]], "height": [0.00, 0.46], "verb": "offset"},
+        {"role": "neighborhood_shifted_upper_bar", "polygon": [[0.24, 0.36], [0.84, 0.30], [0.88, 0.58], [0.30, 0.66]], "height": [0.46, 0.82], "verb": "offset"},
+        {"role": "neighborhood_public_corner_room", "polygon": [[0.12, 0.56], [0.42, 0.52], [0.46, 0.84], [0.16, 0.90]], "height": [0.46, 1.00], "verb": "lift"}
+      ]
+    },
+    "program_neighborhood_landscape_ribbons": {
+      "profile_id": "neighborhood_living",
+      "family": "bend",
+      "assembly_method": "normalized_role_graph_not_parcel_coordinates",
+      "mutation": {"coordinate_delta": 0.045, "height_delta": 0.10, "rotation_delta": 2.0},
+      "components": [
+        {"role": "neighborhood_primary_ground_ribbon", "path": [[0.04, 0.20], [0.30, 0.12], [0.58, 0.24], [0.94, 0.16]], "width_ratio": 0.125, "height": [0.00, 0.48], "roof_profile": [0.34, 0.46, 0.40, 0.56], "verb": "bend"},
+        {"role": "neighborhood_public_middle_ribbon", "path": [[0.06, 0.46], [0.32, 0.34], [0.62, 0.48], [0.92, 0.38]], "width_ratio": 0.125, "height": [0.00, 0.74], "roof_profile": [0.48, 0.66, 0.56, 0.80], "verb": "bend"},
+        {"role": "neighborhood_upper_landscape_ribbon", "path": [[0.10, 0.72], [0.36, 0.58], [0.66, 0.72], [0.90, 0.62]], "width_ratio": 0.120, "height": [0.18, 1.00], "roof_profile": [0.64, 0.84, 0.74, 0.96], "verb": "bend"},
+        {"role": "neighborhood_active_entry_link", "polygon": [[0.40, 0.12], [0.56, 0.14], [0.60, 0.70], [0.44, 0.72]], "height": [0.00, 0.38], "verb": "terrace_link"}
+      ]
+    },
+    "program_cultural_court_bridge": {
+      "profile_id": "cultural",
+      "family": "courtyard",
+      "mutation": {"coordinate_delta": 0.04, "height_delta": 0.08, "rotation_delta": 2.0},
+      "components": [
+        {"role": "cultural_main_gallery_hall", "bounds": [0.08, 0.18, 0.70, 0.86], "height": [0.00, 0.78], "verb": "courtyard"},
+        {"role": "cultural_public_court_hall", "bounds": [0.70, 0.34, 0.94, 0.86], "height": [0.12, 1.00], "verb": "bar"},
+        {"role": "cultural_entry_bridge", "polygon": [[0.24, 0.08], [0.82, 0.16], [0.78, 0.30], [0.20, 0.22]], "height": [0.28, 0.46], "verb": "diagonal_connect"}
+      ]
+    },
+    "program_cultural_carved_gallery_spine": {
+      "profile_id": "cultural",
+      "family": "void_notch",
+      "mutation": {"coordinate_delta": 0.04, "height_delta": 0.08, "rotation_delta": 2.5},
+      "components": [
+        {"role": "cultural_main_gallery_spine", "polygon": [[0.08, 0.18], [0.88, 0.12], [0.92, 0.48], [0.32, 0.56], [0.26, 0.88], [0.08, 0.82]], "height": [0.00, 0.76], "verb": "carve"},
+        {"role": "cultural_public_court_room", "bounds": [0.52, 0.50, 0.90, 0.88], "height": [0.76, 1.00], "verb": "inscribe"},
+        {"role": "cultural_entry_ramp", "polygon": [[0.10, 0.04], [0.68, 0.08], [0.70, 0.18], [0.12, 0.14]], "height": [0.00, 0.20], "verb": "lift"}
+      ]
+    },
+    "program_cultural_split_gallery_ramp": {
+      "profile_id": "cultural",
+      "family": "split",
+      "mutation": {"coordinate_delta": 0.035, "height_delta": 0.07, "rotation_delta": 3.0},
+      "components": [
+        {"role": "cultural_west_gallery_hall", "polygon": [[0.06, 0.16], [0.46, 0.10], [0.52, 0.82], [0.10, 0.88]], "height": [0.00, 0.74], "verb": "split"},
+        {"role": "cultural_east_public_hall", "polygon": [[0.54, 0.18], [0.92, 0.12], [0.94, 0.82], [0.58, 0.88]], "height": [0.08, 0.92], "verb": "split"},
+        {"role": "cultural_court_bridge", "polygon": [[0.30, 0.44], [0.76, 0.34], [0.80, 0.48], [0.34, 0.58]], "height": [0.54, 1.00], "verb": "diagonal_connect"},
+        {"role": "cultural_entry_ramp", "bounds": [0.38, 0.08, 0.62, 0.34], "height": [0.00, 0.46], "verb": "lift"}
+      ]
+    },
     "program_cafe_terrace_pavilion": {
       "profile_id": "cafe",
       "family": "terrace_link",
@@ -245,6 +322,48 @@
         {"role": "gym_compact_main_hall", "bounds": [0.14, 0.16, 0.94, 0.84], "height": [0.00, 0.88], "verb": "bar"},
         {"role": "gym_tall_daylight_monitor", "bounds": [0.28, 0.34, 0.80, 0.66], "height": [0.88, 1.00], "verb": "sloped_roof_mass"},
         {"role": "gym_entry_service_bar", "bounds": [0.04, 0.24, 0.14, 0.76], "height": [0.00, 0.42], "verb": "cave"}
+      ]
+    },
+    "program_gym_folded_service_hall": {
+      "profile_id": "gymnasium",
+      "family": "sloped_roof",
+      "mutation": {"coordinate_delta": 0.035, "height_delta": 0.06},
+      "components": [
+        {"role": "gym_main_folded_hall", "bounds": [0.08, 0.16, 0.88, 0.82], "height": [0.00, 1.00], "verb": "sloped_roof_mass"},
+        {"role": "gym_folded_service_spine", "bounds": [0.50, 0.80, 0.96, 0.99], "height": [0.00, 0.42], "verb": "bar"},
+        {"role": "gym_folded_entry_canopy", "bounds": [0.08, 0.04, 0.52, 0.18], "height": [0.28, 0.42], "verb": "cave"}
+      ]
+    },
+    "program_gym_sawtooth_daylight_hall": {
+      "profile_id": "gymnasium",
+      "family": "sloped_roof",
+      "mutation": {"coordinate_delta": 0.03, "height_delta": 0.055},
+      "components": [
+        {"role": "gym_main_sawtooth_hall", "bounds": [0.08, 0.14, 0.88, 0.82], "height": [0.00, 0.82], "verb": "sloped_roof_mass"},
+        {"role": "gym_daylight_monitor_spine", "bounds": [0.18, 0.36, 0.80, 0.52], "height": [0.82, 1.00], "verb": "sloped_roof_mass"},
+        {"role": "gym_sawtooth_service_spine", "bounds": [0.08, 0.82, 0.94, 0.96], "height": [0.00, 0.36], "verb": "bar"},
+        {"role": "gym_sawtooth_entry_canopy", "bounds": [0.50, 0.02, 0.90, 0.18], "height": [0.24, 0.38], "verb": "cave"}
+      ]
+    },
+    "program_gym_stepped_section_hall": {
+      "profile_id": "gymnasium",
+      "family": "sloped_roof",
+      "mutation": {"coordinate_delta": 0.035, "height_delta": 0.065},
+      "components": [
+        {"role": "gym_main_stepped_section_hall", "bounds": [0.10, 0.12, 0.92, 0.82], "height": [0.00, 1.00], "verb": "grade"},
+        {"role": "gym_stepped_service_spine", "bounds": [0.10, 0.82, 0.64, 0.96], "height": [0.00, 0.34], "verb": "bar"},
+        {"role": "gym_stepped_entry_canopy", "bounds": [0.62, 0.02, 0.94, 0.16], "height": [0.22, 0.36], "verb": "cave"}
+      ]
+    },
+    "program_gym_carved_entry_hall": {
+      "profile_id": "gymnasium",
+      "family": "void_notch",
+      "mutation": {"coordinate_delta": 0.035, "height_delta": 0.06},
+      "components": [
+        {"role": "gym_main_carved_entry_hall", "bounds": [0.08, 0.12, 0.92, 0.84], "height": [0.00, 1.00], "verb": "sloped_roof_mass"},
+        {"role": "gym_carved_service_spine", "bounds": [0.08, 0.84, 0.92, 0.96], "height": [0.00, 0.38], "verb": "bar"},
+        {"role": "gym_carved_entry_void", "bounds": [0.38, 0.08, 0.62, 0.30], "height": [0.00, 0.44], "verb": "cave"},
+        {"role": "gym_carved_entry_canopy", "bounds": [0.32, 0.06, 0.68, 0.18], "height": [0.26, 0.40], "verb": "cave"}
       ]
     }
   }

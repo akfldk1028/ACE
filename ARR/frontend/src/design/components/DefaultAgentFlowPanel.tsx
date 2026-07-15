@@ -9,7 +9,7 @@ const DEFAULT_AGENT_FLOW_MESSAGES: AGLightMessage[] = [
   {
     from_agent: 'user',
     to_agent: 'design_orchestrator',
-    message: '기본 프롬프트: PNU/후보가 들어오면 법규 그래프, 주차, MAAS 매스, 최종검토 에이전트가 순차 검토합니다.',
+    message: '기본 프롬프트: PNU/후보가 들어오면 법규 그래프, 주차, MassDSL, MAAS 매스, 문법검토, 최종검토 에이전트가 순차 검토합니다.',
     event_type: 'prompt_template',
   },
 ];
@@ -20,7 +20,9 @@ const FLOW_AGENT_IDS = new Set([
   'law_graph_agent',
   'law_agent',
   'parking_agent',
+  'massdsl_agent',
   'maas_geometry_agent',
+  'grammar_critic_agent',
   'sunlight_agent',
   'datum_agent',
   'review_agent',
@@ -55,7 +57,7 @@ export default function DefaultAgentFlowPanel({
     return {
       from_agent: 'user',
       to_agent: 'design_orchestrator',
-      message: `PNU ${pnu} 입력됨: 법규 그래프, 주차, 매스/기준면, 최종검토 순서로 전달 대기`,
+      message: `PNU ${pnu} 입력됨: 법규 그래프, 주차, MassDSL, 매스/기준면, 문법검토, 최종검토 순서로 전달 대기`,
       event_type: 'pnu_context',
       metadata: { pnu },
     };
@@ -200,7 +202,7 @@ export default function DefaultAgentFlowPanel({
         helperText="AG-light가 켜져 있으면 선택 agent의 bus로 바로 전송됩니다."
       />
       <div style={{ marginTop: 8, color: '#94a3b8', fontSize: 10, lineHeight: 1.5 }}>
-        후보를 선택하면 이 흐름에 실제 법규 evidence, 주차 검토, MAAS 매스 검토 결과가 붙습니다.
+        후보를 선택하면 이 흐름에 실제 법규 evidence, 주차 검토, MassDSL proposal, MAAS 매스 검토 결과가 붙습니다.
       </div>
     </div>
   );

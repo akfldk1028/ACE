@@ -1,0 +1,28 @@
+{
+  "schema_version": "arr.maas.book_program_visual_review.v1",
+  "reviewed_at": "2026-07-15",
+  "pnu": "1168011800104170004",
+  "status": "fail",
+  "numeric_diagnostic_status": "pass",
+  "architecture_grade_claim_allowed": false,
+  "same_footprint_or_roof_family_repetition_detected": true,
+  "review_basis": "Direct inspection of the three original-resolution 20-mass PNG boards and the 60-mass combined board.",
+  "programs": {
+    "neighborhood": {
+      "status": "fail",
+      "improvement": "Four seed/formal families are represented and numeric near-duplicate pairs remain zero.",
+      "failure": "Elongated street bars and stepped or folded terrace cascades still dominate; cells 04/08/10/16/19 and 02/06/13/18 retain strong family resemblance."
+    },
+    "gymnasium": {
+      "status": "fail",
+      "improvement": "Ridge, folded, sawtooth/daylight-monitor, stepped-section and carved-entry relations now appear as real roof/section geometry, and all six BOOK scopes are represented.",
+      "failure": "The portfolio still repeats a low rectangular long-span hall chassis; cells 02/06, 03/13 and 05/10/15 read as close footprint/roof families despite sectional modifiers."
+    },
+    "cultural": {
+      "status": "fail",
+      "improvement": "Court-bridge, split-gallery-ramp and carved-gallery-spine families all survive the real projection and program hard gates.",
+      "failure": "Low stepped gallery bars and compact stacked boxes remain repetitive; cells 02/05/06/07/10/14/17 and 09/13/18/19/20 show strong family resemblance."
+    }
+  },
+  "verdict": "Compiler, clean-mass and program diagnostics pass, but the 60-mass set is not yet architectural competition grade."
+}

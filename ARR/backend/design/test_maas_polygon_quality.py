@@ -96,11 +96,12 @@ class MaasPolygonQualityTest(SimpleTestCase):
         )
         source = compile_sequence_to_source_mass(box(0, 0, 42, 30), sequence)
         self.assertIsNotNone(source)
-        roofs = [surface for surface in source.surfaces if surface.surface_type == "profiled_formal_roof"]
-        self.assertEqual(len(roofs), 3)
+        roofs = [surface for surface in source.surfaces if surface.surface_type == "profiled_roof_strip"]
+        self.assertGreaterEqual(len(roofs), 3)
         self.assertTrue(all(len({round(vertex[2], 4) for vertex in roof.vertices_m}) >= 2 for roof in roofs))
         evidence = source.signature()["continuous_surface_evidence"]
         self.assertEqual(evidence["principle"], "continuous_ribbon_field")
+        self.assertEqual(evidence["profiled_volume_count"], 3)
         self.assertTrue(all("continuous_ribbon" in role for role in evidence["profiled_roles"]))
         signature = source.signature()
         self.assertGreater(signature["surface_count"], 0)

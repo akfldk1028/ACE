@@ -11,12 +11,12 @@ from typing import Any, Iterable
 
 
 STRATEGY_VERBS: tuple[tuple[str, frozenset[str]], ...] = (
-    ("bridge", frozenset({"bridge", "diagonal_connect", "interlock", "terrace_link", "overlap"})),
-    ("cluster", frozenset({"branch", "split", "nest", "embed"})),
-    ("fold", frozenset({"sloped_roof_mass", "grade", "taper"})),
+    ("bridge", frozenset({"bridge", "diagonal_connect", "interlock", "intersect", "join", "terrace_link", "overlap"})),
+    ("cluster", frozenset({"array", "branch", "embed", "merge", "nest", "pack", "reflect", "split"})),
+    ("fold", frozenset({"inflate", "sloped_roof_mass", "grade", "taper"})),
     ("step", frozenset({"stack", "step_envelope", "lift"})),
-    ("bend", frozenset({"bend", "shift", "bar"})),
-    ("carve", frozenset({"courtyard", "cave", "notch", "pinch", "inset"})),
+    ("bend", frozenset({"bar", "bend", "lodge", "offset", "rotate", "shear", "shift", "skew", "twist"})),
+    ("carve", frozenset({"carve", "cave", "compress", "courtyard", "extract", "fracture", "inscribe", "inset", "notch", "pinch", "puncture"})),
 )
 
 
@@ -28,11 +28,11 @@ def relation_profile_from_sequence(
     signature = source_signature if isinstance(source_signature, dict) else {}
     normalized = [_call_parts(call) for call in calls]
     verbs = [verb for verb, _params in normalized if verb and verb != "base"]
-    void_calls = [(verb, params) for verb, params in normalized if verb in {"courtyard", "cave", "notch", "pinch", "inset"}]
+    void_calls = [(verb, params) for verb, params in normalized if verb in {"carve", "courtyard", "cave", "extract", "inscribe", "notch", "pinch", "puncture", "inset"}]
     lift_calls = [(verb, params) for verb, params in normalized if verb in {"lift", "bridge", "diagonal_connect"}]
     void_ratio = max((_first_ratio(params, ("void_ratio", "ratio", "depth_ratio", "distance_ratio"), 0.2) for _verb, params in void_calls), default=0.0)
     ground_opening = max((_first_ratio(params, ("lower_floor_fraction", "opening_ratio", "lift_ratio", "ratio"), 0.18) for _verb, params in lift_calls), default=0.0)
-    destructive_count = sum(verb in {"courtyard", "cave", "notch", "pinch", "inset", "split"} for verb in verbs)
+    destructive_count = sum(verb in {"carve", "cave", "compress", "courtyard", "extract", "fracture", "inscribe", "inset", "notch", "pinch", "puncture", "split"} for verb in verbs)
     volume_count = _integer(signature.get("visible_volume_count") or signature.get("volume_count"), max(1, len(verbs)))
     surface_count = _integer(signature.get("effective_surface_count") or signature.get("surface_count"), 0)
     primary_retention = _ratio(
@@ -41,7 +41,11 @@ def relation_profile_from_sequence(
         0.78 if destructive_count else 0.92,
     )
     return {
-        "formalStrategy": _strategy(verbs, signature),
+        # In a flat sequence the first non-base call is the primary operation.
+        # Later calls are modifiers and must not relabel an array as a fold just
+        # because it also contains grade, or a roof field as a bridge because a
+        # terrace connector follows it.
+        "formalStrategy": _strategy(verbs, signature, primary_verb=verbs[0] if verbs else ""),
         "primaryEnvelopeRetention": primary_retention,
         "dominantOperationCount": max(1, min(4, len(verbs))),
         "voidRatio": _ratio(signature.get("void_ratio"), void_ratio),
@@ -95,9 +99,12 @@ def site_aspect_bucket(footprint: Any) -> str:
     return "slender"
 
 
-def _strategy(verbs: list[str], signature: dict[str, Any]) -> str:
+def _strategy(verbs: list[str], signature: dict[str, Any], *, primary_verb: str = "") -> str:
     formal = str(signature.get("formal_principle") or (signature.get("architectural_ambition_evidence") or {}).get("formal_principle") or "").lower()
-    combined = verbs + [formal]
+    # Explicit measured source evidence is authoritative. Otherwise classify
+    # the primary operation first and use the remaining verbs only as a legacy
+    # fallback for a base-only/unknown graph.
+    combined = [formal] if formal else ([primary_verb] if primary_verb else verbs)
     for strategy, vocabulary in STRATEGY_VERBS:
         if any(any(token in value for token in vocabulary) for value in combined):
             return strategy

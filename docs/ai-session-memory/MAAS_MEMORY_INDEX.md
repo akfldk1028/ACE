@@ -16,6 +16,50 @@ Independent component-graph / MAP-Elites / Mass-Brain audit:
 
 Critical latest handoff:
 
+- Read `MAAS_BOOK_EXECUTABLE_LANGUAGE_CHECKPOINT_20260715.md` first before
+  changing BOOK principles, the Mass-Brain `02 PRINCIPLE` view, vocabulary or
+  geometry kernels. Direct scan review proves the hierarchy is 30 base
+  operations -> 20 combinations -> nine aggregation recipes -> ten compound
+  case-study applications, plus six relative p.3 base volumes. The latest
+  appended section supersedes older counts: all 59 executable principles pass
+  the four-site compiler audit. It also records the honest live-PNU result
+  (neighborhood 16/20, gym 16/20, cultural 20/20), direct PNG verdict and the
+  unresolved typed graph-scope materialization for the six starting volumes.
+  This is compiler coverage, not a competition-grade or permit-complete claim.
+
+- Read `MAAS_GRL_ON_OFF_ABLATION_20260715.md` first before enabling GRL or
+  Mass-Brain during routine generation. A fair same-PNU/same-seed/same-cache
+  v104 OFF versus v105 ON ablation produced byte-identical accepted PNGs and
+  identical 19-card portfolios. ON generated 20 shadow proposals, compiled 15
+  and VLM-evaluated 6, but admitted zero. Routine generation therefore remains
+  OFF; GRL is currently provenance/audit/shadow research, not a proven quality
+  contributor. The document also records and fixes the invalid v103 flag
+  coupling that removed baseline exact seeds.
+
+- Read `MAAS_EVALUATED_PARENT_GRAPH_HANDOFF_20260715.md` first for the latest
+  ARR/Mass-Brain/GRL state. v102 fixes the ingest 400, uses 44 real-parcel
+  compiled parents (34 eligible), replaces 2,016 complete-pair relations with
+  160 sparse relations, and renders all 20 proposal/result nodes. Mass-Brain
+  generated 20, compiled 15 and VLM-evaluated 6, but rollout remains
+  `shadow/slots=0`; the final board is still 19/20, automatic visual fail, and
+  legal/parking projection is `not_run`.
+
+- Read `MAAS_BOOK_LANGUAGE_CORPUS_AUDIT_20260715.md` before claiming the
+  architect-supplied 69-page BOOK is active training/generation evidence. The
+  audit proves the pages currently have no runtime reference, the GRL graph is
+  still seed-centric and fully pair-connected, and the Korean grammar data has
+  mojibake. It defines the required page -> relation card -> typed graph -> real
+  PNU compile -> hard gate -> architect feedback contract and presentation
+  artifacts.
+
+- Read `MAAS_GRL_RELATION_MEMORY_HANDOFF_20260715.md` first. It records the
+  actual GRL/Mass-Brain generation wiring, relation-profile memory,
+  cross-version retrieval, v99 shadow-contamination bug and v100 isolation
+  correction. Current honest board is v100 at 19/20 with all seven language
+  groups; it is still an automatic visual failure and legal/parking projection
+  remains not run. The two Mass-Brain-only PNG probes failed and must not be
+  presented as an aesthetic improvement.
+
 - Read `MAAS_OBLIQUE_ENVELOPE_HANDOFF_20260715.md` first for the latest code
   and real-PNU evidence. It records the new agent-authored polygon-ring loft,
   strict LLM control-field validation, typed VLM polygon edits, and the bounded
@@ -347,3 +391,13 @@ Regenerate latest artifacts when geometry, LLM prompt/schema, legal optimizer, s
 NEO4J_URI=bolt://172.27.80.1:7687 NEO4J_PASSWORD=11111111 ARR/backend/.venv/bin/python ARR/backend/manage.py runserver 127.0.0.1:18000
 MAX_VARIANTS=20 MAAS_LLM_LOOP_REQUIRED=1 node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs
 ```
+
+## Latest continuation checkpoint (2026-07-15)
+
+Read `MAAS_BOOK_EXECUTABLE_LANGUAGE_CHECKPOINT_20260715.md`, especially its
+final section **gym section graph, 60/60 numeric pass, and legal-retention
+audit**. It supersedes the earlier p.3 correction counts. Current honest state:
+neighborhood/gym/cultural are each 20/20 at the BOOK/program diagnostic level,
+but overall status remains fail. Direct PNG review is below competition grade;
+same-source legal clipping passes legal metrics 60/60 but geometry retention
+passes 0/60, parking passes 56/60, and combined hard-gate pass is 0/60.

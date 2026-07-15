@@ -1,0 +1,17 @@
+id: arr_worker_agents
+name: ARR Worker Agents
+scope: global_worker_layer
+runtime:
+  framework: django
+  manager: worker_manager.py
+  factory: worker_factory.py
+  implementations: implementations/
+memory:
+  path: memory/MEMORY.md
+children:
+  - modules/flight_specialist_worker
+cards:
+  path: cards/
+notes:
+  - Owns reusable non-MAAS workers.
+  - Worker module folders hold GitAgent-style identity/rules/memory without breaking existing Python imports.

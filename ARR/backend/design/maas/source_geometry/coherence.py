@@ -29,7 +29,9 @@ def evaluate_source_volume_coherence(volumes: tuple[SourceVolume, ...]) -> dict[
 
     def is_linear_architectural_role(volume: SourceVolume) -> bool:
         role = str(volume.role).lower()
-        return any(token in role for token in ("ribbon", "bridge", "connector", "spine"))
+        return any(token in role for token in (
+            "ribbon", "bridge", "connector", "spine", "ramp", "program_section_band",
+        ))
 
     polygon_evidence = [
         evaluate_polygon_quality(

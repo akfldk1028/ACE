@@ -15,7 +15,23 @@ Usage:
 from .base import BaseWorkerAgent
 from .worker_factory import WorkerAgentFactory
 from .worker_manager import worker_manager, get_worker_for_slug, get_worker_card_for_slug
-from .implementations import GeneralWorkerAgent, FlightSpecialistWorkerAgent
+
+
+def __getattr__(name):
+    """Lazy worker exports.
+
+    Some worker implementations require optional LLM packages. Package-level
+    imports should not fail when callers only need the factory or manager.
+    """
+    if name == "FlightSpecialistWorkerAgent":
+        from .modules.flight_specialist_worker.agent import FlightSpecialistWorkerAgent
+
+        return FlightSpecialistWorkerAgent
+    if name == "GeneralWorkerAgent":
+        from .implementations.general_worker import GeneralWorkerAgent
+
+        return GeneralWorkerAgent
+    raise AttributeError(name)
 
 __all__ = [
     'BaseWorkerAgent',

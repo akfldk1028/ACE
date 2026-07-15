@@ -1927,6 +1927,7 @@ def _attach_vlm(feature: dict[str, Any], vlm: dict[str, Any], matches: list[dict
         "concept_scores": vlm.get("concept_scores") or {},
         "critic_actions": vlm.get("critic_actions") or [],
         "graph_edits": vlm.get("graph_edits") or [],
+        "geometry_edits": vlm.get("geometry_edits") or [],
         "reference_matches": matches,
         "rationale": vlm.get("rationale") or "",
     }

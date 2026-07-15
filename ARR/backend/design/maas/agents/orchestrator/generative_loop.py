@@ -35,16 +35,35 @@ class GraphEditDirective:
 
 
 @dataclass(frozen=True)
+class GeometryEditDirective:
+    operation: str
+    target_node_id: str = ""
+    node_id: str = ""
+    node_kind: str = ""
+    operator: str = ""
+    input_ids: tuple[str, ...] = ()
+    input_index: int = 0
+    input_node_id: str = ""
+    parameter_name: str = ""
+    numeric_value: float = 0.0
+    string_value: str = ""
+    vector_value: tuple[float, ...] = ()
+    semantic_role: str = ""
+    rationale: str = ""
+
+
+@dataclass(frozen=True)
 class CriticDirective:
     actions: tuple[str, ...] = ()
     graph_edits: tuple[GraphEditDirective, ...] = ()
+    geometry_edits: tuple[GeometryEditDirective, ...] = ()
     scores: dict[str, float] = field(default_factory=dict)
     reference_evidence: tuple[dict[str, Any], ...] = ()
     provider: str = ""
 
     @property
     def actionable(self) -> bool:
-        return bool(self.actions or self.graph_edits)
+        return bool(self.actions or self.graph_edits or self.geometry_edits)
 
 
 @dataclass(frozen=True)
@@ -170,10 +189,30 @@ def critic_directive_from_feature(feature: Feature) -> CriticDirective:
         )
         for item in preference.get("graph_edits") or [] if isinstance(item, dict)
     )
+    geometry_edits = tuple(
+        GeometryEditDirective(
+            operation=str(item.get("operation") or ""),
+            target_node_id=str(item.get("target_node_id") or ""),
+            node_id=str(item.get("node_id") or ""),
+            node_kind=str(item.get("node_kind") or ""),
+            operator=str(item.get("operator") or ""),
+            input_ids=tuple(str(value) for value in item.get("input_ids") or ()),
+            input_index=int(item.get("input_index") or 0),
+            input_node_id=str(item.get("input_node_id") or ""),
+            parameter_name=str(item.get("parameter_name") or ""),
+            numeric_value=float(item.get("numeric_value") or 0.0),
+            string_value=str(item.get("string_value") or ""),
+            vector_value=tuple(float(value) for value in item.get("vector_value") or ()),
+            semantic_role=str(item.get("semantic_role") or ""),
+            rationale=str(item.get("rationale") or ""),
+        )
+        for item in preference.get("geometry_edits") or [] if isinstance(item, dict)
+    )
     scores = preference.get("concept_scores") if isinstance(preference.get("concept_scores"), dict) else {}
     return CriticDirective(
         actions=tuple(str(item) for item in preference.get("critic_actions") or []),
         graph_edits=edits,
+        geometry_edits=geometry_edits,
         scores={str(key): float(value) for key, value in scores.items() if isinstance(value, int | float)},
         reference_evidence=tuple(item for item in preference.get("reference_matches") or [] if isinstance(item, dict)),
         provider=str(preference.get("vlm_model") or preference.get("mode") or ""),
@@ -184,6 +223,7 @@ __all__ = [
     "CriticDirective",
     "GenerativeLoopResult",
     "GraphEditDirective",
+    "GeometryEditDirective",
     "critic_directive_from_feature",
     "run_generative_a2a_loop",
 ]

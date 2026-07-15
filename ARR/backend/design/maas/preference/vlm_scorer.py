@@ -18,7 +18,7 @@ from .reference_paths import resolve_reference_image_path
 
 
 VLM_SCORE_SCHEMA_VERSION = "arr.maas.vlm_concept_scores.v1"
-VLM_PROMPT_CONTRACT_VERSION = "arr.maas.vlm_prompt.control_point_graph_edit.v5"
+VLM_PROMPT_CONTRACT_VERSION = "arr.maas.vlm_prompt.graph_edit_geometry_program_edit.v6"
 DEFAULT_VLM_MODEL = "gpt-5.4-mini"
 
 
@@ -152,6 +152,22 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         (node["node_id"] for node in editable_nodes if node["role"] == "primary"),
         "",
     )
+    geometry_program = props.get("geometry_program") if isinstance(props.get("geometry_program"), dict) else {}
+    geometry_nodes = geometry_program.get("nodes") if isinstance(geometry_program.get("nodes"), list) else []
+    compact_geometry_program = {
+        "root_id": str(geometry_program.get("root_id") or ""),
+        "nodes": [
+            {
+                "id": str(node.get("id") or ""),
+                "kind": str(node.get("kind") or ""),
+                "operator": str(node.get("operator") or ""),
+                "inputs": [str(item) for item in node.get("inputs") or []],
+                "parameters": node.get("parameters") if isinstance(node.get("parameters"), dict) else {},
+            }
+            for node in geometry_nodes[:96]
+            if isinstance(node, dict)
+        ],
+    } if geometry_program else {}
     summary = {
         "variant_id": props.get("variant_id"),
         "mass_shape": props.get("mass_shape"),
@@ -164,6 +180,7 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "component_graph": component_graph,
         "editable_graph_nodes": editable_nodes,
         "primary_node_id": primary_node_id,
+        "geometry_program": compact_geometry_program,
         "site_boundary_source": props.get("site_boundary_source"),
         "site_access_context": props.get("site_access_context") or {},
         "site_design_field": ambition.get("site_design_field") or source.get("site_design_field"),
@@ -223,6 +240,15 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "Use only supported verbs from the response schema and preserve a good simple anchor when no structural "
         "failure applies. A sloped_roof_mass with authored control_points or taper with authored plan_control_points "
         "may also be structurally corrected by set_control_point because it changes executable geometry, not facade styling.\n"
+        "When geometry_program is present, also return geometry_edits that mutate its recursive solid AST. "
+        "Use set_parameter for bounded deformation/cutting/pattern parameters. To wrap the current solid in a new "
+        "operator, emit add_node with input_ids=[current root], then any set_parameter edits for that new node, then "
+        "set_root targeting the new node. Use replace_operator only within the same node kind. Geometry edits support "
+        "primitive, transform, modifier, boolean, pattern, composition, and macro nodes. Prefer bend, taper, twist, "
+        "slice, cut_corner, radial_array, courtyard, cantilever, split_wing, or bridge when visible evidence calls for "
+        "them. Never encode parcel coordinates or copy a completed building. If geometry_program is absent return an "
+        "empty geometry_edits array. Every geometry edit is semantically validated, recompiled into a manifold solid, "
+        "rendered again, and rejected when its geometry hash does not change.\n"
         f"Candidate JSON summary:\n{json.dumps(summary, ensure_ascii=False, sort_keys=True)}"
     )
 
@@ -265,7 +291,7 @@ def _response_schema() -> dict[str, Any]:
     return {
         "type": "object",
         "additionalProperties": False,
-        "required": ["concept_scores", "rationale", "warnings", "critic_actions", "graph_edits"],
+        "required": ["concept_scores", "rationale", "warnings", "critic_actions", "graph_edits", "geometry_edits"],
         "properties": {
             "concept_scores": {
                 "type": "object",
@@ -337,6 +363,51 @@ def _response_schema() -> dict[str, Any]:
                         "control_point_u": {"type": "number", "minimum": 0.03, "maximum": 0.97},
                         "control_point_v": {"type": "number", "minimum": 0.03, "maximum": 0.97},
                         "rationale": {"type": "string"},
+                    },
+                },
+            },
+            "geometry_edits": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": [
+                        "operation", "target_node_id", "node_id", "node_kind", "operator",
+                        "input_ids", "input_index", "input_node_id", "parameter_name",
+                        "numeric_value", "string_value", "vector_value", "semantic_role", "rationale",
+                    ],
+                    "properties": {
+                        "operation": {
+                            "type": "string",
+                            "enum": ["set_parameter", "replace_operator", "add_node", "remove_node", "rewire_input", "set_root"],
+                        },
+                        "target_node_id": {"type": "string", "maxLength": 80},
+                        "node_id": {"type": "string", "maxLength": 80},
+                        "node_kind": {
+                            "type": "string",
+                            "enum": ["", "primitive", "transform", "modifier", "boolean", "pattern", "composition", "macro"],
+                        },
+                        "operator": {
+                            "type": "string",
+                            "enum": [
+                                "", "box", "cylinder", "extruded_polygon", "wedge", "sweep", "loft",
+                                "translate", "rotate", "scale", "mirror", "shear", "bend", "taper", "twist",
+                                "slice", "clip", "cut_corner", "union", "difference", "intersection", "duplicate",
+                                "linear_array", "radial_array", "mirror_array", "stack", "attach", "bridge",
+                                "courtyard", "carve_void", "notch", "setback", "terrace", "cantilever", "cross_mass",
+                                "bent_bar", "split_wing", "attach_volume", "tapered_tower", "leaning_tower", "stepped_mass",
+                            ],
+                        },
+                        "input_ids": {"type": "array", "maxItems": 8, "items": {"type": "string", "maxLength": 80}},
+                        "input_index": {"type": "integer", "minimum": 0, "maximum": 23},
+                        "input_node_id": {"type": "string", "maxLength": 80},
+                        "parameter_name": {"type": "string", "maxLength": 64},
+                        "numeric_value": {"type": "number", "minimum": -1000, "maximum": 1000},
+                        "string_value": {"type": "string", "maxLength": 80},
+                        "vector_value": {"type": "array", "maxItems": 4, "items": {"type": "number", "minimum": -1000, "maximum": 1000}},
+                        "semantic_role": {"type": "string", "maxLength": 80},
+                        "rationale": {"type": "string", "maxLength": 500},
                     },
                 },
             },
@@ -416,6 +487,39 @@ def _normalize_vlm_result(
             "control_point_v": max(0.03, min(0.97, float(item.get("control_point_v") or 0.03))),
             "rationale": str(item.get("rationale") or "")[:500],
         })
+    geometry_edits = []
+    valid_geometry_operations = {
+        "set_parameter", "replace_operator", "add_node", "remove_node", "rewire_input", "set_root",
+    }
+    valid_geometry_kinds = {"primitive", "transform", "modifier", "boolean", "pattern", "composition", "macro"}
+    for item in data.get("geometry_edits") or []:
+        if not isinstance(item, dict) or str(item.get("operation") or "") not in valid_geometry_operations:
+            continue
+        kind = str(item.get("node_kind") or "").strip().lower()
+        if kind and kind not in valid_geometry_kinds:
+            continue
+        vector_value = []
+        for value in item.get("vector_value") or []:
+            try:
+                vector_value.append(max(-1000.0, min(1000.0, float(value))))
+            except (TypeError, ValueError):
+                continue
+        geometry_edits.append({
+            "operation": str(item.get("operation") or ""),
+            "target_node_id": str(item.get("target_node_id") or "")[:80],
+            "node_id": str(item.get("node_id") or "")[:80],
+            "node_kind": kind,
+            "operator": str(item.get("operator") or "")[:64].strip().lower(),
+            "input_ids": [str(value)[:80] for value in item.get("input_ids") or []][:8],
+            "input_index": max(0, min(23, int(item.get("input_index") or 0))),
+            "input_node_id": str(item.get("input_node_id") or "")[:80],
+            "parameter_name": str(item.get("parameter_name") or "")[:64],
+            "numeric_value": max(-1000.0, min(1000.0, float(item.get("numeric_value") or 0.0))),
+            "string_value": str(item.get("string_value") or "")[:80].strip().lower(),
+            "vector_value": vector_value[:4],
+            "semantic_role": str(item.get("semantic_role") or "")[:80],
+            "rationale": str(item.get("rationale") or "")[:500],
+        })
     return {
         "schema_version": VLM_SCORE_SCHEMA_VERSION,
         "prompt_contract_version": VLM_PROMPT_CONTRACT_VERSION,
@@ -427,6 +531,7 @@ def _normalize_vlm_result(
         "warnings": [str(item) for item in data.get("warnings") or []],
         "critic_actions": actions,
         "graph_edits": graph_edits[:6],
+        "geometry_edits": geometry_edits[:8],
     }
 
 

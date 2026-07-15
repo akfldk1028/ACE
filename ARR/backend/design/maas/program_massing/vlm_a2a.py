@@ -29,6 +29,8 @@ from design.maas.preference.reference_language_distiller import (
 )
 from design.maas.preference.vlm_scorer import VLM_PROMPT_CONTRACT_VERSION, score_candidate_with_openai_vlm
 from design.maas.source_geometry import compile_sequence_to_source_mass
+from design.maas.mass_brain import record_shadow_outcomes, request_shadow_sequences
+from design.maas.mass_brain_relation_profile import site_aspect_bucket
 
 from .benchmark import _render_archive_sheet
 from .creative import creative_seed_sequences
@@ -95,6 +97,7 @@ def run_neighborhood_vlm_a2a_loop(
     site_access_context: dict[str, Any] | None = None,
     site_access_geometry: dict[str, Any] | None = None,
     far_limit_ratio: float = 3.0,
+    mass_brain_enabled: bool = False,
 ) -> dict[str, Any]:
     base = site_polygon if isinstance(site_polygon, Polygon) else box(0, 0, 60, 40)
     if base.is_empty or not base.is_valid or base.area <= 0:
@@ -192,13 +195,36 @@ def run_neighborhood_vlm_a2a_loop(
             sequence = _sequence_from_record(record)
             if sequence is not None:
                 persisted_accepted_sequences.append(sequence)
-    seeds = tuple({
+    base_seeds = tuple({
         sequence.name: sequence
         for sequence in (
             *persisted_accepted_sequences,
             *authored_sequences,
             *program_seed_sequences(building_type),
             *creative_seed_sequences(),
+        )
+    }.values())
+    brain_options = {
+        "mass_brain": {"enabled": bool(mass_brain_enabled), "count": min(20, max(8, target_count))}
+    }
+    mass_brain_batch = request_shadow_sequences(
+        source_sequences=base_seeds,
+        project_key=str(site_pnu or output_json.stem),
+        program_type=building_type,
+        site_aspect=site_aspect_bucket(base),
+        parking_options=brain_options,
+    )
+    mass_brain_rollout = mass_brain_batch.artifact.get("rollout") if isinstance(mass_brain_batch.artifact.get("rollout"), dict) else {}
+    mass_brain_active_slots = (
+        min(4, max(0, int(mass_brain_rollout.get("slots") or 0)))
+        if mass_brain_rollout.get("mode") == "active"
+        else 0
+    )
+    seeds = tuple({
+        sequence.name: sequence
+        for sequence in (
+            *base_seeds,
+            *(mass_brain_batch.sequences if mass_brain_active_slots else ()),
         )
     }.values())
     persisted_seed_elites = [
@@ -223,6 +249,27 @@ def run_neighborhood_vlm_a2a_loop(
             far_limit_ratio=far_limit_ratio,
         )) is not None
     ]
+    mass_brain_seed_elites = [
+        elite
+        for sequence in mass_brain_batch.sequences
+        if (elite := _compile_verified(
+            base,
+            sequence,
+            building_type=building_type,
+            capacity_policy=capacity_policy,
+            far_limit_ratio=far_limit_ratio,
+        )) is not None
+    ]
+    for elite in mass_brain_seed_elites:
+        proposal = mass_brain_batch.proposals_by_sequence.get(elite.sequence.name) or {}
+        elite.feature.setdefault("properties", {})["mass_brain_shadow"] = {
+            "schema_version": "arr.maas.mass_brain_candidate.v1",
+            "proposal_id": proposal.get("proposalId"),
+            "relation_profile": proposal.get("relationProfile") or {},
+            "behavior_cell": proposal.get("behaviorCell"),
+            "score_breakdown": proposal.get("scoreBreakdown") or {},
+            "selection_effect": "none_shadow_only",
+        }
     # Search generations may mutate a seed immediately. Keep the exact
     # executable graph in the archive as well; otherwise both an append-only
     # accepted seed and a fresh authored graph silently become only a g0 child.
@@ -356,6 +403,28 @@ def run_neighborhood_vlm_a2a_loop(
         for item, vlm, matches in persisted_scored:
             _attach_vlm(item.feature, vlm, matches)
             persisted_parent_elites.append(_with_dual_objective_score(item, vlm))
+        mass_brain_scored = _score_population(
+            mass_brain_seed_elites,
+            references,
+            preview_root,
+            model=model,
+            workers=workers,
+            score_cache=vlm_cache,
+            score_cache_path=resolved_vlm_cache,
+        )
+        _save_vlm_cache(resolved_vlm_cache, vlm_cache, model=model)
+        mass_brain_scored_elites: list[ProgramElite] = []
+        for item, vlm, matches in mass_brain_scored:
+            _attach_vlm(item.feature, vlm, matches)
+            mass_brain_scored_elites.append(_with_dual_objective_score(item, vlm))
+        mass_brain_artifact = dict(mass_brain_batch.artifact)
+        mass_brain_artifact["vlm_evaluated_count"] = len(mass_brain_scored_elites)
+        mass_brain_artifact["outcomes"] = record_shadow_outcomes(
+            project_key=str(site_pnu or output_json.stem),
+            proposals_by_operator=mass_brain_batch.proposals_by_sequence,
+            features_by_operator={item.sequence.name: item.feature for item in mass_brain_scored_elites},
+            run_id=f"program-massing:{output_json.stem}",
+        ) if mass_brain_batch.proposals_by_sequence else {"recorded_count": 0, "failed_count": 0}
         current_scored = list(parent_scored)
         seen_child_graphs: set[str] = set()
         child_scored_count = 0
@@ -439,6 +508,9 @@ def run_neighborhood_vlm_a2a_loop(
                 break
         finalists_by_geometry = dict(critic_geometry_archive)
         for item in persisted_parent_elites:
+            _retain_geometry_best(finalists_by_geometry, item)
+        for item in sorted(mass_brain_scored_elites, key=lambda candidate: candidate.score, reverse=True)[:mass_brain_active_slots]:
+            item.feature["properties"]["mass_brain_shadow"]["selection_effect"] = "promotion_eligible_active_pool"
             _retain_geometry_best(finalists_by_geometry, item)
         finalists = list(finalists_by_geometry.values())
 
@@ -703,6 +775,7 @@ def run_neighborhood_vlm_a2a_loop(
         "author_artifact": author_batch.artifact,
         "author_population_artifacts": [batch.artifact for batch in author_batches],
         "author_population_count": len(author_batches),
+        "mass_brain_shadow": mass_brain_artifact,
         "authored_sequence_count": len(authored_sequences),
         "persisted_accepted_seed_count": len(persisted_accepted_sequences),
         "persisted_accepted_exact_compile_count": len(persisted_seed_elites),

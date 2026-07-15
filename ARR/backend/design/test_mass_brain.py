@@ -7,6 +7,7 @@ from django.test import SimpleTestCase
 from shapely.geometry import box, mapping
 
 from design.maas.mass_brain import record_proposal_feedback, record_shadow_outcomes, request_shadow_variants
+from design.maas.mass_brain_relation_profile import relation_profile_from_feature
 from design.maas.historical_memory import build_historical_envelope
 from design.maas.preference.reference_corpus import ReferenceItem
 from design.maas.morphology_operators import MorphologyVariant
@@ -82,6 +83,7 @@ class MassBrainBridgeTest(SimpleTestCase):
             project_key="pnu-test",
             interpret=interpret,
             parking_options={"mass_brain": {"enabled": True, "count": 2}},
+            program_type="neighborhood_living",
         )
         self.assertEqual(batch.artifact["status"], "shadow_generated")
         self.assertEqual(batch.artifact["compiled_count"], 1)
@@ -91,6 +93,10 @@ class MassBrainBridgeTest(SimpleTestCase):
         ingest_payload = client.post.call_args_list[0].kwargs["json"]
         self.assertEqual(ingest_payload["contract"]["schemaVersion"], "grl/v1")
         self.assertGreaterEqual(len(ingest_payload["contract"]["features"]), 2)
+        first_payload = next(iter(ingest_payload["domainPayloads"].values()))
+        self.assertIn(first_payload["relationProfile"]["formalStrategy"], {"carve", "bridge", "bend", "cluster"})
+        self.assertEqual(first_payload["context"]["programType"], "neighborhood_living")
+        self.assertEqual(first_payload["context"]["siteAspectBucket"], "balanced")
 
     @patch("design.maas.mass_brain.config.mass_brain_client")
     def test_service_failure_is_fail_open(self, client):
@@ -115,6 +121,9 @@ class MassBrainBridgeTest(SimpleTestCase):
             "properties": {
                 "parking_precheck": {"layout": {"status": "pass"}},
                 "design_quality": {"score": 0.7},
+                "source_signature": {"verb_profile": ["base", "step_envelope"], "surface_count": 24},
+                "orderliness_evidence": {"main_mass_area_ratio": 0.84, "small_fragment_count": 0},
+                "visual_diversity_evidence": {"volume_count": 3},
             },
         }
         result = record_shadow_outcomes(
@@ -125,7 +134,12 @@ class MassBrainBridgeTest(SimpleTestCase):
         self.assertEqual(result, {"recorded_count": 1, "failed_count": 0})
         payload = client.post.call_args.kwargs["json"]
         self.assertTrue(payload["parkingPassed"])
+        self.assertTrue(payload["geometryPassed"])
         self.assertTrue(payload["details"]["shadow"])
+        self.assertTrue(payload["details"]["cleanMassPassed"])
+        self.assertEqual(payload["details"]["relationProfile"]["formalStrategy"], "step")
+        self.assertEqual(payload["details"]["relationProfile"]["primaryEnvelopeRetention"], 0.84)
+        self.assertEqual(relation_profile_from_feature(feature)["surfaceCount"], 24)
 
     @patch("design.maas.mass_brain.config.mass_brain_client")
     def test_feedback_forwarding_is_idempotency_keyed_and_fail_open(self, client):

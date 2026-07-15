@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import re
 import uuid
+import json
 from dataclasses import dataclass, replace
 from itertools import combinations
 from typing import Any, Callable, Iterable
@@ -16,6 +17,11 @@ from design.maas.grammar.component_graph import graph_from_sequence
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.grammar.vocab import SUPPORTED_VERBS
 from design.maas.morphology_operators import MorphologyVariant
+from design.maas.mass_brain_relation_profile import (
+    relation_profile_from_feature,
+    relation_profile_from_sequence,
+    site_aspect_bucket,
+)
 
 
 InterpretSequence = Callable[[Any, VerbSequence], MorphologyVariant | None]
@@ -25,6 +31,13 @@ InterpretSequence = Callable[[Any, VerbSequence], MorphologyVariant | None]
 class MassBrainShadowBatch:
     variants: tuple[MorphologyVariant, ...]
     proposals_by_operator: dict[str, dict[str, Any]]
+    artifact: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class MassBrainSequenceBatch:
+    sequences: tuple[VerbSequence, ...]
+    proposals_by_sequence: dict[str, dict[str, Any]]
     artifact: dict[str, Any]
 
 
@@ -47,32 +60,32 @@ def request_shadow_variants(
     project_key: str,
     interpret: InterpretSequence,
     parking_options: dict[str, Any] | None = None,
+    program_type: str | None = None,
 ) -> MassBrainShadowBatch:
     settings = mass_brain_config(parking_options)
     if not settings["enabled"]:
         return MassBrainShadowBatch((), {}, {"schema_version": "arr.maas.mass_brain_shadow.v1", "status": "disabled"})
+    source_variants = list(source_variants)
     sequences = _unique_sequences(source_variants)
     if len(sequences) < 2:
         return MassBrainShadowBatch((), {}, {"schema_version": "arr.maas.mass_brain_shadow.v1", "status": "insufficient_sources", "source_count": len(sequences)})
-    envelope = _build_envelope(project_key, sequences)
+    signatures = {
+        variant.operator: dict(variant.source_signature)
+        for variant in source_variants
+        if isinstance(variant.source_signature, dict)
+    }
+    context = {
+        "programType": str(program_type or "unknown"),
+        "siteAspectBucket": site_aspect_bucket(base_footprint),
+    }
+    envelope = _build_envelope(project_key, sequences, source_signatures=signatures, context=context)
     run_id = str(uuid.uuid4())
-    try:
-        ingest_response = config.mass_brain_client.post("/v1/contracts/ingest", json=envelope)
-        ingest_response.raise_for_status()
-        proposal_response = config.mass_brain_client.post("/v1/proposals/generate", json={
-            "projectKey": project_key,
-            "count": settings["count"],
-            "seed": settings["seed"],
-            "includeExperimental": settings["include_experimental"],
-            "registeredVerbs": sorted(SUPPORTED_VERBS),
-        })
-        proposal_response.raise_for_status()
-        payload = proposal_response.json()
-    except (httpx.HTTPError, ValueError, TypeError) as exc:
+    payload, error = _request_proposals(envelope, project_key=project_key, settings=settings)
+    if error:
         return MassBrainShadowBatch((), {}, {
             "schema_version": "arr.maas.mass_brain_shadow.v1",
             "status": "unavailable_fail_open",
-            "error": str(exc),
+            "error": error,
         })
     compiled: list[MorphologyVariant] = []
     proposals_by_operator: dict[str, dict[str, Any]] = {}
@@ -119,6 +132,73 @@ def request_shadow_variants(
     })
 
 
+def request_shadow_sequences(
+    *,
+    source_sequences: Iterable[VerbSequence],
+    project_key: str,
+    program_type: str,
+    site_aspect: str,
+    parking_options: dict[str, Any] | None = None,
+) -> MassBrainSequenceBatch:
+    """Request graph-memory variants without coupling to legal geometry.
+
+    Program-massing/VLM loops use this lane to score Mass-Brain proposals as
+    shadow evidence. They are not admitted to the final archive unless the
+    service's separate promotion contract is active.
+    """
+    settings = mass_brain_config(parking_options)
+    if not settings["enabled"]:
+        return MassBrainSequenceBatch((), {}, {"schema_version": "arr.maas.mass_brain_shadow.v1", "status": "disabled"})
+    sequences = _unique_verb_sequences(source_sequences)
+    if len(sequences) < 2:
+        return MassBrainSequenceBatch((), {}, {
+            "schema_version": "arr.maas.mass_brain_shadow.v1",
+            "status": "insufficient_sources",
+            "source_count": len(sequences),
+        })
+    envelope = _build_envelope(
+        project_key,
+        sequences,
+        context={"programType": program_type, "siteAspectBucket": site_aspect},
+    )
+    payload, error = _request_proposals(envelope, project_key=project_key, settings=settings)
+    if error:
+        return MassBrainSequenceBatch((), {}, {
+            "schema_version": "arr.maas.mass_brain_shadow.v1",
+            "status": "unavailable_fail_open",
+            "error": error,
+        })
+    compiled: list[VerbSequence] = []
+    proposals: dict[str, dict[str, Any]] = {}
+    for proposal in payload.get("proposals") or []:
+        if not isinstance(proposal, dict) or proposal.get("lane") != "executable":
+            continue
+        sequence = _sequence_from_proposal(proposal)
+        if sequence is None:
+            continue
+        sequence = VerbSequence(
+            name=sequence.name,
+            label=sequence.label,
+            calls=sequence.calls,
+            notes=sequence.notes + (
+                "proposal_source=mass_brain_shadow",
+                f"mass_brain_proposal_id={proposal.get('proposalId')}",
+            ),
+        )
+        compiled.append(sequence)
+        proposals[sequence.name] = proposal
+    return MassBrainSequenceBatch(tuple(compiled), proposals, {
+        "schema_version": "arr.maas.mass_brain_shadow.v1",
+        "status": "shadow_sequences_generated",
+        "project_key": project_key,
+        "source_count": len(sequences),
+        "proposal_count": len(payload.get("proposals") or []),
+        "compiled_count": len(compiled),
+        "assistant_status": payload.get("assistantStatus"),
+        "rollout": payload.get("rollout") if isinstance(payload.get("rollout"), dict) else {"mode": "shadow", "slots": 0},
+    })
+
+
 def record_shadow_outcomes(
     *,
     project_key: str,
@@ -136,6 +216,8 @@ def record_shadow_outcomes(
         layout = parking.get("layout") if isinstance(parking.get("layout"), dict) else {}
         design_quality = props.get("design_quality") if isinstance(props.get("design_quality"), dict) else {}
         preference = props.get("preference_distillation") if isinstance(props.get("preference_distillation"), dict) else {}
+        relation_profile = relation_profile_from_feature(feature)
+        clean_mass_passed = _clean_mass_pass(relation_profile)
         payload = {
             "projectKey": project_key,
             "proposalId": proposal.get("proposalId"),
@@ -143,12 +225,19 @@ def record_shadow_outcomes(
             "compilePassed": True,
             "legalPassed": feature is not None,
             "parkingPassed": bool(layout.get("status") == "pass"),
-            "geometryPassed": bool(feature and feature.get("geometry")),
+            "geometryPassed": bool(feature and feature.get("geometry") and clean_mass_passed),
             "designQuality": _score01(design_quality.get("score") or design_quality.get("overall")),
             "novelty": _score01((proposal.get("scoreBreakdown") or {}).get("novelty")),
             "vlmScore": _score01(preference.get("distilled_preference_score")),
             "evidenceScore": _score01((proposal.get("scoreBreakdown") or {}).get("evidence")),
-            "details": {"operator": operator, "shadow": True},
+            "details": {
+                "operator": operator,
+                "shadow": True,
+                "relationProfile": relation_profile,
+                "cleanMassPassed": clean_mass_passed,
+                "farUtilization": _score01(props.get("far_utilization")),
+                "bcrUtilization": _score01(props.get("bcr_utilization")),
+            },
         }
         comparison = (comparisons_by_operator or {}).get(operator)
         if isinstance(comparison, dict) and comparison.get("comparison_id"):
@@ -193,7 +282,13 @@ def record_proposal_feedback(
         return {"status": "unavailable_fail_open", "error": str(exc)}
 
 
-def _build_envelope(project_key: str, sequences: list[VerbSequence]) -> dict[str, Any]:
+def _build_envelope(
+    project_key: str,
+    sequences: list[VerbSequence],
+    *,
+    source_signatures: dict[str, dict[str, Any]] | None = None,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     features: list[dict[str, Any]] = []
     evidence: list[dict[str, Any]] = []
     payloads: dict[str, Any] = {}
@@ -221,8 +316,14 @@ def _build_envelope(project_key: str, sequences: list[VerbSequence]) -> dict[str
             "confidence": 0.8,
         })
         component = graph_from_sequence(sequence).to_dict()
+        relation_profile = relation_profile_from_sequence(
+            sequence.calls,
+            source_signature=(source_signatures or {}).get(sequence.name),
+        )
         payloads[feature_id] = {
             "family": family,
+            "relationProfile": relation_profile,
+            "context": dict(context or {}),
             "componentGraph": {
                 "name": component["name"],
                 "label": component["label"],
@@ -298,19 +399,61 @@ def _sequence_from_proposal(proposal: dict[str, Any]) -> VerbSequence | None:
 
 def _unique_sequences(variants: Iterable[MorphologyVariant]) -> list[VerbSequence]:
     result: list[VerbSequence] = []
-    seen: set[tuple[str, ...]] = set()
+    seen: set[tuple[tuple[str, str], ...]] = set()
     for variant in variants:
         raw = variant.verb_sequence or ()
         calls = tuple(VerbCall(str(item.get("verb") or ""), dict(item.get("params") or {})) for item in raw if isinstance(item, dict))
         if not calls:
             continue
         sequence = VerbSequence(variant.operator, variant.operator.replace("_", " "), calls, variant.notes)
-        signature = tuple(call.verb for call in calls)
+        signature = _sequence_signature(calls)
         if signature in seen or sequence.validate():
             continue
         seen.add(signature)
         result.append(sequence)
     return result[:32]
+
+
+def _unique_verb_sequences(sequences: Iterable[VerbSequence]) -> list[VerbSequence]:
+    result: list[VerbSequence] = []
+    seen: set[tuple[tuple[str, str], ...]] = set()
+    for sequence in sequences:
+        signature = _sequence_signature(sequence.calls)
+        if not sequence.calls or signature in seen or sequence.validate():
+            continue
+        seen.add(signature)
+        result.append(sequence)
+    return result[:64]
+
+
+def _sequence_signature(calls: Iterable[VerbCall]) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (call.verb, json.dumps(call.params, ensure_ascii=False, sort_keys=True, default=str))
+        for call in calls
+    )
+
+
+def _request_proposals(
+    envelope: dict[str, Any],
+    *,
+    project_key: str,
+    settings: dict[str, Any],
+) -> tuple[dict[str, Any], str | None]:
+    try:
+        ingest_response = config.mass_brain_client.post("/v1/contracts/ingest", json=envelope)
+        ingest_response.raise_for_status()
+        proposal_response = config.mass_brain_client.post("/v1/proposals/generate", json={
+            "projectKey": project_key,
+            "count": settings["count"],
+            "seed": settings["seed"],
+            "includeExperimental": settings["include_experimental"],
+            "registeredVerbs": sorted(SUPPORTED_VERBS),
+        })
+        proposal_response.raise_for_status()
+        payload = proposal_response.json()
+        return (payload if isinstance(payload, dict) else {}), None
+    except (httpx.HTTPError, ValueError, TypeError) as exc:
+        return {}, str(exc)
 
 
 def _family(sequence: VerbSequence) -> str:
@@ -338,10 +481,25 @@ def _score01(value: Any) -> float:
         return 0.0
 
 
+def _clean_mass_pass(profile: dict[str, Any]) -> bool:
+    """Keep weak learning behind the same clean-mass limits as visual review."""
+    surface_count = int(profile.get("surfaceCount") or 0)
+    return bool(
+        surface_count > 0
+        and surface_count <= 48
+        and int(profile.get("componentCount") or 0) <= 5
+        and int(profile.get("smallFragmentCount") or 0) <= 1
+        and float(profile.get("primaryEnvelopeRetention") or 0.0) >= 0.55
+        and int(profile.get("dominantOperationCount") or 0) <= 3
+    )
+
+
 __all__ = [
+    "MassBrainSequenceBatch",
     "MassBrainShadowBatch",
     "mass_brain_config",
     "record_shadow_outcomes",
     "record_proposal_feedback",
+    "request_shadow_sequences",
     "request_shadow_variants",
 ]

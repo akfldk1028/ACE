@@ -4704,6 +4704,7 @@ def generate_legal_mass_variants(
             project_key=mass_brain_project_key,
             interpret=interpret_sequence,
             parking_options=parking_options,
+            program_type=building_type,
         )
         mass_brain_shadow_artifact = dict(mass_brain_batch.artifact)
         mass_brain_proposals_by_operator = dict(mass_brain_batch.proposals_by_operator)
@@ -4860,6 +4861,8 @@ def generate_legal_mass_variants(
                 "source_node_ids": proposal.get("sourceNodeIds") or [],
                 "evidence_ids": proposal.get("evidenceIds") or [],
                 "score_breakdown": proposal.get("scoreBreakdown") or {},
+                "relation_profile": proposal.get("relationProfile") or {},
+                "behavior_cell": proposal.get("behaviorCell"),
                 "selection_effect": "none_shadow_only",
             }
             mass_brain_shadow_features[variant.operator] = feature

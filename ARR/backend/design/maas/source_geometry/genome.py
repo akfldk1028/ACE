@@ -38,6 +38,7 @@ FAMILY_FORMAL_PRINCIPLES = {
     "branch": "torqued_stack",
     "pinch": "torqued_stack",
     "extrude": "slender_podium_tower",
+    "sectional_monolith": "sectional_monolith_cut",
     "slender_bar": "folded_section",
     "stepback_tower": "slender_podium_tower",
 }
@@ -52,6 +53,7 @@ PRINCIPLE_REFERENCE_BASIS = {
     "carved_atrium": "courtyard/atrium figure-ground carving principle",
     "split_bridge_connector": "split mass with bridge connector principle",
     "carved_monolith": "carved monolith and embedded void principle",
+    "sectional_monolith_cut": "agent-authored sectional solid/void extrusion principle",
 }
 
 PRINCIPLE_DOMINANT_GESTURE = {
@@ -64,6 +66,7 @@ PRINCIPLE_DOMINANT_GESTURE = {
     "carved_atrium": "solid bars define an atrium void",
     "split_bridge_connector": "two masses are separated and reconnected by a bridge",
     "carved_monolith": "a compact solid is carved by a legible void",
+    "sectional_monolith_cut": "an authored elevation section cuts a monolith before depth extrusion",
 }
 
 PRINCIPLE_STRATEGIES = {
@@ -120,6 +123,12 @@ PRINCIPLE_STRATEGIES = {
         "vertical_strategy": "monolith_with_void",
         "connector_strategy": "void_liner",
         "silhouette_strategy": "carved_block",
+    },
+    "sectional_monolith_cut": {
+        "void_strategy": "sectional_through_cut",
+        "vertical_strategy": "authored_outer_section",
+        "connector_strategy": "continuous_section_material",
+        "silhouette_strategy": "diagonal_section_profile",
     },
 }
 

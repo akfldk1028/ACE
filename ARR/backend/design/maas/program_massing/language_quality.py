@@ -52,6 +52,30 @@ def assess_language_geometry(source: Any, feature: dict[str, Any], language_grou
         })
         return evidence
 
+    if language_group == "sectional_monolith":
+        surface = signature.get("continuous_surface_evidence") if isinstance(signature.get("continuous_surface_evidence"), dict) else {}
+        field = surface.get("sectional_monolith_field") if isinstance(surface.get("sectional_monolith_field"), dict) else {}
+        formal_move = (
+            int(field.get("diagonal_edge_count") or 0) >= 1
+            or float(field.get("section_void_ratio") or 0.0) >= 0.08
+        )
+        passed = (
+            surface.get("representation") == "agent_sectional_monolith_mesh"
+            and bool(surface.get("hard_pass"))
+            and 4 <= int(field.get("outer_control_point_count") or 0) <= 8
+            and formal_move
+            and 0.12 <= float(field.get("proxy_area_ratio") or 0.0) <= 1.0
+            and int(surface.get("surface_count") or 0) <= 48
+        )
+        evidence.update({
+            "sectional_monolith_pass": passed,
+            "diagonal_edge_count": int(field.get("diagonal_edge_count") or 0),
+            "section_void_ratio": round(float(field.get("section_void_ratio") or 0.0), 4),
+            "geometry_pass": passed,
+            "quality_score": 0.92 if passed else 0.0,
+        })
+        return evidence
+
     if language_group == "folded_section":
         surface = signature.get("continuous_surface_evidence") if isinstance(signature.get("continuous_surface_evidence"), dict) else {}
         profiled = bool(projection.get("profiled_roof_present")) or bool(surface.get("hard_pass"))

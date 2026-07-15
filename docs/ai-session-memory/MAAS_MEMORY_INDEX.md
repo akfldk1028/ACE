@@ -16,10 +16,18 @@ Independent component-graph / MAP-Elites / Mass-Brain audit:
 
 Critical latest handoff:
 
+- Read `MAAS_SECTIONAL_MONOLITH_HANDOFF_20260715.md` first. It corrects the
+  interpretation of the three supplied references: they require an editable
+  elevation/section solid-and-void genotype, not more plan polygons. The new
+  compiler produces real wedge gates, diagonal ground undercuts and elevated
+  mega voids as one clean mass; LLM authoring, VLM typed edits, search mutation
+  and bounded final quotas are connected. The six-card PNG is a capability
+  proof only; a fresh real-PNU 20-card law/parking run is still required.
+
 - Read `MAAS_OBLIQUE_ENVELOPE_HANDOFF_20260715.md` first for the latest code
   and real-PNU evidence. It records the new agent-authored polygon-ring loft,
   strict LLM control-field validation, typed VLM polygon edits, and the bounded
-  final quota (1-2, never all 20). v98 is 20/20 with one real oblique card and
+  final quota (now optional and capped at 1, never all 20). v98 is 20/20 with one real oblique card and
   no measured duplicates, but visual status still fails because stepped
   capacity remains 2/3. Law/parking projection is still `not_run`.
 

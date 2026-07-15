@@ -208,10 +208,12 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "For graph_edits return only bounded genotype edits: set_parameter, set_control_point, replace_operation, "
         "add_operation, remove_optional, or reparent. For numeric parameters use numeric_value and leave "
         "string_value empty. set_control_point is valid for an existing bend/sloped_roof_mass node with control_points, "
-        "or a taper node with plan_control_points. For taper set parameter_name=plan_control_points. Supply its zero-based "
+        "a taper node with plan_control_points, or an extrude sectional-monolith node with section_outer_control_points/section_void_control_points. "
+        "For taper set parameter_name=plan_control_points; for a sectional monolith name the exact section field. Supply its zero-based "
         "control_point_index plus normalized control_point_u and control_point_v. Keep u ordered only for bend/section. "
         "For bend, [u,v] edits the visible plan path; for sloped_roof_mass it edits normalized "
-        "[section_position,height]; for taper it edits one executable plan-envelope polygon vertex. "
+        "[section_position,height]; for taper it edits one executable plan-envelope polygon vertex; for sectional extrude it edits "
+        "one executable [horizontal_position,height] solid/void section vertex. "
         "For axis/side/corner/open_side/field_topology/vertical_mode use string_value. A replace_operation or "
         "add_operation must be immediately followed by at least one valid set_parameter for the affected node; "
         "empty-default topology edits are rejected. add_operation may add only support, void, or connector nodes, "
@@ -221,7 +223,7 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "set_parameter edits. If the existing primary is bend, one or more set_control_point edits are also a valid "
         "structural correction because they change the executable spatial path. "
         "Use only supported verbs from the response schema and preserve a good simple anchor when no structural "
-        "failure applies. A sloped_roof_mass with authored control_points or taper with authored plan_control_points "
+        "failure applies. A sloped_roof_mass with authored control_points, taper with authored plan_control_points, or extrude with authored section controls "
         "may also be structurally corrected by set_control_point because it changes executable geometry, not facade styling.\n"
         f"Candidate JSON summary:\n{json.dumps(summary, ensure_ascii=False, sort_keys=True)}"
     )
@@ -444,10 +446,15 @@ def _editable_control_node_ids(feature: dict[str, Any]) -> set[str]:
         params = operation.get("params") if isinstance(operation.get("params"), dict) else {}
         controls = params.get("control_points")
         plan_controls = params.get("plan_control_points")
+        section_outer = params.get("section_outer_control_points")
+        section_void = params.get("section_void_control_points")
         if operation.get("verb") in {"bend", "sloped_roof_mass"} and isinstance(controls, list) and 4 <= len(controls) <= 6:
             editable.add(str(node.get("node_id") or ""))
         if operation.get("verb") == "taper" and isinstance(plan_controls, list) and 3 <= len(plan_controls) <= 8:
             editable.add(str(node.get("node_id") or ""))
+        if operation.get("verb") == "extrude" and isinstance(section_outer, list) and 4 <= len(section_outer) <= 8:
+            if section_void is None or isinstance(section_void, list):
+                editable.add(str(node.get("node_id") or ""))
     return editable
 
 

@@ -441,6 +441,47 @@ def _normalise_params(verb: str, params: dict[str, Any]) -> dict[str, Any]:
                 raise ValueError("taper top_height_controls must contain numeric scalar heights") from exc
         normalised["plan_control_points"] = plan_controls
         normalised["top_height_controls"] = clean_heights
+    if verb == "extrude" and isinstance(normalised.get("section_outer_control_points"), list):
+        def clean_section_points(key: str, minimum: int) -> list[list[float]]:
+            raw_points = normalised.get(key)
+            if not isinstance(raw_points, list) or not minimum <= len(raw_points) <= 8:
+                raise ValueError(f"extrude {key} must contain {minimum} to 8 [horizontal,height] vertices")
+            result: list[list[float]] = []
+            for point in raw_points:
+                if not isinstance(point, (list, tuple)) or len(point) != 2:
+                    raise ValueError(f"extrude {key} must contain only [horizontal,height] vertices")
+                try:
+                    horizontal, height = float(point[0]), float(point[1])
+                except (TypeError, ValueError) as exc:
+                    raise ValueError(f"extrude {key} must contain numeric vertices") from exc
+                result.append([
+                    round(_clamp(horizontal, 0.02, 0.98), 4),
+                    round(_clamp(height, 0.0, 1.0), 4),
+                ])
+            polygon = Polygon(result)
+            minimum_area = 0.16 if key == "section_outer_control_points" else 0.025
+            if not polygon.is_valid or polygon.area < minimum_area:
+                raise ValueError(
+                    f"extrude {key} must form one non-self-crossing section polygon with area >= {minimum_area}"
+                )
+            return result
+
+        outer_controls = clean_section_points("section_outer_control_points", 4)
+        outer_polygon = Polygon(outer_controls)
+        normalised["section_outer_control_points"] = outer_controls
+        if normalised.get("section_void_control_points") is not None:
+            void_controls = clean_section_points("section_void_control_points", 3)
+            clipped_void = Polygon(void_controls).intersection(outer_polygon)
+            remaining = outer_polygon.difference(clipped_void)
+            if clipped_void.area < 0.025 or not isinstance(remaining, Polygon) or remaining.area < 0.10:
+                raise ValueError("extrude section void must leave one connected material section")
+            normalised["section_void_control_points"] = void_controls
+        normalised["section_depth_ratio"] = round(
+            _clamp(_safe_float(normalised.get("section_depth_ratio"), 0.72), 0.28, 0.94), 4
+        )
+        normalised["section_depth_shift_ratio"] = round(
+            _clamp(_safe_float(normalised.get("section_depth_shift_ratio"), 0.0), -0.24, 0.24), 4
+        )
     if verb == "bend":
         width = _safe_float(normalised.get("lane_width_ratio"), 0.10)
         # Models sometimes express ribbon width as a full-depth factor (0.5)
@@ -822,6 +863,15 @@ def _prompt(
         "These parameters define bottom, shoulder, and top polygon rings of one continuous mass: use them for a wedge monolith, "
         "leaning or cantilevered envelope, diagonal undercut, or shifted polygon plate. Do not attach a decorative diagonal box, "
         "copy a precedent outline, or satisfy this instruction with x_ratio/y_ratio alone. "
+        "For a sectional-monolith candidate, use a primary extrude and formal_principle sectional_monolith_cut. "
+        "section_outer_control_points are 4 to 8 perimeter-ordered vertices in a normalized ELEVATION SECTION "
+        "[[horizontal_position,height], ...], not a plan outline. section_void_control_points are an optional 3 to 8 vertex "
+        "subtractive section polygon. Also provide section_depth_ratio 0.28-0.94 and section_depth_shift_ratio -0.24 to 0.24. "
+        "Use this one generic solid/void representation to author a readable wedge silhouette, a diagonal ground undercut, "
+        "or a large elevated through-opening/cantilever. Derive the controls from site axis, access and program; do not copy "
+        "the example coordinates, do not add decorative boxes, and do not confuse these section controls with taper plan controls. "
+        "Across a 20-candidate population include at least one valid sectional monolith but no more than two, so it expands "
+        "the language portfolio without replacing courtyards, ribbons, stepped capacity, folded roofs and clusters. "
         "For a public courtyard facing the supplied access edge, set courtyard open_side to south/north/east/west; use closed only when an enclosed atrium is intentional. "
         "Prefer creative combinations of "
         "plan, section, void, connector, array, offset, stack, and roof language. "
@@ -1001,6 +1051,7 @@ def _record_to_sequence(record: dict[str, Any], index: int, *, prompt_hash: str,
             if isinstance(value, list) and key not in {
                 "offset_vec", "position", "control_points",
                 "plan_control_points", "top_height_controls",
+                "section_outer_control_points", "section_void_control_points",
             }:
                 continue
             if isinstance(value, dict):
@@ -1162,6 +1213,13 @@ def _record_language_group(record: dict[str, Any]) -> str:
             validated_primary_params = {}
         if isinstance(validated_primary_params.get("plan_control_points"), list):
             return "oblique_envelope"
+    if primary_verb == "extrude" and isinstance(primary_params.get("section_outer_control_points"), list):
+        try:
+            validated_primary_params = _normalise_params("extrude", primary_params)
+        except ValueError:
+            validated_primary_params = {}
+        if isinstance(validated_primary_params.get("section_outer_control_points"), list):
+            return "sectional_monolith"
     if primary_verb == "sloped_roof_mass" or any(token in principle for token in ("folded_section", "folded_roof", "sloped_roof")):
         return "folded_section"
     if primary_verb in {"split", "diagonal_connect", "interlock"} or any(

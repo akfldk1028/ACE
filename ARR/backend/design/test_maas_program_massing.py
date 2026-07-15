@@ -26,6 +26,7 @@ from design.maas.llm_proposals import (
     _language_group_counts,
     _missing_requested_language_groups,
     _normalise_params,
+    _record_language_group,
     _validate_requested_language_groups,
     _validate_requested_field_topologies,
 )
@@ -789,6 +790,107 @@ class MaasProgramMassingTest(SimpleTestCase):
         operation_schema = _response_schema()["properties"]["graph_edits"]["items"]["properties"]
         self.assertEqual(operation_schema["control_point_index"]["maximum"], 7)
         self.assertIn("plan_control_points", PARAMETERS_BY_VERB["taper"])
+
+    def test_agent_sectional_monolith_compiles_wedge_undercut_and_mega_void_as_one_mass(self):
+        variants = {
+            "wedge_gate": (
+                [[0.08, 0.0], [0.92, 0.0], [0.60, 1.0], [0.22, 0.72]],
+                [[0.56, 0.0], [0.80, 0.0], [0.69, 0.32]],
+            ),
+            "diagonal_undercut": (
+                [[0.06, 0.0], [0.94, 0.0], [0.94, 1.0], [0.06, 1.0]],
+                [[0.44, 0.0], [0.94, 0.0], [0.94, 0.42]],
+            ),
+            "elevated_mega_void": (
+                [[0.06, 0.0], [0.94, 0.0], [0.94, 1.0], [0.06, 1.0]],
+                [[0.16, 0.34], [0.76, 0.34], [0.76, 0.73], [0.16, 0.73]],
+            ),
+        }
+        surface_fingerprints = set()
+        editable_sequence = None
+        for index, (name, (outer, void)) in enumerate(variants.items()):
+            params = _normalise_params("extrude", {
+                "axis": "x" if index % 2 == 0 else "y",
+                "length": 0.86,
+                "size": 0.72,
+                "upper_ratio": 0.82,
+                "lower_floor_fraction": 0.45,
+                "section_depth_ratio": 0.64 + index * 0.08,
+                "section_depth_shift_ratio": -0.06 + index * 0.06,
+                "section_outer_control_points": outer,
+                "section_void_control_points": void,
+            })
+            sequence = VerbSequence(
+                f"llm_sectional_{name}",
+                name,
+                (VerbCall("base", {}), VerbCall("extrude", params)),
+                notes=("formal_principle=sectional_monolith_cut",),
+            )
+            source = compile_sequence_to_source_mass(box(0, 0, 60, 40), sequence)
+            editable_sequence = editable_sequence or sequence
+            self.assertIsNotNone(source)
+            evidence = source.signature()["continuous_surface_evidence"]
+            self.assertEqual(source.signature()["formal_principle"], "sectional_monolith_cut")
+            self.assertEqual(evidence["representation"], "agent_sectional_monolith_mesh")
+            self.assertEqual(len(source.volumes), 1)
+            self.assertLessEqual(len(source.surfaces), 48)
+            self.assertTrue(all(surface.operator == "section_solid_void_extrusion" for surface in source.surfaces))
+            field = evidence["sectional_monolith_field"]
+            self.assertTrue(field["diagonal_edge_count"] >= 1 or field["section_void_ratio"] >= 0.08)
+            feature = _feature(
+                source, sequence, building_type="neighborhood facility", height=24, floors=6, site_area=2400
+            )
+            spatial = attach_program_spatial_evidence(
+                feature, building_type="neighborhood facility", site_area_m2=2400
+            )
+            self.assertTrue(spatial["agent_sectional_monolith"])
+            self.assertTrue(assess_language_geometry(source, feature, "sectional_monolith")["geometry_pass"])
+            surface_fingerprints.add(tuple(surface.vertices_m for surface in source.surfaces))
+        self.assertEqual(len(surface_fingerprints), 3)
+        self.assertIn("section_outer_control_points", PARAMETERS_BY_VERB["extrude"])
+        self.assertIn("section_void_control_points", PARAMETERS_BY_VERB["extrude"])
+        graph = graph_from_sequence(editable_sequence)
+        revised = apply_critic_graph_edits(editable_sequence, CriticDirective(graph_edits=(GraphEditDirective(
+            operation="set_control_point",
+            target_node_id=graph.nodes[1].node_id,
+            parameter_name="section_outer_control_points",
+            control_point_index=2,
+            control_point_u=0.64,
+            control_point_v=0.94,
+        ),)))
+        self.assertEqual(len(revised), 1)
+        revised_controls = graph_from_sequence(revised[0]).nodes[1].operation.params["section_outer_control_points"]
+        self.assertEqual(revised_controls[2], [0.64, 0.94])
+        parent = _extract_overrides(editable_sequence)
+        overrides = _mutated_graph_parameters(editable_sequence, parent, random.Random(715))
+        child = _with_overrides(editable_sequence, overrides, generation=1, index=0)
+        child_params = child.calls[1].params
+        self.assertNotEqual(
+            child_params["section_outer_control_points"],
+            editable_sequence.calls[1].params["section_outer_control_points"],
+        )
+        self.assertIn("call_1__section_outer_control_point_2_v", _extract_overrides(child))
+        child_source = compile_sequence_to_source_mass(box(0, 0, 60, 40), child)
+        self.assertIsNotNone(child_source)
+        self.assertNotEqual(
+            compile_sequence_to_source_mass(box(0, 0, 60, 40), editable_sequence).source_surface_signatures(),
+            child_source.source_surface_signatures(),
+        )
+
+        authored_record = {
+            "formal_principle": "sectional_monolith_cut",
+            "calls": [
+                {"verb": "base", "role": "root", "params": "{}"},
+                {"verb": "extrude", "role": "primary", "params": __import__("json").dumps({
+                    "section_outer_control_points": variants["wedge_gate"][0],
+                })},
+            ],
+        }
+        self.assertEqual(_record_language_group(authored_record), "sectional_monolith")
+        with self.assertRaisesRegex(ValueError, "non-self-crossing section polygon"):
+            _normalise_params("extrude", {
+                "section_outer_control_points": [[0.1, 0.1], [0.9, 0.9], [0.9, 0.1], [0.1, 0.9]],
+            })
 
     def test_program_search_mutates_section_control_field_not_only_scalar_ratios(self):
         controls = [[0.04, 0.24], [0.27, 0.63], [0.52, 0.38], [0.76, 0.72], [0.96, 0.49]]

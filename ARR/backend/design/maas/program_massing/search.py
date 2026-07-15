@@ -430,15 +430,23 @@ def _mutated_graph_parameters(seed: VerbSequence, parent: dict[str, float], rng:
     result: dict[str, float] = {}
     for call_index, operation in enumerate(seed.calls[1:], start=1):
         for name, baseline_value in operation.params.items():
-            if name in {"control_points", "plan_control_points"} and isinstance(baseline_value, list):
+            if name in {
+                "control_points", "plan_control_points",
+                "section_outer_control_points", "section_void_control_points",
+            } and isinstance(baseline_value, list):
                 # A section/ribbon control field is part of the genotype, not
                 # inert provenance. Earlier search only perturbed scalar
                 # ratios, so one good authored loft produced many renamed but
                 # geometrically identical descendants. Mutate the normalized
                 # stations and heights directly while preserving their order.
-                is_plan_polygon = name == "plan_control_points"
-                prefix = "plan_control_point" if is_plan_polygon else "control_point"
-                limit = 8 if is_plan_polygon else 6
+                is_polygon = name != "control_points"
+                is_section = name.startswith("section_")
+                prefix = {
+                    "plan_control_points": "plan_control_point",
+                    "section_outer_control_points": "section_outer_control_point",
+                    "section_void_control_points": "section_void_control_point",
+                }.get(name, "control_point")
+                limit = 8 if is_polygon else 6
                 controls: list[tuple[float, float]] = []
                 for point_index, point in enumerate(baseline_value[:limit]):
                     if not isinstance(point, (list, tuple)) or len(point) != 2:
@@ -453,29 +461,30 @@ def _mutated_graph_parameters(seed: VerbSequence, parent: dict[str, float], rng:
                     center_v = parent.get(v_key, baseline_v)
                     visible_direction = -1.0 if rng.random() < 0.5 else 1.0
                     controls.append((
-                        max(0.03, min(0.97, center_u + rng.uniform(-0.075 if is_plan_polygon else -0.04, 0.075 if is_plan_polygon else 0.04))),
+                        max(0.03, min(0.97, center_u + rng.uniform(-0.075 if is_polygon else -0.04, 0.075 if is_polygon else 0.04))),
                         # Make section mutations visible at contact-sheet
                         # scale. Tiny +/-0.03 edits survived numerically but
                         # were correctly rejected as the same silhouette.
                         max(
-                            0.03 if is_plan_polygon else 0.12,
+                            0.0 if is_section else 0.03 if is_polygon else 0.12,
                             min(
-                                0.97 if is_plan_polygon else 0.88,
-                                center_v + visible_direction * rng.uniform(0.055, 0.11) if is_plan_polygon
+                                0.97 if is_polygon else 0.88,
+                                center_v + visible_direction * rng.uniform(0.055, 0.11) if is_polygon
                                 else center_v + visible_direction * rng.uniform(0.10, 0.22),
                             ),
                         ),
                     ))
-                if is_plan_polygon:
+                if is_polygon:
                     candidate = Polygon(controls)
-                    if not candidate.is_valid or candidate.area < 0.04:
+                    minimum_area = 0.16 if name == "section_outer_control_points" else 0.025 if name == "section_void_control_points" else 0.04
+                    if not candidate.is_valid or candidate.area < minimum_area:
                         controls = [tuple(map(float, point)) for point in baseline_value[:limit]]
                 else:
                     controls.sort(key=lambda item: item[0])
                 for point_index, (position, height) in enumerate(controls):
                     # Keep a real section domain and avoid self-crossing or
                     # near-zero spans after mutation.
-                    if not is_plan_polygon:
+                    if not is_polygon:
                         low = 0.03 if point_index == 0 else controls[point_index - 1][0] + 0.035
                         remaining = len(controls) - point_index - 1
                         high = 0.97 - remaining * 0.035
@@ -533,12 +542,16 @@ def _with_overrides(seed: VerbSequence, overrides: dict[str, float], generation:
                 key: value for key, value in changes.items()
                 if key.startswith("plan_control_point_")
             }
+            section_control_changes = {
+                key: value for key, value in changes.items()
+                if key.startswith("section_outer_control_point_") or key.startswith("section_void_control_point_")
+            }
             height_control_changes = {
                 key: value for key, value in changes.items()
                 if key.startswith("top_height_control_")
             }
             for key, value in changes.items():
-                if key not in control_changes and key not in plan_control_changes and key not in height_control_changes:
+                if key not in control_changes and key not in plan_control_changes and key not in section_control_changes and key not in height_control_changes:
                     params[key] = value
             if control_changes and isinstance(params.get("control_points"), list):
                 controls = [list(point) for point in params["control_points"] if isinstance(point, (list, tuple)) and len(point) == 2]
@@ -573,6 +586,37 @@ def _with_overrides(seed: VerbSequence, overrides: dict[str, float], generation:
                 candidate = Polygon(controls)
                 if candidate.is_valid and candidate.area >= 0.04:
                     params["plan_control_points"] = controls
+            for field_name, field_prefix in (
+                ("section_outer_control_points", "section_outer_control_point_"),
+                ("section_void_control_points", "section_void_control_point_"),
+            ):
+                field_changes = {key: value for key, value in section_control_changes.items() if key.startswith(field_prefix)}
+                if not field_changes or not isinstance(params.get(field_name), list):
+                    continue
+                controls = [list(point) for point in params[field_name] if isinstance(point, (list, tuple)) and len(point) == 2]
+                for key, value in field_changes.items():
+                    suffix = key[len(field_prefix):].split("_")
+                    if len(suffix) != 2:
+                        continue
+                    try:
+                        point_index = int(suffix[0])
+                    except ValueError:
+                        continue
+                    coordinate_index = 0 if suffix[1] == "u" else 1 if suffix[1] == "v" else -1
+                    if 0 <= point_index < len(controls) and coordinate_index >= 0:
+                        controls[point_index][coordinate_index] = float(value)
+                candidate_params = {**params, field_name: controls}
+                outer = candidate_params.get("section_outer_control_points")
+                void = candidate_params.get("section_void_control_points")
+                outer_polygon = Polygon(outer) if isinstance(outer, list) else Polygon()
+                remaining = outer_polygon
+                valid = outer_polygon.is_valid and outer_polygon.area >= 0.16
+                if valid and isinstance(void, list):
+                    void_polygon = Polygon(void)
+                    remaining = outer_polygon.difference(void_polygon.intersection(outer_polygon))
+                    valid = void_polygon.is_valid and void_polygon.area >= 0.025 and isinstance(remaining, Polygon) and remaining.area >= 0.10
+                if valid:
+                    params[field_name] = controls
             if height_control_changes and isinstance(params.get("top_height_controls"), list):
                 heights = [float(value) for value in params["top_height_controls"]]
                 for key, value in height_control_changes.items():
@@ -620,9 +664,16 @@ def _extract_overrides(sequence: VerbSequence) -> dict[str, float]:
     result = {key: float(value) for key, value in sequence.calls[-1].params.items() if key.startswith("component_")}
     for call_index, operation in enumerate(sequence.calls):
         for key, value in operation.params.items():
-            if key in {"control_points", "plan_control_points"} and isinstance(value, list):
-                prefix = "plan_control_point" if key == "plan_control_points" else "control_point"
-                limit = 8 if key == "plan_control_points" else 6
+            if key in {
+                "control_points", "plan_control_points",
+                "section_outer_control_points", "section_void_control_points",
+            } and isinstance(value, list):
+                prefix = {
+                    "plan_control_points": "plan_control_point",
+                    "section_outer_control_points": "section_outer_control_point",
+                    "section_void_control_points": "section_void_control_point",
+                }.get(key, "control_point")
+                limit = 8 if key != "control_points" else 6
                 for point_index, point in enumerate(value[:limit]):
                     if not isinstance(point, (list, tuple)) or len(point) != 2:
                         continue

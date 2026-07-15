@@ -2533,3 +2533,19 @@
 - Do not call v98 competition-grade or permit-complete. Next close the third
   stepped-capacity survivor without padding a weak cake-tier box, then run
   deterministic law/FAR/parking projection and geometry-retention measurement.
+
+### Sectional-monolith correction (2026-07-15)
+
+- The supplied wedge/undercut/mega-void references are section-driven, not
+  merely plan-polygon forms. Keep the oblique plan loft as optional capability,
+  but use the generic `sectional_monolith_cut` solid/void genotype for these
+  operations.
+- LLM authors normalized outer/void section controls; search and VLM edit the
+  same executable controls; the compiler emits one clean proxy plus the real
+  through-cut review mesh. No named precedent coordinate templates.
+- Preserve portfolio diversity: require 1 and cap at 2 sectional monoliths;
+  cap plan-oblique envelopes at 1. Never turn all 20 into polygon sculptures.
+- The six-card PNG and focused tests prove representation/editability only.
+  Next run the real PNU 20-card full loop, then law/FAR/parking projection and
+  post-repair geometry-retention measurement. Do not claim competition-grade
+  completion before that evidence exists.

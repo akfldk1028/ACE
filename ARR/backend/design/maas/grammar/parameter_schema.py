@@ -61,6 +61,8 @@ PARAMETER_BOUNDS: dict[str, tuple[float, float]] = {
     "n": (2.0, 4.0),
     "lane_count": (2.0, 3.0),
     "field_samples": (5.0, 9.0),
+    "section_depth_ratio": (0.28, 0.94),
+    "section_depth_shift_ratio": (-0.24, 0.24),
 }
 
 
@@ -94,7 +96,11 @@ PARAMETERS_BY_VERB: dict[str, tuple[str, ...]] = {
         "field_topology", "vertical_mode", "control_points",
     ),
     "embed": ("guest_scale", "position", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
-    "extrude": ("axis", "length", "size", "upper_ratio", "lower_floor_fraction"),
+    "extrude": (
+        "axis", "length", "size", "upper_ratio", "lower_floor_fraction",
+        "section_depth_ratio", "section_depth_shift_ratio",
+        "section_outer_control_points", "section_void_control_points",
+    ),
     "nest": ("inner_scale", "upper_ratio", "lower_floor_fraction"),
     "stack": ("levels", "upper_ratio", "lower_floor_fraction"),
     "offset": ("axis", "distance_ratio", "other_scale", "upper_ratio", "lower_floor_fraction"),

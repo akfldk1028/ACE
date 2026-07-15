@@ -267,9 +267,10 @@ def run_neighborhood_vlm_a2a_loop(
             capacity_pool.append(replace(elite, score=round(elite.score * 0.82 + capacity_fit * 0.18, 6)))
     review_group_minimums = {
         "continuous_field": 1,
-        # Capability, not monoculture: require one reviewable agent-authored
-        # oblique envelope while keeping most of the board in other languages.
-        "oblique_envelope": 1,
+        # The supplied references are section-driven rather than merely plan
+        # polygons. Keep one executable sectional solid/void candidate in the
+        # review frontier; oblique plan lofts remain optional capability.
+        "sectional_monolith": 1,
         "carved_void": 1,
         "bridge_interlock": 1,
         "folded_section": 1,
@@ -312,7 +313,8 @@ def run_neighborhood_vlm_a2a_loop(
             "carved_void": 8,
             "stepped_capacity": 8,
             "continuous_field": 8,
-            "oblique_envelope": 4,
+            "oblique_envelope": 2,
+            "sectional_monolith": 3,
             "bridge_interlock": 8,
             "folded_section": 8,
             "cluster_field": 8,
@@ -459,7 +461,7 @@ def run_neighborhood_vlm_a2a_loop(
     ]
     final_group_minimums = {
         "continuous_field": 2,
-        "oblique_envelope": 1,
+        "sectional_monolith": 1,
         "carved_void": 3,
         "bridge_interlock": 2,
         "folded_section": 2,
@@ -478,7 +480,8 @@ def run_neighborhood_vlm_a2a_loop(
         "carved_void": 5,
         "stepped_capacity": 3,
         "continuous_field": 4,
-        "oblique_envelope": 2,
+        "oblique_envelope": 1,
+        "sectional_monolith": 2,
         "bridge_interlock": 4,
         "folded_section": 4,
         "cluster_field": 4,
@@ -786,16 +789,18 @@ def _author_feedback() -> dict[str, Any]:
             # at two, so the board gains the capability without becoming an
             # all-polygon exercise.
             "oblique_or_polygon_envelope": 3,
+            "sectional_solid_void_monolith": 3,
             "cluster_or_branch": 3,
         },
         "required_language_groups": {
-            "oblique_envelope": 1,
+            "sectional_monolith": 1,
             "cluster_field": 2,
         },
         "formal_principle_targets": [
             "figure_ground", "carved_solid", "continuous_field", "folded_section",
             "split_bridge", "datum_shift", "courtyard_atrium", "stepped_landform",
             "agent_oblique_polygon_envelope",
+            "agent_sectional_solid_void_monolith",
         ],
         "reference_precedent_targets": [
             "BIG: one diagrammatic operation with programmatic consequence",
@@ -863,6 +868,7 @@ def generation_feedback_from_result(result: dict[str, Any]) -> dict[str, Any]:
     group_to_quota = {
         "continuous_field": "continuous_or_bent",
         "oblique_envelope": "oblique_or_polygon_envelope",
+        "sectional_monolith": "sectional_solid_void_monolith",
         "carved_void": "carved_or_courtyard",
         "bridge_interlock": "bridge_or_interlock",
         "folded_section": "folded_or_sloped_section",
@@ -1525,6 +1531,8 @@ def _language_group(item: ProgramElite) -> str:
         return "continuous_field"
     if surface.get("representation") == "agent_oblique_envelope_mesh":
         return "oblique_envelope"
+    if surface.get("representation") == "agent_sectional_monolith_mesh":
+        return "sectional_monolith"
     if (
         principle == "folded_section"
         or primary_verb == "sloped_roof_mass"
@@ -1571,7 +1579,9 @@ def _has_editable_control_field(item: ProgramElite) -> bool:
         if primary.verb in {"bend", "sloped_roof_mass"}
         else primary.params.get("plan_control_points") if primary.verb == "taper" else None
     )
-    minimum, maximum = ((3, 8) if primary.verb == "taper" else (4, 6))
+    if primary.verb == "extrude" and isinstance(primary.params.get("section_outer_control_points"), list):
+        controls = primary.params.get("section_outer_control_points")
+    minimum, maximum = ((3, 8) if primary.verb == "taper" else (4, 8) if primary.verb == "extrude" else (4, 6))
     return isinstance(controls, list) and minimum <= len(controls) <= maximum
 
 

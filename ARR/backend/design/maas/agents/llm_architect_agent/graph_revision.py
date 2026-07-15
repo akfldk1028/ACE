@@ -59,7 +59,11 @@ def apply_critic_graph_mutations(
         operation = edit.operation
         index = next((i for i, node in enumerate(nodes) if node.node_id == edit.target_node_id), None)
         if operation == "set_control_point":
-            if index is None or nodes[index].role == "root" or nodes[index].operation.verb != "bend":
+            if (
+                index is None
+                or nodes[index].role == "root"
+                or nodes[index].operation.verb not in {"bend", "sloped_roof_mass"}
+            ):
                 continue
             node = nodes[index]
             raw_controls = node.operation.params.get("control_points")

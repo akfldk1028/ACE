@@ -207,9 +207,10 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "geometry changes for the next MassDSL generation, not legal or parking judgments.\n"
         "For graph_edits return only bounded genotype edits: set_parameter, set_control_point, replace_operation, "
         "add_operation, remove_optional, or reparent. For numeric parameters use numeric_value and leave "
-        "string_value empty. set_control_point is valid only for an existing bend node that already has "
+        "string_value empty. set_control_point is valid only for an existing bend or sloped_roof_mass node that already has "
         "control_points: supply its zero-based control_point_index plus normalized control_point_u and "
-        "control_point_v. Keep u ordered along the path; use this operation to correct the visible ribbon path. "
+        "control_point_v. Keep u ordered. For bend, [u,v] edits the visible plan path; for sloped_roof_mass, "
+        "[u,v] edits normalized [section_position,height] in the visible roof loft. "
         "For axis/side/corner/open_side/field_topology/vertical_mode use string_value. A replace_operation or "
         "add_operation must be immediately followed by at least one valid set_parameter for the affected node; "
         "empty-default topology edits are rejected. add_operation may add only support, void, or connector nodes, "
@@ -219,7 +220,8 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "set_parameter edits. If the existing primary is bend, one or more set_control_point edits are also a valid "
         "structural correction because they change the executable spatial path. "
         "Use only supported verbs from the response schema and preserve a good simple anchor when no structural "
-        "failure applies.\n"
+        "failure applies. A sloped_roof_mass with authored control_points may also be structurally corrected by "
+        "set_control_point because it changes the executable section, not facade styling.\n"
         f"Candidate JSON summary:\n{json.dumps(summary, ensure_ascii=False, sort_keys=True)}"
     )
 
@@ -428,7 +430,7 @@ def _normalize_vlm_result(
 
 
 def _editable_control_node_ids(feature: dict[str, Any]) -> set[str]:
-    """Return bend node ids whose authored path can actually be mutated."""
+    """Return path/section nodes whose authored controls can be mutated."""
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
     source = props.get("source_signature") if isinstance(props.get("source_signature"), dict) else {}
     component_graph = source.get("component_graph") if isinstance(source.get("component_graph"), dict) else {}
@@ -440,7 +442,7 @@ def _editable_control_node_ids(feature: dict[str, Any]) -> set[str]:
         operation = node.get("operation") if isinstance(node, dict) and isinstance(node.get("operation"), dict) else {}
         params = operation.get("params") if isinstance(operation.get("params"), dict) else {}
         controls = params.get("control_points")
-        if operation.get("verb") == "bend" and isinstance(controls, list) and 4 <= len(controls) <= 6:
+        if operation.get("verb") in {"bend", "sloped_roof_mass"} and isinstance(controls, list) and 4 <= len(controls) <= 6:
             editable.add(str(node.get("node_id") or ""))
     return editable
 

@@ -1,5 +1,6 @@
 """Program-conditioned MAAS massing contracts."""
 
+import random
 from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -51,7 +52,14 @@ from design.maas.program_massing.vlm_a2a import (
     generation_feedback_from_result,
 )
 from design.maas.program_massing.scoring import attach_program_massing_evidence
-from design.maas.program_massing.search import ProgramElite, _descriptor_distance, _feature, _with_overrides
+from design.maas.program_massing.search import (
+    ProgramElite,
+    _descriptor_distance,
+    _extract_overrides,
+    _feature,
+    _mutated_graph_parameters,
+    _with_overrides,
+)
 from design.maas.program_massing.morphology import intrinsic_shape_distance, intrinsic_silhouette_distance
 from design.maas.program_massing.portfolio_solver import PortfolioCandidateFacts, solve_portfolio_beam
 from design.maas.program_massing.capacity_projection import project_bend_capacity
@@ -520,6 +528,26 @@ class MaasProgramMassingTest(SimpleTestCase):
 
         self.assertEqual(set(selected), {1, 2, 3})
 
+    def test_portfolio_beam_reserves_editable_surface_genotypes(self):
+        facts = [
+            PortfolioCandidateFacts(0.99, "folded_section", "folded", "box_a"),
+            PortfolioCandidateFacts(0.98, "folded_section", "folded", "box_b"),
+            PortfolioCandidateFacts(0.87, "folded_section", "folded", "loft_a", editable_field=True),
+            PortfolioCandidateFacts(0.86, "continuous_field", "ribbon", "ribbon_a", editable_field=True),
+        ]
+        compatibility = [[True] * 4 for _ in range(4)]
+
+        selected = solve_portfolio_beam(
+            facts,
+            compatibility,
+            target_count=3,
+            minimum_groups={"folded_section": 1, "continuous_field": 1},
+            minimum_editable_field_count=2,
+        )
+
+        self.assertEqual(len(selected), 3)
+        self.assertGreaterEqual(sum(facts[index].editable_field for index in selected), 2)
+
     def test_vlm_structural_edit_contract_rejects_invented_verbs(self):
         verb_schema = _response_schema()["properties"]["graph_edits"]["items"]["properties"]["verb"]
 
@@ -597,6 +625,123 @@ class MaasProgramMassingTest(SimpleTestCase):
         self.assertIn("control_points", PARAMETERS_BY_VERB["bend"])
         operation_schema = _response_schema()["properties"]["graph_edits"]["items"]["properties"]["operation"]
         self.assertIn("set_control_point", operation_schema["enum"])
+
+    def test_agent_section_controls_compile_to_distinct_site_loft_and_vlm_can_edit_them(self):
+        ridge_controls = [[0.03, 0.28], [0.28, 0.58], [0.50, 0.88], [0.72, 0.56], [0.97, 0.24]]
+        valley_controls = [[0.03, 0.82], [0.28, 0.52], [0.50, 0.20], [0.72, 0.55], [0.97, 0.84]]
+
+        def compile_profile(name, controls):
+            sequence = VerbSequence(
+                name,
+                name,
+                (
+                    VerbCall("base", {}),
+                    VerbCall("sloped_roof_mass", {
+                        "axis": "x",
+                        "upper_ratio": 0.90,
+                        "x_ratio": 0.82,
+                        "y_ratio": 0.78,
+                        "lower_floor_fraction": 0.42,
+                        "field_samples": 7,
+                        "longitudinal_wave": 0.12,
+                        "twist": 0.16,
+                        "control_points": controls,
+                    }),
+                ),
+                notes=("formal_principle=folded_section",),
+            )
+            return sequence, compile_sequence_to_source_mass(box(0, 0, 60, 40), sequence)
+
+        ridge_sequence, ridge = compile_profile("llm_sloped_roof_ridge", ridge_controls)
+        _, valley = compile_profile("llm_sloped_roof_valley", valley_controls)
+
+        self.assertIsNotNone(ridge)
+        self.assertIsNotNone(valley)
+        evidence = ridge.signature()["continuous_surface_evidence"]
+        self.assertEqual(evidence["representation"], "agent_section_loft_quad_mesh")
+        self.assertLessEqual(evidence["surface_count"], 48)
+        self.assertEqual(evidence["section_field"]["authored_station_count"], 7)
+        self.assertEqual(evidence["section_field"]["review_lod_station_count"], 5)
+        self.assertEqual(evidence["section_field"]["section_interpolation"], "smooth")
+        self.assertEqual(evidence["section_field"]["compiled_section_point_count"], 7)
+        self.assertGreaterEqual(evidence["section_field"]["section_height_range"], 0.18)
+        self.assertLessEqual(evidence["section_field"]["max_normalized_segment_slope"], 4.5)
+        ridge_roof = [surface for surface in ridge.surfaces if surface.surface_type == "profiled_section_loft_roof"]
+        valley_roof = [surface for surface in valley.surfaces if surface.surface_type == "profiled_section_loft_roof"]
+        self.assertTrue(ridge_roof)
+        self.assertNotEqual(ridge_roof[0].vertices_m, valley_roof[0].vertices_m)
+        self.assertGreaterEqual(len({round(vertex[2], 3) for surface in ridge_roof for vertex in surface.vertices_m}), 4)
+        ridge_feature = _feature(
+            ridge, ridge_sequence, building_type="neighborhood living", height=18, floors=5, site_area=2400
+        )
+        self.assertTrue(assess_language_geometry(ridge, ridge_feature, "folded_section")["geometry_pass"])
+        spatial = attach_program_spatial_evidence(
+            ridge_feature, building_type="neighborhood living", site_area_m2=2400
+        )
+        self.assertTrue(spatial["agent_section_loft"])
+        self.assertGreaterEqual(spatial["hierarchy_score"], 0.5)
+
+        graph = graph_from_sequence(ridge_sequence)
+        primary_id = graph.nodes[1].node_id
+        directive = CriticDirective(graph_edits=(GraphEditDirective(
+            operation="set_control_point",
+            target_node_id=primary_id,
+            control_point_index=2,
+            control_point_u=0.50,
+            control_point_v=0.68,
+        ),))
+        revised = apply_critic_graph_edits(ridge_sequence, directive)
+        self.assertEqual(len(revised), 1)
+        self.assertEqual(graph_from_sequence(revised[0]).nodes[1].operation.params["control_points"][2], [0.5, 0.68])
+        self.assertIn("control_points", PARAMETERS_BY_VERB["sloped_roof_mass"])
+
+    def test_program_search_mutates_section_control_field_not_only_scalar_ratios(self):
+        controls = [[0.04, 0.24], [0.27, 0.63], [0.52, 0.38], [0.76, 0.72], [0.96, 0.49]]
+        seed = VerbSequence(
+            "agent_section_genotype",
+            "agent section genotype",
+            (
+                VerbCall("base", {}),
+                VerbCall("sloped_roof_mass", {
+                    "axis": "x",
+                    "x_ratio": 0.72,
+                    "y_ratio": 0.58,
+                    "upper_ratio": 0.86,
+                    "lower_floor_fraction": 0.28,
+                    "field_samples": 7,
+                    "longitudinal_wave": 0.08,
+                    "twist": -0.06,
+                    "control_points": controls,
+                }),
+            ),
+            notes=("formal_principle=folded_section",),
+        )
+
+        parent = _extract_overrides(seed)
+        overrides = _mutated_graph_parameters(seed, parent, random.Random(417))
+        child = _with_overrides(seed, overrides, generation=1, index=0)
+        child_controls = child.calls[1].params["control_points"]
+
+        self.assertNotEqual(child_controls, controls)
+        self.assertEqual(len(child_controls), len(controls))
+        self.assertTrue(all(
+            float(right[0]) - float(left[0]) >= 0.035
+            for left, right in zip(child_controls, child_controls[1:])
+        ))
+        extracted_child = _extract_overrides(child)
+        self.assertIn("call_1__control_point_2_v", extracted_child)
+        self.assertAlmostEqual(
+            extracted_child["call_1__control_point_2_v"],
+            float(child_controls[2][1]),
+        )
+        parent_source = compile_sequence_to_source_mass(box(0, 0, 24, 18), seed)
+        child_source = compile_sequence_to_source_mass(box(0, 0, 24, 18), child)
+        self.assertIsNotNone(parent_source)
+        self.assertIsNotNone(child_source)
+        self.assertNotEqual(
+            parent_source.signature()["continuous_surface_evidence"]["section_field"]["control_points"],
+            child_source.signature()["continuous_surface_evidence"]["section_field"]["control_points"],
+        )
 
     def test_capacity_projection_preserves_authored_curve_and_changes_only_occupiable_section(self):
         controls = [[0.04, 0.25], [0.32, 0.62], [0.68, 0.38], [0.96, 0.72]]
@@ -718,10 +863,7 @@ class MaasProgramMassingTest(SimpleTestCase):
             "profile_moved",
             translate(footprint, xoff=312000.0, yoff=4150000.0),
             volumes=(replace(volume, footprint=translate(volume.footprint, xoff=312000.0, yoff=4150000.0)),),
-            surfaces=(replace(
-                surface,
-                vertices_m=tuple((x + 312000.0, y + 4150000.0, z) for x, y, z in surface.vertices_m),
-            ),),
+            surfaces=(surface,),
         )
 
         self.assertLess(intrinsic_silhouette_distance(source, moved), 0.001)

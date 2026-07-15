@@ -265,12 +265,14 @@ Older MAAS notes remain useful as history, but this index is the current handoff
 
 ## Current Evidence Shape
 
-Latest executable checkpoint (2026-07-14): read the final section of
+Latest executable checkpoints (2026-07-15): read the final two sections of
 `MAAS_VISUAL_FAILURE_HANDOFF_20260710.md` before changing selection or geometry.
-The verified artifact is
-`maas-neighborhood-vlm-a2a-v53-full-frontier-repeatability-contract` (20/20,
-capacity 9/8, zero near duplicates, 14 persisted + 6 fresh). This is a clean
-mass-stage baseline, not competition-grade and not a legal/parking projection.
+v90 is the best technical-count artifact at 20/20. v94 is the latest
+representation audit at an honest 17/20: one agent-authored section loft is
+selected, capacity reaches 8/8, but continuous and cluster quotas are missing.
+Neither checkpoint is competition-grade or a deterministic legal/parking
+projection. The post-v94 smooth section interpolation is unit-tested only and
+still needs a new full-loop PNG.
 
 Every strong MAAS candidate should carry:
 

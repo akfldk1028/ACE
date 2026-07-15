@@ -21,6 +21,7 @@ class PortfolioCandidateFacts:
     persisted: bool = False
     authored: bool = False
     capacity_target: bool = False
+    editable_field: bool = False
 
 
 def solve_portfolio_beam(
@@ -32,6 +33,7 @@ def solve_portfolio_beam(
     maximum_groups: dict[str, int] | None = None,
     minimum_field_topologies: dict[str, int] | None = None,
     minimum_authored_count: int = 0,
+    minimum_editable_field_count: int = 0,
     minimum_capacity_target_count: int = 0,
     maximum_persisted_count: int | None = None,
     minimum_fresh_count: int = 0,
@@ -69,22 +71,24 @@ def solve_portfolio_beam(
         authored = sum(facts[index].authored for index in state)
         capacity = sum(facts[index].capacity_target for index in state)
         persisted = sum(facts[index].persisted for index in state)
-        return groups, fields, authored, capacity, persisted, len(state) - persisted
+        editable = sum(facts[index].editable_field for index in state)
+        return groups, fields, authored, editable, capacity, persisted, len(state) - persisted
 
     def coverage_key(state: tuple[int, ...]) -> tuple[float, ...]:
-        groups, fields, authored, capacity, _, fresh = counts(state)
+        groups, fields, authored, editable, capacity, _, fresh = counts(state)
         coverage = sum(min(groups.get(group, 0), required) for group, required in minimum_groups.items())
         coverage += sum(
             min(fields.get(topology, 0), required)
             for topology, required in (minimum_field_topologies or {}).items()
         )
         coverage += min(authored, max(0, minimum_authored_count))
+        coverage += min(editable, max(0, minimum_editable_field_count))
         coverage += min(capacity, max(0, minimum_capacity_target_count))
         coverage += min(fresh, max(0, minimum_fresh_count))
         return (float(coverage), float(len(state)), sum(facts[index].score for index in state))
 
     def feasible(state: tuple[int, ...]) -> bool:
-        groups, fields, authored, capacity, persisted, fresh = counts(state)
+        groups, fields, authored, editable, capacity, persisted, fresh = counts(state)
         return (
             all(groups.get(group, 0) >= required for group, required in minimum_groups.items())
             and all(
@@ -92,6 +96,7 @@ def solve_portfolio_beam(
                 for topology, required in (minimum_field_topologies or {}).items()
             )
             and authored >= minimum_authored_count
+            and editable >= minimum_editable_field_count
             and capacity >= minimum_capacity_target_count
             and persisted <= persisted_limit
             and fresh >= minimum_fresh_count

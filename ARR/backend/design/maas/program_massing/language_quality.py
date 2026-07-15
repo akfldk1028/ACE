@@ -56,10 +56,26 @@ def assess_language_geometry(source: Any, feature: dict[str, Any], language_grou
         surface = signature.get("continuous_surface_evidence") if isinstance(signature.get("continuous_surface_evidence"), dict) else {}
         profiled = bool(projection.get("profiled_roof_present")) or bool(surface.get("hard_pass"))
         section_levels = int(projection.get("section_level_count") or projection.get("height_level_count") or 0)
-        passed = profiled and section_levels >= 2
+        section_field = surface.get("section_field") if isinstance(surface.get("section_field"), dict) else {}
+        section_height_range = float(section_field.get("section_height_range") or 0.0)
+        profile_total_variation = float(section_field.get("profile_total_variation") or 0.0)
+        max_segment_slope = float(section_field.get("max_normalized_segment_slope") or 0.0)
+        agent_loft_pass = (
+            surface.get("representation") == "agent_section_loft_quad_mesh"
+            and int(section_field.get("section_control_point_count") or 0) >= 4
+            and section_height_range >= 0.18
+            and profile_total_variation <= 2.40
+            and max_segment_slope <= 4.50
+            and int(surface.get("surface_count") or 0) <= 48
+        )
+        passed = profiled and (section_levels >= 2 or agent_loft_pass)
         evidence.update({
             "profiled_surface": profiled,
             "section_level_count": section_levels,
+            "agent_section_loft_pass": agent_loft_pass,
+            "section_height_range": round(section_height_range, 4),
+            "profile_total_variation": round(profile_total_variation, 4),
+            "max_normalized_segment_slope": round(max_segment_slope, 4),
             "geometry_pass": passed,
             "quality_score": 0.90 if passed else 0.0,
         })

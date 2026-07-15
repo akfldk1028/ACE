@@ -2577,3 +2577,95 @@ Next representation work, in order:
 4. Project v90 through deterministic law/FAR/parking and measure geometry
    retention before any service-complete claim. Keep expensive author/VLM
    archive refresh asynchronous.
+
+## 2026-07-15 v91-v94 agent section-loft representation checkpoint
+
+Read this before treating the v90 20-card closure as the end of massing work.
+v90 remains the best technical-count board; v91-v94 deliberately reopen the
+representation layer and therefore return honest sub-20 failures.
+
+Representation changes completed:
+
+1. `source_geometry/section_fields.py` now projects an agent-authored normalized
+   section genotype through the actual parcel/mass minimum-rotated frame. The
+   genotype is 4-6 ordered `[section_position, height]` control points plus
+   axis, longitudinal wave and twist. There are no named-building outlines or
+   PNU coordinates in this operator.
+2. The compiler emits one continuous quad loft for review/VLM and keeps one
+   separate conservative solid for law/FAR projection. Cumulative helper states
+   such as lift/taper are not emitted as competing Lego boxes behind the loft.
+3. The early-mass review LOD is capped at five longitudinal stations, keeping
+   the authored density as provenance while satisfying the 48-surface clean
+   gate. The accepted v92/v94 loft has one visible/legal proxy and 32 review
+   surfaces under the linear representation.
+4. `sloped_roof_mass` control points are editable by the same typed VLM
+   `set_control_point` contract already proven for bend fields. The VLM still
+   critiques and mutates an existing graph; it is not a free-form mesh
+   generator.
+5. Program search now mutates every section control-point coordinate as part of
+   the genotype. Previously it skipped lists and generated renamed scalar
+   descendants of the same roof. Mutations use a visible bounded height change,
+   preserve point order and are reserialized into the executable component
+   graph.
+6. The portfolio beam carries an explicit `editable_field` fact. It reserves
+   available bend/section genotypes but caps its requirement by actual pool
+   availability so an impossible requested quota cannot disable the solver.
+7. After v94, section interpolation was split into generic `smooth` (bounded C1
+   Catmull-Rom resampling) and intentional `linear` fold modes. Smooth mode
+   compiles seven section samples / 44 surfaces and is unit-tested, but it has
+   **not yet been verified in a new full-loop PNG**. Do not claim it from the
+   v94 board, whose process loaded the preceding linear code.
+8. A long-standing morphology metric defect was fixed: `SourceSurface`
+   vertices are already source-centroid-local, so subtracting the world
+   centroid again corrupted translation-invariant silhouette comparison.
+
+Measured live-PNU results for `1168011800104170004`:
+
+- v91, before the clean proxy chain was complete: 15/20, capacity 6, mean VLM
+  0.7204. No authored section loft survived.
+- v92 clean section loft: 15/20, capacity 6, mean VLM 0.7229. The true primary
+  section candidate survived as one body, 32 surfaces, normalized FAR 0.774,
+  VLM 0.7417. This proves end-to-end representation admission, not portfolio
+  completion.
+- v93 genotype search: 17/20, capacity 7, mean VLM 0.7345. A searched/mutated
+  section genotype replaced its parent, but only one editable section field
+  remained in the final archive.
+- v94 visible section mutation: 17/20, capacity 8/8, mean VLM 0.7258. Final
+  groups are folded 4, continuous 1, bridge 3, stepped 3, carved 5 and cluster
+  1. The run correctly fails the continuous and cluster minimums instead of
+  padding with rotations or rejected boxes.
+
+Direct PNG verdict:
+
+- The new loft is visibly different from the box/step proxy vocabulary and the
+  continuous ribbon remains credible. This is real representation progress.
+- Thirteen or more cards are still conservative rectilinear bars, courts,
+  bridges or steps. One edited loft does not make the portfolio ArchDaily/BIG/
+  OMA or competition-grade.
+- The cached 47-graph author population contains only one true *primary*
+  `sloped_roof_mass` with 4-6 section controls. Two other controlled roof calls
+  are optional support operations under split/nest primaries. Search cannot
+  create a second topological family from one parent merely by increasing its
+  mutation count.
+- More blind ArchDaily crawling or fine-tuning is not the measured solution.
+  The current corpus already supplies image/reference signals. The next fresh
+  author/replenishment round must be structurally validated for several primary
+  section genotypes, a second intrinsically distinct continuous topology and a
+  second coherent cluster topology.
+- Deterministic permit law/parking projection is still `not_run` in v91-v94.
+  Capacity is the mass-stage FAR proxy only.
+
+Next bounded work:
+
+1. Run a fresh author population with a hard executable contract: every primary
+   `sloped_roof_mass` must contain 4-6 ordered control points and an explicit
+   smooth/linear interpolation decision. Reject missing fields; do not repair
+   them with a canned profile.
+2. Add a second graph-native surface genotype rather than another roof label:
+   multi-station section grids or multi-ribbon/pavilion fields are the closest
+   representation to the supplied layered-canopy reference.
+3. Rerun the same PNU and require at least three editable surface genotypes,
+   continuous >=2, cluster >=2, capacity >=8, no intrinsic repeats and direct
+   PNG approval. Keep sub-20 if those facts are unavailable.
+4. Only after that board is visually accepted, project deterministic law/FAR/
+   parking and measure geometry retention.

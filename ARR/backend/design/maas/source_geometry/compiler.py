@@ -24,6 +24,7 @@ from .graph_materializer import is_graph_native, materialize_graph_states
 from .ir import SourceMass, SourceSurface, SourceVolume, VerbTrace
 from .coherence import evaluate_source_volume_coherence
 from .polygon_quality import repair_source_polygon
+from .section_fields import build_section_loft_field
 from design.maas.grammar.component_graph import MassComponentGraph, graph_from_sequence
 from .rule_priors import (
     finalize_rule_evidence,
@@ -1333,6 +1334,55 @@ def _cap_review_volumes(volumes: tuple[SourceVolume, ...], limit: int = 4) -> tu
     return (*volumes[: limit - 1], volumes[-1])
 
 
+def _consolidate_section_loft_proxy(
+    volumes: tuple[SourceVolume, ...],
+    formal_evidence: dict[str, Any] | None,
+    formal_volumes: tuple[SourceVolume, ...] = (),
+) -> tuple[SourceVolume, ...]:
+    """Keep one conservative legal proxy behind one authored loft mesh."""
+    section_field = (formal_evidence or {}).get("site_section_field")
+    if not isinstance(section_field, dict):
+        return volumes
+    profiled = [
+        volume for volume in volumes
+        if volume.verb in {"sloped_roof_mass", "grade", "terrace_link"}
+        or any(token in str(volume.role) for token in ("folded", "sloped_roof"))
+    ]
+    if not profiled:
+        return volumes
+    # Graph execution can legitimately retain a full-site parent state for a
+    # sectional support. The authored folded principle already computes its
+    # x/y-ratio plinth; use that bounded solid for legal projection instead of
+    # reviving the parent as a 100%-coverage box behind the loft.
+    proxy_sources = formal_volumes or tuple(profiled)
+    proxy = repair_source_polygon(
+        unary_union([volume.footprint for volume in proxy_sources]),
+        minimum_area=1.0,
+    )
+    if proxy is None:
+        return volumes
+    consolidated = SourceVolume(
+        role="primary_agent_section_loft_proxy",
+        footprint=proxy,
+        bottom_fraction=min(volume.bottom_fraction for volume in proxy_sources),
+        top_fraction=max(volume.top_fraction for volume in proxy_sources),
+        verb="sloped_roof_mass",
+    )
+    remaining: list[SourceVolume] = []
+    cumulative_section_helpers = {"lift", "taper", "shift", "inset", "expand"}
+    for volume in volumes:
+        if volume in profiled:
+            continue
+        if volume.verb in cumulative_section_helpers:
+            overlap = float(volume.footprint.intersection(proxy).area) / max(float(volume.footprint.area), 1e-9)
+            if overlap >= 0.58:
+                # The helper changed the loft's section state; emitting the
+                # cumulative state as another solid creates a competing box.
+                continue
+        remaining.append(volume)
+    return (consolidated, *remaining)
+
+
 def _prune_redundant_helper_volumes(volumes: tuple[SourceVolume, ...]) -> tuple[SourceVolume, ...]:
     """Remove helper solids that mostly occupy an already expressed solid.
 
@@ -1716,6 +1766,65 @@ def _profiled_component_surfaces(
     return tuple(surfaces)
 
 
+def _section_loft_surfaces(
+    rows: tuple[tuple[tuple[float, float, float], ...], ...],
+    *,
+    origin_poly: Polygon,
+    role: str,
+    verb: str,
+    bottom_fraction: float,
+) -> tuple[SourceSurface, ...]:
+    """Convert one editable section field into a watertight review mesh."""
+    if len(rows) < 2 or min((len(row) for row in rows), default=0) < 2:
+        return ()
+    origin = (float(origin_poly.centroid.x), float(origin_poly.centroid.y))
+
+    def vertex(point: tuple[float, float, float], z: float | None = None) -> tuple[float, float, float]:
+        return point[0] - origin[0], point[1] - origin[1], float(point[2] if z is None else z)
+
+    surfaces: list[SourceSurface] = []
+    for row_index in range(len(rows) - 1):
+        for section_index in range(min(len(rows[row_index]), len(rows[row_index + 1])) - 1):
+            surfaces.append(SourceSurface(
+                role=f"source_section_loft_roof_{role}_{row_index}_{section_index}",
+                volume_role=role,
+                verb=verb,
+                surface_type="profiled_section_loft_roof",
+                vertices_m=(
+                    vertex(rows[row_index][section_index]),
+                    vertex(rows[row_index][section_index + 1]),
+                    vertex(rows[row_index + 1][section_index + 1]),
+                    vertex(rows[row_index + 1][section_index]),
+                ),
+                operator="loft",
+                semantic_patch_id=f"{role}:section_loft_roof",
+            ))
+    boundary_runs = (
+        tuple(row[0] for row in rows),
+        tuple(row[-1] for row in rows),
+        rows[0],
+        rows[-1],
+    )
+    for boundary_index, run in enumerate(boundary_runs):
+        for edge_index in range(len(run) - 1):
+            left, right = run[edge_index], run[edge_index + 1]
+            surfaces.append(SourceSurface(
+                role=f"source_section_loft_facade_{role}_{boundary_index}_{edge_index}",
+                volume_role=role,
+                verb=verb,
+                surface_type="profiled_section_loft_facade",
+                vertices_m=(
+                    vertex(left, bottom_fraction),
+                    vertex(right, bottom_fraction),
+                    vertex(right),
+                    vertex(left),
+                ),
+                operator="loft",
+                semantic_patch_id=f"{role}:section_loft_facade",
+            ))
+    return tuple(surfaces)
+
+
 def _profiled_formal_surfaces(
     volumes: tuple[SourceVolume, ...],
     origin_poly: Polygon,
@@ -1759,6 +1868,50 @@ def _profiled_formal_surfaces(
             "surface_count": len(spec_surfaces),
             "profiled_roles": sorted(roles),
         }
+    section_field = (
+        (formal_evidence or {}).get("site_section_field")
+        if isinstance((formal_evidence or {}).get("site_section_field"), dict)
+        else {}
+    )
+    if principle in {"folded_section", "terraced_ribbon_section"} and section_field:
+        profiled = tuple(
+            volume for volume in volumes
+            if volume.verb in {"sloped_roof_mass", "grade", "terrace_link"}
+            or any(token in str(volume.role) for token in ("folded", "sloped_roof", "main_long_span_hall"))
+        )
+        proxy = repair_source_polygon(
+            unary_union([volume.footprint for volume in profiled]),
+            minimum_area=1.0,
+        ) if profiled else None
+        field_params = section_field.get("field_parameters") if isinstance(section_field.get("field_parameters"), dict) else {}
+        if proxy is not None:
+            loft = build_section_loft_field(
+                proxy,
+                field_params,
+                bottom_fraction=min(volume.bottom_fraction for volume in profiled),
+                top_fraction=max(volume.top_fraction for volume in profiled),
+            )
+            if loft is not None:
+                role = profiled[0].role
+                spec_surfaces = _section_loft_surfaces(
+                    loft.rows,
+                    origin_poly=origin_poly,
+                    role=role,
+                    verb="sloped_roof_mass",
+                    bottom_fraction=loft.bottom_fraction,
+                )
+                roles = {volume.role for volume in profiled}
+                return spec_surfaces, roles, {
+                    "schema_version": "arr.maas.continuous_surface.v1",
+                    "status": "materialized" if spec_surfaces else "missing",
+                    "hard_pass": bool(spec_surfaces),
+                    "principle": principle,
+                    "representation": "agent_section_loft_quad_mesh",
+                    "profiled_volume_count": len(roles),
+                    "surface_count": len(spec_surfaces),
+                    "profiled_roles": sorted(roles),
+                    "section_field": loft.evidence,
+                }
     surfaces: list[SourceSurface] = []
     profiled_roles: set[str] = set()
     for volume in volumes:
@@ -2556,6 +2709,11 @@ def _compile_component_graph_to_source_mass(
             # surface compiler instead of inheriting `slender_podium_tower`
             # from that first plan operation.
             formal_principle = "folded_section"
+    volumes = _consolidate_section_loft_proxy(
+        volumes,
+        formal_result.evidence if formal_result is not None else None,
+        formal_result.volumes if formal_result is not None else (),
+    )
     volumes = _prune_redundant_helper_volumes(volumes)
     review_volume_limit = 5 if sequence.name.startswith(("creative_voxel_cascade", "creative_cluster_village")) else 4
     volumes = _cap_review_volumes(volumes, limit=review_volume_limit)

@@ -18,6 +18,7 @@ from shapely.ops import unary_union
 from .design_fields import build_ribbon_design_field
 from .ir import SourceVolume
 from .parametric_curves import swept_ribbon, swept_variable_ribbon
+from .section_fields import build_section_loft_field
 
 
 CANONICAL_FORMAL_PRINCIPLES = {
@@ -196,6 +197,7 @@ def compile_formal_principle_volumes(
     void_ratio = _param(language_params, ("ratio", "void_ratio", "guest_scale", "inner_scale"), 0.30, 0.16, 0.56)
     pieces: list[SourceVolume | None] = []
     surface_field_specs: list[dict[str, Any]] = []
+    section_field_evidence: dict[str, Any] = {}
     genome = massing_genome or {}
 
     if principle == "slender_podium_tower":
@@ -440,6 +442,19 @@ def compile_formal_principle_volumes(
             _rect(_role("primary_folded_low_plane", genome), plinth, pminx, pminy, pcx + pwidth * 0.04, pmaxy, 0.34, 0.70, "sloped_roof_mass", min_area=min_area),
             _rect(_role("primary_folded_high_plane", genome), plinth, pcx - pwidth * 0.04, pminy, pmaxx, pmaxy, 0.66, 1.0, "sloped_roof_mass", min_area=min_area),
         ]
+        section_field = build_section_loft_field(plinth, language_params)
+        if section_field is not None:
+            section_field_evidence = {
+                **section_field.evidence,
+                "field_parameters": {
+                    key: language_params[key]
+                    for key in (
+                        "axis", "field_samples", "longitudinal_wave", "twist", "control_points",
+                        "section_interpolation",
+                    )
+                    if key in language_params
+                },
+            }
     elif principle == "terraced_ribbon_section":
         # A readable early-massing fold is a common plinth plus two roof
         # boxes meeting along one datum. The previous two full-plan polygons
@@ -544,6 +559,8 @@ def compile_formal_principle_volumes(
             **design_field.evidence,
             "surface_field_specs": surface_field_specs,
         }
+    if section_field_evidence:
+        evidence["site_section_field"] = section_field_evidence
     return FormalPrincipleResult(principle=principle, volumes=volumes, evidence=evidence)
 
 

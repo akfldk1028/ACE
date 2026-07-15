@@ -486,6 +486,10 @@ def run_neighborhood_vlm_a2a_loop(
         minimum_distance=0.20,
         minimum_groups=final_group_minimums,
         minimum_field_topologies={"parallel": 1, "branched": 1},
+        # Reserve several geometries whose path/section genotype can be
+        # changed by both bounded search and the VLM critic. A portfolio of
+        # twenty immutable box proxies cannot evolve from image feedback.
+        minimum_editable_field_count=max(2, target_count // 6),
         minimum_authored_count=max(1, target_count // 2),
         maximum_groups=final_group_maximums,
         minimum_capacity_target_count=max(1, (target_count * 2 + 4) // 5),
@@ -505,6 +509,7 @@ def run_neighborhood_vlm_a2a_loop(
         minimum_field_topologies={"parallel": 1, "branched": 1},
         maximum_groups=final_group_maximums,
         minimum_distance=0.20,
+        minimum_editable_field_count=max(2, target_count // 6),
         minimum_authored_count=max(1, target_count // 2),
         maximum_persisted_count=max(1, (target_count * 4) // 5),
         minimum_fresh_count=max(2, target_count // 5),
@@ -972,6 +977,10 @@ def _select_language_balanced_archive(
         ):
             unique[fingerprint] = item
     candidates = sorted(unique.values(), key=lambda item: item.score, reverse=True)
+    editable_requirement = min(
+        max(0, int(minimum_editable_field_count)),
+        sum(_has_editable_control_field(item) for item in candidates),
+    )
     selected: list[ProgramElite] = []
     topology_counts: dict[str, int] = {}
     principle_counts: dict[str, int] = {}
@@ -1053,7 +1062,7 @@ def _select_language_balanced_archive(
     while (
         len(selected) < target_count
         and sum(_has_editable_control_field(item) for item in selected)
-        < max(0, int(minimum_editable_field_count))
+        < editable_requirement
     ):
         eligible = [item for item in candidates if _has_editable_control_field(item) and admissible(item)]
         if not eligible:
@@ -1210,6 +1219,7 @@ def _select_language_balanced_archive(
             persisted=_is_persisted_accepted_seed(item),
             authored=_is_live_authored_graph(item),
             capacity_target=capacity_utilization(item) >= capacity_target_utilization,
+            editable_field=_has_editable_control_field(item),
         ) for item in candidates]
         solved_indices = solve_portfolio_beam(
             facts,
@@ -1219,6 +1229,12 @@ def _select_language_balanced_archive(
             maximum_groups=maximum_groups,
             minimum_field_topologies=minimum_field_topologies,
             minimum_authored_count=minimum_authored_count,
+            # Do not make the combination problem infeasible when the current
+            # visual-floor pool contains fewer editable fields than requested.
+            # The run-level coverage audit still reports the shortage and
+            # triggers replenishment; the solver may retain every available
+            # field while finding a larger honest portfolio.
+            minimum_editable_field_count=editable_requirement,
             minimum_capacity_target_count=minimum_capacity_target_count,
             maximum_persisted_count=persisted_limit,
             minimum_fresh_count=minimum_fresh_count,
@@ -1244,12 +1260,17 @@ def _rebalance_capacity_archive(
     minimum_field_topologies: dict[str, int] | None,
     maximum_groups: dict[str, int],
     minimum_distance: float,
+    minimum_editable_field_count: int,
     minimum_authored_count: int,
     maximum_persisted_count: int,
     minimum_fresh_count: int,
 ) -> tuple[list[ProgramElite], dict[str, Any]]:
     """Meet the mass-stage FAR target without relaxing visual/diversity gates."""
     archive = list(selected)
+    editable_requirement = min(
+        max(0, int(minimum_editable_field_count)),
+        sum(_has_editable_control_field(item) for item in pool),
+    )
 
     def utilization(item: ProgramElite) -> float:
         return float((item.feature.get("properties") or {}).get("normalized_far_utilization") or 0.0)
@@ -1289,6 +1310,8 @@ def _rebalance_capacity_archive(
                 if any(groups.get(group, 0) > allowed for group, allowed in maximum_groups.items()):
                     continue
                 if sum(_is_live_authored_graph(item) for item in proposed) < minimum_authored_count:
+                    continue
+                if sum(_has_editable_control_field(item) for item in proposed) < editable_requirement:
                     continue
                 persisted_count = sum(_is_persisted_accepted_seed(item) for item in proposed)
                 if persisted_count > maximum_persisted_count:
@@ -1520,7 +1543,11 @@ def _field_topology(item: ProgramElite) -> str:
 
 def _has_editable_control_field(item: ProgramElite) -> bool:
     primary = primary_operation_from_sequence(item.sequence)
-    controls = primary.params.get("control_points") if primary.verb == "bend" else None
+    controls = (
+        primary.params.get("control_points")
+        if primary.verb in {"bend", "sloped_roof_mass"}
+        else None
+    )
     return isinstance(controls, list) and 4 <= len(controls) <= 6
 
 

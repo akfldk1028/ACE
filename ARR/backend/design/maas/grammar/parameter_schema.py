@@ -22,6 +22,8 @@ PARAMETER_BOUNDS: dict[str, tuple[float, float]] = {
     "height_mid_ratio": (0.50, 1.00),
     "height_end_ratio": (0.40, 1.00),
     "height_wave": (-0.24, 0.24),
+    "longitudinal_wave": (-0.24, 0.24),
+    "twist": (-0.30, 0.30),
     "depth_ratio": (0.10, 0.90),
     "slab_ratio": (0.12, 0.70),
     "distance_ratio": (-0.34, 0.34),
@@ -100,7 +102,11 @@ PARAMETERS_BY_VERB: dict[str, tuple[str, ...]] = {
     "shift": ("axis", "distance_ratio"),
     "diagonal_connect": ("axis", "upper_ratio", "distance_ratio", "angle", "lower_floor_fraction"),
     "terrace_link": ("side", "upper_ratio", "width_ratio", "depth_ratio", "lower_floor_fraction"),
-    "sloped_roof_mass": ("upper_ratio", "x_ratio", "y_ratio", "lower_floor_fraction"),
+    "sloped_roof_mass": (
+        "axis", "upper_ratio", "x_ratio", "y_ratio", "lower_floor_fraction",
+        "field_samples", "longitudinal_wave", "twist", "control_points",
+        "section_interpolation",
+    ),
 }
 
 

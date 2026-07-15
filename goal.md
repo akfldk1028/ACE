@@ -2492,3 +2492,24 @@
   `not_run`. Next work is graph-native roof-loft, non-orthogonal sectional fold
   and ground/void field representation, followed by deterministic legal/FAR/
   parking projection and geometry-retention measurement.
+
+### v94 agent section-genotype checkpoint (2026-07-15)
+
+- Add a graph-native site-conditioned section loft driven by 4-6 agent-authored
+  normalized controls, not parcel coordinates or named roof templates.
+- Keep one conservative law/FAR proxy separate from the continuous review/VLM
+  mesh; remove cumulative helper boxes and keep the review mesh under the
+  clean-surface budget.
+- Treat section controls as real search and VLM-editable genotype data. Final
+  portfolio search must reserve every available editable field while remaining
+  feasible when the author population under-supplies them.
+- v92 proves one true section loft can survive the full PNU loop. v93-v94 reach
+  17/20 and v94 meets capacity 8/8, but both still miss a second continuous and
+  cluster field. They are failed checkpoints, not completion.
+- Post-v94 generic smooth/linear section interpolation is unit-tested but not
+  yet full-loop PNG verified. Next run must use a fresh structurally validated
+  author population and require multiple primary controlled section fields.
+- Keep the visual standard strict: the current board remains mostly
+  rectilinear and is not ArchDaily/BIG/OMA or competition-grade. Do not move to
+  permit-complete claims until massing is visually accepted and deterministic
+  law/FAR/parking geometry retention is measured.

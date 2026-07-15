@@ -57,19 +57,38 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         else {}
     )
     profiled_patch_count = int(continuous_surface.get("profiled_volume_count") or 0)
+    section_field = (
+        continuous_surface.get("section_field")
+        if isinstance(continuous_surface.get("section_field"), dict)
+        else {}
+    )
+    agent_section_loft = bool(
+        continuous_surface.get("representation") == "agent_section_loft_quad_mesh"
+        and int(section_field.get("section_control_point_count") or 0) >= 4
+        and float(section_field.get("section_height_range") or 0.0) >= 0.18
+    )
     single_solid_profiled_field = bool(
         len(geometries) == 1
         and continuous_surface.get("hard_pass")
-        and profiled_patch_count >= 2
+        and (profiled_patch_count >= 2 or agent_section_loft)
     )
     if single_solid_profiled_field:
         # The legal/FAR proxy is deliberately one watertight union, while the
         # executable roof field retains distinct trunk/arm patches.  Use those
         # geometry patches for hierarchy rather than penalizing the clean
         # solid as a monolithic box.
-        dominant = 1.0 / profiled_patch_count
-        hierarchy_score = max(hierarchy_score, min(1.0, (profiled_patch_count - 1) / 2.0))
+        if profiled_patch_count >= 2:
+            dominant = 1.0 / profiled_patch_count
+            hierarchy_score = max(hierarchy_score, min(1.0, (profiled_patch_count - 1) / 2.0))
+        else:
+            # A section loft is one watertight body by design. Its hierarchy
+            # is carried by the authored section extrema, not fake helper
+            # solids. Keep geometric_dominant_component_ratio=1.0 as honest
+            # evidence and score the explicit internal field separately.
+            hierarchy_score = max(hierarchy_score, 0.75)
     dominant_score = _range_score(dominant, DOMINANT_RANGES.get(profile_id, (0.3, 0.85)))
+    if agent_section_loft:
+        dominant_score = max(dominant_score, 0.85)
     if bool(coherence.get("intentional_cluster_exception")):
         # A balanced 3-4 member field intentionally has no 38% dominant
         # object. Judge its hierarchy by the expected 1/n share rather than a
@@ -89,6 +108,7 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         "geometric_dominant_component_ratio": round(geometric_dominant, 3),
         "profiled_design_patch_count": profiled_patch_count,
         "single_solid_profiled_field": single_solid_profiled_field,
+        "agent_section_loft": agent_section_loft,
         "dominant_ratio_score": round(dominant_score, 3),
         "site_coverage_ratio": round(coverage, 3),
         "site_coverage_score": round(coverage_score, 3),

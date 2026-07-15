@@ -397,6 +397,16 @@ def _normalise_params(verb: str, params: dict[str, Any]) -> dict[str, Any]:
             normalised["x_ratio"] = round(_clamp(1.0 - pitch * (1.5 if ridge_axis == "y" else 1.0), 0.58, 0.92), 3)
         if "y_ratio" not in normalised:
             normalised["y_ratio"] = round(_clamp(1.0 - pitch * (1.5 if ridge_axis == "x" else 1.0), 0.58, 0.92), 3)
+    if verb == "sloped_roof_mass":
+        axis = str(normalised.get("axis") or normalised.get("ridge_axis") or "x").strip().lower()
+        normalised["axis"] = axis if axis in {"x", "y"} else "x"
+        normalised["field_samples"] = int(round(_clamp(_safe_float(normalised.get("field_samples"), 5), 5, 9)))
+        normalised["longitudinal_wave"] = round(
+            _clamp(_safe_float(normalised.get("longitudinal_wave"), 0.0), -0.24, 0.24), 4
+        )
+        normalised["twist"] = round(
+            _clamp(_safe_float(normalised.get("twist"), 0.0), -0.30, 0.30), 4
+        )
     if verb == "bend":
         width = _safe_float(normalised.get("lane_width_ratio"), 0.10)
         # Models sometimes express ribbon width as a full-depth factor (0.5)
@@ -762,6 +772,12 @@ def _prompt(
         "Include 4 to 6 normalized control_points such as [[0.04,0.25],[0.32,0.62],[0.68,0.38],[0.96,0.72]]; vary these from the site and brief. "
         "Across a 20-or-more candidate population, author at least two bend candidates: at least one parallel field and at least one branched field. "
         "They must differ in topology and section profile, not merely direction, reflection, labels, or control-point order. "
+        "For every sloped_roof_mass candidate, author 4 to 6 ordered normalized control_points [[section_position,height], ...], "
+        "and choose section_interpolation='smooth' for a continuous roof or 'linear' for an intentionally faceted fold. "
+        "plus axis x/y, field_samples 5-9, longitudinal_wave -0.24 to 0.24, and twist -0.30 to 0.30. "
+        "These points are the executable building section lofted through parcel cross-sections; do not describe a named roof preset. "
+        "Folded candidates must differ by their authored section topology (ridge, valley, alternating fold, asymmetric canopy, etc.), "
+        "not only by x_ratio/y_ratio or orientation. "
         "For a public courtyard facing the supplied access edge, set courtyard open_side to south/north/east/west; use closed only when an enclosed atrium is intentional. "
         "Prefer creative combinations of "
         "plan, section, void, connector, array, offset, stack, and roof language. "

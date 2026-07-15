@@ -40,8 +40,11 @@ def source_visual_silhouette_key(source: SourceMass) -> VisualSilhouetteKey:
             surface.volume_role,
             tuple(
                 (
-                    round(float(x) - center.x, 6),
-                    round(float(y) - center.y, 6),
+                    # vertices_m is already local to the source-footprint
+                    # centroid; subtracting a world centroid again corrupts
+                    # the surface-aware duplicate metric.
+                    round(float(x), 6),
+                    round(float(y), 6),
                     round(float(z), 6),
                 )
                 for x, y, z in surface.vertices_m

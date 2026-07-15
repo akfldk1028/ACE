@@ -695,6 +695,101 @@ class MaasProgramMassingTest(SimpleTestCase):
         self.assertEqual(graph_from_sequence(revised[0]).nodes[1].operation.params["control_points"][2], [0.5, 0.68])
         self.assertIn("control_points", PARAMETERS_BY_VERB["sloped_roof_mass"])
 
+    def test_agent_oblique_polygon_rings_compile_distinct_wedge_undercut_and_shifted_plate(self):
+        variants = {
+            "wedge": {
+                "plan_control_points": [[0.08, 0.08], [0.91, 0.08], [0.75, 0.92], [0.18, 0.92]],
+                "top_height_controls": [0.52, 1.0, 0.96, 0.58],
+                "shoulder_fraction": 0.25,
+                "base_scale_x_ratio": 0.48,
+                "base_scale_y_ratio": 0.78,
+                "base_shift_x_ratio": -0.16,
+                "top_scale_x_ratio": 0.32,
+                "top_scale_y_ratio": 0.94,
+                "top_shift_x_ratio": 0.22,
+            },
+            "diagonal_undercut": {
+                "plan_control_points": [[0.06, 0.08], [0.94, 0.08], [0.94, 0.90], [0.08, 0.94]],
+                "top_height_controls": [0.78, 1.0, 0.92, 0.72],
+                "shoulder_fraction": 0.34,
+                "base_scale_x_ratio": 0.42,
+                "base_scale_y_ratio": 0.72,
+                "base_shift_x_ratio": -0.20,
+                "top_scale_x_ratio": 0.94,
+                "top_scale_y_ratio": 0.92,
+                "top_shift_x_ratio": 0.04,
+            },
+            "shifted_polygon_plate": {
+                "plan_control_points": [[0.08, 0.12], [0.48, 0.04], [0.92, 0.18], [0.86, 0.82], [0.50, 0.96], [0.10, 0.76]],
+                "top_height_controls": [0.72, 0.90, 1.0, 0.92, 0.78, 0.66],
+                "shoulder_fraction": 0.30,
+                "base_scale_x_ratio": 0.72,
+                "base_scale_y_ratio": 0.76,
+                "base_shift_x_ratio": -0.10,
+                "top_scale_x_ratio": 0.82,
+                "top_scale_y_ratio": 0.86,
+                "top_shift_x_ratio": 0.18,
+                "top_shift_y_ratio": 0.08,
+            },
+        }
+        compiled = {}
+        for name, authored_params in variants.items():
+            params = {
+                "x_ratio": 0.86,
+                "y_ratio": 0.84,
+                "lower_floor_fraction": 0.28,
+                **authored_params,
+            }
+            sequence = VerbSequence(
+                name,
+                name,
+                (VerbCall("base", {}), VerbCall("taper", params)),
+                notes=("formal_principle=undercut_tapered_tower",),
+            )
+            source = compile_sequence_to_source_mass(box(0, 0, 60, 40), sequence)
+            self.assertIsNotNone(source)
+            evidence = source.signature()["continuous_surface_evidence"]
+            self.assertEqual(evidence["representation"], "agent_oblique_envelope_mesh")
+            self.assertEqual(len(source.volumes), 1)
+            self.assertLessEqual(evidence["surface_count"], 48)
+            self.assertTrue(all(surface.operator == "polygon_ring_loft" for surface in source.surfaces))
+            self.assertEqual(evidence["oblique_field"]["coordinate_template"], False)
+            feature = _feature(
+                source, sequence, building_type="neighborhood living", height=18, floors=5, site_area=2400
+            )
+            self.assertTrue(assess_language_geometry(source, feature, "undercut_tapered_tower")["geometry_pass"])
+            spatial = attach_program_spatial_evidence(
+                feature, building_type="neighborhood living", site_area_m2=2400
+            )
+            self.assertTrue(spatial["hard_pass"])
+            self.assertTrue(spatial["agent_oblique_envelope"])
+            compiled[name] = (sequence, source)
+
+        surface_fingerprints = {
+            tuple(surface.vertices_m for surface in source.surfaces)
+            for _, source in compiled.values()
+        }
+        self.assertEqual(len(surface_fingerprints), 3)
+
+        wedge_sequence, _ = compiled["wedge"]
+        graph = graph_from_sequence(wedge_sequence)
+        primary_id = graph.nodes[1].node_id
+        directive = CriticDirective(graph_edits=(GraphEditDirective(
+            operation="set_control_point",
+            target_node_id=primary_id,
+            parameter_name="plan_control_points",
+            control_point_index=2,
+            control_point_u=0.68,
+            control_point_v=0.88,
+        ),))
+        revised = apply_critic_graph_edits(wedge_sequence, directive)
+        self.assertEqual(len(revised), 1)
+        revised_controls = graph_from_sequence(revised[0]).nodes[1].operation.params["plan_control_points"]
+        self.assertEqual(revised_controls[2], [0.68, 0.88])
+        operation_schema = _response_schema()["properties"]["graph_edits"]["items"]["properties"]
+        self.assertEqual(operation_schema["control_point_index"]["maximum"], 7)
+        self.assertIn("plan_control_points", PARAMETERS_BY_VERB["taper"])
+
     def test_program_search_mutates_section_control_field_not_only_scalar_ratios(self):
         controls = [[0.04, 0.24], [0.27, 0.63], [0.52, 0.38], [0.76, 0.72], [0.96, 0.49]]
         seed = VerbSequence(
@@ -742,6 +837,73 @@ class MaasProgramMassingTest(SimpleTestCase):
             parent_source.signature()["continuous_surface_evidence"]["section_field"]["control_points"],
             child_source.signature()["continuous_surface_evidence"]["section_field"]["control_points"],
         )
+
+    def test_program_search_mutates_oblique_plan_and_roof_fields_without_turning_portfolio_into_one_group(self):
+        controls = [[0.08, 0.10], [0.90, 0.08], [0.86, 0.88], [0.14, 0.94]]
+        heights = [0.58, 1.0, 0.92, 0.64]
+        seed = VerbSequence(
+            "agent_oblique_genotype",
+            "agent oblique genotype",
+            (
+                VerbCall("base", {}),
+                VerbCall("taper", {
+                    "x_ratio": 0.86,
+                    "y_ratio": 0.82,
+                    "lower_floor_fraction": 0.28,
+                    "plan_control_points": controls,
+                    "top_height_controls": heights,
+                    "shoulder_fraction": 0.28,
+                    "base_scale_x_ratio": 0.48,
+                    "base_scale_y_ratio": 0.72,
+                    "base_shift_x_ratio": -0.16,
+                    "top_scale_x_ratio": 0.42,
+                    "top_scale_y_ratio": 0.90,
+                    "top_shift_x_ratio": 0.20,
+                }),
+            ),
+            notes=("formal_principle=undercut_tapered_tower",),
+        )
+
+        parent = _extract_overrides(seed)
+        overrides = _mutated_graph_parameters(seed, parent, random.Random(915))
+        child = _with_overrides(seed, overrides, generation=1, index=0)
+        child_params = child.calls[1].params
+        self.assertNotEqual(child_params["plan_control_points"], controls)
+        self.assertNotEqual(child_params["top_height_controls"], heights)
+        self.assertTrue(Polygon(child_params["plan_control_points"]).is_valid)
+        self.assertIn("call_1__plan_control_point_2_u", _extract_overrides(child))
+        self.assertIn("call_1__top_height_control_2", _extract_overrides(child))
+
+        parent_source = compile_sequence_to_source_mass(box(0, 0, 24, 18), seed)
+        child_source = compile_sequence_to_source_mass(box(0, 0, 24, 18), child)
+        self.assertIsNotNone(parent_source)
+        self.assertIsNotNone(child_source)
+        self.assertNotEqual(parent_source.source_surface_signatures(), child_source.source_surface_signatures())
+        feature = _feature(
+            child_source, child, building_type="neighborhood living", height=18, floors=5, site_area=432
+        )
+        elite = ProgramElite(child, child_source, feature, 0.8, 1)
+        self.assertEqual(_language_group(elite), "oblique_envelope")
+        authored_record = {
+            "candidates": [{
+                "formal_principle": "undercut_tapered_tower",
+                "calls": [
+                    {"verb": "base", "role": "root", "params": "{}"},
+                    {"verb": "taper", "role": "primary", "params": __import__("json").dumps(child_params)},
+                ],
+            }],
+        }
+        self.assertEqual(_language_group_counts(authored_record), {"oblique_envelope": 1})
+        with self.assertRaisesRegex(ValueError, "plan polygon"):
+            _normalise_params("taper", {
+                **child_params,
+                "plan_control_points": [[0.08, 0.12], [0.34, 0.04], [0.68, 0.14], [0.92, 0.08]],
+            })
+        with self.assertRaisesRegex(ValueError, "scalar height list"):
+            _normalise_params("taper", {
+                **child_params,
+                "top_height_controls": [[0.0, 0.6], [0.3, 0.8], [0.7, 0.9], [1.0, 0.7]],
+            })
 
     def test_capacity_projection_preserves_authored_curve_and_changes_only_occupiable_section(self):
         controls = [[0.04, 0.25], [0.32, 0.62], [0.68, 0.38], [0.96, 0.72]]

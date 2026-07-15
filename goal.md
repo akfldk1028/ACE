@@ -2513,3 +2513,23 @@
   rectilinear and is not ArchDaily/BIG/OMA or competition-grade. Do not move to
   permit-complete claims until massing is visually accepted and deterministic
   law/FAR/parking geometry retention is measured.
+
+### v98 oblique-envelope capability checkpoint (2026-07-15)
+
+- Add a reusable agent-authored polygon-ring envelope, not a library of named
+  museum forms. Bottom/shoulder/top rings can create wedge, lean, diagonal
+  undercut and shifted polygon silhouettes while one conservative proxy remains
+  available for law/FAR projection.
+- Do not turn all 20 candidates into polygons. Final portfolio selection must
+  keep `oblique_envelope` between one and two and preserve the other mass
+  languages.
+- Validate LLM plan controls as a real non-self-crossing polygon with scalar
+  top heights. Invalid section-like point lists must be rejected before they
+  silently fall back to a box.
+- v98 proves one true oblique envelope survives the real PNU author/search/VLM
+  loop: one volume, 15 surfaces, FAR/capacity fit 1.0. The mixed board is 20/20
+  with zero measured repeat pairs, but visual status still fails because clean
+  stepped capacity is only 2/3.
+- Do not call v98 competition-grade or permit-complete. Next close the third
+  stepped-capacity survivor without padding a weak cake-tier box, then run
+  deterministic law/FAR/parking projection and geometry-retention measurement.

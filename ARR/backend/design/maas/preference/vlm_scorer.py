@@ -207,10 +207,11 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "geometry changes for the next MassDSL generation, not legal or parking judgments.\n"
         "For graph_edits return only bounded genotype edits: set_parameter, set_control_point, replace_operation, "
         "add_operation, remove_optional, or reparent. For numeric parameters use numeric_value and leave "
-        "string_value empty. set_control_point is valid only for an existing bend or sloped_roof_mass node that already has "
-        "control_points: supply its zero-based control_point_index plus normalized control_point_u and "
-        "control_point_v. Keep u ordered. For bend, [u,v] edits the visible plan path; for sloped_roof_mass, "
-        "[u,v] edits normalized [section_position,height] in the visible roof loft. "
+        "string_value empty. set_control_point is valid for an existing bend/sloped_roof_mass node with control_points, "
+        "or a taper node with plan_control_points. For taper set parameter_name=plan_control_points. Supply its zero-based "
+        "control_point_index plus normalized control_point_u and control_point_v. Keep u ordered only for bend/section. "
+        "For bend, [u,v] edits the visible plan path; for sloped_roof_mass it edits normalized "
+        "[section_position,height]; for taper it edits one executable plan-envelope polygon vertex. "
         "For axis/side/corner/open_side/field_topology/vertical_mode use string_value. A replace_operation or "
         "add_operation must be immediately followed by at least one valid set_parameter for the affected node; "
         "empty-default topology edits are rejected. add_operation may add only support, void, or connector nodes, "
@@ -220,8 +221,8 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "set_parameter edits. If the existing primary is bend, one or more set_control_point edits are also a valid "
         "structural correction because they change the executable spatial path. "
         "Use only supported verbs from the response schema and preserve a good simple anchor when no structural "
-        "failure applies. A sloped_roof_mass with authored control_points may also be structurally corrected by "
-        "set_control_point because it changes the executable section, not facade styling.\n"
+        "failure applies. A sloped_roof_mass with authored control_points or taper with authored plan_control_points "
+        "may also be structurally corrected by set_control_point because it changes executable geometry, not facade styling.\n"
         f"Candidate JSON summary:\n{json.dumps(summary, ensure_ascii=False, sort_keys=True)}"
     )
 
@@ -332,9 +333,9 @@ def _response_schema() -> dict[str, Any]:
                         "parameter_name": {"type": "string"},
                         "numeric_value": {"type": "number", "minimum": -70, "maximum": 70},
                         "string_value": {"type": "string"},
-                        "control_point_index": {"type": "integer", "minimum": 0, "maximum": 5},
+                        "control_point_index": {"type": "integer", "minimum": 0, "maximum": 7},
                         "control_point_u": {"type": "number", "minimum": 0.03, "maximum": 0.97},
-                        "control_point_v": {"type": "number", "minimum": 0.12, "maximum": 0.88},
+                        "control_point_v": {"type": "number", "minimum": 0.03, "maximum": 0.97},
                         "rationale": {"type": "string"},
                     },
                 },
@@ -410,9 +411,9 @@ def _normalize_vlm_result(
             "parameter_name": str(item.get("parameter_name") or "")[:64],
             "numeric_value": max(-70.0, min(70.0, float(item.get("numeric_value") or 0.0))),
             "string_value": str(item.get("string_value") or "")[:64].strip().lower(),
-            "control_point_index": max(0, min(5, int(item.get("control_point_index") or 0))),
+            "control_point_index": max(0, min(7, int(item.get("control_point_index") or 0))),
             "control_point_u": max(0.03, min(0.97, float(item.get("control_point_u") or 0.03))),
-            "control_point_v": max(0.12, min(0.88, float(item.get("control_point_v") or 0.12))),
+            "control_point_v": max(0.03, min(0.97, float(item.get("control_point_v") or 0.03))),
             "rationale": str(item.get("rationale") or "")[:500],
         })
     return {
@@ -442,7 +443,10 @@ def _editable_control_node_ids(feature: dict[str, Any]) -> set[str]:
         operation = node.get("operation") if isinstance(node, dict) and isinstance(node.get("operation"), dict) else {}
         params = operation.get("params") if isinstance(operation.get("params"), dict) else {}
         controls = params.get("control_points")
+        plan_controls = params.get("plan_control_points")
         if operation.get("verb") in {"bend", "sloped_roof_mass"} and isinstance(controls, list) and 4 <= len(controls) <= 6:
+            editable.add(str(node.get("node_id") or ""))
+        if operation.get("verb") == "taper" and isinstance(plan_controls, list) and 3 <= len(plan_controls) <= 8:
             editable.add(str(node.get("node_id") or ""))
     return editable
 

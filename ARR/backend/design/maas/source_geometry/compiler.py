@@ -25,6 +25,7 @@ from .ir import SourceMass, SourceSurface, SourceVolume, VerbTrace
 from .coherence import evaluate_source_volume_coherence
 from .polygon_quality import repair_source_polygon
 from .section_fields import build_section_loft_field
+from .oblique_fields import build_oblique_envelope_field
 from design.maas.grammar.component_graph import MassComponentGraph, graph_from_sequence
 from .rule_priors import (
     finalize_rule_evidence,
@@ -1383,6 +1384,38 @@ def _consolidate_section_loft_proxy(
     return (consolidated, *remaining)
 
 
+def _consolidate_oblique_envelope_proxy(
+    volumes: tuple[SourceVolume, ...],
+    origin_poly: Polygon,
+    formal_evidence: dict[str, Any] | None,
+) -> tuple[SourceVolume, ...]:
+    """Keep one conservative proxy behind one authored oblique envelope."""
+    field_evidence = (formal_evidence or {}).get("site_oblique_envelope")
+    if not isinstance(field_evidence, dict):
+        return volumes
+    field_params = field_evidence.get("field_parameters") if isinstance(field_evidence.get("field_parameters"), dict) else {}
+    field = build_oblique_envelope_field(origin_poly, field_params)
+    if field is None:
+        return volumes
+    consolidated = SourceVolume(
+        role="primary_agent_oblique_envelope_proxy",
+        footprint=field.proxy_footprint,
+        bottom_fraction=field.bottom_fraction,
+        top_fraction=1.0,
+        verb="taper",
+    )
+    # Ring transformations describe successive states of one envelope. Keep
+    # only genuinely external connectors; emitting taper/lift/shift states as
+    # independent solids recreates a Lego stack behind the surface mesh.
+    remaining = tuple(
+        volume for volume in volumes
+        if volume.verb in {"diagonal_connect", "terrace_link"}
+        and float(volume.footprint.intersection(field.proxy_footprint).area)
+        / max(float(volume.footprint.area), 1e-9) < 0.58
+    )
+    return (consolidated, *remaining)
+
+
 def _prune_redundant_helper_volumes(volumes: tuple[SourceVolume, ...]) -> tuple[SourceVolume, ...]:
     """Remove helper solids that mostly occupy an already expressed solid.
 
@@ -1825,6 +1858,60 @@ def _section_loft_surfaces(
     return tuple(surfaces)
 
 
+def _oblique_envelope_surfaces(
+    rings: tuple[tuple[tuple[float, float, float], ...], ...],
+    *,
+    origin_poly: Polygon,
+    role: str,
+) -> tuple[SourceSurface, ...]:
+    """Materialize matching polygon rings as one clean oblique mesh."""
+    if len(rings) < 2 or min((len(ring) for ring in rings), default=0) < 3:
+        return ()
+    vertex_count = min(len(ring) for ring in rings)
+    origin = (float(origin_poly.centroid.x), float(origin_poly.centroid.y))
+
+    def vertex(point: tuple[float, float, float]) -> tuple[float, float, float]:
+        return point[0] - origin[0], point[1] - origin[1], float(point[2])
+
+    surfaces: list[SourceSurface] = []
+    for ring_index in range(len(rings) - 1):
+        lower, upper = rings[ring_index], rings[ring_index + 1]
+        for edge_index in range(vertex_count):
+            next_index = (edge_index + 1) % vertex_count
+            surfaces.append(SourceSurface(
+                role=f"source_oblique_envelope_side_{role}_{ring_index}_{edge_index}",
+                volume_role=role,
+                verb="taper",
+                surface_type="profiled_oblique_envelope_side",
+                vertices_m=(
+                    vertex(lower[edge_index]),
+                    vertex(lower[next_index]),
+                    vertex(upper[next_index]),
+                    vertex(upper[edge_index]),
+                ),
+                operator="polygon_ring_loft",
+                semantic_patch_id=f"{role}:oblique_envelope_side",
+            ))
+    top = rings[-1]
+    centroid = (
+        sum(point[0] for point in top[:vertex_count]) / vertex_count,
+        sum(point[1] for point in top[:vertex_count]) / vertex_count,
+        sum(point[2] for point in top[:vertex_count]) / vertex_count,
+    )
+    for edge_index in range(vertex_count):
+        next_index = (edge_index + 1) % vertex_count
+        surfaces.append(SourceSurface(
+            role=f"source_oblique_envelope_roof_{role}_{edge_index}",
+            volume_role=role,
+            verb="taper",
+            surface_type="profiled_oblique_envelope_roof",
+            vertices_m=(vertex(centroid), vertex(top[edge_index]), vertex(top[next_index])),
+            operator="polygon_ring_loft",
+            semantic_patch_id=f"{role}:oblique_envelope_roof",
+        ))
+    return tuple(surfaces)
+
+
 def _profiled_formal_surfaces(
     volumes: tuple[SourceVolume, ...],
     origin_poly: Polygon,
@@ -1839,7 +1926,13 @@ def _profiled_formal_surfaces(
     stack of flat proxy boxes.
     """
     principle = normalize_formal_principle(formal_principle)
-    if principle not in {"folded_section", "terraced_ribbon_section", "torqued_stack", "continuous_ribbon_field"}:
+    if principle not in {
+        "folded_section",
+        "terraced_ribbon_section",
+        "torqued_stack",
+        "continuous_ribbon_field",
+        "undercut_tapered_tower",
+    }:
         return (), set(), {
             "schema_version": "arr.maas.continuous_surface.v1",
             "status": "not_applicable",
@@ -1912,6 +2005,28 @@ def _profiled_formal_surfaces(
                     "profiled_roles": sorted(roles),
                     "section_field": loft.evidence,
                 }
+    oblique_field = (
+        (formal_evidence or {}).get("site_oblique_envelope")
+        if isinstance((formal_evidence or {}).get("site_oblique_envelope"), dict)
+        else {}
+    )
+    if oblique_field:
+        field_params = oblique_field.get("field_parameters") if isinstance(oblique_field.get("field_parameters"), dict) else {}
+        field = build_oblique_envelope_field(origin_poly, field_params)
+        if field is not None:
+            role = "primary_agent_oblique_envelope_proxy"
+            spec_surfaces = _oblique_envelope_surfaces(field.rings, origin_poly=origin_poly, role=role)
+            return spec_surfaces, {role}, {
+                "schema_version": "arr.maas.continuous_surface.v1",
+                "status": "materialized" if spec_surfaces else "missing",
+                "hard_pass": bool(spec_surfaces),
+                "principle": principle,
+                "representation": "agent_oblique_envelope_mesh",
+                "profiled_volume_count": 1,
+                "surface_count": len(spec_surfaces),
+                "profiled_roles": [role],
+                "oblique_field": field.evidence,
+            }
     surfaces: list[SourceSurface] = []
     profiled_roles: set[str] = set()
     for volume in volumes:
@@ -2714,6 +2829,11 @@ def _compile_component_graph_to_source_mass(
         formal_result.evidence if formal_result is not None else None,
         formal_result.volumes if formal_result is not None else (),
     )
+    volumes = _consolidate_oblique_envelope_proxy(
+        volumes,
+        footprint,
+        formal_result.evidence if formal_result is not None else None,
+    )
     volumes = _prune_redundant_helper_volumes(volumes)
     review_volume_limit = 5 if sequence.name.startswith(("creative_voxel_cascade", "creative_cluster_village")) else 4
     volumes = _cap_review_volumes(volumes, limit=review_volume_limit)
@@ -2868,6 +2988,8 @@ def _compile_in_site_frame(
             surface.verb,
             surface.surface_type,
             tuple(rotate_vertex(vertex) for vertex in surface.vertices_m),
+            surface.operator,
+            surface.semantic_patch_id,
         ) for surface in source.surfaces),
         verb_trace=source.verb_trace,
         notes=source.notes,

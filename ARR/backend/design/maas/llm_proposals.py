@@ -14,6 +14,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from shapely.geometry import Polygon
+
 from design.maas.grammar.component_graph import MassComponentGraph, MassComponentNode, graph_from_sequence
 from design.maas.grammar.parameter_schema import PARAMETER_BOUNDS, bounded_parameter
 from design.maas.grammar.verb_sequence import VerbSequence, call
@@ -407,6 +409,38 @@ def _normalise_params(verb: str, params: dict[str, Any]) -> dict[str, Any]:
         normalised["twist"] = round(
             _clamp(_safe_float(normalised.get("twist"), 0.0), -0.30, 0.30), 4
         )
+    if verb == "taper" and isinstance(normalised.get("plan_control_points"), list):
+        raw_plan_controls = normalised["plan_control_points"]
+        plan_controls: list[list[float]] = []
+        for point in raw_plan_controls:
+            if not isinstance(point, (list, tuple)) or len(point) != 2:
+                raise ValueError("taper plan_control_points must contain only [u,v] polygon vertices")
+            try:
+                u, v = float(point[0]), float(point[1])
+            except (TypeError, ValueError) as exc:
+                raise ValueError("taper plan_control_points must contain numeric [u,v] polygon vertices") from exc
+            plan_controls.append([
+                round(_clamp(u, 0.02, 0.98), 4),
+                round(_clamp(v, 0.02, 0.98), 4),
+            ])
+        if not 3 <= len(plan_controls) <= 8:
+            raise ValueError("taper plan_control_points must contain 3 to 8 polygon vertices")
+        plan_polygon = Polygon(plan_controls)
+        if not plan_polygon.is_valid or plan_polygon.area < 0.06:
+            raise ValueError("taper plan_control_points must form one non-self-crossing plan polygon with area >= 0.06")
+        heights = normalised.get("top_height_controls")
+        if not isinstance(heights, list) or len(heights) != len(plan_controls):
+            raise ValueError("taper top_height_controls must match plan_control_points length")
+        clean_heights: list[float] = []
+        for height in heights:
+            if isinstance(height, (list, tuple, dict)):
+                raise ValueError("taper top_height_controls must be a scalar height list, not [u,height] pairs")
+            try:
+                clean_heights.append(round(_clamp(float(height), 0.42, 1.0), 4))
+            except (TypeError, ValueError) as exc:
+                raise ValueError("taper top_height_controls must contain numeric scalar heights") from exc
+        normalised["plan_control_points"] = plan_controls
+        normalised["top_height_controls"] = clean_heights
     if verb == "bend":
         width = _safe_float(normalised.get("lane_width_ratio"), 0.10)
         # Models sometimes express ribbon width as a full-depth factor (0.5)
@@ -778,6 +812,16 @@ def _prompt(
         "These points are the executable building section lofted through parcel cross-sections; do not describe a named roof preset. "
         "Folded candidates must differ by their authored section topology (ridge, valley, alternating fold, asymmetric canopy, etc.), "
         "not only by x_ratio/y_ratio or orientation. "
+        "Author oblique-envelope candidates as a primary taper with formal_principle undercut_tapered_tower. "
+        "Supply required x_ratio and y_ratio plus 3 to 8 perimeter-ordered normalized plan_control_points, for example "
+        "[[0.08,0.12],[0.88,0.08],[0.94,0.78],[0.52,0.96],[0.10,0.82]]. This must be a real non-self-crossing "
+        "plan polygon with area, never a left-to-right section polyline. Supply matching scalar top_height_controls such as "
+        "[0.55,1.0,0.92,0.70,0.58], never [u,height] pairs, plus shoulder_fraction, "
+        "base_scale_x_ratio/base_scale_y_ratio, base_shift_x_ratio/base_shift_y_ratio, "
+        "top_scale_x_ratio/top_scale_y_ratio, and top_shift_x_ratio/top_shift_y_ratio. "
+        "These parameters define bottom, shoulder, and top polygon rings of one continuous mass: use them for a wedge monolith, "
+        "leaning or cantilevered envelope, diagonal undercut, or shifted polygon plate. Do not attach a decorative diagonal box, "
+        "copy a precedent outline, or satisfy this instruction with x_ratio/y_ratio alone. "
         "For a public courtyard facing the supplied access edge, set courtyard open_side to south/north/east/west; use closed only when an enclosed atrium is intentional. "
         "Prefer creative combinations of "
         "plan, section, void, connector, array, offset, stack, and roof language. "
@@ -954,7 +998,10 @@ def _record_to_sequence(record: dict[str, Any], index: int, *, prompt_hash: str,
         for key, value in dict(params).items():
             if value is None:
                 continue
-            if isinstance(value, list) and key not in {"offset_vec", "position", "control_points"}:
+            if isinstance(value, list) and key not in {
+                "offset_vec", "position", "control_points",
+                "plan_control_points", "top_height_controls",
+            }:
                 continue
             if isinstance(value, dict):
                 continue
@@ -1092,6 +1139,14 @@ def _record_language_group(record: dict[str, Any]) -> str:
     if primary is None:
         primary = next((item for item in calls if item.get("verb") != "base"), None)
     primary_verb = str((primary or {}).get("verb") or "").strip().lower()
+    raw_params = (primary or {}).get("params")
+    if isinstance(raw_params, str):
+        try:
+            primary_params = json.loads(raw_params)
+        except json.JSONDecodeError:
+            primary_params = {}
+    else:
+        primary_params = raw_params if isinstance(raw_params, dict) else {}
     principle = " ".join((
         str(record.get("formal_principle") or ""),
         str(record.get("mass_language") or ""),
@@ -1100,6 +1155,13 @@ def _record_language_group(record: dict[str, Any]) -> str:
 
     if primary_verb == "bend" or any(token in principle for token in ("continuous_field", "ribbon_field")):
         return "continuous_field"
+    if primary_verb == "taper" and isinstance(primary_params.get("plan_control_points"), list):
+        try:
+            validated_primary_params = _normalise_params("taper", primary_params)
+        except ValueError:
+            validated_primary_params = {}
+        if isinstance(validated_primary_params.get("plan_control_points"), list):
+            return "oblique_envelope"
     if primary_verb == "sloped_roof_mass" or any(token in principle for token in ("folded_section", "folded_roof", "sloped_roof")):
         return "folded_section"
     if primary_verb in {"split", "diagonal_connect", "interlock"} or any(

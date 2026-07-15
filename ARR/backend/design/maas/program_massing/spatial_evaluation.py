@@ -67,10 +67,20 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         and int(section_field.get("section_control_point_count") or 0) >= 4
         and float(section_field.get("section_height_range") or 0.0) >= 0.18
     )
+    oblique_field = (
+        continuous_surface.get("oblique_field")
+        if isinstance(continuous_surface.get("oblique_field"), dict)
+        else {}
+    )
+    agent_oblique_envelope = bool(
+        continuous_surface.get("representation") == "agent_oblique_envelope_mesh"
+        and 3 <= int(oblique_field.get("plan_control_point_count") or 0) <= 8
+        and float(oblique_field.get("oblique_displacement") or 0.0) >= 0.08
+    )
     single_solid_profiled_field = bool(
         len(geometries) == 1
         and continuous_surface.get("hard_pass")
-        and (profiled_patch_count >= 2 or agent_section_loft)
+        and (profiled_patch_count >= 2 or agent_section_loft or agent_oblique_envelope)
     )
     if single_solid_profiled_field:
         # The legal/FAR proxy is deliberately one watertight union, while the
@@ -87,7 +97,7 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
             # evidence and score the explicit internal field separately.
             hierarchy_score = max(hierarchy_score, 0.75)
     dominant_score = _range_score(dominant, DOMINANT_RANGES.get(profile_id, (0.3, 0.85)))
-    if agent_section_loft:
+    if agent_section_loft or agent_oblique_envelope:
         dominant_score = max(dominant_score, 0.85)
     if bool(coherence.get("intentional_cluster_exception")):
         # A balanced 3-4 member field intentionally has no 38% dominant
@@ -109,6 +119,7 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         "profiled_design_patch_count": profiled_patch_count,
         "single_solid_profiled_field": single_solid_profiled_field,
         "agent_section_loft": agent_section_loft,
+        "agent_oblique_envelope": agent_oblique_envelope,
         "dominant_ratio_score": round(dominant_score, 3),
         "site_coverage_ratio": round(coverage, 3),
         "site_coverage_score": round(coverage_score, 3),

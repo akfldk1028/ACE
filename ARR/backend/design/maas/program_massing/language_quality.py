@@ -68,11 +68,21 @@ def assess_language_geometry(source: Any, feature: dict[str, Any], language_grou
             and max_segment_slope <= 4.50
             and int(surface.get("surface_count") or 0) <= 48
         )
-        passed = profiled and (section_levels >= 2 or agent_loft_pass)
+        oblique_field = surface.get("oblique_field") if isinstance(surface.get("oblique_field"), dict) else {}
+        agent_oblique_pass = (
+            surface.get("representation") == "agent_oblique_envelope_mesh"
+            and 3 <= int(oblique_field.get("plan_control_point_count") or 0) <= 8
+            and float(oblique_field.get("oblique_displacement") or 0.0) >= 0.08
+            and 0.18 <= float(oblique_field.get("proxy_area_ratio") or 0.0) <= 1.0
+            and int(surface.get("surface_count") or 0) <= 48
+        )
+        passed = profiled and (section_levels >= 2 or agent_loft_pass or agent_oblique_pass)
         evidence.update({
             "profiled_surface": profiled,
             "section_level_count": section_levels,
             "agent_section_loft_pass": agent_loft_pass,
+            "agent_oblique_envelope_pass": agent_oblique_pass,
+            "oblique_displacement": round(float(oblique_field.get("oblique_displacement") or 0.0), 4),
             "section_height_range": round(section_height_range, 4),
             "profile_total_variation": round(profile_total_variation, 4),
             "max_normalized_segment_slope": round(max_segment_slope, 4),

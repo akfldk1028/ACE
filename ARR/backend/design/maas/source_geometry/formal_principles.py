@@ -19,6 +19,7 @@ from .design_fields import build_ribbon_design_field
 from .ir import SourceVolume
 from .parametric_curves import swept_ribbon, swept_variable_ribbon
 from .section_fields import build_section_loft_field
+from .oblique_fields import build_oblique_envelope_field
 
 
 CANONICAL_FORMAL_PRINCIPLES = {
@@ -198,6 +199,7 @@ def compile_formal_principle_volumes(
     pieces: list[SourceVolume | None] = []
     surface_field_specs: list[dict[str, Any]] = []
     section_field_evidence: dict[str, Any] = {}
+    oblique_field_evidence: dict[str, Any] = {}
     genome = massing_genome or {}
 
     if principle == "slender_podium_tower":
@@ -222,6 +224,27 @@ def compile_formal_principle_volumes(
             _clean_piece("secondary_tower_cap", cap, max(0.72, upper_ratio - 0.16), 1.0, "taper", clip=footprint, min_area=min_area),
             _rect("secondary_ground_void_marker", footprint, minx, miny, minx + width * 0.24, miny + depth * 0.22, 0.0, split * 0.55, "void", min_area=min_area),
         ]
+        oblique_field = build_oblique_envelope_field(
+            footprint,
+            language_params,
+            bottom_fraction=0.0,
+            top_fraction=1.0,
+        )
+        if oblique_field is not None:
+            oblique_field_evidence = {
+                **oblique_field.evidence,
+                "field_parameters": {
+                    key: language_params[key]
+                    for key in (
+                        "plan_control_points", "top_height_controls",
+                        "shoulder_fraction", "base_scale_x_ratio", "base_scale_y_ratio",
+                        "base_shift_x_ratio", "base_shift_y_ratio",
+                        "top_scale_x_ratio", "top_scale_y_ratio",
+                        "top_shift_x_ratio", "top_shift_y_ratio",
+                    )
+                    if key in language_params
+                },
+            }
     elif principle == "continuous_ribbon_field":
         design_field = build_ribbon_design_field(footprint, language_params)
         if design_field is None:
@@ -561,6 +584,8 @@ def compile_formal_principle_volumes(
         }
     if section_field_evidence:
         evidence["site_section_field"] = section_field_evidence
+    if oblique_field_evidence:
+        evidence["site_oblique_envelope"] = oblique_field_evidence
     return FormalPrincipleResult(principle=principle, volumes=volumes, evidence=evidence)
 
 

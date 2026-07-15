@@ -267,6 +267,9 @@ def run_neighborhood_vlm_a2a_loop(
             capacity_pool.append(replace(elite, score=round(elite.score * 0.82 + capacity_fit * 0.18, 6)))
     review_group_minimums = {
         "continuous_field": 1,
+        # Capability, not monoculture: require one reviewable agent-authored
+        # oblique envelope while keeping most of the board in other languages.
+        "oblique_envelope": 1,
         "carved_void": 1,
         "bridge_interlock": 1,
         "folded_section": 1,
@@ -309,6 +312,7 @@ def run_neighborhood_vlm_a2a_loop(
             "carved_void": 8,
             "stepped_capacity": 8,
             "continuous_field": 8,
+            "oblique_envelope": 4,
             "bridge_interlock": 8,
             "folded_section": 8,
             "cluster_field": 8,
@@ -455,6 +459,7 @@ def run_neighborhood_vlm_a2a_loop(
     ]
     final_group_minimums = {
         "continuous_field": 2,
+        "oblique_envelope": 1,
         "carved_void": 3,
         "bridge_interlock": 2,
         "folded_section": 2,
@@ -473,6 +478,7 @@ def run_neighborhood_vlm_a2a_loop(
         "carved_void": 5,
         "stepped_capacity": 3,
         "continuous_field": 4,
+        "oblique_envelope": 2,
         "bridge_interlock": 4,
         "folded_section": 4,
         "cluster_field": 4,
@@ -776,10 +782,20 @@ def _author_feedback() -> dict[str, Any]:
             "bridge_or_interlock": 4,
             "folded_or_sloped_section": 4,
             "stepped_or_terraced_anchor": 2,
+            # Survival buffer only. Final selection still caps this language
+            # at two, so the board gains the capability without becoming an
+            # all-polygon exercise.
+            "oblique_or_polygon_envelope": 3,
+            "cluster_or_branch": 3,
+        },
+        "required_language_groups": {
+            "oblique_envelope": 1,
+            "cluster_field": 2,
         },
         "formal_principle_targets": [
             "figure_ground", "carved_solid", "continuous_field", "folded_section",
             "split_bridge", "datum_shift", "courtyard_atrium", "stepped_landform",
+            "agent_oblique_polygon_envelope",
         ],
         "reference_precedent_targets": [
             "BIG: one diagrammatic operation with programmatic consequence",
@@ -846,6 +862,7 @@ def generation_feedback_from_result(result: dict[str, Any]) -> dict[str, Any]:
     quota = dict(feedback.get("quota") or {})
     group_to_quota = {
         "continuous_field": "continuous_or_bent",
+        "oblique_envelope": "oblique_or_polygon_envelope",
         "carved_void": "carved_or_courtyard",
         "bridge_interlock": "bridge_or_interlock",
         "folded_section": "folded_or_sloped_section",
@@ -1500,12 +1517,18 @@ def _sequence_from_record(record: Any) -> VerbSequence | None:
 
 def _language_group(item: ProgramElite) -> str:
     principle = _formal_principle(item)
+    surface = item.source.signature().get("continuous_surface_evidence") or {}
     verbs = {call.verb for call in item.sequence.calls}
     primary_verb = primary_operation_from_sequence(item.sequence).verb
     height_levels = len({round(volume.top_fraction, 2) for volume in item.source.volumes})
     if principle == "continuous_ribbon_field" or primary_verb == "bend":
         return "continuous_field"
-    if principle == "folded_section" or primary_verb == "sloped_roof_mass":
+    if surface.get("representation") == "agent_oblique_envelope_mesh":
+        return "oblique_envelope"
+    if (
+        principle == "folded_section"
+        or primary_verb == "sloped_roof_mass"
+    ):
         return "folded_section"
     if principle == "split_bridge_connector" or primary_verb in {"split", "diagonal_connect", "interlock"}:
         return "bridge_interlock"
@@ -1546,9 +1569,10 @@ def _has_editable_control_field(item: ProgramElite) -> bool:
     controls = (
         primary.params.get("control_points")
         if primary.verb in {"bend", "sloped_roof_mass"}
-        else None
+        else primary.params.get("plan_control_points") if primary.verb == "taper" else None
     )
-    return isinstance(controls, list) and 4 <= len(controls) <= 6
+    minimum, maximum = ((3, 8) if primary.verb == "taper" else (4, 6))
+    return isinstance(controls, list) and minimum <= len(controls) <= maximum
 
 
 def _near_duplicate_pairs(items: list[ProgramElite], *, threshold: float) -> list[dict[str, Any]]:

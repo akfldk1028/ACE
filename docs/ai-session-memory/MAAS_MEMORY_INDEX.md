@@ -4,7 +4,24 @@ Updated: 2026-07-15
 
 Read this file first before touching MAAS mass generation, prompts, source geometry, legal repair, parking, or PNG/verifier harnesses.
 
+Independent component-graph / MAP-Elites / Mass-Brain audit:
+
+- Read `MAAS_COMPONENT_GRAPH_MAP_ELITES_AUDIT_20260715.md` before adding a new
+  optimizer, describing the system as autonomous learning, or changing the
+  Mass-Brain/GRL boundary. It verifies that the offline path already uses a
+  constrained MAP-Elites-like component-graph archive and a typed VLM graph
+  revision loop, while cross-run accepted-graph reuse remains explicit rather
+  than automatic. It also contains a copy-paste prompt for a separate AI to
+  independently challenge the conclusion against code and current artifacts.
+
 Critical latest handoff:
+
+- Read `MAAS_OBLIQUE_ENVELOPE_HANDOFF_20260715.md` first for the latest code
+  and real-PNU evidence. It records the new agent-authored polygon-ring loft,
+  strict LLM control-field validation, typed VLM polygon edits, and the bounded
+  final quota (1-2, never all 20). v98 is 20/20 with one real oblique card and
+  no measured duplicates, but visual status still fails because stepped
+  capacity remains 2/3. Law/parking projection is still `not_run`.
 
 - Read `2026-07-15 v87-v90 capacity feedback, exact-author preservation, and
   20-card portfolio closure` at the end of the visual-failure handoff first.

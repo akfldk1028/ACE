@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import replace
 
+from shapely.geometry import Polygon
+
 from design.maas.agents.orchestrator.generative_loop import CriticDirective
 from design.maas.grammar.component_graph import MassComponentGraph, MassComponentNode, graph_with_nodes
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
@@ -62,12 +64,18 @@ def apply_critic_graph_mutations(
             if (
                 index is None
                 or nodes[index].role == "root"
-                or nodes[index].operation.verb not in {"bend", "sloped_roof_mass"}
+                or nodes[index].operation.verb not in {"bend", "sloped_roof_mass", "taper"}
             ):
                 continue
             node = nodes[index]
-            raw_controls = node.operation.params.get("control_points")
-            if not isinstance(raw_controls, list) or not 4 <= len(raw_controls) <= 6:
+            control_field = (
+                "plan_control_points"
+                if node.operation.verb == "taper" and edit.parameter_name == "plan_control_points"
+                else "control_points"
+            )
+            raw_controls = node.operation.params.get(control_field)
+            minimum_count, maximum_count = ((3, 8) if control_field == "plan_control_points" else (4, 6))
+            if not isinstance(raw_controls, list) or not minimum_count <= len(raw_controls) <= maximum_count:
                 continue
             controls: list[list[float]] = []
             try:
@@ -77,19 +85,31 @@ def apply_critic_graph_mutations(
             point_index = int(edit.control_point_index)
             if point_index < 0 or point_index >= len(controls):
                 continue
-            lower_u = 0.03 if point_index == 0 else controls[point_index - 1][0] + 0.02
-            upper_u = 0.97 if point_index + 1 == len(controls) else controls[point_index + 1][0] - 0.02
-            if lower_u > upper_u:
-                continue
-            new_point = [
-                round(max(lower_u, min(upper_u, float(edit.control_point_u))), 4),
-                round(max(0.12, min(0.88, float(edit.control_point_v))), 4),
-            ]
+            if control_field == "plan_control_points":
+                new_point = [
+                    round(max(0.03, min(0.97, float(edit.control_point_u))), 4),
+                    round(max(0.03, min(0.97, float(edit.control_point_v))), 4),
+                ]
+            else:
+                lower_u = 0.03 if point_index == 0 else controls[point_index - 1][0] + 0.02
+                upper_u = 0.97 if point_index + 1 == len(controls) else controls[point_index + 1][0] - 0.02
+                if lower_u > upper_u:
+                    continue
+                new_point = [
+                    round(max(lower_u, min(upper_u, float(edit.control_point_u))), 4),
+                    round(max(0.12, min(0.88, float(edit.control_point_v))), 4),
+                ]
             if new_point == controls[point_index]:
                 continue
-            controls[point_index] = new_point
+            candidate_controls = list(controls)
+            candidate_controls[point_index] = new_point
+            if control_field == "plan_control_points":
+                polygon = Polygon(candidate_controls)
+                if not polygon.is_valid or polygon.area < 0.04:
+                    continue
+            controls = candidate_controls
             params = dict(node.operation.params)
-            params["control_points"] = controls
+            params[control_field] = controls
             nodes[index] = replace(node, operation=VerbCall(node.operation.verb, params))
             changed = True
         elif operation == "set_parameter":

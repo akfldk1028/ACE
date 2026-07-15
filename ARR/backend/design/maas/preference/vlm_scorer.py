@@ -18,7 +18,7 @@ from .reference_paths import resolve_reference_image_path
 
 
 VLM_SCORE_SCHEMA_VERSION = "arr.maas.vlm_concept_scores.v1"
-VLM_PROMPT_CONTRACT_VERSION = "arr.maas.vlm_prompt.graph_edit_geometry_program_edit.v6"
+VLM_PROMPT_CONTRACT_VERSION = "arr.maas.vlm_prompt.ai_readable_graph_snapshot_geometry_program_edit.v8"
 DEFAULT_VLM_MODEL = "gpt-5.4-mini"
 
 
@@ -153,6 +153,8 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "",
     )
     geometry_program = props.get("geometry_program") if isinstance(props.get("geometry_program"), dict) else {}
+    geometry_graph_notes = props.get("geometry_graph_notes") if isinstance(props.get("geometry_graph_notes"), list) else []
+    geometry_graph_snapshot = props.get("geometry_graph_snapshot") if isinstance(props.get("geometry_graph_snapshot"), dict) else {}
     geometry_nodes = geometry_program.get("nodes") if isinstance(geometry_program.get("nodes"), list) else []
     compact_geometry_program = {
         "root_id": str(geometry_program.get("root_id") or ""),
@@ -163,6 +165,8 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
                 "operator": str(node.get("operator") or ""),
                 "inputs": [str(item) for item in node.get("inputs") or []],
                 "parameters": node.get("parameters") if isinstance(node.get("parameters"), dict) else {},
+                "semantic_role": str(node.get("semantic_role") or ""),
+                "provenance_note": str((node.get("provenance") or {}).get("rationale") or (node.get("provenance") or {}).get("architectural_use") or ""),
             }
             for node in geometry_nodes[:96]
             if isinstance(node, dict)
@@ -181,6 +185,9 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "editable_graph_nodes": editable_nodes,
         "primary_node_id": primary_node_id,
         "geometry_program": compact_geometry_program,
+        "geometry_graph_notes": geometry_graph_notes[:96],
+        "geometry_graph_snapshot": geometry_graph_snapshot,
+        "base_seed_catalog": props.get("base_seed_catalog") if isinstance(props.get("base_seed_catalog"), list) else [],
         "site_boundary_source": props.get("site_boundary_source"),
         "site_access_context": props.get("site_access_context") or {},
         "site_design_field": ambition.get("site_design_field") or source.get("site_design_field"),
@@ -241,6 +248,12 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "failure applies. A sloped_roof_mass with authored control_points or taper with authored plan_control_points "
         "may also be structurally corrected by set_control_point because it changes executable geometry, not facade styling.\n"
         "When geometry_program is present, also return geometry_edits that mutate its recursive solid AST. "
+        "Read geometry_graph_snapshot as the machine-readable node/edge/edit contract and geometry_graph_notes as "
+        "non-executable intent and compiled evidence attached to exact node IDs. "
+        "Use those notes to understand why a node exists and what must be preserved, but target only the authoritative "
+        "geometry_program node IDs and parameters in edits. Distinguish site scope fraction from normalized base seed: "
+        "scope chooses how much parcel envelope is available, while BLOCK/SLAB/BAR/TOWER/PROFILED PRISM chooses the "
+        "starting proportion before recursive operations. "
         "Use set_parameter for bounded deformation/cutting/pattern parameters. To wrap the current solid in a new "
         "operator, emit add_node with input_ids=[current root], then any set_parameter edits for that new node, then "
         "set_root targeting the new node. Use replace_operator only within the same node kind. Geometry edits support "

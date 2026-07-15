@@ -19,10 +19,12 @@ Critical latest handoff:
 - Read `MAAS_EXTENDED_GEOMETRY_LANGUAGE_CHECKPOINT_20260715.md` first before
   changing primitives, recursive solid AST, Geometry DSL, VLM geometry edits,
   the 18-family benchmark, or the Mass-Brain BASE-to-transform view. It records
-  the new manifold-backed compiler, 18/18 distinct gated solids, three supplied
-  photo-language probes, honest absence of a live OpenAI run, and the remaining
-  parcel/legal/parking integration boundary. Its 18/18 result is language
-  coverage, not a competition-grade claim.
+  the new manifold-backed compiler, the corrected SITE SCOPE 6 / BASE SEED 5
+  split, four UnitBox-derived semantic seeds, 18/18 distinct gated solids,
+  node-bound AI-readable graph snapshots, three supplied photo-language probes,
+  honest absence of a live OpenAI run, and the remaining parcel/legal/parking
+  integration boundary. The original 18 are not all literal mutations of one
+  identical cube; 18/18 is language coverage, not a competition-grade claim.
 
 - Read `MAAS_BOOK_EXECUTABLE_LANGUAGE_CHECKPOINT_20260715.md` first before
   changing BOOK principles, the Mass-Brain `02 PRINCIPLE` view, vocabulary or

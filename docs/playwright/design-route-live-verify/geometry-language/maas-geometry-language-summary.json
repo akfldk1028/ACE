@@ -1,7 +1,258 @@
 {
   "schema_version": "arr.maas.geometry_language_benchmark.v1",
   "status": "PASS",
-  "statement": "Compiler diversity proves distinct solids, not competition-grade design quality.",
+  "statement": "Scope fractions, normalized base seeds and recursive operations are separate. Compiler diversity proves distinct solids, not competition-grade design quality.",
+  "literal_one_identical_box_claim_for_original_18": false,
+  "literal_claim_note": "The original 18 probes use 18 primitive specifications (21 Box nodes plus one Loft and one Sweep). Four normalized architectural seeds now provably expand from one identical UnitBox; PROFILED PRISM remains a separate polygon extrusion.",
+  "site_scope_count": 6,
+  "normalized_base_seed_count": 5,
+  "box_derived_base_seed_count": 4,
+  "base_seeds": [
+    {
+      "index": 1,
+      "name": "base_seed_block",
+      "program_hash": "c161826290293b87289286bf3fb632e3644da854a52fe06e0a8505ad08ebc361",
+      "geometry_hash": "df8e75b678cdcef6f8ddba003ed84ee3cd431d85605ef12375eb87996ac1ab44",
+      "compile_status": "compiled",
+      "gate_status": "PASS",
+      "gate_issues": [],
+      "operators": [
+        "box",
+        "scale"
+      ],
+      "program_cost": {
+        "node_count": 2.0,
+        "boolean_penalty": 0.0,
+        "deformation_penalty": 0.0,
+        "topology_complexity": 0.003,
+        "unstable_operation_penalty": 0.0,
+        "invalid_geometry_penalty": 0.0,
+        "total": 2.003
+      },
+      "metrics": {
+        "kernel": "manifold3d",
+        "kernel_status": "Error.NoError",
+        "watertight": true,
+        "manifold": true,
+        "closed_solid": true,
+        "self_intersection_checked_by_kernel": true,
+        "volume": 1.0,
+        "surface_area": 6.0,
+        "vertex_count": 8,
+        "triangle_count": 12,
+        "component_count": 1,
+        "genus": 0,
+        "bounds": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0
+          ]
+        ]
+      },
+      "preview_path": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\geometry-language\\base-seeds\\01-base_seed_block.png"
+    },
+    {
+      "index": 2,
+      "name": "base_seed_slab",
+      "program_hash": "d7727cd10e52f2d4ea9766ed618fb9937574899408ad461bd8521ec64f13f74f",
+      "geometry_hash": "9c46c1cf67167cef91552650b9d9f56c0139b52f1b889f5095fce427f5b7331d",
+      "compile_status": "compiled",
+      "gate_status": "PASS",
+      "gate_issues": [],
+      "operators": [
+        "box",
+        "scale"
+      ],
+      "program_cost": {
+        "node_count": 2.0,
+        "boolean_penalty": 0.0,
+        "deformation_penalty": 0.0,
+        "topology_complexity": 0.003,
+        "unstable_operation_penalty": 0.0,
+        "invalid_geometry_penalty": 0.0,
+        "total": 2.003
+      },
+      "metrics": {
+        "kernel": "manifold3d",
+        "kernel_status": "Error.NoError",
+        "watertight": true,
+        "manifold": true,
+        "closed_solid": true,
+        "self_intersection_checked_by_kernel": true,
+        "volume": 0.8932,
+        "surface_area": 8.424,
+        "vertex_count": 8,
+        "triangle_count": 12,
+        "component_count": 1,
+        "genus": 0,
+        "bounds": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.2,
+            1.45,
+            0.28
+          ]
+        ]
+      },
+      "preview_path": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\geometry-language\\base-seeds\\02-base_seed_slab.png"
+    },
+    {
+      "index": 3,
+      "name": "base_seed_bar",
+      "program_hash": "842a75bfabc7f39a0f0dde0285103e141e235868c3dc3cc021474213cb95a6c2",
+      "geometry_hash": "94ba3501d843dd12d01f9759228d695b035f7b32e190d858459fd80cf5e65899",
+      "compile_status": "compiled",
+      "gate_status": "PASS",
+      "gate_issues": [],
+      "operators": [
+        "box",
+        "scale"
+      ],
+      "program_cost": {
+        "node_count": 2.0,
+        "boolean_penalty": 0.0,
+        "deformation_penalty": 0.0,
+        "topology_complexity": 0.003,
+        "unstable_operation_penalty": 0.0,
+        "invalid_geometry_penalty": 0.0,
+        "total": 2.003
+      },
+      "metrics": {
+        "kernel": "manifold3d",
+        "kernel_status": "Error.NoError",
+        "watertight": true,
+        "manifold": true,
+        "closed_solid": true,
+        "self_intersection_checked_by_kernel": true,
+        "volume": 0.83328,
+        "surface_area": 6.7552,
+        "vertex_count": 8,
+        "triangle_count": 12,
+        "component_count": 1,
+        "genus": 0,
+        "bounds": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.8,
+            0.62,
+            0.48
+          ]
+        ]
+      },
+      "preview_path": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\geometry-language\\base-seeds\\03-base_seed_bar.png"
+    },
+    {
+      "index": 4,
+      "name": "base_seed_tower",
+      "program_hash": "dc68e53a9c2d17a9aed0ada304bbe382baa788c49a82564e6e86f8c64df072b4",
+      "geometry_hash": "d4b2f255e17d9539715ae370f0f9a80d474ef80e5c508219fd7992975c445966",
+      "compile_status": "compiled",
+      "gate_status": "PASS",
+      "gate_issues": [],
+      "operators": [
+        "box",
+        "scale"
+      ],
+      "program_cost": {
+        "node_count": 2.0,
+        "boolean_penalty": 0.0,
+        "deformation_penalty": 0.0,
+        "topology_complexity": 0.003,
+        "unstable_operation_penalty": 0.0,
+        "invalid_geometry_penalty": 0.0,
+        "total": 2.003
+      },
+      "metrics": {
+        "kernel": "manifold3d",
+        "kernel_status": "Error.NoError",
+        "watertight": true,
+        "manifold": true,
+        "closed_solid": true,
+        "self_intersection_checked_by_kernel": true,
+        "volume": 1.156,
+        "surface_area": 7.7248,
+        "vertex_count": 8,
+        "triangle_count": 12,
+        "component_count": 1,
+        "genus": 0,
+        "bounds": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.68,
+            0.68,
+            2.5
+          ]
+        ]
+      },
+      "preview_path": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\geometry-language\\base-seeds\\04-base_seed_tower.png"
+    },
+    {
+      "index": 5,
+      "name": "base_seed_profiled_prism",
+      "program_hash": "4b366c3de6267faf747ff41b91dcbd5051785a9773f3d9dc48e7d223e67fdac6",
+      "geometry_hash": "1150f0cd98923f42d70b2a65600fdc54d16687992caf1a1d20f62ef43bf43f5c",
+      "compile_status": "compiled",
+      "gate_status": "PASS",
+      "gate_issues": [],
+      "operators": [
+        "extruded_polygon"
+      ],
+      "program_cost": {
+        "node_count": 1.0,
+        "boolean_penalty": 0.0,
+        "deformation_penalty": 0.0,
+        "topology_complexity": 0.004,
+        "unstable_operation_penalty": 0.0,
+        "invalid_geometry_penalty": 0.0,
+        "total": 1.004
+      },
+      "metrics": {
+        "kernel": "manifold3d",
+        "kernel_status": "Error.NoError",
+        "watertight": true,
+        "manifold": true,
+        "closed_solid": true,
+        "self_intersection_checked_by_kernel": true,
+        "volume": 1.28625,
+        "surface_area": 7.306194,
+        "vertex_count": 10,
+        "triangle_count": 16,
+        "component_count": 1,
+        "genus": 0,
+        "bounds": [
+          [
+            -0.15,
+            0.0,
+            0.0
+          ],
+          [
+            1.6,
+            1.2,
+            0.75
+          ]
+        ]
+      },
+      "preview_path": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\geometry-language\\base-seeds\\05-base_seed_profiled_prism.png"
+    }
+  ],
   "shape_count": 18,
   "unique_geometry_count": 18,
   "visual_hash_method": "four_view_dhash_32x24",

@@ -118,7 +118,8 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
     return f"""Create exactly {count} executable and materially different architectural mass programs.
 
 Core assignment DSL examples:
-mass base = box(12, 8, 4)
+mass unit = box(1, 1, 1)
+mass base = scale(unit, vector=[2.2, 1.45, 0.28]) # SLAB seed
 mass court = courtyard(base, margin_ratio=0.28)
 mass result = bend(court, axis="x", angle_degrees=28, subdivisions=4)
 
@@ -136,6 +137,9 @@ Rules:
 - Every right-hand side is one function call; parameters are explicit literals.
 - A prior variable can be reused; reassignment is normalized to an acyclic SSA graph.
 - Use bounded local normalized dimensions, not parcel coordinates and not a copied famous building.
+- Keep parcel scope and base seed separate. Scope is supplied by the site graph. Select a normalized
+  BLOCK [1,1,1], SLAB [2.2,1.45,0.28], BAR [2.8,0.62,0.48], or TOWER [0.68,0.68,2.5]
+  by scaling the same UnitBox; use an explicit extruded_polygon only for a PROFILED PRISM seed.
 - Do not produce parameter-only variants. Vary tree structure, topology, void/section/roof/composition language.
 - Prefer <=5 visible connected volumes and clean solids.
 - Include a final variable named result.

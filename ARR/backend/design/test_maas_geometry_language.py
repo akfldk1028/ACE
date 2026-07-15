@@ -10,6 +10,10 @@ from design.maas.geometry_language import (
     GeometryProgramBuilder,
     apply_geometry_edits,
     architectural_shape_programs,
+    base_seed_programs,
+    box_derived_base_seed_programs,
+    build_geometry_graph_notes,
+    build_geometry_graph_snapshot,
     compilation_gate,
     compile_geometry_program,
     geometry_equivalent,
@@ -20,9 +24,53 @@ from design.maas.geometry_language import (
     reference_language_programs,
     run_geometry_program_a2a_loop,
 )
+from design.maas.preference.vlm_scorer import _prompt_text
 
 
 class MaasGeometryLanguageTest(SimpleTestCase):
+    def test_scope_and_base_seed_are_separate_and_four_seeds_share_one_unit_box(self):
+        box_seeds = box_derived_base_seed_programs()
+        self.assertEqual(len(box_seeds), 4)
+        for program in box_seeds:
+            unit = program.node_map["unit_box"]
+            self.assertEqual(unit.operator, "box")
+            self.assertEqual(unit.parameters, {"width": 1.0, "depth": 1.0, "height": 1.0})
+            self.assertTrue(program.metadata["site_scope_is_separate"])
+        results = [compile_geometry_program(program) for program in base_seed_programs()]
+        self.assertEqual(len(results), 5)
+        self.assertTrue(all(result.status == "compiled" for result in results))
+        self.assertEqual(len({result.geometry_hash for result in results}), 5)
+
+    def test_original_eighteen_are_not_misreported_as_one_identical_box_seed(self):
+        primitive_signatures = {
+            tuple((node.operator, repr(sorted(node.parameters.items()))) for node in program.nodes if node.kind == "primitive")
+            for program in architectural_shape_programs()
+        }
+        self.assertGreater(len(primitive_signatures), 1)
+
+    def test_vlm_receives_node_bound_graph_notes_and_scope_seed_distinction(self):
+        program = base_seed_programs()[1]
+        compilation = compile_geometry_program(program)
+        notes = build_geometry_graph_notes(program, compilation)
+        snapshot = build_geometry_graph_snapshot(program, compilation)
+        self.assertEqual([note["node_id"] for note in notes], [node.id for node in program.topological_nodes()])
+        self.assertTrue(all(note["note_is_non_executable"] for note in notes))
+        self.assertEqual(snapshot["root_node_id"], program.root_id)
+        self.assertEqual(len(snapshot["edges"]), len(program.topological_nodes()) - 1)
+        self.assertEqual(snapshot["agent_edit_contract"]["target_selector"], "node_id")
+        self.assertTrue(snapshot["agent_edit_contract"]["requires_recompile_and_rerender"])
+        feature = {"properties": {
+            "geometry_program": program.to_dict(),
+            "geometry_graph_notes": notes,
+            "geometry_graph_snapshot": snapshot,
+            "base_seed_catalog": [program.metadata["base_seed"]],
+        }}
+        prompt = _prompt_text(feature, [])
+        self.assertIn("geometry_graph_notes", prompt)
+        self.assertIn("geometry_graph_snapshot", prompt)
+        self.assertIn("site scope fraction from normalized base seed", prompt)
+        self.assertIn("seed_slab", prompt)
+
     def test_eighteen_architectural_families_compile_to_distinct_gated_solids(self):
         programs = architectural_shape_programs()
         self.assertEqual(len(programs), 18)

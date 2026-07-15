@@ -10,6 +10,7 @@ from PIL import Image, ImageDraw
 
 from design.maas.geometry_language import (
     architectural_shape_programs,
+    base_seed_programs,
     compilation_gate,
     compile_geometry_program,
     program_cost,
@@ -30,6 +31,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         output_dir = Path(options["output_dir"]).resolve()
         output_dir.mkdir(parents=True, exist_ok=True)
+        seed_records, seed_previews = self._compile_group(
+            base_seed_programs(), output_dir / "base-seeds"
+        )
         shape_records, shape_previews = self._compile_group(
             architectural_shape_programs(), output_dir / "shapes"
         )
@@ -37,6 +41,7 @@ class Command(BaseCommand):
         reference_records, reference_previews = self._compile_group(
             references.values(), output_dir / "references"
         )
+        _contact_sheet(seed_previews, output_dir / "maas-base-seed-5.png", columns=5)
         _contact_sheet(shape_previews, output_dir / "maas-geometry-language-18.png", columns=3)
         _contact_sheet(reference_previews, output_dir / "maas-reference-language-3.png", columns=3)
         unique_hashes = len({record["geometry_hash"] for record in shape_records if record["geometry_hash"]})
@@ -44,8 +49,14 @@ class Command(BaseCommand):
         minimum_visual_distance = _minimum_visual_distance(shape_previews)
         summary = {
             "schema_version": "arr.maas.geometry_language_benchmark.v1",
-            "status": "PASS" if len(shape_records) == 18 and unique_hashes == 18 and not visual_pairs and all(row["gate_status"] == "PASS" for row in shape_records) else "FAIL",
-            "statement": "Compiler diversity proves distinct solids, not competition-grade design quality.",
+            "status": "PASS" if len(seed_records) == 5 and len(shape_records) == 18 and unique_hashes == 18 and not visual_pairs and all(row["gate_status"] == "PASS" for row in [*seed_records, *shape_records]) else "FAIL",
+            "statement": "Scope fractions, normalized base seeds and recursive operations are separate. Compiler diversity proves distinct solids, not competition-grade design quality.",
+            "literal_one_identical_box_claim_for_original_18": False,
+            "literal_claim_note": "The original 18 probes use 18 primitive specifications (21 Box nodes plus one Loft and one Sweep). Four normalized architectural seeds now provably expand from one identical UnitBox; PROFILED PRISM remains a separate polygon extrusion.",
+            "site_scope_count": 6,
+            "normalized_base_seed_count": len(seed_records),
+            "box_derived_base_seed_count": 4,
+            "base_seeds": seed_records,
             "shape_count": len(shape_records),
             "unique_geometry_count": unique_hashes,
             "visual_hash_method": "four_view_dhash_32x24",

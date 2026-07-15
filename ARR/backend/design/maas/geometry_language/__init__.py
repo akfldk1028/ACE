@@ -1,6 +1,7 @@
 """Extended CSG procedural architectural massing language."""
 
 from .ast import GEOMETRY_PROGRAM_JSON_SCHEMA, GeometryIssue, GeometryNode, GeometryProgram
+from .base_seeds import BASE_SEED_SPECS, BaseSeedSpec, base_seed_catalog, base_seed_program, base_seed_programs, box_derived_base_seed_programs
 from .compiler import CompilationResult, compile_geometry_program
 from .cost import ProgramCost, candidate_sort_key, geometry_equivalent, program_cost
 from .dsl import GeometryDslError, parse_geometry_dsl, program_to_dsl
@@ -10,10 +11,12 @@ from .llm_adapter import GeometryAuthorError, author_geometry_programs_with_open
 from .mutation import GeometryEdit, MutationResult, apply_geometry_edits
 from .programs import GeometryProgramBuilder, architectural_shape_programs, l_mass_difference_program, reference_language_programs
 from .render import render_compilation_preview
-from .vlm_adapter import openai_vlm_geometry_critic, score_geometry_program_with_openai_vlm
+from .vlm_adapter import build_geometry_graph_notes, build_geometry_graph_snapshot, openai_vlm_geometry_critic, score_geometry_program_with_openai_vlm
 
 __all__ = [
     "CompilationResult",
+    "BASE_SEED_SPECS",
+    "BaseSeedSpec",
     "GEOMETRY_PROGRAM_JSON_SCHEMA",
     "GeometryEdit",
     "GeometryDslError",
@@ -30,6 +33,12 @@ __all__ = [
     "apply_geometry_edits",
     "architectural_shape_programs",
     "author_geometry_programs_with_openai",
+    "base_seed_catalog",
+    "base_seed_program",
+    "base_seed_programs",
+    "box_derived_base_seed_programs",
+    "build_geometry_graph_notes",
+    "build_geometry_graph_snapshot",
     "candidate_sort_key",
     "compilation_gate",
     "compile_geometry_program",

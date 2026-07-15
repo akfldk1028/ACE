@@ -5,9 +5,17 @@ Updated: 2026-07-15
 ## Purpose
 
 This checkpoint records the first real recursive solid-program layer for MAAS.
-It addresses the question "can one box seed become dozens of materially
-different architectural masses?" with compiled geometry rather than labels or
-parameter-only box variants.
+It separates parcel-relative p.3 `SITE SCOPE`, normalized `BASE SEED`, and
+kernel `Primitive`. BLOCK, SLAB, BAR and TOWER are exact `Scale(UnitBox)`
+programs; PROFILED PRISM is a separate profile/extrusion seed. Recursive
+operations can turn these seeds into materially different solids.
+
+Important correction: the original 18 demonstration programs are **not** all
+derived from one identical cube. An audit found different primitive signatures
+across all 18 programs (21 Box nodes plus one Sweep and one Loft in total).
+Never describe 18/18 as literal proof that one unchanged cube produced every
+result. It proves recursive language-family and solid diversity. The separate
+five-seed benchmark proves that four useful base proportions share UnitBox.
 
 The system is an extended CSG procedural architectural massing language:
 
@@ -31,6 +39,7 @@ parcel-derived 2.5D `SourceMass` remains intact and is not silently replaced.
 ## Implemented files
 
 - `ARR/backend/design/maas/geometry_language/ast.py`
+- `ARR/backend/design/maas/geometry_language/base_seeds.py`
 - `ARR/backend/design/maas/geometry_language/compiler.py`
 - `ARR/backend/design/maas/geometry_language/dsl.py`
 - `ARR/backend/design/maas/geometry_language/mutation.py`
@@ -49,13 +58,39 @@ The existing VLM response contract now includes bounded typed geometry edits:
 and `set_root`. A revision is admitted only when the AST hash and compiled
 geometry hash both change and the complete solid gate passes again. Existing
 component-graph edits remain supported; the contract version is
-`arr.maas.vlm_prompt.graph_edit_geometry_program_edit.v6`.
+`arr.maas.vlm_prompt.ai_readable_graph_snapshot_geometry_program_edit.v8`.
+
+The VLM payload now contains `geometry_graph_snapshot` with stable node IDs,
+solid-input edges, semantic role, editable parameters, expected effect,
+compiled triangle/volume evidence and the bounded edit contract. The AST is
+authoritative; graph notes are explicitly non-executable observations. A VLM
+edit is accepted only through node-bound `geometry_edits`, validation,
+recompile, rerender, geometry-hash change and hard-gate recheck.
 
 The LLM author adapter requests explicit assignment-only DSL and parses it into
 an acyclic SSA-normalized graph. It rejects prose, invalid references and
 duplicate programs. The live OpenAI author/critic request was **not run** in
-this session because `OPENAI_API_KEY` was absent. Deterministic closed-loop
-tests prove the callback/edit/recompile mechanics, not live model quality.
+this session. A key posted in chat was treated as compromised and was not used
+or stored. It must be revoked and replaced through a secure environment
+variable. Deterministic tests prove callback/edit/recompile mechanics, not live
+model quality.
+
+## Scope and normalized base seeds
+
+```text
+SITE SCOPE 6 -> BASE SEED 5 -> ordered recursive operations -> RESULT SOLID
+```
+
+- SITE SCOPE: 1/1, 3/8, 1/2, 1/4, 1/8, 1/16 of the parcel envelope.
+- BLOCK: `Scale(UnitBox, [1.0, 1.0, 1.0])`
+- SLAB: `Scale(UnitBox, [2.2, 1.45, 0.28])`
+- BAR: `Scale(UnitBox, [2.8, 0.62, 0.48])`
+- TOWER: `Scale(UnitBox, [0.68, 0.68, 2.5])`
+- PROFILED PRISM: `Extrude(PolygonProfile, height)`
+
+The first four reuse the same 1x1x1 Box node. Named seeds are semantic search
+priors, not extra kernel primitives or completed-building templates. SITE SCOPE
+is a parcel constraint and is not a synonym for seed proportion.
 
 ## Eighteen real compiled language families
 
@@ -119,19 +154,21 @@ The related Mass-Brain debug UI at `D:\Data\Mass-Brain` now renders a clickable
 machine-readable flow:
 
 ```text
-BASE 6 -> OPERATIVE 30 -> COMBINATION 20 -> AGGREGATION 9 -> GeometryNode
+SITE SCOPE 6 -> BASE SEED 5 -> OPERATIVE 30 -> COMBINATION 20
+  -> AGGREGATION 9 -> GeometryNode
 ```
 
-Selecting a base or operation updates the highlighted relation path, mass glyph
-and explicit DSL. DOM attributes carry the same base ID, principle ID,
-execution verb and input/output topology used by agents. Browser verification
-found 6 base controls, 30 operative controls, selected
-`book:operative:bend`, produced
-`bend(base, axis=?, angle=?, curvature=?)`, and had zero console/page errors.
+Scope, seed and operation nodes are interactive. The selected node exposes an
+`arr.maas.ai_readable_geometry_graph.v1` JSON snapshot with node ID, inputs,
+semantic role, parameters, editable fields, expected effect and typed mutation
+acceptance contract. The UI also makes the real loop legible as Reference VLM
+-> LLM author -> compiler -> VLM critic -> gate -> selector. It labels the
+contract as wired, not as a completed live model call.
 
 Evidence:
 
-- `docs/playwright/design-route-live-verify/mass-brain-base-transform-language-20260715.png`
+- `docs/playwright/design-route-live-verify/mass-brain-scope-seed-transform-language-20260715.png`
+- `docs/playwright/design-route-live-verify/geometry-language/maas-base-seed-5.png`
 
 Mass-Brain `npm run verify` passed 13 unit tests, typecheck, builds, dist smoke,
 Vite build and Playwright smoke; `npm audit --audit-level=high` found zero
@@ -140,12 +177,34 @@ owner of real geometry and hard gates.
 
 ## Verification
 
-- 8 new geometry-language tests pass.
-- 31 combined geometry-language, BOOK scope, BOOK language and Mass-Brain
+- 11 geometry-language tests pass.
+- 34 combined geometry-language, BOOK scope, BOOK language and Mass-Brain
   bridge tests pass.
 - the three requested program/BOOK geometry mutation tests pass.
 - seven existing VLM graph-edit contract tests pass.
 - Python byte-compilation passes.
+
+Mass-Brain `npm run verify` passed 13 unit tests, typecheck, builds, dist smoke,
+Vite build and Playwright interaction smoke. The browser test verifies 6 scope
+controls, 5 seed controls, 30 operative controls, the node-bound JSON snapshot
+and six-stage VLM loop. `npm audit --audit-level=high` found 0 vulnerabilities.
+
+## Research alignment checked on 2026-07-15
+
+- CoMa (2026): contextual architectural massing as VLM-conditioned structured
+  geometry over program, site contour and contextual imagery.
+- CAD-Assistant (ICCV 2025): a VLLM uses CAD tools, observes geometry and
+  adapts subsequent actions in a closed loop.
+- CAD-Llama (CVPR 2025): hierarchical semantic annotation plus code-like
+  parametric commands rather than free-form mesh prose.
+- ShapeWalk (CVPR 2024): stable multi-step language edits in a shape-program
+  parameter space.
+- LayoutVLM (CVPR 2025): visually marked representation paired with a
+  structured scene representation and downstream physical optimization.
+
+These papers support the architecture but do not prove MAAS quality. CoMa's
+code/data were announced for later release in the checked arXiv version, so it
+is not yet an executable dependency here.
 
 ## Honest unresolved boundary
 

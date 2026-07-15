@@ -2610,3 +2610,22 @@
   legal/FAR/parking handoff on the same accepted sources.
 - Current session transport repeatedly returns `{"detail":"Bad Request"}`;
   continue from the memory checkpoint in a fresh session if necessary.
+
+### Legal-first BOOK/program checkpoint (2026-07-16 latest)
+
+- The earlier post-selection legal projection result of geometry retention
+  0/60 is superseded. Candidate generation now receives one shared live-PNU
+  legal/sunlight context before program and portfolio selection.
+- Neighborhood, gym and cultural each select 20/20, 18/14/16 BOOK principles,
+  18/18/18 measured visual languages and all six p.3 scopes.
+- The exact selected sources pass legal metrics 60/60, geometry retention
+  60/60, parking 60/60 and combined hard gates 60/60. Mean retention is
+  0.9038/0.9288/0.8546; minimum selected retention is 0.8018.
+- Keep `visible volume <= 5`, existing clean-surface limits and retention/IoU
+  thresholds fixed. Do not revert to destructive post-selection clipping.
+- Overall status remains fail because direct PNG inspection still finds strong
+  program-internal chassis repetition. Next work is typed chassis archetype
+  expansion and reference-VLM-to-graph edits, not threshold relaxation or more
+  random fragments.
+- Read `docs/ai-session-memory/MAAS_LEGAL_FIRST_60_OF_60_CHECKPOINT_20260716.md`
+  for implementation details and exact evidence paths.

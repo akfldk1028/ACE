@@ -10,8 +10,10 @@ same projected footprint.
 from __future__ import annotations
 
 from collections import Counter
+from dataclasses import dataclass, replace
 from typing import Any, Iterable
 
+from shapely.affinity import scale, translate
 from shapely.geometry import Point, Polygon
 from shapely.ops import unary_union
 
@@ -21,9 +23,231 @@ from design.maas.parking_requirements import (
     resolve_candidate_parking_requirement,
 )
 from design.maas.parking_strategy import infer_parking_strategy
-from design.maas.source_geometry.ir import SourceVolume
+from design.maas.source_geometry.ir import SourceMass, SourceVolume
 from design.maas.source_geometry.polygon_quality import repair_source_polygon
 from design.services.site_geometry import wgs84_to_utm
+
+
+@dataclass(frozen=True)
+class LegalGenerationContext:
+    """The legal domain supplied to generation, not a post-selection repair."""
+
+    envelope: Any
+    generation_site: Polygon
+    sunlight_ring: tuple[tuple[float, float, float], ...]
+    evidence: dict[str, Any]
+
+
+def generation_site_at_height(
+    context: LegalGenerationContext,
+    height_m: float,
+) -> Polygon | None:
+    """Return the legal horizontal domain available at a requested height."""
+    if not context.sunlight_ring:
+        return context.generation_site
+    sunlight_allowed = _clip_ring_by_min_height(list(context.sunlight_ring), height_m)
+    if sunlight_allowed is None:
+        return None
+    return repair_source_polygon(
+        context.generation_site.intersection(sunlight_allowed),
+        minimum_area=1.0,
+    )
+
+
+def inscribed_span_host(legal_section: Polygon) -> Polygon:
+    """Find a clean oriented span host fully inside an irregular legal field.
+
+    Long-span program graphs need a coherent structural bay.  This bounded
+    search derives one from the legal polygon itself; it contains no parcel
+    coordinate or finished-building template.
+    """
+    rectangle = legal_section.minimum_rotated_rectangle
+    origin = rectangle.centroid
+    best: Polygon | None = None
+    for x_step in range(20, 4, -1):
+        for y_step in range(20, 4, -1):
+            candidate = scale(
+                rectangle,
+                xfact=x_step / 20.0,
+                yfact=y_step / 20.0,
+                origin=origin,
+            )
+            if legal_section.covers(candidate) and (best is None or candidate.area > best.area):
+                best = candidate
+    repaired = repair_source_polygon(best, minimum_area=4.0) if best is not None else None
+    return repaired if repaired is not None else legal_section
+
+
+def fit_source_to_sunlight_field(
+    source: SourceMass,
+    context: LegalGenerationContext,
+    *,
+    height_m: float,
+    floors: int,
+) -> SourceMass:
+    """Apply one bounded whole-graph fit before program/portfolio selection.
+
+    Volumes and renderer surfaces share the same scale, while translation is
+    represented by the transformed source centroid.  Program roles and BOOK
+    topology are therefore preserved and re-evaluated after the modifier.
+    """
+    if not context.sunlight_ring or not source.volumes:
+        return source
+    source_union = unary_union([volume.footprint for volume in source.volumes])
+    if source_union.is_empty:
+        return source
+    origin = source_union.centroid
+    highest_allowed = generation_site_at_height(context, height_m)
+    if highest_allowed is None:
+        return source
+    target = highest_allowed.centroid
+    target_dx = float(target.x - origin.x)
+    target_dy = float(target.y - origin.y)
+    best = source
+    best_score = _source_retention_proxy(source.volumes, context, height_m=height_m, floors=floors)
+    best_transform = (1.0, 0.0, 0.0)
+    for factor in (1.0, 0.96, 0.92, 0.88, 0.84):
+        for shift_fraction in (0.0, 0.25, 0.50, 0.75, 1.0):
+            dx = target_dx * shift_fraction
+            dy = target_dy * shift_fraction
+            volumes = tuple(SourceVolume(
+                role=volume.role,
+                footprint=translate(
+                    scale(volume.footprint, xfact=factor, yfact=factor, origin=origin),
+                    xoff=dx,
+                    yoff=dy,
+                ),
+                bottom_fraction=volume.bottom_fraction,
+                top_fraction=volume.top_fraction,
+                verb=volume.verb,
+            ) for volume in source.volumes)
+            transformed_union = unary_union([volume.footprint for volume in volumes])
+            if not context.generation_site.covers(transformed_union):
+                continue
+            score = _source_retention_proxy(volumes, context, height_m=height_m, floors=floors)
+            if (score, factor, -shift_fraction) <= (
+                best_score,
+                best_transform[0],
+                -((abs(best_transform[1]) + abs(best_transform[2])) / max(abs(target_dx) + abs(target_dy), 1e-9)),
+            ):
+                continue
+            footprint = translate(
+                scale(source.footprint, xfact=factor, yfact=factor, origin=origin),
+                xoff=dx,
+                yoff=dy,
+            )
+            upper = (
+                translate(
+                    scale(source.upper_footprint, xfact=factor, yfact=factor, origin=origin),
+                    xoff=dx,
+                    yoff=dy,
+                )
+                if source.upper_footprint is not None
+                else None
+            )
+            surfaces = tuple(replace(
+                surface,
+                vertices_m=tuple((x * factor, y * factor, z) for x, y, z in surface.vertices_m),
+            ) for surface in source.surfaces)
+            best = replace(
+                source,
+                footprint=footprint,
+                upper_footprint=upper,
+                volumes=volumes,
+                surfaces=surfaces,
+            )
+            best_score = score
+            best_transform = (factor, dx, dy)
+    if best is source:
+        return source
+    metadata = dict(best.metadata)
+    evidence = dict(metadata.get("legal_generation_context_evidence") or {})
+    evidence.update({
+        "legal_field_fit_status": "materialized",
+        "legal_field_fit_operator": "bounded_uniform_scale_translate",
+        "legal_field_fit_scale": round(best_transform[0], 4),
+        "legal_field_fit_translation_m": [round(best_transform[1], 3), round(best_transform[2], 3)],
+        "predicted_volume_retention": round(best_score, 4),
+    })
+    metadata["legal_generation_context_evidence"] = evidence
+    return replace(best, metadata=metadata)
+
+
+def _source_retention_proxy(
+    volumes: tuple[SourceVolume, ...],
+    context: LegalGenerationContext,
+    *,
+    height_m: float,
+    floors: int,
+) -> float:
+    source_total = projected_total = 0.0
+    floor_step = height_m / max(1, floors)
+    for volume in volumes:
+        bottom = height_m * float(volume.bottom_fraction)
+        top = height_m * float(volume.top_fraction)
+        boundaries = [bottom]
+        boundaries.extend(
+            floor_step * index
+            for index in range(1, max(1, floors) + 1)
+            if bottom + 1e-6 < floor_step * index < top - 1e-6
+        )
+        boundaries.append(top)
+        for slice_bottom, slice_top in zip(boundaries, boundaries[1:]):
+            band_height = max(0.0, slice_top - slice_bottom)
+            if band_height <= 1e-6:
+                continue
+            source_total += float(volume.footprint.area) * band_height
+            allowed = context.generation_site
+            sunlight_allowed = _clip_ring_by_min_height(list(context.sunlight_ring), slice_top)
+            if sunlight_allowed is not None:
+                allowed = allowed.intersection(sunlight_allowed)
+            projected_total += float(volume.footprint.intersection(allowed).area) * band_height
+    return projected_total / source_total if source_total > 0 else 0.0
+
+
+def build_legal_generation_context(
+    *,
+    site_local_utm: Polygon,
+    site_origin_utm: tuple[float, float],
+    building_type: str,
+    constraints: list[dict[str, Any]],
+    sunlight_envelope: dict[str, Any] | None,
+) -> LegalGenerationContext:
+    """Materialize the exact envelope used by both generation and hard gates.
+
+    The horizontal buildable footprint is safe at every height.  The sloped
+    sunlight field remains height-dependent and is therefore evaluated on the
+    compiled SourceVolume graph rather than flattened into one tiny maximum-
+    height footprint.
+    """
+    envelope = build_legal_envelope(
+        site_utm=site_local_utm,
+        constraints=constraints,
+        building_type=building_type,
+        sunlight_envelope=None,
+    )
+    buildable = repair_source_polygon(envelope.buildable_footprint, minimum_area=1.0)
+    if buildable is None:
+        buildable = repair_source_polygon(site_local_utm, minimum_area=1.0)
+    if buildable is None:
+        raise ValueError("legal generation context has no buildable footprint")
+    sunlight_ring = tuple(_local_sunlight_ring(sunlight_envelope, site_origin_utm))
+    return LegalGenerationContext(
+        envelope=envelope,
+        generation_site=buildable,
+        sunlight_ring=sunlight_ring,
+        evidence={
+            "schema_version": "arr.maas.legal_generation_context.v1",
+            "status": "materialized",
+            "generation_precedes_selection": True,
+            "original_site_area_m2": round(float(site_local_utm.area), 3),
+            "generation_site_area_m2": round(float(buildable.area), 3),
+            "sunlight_field_status": "materialized" if sunlight_ring else "not_available",
+            "bcr_limit_pct": envelope.bcr_limit,
+            "far_limit_pct": envelope.far_limit,
+            "height_limit_m": envelope.height_limit,
+        },
+    )
 
 
 def evaluate_accepted_sources_downstream(
@@ -39,17 +263,20 @@ def evaluate_accepted_sources_downstream(
     regulation_evidence: dict[str, Any],
     sunlight_envelope: dict[str, Any] | None,
     parking_options: dict[str, Any] | None = None,
+    generation_context: LegalGenerationContext | None = None,
 ) -> dict[str, Any]:
     items = tuple(candidates)
-    envelope = build_legal_envelope(
-        site_utm=site_local_utm,
-        constraints=constraints,
+    context = generation_context or build_legal_generation_context(
+        site_local_utm=site_local_utm,
+        site_origin_utm=site_origin_utm,
         building_type=building_type,
-        sunlight_envelope=None,
+        constraints=constraints,
+        sunlight_envelope=sunlight_envelope,
     )
+    envelope = context.envelope
     parking_rules = load_parking_requirement_rules(options=parking_options)
     rules = parking_rules.get("rules") if parking_rules.get("status") == "loaded" else None
-    sunlight_ring = _local_sunlight_ring(sunlight_envelope, site_origin_utm)
+    sunlight_ring = list(context.sunlight_ring)
     rows = []
     for candidate in items:
         rows.append(_evaluate_candidate(
@@ -84,6 +311,7 @@ def evaluate_accepted_sources_downstream(
         "schema_version": "arr.maas.book_downstream_hard_gate.v1",
         "status": "pass" if rows and all(row["combined_hard_pass"] for row in rows) else "fail",
         "same_accepted_source": True,
+        "generation_context": context.evidence,
         "candidate_count": len(rows),
         "legal_hard_pass_count": sum(row["legal_projection"]["hard_pass"] for row in rows),
         "geometry_retention_pass_count": sum(row["legal_projection"]["geometry_retention_pass"] for row in rows),
@@ -247,6 +475,10 @@ def _evaluate_candidate(
         "source_sequence": candidate.sequence.name,
         "book_principle_id": candidate.principle_id,
         "book_scope": str((source.metadata.get("program_book_projection_evidence") or {}).get("scope", {}).get("base_volume_label") or "1/1"),
+        "generation_host_mode": str((
+            source.metadata.get("legal_generation_context_evidence") or {}
+        ).get("generation_host_mode") or "unconstrained_site"),
+        "legal_generation_context_evidence": source.metadata.get("legal_generation_context_evidence") or {},
         "original_metrics": original_metrics,
         "projected_metrics": projected_metrics,
         "legal_projection": {
@@ -374,4 +606,11 @@ def _clip_ring_by_min_height(
     return repair_source_polygon(Polygon([(x, y) for x, y, _height in output]), minimum_area=1.0)
 
 
-__all__ = ["evaluate_accepted_sources_downstream"]
+__all__ = [
+    "LegalGenerationContext",
+    "build_legal_generation_context",
+    "generation_site_at_height",
+    "inscribed_span_host",
+    "fit_source_to_sunlight_field",
+    "evaluate_accepted_sources_downstream",
+]

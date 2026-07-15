@@ -4,6 +4,7 @@ import random
 from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
@@ -72,6 +73,12 @@ from design.maas.grammar.parameter_schema import PARAMETERS_BY_VERB
 from design.maas.source_geometry import compile_sequence_to_source_mass
 from design.maas.source_geometry.compiler import _array_units
 from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
+from design.maas.book_language.downstream_hard_gate import (
+    build_legal_generation_context,
+    fit_source_to_sunlight_field,
+    generation_site_at_height,
+    inscribed_span_host,
+)
 from design.maas.source_geometry.parametric_curves import swept_variable_ribbon
 from design.maas.agents.orchestrator.generative_loop import CriticDirective, GraphEditDirective, run_generative_a2a_loop
 from design.maas.agents.llm_architect_agent.graph_revision import apply_critic_graph_edits
@@ -79,6 +86,89 @@ from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 
 
 class MaasProgramMassingTest(SimpleTestCase):
+    @patch("design.maas.book_language.downstream_hard_gate.build_legal_envelope")
+    def test_legal_generation_context_exposes_height_safe_host_before_selection(self, envelope_builder):
+        site = box(0.0, 0.0, 20.0, 20.0)
+        buildable = box(2.0, 2.0, 18.0, 18.0)
+        envelope_builder.return_value = SimpleNamespace(
+            buildable_footprint=buildable,
+            bcr_limit=60.0,
+            far_limit=250.0,
+            height_limit=50.0,
+        )
+        with patch(
+            "design.maas.book_language.downstream_hard_gate._local_sunlight_ring",
+            return_value=[
+                (2.0, 2.0, 20.0),
+                (18.0, 2.0, 20.0),
+                (18.0, 18.0, 5.0),
+                (2.0, 18.0, 5.0),
+            ],
+        ):
+            context = build_legal_generation_context(
+                site_local_utm=site,
+                site_origin_utm=(0.0, 0.0),
+                building_type="gymnasium",
+                constraints=[],
+                sunlight_envelope={},
+            )
+
+        high_host = generation_site_at_height(context, 15.0)
+
+        self.assertTrue(context.evidence["generation_precedes_selection"])
+        self.assertAlmostEqual(context.generation_site.area, 256.0)
+        self.assertIsNotNone(high_host)
+        self.assertLess(high_host.area, context.generation_site.area)
+        self.assertTrue(high_host.difference(context.generation_site).is_empty)
+
+    def test_inscribed_span_host_is_rectangular_and_stays_inside_legal_section(self):
+        legal_section = Polygon([
+            (0.0, 0.0), (14.0, 1.0), (11.0, 8.0), (2.0, 10.0),
+        ])
+
+        host = inscribed_span_host(legal_section)
+
+        self.assertTrue(legal_section.covers(host))
+        self.assertGreater(host.area, 4.0)
+        self.assertEqual(len(list(host.exterior.coords)) - 1, 4)
+
+    def test_sunlight_field_fit_mutates_volumes_and_surfaces_as_one_graph(self):
+        site = box(0.0, 0.0, 10.0, 10.0)
+        source = SourceMass(
+            name="test_hall",
+            footprint=box(0.5, 0.5, 9.5, 9.5),
+            volumes=(SourceVolume(
+                role="dominant_hall",
+                footprint=box(0.5, 0.5, 9.5, 9.5),
+                bottom_fraction=0.0,
+                top_fraction=1.0,
+                verb="bar",
+            ),),
+            surfaces=(SourceSurface(
+                role="roof",
+                volume_role="dominant_hall",
+                verb="bar",
+                surface_type="roof_polygon",
+                vertices_m=((-4.5, -4.5, 1.0), (4.5, -4.5, 1.0), (4.5, 4.5, 1.0)),
+            ),),
+            metadata={"legal_generation_context_evidence": {}},
+        )
+        context = SimpleNamespace(
+            generation_site=site,
+            sunlight_ring=(
+                (0.0, 0.0, 20.0), (10.0, 0.0, 20.0),
+                (10.0, 10.0, 2.0), (0.0, 10.0, 2.0),
+            ),
+        )
+
+        fitted = fit_source_to_sunlight_field(source, context, height_m=18.0, floors=3)
+        evidence = fitted.metadata["legal_generation_context_evidence"]
+
+        self.assertEqual(evidence["legal_field_fit_status"], "materialized")
+        self.assertLess(evidence["legal_field_fit_scale"], 1.0)
+        self.assertTrue(site.covers(fitted.volumes[0].footprint))
+        self.assertLess(abs(fitted.surfaces[0].vertices_m[0][0]), 4.5)
+
     def test_author_validator_counts_executable_field_topology_not_candidate_name(self):
         data = {"candidates": [{
             "name": "fake_branched_name",

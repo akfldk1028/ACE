@@ -411,3 +411,15 @@ neighborhood/gym/cultural are each 20/20 at the BOOK/program diagnostic level,
 but overall status remains fail. Direct PNG review is below competition grade;
 same-source legal clipping passes legal metrics 60/60 but geometry retention
 passes 0/60, parking passes 56/60, and combined hard-gate pass is 0/60.
+
+## Latest legal-first continuation checkpoint (2026-07-16; supersedes the 0/60 retention state)
+
+Read `MAAS_LEGAL_FIRST_60_OF_60_CHECKPOINT_20260716.md` after the BOOK checkpoint.
+The live PNU loop now generates from a shared legal/sunlight context, evaluates
+hard constraints before portfolio selection, and replays the same selected
+source afterward. Neighborhood, gym and cultural are each 20/20 with all six
+p.3 scopes; legal, geometry-retention and parking combined hard pass is 60/60.
+Mean retention is 0.9038/0.9288/0.8546 and the minimum selected retention is
+0.8018. Numeric and hard-constraint status pass, but direct PNG review still
+fails because elongated neighborhood bars, rectangular gym hall chassis and
+low museum gallery boxes repeat. Do not claim competition-grade completion.

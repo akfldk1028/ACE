@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from collections import Counter
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from math import pi
 from pathlib import Path
 from time import perf_counter
@@ -35,7 +35,13 @@ from design.maas.source_geometry import compile_sequence_to_source_mass
 
 from .registry import build_book_language_registry
 from .semantics import BASE_VOLUME_FRACTIONS
-from .downstream_hard_gate import evaluate_accepted_sources_downstream
+from .downstream_hard_gate import (
+    LegalGenerationContext,
+    build_legal_generation_context,
+    evaluate_accepted_sources_downstream,
+    fit_source_to_sunlight_field,
+    generation_site_at_height,
+)
 
 
 PROGRAMS = (
@@ -277,7 +283,15 @@ def _select(pool: list[_Candidate], target: int = 20) -> list[_Candidate]:
     return selected
 
 
-def _program_pool(site: Polygon, building_type: str, height: float, floors: int) -> tuple[list[_Candidate], dict[str, Any]]:
+def _program_pool(
+    site: Polygon,
+    building_type: str,
+    height: float,
+    floors: int,
+    *,
+    generation_context: LegalGenerationContext | None = None,
+    parent_variant_indices: tuple[int, ...] = (0,),
+) -> tuple[list[_Candidate], dict[str, Any]]:
     accepted: list[_Candidate] = []
     evaluated = compiled = clean = program_passed = 0
     scope_stage_counts = {
@@ -312,20 +326,26 @@ def _program_pool(site: Polygon, building_type: str, height: float, floors: int)
         }
         for label, _fraction in BASE_VOLUME_FRACTIONS
     }
+    requested_parent_indices = tuple(sorted({max(0, int(index)) for index in parent_variant_indices})) or (0,)
     parent_seeds = tuple(
         variant
         for seed_index, seed in enumerate(program_seed_sequences(building_type))
-        # A second seed-parameter probe doubled the 3-program runtime from
-        # ~95s to ~216s while producing byte-equivalent selected counts and
-        # visual-language counts. Keep one bounded probe until assembly
-        # parameters demonstrably materialize in the final source geometry.
-        for variant in program_seed_variants(seed, count=1, random_seed=417 + seed_index * 97)
+        for variant_index, variant in enumerate(program_seed_variants(
+            seed,
+            count=max(requested_parent_indices) + 1,
+            random_seed=417 + seed_index * 97,
+        ))
+        if variant_index in requested_parent_indices
     )
     principles = tuple(build_book_language_registry()["principles"])
     for seed in parent_seeds:
         for principle_index, principle in enumerate(principles):
             execution_verbs = tuple(principle["execution_verbs"])
-            for variant_index, operations in enumerate(book_sentence_variants(execution_verbs, count=1)):
+            # One BOOK sentence is a typed operator family, not one frozen
+            # geometry.  Execute three bounded schema-derived parameter probes
+            # so selection can compare real alternatives without parcel or
+            # finished-form templates.
+            for variant_index, operations in enumerate(book_sentence_variants(execution_verbs, count=3)):
                 evaluated += 1
                 suffix = str(principle["principle_id"]).split("book:", 1)[-1].replace(":", "_")
                 base_volume_label = BASE_VOLUME_FRACTIONS[principle_index % len(BASE_VOLUME_FRACTIONS)][0]
@@ -345,9 +365,53 @@ def _program_pool(site: Polygon, building_type: str, height: float, floors: int)
                     calls=composed.calls,
                     notes=composed.notes,
                 )
-                source = compile_sequence_to_source_mass(site, sequence)
+                compile_site = site
+                generation_host_mode = "horizontal_buildable_envelope"
+                # The third typed parameter probe also explores the vertical
+                # legal field.  Its base host is the sunlight-safe section at
+                # the requested program height, so the resulting geometry is
+                # born inside the envelope instead of repaired after selection.
+                use_height_safe_host = variant_index == 2 or (
+                    base_volume_label == "1/16" and variant_index == 0
+                )
+                if generation_context is not None and use_height_safe_host:
+                    # Use the section at two thirds of design height.  The
+                    # remaining cap is still measured by the exact downstream
+                    # retention gate, while the host remains large enough to
+                    # carry a coherent long-span/program role graph.
+                    generation_section_ratio = 2.0 / 3.0
+                    height_safe_site = generation_site_at_height(
+                        generation_context,
+                        height * generation_section_ratio,
+                    )
+                    if height_safe_site is not None:
+                        compile_site = height_safe_site
+                        generation_host_mode = "height_safe_sunlight_section"
+                source = compile_sequence_to_source_mass(compile_site, sequence)
                 if source is None:
                     continue
+                if generation_context is not None:
+                    metadata = deepcopy(source.metadata)
+                    legal_evidence = deepcopy(generation_context.evidence)
+                    legal_evidence.update({
+                        "generation_host_mode": generation_host_mode,
+                        "candidate_generation_site_area_m2": round(float(compile_site.area), 3),
+                        "requested_program_height_m": float(height),
+                        "generation_host_section_height_m": (
+                            round(float(height) * generation_section_ratio, 3)
+                            if generation_host_mode == "height_safe_sunlight_section"
+                            else 0.0
+                        ),
+                    })
+                    metadata["legal_generation_context_evidence"] = legal_evidence
+                    source = replace(source, metadata=metadata)
+                    if base_volume_label == "1/16" and generation_host_mode == "horizontal_buildable_envelope":
+                        source = fit_source_to_sunlight_field(
+                            source,
+                            generation_context,
+                            height_m=height,
+                            floors=floors,
+                        )
                 compiled += 1
                 scope_counts["compiled"] += 1
                 projection_evidence = source.metadata.get("program_book_projection_evidence") or {}
@@ -361,7 +425,7 @@ def _program_pool(site: Polygon, building_type: str, height: float, floors: int)
                 profiled = bool((signature.get("continuous_surface_evidence") or {}).get("hard_pass"))
                 if len(source.volumes) > 5 or raw_surfaces > (160 if profiled else 48) or effective_surfaces > 28:
                     continue
-                if not _inside_site(source, site):
+                if not _inside_site(source, compile_site):
                     continue
                 clean += 1
                 scope_counts["clean"] += 1
@@ -371,7 +435,7 @@ def _program_pool(site: Polygon, building_type: str, height: float, floors: int)
                     building_type=building_type,
                     height=height,
                     floors=floors,
-                    site_area=float(site.area),
+                    site_area=float(compile_site.area),
                 )
                 program = attach_program_massing_evidence(feature, building_type=building_type)
                 spatial = feature["properties"]["program_spatial_evidence"]
@@ -593,6 +657,51 @@ def _cross_program_language_comparison(
     }
 
 
+def _hard_gate_count_summary(report: dict[str, Any] | None, candidate_count: int) -> dict[str, Any]:
+    if report is None:
+        return {"status": "not_run", "candidate_count": candidate_count}
+    summary = {
+        key: report[key]
+        for key in (
+            "candidate_count",
+            "legal_hard_pass_count",
+            "geometry_retention_pass_count",
+            "parking_hard_pass_count",
+            "combined_hard_pass_count",
+            "mean_volume_retention",
+            "minimum_volume_retention",
+            "legal_failure_reason_counts",
+            "geometry_failure_reason_counts",
+            "parking_failure_reason_counts",
+        )
+    }
+    by_scope: dict[str, dict[str, int]] = {}
+    by_host_mode: Counter[str] = Counter()
+    hard_pass_by_host_mode: Counter[str] = Counter()
+    for row in report["rows"]:
+        scope = str(row.get("book_scope") or "1/1")
+        bucket = by_scope.setdefault(scope, {
+            "candidate_count": 0,
+            "legal_hard_pass_count": 0,
+            "geometry_retention_pass_count": 0,
+            "parking_hard_pass_count": 0,
+            "combined_hard_pass_count": 0,
+        })
+        bucket["candidate_count"] += 1
+        bucket["legal_hard_pass_count"] += int(bool(row["legal_projection"]["hard_pass"]))
+        bucket["geometry_retention_pass_count"] += int(bool(row["legal_projection"]["geometry_retention_pass"]))
+        bucket["parking_hard_pass_count"] += int(bool(row["parking_hard_gate"]["hard_pass"]))
+        bucket["combined_hard_pass_count"] += int(bool(row["combined_hard_pass"]))
+        host_mode = str(row.get("generation_host_mode") or "horizontal_buildable_envelope")
+        by_host_mode[host_mode] += 1
+        if row["combined_hard_pass"]:
+            hard_pass_by_host_mode[host_mode] += 1
+    summary["by_scope"] = dict(sorted(by_scope.items()))
+    summary["candidate_count_by_generation_host"] = dict(sorted(by_host_mode.items()))
+    summary["combined_hard_pass_by_generation_host"] = dict(sorted(hard_pass_by_host_mode.items()))
+    return summary
+
+
 def run_book_program_portfolios(
     site: Polygon,
     *,
@@ -611,8 +720,91 @@ def run_book_program_portfolios(
     board_paths: list[Path] = []
     for slug, building_type, height, floors in PROGRAMS:
         started = perf_counter()
-        pool, counts = _program_pool(site, building_type, height, floors)
-        selected = _select(pool, 20)
+        generation_context = (
+            build_legal_generation_context(
+                site_local_utm=site,
+                site_origin_utm=site_origin_utm,
+                building_type=building_type,
+                constraints=constraints,
+                sunlight_envelope=sunlight_envelope,
+            )
+            if constraints is not None
+            else None
+        )
+        generation_site = generation_context.generation_site if generation_context is not None else site
+        pool, counts = _program_pool(
+            generation_site,
+            building_type,
+            height,
+            floors,
+            generation_context=generation_context,
+        )
+        preselection_hard_gate = None
+        selection_pool = pool
+        if generation_context is not None:
+            preselection_hard_gate = evaluate_accepted_sources_downstream(
+                pool,
+                site_local_utm=site,
+                site_origin_utm=site_origin_utm,
+                pnu=pnu,
+                building_type=building_type,
+                height_m=height,
+                floors=floors,
+                constraints=constraints,
+                regulation_evidence=regulation_evidence or {},
+                sunlight_envelope=sunlight_envelope,
+                parking_options=parking_options,
+                generation_context=generation_context,
+            )
+            selection_pool = [
+                candidate
+                for candidate, row in zip(pool, preselection_hard_gate["rows"])
+                if row["combined_hard_pass"]
+            ]
+        counts["preselection_hard_gate"] = _hard_gate_count_summary(preselection_hard_gate, len(pool))
+        selected = _select(selection_pool, 20)
+        missing_scope = len({_scope_key(candidate) for candidate in selected}) < len(BASE_VOLUME_FRACTIONS)
+        if len(selected) < 20 or missing_scope:
+            replenishment_pool, replenishment_counts = _program_pool(
+                generation_site,
+                building_type,
+                height,
+                floors,
+                generation_context=generation_context,
+                parent_variant_indices=(1,),
+            )
+            replenishment_hard_gate = None
+            replenishment_selection_pool = replenishment_pool
+            if generation_context is not None:
+                replenishment_hard_gate = evaluate_accepted_sources_downstream(
+                    replenishment_pool,
+                    site_local_utm=site,
+                    site_origin_utm=site_origin_utm,
+                    pnu=pnu,
+                    building_type=building_type,
+                    height_m=height,
+                    floors=floors,
+                    constraints=constraints,
+                    regulation_evidence=regulation_evidence or {},
+                    sunlight_envelope=sunlight_envelope,
+                    parking_options=parking_options,
+                    generation_context=generation_context,
+                )
+                replenishment_selection_pool = [
+                    candidate
+                    for candidate, row in zip(replenishment_pool, replenishment_hard_gate["rows"])
+                    if row["combined_hard_pass"]
+                ]
+            counts["bounded_parent_replenishment"] = {
+                **replenishment_counts,
+                "preselection_hard_gate": _hard_gate_count_summary(
+                    replenishment_hard_gate,
+                    len(replenishment_pool),
+                ),
+            }
+            selection_pool = [*selection_pool, *replenishment_selection_pool]
+            selected = _select(selection_pool, 20)
+        counts["final_hard_pass_selection_pool_count"] = len(selection_pool)
         selected_by_program[slug] = selected
         language_metrics = _portfolio_language_metrics(selected)
         metrics_by_program[slug] = language_metrics
@@ -629,6 +821,7 @@ def run_book_program_portfolios(
                 regulation_evidence=regulation_evidence or {},
                 sunlight_envelope=sunlight_envelope,
                 parking_options=parking_options,
+                generation_context=generation_context,
             )
             if constraints is not None
             else {
@@ -661,7 +854,13 @@ def run_book_program_portfolios(
                 "score": candidate.score,
                 "volume_count": len(candidate.source.volumes),
                 "surface_count": int(signature.get("effective_surface_count") or signature.get("surface_count") or 0),
-                "inside_site": _inside_site(candidate.source, site),
+                "inside_site": _inside_site(candidate.source, generation_site),
+                "generation_host_mode": str((
+                    candidate.source.metadata.get("legal_generation_context_evidence") or {}
+                ).get("generation_host_mode") or "unconstrained_site"),
+                "legal_generation_context_evidence": deepcopy(
+                    candidate.source.metadata.get("legal_generation_context_evidence") or {}
+                ),
                 "program_hard_pass": bool(props["program_massing_evidence"]["hard_pass"]),
                 "seed_family": descriptor["seed_family"],
                 "roof_section_family": descriptor["section_family"],

@@ -244,26 +244,11 @@ def _solid_morphology_metrics(candidate: _Candidate) -> dict[str, Any]:
         else 1.0
     )
     horizontal_level_count = len(horizontal_levels)
-    wedge_like = bool(
-        (
-            sloped_ratio >= 0.18
-            or (sloped_ratio >= 0.10 and upper_area_ratio <= 0.74)
-        )
-        and normal_bin_count <= 14
-    )
-    pyramidal_like = bool(
-        (
-            upper_area_ratio <= 0.35
-            and horizontal_level_count >= 4
-            and genus == 0
-        )
-        or (
-            sloped_ratio >= 0.08
-            and horizontal_level_count >= 10
-            and vertical_area / denominator <= 0.03
-            and normal_bin_count <= 16
-            and genus == 0
-        )
+    wedge_like, pyramidal_like = _section_silhouette_flags(
+        sloped_surface_ratio=sloped_ratio,
+        upper_area_ratio=upper_area_ratio,
+        horizontal_level_count=horizontal_level_count,
+        vertical_surface_ratio=vertical_area / denominator,
     )
     degenerate_sheet_like = bool(
         (
@@ -309,7 +294,18 @@ def _solid_morphology_metrics(candidate: _Candidate) -> dict[str, Any]:
         and normal_bin_count <= 10
         and component_count == 1
     )
-    if measured_void:
+    section_graph_evidence = source.metadata.get("program_section_graph_evidence") or {}
+    section_graph_operators = set(
+        section_graph_evidence.get("graph_operators") or ()
+    ) if isinstance(section_graph_evidence, dict) else set()
+    section_graph_phenotype = _program_section_phenotype(section_graph_operators)
+    if triangle_count == 0 and section_graph_phenotype:
+        # Legacy/program-role solids do not carry recursive-mesh surface tags,
+        # but their executable typed section graph still changes the rendered
+        # roof.  Treating every one as a prism hid gable/folded/barrel/sawtooth
+        # repetition and made the phenotype cap meaningless.
+        phenotype = section_graph_phenotype
+    elif measured_void:
         phenotype = "voided"
     elif measured_wing:
         phenotype = "winged"
@@ -346,10 +342,55 @@ def _solid_morphology_metrics(candidate: _Candidate) -> dict[str, Any]:
         "genus": genus,
         "component_count": component_count,
         "recursive_triangle_count": triangle_count,
-        "measurement_authority": "profiled_recursive_solid_mesh",
+        "measurement_authority": (
+            "profiled_recursive_solid_mesh"
+            if triangle_count
+            else "compiled_program_section_graph"
+        ),
     }
     source.metadata["measured_solid_morphology"] = result
     return result
+
+
+def _section_silhouette_flags(
+    *,
+    sloped_surface_ratio: float,
+    upper_area_ratio: float,
+    horizontal_level_count: int,
+    vertical_surface_ratio: float,
+) -> tuple[bool, bool]:
+    """Classify visible convergence without topology-based exemptions.
+
+    A carved, multi-component, or highly faceted solid can still read as the
+    same wedge/pyramid silhouette on a review board.  Genus, component count,
+    and normal-bin complexity therefore must not excuse that repetition.
+    """
+    wedge_like = bool(
+        sloped_surface_ratio >= 0.18
+        or (sloped_surface_ratio >= 0.10 and upper_area_ratio <= 0.74)
+    )
+    pyramidal_like = bool(
+        (upper_area_ratio <= 0.68 and horizontal_level_count >= 4)
+        or (
+            sloped_surface_ratio >= 0.08
+            and horizontal_level_count >= 10
+            and vertical_surface_ratio <= 0.03
+        )
+    )
+    return wedge_like, pyramidal_like
+
+
+def _program_section_phenotype(operators: set[str]) -> str:
+    """Map an executable roof/section graph to its visible broad phenotype."""
+    if "barrel_roof" in operators:
+        return "curved"
+    if operators & {"ridge_roof", "shed_roof", "folded_roof"}:
+        return "oblique"
+    if operators & {"sawtooth_roof", "stepped_section"}:
+        return "stepped"
+    if "flat_roof" in operators:
+        return "prismatic"
+    return ""
 
 
 def _oriented_aspect(poly: Polygon) -> float:
@@ -639,15 +680,23 @@ def _agent_mutated_seeds(
                 name=f"{source.name}__geometry_genotype_{index}_{strength_index}_{program_id}",
                 notes=notes,
             ))
-    # When no VLM/session directive is present, infer the same bounded search
-    # contract from the program profile. Exact legacy section-control arrays
-    # are deliberately not inputs to this inference.
-    effective_synthesis_requests = tuple(synthesis_requests or ())
-    if not effective_synthesis_requests:
-        effective_synthesis_requests = synthesis_requests_from_program_profile(
-            building_type,
-            source_seeds=tuple(originals),
-        )
+    # Program-profile inference is the deterministic control lane.  A live
+    # VLM/session directive must add an experimental lane, never replace the
+    # control and erase rare-but-required phenotypes from the search pool.
+    # Exact legacy section controls, parcel coordinates, and finished forms
+    # remain excluded from both lanes.
+    profile_requests = tuple({
+        **dict(request),
+        "synthesis_request_source": "program_profile_control",
+    } for request in synthesis_requests_from_program_profile(
+        building_type,
+        source_seeds=tuple(originals),
+    ))
+    directive_requests = tuple({
+        **dict(request),
+        "synthesis_request_source": "vlm_or_session_directive",
+    } for request in (synthesis_requests or ()) if isinstance(request, dict))
+    effective_synthesis_requests = tuple((*profile_requests, *directive_requests))
 
     # A synthesis request describes architectural intent and normalized base
     # seeds.  The agent expands it into recursive ASTs; unlike the legacy
@@ -767,6 +816,7 @@ def _agent_mutated_seeds(
                     f"geometry_program_rationale=agent synthesis from normalized base and intent tags: {','.join(program.metadata.get('intent_tags') or ())}",
                     f"geometry_program_legal_fit_strength={legal_fit_strength}",
                     "geometry_program_source=procedural_geometry_synthesis_agent",
+                    f"geometry_program_synthesis_request_source={str(request.get('synthesis_request_source') or 'program_profile_control')}",
                     f"geometry_program_vlm_status={vlm_status}",
                     f"geometry_program_vlm_reference_count={int(program.metadata.get('vlm_reference_count') or 0)}",
                     f"geometry_program_vlm_memory_observation_count={int(program.metadata.get('vlm_memory_observation_count') or 0)}",
@@ -1685,12 +1735,13 @@ def _program_pool(
             for seed in directed_seeds
         ),
         "geometry_synthesis_request_source": (
-            "vlm_or_session_directive" if synthesis_requests else "program_profile_inference"
+            "program_profile_control+vlm_or_session_directive"
+            if synthesis_requests
+            else "program_profile_control"
         ),
         "geometry_synthesis_request_count": (
-            len(synthesis_requests or ())
-            if synthesis_requests
-            else min(2, len(program_seed_sequences(building_type)))
+            min(2, len(program_seed_sequences(building_type)))
+            + len(tuple(record for record in (synthesis_requests or ()) if isinstance(record, dict)))
         ),
         "geometry_program_vlm_status_counts": dict(sorted(Counter(
             note.split("=", 1)[1]
@@ -2449,6 +2500,9 @@ def run_book_program_portfolios(
         pyramidal_cap = int(program_visual_directive.get("max_pyramidal_like_count", 2))
         if language_metrics["pyramidal_like_count"] > pyramidal_cap:
             failures.append("pyramidal_like_count_above_measured_cap")
+        phenotype_cap = int(program_visual_directive.get("max_solid_phenotype_count", max(4, len(selected) // 4)))
+        if max(language_metrics["solid_phenotype_counts"].values(), default=0) > phenotype_cap:
+            failures.append("solid_phenotype_count_above_measured_cap")
         program_results.append({
             "program": building_type,
             "slug": slug,

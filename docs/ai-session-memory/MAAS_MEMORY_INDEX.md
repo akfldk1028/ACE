@@ -461,3 +461,30 @@ box/chamfer/terrace relatives. The fingerprint-matched review is
 `90b5e2948e74decc91bae3a6a9b278c637d41bb04578ef0c1e2efaa7e5560a11`.
 The repository full suite is not green: `design` is 455/473 with 18 failures;
 see the checkpoint for the remaining environment/discovery failures.
+
+## Latest live ArchDaily/VLM checkpoint (2026-07-16 r38; supersedes r34 live status/counts)
+
+Read the final section of
+`MAAS_BOOK_EXECUTABLE_LANGUAGE_CHECKPOINT_20260715.md`, titled **live
+ArchDaily/VLM control-lane and measured-section correction r38**. A full live
+PNU run now proves that image-backed ArchDaily references, OpenAI VLM typed AST
+edits, portable outcome-graph memory, recompilation/hash change and the
+same-source legal/FAR/parking gates all execute together. Program-profile
+control synthesis is additive to the VLM lane, so a VLM directive can no
+longer erase rare hard-pass winged/oblique populations.
+
+Latest selected counts are neighborhood/gym/cultural 20/20 with 15/12/18
+BOOK principles, 16/19/16 measured visual languages, all six p.3 scopes and
+legal/FAR/retention/parking combined pass 60/60. Live VLM completed 65/68/68
+candidates and produced 15/14/15 compiled geometry revisions, with at most
+five reference images per response. The current visual-review fingerprint is
+`52d7d93871448e63b795a12c75c0aa268a2da5e88ce00e9eab9525567f4b9f8d`.
+
+Overall status remains **fail** after direct PNG review. Gym is measurably
+program-distinct, but neighborhood and cultural still share compact courtyard,
+chamfer and terrace families (mean/minimum cross-program silhouette distance
+0.3532/0.0732; roof-section Jaccard distance 0.3636). Live VLM execution and
+geometry changes are proven; improvement of the final accepted portfolio is
+not. Next work must review the final BOOK-projected/legal-retained board and
+feed typed population feedback into genuinely different neighborhood versus
+cultural program graphs. Do not weaken similarity or hard constraints.

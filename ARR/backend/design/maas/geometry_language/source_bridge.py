@@ -677,7 +677,20 @@ def _mesh_section_polygon(
             if not any(hypot(point[0] - other[0], point[1] - other[1]) <= 1e-6 for other in unique):
                 unique.append(point)
         if len(unique) >= 2:
-            segments.append(LineString((unique[0], unique[1])))
+            # Adjacent manifold triangles calculate the same plane/edge
+            # intersection independently.  Their coordinates can differ by
+            # ~1e-12 even though the kernel mesh is watertight.  GEOS
+            # polygonize requires bit-identical endpoints; without this
+            # metric-scale normalization, bent/split wing lower bands vanish
+            # and the legal proxy contains only an arbitrary upper slice.
+            # 1e-8 m is far below the tiny-edge gate and does not alter design
+            # geometry, but it closes the section graph deterministically.
+            segment = tuple(
+                (round(float(point[0]), 8), round(float(point[1]), 8))
+                for point in unique[:2]
+            )
+            if segment[0] != segment[1]:
+                segments.append(LineString(segment))
     if not segments:
         return None
     polygons = tuple(polygonize(unary_union(segments)))

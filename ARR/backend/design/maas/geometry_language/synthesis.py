@@ -236,7 +236,11 @@ def _program_from_stack(
             continue
         kind = _OPERATOR_KIND[operator]
         node_id = f"agent_{stack_index:02d}_{operator}"
-        parameters = _bounded_parameters(operator, variation_index + stack_index * 17)
+        parameters = _bounded_parameters(
+            operator,
+            variation_index + stack_index * 17,
+            intent_tags=intent_tags,
+        )
         nodes.append(GeometryNode(
             id=node_id,
             kind=kind,
@@ -324,7 +328,12 @@ def _base_seed_for_operator(
     return choices[(cursor + cycle) % len(choices)]
 
 
-def _bounded_parameters(operator: str, index: int) -> dict[str, Any]:
+def _bounded_parameters(
+    operator: str,
+    index: int,
+    *,
+    intent_tags: tuple[str, ...] = (),
+) -> dict[str, Any]:
     u = _halton(index + 1, 2)
     v = _halton(index + 1, 3)
     if operator == "bend":
@@ -366,7 +375,17 @@ def _bounded_parameters(operator: str, index: int) -> dict[str, Any]:
     if operator == "cross_mass":
         return {"angle_degrees": round(68.0 + 34.0 * u, 3)}
     if operator == "split_wing":
-        return {"axis": "x", "gap_ratio": round(0.10 + 0.15 * u, 3), "bridge": True, "height_ratio": round(0.48 + 0.24 * v, 3), "height": round(0.12 + 0.18 * u, 3)}
+        long_span = "long_span" in intent_tags
+        return {
+            "axis": "x",
+            "gap_ratio": round((0.06 + 0.08 * u) if long_span else (0.10 + 0.15 * u), 3),
+            "bridge": True,
+            "height_ratio": round(0.48 + 0.24 * v, 3),
+            "height": round(0.12 + 0.18 * u, 3),
+            "ground_spine": long_span,
+            "ground_spine_width_ratio": round(0.30 + 0.18 * v, 3),
+            "ground_spine_height_ratio": round(0.16 + 0.12 * u, 3),
+        }
     return {}
 
 

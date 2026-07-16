@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, box
 
 from design.maas.geometry_language import (
     GeometryEdit,
@@ -178,6 +178,36 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertTrue(all("long_span" in item["intent_tags"] for item in requests))
         self.assertTrue(all("bar" in item["base_seeds"] for item in requests))
         self.assertNotIn("section_controls", str(requests))
+
+    def test_long_span_split_wing_has_normalized_ground_service_spine(self):
+        programs = synthesize_architectural_programs({
+            "base_seeds": ["bar", "slab", "block"],
+            "intent_tags": ["long_span", "distributed_wings"],
+            "candidate_count": 18,
+            "maximum_operator_depth": 2,
+        }, building_type="gymnasium")
+        wing = next(
+            program for program in programs
+            if "split_wing" in program.metadata["operator_path"]
+        )
+        node = next(node for node in wing.nodes if node.operator == "split_wing")
+
+        self.assertTrue(node.parameters["ground_spine"])
+        self.assertGreaterEqual(node.parameters["ground_spine_width_ratio"], 0.30)
+        compilation = compile_geometry_program(wing)
+        self.assertEqual(compilation.status, "compiled")
+        self.assertEqual(compilation.metrics["component_count"], 1)
+
+        host = box(0, 0, 60, 40)
+        source = compile_geometry_program_to_source_mass(
+            wing,
+            host,
+            target_plan_area=host.area * 0.58,
+        )
+        self.assertIsNotNone(source)
+        assert source is not None
+        self.assertTrue(all(host.covers(volume.footprint) for volume in source.volumes))
+        self.assertGreater(source.footprint.area / host.area, 0.35)
 
     def test_outcome_graph_retrieves_successful_genotype_without_neo4j(self):
         program = synthesize_architectural_programs({
@@ -448,13 +478,97 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                 }],
                 outcome_graph=graph,
             )
-        generated = [seed for seed in seeds if any(note.startswith("geometry_program_payload=") for note in seed.notes)]
+        generated = [seed for seed in seeds if any(note == "geometry_program_vlm_status=completed" for note in seed.notes)]
         self.assertEqual(len(generated), 1)
+        self.assertIn(
+            "geometry_program_synthesis_request_source=vlm_or_session_directive",
+            generated[0].notes,
+        )
         payload = next(note.split("=", 1)[1] for note in generated[0].notes if note.startswith("geometry_program_payload="))
         self.assertIn("critic_taper", payload)
         self.assertTrue(any(item.get("stage") == "vlm_critic" for item in graph.observations))
         self.assertTrue(any(item.get("reference_ids") for item in graph.observations))
         self.assertTrue(any(item.get("geometry_changed") for item in graph.observations))
+
+    def test_vlm_synthesis_request_is_additive_to_program_profile_control_lane(self):
+        from design.maas.book_language.portfolio_benchmark import _agent_mutated_seeds
+
+        source_name = program_seed_sequences("gymnasium")[0].name
+        seeds = _agent_mutated_seeds(
+            "gymnasium",
+            mutations=None,
+            synthesis_requests=[{
+                "source_seed": source_name,
+                "base_seeds": ["block"],
+                "intent_tags": ["calm_prismatic"],
+                "candidate_count": 1,
+                "legal_fit_strengths": [0.0],
+            }],
+        )
+        synthesized = [
+            seed for seed in seeds
+            if any(note.startswith("geometry_program_payload=") for note in seed.notes)
+        ]
+        sources = {
+            note.split("=", 1)[1]
+            for seed in synthesized
+            for note in seed.notes
+            if note.startswith("geometry_program_synthesis_request_source=")
+        }
+        payloads = [
+            json.loads(next(
+                note.split("=", 1)[1]
+                for note in seed.notes
+                if note.startswith("geometry_program_payload=")
+            ))
+            for seed in synthesized
+        ]
+        families = {str((payload.get("metadata") or {}).get("family") or "") for payload in payloads}
+        self.assertEqual(
+            sources,
+            {"program_profile_control", "vlm_or_session_directive"},
+        )
+        self.assertTrue(any("split_wing" in family for family in families))
+        self.assertTrue(any("shear" in family or "slice" in family for family in families))
+
+    def test_visual_wedge_and_pyramid_flags_do_not_hide_complex_topology(self):
+        from design.maas.book_language.portfolio_benchmark import _section_silhouette_flags
+
+        wedge, pyramid = _section_silhouette_flags(
+            sloped_surface_ratio=0.39,
+            upper_area_ratio=0.33,
+            horizontal_level_count=11,
+            vertical_surface_ratio=0.18,
+        )
+        self.assertTrue(wedge)
+        self.assertTrue(pyramid)
+
+        wedge, pyramid = _section_silhouette_flags(
+            sloped_surface_ratio=0.04,
+            upper_area_ratio=0.06,
+            horizontal_level_count=13,
+            vertical_surface_ratio=0.22,
+        )
+        self.assertFalse(wedge)
+        self.assertTrue(pyramid)
+
+        wedge, pyramid = _section_silhouette_flags(
+            sloped_surface_ratio=0.0,
+            upper_area_ratio=0.64,
+            horizontal_level_count=5,
+            vertical_surface_ratio=0.23,
+        )
+        self.assertFalse(wedge)
+        self.assertTrue(pyramid)
+
+    def test_compiled_program_roof_graph_has_visible_phenotype(self):
+        from design.maas.book_language.portfolio_benchmark import _program_section_phenotype
+
+        self.assertEqual(_program_section_phenotype({"flat_roof"}), "prismatic")
+        self.assertEqual(_program_section_phenotype({"barrel_roof"}), "curved")
+        self.assertEqual(_program_section_phenotype({"ridge_roof"}), "oblique")
+        self.assertEqual(_program_section_phenotype({"folded_roof"}), "oblique")
+        self.assertEqual(_program_section_phenotype({"sawtooth_roof"}), "stepped")
 
     def test_scope_and_base_seed_are_separate_and_four_seeds_share_one_unit_box(self):
         box_seeds = box_derived_base_seed_programs()

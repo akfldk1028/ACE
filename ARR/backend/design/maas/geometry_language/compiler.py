@@ -382,9 +382,35 @@ def _macro(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str]]:
             origin = ((minx + maxx - size[0]) / 2, miny - 1, minz - 1)
         split = base - m3d.Manifold.cube(size).translate(origin)
         parts = split.decompose()
+        additions = []
+        expansion = ["difference", "decompose"]
+        if bool(p.get("ground_spine", False)) and len(parts) >= 2:
+            # A long-span wing pair needs an occupiable service/entry spine,
+            # not two almost-disconnected bars held together only by a small
+            # roof bridge.  The relation stays normalized to the live solid
+            # bounds and is therefore transferable across parcels.  Upper
+            # wings remain visually split while the low spine improves role
+            # coverage, coherence and downstream geometry retention.
+            left, right = parts[0], parts[1]
+            left_center, right_center = _center(left), _center(right)
+            short_span = (maxy - miny) if axis == "x" else (maxx - minx)
+            height_span = max(maxz - minz, 1e-7)
+            spine_width = short_span * max(0.18, min(0.72, float(p.get("ground_spine_width_ratio", 0.38))))
+            spine_height = height_span * max(0.10, min(0.42, float(p.get("ground_spine_height_ratio", 0.22))))
+            additions.append(_beam_between(
+                (left_center[0], left_center[1], minz),
+                (right_center[0], right_center[1], minz),
+                width=spine_width,
+                height=spine_height,
+                node_id=node.id,
+            ))
+            expansion.append("ground_service_spine")
         if bool(p.get("bridge", False)) and len(parts) >= 2:
-            split = split + _bridge_between(parts[0], parts[1], p, node.id)
-            return split, ["difference", "decompose", "bridge", "union"]
+            additions.append(_bridge_between(parts[0], parts[1], p, node.id))
+            expansion.append("upper_bridge")
+        if additions:
+            split = m3d.Manifold.batch_boolean([split, *additions], m3d.OpType.Add)
+            return split, [*expansion, "union"]
         return split, ["difference", "gap_cutter"]
     if operator == "attach_volume":
         return m3d.Manifold.batch_boolean(inputs, m3d.OpType.Add), ["union"]

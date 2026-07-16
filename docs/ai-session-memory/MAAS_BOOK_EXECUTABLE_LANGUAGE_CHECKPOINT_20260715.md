@@ -527,3 +527,96 @@ Verification on r34:
 Latest evidence remains the three program PNGs, combined 60 PNG, summary JSON
 and fingerprint-matched visual review JSON in
 `docs/playwright/design-route-live-verify/book-program-portfolios/`.
+
+## 2026-07-16 live ArchDaily/VLM control-lane and measured-section correction r38 (latest; supersedes r34 live status and counts)
+
+The OpenAI live geometry critic was run with an environment-provided rotated
+credential; no key value is stored in the repository or artifacts. The full
+PNU run proves that actual image-backed ArchDaily references were supplied to
+the VLM, not only text labels. Each response received up to five retrieved
+`similar`/`counterfactual` images. The portable graph contains reference nodes
+for ArchDaily IDs `0001`, `0002`, `0006`, `0007`, `0008` and API item
+`1042923`, together with critic response IDs, typed edits, parent/child hashes
+and `vlm_revised_to` edges.
+
+Two causal defects were corrected without relaxing hard thresholds:
+
+1. An explicit VLM/session `geometry_synthesis_request` previously replaced
+   the program-profile inference lane. In the live gym run this erased the
+   deterministic hard-pass oblique/winged control population. Profile control
+   requests and VLM requests are now additive and are recorded as
+   `program_profile_control+vlm_or_session_directive`. A regression test proves
+   that a narrow VLM request cannot remove the profile lane's `split_wing` and
+   `shear`/`slice` capabilities.
+2. Visual morphology measured only `profiled_recursive_solid_mesh` faces.
+   Executable legacy/program section graphs therefore appeared as generic
+   prisms, while carved, multi-component or high-normal-count solids could be
+   exempted from wedge/pyramid repetition. The classifier now reads compiled
+   roof graph operators (`flat`, `gable`, `shed`, `folded`, `barrel`,
+   `sawtooth`, `stepped`) and applies silhouette convergence tests without
+   topology exemptions. The maximum phenotype count is also a final failure
+   condition rather than a best-effort selector preference.
+
+The gym `split_wing` macro also gained an optional normalized low ground
+service spine while retaining its upper bridge. This reconnects long-span
+wings as one occupiable program relation instead of disconnected Lego pieces.
+The recursive mesh-to-source bridge now quantizes adjacent triangle-section
+intersection endpoints before polygonization; this removes approximately
+1e-12 endpoint drift that silently discarded lower/middle mesh bands and
+collapsed source footprint coverage. No parcel coordinates or completed
+building template were added.
+
+Latest full live VWorld PNU `1168011800104170004` run (3,578.1 seconds):
+
+- neighborhood: 20/20, 15 BOOK principles, 16 measured visual languages, six
+  scopes, zero near-duplicate pairs; curved 3, oblique 1, prismatic 6,
+  stepped 1, voided 6, winged 3; wedge 2, pyramid 2. Live VLM completed 65
+  candidates with 15 compiled geometry revisions and at most five references.
+- gymnasium: 20/20, 12 BOOK principles, 19 measured visual languages, six
+  scopes, zero near-duplicate pairs; curved 3, oblique 6, prismatic 4,
+  stepped 4, voided 2, winged 1; wedge 1, pyramid 2. Live VLM completed 68
+  candidates with 14 compiled geometry revisions and at most five references.
+- cultural: 20/20, 18 BOOK principles, 16 measured visual languages, six
+  scopes, zero near-duplicate pairs; curved 2, oblique 1, prismatic 5,
+  stepped 4, voided 4, winged 4; wedge 3, pyramid 2. Live VLM completed 68
+  candidates with 15 compiled geometry revisions and at most five references.
+- the exact 60 selected sources pass legal, FAR, geometry-retention and
+  parking gates 60/60. Mean retained volume is 0.8427 neighborhood, 0.9377
+  gym and 0.8701 cultural; minimum selected retention is 0.8026.
+- the accumulated portable outcome graph now has 18,877 nodes, 55,186 edges
+  and 16,903 observations. Across accumulated live critic observations it has
+  659 unique `gpt-5.4-mini` response IDs, 1,983 typed geometry edits and 229
+  records with `geometry_changed=true`. Neo4j remains disabled and is not
+  required for this diagnostic.
+
+Direct original-resolution review is deliberately split from the numeric
+result. Gym is measurably program-distinct from both other programs: its
+neighborhood/gym and gym/cultural mean silhouette distances are 0.4564 and
+0.4823, with roof-section Jaccard distances 0.8 and 0.7778. Neighborhood and
+cultural remain too similar: mean/minimum silhouette distance 0.3532/0.0732,
+roof-section Jaccard distance 0.3636 and dominant-ratio delta 0.0015. Their
+compact courtyard, chamfer and terrace families recur despite different BOOK
+labels. The fingerprint-matched visual review therefore sets overall status
+to **fail**, while `book_program_numeric_status` and
+`downstream_hard_gate_status` remain **pass**. `architecture_grade_claim_allowed`
+is false.
+
+This run proves that ArchDaily images, the live VLM, typed graph mutations,
+portable graph memory and downstream hard constraints all execute in one
+pipeline. It does **not** prove that VLM caused a better final accepted
+portfolio. The next correction must make the VLM review the final
+BOOK-projected/legal-retained board (not only the pre-BOOK recursive program),
+emit typed population feedback, and author genuinely different neighborhood
+street/tenant/public-ground graphs versus cultural gallery/logistics/daylight
+graphs. Do not address the remaining failure by weakening similarity or hard
+constraint thresholds.
+
+Verification on r38:
+
+- geometry-language plus BOOK-language tests: 41/41 pass;
+- geometry-language plus three targeted program projection tests: 33/33 pass;
+- actual live PNU gym runs and the final three-program live run completed;
+- direct inspection performed on all three original PNGs and the combined
+  60-board. The earlier 473-test full-suite result remains 455 pass / 18 known
+  failures; do not call the entire repository green without rerunning and
+  resolving those unrelated contracts.

@@ -23,6 +23,7 @@ from design.maas.preference.reference_corpus import (
 )
 from design.maas.preference.loop import (
     PreferenceLoopCallbacks,
+    _opaque_profiled_surface_fill,
     apply_preference_loop,
     preference_loop_config,
     preference_vlm_scored,
@@ -62,6 +63,16 @@ from shapely.geometry import box
 
 
 class MaasPreferenceDistillationTest(TestCase):
+    def test_profiled_program_and_recursive_surfaces_share_opaque_preview_material(self):
+        gable_roof = [[0.0, 0.0, 0.5], [5.0, 0.0, 1.0], [5.0, 8.0, 1.0], [0.0, 8.0, 0.5]]
+        recursive_triangle = [[0.0, 0.0, 0.5], [5.0, 0.0, 1.0], [5.0, 8.0, 1.0]]
+
+        program_fill = _opaque_profiled_surface_fill(gable_roof)
+        recursive_fill = _opaque_profiled_surface_fill(recursive_triangle)
+
+        self.assertEqual(program_fill, recursive_fill)
+        self.assertEqual(program_fill[3], 255)
+
     def test_vlm_cache_key_ignores_archive_name_for_identical_executable_geometry(self):
         calls = (VerbCall("base", {}), VerbCall("bar", {"axis": "x", "factor": 0.62}))
         first = VerbSequence("original", "original", calls)

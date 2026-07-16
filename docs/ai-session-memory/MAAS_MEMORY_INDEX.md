@@ -441,3 +441,23 @@ review remains fail for competition grade because neighborhood and cultural
 still share low prismatic/chamfer/terrace relatives (minimum cross-program
 silhouette distance 0.0283). The current review fingerprint is
 `98442c86b09254247f528a8dfc4b393afd15188419a57af68ded51a8d4d5dc1e`.
+
+## Latest unified-render checkpoint (2026-07-16 r34; supersedes r33 render/counts)
+
+Read the final section of
+`MAAS_BOOK_EXECUTABLE_LANGUAGE_CHECKPOINT_20260715.md`, titled **unified opaque
+solid preview r34**. The mixed wireframe/solid board was traced to two alpha
+paths: program-section surfaces and ordinary prism volumes were translucent
+while recursive kernel meshes were opaque. All paths now use the same opaque,
+normal-shaded material. The gym gable was never missing from geometry and is
+now visibly rendered; gable, folded, barrel and stepped section families are
+present.
+
+The latest PNU numeric/hard result remains 60/60. Counts are neighborhood
+20/20 with 19 BOOK principles, gym 20/20 with 18, and cultural 20/20 with 20;
+all carry six p.3 scopes and zero near-duplicate pairs. Direct PNG review still
+fails architecture grade because neighborhood and cultural retain shared low
+box/chamfer/terrace relatives. The fingerprint-matched review is
+`90b5e2948e74decc91bae3a6a9b278c637d41bb04578ef0c1e2efaa7e5560a11`.
+The repository full suite is not green: `design` is 455/473 with 18 failures;
+see the checkpoint for the remaining environment/discovery failures.

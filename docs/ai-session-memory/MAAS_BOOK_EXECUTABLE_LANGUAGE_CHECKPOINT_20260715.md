@@ -458,3 +458,72 @@ Verification on this state: 51 geometry/BOOK/scope/Mass-Brain tests and the
 three targeted program-massing tests pass. The full PNU benchmark completed
 twice during this correction (first exposing the missing gym oblique, then
 passing numeric/hard constraints after the joint selector fix).
+
+## 2026-07-16 unified opaque solid preview r34 (latest; supersedes r33 render/counts)
+
+The apparent disappearance of the gym gable and the mixed solid/wireframe
+portfolio were a renderer defect, not a missing section graph. The preview had
+three geometry paths with incompatible material contracts:
+
+- recursive kernel mesh faces used alpha 255;
+- program-section gable/fold/sawtooth/step faces used alpha 150;
+- ordinary `mass_volumes` prism sides/top used alpha 105/185.
+
+Rear faces therefore showed through program-section and ordinary volume
+candidates. `feature_preview_png()` now applies one depth-ordered, world-normal
+shaded, alpha-255 material to all profiled surfaces and ordinary prism faces.
+Typed patch and triangle edges remain in the graph/JSON and are no longer used
+as a competing X-ray visual language. Direct inspection of the regenerated
+60-board confirms that every candidate is rendered as an opaque solid. The gym
+portfolio contains one measured `gable_ridge`, one `folded`, one
+`barrel_vault`, and one `stepped` roof/section family; the gable is present and
+readable.
+
+Latest real VWorld PNU `1168011800104170004` r34 run, with the existing clean
+and hard thresholds unchanged:
+
+- neighborhood: 20/20, 19 BOOK principles, 14 visual languages, six scopes,
+  zero near-duplicate pairs; curved 1, oblique 2, prismatic 6, stepped 4,
+  voided 4, winged 3.
+- gymnasium: 20/20, 18 BOOK principles, 16 visual languages, six scopes, zero
+  near-duplicate pairs; curved 1, oblique 3, prismatic 6, stepped 2, voided 4,
+  winged 4.
+- cultural: 20/20, 20 BOOK principles, 15 visual languages, six scopes, zero
+  near-duplicate pairs; curved 1, oblique 1, prismatic 5, stepped 5, voided 4,
+  winged 4.
+- combined legal/FAR/geometry-retention/parking hard pass: 60/60. Mean volume
+  retention is 0.8931, 0.9253 and 0.9213; selected minimum is 0.8026.
+- portable outcome graph: 8,570 nodes, 24,806 edges and 8,064 observations;
+  Neo4j mirror disabled, portable graph available.
+- live OpenAI VLM revision was not run for this fingerprint. Stored typed
+  directives and outcome graph memory were active, but they are not evidence
+  of a live model call.
+
+The direct visual verdict remains **fail** for architecture-grade completion.
+The unified renderer fixes the misleading representation, but low
+box/chamfer/terrace relatives still recur between neighborhood and cultural.
+Their mean/minimum cross-program silhouette distances are 0.3599/0.0707.
+Gym is more program-distinct (long bars and authored roof sections), but clear
+span structure, daylight, entry/service circulation and spectator section are
+still unverified. The summary deliberately records numeric/hard-gate pass and
+overall visual-design fail separately.
+
+Verification on r34:
+
+- renderer material + gym ridge + six gym section-family targeted tests: 3/3
+  pass;
+- actual VWorld PNU benchmark completed twice while closing both alpha paths;
+- Django `design` full suite: 473 tests, 455 pass and 18 pre-existing contract
+  failures. The failures include legacy legal selection expectations, genome
+  role/name drift, creative-count expectation and a stale VLM contract-version
+  assertion; do not call the repository full suite green;
+- `land` app-label discovery timed out after 15 minutes, while explicit
+  `ZoningMapperTest` passed 9/9;
+- `law` has one import error (`agents.law` missing), and the three explicit
+  parser tests cannot import `rest_framework` in this environment;
+- `gemini`, `agents`, `core` and `graph_db` app labels discover zero tests;
+  `agents` discovery also attempts an unnecessary Neo4j connection.
+
+Latest evidence remains the three program PNGs, combined 60 PNG, summary JSON
+and fingerprint-matched visual review JSON in
+`docs/playwright/design-route-live-verify/book-program-portfolios/`.

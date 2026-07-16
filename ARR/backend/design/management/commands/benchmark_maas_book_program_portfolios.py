@@ -19,6 +19,14 @@ class Command(BaseCommand):
             "--output-dir",
             default="../../docs/playwright/design-route-live-verify/book-program-portfolios",
         )
+        parser.add_argument("--program", action="append", choices=("neighborhood", "gymnasium", "cultural"))
+        parser.add_argument("--recursive-only", action="store_true")
+        parser.add_argument("--visual-directive", default=None)
+        parser.add_argument(
+            "--outcome-graph",
+            default=None,
+            help="Optional persistent typed outcome graph shared by diagnostic output directories",
+        )
 
     def handle(self, *args, **options):
         pnu = str(options["pnu"])
@@ -99,6 +107,18 @@ class Command(BaseCommand):
             regulation_evidence=regulation_evidence,
             sunlight_envelope=sunlight_envelope,
             parking_options=parking_options,
+            program_slugs=tuple(options.get("program") or ()),
+            recursive_only=bool(options.get("recursive_only")),
+            visual_directive_path=(
+                Path(str(options["visual_directive"])).resolve()
+                if options.get("visual_directive")
+                else None
+            ),
+            outcome_graph_path=(
+                Path(str(options["outcome_graph"])).resolve()
+                if options.get("outcome_graph")
+                else None
+            ),
         )
         self.stdout.write(self.style.SUCCESS(
             f"BOOK program portfolios: {result['status']} · "

@@ -28,7 +28,10 @@ NODE_KINDS = frozenset({
 OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
     "primitive": frozenset({"box", "cylinder", "extruded_polygon", "wedge", "sweep", "loft"}),
     "transform": frozenset({"translate", "rotate", "scale", "mirror", "shear"}),
-    "modifier": frozenset({"bend", "taper", "twist", "slice", "clip", "cut_corner"}),
+    "modifier": frozenset({
+        "bend", "taper", "twist", "pinch", "inflate",
+        "slice", "clip", "clip_fraction", "cut_corner",
+    }),
     "boolean": frozenset({"union", "difference", "intersection"}),
     "pattern": frozenset({"duplicate", "linear_array", "radial_array", "mirror_array", "stack"}),
     "composition": frozenset({"attach", "bridge"}),
@@ -46,6 +49,8 @@ OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
         "attach_volume",
         "tapered_tower",
         "leaning_tower",
+        "lift",
+        "puncture",
         "cut_corner",
         "stepped_mass",
     }),
@@ -315,6 +320,13 @@ def _parameter_issues(node: GeometryNode) -> list[GeometryIssue]:
         normal = params.get("normal")
         if not _vector(normal, 3) or sum(float(value) ** 2 for value in normal) <= 1e-12:
             issues.append(GeometryIssue("invalid_plane", "cutting plane needs a non-zero normal", node.id))
+    if node.operator == "clip_fraction":
+        try:
+            fraction = float(params.get("fraction", 1.0))
+            if not 0.01 <= fraction <= 1.0:
+                issues.append(GeometryIssue("scope_fraction_out_of_bounds", "fraction must be 0.01..1.0", node.id))
+        except (TypeError, ValueError):
+            issues.append(GeometryIssue("invalid_parameter_type", "fraction must be numeric", node.id))
     return issues
 
 

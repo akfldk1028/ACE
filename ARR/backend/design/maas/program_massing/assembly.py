@@ -159,6 +159,14 @@ def program_component_family(sequence_name: str) -> str:
     return str((templates.get(key) or {}).get("family") or "")
 
 
+def program_component_chassis(sequence_name: str) -> str:
+    """Return the normalized plan chassis, independent of roof language."""
+    templates = load_component_assemblies().get("templates") or {}
+    key = _template_key(templates, sequence_name)
+    template = templates.get(key) or {}
+    return str(template.get("chassis") or template.get("family") or "")
+
+
 def _template_key(templates: dict[str, Any], sequence_name: str) -> str:
     candidates = [sequence_name]
     if sequence_name.startswith("creative_"):
@@ -190,4 +198,4 @@ def _bounded(value: Any, low: float, high: float) -> float:
         return low
 
 
-__all__ = ["ASSEMBLY_PATH", "component_mutation_limits", "load_component_assemblies", "program_component_family", "program_component_specs"]
+__all__ = ["ASSEMBLY_PATH", "component_mutation_limits", "load_component_assemblies", "program_component_chassis", "program_component_family", "program_component_specs"]

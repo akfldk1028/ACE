@@ -307,6 +307,7 @@
     "program_gym_long_span_hall": {
       "profile_id": "gymnasium",
       "family": "sloped_roof",
+      "chassis": "linear_service_hall",
       "mutation": {"coordinate_delta": 0.035, "height_delta": 0.06},
       "components": [
         {"role": "gym_main_long_span_hall", "bounds": [0.10, 0.18, 0.90, 0.82], "height": [0.00, 1.00], "verb": "sloped_roof_mass"},
@@ -317,6 +318,7 @@
     "program_gym_hall_entry_bar": {
       "profile_id": "gymnasium",
       "family": "slender_bar",
+      "chassis": "compact_monitor_bar",
       "mutation": {"coordinate_delta": 0.035, "height_delta": 0.06},
       "components": [
         {"role": "gym_compact_main_hall", "bounds": [0.14, 0.16, 0.94, 0.84], "height": [0.00, 0.88], "verb": "bar"},
@@ -327,6 +329,7 @@
     "program_gym_folded_service_hall": {
       "profile_id": "gymnasium",
       "family": "sloped_roof",
+      "chassis": "offset_service_l",
       "mutation": {"coordinate_delta": 0.035, "height_delta": 0.06},
       "components": [
         {"role": "gym_main_folded_hall", "bounds": [0.08, 0.16, 0.88, 0.82], "height": [0.00, 1.00], "verb": "sloped_roof_mass"},
@@ -337,6 +340,7 @@
     "program_gym_sawtooth_daylight_hall": {
       "profile_id": "gymnasium",
       "family": "sloped_roof",
+      "chassis": "daylight_spine_hall",
       "mutation": {"coordinate_delta": 0.03, "height_delta": 0.055},
       "components": [
         {"role": "gym_main_sawtooth_hall", "bounds": [0.08, 0.14, 0.88, 0.82], "height": [0.00, 0.82], "verb": "sloped_roof_mass"},
@@ -348,6 +352,7 @@
     "program_gym_stepped_section_hall": {
       "profile_id": "gymnasium",
       "family": "sloped_roof",
+      "chassis": "stepped_terrace_hall",
       "mutation": {"coordinate_delta": 0.035, "height_delta": 0.065},
       "components": [
         {"role": "gym_main_stepped_section_hall", "bounds": [0.10, 0.12, 0.92, 0.82], "height": [0.00, 1.00], "verb": "grade"},
@@ -358,6 +363,7 @@
     "program_gym_carved_entry_hall": {
       "profile_id": "gymnasium",
       "family": "void_notch",
+      "chassis": "carved_notch_hall",
       "mutation": {"coordinate_delta": 0.035, "height_delta": 0.06},
       "components": [
         {"role": "gym_main_carved_entry_hall", "bounds": [0.08, 0.12, 0.92, 0.84], "height": [0.00, 1.00], "verb": "sloped_roof_mass"},

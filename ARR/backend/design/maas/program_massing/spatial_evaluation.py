@@ -26,16 +26,39 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
     profile_id = resolve_program_profile(building_type)["id"]
     repaired = repaired_volume_records(feature)
     records = [record for record, _ in repaired]
-    geometries = [geometry for _, geometry in repaired]
+    # Multiple height bands with the same role are 2.5D proxies of one typed
+    # component (for example a taper or loft), not independent buildings.
+    # Aggregate them for plan hierarchy while retaining raw height levels.
+    grouped: dict[str, list[Any]] = {}
+    for record, geometry in repaired:
+        grouped.setdefault(str(record.get("role") or ""), []).append(geometry)
+    geometries = [safe_unary_union(items) for items in grouped.values()]
+    geometries = [geometry for geometry in geometries if geometry is not None and not geometry.is_empty]
     areas = [float(item.area) for item in geometries]
     total_component_area = sum(areas)
+    signature = props.get("source_signature") if isinstance(props.get("source_signature"), dict) else {}
+    program_space_zones = (
+        signature.get("program_space_zones")
+        if isinstance(signature.get("program_space_zones"), list)
+        else []
+    )
+    zone_area = max(areas, default=0.0) * sum(
+        max(0.0, min(0.45, float(zone.get("plan_area_ratio") or 0.0)))
+        for zone in program_space_zones
+        if isinstance(zone, dict)
+    )
     union = safe_unary_union(geometries)
     union_area = float(union.area) if union is not None and not union.is_empty else 0.0
     denominator = float(site_area_m2 or props.get("benchmark_site_area_m2") or union_area or 1.0)
     coverage = union_area / max(denominator, 1e-9)
     geometric_dominant = max(areas, default=0.0) / max(total_component_area, 1e-9)
-    dominant = geometric_dominant
-    roles = [str(item.get("role") or "").lower() for item in records]
+    dominant = max(areas, default=0.0) / max(total_component_area + zone_area, 1e-9)
+    roles = [str(role).lower() for role in grouped]
+    roles.extend(
+        str(zone.get("role") or "").lower()
+        for zone in program_space_zones
+        if isinstance(zone, dict) and zone.get("role")
+    )
     groups = ROLE_GROUPS.get(profile_id, ())
     role_projection = project_spatial_roles(feature)
     if profile_id == "neighborhood_living":
@@ -49,8 +72,21 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
     role_score = sum(role_hits) / len(role_hits) if role_hits else 0.6
     top_levels = {round(float(item.get("top_height") or 0.0), 2) for item in records}
     bottom_levels = {round(float(item.get("bottom_height") or 0.0), 2) for item in records}
-    hierarchy_score = min(1.0, (len(top_levels) - 1) / 2 + (0.2 if len(bottom_levels) > 1 else 0.0))
-    signature = props.get("source_signature") if isinstance(props.get("source_signature"), dict) else {}
+    zone_top_levels = {
+        round(float(zone.get("top_fraction") or 0.0), 2)
+        for zone in program_space_zones if isinstance(zone, dict)
+    }
+    zone_bottom_levels = {
+        round(float(zone.get("bottom_fraction") or 0.0), 2)
+        for zone in program_space_zones if isinstance(zone, dict)
+    }
+    semantic_top_level_count = len(top_levels) + len(zone_top_levels)
+    semantic_bottom_level_count = len(bottom_levels) + len(zone_bottom_levels)
+    hierarchy_score = min(
+        1.0,
+        (semantic_top_level_count - 1) / 2
+        + (0.2 if semantic_bottom_level_count > 1 else 0.0),
+    )
     coherence = signature.get("coherence_evidence") if isinstance(signature.get("coherence_evidence"), dict) else {}
     continuous_surface = (
         signature.get("continuous_surface_evidence")
@@ -117,6 +153,8 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         "role_coverage_score": round(role_score, 3),
         "dominant_component_ratio": round(dominant, 3),
         "geometric_dominant_component_ratio": round(geometric_dominant, 3),
+        "program_space_zone_count": len(program_space_zones),
+        "program_space_zone_area_ratio": round(zone_area / max(max(areas, default=0.0), 1e-9), 3),
         "profiled_design_patch_count": profiled_patch_count,
         "single_solid_profiled_field": single_solid_profiled_field,
         "agent_section_loft": agent_section_loft,
@@ -124,8 +162,8 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         "dominant_ratio_score": round(dominant_score, 3),
         "site_coverage_ratio": round(coverage, 3),
         "site_coverage_score": round(coverage_score, 3),
-        "height_level_count": len(top_levels),
-        "section_level_count": len(bottom_levels),
+        "height_level_count": semantic_top_level_count,
+        "section_level_count": semantic_bottom_level_count,
         "hierarchy_score": round(hierarchy_score, 3),
         "coherence_score": round(coherence_score, 3),
         "architectural_score": round(max(0.0, min(1.0, score)), 3),

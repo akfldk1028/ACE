@@ -2248,6 +2248,7 @@ def _profiled_program_section_surfaces(
         if isinstance(node, dict)
         and str(node.get("operator") or "") in {
             "ridge_roof", "folded_roof", "sawtooth_roof", "stepped_section",
+            "flat_roof", "shed_roof", "barrel_roof",
         }
     )
     if not roof_nodes:

@@ -22,6 +22,7 @@ from .visual_silhouette import visual_silhouette_distance
 
 LayeredFootprint = tuple[Polygon, float, float]
 MorphologyKey = tuple[tuple[str, float, float], ...]
+SectionProfileKey = tuple[tuple[tuple[float, float], ...], ...]
 
 
 @dataclass(frozen=True)
@@ -79,6 +80,72 @@ def intrinsic_silhouette_distance(left: SourceMass, right: SourceMass) -> float:
     ignores labels and compares the three dominant orthographic figures.
     """
     return visual_silhouette_distance(left, right)
+
+
+def intrinsic_section_profile_distance(left: SourceMass, right: SourceMass) -> float:
+    """Compare executable normalized roof/section genotypes independent of plan.
+
+    Orthographic union silhouettes can underweight a one-direction shed or
+    barrel because the unchanged top view dominates the mean.  This channel
+    measures the actual compiled section polygon and its mirrored equivalent;
+    it is geometry evidence, not an operator-label bonus.
+    """
+    left_key = source_section_profile_key(left)
+    right_key = source_section_profile_key(right)
+    if right_key < left_key:
+        left_key, right_key = right_key, left_key
+    return _section_profile_distance_from_keys(left_key, right_key)
+
+
+@lru_cache(maxsize=131_072)
+def _section_profile_distance_from_keys(
+    left_key: SectionProfileKey,
+    right_key: SectionProfileKey,
+) -> float:
+    left_profiles = _section_profile_polygons(left_key)
+    right_profiles = _section_profile_polygons(right_key)
+    if not left_profiles and not right_profiles:
+        return 0.0
+    if not left_profiles or not right_profiles:
+        return 1.0
+    left_profile = max(left_profiles, key=lambda profile: profile.area)
+    best = 1.0
+    for right_profile in right_profiles:
+        for candidate in (
+            right_profile,
+            scale(right_profile, xfact=-1.0, yfact=1.0, origin=(0.5, 0.0)),
+        ):
+            union = left_profile.union(candidate)
+            distance = float(left_profile.symmetric_difference(candidate).area) / max(float(union.area), 1e-9)
+            best = min(best, distance)
+    return min(1.0, best)
+
+
+def source_section_profile_key(source: SourceMass) -> SectionProfileKey:
+    evidence = source.metadata.get("program_section_graph_evidence") or {}
+    profiles: list[tuple[tuple[float, float], ...]] = []
+    for node in (evidence.get("materialized_nodes") or ()) if isinstance(evidence, dict) else ():
+        controls = node.get("section_controls") if isinstance(node, dict) else None
+        if not isinstance(controls, list) or len(controls) < 3:
+            continue
+        try:
+            profiles.append(tuple(
+                (round(float(item[0]), 6), round(float(item[1]), 6))
+                for item in controls
+            ))
+        except (TypeError, ValueError, IndexError):
+            continue
+    return tuple(sorted(profiles))
+
+
+@lru_cache(maxsize=8192)
+def _section_profile_polygons(key: SectionProfileKey) -> tuple[Polygon, ...]:
+    profiles: list[Polygon] = []
+    for points in key:
+        profile = Polygon([(0.0, 0.0), *points, (1.0, 0.0)])
+        if profile.is_valid and not profile.is_empty and profile.area > 1e-9:
+            profiles.append(profile)
+    return tuple(profiles)
 
 
 @lru_cache(maxsize=131_072)
@@ -266,7 +333,9 @@ __all__ = [
     "intrinsic_shape_distance",
     "intrinsic_shape_distance_from_keys",
     "intrinsic_silhouette_distance",
+    "intrinsic_section_profile_distance",
     "intrinsic_silhouette_distance_from_keys",
     "principal_frame_volumes",
     "source_morphology_key",
+    "source_section_profile_key",
 ]

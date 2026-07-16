@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from functools import lru_cache
 from math import atan2, cos, degrees, radians, sin
 from typing import TypeAlias
@@ -22,8 +23,22 @@ VisualSilhouetteKey: TypeAlias = tuple[VolumeKey, SurfaceKey]
 LayeredFootprint: TypeAlias = tuple[str, Polygon, float, float]
 
 
+# A portfolio compares the same source against many neighbours.  Serialising
+# every recursive triangle and rebuilding its three projections for every pair
+# dominated the PNU benchmark.  Keep bounded, process-local caches; the source
+# object itself is retained in the entry, so Python object-id reuse cannot
+# return another source's key.
+_SOURCE_KEY_CACHE: OrderedDict[int, tuple[SourceMass, VisualSilhouetteKey]] = OrderedDict()
+_SOURCE_KEY_CACHE_LIMIT = 1_024
+
+
 def source_visual_silhouette_key(source: SourceMass) -> VisualSilhouetteKey:
     """Serialize mass solids and renderer-visible profiled surfaces locally."""
+    cache_id = id(source)
+    cached = _SOURCE_KEY_CACHE.get(cache_id)
+    if cached is not None and cached[0] is source:
+        _SOURCE_KEY_CACHE.move_to_end(cache_id)
+        return cached[1]
     center = source.footprint.centroid
     volumes = tuple(sorted(
         (
@@ -53,7 +68,12 @@ def source_visual_silhouette_key(source: SourceMass) -> VisualSilhouetteKey:
         for surface in source.surfaces
         if surface.surface_type.startswith("profiled_") and len(surface.vertices_m) >= 3
     ))
-    return volumes, surfaces
+    key = (volumes, surfaces)
+    _SOURCE_KEY_CACHE[cache_id] = (source, key)
+    _SOURCE_KEY_CACHE.move_to_end(cache_id)
+    while len(_SOURCE_KEY_CACHE) > _SOURCE_KEY_CACHE_LIMIT:
+        _SOURCE_KEY_CACHE.popitem(last=False)
+    return key
 
 
 def visual_silhouette_distance(left: SourceMass, right: SourceMass) -> float:
@@ -69,16 +89,15 @@ def visual_silhouette_distance_from_keys(
     left_key: VisualSilhouetteKey,
     right_key: VisualSilhouetteKey,
 ) -> float:
-    left = _principal_frame(left_key)
-    right = _principal_frame(right_key)
-    if left is None or right is None:
+    left_views = _cached_views(left_key, angle=0.0, mirror_x=False)
+    if left_views is None:
         return 1.0
-    left_views = _views(*left)
     best = 1.0
     for angle in (0.0, 90.0, 180.0, 270.0):
         for mirror_x in (False, True):
-            right_variant = _transform_geometry(*right, angle=angle, mirror_x=mirror_x)
-            right_views = _views(*right_variant)
+            right_views = _cached_views(right_key, angle=angle, mirror_x=mirror_x)
+            if right_views is None:
+                continue
             distances = tuple(
                 float(a.symmetric_difference(b).area) / max(float(a.union(b).area), 1e-9)
                 for a, b in zip(left_views, right_views)
@@ -87,6 +106,7 @@ def visual_silhouette_distance_from_keys(
     return min(1.0, best)
 
 
+@lru_cache(maxsize=8_192)
 def _principal_frame(
     key: VisualSilhouetteKey,
 ) -> tuple[tuple[LayeredFootprint, ...], SurfaceKey] | None:
@@ -139,6 +159,21 @@ def _principal_frame(
         for volume_role, vertices in surfaces
     )
     return normalized_volumes, normalized_surfaces
+
+
+@lru_cache(maxsize=32_768)
+def _cached_views(
+    key: VisualSilhouetteKey,
+    *,
+    angle: float,
+    mirror_x: bool,
+) -> tuple[Polygon, Polygon, Polygon] | None:
+    frame = _principal_frame(key)
+    if frame is None:
+        return None
+    if angle or mirror_x:
+        frame = _transform_geometry(*frame, angle=angle, mirror_x=mirror_x)
+    return _views(*frame)
 
 
 def _transform_geometry(

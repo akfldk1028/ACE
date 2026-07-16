@@ -104,6 +104,16 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
         vertices = tuple(tuple(round(float(value), 8) for value in row) for row in raw_vertices)
         triangles = tuple(tuple(int(value) for value in row) for row in raw_triangles)
         bounds = tuple(float(value) for value in solid.bounding_box())
+        components = tuple(solid.decompose())
+        component_volumes = tuple(sorted(
+            (max(0.0, float(component.volume())) for component in components),
+            reverse=True,
+        ))
+        total_component_volume = max(sum(component_volumes), 1e-12)
+        component_volume_ratios = tuple(
+            round(value / total_component_volume, 6)
+            for value in component_volumes
+        )
         metrics = {
             "kernel": "manifold3d",
             "kernel_status": str(solid.status()),
@@ -115,7 +125,9 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
             "surface_area": round(float(solid.surface_area()), 6),
             "vertex_count": int(solid.num_vert()),
             "triangle_count": int(solid.num_tri()),
-            "component_count": len(solid.decompose()),
+            "component_count": len(components),
+            "component_volume_ratios": list(component_volume_ratios),
+            "minimum_component_volume_ratio": min(component_volume_ratios, default=1.0),
             "genus": int(solid.genus()),
             "bounds": [
                 [round(bounds[0], 6), round(bounds[1], 6), round(bounds[2], 6)],
@@ -195,7 +207,8 @@ def _primitive(node: GeometryNode):
 
 def _transform(node: GeometryNode, solid):
     p = node.parameters
-    pivot = _vector(p.get("pivot", (0.0, 0.0, 0.0)), 3, node.id)
+    pivot_raw = p.get("pivot", (0.0, 0.0, 0.0))
+    pivot = _center(solid) if str(pivot_raw).lower() in {"center", "centroid"} else _vector(pivot_raw, 3, node.id)
     if node.operator == "translate":
         return solid.translate(_vector(p.get("vector", (p.get("x", 0), p.get("y", 0), p.get("z", 0))), 3, node.id))
     if node.operator == "rotate":
@@ -238,14 +251,35 @@ def _modifier(node: GeometryNode, solid):
         return _warp_twist(solid, p, node.id)
     if node.operator == "bend":
         return _warp_bend(solid, p, node.id)
+    if node.operator == "pinch":
+        return _warp_mid_profile(solid, p, node.id, mode="pinch")
+    if node.operator == "inflate":
+        return _warp_mid_profile(solid, p, node.id, mode="inflate")
     if node.operator in {"slice", "clip"}:
         normal = np.asarray(_vector(p.get("normal"), 3, node.id), dtype=float)
         normal /= max(float(np.linalg.norm(normal)), 1e-12)
+        keep_negative = str(p.get("keep_side") or "positive").lower() in {"negative", "below", "back"}
         offset = float(p.get("offset", 0.0))
-        if str(p.get("keep_side") or "positive").lower() in {"negative", "below", "back"}:
+        if keep_negative:
             normal = -normal
             offset = -offset
+        if p.get("offset_ratio") is not None:
+            # Agent-authored cuts operate in normalized live-solid space. An
+            # absolute plane offset made the same graph erase most of a slab
+            # while barely touching a block.  After orienting the kept side,
+            # trim a bounded fraction from the negative projection extreme.
+            cut_ratio = max(0.02, min(0.45, float(p.get("offset_ratio"))))
+            minx, miny, minz, maxx, maxy, maxz = _bounds(solid)
+            projections = [
+                float(np.dot(normal, np.asarray((x, y, z), dtype=float)))
+                for x in (minx, maxx)
+                for y in (miny, maxy)
+                for z in (minz, maxz)
+            ]
+            offset = min(projections) + (max(projections) - min(projections)) * cut_ratio
         return solid.trim_by_plane(tuple(normal.tolist()), offset)
+    if node.operator == "clip_fraction":
+        return _clip_fraction(solid, p, node.id)
     if node.operator == "cut_corner":
         return _cut_corner(solid, p, node.id)
     raise GeometryCompileError("unsupported_modifier", node.operator, node.id)
@@ -273,12 +307,14 @@ def _pattern(node: GeometryNode, solid):
         copies = [solid.translate((shift[0] * index, shift[1] * index, spacing * index + shift[2] * index)) for index in range(count)]
     elif node.operator == "radial_array":
         total = float(p.get("total_angle_degrees", p.get("angle_degrees", 180.0)))
-        pivot = _vector(p.get("pivot", (0.0, 0.0, 0.0)), 3, node.id)
+        pivot_raw = p.get("pivot", (0.0, 0.0, 0.0))
+        pivot = _center(solid) if str(pivot_raw).lower() in {"center", "centroid"} else _vector(pivot_raw, 3, node.id)
         step = total / max(count - 1, 1)
         copies = [_around_pivot(solid, pivot, lambda item, angle=step * index: item.rotate((0.0, 0.0, angle))) for index in range(count)]
     elif node.operator == "mirror_array":
         normal = _vector(p.get("normal", (1.0, 0.0, 0.0)), 3, node.id)
-        pivot = _vector(p.get("pivot", (0.0, 0.0, 0.0)), 3, node.id)
+        pivot_raw = p.get("pivot", (0.0, 0.0, 0.0))
+        pivot = _center(solid) if str(pivot_raw).lower() in {"center", "centroid"} else _vector(pivot_raw, 3, node.id)
         copies = [solid, _around_pivot(solid, pivot, lambda item: item.mirror(normal))]
     else:
         raise GeometryCompileError("unsupported_pattern", node.operator, node.id)
@@ -359,6 +395,48 @@ def _macro(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str]]:
         direction = str(p.get("direction") or "x").lower()
         matrix = [[1.0, 0.0, amount if direction == "x" else 0.0, 0.0], [0.0, 1.0, amount if direction == "y" else 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]
         return base.transform(matrix), ["shear"]
+    if operator == "lift":
+        minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+        height = max(maxz - minz, 1e-7)
+        rise = height * max(0.08, min(0.45, float(p.get("rise_ratio", 0.22))))
+        lifted = base.translate((0.0, 0.0, rise))
+        support_ratio = max(0.04, min(0.18, float(p.get("support_ratio", 0.08))))
+        support_width = max((maxx - minx) * support_ratio, 1e-5)
+        support_depth = max((maxy - miny) * support_ratio, 1e-5)
+        inset_x = (maxx - minx) * 0.16
+        inset_y = (maxy - miny) * 0.16
+        supports = [
+            m3d.Manifold.cube((support_width, support_depth, rise + height * 0.08)).translate((x, y, minz))
+            for x in (minx + inset_x, maxx - inset_x - support_width)
+            for y in (miny + inset_y, maxy - inset_y - support_depth)
+        ]
+        return m3d.Manifold.batch_boolean([lifted, *supports], m3d.OpType.Add), ["translate", "support_array", "union"]
+    if operator == "puncture":
+        minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+        axis = str(p.get("axis") or "x").lower()
+        count = max(1, min(3, int(p.get("count", p.get("n", 2)))))
+        ratio = max(0.06, min(0.26, float(p.get("ratio", 0.14))))
+        cutters = []
+        if axis == "y":
+            width = (maxx - minx) * ratio
+            height = (maxz - minz) * ratio
+            for index in range(count):
+                t = (index + 1) / (count + 1)
+                cutters.append(m3d.Manifold.cube((width, maxy - miny + 2.0, height)).translate((
+                    minx + (maxx - minx) * t - width / 2.0, miny - 1.0,
+                    minz + (maxz - minz) * 0.5 - height / 2.0,
+                )))
+        else:
+            depth = (maxy - miny) * ratio
+            height = (maxz - minz) * ratio
+            for index in range(count):
+                t = (index + 1) / (count + 1)
+                cutters.append(m3d.Manifold.cube((maxx - minx + 2.0, depth, height)).translate((
+                    minx - 1.0, miny + (maxy - miny) * t - depth / 2.0,
+                    minz + (maxz - minz) * 0.5 - height / 2.0,
+                )))
+        cutter = m3d.Manifold.batch_boolean(cutters, m3d.OpType.Add)
+        return base - cutter, ["cutter_array", "difference"]
     if operator == "cut_corner":
         return _cut_corner(base, p, node.id), ["half_space_intersection"]
     raise GeometryCompileError("unsupported_macro", operator, node.id)
@@ -388,6 +466,38 @@ def _warp_taper(solid, params: dict[str, Any], node_id: str):
         for pair_index, coordinate_index in enumerate(other):
             scale = start2[pair_index] + (end2[pair_index] - start2[pair_index]) * t
             result[:, coordinate_index] = pivot[coordinate_index] + (result[:, coordinate_index] - pivot[coordinate_index]) * scale
+        return result
+
+    return refined.warp_batch(warp)
+
+
+def _warp_mid_profile(solid, params: dict[str, Any], node_id: str, *, mode: str):
+    """Contract or swell the middle of one solid without changing topology."""
+    axis = str(params.get("axis") or "x").lower()
+    axis_index = {"x": 0, "y": 1, "z": 2}.get(axis)
+    if axis_index is None:
+        raise GeometryCompileError("invalid_axis", axis, node_id)
+    bounds = _bounds(solid)
+    low, high = bounds[axis_index], bounds[axis_index + 3]
+    length = max(high - low, 1e-9)
+    center = _center(solid)
+    refined = solid.refine(max(2, min(6, int(params.get("subdivisions", 4)))))
+    if mode == "pinch":
+        middle_scale = max(0.28, min(0.92, float(params.get("waist_scale", params.get("waist_ratio", 0.62)))))
+    else:
+        middle_scale = max(1.04, min(1.45, float(params.get("middle_scale", params.get("factor", 1.18)))))
+    power = max(1.0, min(4.0, float(params.get("profile_power", 2.0))))
+    other = [index for index in range(3) if index != axis_index]
+
+    def warp(points):
+        result = np.asarray(points, dtype=float).copy()
+        t = np.clip((result[:, axis_index] - low) / length, 0.0, 1.0)
+        weight = np.sin(np.pi * t) ** power
+        scale = 1.0 + (middle_scale - 1.0) * weight
+        for coordinate_index in other:
+            result[:, coordinate_index] = center[coordinate_index] + (
+                result[:, coordinate_index] - center[coordinate_index]
+            ) * scale
         return result
 
     return refined.warp_batch(warp)
@@ -472,6 +582,44 @@ def _cut_corner(solid, params: dict[str, Any], node_id: str):
     }[corner]
     offset = float(np.dot(normal, np.asarray(point)))
     return solid.trim_by_plane(tuple(normal.tolist()), offset)
+
+
+def _clip_fraction(solid, params: dict[str, Any], node_id: str):
+    """Select a normalized occupied-solid fraction along its live bounds."""
+    fraction = max(0.01, min(1.0, float(params.get("fraction", 1.0))))
+    if fraction >= 1.0 - 1e-9:
+        return solid
+    minx, miny, minz, maxx, maxy, maxz = _bounds(solid)
+    lengths = [maxx - minx, maxy - miny, maxz - minz]
+    raw_axis = str(params.get("axis") or "long").lower()
+    if raw_axis == "long":
+        axis = 0 if lengths[0] >= lengths[1] else 1
+    elif raw_axis == "short":
+        axis = 1 if lengths[0] >= lengths[1] else 0
+    else:
+        axis = {"x": 0, "y": 1, "z": 2, "vertical": 2}.get(raw_axis, -1)
+    if axis < 0 or lengths[axis] <= 1e-9:
+        raise GeometryCompileError("invalid_scope_axis", raw_axis, node_id)
+    anchor = str(params.get("anchor") or "end").lower()
+    selected_length = lengths[axis] * fraction
+    lower = [minx, miny, minz]
+    upper = [maxx, maxy, maxz]
+    if anchor in {"start", "low", "negative"}:
+        upper[axis] = lower[axis] + selected_length
+    elif anchor in {"center", "middle"}:
+        center = (lower[axis] + upper[axis]) / 2.0
+        lower[axis] = center - selected_length / 2.0
+        upper[axis] = center + selected_length / 2.0
+    else:
+        lower[axis] = upper[axis] - selected_length
+    epsilon = max(max(lengths), 1.0) * 1e-5
+    for index in range(3):
+        if index != axis:
+            lower[index] -= epsilon
+            upper[index] += epsilon
+    size = tuple(max(1e-7, upper[index] - lower[index]) for index in range(3))
+    cutter = m3d.Manifold.cube(size).translate(tuple(lower))
+    return m3d.Manifold.batch_boolean([solid, cutter], m3d.OpType.Intersect)
 
 
 def _stepped_macro(base, params: dict[str, Any], *, terrace: bool):

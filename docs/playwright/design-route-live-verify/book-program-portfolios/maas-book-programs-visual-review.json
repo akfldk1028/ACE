@@ -2,34 +2,39 @@
   "schema_version": "arr.maas.book_program_visual_review.v1",
   "reviewed_at": "2026-07-16",
   "pnu": "1168011800104170004",
-  "status": "fail",
-  "numeric_diagnostic_status": "pass",
+  "source_run": "recursive-pnu-three-program-r32",
+  "status": "procedural_mass_diversity_pass",
+  "numeric_diagnostic_status": "pass_60_of_60",
   "architecture_grade_claim_allowed": false,
-  "same_footprint_or_roof_family_repetition_detected": true,
-  "review_basis": "Direct inspection of the final three original-resolution 20-mass PNG boards after legal-envelope-first generation and same-source legal/FAR/parking evaluation.",
+  "same_footprint_or_roof_family_repetition_detected": false,
+  "review_basis": "Direct inspection of all three original-resolution 20-mass PNG boards after recursive geometry synthesis, BOOK mutation, program hard gates, and same-source legal/FAR/parking evaluation.",
   "hard_constraint_status": "pass_60_of_60",
   "geometry_retention": {
-    "neighborhood_mean": 0.9038,
-    "gymnasium_mean": 0.9288,
-    "cultural_mean": 0.8546,
-    "minimum_selected": 0.8018
+    "neighborhood_mean": 0.8892,
+    "gymnasium_mean": 0.9036,
+    "cultural_mean": 0.9321,
+    "minimum_selected": 0.8004
   },
   "programs": {
     "neighborhood": {
-      "status": "fail",
-      "improvement": "20/20, 18 BOOK principles, 18 measured visual languages and all six p.3 scopes survive the same-source hard gates; ribbon, branch, split and stepback families are visibly distinct.",
-      "failure": "The board still overuses elongated bar and folded/terrace chassis; the folded sequence in cells 04/07/10/13/18/20 and several long bars retain strong family resemblance."
+      "status": "pass",
+      "measured": "20/20, 19 BOOK operations, 13 visual-language keys, six p.3 scopes, zero near-duplicate silhouette pairs; curved 1, oblique 2, prismatic 2, stepped 5, voided 5, winged 5.",
+      "visual_verdict": "Street bar, courtyard, terrace, calm block, split wing and curved edge alternatives coexist. No single wedge, gable or terrace family dominates the board.",
+      "remaining_limit": "The board is a massing-language portfolio; storefront rhythm, circulation, structure and facade resolution are not evaluated."
     },
     "gymnasium": {
-      "status": "fail",
-      "improvement": "20/20, 14 BOOK principles, 18 measured visual languages and all six p.3 scopes survive; ridge, folded, sawtooth/daylight-monitor, stepped-section and carved-entry relations appear as real geometry.",
-      "failure": "Most alternatives still begin from a low rectangular long-span hall chassis; roof and entry modifiers are real but do not yet create enough plan/section archetype changes for competition-grade variety."
+      "status": "pass",
+      "measured": "20/20, 18 BOOK operations, 11 visual-language keys, six p.3 scopes, zero near-duplicate silhouette pairs; curved 4, oblique 1, prismatic 5, stepped 2, voided 4, winged 4.",
+      "visual_verdict": "Long-span bars remain programmatically legible while calm halls, curved sections, courts, split/service bodies, stepped sections and one oblique form are visibly distinct.",
+      "remaining_limit": "Roof structure, clear span, spectator/service circulation and daylight performance still require downstream architectural analysis."
     },
     "cultural": {
-      "status": "fail",
-      "improvement": "20/20, 16 BOOK principles, 18 measured visual languages and all six p.3 scopes survive; court-bridge, split-gallery-ramp and carved-gallery-spine families remain distinguishable.",
-      "failure": "The set is still dominated by low gallery boxes and stepped bar assemblies; void/court relations vary but the overall museum chassis remains too repetitive."
+      "status": "pass",
+      "measured": "20/20, 17 BOOK operations, 17 visual-language keys, six p.3 scopes, zero near-duplicate silhouette pairs; curved 3, oblique 3, prismatic 2, stepped 4, voided 5, winged 3.",
+      "visual_verdict": "Courts, paired galleries, carved entries, curved connectors, stepped civic masses and tapered/oblique gestures coexist without one low-box family taking over.",
+      "remaining_limit": "Gallery sequence, art-handling logistics, structural grids and facade/public-realm quality remain outside this diagnostic."
     }
   },
-  "verdict": "Numeric BOOK/program diagnostics and same-source legal/FAR/parking hard constraints pass 60/60, but direct PNG review still rejects an architectural competition-grade claim because program-internal chassis repetition remains visible."
+  "cross_program_verdict": "The three programs are measurably and visibly different: gym has the longest mean oriented plan aspect ratio (2.1086), neighborhood has the strongest street/court/wing mixture, and cultural has the richest visual-language count (17) and highest mean legal geometry retention (0.9321).",
+  "verdict": "The recursive Geometry Language and selector now pass the requested procedural mass-diversity diagnostic and same-source hard constraints. This is not evidence that the alternatives are competition-ready buildings; architecture-grade claims remain prohibited until site planning, circulation, structure, facade and performance are evaluated."
 }

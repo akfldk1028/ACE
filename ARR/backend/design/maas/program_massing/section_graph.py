@@ -20,7 +20,24 @@ PROGRAM_SECTION_GRAPH_SCHEMA = "arr.maas.program_section_graph.v1"
 PROGRAM_SECTION_GRAPH_NOTE_PREFIX = "program_section_graph_json="
 
 _RELATIONS = {"input", "deform", "attach", "subtract", "monitor"}
-_ROOF_OPERATORS = {"ridge_roof", "folded_roof", "sawtooth_roof", "stepped_section"}
+_ROOF_OPERATORS = {
+    "ridge_roof",
+    "folded_roof",
+    "sawtooth_roof",
+    "stepped_section",
+    "flat_roof",
+    "shed_roof",
+    "barrel_roof",
+}
+_DEFAULT_ROOF_CONTROLS = {
+    "ridge_roof": [[0.0, 0.66], [0.5, 1.0], [1.0, 0.66]],
+    "folded_roof": [[0.0, 0.62], [0.28, 0.96], [0.52, 0.70], [0.76, 1.0], [1.0, 0.64]],
+    "sawtooth_roof": [[0.0, 0.64], [0.20, 0.94], [0.23, 0.62], [0.50, 0.98], [0.53, 0.64], [0.80, 0.92], [0.83, 0.66], [1.0, 0.86]],
+    "stepped_section": [[0.0, 0.60], [0.30, 0.60], [0.34, 0.78], [0.62, 0.78], [0.66, 0.96], [1.0, 0.96]],
+    "flat_roof": [[0.0, 0.82], [0.5, 0.82], [1.0, 0.82]],
+    "shed_roof": [[0.0, 0.56], [0.5, 0.76], [1.0, 0.96]],
+    "barrel_roof": [[0.0, 0.56], [0.20, 0.82], [0.5, 1.0], [0.80, 0.82], [1.0, 0.56]],
+}
 _OPERATORS = _ROOF_OPERATORS | {
     "long_span_hall",
     "service_spine",
@@ -47,6 +64,7 @@ class ProgramSectionGraphEdit:
     numeric_value: float | None = None
     control_index: int | None = None
     rationale: str = ""
+    operator_value: str | None = None
 
 
 def validate_program_section_graph(graph: dict[str, Any]) -> list[str]:
@@ -125,6 +143,32 @@ def replace_program_section_graph_note(
     ) + (program_section_graph_note(graph),)
 
 
+def mutate_program_section_sequence(
+    sequence: VerbSequence,
+    edits: Iterable[ProgramSectionGraphEdit],
+    *,
+    director: str,
+    name_suffix: str,
+) -> VerbSequence:
+    """Return a new seed from agent-authored typed section-graph edits.
+
+    This deliberately does not define a completed building template.  The
+    source program roles and normalized assembly remain reusable; an agent,
+    VLM critic, or BOOK director supplies only bounded graph mutations.
+    """
+    graph = program_section_graph_from_sequence(sequence)
+    if not graph:
+        return sequence
+    mutated = apply_program_section_graph_edits(graph, edits)
+    mutated["agent_director"] = str(director or "typed_graph_agent")
+    return VerbSequence(
+        name=f"{sequence.name}__agent_{name_suffix}",
+        label=sequence.label,
+        calls=sequence.calls,
+        notes=replace_program_section_graph_note(sequence.notes, mutated),
+    )
+
+
 def apply_program_section_graph_edits(
     graph: dict[str, Any],
     edits: Iterable[ProgramSectionGraphEdit],
@@ -135,10 +179,27 @@ def apply_program_section_graph_edits(
     trace: list[dict[str, Any]] = list(result.get("mutation_trace") or [])
     for edit in edits:
         node = nodes.get(edit.target_node_id)
-        if node is None or edit.operation not in {"set_parameter", "set_section_control"}:
+        if node is None or edit.operation not in {
+            "set_parameter", "set_section_control", "replace_roof_operator",
+        }:
             continue
         params = node.setdefault("params", {})
-        if edit.operation == "set_section_control":
+        if edit.operation == "replace_roof_operator":
+            current_operator = str(node.get("operator") or "")
+            replacement = str(edit.operator_value or "")
+            if current_operator not in _ROOF_OPERATORS or replacement not in _ROOF_OPERATORS:
+                continue
+            node["operator"] = replacement
+            # Operator replacement is a topology mutation, not a label swap:
+            # reset the normalized section genotype to the replacement's
+            # executable default before any bounded point edits are applied.
+            params["section_controls"] = deepcopy(_DEFAULT_ROOF_CONTROLS[replacement])
+            params["rise_ratio"] = round(
+                max(height for _position, height in _DEFAULT_ROOF_CONTROLS[replacement])
+                - min(height for _position, height in _DEFAULT_ROOF_CONTROLS[replacement]),
+                4,
+            )
+        elif edit.operation == "set_section_control":
             controls = deepcopy(params.get("section_controls") or [])
             index = int(edit.control_index if edit.control_index is not None else -1)
             if index <= 0 or index >= len(controls) - 1 or edit.numeric_value is None:
@@ -168,6 +229,7 @@ def apply_program_section_graph_edits(
             "parameter_name": edit.parameter_name,
             "control_index": edit.control_index,
             "numeric_value": edit.numeric_value,
+            "operator_value": edit.operator_value,
             "rationale": edit.rationale,
         })
     result["mutation_trace"] = trace
@@ -271,6 +333,7 @@ __all__ = [
     "ProgramSectionGraphEdit",
     "apply_program_section_graph_edits",
     "mutate_program_section_graph_for_book",
+    "mutate_program_section_sequence",
     "program_section_graph_from_sequence",
     "program_section_graph_note",
     "replace_program_section_graph_note",

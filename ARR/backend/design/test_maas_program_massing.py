@@ -53,7 +53,11 @@ from design.maas.program_massing.vlm_a2a import (
     generation_feedback_from_result,
 )
 from design.maas.program_massing.scoring import attach_program_massing_evidence
-from design.maas.program_massing.section_graph import program_section_graph_from_sequence
+from design.maas.program_massing.section_graph import (
+    ProgramSectionGraphEdit,
+    mutate_program_section_sequence,
+    program_section_graph_from_sequence,
+)
 from design.maas.program_massing.search import (
     ProgramElite,
     _descriptor_distance,
@@ -1758,6 +1762,38 @@ class MaasProgramMassingTest(SimpleTestCase):
             source.signature()["program_section_graph_evidence"]["representation"],
             "normalized_section_graph_planar_strips",
         )
+
+    def test_agent_replaces_roof_genotype_without_a_finished_building_template(self):
+        seed = next(item for item in program_seed_sequences("gymnasium") if "long_span_hall" in item.name)
+        mutated = mutate_program_section_sequence(
+            seed,
+            (ProgramSectionGraphEdit(
+                operation="replace_roof_operator",
+                target_node_id="roof",
+                parameter_name="operator",
+                operator_value="flat_roof",
+                rationale="VLM requests a calm box family",
+            ),),
+            director="test-vlm",
+            name_suffix="flat",
+        )
+        original_source = compile_sequence_to_source_mass(box(0, 0, 60, 40), seed)
+        mutated_source = compile_sequence_to_source_mass(box(0, 0, 60, 40), mutated)
+        self.assertIsNotNone(original_source)
+        self.assertIsNotNone(mutated_source)
+        original_evidence = original_source.signature()["program_section_graph_evidence"]
+        mutated_evidence = mutated_source.signature()["program_section_graph_evidence"]
+        self.assertEqual(original_evidence["materialized_nodes"][0]["operator"], "ridge_roof")
+        self.assertEqual(mutated_evidence["materialized_nodes"][0]["operator"], "flat_roof")
+        self.assertEqual(
+            {volume.role for volume in original_source.volumes},
+            {volume.role for volume in mutated_source.volumes},
+        )
+        self.assertNotEqual(
+            [surface.signature() for surface in original_source.surfaces],
+            [surface.signature() for surface in mutated_source.surfaces],
+        )
+        self.assertEqual(mutated_evidence["mutation_trace"][0]["operation"], "replace_roof_operator")
 
     def test_gym_section_graph_families_compile_as_clean_typed_geometry(self):
         sources = []

@@ -8,7 +8,7 @@ import tempfile
 import hashlib
 import json
 import uuid
-from math import cos, radians, sin
+from math import cos, radians, sin, sqrt
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
@@ -185,6 +185,12 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
                 oy + view_height * 0.68 + ry * scale * 0.34 - z * 3.2,
             )
 
+        def camera_depth(vertex: list[float]) -> float:
+            """Painter depth matching the fixed orthographic preview camera."""
+            x, y = float(vertex[0]) - cx, float(vertex[1]) - cy
+            ry = x * sin(theta) + y * cos(theta)
+            return float(vertex[2]) if top_view else ry + float(vertex[2]) * 0.12
+
         draw.rectangle((ox + 5, oy + 5, ox + view_width - 5, oy + view_height - 5), outline=(203, 213, 225, 255))
         draw.text((ox + 14, oy + 12), label, fill=(71, 85, 105, 255))
         if site_coords:
@@ -204,15 +210,67 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
                     side = [base_points[index], base_points[index + 1], top_points[index + 1], top_points[index]]
                     draw.polygon(side, fill=(255, 123, 24, 105), outline=(249, 115, 22, 230))
             draw.polygon(top_points, fill=(255, 207, 74, 185), outline=(234, 88, 12, 255))
-        for surface in sorted(explicit_surfaces, key=lambda item: sum(float(v[2]) for v in _surface_vertices_world(item, feature)) / len(_surface_vertices_world(item, feature))):
-            vertices = _surface_vertices_world(surface, feature)
+        surface_records = [
+            (surface, _surface_vertices_world(surface, feature))
+            for surface in explicit_surfaces
+        ]
+        surface_records = [record for record in surface_records if len(record[1]) >= 3]
+        recursive_feature_edges: dict[
+            tuple[tuple[float, float, float], tuple[float, float, float]],
+            list[tuple[tuple[float, float, float], bool, list[float], list[float]]],
+        ] = {}
+        for surface, vertices in sorted(
+            surface_records,
+            key=lambda record: sum(camera_depth(vertex) for vertex in record[1]) / len(record[1]),
+        ):
             points = [project((float(v[0]), float(v[1])), 0.0 if top_view else float(v[2])) for v in vertices]
             is_roof = surface.get("surface_type") == "profiled_roof_strip"
+            is_recursive_mesh = surface.get("surface_type") == "profiled_recursive_solid_mesh"
+            recursive_fill = (246, 142, 58, 255)
+            if is_recursive_mesh:
+                a, b, c = vertices[:3]
+                ux, uy, uz = float(b[0]) - float(a[0]), float(b[1]) - float(a[1]), float(b[2]) - float(a[2])
+                vx, vy, vz = float(c[0]) - float(a[0]), float(c[1]) - float(a[1]), float(c[2]) - float(a[2])
+                nx, ny, nz = uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx
+                magnitude = max(sqrt(nx * nx + ny * ny + nz * nz), 1e-12)
+                normal = (nx / magnitude, ny / magnitude, nz / magnitude)
+                # Stable world light; normal shading reveals setback/terrace
+                # planes without exposing kernel triangulation.
+                light = (0.34, -0.42, 0.84)
+                intensity = 0.52 + 0.42 * abs(sum(normal[index] * light[index] for index in range(3)))
+                recursive_fill = (
+                    min(255, int(250 * intensity)),
+                    min(220, int(151 * intensity)),
+                    min(150, int(62 * intensity)),
+                    255,
+                )
+                view_vector = (sin(theta), cos(theta), 1.0 if top_view else 0.12)
+                facing = sum(normal[index] * view_vector[index] for index in range(3)) >= 0.0
+                for left, right in zip(vertices, (*vertices[1:], vertices[0])):
+                    left_key = tuple(round(float(value), 5) for value in left[:3])
+                    right_key = tuple(round(float(value), 5) for value in right[:3])
+                    low, high = sorted((left_key, right_key))
+                    recursive_feature_edges.setdefault((low, high), []).append((normal, facing, left, right))
             draw.polygon(
                 points,
-                fill=(255, 214, 82, 205) if is_roof else (255, 132, 36, 125),
-                outline=(190, 24, 93, 255) if is_roof else (234, 88, 12, 235),
+                # Kernel triangles must be opaque and depth ordered.  The old
+                # translucent, z-only ordering exposed rear faces and made a
+                # watertight solid look like a self-intersecting wire tangle.
+                fill=(255, 214, 82, 235) if is_roof else (recursive_fill if is_recursive_mesh else (255, 132, 36, 150)),
+                # Recursive solids arrive as kernel triangles. Drawing every
+                # triangle edge makes a clean mass read as a wireframe tangle;
+                # semantic patch boundaries are drawn once below instead.
+                outline=None if is_recursive_mesh else ((190, 24, 93, 255) if is_roof else (234, 88, 12, 235)),
             )
+        # Do not redraw every semantic-normal patch edge.  Those edges include
+        # occluded back faces and reintroduce the wireframe failure even after
+        # correct face ordering.  Multi-view silhouettes plus shaded opaque
+        # faces are the VLM evidence; the typed patch IDs stay in JSON.
+        # A painter renderer cannot reliably determine whether a crease on a
+        # rear triangle is occluded by a concave front face. Drawing those
+        # edges produced detached orange "wires" that were not geometry. The
+        # opaque, normal-shaded manifold faces are the visual authority; exact
+        # edge topology remains available in the typed mesh/graph payload.
     draw.rectangle((8, height - 28, width - 8, height - 5), fill=(247, 249, 251, 245))
     draw.text((14, height - 24), shape_name[:80], fill=(15, 23, 42, 255))
     output_dir.mkdir(parents=True, exist_ok=True)

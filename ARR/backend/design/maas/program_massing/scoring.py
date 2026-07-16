@@ -18,8 +18,20 @@ def attach_program_massing_evidence(feature: dict[str, Any], *, building_type: s
     floors = int(props.get("num_floors") or 1)
     volume_min, volume_max = [int(value) for value in profile.get("target_volume_range", [1, 4])]
     floor_min, floor_max = [int(value) for value in profile.get("target_floor_range", [1, 40])]
-    volume_fit = 1.0 if volume_min <= volume_count <= volume_max else max(0.0, 1.0 - min(abs(volume_count - volume_min), abs(volume_count - volume_max)) * 0.28)
-    floor_fit = 1.0 if floor_min <= floors <= floor_max else max(0.0, 1.0 - min(abs(floors - floor_min), abs(floors - floor_max)) * 0.12)
+    # Keep the documented hard boundary stable at exact decimal values. For
+    # example, a five-volume gym candidate is 1 - 2*0.28 == 0.44 by policy,
+    # but binary floating point can produce 0.439999... and reject it despite
+    # the global clean-mass contract allowing <= 5 visible volumes.
+    volume_fit = round(
+        1.0 if volume_min <= volume_count <= volume_max
+        else max(0.0, 1.0 - min(abs(volume_count - volume_min), abs(volume_count - volume_max)) * 0.28),
+        6,
+    )
+    floor_fit = round(
+        1.0 if floor_min <= floors <= floor_max
+        else max(0.0, 1.0 - min(abs(floors - floor_min), abs(floors - floor_max)) * 0.12),
+        6,
+    )
     preferred = [str(item) for item in profile.get("preferred_families") or []]
     family_fit = 1.0 if any(token in family for token in preferred) else (0.55 if preferred else 0.75)
     coherence = signature.get("coherence_evidence") if isinstance(signature.get("coherence_evidence"), dict) else {}

@@ -132,6 +132,21 @@ class SourceMass:
         continuous_surface_evidence = self.metadata.get("continuous_surface_evidence")
         if not isinstance(continuous_surface_evidence, dict):
             continuous_surface_evidence = {}
+        geometry_program = self.metadata.get("geometry_program")
+        if not isinstance(geometry_program, dict):
+            geometry_program = {}
+        geometry_graph_snapshot = self.metadata.get("geometry_graph_snapshot")
+        if not isinstance(geometry_graph_snapshot, dict):
+            geometry_graph_snapshot = {}
+        geometry_program_bridge_evidence = self.metadata.get("geometry_program_bridge_evidence")
+        if not isinstance(geometry_program_bridge_evidence, dict):
+            geometry_program_bridge_evidence = {}
+        program_space_zones = self.metadata.get("program_space_zones")
+        if not isinstance(program_space_zones, list):
+            program_space_zones = []
+        program_role_integration_evidence = self.metadata.get("program_role_integration_evidence")
+        if not isinstance(program_role_integration_evidence, dict):
+            program_role_integration_evidence = {}
         program_section_graph_evidence = self.metadata.get("program_section_graph_evidence")
         if not isinstance(program_section_graph_evidence, dict):
             program_section_graph_evidence = {}
@@ -233,6 +248,11 @@ class SourceMass:
             "graph_materialization_evidence": graph_materialization_evidence,
             "coherence_evidence": coherence_evidence,
             "continuous_surface_evidence": continuous_surface_evidence,
+            "geometry_program": geometry_program,
+            "geometry_graph_snapshot": geometry_graph_snapshot,
+            "geometry_program_bridge_evidence": geometry_program_bridge_evidence,
+            "program_space_zones": program_space_zones,
+            "program_role_integration_evidence": program_role_integration_evidence,
             "program_section_graph_evidence": program_section_graph_evidence,
             "site_frame_evidence": site_frame_evidence,
             "architectural_ambition_evidence": ambition_evidence,

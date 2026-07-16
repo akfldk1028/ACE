@@ -97,6 +97,7 @@ NUMERIC_BOUNDS: dict[str, tuple[float, float]] = {
     "gap_ratio": (0.04, 0.5),
     "height_ratio": (0.05, 1.4),
     "offset": (-1000.0, 1000.0),
+    "offset_ratio": (0.02, 0.45),
     "distance": (0.001, 1000.0),
     "count": (1.0, 24.0),
     "levels": (2.0, 10.0),

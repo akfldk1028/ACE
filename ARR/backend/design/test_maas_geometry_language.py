@@ -2,12 +2,16 @@
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 
 from django.test import SimpleTestCase
+from shapely.geometry import Polygon
 
 from design.maas.geometry_language import (
     GeometryEdit,
+    GeometryOutcomeGraph,
     GeometryProgramBuilder,
+    apply_book_projection_to_geometry_program,
     apply_geometry_edits,
     architectural_shape_programs,
     base_seed_programs,
@@ -16,18 +20,261 @@ from design.maas.geometry_language import (
     build_geometry_graph_snapshot,
     compilation_gate,
     compile_geometry_program,
+    compile_geometry_program_to_source_mass,
     geometry_equivalent,
     geometry_programs_from_author_payload,
     l_mass_difference_program,
     parse_geometry_dsl,
     program_cost,
     reference_language_programs,
+    replace_source_dominant_with_geometry_program,
     run_geometry_program_a2a_loop,
+    synthesize_architectural_programs,
+    synthesis_requests_from_program_profile,
+)
+from design.maas.book_language.registry import build_book_language_registry
+from design.maas.program_massing import (
+    book_operation_variants,
+    book_sentence_variants,
+    compose_program_with_book_operations,
+    program_seed_sequences,
 )
 from design.maas.preference.vlm_scorer import _prompt_text
+from design.maas.source_geometry.compiler import compile_sequence_to_source_mass
 
 
 class MaasGeometryLanguageTest(SimpleTestCase):
+    def test_all_59_book_principles_mutate_the_recursive_manifold_ast(self):
+        base = base_seed_programs()[1]
+        seed = program_seed_sequences("gymnasium")[0]
+        scopes = ("1/1", "3/8", "1/2", "1/4", "1/8", "1/16")
+        orientations = ("long_axis", "short_axis", "vertical")
+        rows = []
+        for index, principle in enumerate(build_book_language_registry()["principles"]):
+            calls = book_sentence_variants(principle["execution_verbs"], count=1)[0]
+            sequence = compose_program_with_book_operations(
+                seed,
+                calls,
+                base_volume_label=scopes[index % len(scopes)],
+                orientation=orientations[index % len(orientations)],
+            )
+            program = apply_book_projection_to_geometry_program(base, sequence)
+            compilation = compile_geometry_program(program)
+            rows.append((program, compilation))
+        self.assertEqual(len(rows), 59)
+        self.assertTrue(all(result.status == "compiled" for _program, result in rows))
+        self.assertTrue(all(int(result.metrics["component_count"]) <= 5 for _program, result in rows))
+        self.assertEqual(len({program.program_hash() for program, _result in rows}), 59)
+        self.assertGreaterEqual(len({result.geometry_hash for _program, result in rows}), 58)
+        self.assertTrue(all(
+            program.metadata["book_recursive_projection"]["geometry_authority"] == "recursive_manifold_ast"
+            for program, _result in rows
+        ))
+
+    def test_six_book_scopes_are_causal_geometry_not_metadata_labels(self):
+        base = base_seed_programs()[2]
+        seed = program_seed_sequences("gymnasium")[0]
+        bend = book_operation_variants("bend", count=2)[1]
+        programs = []
+        compilations = []
+        for scope in ("1/1", "3/8", "1/2", "1/4", "1/8", "1/16"):
+            sequence = compose_program_with_book_operations(
+                seed, (bend,), base_volume_label=scope, orientation="long_axis",
+            )
+            program = apply_book_projection_to_geometry_program(base, sequence)
+            programs.append(program)
+            compilations.append(compile_geometry_program(program))
+        self.assertTrue(all(result.status == "compiled" for result in compilations))
+        self.assertEqual(len({program.program_hash() for program in programs}), 6)
+        self.assertEqual(len({result.geometry_hash for result in compilations}), 6)
+        self.assertEqual(
+            {program.metadata["book_recursive_projection"]["scope_label"] for program in programs},
+            {"1/1", "3/8", "1/2", "1/4", "1/8", "1/16"},
+        )
+
+    def test_vertical_book_extrude_preserves_plan_and_changes_height(self):
+        base = base_seed_programs()[0]
+        seed = program_seed_sequences("gymnasium")[0]
+        sequence = compose_program_with_book_operations(
+            seed,
+            (book_operation_variants("extrude", count=1)[0],),
+            base_volume_label="1/1",
+            orientation="vertical",
+        )
+        projected = apply_book_projection_to_geometry_program(base, sequence)
+        before = compile_geometry_program(base)
+        after = compile_geometry_program(projected)
+        self.assertEqual(after.status, "compiled")
+        before_bounds = before.metrics["bounds"]
+        after_bounds = after.metrics["bounds"]
+        self.assertEqual(before_bounds[0][:2], after_bounds[0][:2])
+        self.assertEqual(before_bounds[1][:2], after_bounds[1][:2])
+        self.assertGreater(after_bounds[1][2] - after_bounds[0][2], before_bounds[1][2] - before_bounds[0][2])
+
+    def test_normalized_slice_ratio_retains_most_of_different_base_proportions(self):
+        for width, depth, height in ((10.0, 6.0, 4.0), (18.0, 3.0, 3.5)):
+            builder = GeometryProgramBuilder(f"normalized_slice_{width}")
+            base = builder.add(
+                "primitive", "box",
+                parameters={"width": width, "depth": depth, "height": height},
+            )
+            sliced = builder.add(
+                "modifier", "slice", inputs=(base,),
+                parameters={
+                    "normal": [0.7, 0.0, -1.0],
+                    "offset_ratio": 0.12,
+                    "keep_side": "positive",
+                },
+            )
+            before = compile_geometry_program(builder.build(base))
+            after = compile_geometry_program(builder.build(sliced))
+            self.assertEqual(after.status, "compiled")
+            retention = after.metrics["volume"] / before.metrics["volume"]
+            self.assertGreater(retention, 0.80)
+            self.assertLess(retention, 0.99)
+
+    def test_synthesis_agent_builds_diverse_recursive_programs_from_normalized_bases(self):
+        programs = synthesize_architectural_programs({
+            "base_seeds": ["slab", "bar", "block"],
+            "intent_tags": [
+                "long_span", "continuous_curve", "oblique_section",
+                "stepped_section", "carved_void", "lifted_ground",
+            ],
+            "candidate_count": 18,
+            "maximum_operator_depth": 2,
+        }, building_type="gymnasium")
+        self.assertEqual(len(programs), 18)
+        self.assertEqual(len({program.program_hash() for program in programs}), 18)
+        self.assertGreaterEqual(len({tuple(program.metadata["operator_path"]) for program in programs}), 12)
+        self.assertEqual({program.metadata["completed_building_template"] for program in programs}, {False})
+        self.assertTrue(all(compile_geometry_program(program).status == "compiled" for program in programs))
+        compatibility_programs = synthesize_architectural_programs({
+            "base_seeds": ["profiled_prism", "bar", "slab"],
+            "intent_tags": ["long_span", "oblique_section"],
+            "candidate_count": 12,
+            "maximum_operator_depth": 2,
+        }, building_type="gymnasium")
+        long_span_slice = next(
+            program for program in compatibility_programs
+            if program.metadata["operator_path"][0] == "slice"
+        )
+        self.assertIn(long_span_slice.metadata["base_seed"], {"bar", "slab"})
+
+    def test_program_profile_infers_capabilities_without_section_templates(self):
+        requests = synthesis_requests_from_program_profile(
+            "gymnasium",
+            source_seeds=("hall_a", "hall_b", "hall_c"),
+        )
+        self.assertEqual(len(requests), 2)
+        self.assertTrue(all(
+            not item["inference_evidence"]["section_control_templates_used"]
+            for item in requests
+        ))
+        self.assertTrue(all("long_span" in item["intent_tags"] for item in requests))
+        self.assertTrue(all("bar" in item["base_seeds"] for item in requests))
+        self.assertNotIn("section_controls", str(requests))
+
+    def test_outcome_graph_retrieves_successful_genotype_without_neo4j(self):
+        program = synthesize_architectural_programs({
+            "base_seeds": ["slab"],
+            "intent_tags": ["continuous_curve"],
+            "candidate_count": 1,
+        }, building_type="gymnasium")[0]
+        source = compile_geometry_program_to_source_mass(
+            program,
+            Polygon(((0, 0), (24, 0), (24, 18), (0, 18))),
+            upper_fit_strength=0.4,
+        )
+        self.assertIsNotNone(source)
+        source.metadata["geometry_program_bridge_evidence"]["source_seed"] = "program_gym_folded_service_hall"
+        candidate = SimpleNamespace(
+            source=source,
+            sequence=SimpleNamespace(name="program_gym_folded_service_hall__book_probe"),
+            principle_id="book:operative:bend",
+        )
+        report = {"rows": [{
+            "combined_hard_pass": True,
+            "legal_projection": {
+                "hard_pass": True,
+                "geometry_retention_pass": True,
+                "volume_retention": 0.91,
+                "geometry_failure_reasons": [],
+            },
+            "parking_hard_gate": {"hard_pass": True},
+        }]}
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "outcome-graph.json"
+            graph = GeometryOutcomeGraph.load(path, pnu="test-pnu")
+            graph.observe_candidates(
+                program_slug="gymnasium",
+                candidates=[candidate],
+                downstream_report=report,
+                selected=[candidate],
+            )
+            payload = graph.save()
+            loaded = GeometryOutcomeGraph.load(path, pnu="test-pnu")
+            strengths = loaded.preferred_strengths(
+                source_seed="program_gym_folded_service_hall",
+                program_hash=program.program_hash(),
+                fallback=[0.0, 0.8],
+            )
+            loaded.begin_program_run("gymnasium")
+        self.assertGreater(payload["node_count"], 0)
+        self.assertGreater(payload["edge_count"], 0)
+        self.assertEqual(strengths, (0.4,))
+        self.assertFalse(any(item.get("selected") for item in loaded.observations))
+
+    def test_outcome_graph_explores_unseen_fit_then_exploits_lowest_success(self):
+        graph = GeometryOutcomeGraph(Path("unused.json"), pnu="test")
+        graph.observations = [{
+            "source_seed": "hall",
+            "program_hash": "program-hash",
+            "legal_fit_strength": 0.0,
+            "program_hard_pass": False,
+            "combined_hard_pass": False,
+            "volume_retention": 0.0,
+        }]
+        self.assertEqual(
+            graph.preferred_strengths(
+                source_seed="hall", program_hash="program-hash",
+                fallback=[0.0, 0.4, 0.8], limit=2,
+            ),
+            (0.0, 0.4),
+        )
+        graph.observations[0].update({
+            "program_hard_pass": True,
+            "combined_hard_pass": True,
+            "volume_retention": 0.93,
+        })
+        self.assertEqual(
+            graph.preferred_strengths(
+                source_seed="hall", program_hash="program-hash",
+                fallback=[0.0, 0.4, 0.8], limit=2,
+            ),
+            (0.0,),
+        )
+
+    def test_outcome_graph_retrieves_scope_balanced_book_neighborhood(self):
+        graph = GeometryOutcomeGraph(Path("unused.json"), pnu="test")
+        graph.observations = [
+            {
+                "source_seed": "hall", "program_hash": "hash",
+                "book_principle_id": f"book:operative:{scope_index}",
+                "book_scope": scope, "program_hard_pass": True,
+                "combined_hard_pass": True, "volume_retention": 0.9,
+            }
+            for scope_index, scope in enumerate(("1/1", "3/8", "1/2", "1/4", "1/8", "1/16"))
+        ]
+        selected = graph.preferred_book_principle_ids(
+            source_seed="hall", program_hash="hash",
+            fallback=("book:aggregation:array:taper",), limit=6,
+        )
+        self.assertEqual(len(selected), 6)
+        self.assertEqual(
+            {next(item["book_scope"] for item in graph.observations if item["book_principle_id"] == principle) for principle in selected},
+            {"1/1", "3/8", "1/2", "1/4", "1/8", "1/16"},
+        )
+
     def test_scope_and_base_seed_are_separate_and_four_seeds_share_one_unit_box(self):
         box_seeds = box_derived_base_seed_programs()
         self.assertEqual(len(box_seeds), 4)
@@ -89,6 +336,17 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         expansions = {operation for result in compilations for row in result.trace for operation in row["macro_expansion"]}
         self.assertTrue({"difference", "shear"}.issubset(expansions))
 
+    def test_compiler_reports_tiny_disconnected_component_ratio(self):
+        builder = GeometryProgramBuilder("tiny_fragment_metric")
+        main = builder.add("primitive", "box", parameters={"width": 10, "depth": 8, "height": 4})
+        speck = builder.add("primitive", "box", parameters={"width": 0.5, "depth": 0.5, "height": 0.5})
+        moved = builder.add("transform", "translate", inputs=(speck,), parameters={"vector": [12, 0, 0]})
+        root = builder.add("boolean", "union", inputs=(main, moved))
+        result = compile_geometry_program(builder.build(root))
+        self.assertEqual(result.status, "compiled")
+        self.assertEqual(result.metrics["component_count"], 2)
+        self.assertLess(result.metrics["minimum_component_volume_ratio"], 0.01)
+
     def test_three_photo_languages_are_transferable_programs_not_coordinate_templates(self):
         references = reference_language_programs()
         self.assertEqual(len(references), 3)
@@ -98,6 +356,97 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             self.assertFalse(compilation_gate(result))
             self.assertNotIn("parcel", str(program.to_dict()).lower())
             self.assertNotIn("pnu", str(program.to_dict()).lower())
+
+    def test_recursive_photo_languages_materialize_inside_oblique_source_host(self):
+        host = Polygon(((0, 4), (35, 0), (44, 19), (29, 35), (3, 29)))
+        for name, program in reference_language_programs().items():
+            source = compile_geometry_program_to_source_mass(program, host)
+            self.assertIsNotNone(source, name)
+            assert source is not None
+            self.assertLessEqual(len(source.volumes), 3)
+            self.assertTrue(source.surfaces)
+            self.assertTrue(all(host.covers(volume.footprint) for volume in source.volumes))
+            self.assertLessEqual(int(source.signature()["effective_surface_count"]), 48)
+            evidence = source.metadata["geometry_program_bridge_evidence"]
+            compilation = compile_geometry_program(program)
+            self.assertEqual(evidence["geometry_hash"], compilation.geometry_hash)
+            self.assertEqual(evidence["surface_coordinate_frame"], "source_footprint_centroid_local")
+            self.assertFalse(evidence["parcel_coordinates_in_program"])
+
+    def test_recursive_bridge_exports_the_complete_compiler_mesh(self):
+        program = synthesize_architectural_programs({
+            "base_seeds": ["slab"],
+            "intent_tags": ["continuous_curve"],
+            "candidate_count": 1,
+            "maximum_operator_depth": 1,
+        }, building_type="gymnasium")[0]
+        compilation = compile_geometry_program(program)
+        self.assertGreater(len(compilation.triangles), 160)
+        source = compile_geometry_program_to_source_mass(
+            program,
+            Polygon(((0, 0), (30, 0), (30, 20), (0, 20))),
+        )
+        self.assertIsNotNone(source)
+        assert source is not None
+        recursive_surfaces = tuple(
+            surface for surface in source.surfaces
+            if surface.surface_type == "profiled_recursive_solid_mesh"
+        )
+        self.assertEqual(len(recursive_surfaces), len(compilation.triangles))
+
+    def test_recursive_primary_replaces_gym_hall_without_erasing_program_roles(self):
+        host = Polygon(((0, 4), (35, 0), (44, 19), (29, 35), (3, 29)))
+        seed = program_seed_sequences("gymnasium")[0]
+        source = compile_sequence_to_source_mass(host, seed)
+        self.assertIsNotNone(source)
+        assert source is not None
+        original_roles = {volume.role for volume in source.volumes}
+        original_surface_signature = {
+            tuple(tuple(round(value, 5) for value in vertex) for vertex in surface.vertices_m)
+            for surface in source.surfaces
+        }
+        program = reference_language_programs()["amorepacific_carved_cantilever_cube"]
+        composed = replace_source_dominant_with_geometry_program(
+            source,
+            program,
+            containment_host=host,
+        )
+        self.assertIsNotNone(composed)
+        assert composed is not None
+        self.assertLessEqual(len(composed.volumes), 5)
+        composed_roles = {volume.role for volume in composed.volumes} | {
+            str(zone.get("role") or "")
+            for zone in composed.metadata.get("program_space_zones") or ()
+        }
+        self.assertEqual(composed_roles, original_roles)
+        self.assertEqual(
+            composed.metadata["program_role_integration_evidence"]["mode"],
+            "normalized_spatial_zones_inside_dominant_envelope",
+        )
+        integration = composed.metadata["program_role_integration_evidence"]
+        self.assertGreaterEqual(
+            integration["original_component_union_area_m2"],
+            source.footprint.area,
+        )
+        self.assertLessEqual(
+            integration["recursive_target_plan_area_m2"],
+            host.area,
+        )
+        self.assertGreaterEqual(
+            integration["recursive_target_plan_area_m2"],
+            max(volume.footprint.area for volume in source.volumes),
+        )
+        self.assertTrue(all(host.buffer(1e-7).covers(volume.footprint) for volume in composed.volumes))
+        self.assertLessEqual(int(composed.signature()["effective_surface_count"]), 48)
+        self.assertEqual(
+            composed.metadata["geometry_program_bridge_evidence"]["geometry_hash"],
+            compile_geometry_program(program).geometry_hash,
+        )
+        composed_surface_signature = {
+            tuple(tuple(round(value, 5) for value in vertex) for vertex in surface.vertices_m)
+            for surface in composed.surfaces
+        }
+        self.assertNotEqual(original_surface_signature, composed_surface_signature)
 
     def test_l_mass_canonicalizer_prefers_short_union_but_recognizes_difference_equivalence(self):
         union_program = architectural_shape_programs()[2]

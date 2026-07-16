@@ -216,3 +216,63 @@ pipeline. The next integration must adapt recursive solid programs to real
 parcel/program/legal/parking constraints without destructive post-clipping and
 must measure accepted-source geometry retention. Do not claim competition-grade
 or permit-ready completion from the 18/18 language benchmark.
+
+## 2026-07-16 program integration correction (latest; supersedes the unresolved boundary above)
+
+The recursive solid language is now connected to real program sources, BOOK
+p.3 scope, BOOK principles, legal-envelope-first generation, spatial hard
+gates, same-source legal/FAR/parking evaluation and a persistent typed outcome
+graph. A compiled manifold is bridged into `SourceMass` as authoritative mesh
+geometry; subordinate entry/service/gallery components become normalized role
+zones rather than floating Lego boxes. The target plan area absorbs the union
+of the original program-role components before site fitting.
+
+Agent synthesis is deterministic and auditable:
+
+- input: program role lineage, normalized base-seed set, architectural intent
+  tags, bounded candidate count and maximum operator depth;
+- output: acyclic `GeometryProgram` AST with stable node IDs and explicit
+  parameters;
+- authority: only the compiler can create the solid;
+- feedback: program/legal/retention outcomes are stored by genotype, scope and
+  BOOK principle in a portable graph, with optional Neo4j mirroring;
+- VLM: optional critic/revision loop must emit typed node edits and pass AST
+  hash change, geometry hash change and complete solid gates.
+
+Profile inference now includes a calm prismatic control and explores up to 12
+candidates per lineage. This is a grammar-level correction: without a control,
+profiles whose preferred families were all cuts or setbacks collapsed to one
+wedge/terrace family. It does not prescribe a final box. The reviewed PNU uses
+two independent role lineages and 24 bounded candidates per lineage for each
+of neighborhood, gym and cultural programs.
+
+Latest `recursive-pnu-three-program-r32` result on live PNU
+`1168011800104170004`:
+
+- recursive portfolios: 60/60 selected;
+- BOOK operation counts: neighborhood 19, gym 18, cultural 17;
+- selected visual-language keys: 13, 11, 17;
+- all six p.3 scopes and all six measured phenotypes occur in every program;
+- pose-invariant near-duplicate silhouette pairs: 0 in every program;
+- downstream legal/FAR/parking/retention combined hard pass: 60/60;
+- retained-volume means: 0.8892, 0.9036, 0.9321;
+- minimum selected retained volume: 0.8004.
+
+Measured clean gates remain visible volumes <=5 and effective surfaces <=48.
+The compiler also reports connected-component volume ratios; fragments below
+8% of total volume are rejected. Portfolio morphology rejects degenerate
+connected sheets/spikes using upper-area, horizontal-level, surface-normal and
+orientation evidence, and caps measured pyramidal/wedge families rather than
+trusting operator labels.
+
+Direct PNG review now passes the narrower procedural mass-diversity question:
+calm blocks, long bars, curves, courts, split wings, steps and oblique/cut forms
+coexist, and no box/gable/terrace family dominates all alternatives. Program
+language also differs quantitatively: gym mean oriented plan aspect is 2.1086,
+versus 1.6413 neighborhood and 1.9387 cultural. This still does not validate
+circulation, structural span, facade, public realm or competition-level
+architectural resolution. `architecture_grade_claim_allowed` remains false.
+
+The exposed OpenAI key was not used or written to the repository. Live VLM
+revision stayed disabled; stored typed directives exercised the same graph
+contract reproducibly. Revoke the exposed key before any future live run.

@@ -125,13 +125,13 @@ mass result = bend(court, axis="x", angle_degrees=28, subdivisions=4)
 
 Allowed primitives: box, cylinder, extruded_polygon, wedge, sweep, loft.
 Allowed transforms: translate/move, rotate, scale, mirror, shear.
-Allowed modifiers: bend, taper, twist, slice, clip, cut_corner.
+Allowed modifiers: bend, taper, twist, pinch, inflate, slice, clip, clip_fraction, cut_corner.
 Allowed booleans: union, subtract/difference, intersection.
 Allowed patterns: duplicate, linear_array, radial_array, mirror_array, stack.
 Allowed compositions: attach, bridge.
 Allowed macros: courtyard, carve_void, notch, setback, terrace, cantilever, bridge,
 cross_mass, bent_bar, split_wing, attach_volume, tapered_tower, leaning_tower,
-cut_corner, stepped_mass.
+lift, puncture, cut_corner, stepped_mass.
 
 Rules:
 - Every right-hand side is one function call; parameters are explicit literals.

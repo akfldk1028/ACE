@@ -242,7 +242,7 @@ def _songeun_language() -> GeometryProgram:
     cutter0 = b.add("primitive", "wedge", parameters={"width": 4.8, "depth": 10, "start_height": 1.0, "end_height": 10.5}, semantic_role="public_void")
     cutter = b.add("transform", "translate", inputs=(cutter0,), parameters={"vector": [4.8, -1, -0.2]})
     root = b.add("boolean", "difference", inputs=(envelope, cutter), semantic_role="main")
-    return b.build(root, reference_basis="supplied_photo", transferable_principle="oblique tapered monolith plus triangular carved entry")
+    return b.build(root, family="songeun_oblique_carved_monolith", reference_basis="supplied_photo", transferable_principle="oblique tapered monolith plus triangular carved entry")
 
 
 def _amorepacific_language() -> GeometryProgram:
@@ -252,7 +252,7 @@ def _amorepacific_language() -> GeometryProgram:
     void = b.add("transform", "translate", inputs=(void0,), parameters={"vector": [5, -1, 5]})
     carved = b.add("boolean", "difference", inputs=(cube, void), semantic_role="main")
     root = b.add("macro", "cantilever", inputs=(carved,), parameters={"start_ratio": 0.66, "vector": [1.4, 0, 0]}, semantic_role="main")
-    return b.build(root, reference_basis="supplied_photo", transferable_principle="carved civic cube plus suspended upper plate")
+    return b.build(root, family="amorepacific_carved_cantilever_cube", reference_basis="supplied_photo", transferable_principle="carved civic cube plus suspended upper plate")
 
 
 def _photo_museum_language() -> GeometryProgram:
@@ -262,7 +262,7 @@ def _photo_museum_language() -> GeometryProgram:
     undercut0 = b.add("primitive", "wedge", parameters={"width": 10, "depth": 14, "start_height": 1, "end_height": 7.5}, semantic_role="public_void")
     undercut = b.add("transform", "translate", inputs=(undercut0,), parameters={"vector": [-1, -1, -0.2]})
     root = b.add("boolean", "difference", inputs=(leaned, undercut), semantic_role="main")
-    return b.build(root, reference_basis="supplied_photo", transferable_principle="continuous oblique envelope with lifted diagonal undercut")
+    return b.build(root, family="photo_museum_lifted_oblique_envelope", reference_basis="supplied_photo", transferable_principle="continuous oblique envelope with lifted diagonal undercut")
 
 
 __all__ = [

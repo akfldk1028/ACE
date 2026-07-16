@@ -305,3 +305,76 @@ neighborhood spatial typology, and cultural gallery typology under stronger
 visual-family clustering. VLM remains a critic/reranker and typed graph-edit
 director; it is not a direct geometry generator. Mass-Brain/GRL remains a
 shadow lane until final accepted geometry improvement is proved.
+
+## 2026-07-16 recursive solid integration and 60/60 correction (latest; supersedes the visual/retention failure above)
+
+The Extended Geometry Language is now the dominant-source authoring path for
+this diagnostic. Five normalized seed priors (`block`, `slab`, `bar`, `tower`,
+`profiled_prism`) feed bounded recursive AST synthesis. The first four are
+scaled forms of the same unit Box; they are search priors, not extra kernel
+primitives or completed building templates. Program profiles or a typed VLM
+directive provide intent tags and role-graph lineages. They do not provide
+parcel coordinates or finished mass recipes.
+
+The executable path is now:
+
+`program role graph -> normalized base seed -> bounded recursive operators -> BOOK p.3 scope -> BOOK principle -> compiled manifold -> program/clean gate -> same-source legal/FAR/parking gate -> selector -> outcome graph`
+
+The portable outcome graph stores genotype, BOOK principle, scope, program
+failures, legal retention and selection observations. It can optionally mirror
+to Neo4j, but the PNU benchmark remains runnable with Neo4j off. Graph memory
+reorders already typed fit strengths and BOOK neighborhoods; it cannot author
+or relabel geometry by itself.
+
+The default profile inference now searches up to 12 candidates per role
+lineage and always includes a topology-preserving `calm_prismatic` control.
+This prevents profiles containing only cut/setback preferences from collapsing
+the whole population into wedge or terrace relatives. For the reviewed PNU,
+each program uses two role lineages with 24 bounded candidates each. These are
+`base_seeds + intent_tags + maximum_operator_depth` requests, not hard-coded
+completed forms.
+
+Latest live VWorld PNU `1168011800104170004` recursive run (`r32`):
+
+- neighborhood: 20/20, 19 BOOK operations, 13 visual-language keys, six
+  scopes, zero near-duplicate pairs; phenotype distribution curved 1,
+  oblique 2, prismatic 2, stepped 5, voided 5, winged 5.
+- gymnasium: 20/20, 18 BOOK operations, 11 visual-language keys, six scopes,
+  zero near-duplicate pairs; curved 4, oblique 1, prismatic 5, stepped 2,
+  voided 4, winged 4. Three degenerate sheet-like candidates were rejected
+  before final selection.
+- cultural: 20/20, 17 BOOK operations, 17 visual-language keys, six scopes,
+  zero near-duplicate pairs; curved 3, oblique 3, prismatic 2, stepped 4,
+  voided 5, winged 3.
+
+All 60 exact accepted source objects pass the same-run legal, FAR, parking and
+geometry-retention hard gates. Mean retained volume is 0.8892 neighborhood,
+0.9036 gym and 0.9321 cultural; the minimum selected retention is 0.8004. No
+threshold was loosened. The clean contract remains visible volumes <=5 and
+effective surfaces <=48, with an additional rejection for disconnected
+components below 8% of total volume and measured degenerate sheet/spike forms.
+
+Direct inspection of all three full-resolution PNGs records
+`procedural_mass_diversity_pass`: the previous box-only, gable-only and
+terrace/wedge collapse is no longer present. Gym is the longest-plan program
+(mean oriented aspect 2.1086), neighborhood mixes street/court/wing languages,
+and cultural has the richest selected visual-language count (17). This is a
+geometry-language and hard-constraint diagnostic pass, **not** proof of a
+competition-ready building. `architecture_grade_claim_allowed` remains false
+until site planning, circulation, structure, facade and performance are
+evaluated.
+
+Latest standard evidence:
+
+- `docs/playwright/design-route-live-verify/book-program-portfolios/maas-book-neighborhood-20.png`
+- `docs/playwright/design-route-live-verify/book-program-portfolios/maas-book-gymnasium-20.png`
+- `docs/playwright/design-route-live-verify/book-program-portfolios/maas-book-cultural-20.png`
+- `docs/playwright/design-route-live-verify/book-program-portfolios/maas-book-programs-60-summary.png`
+- `docs/playwright/design-route-live-verify/book-program-portfolios/maas-book-programs-summary.json`
+- `docs/playwright/design-route-live-verify/book-program-portfolios/maas-book-programs-visual-review.json`
+
+The live OpenAI VLM was deliberately not called. A key pasted into chat is
+compromised and was neither stored nor used; it must be revoked and replaced
+through a secure environment variable. Stored typed VLM/session directives
+were applied deterministically. VLM remains a critic, reranker and typed
+graph-edit director rather than a direct mesh generator.

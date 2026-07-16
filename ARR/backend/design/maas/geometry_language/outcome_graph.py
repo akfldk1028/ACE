@@ -431,7 +431,9 @@ class GeometryOutcomeGraph:
             if not isinstance(generation, dict):
                 continue
             for record in generation.get("records") or ():
-                if not isinstance(record, dict) or record.get("status") != "critic_reviewed":
+                if not isinstance(record, dict) or record.get("status") not in {
+                    "critic_reviewed", "critic_program_fit_rejected",
+                }:
                     continue
                 program_hash = str(record.get("program_hash") or "")
                 geometry_hash = str(record.get("geometry_hash") or "")
@@ -439,6 +441,19 @@ class GeometryOutcomeGraph:
                 proof = record.get("revision_proof") if isinstance(record.get("revision_proof"), dict) else {}
                 causal = record.get("vlm_causal_context") if isinstance(record.get("vlm_causal_context"), dict) else {}
                 references = causal.get("reference_matches") if isinstance(causal.get("reference_matches"), list) else []
+                reference_assessments = (
+                    record.get("reference_assessments")
+                    if isinstance(record.get("reference_assessments"), list)
+                    else causal.get("reference_assessments")
+                    if isinstance(causal.get("reference_assessments"), list)
+                    else []
+                )
+                assessments_by_source = {
+                    str(item.get("source_id") or ""): item
+                    for item in reference_assessments
+                    if isinstance(item, dict) and item.get("source_id")
+                }
+                program_context = causal.get("program_context") if isinstance(causal.get("program_context"), dict) else {}
                 memory = causal.get("outcome_memory") if isinstance(causal.get("outcome_memory"), dict) else {}
                 observation_key = "|".join((
                     "vlm_critic", str(program_slug), str(source_seed), program_hash,
@@ -455,6 +470,9 @@ class GeometryOutcomeGraph:
                     "critic_model": str(record.get("critic_model") or ""),
                     "critic_response_id": response_id,
                     "critic_score": float(record.get("critic_score") or 0.0),
+                    "program_fit_hard_pass": bool(record.get("program_fit_hard_pass", True)),
+                    "program_appropriateness": float(record.get("program_appropriateness") or 0.0),
+                    "section_program_fit": float(record.get("section_program_fit") or 0.0),
                     "critic_actions": [str(item) for item in record.get("critic_actions") or ()],
                     "geometry_edits": deepcopy(record.get("geometry_edits") or []),
                     "mutation_status": str(record.get("mutation_status") or ""),
@@ -466,6 +484,8 @@ class GeometryOutcomeGraph:
                         for item in references if isinstance(item, dict)
                     ],
                     "memory_observation_count": int(memory.get("observation_count") or 0),
+                    "program_context": deepcopy(program_context),
+                    "reference_assessments": deepcopy(reference_assessments),
                 }
                 self._upsert_observation(observation)
                 program_node = self._upsert_node("geometry_program", program_hash, {
@@ -476,9 +496,18 @@ class GeometryOutcomeGraph:
                     "model": observation["critic_model"],
                     "score": observation["critic_score"],
                     "actions": observation["critic_actions"],
+                    "program_fit_hard_pass": observation["program_fit_hard_pass"],
+                    "program_appropriateness": observation["program_appropriateness"],
+                    "section_program_fit": observation["section_program_fit"],
+                })
+                program_identity = str(program_context.get("program_id") or program_slug)
+                program_node_context = self._upsert_node("program_contract", program_identity, {
+                    "design_intent": str(program_context.get("design_intent") or ""),
+                    "semantic_invariants": deepcopy(program_context.get("semantic_invariants") or []),
                 })
                 outcome_node = self._upsert_node("outcome", observation_id, observation)
                 self._upsert_edge(program_node, critic_node, "reviewed_by")
+                self._upsert_edge(program_node_context, critic_node, "constrains_review")
                 self._upsert_edge(critic_node, outcome_node, "proposed_typed_edit")
                 if observation["child_program_hash"]:
                     child_node = self._upsert_node("geometry_program", observation["child_program_hash"], {
@@ -496,8 +525,15 @@ class GeometryOutcomeGraph:
                         "title": str(item.get("title") or ""),
                         "selection_role": str(item.get("selection_role") or ""),
                         "matched_tags": list(item.get("matched_tags") or ()),
+                        "program_id": str(item.get("program_id") or ""),
+                        "program_match_tier": str(item.get("program_match_tier") or ""),
+                        "program_matched_terms": list(item.get("program_matched_terms") or ()),
+                        "reference_collection": str(item.get("reference_collection") or ""),
+                        "program_relevance_score": float(item.get("program_relevance_score") or 0.0),
+                        "vlm_assessment": deepcopy(assessments_by_source.get(identity) or {}),
                     })
                     self._upsert_edge(reference_node, critic_node, "informed")
+                    self._upsert_edge(reference_node, program_node_context, "evidence_for_program")
 
     def save(self) -> dict[str, Any]:
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -522,6 +558,8 @@ class GeometryOutcomeGraph:
                 "editable_node_kinds": ["geometry_program", "geometry_genotype"],
                 "outcome_is_observation_only": True,
                 "agent_query": "retrieve successful genotype neighborhood before proposing bounded mutations",
+                "causal_read_order": "reference -> program_contract -> vlm_critic -> typed_edit -> child_geometry_program -> hard_gate_outcome",
+                "context_nodes_are_not_geometry_edit_targets": True,
             },
         }
 

@@ -53,6 +53,7 @@ OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
         "puncture",
         "cut_corner",
         "stepped_mass",
+        "profiled_hall",
     }),
 }
 

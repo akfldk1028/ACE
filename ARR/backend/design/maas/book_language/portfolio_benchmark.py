@@ -43,6 +43,7 @@ from design.maas.program_massing import (
     book_sentence_variants,
     compose_program_with_book_operations,
     mutate_program_section_sequence,
+    program_reference_contract,
     program_seed_sequences,
 )
 from design.maas.program_massing.assembly import program_component_chassis
@@ -122,7 +123,10 @@ def _seed_family(candidate: _Candidate) -> str:
 def _section_family(candidate: _Candidate) -> str:
     geometry_family = _geometry_program_family(candidate)
     if geometry_family:
-        return f"recursive:{_solid_morphology_metrics(candidate)['phenotype']}"
+        morphology = _solid_morphology_metrics(candidate)
+        if morphology.get("profiled_section_family"):
+            return f"recursive_section:{morphology['profiled_section_family']}"
+        return f"recursive:{morphology['phenotype']}"
     evidence = candidate.source.metadata.get("program_section_graph_evidence") or {}
     nodes = evidence.get("materialized_nodes") if isinstance(evidence, dict) else ()
     operators = tuple(
@@ -142,7 +146,10 @@ def _roof_archetype(candidate: _Candidate) -> str:
     """Collapse decorative graph variants into their visible roof genotype."""
     geometry_family = _geometry_program_family(candidate)
     if geometry_family:
-        return f"recursive:{_solid_morphology_metrics(candidate)['phenotype']}"
+        morphology = _solid_morphology_metrics(candidate)
+        if morphology.get("profiled_section_family"):
+            return f"recursive_roof:{morphology['profiled_section_family']}"
+        return f"recursive:{morphology['phenotype']}"
     evidence = candidate.source.metadata.get("program_section_graph_evidence") or {}
     operators = set(evidence.get("graph_operators") or ()) if isinstance(evidence, dict) else set()
     for operator, archetype in (
@@ -182,9 +189,23 @@ def _geometry_program_family(candidate: _Candidate) -> str:
     )
 
 
-def _solid_morphology_metrics(candidate: _Candidate) -> dict[str, Any]:
+def _geometry_program_metadata(candidate: _Candidate) -> dict[str, Any]:
+    program = candidate.source.metadata.get("geometry_program") or {}
+    metadata = program.get("metadata") if isinstance(program, dict) else {}
+    return metadata if isinstance(metadata, dict) else {}
+
+
+def _vlm_reviewed_program_candidate(candidate: _Candidate) -> bool:
+    metadata = _geometry_program_metadata(candidate)
+    return bool(
+        metadata.get("vlm_geometry_critic_active")
+        and metadata.get("vlm_program_fit_hard_pass")
+    )
+
+
+def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
     """Measure the rendered recursive mesh, not its family label."""
-    source = candidate.source
+    source = candidate.source if hasattr(candidate, "source") else candidate
     cached = source.metadata.get("measured_solid_morphology")
     if isinstance(cached, dict):
         return cached
@@ -243,6 +264,17 @@ def _solid_morphology_metrics(candidate: _Candidate) -> dict[str, Any]:
         if source.upper_footprint is not None and not source.upper_footprint.is_empty
         else 1.0
     )
+    oriented_plan_aspect = _oriented_aspect(footprint) if not footprint.is_empty else 1.0
+    profiled_section_family = next((
+        str((node.get("parameters") or {}).get("section_family") or "")
+        for node in (nodes or ())
+        if isinstance(node, dict) and node.get("operator") == "profiled_hall"
+    ), "")
+    measured_profiled_hall = bool(
+        profiled_section_family
+        and oriented_plan_aspect >= 1.45
+        and component_count == 1
+    )
     horizontal_level_count = len(horizontal_levels)
     wedge_like, pyramidal_like = _section_silhouette_flags(
         sloped_surface_ratio=sloped_ratio,
@@ -250,6 +282,44 @@ def _solid_morphology_metrics(candidate: _Candidate) -> dict[str, Any]:
         horizontal_level_count=horizontal_level_count,
         vertical_surface_ratio=vertical_area / denominator,
     )
+    collapsed_profiled_tent_like = bool(
+        measured_profiled_hall
+        and (
+            (
+                upper_area_ratio <= 0.14
+                and horizontal_ratio >= 0.90
+                and vertical_area / denominator <= 0.03
+                and horizontal_level_count >= 6
+            )
+            or (
+                # A second failure mode is a shallow stack of sloped/horizontal
+                # caps whose upper occupied plate almost disappears. It reads
+                # as a tent even though the roof profile node itself is valid.
+                upper_area_ratio <= 0.20
+                and horizontal_ratio >= 0.84
+                and sloped_ratio <= 0.17
+                and vertical_area / denominator <= 0.03
+                and horizontal_level_count >= 10
+            )
+            or (
+                # A broader low-vertical barrel/canopy can keep more upper
+                # plan area yet still collapse the occupied hall enclosure
+                # into one triangular tent silhouette.
+                upper_area_ratio <= 0.35
+                and horizontal_ratio >= 0.80
+                and sloped_ratio <= 0.20
+                and vertical_area / denominator <= 0.03
+                and horizontal_level_count >= 12
+            )
+        )
+    )
+    if measured_profiled_hall:
+        # A measured elongated hall with an executable transverse section is
+        # not automatically a compact pyramid merely because its ridge
+        # reduces upper plan area.  The exception must not hide a collapsed
+        # terrace/tent whose upper enclosure has nearly disappeared.
+        pyramidal_like = collapsed_profiled_tent_like
+        wedge_like = profiled_section_family == "shed"
     degenerate_sheet_like = bool(
         (
             upper_area_ratio < 0.06
@@ -277,7 +347,7 @@ def _solid_morphology_metrics(candidate: _Candidate) -> dict[str, Any]:
         and (sloped_ratio >= 0.025 or normal_bin_count >= 14)
     )
     measured_step = (
-        horizontal_level_count >= 4
+        (not measured_profiled_hall and horizontal_level_count >= 4)
         or (stepped_intent and horizontal_level_count >= 3 and normal_bin_count >= 8)
     )
     measured_prism = (
@@ -299,13 +369,23 @@ def _solid_morphology_metrics(candidate: _Candidate) -> dict[str, Any]:
         section_graph_evidence.get("graph_operators") or ()
     ) if isinstance(section_graph_evidence, dict) else set()
     section_graph_phenotype = _program_section_phenotype(section_graph_operators)
-    if triangle_count == 0 and section_graph_phenotype:
-        # Legacy/program-role solids do not carry recursive-mesh surface tags,
-        # but their executable typed section graph still changes the rendered
-        # roof.  Treating every one as a prism hid gable/folded/barrel/sawtooth
-        # repetition and made the phenotype cap meaningless.
-        phenotype = section_graph_phenotype
-    elif measured_void:
+    section_phenotype = (
+        {
+            "barrel": "curved",
+            "sawtooth": "stepped",
+            "stepped": "stepped",
+            "ridge": "oblique",
+            "shed": "oblique",
+            "folded": "oblique",
+        }.get(profiled_section_family, "oblique")
+        if measured_profiled_hall
+        else section_graph_phenotype
+    )
+    # Roof/section language is already measured independently.  Do not let a
+    # barrel or sawtooth terminal node erase the body's courtyard, wing,
+    # curve, lift or oblique mutation.  Portfolio diversity must compare both
+    # axes instead of counting the roof twice.
+    if measured_void:
         phenotype = "voided"
     elif measured_wing:
         phenotype = "winged"
@@ -315,6 +395,12 @@ def _solid_morphology_metrics(candidate: _Candidate) -> dict[str, Any]:
         phenotype = "curved"
     elif measured_step:
         phenotype = "stepped"
+    elif triangle_count == 0 and section_graph_phenotype:
+        # Legacy/program-role solids do not carry recursive-mesh surface tags,
+        # but their executable typed section graph still changes the rendered
+        # roof.  Treating every one as a prism hid gable/folded/barrel/sawtooth
+        # repetition and made the phenotype cap meaningless.
+        phenotype = section_graph_phenotype
     elif sloped_ratio >= 0.24:
         phenotype = "oblique"
     elif measured_prism:
@@ -331,6 +417,9 @@ def _solid_morphology_metrics(candidate: _Candidate) -> dict[str, Any]:
         "phenotype": phenotype,
         "wedge_like": wedge_like,
         "pyramidal_like": pyramidal_like,
+        "collapsed_profiled_tent_like": collapsed_profiled_tent_like,
+        "body_phenotype": phenotype,
+        "section_phenotype": section_phenotype or "none",
         "degenerate_sheet_like": degenerate_sheet_like,
         "horizontal_surface_ratio": round(horizontal_ratio, 4),
         "vertical_surface_ratio": round(vertical_area / denominator, 4),
@@ -341,6 +430,9 @@ def _solid_morphology_metrics(candidate: _Candidate) -> dict[str, Any]:
         "upper_area_ratio": round(upper_area_ratio, 4),
         "genus": genus,
         "component_count": component_count,
+        "oriented_plan_aspect_ratio": round(oriented_plan_aspect, 4),
+        "profiled_section_family": profiled_section_family,
+        "measured_profiled_hall": measured_profiled_hall,
         "recursive_triangle_count": triangle_count,
         "measurement_authority": (
             "profiled_recursive_solid_mesh"
@@ -378,6 +470,60 @@ def _section_silhouette_flags(
         )
     )
     return wedge_like, pyramidal_like
+
+
+def _program_form_gate(source: Any, building_type: str) -> dict[str, Any]:
+    """Reject measured forms that erase a program's dominant spatial relation.
+
+    This is deliberately relation-based rather than a named-form template.
+    A gym may be rectilinear, curved, gabled, folded, sawtoothed, or stepped,
+    but its dominant mass must still enclose a usable long-span hall.  A stack
+    of horizontal plates with virtually no vertical enclosure cannot satisfy
+    that invariant even when its metadata calls it a hall.
+    """
+    metrics = _solid_morphology_metrics(source)
+    program_key = str(building_type or "").strip().lower()
+    failures: list[str] = []
+    evidence: dict[str, Any] = {
+        "program": program_key,
+        "measured_morphology": metrics,
+        "rule": "program invariant retained by compiled solid",
+    }
+    if "gym" in program_key or "체육" in program_key:
+        level_count = int(metrics.get("horizontal_level_count") or 0)
+        horizontal_ratio = float(metrics.get("horizontal_surface_ratio") or 0.0)
+        vertical_ratio = float(metrics.get("vertical_surface_ratio") or 0.0)
+        sloped_ratio = float(metrics.get("sloped_surface_ratio") or 0.0)
+        cake_tier_without_hall_enclosure = bool(
+            level_count >= 8
+            and horizontal_ratio >= 0.78
+            and vertical_ratio <= 0.04
+        )
+        sloped_cascade_without_hall_enclosure = bool(
+            level_count >= 4
+            and horizontal_ratio >= 0.55
+            and sloped_ratio >= 0.28
+            and vertical_ratio <= 0.04
+        )
+        cascade_without_hall_enclosure = bool(
+            cake_tier_without_hall_enclosure
+            or sloped_cascade_without_hall_enclosure
+        )
+        evidence["required_relation"] = "dominant clear-span hall with vertical enclosure and legible roof/section"
+        evidence["cake_tier_without_hall_enclosure"] = cake_tier_without_hall_enclosure
+        evidence["sloped_cascade_without_hall_enclosure"] = sloped_cascade_without_hall_enclosure
+        evidence["cascade_without_hall_enclosure"] = cascade_without_hall_enclosure
+        measured_profiled_hall = bool(metrics.get("measured_profiled_hall"))
+        evidence["measured_profiled_hall"] = measured_profiled_hall
+        if bool(metrics.get("pyramidal_like")) or (
+            not measured_profiled_hall and cascade_without_hall_enclosure
+        ):
+            failures.append("gym_dominant_hall_erased_by_cascade_or_pyramid")
+    return {
+        **evidence,
+        "hard_pass": not failures,
+        "failures": failures,
+    }
 
 
 def _program_section_phenotype(operators: set[str]) -> str:
@@ -720,6 +866,7 @@ def _agent_mutated_seeds(
                 vlm_status = "inactive_missing_rotated_environment_key"
             else:
                 try:
+                    reference_contract = program_reference_contract(building_type)
                     reference_matches = [
                         item for item in (request.get("reference_matches") or ())
                         if isinstance(item, dict)
@@ -748,6 +895,8 @@ def _agent_mutated_seeds(
                                 if outcome_graph is not None
                                 else {}
                             ),
+                            building_type=building_type,
+                            program_context=reference_contract,
                             model=str(request.get("vlm_model") or "") or None,
                         ),
                         max_generations=max(1, min(3, int(request.get("vlm_generations") or 2))),
@@ -772,6 +921,18 @@ def _agent_mutated_seeds(
                                 "vlm_unique_geometry_count": int(loop.trace.get("unique_geometry_count") or 0),
                                 "vlm_model": str(candidate.critic_payload.get("model") or ""),
                                 "vlm_response_id": str(candidate.critic_payload.get("response_id") or ""),
+                                "vlm_program_fit_hard_pass": bool(
+                                    candidate.critic_payload.get("program_fit_hard_pass", True)
+                                ),
+                                "vlm_program_appropriateness": float(
+                                    (candidate.critic_payload.get("concept_scores") or {}).get("program_appropriateness") or 0.0
+                                ),
+                                "vlm_section_program_fit": float(
+                                    (candidate.critic_payload.get("concept_scores") or {}).get("section_program_fit") or 0.0
+                                ),
+                                "vlm_reference_assessments": list(
+                                    candidate.critic_payload.get("reference_assessments") or ()
+                                ),
                                 "vlm_reference_count": len(
                                     ((candidate.critic_payload.get("maas_causal_context") or {}).get("reference_matches") or ())
                                 ),
@@ -780,6 +941,11 @@ def _agent_mutated_seeds(
                                 ),
                             },
                         ) for candidate in loop.archive)
+                    else:
+                        # An all-rejected live lane is evidence of failure,
+                        # not permission to silently restore its unreviewed
+                        # parent programs into the accepted candidate pool.
+                        programs = ()
                     vlm_status = str(loop.trace.get("status") or "completed")
                 except Exception as exc:
                     # The deterministic graph author and hard gates remain
@@ -1135,6 +1301,103 @@ def _select(
     )
 
 
+def _selection_capacity_diagnostics(
+    pool: list[_Candidate],
+    selected: list[_Candidate],
+    *,
+    target: int,
+    visual_directive: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Explain why a hard-pass pool cannot fill the requested portfolio.
+
+    This is observation only. It never relaxes a diversity cap or changes
+    selection; it exposes whether supply is lost to exact equivalence,
+    silhouette resemblance, BOOK repetition, genotype, roof or chassis caps.
+    """
+    unique: dict[tuple[Any, ...], _Candidate] = {}
+    for candidate in pool:
+        fingerprint = _fingerprint(candidate)
+        current = unique.get(fingerprint)
+        if current is None or candidate.score > current.score:
+            unique[fingerprint] = candidate
+    universe = list(unique.values())
+    selected_ids = {id(candidate) for candidate in selected}
+    remaining = [candidate for candidate in universe if id(candidate) not in selected_ids]
+    directive = visual_directive or {}
+    seed_families = {_seed_family(candidate) for candidate in universe}
+    roof_archetypes = {_roof_archetype(candidate) for candidate in universe}
+    chassis_families = {_chassis_family(candidate) for candidate in universe}
+    seed_cap = max(2, (target + max(1, len(seed_families)) - 1) // max(1, len(seed_families)) + 1)
+    section_cap = max(3, target // 2)
+    default_roof_cap = target if len(roof_archetypes) <= 1 else max(4, target // 4)
+    roof_caps = {archetype: default_roof_cap for archetype in roof_archetypes}
+    for archetype, cap in (directive.get("max_roof_archetype_counts") or {}).items():
+        if str(archetype) in roof_caps:
+            roof_caps[str(archetype)] = max(1, min(target, int(cap)))
+    chassis_cap = max(1, min(
+        target,
+        int(directive.get("max_chassis_family_count") or (
+            target if len(chassis_families) <= 1 else max(4, target // max(1, len(chassis_families)) + 2)
+        )),
+    ))
+    operation_usage = Counter(candidate.operation for candidate in selected)
+    seed_usage = Counter(_seed_family(candidate) for candidate in selected)
+    section_usage = Counter(_section_family(candidate) for candidate in selected)
+    roof_usage = Counter(_roof_archetype(candidate) for candidate in selected)
+    chassis_usage = Counter(_chassis_family(candidate) for candidate in selected)
+    reason_counts: Counter[str] = Counter()
+    exclusive_counts: Counter[str] = Counter()
+    signature_counts: Counter[str] = Counter()
+    minimum_distances: list[float] = []
+    for candidate in remaining:
+        distances = [_silhouette_distance(candidate, other) for other in selected]
+        minimum_distance = min(distances, default=1.0)
+        minimum_distances.append(minimum_distance)
+        reasons: list[str] = []
+        if operation_usage[candidate.operation] >= 3:
+            reasons.append("book_operation_cap")
+        if seed_usage[_seed_family(candidate)] >= seed_cap:
+            reasons.append("genotype_cap")
+        if section_usage[_section_family(candidate)] >= section_cap:
+            reasons.append("section_family_cap")
+        if roof_usage[_roof_archetype(candidate)] >= roof_caps.get(_roof_archetype(candidate), target):
+            reasons.append("roof_archetype_cap")
+        if chassis_usage[_chassis_family(candidate)] >= chassis_cap:
+            reasons.append("chassis_family_cap")
+        if minimum_distance < 0.10:
+            reasons.append("silhouette_near_duplicate")
+        for reason in reasons:
+            reason_counts[reason] += 1
+        if len(reasons) == 1:
+            exclusive_counts[reasons[0]] += 1
+        signature_counts["+".join(sorted(reasons)) or "eligible"] += 1
+    return {
+        "schema_version": "arr.maas.selection_capacity_diagnostics.v1",
+        "raw_pool_count": len(pool),
+        "unique_fingerprint_count": len(universe),
+        "exact_fingerprint_collapsed_count": len(pool) - len(universe),
+        "selected_count": len(selected),
+        "target_count": target,
+        "remaining_candidate_count": len(remaining),
+        "reason_counts": dict(sorted(reason_counts.items())),
+        "exclusive_reason_counts": dict(sorted(exclusive_counts.items())),
+        "failure_signature_counts": dict(sorted(signature_counts.items())),
+        "minimum_silhouette_distance_summary": {
+            "minimum": round(min(minimum_distances, default=1.0), 4),
+            "mean": round(sum(minimum_distances) / max(1, len(minimum_distances)), 4),
+            "maximum": round(max(minimum_distances, default=1.0), 4),
+        },
+        "caps": {
+            "book_operation": 3,
+            "genotype": seed_cap,
+            "section_family": section_cap,
+            "roof_archetype_default": default_roof_cap,
+            "chassis_family": chassis_cap,
+            "silhouette_distance_minimum": 0.10,
+        },
+    }
+
+
 def _rebalance_measured_morphologies(
     selected: list[_Candidate],
     universe: list[_Candidate],
@@ -1401,7 +1664,7 @@ def _program_pool(
         }
         for label, _fraction in BASE_VOLUME_FRACTIONS
     }
-    gate_names = ("role_coverage", "dominant_ratio", "site_coverage", "hierarchy", "coherence")
+    gate_names = ("role_coverage", "dominant_ratio", "site_coverage", "hierarchy", "coherence", "program_form")
     gate_diagnostics = {label: _empty_gate_diagnostic() for label, _fraction in BASE_VOLUME_FRACTIONS}
     geometry_gate_diagnostics: dict[str, dict[str, Any]] = {}
     requested_parent_indices = tuple(sorted({max(0, int(index)) for index in parent_variant_indices})) or (0,)
@@ -1662,18 +1925,22 @@ def _program_pool(
                 )
                 program = attach_program_massing_evidence(feature, building_type=building_type)
                 spatial = feature["properties"]["program_spatial_evidence"]
+                program_form_gate = _program_form_gate(source, building_type)
+                feature["properties"]["program_form_gate"] = program_form_gate
                 gate_pass = {
                     "role_coverage": bool(all(spatial.get("required_role_hits") or ())),
                     "dominant_ratio": float(spatial.get("dominant_ratio_score") or 0.0) >= 0.55,
                     "site_coverage": float(spatial.get("site_coverage_score") or 0.0) >= 0.55,
                     "hierarchy": float(spatial.get("hierarchy_score") or 0.0) >= 0.50,
                     "coherence": bool((feature["properties"].get("source_signature", {}).get("coherence_evidence") or {}).get("hard_pass", False)),
+                    "program_form": bool(program_form_gate["hard_pass"]),
                 }
                 failed_gates = tuple(name for name in gate_names if not gate_pass[name])
+                combined_program_hard_pass = bool(program["hard_pass"]) and bool(program_form_gate["hard_pass"])
                 _record_gate_diagnostic(
                     gate_diagnostics[base_volume_label],
                     spatial=spatial,
-                    hard_pass=bool(program["hard_pass"]),
+                    hard_pass=combined_program_hard_pass,
                     failed_gates=failed_gates,
                 )
                 geometry_family = str(source.metadata.get("family") or "") if source.metadata.get("geometry_program_bridge_evidence") else ""
@@ -1681,7 +1948,7 @@ def _program_pool(
                     _record_gate_diagnostic(
                         geometry_gate_diagnostics.setdefault(geometry_family, _empty_gate_diagnostic()),
                         spatial=spatial,
-                        hard_pass=bool(program["hard_pass"]),
+                        hard_pass=combined_program_hard_pass,
                         failed_gates=failed_gates,
                     )
                     if outcome_graph is not None:
@@ -1696,7 +1963,7 @@ def _program_pool(
                             spatial=spatial,
                             failed_gates=failed_gates,
                         )
-                if not program["hard_pass"]:
+                if not combined_program_hard_pass:
                     continue
                 program_passed += 1
                 scope_counts["program_passed"] += 1
@@ -1804,7 +2071,7 @@ def _recursive_principle_schedule(
 
 
 def _empty_gate_diagnostic() -> dict[str, Any]:
-    gate_names = ("role_coverage", "dominant_ratio", "site_coverage", "hierarchy", "coherence")
+    gate_names = ("role_coverage", "dominant_ratio", "site_coverage", "hierarchy", "coherence", "program_form")
     return {
         "candidate_count": 0,
         "hard_pass_count": 0,
@@ -1864,7 +2131,7 @@ def _summarize_gate_diagnostic(diagnostic: dict[str, Any]) -> dict[str, Any]:
 
 
 def _merge_gate_diagnostics(by_scope: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    gate_names = ("role_coverage", "dominant_ratio", "site_coverage", "hierarchy", "coherence")
+    gate_names = ("role_coverage", "dominant_ratio", "site_coverage", "hierarchy", "coherence", "program_form")
     total = {
         "candidate_count": sum(item["candidate_count"] for item in by_scope.values()),
         "hard_pass_count": sum(item["hard_pass_count"] for item in by_scope.values()),
@@ -1923,8 +2190,11 @@ def _candidate_language_descriptor(candidate: _Candidate) -> dict[str, Any]:
         "chassis_family": _chassis_family(candidate),
         "geometry_program_family": _geometry_program_family(candidate) or "none",
         "solid_phenotype": morphology["phenotype"],
+        "body_phenotype": morphology.get("body_phenotype") or morphology["phenotype"],
+        "section_phenotype": morphology.get("section_phenotype") or "none",
         "wedge_like": morphology["wedge_like"],
         "pyramidal_like": morphology["pyramidal_like"],
+        "collapsed_profiled_tent_like": bool(morphology.get("collapsed_profiled_tent_like")),
         "degenerate_sheet_like": morphology["degenerate_sheet_like"],
         "horizontal_surface_ratio": morphology["horizontal_surface_ratio"],
         "vertical_surface_ratio": morphology["vertical_surface_ratio"],
@@ -1959,6 +2229,7 @@ def _portfolio_language_metrics(selected: list[_Candidate]) -> dict[str, Any]:
         if item["geometry_program_family"] != "none"
     )
     phenotype_counts = Counter(item["solid_phenotype"] for item in descriptors)
+    section_phenotype_counts = Counter(item["section_phenotype"] for item in descriptors)
     wedge_like_count = sum(bool(item["wedge_like"]) for item in descriptors)
     pyramidal_like_count = sum(bool(item["pyramidal_like"]) for item in descriptors)
     plan_counts = Counter(item["plan_family"] for item in descriptors)
@@ -1994,6 +2265,11 @@ def _portfolio_language_metrics(selected: list[_Candidate]) -> dict[str, Any]:
         "solid_phenotype_counts": dict(sorted(phenotype_counts.items())),
         "solid_phenotype_count": len(phenotype_counts),
         "dominant_solid_phenotype_share": round(max(phenotype_counts.values(), default=0) / total, 4),
+        "section_phenotype_counts": dict(sorted(section_phenotype_counts.items())),
+        "section_phenotype_count": len(section_phenotype_counts),
+        "collapsed_profiled_tent_like_count": sum(
+            bool(item["collapsed_profiled_tent_like"]) for item in descriptors
+        ),
         "wedge_like_count": wedge_like_count,
         "wedge_like_share": round(wedge_like_count / total, 4),
         "pyramidal_like_count": pyramidal_like_count,
@@ -2198,6 +2474,9 @@ def run_book_program_portfolios(
                     **dict(request),
                     "live_vlm_revision": bool(request.get("live_vlm_revision", live_requested)),
                     "reference_matches": reference_matches,
+                    "required_body_phenotypes": list(
+                        program_visual_directive.get("required_solid_phenotypes") or ()
+                    ),
                 }
                 for request in synthesis_requests
                 if isinstance(request, dict)
@@ -2249,6 +2528,22 @@ def run_book_program_portfolios(
                 if row["combined_hard_pass"]
             ]
         counts["preselection_hard_gate"] = _hard_gate_count_summary(preselection_hard_gate, pool)
+        live_vlm_selection_required = bool(
+            program_visual_directive.get("live_geometry_vlm_revision")
+            and program_visual_directive.get("geometry_synthesis_requests")
+        )
+        pre_vlm_selection_count = len(selection_pool)
+        if live_vlm_selection_required:
+            selection_pool = [
+                candidate for candidate in selection_pool
+                if _vlm_reviewed_program_candidate(candidate)
+            ]
+        counts["vlm_final_selection_gate"] = {
+            "required": live_vlm_selection_required,
+            "input_count": pre_vlm_selection_count,
+            "reviewed_program_fit_pass_count": len(selection_pool),
+            "unreviewed_or_program_rejected_count": pre_vlm_selection_count - len(selection_pool),
+        }
         degenerate_sheet_count = sum(
             bool(_solid_morphology_metrics(candidate)["degenerate_sheet_like"])
             for candidate in selection_pool
@@ -2324,6 +2619,11 @@ def run_book_program_portfolios(
                     for candidate, row in zip(replenishment_pool, replenishment_hard_gate["rows"])
                     if row["combined_hard_pass"]
                 ]
+            if live_vlm_selection_required:
+                replenishment_selection_pool = [
+                    candidate for candidate in replenishment_selection_pool
+                    if _vlm_reviewed_program_candidate(candidate)
+                ]
             replenishment_degenerate_count = sum(
                 bool(_solid_morphology_metrics(candidate)["degenerate_sheet_like"])
                 for candidate in replenishment_selection_pool
@@ -2360,6 +2660,12 @@ def run_book_program_portfolios(
                 selected=selected,
             )
         counts["final_hard_pass_selection_pool_count"] = len(selection_pool)
+        counts["selection_capacity_diagnostics"] = _selection_capacity_diagnostics(
+            selection_pool,
+            selected,
+            target=20,
+            visual_directive=program_visual_directive,
+        )
         selected_by_program[slug] = selected
         language_metrics = _portfolio_language_metrics(selected)
         metrics_by_program[slug] = language_metrics
@@ -2417,13 +2723,25 @@ def run_book_program_portfolios(
                     candidate.source.metadata.get("legal_generation_context_evidence") or {}
                 ),
                 "program_hard_pass": bool(props["program_massing_evidence"]["hard_pass"]),
+                "vlm_geometry_critic_active": bool(
+                    _geometry_program_metadata(candidate).get("vlm_geometry_critic_active")
+                ),
+                "vlm_program_fit_hard_pass": bool(
+                    _geometry_program_metadata(candidate).get("vlm_program_fit_hard_pass")
+                ),
+                "vlm_critic_score": _geometry_program_metadata(candidate).get("vlm_critic_score"),
+                "vlm_program_appropriateness": _geometry_program_metadata(candidate).get("vlm_program_appropriateness"),
+                "vlm_section_program_fit": _geometry_program_metadata(candidate).get("vlm_section_program_fit"),
                 "seed_family": descriptor["seed_family"],
                 "roof_section_family": descriptor["section_family"],
                 "roof_archetype": descriptor["roof_archetype"],
                 "chassis_family": descriptor["chassis_family"],
                 "solid_phenotype": descriptor["solid_phenotype"],
+                "body_phenotype": descriptor["body_phenotype"],
+                "section_phenotype": descriptor["section_phenotype"],
                 "wedge_like": descriptor["wedge_like"],
                 "pyramidal_like": descriptor["pyramidal_like"],
+                "collapsed_profiled_tent_like": descriptor["collapsed_profiled_tent_like"],
                 "degenerate_sheet_like": descriptor["degenerate_sheet_like"],
                 "horizontal_surface_ratio": descriptor["horizontal_surface_ratio"],
                 "vertical_surface_ratio": descriptor["vertical_surface_ratio"],

@@ -582,15 +582,33 @@ def _preferred_archdaily_image(row: dict[str, Any]) -> str:
     return ""
 
 
-def match_reference_context(feature: dict[str, Any], references: Iterable[ReferenceItem], *, limit: int = 5) -> list[dict[str, Any]]:
+def match_reference_context(
+    feature: dict[str, Any],
+    references: Iterable[ReferenceItem],
+    *,
+    limit: int = 5,
+    program_contract: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     tags = _feature_tags(feature)
     reference_items = list(references)
+    program_evidence: dict[tuple[str, str], dict[str, Any]] = {}
+    if isinstance(program_contract, dict) and str(program_contract.get("program_id") or "generic") != "generic":
+        eligible_items: list[ReferenceItem] = []
+        for item in reference_items:
+            evidence = _program_reference_evidence(item, program_contract)
+            if not evidence["hard_match"]:
+                continue
+            key = (item.source, item.source_id or item.title)
+            program_evidence[key] = evidence
+            eligible_items.append(item)
+        reference_items = eligible_items
     scored: list[tuple[int, ReferenceItem]] = []
     for item in reference_items:
         haystack = _clean_tags(item.tags)
         haystack.update(_infer_tags(f"{item.title} {item.caption}"))
         haystack.update(_precedent_hint_tags(item))
-        score = len(tags & haystack)
+        evidence = program_evidence.get((item.source, item.source_id or item.title), {})
+        score = len(tags & haystack) + int(evidence.get("score") or 0)
         if score > 0:
             scored.append((score, item))
     scored.sort(key=lambda pair: (-pair[0], pair[1].source, pair[1].title))
@@ -600,8 +618,10 @@ def match_reference_context(feature: dict[str, Any], references: Iterable[Refere
         feature_tags=tags,
         limit=limit,
     )
-    return [
-        {
+    result = []
+    for score, item, selection_role in selected:
+        evidence = program_evidence.get((item.source, item.source_id or item.title), {})
+        result.append({
             "source": item.source,
             "source_id": item.source_id,
             "title": item.title,
@@ -611,9 +631,60 @@ def match_reference_context(feature: dict[str, Any], references: Iterable[Refere
             "matched_tags": sorted(tags & (_clean_tags(item.tags) | _infer_tags(f"{item.title} {item.caption}") | _precedent_hint_tags(item))),
             "score": score,
             "selection_role": selection_role,
-        }
-        for score, item, selection_role in selected
+            "program_id": str((program_contract or {}).get("program_id") or "generic"),
+            "program_match_tier": str(evidence.get("tier") or "unconditioned"),
+            "program_matched_terms": list(evidence.get("matched_terms") or ()),
+            "reference_collection": str(evidence.get("collection") or ""),
+            "program_relevance_score": int(evidence.get("score") or 0),
+        })
+    return result
+
+
+def _program_reference_evidence(item: ReferenceItem, contract: dict[str, Any]) -> dict[str, Any]:
+    """Measure program relevance without treating a precedent as a template."""
+    path_text = " ".join((item.local_path, item.page_url)).replace("\\", "/").lower()
+    preferred_collections = [
+        str(value).strip().lower()
+        for value in contract.get("preferred_collections") or ()
+        if str(value).strip()
     ]
+    collection = next(
+        (value for value in preferred_collections if f"/{value}/" in f"/{path_text}/"),
+        "",
+    )
+    normalized = re.sub(
+        r"[^a-z0-9_ -]+",
+        " ",
+        " ".join((item.title, item.caption, " ".join(item.tags), path_text)).lower(),
+    )
+    normalized = " ".join(normalized.replace("_", " ").replace("-", " ").split())
+
+    def matches(term: str) -> bool:
+        needle = " ".join(str(term).lower().replace("_", " ").replace("-", " ").split())
+        if not needle:
+            return False
+        if " " in needle:
+            return needle in normalized
+        return bool(re.search(rf"(?<![a-z0-9]){re.escape(needle)}(?![a-z0-9])", normalized))
+
+    required = sorted({
+        str(term).lower()
+        for term in contract.get("required_any_terms") or ()
+        if matches(str(term))
+    })
+    supporting = sorted({
+        str(term).lower()
+        for term in contract.get("supporting_terms") or ()
+        if matches(str(term))
+    })
+    hard_match = bool(collection or required)
+    return {
+        "hard_match": hard_match,
+        "tier": "preferred_collection" if collection else ("semantic_program_match" if required else "mismatch"),
+        "collection": collection,
+        "matched_terms": [*required, *supporting],
+        "score": (6 if collection else 0) + len(required) * 3 + len(supporting),
+    }
 
 
 def _select_diverse_references(

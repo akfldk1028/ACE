@@ -116,15 +116,34 @@ def run_geometry_program_a2a_loop(
                     payload = {}
                 score = _critic_score(payload)
                 candidate = GeometryLoopCandidate(program, compilation, generation, score, payload, str(preview))
-                incumbent = archive_by_geometry.get(compilation.geometry_hash)
-                if incumbent is None or candidate.critic_score > incumbent.critic_score:
-                    archive_by_geometry[compilation.geometry_hash] = candidate
+                # A VLM-rejected form is still useful as a causal parent for a
+                # typed repair, but it must never enter the accepted archive.
+                # Injected deterministic critics predate this contract, so an
+                # absent field remains backward-compatible; the live scorer
+                # always returns the explicit boolean.
+                program_fit_hard_pass = bool(payload.get("program_fit_hard_pass", True))
+                if program_fit_hard_pass:
+                    incumbent = archive_by_geometry.get(compilation.geometry_hash)
+                    if incumbent is None or candidate.critic_score > incumbent.critic_score:
+                        archive_by_geometry[compilation.geometry_hash] = candidate
                 raw_edits = payload.get("geometry_edits") or []
                 edits = tuple(GeometryEdit.from_dict(item) for item in raw_edits if isinstance(item, dict))
                 mutation = apply_geometry_edits(program, edits)
                 record.update({
-                    "status": "critic_reviewed",
+                    "status": (
+                        "critic_reviewed"
+                        if program_fit_hard_pass
+                        else "critic_program_fit_rejected"
+                    ),
                     "critic_score": round(score, 6),
+                    "program_fit_hard_pass": program_fit_hard_pass,
+                    "program_appropriateness": float(
+                        (payload.get("concept_scores") or {}).get("program_appropriateness") or 0.0
+                    ),
+                    "section_program_fit": float(
+                        (payload.get("concept_scores") or {}).get("section_program_fit") or 0.0
+                    ),
+                    "reference_assessments": list(payload.get("reference_assessments") or ()),
                     "critic_model": str(payload.get("model") or ""),
                     "critic_response_id": str(payload.get("response_id") or ""),
                     "critic_actions": [str(item) for item in payload.get("critic_actions") or []],
@@ -196,6 +215,8 @@ def _critic_score(payload: dict[str, Any]) -> float:
     score -= 0.12 if "too_box_like" in actions else 0.0
     score -= 0.08 if "weak_form_continuity" in actions else 0.0
     score -= 0.08 if "overlapping_volumes" in actions else 0.0
+    score -= 0.25 if "wrong_program_typology" in actions else 0.0
+    score -= 0.18 if "missing_program_section" in actions else 0.0
     return max(0.0, min(1.0, score))
 
 

@@ -120,6 +120,17 @@ VECTOR_LENGTHS: dict[str, tuple[int, ...]] = {
     "shift_per_level": (3,),
 }
 
+OPERATOR_PARAMETER_CONTRACTS: dict[str, frozenset[str]] = {
+    "courtyard": frozenset({"margin_ratio"}),
+    "carve_void": frozenset({"margin_ratio"}),
+    "profiled_hall": frozenset({"section_family", "span_axis"}),
+}
+
+OPERATOR_PARAMETER_ALIASES: dict[str, dict[str, str]] = {
+    "courtyard": {"void_ratio": "margin_ratio", "court_ratio": "margin_ratio"},
+    "carve_void": {"void_ratio": "margin_ratio", "court_ratio": "margin_ratio"},
+}
+
 
 def apply_geometry_edits(program: GeometryProgram, edits: Iterable[GeometryEdit | dict[str, Any]]) -> MutationResult:
     normalized = tuple(edit if isinstance(edit, GeometryEdit) else GeometryEdit.from_dict(edit) for edit in edits)
@@ -127,6 +138,12 @@ def apply_geometry_edits(program: GeometryProgram, edits: Iterable[GeometryEdit 
         return MutationResult("no_edits", None)
     nodes = list(program.nodes)
     root_id = program.root_id
+    protected_node_ids = {
+        node.id for node in nodes
+        if node.operator == "profiled_hall"
+        or node.semantic_role == "program_section_invariant"
+        or bool((node.provenance or {}).get("program_invariant"))
+    }
     applied: list[GeometryEdit] = []
     issues: list[GeometryIssue] = []
 
@@ -136,18 +153,46 @@ def apply_geometry_edits(program: GeometryProgram, edits: Iterable[GeometryEdit 
             continue
         node_map = {node.id: node for node in nodes}
         target = node_map.get(edit.target_node_id)
+        if target is not None and target.id in protected_node_ids:
+            if edit.operation in {"replace_operator", "remove_node", "rewire_input"}:
+                issues.append(GeometryIssue(
+                    "protected_program_invariant",
+                    "program section invariant cannot be replaced, removed, or rewired",
+                    target.id,
+                ))
+                continue
+            if edit.operation == "set_parameter" and edit.parameter_name not in {"section_family", "span_axis"}:
+                issues.append(GeometryIssue(
+                    "protected_program_invariant_parameter",
+                    "only section_family or span_axis may be edited on a program section invariant",
+                    target.id,
+                ))
+                continue
         if edit.operation == "set_parameter":
             if target is None:
                 issues.append(GeometryIssue("edit_target_missing", "parameter target does not exist", edit.target_node_id))
                 continue
-            value, issue = _parameter_value(edit)
+            parameter_name = OPERATOR_PARAMETER_ALIASES.get(target.operator, {}).get(
+                edit.parameter_name,
+                edit.parameter_name,
+            )
+            allowed_parameters = OPERATOR_PARAMETER_CONTRACTS.get(target.operator)
+            if allowed_parameters is not None and parameter_name not in allowed_parameters:
+                issues.append(GeometryIssue(
+                    "unsupported_operator_parameter",
+                    f"{target.operator} supports {sorted(allowed_parameters)}",
+                    edit.target_node_id,
+                ))
+                continue
+            normalized_edit = replace(edit, parameter_name=parameter_name)
+            value, issue = _parameter_value(normalized_edit)
             if issue is not None:
                 issues.append(issue)
                 continue
             params = json.loads(json.dumps(target.parameters))
-            params[edit.parameter_name] = value
+            params[parameter_name] = value
             nodes[nodes.index(target)] = replace(target, parameters=params)
-            applied.append(edit)
+            applied.append(normalized_edit)
         elif edit.operation == "replace_operator":
             if target is None or edit.operator not in OPERATORS_BY_KIND.get(target.kind, ()):
                 issues.append(GeometryIssue("incompatible_operator", f"{target.kind if target else '?'}:{edit.operator}", edit.target_node_id))
@@ -187,6 +232,16 @@ def apply_geometry_edits(program: GeometryProgram, edits: Iterable[GeometryEdit 
             if candidate not in node_map:
                 issues.append(GeometryIssue("missing_root", "requested root does not exist", candidate))
                 continue
+            if protected_node_ids and not all(
+                _node_depends_on(candidate, protected_id, node_map)
+                for protected_id in protected_node_ids
+            ):
+                issues.append(GeometryIssue(
+                    "program_invariant_bypassed",
+                    "new root must retain every protected program invariant in its ancestry",
+                    candidate,
+                ))
+                continue
             root_id = candidate
             applied.append(edit)
         elif edit.operation == "remove_node":
@@ -205,6 +260,22 @@ def apply_geometry_edits(program: GeometryProgram, edits: Iterable[GeometryEdit 
     if revised.program_hash() == program.program_hash():
         return MutationResult("no_program_change", None, tuple(applied), tuple(issues))
     return MutationResult("revised", revised, tuple(applied), tuple(issues))
+
+
+def _node_depends_on(candidate_id: str, required_id: str, node_map: dict[str, GeometryNode]) -> bool:
+    frontier = [candidate_id]
+    visited: set[str] = set()
+    while frontier:
+        node_id = frontier.pop()
+        if node_id == required_id:
+            return True
+        if node_id in visited:
+            continue
+        visited.add(node_id)
+        node = node_map.get(node_id)
+        if node is not None:
+            frontier.extend(node.inputs)
+    return False
 
 
 def _parameter_value(edit: GeometryEdit) -> tuple[Any, GeometryIssue | None]:
@@ -234,5 +305,6 @@ __all__ = [
     "ALLOWED_EDIT_OPERATIONS",
     "GeometryEdit",
     "MutationResult",
+    "OPERATOR_PARAMETER_CONTRACTS",
     "apply_geometry_edits",
 ]

@@ -1,0 +1,36 @@
+{
+  "schema_version": "arr.maas.portfolio_vlm_directive.v1",
+  "pnu": "1168011800104170004",
+  "status": "active",
+  "provider": "openai_program_conditioned_vlm",
+  "reviewed_at": "2026-07-17",
+  "reference_images": [],
+  "programs": {
+    "gymnasium": {
+      "live_geometry_vlm_revision": true,
+      "max_wedge_like_count": 4,
+      "max_pyramidal_like_count": 0,
+      "max_solid_phenotype_count": 8,
+      "max_chassis_family_count": 8,
+      "required_solid_phenotypes": ["curved", "stepped", "voided", "oblique"],
+      "geometry_program_mutations": [],
+      "typed_graph_mutations": [],
+      "geometry_synthesis_requests": [
+        {
+          "source_seed": "program_gym_long_span_hall",
+          "base_seeds": ["bar", "slab", "block"],
+          "intent_tags": ["calm_prismatic", "carved_void", "continuous_curve", "distributed_wings", "lifted_ground", "oblique_section"],
+          "required_terminal_operator": "profiled_hall",
+          "candidate_count": 64,
+          "variation_offset": 0,
+          "maximum_operator_depth": 2,
+          "legal_fit_strengths": [0.2, 0.6],
+          "live_vlm_revision": true,
+          "vlm_generations": 2,
+          "reference_limit": 5,
+          "rationale": "Live VLM review of the deficit-to-capability author graph after connected long-span and two-mode tent rejection preflight."
+        }
+      ]
+    }
+  }
+}

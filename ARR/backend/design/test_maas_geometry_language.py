@@ -38,10 +38,12 @@ from design.maas.geometry_language import (
     synthesis_requests_from_program_profile,
 )
 from design.maas.book_language.registry import build_book_language_registry
+from design.maas.book_language.portfolio_benchmark import _program_form_gate
 from design.maas.program_massing import (
     book_operation_variants,
     book_sentence_variants,
     compose_program_with_book_operations,
+    program_reference_contract,
     program_seed_sequences,
 )
 from design.maas.preference.vlm_scorer import _prompt_text
@@ -49,6 +51,316 @@ from design.maas.source_geometry.compiler import compile_sequence_to_source_mass
 
 
 class MaasGeometryLanguageTest(SimpleTestCase):
+    def test_geometry_vlm_critic_cache_reuses_identical_render_evidence(self):
+        program = parse_geometry_dsl("mass result = box(10, 8, 6)", name="cache_probe")
+        compilation = compile_geometry_program(program)
+        with TemporaryDirectory() as directory:
+            preview = Path(directory) / "preview.png"
+            preview.write_bytes(b"stable-render-evidence")
+            cache_dir = Path(directory) / "cache"
+            payload = {
+                "concept_scores": {
+                    "gesture_clarity": 0.8,
+                    "hierarchy": 0.8,
+                    "program_appropriateness": 0.8,
+                    "section_program_fit": 0.8,
+                },
+                "program_fit_hard_pass": True,
+                "critic_actions": [],
+                "geometry_edits": [],
+                "reference_assessments": [],
+                "model": "test-vlm",
+                "response_id": "test-response",
+            }
+            with patch.dict(os.environ, {"MAAS_GEOMETRY_VLM_CACHE_DIR": str(cache_dir)}), patch(
+                "design.maas.geometry_language.vlm_adapter.score_candidate_with_openai_vlm",
+                return_value=payload,
+            ) as scorer:
+                first = score_geometry_program_with_openai_vlm(
+                    program,
+                    compilation,
+                    preview,
+                    building_type="gymnasium",
+                    program_context=program_reference_contract("gymnasium"),
+                    model="test-vlm",
+                )
+                second = score_geometry_program_with_openai_vlm(
+                    program,
+                    compilation,
+                    preview,
+                    building_type="gymnasium",
+                    program_context=program_reference_contract("gymnasium"),
+                    model="test-vlm",
+                )
+            self.assertFalse(first["cache_hit"])
+            self.assertTrue(second["cache_hit"])
+            self.assertEqual(scorer.call_count, 1)
+            self.assertEqual(len(tuple(cache_dir.glob("*.json"))), 1)
+
+    def test_gym_program_form_gate_rejects_cascade_without_hall_enclosure(self):
+        pyramid = SimpleNamespace(metadata={"measured_solid_morphology": {
+            "pyramidal_like": False,
+            "horizontal_level_count": 10,
+            "horizontal_surface_ratio": 0.912,
+            "vertical_surface_ratio": 0.0124,
+            "sloped_surface_ratio": 0.0756,
+        }})
+        sloped_pyramid = SimpleNamespace(metadata={"measured_solid_morphology": {
+            "pyramidal_like": False,
+            "horizontal_level_count": 4,
+            "horizontal_surface_ratio": 0.6397,
+            "vertical_surface_ratio": 0.0,
+            "sloped_surface_ratio": 0.3603,
+        }})
+        sawtooth_hall = SimpleNamespace(metadata={"measured_solid_morphology": {
+            "pyramidal_like": False,
+            "horizontal_level_count": 6,
+            "horizontal_surface_ratio": 0.41,
+            "vertical_surface_ratio": 0.17,
+            "sloped_surface_ratio": 0.42,
+        }})
+        measured_profiled_hall = SimpleNamespace(metadata={"measured_solid_morphology": {
+            "pyramidal_like": False,
+            "horizontal_level_count": 8,
+            "horizontal_surface_ratio": 0.72,
+            "vertical_surface_ratio": 0.02,
+            "sloped_surface_ratio": 0.26,
+            "oriented_plan_aspect_ratio": 2.4,
+            "profiled_section_family": "sawtooth",
+            "measured_profiled_hall": True,
+        }})
+        collapsed_profiled_tent = SimpleNamespace(metadata={"measured_solid_morphology": {
+            "pyramidal_like": True,
+            "collapsed_profiled_tent_like": True,
+            "horizontal_level_count": 11,
+            "horizontal_surface_ratio": 0.94,
+            "vertical_surface_ratio": 0.0,
+            "sloped_surface_ratio": 0.06,
+            "oriented_plan_aspect_ratio": 1.6,
+            "profiled_section_family": "barrel",
+            "measured_profiled_hall": True,
+        }})
+        shallow_sloped_tent = SimpleNamespace(metadata={"measured_solid_morphology": {
+            "pyramidal_like": True,
+            "collapsed_profiled_tent_like": True,
+            "horizontal_level_count": 16,
+            "horizontal_surface_ratio": 0.85,
+            "vertical_surface_ratio": 0.0,
+            "sloped_surface_ratio": 0.15,
+            "upper_area_ratio": 0.10,
+            "oriented_plan_aspect_ratio": 2.4,
+            "profiled_section_family": "folded",
+            "measured_profiled_hall": True,
+        }})
+        broad_low_vertical_tent = SimpleNamespace(metadata={"measured_solid_morphology": {
+            "pyramidal_like": True,
+            "collapsed_profiled_tent_like": True,
+            "horizontal_level_count": 17,
+            "horizontal_surface_ratio": 0.826,
+            "vertical_surface_ratio": 0.006,
+            "sloped_surface_ratio": 0.168,
+            "upper_area_ratio": 0.31,
+            "oriented_plan_aspect_ratio": 2.35,
+            "profiled_section_family": "barrel",
+            "measured_profiled_hall": True,
+        }})
+        rejected = _program_form_gate(pyramid, "gymnasium")
+        rejected_sloped = _program_form_gate(sloped_pyramid, "gymnasium")
+        accepted = _program_form_gate(sawtooth_hall, "gymnasium")
+        accepted_profiled = _program_form_gate(measured_profiled_hall, "gymnasium")
+        rejected_collapsed_tent = _program_form_gate(collapsed_profiled_tent, "gymnasium")
+        rejected_shallow_tent = _program_form_gate(shallow_sloped_tent, "gymnasium")
+        rejected_broad_tent = _program_form_gate(broad_low_vertical_tent, "gymnasium")
+        self.assertFalse(rejected["hard_pass"])
+        self.assertFalse(rejected_sloped["hard_pass"])
+        self.assertIn("gym_dominant_hall_erased_by_cascade_or_pyramid", rejected["failures"])
+        self.assertTrue(accepted["hard_pass"])
+        self.assertTrue(accepted_profiled["hard_pass"])
+        self.assertFalse(rejected_collapsed_tent["hard_pass"])
+        self.assertFalse(rejected_shallow_tent["hard_pass"])
+        self.assertFalse(rejected_broad_tent["hard_pass"])
+
+    def test_profiled_hall_macro_compiles_six_distinct_section_families(self):
+        programs = synthesize_architectural_programs({
+            "base_seeds": ["bar"],
+            "intent_tags": ["profiled_span_section"],
+            "candidate_count": 6,
+            "maximum_operator_depth": 1,
+        }, building_type="gymnasium")
+        self.assertEqual(len(programs), 6)
+        section_families = {
+            str(program.node_map[program.root_id].parameters.get("section_family") or "")
+            for program in programs
+        }
+        self.assertEqual(section_families, {"ridge", "shed", "folded", "sawtooth", "stepped", "barrel"})
+        compilations = [compile_geometry_program(program) for program in programs]
+        self.assertTrue(all(result.status == "compiled" for result in compilations))
+        self.assertTrue(all(not compilation_gate(result) for result in compilations))
+        self.assertEqual(len({result.geometry_hash for result in compilations}), 6)
+        self.assertTrue(all(
+            "normalized_section_profile" in {
+                expansion
+                for row in result.trace
+                for expansion in row["macro_expansion"]
+            }
+            for result in compilations
+        ))
+        protected_snapshot = build_geometry_graph_snapshot(programs[0], compilations[0])
+        self.assertEqual(
+            protected_snapshot["agent_edit_contract"]["protected_geometry_node_ids"],
+            [programs[0].root_id],
+        )
+
+    def test_profiled_hall_language_generates_twenty_four_distinct_bounded_variants(self):
+        programs = synthesize_architectural_programs({
+            "base_seeds": ["bar", "slab", "block"],
+            "intent_tags": ["profiled_span_section"],
+            "candidate_count": 24,
+            "maximum_operator_depth": 1,
+        }, building_type="gymnasium")
+        self.assertEqual(len(programs), 24)
+        self.assertEqual({
+            node.parameters["section_family"]
+            for program in programs
+            for node in program.nodes
+            if node.operator == "profiled_hall"
+        }, {"ridge", "shed", "folded", "sawtooth", "stepped", "barrel"})
+        self.assertEqual({
+            node.parameters["section_variant_index"]
+            for program in programs
+            for node in program.nodes
+            if node.operator == "profiled_hall"
+        }, {0, 1, 2, 3})
+        compilations = [compile_geometry_program(program) for program in programs]
+        self.assertTrue(all(result.status == "compiled" for result in compilations))
+        self.assertEqual(len({result.geometry_hash for result in compilations}), 24)
+
+    def test_required_terminal_section_keeps_oversampled_body_mutations_program_fit(self):
+        request = {
+            "base_seeds": ["bar", "slab", "block"],
+            "intent_tags": [
+                "calm_prismatic", "carved_void", "continuous_curve",
+                "oblique_section", "lifted_ground",
+            ],
+            "required_body_phenotypes": ["curved", "stepped", "voided", "oblique"],
+            "required_terminal_operator": "profiled_hall",
+            "candidate_count": 48,
+            "maximum_operator_depth": 2,
+        }
+        programs = synthesize_architectural_programs(request, building_type="gymnasium")
+        self.assertEqual(len(programs), 48)
+        self.assertTrue(all(program.node_map[program.root_id].operator == "profiled_hall" for program in programs))
+        self.assertTrue(all(program.metadata["required_terminal_operator"] == "profiled_hall" for program in programs))
+        self.assertTrue(all("long_span" in program.metadata["intent_tags"] for program in programs))
+        self.assertTrue(all("stepped_section" in program.metadata["intent_tags"] for program in programs))
+        split_nodes = [
+            node for program in programs for node in program.nodes
+            if node.operator == "split_wing"
+        ]
+        self.assertTrue(split_nodes)
+        self.assertTrue(all(node.parameters.get("ground_spine") for node in split_nodes))
+        self.assertGreaterEqual(len({
+            tuple(program.metadata["operator_path"][:-1])
+            for program in programs
+        }), 8)
+        compilations = [compile_geometry_program(program) for program in programs]
+        self.assertTrue(all(result.status == "compiled" for result in compilations))
+        self.assertEqual(len({result.geometry_hash for result in compilations}), 48)
+        continuation = synthesize_architectural_programs({
+            **request,
+            "candidate_count": 24,
+            "variation_offset": 48,
+        }, building_type="gymnasium")
+        self.assertEqual(len(continuation), 24)
+        self.assertFalse(
+            {program.program_hash() for program in programs}
+            & {program.program_hash() for program in continuation}
+        )
+        self.assertTrue(all(program.metadata["variation_offset"] == 48 for program in continuation))
+
+    def test_vlm_cannot_replace_program_section_invariant_but_can_wrap_it(self):
+        hall = synthesize_architectural_programs({
+            "base_seeds": ["bar"],
+            "intent_tags": ["profiled_span_section"],
+            "candidate_count": 1,
+            "maximum_operator_depth": 1,
+        }, building_type="gymnasium")[0]
+        protected_id = hall.root_id
+        rejected = apply_geometry_edits(hall, [{
+            "operation": "replace_operator",
+            "target_node_id": protected_id,
+            "operator": "courtyard",
+        }])
+        self.assertEqual(rejected.status, "no_valid_edit_applied")
+        self.assertIn("protected_program_invariant", {issue.code for issue in rejected.issues})
+
+        wrapped = apply_geometry_edits(hall, [
+            {
+                "operation": "add_node",
+                "node_id": "critic_public_court",
+                "node_kind": "macro",
+                "operator": "courtyard",
+                "input_ids": [protected_id],
+                "semantic_role": "public_void",
+            },
+            {
+                "operation": "set_parameter",
+                "target_node_id": "critic_public_court",
+                "parameter_name": "void_ratio",
+                "numeric_value": 0.24,
+            },
+            {"operation": "set_root", "target_node_id": "critic_public_court"},
+        ])
+        self.assertEqual(wrapped.status, "revised")
+        self.assertIsNotNone(wrapped.program)
+        self.assertEqual(wrapped.program.root_id, "critic_public_court")
+        self.assertEqual(wrapped.program.node_map["critic_public_court"].parameters["margin_ratio"], 0.24)
+        self.assertNotIn("void_ratio", wrapped.program.node_map["critic_public_court"].parameters)
+        self.assertEqual(compile_geometry_program(wrapped.program).status, "compiled")
+
+    def test_book_body_mutation_is_inserted_before_program_section_invariant(self):
+        program = synthesize_architectural_programs({
+            "base_seeds": ["bar"],
+            "intent_tags": ["profiled_span_section"],
+            "candidate_count": 1,
+            "maximum_operator_depth": 1,
+        }, building_type="gymnasium")[0]
+        section_id = program.root_id
+        seed = program_seed_sequences("gymnasium")[0]
+        sequence = compose_program_with_book_operations(
+            seed,
+            (book_operation_variants("bend", count=1)[0],),
+            base_volume_label="1/2",
+            orientation="long_axis",
+        )
+        projected = apply_book_projection_to_geometry_program(program, sequence)
+        self.assertEqual(projected.root_id, section_id)
+        section = projected.node_map[section_id]
+        self.assertTrue(section.inputs[0].startswith("book"))
+        self.assertEqual(
+            projected.metadata["book_recursive_projection"]["application_order"],
+            "base_body_then_book_scope_and_operations_then_program_section",
+        )
+        before = compile_geometry_program(program)
+        after = compile_geometry_program(projected)
+        self.assertEqual(after.status, "compiled")
+        self.assertNotEqual(before.geometry_hash, after.geometry_hash)
+
+    def test_program_reference_contract_resolves_exact_profile_ids(self):
+        expected = {
+            "gymnasium": "sports_architecture",
+            "cultural": "cultural_architecture",
+            "neighborhood_living": "cafes_restaurants",
+        }
+        for profile_id, primary_collection in expected.items():
+            contract = program_reference_contract(profile_id)
+            self.assertEqual(contract["program_id"], profile_id)
+            self.assertIn(primary_collection, contract["preferred_collections"])
+            self.assertGreaterEqual(contract["minimum_program_specific_images"], 3)
+            self.assertTrue(contract["semantic_invariants"])
+            self.assertIsNone(contract["geometry_template"])
+            self.assertFalse(contract["parcel_coordinates_allowed"])
+
     def test_all_59_book_principles_mutate_the_recursive_manifold_ast(self):
         base = base_seed_programs()[1]
         seed = program_seed_sequences("gymnasium")[0]
@@ -321,8 +633,8 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             records = [
                 {"source": "archdaily_api", "source_id": "hall-1", "title": "Long span sports hall", "local_path": str(root / "hall-1.jpg"), "tags": ["bar", "slender", "long_span"]},
                 {"source": "archdaily_api", "source_id": "hall-2", "title": "Carved arena court", "local_path": str(root / "hall-2.jpg"), "tags": ["void", "carve", "court"]},
-                {"source": "archdaily_api", "source_id": "hall-3", "title": "Twisted bridge field", "local_path": str(root / "hall-3.jpg"), "tags": ["twist", "bridge", "field"]},
-                {"source": "archdaily_api", "source_id": "hall-4", "title": "Folded daylight roof", "local_path": str(root / "hall-4.jpg"), "tags": ["folded", "section", "roof"]},
+                {"source": "archdaily_api", "source_id": "hall-3", "title": "Sports bridge field", "local_path": str(root / "hall-3.jpg"), "tags": ["sports", "twist", "bridge", "field"]},
+                {"source": "archdaily_api", "source_id": "hall-4", "title": "Gym folded daylight roof", "local_path": str(root / "hall-4.jpg"), "tags": ["gym", "folded", "section", "roof"]},
             ]
             for record in records:
                 Path(record["local_path"]).touch()
@@ -339,6 +651,8 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertGreaterEqual(len(matches), 3)
         self.assertTrue(all(item.get("local_path") or item.get("image_url") for item in matches))
         self.assertTrue(all(str(item.get("source") or "").startswith("archdaily") for item in matches[:3]))
+        self.assertTrue(all(item["reference_contract"]["hard_pass"] for item in matches))
+        self.assertTrue(all(item["program_id"] == "gymnasium" for item in matches))
         self.assertIn("counterfactual", {item.get("selection_role") for item in matches})
 
     def test_vlm_receives_outcome_memory_and_causal_reference_trace(self):
@@ -594,17 +908,39 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         program = base_seed_programs()[1]
         compilation = compile_geometry_program(program)
         notes = build_geometry_graph_notes(program, compilation)
-        snapshot = build_geometry_graph_snapshot(program, compilation)
+        contract = program_reference_contract("gymnasium")
+        snapshot = build_geometry_graph_snapshot(
+            program,
+            compilation,
+            program_context=contract,
+            reference_matches=[{
+                "source_id": "sports-hall-1",
+                "title": "Long-span sports hall",
+                "program_match_tier": "preferred_collection",
+                "reference_collection": "sports_architecture",
+            }],
+        )
         self.assertEqual([note["node_id"] for note in notes], [node.id for node in program.topological_nodes()])
         self.assertTrue(all(note["note_is_non_executable"] for note in notes))
         self.assertEqual(snapshot["root_node_id"], program.root_id)
         self.assertEqual(len(snapshot["edges"]), len(program.topological_nodes()) - 1)
         self.assertEqual(snapshot["agent_edit_contract"]["target_selector"], "node_id")
         self.assertTrue(snapshot["agent_edit_contract"]["requires_recompile_and_rerender"])
+        self.assertTrue(snapshot["agent_edit_contract"]["must_preserve_program_context_graph"])
+        self.assertEqual(snapshot["program_context_graph"]["root_node_id"], "program:gymnasium")
+        self.assertTrue(any(
+            node["node_kind"] == "semantic_invariant"
+            for node in snapshot["program_context_graph"]["nodes"]
+        ))
+        self.assertTrue(all(
+            not node["editable"]
+            for node in snapshot["program_context_graph"]["nodes"]
+        ))
         feature = {"properties": {
             "geometry_program": program.to_dict(),
             "geometry_graph_notes": notes,
             "geometry_graph_snapshot": snapshot,
+            "program_context": contract,
             "base_seed_catalog": [program.metadata["base_seed"]],
         }}
         prompt = _prompt_text(feature, [])
@@ -612,6 +948,8 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertIn("geometry_graph_snapshot", prompt)
         self.assertIn("site scope fraction from normalized base seed", prompt)
         self.assertIn("seed_slab", prompt)
+        self.assertIn("program_context is a hard semantic brief", prompt)
+        self.assertIn("arbitrary cascading pyramid", prompt)
 
     def test_eighteen_architectural_families_compile_to_distinct_gated_solids(self):
         programs = architectural_shape_programs()
@@ -851,3 +1189,51 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertFalse(loop.trace["vlm_geometry_critic_active"])
         self.assertTrue(loop.trace["critic_callback_active"])
         self.assertTrue(loop.trace["typed_ast_revision_active"])
+
+    def test_program_rejected_vlm_parent_can_revise_but_cannot_enter_archive(self):
+        original = parse_geometry_dsl("mass result = box(10, 8, 6)", name="wrong_program_parent")
+
+        def critic(program, _compilation, _preview: Path):
+            if program.root_id == "result":
+                return {
+                    "program_fit_hard_pass": False,
+                    "concept_scores": {
+                        "gesture_clarity": 0.8,
+                        "hierarchy": 0.8,
+                        "program_appropriateness": 0.2,
+                        "section_program_fit": 0.2,
+                    },
+                    "critic_actions": ["wrong_program_typology", "missing_program_section"],
+                    "geometry_edits": [
+                        {"operation": "add_node", "node_id": "hall_taper", "node_kind": "modifier", "operator": "taper", "input_ids": ["result"]},
+                        {"operation": "set_parameter", "target_node_id": "hall_taper", "parameter_name": "end_scale", "vector_value": [0.82, 0.92]},
+                        {"operation": "set_parameter", "target_node_id": "hall_taper", "parameter_name": "subdivisions", "numeric_value": 3},
+                        {"operation": "set_root", "target_node_id": "hall_taper"},
+                    ],
+                }
+            return {
+                "program_fit_hard_pass": True,
+                "concept_scores": {
+                    "gesture_clarity": 0.82,
+                    "hierarchy": 0.8,
+                    "program_appropriateness": 0.82,
+                    "section_program_fit": 0.78,
+                },
+                "geometry_edits": [],
+            }
+
+        with TemporaryDirectory() as directory:
+            loop = run_geometry_program_a2a_loop(
+                context={"building_type": "gymnasium"},
+                target_count=1,
+                author_programs=lambda _context: (original,),
+                critic_program=critic,
+                max_generations=2,
+                preview_dir=directory,
+            )
+        first = loop.trace["generations"][0]["records"][0]
+        self.assertEqual(first["status"], "critic_program_fit_rejected")
+        self.assertFalse(first["program_fit_hard_pass"])
+        self.assertTrue(first["revision_proof"]["geometry_changed"])
+        self.assertEqual(loop.trace["archive_count"], 1)
+        self.assertTrue(all(candidate.program.root_id != "result" for candidate in loop.archive))

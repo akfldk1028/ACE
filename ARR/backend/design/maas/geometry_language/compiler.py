@@ -11,6 +11,7 @@ from typing import Any, Callable
 import numpy as np
 
 from .ast import GeometryIssue, GeometryNode, GeometryProgram
+from .section_profiles import section_profile_controls
 
 try:
     import manifold3d as m3d
@@ -353,6 +354,8 @@ def _macro(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str]]:
         return base - cutter, ["difference", "corner_box_cutter"]
     if operator in {"setback", "stepped_mass", "terrace"}:
         return _stepped_macro(base, p, terrace=operator == "terrace"), ["slice", "scale", "translate", "union"]
+    if operator == "profiled_hall":
+        return _profiled_hall_macro(base, p, node.id), ["normalized_section_profile", "strip_wedge_array", "union"]
     if operator == "cantilever":
         minx, miny, minz, maxx, maxy, maxz = _bounds(base)
         cut = minz + (maxz - minz) * max(0.1, min(0.9, float(p.get("start_ratio", 0.55))))
@@ -663,6 +666,60 @@ def _stepped_macro(base, params: dict[str, Any], *, terrace: bool):
         y = miny + ((maxy - miny - depth) / 2 if not terrace or direction == "x" else (maxy - miny - depth) * index / max(levels - 1, 1))
         solids.append(m3d.Manifold.cube((width, depth, level_height)).translate((x, y, minz + index * level_height)))
     return m3d.Manifold.batch_boolean(solids, m3d.OpType.Add)
+
+
+def _profiled_hall_macro(base, params: dict[str, Any], node_id: str):
+    """Compile a normalized roof/section graph over the live solid bounds.
+
+    Controls are [transverse position, roof-height ratio] pairs.  Each adjacent
+    pair becomes one watertight strip wedge extending along the span axis. The
+    union therefore supports concave folded/sawtooth profiles that a single
+    convex hull would erase.  No parcel coordinate or finished building is
+    encoded in this operator.
+    """
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    controls = params.get("section_controls") or section_profile_controls(str(params.get("section_family") or ""))
+    if not isinstance(controls, list) or not 2 <= len(controls) <= 12:
+        raise GeometryCompileError("invalid_section_controls", "profiled_hall needs 2..12 normalized controls", node_id)
+    normalized: list[tuple[float, float]] = []
+    for raw in controls:
+        if not isinstance(raw, (list, tuple)) or len(raw) != 2:
+            raise GeometryCompileError("invalid_section_control", "each control must be [u, height_ratio]", node_id)
+        u = max(0.0, min(1.0, float(raw[0])))
+        height_ratio = max(0.18, min(1.35, float(raw[1])))
+        normalized.append((u, height_ratio))
+    normalized.sort(key=lambda item: item[0])
+    if normalized[0][0] > 1e-6 or normalized[-1][0] < 1.0 - 1e-6:
+        raise GeometryCompileError("open_section_domain", "section controls must start at 0 and end at 1", node_id)
+    if any(right[0] - left[0] <= 1e-5 for left, right in zip(normalized, normalized[1:])):
+        raise GeometryCompileError("non_monotonic_section", "section control positions must strictly increase", node_id)
+    span_axis = str(params.get("span_axis") or "x").lower()
+    height = max(maxz - minz, 1e-7)
+    strips = []
+    for (u0, h0), (u1, h1) in zip(normalized, normalized[1:]):
+        if span_axis == "y":
+            x0, x1 = minx + (maxx - minx) * u0, minx + (maxx - minx) * u1
+            points = [
+                (x0, miny, minz), (x1, miny, minz), (x0, maxy, minz), (x1, maxy, minz),
+                (x0, miny, minz + height * h0), (x1, miny, minz + height * h1),
+                (x0, maxy, minz + height * h0), (x1, maxy, minz + height * h1),
+            ]
+        else:
+            y0, y1 = miny + (maxy - miny) * u0, miny + (maxy - miny) * u1
+            points = [
+                (minx, y0, minz), (minx, y1, minz), (maxx, y0, minz), (maxx, y1, minz),
+                (minx, y0, minz + height * h0), (minx, y1, minz + height * h1),
+                (maxx, y0, minz + height * h0), (maxx, y1, minz + height * h1),
+            ]
+        strip = m3d.Manifold.hull_points(points)
+        if strip.is_empty():
+            raise GeometryCompileError("empty_section_strip", "profiled hall strip is empty", node_id)
+        strips.append(strip)
+    envelope = m3d.Manifold.batch_boolean(strips, m3d.OpType.Add)
+    result = m3d.Manifold.batch_boolean([base, envelope], m3d.OpType.Intersect)
+    if result.is_empty():
+        raise GeometryCompileError("empty_profiled_hall", "section envelope does not intersect the input solid", node_id)
+    return result
 
 
 def _bridge_between(left, right, params: dict[str, Any], node_id: str):

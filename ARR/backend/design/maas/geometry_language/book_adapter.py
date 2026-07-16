@@ -29,7 +29,14 @@ def apply_book_projection_to_geometry_program(
         return program
     scope = book_projection_scope(sequence)
     nodes = list(program.nodes)
-    original_root = program.root_id
+    program_root = program.root_id
+    # Program section is a non-negotiable relation, while BOOK operations are
+    # body/plan mutations. Insert the BOOK subgraph before the section node so
+    # scale/stack/taper cannot turn a hall into a pyramid. The profiled_hall
+    # compiler intersects its envelope with that mutated input, preserving
+    # cuts, bends and p.3 scope effects rather than restoring a frozen shape.
+    section_node = next((node for node in program.topological_nodes() if node.operator == "profiled_hall"), None)
+    original_root = section_node.inputs[0] if section_node is not None else program_root
     current = original_root
     serial = 0
 
@@ -94,6 +101,16 @@ def apply_book_projection_to_geometry_program(
             verb="recompose_book_scope",
         )
 
+    book_result = current
+    if section_node is not None:
+        nodes = [
+            replace(node, inputs=(book_result,))
+            if node.id == section_node.id
+            else node
+            for node in nodes
+        ]
+        current = program_root
+
     metadata = {
         **program.metadata,
         "book_recursive_projection": {
@@ -104,6 +121,12 @@ def apply_book_projection_to_geometry_program(
             "ordered_verbs": [call.verb for call in calls],
             "geometry_authority": "recursive_manifold_ast",
             "parcel_coordinates_hardcoded": False,
+            "application_order": (
+                "base_body_then_book_scope_and_operations_then_program_section"
+                if section_node is not None
+                else "program_solid_then_book_scope_and_operations"
+            ),
+            "program_section_node_id": section_node.id if section_node is not None else "",
         },
         "pre_book_program_hash": program.program_hash(),
     }

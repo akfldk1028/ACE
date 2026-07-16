@@ -488,3 +488,27 @@ geometry changes are proven; improvement of the final accepted portfolio is
 not. Next work must review the final BOOK-projected/legal-retained board and
 feed typed population feedback into genuinely different neighborhood versus
 cultural program graphs. Do not weaken similarity or hard constraints.
+
+## Latest program-conditioned VLM checkpoint (2026-07-17 r53; supersedes all earlier gym counts)
+
+Read the final section of
+`MAAS_BOOK_EXECUTABLE_LANGUAGE_CHECKPOINT_20260715.md`, titled
+**program-conditioned VLM and recursive hall checkpoint r53**. The earlier
+generic-form ArchDaily retrieval and VLM archive leak were corrected. Gym now
+uses sports-architecture references and a hard program-fit contract; the
+recursive graph separates body, section, roof, chassis and plan phenotypes and
+protects its terminal long-span section invariant.
+
+The latest full live gym result is 12/20, not 20/20: 11 BOOK principles, seven
+visual-language keys, all six scopes and zero reported near-duplicate pairs.
+All 12 selected sources pass legal/FAR/geometry-retention/parking calculation,
+with mean/minimum retention 0.8864/0.8026. Direct PNG review is still **fail**:
+the portfolio repeats sawtooth/voided bars and includes a triangular tent-like
+VLM false positive. A post-run measured hard gate now rejects that case. The
+non-live r52 capability preflight reached 20/20 but is not final evidence.
+
+Therefore the current product state is not competition-grade or ready for a
+commercial design claim. The next blocker is plan/body topology diversity that
+survives the legal envelope, followed by a new live gym run and then a combined
+neighborhood/gym/cultural comparison. Do not restore older 60/60 claims as the
+latest status and do not weaken similarity or hard constraints.

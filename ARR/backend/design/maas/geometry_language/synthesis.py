@@ -15,6 +15,7 @@ from typing import Any, Iterable
 
 from .ast import GeometryNode, GeometryProgram
 from .base_seeds import BASE_SEED_SPECS, base_seed_program
+from .section_profiles import SECTION_PROFILES, section_profile_controls
 
 
 _PROFILE_FAMILY_INTENTS: dict[str, tuple[str, ...]] = {
@@ -22,7 +23,7 @@ _PROFILE_FAMILY_INTENTS: dict[str, tuple[str, ...]] = {
     "void_notch": ("carved_void",),
     "bend": ("continuous_curve",),
     "slender_bar": ("long_span", "continuous_curve"),
-    "sloped_roof": ("long_span", "daylight_section", "oblique_section"),
+    "sloped_roof": ("profiled_span_section", "long_span", "daylight_section", "oblique_section"),
     "terrace_link": ("stepped_section", "lifted_ground"),
     "offset": ("stepped_section",),
     "stepback_tower": ("stepped_section", "vertical_landmark"),
@@ -37,7 +38,7 @@ _PROFILE_FAMILY_INTENTS: dict[str, tuple[str, ...]] = {
 _TAG_OPERATOR_PALETTE: dict[str, tuple[str, ...]] = {
     "calm_prismatic": ("identity",),
     "continuous_curve": ("bend", "bent_bar", "inflate"),
-    "long_span": ("identity", "bend", "split_wing", "inflate"),
+    "long_span": ("split_wing", "identity", "bend", "inflate"),
     "oblique_section": ("slice", "shear", "cut_corner"),
     "stepped_section": ("setback", "stepped_mass", "terrace"),
     "carved_void": ("courtyard", "notch", "carve_void", "puncture"),
@@ -45,6 +46,20 @@ _TAG_OPERATOR_PALETTE: dict[str, tuple[str, ...]] = {
     "daylight_section": ("puncture", "inflate", "setback"),
     "distributed_wings": ("cross_mass", "radial_array", "split_wing"),
     "vertical_landmark": ("taper", "shear", "twist"),
+    # Repetition weights the general section-profile operator so bounded
+    # synthesis explores several roof/section graphs before generic cuts and
+    # setbacks. The profiles remain parameters, not named building templates.
+    "profiled_span_section": ("profiled_hall", "profiled_hall", "profiled_hall", "profiled_hall", "profiled_hall", "profiled_hall"),
+}
+
+_BODY_PHENOTYPE_INTENTS: dict[str, str] = {
+    "prismatic": "calm_prismatic",
+    "curved": "continuous_curve",
+    "stepped": "stepped_section",
+    "voided": "carved_void",
+    "oblique": "oblique_section",
+    "winged": "distributed_wings",
+    "lifted": "lifted_ground",
 }
 
 _OPERATOR_KIND: dict[str, str] = {
@@ -69,6 +84,7 @@ _OPERATOR_KIND: dict[str, str] = {
     "bent_bar": "macro",
     "split_wing": "macro",
     "stepped_mass": "macro",
+    "profiled_hall": "macro",
 }
 
 
@@ -96,26 +112,45 @@ def synthesize_architectural_programs(
         str(value) for value in (request.get("intent_tags") or ())
         if str(value) in _TAG_OPERATOR_PALETTE
     ))
-    if not intent_tags:
-        return ()
     try:
-        target_count = max(1, min(24, int(request.get("candidate_count") or 12)))
+        # A strict program/VLM critic is expected to reject a meaningful
+        # fraction of authored programs.  Capping the author pool at 24 made
+        # a 20-alternative portfolio mathematically depend on near-perfect
+        # critic acceptance.  Keep the search bounded, but allow enough
+        # genotype supply for hard rejection instead of weakening gates.
+        target_count = max(1, min(64, int(request.get("candidate_count") or 12)))
         maximum_depth = max(1, min(3, int(request.get("maximum_operator_depth") or 2)))
+        variation_offset = max(0, min(4096, int(request.get("variation_offset") or 0)))
     except (TypeError, ValueError):
         return ()
+    required_terminal_operator = str(request.get("required_terminal_operator") or "").strip().lower()
+    if required_terminal_operator and required_terminal_operator != "profiled_hall":
+        return ()
+    inferred_intents = tuple(
+        _BODY_PHENOTYPE_INTENTS[str(value)]
+        for value in (request.get("required_body_phenotypes") or ())
+        if str(value) in _BODY_PHENOTYPE_INTENTS
+    )
+    if required_terminal_operator == "profiled_hall":
+        inferred_intents = (*inferred_intents, "long_span")
+    intent_tags = tuple(dict.fromkeys((*intent_tags, *inferred_intents)))
+    if not intent_tags:
+        return ()
 
-    palette = tuple(dict.fromkeys(
+    raw_palette = tuple(
         operator
         for tag in intent_tags
         for operator in _TAG_OPERATOR_PALETTE[tag]
-    ))
+    )
+    palette = _weighted_operator_palette(raw_palette)
     records: list[GeometryProgram] = []
     seen_hashes: set[str] = set()
-    cursor = 0
+    cursor = variation_offset
+    attempts = 0
     # A low-discrepancy traversal of seed/operator pairs avoids making the
     # first tag or first base seed dominate a bounded batch.
     attempt_budget = max(target_count * 8, len(base_seeds) * len(palette) * 2)
-    while len(records) < target_count and cursor < attempt_budget:
+    while len(records) < target_count and attempts < attempt_budget:
         # Cycle the first operator directly.  A fixed multiplier can share a
         # divisor with the runtime palette length and accidentally collapse a
         # 14-operator language to only bend/setback.
@@ -128,22 +163,32 @@ def synthesize_architectural_programs(
             intent_tags=intent_tags,
         )
         operators = [first]
+        operator_variant_indices = [_operator_occurrence_index(palette, cursor, first)]
         if maximum_depth >= 2 and len(palette) > 1 and cursor % 3 != 0:
             second = palette[(cursor * 5 + 3) % len(palette)]
-            if second != first and _compatible_stack(first, second):
+            if second != first and second != "profiled_hall" and _compatible_stack(first, second):
                 operators.append(second)
+                operator_variant_indices.append(_operator_occurrence_index(palette, cursor, second))
         if maximum_depth >= 3 and len(palette) > 2 and cursor % 7 == 0:
             third = palette[(cursor * 13 + 5) % len(palette)]
-            if third not in operators and all(_compatible_stack(item, third) for item in operators):
+            if third != "profiled_hall" and third not in operators and all(_compatible_stack(item, third) for item in operators):
                 operators.append(third)
+                operator_variant_indices.append(_operator_occurrence_index(palette, cursor, third))
+        if required_terminal_operator and required_terminal_operator not in operators:
+            operators.append(required_terminal_operator)
+            operator_variant_indices.append(cursor)
         program = _program_from_stack(
             seed_id,
             operators,
+            operator_variant_indices=operator_variant_indices,
             variation_index=cursor,
+            variation_offset=variation_offset,
             intent_tags=intent_tags,
             building_type=building_type,
+            required_terminal_operator=required_terminal_operator,
         )
         cursor += 1
+        attempts += 1
         errors = [issue for issue in program.validate() if issue.severity == "error"]
         if errors:
             continue
@@ -223,22 +268,34 @@ def _program_from_stack(
     seed_id: str,
     operators: Iterable[str],
     *,
+    operator_variant_indices: Iterable[int] | None = None,
     variation_index: int,
+    variation_offset: int = 0,
     intent_tags: tuple[str, ...],
     building_type: str,
+    required_terminal_operator: str = "",
 ) -> GeometryProgram:
     seed = base_seed_program(seed_id)
     nodes = list(seed.nodes)
     root_id = seed.root_id
+    operator_records = list(zip(
+        operators,
+        operator_variant_indices or (),
+    ))
+    if not operator_records:
+        operator_records = [(operator, variation_index) for operator in operators]
+    # Section is a terminal invariant over all body mutations.  Sorting only
+    # this one relation leaves the other authored operator order unchanged.
+    operator_records.sort(key=lambda item: item[0] == "profiled_hall")
     operator_path: list[str] = []
-    for stack_index, operator in enumerate(operators, start=1):
+    for stack_index, (operator, operator_variant_index) in enumerate(operator_records, start=1):
         if operator == "identity":
             continue
         kind = _OPERATOR_KIND[operator]
         node_id = f"agent_{stack_index:02d}_{operator}"
         parameters = _bounded_parameters(
             operator,
-            variation_index + stack_index * 17,
+            operator_variant_index if operator == "profiled_hall" else variation_index + stack_index * 17,
             intent_tags=intent_tags,
         )
         nodes.append(GeometryNode(
@@ -247,7 +304,7 @@ def _program_from_stack(
             operator=operator,
             inputs=(root_id,),
             parameters=parameters,
-            semantic_role="dominant_mass",
+            semantic_role=("program_section_invariant" if operator == "profiled_hall" else "dominant_mass"),
             provenance={
                 "source": "procedural_geometry_synthesis_agent",
                 "intent_tags": list(intent_tags),
@@ -255,6 +312,7 @@ def _program_from_stack(
                 "bounded_parameter_generation": True,
                 "parcel_coordinates_used": False,
                 "completed_building_template": False,
+                "program_invariant": operator == "profiled_hall",
             },
         ))
         root_id = node_id
@@ -278,9 +336,11 @@ def _program_from_stack(
             "intent_tags": list(intent_tags),
             "operator_path": operator_path or ["prismatic"],
             "variation_index": variation_index,
+            "variation_offset": variation_offset,
             "author_provider": "bounded_procedural_geometry_agent",
             "parcel_coordinates_in_program": False,
             "completed_building_template": False,
+            "required_terminal_operator": required_terminal_operator,
         },
     )
 
@@ -300,6 +360,43 @@ def _compatible_stack(left: str, right: str) -> bool:
     if left in steps and right in steps:
         return False
     return not ({left, right} & repetition and {left, right} & voids)
+
+
+def _weighted_operator_palette(raw_palette: tuple[str, ...]) -> tuple[str, ...]:
+    """Interleave weighted capabilities without starving other intent tags."""
+    if not raw_palette:
+        return ()
+    unique = list(dict.fromkeys(raw_palette))
+    counts = {operator: raw_palette.count(operator) for operator in unique}
+    # Four or more repetitions are an explicit capability weight. Lower
+    # counts usually come from the same operator appearing naturally in two
+    # related intent tags and must not crowd out the rest of the grammar.
+    weighted = [operator for operator in unique if counts[operator] >= 4]
+    if not weighted:
+        return tuple(unique)
+    others = [operator for operator in unique if operator not in weighted]
+    scheduled: list[str] = []
+    if others:
+        scheduled.append(others.pop(0))
+    remaining = {operator: counts[operator] for operator in weighted}
+    while any(remaining.values()) or others:
+        for operator in weighted:
+            if remaining[operator] > 0:
+                scheduled.append(operator)
+                remaining[operator] -= 1
+        if others:
+            scheduled.append(others.pop(0))
+    return tuple(scheduled)
+
+
+def _operator_occurrence_index(palette: tuple[str, ...], cursor: int, operator: str) -> int:
+    """Return the zero-based visit count for one weighted operator."""
+    if not palette:
+        return 0
+    cycles, remainder = divmod(max(0, int(cursor)), len(palette))
+    return cycles * palette.count(operator) + sum(
+        item == operator for item in palette[:remainder]
+    )
 
 
 def _base_seed_for_operator(
@@ -366,6 +463,31 @@ def _bounded_parameters(
         return {"corner": ("ne", "nw", "se", "sw")[index % 4], "ratio": round(0.16 + 0.16 * u, 3), "height_ratio": round(0.48 + 0.28 * v, 3)}
     if operator in {"setback", "stepped_mass", "terrace"}:
         return {"levels": 3 + index % 2, "setback_ratio": round(0.08 + 0.10 * u, 3), "shift_per_level": [round(0.02 + 0.08 * v, 3), 0.0, 0.0]}
+    if operator == "profiled_hall":
+        families = tuple(SECTION_PROFILES)
+        family = families[index % len(families)]
+        cycle = (index // len(families)) % 4
+        gain, eave_shift = (
+            (1.0, 0.0),
+            (0.86, 0.025),
+            (1.12, -0.02),
+            (0.96, 0.045),
+        )[cycle]
+        controls = section_profile_controls(family)
+        eave = min(value[1] for value in controls)
+        controls = [
+            [
+                value[0],
+                round(max(0.18, min(1.20, eave + eave_shift + (value[1] - eave) * gain)), 4),
+            ]
+            for value in controls
+        ]
+        return {
+            "span_axis": "x",
+            "section_family": family,
+            "section_controls": controls,
+            "section_variant_index": cycle,
+        }
     if operator == "cantilever":
         return {"start_ratio": round(0.48 + 0.22 * u, 3), "vector": [round(0.08 + 0.18 * v, 3), 0.0, 0.0]}
     if operator == "lift":

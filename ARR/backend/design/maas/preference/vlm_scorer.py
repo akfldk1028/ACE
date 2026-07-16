@@ -18,7 +18,7 @@ from .reference_paths import resolve_reference_image_path
 
 
 VLM_SCORE_SCHEMA_VERSION = "arr.maas.vlm_concept_scores.v1"
-VLM_PROMPT_CONTRACT_VERSION = "arr.maas.vlm_prompt.ai_readable_graph_snapshot_geometry_program_edit.v8"
+VLM_PROMPT_CONTRACT_VERSION = "arr.maas.vlm_prompt.program_conditioned_reference_graph_geometry_edit.v9"
 DEFAULT_VLM_MODEL = "gpt-5.4-mini"
 
 
@@ -156,6 +156,7 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
     geometry_graph_notes = props.get("geometry_graph_notes") if isinstance(props.get("geometry_graph_notes"), list) else []
     geometry_graph_snapshot = props.get("geometry_graph_snapshot") if isinstance(props.get("geometry_graph_snapshot"), dict) else {}
     outcome_memory_context = props.get("outcome_memory_context") if isinstance(props.get("outcome_memory_context"), dict) else {}
+    program_context = props.get("program_context") if isinstance(props.get("program_context"), dict) else {}
     geometry_nodes = geometry_program.get("nodes") if isinstance(geometry_program.get("nodes"), list) else []
     compact_geometry_program = {
         "root_id": str(geometry_program.get("root_id") or ""),
@@ -189,6 +190,7 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "geometry_graph_notes": geometry_graph_notes[:96],
         "geometry_graph_snapshot": geometry_graph_snapshot,
         "outcome_memory_context": outcome_memory_context,
+        "program_context": program_context,
         "base_seed_catalog": props.get("base_seed_catalog") if isinstance(props.get("base_seed_catalog"), list) else [],
         "site_boundary_source": props.get("site_boundary_source"),
         "site_access_context": props.get("site_access_context") or {},
@@ -208,6 +210,15 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "A reference marked counterfactual intentionally demonstrates a different spatial principle; use it to "
         "propose a transferable graph operation, never to copy its building. Do not reward facade rendering, "
         "photography quality, or materials.\n"
+        "program_context is a hard semantic brief, not a style suggestion. First decide whether the visible mass "
+        "can plausibly support that program and its semantic_invariants. A formally novel silhouette that erases "
+        "the dominant program relation must fail program_fit_hard_pass. For a gymnasium, an arbitrary cascading "
+        "pyramid is not a long-span hall merely because metadata says hall; for a museum, an unusual object without "
+        "gallery/public-sequence and controlled-light logic is not program-fit; for neighborhood living, a generic "
+        "sealed box without an active ground threshold is not program-fit. Judge relationships, not facade style.\n"
+        "Every primary reference is program-filtered. Inspect each supplied image yourself and return one "
+        "reference_assessment per visible reference. If a source is mislabeled or visually irrelevant, record a "
+        "low program_relevance and mismatch_warning instead of imitating it.\n"
         "outcome_memory_context is measured graph evidence from prior compilations and hard gates for this exact "
         "genotype. Use successful parameters as bounded priors and explicitly avoid repeated failed gates; it is "
         "observation memory, not permission to bypass any current hard gate.\n"
@@ -226,10 +237,14 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "- void_publicness: meaningful void/courtyard/undercut/open ground logic.\n"
         "- repair_integrity: visually coherent and likely not over-clipped by legal repair.\n"
         "- precedent_resonance: resonates with reference massing principles without copying.\n"
+        "- program_appropriateness: visible mass and hierarchy plausibly support program_context.\n"
+        "- section_program_fit: section/roof/void relationships support the program rather than arbitrary sculpture.\n"
         "Critic actions: return any applicable structured actions from this set: "
         "too_fragmented, weak_primary_mass, needs_clean_anchor, too_many_surface_pieces, overlapping_volumes, "
         "too_box_like, weak_form_continuity, needs_profiled_surface, needs_carved_void, "
-        "good_void, good_step_mass, preserve_dominant_gesture. Use too_box_like when the proposal is mainly "
+        "good_void, good_step_mass, preserve_dominant_gesture, wrong_program_typology, missing_program_section. "
+        "Use wrong_program_typology when the visible mass belongs to a different building use, and "
+        "missing_program_section when its roof/section contradicts the program contract. Use too_box_like when the proposal is mainly "
         "generic rectangular extrusion/stacking; use weak_form_continuity when pieces do not form one spatial "
         "rule; use needs_profiled_surface for a flat roof/section that should become folded or ribbon-like; "
         "use needs_carved_void when solid/void organization is missing. These actions must describe "
@@ -259,6 +274,12 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "geometry_program node IDs and parameters in edits. Distinguish site scope fraction from normalized base seed: "
         "scope chooses how much parcel envelope is available, while BLOCK/SLAB/BAR/TOWER/PROFILED PRISM chooses the "
         "starting proportion before recursive operations. "
+        "Nodes listed in geometry_graph_snapshot.agent_edit_contract.protected_geometry_node_ids are program invariants. "
+        "Never replace_operator, remove_node, or rewire_input on them. For profiled_hall only section_family or span_axis "
+        "may be set. To add a courtyard or public void, add the new macro with input_ids=[protected hall node] and set it "
+        "as root so the hall remains in the new root's ancestry; do not replace the hall itself. "
+        "Respect geometry_graph_snapshot.agent_edit_contract.operator_parameter_contracts. In particular, courtyard "
+        "and carve_void use margin_ratio (not void_ratio), and profiled_hall uses section_family or span_axis. "
         "Use set_parameter for bounded deformation/cutting/pattern parameters. To wrap the current solid in a new "
         "operator, emit add_node with input_ids=[current root], then any set_parameter edits for that new node, then "
         "set_root targeting the new node. Use replace_operator only within the same node kind. Geometry edits support "
@@ -282,7 +303,11 @@ def _reference_image_content(reference_matches: list[dict[str, Any]], *, limit: 
             "text": (
                 f"Reference image {index}: {match.get('title') or match.get('source_id') or 'architecture reference'}; "
                 f"selection_role={match.get('selection_role') or 'similar'}; "
-                f"matched_tags={match.get('matched_tags') or []}; source={match.get('source') or ''}."
+                f"matched_tags={match.get('matched_tags') or []}; "
+                f"program_id={match.get('program_id') or ''}; "
+                f"program_match_tier={match.get('program_match_tier') or ''}; "
+                f"reference_collection={match.get('reference_collection') or ''}; "
+                f"program_matched_terms={match.get('program_matched_terms') or []}; source={match.get('source') or ''}."
             ),
         })
         content.append({
@@ -309,7 +334,7 @@ def _response_schema() -> dict[str, Any]:
     return {
         "type": "object",
         "additionalProperties": False,
-        "required": ["concept_scores", "rationale", "warnings", "critic_actions", "graph_edits", "geometry_edits"],
+        "required": ["concept_scores", "program_fit_hard_pass", "reference_assessments", "rationale", "warnings", "critic_actions", "graph_edits", "geometry_edits"],
         "properties": {
             "concept_scores": {
                 "type": "object",
@@ -321,6 +346,8 @@ def _response_schema() -> dict[str, Any]:
                     "void_publicness",
                     "repair_integrity",
                     "precedent_resonance",
+                    "program_appropriateness",
+                    "section_program_fit",
                 ],
                 "properties": {
                     "gesture_clarity": score_schema,
@@ -329,6 +356,24 @@ def _response_schema() -> dict[str, Any]:
                     "void_publicness": score_schema,
                     "repair_integrity": score_schema,
                     "precedent_resonance": score_schema,
+                    "program_appropriateness": score_schema,
+                    "section_program_fit": score_schema,
+                },
+            },
+            "program_fit_hard_pass": {"type": "boolean"},
+            "reference_assessments": {
+                "type": "array",
+                "maxItems": 5,
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["source_id", "program_relevance", "transferable_principle", "mismatch_warning"],
+                    "properties": {
+                        "source_id": {"type": "string", "maxLength": 120},
+                        "program_relevance": score_schema,
+                        "transferable_principle": {"type": "string", "maxLength": 300},
+                        "mismatch_warning": {"type": "string", "maxLength": 300},
+                    },
                 },
             },
             "rationale": {"type": "string"},
@@ -350,6 +395,8 @@ def _response_schema() -> dict[str, Any]:
                         "good_void",
                         "good_step_mass",
                         "preserve_dominant_gesture",
+                        "wrong_program_typology",
+                        "missing_program_section",
                     ],
                 },
             },
@@ -414,7 +461,7 @@ def _response_schema() -> dict[str, Any]:
                                 "slice", "clip", "cut_corner", "union", "difference", "intersection", "duplicate",
                                 "linear_array", "radial_array", "mirror_array", "stack", "attach", "bridge",
                                 "courtyard", "carve_void", "notch", "setback", "terrace", "cantilever", "cross_mass",
-                                "bent_bar", "split_wing", "attach_volume", "tapered_tower", "leaning_tower", "stepped_mass",
+                                "bent_bar", "split_wing", "attach_volume", "tapered_tower", "leaning_tower", "stepped_mass", "profiled_hall",
                             ],
                         },
                         "input_ids": {"type": "array", "maxItems": 8, "items": {"type": "string", "maxLength": 80}},
@@ -450,6 +497,8 @@ def _normalize_vlm_result(
             "void_publicness",
             "repair_integrity",
             "precedent_resonance",
+            "program_appropriateness",
+            "section_program_fit",
         )
     }
     actions = [str(item) for item in data.get("critic_actions") or [] if str(item) in {
@@ -457,6 +506,7 @@ def _normalize_vlm_result(
         "too_many_surface_pieces", "overlapping_volumes", "good_void", "good_step_mass",
         "too_box_like", "weak_form_continuity", "needs_profiled_surface", "needs_carved_void",
         "preserve_dominant_gesture",
+        "wrong_program_typology", "missing_program_section",
     }]
     if scores["hierarchy"] < 0.55:
         actions.append("weak_primary_mass")
@@ -466,7 +516,27 @@ def _normalize_vlm_result(
         actions.append("too_fragmented")
     if scores["gesture_clarity"] >= 0.75 and scores["hierarchy"] >= 0.70:
         actions.append("preserve_dominant_gesture")
+    if scores["program_appropriateness"] < 0.55:
+        actions.append("wrong_program_typology")
+    if scores["section_program_fit"] < 0.50:
+        actions.append("missing_program_section")
     actions = list(dict.fromkeys(actions))
+    program_fit_hard_pass = bool(data.get("program_fit_hard_pass")) and (
+        scores["program_appropriateness"] >= 0.55
+        and scores["section_program_fit"] >= 0.50
+        and "wrong_program_typology" not in actions
+        and "missing_program_section" not in actions
+    )
+    reference_assessments = [
+        {
+            "source_id": str(item.get("source_id") or "")[:120],
+            "program_relevance": round(max(0.0, min(1.0, float(item.get("program_relevance") or 0.0))), 3),
+            "transferable_principle": str(item.get("transferable_principle") or "")[:300],
+            "mismatch_warning": str(item.get("mismatch_warning") or "")[:300],
+        }
+        for item in data.get("reference_assessments") or ()
+        if isinstance(item, dict) and item.get("source_id")
+    ][:5]
     graph_edits = []
     # Critic language is intentionally architectural, while the executable
     # genotype has a smaller typed vocabulary.  Translate common architectural
@@ -545,6 +615,8 @@ def _normalize_vlm_result(
         "model": model,
         "response_id": response_id,
         "concept_scores": scores,
+        "program_fit_hard_pass": program_fit_hard_pass,
+        "reference_assessments": reference_assessments,
         "rationale": str(data.get("rationale") or ""),
         "warnings": [str(item) for item in data.get("warnings") or []],
         "critic_actions": actions,

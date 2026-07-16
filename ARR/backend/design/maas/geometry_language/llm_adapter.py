@@ -131,7 +131,7 @@ Allowed patterns: duplicate, linear_array, radial_array, mirror_array, stack.
 Allowed compositions: attach, bridge.
 Allowed macros: courtyard, carve_void, notch, setback, terrace, cantilever, bridge,
 cross_mass, bent_bar, split_wing, attach_volume, tapered_tower, leaning_tower,
-lift, puncture, cut_corner, stepped_mass.
+lift, puncture, cut_corner, stepped_mass, profiled_hall.
 
 Rules:
 - Every right-hand side is one function call; parameters are explicit literals.

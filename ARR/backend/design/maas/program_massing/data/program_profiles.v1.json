@@ -47,6 +47,17 @@
       "id": "gymnasium",
       "aliases": ["체육관", "운동시설", "gymnasium", "gym", "sports hall"],
       "design_intent": "one clear long-span hall volume with a subordinate entry/service bar and daylight roof expression",
+      "reference_search": {
+        "preferred_collections": ["sports_architecture"],
+        "required_any_terms": ["gym", "gymnasium", "sports", "sporting", "athletic", "arena", "recreation", "training", "club", "stadium", "natatorium", "swimming", "fitness", "pilates", "sports court", "boathouse"],
+        "supporting_terms": ["long span", "hall", "clear span", "court", "roof", "daylight", "monitor", "service spine", "entry"],
+        "minimum_program_specific_images": 3
+      },
+      "semantic_invariants": [
+        {"id": "gym_clear_span", "subject_role": "dominant_hall", "relation": "encloses", "object_role": "clear_span_program", "description": "The dominant body must remain legible as one usable long-span hall."},
+        {"id": "gym_service_hierarchy", "subject_role": "service_spine", "relation": "subordinate_to", "object_role": "dominant_hall", "description": "Entry and service volumes support rather than replace the hall."},
+        {"id": "gym_roof_section", "subject_role": "roof_section", "relation": "expresses", "object_role": "span_or_daylight_logic", "description": "Roof deformation must express span, structure or daylight instead of an arbitrary cascading pyramid."}
+      ],
       "target_volume_range": [1, 3],
       "target_floor_range": [1, 4],
       "preferred_families": ["sloped_roof", "slender_bar", "void_notch", "offset"],
@@ -74,6 +85,17 @@
       "id": "cultural",
       "aliases": ["문화시설", "집회시설", "전시장", "미술관", "museum", "cultural"],
       "design_intent": "public sequence of carved halls, courts, ramps, and one civic-scale dominant gesture",
+      "reference_search": {
+        "preferred_collections": ["cultural_architecture"],
+        "required_any_terms": ["museum", "gallery", "cultural", "exhibition", "art", "arts", "library", "theatre", "theater", "archive", "visitor center", "civic"],
+        "supporting_terms": ["gallery sequence", "controlled daylight", "atrium", "court", "ramp", "public hall", "rooflight", "service"],
+        "minimum_program_specific_images": 3
+      },
+      "semantic_invariants": [
+        {"id": "cultural_public_sequence", "subject_role": "public_threshold", "relation": "connects_through", "object_role": "gallery_sequence", "description": "The mass must organize a legible public sequence rather than only display an unusual silhouette."},
+        {"id": "cultural_void_light", "subject_role": "court_or_atrium", "relation": "mediates", "object_role": "controlled_daylight", "description": "Courts, cuts and roof forms must support exhibition light and orientation."},
+        {"id": "cultural_service_hierarchy", "subject_role": "back_of_house", "relation": "subordinate_to", "object_role": "public_gallery_hall", "description": "Service mass remains distinct from the civic public gesture."}
+      ],
       "target_volume_range": [2, 4],
       "target_floor_range": [1, 8],
       "preferred_families": ["courtyard", "split", "diagonal_connect", "nested_stack", "void_notch"],
@@ -87,6 +109,17 @@
       "id": "neighborhood_living",
       "aliases": ["근린생활시설", "근린생활", "근생", "neighborhood living", "neighborhood commercial"],
       "design_intent": "compact capacity-aware street building with an active ground edge, one clear public void or terrace, and calm upper massing",
+      "reference_search": {
+        "preferred_collections": ["cafes_restaurants", "mixed_use", "offices"],
+        "required_any_terms": ["cafe", "restaurant", "retail", "shop", "commercial", "mixed use", "community", "market", "neighborhood", "studio", "office"],
+        "supporting_terms": ["active frontage", "street edge", "public threshold", "terrace", "courtyard", "mixed program", "pedestrian"],
+        "minimum_program_specific_images": 3
+      },
+      "semantic_invariants": [
+        {"id": "neighborhood_active_edge", "subject_role": "public_ground_edge", "relation": "addresses", "object_role": "street_access", "description": "The ground mass must create an active and legible street threshold."},
+        {"id": "neighborhood_public_space", "subject_role": "void_or_terrace", "relation": "supports", "object_role": "mixed_public_program", "description": "A court, cut, bend or terrace must create usable public space rather than decorative subtraction."},
+        {"id": "neighborhood_upper_hierarchy", "subject_role": "upper_mass", "relation": "varies_without_erasing", "object_role": "ground_program", "description": "Creative upper transformations preserve the mixed-use ground relationship."}
+      ],
       "target_volume_range": [1, 3],
       "target_floor_range": [2, 8],
       "preferred_families": ["slender_bar", "courtyard", "terrace_link", "void_notch", "offset", "bend"],

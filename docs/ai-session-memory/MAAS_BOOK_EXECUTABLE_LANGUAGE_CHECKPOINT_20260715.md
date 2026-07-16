@@ -620,3 +620,103 @@ Verification on r38:
   60-board. The earlier 473-test full-suite result remains 455 pass / 18 known
   failures; do not call the entire repository green without rerunning and
   resolving those unrelated contracts.
+
+## 2026-07-17 program-conditioned VLM and recursive hall checkpoint r53 (latest; supersedes all earlier gym counts)
+
+Overall status is **fail**. This section supersedes the earlier r38 gym 20/20
+count. The older result proved that the components executed, but it did not
+prove that the VLM reference lane was program-conditioned or that the selected
+geometry was visually a credible gymnasium portfolio.
+
+The root cause was traced rather than hidden by relaxing thresholds:
+
+1. Gym references were being retrieved through generic form tags. The live
+   reference set could therefore contain houses and libraries even though the
+   requested program was a long-span sports hall. Reference contracts are now
+   program-conditioned: gym uses the local ArchDaily sports-architecture
+   corpus, cultural uses cultural architecture, and neighborhood uses
+   cafe/mixed-use material. Each contract carries semantic invariants and a
+   hard program-match requirement.
+2. A clean compiled candidate could enter the archive even when the VLM said
+   that it did not fit the program. Rejected candidates may now remain mutation
+   parents, but cannot be final archive members. When live VLM is required,
+   final selection accepts only candidates with a live program-fit review.
+3. The geometry graph previously mixed body and roof-section appearance into
+   one phenotype. It now records body phenotype, section phenotype, roof
+   family, chassis family and plan family separately. Protected
+   `program_section_invariant` nodes cannot be removed, replaced or rewired by
+   a VLM edit; the critic may only wrap them with a valid typed operation.
+4. The recursive language gained a normalized `profiled_hall` macro with
+   ridge, shed, folded, sawtooth/daylight-monitor, stepped and barrel section
+   families. It is applied after bounded body mutation, so the body program and
+   long-span section remain independently legible. No parcel coordinates or
+   finished-building templates were added.
+5. Exact geometry-program/VLM evidence is cached by prompt contract, model,
+   program hash, geometry hash, preview hash, program context and reference
+   identities. Credentials are not persisted. The cache reduced a repeated
+   live run from approximately 1,015 seconds to 357 seconds without replacing
+   the live evidence contract.
+
+Latest full live gym PNU `1168011800104170004` run, r53:
+
+- selected: 12/20; numeric status **fail**;
+- BOOK principles: 11; visual-language keys: 7; p.3 scopes: 6/6; reported
+  near-duplicate pairs: 0;
+- body phenotypes: curved 2, prismatic 1, stepped 1, voided 8; required oblique
+  body phenotype is absent;
+- roof/section families: arched 3, barrel 2, ridge 1, sawtooth 3, shed 3;
+- chassis families: bar 9, block 1, slab 2; plan families: bar 11,
+  intermediate 1;
+- 46 candidates reached legal/geometry-retention hard pass; 39 passed the live
+  VLM program review. The visual selector still retained only 12. Of the
+  remaining pool, 22 were silhouette conflicts and 16 hit the chassis-family
+  cap, proving that the current bottleneck is genuine form convergence rather
+  than a shortage of clean or legal candidates;
+- the live loop supplied up to five program-conditioned ArchDaily images per
+  critic call, used 91 prior graph observations at most, and compiled 20
+  geometry revisions;
+- the same 12 accepted sources pass legal, FAR, geometry-retention and parking
+  hard gates 12/12. Mean retained volume is 0.8864 and minimum retained volume
+  is 0.8026. The parking ordinance calculation rounds the small tested floor
+  areas to zero required spaces, while layout status remains
+  `needs_swept_path_review`; this is not a full parking-layout approval.
+
+Direct original-resolution PNG review remains **fail**. Most candidates now
+read as long-span halls, but sawtooth/voided bar relatives repeat. Card 4 is a
+triangular/tent-like false positive even though the live VLM scored program
+appropriateness 0.82 and section fit 0.80. Its measured upper-area ratio
+0.3102, horizontal ratio 0.8257, vertical ratio 0.0060, sloped ratio 0.1683
+and 17 horizontal levels exposed the critic false positive. A third measured
+tent-collapse condition was added after r53; current code would reject that
+candidate, so r53 must not be re-labelled as a current 12-good-design result.
+VLM judgment remains critic evidence, not a substitute for mesh-derived hard
+gates.
+
+Evidence:
+
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r53-live-capability-gym/maas-book-gymnasium-20.png`
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r53-live-capability-gym/maas-book-programs-summary.json`
+
+The deterministic r52 capability preflight reached 20/20 with 18 BOOK
+principles, 11 visual-language keys, all six scopes and downstream hard gates
+20/20. It was intentionally run without live VLM and its PNG still contained
+visually questionable triangular relatives. It is useful only as proof that
+the compiler and selector have enough bounded capability; it is not final
+evidence and must not replace r53.
+
+Verification for this checkpoint:
+
+- `design.test_maas_geometry_language`: 41/41 pass;
+- BOOK scope/language plus Mass-Brain tests: 23/23 pass;
+- the three requested program-massing projection/role tests: 3/3 pass;
+- the latest measured tent-collapse regression passes after the post-r53
+  correction.
+
+Next work must preserve the hard thresholds and solve plan/body topology
+diversity: produce real winged, lifted, bent and oblique long-span relations
+that retain geometry after the legal envelope; calibrate the VLM against the
+mesh false-positive cases; rerun live gym until 20 visually credible cases are
+available; then rerun neighborhood and cultural together and expose the
+reference -> contract -> critic -> typed edit -> child -> hard-gate causal
+graph in the frontend. Do not claim competition-grade or commercialization
+readiness before those steps pass direct PNG review.

@@ -18,7 +18,7 @@
     "model": "gpt-5.4-mini",
     "archdaily_images_supplied_to_critic": true,
     "maximum_reference_images_per_response": 5,
-    "completed_response_counts": {
+    "completed_candidate_status_counts": {
       "neighborhood": 65,
       "gymnasium": 68,
       "cultural": 68

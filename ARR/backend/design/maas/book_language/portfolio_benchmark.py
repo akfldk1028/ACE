@@ -9,6 +9,7 @@ slower evolutionary/VLM loop, not a replacement for legal/FAR/parking repair.
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 from collections import Counter
 from copy import deepcopy
@@ -31,6 +32,7 @@ from design.maas.geometry_language import (
     reference_language_programs,
     replace_source_dominant_with_geometry_program,
     openai_vlm_geometry_critic,
+    retrieve_geometry_reference_matches,
     run_geometry_program_a2a_loop,
     synthesize_architectural_programs,
     synthesis_requests_from_program_profile,
@@ -368,8 +370,9 @@ def _scope_coverage_anchors(
     section_family_cap: int,
     roof_archetype_caps: dict[str, int],
     chassis_family_cap: int,
+    required_phenotypes: tuple[str, ...] = (),
 ) -> list[_Candidate]:
-    """Find one mutually silhouette-distinct candidate for every p.3 scope."""
+    """Find joint scope/phenotype anchors before greedy portfolio filling."""
     by_scope = {
         label: sorted(
             (candidate for candidate in candidates if _scope_key(candidate) == label),
@@ -380,67 +383,111 @@ def _scope_coverage_anchors(
     }
     if any(not options for options in by_scope.values()):
         return []
-    ordered_scopes = sorted(by_scope, key=lambda label: (len(by_scope[label]), label))
+    available_phenotypes = {_solid_morphology_metrics(candidate)["phenotype"] for candidate in candidates}
+    required_phenotypes = tuple(
+        value for value in dict.fromkeys(required_phenotypes)
+        if value in available_phenotypes
+    )
 
-    def visit(
-        index: int,
-        picked: list[_Candidate],
-        operation_usage: Counter,
-        seed_usage: Counter,
-        section_usage: Counter,
-        roof_usage: Counter,
-        chassis_usage: Counter,
-    ) -> list[_Candidate] | None:
-        if index >= len(ordered_scopes):
-            return list(picked)
-        scope = ordered_scopes[index]
-        options = sorted(
-            by_scope[scope],
-            key=lambda candidate: (
+    def solve(phenotype_requirements: tuple[str, ...]) -> list[_Candidate] | None:
+        requirements = tuple(
+            [("scope", label) for label, _fraction in BASE_VOLUME_FRACTIONS]
+            + [("phenotype", value) for value in phenotype_requirements]
+        )
+
+        def visit(
+            picked: list[_Candidate],
+            operation_usage: Counter,
+            seed_usage: Counter,
+            section_usage: Counter,
+            roof_usage: Counter,
+            chassis_usage: Counter,
+        ) -> list[_Candidate] | None:
+            covered_scopes = {_scope_key(candidate) for candidate in picked}
+            covered_phenotypes = {_solid_morphology_metrics(candidate)["phenotype"] for candidate in picked}
+            missing = [
+                requirement for requirement in requirements
+                if (
+                    requirement[1] not in covered_scopes
+                    if requirement[0] == "scope"
+                    else requirement[1] not in covered_phenotypes
+                )
+            ]
+            if not missing:
+                return list(picked)
+
+            def eligible(requirement: tuple[str, str]) -> list[_Candidate]:
+                result = []
+                for candidate in candidates:
+                    if any(candidate is item for item in picked):
+                        continue
+                    if requirement[0] == "scope" and _scope_key(candidate) != requirement[1]:
+                        continue
+                    if requirement[0] == "phenotype" and _solid_morphology_metrics(candidate)["phenotype"] != requirement[1]:
+                        continue
+                    seed = _seed_family(candidate)
+                    section = _section_family(candidate)
+                    roof = _roof_archetype(candidate)
+                    chassis = _chassis_family(candidate)
+                    if operation_usage[candidate.operation] >= 2:
+                        continue
+                    if (
+                        seed_usage[seed] >= seed_family_cap
+                        or section_usage[section] >= section_family_cap
+                        or roof_usage[roof] >= roof_archetype_caps.get(roof, 999)
+                        or chassis_usage[chassis] >= chassis_family_cap
+                    ):
+                        continue
+                    if any(_silhouette_distance(candidate, other) < 0.10 for other in picked):
+                        continue
+                    result.append(candidate)
+                return result
+
+            requirement_options = [(requirement, eligible(requirement)) for requirement in missing]
+            requirement, options = min(
+                requirement_options,
+                key=lambda item: (len(item[1]), item[0][0], item[0][1]),
+            )
+            if not options:
+                return None
+            options.sort(key=lambda candidate: (
                 seed_usage[_seed_family(candidate)],
                 section_usage[_section_family(candidate)],
                 roof_usage[_roof_archetype(candidate)],
                 chassis_usage[_chassis_family(candidate)],
                 -candidate.score,
-            ),
-        )
-        for candidate in options:
-            seed = _seed_family(candidate)
-            section = _section_family(candidate)
-            roof = _roof_archetype(candidate)
-            chassis = _chassis_family(candidate)
-            if operation_usage[candidate.operation] >= 2:
-                continue
-            if (
-                seed_usage[seed] >= seed_family_cap
-                or section_usage[section] >= section_family_cap
-                or roof_usage[roof] >= roof_archetype_caps.get(roof, 999)
-                or chassis_usage[chassis] >= chassis_family_cap
-            ):
-                continue
-            if any(_silhouette_distance(candidate, other) < 0.10 for other in picked):
-                continue
-            operation_usage[candidate.operation] += 1
-            seed_usage[seed] += 1
-            section_usage[section] += 1
-            roof_usage[roof] += 1
-            chassis_usage[chassis] += 1
-            picked.append(candidate)
-            result = visit(
-                index + 1, picked, operation_usage, seed_usage, section_usage,
-                roof_usage, chassis_usage,
-            )
-            if result is not None:
-                return result
-            picked.pop()
-            operation_usage[candidate.operation] -= 1
-            seed_usage[seed] -= 1
-            section_usage[section] -= 1
-            roof_usage[roof] -= 1
-            chassis_usage[chassis] -= 1
-        return None
+            ))
+            for candidate in options:
+                seed = _seed_family(candidate)
+                section = _section_family(candidate)
+                roof = _roof_archetype(candidate)
+                chassis = _chassis_family(candidate)
+                operation_usage[candidate.operation] += 1
+                seed_usage[seed] += 1
+                section_usage[section] += 1
+                roof_usage[roof] += 1
+                chassis_usage[chassis] += 1
+                picked.append(candidate)
+                result = visit(
+                    picked, operation_usage, seed_usage, section_usage,
+                    roof_usage, chassis_usage,
+                )
+                if result is not None:
+                    return result
+                picked.pop()
+                operation_usage[candidate.operation] -= 1
+                seed_usage[seed] -= 1
+                section_usage[section] -= 1
+                roof_usage[roof] -= 1
+                chassis_usage[chassis] -= 1
+            return None
 
-    return visit(0, [], Counter(), Counter(), Counter(), Counter(), Counter()) or []
+        return visit([], Counter(), Counter(), Counter(), Counter(), Counter())
+
+    # If all requested phenotypes cannot coexist under hard silhouette/family
+    # constraints, preserve the six BOOK scopes and let the explicit failure
+    # remain visible. Never fabricate or relax a geometry threshold.
+    return solve(required_phenotypes) or solve(()) or []
 
 
 def _fingerprint(candidate: _Candidate) -> tuple[Any, ...]:
@@ -615,8 +662,11 @@ def _agent_mutated_seeds(
         vlm_status = "not_requested"
         if bool(request.get("live_vlm_revision")):
             live_opt_in = os.getenv("MAAS_LIVE_GEOMETRY_VLM", "").strip().lower() in {"1", "true", "yes", "on"}
+            rotated_credential_confirmed = os.getenv("MAAS_LIVE_VLM_CREDENTIAL_ROTATED", "").strip().lower() in {"1", "true", "yes", "on"}
             if not live_opt_in:
                 vlm_status = "inactive_requires_explicit_MAAS_LIVE_GEOMETRY_VLM_opt_in"
+            elif not rotated_credential_confirmed:
+                vlm_status = "inactive_requires_rotated_credential_confirmation"
             elif not os.getenv("OPENAI_API_KEY"):
                 vlm_status = "inactive_missing_rotated_environment_key"
             else:
@@ -635,13 +685,32 @@ def _agent_mutated_seeds(
                         target_count=len(programs),
                         author_programs=lambda _context, authored=programs: authored,
                         critic_program=openai_vlm_geometry_critic(
-                            reference_matches=reference_matches,
+                            reference_provider=lambda program, explicit=reference_matches: retrieve_geometry_reference_matches(
+                                program,
+                                building_type=building_type,
+                                explicit_matches=explicit,
+                                limit=max(3, min(8, int(request.get("reference_limit") or 5))),
+                            ),
+                            memory_provider=(
+                                lambda program: outcome_graph.agent_neighborhood(
+                                    source_seed=source.name,
+                                    program_hash=program.program_hash(),
+                                )
+                                if outcome_graph is not None
+                                else {}
+                            ),
                             model=str(request.get("vlm_model") or "") or None,
                         ),
                         max_generations=max(1, min(3, int(request.get("vlm_generations") or 2))),
                         author_provider="bounded_procedural_geometry_agent",
                         critic_provider="openai_vlm",
                     )
+                    if outcome_graph is not None:
+                        outcome_graph.observe_vlm_loop(
+                            program_slug=building_type,
+                            source_seed=source.name,
+                            trace=loop.trace,
+                        )
                     if loop.archive:
                         programs = tuple(replace(
                             candidate.program,
@@ -650,6 +719,16 @@ def _agent_mutated_seeds(
                                 "vlm_critic_score": round(float(candidate.critic_score), 4),
                                 "vlm_revision_generation": int(candidate.generation),
                                 "vlm_geometry_critic_active": True,
+                                "vlm_geometry_revision_count": int(loop.trace.get("geometry_revision_count") or 0),
+                                "vlm_unique_geometry_count": int(loop.trace.get("unique_geometry_count") or 0),
+                                "vlm_model": str(candidate.critic_payload.get("model") or ""),
+                                "vlm_response_id": str(candidate.critic_payload.get("response_id") or ""),
+                                "vlm_reference_count": len(
+                                    ((candidate.critic_payload.get("maas_causal_context") or {}).get("reference_matches") or ())
+                                ),
+                                "vlm_memory_observation_count": int(
+                                    (((candidate.critic_payload.get("maas_causal_context") or {}).get("outcome_memory") or {}).get("observation_count") or 0)
+                                ),
                             },
                         ) for candidate in loop.archive)
                     vlm_status = str(loop.trace.get("status") or "completed")
@@ -689,6 +768,9 @@ def _agent_mutated_seeds(
                     f"geometry_program_legal_fit_strength={legal_fit_strength}",
                     "geometry_program_source=procedural_geometry_synthesis_agent",
                     f"geometry_program_vlm_status={vlm_status}",
+                    f"geometry_program_vlm_reference_count={int(program.metadata.get('vlm_reference_count') or 0)}",
+                    f"geometry_program_vlm_memory_observation_count={int(program.metadata.get('vlm_memory_observation_count') or 0)}",
+                    f"geometry_program_vlm_revision_count={int(program.metadata.get('vlm_geometry_revision_count') or 0)}",
                 ))
                 seeds.append(replace(
                     source,
@@ -845,6 +927,9 @@ def _select(
         section_family_cap=section_family_cap,
         roof_archetype_caps=roof_archetype_caps,
         chassis_family_cap=chassis_family_cap,
+        required_phenotypes=tuple(
+            str(value) for value in directive.get("required_solid_phenotypes") or ()
+        ),
     )
     anchor_ids = {id(candidate) for candidate in anchors}
     candidates = [candidate for candidate in candidates if id(candidate) not in anchor_ids]
@@ -1145,6 +1230,10 @@ def _rebalance_measured_morphologies(
                     wanted_phenotype
                     and phenotype_counts[_solid_morphology_metrics(candidate)["phenotype"]] > 1
                 )
+            )
+            and not (
+                _solid_morphology_metrics(candidate)["phenotype"] in set(required)
+                and phenotype_counts[_solid_morphology_metrics(candidate)["phenotype"]] <= 1
             )
         ]
         removable.sort(key=lambda item: item.score)
@@ -1609,6 +1698,23 @@ def _program_pool(
             for note in seed.notes
             if note.startswith("geometry_program_vlm_status=")
         ).items())),
+        "geometry_program_vlm_causal_trace": {
+            "maximum_reference_count": max((
+                int(note.split("=", 1)[1])
+                for seed in directed_seeds for note in seed.notes
+                if note.startswith("geometry_program_vlm_reference_count=")
+            ), default=0),
+            "maximum_memory_observation_count": max((
+                int(note.split("=", 1)[1])
+                for seed in directed_seeds for note in seed.notes
+                if note.startswith("geometry_program_vlm_memory_observation_count=")
+            ), default=0),
+            "geometry_revision_count": max((
+                int(note.split("=", 1)[1])
+                for seed in directed_seeds for note in seed.notes
+                if note.startswith("geometry_program_vlm_revision_count=")
+            ), default=0),
+        },
         "program_passed_by_seed_family": dict(sorted(Counter(_seed_family(candidate) for candidate in accepted).items())),
         "program_passed_by_section_family": dict(sorted(Counter(_section_family(candidate) for candidate in accepted).items())),
         "scope_stage_counts": scope_stage_counts,
@@ -2365,6 +2471,7 @@ def run_book_program_portfolios(
                 "geometry_synthesis_request_count": int(counts.get("geometry_synthesis_request_count") or 0),
                 "geometry_synthesis_request_source": counts.get("geometry_synthesis_request_source"),
                 "geometry_program_vlm_status_counts": counts.get("geometry_program_vlm_status_counts") or {},
+                "geometry_program_vlm_causal_trace": counts.get("geometry_program_vlm_causal_trace") or {},
                 "required_roof_archetypes": list(program_visual_directive.get("required_roof_archetypes") or ()),
                 "required_solid_phenotypes": list(program_visual_directive.get("required_solid_phenotypes") or ()),
                 "max_wedge_like_count": wedge_cap,
@@ -2410,6 +2517,24 @@ def run_book_program_portfolios(
         "visual_duplicate_metric": "pose-invariant top/front/side silhouette distance",
         "summary_png": str(summary_board),
     }
+    review_fingerprint_payload = [
+        {
+            "slug": item["slug"],
+            "status": item["status"],
+            "selected": [
+                (
+                    row.get("source_sequence"), row.get("book_principle_id"),
+                    (row.get("book_scope") or {}).get("base_volume_label"),
+                    row.get("solid_phenotype"), row.get("roof_archetype"),
+                )
+                for row in item.get("rows") or ()
+            ],
+        }
+        for item in program_results
+    ]
+    result["visual_review_fingerprint"] = hashlib.sha256(
+        json.dumps(review_fingerprint_payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()
     outcome_graph_payload = outcome_graph.save()
     result["geometry_mutation_outcome_graph"] = {
         "status": "materialized",
@@ -2428,12 +2553,18 @@ def run_book_program_portfolios(
         if (
             isinstance(visual_review, dict)
             and str(visual_review.get("pnu") or "") == pnu
+            and str(visual_review.get("source_summary_fingerprint") or "") == result["visual_review_fingerprint"]
         ):
             result["numeric_status"] = book_program_numeric_status
             result["visual_design_review"] = visual_review
             result["visual_design_review_path"] = str(visual_review_path)
             if visual_review.get("status") == "fail":
                 result["status"] = "fail"
+        elif isinstance(visual_review, dict) and str(visual_review.get("pnu") or "") == pnu:
+            result["visual_design_review"] = {
+                "status": "not_run_for_current_fingerprint",
+                "stale_review_ignored": True,
+            }
     (output_dir / "maas-book-programs-summary.json").write_text(
         json.dumps(result, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",

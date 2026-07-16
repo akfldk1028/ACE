@@ -125,11 +125,18 @@ def run_geometry_program_a2a_loop(
                 record.update({
                     "status": "critic_reviewed",
                     "critic_score": round(score, 6),
+                    "critic_model": str(payload.get("model") or ""),
+                    "critic_response_id": str(payload.get("response_id") or ""),
                     "critic_actions": [str(item) for item in payload.get("critic_actions") or []],
                     "geometry_edits": [edit.to_dict() for edit in edits],
                     "mutation_status": mutation.status,
                     "mutation_issues": [issue.to_dict() for issue in mutation.issues],
                     "preview_path": str(preview),
+                    "vlm_causal_context": (
+                        payload.get("maas_causal_context")
+                        if isinstance(payload.get("maas_causal_context"), dict)
+                        else {}
+                    ),
                 })
                 if mutation.program is not None and generation + 1 < max_generations:
                     child_compilation = compile_geometry_program(mutation.program)

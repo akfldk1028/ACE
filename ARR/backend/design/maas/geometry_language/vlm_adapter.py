@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
-from functools import partial
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Callable
 
 from design.maas.preference.vlm_scorer import score_candidate_with_openai_vlm
+from design.maas.preference.reference_corpus import (
+    ReferenceItem,
+    default_reference_root,
+    load_reference_tree,
+    match_reference_context,
+)
 
 from .ast import GeometryProgram
 from .base_seeds import base_seed_catalog
@@ -125,6 +131,7 @@ def score_geometry_program_with_openai_vlm(
     preview_path: Path,
     *,
     reference_matches: list[dict[str, Any]] | None = None,
+    outcome_memory_context: dict[str, Any] | None = None,
     model: str | None = None,
 ) -> dict[str, Any]:
     """Ask the live critic for bounded typed AST edits, not descriptive labels."""
@@ -139,31 +146,113 @@ def score_geometry_program_with_openai_vlm(
             "geometry_graph_snapshot": build_geometry_graph_snapshot(program, compilation),
             "base_seed_catalog": list(base_seed_catalog()),
             "geometry_language": sorted({node.operator for node in program.nodes}),
+            "outcome_memory_context": outcome_memory_context or {
+                "schema_version": "arr.maas.geometry_agent_neighborhood.v1",
+                "observation_count": 0,
+                "status": "no_prior_observation",
+            },
         },
     }
-    return score_candidate_with_openai_vlm(
+    result = score_candidate_with_openai_vlm(
         feature=feature,
         image_path=preview_path,
         reference_matches=reference_matches or [],
         model=model,
     )
+    result["maas_causal_context"] = {
+        "schema_version": "arr.maas.vlm_geometry_causal_context.v1",
+        "reference_matches": [
+            {
+                key: item.get(key)
+                for key in ("source", "source_id", "title", "selection_role", "matched_tags", "score")
+                if item.get(key) not in (None, "", [])
+            }
+            for item in (reference_matches or [])
+            if isinstance(item, dict)
+        ],
+        "outcome_memory": outcome_memory_context or {},
+    }
+    return result
+
+
+@lru_cache(maxsize=4)
+def _cached_reference_items(root: str) -> tuple[ReferenceItem, ...]:
+    return tuple(load_reference_tree(Path(root)))
+
+
+def retrieve_geometry_reference_matches(
+    program: GeometryProgram,
+    *,
+    building_type: str,
+    explicit_matches: list[dict[str, Any]] | None = None,
+    reference_root: str | Path | None = None,
+    limit: int = 5,
+) -> list[dict[str, Any]]:
+    """Retrieve image-backed precedents from intent, never parcel coordinates."""
+    root = Path(reference_root) if reference_root is not None else default_reference_root() / "archdaily"
+    feature = {
+        "type": "Feature",
+        "geometry": None,
+        "properties": {
+            "operator_family": " ".join(str(item) for item in program.metadata.get("operator_path") or ()),
+            "source_signature": {
+                "family": str(program.metadata.get("family") or building_type),
+                "formal_principle": " ".join(str(item) for item in program.metadata.get("intent_tags") or ()),
+                "primary_language": " ".join(sorted({node.operator for node in program.nodes})),
+                "secondary_language": str(program.metadata.get("base_seed") or ""),
+            },
+        },
+    }
+    retrieved = match_reference_context(
+        feature,
+        _cached_reference_items(str(root.resolve())),
+        limit=max(3, int(limit)),
+    )
+    merged: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    ordered = (*retrieved[:3], *(explicit_matches or []), *retrieved[3:])
+    for item in ordered:
+        if not isinstance(item, dict) or not (item.get("local_path") or item.get("image_url")):
+            continue
+        key = (
+            str(item.get("source") or "explicit"),
+            str(item.get("source_id") or item.get("local_path") or item.get("image_url") or item.get("title") or ""),
+        )
+        if not key[1] or key in seen:
+            continue
+        seen.add(key)
+        merged.append(dict(item))
+    return merged[: max(3, int(limit))]
 
 
 def openai_vlm_geometry_critic(
     *,
     reference_matches: list[dict[str, Any]] | None = None,
+    reference_provider: Callable[[GeometryProgram], list[dict[str, Any]]] | None = None,
+    memory_provider: Callable[[GeometryProgram], dict[str, Any]] | None = None,
     model: str | None = None,
 ) -> Callable[[GeometryProgram, CompilationResult, Path], dict[str, Any]]:
-    return partial(
-        score_geometry_program_with_openai_vlm,
-        reference_matches=reference_matches or [],
-        model=model,
-    )
+    static_matches = list(reference_matches or [])
+
+    def critic(program: GeometryProgram, compilation: CompilationResult, preview_path: Path) -> dict[str, Any]:
+        dynamic_matches = reference_provider(program) if reference_provider is not None else []
+        memory = memory_provider(program) if memory_provider is not None else {}
+        return score_geometry_program_with_openai_vlm(
+            program,
+            compilation,
+            preview_path,
+            reference_matches=dynamic_matches or static_matches,
+            outcome_memory_context=memory,
+            model=model,
+        )
+
+    return critic
 
 
 __all__ = [
     "build_geometry_graph_notes",
     "build_geometry_graph_snapshot",
     "openai_vlm_geometry_critic",
+    "retrieve_geometry_reference_matches",
     "score_geometry_program_with_openai_vlm",
 ]

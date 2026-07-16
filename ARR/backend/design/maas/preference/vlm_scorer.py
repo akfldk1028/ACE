@@ -155,6 +155,7 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
     geometry_program = props.get("geometry_program") if isinstance(props.get("geometry_program"), dict) else {}
     geometry_graph_notes = props.get("geometry_graph_notes") if isinstance(props.get("geometry_graph_notes"), list) else []
     geometry_graph_snapshot = props.get("geometry_graph_snapshot") if isinstance(props.get("geometry_graph_snapshot"), dict) else {}
+    outcome_memory_context = props.get("outcome_memory_context") if isinstance(props.get("outcome_memory_context"), dict) else {}
     geometry_nodes = geometry_program.get("nodes") if isinstance(geometry_program.get("nodes"), list) else []
     compact_geometry_program = {
         "root_id": str(geometry_program.get("root_id") or ""),
@@ -187,6 +188,7 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "geometry_program": compact_geometry_program,
         "geometry_graph_notes": geometry_graph_notes[:96],
         "geometry_graph_snapshot": geometry_graph_snapshot,
+        "outcome_memory_context": outcome_memory_context,
         "base_seed_catalog": props.get("base_seed_catalog") if isinstance(props.get("base_seed_catalog"), list) else [],
         "site_boundary_source": props.get("site_boundary_source"),
         "site_access_context": props.get("site_access_context") or {},
@@ -206,6 +208,9 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "A reference marked counterfactual intentionally demonstrates a different spatial principle; use it to "
         "propose a transferable graph operation, never to copy its building. Do not reward facade rendering, "
         "photography quality, or materials.\n"
+        "outcome_memory_context is measured graph evidence from prior compilations and hard gates for this exact "
+        "genotype. Use successful parameters as bounded priors and explicitly avoid repeated failed gates; it is "
+        "observation memory, not permission to bypass any current hard gate.\n"
         "Return strict JSON. Each concept score must be between 0 and 1. Use component_graph node_id values "
         "when proposing graph edits; do not invent parcel coordinates. Never target the base/root node. For a "
         "dominant-form correction, target primary_node_id. replace_operation, set_parameter, remove_optional, "
@@ -266,7 +271,7 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
     )
 
 
-def _reference_image_content(reference_matches: list[dict[str, Any]], *, limit: int = 3) -> list[dict[str, Any]]:
+def _reference_image_content(reference_matches: list[dict[str, Any]], *, limit: int = 5) -> list[dict[str, Any]]:
     content: list[dict[str, Any]] = []
     for index, match in enumerate(reference_matches[:limit], start=1):
         image_url = _reference_image_url(match)

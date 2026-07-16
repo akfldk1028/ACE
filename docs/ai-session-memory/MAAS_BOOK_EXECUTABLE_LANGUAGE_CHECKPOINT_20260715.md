@@ -378,3 +378,83 @@ compromised and was neither stored nor used; it must be revoked and replaced
 through a secure environment variable. Stored typed VLM/session directives
 were applied deterministically. VLM remains a critic, reranker and typed
 graph-edit director rather than a direct mesh generator.
+
+## 2026-07-16 ArchDaily + live-VLM + outcome-graph causal loop r33 (latest; supersedes r32 counts and visual verdict)
+
+The three previously separate capabilities are now one executable causal
+contract:
+
+`program genotype -> automatic ArchDaily retrieval (similar + counterfactual) -> rendered candidate + editable geometry graph + prior outcome neighborhood -> VLM typed node edits -> semantic validation -> recompile -> geometry-hash change -> clean gate -> outcome graph observation -> next genotype query`
+
+Automatic retrieval reads the local ArchDaily corpus (274 unique projects and
+338 image files at this checkpoint) from intent tags, base seed, operator path
+and building type. It does not retrieve parcel coordinates or copy a completed
+building. The VLM receives up to five image-backed references, including a
+counterfactual formal principle and explicit session references when present.
+
+`GeometryOutcomeGraph.agent_neighborhood()` now supplies exact-genotype prior
+successes, failed program/legal gates, fit strengths and BOOK principles to the
+critic. `observe_vlm_loop()` records the critic model/response identity, typed
+edits, reference IDs, parent/child program hashes, parent/child geometry hashes
+and whether compiled geometry actually changed. Neo4j remains an optional
+mirror; the portable graph is authoritative for this diagnostic. The standard
+r33 graph contains 6,619 nodes, 18,953 edges and 6,113 observations.
+
+The closed path is regression-tested with an injected VLM callback: an
+ArchDaily-backed request proposes a typed taper node, the AST and compiled mesh
+hashes both change, the child passes the clean gate, and the response/reference
+and `vlm_revised_to` edge are queryable in graph memory. No synthetic score is
+used in the PNU artifact. The real OpenAI VLM remains **not run** because the
+only known key was pasted into chat and is compromised. Live execution now
+requires both `MAAS_LIVE_GEOMETRY_VLM=1` and explicit
+`MAAS_LIVE_VLM_CREDENTIAL_ROTATED=1` confirmation with a rotated key supplied
+through the process environment. Never reuse or paste the old key.
+
+p.3 scope and base shape remain separate axes. The six fractions (`1/1`,
+`3/8`, `1/2`, `1/4`, `1/8`, `1/16`) clip the available starting extent. Five
+semantic base priors (`block`, `slab`, `bar`, `tower`, `profiled_prism`) define
+starting proportion/section. Block/slab/bar/tower are non-uniform transforms of
+one unit Box and are deliberately distinct agent-readable seed nodes; a `1/16
+slab` and `1/16 bar` therefore compile to different geometry.
+
+The selector now solves scope and measured phenotype anchors jointly before
+greedy novelty filling. This fixed a reproducibility failure in which a valid
+hard-pass oblique gym candidate existed in the bounded pool but was discarded
+after scope anchors. No threshold was relaxed and no oblique completed form was
+hard-coded.
+
+Latest real PNU `1168011800104170004` deterministic r33 run:
+
+- neighborhood: 20/20, 20 BOOK principles, 16 measured visual languages, six
+  scopes, zero near-duplicate pairs; curved 4, oblique 1, prismatic 6, stepped
+  2, voided 5, winged 2.
+- gymnasium: 20/20, 18 BOOK principles, 19 measured visual languages, six
+  scopes, zero near-duplicate pairs; curved 1, oblique 2, prismatic 6, stepped
+  4, voided 2, winged 5.
+- cultural: 20/20, 19 BOOK principles, 16 measured visual languages, six
+  scopes, zero near-duplicate pairs; curved 2, oblique 1, prismatic 6, stepped
+  5, voided 3, winged 3.
+- legal/FAR/geometry-retention/parking combined hard pass: 60/60. Mean volume
+  retention is 0.9034, 0.9214 and 0.9181; selected minimum is 0.8026.
+- live-VLM causal trace counts in this PNU artifact are all zero and the status
+  explicitly says the opt-in was inactive. Do not attribute r33 geometric
+  improvement to a live OpenAI call.
+
+Direct inspection of the three r33 original-resolution PNGs gives a split
+verdict. Procedural mass diversity passes and the earlier gable-only collapse
+is gone, but architecture-grade and cross-program differentiation fail. Low
+prismatic/chamfer/terrace relatives still recur between neighborhood and
+cultural; their minimum cross-program silhouette distance is 0.0283. Gym has
+long-span, winged, stepped, court and oblique bodies, but some bars still read
+as generic clipped sheds. `architecture_grade_claim_allowed` remains false and
+the overall summary is deliberately `fail` after applying the current visual
+review fingerprint.
+
+Stale visual reviews can no longer silently overwrite a new run. The review
+must carry the exact selected-source/scope/phenotype fingerprint or it is
+reported as ignored.
+
+Verification on this state: 51 geometry/BOOK/scope/Mass-Brain tests and the
+three targeted program-massing tests pass. The full PNU benchmark completed
+twice during this correction (first exposing the missing gym oblique, then
+passing numeric/hard constraints after the joint selector fix).

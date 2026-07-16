@@ -1,8 +1,11 @@
 """Regression contracts for the recursive solid geometry language."""
 
+import os
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from django.test import SimpleTestCase
 from shapely.geometry import Polygon
@@ -28,7 +31,9 @@ from design.maas.geometry_language import (
     program_cost,
     reference_language_programs,
     replace_source_dominant_with_geometry_program,
+    retrieve_geometry_reference_matches,
     run_geometry_program_a2a_loop,
+    score_geometry_program_with_openai_vlm,
     synthesize_architectural_programs,
     synthesis_requests_from_program_profile,
 )
@@ -274,6 +279,182 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             {next(item["book_scope"] for item in graph.observations if item["book_principle_id"] == principle) for principle in selected},
             {"1/1", "3/8", "1/2", "1/4", "1/8", "1/16"},
         )
+
+    def test_archdaily_retrieval_is_image_backed_and_includes_counterfactual(self):
+        program = synthesize_architectural_programs({
+            "base_seeds": ["bar"],
+            "intent_tags": ["long_span", "continuous_curve", "carved_void"],
+            "candidate_count": 1,
+        }, building_type="gymnasium")[0]
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            records = [
+                {"source": "archdaily_api", "source_id": "hall-1", "title": "Long span sports hall", "local_path": str(root / "hall-1.jpg"), "tags": ["bar", "slender", "long_span"]},
+                {"source": "archdaily_api", "source_id": "hall-2", "title": "Carved arena court", "local_path": str(root / "hall-2.jpg"), "tags": ["void", "carve", "court"]},
+                {"source": "archdaily_api", "source_id": "hall-3", "title": "Twisted bridge field", "local_path": str(root / "hall-3.jpg"), "tags": ["twist", "bridge", "field"]},
+                {"source": "archdaily_api", "source_id": "hall-4", "title": "Folded daylight roof", "local_path": str(root / "hall-4.jpg"), "tags": ["folded", "section", "roof"]},
+            ]
+            for record in records:
+                Path(record["local_path"]).touch()
+            (root / "metadata.jsonl").write_text(
+                "".join(json.dumps(record) + "\n" for record in records),
+                encoding="utf-8",
+            )
+            matches = retrieve_geometry_reference_matches(
+                program,
+                building_type="gymnasium",
+                reference_root=root,
+                limit=5,
+            )
+        self.assertGreaterEqual(len(matches), 3)
+        self.assertTrue(all(item.get("local_path") or item.get("image_url") for item in matches))
+        self.assertTrue(all(str(item.get("source") or "").startswith("archdaily") for item in matches[:3]))
+        self.assertIn("counterfactual", {item.get("selection_role") for item in matches})
+
+    def test_vlm_receives_outcome_memory_and_causal_reference_trace(self):
+        program = synthesize_architectural_programs({
+            "base_seeds": ["slab"],
+            "intent_tags": ["stepped_section"],
+            "candidate_count": 1,
+        }, building_type="gymnasium")[0]
+        compilation = compile_geometry_program(program)
+        memory = {
+            "schema_version": "arr.maas.geometry_agent_neighborhood.v1",
+            "observation_count": 4,
+            "common_failed_gates": [{"gate": "coherence", "count": 2}],
+        }
+        references = [{
+            "source": "archdaily_api", "source_id": "ref-1", "title": "Folded hall",
+            "local_path": str(Path(__file__)), "selection_role": "counterfactual",
+        }]
+        captured = {}
+
+        def fake_scorer(**kwargs):
+            captured.update(kwargs)
+            return {"score": 0.72, "geometry_edits": [], "model": "fake-vlm", "response_id": "resp-1"}
+
+        with TemporaryDirectory() as directory, patch(
+            "design.maas.geometry_language.vlm_adapter.score_candidate_with_openai_vlm",
+            side_effect=fake_scorer,
+        ):
+            result = score_geometry_program_with_openai_vlm(
+                program,
+                compilation,
+                Path(directory) / "candidate.png",
+                reference_matches=references,
+                outcome_memory_context=memory,
+            )
+        self.assertEqual(
+            captured["feature"]["properties"]["outcome_memory_context"]["observation_count"],
+            4,
+        )
+        self.assertEqual(captured["reference_matches"][0]["source_id"], "ref-1")
+        self.assertEqual(result["maas_causal_context"]["outcome_memory"]["observation_count"], 4)
+
+    def test_vlm_revision_trace_is_persisted_and_retrievable_by_graph_agent(self):
+        graph = GeometryOutcomeGraph(Path("unused.json"), pnu="test")
+        graph.observe_vlm_loop(
+            program_slug="gymnasium",
+            source_seed="hall",
+            trace={"generations": [{"records": [{
+                "generation": 0,
+                "program": "hall-program",
+                "program_hash": "program-hash",
+                "geometry_hash": "geometry-before",
+                "status": "critic_reviewed",
+                "critic_score": 0.78,
+                "critic_model": "fake-vlm",
+                "critic_response_id": "resp-graph-1",
+                "critic_actions": ["needs_profiled_surface"],
+                "geometry_edits": [{"operation": "set_parameter", "target_node_id": "roof"}],
+                "mutation_status": "mutated",
+                "revision_proof": {
+                    "child_program_hash": "child-hash",
+                    "child_geometry_hash": "geometry-after",
+                    "geometry_changed": True,
+                },
+                "vlm_causal_context": {
+                    "reference_matches": [{
+                        "source": "archdaily_api", "source_id": "arch-ref-1",
+                        "title": "Curved sports hall", "selection_role": "counterfactual",
+                    }],
+                    "outcome_memory": {"observation_count": 7},
+                },
+            }]}]},
+        )
+        memory = graph.agent_neighborhood(source_seed="hall", program_hash="program-hash")
+        self.assertEqual(memory["observation_count"], 1)
+        self.assertTrue(memory["recent_measured_outcomes"][0]["geometry_changed"])
+        self.assertTrue(any(node["kind"] == "vlm_critic" for node in graph.nodes.values()))
+        self.assertTrue(any(node["kind"] == "reference" for node in graph.nodes.values()))
+        self.assertTrue(any(edge["kind"] == "vlm_revised_to" for edge in graph.edges.values()))
+
+    def test_portfolio_agent_path_closes_reference_vlm_edit_and_memory_loop(self):
+        from design.maas.book_language.portfolio_benchmark import _agent_mutated_seeds
+
+        source_name = program_seed_sequences("gymnasium")[0].name
+        graph = GeometryOutcomeGraph(Path("unused.json"), pnu="test")
+
+        def fake_scorer(**kwargs):
+            program = kwargs["feature"]["properties"]["geometry_program"]
+            node_ids = {str(node.get("id")) for node in program.get("nodes") or []}
+            if "critic_taper" in node_ids:
+                edits = []
+                score = 0.92
+            else:
+                edits = [
+                    {"operation": "add_node", "node_id": "critic_taper", "node_kind": "modifier", "operator": "taper", "input_ids": [program["root_id"]]},
+                    {"operation": "set_parameter", "target_node_id": "critic_taper", "parameter_name": "end_scale", "vector_value": [0.62, 0.78]},
+                    {"operation": "set_parameter", "target_node_id": "critic_taper", "parameter_name": "subdivisions", "numeric_value": 3},
+                    {"operation": "set_root", "target_node_id": "critic_taper"},
+                ]
+                score = 0.71
+            return {
+                "score": score,
+                "concept_scores": {"gesture_clarity": score, "hierarchy": score},
+                "critic_actions": ["needs_profiled_surface"],
+                "geometry_edits": edits,
+                "model": "fake-vlm",
+                "response_id": f"resp-{len(node_ids)}-{int(score * 100)}",
+            }
+
+        with patch.dict(os.environ, {
+            "MAAS_LIVE_GEOMETRY_VLM": "1",
+            "MAAS_LIVE_VLM_CREDENTIAL_ROTATED": "1",
+            "OPENAI_API_KEY": "test-only-not-sent",
+        }), patch(
+            "design.maas.geometry_language.vlm_adapter.score_candidate_with_openai_vlm",
+            side_effect=fake_scorer,
+        ), patch(
+            "design.maas.book_language.portfolio_benchmark.retrieve_geometry_reference_matches",
+            return_value=[{
+                "source": "archdaily_api", "source_id": "fixture-reference",
+                "title": "Fixture hall", "image_url": "https://example.test/hall.jpg",
+                "selection_role": "counterfactual", "matched_tags": ["folded"],
+            }],
+        ):
+            seeds = _agent_mutated_seeds(
+                "gymnasium",
+                mutations=None,
+                synthesis_requests=[{
+                    "source_seed": source_name,
+                    "base_seeds": ["slab"],
+                    "intent_tags": ["long_span", "stepped_section", "carved_void"],
+                    "candidate_count": 1,
+                    "live_vlm_revision": True,
+                    "vlm_generations": 2,
+                    "reference_limit": 5,
+                    "legal_fit_strengths": [0.0],
+                }],
+                outcome_graph=graph,
+            )
+        generated = [seed for seed in seeds if any(note.startswith("geometry_program_payload=") for note in seed.notes)]
+        self.assertEqual(len(generated), 1)
+        payload = next(note.split("=", 1)[1] for note in generated[0].notes if note.startswith("geometry_program_payload="))
+        self.assertIn("critic_taper", payload)
+        self.assertTrue(any(item.get("stage") == "vlm_critic" for item in graph.observations))
+        self.assertTrue(any(item.get("reference_ids") for item in graph.observations))
+        self.assertTrue(any(item.get("geometry_changed") for item in graph.observations))
 
     def test_scope_and_base_seed_are_separate_and_four_seeds_share_one_unit_box(self):
         box_seeds = box_derived_base_seed_programs()

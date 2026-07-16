@@ -7,7 +7,7 @@ inspection; failure to connect never blocks geometry diagnostics.
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from copy import deepcopy
 from dataclasses import dataclass, field
 import hashlib
@@ -363,6 +363,141 @@ class GeometryOutcomeGraph:
         chosen.extend(item for item in usable if item not in chosen)
         chosen.extend(str(item) for item in fallback if str(item) not in chosen)
         return tuple(chosen[:maximum])
+
+    def agent_neighborhood(
+        self,
+        *,
+        source_seed: str,
+        program_hash: str,
+        limit: int = 8,
+    ) -> dict[str, Any]:
+        """Return compact measured memory that an LLM/VLM can safely consume."""
+        rows = list(self._observations_for_genotype(source_seed, program_hash))
+        ranked = sorted(
+            rows,
+            key=lambda item: (
+                bool(item.get("combined_hard_pass")),
+                bool(item.get("program_hard_pass")),
+                bool(item.get("geometry_changed")),
+                float(item.get("volume_retention") or 0.0),
+            ),
+            reverse=True,
+        )[: max(1, int(limit))]
+        failed_gates: Counter[str] = Counter()
+        for item in rows:
+            failed_gates.update(str(value) for value in item.get("failed_program_gates") or ())
+            failed_gates.update(str(value) for value in item.get("geometry_failure_reasons") or ())
+        return {
+            "schema_version": "arr.maas.geometry_agent_neighborhood.v1",
+            "source_seed": str(source_seed),
+            "program_hash": str(program_hash),
+            "observation_count": len(rows),
+            "successful_strengths": sorted({
+                float(item.get("legal_fit_strength") or 0.0)
+                for item in rows if item.get("combined_hard_pass")
+            }),
+            "successful_book_principles": sorted({
+                str(item.get("book_principle_id"))
+                for item in rows if item.get("combined_hard_pass") and item.get("book_principle_id")
+            })[:12],
+            "common_failed_gates": [
+                {"gate": gate, "count": count}
+                for gate, count in failed_gates.most_common(8)
+            ],
+            "recent_measured_outcomes": [
+                {
+                    key: item.get(key)
+                    for key in (
+                        "stage", "program_hard_pass", "combined_hard_pass",
+                        "legal_fit_strength", "book_principle_id", "book_scope",
+                        "volume_retention", "critic_score", "critic_actions",
+                        "geometry_changed", "mutation_status",
+                    )
+                    if item.get(key) is not None
+                }
+                for item in ranked
+            ],
+        }
+
+    def observe_vlm_loop(
+        self,
+        *,
+        program_slug: str,
+        source_seed: str,
+        trace: dict[str, Any],
+    ) -> None:
+        """Persist VLM reviews, typed edits, references, and revision proof."""
+        for generation in trace.get("generations") or ():
+            if not isinstance(generation, dict):
+                continue
+            for record in generation.get("records") or ():
+                if not isinstance(record, dict) or record.get("status") != "critic_reviewed":
+                    continue
+                program_hash = str(record.get("program_hash") or "")
+                geometry_hash = str(record.get("geometry_hash") or "")
+                response_id = str(record.get("critic_response_id") or "")
+                proof = record.get("revision_proof") if isinstance(record.get("revision_proof"), dict) else {}
+                causal = record.get("vlm_causal_context") if isinstance(record.get("vlm_causal_context"), dict) else {}
+                references = causal.get("reference_matches") if isinstance(causal.get("reference_matches"), list) else []
+                memory = causal.get("outcome_memory") if isinstance(causal.get("outcome_memory"), dict) else {}
+                observation_key = "|".join((
+                    "vlm_critic", str(program_slug), str(source_seed), program_hash,
+                    geometry_hash, response_id, str(record.get("generation") or 0),
+                ))
+                observation_id = _stable_id("observation", observation_key)
+                observation = {
+                    "id": observation_id,
+                    "stage": "vlm_critic",
+                    "program_slug": str(program_slug),
+                    "source_seed": str(source_seed),
+                    "program_hash": program_hash,
+                    "geometry_hash": geometry_hash,
+                    "critic_model": str(record.get("critic_model") or ""),
+                    "critic_response_id": response_id,
+                    "critic_score": float(record.get("critic_score") or 0.0),
+                    "critic_actions": [str(item) for item in record.get("critic_actions") or ()],
+                    "geometry_edits": deepcopy(record.get("geometry_edits") or []),
+                    "mutation_status": str(record.get("mutation_status") or ""),
+                    "geometry_changed": bool(proof.get("geometry_changed")),
+                    "child_program_hash": str(proof.get("child_program_hash") or ""),
+                    "child_geometry_hash": str(proof.get("child_geometry_hash") or ""),
+                    "reference_ids": [
+                        str(item.get("source_id") or item.get("title") or "")
+                        for item in references if isinstance(item, dict)
+                    ],
+                    "memory_observation_count": int(memory.get("observation_count") or 0),
+                }
+                self._upsert_observation(observation)
+                program_node = self._upsert_node("geometry_program", program_hash, {
+                    "name": str(record.get("program") or ""),
+                })
+                critic_identity = response_id or observation_id
+                critic_node = self._upsert_node("vlm_critic", critic_identity, {
+                    "model": observation["critic_model"],
+                    "score": observation["critic_score"],
+                    "actions": observation["critic_actions"],
+                })
+                outcome_node = self._upsert_node("outcome", observation_id, observation)
+                self._upsert_edge(program_node, critic_node, "reviewed_by")
+                self._upsert_edge(critic_node, outcome_node, "proposed_typed_edit")
+                if observation["child_program_hash"]:
+                    child_node = self._upsert_node("geometry_program", observation["child_program_hash"], {
+                        "geometry_hash": observation["child_geometry_hash"],
+                    })
+                    self._upsert_edge(program_node, child_node, "vlm_revised_to")
+                for item in references:
+                    if not isinstance(item, dict):
+                        continue
+                    identity = str(item.get("source_id") or item.get("title") or "")
+                    if not identity:
+                        continue
+                    reference_node = self._upsert_node("reference", identity, {
+                        "source": str(item.get("source") or ""),
+                        "title": str(item.get("title") or ""),
+                        "selection_role": str(item.get("selection_role") or ""),
+                        "matched_tags": list(item.get("matched_tags") or ()),
+                    })
+                    self._upsert_edge(reference_node, critic_node, "informed")
 
     def save(self) -> dict[str, Any]:
         self.path.parent.mkdir(parents=True, exist_ok=True)

@@ -423,3 +423,21 @@ Mean retention is 0.9038/0.9288/0.8546 and the minimum selected retention is
 0.8018. Numeric and hard-constraint status pass, but direct PNG review still
 fails because elongated neighborhood bars, rectangular gym hall chassis and
 low museum gallery boxes repeat. Do not claim competition-grade completion.
+
+## Latest ArchDaily/VLM/graph causal checkpoint (2026-07-16 r33; supersedes r32 numeric and visual counts)
+
+Read the final section of
+`MAAS_BOOK_EXECUTABLE_LANGUAGE_CHECKPOINT_20260715.md`, titled **ArchDaily +
+live-VLM + outcome-graph causal loop r33**. ArchDaily retrieval, agent-readable
+geometry graph snapshots, exact-genotype outcome memory, VLM typed edits,
+recompile/hash proof and graph feedback are now one tested execution path.
+The injected-VLM causal integration test passes; the real OpenAI VLM was not
+called because the chat-exposed key is compromised and must be rotated.
+
+The standard PNU r33 numeric/hard result is 60/60 with all six scopes for all
+three programs. The joint scope/phenotype selector prevents a valid rare gym
+oblique candidate from being lost after greedy scope selection. Direct PNG
+review remains fail for competition grade because neighborhood and cultural
+still share low prismatic/chamfer/terrace relatives (minimum cross-program
+silhouette distance 0.0283). The current review fingerprint is
+`98442c86b09254247f528a8dfc4b393afd15188419a57af68ded51a8d4d5dc1e`.

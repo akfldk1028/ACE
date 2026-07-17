@@ -38,7 +38,12 @@ from design.maas.geometry_language import (
     synthesis_requests_from_program_profile,
 )
 from design.maas.book_language.registry import build_book_language_registry
-from design.maas.book_language.portfolio_benchmark import _program_form_gate
+from design.maas.book_language.portfolio_benchmark import (
+    _architectural_articulation_metrics,
+    _program_dimensional_context,
+    _program_form_gate,
+    _solid_morphology_metrics,
+)
 from design.maas.program_massing import (
     book_operation_variants,
     book_sentence_variants,
@@ -164,6 +169,18 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             "profiled_section_family": "barrel",
             "measured_profiled_hall": True,
         }})
+        five_level_erased_enclosure = SimpleNamespace(metadata={"measured_solid_morphology": {
+            "pyramidal_like": False,
+            "collapsed_profiled_tent_like": False,
+            "horizontal_level_count": 5,
+            "horizontal_surface_ratio": 0.968,
+            "vertical_surface_ratio": 0.0,
+            "sloped_surface_ratio": 0.032,
+            "upper_area_ratio": 0.056,
+            "oriented_plan_aspect_ratio": 2.4,
+            "profiled_section_family": "ridge",
+            "measured_profiled_hall": True,
+        }})
         rejected = _program_form_gate(pyramid, "gymnasium")
         rejected_sloped = _program_form_gate(sloped_pyramid, "gymnasium")
         accepted = _program_form_gate(sawtooth_hall, "gymnasium")
@@ -171,6 +188,7 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         rejected_collapsed_tent = _program_form_gate(collapsed_profiled_tent, "gymnasium")
         rejected_shallow_tent = _program_form_gate(shallow_sloped_tent, "gymnasium")
         rejected_broad_tent = _program_form_gate(broad_low_vertical_tent, "gymnasium")
+        rejected_erased_enclosure = _program_form_gate(five_level_erased_enclosure, "gymnasium")
         self.assertFalse(rejected["hard_pass"])
         self.assertFalse(rejected_sloped["hard_pass"])
         self.assertIn("gym_dominant_hall_erased_by_cascade_or_pyramid", rejected["failures"])
@@ -179,6 +197,140 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertFalse(rejected_collapsed_tent["hard_pass"])
         self.assertFalse(rejected_shallow_tent["hard_pass"])
         self.assertFalse(rejected_broad_tent["hard_pass"])
+        self.assertFalse(rejected_erased_enclosure["hard_pass"])
+        self.assertTrue(rejected_erased_enclosure["dominant_enclosure_erased"])
+
+    def test_architectural_articulation_gate_rejects_cross_layer_effect_stacking(self):
+        def node(node_id, operator, source, **provenance):
+            return {
+                "id": node_id,
+                "operator": operator,
+                "provenance": {"source": source, **provenance},
+            }
+
+        overloaded = SimpleNamespace(metadata={
+            "measured_solid_morphology": {"pyramidal_like": False},
+            "geometry_program": {"nodes": [
+                {"id": "base", "operator": "box", "provenance": {"source": "seed"}},
+                node("step", "stepped_mass", "procedural_geometry_synthesis_agent"),
+                node("cantilever", "cantilever", "procedural_geometry_synthesis_agent"),
+                node("scope", "clip_fraction", "book_recursive_projection", book_verb="select_book_scope", book_call_index=-1),
+                node("book_stack", "stepped_mass", "book_recursive_projection", book_verb="stack", book_call_index=1),
+                node("book_bend", "bend", "book_recursive_projection", book_verb="bend", book_call_index=2),
+                node("section", "profiled_hall", "procedural_geometry_synthesis_agent"),
+            ]},
+        })
+        metrics = _architectural_articulation_metrics(overloaded)
+        gate = _program_form_gate(overloaded, "gymnasium")
+        self.assertEqual(metrics["body_rule_count"], 4)
+        self.assertEqual(metrics["program_rule_count"], 2)
+        self.assertEqual(metrics["book_rule_count"], 2)
+        self.assertEqual(metrics["duplicated_structural_families"], ["step"])
+        self.assertNotIn("profiled_hall", [rule["operator"] for rule in metrics["rules"]])
+        self.assertFalse(gate["hard_pass"])
+        self.assertIn("architectural_body_rule_budget_exceeded", gate["failures"])
+        self.assertIn("architectural_body_rule_family_repeated", gate["failures"])
+
+    def test_architectural_articulation_gate_accepts_one_body_rule_plus_one_book_rule(self):
+        coherent = SimpleNamespace(metadata={
+            "measured_solid_morphology": {"pyramidal_like": False},
+            "geometry_program": {"nodes": [
+                {"id": "base", "operator": "box", "provenance": {"source": "seed"}},
+                {
+                    "id": "puncture",
+                    "operator": "puncture",
+                    "provenance": {"source": "procedural_geometry_synthesis_agent"},
+                },
+                {
+                    "id": "scope",
+                    "operator": "difference",
+                    "provenance": {
+                        "source": "book_recursive_projection",
+                        "book_verb": "select_book_scope",
+                        "book_call_index": -1,
+                    },
+                },
+                {
+                    "id": "expand",
+                    "operator": "scale",
+                    "provenance": {
+                        "source": "book_recursive_projection",
+                        "book_verb": "expand",
+                        "book_call_index": 1,
+                    },
+                },
+                {
+                    "id": "section",
+                    "operator": "profiled_hall",
+                    "provenance": {"source": "procedural_geometry_synthesis_agent"},
+                },
+            ]},
+        })
+        metrics = _architectural_articulation_metrics(coherent)
+        self.assertEqual(metrics["body_rule_count"], 2)
+        self.assertTrue(metrics["hard_pass"])
+        self.assertTrue(_program_form_gate(coherent, "gymnasium")["hard_pass"])
+
+    def test_gym_dimensional_context_adapts_height_or_reports_infeasible(self):
+        compact = _program_dimensional_context(box(0, 0, 8, 15), "gymnasium", 18.0, 3)
+        full = _program_dimensional_context(box(0, 0, 20, 30), "gymnasium", 18.0, 3)
+        infeasible = _program_dimensional_context(box(0, 0, 5, 8), "gymnasium", 18.0, 3)
+        self.assertEqual(compact["selected_subtype"], "compact_training_hall")
+        self.assertEqual(compact["effective_height_m"], 5.888)
+        self.assertEqual(compact["effective_floors"], 2)
+        self.assertEqual(full["selected_subtype"], "long_span_sports_hall")
+        self.assertEqual(full["effective_height_m"], 11.96)
+        self.assertEqual(infeasible["status"], "infeasible")
+
+    def test_gym_program_form_gate_enforces_measured_span_and_height_ratio(self):
+        context = {
+            "minimum_clear_span_m": 6.0,
+            "maximum_height_to_clear_span_ratio": 1.10,
+            "selected_subtype": "compact_training_hall",
+        }
+        valid = SimpleNamespace(
+            footprint=box(0, 0, 8, 15),
+            metadata={
+                "program_dimensional_context": context,
+                "measured_solid_morphology": {
+                    "pyramidal_like": False,
+                    "solid_height_m": 8.0,
+                },
+            },
+        )
+        too_tall = SimpleNamespace(
+            footprint=box(0, 0, 5, 15),
+            metadata={
+                "program_dimensional_context": context,
+                "measured_solid_morphology": {
+                    "pyramidal_like": False,
+                    "solid_height_m": 12.0,
+                },
+            },
+        )
+        self.assertTrue(_program_form_gate(valid, "gymnasium")["hard_pass"])
+        rejected = _program_form_gate(too_tall, "gymnasium")
+        self.assertFalse(rejected["hard_pass"])
+        self.assertIn("gym_clear_span_below_program_minimum", rejected["failures"])
+        self.assertIn("gym_height_to_clear_span_ratio_exceeded", rejected["failures"])
+
+    def test_recursive_morphology_scales_normalized_z_by_effective_program_height(self):
+        source = SimpleNamespace(
+            footprint=box(0, 0, 8, 15),
+            upper_footprint=box(0, 0, 8, 15),
+            surfaces=(SimpleNamespace(
+                surface_type="profiled_recursive_solid_mesh",
+                vertices_m=((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 1.0)),
+            ),),
+            metadata={
+                "program_dimensional_context": {"effective_height_m": 6.0},
+                "geometry_program_compilation": {"metrics": {"component_count": 1, "genus": 0}},
+                "geometry_program": {"nodes": []},
+            },
+        )
+        metrics = _solid_morphology_metrics(source)
+        self.assertEqual(metrics["solid_height_m"], 6.0)
+        self.assertGreater(metrics["sloped_surface_ratio"], 0.9)
 
     def test_profiled_hall_macro_compiles_six_distinct_section_families(self):
         programs = synthesize_architectural_programs({

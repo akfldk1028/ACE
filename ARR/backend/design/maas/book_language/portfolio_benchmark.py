@@ -45,6 +45,7 @@ from design.maas.program_massing import (
     mutate_program_section_sequence,
     program_reference_contract,
     program_seed_sequences,
+    resolve_program_profile,
 )
 from design.maas.program_massing.assembly import program_component_chassis
 from design.maas.program_massing.benchmark import render_archive_sheet
@@ -210,13 +211,25 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
     if isinstance(cached, dict):
         return cached
     total_area = horizontal_area = vertical_area = sloped_area = 0.0
+    dimensional_context = source.metadata.get("program_dimensional_context") or {}
+    legal_context = source.metadata.get("legal_generation_context_evidence") or {}
+    height_scale = float(
+        dimensional_context.get("effective_height_m")
+        or legal_context.get("requested_program_height_m")
+        or 1.0
+    )
     normal_bins: set[tuple[int, int, int]] = set()
     horizontal_levels: set[int] = set()
     triangle_count = 0
+    z_values: list[float] = []
     for surface in source.surfaces:
         if surface.surface_type != "profiled_recursive_solid_mesh" or len(surface.vertices_m) < 3:
             continue
-        a, b, c = surface.vertices_m[:3]
+        a, b, c = tuple(
+            (float(vertex[0]), float(vertex[1]), float(vertex[2]) * height_scale)
+            for vertex in surface.vertices_m[:3]
+        )
+        z_values.extend((float(a[2]), float(b[2]), float(c[2])))
         ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
         vx, vy, vz = c[0] - a[0], c[1] - a[1], c[2] - a[2]
         nx, ny, nz = uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx
@@ -285,6 +298,15 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
     collapsed_profiled_tent_like = bool(
         measured_profiled_hall
         and (
+            (
+                # A usable hall needs a retained occupied enclosure below its
+                # roof. If the upper occupied band falls below ten percent and
+                # almost no vertical envelope remains, the result is a canopy
+                # or tent regardless of how many triangulation levels it has.
+                upper_area_ratio < 0.10
+                and vertical_area / denominator < 0.03
+            )
+            or
             (
                 upper_area_ratio <= 0.14
                 and horizontal_ratio >= 0.90
@@ -434,6 +456,7 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
         "profiled_section_family": profiled_section_family,
         "measured_profiled_hall": measured_profiled_hall,
         "recursive_triangle_count": triangle_count,
+        "solid_height_m": round(max(z_values) - min(z_values), 4) if z_values else 0.0,
         "measurement_authority": (
             "profiled_recursive_solid_mesh"
             if triangle_count
@@ -484,11 +507,17 @@ def _program_form_gate(source: Any, building_type: str) -> dict[str, Any]:
     metrics = _solid_morphology_metrics(source)
     program_key = str(building_type or "").strip().lower()
     failures: list[str] = []
+    composition = _architectural_articulation_metrics(source)
     evidence: dict[str, Any] = {
         "program": program_key,
         "measured_morphology": metrics,
+        "architectural_articulation": composition,
         "rule": "program invariant retained by compiled solid",
     }
+    if composition["body_rule_count"] > 2:
+        failures.append("architectural_body_rule_budget_exceeded")
+    if composition["duplicated_structural_families"]:
+        failures.append("architectural_body_rule_family_repeated")
     if "gym" in program_key or "체육" in program_key:
         level_count = int(metrics.get("horizontal_level_count") or 0)
         horizontal_ratio = float(metrics.get("horizontal_surface_ratio") or 0.0)
@@ -515,7 +544,33 @@ def _program_form_gate(source: Any, building_type: str) -> dict[str, Any]:
         evidence["cascade_without_hall_enclosure"] = cascade_without_hall_enclosure
         measured_profiled_hall = bool(metrics.get("measured_profiled_hall"))
         evidence["measured_profiled_hall"] = measured_profiled_hall
-        if bool(metrics.get("pyramidal_like")) or (
+        dominant_enclosure_erased = bool(
+            float(metrics.get("upper_area_ratio") or 1.0) < 0.10
+            and vertical_ratio < 0.03
+        )
+        evidence["dominant_enclosure_erased"] = dominant_enclosure_erased
+        dimensional_context = (
+            source.metadata.get("program_dimensional_context")
+            if hasattr(source, "metadata") and isinstance(source.metadata, dict)
+            else {}
+        ) or {}
+        short_span, long_span = _oriented_plan_dimensions(getattr(source, "footprint", None))
+        solid_height = float(metrics.get("solid_height_m") or 0.0)
+        minimum_span = float(dimensional_context.get("minimum_clear_span_m") or 0.0)
+        maximum_height_ratio = float(
+            dimensional_context.get("maximum_height_to_clear_span_ratio") or 0.0
+        )
+        height_to_span = solid_height / max(short_span, 1e-9) if short_span > 0 and solid_height > 0 else 0.0
+        evidence["dimensional_context"] = deepcopy(dimensional_context)
+        evidence["measured_clear_span_m"] = round(short_span, 3)
+        evidence["measured_long_axis_m"] = round(long_span, 3)
+        evidence["measured_solid_height_m"] = round(solid_height, 3)
+        evidence["height_to_clear_span_ratio"] = round(height_to_span, 3)
+        if minimum_span and short_span + 1e-6 < minimum_span:
+            failures.append("gym_clear_span_below_program_minimum")
+        if maximum_height_ratio and height_to_span > maximum_height_ratio + 1e-6:
+            failures.append("gym_height_to_clear_span_ratio_exceeded")
+        if bool(metrics.get("pyramidal_like")) or dominant_enclosure_erased or (
             not measured_profiled_hall and cascade_without_hall_enclosure
         ):
             failures.append("gym_dominant_hall_erased_by_cascade_or_pyramid")
@@ -523,6 +578,128 @@ def _program_form_gate(source: Any, building_type: str) -> dict[str, Any]:
         **evidence,
         "hard_pass": not failures,
         "failures": failures,
+    }
+
+
+_BODY_RULE_FAMILIES = {
+    "bend": "deformation",
+    "bent_bar": "deformation",
+    "twist": "deformation",
+    "inflate": "deformation",
+    "pinch": "deformation",
+    "taper": "deformation",
+    "shear": "deformation",
+    "setback": "step",
+    "stepped_mass": "step",
+    "terrace": "step",
+    "courtyard": "void",
+    "carve_void": "void",
+    "notch": "void",
+    "puncture": "void",
+    "cut_corner": "void",
+    "slice": "cut",
+    "clip": "cut",
+    "radial_array": "array",
+    "linear_array": "array",
+    "mirror_array": "array",
+    "cross_mass": "array",
+    "split_wing": "array",
+    "cantilever": "support",
+    "lift": "support",
+    "scale": "transform",
+    "translate": "transform",
+    "rotate": "transform",
+    "union": "composition",
+    "intersection": "composition",
+    "difference": "composition",
+}
+
+
+def _architectural_articulation_metrics(source: Any) -> dict[str, Any]:
+    """Return a cross-layer body-rule budget from the actual recursive AST.
+
+    Program synthesis and BOOK projection used to validate independently. A
+    stepped/cantilever body could therefore receive stack+bend and still pass
+    because the final Boolean was one manifold component. The resulting object
+    is technically clean but architecturally reads as accumulated effects.
+
+    One synthesized node is one program rule. A BOOK call may expand to helper
+    nodes (for example rotate+intersection), so it is counted once through the
+    causal ``book_call_index`` written by the adapter. Administrative p.3
+    clip/recompose nodes and the protected roof/section invariant are excluded.
+    """
+    payload = source.metadata.get("geometry_program") if hasattr(source, "metadata") else None
+    nodes = payload.get("nodes") if isinstance(payload, dict) else ()
+    program_rules: list[dict[str, Any]] = []
+    book_groups: dict[int | str, list[dict[str, Any]]] = {}
+    for order, raw in enumerate(nodes or ()):
+        if not isinstance(raw, dict):
+            continue
+        operator = str(raw.get("operator") or "")
+        if operator == "profiled_hall":
+            continue
+        provenance = raw.get("provenance") if isinstance(raw.get("provenance"), dict) else {}
+        source_kind = str(provenance.get("source") or "")
+        if source_kind == "procedural_geometry_synthesis_agent":
+            family = _BODY_RULE_FAMILIES.get(operator)
+            if family:
+                program_rules.append({
+                    "layer": "program",
+                    "operator": operator,
+                    "family": family,
+                    "node_id": str(raw.get("id") or ""),
+                    "order": order,
+                })
+            continue
+        if source_kind != "book_recursive_projection":
+            continue
+        verb = str(provenance.get("book_verb") or "")
+        call_index = provenance.get("book_call_index", -1)
+        if verb in {"select_book_scope", "recompose_book_scope"} or int(call_index or -1) < 0:
+            continue
+        book_groups.setdefault(call_index, []).append({
+            "operator": operator,
+            "verb": verb,
+            "node_id": str(raw.get("id") or ""),
+            "order": order,
+        })
+
+    book_rules: list[dict[str, Any]] = []
+    for call_index, group in sorted(book_groups.items(), key=lambda item: int(item[0])):
+        terminal = max(group, key=lambda item: item["order"])
+        family = _BODY_RULE_FAMILIES.get(terminal["operator"])
+        if not family:
+            continue
+        book_rules.append({
+            "layer": "book",
+            "operator": terminal["operator"],
+            "verb": terminal["verb"],
+            "family": family,
+            "call_index": int(call_index),
+            "node_id": terminal["node_id"],
+            "order": terminal["order"],
+        })
+
+    rules = sorted((*program_rules, *book_rules), key=lambda item: item["order"])
+    family_counts = Counter(rule["family"] for rule in rules)
+    duplicated_structural_families = sorted(
+        family for family in {"void", "step", "array", "support"}
+        if family_counts[family] > 1
+    )
+    return {
+        "body_rule_count": len(rules),
+        "program_rule_count": len(program_rules),
+        "book_rule_count": len(book_rules),
+        "rules": [
+            {key: value for key, value in rule.items() if key != "order"}
+            for rule in rules
+        ],
+        "family_counts": dict(sorted(family_counts.items())),
+        "duplicated_structural_families": duplicated_structural_families,
+        "hard_pass": len(rules) <= 2 and not duplicated_structural_families,
+        "budget": 2,
+        "section_invariant_excluded": True,
+        "scope_administration_excluded": True,
     }
 
 
@@ -548,6 +725,101 @@ def _oriented_aspect(poly: Polygon) -> float:
         if left != right
     )
     return float(lengths[-1] / max(lengths[0], 1e-9)) if lengths else 1.0
+
+
+def _oriented_plan_dimensions(poly: Polygon) -> tuple[float, float]:
+    if poly is None or poly.is_empty:
+        return (0.0, 0.0)
+    rectangle = poly.minimum_rotated_rectangle
+    coordinates = list(rectangle.exterior.coords)
+    lengths = sorted(
+        (((right[0] - left[0]) ** 2 + (right[1] - left[1]) ** 2) ** 0.5)
+        for left, right in zip(coordinates, coordinates[1:])
+        if left != right
+    )
+    if len(lengths) < 2:
+        return (0.0, 0.0)
+    return (float(lengths[0]), float(lengths[-1]))
+
+
+def _program_dimensional_context(
+    generation_site: Polygon,
+    building_type: str,
+    requested_height_m: float,
+    requested_floors: int,
+) -> dict[str, Any]:
+    """Select a feasible program subtype before authoring geometry.
+
+    The previous gym benchmark forced an 18 m hall onto every parcel. On the
+    current 103 m2 legal host this produced 3--6 m short spans with height/span
+    ratios above 3, so pyramids were inevitable. Dimensional requirements are
+    program data and normalized site measurements, never parcel templates.
+    """
+    profile = resolve_program_profile(building_type)
+    requirements = profile.get("dimensional_requirements")
+    short_axis, long_axis = _oriented_plan_dimensions(generation_site)
+    span_capacity = short_axis * 0.92
+    base = {
+        "schema_version": "arr.maas.program_dimensional_context.v1",
+        "program_id": str(profile.get("id") or "generic"),
+        "requested_height_m": round(float(requested_height_m), 3),
+        "requested_floors": int(requested_floors),
+        "generation_host_area_m2": round(float(generation_site.area), 3),
+        "generation_host_short_axis_m": round(short_axis, 3),
+        "generation_host_long_axis_m": round(long_axis, 3),
+        "estimated_clear_span_capacity_m": round(span_capacity, 3),
+        "parcel_coordinates_used": False,
+    }
+    if not isinstance(requirements, dict) or not requirements.get("subtypes"):
+        return {
+            **base,
+            "status": "not_required",
+            "selected_subtype": "generic",
+            "effective_height_m": round(float(requested_height_m), 3),
+            "effective_floors": int(requested_floors),
+        }
+    selected = next((
+        dict(item)
+        for item in requirements.get("subtypes") or ()
+        if isinstance(item, dict)
+        and span_capacity >= float(item.get("minimum_clear_span_m") or 0.0)
+        and float(generation_site.area) >= float(item.get("minimum_host_area_m2") or 0.0)
+    ), None)
+    if selected is None:
+        return {
+            **base,
+            "status": "infeasible",
+            "selected_subtype": "none",
+            "effective_height_m": 0.0,
+            "effective_floors": 0,
+            "failure_reasons": ["legal_generation_site_cannot_fit_minimum_program_span"],
+            "available_subtypes": [str(item.get("id") or "") for item in requirements.get("subtypes") or ()],
+        }
+    minimum_height = float(selected.get("minimum_height_m") or 0.0)
+    maximum_height = float(selected.get("maximum_height_m") or requested_height_m)
+    maximum_ratio = float(selected.get("maximum_height_to_clear_span_ratio") or 1.0)
+    target_ratio = float(selected.get("target_height_to_clear_span_ratio") or maximum_ratio)
+    ratio_height = span_capacity * min(target_ratio, maximum_ratio)
+    effective_height = min(float(requested_height_m), maximum_height, ratio_height)
+    if effective_height < minimum_height:
+        return {
+            **base,
+            "status": "infeasible",
+            "selected_subtype": str(selected.get("id") or "none"),
+            "effective_height_m": round(effective_height, 3),
+            "effective_floors": 0,
+            "failure_reasons": ["clear_span_cannot_support_minimum_program_height"],
+        }
+    return {
+        **base,
+        "status": "adapted" if effective_height < float(requested_height_m) else "feasible",
+        "selected_subtype": str(selected.get("id") or "generic"),
+        "minimum_clear_span_m": float(selected.get("minimum_clear_span_m") or 0.0),
+        "maximum_height_to_clear_span_ratio": maximum_ratio,
+        "target_height_to_clear_span_ratio": target_ratio,
+        "effective_height_m": round(effective_height, 3),
+        "effective_floors": min(int(requested_floors), int(selected.get("maximum_floors") or requested_floors)),
+    }
 
 
 def _scope_coverage_anchors(
@@ -1650,6 +1922,7 @@ def _program_pool(
     synthesis_requests: list[dict[str, Any]] | None = None,
     outcome_graph: GeometryOutcomeGraph | None = None,
     recursive_only: bool = False,
+    program_dimensional_context: dict[str, Any] | None = None,
 ) -> tuple[list[_Candidate], dict[str, Any]]:
     accepted: list[_Candidate] = []
     evaluated = compiled = clean = program_passed = 0
@@ -1853,6 +2126,11 @@ def _program_pool(
                 )
                 if source is None:
                     continue
+                if program_dimensional_context:
+                    source = replace(source, metadata={
+                        **deepcopy(source.metadata),
+                        "program_dimensional_context": deepcopy(program_dimensional_context),
+                    })
                 if generation_context is not None:
                     metadata = deepcopy(source.metadata)
                     legal_evidence = deepcopy(generation_context.evidence)
@@ -1942,6 +2220,7 @@ def _program_pool(
                     spatial=spatial,
                     hard_pass=combined_program_hard_pass,
                     failed_gates=failed_gates,
+                    program_form_failures=tuple(program_form_gate.get("failures") or ()),
                 )
                 geometry_family = str(source.metadata.get("family") or "") if source.metadata.get("geometry_program_bridge_evidence") else ""
                 if geometry_family:
@@ -1950,6 +2229,7 @@ def _program_pool(
                         spatial=spatial,
                         hard_pass=combined_program_hard_pass,
                         failed_gates=failed_gates,
+                        program_form_failures=tuple(program_form_gate.get("failures") or ()),
                     )
                     if outcome_graph is not None:
                         outcome_graph.observe_program_evaluation(
@@ -2079,6 +2359,7 @@ def _empty_gate_diagnostic() -> dict[str, Any]:
         "gate_failed_counts": {name: 0 for name in gate_names},
         "exclusive_gate_failed_counts": {name: 0 for name in gate_names},
         "failure_signature_counts": {},
+        "program_form_failure_counts": {},
         "metric_samples": {
             "role_coverage_score": [],
             "dominant_component_ratio": [],
@@ -2097,6 +2378,7 @@ def _record_gate_diagnostic(
     spatial: dict[str, Any],
     hard_pass: bool,
     failed_gates: tuple[str, ...],
+    program_form_failures: tuple[str, ...] = (),
 ) -> None:
     diagnostic["candidate_count"] += 1
     diagnostic["hard_pass_count" if hard_pass else "failed_candidate_count"] += 1
@@ -2106,6 +2388,10 @@ def _record_gate_diagnostic(
         diagnostic["exclusive_gate_failed_counts"][failed_gates[0]] += 1
     signature = "+".join(failed_gates) if failed_gates else "none"
     diagnostic["failure_signature_counts"][signature] = diagnostic["failure_signature_counts"].get(signature, 0) + 1
+    for reason in program_form_failures:
+        diagnostic["program_form_failure_counts"][reason] = (
+            diagnostic["program_form_failure_counts"].get(reason, 0) + 1
+        )
     for name in diagnostic["metric_samples"]:
         diagnostic["metric_samples"][name].append(float(spatial.get(name) or 0.0))
 
@@ -2145,10 +2431,13 @@ def _merge_gate_diagnostics(by_scope: dict[str, dict[str, Any]]) -> dict[str, An
             for name in gate_names
         },
         "failure_signature_counts": {},
+        "program_form_failure_counts": {},
     }
     for item in by_scope.values():
         for signature, count in item["failure_signature_counts"].items():
             total["failure_signature_counts"][signature] = total["failure_signature_counts"].get(signature, 0) + count
+        for reason, count in item["program_form_failure_counts"].items():
+            total["program_form_failure_counts"][reason] = total["program_form_failure_counts"].get(reason, 0) + count
     return total
 
 
@@ -2183,6 +2472,8 @@ def _candidate_language_descriptor(candidate: _Candidate) -> dict[str, Any]:
             if token in role:
                 role_tokens[token] += 1
     morphology = _solid_morphology_metrics(candidate)
+    articulation = _architectural_articulation_metrics(source)
+    program_form = candidate.feature.get("properties", {}).get("program_form_gate", {})
     return {
         "seed_family": _seed_family(candidate),
         "section_family": _section_family(candidate),
@@ -2214,6 +2505,14 @@ def _candidate_language_descriptor(candidate: _Candidate) -> dict[str, Any]:
         "hierarchy_score": round(float(spatial.get("hierarchy_score") or 0.0), 4),
         "section_control_signature": controls,
         "semantic_role_tokens": dict(sorted(role_tokens.items())),
+        "body_rule_count": articulation["body_rule_count"],
+        "program_body_rule_count": articulation["program_rule_count"],
+        "book_body_rule_count": articulation["book_rule_count"],
+        "body_rule_family_counts": articulation["family_counts"],
+        "body_rules": articulation["rules"],
+        "measured_clear_span_m": float(program_form.get("measured_clear_span_m") or 0.0),
+        "measured_solid_height_m": float(program_form.get("measured_solid_height_m") or 0.0),
+        "height_to_clear_span_ratio": float(program_form.get("height_to_clear_span_ratio") or 0.0),
     }
 
 
@@ -2289,6 +2588,9 @@ def _portfolio_language_metrics(selected: list[_Candidate]) -> dict[str, Any]:
             sum(int(candidate.source.signature().get("effective_surface_count") or 0) for candidate in selected) / total,
             4,
         ),
+        "mean_body_rule_count": mean("body_rule_count"),
+        "maximum_body_rule_count": max((int(item["body_rule_count"]) for item in descriptors), default=0),
+        "body_rule_family_counts": dict(sorted(sum((Counter(item["body_rule_family_counts"]) for item in descriptors), Counter()).items())),
         "semantic_role_token_counts": dict(sorted(sum((Counter(item["semantic_role_tokens"]) for item in descriptors), Counter()).items())),
     }
 
@@ -2481,6 +2783,9 @@ def run_book_program_portfolios(
                 for request in synthesis_requests
                 if isinstance(request, dict)
             ]
+        geometry_program_authority = bool(
+            recursive_only or synthesis_requests or geometry_program_mutations
+        )
         generation_context = (
             build_legal_generation_context(
                 site_local_utm=site,
@@ -2493,6 +2798,49 @@ def run_book_program_portfolios(
             else None
         )
         generation_site = generation_context.generation_site if generation_context is not None else site
+        dimensional_context = _program_dimensional_context(
+            generation_site,
+            building_type,
+            height,
+            floors,
+        )
+        if dimensional_context["status"] == "infeasible":
+            empty_metrics = _portfolio_language_metrics([])
+            board = output_dir / f"maas-book-{slug}-20.png"
+            render_archive_sheet(
+                [],
+                board,
+                title=f"MAAS BOOK × {building_type} · PNU {pnu} · PROGRAM INFEASIBLE",
+            )
+            board_paths.append(board)
+            selected_by_program[slug] = []
+            metrics_by_program[slug] = empty_metrics
+            program_results.append({
+                "program": building_type,
+                "slug": slug,
+                "status": "fail",
+                "selected_count": 0,
+                "book_operation_count": 0,
+                "book_principle_kind_counts": {},
+                "visual_language_count": 0,
+                "book_base_volume_scope_count": 0,
+                "book_base_volume_scopes": [],
+                "near_duplicate_pair_count": 0,
+                "program_language_metrics": empty_metrics,
+                "program_dimensional_context": dimensional_context,
+                "vlm_portfolio_directive": {"active": bool(program_visual_directive)},
+                "downstream_hard_gate": {"status": "not_run", "candidate_count": 0},
+                "counts": {},
+                "failures": list(dimensional_context.get("failure_reasons") or ("program_dimensional_infeasible",)),
+                "missing_vlm_required_roof_archetypes": [],
+                "missing_required_solid_phenotypes": [],
+                "duration_seconds": round(perf_counter() - started, 3),
+                "rows": [],
+                "png": str(board),
+            })
+            continue
+        height = float(dimensional_context["effective_height_m"])
+        floors = int(dimensional_context["effective_floors"])
         pool, counts = _program_pool(
             generation_site,
             building_type,
@@ -2503,8 +2851,10 @@ def run_book_program_portfolios(
             geometry_program_mutations=geometry_program_mutations,
             synthesis_requests=synthesis_requests,
             outcome_graph=outcome_graph,
-            recursive_only=recursive_only,
+            recursive_only=geometry_program_authority,
+            program_dimensional_context=dimensional_context,
         )
+        counts["program_dimensional_context"] = deepcopy(dimensional_context)
         preselection_hard_gate = None
         selection_pool = pool
         if generation_context is not None:
@@ -2528,6 +2878,19 @@ def run_book_program_portfolios(
                 if row["combined_hard_pass"]
             ]
         counts["preselection_hard_gate"] = _hard_gate_count_summary(preselection_hard_gate, pool)
+        counts["geometry_program_authority"] = {
+            "required": geometry_program_authority,
+            "reason": (
+                "recursive_only_flag"
+                if recursive_only
+                else (
+                    "geometry_synthesis_request"
+                    if synthesis_requests
+                    else "geometry_program_mutation"
+                )
+            ) if geometry_program_authority else "legacy_and_recursive_allowed",
+            "legacy_geometry_final_selection_allowed": not geometry_program_authority,
+        }
         live_vlm_selection_required = bool(
             program_visual_directive.get("live_geometry_vlm_revision")
             and program_visual_directive.get("geometry_synthesis_requests")
@@ -2595,7 +2958,8 @@ def run_book_program_portfolios(
                 geometry_program_mutations=geometry_program_mutations,
                 synthesis_requests=synthesis_requests,
                 outcome_graph=outcome_graph,
-                recursive_only=recursive_only,
+                recursive_only=geometry_program_authority,
+                program_dimensional_context=dimensional_context,
             )
             replenishment_hard_gate = None
             replenishment_selection_pool = replenishment_pool
@@ -2760,6 +3124,14 @@ def run_book_program_portfolios(
                 "hierarchy_score": descriptor["hierarchy_score"],
                 "section_control_signature": descriptor["section_control_signature"],
                 "semantic_role_tokens": descriptor["semantic_role_tokens"],
+                "body_rule_count": descriptor["body_rule_count"],
+                "program_body_rule_count": descriptor["program_body_rule_count"],
+                "book_body_rule_count": descriptor["book_body_rule_count"],
+                "body_rule_family_counts": descriptor["body_rule_family_counts"],
+                "body_rules": descriptor["body_rules"],
+                "measured_clear_span_m": descriptor["measured_clear_span_m"],
+                "measured_solid_height_m": descriptor["measured_solid_height_m"],
+                "height_to_clear_span_ratio": descriptor["height_to_clear_span_ratio"],
             })
         board = output_dir / f"maas-book-{slug}-20.png"
         render_archive_sheet(
@@ -2836,6 +3208,7 @@ def run_book_program_portfolios(
             "book_base_volume_scopes": sorted({_scope_key(candidate) for candidate in selected}),
             "near_duplicate_pair_count": near_duplicates,
             "program_language_metrics": language_metrics,
+            "program_dimensional_context": dimensional_context,
             "vlm_portfolio_directive": {
                 "active": bool(program_visual_directive),
                 "provider": visual_directive_payload.get("provider") if program_visual_directive else None,

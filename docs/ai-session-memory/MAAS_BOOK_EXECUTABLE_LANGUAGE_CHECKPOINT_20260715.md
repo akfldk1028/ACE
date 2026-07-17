@@ -720,3 +720,93 @@ available; then rerun neighborhood and cultural together and expose the
 reference -> contract -> critic -> typed edit -> child -> hard-gate causal
 graph in the frontend. Do not claim competition-grade or commercialization
 readiness before those steps pass direct PNG review.
+
+## 2026-07-17 site-feasible recursive authority checkpoint r57 (latest; supersedes r53 gym geometry counts)
+
+Overall status remains **fail**. This checkpoint fixes two causes of misleading
+gym geometry, but it is not a competition-design result and it did not run a
+new live VLM batch.
+
+Root causes and corrections:
+
+1. Program-body mutations and later BOOK mutations previously accumulated
+   without one architectural rule budget. A candidate could therefore combine
+   several independently valid effects into layered fins, bands and Lego-like
+   masses. One provenance-aware articulation gate now counts body operations
+   across both layers, limits the combined body rule count to two and rejects
+   repeated structural families such as void+void, step+step, array+array or
+   support+support. Roof/section invariants and p.3 scope projection are not
+   miscounted as body decoration.
+2. When the recursive geometry agent was requested, rejected recursive
+   candidates could be replenished by legacy component seeds that never passed
+   through the same AST authority. Recursive synthesis/mutation now makes the
+   recursive geometry program the only possible final geometry authority;
+   legacy program assemblies remain semantic role priors, not completed-form
+   fallback templates.
+3. The tested PNU has only 102.931 m2 of legal generation host with oriented
+   axes 8.009 m x 12.865 m. The former benchmark still requested an 18 m tall,
+   three-floor long-span gym, even though the estimated clear-span capacity is
+   only 7.368 m. This physical mismatch caused repeated tent/pyramid false
+   solutions. Program profiles now carry dimensional requirements. The
+   benchmark either selects a feasible subtype or returns program-infeasible;
+   it never fills the count with a fake gym. This parcel selects
+   `compact_training_hall`, minimum clear span 6 m, effective height 5.894 m
+   and two floors. No parcel coordinate or completed building form was encoded
+   in the profile.
+4. Recursive mesh z values are normalized 0..1. Morphology formerly read this
+   as one metre while the render and legal feature used the requested building
+   height. Morphology and program-form gates now use the same effective height
+   scale, so clear span, solid height, surface normals and height/span ratio are
+   evaluated in metres.
+
+Latest deterministic VWorld PNU `1168011800104170004` gym run, r57:
+
+- selected 20/20; 18 BOOK principles; 10 visual-language keys; six p.3 scopes;
+  zero reported near-duplicate silhouette pairs;
+- recursive geometry authority 20/20; 19 seed lineages and 11 recursive
+  geometry families; chassis families bar 9, slab 8 and block 3;
+- roof families: ridge 7, shed 4, folded 3, prismatic 2, curved 1, voided 1,
+  sawtooth 1 and stepped 1;
+- body phenotypes: curved 5, oblique 3, prismatic 3, stepped 1 and voided 8;
+  section phenotypes still collapse to only oblique 18 and stepped 2;
+- all selected candidates use at most two architectural body rules; mean
+  visible volume count 2.15 and mean effective surface count 8.95;
+- the same selected sources pass the downstream legal/FAR, geometry-retention
+  and parking hard gates 20/20. Mean and minimum volume retention are both
+  1.0. The local small-project parking calculation rounds each selected floor
+  area below one required stall to zero; layout remains
+  `needs_swept_path_review`, so this is not a detailed parking-layout approval.
+
+Direct original-resolution PNG review remains **fail**. The former disconnected
+toy fragments and church/tent population are substantially reduced, but the
+board converges to low plates, shallow cuts, central holes and roof grooves.
+All 20 selected candidates are classified as the same intermediate plan
+family, and the two section phenotype families are not enough to communicate
+twenty competition-level concepts. The result demonstrates physical and legal
+feasibility, not architectural proposition quality.
+
+The r57 directive provider is
+`bounded_capability_preflight_not_final_vlm`; `live_geometry_vlm_revision` is
+false. Existing program-conditioned ArchDaily/VLM evidence remains available,
+but no claim may be made that a new VLM reviewed r57. The next loop must move
+site response, public threshold/entry, service access, dominant hall and roof
+daylight/structure into a higher-level typed **design-concept graph**, use the
+VLM to critique the final BOOK-projected board, and mutate causal graph nodes
+rather than merely request additional low-level operators. It must also expand
+plan/chassis concept diversity without weakening clear-span, clean-mass or
+legal hard gates.
+
+Evidence:
+
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r57-scaled-morphology-gym/maas-book-gymnasium-20.png`
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r57-scaled-morphology-gym/maas-book-programs-summary.json`
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r57-scaled-morphology-gym/maas-geometry-mutation-outcome-graph.json`
+
+Verification for r57 code:
+
+- `design.test_maas_geometry_language`: 46/46 pass;
+- BOOK scope/language plus Mass-Brain tests: 23/23 pass;
+- the three requested program-massing projection/role tests: 3/3 pass;
+- live VWorld benchmark completed in 452.5 seconds;
+- direct original PNG inspection performed; overall design status intentionally
+  remains fail.

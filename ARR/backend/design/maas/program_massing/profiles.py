@@ -72,6 +72,7 @@ def program_reference_contract(building_type: str) -> dict[str, Any]:
         "supporting_terms": [str(value) for value in search.get("supporting_terms") or ()],
         "minimum_program_specific_images": max(0, min(5, int(search.get("minimum_program_specific_images") or 0))),
         "semantic_invariants": invariants,
+        "dimensional_requirements": dict(profile.get("dimensional_requirements") or {}),
         "geometry_template": None,
         "parcel_coordinates_allowed": False,
     }

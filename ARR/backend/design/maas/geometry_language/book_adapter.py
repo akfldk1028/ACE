@@ -30,6 +30,7 @@ def apply_book_projection_to_geometry_program(
     scope = book_projection_scope(sequence)
     nodes = list(program.nodes)
     program_root = program.root_id
+    active_book_call_index = -1
     # Program section is a non-negotiable relation, while BOOK operations are
     # body/plan mutations. Insert the BOOK subgraph before the section node so
     # scale/stack/taper cannot turn a hall into a pyramid. The profiled_hall
@@ -65,6 +66,7 @@ def apply_book_projection_to_geometry_program(
             provenance={
                 "source": "book_recursive_projection",
                 "book_verb": verb,
+                "book_call_index": active_book_call_index,
                 "scope_label": scope.label,
                 "scope_fraction": scope.requested_fraction,
                 "scope_orientation": scope.orientation,
@@ -87,7 +89,8 @@ def apply_book_projection_to_geometry_program(
         )
         current = selected
 
-    for call in calls:
+    for call_index, call in enumerate(calls, start=1):
+        active_book_call_index = call_index
         current = _append_book_call(
             add,
             current,
@@ -96,6 +99,7 @@ def apply_book_projection_to_geometry_program(
         )
 
     if remainder:
+        active_book_call_index = -1
         current = add(
             "boolean", "union", (remainder, current), {},
             verb="recompose_book_scope",

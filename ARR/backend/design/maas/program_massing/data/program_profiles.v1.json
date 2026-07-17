@@ -58,6 +58,31 @@
         {"id": "gym_service_hierarchy", "subject_role": "service_spine", "relation": "subordinate_to", "object_role": "dominant_hall", "description": "Entry and service volumes support rather than replace the hall."},
         {"id": "gym_roof_section", "subject_role": "roof_section", "relation": "expresses", "object_role": "span_or_daylight_logic", "description": "Roof deformation must express span, structure or daylight instead of an arbitrary cascading pyramid."}
       ],
+      "dimensional_requirements": {
+        "selection_basis": "legal_generation_site_oriented_clear_span",
+        "subtypes": [
+          {
+            "id": "long_span_sports_hall",
+            "minimum_clear_span_m": 12.0,
+            "minimum_host_area_m2": 180.0,
+            "minimum_height_m": 7.0,
+            "maximum_height_m": 12.0,
+            "target_height_to_clear_span_ratio": 0.65,
+            "maximum_height_to_clear_span_ratio": 0.95,
+            "maximum_floors": 2
+          },
+          {
+            "id": "compact_training_hall",
+            "minimum_clear_span_m": 6.0,
+            "minimum_host_area_m2": 60.0,
+            "minimum_height_m": 5.0,
+            "maximum_height_m": 8.0,
+            "target_height_to_clear_span_ratio": 0.80,
+            "maximum_height_to_clear_span_ratio": 1.10,
+            "maximum_floors": 2
+          }
+        ]
+      },
       "target_volume_range": [1, 3],
       "target_floor_range": [1, 4],
       "preferred_families": ["sloped_roof", "slender_bar", "void_notch", "offset"],

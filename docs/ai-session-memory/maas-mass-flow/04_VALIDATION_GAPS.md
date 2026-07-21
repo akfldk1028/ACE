@@ -12,8 +12,12 @@
 ## P0 — VLM truth
 
 - r182 has not been VLM reviewed.
-- Before a paid test, select one representative MASS and an explicit bounded
-  ArchDaily set; record exact submitted image hashes and cost.
+- r184 performed a bounded 24-call paid review of actual MASS renders plus small
+  relevant reference sets and selected 0/20. Preserve that failure; do not
+  relabel r182 as VLM-approved.
+- A future paid test must record exact submitted MASS/reference hashes, model
+  response IDs and cost. Start with a very small representative set rather than
+  sending the full archive.
 - Only after the passport contains `used_by_vlm=true`, response/model IDs and a
   materialized critique may reference edges become active.
 
@@ -43,3 +47,14 @@
   artifacts keyed by parcel/legal/program/form-page hashes so later runs do not
   recompute unchanged pages.
 
+## P1 — remaining module seams
+
+- `portfolio_benchmark.py` is down from roughly 4,000 lines to 1,781 lines and
+  now delegates generation, analysis, selection, replenishment, capacity,
+  lineage, references and VLM review.
+- Continue splitting the remaining large policy modules by stable contracts,
+  not by adding parallel implementations: `portfolio_selection.py` (1,823
+  lines), `vlm_review.py` (1,633 lines), `candidate_generation.py` (1,552
+  lines), and `candidate_analysis.py` (1,249 lines).
+- Keep one public orchestration path and one canonical AST/compiler. New agent
+  repositories may wrap these contracts but must not fork geometry truth.

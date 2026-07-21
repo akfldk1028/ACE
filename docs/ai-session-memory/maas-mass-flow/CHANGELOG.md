@@ -39,3 +39,14 @@
   reference only; future `massAgent` gets new identity and private memory.
 - Recorded hash-bound handoffs for later plan, elevation, facade, law, critic
   and selector collaboration.
+
+## 2026-07-21 — Durable run lifecycle and r185 memory abort
+
+- r185 consumed 2,739.4 seconds without materializing an intermediate artifact.
+  It was stopped when free physical memory fell below 1 GB; no final MASS or PNG
+  exists and no visual-quality claim is allowed.
+- Added `maas-run-state.json` lifecycle records for running, completed and
+  failed commands. State-only aborted runs are now first-class nodes in the same
+  chronological archive without inventing replayable geometry.
+- Browser verification now sees 91 runs with r185 newest, r185 0 MASS, r182 20
+  replayable MASS, one graph, zero BOOK rasters and zero console/page errors.

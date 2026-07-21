@@ -51,6 +51,37 @@ class MaasOutcomeRenderMemoryTest(SimpleTestCase):
             self.assertEqual(manifest["selected_run_id"], "book-program-portfolios-run-b")
             self.assertEqual(manifest["mass_count"], 0)
 
+    def test_state_only_aborted_run_is_visible_without_fake_mass(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run = (
+                root / "docs" / "playwright" / "design-route-live-verify"
+                / "book-program-portfolios-run-aborted"
+            )
+            run.mkdir(parents=True)
+            (run / "maas-run-state.json").write_text(json.dumps({
+                "schema_version": "arr.maas.run_state.v1",
+                "run_id": run.name,
+                "pnu": "test-pnu",
+                "created_at": "2026-07-21T04:11:35+00:00",
+                "updated_at": "2026-07-21T04:57:14+00:00",
+                "status": "aborted_memory_pressure",
+                "selected_mass_count": 0,
+            }), encoding="utf-8")
+
+            executed_archive._read_json.cache_clear()
+            executed_archive._run_catalog_cached.cache_clear()
+            with patch.object(executed_archive, "workspace_root", return_value=root):
+                manifest = executed_archive.executed_mass_manifest(run.name)
+            executed_archive._read_json.cache_clear()
+            executed_archive._run_catalog_cached.cache_clear()
+
+            self.assertEqual(manifest["run_count"], 1)
+            self.assertEqual(manifest["run_status"], "aborted_memory_pressure")
+            self.assertEqual(manifest["mass_count"], 0)
+            self.assertEqual(manifest["runs"][0]["status"], "aborted_memory_pressure")
+            self.assertFalse(manifest["runs"][0]["replayable"])
+
     def test_mass_png_card_is_bound_to_typed_geometry_identity(self):
         with TemporaryDirectory() as temporary:
             root = Path(temporary)

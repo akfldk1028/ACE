@@ -8,6 +8,7 @@ from shapely.affinity import translate
 from shapely.geometry import LineString, mapping
 
 from design.maas.book_language.portfolio_benchmark import run_book_program_portfolios
+from design.maas.geometry_language.run_state import tracked_mass_command
 from design.services.constraint_bridge import regulations_to_constraints
 from design.services.site_geometry import fetch_parcel_boundary, geojson_to_polygon, wgs84_to_utm
 
@@ -43,6 +44,7 @@ class Command(BaseCommand):
             ),
         )
 
+    @tracked_mass_command
     def handle(self, *args, **options):
         pnu = str(options["pnu"])
         if options.get("live_vlm"):
@@ -202,3 +204,4 @@ class Command(BaseCommand):
                 for item in result["programs"]
             )
         ))
+        return result

@@ -21,9 +21,9 @@ const { chromium } = require(path.resolve(__dirname, '../../../../ARR/frontend/n
   const runCount = await runButtons.count();
   const newestRunTitle = await runButtons.first().getAttribute('title');
 
-  const failedRun = timeline.locator('button[title="book-program-portfolios-r184-bounded-live-vlm-base-relative"]');
+  const failedRun = timeline.locator('button[title="book-program-portfolios-r185-program-controller-archive-preflight"]');
   await failedRun.click();
-  await page.getByText('VLM/GATE 실패 run입니다.').waitFor({ state: 'visible', timeout: 30000 });
+  await page.getByText('실행 상태: aborted_memory_pressure.').waitFor({ state: 'visible', timeout: 30000 });
   const failedRunSelected = await failedRun.getAttribute('data-selected');
   const failedRunMassCards = await page.locator('.geometry-result-gallery button').count();
 
@@ -70,7 +70,7 @@ const { chromium } = require(path.resolve(__dirname, '../../../../ARR/frontend/n
   };
   result.pass = result.http_status === 200
     && result.run_count >= 2
-    && String(result.newest_run_title || '').includes('r184-bounded-live-vlm-base-relative')
+    && String(result.newest_run_title || '').includes('r185-program-controller-archive-preflight')
     && result.run_node_count === result.run_count
     && result.failed_run_selected
     && result.failed_run_mass_card_count === 0

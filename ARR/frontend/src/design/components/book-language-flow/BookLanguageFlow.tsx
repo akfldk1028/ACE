@@ -897,7 +897,7 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
       )}
       {archive && archive.masses.length === 0 && (
         <div className="maas-language-flow__state" role="status">
-          이 run은 실행 기록은 보존됐지만 최종 선택 MASS가 없습니다. VLM/GATE 실패 run입니다.
+          이 run은 실행 기록은 보존됐지만 최종 선택 MASS가 없습니다. 실행 상태: {archive.run_status}.
         </div>
       )}
       {!archiveError && !archive && <div className="maas-language-flow__state" role="status">실행 MASS 아카이브를 불러오는 중입니다.</div>}

@@ -19,7 +19,7 @@ Generated 2026-07-21 KST.
   selected sidebar image loaded, Base 6, Operatives 30, BOOK raster 0,
   console/page errors 0.
 - `/design/language` now exposes one causal graph plus a chronological execution
-  timeline and a MASS-only archive. It discovers 90 historical runs, places the
+  timeline and a MASS-only archive. It discovers 91 historical runs, places the
   newest run at the left, and keeps failed runs visible instead of silently
   falling back to an older success.
 - Selecting r184 truthfully shows `0 MASS · NO FINAL`; selecting r182 replays 20
@@ -42,9 +42,10 @@ Generated 2026-07-21 KST.
   paid calls against actual generated MASS renders and small relevant reference
   sets, but selected 0/20. r184 is therefore preserved as a failed run, not
   presented as a finished portfolio.
-- A deterministic r185 controller/archive preflight was started after separating
-  BOOK and program authority. Treat it as pending until its summary and board
-  files exist and are directly reviewed.
+- Deterministic r185 was stopped after 2,739.4 seconds when system free physical
+  memory fell below 1 GB. It produced no final geometry archive or MASS PNG and
+  therefore cannot support a visual-quality claim. The frontend preserves it as
+  `aborted_memory_pressure · 0 MASS · NO FINAL` instead of hiding it.
 - The legal flow used live PNU zoning and the actual parcel-derived buildable
   host, but it is a massing preflight, not an approval-grade code check.
 - Parking used the reviewed local structured seed; Neo4j legal enrichment was
@@ -78,6 +79,7 @@ oriented dimensions. Keep this distinction explicit.
 - `docs/playwright/design-route-live-verify/r182-single-graph-ui-final-images/full-graph.png`
 - `docs/playwright/design-route-live-verify/r185-chronological-mass-archive/verify-chronological-archive.json`
 - `docs/playwright/design-route-live-verify/r185-chronological-mass-archive/chronological-mass-archive.png`
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r185-program-controller-archive-preflight/maas-run-state.json`
 
 ## Multi-agent boundary
 

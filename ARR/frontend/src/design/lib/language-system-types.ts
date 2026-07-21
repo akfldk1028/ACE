@@ -184,7 +184,7 @@ export interface ExecutedMassRun {
   created_at: string;
   pnu: string;
   selected_mass_count: number;
-  status: 'selected_mass_ready' | 'completed_without_selected_mass';
+  status: 'selected_mass_ready' | 'completed_without_selected_mass' | 'running' | 'failed' | 'aborted_memory_pressure' | 'unknown';
   replayable: boolean;
 }
 

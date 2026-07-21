@@ -15,6 +15,7 @@ from .ast import GeometryProgram
 from .compiler import CompilationResult, compile_geometry_program
 from .dsl import program_to_dsl
 from .execution_persistence import write_mass_execution_passport
+from .run_state import RUN_STATE_FILENAME
 from .vlm_adapter import retrieve_geometry_reference_matches
 from design.maas.preference.reference_paths import resolve_reference_image_path
 
@@ -34,6 +35,18 @@ def _archive_paths() -> list[Path]:
     )
 
 
+def _run_directories() -> list[Path]:
+    root = workspace_root() / "docs" / "playwright" / "design-route-live-verify"
+    directories = {
+        path.parent
+        for path in root.glob("book-program-portfolios-*/maas-book-exact-geometry-artifacts.json")
+    }
+    directories.update(
+        path.parent for path in root.glob(f"book-program-portfolios-*/{RUN_STATE_FILENAME}")
+    )
+    return sorted(directories, key=lambda path: path.name)
+
+
 def latest_archive_path() -> Path:
     for candidate in reversed(_archive_paths()):
         summary = candidate.with_name("maas-book-programs-summary.json")
@@ -49,10 +62,10 @@ def _archive_path_for_run(run_id: str | None) -> Path:
     if not run_id:
         return latest_archive_path()
     requested = str(run_id).strip()
-    match = next((path for path in _archive_paths() if path.parent.name == requested), None)
+    match = next((path for path in _run_directories() if path.name == requested), None)
     if match is None:
         raise FileNotFoundError(f"unknown MAAS run: {requested}")
-    return match
+    return match / "maas-book-exact-geometry-artifacts.json"
 
 
 @lru_cache(maxsize=8)
@@ -66,56 +79,88 @@ def _read_json(path: str, _mtime_ns: int) -> dict[str, Any]:
 def _bundle(run_id: str | None = None) -> tuple[Path, dict[str, Any], dict[str, Any]]:
     archive_path = _archive_path_for_run(run_id)
     summary_path = archive_path.with_name("maas-book-programs-summary.json")
-    archive = _read_json(str(archive_path), archive_path.stat().st_mtime_ns)
-    summary = _read_json(str(summary_path), summary_path.stat().st_mtime_ns)
+    state_path = archive_path.with_name(RUN_STATE_FILENAME)
+    archive = (
+        _read_json(str(archive_path), archive_path.stat().st_mtime_ns)
+        if archive_path.is_file()
+        else {"records": [], "record_count": 0}
+    )
+    if summary_path.is_file():
+        summary = _read_json(str(summary_path), summary_path.stat().st_mtime_ns)
+    elif state_path.is_file():
+        summary = _read_json(str(state_path), state_path.stat().st_mtime_ns)
+    else:
+        raise FileNotFoundError(f"no state or summary for MAAS run: {archive_path.parent.name}")
     return archive_path, archive, summary
 
 
 @lru_cache(maxsize=4)
 def _run_catalog_cached(
-    signature: tuple[tuple[str, int, int, int], ...],
+    signature: tuple[tuple[str, int, int, int, int, int], ...],
 ) -> tuple[dict[str, Any], ...]:
     """Materialize a catalog only when an archive file signature changes."""
     rows: list[dict[str, Any]] = []
-    for path, archive_mtime_ns, _archive_size, summary_mtime_ns in signature:
-        archive_path = Path(path)
+    for path, archive_mtime_ns, _archive_size, summary_mtime_ns, state_mtime_ns, _state_size in signature:
+        run_directory = Path(path)
+        archive_path = run_directory / "maas-book-exact-geometry-artifacts.json"
         summary_path = archive_path.with_name("maas-book-programs-summary.json")
-        try:
-            archive = _read_json(str(archive_path), archive_mtime_ns)
-        except (OSError, ValueError, json.JSONDecodeError):
-            continue
-        modified_ns = max(archive_mtime_ns, summary_mtime_ns)
+        state_path = archive_path.with_name(RUN_STATE_FILENAME)
+        archive: dict[str, Any] = {}
+        state: dict[str, Any] = {}
+        if archive_mtime_ns:
+            try:
+                archive = _read_json(str(archive_path), archive_mtime_ns)
+            except (OSError, ValueError, json.JSONDecodeError):
+                archive = {}
+        if state_mtime_ns:
+            try:
+                state = _read_json(str(state_path), state_mtime_ns)
+            except (OSError, ValueError, json.JSONDecodeError):
+                state = {}
+        modified_ns = max(archive_mtime_ns, summary_mtime_ns, state_mtime_ns)
         record_count = len([
             item for item in archive.get("records") or () if isinstance(item, dict)
         ])
+        lifecycle_status = str(state.get("status") or "")
+        status = (
+            "selected_mass_ready"
+            if record_count
+            else lifecycle_status
+            if lifecycle_status and lifecycle_status != "completed"
+            else "completed_without_selected_mass"
+            if archive_mtime_ns
+            else lifecycle_status or "unknown"
+        )
         rows.append({
-            "run_id": archive_path.parent.name,
-            "created_at": datetime.fromtimestamp(
-                modified_ns / 1_000_000_000,
-                tz=timezone.utc,
-            ).isoformat(),
-            "pnu": str(archive.get("pnu") or ""),
+            "run_id": run_directory.name,
+            "created_at": str(state.get("created_at") or datetime.fromtimestamp(
+                modified_ns / 1_000_000_000, tz=timezone.utc
+            ).isoformat()),
+            "pnu": str(archive.get("pnu") or state.get("pnu") or ""),
             "selected_mass_count": record_count,
-            "status": "selected_mass_ready" if record_count else "completed_without_selected_mass",
+            "status": status,
             "replayable": bool(record_count),
         })
-    return tuple(rows)
+    return tuple(sorted(rows, key=lambda item: (item["created_at"], item["run_id"])))
 
 
 def _run_catalog() -> list[dict[str, Any]]:
     """Return the immutable run timeline without reparsing 90 runs per click."""
-    signature: list[tuple[str, int, int, int]] = []
-    for archive_path in _archive_paths():
+    signature: list[tuple[str, int, int, int, int, int]] = []
+    for run_directory in _run_directories():
+        archive_path = run_directory / "maas-book-exact-geometry-artifacts.json"
         summary_path = archive_path.with_name("maas-book-programs-summary.json")
-        if not summary_path.is_file():
-            continue
-        archive_stat = archive_path.stat()
-        summary_stat = summary_path.stat()
+        state_path = archive_path.with_name(RUN_STATE_FILENAME)
+        archive_stat = archive_path.stat() if archive_path.is_file() else None
+        summary_stat = summary_path.stat() if summary_path.is_file() else None
+        state_stat = state_path.stat() if state_path.is_file() else None
         signature.append((
-            str(archive_path),
-            archive_stat.st_mtime_ns,
-            archive_stat.st_size,
-            summary_stat.st_mtime_ns,
+            str(run_directory),
+            archive_stat.st_mtime_ns if archive_stat else 0,
+            archive_stat.st_size if archive_stat else 0,
+            summary_stat.st_mtime_ns if summary_stat else 0,
+            state_stat.st_mtime_ns if state_stat else 0,
+            state_stat.st_size if state_stat else 0,
         ))
     return [dict(item) for item in _run_catalog_cached(tuple(signature))]
 

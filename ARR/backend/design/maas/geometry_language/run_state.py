@@ -40,6 +40,12 @@ def tracked_mass_command(function: Callable[..., _T]) -> Callable[..., _T]:
     def wrapped(command: Any, *args: Any, **options: Any) -> _T:
         output_dir = Path(str(options["output_dir"])).resolve()
         created_at = _now()
+        try:
+            from design.maas.book_language.quality_diversity_archive import qd_archive_policy
+
+            quality_diversity = qd_archive_policy()
+        except (ImportError, ValueError):
+            quality_diversity = {}
         base = {
             "schema_version": RUN_STATE_SCHEMA,
             "run_id": output_dir.name,
@@ -47,6 +53,8 @@ def tracked_mass_command(function: Callable[..., _T]) -> Callable[..., _T]:
             "programs": list(options.get("program") or ()),
             "recursive_only": bool(options.get("recursive_only")),
             "live_vlm_requested": bool(options.get("live_vlm")),
+            "outcome_graph_path": str(options.get("outcome_graph") or ""),
+            "quality_diversity_archive": quality_diversity,
             "created_at": created_at,
             "pid": os.getpid(),
         }

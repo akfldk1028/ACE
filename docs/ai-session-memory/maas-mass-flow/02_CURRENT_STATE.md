@@ -1,95 +1,84 @@
-# Current Verified State — r182 + chronological archive
+# Current Verified State — r188 causal shard + paid portfolio VLM
 
 Generated 2026-07-21 KST.
 
-## What is working
+## Honest outcome
 
-- Portfolio status: `20/20 · pass` for PNU `1168011800104170004`, program
-  `근린생활시설`.
-- Actual Geometry Program replenishment pages authored new AST payloads. The
-  selected counts were `16, 18, 18, 19, 19, 19, 20`; page 7 supplied the last
-  compatible MASS.
-- Six Base Volume scopes, fourteen BOOK principles, four principle depths and
-  four capacity alternatives are present.
-- Capacity distribution: reserve 11, balanced 5, brief 3, maximum 1.
-- Solid phenotypes: curved 3, oblique 1, prismatic 5, stepped 5, voided 5,
-  winged 1. Visual-language count 20; near-duplicate pairs 0.
-- Downstream site/legal/parking combined hard pass: 20/20.
-- Browser: one graph, 20 executed MASS nodes, 20/20 gallery images loaded,
-  selected sidebar image loaded, Base 6, Operatives 30, BOOK raster 0,
-  console/page errors 0.
-- `/design/language` now exposes one causal graph plus a chronological execution
-  timeline and a MASS-only archive. It discovers 91 historical runs, places the
-  newest run at the left, and keeps failed runs visible instead of silently
-  falling back to an older success.
-- Selecting r184 truthfully shows `0 MASS · NO FINAL`; selecting r182 replays 20
-  actual generated MASS images and unique run-bound node IDs. BOOK scans are
-  language provenance only and never appear as generated MASS evidence.
-- Program/use controllers and BOOK operators now have separate authority.
-  `book_split` cannot impersonate a public-space, access, legal or program
-  controller merely because its name is Split.
-- `ARR/backend/agents` is the shared multi-agent control plane. Independent
-  agents are sibling repositories such as `elevationAgent` and the future
-  `massAgent`; shared memory/contracts live at the parent, while private agent
-  history stays inside each sibling.
+- Newest replayable run: `book-program-portfolios-r188-map-elites-compatibility-reserve`.
+- Result: `16/20 · FAIL`; numeric portfolio status fails, while downstream
+  site/legal/parking status passes for all 16 selected candidates.
+- Six Base Model scopes and four capacity alternatives are present.
+- Selected phenotypes: curved 1, oblique 1, prismatic 1, stepped 5, voided 5,
+  winged 3. This is still dominated by stepped/voided bar-box lineages.
+- r182 remains the latest `20/20` numeric baseline. Do not relabel r188 as
+  complete and do not relabel r182 as VLM-approved.
 
-## What is not yet proven
+## Search and memory architecture
 
-- The board is numerically valid but not visually competition-final. MASS 17 is
-  one connected, non-degenerate solid yet its layered pinch silhouette reads as
-  floating from the archive camera. Several masses remain compact/prismatic.
-- Live VLM was not run for r182. A bounded r184 review later used exactly 24
-  paid calls against actual generated MASS renders and small relevant reference
-  sets, but selected 0/20. r184 is therefore preserved as a failed run, not
-  presented as a finished portfolio.
-- Deterministic r185 was stopped after 2,739.4 seconds when system free physical
-  memory fell below 1 GB. It produced no final geometry archive or MASS PNG and
-  therefore cannot support a visual-quality claim. The frontend preserves it as
-  `aborted_memory_pressure · 0 MASS · NO FINAL` instead of hiding it.
-- The legal flow used live PNU zoning and the actual parcel-derived buildable
-  host, but it is a massing preflight, not an approval-grade code check.
-- Parking used the reviewed local structured seed; Neo4j legal enrichment was
-  not requested. The selected rule source still requires authoritative permit
-  review.
+- r185 failed because the shared PNU graph was 462.37 MB with 79,725 nodes,
+  228,527 edges and 64,135 observations; parsing it retained several GB of
+  Python objects.
+- r186 isolated the run graph but was stopped on projected memory growth.
+- r187 introduced a run-local causal graph and MAP-Elites archive. It completed
+  15/20 in 4,651 seconds and reduced the graph to about 62.9 MB.
+- r188 keeps two elites per `Base scope × solid phenotype × capacity ALT` cell,
+  protects BOOK/plan/genotype anchors and performs streaming compaction. It
+  completed 16/20 in 4,292 seconds with roughly 1.1 GB steady working set and a
+  47.2 MB graph. QD retained 125 candidates across 58 occupied cells.
+- One elite per cell was too aggressive; two elites preserved more compatibility
+  reserve but still did not produce a 20-member compatible portfolio.
 
-## Site/legal facts used by r182
+## Paid VLM truth
 
-- PNU: `1168011800104170004`; jurisdiction code `11680`.
-- Original parcel area: 264.126 m².
-- Zone: 제2종일반주거지역.
-- BCR limit: 60%; FAR limit: 250%.
-- Adjacent setback: 0.5 m; landscaping minimum: 15%.
-- Parcel-derived horizontal buildable/generation host: 102.931 m².
-- Sunlight field: materialized and height-dependent.
-- Requested massing: 15 m / 5 floors.
-- Feasible maximum floor area from the height field: 418.167 m²; the statutory
-  FAR ceiling 660.315 m² was not falsely assumed reachable.
-- Parking example for MASS 01: required 2, provided 2, piloti-ground strategy.
+- One paid post-render portfolio call was made for the exact r188 board using
+  `gpt-5.4-mini`. It is cached by image/prompt/model/candidate hashes.
+- Response ID: `resp_08693458daaa8786006a5f2bf259ac81999b54dd75f54c2742`.
+- Verdict: FAIL; 8 visible families, dominant family share 0.50.
+- Failures: family resemblance, repeated footprint, repeated roof, weak program
+  language and too few candidates.
+- Requested next typed families: courtyard, split bridge, L/U mass, carve void,
+  lift, notch, terrace and cross mass.
+- The critic did not independently label the obvious floating fragments in
+  MASS 07 `pack · inflate`; human PNG review did. VLM is evidence, not geometry
+  authority. Add raster/mesh fragmentation checks before claiming clean mass.
 
-`parcel_coordinates_used=false` in the program dimensional context means the
-universal language did not memorize absolute parcel coordinates as a template.
-The compiler still received the actual parcel-derived buildable polygon and its
-oriented dimensions. Keep this distinction explicit.
+## Frontend and graph verification
+
+- `/design/language` shows one graph and a 94-run chronological archive.
+- Selecting r188 shows 16 actual generated MASS PNGs; BOOK raster count is 0.
+- The selected causal path has 39 active edges and includes geometry, program,
+  compiler, gates, render, selector and unique executed MASS stages.
+- The run-local memory path is visible as:
+  `Compiled Geometry → Geometry Portfolio → VLM Portfolio Critic → Outcome`.
+- Header shows `PAID FAIL VLM`; footer shows
+  `PORTFOLIO VLM FAIL · gpt-5.4-mini`.
+- Browser verification: one Full Graph, paid VLM node 1, console errors 0,
+  page errors 0.
+
+## Site/legal facts
+
+- PNU `1168011800104170004`; parcel area 264.126 m².
+- BCR 60%, FAR 250%, adjacent setback 0.5 m, landscaping minimum 15%.
+- Parcel-derived generation host 102.931 m²; height-dependent sunlight field
+  materialized; requested mass 15 m / 5 floors.
+- Feasible height-field floor area 418.167 m². The 660.315 m² statutory FAR
+  ceiling is not falsely assumed reachable.
+- This remains a massing preflight, not permit approval. Parking uses a reviewed
+  structured local seed and still needs current official ordinance review.
 
 ## Evidence
 
-- `docs/playwright/design-route-live-verify/book-program-portfolios-r182-seven-page-closure-pass/maas-book-neighborhood-20.png`
-- `docs/playwright/design-route-live-verify/book-program-portfolios-r182-seven-page-closure-pass/maas-book-programs-summary.json`
-- `docs/playwright/design-route-live-verify/r182-single-graph-ui-final-images/verify.json`
-- `docs/playwright/design-route-live-verify/r182-single-graph-ui-final-images/full-graph.png`
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/maas-book-neighborhood-20.png`
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/maas-book-programs-summary.json`
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/maas-paid-portfolio-vlm-audit.json`
 - `docs/playwright/design-route-live-verify/r185-chronological-mass-archive/verify-chronological-archive.json`
-- `docs/playwright/design-route-live-verify/r185-chronological-mass-archive/chronological-mass-archive.png`
-- `docs/playwright/design-route-live-verify/book-program-portfolios-r185-program-controller-archive-preflight/maas-run-state.json`
+- `docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-paid-vlm-full-graph.png`
+- `docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-paid-vlm-node-focus.png`
 
 ## Multi-agent boundary
 
-- Shared parent contract: `ARR/backend/agents/SHARED_AGENT_ARCHITECTURE.md`
-- Shared parent memory: `ARR/backend/agents/memory/MEMORY.md`
-- Agent template reference: `ARR/backend/agents/elevationAgent`
-- MASS domain engine: `ARR/backend/design/maas`
-- Future independent MASS agent: `ARR/backend/agents/massAgent`
-
-Copy the `elevationAgent` repository structure for a new agent, but never copy
-its identity, private memory or example history. Cross-agent handoffs must be
-bound to `run_id`, `program_hash`, `geometry_hash`, PNU, artifact URLs and gate
-states so every downstream decision is replayable.
+`ARR/backend/agents` remains shared control-plane/memory. Independent agents
+are sibling repositories modeled structurally after `elevationAgent`; future
+`massAgent` owns its identity/private memory but wraps the canonical
+`ARR/backend/design/maas` AST/compiler. Handoffs remain bound to run ID, program
+hash, geometry hash, PNU, artifact URL, gate state and VLM state.

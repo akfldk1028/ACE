@@ -111,9 +111,11 @@ export async function getMaasOutcomeGraphSlice(
   pnu: string,
   signal?: AbortSignal,
   geometryHash?: string,
+  runId?: string,
 ): Promise<OutcomeGraphSlice> {
   const query = new URLSearchParams({ pnu, depth: '3', max_nodes: '180' });
   if (geometryHash) query.set('geometry_hash', geometryHash);
+  if (runId) query.set('run_id', runId);
   const res = await fetch(`${BASE}/maas/outcome-graph/?${query}`, { signal });
   if (!res.ok) throw new Error('MAAS outcome graph slice fetch failed');
   return res.json();

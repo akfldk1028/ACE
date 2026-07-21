@@ -96,13 +96,16 @@ def _compact_node(node: dict[str, Any]) -> dict[str, Any]:
 def build_outcome_graph_slice(
     *,
     pnu: str,
+    graph_path: str | Path | None = None,
     node_id: str = "",
     candidate_id: str = "",
     geometry_hash: str = "",
     depth: int = 3,
     max_nodes: int = 180,
 ) -> dict[str, Any]:
-    path = default_outcome_graph_path(pnu)
+    # A selected archive run owns its causal shard. Falling back to the
+    # historical PNU graph is retained for callers that do not select a run.
+    path = Path(graph_path).resolve() if graph_path else default_outcome_graph_path(pnu)
     if not path.exists():
         return {
             "schema_version": SCHEMA_VERSION,
@@ -220,6 +223,7 @@ def build_outcome_graph_slice(
         "source_schema_version": str(payload.get("schema_version") or ""),
         "pnu": str(pnu),
         "status": "ready",
+        "path": str(path),
         "root_node_ids": roots,
         "nodes": [_compact_node(nodes_by_id[item]) for item in visited if item in nodes_by_id],
         "edges": selected_edges,

@@ -14,6 +14,8 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
   `execution_evidence.py`, `execution_activation.py`,
   `execution_agent_context.py`
 - Exact outcome memory: `outcome_graph.py`
+- Bounded run-aware read model: `ARR/backend/design/maas/outcome_graph_slice.py`
+- Executed archive/run-level VLM manifest: `executed_archive.py`
 
 ## BOOK portfolio pipeline
 
@@ -25,6 +27,7 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
 - Bounded page loop: `portfolio_replenishment.py`
 - Set selection and diagnostics: `portfolio_selection.py`,
   `portfolio_constraint_solver.py`
+- Quality-diversity memory bound: `quality_diversity_archive.py`
 - Benchmark orchestration only: `portfolio_benchmark.py`
 - VLM lifecycle: `vlm_review.py`, `final_vlm_cycle.py`,
   `vlm_stage_policy.py`, `portfolio_feedback.py`
@@ -50,4 +53,3 @@ After every completed run:
 5. Run JSON validation, backend focused tests, TypeScript and browser verify.
 6. Record paid VLM request count and `retrieved` versus `used` separately.
 7. Record direct PNG review independently from numeric status.
-

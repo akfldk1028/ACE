@@ -771,6 +771,10 @@ def _program_pool(
     base_capacity_contract: dict[str, Any] | None = None,
     capacity_site: Polygon | None = None,
 ) -> tuple[list[_Candidate], dict[str, Any]]:
+    # Local import avoids expanding the ordinary candidate-analysis import
+    # surface while allowing online quality-diversity compaction.
+    from .quality_diversity_archive import map_elites_archive, qd_archive_policy
+
     accepted: list[_Candidate] = []
     evaluated = compiled = clean = program_passed = 0
     scope_stage_counts = {
@@ -791,6 +795,8 @@ def _program_pool(
     llm_authored_stage_counts: Counter[str] = Counter()
     llm_authored_failure_counts: Counter[str] = Counter()
     capacity_stage_counts: Counter[str] = Counter()
+    qd_maximum_size = int(qd_archive_policy()["max_archive_size"])
+    qd_stream_compaction_trigger = max(qd_maximum_size + 1, qd_maximum_size * 2)
     requested_parent_indices = tuple(sorted({max(0, int(index)) for index in parent_variant_indices})) or (0,)
     directed_seeds = _agent_mutated_seeds(
         building_type,
@@ -1450,6 +1456,13 @@ def _program_pool(
                     feature,
                     round(score, 6),
                 ))
+                if len(accepted) >= qd_stream_compaction_trigger:
+                    before_compaction = len(accepted)
+                    accepted[:] = map_elites_archive(accepted)
+                    capacity_stage_counts["qd_stream_compaction_count"] += 1
+                    capacity_stage_counts["qd_stream_candidates_released"] += (
+                        before_compaction - len(accepted)
+                    )
     accepted, lineage_gate = gate_descendants_by_base(accepted)
     active_universal_programs = universal_form_program_pages(requested_parent_indices)
     summarized_gate_diagnostics = {

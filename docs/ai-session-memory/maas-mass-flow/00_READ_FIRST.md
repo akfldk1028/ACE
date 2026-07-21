@@ -25,6 +25,11 @@ replaceable and recorded in the Geometry Program.
 
 Current frontend: `http://127.0.0.1:5175/design/language`.
 
+Current runtime checkpoint: r188 is the newest replayable run but is an honest
+`16/20 · FAIL`, not the finished portfolio. It has one paid post-render
+portfolio VLM audit stored in the run-local causal graph. r182 remains the
+latest numeric `20/20` baseline; it was not VLM-approved.
+
 Multi-agent folder contract: read `05_MULTI_AGENT_FOLDER_CONTRACT.md` before
 creating or moving any specialist agent. `ARR/backend/agents/` is the shared
 control-plane/memory parent; `ARR/backend/agents/elevationAgent/` is the

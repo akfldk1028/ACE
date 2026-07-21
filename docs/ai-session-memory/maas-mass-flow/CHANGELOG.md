@@ -50,3 +50,21 @@
   chronological archive without inventing replayable geometry.
 - Browser verification now sees 91 runs with r185 newest, r185 0 MASS, r182 20
   replayable MASS, one graph, zero BOOK rasters and zero console/page errors.
+
+## 2026-07-21 — r188 MAP-Elites and paid causal VLM
+
+- Replaced final heavy-pool caps with a bounded MAP-Elites archive over Base
+  scope, compiled phenotype and capacity alternative, with BOOK/plan/genotype
+  anchors and streaming memory compaction.
+- Isolated each run outcome graph; r188 completed without the r185 multi-GB
+  memory failure, but remained an honest 16/20 FAIL.
+- Fixed Django command completion so a persisted dict is not returned to
+  `BaseCommand.stdout.write`.
+- Ran one paid cached board critic on the exact r188 PNG. `gpt-5.4-mini`
+  returned FAIL with 8 families and 0.50 dominant share.
+- Persisted the paid audit in r188 summary and run-local graph, and made the
+  frontend request outcome slices by selected `run_id`.
+- Fixed runtime `result:mass` mapping to the unique run/index/geometry-hash node.
+- Browser verification sees 94 runs, 16 r188 MASS images, 39 active causal
+  edges, one paid VLM memory node, one Full Graph, zero BOOK rasters and zero
+  console/page errors.

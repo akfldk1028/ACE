@@ -174,7 +174,16 @@ def executed_mass_manifest(run_id: str | None = None) -> dict[str, Any]:
         if isinstance(record, dict)
     ]
     runs = _run_catalog()
-    revision = max((str(item["created_at"]) for item in runs), default="")
+    summary_path = archive_path.with_name("maas-book-programs-summary.json")
+    revision = ":".join((
+        max((str(item["created_at"]) for item in runs), default=""),
+        str(archive_path.stat().st_mtime_ns if archive_path.is_file() else 0),
+        str(summary_path.stat().st_mtime_ns if summary_path.is_file() else 0),
+    ))
+    program_summary = next((
+        item for item in summary.get("programs") or () if isinstance(item, dict)
+    ), {})
+    portfolio_vlm_audit = _mapping(program_summary.get("portfolio_vlm_audit"))
     return {
         "schema_version": ARCHIVE_SCHEMA,
         "run_id": archive_path.parent.name,
@@ -189,6 +198,7 @@ def executed_mass_manifest(run_id: str | None = None) -> dict[str, Any]:
         "runs": runs,
         "book_images_included": False,
         "image_authority": "actual archived candidate render tied to exact executed GeometryProgram",
+        "portfolio_vlm_audit": portfolio_vlm_audit,
         "masses": masses,
     }
 

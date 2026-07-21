@@ -88,15 +88,22 @@ def maas_outcome_graph_slice(request):
     except (TypeError, ValueError):
         return JsonResponse({"error": "depth and max_nodes must be integers"}, status=400)
     try:
+        run_id = str(request.GET.get("run_id") or "").strip()
+        graph_path = None
+        if run_id:
+            archive = executed_mass_manifest(run_id)
+            source_archive = Path(str(archive["source_archive"])).resolve()
+            graph_path = source_archive.with_name("maas-geometry-mutation-outcome-graph.json")
         payload = build_outcome_graph_slice(
             pnu=pnu,
+            graph_path=graph_path,
             node_id=str(request.GET.get("node_id") or "").strip(),
             candidate_id=str(request.GET.get("candidate_id") or "").strip(),
             geometry_hash=str(request.GET.get("geometry_hash") or "").strip(),
             depth=depth,
             max_nodes=max_nodes,
         )
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         logger.warning("MAAS outcome graph slice failed: %s", exc)
         return JsonResponse({"error": "outcome graph is unavailable"}, status=503)
     return JsonResponse(payload)

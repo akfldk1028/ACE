@@ -154,6 +154,7 @@ from .portfolio_selection import (
     _bounded_visual_selection_pool,
     _target_hard_pass_universe,
 )
+from .quality_diversity_archive import qd_archive_evidence
 
 from .gate_diagnostics import (
     _empty_gate_diagnostic,
@@ -930,8 +931,7 @@ def run_book_program_portfolios(
         counts["visual_selection_pool"] = {
             "input_count": raw_selection_pool_count,
             "bounded_count": len(selection_pool),
-            "per_geometry_family_scope_cap": 3,
-            "per_seed_scope_cap": 2,
+            "quality_diversity_archive": qd_archive_evidence(selection_pool),
             "degenerate_sheet_like_rejected_count": degenerate_sheet_count,
             "measured_solid_phenotype_counts": dict(sorted(Counter(
                 _solid_morphology_metrics(candidate)["phenotype"]
@@ -1008,6 +1008,10 @@ def run_book_program_portfolios(
             downstream_report=preselection_hard_gate,
             selected=selected,
         )
+        initial_selected_snapshot = list(selected)
+        initial_selected_fingerprints = {
+            _fingerprint(candidate) for candidate in initial_selected_snapshot
+        }
         missing_scope = len({_scope_key(candidate) for candidate in selected}) < len(BASE_VOLUME_FRACTIONS)
         replenishment_cycles: list[dict[str, Any]] = []
         if len(selected) < 20 or missing_scope:
@@ -1032,6 +1036,13 @@ def run_book_program_portfolios(
                 "parking_options": parking_options,
                 "generation_context": generation_context,
             }
+            # The exact initial observations are already persisted in the
+            # run-local outcome graph. Retaining the full compiled pool here
+            # kept hundreds of heavyweight meshes alive across all later
+            # cycles. Only the bounded QD archive and the at-most-20 initial
+            # selected candidates are needed to refresh final selection flags.
+            pool = []
+            downstream_evaluation_pool = []
             for cycle_index in range(1, cycle_budget + 1):
                 previous_pool_count = len(selection_pool)
                 cycle = run_replenishment_cycle(
@@ -1109,6 +1120,7 @@ def run_book_program_portfolios(
                     cycles_run=cycle_index,
                     cycle_budget=cycle_budget,
                 )
+                del cycle
                 if terminal_reason:
                     stop_reason = terminal_reason
                     break
@@ -1125,8 +1137,14 @@ def run_book_program_portfolios(
             # observation flags instead of leaving stale selected=true memory.
             outcome_graph.observe_candidates(
                 program_slug=slug,
-                candidates=downstream_evaluation_pool,
-                downstream_report=preselection_hard_gate,
+                candidates=[
+                    *initial_selected_snapshot,
+                    *(
+                        candidate for candidate in selected
+                        if _fingerprint(candidate) not in initial_selected_fingerprints
+                    ),
+                ],
+                downstream_report=None,
                 selected=selected,
             )
         counts["final_hard_pass_selection_pool_count"] = len(selection_pool)

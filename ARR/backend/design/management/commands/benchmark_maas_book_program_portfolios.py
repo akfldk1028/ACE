@@ -204,4 +204,9 @@ class Command(BaseCommand):
                 for item in result["programs"]
             )
         ))
-        return result
+        # Django writes a non-None ``handle`` return value as command output,
+        # so returning the structured result here makes ``BaseCommand`` call
+        # ``dict.endswith`` after every otherwise-complete benchmark run.
+        # The canonical structured result is already persisted in the output
+        # directory; the management command must return text or ``None``.
+        return None

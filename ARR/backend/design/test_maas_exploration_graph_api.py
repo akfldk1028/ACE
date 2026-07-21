@@ -57,3 +57,24 @@ class MaasExplorationGraphApiTest(SimpleTestCase):
         self.assertIn("outcome:main", ids)
         self.assertIn("critic:main", ids)
         self.assertNotIn("outcome:sibling", ids)
+
+    def test_outcome_slice_can_read_selected_run_causal_shard(self):
+        with tempfile.TemporaryDirectory() as directory:
+            graph_path = Path(directory) / "run-local-graph.json"
+            graph_path.write_text(json.dumps({
+                "schema_version": "test.v1",
+                "nodes": [{
+                    "id": "critic:r188",
+                    "kind": "vlm_portfolio_critic",
+                    "attributes": {"model": "test-vlm", "hard_pass": False},
+                }],
+                "edges": [],
+            }), encoding="utf-8")
+            result = build_outcome_graph_slice(
+                pnu="test",
+                graph_path=graph_path,
+                node_id="critic:r188",
+            )
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(result["path"], str(graph_path.resolve()))
+        self.assertEqual(result["root_node_ids"], ["critic:r188"])

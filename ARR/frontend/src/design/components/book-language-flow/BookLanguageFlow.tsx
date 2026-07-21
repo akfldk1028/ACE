@@ -298,7 +298,7 @@ function selectedRuntimeGraph(
 ): { nodes: NetworkNode[]; edges: NetworkEdge[]; edgeIds: string[]; entryId: string } {
   if (!passport || !mass) return { nodes: [], edges: [], edgeIds: [], entryId: '' };
   const mappedId = (nodeId: string) => (
-    nodeId === 'result:mass' ? `executed:mass:${mass.index}` : `runtime:${mass.index}:${nodeId}`
+    nodeId === 'result:mass' ? executedMassNodeId(mass) : `runtime:${mass.index}:${nodeId}`
   );
   const nodes = passport.activation_graph.nodes
     .filter((node) => node.id !== 'result:mass')
@@ -536,7 +536,12 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
     const refresh = () => {
       if (inFlight) return;
       inFlight = true;
-      getMaasOutcomeGraphSlice(archive.pnu, controller.signal, geometryHash)
+      getMaasOutcomeGraphSlice(
+        archive.pnu,
+        controller.signal,
+        geometryHash,
+        archive.selected_run_id,
+      )
         .then((payload) => { if (active) setOutcomeGraph(payload); })
         .catch(() => undefined)
         .finally(() => { inFlight = false; });
@@ -766,6 +771,11 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
     ]
     : undefined;
   const vlmStage = passport?.stages.find((stage) => stage.id === 'vlm');
+  const portfolioVlmAudit = archive?.portfolio_vlm_audit;
+  const portfolioVlmEvaluated = Boolean(portfolioVlmAudit?.status && portfolioVlmAudit.status !== 'not_requested');
+  const vlmStatusLabel = portfolioVlmEvaluated
+    ? `PAID ${portfolioVlmAudit?.hard_pass ? 'PASS' : 'FAIL'}`
+    : !vlmStage || vlmStage.status === 'not_evaluated' ? 'OFF' : 'ON';
   const retrievedReferenceCount = passport?.retrieved_references?.length ?? 0;
   const activeVlmReferenceCount = passport?.activation_graph.nodes.filter(
     (node) => node.kind === 'vlm_reference_image',
@@ -866,7 +876,7 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
             <span><b>{String(archive.run_count).padStart(2, '0')}</b> RUNS</span>
             <span><b>{archive.run_status.toUpperCase()}</b> PORTFOLIO</span>
             <span><b>0</b> BOOK RASTERS</span>
-            <span><b>{!vlmStage || vlmStage.status === 'not_evaluated' ? 'OFF' : 'ON'}</b> VLM</span>
+            <span><b>{vlmStatusLabel}</b> VLM</span>
             <span><b>{retrievedReferenceCount}</b> RETRIEVED / <b>{activeVlmReferenceCount}</b> USED</span>
             <span><b>LIVE</b> SYNC {lastSyncAt || '--:--:--'}</span>
           </div>
@@ -979,7 +989,11 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
 
       <footer className="maas-language-flow__footer">
         <span>ONE GRAPH · SELECTED MASS PATH ONLY · BOOK LANGUAGE → GEOMETRY → GATES → RENDER → VLM → SELECTOR</span>
-        <strong>{!vlmStage || vlmStage.status === 'not_evaluated' ? 'VLM NOT EVALUATED · NO CLAIM' : `VLM ${vlmStage.status.toUpperCase()}`}</strong>
+        <strong>{portfolioVlmEvaluated
+          ? `PORTFOLIO VLM ${portfolioVlmAudit?.status?.toUpperCase()} · ${portfolioVlmAudit?.model || 'MODEL RECORDED'}`
+          : !vlmStage || vlmStage.status === 'not_evaluated'
+            ? 'VLM NOT EVALUATED · NO CLAIM'
+            : `VLM ${vlmStage.status.toUpperCase()}`}</strong>
       </footer>
     </section>
   );

@@ -267,6 +267,11 @@ export function LanguageNetworkCanvas({
               key={edge.id}
               d={`M ${x1} ${source.y} C ${x1 + bend} ${source.y}, ${x2 - bend} ${target.y}, ${x2} ${target.y}`}
               className={`book-network__edge${edge.scope === 'pending' ? ' is-pending' : ' is-active'}${edge.scope === 'feedback' ? ' is-feedback' : ''}`}
+              data-edge-id={edge.id}
+              data-edge-source={edge.source}
+              data-edge-target={edge.target}
+              data-edge-relation={edge.kind}
+              data-edge-scope={edge.scope ?? 'observed'}
             />
           );
         })}
@@ -276,6 +281,7 @@ export function LanguageNetworkCanvas({
         <section
           className="book-network__stage"
           key={entry.stage}
+          data-stage={entry.stage}
           style={{
             left: 30 + column * (CARD_WIDTH + COLUMN_GAP),
             top: CARD_TOP,
@@ -298,6 +304,7 @@ export function LanguageNetworkCanvas({
                   className="book-network__node"
                   data-node-id={node.id}
                   data-node-kind={node.kind}
+                  data-node-stage={node.stage}
                   data-selected={selected}
                   data-related={related}
                   data-authority={node.authority ?? 'observed'}

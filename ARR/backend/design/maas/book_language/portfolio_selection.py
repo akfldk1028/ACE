@@ -29,6 +29,7 @@ from .portfolio_constraint_solver import (
     solve_milp_compatible_subset,
     solve_maximum_compatible_subset,
 )
+from .quality_diversity_archive import map_elites_archive
 
 
 PORTFOLIO_SILHOUETTE_DISTANCE = 0.16
@@ -1775,48 +1776,13 @@ def _bounded_visual_selection_pool(
     per_family_scope: int = 3,
     per_seed_scope: int = 2,
 ) -> list[_Candidate]:
-    """Bound expensive mesh comparison without losing scope/genotype breadth."""
-    family_scope: Counter[tuple[str, str]] = Counter()
-    seed_scope: Counter[tuple[str, str]] = Counter()
-    fingerprints: set[tuple[Any, ...]] = set()
-    retained: list[_Candidate] = []
+    """Bound heavy meshes with a MAP-Elites quality-diversity archive.
 
-    def admit(candidate: _Candidate) -> bool:
-        fingerprint = _fingerprint(candidate)
-        if fingerprint in fingerprints:
-            return False
-        scope = _scope_key(candidate)
-        family = _geometry_program_family(candidate) or _roof_archetype(candidate)
-        seed = _seed_family(candidate)
-        if family_scope[(family, scope)] >= max(1, int(per_family_scope)):
-            return False
-        if seed_scope[(seed, scope)] >= max(1, int(per_seed_scope)):
-            return False
-        fingerprints.add(fingerprint)
-        family_scope[(family, scope)] += 1
-        seed_scope[(seed, scope)] += 1
-        retained.append(candidate)
-        return True
-
-    ordered = sorted(pool, key=lambda item: item.score, reverse=True)
-    # The visual-review pool is a bounded transport layer, not a second
-    # capacity selector. Preserve one measured pass from every supplied ALT
-    # before common reserve forms consume family/scope bandwidth. Rare/high
-    # targets go first; all ordinary caps remain active through ``admit``.
-    capacity_priority = (
-        "maximum_feasible", "brief_target", "balanced_yield", "spatial_reserve",
-    )
-    for alternative_id in capacity_priority:
-        representative = next((
-            candidate for candidate in ordered
-            if _capacity_alternative_key(candidate) == alternative_id
-            and _capacity_target_gate(candidate) is True
-        ), None)
-        if representative is not None:
-            admit(representative)
-    for candidate in ordered:
-        admit(candidate)
-    return retained
+    The legacy cap arguments remain in the signature for caller compatibility;
+    behavior-space policy is now explicit through ``MAAS_QD_*`` settings.
+    """
+    _ = (per_family_scope, per_seed_scope)
+    return map_elites_archive(pool)
 
 
 

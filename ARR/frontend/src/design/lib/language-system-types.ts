@@ -202,6 +202,17 @@ export interface ExecutedMassManifest {
   runs: ExecutedMassRun[];
   book_images_included: false;
   image_authority: string;
+  portfolio_vlm_audit: {
+    status?: string;
+    hard_pass?: boolean;
+    candidate_count?: number;
+    visible_family_count?: number;
+    dominant_family_share?: number;
+    failure_reasons?: string[];
+    model?: string;
+    response_id?: string;
+    cache_hit?: boolean;
+  };
   masses: ExecutedMassRecord[];
 }
 

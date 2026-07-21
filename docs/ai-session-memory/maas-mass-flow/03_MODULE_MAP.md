@@ -18,6 +18,20 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
 - Bounded run-aware read model: `ARR/backend/design/maas/outcome_graph_slice.py`
 - Executed archive/run-level VLM manifest: `executed_archive.py`
 
+## Single MASS deploy execution
+
+- Public orchestration boundary: `ARR/backend/design/maas/single_execution/`
+- Stable result contract: `single_execution/contracts.py`
+- Compile/GATE/render/passport timing pipeline: `single_execution/pipeline.py`
+- Atomic bundle writers: `single_execution/persistence.py`
+- CLI: `ARR/backend/design/management/commands/execute_maas_single_mass.py`
+- HTTP: `POST /design/maas/single-executions/` plus returned preview/passport/
+  manifest URLs in `design/views.py` and `design/urls.py`
+- Contract tests: `ARR/backend/design/test_maas_single_execution.py`
+- Do not add one-MASS execution back into `portfolio_benchmark.py`. Author,
+  critic, law and elevation agents exchange the exact GeometryProgram/hash and
+  enrich the same passport instead.
+
 ## BOOK portfolio pipeline
 
 - Candidate authoring: `ARR/backend/design/maas/book_language/candidate_generation.py`

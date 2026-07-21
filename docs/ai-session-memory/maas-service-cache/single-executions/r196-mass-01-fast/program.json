@@ -1,0 +1,202 @@
+{
+  "metadata": {
+    "base_seed": "tower",
+    "book_recursive_projection": {
+      "active": true,
+      "application_order": "program_solid_then_book_scope_and_operations",
+      "chassis_compatibility": {
+        "book_verbs": [
+          "offset"
+        ],
+        "checked_relations": [],
+        "completed_form_template_used": false,
+        "parcel_coordinates_used": false,
+        "schema_version": "arr.maas.book_chassis_compatibility.v1",
+        "source_chassis_operators": [
+          "box",
+          "leaning_tower"
+        ],
+        "status": "compatible"
+      },
+      "geometry_authority": "recursive_manifold_ast",
+      "ordered_verbs": [
+        "offset"
+      ],
+      "outward_direction_source": "oriented_p3_cell_volume_weighted_center",
+      "parameter_projection": {
+        "coordinate_system": "selected_live_solid_normalized_bounds",
+        "projections": [],
+        "relation_invariants": [],
+        "schema_version": "arr.maas.book_kernel_parameter_projection.v1"
+      },
+      "parcel_coordinates_hardcoded": false,
+      "program_relation_suffix_node_ids": [],
+      "program_section_node_id": "",
+      "scope_fraction": 1.0,
+      "scope_label": "1/1",
+      "scope_orientation": "long_axis"
+    },
+    "chassis": "leaning_tower",
+    "chassis_taxonomy_authority": "exact_core_family",
+    "family": "leaning_tower",
+    "form_bank_lane": "executable_core_language",
+    "form_bank_schema_version": "arr.maas.universal_form_bank.v2",
+    "form_bank_variation_page": 0,
+    "language_layer": "universal_form_bank",
+    "parcel_coordinates_in_program": false,
+    "pre_book_program_hash": "e88cf033a7365af273f69b853b77501cee84a844740adbec19713e507f020ff9",
+    "program_conditioned": true,
+    "program_projection": {
+      "access_side": "west",
+      "base_or_book_authority": false,
+      "building_type": "근린생활시설",
+      "controller_node_ids": [
+        "program_projection:neighborhood_living:public_threshold",
+        "program_projection:neighborhood_living:public_threshold"
+      ],
+      "pre_program_projection_hash": "33624ae0628de7c1d7726f218bcf1b9cb476f8dba4e484d1f87edf087186f866",
+      "program_id": "neighborhood_living",
+      "public_space_controller_node_id": "program_projection:neighborhood_living:public_threshold",
+      "public_space_status": "reused_substantial_frontage_cut_as_public_space",
+      "schema_version": "arr.maas.post_book_program_projection.v2",
+      "section_controller_node_id": "",
+      "threshold_controller_node_id": "program_projection:neighborhood_living:public_threshold",
+      "threshold_status": "added_post_book_controller",
+      "universal_form_preserved": true,
+      "vlm_role": "downstream_critic_and_repair_only"
+    },
+    "program_projection_applied": true,
+    "program_projection_stage": "post_book"
+  },
+  "name": "shape_11_leaning_tower__book_1_1_offset",
+  "nodes": [
+    {
+      "id": "n01_box",
+      "inputs": [],
+      "kind": "primitive",
+      "operator": "box",
+      "parameters": {
+        "depth": 5,
+        "height": 16,
+        "width": 5
+      },
+      "provenance": {
+        "source": "executable_language_probe"
+      },
+      "semantic_role": "main"
+    },
+    {
+      "id": "n02_leaning_tower",
+      "inputs": [
+        "n01_box"
+      ],
+      "kind": "macro",
+      "operator": "leaning_tower",
+      "parameters": {
+        "amount": 0.2,
+        "direction": "x"
+      },
+      "provenance": {
+        "source": "executable_language_probe"
+      },
+      "semantic_role": "main"
+    },
+    {
+      "id": "book01_book_base_volume",
+      "inputs": [
+        "n02_leaning_tower"
+      ],
+      "kind": "modifier",
+      "operator": "book_base_volume",
+      "parameters": {
+        "label": "1/1",
+        "orientation": "long_axis"
+      },
+      "provenance": {
+        "book_call_index": -1,
+        "book_verb": "select_book_scope",
+        "normalized_parameters_only": true,
+        "scope_fraction": 1.0,
+        "scope_label": "1/1",
+        "scope_orientation": "long_axis",
+        "source": "book_recursive_projection"
+      },
+      "semantic_role": "book_mutated_dominant"
+    },
+    {
+      "id": "book02_nested_related",
+      "inputs": [
+        "book01_book_base_volume"
+      ],
+      "kind": "macro",
+      "operator": "nested_related",
+      "parameters": {
+        "axis": "y",
+        "distance_ratio": 0.0,
+        "unit_scale": 0.5904
+      },
+      "provenance": {
+        "book_call_index": 1,
+        "book_verb": "offset",
+        "normalized_parameters_only": true,
+        "scope_fraction": 1.0,
+        "scope_label": "1/1",
+        "scope_orientation": "long_axis",
+        "source": "book_recursive_projection"
+      },
+      "semantic_role": "book_mutated_dominant"
+    },
+    {
+      "id": "program_projection:neighborhood_living:public_threshold",
+      "inputs": [
+        "book02_nested_related"
+      ],
+      "kind": "macro",
+      "operator": "notch",
+      "parameters": {
+        "corner": "ne",
+        "height_ratio": 0.765,
+        "ratio": 0.295,
+        "side": "west",
+        "width_ratio": 0.511
+      },
+      "provenance": {
+        "architectural_use": "bind the public threshold to the verified access side",
+        "base_or_book_authority": false,
+        "bounded_parameter_generation": true,
+        "completed_building_template": false,
+        "parcel_coordinates_used": false,
+        "program_conditioning_stage": "after_book",
+        "program_id": "neighborhood_living",
+        "program_invariant": true,
+        "source": "post_book_program_projection"
+      },
+      "semantic_role": "public_threshold"
+    },
+    {
+      "id": "program_projection:neighborhood_living:public_threshold_connectivity",
+      "inputs": [
+        "program_projection:neighborhood_living:public_threshold"
+      ],
+      "kind": "macro",
+      "operator": "join_related",
+      "parameters": {
+        "height_ratio": 0.28,
+        "width_ratio": 0.2
+      },
+      "provenance": {
+        "architectural_use": "retain one connected building after public-threshold projection",
+        "base_or_book_authority": false,
+        "completed_building_template": false,
+        "parcel_coordinates_used": false,
+        "program_conditioning_stage": "after_book",
+        "program_id": "neighborhood_living",
+        "program_invariant": true,
+        "source": "program_projection_connectivity_guard"
+      },
+      "semantic_role": "program_connectivity_guard"
+    }
+  ],
+  "root_id": "program_projection:neighborhood_living:public_threshold_connectivity",
+  "schema_version": "arr.maas.geometry_program.v1"
+}

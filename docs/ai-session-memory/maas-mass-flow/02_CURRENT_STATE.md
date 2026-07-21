@@ -1,6 +1,28 @@
 # Current Verified State — r196 completed, r197 resource-guarded
 
-Generated 2026-07-21 KST.
+Generated 2026-07-22 KST.
+
+## One-MASS deploy fast path
+
+- `design.maas.single_execution.execute_single_mass` is now the canonical
+  request-time boundary. It reuses the only GeometryProgram compiler, geometry
+  GATE, four-view renderer and execution passport; it does not run portfolio
+  search.
+- Public API: `POST /design/maas/single-executions/`; the response provides
+  preview, passport and manifest URLs. CLI: `execute_maas_single_mass` accepts
+  a built-in shape, a JSON AST, or an exact archived run/index.
+- Actual r196 MASS 01 replay: geometry hash
+  `1d15bdc91ac3544502d5c3677d1b527c11d69e189cfe9bef2713a40ccb314c94`,
+  one connected component, 40 triangles, geometry GATE pass, 38.426 ms local
+  pipeline time. Live HTTP POST repeated the same AST in 41.087 ms.
+- The generated causal passport has 14 stages, 23 nodes, 28 edges and 15
+  active edges terminating at one `result:mass`. Law, parking, VLM and selector
+  remain honestly `not_evaluated`; therefore the MASS is `geometry_ready` while
+  full-flow status remains `in_progress`.
+- Direct review of the new four-view PNG found one coherent connected solid,
+  not the previous painter-order fragment artifact. Its leaning/cut silhouette
+  is inherited from the exact r196 program; this single replay does not make
+  the overall r196 portfolio visually accepted.
 
 ## Honest outcome
 
@@ -93,3 +115,6 @@ Generated 2026-07-21 KST.
 - `docs/playwright/design-route-live-verify/book-program-portfolios-r197-full-seven-page-vlm-memory/maas-run-state.json`
 - `docs/playwright/design-route-live-verify/frontend-live/r196-after-r197-resource-guard/verify.json`
 - `docs/playwright/design-route-live-verify/frontend-live/r196-after-r197-resource-guard/full-graph.png`
+- `docs/ai-session-memory/maas-service-cache/single-executions/r196-mass-01-fast/execution.json`
+- `docs/ai-session-memory/maas-service-cache/single-executions/r196-mass-01-fast/mass.png`
+- `docs/ai-session-memory/maas-service-cache/single-executions/r196-mass-01-fast/mass.png.passport.json`

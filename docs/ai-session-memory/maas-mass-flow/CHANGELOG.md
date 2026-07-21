@@ -125,3 +125,17 @@
 - Frontend correctly shows r197 as 0 MASS/state-only and r196 as latest
   replayable: one graph, 15/15 images, 40 active path edges, zero BOOK rasters
   and zero console/page errors.
+
+## 2026-07-22 - single-MASS deploy execution boundary
+
+- Added `design.maas.single_execution` as a small orchestration package instead
+  of growing `portfolio_benchmark.py`.
+- Added an HTTP POST and management command that execute exactly one explicit
+  GeometryProgram through validation, compiler, geometry GATE, four-view render,
+  passport/agent graph and atomic artifacts.
+- Separated `geometry_ready` from full legal/VLM acceptance. Missing downstream
+  evidence remains `not_evaluated`, never a fabricated pass or generic failure.
+- Replayed exact r196 MASS 01: hash match, one connected component, 40 triangles,
+  geometry GATE pass, 38.426 ms direct and 41.087 ms through live HTTP.
+- Added valid, invalid and HTTP/CLI regression tests and recorded the output in
+  the service cache under `single-executions/r196-mass-01-fast/`.

@@ -26,6 +26,13 @@ replaceable and recorded in the Geometry Program.
 
 Current frontend: `http://127.0.0.1:5175/design/language`.
 
+Fast deploy/runtime rule: a user-facing request executes one explicit
+`GeometryProgram` through `ARR/backend/design/maas/single_execution/`; it must
+not enter the 20-MASS portfolio benchmark unless portfolio search was actually
+requested. The one-MASS bundle always contains the source AST, four-view PNG
+(only after geometry GATE), execution passport/causal graph, manifest and
+per-stage latency. `geometry_ready` is separate from full legal/VLM acceptance.
+
 Current completed checkpoint: r196 is an honest `15/20 · FAIL`, not the
 finished portfolio. It verifies the streaming MAP-Elites memory fix and has no
 new paid VLM judgement. r194 remains the latest paid board audit and also

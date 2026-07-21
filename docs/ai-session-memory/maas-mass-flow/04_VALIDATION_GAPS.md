@@ -44,7 +44,10 @@
 
 ## P1 — runtime and modularity
 
-- Cache descriptors, compilation, mesh and GATE results by content hash.
+- The one-MASS deploy path now runs an exact archived AST in about 38-41 ms and
+  materializes source/program/passport/PNG/latency evidence. Content-hash cache
+  reuse across different execution IDs is still open; do not add portfolio
+  search to request-time execution.
 - r195/r197 prove that even a bounded 600–840 MB worker cannot safely finish
   while workstation free memory fluctuates below 1 GB. Add a cooperative
   resource guard/checkpoint between generation pages and resume from saved

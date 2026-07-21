@@ -60,12 +60,23 @@ from design.maas.geometry_language.executed_archive import (
     materialize_executed_mass_passport,
     materialize_executed_mass_preview,
 )
+from design.maas.single_execution import execute_single_mass
 
 logger = logging.getLogger(__name__)
 
 # Active runners keyed by job_id for cancellation
 _active_runners: dict[str, JobRunner] = {}
 _geometry_preview_lock = threading.Lock()
+
+
+def _single_execution_root() -> Path:
+    configured = getattr(settings, "MAAS_SINGLE_EXECUTION_ROOT", "")
+    if configured:
+        return Path(configured).resolve()
+    return (
+        Path(settings.BASE_DIR).resolve().parents[1]
+        / "docs" / "ai-session-memory" / "maas-service-cache" / "single-executions"
+    ).resolve()
 
 
 @require_http_methods(["GET"])
@@ -194,6 +205,73 @@ def maas_geometry_shape_passport(request, index):
         passport_file = write_mass_execution_passport(compilation, output)
         passport = json.loads(passport_file.read_text(encoding="utf-8"))
     return JsonResponse(passport)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def maas_single_execution(request):
+    """Compile one explicit AST immediately; portfolio/VLM search is optional upstream."""
+
+    if len(request.body) > 1_000_000:
+        return JsonResponse({"error": "request body exceeds 1 MB"}, status=413)
+    try:
+        body = json.loads(request.body or b"{}")
+        program = body.get("program") if isinstance(body, dict) else None
+        if not isinstance(program, dict):
+            raise ValueError("program must be an object")
+        result = execute_single_mass(
+            program,
+            output_root=_single_execution_root(),
+            title=str(body.get("title") or ""),
+        )
+    except (TypeError, ValueError, json.JSONDecodeError) as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+    payload = result.to_dict()
+    base = f"/design/maas/single-executions/{result.execution_id}"
+    payload.update({
+        "preview_url": f"{base}/preview/" if result.preview_path.is_file() else "",
+        "manifest_url": f"{base}/manifest/",
+        "passport_url": f"{base}/passport/",
+    })
+    return JsonResponse(payload, status=201 if result.geometry_ready else 422)
+
+
+@require_http_methods(["GET"])
+def maas_single_execution_preview(request, execution_id):
+    output = _single_execution_artifact(execution_id, "mass.png")
+    if not output.is_file():
+        raise Http404("single MASS preview not found")
+    response = FileResponse(output.open("rb"), content_type="image/png")
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@require_http_methods(["GET"])
+def maas_single_execution_manifest(request, execution_id):
+    return _single_execution_json(execution_id, "execution.json")
+
+
+@require_http_methods(["GET"])
+def maas_single_execution_passport(request, execution_id):
+    return _single_execution_json(execution_id, "mass.png.passport.json")
+
+
+def _single_execution_json(execution_id: str, filename: str) -> JsonResponse:
+    output = _single_execution_artifact(execution_id, filename)
+    try:
+        payload = json.loads(output.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        raise Http404("single MASS execution artifact not found") from exc
+    return JsonResponse(payload)
+
+
+def _single_execution_artifact(execution_id: str, filename: str) -> Path:
+    root = _single_execution_root()
+    output = (root / str(execution_id) / filename).resolve()
+    if not output.is_relative_to(root):
+        raise Http404("invalid single MASS execution path")
+    return output
 
 
 @require_http_methods(["GET"])

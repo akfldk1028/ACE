@@ -1,6 +1,6 @@
 {
   "schema_version": "arr.maas.mass_flow_memory.v1",
-  "updated_at": "2026-07-21T23:49:00+09:00",
+  "updated_at": "2026-07-22T08:49:09+09:00",
   "frontend_url": "http://127.0.0.1:5175/design/language",
   "pnu": "1168011800104170004",
   "latest_completed_run": {
@@ -90,6 +90,30 @@
     "absolute_completed_form_hardcoding_allowed": false,
     "dimensionless_named_sampling_policy_allowed": true,
     "attach_parameter_space": "host_face_normalized.v1"
+  },
+  "single_mass_execution": {
+    "schema_version": "arr.maas.single_execution.v1",
+    "canonical_module": "ARR/backend/design/maas/single_execution",
+    "api": "POST /design/maas/single-executions/",
+    "cli": "python manage.py execute_maas_single_mass",
+    "portfolio_search_invoked": false,
+    "verified_source_run": "book-program-portfolios-r196-streaming-qd-one-cycle",
+    "verified_mass_index": 1,
+    "execution_id": "r196-mass-01-fast",
+    "program_hash": "cd42f0d7ea22d2de7c1af6cde9fac7006207c249d1d2c021bc1dfd3b021432ed",
+    "geometry_hash": "1d15bdc91ac3544502d5c3677d1b527c11d69e189cfe9bef2713a40ccb314c94",
+    "geometry_ready": true,
+    "full_flow_status": "in_progress",
+    "component_count": 1,
+    "triangle_count": 40,
+    "direct_total_ms": 38.426,
+    "live_http_total_ms": 41.087,
+    "passport_stage_count": 14,
+    "activation_node_count": 23,
+    "activation_edge_count": 28,
+    "active_edge_count": 15,
+    "pending_stages": ["site", "capacity", "law", "parking", "program_fit", "vlm", "selector"],
+    "artifact_manifest": "docs/ai-session-memory/maas-service-cache/single-executions/r196-mass-01-fast/execution.json"
   },
   "frontend_verification": {
     "status": "pass",

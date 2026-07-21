@@ -11,13 +11,12 @@ import threading
 import time
 import urllib.error
 import urllib.request
-from urllib.parse import quote
 from pathlib import Path
 from typing import Any
 
 from design.maas.grammar.vocab import SUPPORTED_VERBS
 
-from .reference_paths import resolve_reference_image_path, workspace_root
+from .reference_paths import reference_image_preview_url, resolve_reference_image_path, workspace_root
 
 
 VLM_SCORE_SCHEMA_VERSION = "arr.maas.vlm_concept_scores.v1"
@@ -919,17 +918,13 @@ def _reference_image_url(match: dict[str, Any]) -> str:
 
 
 def _reference_preview_url(match: dict[str, Any], local_path: Path | None) -> str:
+    local_preview = reference_image_preview_url(str(local_path or match.get("local_path") or ""))
+    if local_preview:
+        return local_preview
     remote = str(match.get("image_url") or "")
     if remote.startswith(("http://", "https://", "data:")):
         return remote
-    if local_path is None:
-        return ""
-    corpus_root = (workspace_root() / "docs" / "ai-session-memory" / "reference-corpus").resolve()
-    try:
-        relative = local_path.resolve().relative_to(corpus_root)
-    except ValueError:
-        return ""
-    return f"/design/maas/reference-assets/{quote(relative.as_posix(), safe='/')}"
+    return ""
 
 
 def _response_schema() -> dict[str, Any]:

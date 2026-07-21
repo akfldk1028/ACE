@@ -38,7 +38,7 @@ const EXECUTION_STAGE_ORDER = [
 const FULL_GRAPH_STAGE_ORDER = [
   'base_model', 'orientation', 'operation_family', 'cardinality', 'operation',
   'book_extension', 'variation', 'reference_corpus', 'reference_query',
-  'execution_reference', 'reference_distill', 'execution_geometry', 'execution_program',
+  'execution_reference', 'execution_vlm_reference', 'reference_distill', 'execution_geometry', 'execution_program',
   'execution_compiler', 'execution_gates', 'execution_render',
   'execution_vlm', 'execution_repair', 'execution_selector', 'execution_run', 'executed_mass',
   'memory_geometry', 'memory_render', 'memory_portfolio', 'memory_vlm', 'memory_outcome',
@@ -307,7 +307,9 @@ function selectedRuntimeGraph(
       return {
         id: mappedId(node.id),
         kind: node.kind,
-        stage: runtimeStage(node.column),
+        stage: node.kind === 'vlm_reference_image'
+          ? 'execution_vlm_reference'
+          : runtimeStage(node.column),
         label: node.label,
         authority: 'observed',
         attributes: {

@@ -1,0 +1,30 @@
+{
+  "schema_version": "arr.maas.browser_individual_vlm_verify.v1",
+  "verified_at": "2026-07-21T19:00:00+09:00",
+  "url": "http://127.0.0.1:5175/design/language",
+  "run_id": "book-program-portfolios-r188-map-elites-compatibility-reserve",
+  "selected_mass_index": 7,
+  "selected_variant_id": "maas_07",
+  "pass": true,
+  "checks": {
+    "full_graph_visible": true,
+    "actual_mass_render_node_count": 1,
+    "actual_vlm_reference_node_count": 1,
+    "retrieved_only_reference_node_count": 4,
+    "used_and_retrieved_columns_separated": true,
+    "active_visual_reference_edge_count": 1,
+    "reference_image_same_origin": true,
+    "remote_image_count": 0,
+    "vlm_status": "live_scored",
+    "program_fit_hard_pass": false,
+    "too_fragmented_visible": true,
+    "response_id_visible": true,
+    "console_error_count": 0,
+    "page_error_count": 0,
+    "error_overlay_count": 0
+  },
+  "response_id": "resp_0989a33a1a0c0c87006a5f409b80f0819abf3ab50506127b52",
+  "reference_source_ids": ["archdaily_1013628"],
+  "screenshot": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-mass07-individual-vlm-full-graph.png",
+  "reference_focus_screenshot": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-mass07-reference-vlm-focus.png"
+}

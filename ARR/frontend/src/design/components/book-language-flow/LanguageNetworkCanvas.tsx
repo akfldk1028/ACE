@@ -71,6 +71,7 @@ const STAGE_LABELS: Record<string, string> = {
   reference_corpus: 'REFERENCE CORPUS',
   reference_query: 'RETRIEVAL QUERY',
   execution_reference: 'RETRIEVED IMAGE · NOT YET LEARNED',
+  execution_vlm_reference: 'VLM REFERENCE IMAGE · USED',
   reference_distill: 'VLM FEATURE DISTILLATION',
   execution_geometry: 'EXECUTED GEOMETRY PROGRAM',
   execution_program: 'USE / PROGRAM PROJECTION',

@@ -22,13 +22,18 @@
 
 ## P0 — VLM truth
 
-- r188 has one paid board-level audit, but candidate-level ArchDaily references
-  were retrieved only (`5`) and not submitted (`used=0`).
+- r188 has one paid board-level audit and three paid individual candidate
+  audits. The remaining 13 selected MASSes have no individual VLM evaluation.
 - Keep board critic and reference critic as separate graph roles. A future
   bounded reference run must record every submitted image hash, model/response
   ID, cost and `used_by_vlm=true` edge.
 - The paid critic missed the obvious MASS 07 fragments, so it cannot replace
   deterministic raster/mesh integrity gates.
+- The new individual critic did flag MASS 07 `too_fragmented`, but a stochastic
+  critic still cannot replace a deterministic post-render fragmentation gate.
+- The legacy elevation condition-pack renderer accepts mass GeoJSON volumes,
+  not GeometryProgram indexed meshes. Do not claim elevation generation is
+  ready until the mesh projection/condition adapter is implemented and tested.
 - r182 was not VLM reviewed. r184 spent 24 calls and produced no final MASS.
   Preserve both facts; never retroactively approve either run.
 

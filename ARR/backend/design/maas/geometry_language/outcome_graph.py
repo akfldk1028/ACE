@@ -1727,6 +1727,112 @@ class GeometryOutcomeGraph:
                     self._upsert_edge(reference_node, critic_node, "informed")
                     self._upsert_edge(reference_node, program_node_context, "evidence_for_program")
 
+    def observe_executed_mass_vlm_audit(
+        self,
+        *,
+        program_slug: str,
+        source_seed: str,
+        program_hash: str,
+        geometry_hash: str,
+        preview_path: str,
+        audit: dict[str, Any],
+    ) -> None:
+        """Record a post-run critic of one materialized MASS and its exact images.
+
+        Retrieval alone never creates a visual-reference edge. Only images listed
+        in ``vlm_image_inputs`` are attached, so the graph cannot imply that the
+        critic saw an ArchDaily image that was merely retrieved.
+        """
+
+        response_id = str(audit.get("response_id") or "")
+        identity = response_id or hashlib.sha256(
+            "|".join((str(program_slug), str(program_hash), str(geometry_hash))).encode("utf-8")
+        ).hexdigest()
+        observation_id = _stable_id("observation", f"executed_mass_vlm|{identity}")
+        image_inputs = audit.get("vlm_image_inputs")
+        image_inputs = image_inputs if isinstance(image_inputs, dict) else {}
+        candidate_input = image_inputs.get("candidate")
+        candidate_input = candidate_input if isinstance(candidate_input, dict) else {}
+        reference_inputs = [
+            item for item in image_inputs.get("references") or ()
+            if isinstance(item, dict) and item.get("used_by_vlm")
+        ]
+        scores = audit.get("concept_scores")
+        scores = deepcopy(scores) if isinstance(scores, dict) else {}
+        score_values = [
+            float(value) for value in scores.values()
+            if isinstance(value, (int, float))
+        ]
+        critic_score = float(audit.get("critic_score") or (
+            sum(score_values) / len(score_values) if score_values else 0.0
+        ))
+        critic_hard_pass = bool(
+            audit.get("hard_pass")
+            if "hard_pass" in audit
+            else audit.get("program_fit_hard_pass", True)
+        )
+        observation = {
+            "id": observation_id,
+            "stage": "executed_mass_vlm",
+            "program_slug": str(program_slug),
+            "source_seed": str(source_seed),
+            "program_hash": str(program_hash),
+            "geometry_hash": str(geometry_hash),
+            "critic_model": str(audit.get("model") or ""),
+            "critic_response_id": response_id,
+            "critic_score": round(critic_score, 4),
+            "hard_pass": critic_hard_pass,
+            "program_fit_hard_pass": bool(audit.get("program_fit_hard_pass", True)),
+            "critic_actions": [str(item) for item in audit.get("critic_actions") or ()],
+            "concept_scores": scores,
+            "candidate_image_sha256": str(candidate_input.get("sha256") or ""),
+            "reference_ids": [
+                str(item.get("source_id") or item.get("input_id") or "")
+                for item in reference_inputs
+            ],
+            "reference_count": len(reference_inputs),
+            "selected": False,
+        }
+        self._upsert_observation(observation)
+        program_node = self._upsert_node("geometry_program", str(program_hash), {
+            "source_seed": str(source_seed),
+        })
+        geometry_node = self._upsert_node("compiled_geometry", str(geometry_hash), {})
+        render_identity = str(candidate_input.get("sha256") or preview_path or geometry_hash)
+        render_node = self._upsert_node("render_artifact", render_identity, {
+            "local_path": str(preview_path),
+            "sha256": str(candidate_input.get("sha256") or ""),
+            "used_by_vlm": bool(candidate_input.get("used_by_vlm")),
+        })
+        critic_node = self._upsert_node("vlm_critic", identity, {
+            "review_stage": "post_run_individual_mass",
+            "model": observation["critic_model"],
+            "response_id": response_id,
+            "hard_pass": observation["hard_pass"],
+            "program_fit_hard_pass": observation["program_fit_hard_pass"],
+            "critic_score": observation["critic_score"],
+            "critic_actions": observation["critic_actions"],
+            "concept_scores": scores,
+        })
+        outcome_node = self._upsert_node("outcome", observation_id, observation)
+        self._upsert_edge(program_node, geometry_node, "compiled_to")
+        self._upsert_edge(geometry_node, render_node, "rendered_as")
+        self._upsert_edge(render_node, critic_node, "visual_input_to")
+        self._upsert_edge(critic_node, outcome_node, "judged")
+        for item in reference_inputs:
+            reference_identity = str(item.get("source_id") or item.get("input_id") or "")
+            if not reference_identity:
+                continue
+            reference_node = self._upsert_node("reference", reference_identity, {
+                "title": str(item.get("title") or ""),
+                "local_path": str(item.get("local_path") or ""),
+                "preview_url": str(item.get("preview_url") or ""),
+                "sha256": str(item.get("sha256") or ""),
+                "input_order": int(item.get("input_order") or 0),
+                "used_by_vlm": True,
+            })
+            self._upsert_edge(reference_node, critic_node, "visual_input_to")
+
     def save(self) -> dict[str, Any]:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         payload = self.to_dict()

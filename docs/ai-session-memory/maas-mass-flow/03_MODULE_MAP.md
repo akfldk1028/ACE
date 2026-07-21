@@ -32,6 +32,9 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
 - VLM lifecycle: `vlm_review.py`, `final_vlm_cycle.py`,
   `vlm_stage_policy.py`, `portfolio_feedback.py`
 - ArchDaily query context: `reference_context.py`
+- Post-run paid individual MASS audit: `geometry_language/executed_vlm_audit.py`
+- GeometryProgram MASS -> elevation packet: `geometry_language/elevation_handoff.py`
+- Same-origin reference image paths: `preference/reference_paths.py`
 
 ## Frontend
 

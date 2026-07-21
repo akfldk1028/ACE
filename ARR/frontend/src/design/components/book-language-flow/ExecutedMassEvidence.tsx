@@ -23,6 +23,21 @@ function referenceCount(passport: MassExecutionPassport | null): number {
   return Array.isArray(references) ? references.length : 0;
 }
 
+function scoreMean(evidence: Record<string, unknown> | undefined): string {
+  const scores = evidence?.concept_scores;
+  if (!scores || typeof scores !== 'object' || Array.isArray(scores)) return 'NOT RECORDED';
+  const values = Object.values(scores).filter((value): value is number => typeof value === 'number');
+  if (!values.length) return 'NOT RECORDED';
+  return (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(4);
+}
+
+function criticActions(evidence: Record<string, unknown> | undefined): string {
+  const actions = evidence?.critic_actions;
+  return Array.isArray(actions) && actions.length
+    ? actions.map(String).join(' · ')
+    : 'NONE RECORDED';
+}
+
 function passportDisplayStatus(
   passport: MassExecutionPassport | null,
   mass: ExecutedMassRecord,
@@ -43,6 +58,7 @@ function passportDisplayStatus(
 export function ExecutedMassEvidence({ archive, mass, passport, passportError }: ExecutedMassEvidenceProps) {
   const vlmStage = passport?.stages.find((stage) => stage.id === 'vlm');
   const selectorStage = passport?.stages.find((stage) => stage.id === 'selector');
+  const vlmProgramFit = vlmStage?.evidence.program_fit_hard_pass;
 
   return (
     <aside className="book-evidence executed-mass-evidence">
@@ -71,7 +87,11 @@ export function ExecutedMassEvidence({ archive, mass, passport, passportError }:
         <div><dt>TARGET / ACHIEVED</dt><dd>{percent(mass.capacity_target_utilization)} / {percent(mass.capacity_achieved_utilization)}</dd></div>
         <div><dt>HARD GATES</dt><dd>{mass.hard_pass ? 'PASS' : 'FAIL'}</dd></div>
         <div><dt>VLM</dt><dd>{vlmStage?.status?.replaceAll('_', ' ').toUpperCase() ?? 'LOADING'}</dd></div>
+        <div><dt>VLM PROGRAM FIT</dt><dd>{typeof vlmProgramFit === 'boolean' ? (vlmProgramFit ? 'PASS' : 'FAIL') : 'NOT RECORDED'}</dd></div>
+        <div><dt>VLM VISUAL MEAN</dt><dd>{scoreMean(vlmStage?.evidence)}</dd></div>
         <div><dt>VLM INPUTS</dt><dd>{referenceCount(passport)} REFERENCES + GENERATED MASS</dd></div>
+        <div><dt>VLM ACTIONS</dt><dd>{criticActions(vlmStage?.evidence)}</dd></div>
+        <div><dt>VLM RESPONSE</dt><dd>{String(vlmStage?.evidence.response_id || 'NOT RECORDED')}</dd></div>
         <div><dt>SELECTOR</dt><dd>{selectorStage?.status?.toUpperCase() ?? 'LOADING'}</dd></div>
         <div><dt>PASSPORT</dt><dd>{passport ? passportDisplayStatus(passport, mass) : (passportError || 'LOADING')}</dd></div>
         <div><dt>PROGRAM HASH</dt><dd>{mass.program_hash.slice(0, 18)}</dd></div>

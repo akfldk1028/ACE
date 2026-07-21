@@ -82,3 +82,33 @@ are sibling repositories modeled structurally after `elevationAgent`; future
 `massAgent` owns its identity/private memory but wraps the canonical
 `ARR/backend/design/maas` AST/compiler. Handoffs remain bound to run ID, program
 hash, geometry hash, PNU, artifact URL, gate state and VLM state.
+
+## Individual reference VLM audit (2026-07-21)
+
+- Exactly three paid candidate calls were made for r188 MASS 01, 07 and 10 with
+  `gpt-5.4-mini`. Each call submitted the actual archived MASS PNG first and
+  only reference images that passed the cached massing-image suitability gate.
+- MASS 01: response `resp_0ccae7434c758fbb006a5f409268fc8198ba164fb064a1f751`,
+  visual mean 0.5525, program fit FAIL.
+- MASS 07: response `resp_0989a33a1a0c0c87006a5f409b80f0819abf3ab50506127b52`,
+  visual mean 0.3675, program fit FAIL; `too_fragmented`,
+  `weak_primary_mass`, `weak_form_continuity`.
+- MASS 10: response `resp_0dd0c7b57b42df04006a5f40a458d48199bbba83b48dd4b418`,
+  visual mean 0.6388, program fit FAIL; best of the three but its public
+  void/active-edge relation is insufficient.
+- MASS 01/07 used one actual reference image; MASS 10 used two. Interior and
+  obscured retrievals were rejected and never received active VLM edges.
+- Browser verification for MASS 07: one local reference image, one active
+  `visual_reference_input` edge, `LIVE SCORED`, response ID and critic actions,
+  zero remote images, zero console/page errors.
+- r188 remains 16/20 FAIL. VLM evidence cannot override any hard gate.
+
+## Elevation preparation
+
+- Research memory exists in `docs/ai-session-memory/maas-aesthetic-texturing/`.
+- MASS 10 recompiled to its exact archived hash and exported as an indexed-mesh
+  handoff with 82 vertices and 160 triangles.
+- It is not approved for final elevation because its individual VLM program-fit
+  gate failed. Development/prototyping use is explicitly separated.
+- The missing adapter is GeometryProgram indexed mesh -> metric depth, normals,
+  silhouettes, facade planes and projection condition pack.

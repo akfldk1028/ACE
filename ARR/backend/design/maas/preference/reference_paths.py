@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path, PurePosixPath
+from urllib.parse import quote
 
 
 def workspace_root() -> Path:
@@ -61,4 +62,19 @@ def resolve_reference_image_path(value: str, *, root: Path | None = None) -> Pat
     return None
 
 
-__all__ = ["resolve_reference_image_path", "workspace_root"]
+def reference_image_preview_url(value: str, *, root: Path | None = None) -> str:
+    """Return the same-origin reference asset URL used by the design UI."""
+
+    repository = (root or workspace_root()).resolve()
+    path = resolve_reference_image_path(value, root=repository)
+    if path is None:
+        return ""
+    corpus_root = (repository / "docs" / "ai-session-memory" / "reference-corpus").resolve()
+    try:
+        relative = path.relative_to(corpus_root)
+    except ValueError:
+        return ""
+    return f"/design/maas/reference-assets/{quote(relative.as_posix(), safe='/')}"
+
+
+__all__ = ["reference_image_preview_url", "resolve_reference_image_path", "workspace_root"]

@@ -130,8 +130,15 @@ def vlm_evidence(value: Mapping[str, Any] | None) -> dict[str, Any]:
         "model": str(result.get("model") or ""),
         "response_id": str(result.get("response_id") or ""),
         "cache_hit": bool(result.get("cache_hit")),
-        "hard_pass": result.get("hard_pass"),
+        "hard_pass": (
+            result.get("hard_pass")
+            if "hard_pass" in result
+            else result.get("program_fit_hard_pass")
+        ),
+        "program_fit_hard_pass": result.get("program_fit_hard_pass"),
         "concept_scores": scores,
+        "critic_actions": [str(item) for item in result.get("critic_actions") or ()],
+        "rationale": str(result.get("rationale") or ""),
         "geometry_edits": list(result.get("geometry_edits") or ()),
         "image_inputs": image_inputs,
         "reference_assessments": list(
@@ -140,6 +147,7 @@ def vlm_evidence(value: Mapping[str, Any] | None) -> dict[str, Any]:
             or ()
         ),
         "retrieved_reference_candidates": list(causal_context.get("reference_matches") or ()),
+        "reference_massing_gate": deepcopy(result.get("reference_massing_gate") or {}),
         "critique": str(result.get("critique") or result.get("reasoning") or ""),
         "error": str(result.get("error") or ""),
     }

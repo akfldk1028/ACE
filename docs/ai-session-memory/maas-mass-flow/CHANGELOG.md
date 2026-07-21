@@ -68,3 +68,16 @@
 - Browser verification sees 94 runs, 16 r188 MASS images, 39 active causal
   edges, one paid VLM memory node, one Full Graph, zero BOOK rasters and zero
   console/page errors.
+
+## 2026-07-21 — bounded individual VLM and elevation handoff
+
+- Added an explicitly confirmed, request-bounded command for auditing actual
+  archived MASS PNGs with actual reference images.
+- Paid calls: exactly 3 (MASS 01/07/10). All program-fit verdicts failed; MASS
+  07 was explicitly flagged `too_fragmented`.
+- Persisted only submitted reference images as `used_by_vlm=true` graph inputs.
+- Fixed same-origin reference previews so ArchDaily images render without CSP
+  violations; frontend now shows individual score, failure actions and response
+  ID in the actual MASS sidebar.
+- Exported a hash-bound MASS 10 indexed-mesh packet for elevationAgent. Final
+  elevation remains blocked on program fit and the mesh condition-pack adapter.

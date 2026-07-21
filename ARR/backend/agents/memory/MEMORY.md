@@ -23,3 +23,17 @@
 - Cross-agent artifacts use `run_id`, `program_hash`, `geometry_hash`, PNU,
   evidence IDs, and explicit evaluated/not-evaluated status.
 - Full contract: `ARR/backend/agents/SHARED_AGENT_ARCHITECTURE.md`.
+
+## 2026-07-21 - MASS VLM and elevation handoff
+
+- r188 MASS 01, 07 and 10 now have paid individual VLM evidence bound to the
+  actual MASS PNG and exact reference-image hashes. Retrieved-only images stay
+  inactive.
+- MASS 07 is explicitly flagged `too_fragmented`; all three fail individual
+  program fit. No agent may promote them to final-elevation approval.
+- Elevation handoff schema: `arr.maas.elevation_handoff.v1`.
+- The handoff carries run/PNU/program/geometry identity, GeometryProgram,
+  indexed mesh, MASS image hash, VLM evidence and approval state.
+- The existing `elevationAgent` nested repository has unrelated dirty user
+  changes and placeholder private memory; it was intentionally not overwritten.
+- Shared research memory is in `docs/ai-session-memory/maas-aesthetic-texturing/`.

@@ -1,6 +1,6 @@
 {
   "schema_version": "arr.maas.mass_flow_memory.v1",
-  "updated_at": "2026-07-21T17:35:00+09:00",
+  "updated_at": "2026-07-21T19:05:00+09:00",
   "frontend_url": "http://127.0.0.1:5175/design/language",
   "pnu": "1168011800104170004",
   "latest_run": {
@@ -48,10 +48,25 @@
     "actual_submitted_reference_count": 0,
     "board_image_submitted": true
   },
+  "paid_individual_vlm": {
+    "request_count": 3,
+    "model": "gpt-5.4-mini",
+    "audited_mass_indices": [1, 7, 10],
+    "program_fit_pass_count": 0,
+    "actual_submitted_reference_counts": {"1": 1, "7": 1, "10": 2},
+    "response_ids": {
+      "1": "resp_0ccae7434c758fbb006a5f409268fc8198ba164fb064a1f751",
+      "7": "resp_0989a33a1a0c0c87006a5f409b80f0819abf3ab50506127b52",
+      "10": "resp_0dd0c7b57b42df04006a5f40a458d48199bbba83b48dd4b418"
+    },
+    "visual_means": {"1": 0.5525, "7": 0.3675, "10": 0.6388},
+    "remaining_unevaluated_selected_mass_count": 13
+  },
   "direct_visual_review": {
     "status": "fail",
     "known_fragmented_mass": "maas_07 pack · inflate",
-    "vlm_detected_fragmented_lego": false,
+    "portfolio_vlm_detected_fragmented_lego": false,
+    "individual_vlm_detected_fragmentation": true,
     "required_new_gate": "post_render_fragmentation_and_mesh_integrity"
   },
   "parametric_invariant": {
@@ -71,6 +86,10 @@
     "book_raster_dom_count": 0,
     "console_error_count": 0,
     "page_error_count": 0,
+    "mass_07_reference_node_count": 1,
+    "mass_07_active_visual_reference_edge_count": 1,
+    "mass_07_individual_vlm_status": "live_scored_program_fit_fail",
+    "remote_reference_image_count": 0,
     "run_local_memory_path": [
       "compiled_geometry",
       "geometry_portfolio",
@@ -92,14 +111,20 @@
     "shared_memory": "ARR/backend/agents/memory",
     "template_structure": "ARR/backend/agents/elevationAgent",
     "mass_domain_engine": "ARR/backend/design/maas",
-    "future_mass_agent": "ARR/backend/agents/massAgent"
+    "future_mass_agent": "ARR/backend/agents/massAgent",
+    "elevation_handoff_schema": "arr.maas.elevation_handoff.v1",
+    "elevation_condition_pack_status": "mesh_handoff_ready_condition_pack_adapter_pending"
   },
   "evidence": {
     "summary_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/maas-book-programs-summary.json",
     "board_png": "docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/maas-book-neighborhood-20.png",
     "paid_vlm_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/maas-paid-portfolio-vlm-audit.json",
+    "paid_individual_vlm_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/maas-paid-individual-vlm-audits.json",
+    "elevation_handoff_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/elevation-handoffs/mass-10.json",
     "browser_verify_json": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/verify-chronological-archive.json",
     "browser_full_graph_png": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-paid-vlm-full-graph.png",
-    "browser_vlm_focus_png": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-paid-vlm-node-focus.png"
+    "browser_vlm_focus_png": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-paid-vlm-node-focus.png",
+    "browser_individual_vlm_png": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-mass07-individual-vlm-full-graph.png",
+    "browser_reference_focus_png": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-mass07-reference-vlm-focus.png"
   }
 }

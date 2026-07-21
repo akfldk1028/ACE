@@ -10,6 +10,7 @@ legal/parking logic or the `/design/language` graph.
 4. `04_VALIDATION_GAPS.md` — unresolved quality and authority gaps.
 5. `current-checkpoint.json` — machine-readable current state.
 6. `CHANGELOG.md` — append-only checkpoint history.
+7. `06_ELEVATION_HANDOFF.md` — GeometryProgram MASS to elevationAgent boundary.
 
 Primary rule: never turn a retrieved image, BOOK scan, unevaluated VLM stage,
 or rejected geometry into active evidence. One selected MASS has one exact
@@ -27,8 +28,10 @@ Current frontend: `http://127.0.0.1:5175/design/language`.
 
 Current runtime checkpoint: r188 is the newest replayable run but is an honest
 `16/20 · FAIL`, not the finished portfolio. It has one paid post-render
-portfolio VLM audit stored in the run-local causal graph. r182 remains the
-latest numeric `20/20` baseline; it was not VLM-approved.
+portfolio VLM audit plus paid individual audits for MASS 01, 07 and 10 stored
+in the run-local causal graph. All three individual program-fit verdicts fail;
+MASS 07 is explicitly flagged `too_fragmented`. r182 remains the latest numeric
+`20/20` baseline; it was not VLM-approved.
 
 Multi-agent folder contract: read `05_MULTI_AGENT_FOLDER_CONTRACT.md` before
 creating or moving any specialist agent. `ARR/backend/agents/` is the shared

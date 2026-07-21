@@ -40,14 +40,210 @@ from design.services.mass_operations import apply_mass_operation
 from design.maas import build_maas_evidence_bundle, export_mass_geojson_to_scad, generate_legal_mass_variants
 from design.maas.interactive import apply_conversational_graph_revision, build_revision_learning_profile
 from design.maas.mass_brain import record_proposal_feedback
+from design.maas.language_system import build_language_system_manifest
+from design.maas.outcome_graph_slice import build_outcome_graph_slice
+from design.maas.book_language.registry import build_book_language_registry
 from design.maas.aesthetic import build_aesthetic_pipeline_result
 from design.maas.aesthetic.adapters import NanoBananaAdapter, OpenAIImageAdapter
 from design.maas.aesthetic.renderers import MultiViewReferencePackRenderer
+from design.maas.preference.reference_corpus import default_reference_root
+from design.maas.geometry_language import (
+    architectural_shape_programs,
+    build_mass_execution_passport,
+    compile_geometry_program,
+    passport_path_for_preview,
+    render_compilation_preview,
+    write_mass_execution_passport,
+)
+from design.maas.geometry_language.executed_archive import (
+    executed_mass_manifest,
+    materialize_executed_mass_passport,
+    materialize_executed_mass_preview,
+)
 
 logger = logging.getLogger(__name__)
 
 # Active runners keyed by job_id for cancellation
 _active_runners: dict[str, JobRunner] = {}
+_geometry_preview_lock = threading.Lock()
+
+
+@require_http_methods(["GET"])
+def maas_language_system(request):
+    """Expose the typed BOOK-to-VLM lattice without running generation."""
+
+    return JsonResponse(build_language_system_manifest())
+
+
+@require_http_methods(["GET"])
+def maas_outcome_graph_slice(request):
+    """Return a bounded real lineage slice, never the full multi-hundred-MB graph."""
+
+    pnu = str(request.GET.get("pnu") or "").strip()
+    if not pnu:
+        return JsonResponse({"error": "pnu is required"}, status=400)
+    try:
+        depth = int(request.GET.get("depth") or 3)
+        max_nodes = int(request.GET.get("max_nodes") or 180)
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "depth and max_nodes must be integers"}, status=400)
+    try:
+        payload = build_outcome_graph_slice(
+            pnu=pnu,
+            node_id=str(request.GET.get("node_id") or "").strip(),
+            candidate_id=str(request.GET.get("candidate_id") or "").strip(),
+            geometry_hash=str(request.GET.get("geometry_hash") or "").strip(),
+            depth=depth,
+            max_nodes=max_nodes,
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        logger.warning("MAAS outcome graph slice failed: %s", exc)
+        return JsonResponse({"error": "outcome graph is unavailable"}, status=503)
+    return JsonResponse(payload)
+
+
+@require_http_methods(["GET"])
+def maas_book_asset(request, page):
+    """Serve one allow-listed BOOK scan for graph evidence inspection."""
+
+    page_number = int(page)
+    if not 1 <= page_number <= 69:
+        raise Http404("BOOK page not found")
+    page_record = next(
+        (item for item in build_book_language_registry()["pages"] if int(item["page"]) == page_number),
+        None,
+    )
+    if not page_record or not page_record.get("source_path"):
+        raise Http404("BOOK scan unavailable")
+    scan_path = Path(str(page_record["source_path"])).resolve()
+    book_root = (Path(settings.BASE_DIR).resolve().parents[1] / "docs" / "260506" / "BOOK").resolve()
+    if not scan_path.is_relative_to(book_root) or not scan_path.is_file():
+        raise Http404("BOOK scan unavailable")
+    response = FileResponse(scan_path.open("rb"), content_type="image/jpeg")
+    response["Cache-Control"] = "public, max-age=86400, immutable"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@require_http_methods(["GET"])
+def maas_geometry_shape_preview(request, index):
+    """Compile and serve one deterministic four-view phenotype MASS PNG."""
+
+    shape_index = int(index)
+    programs = architectural_shape_programs()
+    if not 1 <= shape_index <= len(programs):
+        raise Http404("geometry phenotype not found")
+    program = programs[shape_index - 1]
+    compilation = compile_geometry_program(program)
+    if compilation.status != "compiled":
+        raise Http404("geometry phenotype did not compile")
+    cache_root = (
+        Path(settings.BASE_DIR).resolve().parents[1]
+        / "docs" / "ai-session-memory" / "maas-service-cache" / "geometry-language"
+    ).resolve()
+    filename = f"shape-{shape_index:02d}-{compilation.geometry_hash[:16]}.png"
+    output = cache_root / filename
+    with _geometry_preview_lock:
+        if not output.is_file():
+            render_compilation_preview(
+                compilation,
+                output,
+                title=f"{shape_index:02d} {program.metadata.get('family') or program.name}",
+            )
+        elif not passport_path_for_preview(output).is_file():
+            write_mass_execution_passport(compilation, output)
+    response = FileResponse(output.open("rb"), content_type="image/png")
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
+    response["ETag"] = f'"{compilation.geometry_hash}"'
+    response["X-Geometry-Hash"] = compilation.geometry_hash
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@require_http_methods(["GET"])
+def maas_geometry_shape_passport(request, index):
+    """Return the materialized execution passport for one phenotype MASS."""
+
+    shape_index = int(index)
+    programs = architectural_shape_programs()
+    if not 1 <= shape_index <= len(programs):
+        raise Http404("geometry phenotype not found")
+    program = programs[shape_index - 1]
+    compilation = compile_geometry_program(program)
+    if compilation.status != "compiled":
+        return JsonResponse(build_mass_execution_passport(compilation), status=422)
+    cache_root = (
+        Path(settings.BASE_DIR).resolve().parents[1]
+        / "docs" / "ai-session-memory" / "maas-service-cache" / "geometry-language"
+    ).resolve()
+    output = cache_root / f"shape-{shape_index:02d}-{compilation.geometry_hash[:16]}.png"
+    with _geometry_preview_lock:
+        if not output.is_file():
+            render_compilation_preview(
+                compilation,
+                output,
+                title=f"{shape_index:02d} {program.metadata.get('family') or program.name}",
+            )
+        passport_file = write_mass_execution_passport(compilation, output)
+        passport = json.loads(passport_file.read_text(encoding="utf-8"))
+    return JsonResponse(passport)
+
+
+@require_http_methods(["GET"])
+def maas_executed_masses(request):
+    """List one immutable run plus the chronological MAAS run timeline."""
+
+    try:
+        return JsonResponse(executed_mass_manifest(request.GET.get("run_id") or None))
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        logger.warning("MAAS executed archive unavailable: %s", exc)
+        return JsonResponse({"error": "executed MASS archive is unavailable"}, status=503)
+
+
+@require_http_methods(["GET"])
+def maas_executed_mass_preview(request, index):
+    """Serve the exact candidate card rendered during the recorded MAAS run."""
+
+    try:
+        output = materialize_executed_mass_preview(
+            int(index),
+            request.GET.get("run_id") or None,
+        )
+    except (OSError, ValueError, IndexError, json.JSONDecodeError) as exc:
+        logger.warning("MAAS executed preview unavailable: %s", exc)
+        raise Http404("executed MASS render not found") from exc
+    response = FileResponse(output.open("rb"), content_type="image/png")
+    response["Cache-Control"] = "public, max-age=86400, immutable"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@require_http_methods(["GET"])
+def maas_executed_mass_passport(request, index):
+    """Replay one archived GeometryProgram and expose its real execution passport."""
+
+    try:
+        return JsonResponse(materialize_executed_mass_passport(
+            int(index),
+            request.GET.get("run_id") or None,
+        ))
+    except (OSError, ValueError, IndexError, json.JSONDecodeError) as exc:
+        logger.warning("MAAS executed passport unavailable: %s", exc)
+        return JsonResponse({"error": "executed MASS passport is unavailable"}, status=422)
+
+
+@require_http_methods(["GET"])
+def maas_reference_asset(request, asset_path):
+    """Serve only local VLM precedent images inside the curated reference corpus."""
+
+    reference_root = default_reference_root().resolve()
+    target = (reference_root / asset_path).resolve()
+    if not target.is_relative_to(reference_root) or not target.is_file():
+        raise Http404("reference image not found")
+    response = FileResponse(target.open("rb"), content_type=_image_content_type(target))
+    response["Cache-Control"] = "public, max-age=86400, immutable"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 def _all_mode_budget_options(options: dict | None) -> dict[str, int]:

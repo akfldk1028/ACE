@@ -1,5 +1,13 @@
 # MAAS Agent Folder Boundaries
 
+## 2026-07-21 superseding boundary
+
+The target architecture places new independent specialist agent repositories
+as siblings under `ARR/backend/agents/`, using `elevationAgent/` as the folder
+reference. The parent owns shared memory, contracts, A2A infrastructure, and
+orchestration. `design/maas/agents/` remains a legacy in-process adapter layer
+only until explicitly migrated; do not add a second executable authority there.
+
 Updated: 2026-07-07
 
 The project has several folders named `agents`. They are not interchangeable.

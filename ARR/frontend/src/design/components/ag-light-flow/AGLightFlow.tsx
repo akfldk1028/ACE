@@ -48,7 +48,7 @@ function AGLightFlowInner({
   selectedAgentId,
   onSelectAgent,
 }: Props) {
-  const { fitView, setViewport } = useReactFlow();
+  const { fitView } = useReactFlow();
   const nodesInitialized = useNodesInitialized();
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<AGLightEdgeModel[]>([]);
@@ -64,6 +64,7 @@ function AGLightFlowInner({
     }
     return 'PNU 선택 전 기본 흐름';
   }, [messages?.length, pnu, status]);
+  const topologyLabel = `${transferLabel} · EVIDENCE + LANGUAGE → MAAS → CRITIC → REVIEW`;
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setNodes((current) => applyNodeChanges(changes as NodeChange[], current as Node[]) as Node[]);
@@ -100,18 +101,6 @@ function AGLightFlowInner({
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isFullscreen]);
-
-  useEffect(() => {
-    if (!nodesInitialized) return;
-    const timeout = window.setTimeout(() => {
-      if (isFullscreen) {
-        setViewport({ x: 80, y: 190, zoom: 1.05 }, { duration: 200 });
-      } else {
-        fitView({ padding: 0.2, duration: 200 });
-      }
-    }, 120);
-    return () => window.clearTimeout(timeout);
-  }, [isFullscreen, nodesInitialized, fitView, setViewport]);
 
   return (
     <div
@@ -162,9 +151,9 @@ function AGLightFlowInner({
           overflow: 'hidden',
           textOverflow: 'ellipsis',
         }}
-        title={`${transferLabel} → 법규 → 주차 → MassDSL → 매스/기하 → 문법검토 → 최종검토`}
+        title={topologyLabel}
       >
-        {transferLabel} → 법규 → 주차 → MassDSL → 매스/기하 → 문법검토 → 최종검토
+        {topologyLabel}
       </div>
       <EdgeOverlay nodes={nodes} edges={edges} />
       <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
@@ -178,7 +167,7 @@ function AGLightFlowInner({
             const agentId = node.data?.jsonModuleAgent;
             if (typeof agentId === 'string') onSelectAgent?.(agentId);
           }}
-          defaultViewport={isFullscreen ? { x: 80, y: 190, zoom: 1.05 } : { x: 0, y: 0, zoom: 1 }}
+          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           minZoom={0.3}
           maxZoom={2}
           nodesDraggable

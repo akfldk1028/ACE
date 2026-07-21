@@ -6,7 +6,7 @@ import httpx
 from django.test import SimpleTestCase
 from shapely.geometry import box, mapping
 
-from design.maas.mass_brain import _parameter_schema_for_verb, record_proposal_feedback, record_shadow_outcomes, request_shadow_variants, sync_book_language_corpus
+from design.maas.mass_brain import _parameter_schema_for_verb, publish_geometry_portfolio_shadow, record_proposal_feedback, record_shadow_outcomes, request_shadow_variants, sync_book_language_corpus
 from design.maas.grammar.component_graph import graph_from_sequence
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.mass_brain_relation_profile import relation_profile_from_feature
@@ -121,6 +121,102 @@ class MassBrainBridgeTest(SimpleTestCase):
         self.assertIn("parameterSchema", primary)
         self.assertIn("constraints", primary)
         self.assertIn("relation", primary)
+
+    @patch("design.maas.mass_brain.config.mass_brain_client")
+    def test_exact_geometry_portfolio_trace_is_published_without_selection_authority(self, client):
+        client.post.return_value = _response({"versionId": "graph:exact"})
+        sequence = VerbSequence(
+            "gym__folded_hall__01",
+            "Gym folded hall",
+            (VerbCall("base", {}), VerbCall("bend", {"angle": 18.0})),
+        )
+        feature = {
+            "type": "Feature",
+            "geometry": mapping(box(0, 0, 10, 6)),
+            "properties": {
+                "geometry_artifact": {
+                    "schemaVersion": "arr.maas.geometry_artifact.v1",
+                    "programType": "gymnasium",
+                    "geometryProgram": {
+                        "schema_version": "arr.maas.geometry_program.v1",
+                        "root_id": "roof",
+                        "nodes": [{"id": "roof", "kind": "modifier", "operator": "folded_roof", "inputs": ["hall"]}],
+                    },
+                    "geometryGraphSnapshot": {"root_node_id": "roof"},
+                    "programRelationEvidence": {
+                        "hard_pass": True,
+                        "attach_edge_count": 2,
+                        "failed_attach_edge_count": 0,
+                    },
+                    "compilation": {"status": "compiled", "program_hash": "program-1", "geometry_hash": "geometry-1"},
+                    "identity": {"programHash": "program-1", "geometryHash": "geometry-1"},
+                    "vlmAudit": {"response_id": "response-1", "hard_pass": True},
+                    "hardGates": {
+                        "legal": {"hard_pass": True},
+                        "parking": {"hard_pass": True},
+                        "combinedHardPass": True,
+                    },
+                    "selectionEffect": "none_shadow_only",
+                },
+                "program_spatial_evidence": {"hard_pass": True},
+                "source_signature": {
+                    "surface_count": 24,
+                    "coherence_evidence": {"hard_pass": True},
+                },
+            },
+        }
+
+        result = publish_geometry_portfolio_shadow(
+            project_key="pnu-test",
+            source_sequences=[sequence],
+            source_features_by_sequence={sequence.name: feature},
+            context={"programType": "verified_multi_program_portfolio"},
+        )
+
+        self.assertEqual(result["status"], "published_shadow_only")
+        self.assertEqual(result["geometry_artifact_count"], 1)
+        payload = client.post.call_args.kwargs["json"]
+        artifact = next(iter(payload["domainPayloads"].values()))["geometryArtifact"]
+        self.assertEqual(artifact["identity"]["geometryHash"], "geometry-1")
+        self.assertEqual(artifact["vlmAudit"]["response_id"], "response-1")
+        self.assertEqual(artifact["programRelationEvidence"]["attach_edge_count"], 2)
+        self.assertTrue(artifact["hardGates"]["combinedHardPass"])
+        self.assertEqual(artifact["selectionEffect"], "none_shadow_only")
+
+    @patch("design.maas.mass_brain.config.mass_brain_client")
+    def test_exact_trace_does_not_collapse_distinct_ast_hashes_with_same_flat_calls(self, client):
+        client.post.return_value = _response({"versionId": "graph:two"})
+        calls = (VerbCall("base", {}), VerbCall("bend", {"angle": 18.0}))
+        first = VerbSequence("neighborhood__01", "First", calls)
+        second = VerbSequence("neighborhood__02", "Second", calls)
+        features = {}
+        for sequence, geometry_hash in ((first, "geometry-a"), (second, "geometry-b")):
+            features[sequence.name] = {
+                "type": "Feature",
+                "geometry": mapping(box(0, 0, 10, 6)),
+                "properties": {
+                    "geometry_artifact": {
+                        "schemaVersion": "arr.maas.geometry_artifact.v1",
+                        "identity": {"programHash": f"program-{geometry_hash}", "geometryHash": geometry_hash},
+                        "geometryProgram": {"root_id": "result", "nodes": []},
+                        "selectionEffect": "none_shadow_only",
+                    },
+                },
+            }
+
+        result = publish_geometry_portfolio_shadow(
+            project_key="pnu-test",
+            source_sequences=[first, second],
+            source_features_by_sequence=features,
+        )
+
+        self.assertEqual(result["source_count"], 2)
+        payloads = client.post.call_args.kwargs["json"]["domainPayloads"]
+        self.assertEqual(len(payloads), 2)
+        self.assertEqual(
+            {item["geometryArtifact"]["identity"]["geometryHash"] for item in payloads.values()},
+            {"geometry-a", "geometry-b"},
+        )
 
     def test_flat_sequence_first_design_operation_is_the_primary_language(self):
         sequence = VerbSequence(

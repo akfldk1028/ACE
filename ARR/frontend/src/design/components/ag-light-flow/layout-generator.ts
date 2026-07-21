@@ -1,6 +1,10 @@
 import type { AGLightFlowSettings } from './AGLightFlowToolbar';
 import { DESIGN_FLOW_AGENTS } from './agents';
 import {
+  COLLABORATION_TOPOLOGY,
+  collaborationNodePosition,
+} from './collaboration-topology';
+import {
   createJsonAgentNode,
   getAgentMessageIds,
   getMessagesForAgent,
@@ -63,53 +67,6 @@ const createHubNode = (
   },
 });
 
-const getReviewPositions = (
-  agentCount: number,
-  direction: AGLightFlowSettings['direction'],
-  compact: boolean
-): Array<{ x: number; y: number }> => {
-  if (!compact) {
-    if (direction === 'TB') {
-      return Array.from({ length: agentCount }, (_, index) => ({ x: 460, y: 370 + index * 150 }));
-    }
-    const startY = 160 - ((agentCount - 1) * 132) / 2;
-    return Array.from({ length: agentCount }, (_, index) => ({ x: 720, y: startY + index * 132 }));
-  }
-
-  if (direction === 'TB') {
-    return Array.from({ length: agentCount }, (_, index) => ({ x: 122, y: 214 + index * 86 }));
-  }
-
-  const startY = 12 - ((agentCount - 1) * 74) / 2;
-  return Array.from({ length: agentCount }, (_, index) => ({ x: 300, y: Math.max(24, startY) + index * 82 }));
-};
-
-const getFixedPositions = (
-  reviewCount: number,
-  direction: AGLightFlowSettings['direction'],
-  compact: boolean
-) => {
-  if (!compact) {
-    return {
-      user: direction === 'TB' ? { x: 460, y: 50 } : { x: 80, y: 160 },
-      hub: direction === 'TB' ? { x: 460, y: 210 } : { x: 380, y: 160 },
-      critic: direction === 'TB'
-        ? { x: 460, y: 370 + reviewCount * 150 }
-        : { x: 720, y: 160 + Math.max(reviewCount, 1) * 132 },
-      end: direction === 'TB' ? { x: 460, y: 370 + reviewCount * 150 } : { x: 1040, y: 160 },
-    };
-  }
-
-  return {
-    user: direction === 'TB' ? { x: 122, y: 24 } : { x: 8, y: 154 },
-    hub: direction === 'TB' ? { x: 122, y: 116 } : { x: 154, y: 154 },
-    critic: direction === 'TB'
-      ? { x: 122, y: 214 + reviewCount * 86 }
-      : { x: 300, y: 12 + Math.max(reviewCount, 1) * 74 },
-    end: direction === 'TB' ? { x: 122, y: 214 + reviewCount * 86 } : { x: 446, y: 154 },
-  };
-};
-
 export function generateAGLightLayout({
   reviews,
   messages,
@@ -124,33 +81,30 @@ export function generateAGLightLayout({
   const edges: AGLightEdge[] = [];
   const isProcessing = status === 'active' || status === 'awaiting_input';
   const compact = !isFullscreen;
-  const positions = getFixedPositions(DESIGN_FLOW_AGENTS.length, settings.direction, compact);
-  const agentPositions = getReviewPositions(DESIGN_FLOW_AGENTS.length, settings.direction, compact);
 
-  const userNode = createUserNode(positions.user, true, isProcessing);
+  const userNode = createUserNode(
+    collaborationNodePosition('user', settings.direction, compact),
+    true,
+    isProcessing,
+  );
   userNode.data.compact = compact;
   nodes.push(userNode);
-  nodes.push(createHubNode(positions.hub, status, isProcessing, compact));
+  nodes.push(createHubNode(
+    collaborationNodePosition(HUB_ID, settings.direction, compact),
+    status,
+    isProcessing,
+    compact,
+  ));
 
-  edges.push(createEdge('user-orch', 'user', HUB_ID, {
-    animated: true,
-    label: settings.showLabels ? 'request' : '',
-    messages,
-    routingType: 'primary',
-    stroke: '#2563eb',
-    strokeWidth: 2,
-  }));
-
-  const flowTargets = [HUB_ID, ...DESIGN_FLOW_AGENTS.map((agent) => agent.participant.config.name)];
-
-  DESIGN_FLOW_AGENTS.forEach((agent, index) => {
+  DESIGN_FLOW_AGENTS.forEach((agent) => {
+    const agentId = agent.participant.config.name;
     nodes.push(createJsonAgentNode({
       participant: agent.participant,
       mapping: agent.mapping,
       reviews,
       messages,
       settings,
-      position: agentPositions[index],
+      position: collaborationNodePosition(agentId, settings.direction, compact),
       isProcessing,
       compact,
       selectedAgentId,
@@ -158,29 +112,39 @@ export function generateAGLightLayout({
     }));
   });
 
-  DESIGN_FLOW_AGENTS.forEach((agent, index) => {
-    const source = flowTargets[index];
-    const target = flowTargets[index + 1];
-    const agentMessages = getMessagesForAgent(messages, getAgentMessageIds(agent.participant, agent.mapping));
-    const active = agentMessages.length > 0 || reviews.some((review) =>
-      agent.mapping.reviewAgentIds.includes(review.agent) &&
+  const agentById = new Map(
+    DESIGN_FLOW_AGENTS.map((agent) => [agent.participant.config.name, agent]),
+  );
+  COLLABORATION_TOPOLOGY.forEach((topologyEdge) => {
+    const targetAgent = agentById.get(topologyEdge.target);
+    const agentMessages = targetAgent
+      ? getMessagesForAgent(messages, getAgentMessageIds(targetAgent.participant, targetAgent.mapping))
+      : (messages || []).filter((message) => (
+        message.from_agent === topologyEdge.source && message.to_agent === topologyEdge.target
+      ));
+    const active = topologyEdge.id === 'request' || agentMessages.length > 0 || Boolean(targetAgent && reviews.some((review) =>
+      targetAgent.mapping.reviewAgentIds.includes(review.agent) &&
       (review.status === 'pass' || review.status === 'check')
-    );
+    ));
 
-    edges.push(createEdge(`flow-${source}-${target}`, source, target, {
+    edges.push(createEdge(`flow-${topologyEdge.id}`, topologyEdge.source, topologyEdge.target, {
       animated: active,
-      label: settings.showLabels && active ? (agent.mapping.fallbackLabel || agent.participant.label) : '',
+      label: settings.showLabels ? topologyEdge.label : '',
       messages: agentMessages,
-      routingType: 'primary',
-      stroke: active ? '#22c55e' : '#6b7280',
-      strokeWidth: active ? 2 : 1,
-      opacity: active ? 1 : 0.38,
+      routingType: topologyEdge.feedback ? 'feedback' : 'primary',
+      stroke: active ? topologyEdge.color : '#475569',
+      strokeWidth: active ? 2.2 : 1.2,
+      strokeDasharray: topologyEdge.feedback ? '7 7' : undefined,
+      opacity: active ? 1 : 0.52,
     }));
   });
 
   if (viewMode === 'execution' && messages?.length) {
     const lastMessage = messages[messages.length - 1];
-    const endNode = createEndNode(positions.end, status);
+    const endNode = createEndNode(
+      collaborationNodePosition('end', settings.direction, compact),
+      status,
+    );
     endNode.data.compact = compact;
     nodes.push(endNode);
     nodes[nodes.length - 1].data.reason = lastMessage?.message || '';

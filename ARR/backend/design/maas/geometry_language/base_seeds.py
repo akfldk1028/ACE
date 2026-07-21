@@ -43,11 +43,53 @@ BASE_SEED_SPECS: tuple[BaseSeedSpec, ...] = (
 )
 
 
+# One kernel primitive can carry several plan languages.  These are normalized
+# profiles, not completed building templates: synthesis chooses a profile and
+# every later BOOK/site/program operation still receives the same SolidNode.
+# Keeping this alphabet here prevents triangular/chamfered plans from being
+# scattered as one-off coordinate recipes across candidate generators.
+PROFILED_PRISM_FAMILIES: tuple[tuple[str, tuple[tuple[float, float], ...]], ...] = (
+    (
+        "faceted",
+        ((0.0, 0.0), (1.6, 0.0), (1.35, 1.15), (0.35, 1.2), (-0.15, 0.55)),
+    ),
+    (
+        "triangular",
+        ((0.0, 0.0), (1.6, 0.0), (0.72, 1.2)),
+    ),
+    (
+        "trapezoidal",
+        ((0.0, 0.0), (1.6, 0.0), (1.28, 1.2), (0.24, 1.2)),
+    ),
+    (
+        "chamfered",
+        ((0.0, 0.0), (1.28, 0.0), (1.6, 0.32), (1.6, 1.2), (0.0, 1.2)),
+    ),
+    (
+        "kite",
+        ((0.0, 0.46), (0.62, 0.0), (1.6, 0.5), (0.68, 1.2)),
+    ),
+)
+
+
+def profiled_prism_parameters(variation_index: int = 0) -> dict[str, Any]:
+    """Return one deterministic normalized polygon-profile parameter set."""
+
+    index = max(0, int(variation_index)) % len(PROFILED_PRISM_FAMILIES)
+    family, points = PROFILED_PRISM_FAMILIES[index]
+    return {
+        "points": [list(point) for point in points],
+        "height": 0.75,
+        "profile_family": family,
+        "profile_variant_index": index,
+    }
+
+
 def base_seed_catalog() -> tuple[dict[str, Any], ...]:
     return tuple(spec.to_dict() for spec in BASE_SEED_SPECS)
 
 
-def base_seed_program(seed_id: str) -> GeometryProgram:
+def base_seed_program(seed_id: str, *, variation_index: int = 0) -> GeometryProgram:
     spec = next((item for item in BASE_SEED_SPECS if item.seed_id == seed_id), None)
     if spec is None:
         raise KeyError(f"unknown base seed: {seed_id}")
@@ -72,12 +114,10 @@ def base_seed_program(seed_id: str) -> GeometryProgram:
         nodes = (unit, scaled)
         root = scaled.id
     else:
+        prism_parameters = profiled_prism_parameters(variation_index)
         prism = GeometryNode(
             f"seed_{spec.seed_id}", "primitive", "extruded_polygon",
-            parameters={
-                "points": [[0.0, 0.0], [1.6, 0.0], [1.35, 1.15], [0.35, 1.2], [-0.15, 0.55]],
-                "height": 0.75,
-            },
+            parameters=prism_parameters,
             semantic_role="base_seed",
             provenance={**provenance, "core_expansion": spec.core_expansion},
         )
@@ -88,6 +128,11 @@ def base_seed_program(seed_id: str) -> GeometryProgram:
         metadata={
             "language_layer": "architectural_base_seed",
             "base_seed": spec.to_dict(),
+            "plan_profile_family": (
+                prism_parameters["profile_family"]
+                if spec.primitive_operator == "extruded_polygon"
+                else "rectangular"
+            ),
             "site_scope_is_separate": True,
         },
     )
@@ -103,6 +148,7 @@ def box_derived_base_seed_programs() -> tuple[GeometryProgram, ...]:
 
 
 __all__ = [
-    "BASE_SEED_SPECS", "BaseSeedSpec", "base_seed_catalog",
+    "BASE_SEED_SPECS", "PROFILED_PRISM_FAMILIES", "BaseSeedSpec", "base_seed_catalog",
     "base_seed_program", "base_seed_programs", "box_derived_base_seed_programs",
+    "profiled_prism_parameters",
 ]

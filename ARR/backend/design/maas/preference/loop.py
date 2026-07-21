@@ -23,7 +23,7 @@ from design.maas.preference.reference_corpus import (
     load_reference_tree,
     match_reference_context,
 )
-from design.maas.preference.vlm_scorer import score_candidate_with_openai_vlm
+from design.maas.preference.vlm_scorer import VLM_PROMPT_CONTRACT_VERSION, score_candidate_with_openai_vlm
 
 
 Feature = dict[str, Any]
@@ -331,8 +331,21 @@ def _vlm_cache_key(feature: Feature, reference_matches: list[dict[str, Any]], mo
     volumes = props.get("mass_volumes") if isinstance(props.get("mass_volumes"), list) else []
     surfaces = props.get("source_surfaces") if isinstance(props.get("source_surfaces"), list) else []
     payload = {
-        "schema": "arr.maas.vlm_cache.v2",
+        "schema": "arr.maas.vlm_cache.v3_program_context",
+        "prompt_contract": VLM_PROMPT_CONTRACT_VERSION,
         "model": model or "",
+        # These fields are part of the scorer prompt and can change a valid
+        # judgment even when the rendered solid is byte-for-byte identical.
+        # Omitting them allowed a gym/site/review-stage decision to leak into
+        # another program through the shared cache.
+        "semantic_context": {
+            "building_type": props.get("building_type"),
+            "program_context": props.get("program_context") or {},
+            "site_boundary_source": props.get("site_boundary_source"),
+            "site_access_context": props.get("site_access_context") or {},
+            "geometry_only_critic_mode": bool(props.get("geometry_only_critic_mode")),
+            "portfolio_diversity_context": props.get("portfolio_diversity_context") or {},
+        },
         "geometry": feature.get("geometry"),
         "volumes": [
             {
@@ -368,23 +381,35 @@ def _vlm_cache_key(feature: Feature, reference_matches: list[dict[str, Any]], mo
 
 def openai_preview_preference_scorer(*, preview_dir: Path, cache_dir: Path | None = None):
     def score(*, feature: Feature, reference_matches: list[dict[str, Any]], model: str | None = None) -> dict[str, Any]:
+        # Always materialize the exact current MASS image, including cache hits.
+        # The paid response cache and the chronological execution archive are
+        # separate concerns: a cached judgement still needs run-local visual
+        # evidence so /design/language can replay what the critic saw.
+        image_path = feature_preview_png(feature, preview_dir)
         cache_path: Path | None = None
         if cache_dir is not None:
             cache_path = cache_dir / f"{_vlm_cache_key(feature, reference_matches, model)}.json"
             try:
                 cached = json.loads(cache_path.read_text(encoding="utf-8"))
                 if isinstance(cached, dict) and isinstance(cached.get("concept_scores"), dict):
-                    return {**cached, "cache_hit": True}
+                    return {
+                        **cached,
+                        "cache_hit": True,
+                        "review_image_path": str(image_path.resolve()),
+                    }
             except (OSError, ValueError, TypeError):
                 pass
-        image_path = feature_preview_png(feature, preview_dir)
         result = score_candidate_with_openai_vlm(
             feature=feature,
             image_path=image_path,
             reference_matches=reference_matches,
             model=model,
         )
-        result = {**result, "cache_hit": False}
+        result = {
+            **result,
+            "cache_hit": False,
+            "review_image_path": str(image_path.resolve()),
+        }
         if cache_path is not None:
             cache_path.parent.mkdir(parents=True, exist_ok=True)
             temporary = cache_path.with_suffix(f".{os.getpid()}.{uuid.uuid4().hex}.tmp")

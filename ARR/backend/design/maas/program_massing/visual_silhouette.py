@@ -12,7 +12,7 @@ from shapely.geometry import Polygon, box
 from shapely.wkb import loads as load_wkb
 
 from design.maas.source_geometry.ir import SourceMass
-from .geometry_safety import safe_unary_union
+from .geometry_safety import safe_symmetric_difference_ratio, safe_unary_union
 
 
 VolumeKey: TypeAlias = tuple[tuple[str, str, float, float], ...]
@@ -99,7 +99,7 @@ def visual_silhouette_distance_from_keys(
             if right_views is None:
                 continue
             distances = tuple(
-                float(a.symmetric_difference(b).area) / max(float(a.union(b).area), 1e-9)
+                safe_symmetric_difference_ratio(a, b)
                 for a, b in zip(left_views, right_views)
             )
             best = min(best, distances[0] * 0.40 + distances[1] * 0.30 + distances[2] * 0.30)

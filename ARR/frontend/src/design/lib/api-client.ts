@@ -12,6 +12,7 @@ import type {
   MaasLegalVariantsResult,
   SiteBoundaryResult,
 } from './types';
+import type { ExecutedMassManifest, MaasLanguageSystemManifest, OutcomeGraphSlice } from './language-system-types';
 
 const BASE = '/design';
 const AG_LIGHT_BASE = (((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.VITE_AG_LIGHT_URL)
@@ -95,6 +96,64 @@ export async function getDesignEvidence(jobId: string, designId: number): Promis
 export async function getAgLightHealth(): Promise<AgLightHealth> {
   const res = await fetch(`${AG_LIGHT_BASE}/health`);
   if (!res.ok) throw new Error('AG-light health check failed');
+  return res.json();
+}
+
+export async function getMaasLanguageSystem(
+  signal?: AbortSignal,
+): Promise<MaasLanguageSystemManifest> {
+  const res = await fetch(`${BASE}/maas/language-system/`, { signal });
+  if (!res.ok) throw new Error('MAAS language system manifest fetch failed');
+  return res.json();
+}
+
+export async function getMaasOutcomeGraphSlice(
+  pnu: string,
+  signal?: AbortSignal,
+  geometryHash?: string,
+): Promise<OutcomeGraphSlice> {
+  const query = new URLSearchParams({ pnu, depth: '3', max_nodes: '180' });
+  if (geometryHash) query.set('geometry_hash', geometryHash);
+  const res = await fetch(`${BASE}/maas/outcome-graph/?${query}`, { signal });
+  if (!res.ok) throw new Error('MAAS outcome graph slice fetch failed');
+  return res.json();
+}
+
+export function getGeometryShapePreviewUrl(index: number): string {
+  return `${BASE}/maas/geometry-shapes/${index}/`;
+}
+
+export async function getGeometryShapePassport(
+  index: number,
+  signal?: AbortSignal,
+): Promise<import('./language-system-types').MassExecutionPassport> {
+  const res = await fetch(`${BASE}/maas/geometry-shapes/${index}/passport/`, { signal });
+  if (!res.ok) throw new Error('MASS execution passport fetch failed');
+  return res.json();
+}
+
+export async function getExecutedMassManifest(
+  signal?: AbortSignal,
+  runId?: string,
+): Promise<ExecutedMassManifest> {
+  const query = runId ? `?${new URLSearchParams({ run_id: runId })}` : '';
+  const res = await fetch(`${BASE}/maas/executed-masses/${query}`, { signal });
+  if (!res.ok) throw new Error('실제 실행 MASS 아카이브를 불러오지 못했습니다.');
+  return res.json();
+}
+
+export function getExecutedMassPreviewUrl(index: number): string {
+  return `${BASE}/maas/executed-masses/${index}/`;
+}
+
+export async function getExecutedMassPassport(
+  index: number,
+  signal?: AbortSignal,
+  runId?: string,
+): Promise<import('./language-system-types').MassExecutionPassport> {
+  const query = runId ? `?${new URLSearchParams({ run_id: runId })}` : '';
+  const res = await fetch(`${BASE}/maas/executed-masses/${index}/passport/${query}`, { signal });
+  if (!res.ok) throw new Error('실제 실행 MASS 여권을 불러오지 못했습니다.');
   return res.json();
 }
 

@@ -4,6 +4,7 @@ import { COLLABORATION_STEPS } from '../lib/ag-light-collaboration';
 import AGLightFlow from './ag-light-flow/AGLightFlow';
 import type { AGLightMessage, AGLightRunStatus } from './ag-light-flow/types';
 import DirectAgentChatPanel from './DirectAgentChatPanel';
+import { BookLanguageFlow } from './book-language-flow/BookLanguageFlow';
 
 const DEFAULT_AGENT_FLOW_MESSAGES: AGLightMessage[] = [
   {
@@ -120,6 +121,7 @@ export default function DefaultAgentFlowPanel({
       lineHeight: 1.6,
       background: 'rgba(15,23,42,0.72)',
     }}>
+      <BookLanguageFlow pnu={pnu ?? undefined} compact />
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -129,10 +131,10 @@ export default function DefaultAgentFlowPanel({
       }}>
         <div>
           <div style={{ color: '#d1fae5', fontSize: 12, fontWeight: 800 }}>
-            기본 프롬프트 React Flow
+            실행 에이전트 협업 Flow
           </div>
           <div style={{ color: '#64748b', fontSize: 10, marginTop: 2 }}>
-            PNU/후보 선택 전에도 User 요청이 어떤 에이전트에 연결되는지 표시
+            법규·주차 evidence와 BOOK·MassDSL 언어가 병렬로 진행되어 MAAS에서 합쳐지는 실행 경로
           </div>
         </div>
         <span style={{

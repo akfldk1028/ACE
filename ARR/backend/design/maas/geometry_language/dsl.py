@@ -41,6 +41,56 @@ def parse_geometry_dsl(source: str, *, name: str = "geometry_dsl") -> GeometryPr
     versions: dict[str, int] = {}
     nodes: list[GeometryNode] = []
     last_id = ""
+
+    def lower_call(call: python_ast.Call, target_name: str, line_number: int) -> str:
+        """Lower recursive Solid expressions into the same SSA node graph.
+
+        The surface DSL remains assignment-oriented for reliable LLM output,
+        but a model may naturally emit ``scale(box(...), ...)`` or a deeper
+        ``difference(bend(union(...)), taper(...))`` expression.  Every nested
+        call is still typed, validated and assigned a deterministic hidden node
+        ID; this is syntax normalization, never a geometry fallback.
+        """
+        if not isinstance(call.func, python_ast.Name):
+            raise GeometryDslError(f"line {line_number}: operator must be a simple name")
+        operator = ALIASES.get(call.func.id.lower(), call.func.id.lower())
+        kind = OPERATOR_KIND.get(operator)
+        if kind is None:
+            raise GeometryDslError(f"line {line_number}: unsupported operator {operator}")
+        prepared_args: list[python_ast.AST] = []
+        temporary_bindings: list[str] = []
+        for argument_index, argument in enumerate(call.args):
+            if isinstance(argument, python_ast.Call):
+                nested_target = f"{target_name}__input_{argument_index + 1}"
+                nested_id = lower_call(argument, nested_target, line_number)
+                temporary_name = f"__nested_{len(nodes)}_{argument_index}"
+                bindings[temporary_name] = nested_id
+                temporary_bindings.append(temporary_name)
+                prepared_args.append(python_ast.Name(id=temporary_name, ctx=python_ast.Load()))
+            else:
+                prepared_args.append(argument)
+        prepared_call = python_ast.Call(
+            func=call.func,
+            args=prepared_args,
+            keywords=call.keywords,
+        )
+        try:
+            input_ids, parameters = _parse_call(
+                prepared_call,
+                kind,
+                operator,
+                bindings,
+                line_number,
+            )
+        finally:
+            for temporary_name in temporary_bindings:
+                bindings.pop(temporary_name, None)
+        versions[target_name] = versions.get(target_name, 0) + 1
+        suffix = "" if versions[target_name] == 1 else f"__{versions[target_name]}"
+        node_id = _safe_identifier(f"{target_name}{suffix}")
+        nodes.append(GeometryNode(node_id, kind, operator, tuple(input_ids), parameters))
+        return node_id
+
     for line_number, raw_line in enumerate(source.splitlines(), 1):
         line = raw_line.split("#", 1)[0].strip()
         if not line:
@@ -57,17 +107,7 @@ def parse_geometry_dsl(source: str, *, name: str = "geometry_dsl") -> GeometryPr
         if not isinstance(target, python_ast.Name) or not isinstance(statement[0].value, python_ast.Call):
             raise GeometryDslError(f"line {line_number}: assignment must target a name and call an operator")
         call = statement[0].value
-        if not isinstance(call.func, python_ast.Name):
-            raise GeometryDslError(f"line {line_number}: operator must be a simple name")
-        operator = ALIASES.get(call.func.id.lower(), call.func.id.lower())
-        kind = OPERATOR_KIND.get(operator)
-        if kind is None:
-            raise GeometryDslError(f"line {line_number}: unsupported operator {operator}")
-        input_ids, parameters = _parse_call(call, kind, operator, bindings, line_number)
-        versions[target.id] = versions.get(target.id, 0) + 1
-        suffix = "" if versions[target.id] == 1 else f"__{versions[target.id]}"
-        node_id = _safe_identifier(f"{target.id}{suffix}")
-        nodes.append(GeometryNode(node_id, kind, operator, tuple(input_ids), parameters))
+        node_id = lower_call(call, target.id, line_number)
         bindings[target.id] = node_id
         last_id = node_id
     if not nodes:

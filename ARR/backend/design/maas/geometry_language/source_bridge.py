@@ -9,11 +9,14 @@ completed building is stored in a geometry program.
 from __future__ import annotations
 
 from collections import OrderedDict
+from copy import deepcopy
 from dataclasses import replace
-from math import atan2, cos, degrees, hypot, sin
+from math import atan2, cos, degrees, hypot, isfinite, sin
 from typing import Any
 
+from shapely import make_valid, set_precision
 from shapely.affinity import translate
+from shapely.errors import GEOSException
 from shapely.geometry import LineString, MultiPoint, Polygon
 from shapely.ops import nearest_points, polygonize, unary_union
 
@@ -22,6 +25,7 @@ from design.maas.source_geometry.coherence import evaluate_source_volume_coheren
 from design.maas.source_geometry.polygon_quality import repair_source_polygon
 
 from .ast import GeometryProgram
+from .base_seeds import BASE_SEED_SPECS
 from .compiler import CompilationResult, compile_geometry_program
 from .gate import GeometryGatePolicy, compilation_gate
 
@@ -35,8 +39,9 @@ def compile_geometry_program_to_source_mass(
     host: Polygon,
     *,
     upper_host: Polygon | None = None,
-    upper_fit_strength: float = 1.0,
+    upper_fit_strength: float = 0.0,
     target_plan_area: float | None = None,
+    minimum_plan_area: float | None = None,
     name: str | None = None,
     volume_role: str = "recursive_solid_primary",
     max_volume_bands: int = 3,
@@ -53,12 +58,23 @@ def compile_geometry_program_to_source_mass(
     if host is None:
         return None
     compilation = _compile_geometry_program_cached(program)
-    if compilation.status != "compiled" or compilation_gate(compilation, gate_policy):
+    # Compiler probes may study a bounded multi-solid relation, but an object
+    # promoted into the program/legal/VLM lane must already be one connected
+    # architectural body.  This prevents tiny detached pieces from surviving
+    # long enough to be mistaken for a creative finished mass.
+    source_gate_policy = gate_policy or GeometryGatePolicy(maximum_components=1)
+    if compilation.status != "compiled" or compilation_gate(compilation, source_gate_policy):
         return None
+    base_seed_plan_fraction = _base_seed_plan_occupancy_fraction(program)
+    effective_target_plan_area = target_plan_area
+    if base_seed_plan_fraction is not None and target_plan_area is None:
+        base_seed_area_cap = float(host.area) * base_seed_plan_fraction
+        effective_target_plan_area = base_seed_area_cap
     transformed = _fit_vertices_to_host(
         compilation,
         host,
-        target_plan_area=target_plan_area,
+        target_plan_area=effective_target_plan_area,
+        minimum_plan_area=minimum_plan_area,
     )
     if transformed is None:
         return None
@@ -71,7 +87,8 @@ def compile_geometry_program_to_source_mass(
             _fit_vertices_to_host(
                 compilation,
                 repaired_upper_host,
-                target_plan_area=target_plan_area,
+                target_plan_area=effective_target_plan_area,
+                minimum_plan_area=minimum_plan_area,
             )
             if repaired_upper_host is not None
             else None
@@ -87,6 +104,25 @@ def compile_geometry_program_to_source_mass(
                 for lower, upper in zip(world_vertices, upper_vertices)
             )
             legal_fit_mode = "height_interpolated_lower_upper_principal_frames"
+    achieved_plan_area = _mesh_plan_projection_area(
+        world_vertices,
+        compilation.triangles,
+    )
+    minimum_plan_area_target = (
+        max(0.2, float(minimum_plan_area))
+        if minimum_plan_area is not None
+        else None
+    )
+    minimum_plan_area_target_satisfied = (
+        achieved_plan_area + 1e-7 >= minimum_plan_area_target
+        if minimum_plan_area_target is not None
+        else None
+    )
+    minimum_plan_area_shortfall_ratio = (
+        max(0.0, (minimum_plan_area_target - achieved_plan_area) / minimum_plan_area_target)
+        if minimum_plan_area_target is not None
+        else None
+    )
     band_count = max(1, min(3, int(max_volume_bands)))
     band_boundaries = tuple(index / band_count for index in range(band_count + 1))
     volume_records: list[SourceVolume] = []
@@ -159,6 +195,7 @@ def compile_geometry_program_to_source_mass(
     # Imported lazily to keep the compiler/adapter dependency one-way.
     from .vlm_adapter import build_geometry_graph_notes, build_geometry_graph_snapshot
 
+    compilation_payload = compilation.to_dict(include_mesh=False)
     metadata = {
         "family": str(program.metadata.get("family") or program.name),
         "primary_language": str(program.metadata.get("family") or program.name),
@@ -166,7 +203,8 @@ def compile_geometry_program_to_source_mass(
         "dominant_gesture": str(program.metadata.get("family") or program.root_id),
         "reference_basis": str(program.metadata.get("reference_language") or "recursive_geometry_program"),
         "geometry_program": program.to_dict(),
-        "geometry_program_compilation": compilation.to_dict(include_mesh=False),
+        "geometry_program_compilation": compilation_payload,
+        "mass_execution_passport": deepcopy(compilation_payload.get("execution_passport") or {}),
         "geometry_graph_notes": build_geometry_graph_notes(program, compilation),
         "geometry_graph_snapshot": build_geometry_graph_snapshot(program, compilation),
         "geometry_program_bridge_evidence": {
@@ -186,6 +224,34 @@ def compile_geometry_program_to_source_mass(
             "parcel_coordinates_in_program": False,
             "legal_fit_mode": legal_fit_mode,
             "legal_fit_strength": round(fit_strength, 4),
+            "base_seed_plan_occupancy_fraction": (
+                round(base_seed_plan_fraction, 4)
+                if base_seed_plan_fraction is not None
+                else None
+            ),
+            "effective_target_plan_area": (
+                round(float(effective_target_plan_area), 4)
+                if effective_target_plan_area is not None
+                else None
+            ),
+            "explicit_target_plan_area_overrides_seed_occupancy_prior": bool(
+                target_plan_area is not None
+            ),
+            # This is an authoring target, not a source-materialization gate.
+            # Exact usable capacity and program fit remain downstream hard
+            # gates, where a non-convex language can be measured honestly.
+            "minimum_plan_area_target": (
+                round(minimum_plan_area_target, 4)
+                if minimum_plan_area_target is not None
+                else None
+            ),
+            "achieved_mesh_plan_projection_area": round(achieved_plan_area, 4),
+            "minimum_plan_area_target_satisfied": minimum_plan_area_target_satisfied,
+            "minimum_plan_area_shortfall_ratio": (
+                round(minimum_plan_area_shortfall_ratio, 4)
+                if minimum_plan_area_shortfall_ratio is not None
+                else None
+            ),
         },
         "continuous_surface_evidence": {
             "schema_version": "arr.maas.continuous_surface.v1",
@@ -213,6 +279,35 @@ def compile_geometry_program_to_source_mass(
     )
 
 
+def _base_seed_plan_occupancy_fraction(program: GeometryProgram) -> float | None:
+    """Convert normalized base proportions into a bounded plan-occupancy prior.
+
+    This does not prescribe a completed footprint.  It only prevents a tower,
+    compact block and low slab from all expanding to the same host-filling box.
+    The value is derived from the catalog's plan-area-to-height proportion, so
+    new catalog seeds participate without a parcel-specific lookup table.
+    """
+    raw_seed = program.metadata.get("base_seed")
+    seed_id = str(
+        raw_seed.get("seed_id") or raw_seed.get("id") or ""
+        if isinstance(raw_seed, dict)
+        else raw_seed or ""
+    )
+    spec = next((item for item in BASE_SEED_SPECS if item.seed_id == seed_id), None)
+    if spec is None:
+        return None
+    proportions = [
+        (item.normalized_scale[0] * item.normalized_scale[1])
+        / max(item.normalized_scale[2], 0.2)
+        for item in BASE_SEED_SPECS
+    ]
+    plan_to_height = (
+        spec.normalized_scale[0] * spec.normalized_scale[1]
+    ) / max(spec.normalized_scale[2], 0.2)
+    normalized = max(0.0, min(1.0, plan_to_height / max(proportions)))
+    return max(0.3, min(0.9, 0.25 + 0.65 * normalized ** 0.5))
+
+
 def _compile_geometry_program_cached(program: GeometryProgram) -> CompilationResult:
     """Reuse host-independent manifold compilation by canonical AST hash."""
     key = program.program_hash()
@@ -237,7 +332,8 @@ def replace_source_dominant_with_geometry_program(
     max_total_volumes: int = 5,
     containment_host: Polygon | None = None,
     upper_containment_host: Polygon | None = None,
-    upper_fit_strength: float = 1.0,
+    upper_fit_strength: float = 0.0,
+    minimum_host_plan_coverage: float = 0.0,
 ) -> SourceMass | None:
     """Compose a recursive primary solid with an existing program role graph."""
     if not source.volumes:
@@ -270,9 +366,13 @@ def replace_source_dominant_with_geometry_program(
         volume.footprint for volume in source.volumes
         if not volume.footprint.is_empty
     ])
+    coverage_floor = max(0.0, min(0.95, float(minimum_host_plan_coverage or 0.0)))
     program_target_plan_area = min(
         float(recursive_host.area),
-        float(original_program_union.area),
+        max(
+            float(original_program_union.area),
+            float(recursive_host.area) * coverage_floor,
+        ),
     )
     recursive = compile_geometry_program_to_source_mass(
         program,
@@ -280,6 +380,11 @@ def replace_source_dominant_with_geometry_program(
         upper_host=upper_dominant_host,
         upper_fit_strength=upper_fit_strength,
         target_plan_area=program_target_plan_area,
+        minimum_plan_area=(
+            float(recursive_host.area) * coverage_floor
+            if coverage_floor > 1e-9
+            else None
+        ),
         name=f"{source.name}__geometry_{program.name}",
         volume_role=dominant.role,
         max_volume_bands=max(1, min(3, max_total_volumes - len(physical_subordinate))),
@@ -350,6 +455,7 @@ def replace_source_dominant_with_geometry_program(
             "physical_subordinate_volume_count": len(physical_subordinate),
             "original_component_union_area_m2": round(float(original_program_union.area), 4),
             "recursive_target_plan_area_m2": round(program_target_plan_area, 4),
+            "minimum_host_plan_coverage": round(coverage_floor, 4),
             "role_graph_preserved": True,
             "parcel_coordinates_stored": False,
         },
@@ -381,21 +487,37 @@ def _normalized_program_space_zones(
 ) -> list[dict[str, Any]]:
     if not volumes:
         return []
-    minx, miny, maxx, maxy = original_dominant.footprint.bounds
-    width = max(maxx - minx, 1e-9)
-    depth = max(maxy - miny, 1e-9)
+    angle, width, depth = _principal_frame(original_dominant.footprint)
+    width = max(width, 1e-9)
+    depth = max(depth, 1e-9)
+    theta = angle * 3.141592653589793 / 180.0
+    origin = original_dominant.footprint.centroid
     dominant_area = max(float(original_dominant.footprint.area), 1e-9)
     zones: list[dict[str, Any]] = []
     for volume in volumes:
         center = volume.footprint.centroid
+        dx, dy = center.x - origin.x, center.y - origin.y
+        normalized_long = max(0.0, min(1.0, 0.5 + (dx * cos(theta) + dy * sin(theta)) / width))
+        normalized_short = max(0.0, min(1.0, 0.5 + (-dx * sin(theta) + dy * cos(theta)) / depth))
+        nearest_side = min(
+            (
+                (normalized_long, "west"),
+                (1.0 - normalized_long, "east"),
+                (normalized_short, "south"),
+                (1.0 - normalized_short, "north"),
+            ),
+            key=lambda item: item[0],
+        )[1]
         zones.append({
             "zone_id": f"zone:{volume.role}",
             "role": volume.role,
             "relation": "embedded_in_dominant_envelope",
             "normalized_center": [
-                round(max(0.0, min(1.0, (center.x - minx) / width)), 4),
-                round(max(0.0, min(1.0, (center.y - miny) / depth)), 4),
+                round(normalized_long, 4),
+                round(normalized_short, 4),
             ],
+            "normalized_frame": "dominant_mass_principal_long_short_axes",
+            "nearest_envelope_side": nearest_side,
             "plan_area_ratio": round(min(0.45, float(volume.footprint.area) / dominant_area), 4),
             "bottom_fraction": round(float(volume.bottom_fraction), 4),
             "top_fraction": round(float(volume.top_fraction), 4),
@@ -409,6 +531,7 @@ def _fit_vertices_to_host(
     host: Polygon,
     *,
     target_plan_area: float | None = None,
+    minimum_plan_area: float | None = None,
 ) -> tuple[tuple[tuple[float, float, float], ...], tuple[tuple[float, float, float], ...]] | None:
     vertices = compilation.vertices
     if not vertices:
@@ -426,13 +549,22 @@ def _fit_vertices_to_host(
     target_center = host.centroid
     requested_long_scale = target_width / source_width * 0.95
     requested_short_scale = target_depth / source_depth * 0.95
-    # A uniform fit preserves a BAR's local aspect ratio even when the parcel
-    # or program host is much broader, leaving most of a gym host empty.  A
-    # fully independent fit would erase the base language.  Bound the relative
-    # axis stretch so the solid responds to its host while a bar remains a bar
-    # and a block remains compact.
+    # A uniform fit preserves the authored solid proportion while a fully
+    # independent fit erases it.  The former implementation allowed a 3x
+    # relative axis stretch; on the real benchmark parcel that mapped BLOCK,
+    # SLAB, BAR and PROFILED_PRISM to the same ~1.5 plan aspect ratio.  In other
+    # words the AST retained the base-seed label while the materialized geometry
+    # lost the base language.  Keep a small, aspect-conditioned host response:
+    # compact seeds remain compact, intermediate plates may follow the parcel a
+    # little more, and long bars retain a visibly long plan.
     minimum_axis_scale = min(requested_long_scale, requested_short_scale)
-    maximum_relative_stretch = 3.0
+    source_aspect = max(source_width, source_depth) / max(min(source_width, source_depth), 1e-9)
+    if source_aspect <= 1.25:
+        maximum_relative_stretch = 1.25
+    elif source_aspect <= 2.2:
+        maximum_relative_stretch = 1.4
+    else:
+        maximum_relative_stretch = 1.5
     long_scale = min(requested_long_scale, minimum_axis_scale * maximum_relative_stretch)
     short_scale = min(requested_short_scale, minimum_axis_scale * maximum_relative_stretch)
     min_z = min(vertex[2] for vertex in vertices)
@@ -471,9 +603,79 @@ def _fit_vertices_to_host(
                         )
                         for x, y, z in world
                     ]
+            # ``minimum_plan_area`` is an authoring target supplied by the
+            # feasible-capacity contract. ``target_plan_area`` retains its older
+            # independent meaning as a shrink target for direct bridge callers.
+            # A thin curved wall can have a host-filling convex hull while its
+            # real mesh projection occupies only a small fraction of the site.
+            # Widen it as far as the legal host permits, but do not delete the
+            # language here: exact capacity and VLM stages own that hard verdict.
+            actual_projection_area = _mesh_plan_projection_area(
+                tuple(world),
+                compilation.triangles,
+            )
+            if (
+                minimum_plan_area is not None
+                and actual_projection_area + 1e-7 < max(0.2, float(minimum_plan_area))
+            ):
+                target_area = max(0.2, float(minimum_plan_area))
+                required_short_growth = target_area / max(actual_projection_area, 1e-9)
+                available_short_growth = requested_short_scale / max(
+                    short_scale * area_factor,
+                    1e-9,
+                )
+                short_growth = min(required_short_growth, available_short_growth)
+                widened = _widen_vertices_in_frame(
+                    world,
+                    center=target_center,
+                    theta=target_theta,
+                    growth=short_growth,
+                )
+                widened_hull = MultiPoint([(x, y) for x, y, _z in widened]).convex_hull
+                if not host.buffer(1e-7).covers(widened_hull):
+                    # An irregular host can prevent the rectangular-frame
+                    # estimate from fitting. Find the widest contained result
+                    # without converting this design target into a rejection.
+                    lower_growth, upper_growth = 1.0, short_growth
+                    for _iteration in range(10):
+                        probe_growth = (lower_growth + upper_growth) / 2.0
+                        probe = _widen_vertices_in_frame(
+                            world,
+                            center=target_center,
+                            theta=target_theta,
+                            growth=probe_growth,
+                        )
+                        probe_hull = MultiPoint([(x, y) for x, y, _z in probe]).convex_hull
+                        if host.buffer(1e-7).covers(probe_hull):
+                            lower_growth = probe_growth
+                            widened = probe
+                        else:
+                            upper_growth = probe_growth
+                world = list(widened)
             local = tuple((x - target_center.x, y - target_center.y, z) for x, y, z in world)
             return tuple(world), local
     return None
+
+
+def _widen_vertices_in_frame(
+    vertices: list[tuple[float, float, float]],
+    *,
+    center,
+    theta: float,
+    growth: float,
+) -> list[tuple[float, float, float]]:
+    """Widen a fitted solid across its host-short axis without changing length."""
+    widened: list[tuple[float, float, float]] = []
+    for x, y, z in vertices:
+        dx, dy = x - center.x, y - center.y
+        fitted_long = dx * cos(theta) + dy * sin(theta)
+        fitted_short = (-dx * sin(theta) + dy * cos(theta)) * growth
+        widened.append((
+            fitted_long * cos(theta) - fitted_short * sin(theta) + center.x,
+            fitted_long * sin(theta) + fitted_short * cos(theta) + center.y,
+            z,
+        ))
+    return widened
 
 
 def _mesh_plan_projection_area(
@@ -481,14 +683,51 @@ def _mesh_plan_projection_area(
     triangles: tuple[tuple[int, int, int], ...],
 ) -> float:
     """Top-view solid area without replacing a non-convex graph by its hull."""
-    projected = []
+    projected: list[Polygon] = []
     for triangle in triangles:
-        polygon = Polygon([(vertices[index][0], vertices[index][1]) for index in triangle])
-        if not polygon.is_empty and polygon.area > 1e-10:
-            projected.append(polygon)
+        coordinates = [
+            (float(vertices[index][0]), float(vertices[index][1]))
+            for index in triangle
+        ]
+        if not all(isfinite(value) for coordinate in coordinates for value in coordinate):
+            continue
+        polygon = Polygon(coordinates)
+        if polygon.is_empty or polygon.area <= 1e-10:
+            continue
+        for part in _polygon_parts(make_valid(polygon)):
+            if not part.is_empty and part.area > 1e-10:
+                projected.append(part)
     if not projected:
         return 0.0
-    return float(unary_union(projected).area)
+
+    # GEOS can occasionally report ``Ring edge missing`` when many mesh
+    # triangles share nearly-identical projected edges.  Retry on successively
+    # coarser metric grids; this changes coordinates by at most 0.01 mm while
+    # retaining courts, notches and courtyards at architectural scale.
+    for grid_size in (0.0, 1e-9, 1e-7, 1e-5):
+        try:
+            candidates = (
+                projected
+                if grid_size == 0.0
+                else [
+                    part
+                    for polygon in projected
+                    for part in _polygon_parts(set_precision(polygon, grid_size))
+                    if not part.is_empty and part.area > 1e-10
+                ]
+            )
+            if candidates:
+                area = float(unary_union(candidates).area)
+                if isfinite(area) and area >= 0.0:
+                    return area
+        except GEOSException:
+            continue
+
+    # A numerically pathological candidate must not abort an entire portfolio
+    # run.  The largest valid projected triangle is a conservative lower bound,
+    # so capacity gates can reject the candidate instead of receiving a false
+    # positive from a convex-hull or summed-area fallback.
+    return max(float(polygon.area) for polygon in projected)
 
 
 def _rebase_surfaces(

@@ -39,6 +39,22 @@ class MaasPolygonQualityTest(SimpleTestCase):
         self.assertTrue(evaluate_polygon_quality(rectangle)["hard_pass"])
         self.assertTrue(evaluate_polygon_quality(courtyard)["hard_pass"])
 
+    def test_open_u_court_and_l_mass_are_structured_not_tortuous(self):
+        # These are intentional architectural concavities.  Their classical
+        # compactness is high because usable court/notch edges add perimeter;
+        # they must not be confused with a jagged interlock/starburst.
+        open_u = Polygon([
+            (0, 0), (30, 0), (30, 22), (24.6, 22),
+            (24.6, 3.96), (5.4, 3.96), (5.4, 22), (0, 22),
+        ])
+        l_mass = unary_union((box(0, 0, 30, 6), box(0, 0, 7, 22)))
+
+        for polygon in (open_u, rotate(open_u, 23.0), l_mass):
+            evidence = evaluate_polygon_quality(polygon)
+            self.assertTrue(evidence["hard_pass"], evidence)
+            self.assertTrue(evidence["structured_outline"])
+            self.assertGreater(evidence["compactness"], 2.0)
+
     def test_hairline_sliver_is_a_hard_failure(self):
         sliver = box(0, 0, 100, 0.05)
         evidence = evaluate_polygon_quality(sliver)
@@ -53,6 +69,8 @@ class MaasPolygonQualityTest(SimpleTestCase):
         evidence = evaluate_polygon_quality(polygon)
         self.assertFalse(evidence["hard_pass"])
         self.assertIn("over_tortuous_mass_outline", evidence["failure_reasons"])
+        self.assertFalse(evidence["structured_outline"])
+        self.assertGreater(evidence["perimeter_excess_ratio"], 1.45)
 
     def test_invalid_self_intersection_is_repaired(self):
         bow_tie = Polygon([(0, 0), (12, 12), (0, 12), (12, 0), (0, 0)])
@@ -66,6 +84,80 @@ class MaasPolygonQualityTest(SimpleTestCase):
         self.assertFalse(evidence["hard_pass"])
         self.assertFalse(evidence["polygon_quality_hard_pass"])
         self.assertEqual(evidence["polygon_quality_failure_count"], 1)
+
+    def test_coherence_rejects_a_plate_floating_above_the_same_plan(self):
+        base = SourceVolume("dominant", box(0, 0, 12, 8), 0.0, 0.45, "extrude")
+        floating_plate = SourceVolume("canopy", box(2, 1, 10, 7), 0.62, 0.72, "cantilever")
+
+        evidence = evaluate_source_volume_coherence((base, floating_plate))
+
+        self.assertEqual(evidence["plan_component_count"], 1)
+        self.assertEqual(evidence["spatial_component_count"], 2)
+        self.assertFalse(evidence["spatial_connectivity"]["hard_pass"])
+        self.assertFalse(evidence["hard_pass"])
+
+    def test_coherence_accepts_a_volume_attached_in_plan_and_height(self):
+        base = SourceVolume("dominant", box(0, 0, 12, 8), 0.0, 0.62, "extrude")
+        attached = SourceVolume("upper", box(2, 1, 10, 7), 0.61, 0.82, "setback")
+
+        evidence = evaluate_source_volume_coherence((base, attached))
+
+        self.assertEqual(evidence["spatial_component_count"], 1)
+        self.assertTrue(evidence["spatial_connectivity"]["hard_pass"])
+        self.assertTrue(evidence["hard_pass"])
+
+    def test_coherence_rejects_topological_point_contact_without_architectural_bearing(self):
+        base = SourceVolume("dominant", box(0, 0, 12, 8), 0.0, 0.5, "extrude")
+        # Only a 0.2 x 0.2 bearing patch supports a broad upper plate.  The
+        # union is technically connected, but visually and structurally it is
+        # the same floating-fragment failure seen in the portfolio PNG.
+        upper = SourceVolume("upper_plate", box(11.8, 7.8, 20, 14), 0.5, 0.72, "cantilever")
+
+        evidence = evaluate_source_volume_coherence((base, upper))
+
+        self.assertEqual(evidence["spatial_component_count"], 2)
+        self.assertEqual(evidence["spatial_connectivity"]["weak_contact_count"], 1)
+        self.assertLess(
+            evidence["spatial_connectivity"]["weak_contacts"][0]["contact_strength"],
+            evidence["spatial_connectivity"]["weak_contacts"][0]["minimum_contact_strength"],
+        )
+        self.assertFalse(evidence["hard_pass"])
+
+    def test_recursive_mesh_proxy_subdivisions_do_not_fail_coherence(self):
+        samples = 500
+        coordinates = (
+            [(10.0 * index / samples, 0.0) for index in range(samples)]
+            + [(10.0, 10.0 * index / samples) for index in range(samples)]
+            + [(10.0 - 10.0 * index / samples, 10.0) for index in range(samples)]
+            + [(0.0, 10.0 - 10.0 * index / samples) for index in range(samples)]
+            + [(0.0, 0.0)]
+        )
+        tessellated_rectangle = Polygon(coordinates)
+        exact_proxy = SourceVolume(
+            "recursive_solid_primary",
+            tessellated_rectangle,
+            0.0,
+            1.0,
+            "geometry_program",
+        )
+        ordinary_authored_polygon = SourceVolume(
+            "ordinary",
+            tessellated_rectangle,
+            0.0,
+            1.0,
+            "extrude",
+        )
+
+        proxy_evidence = evaluate_source_volume_coherence((exact_proxy,))
+        authored_evidence = evaluate_source_volume_coherence((ordinary_authored_polygon,))
+
+        self.assertTrue(proxy_evidence["hard_pass"])
+        normalization = proxy_evidence["polygon_quality"][0]["proxy_tessellation_normalization"]
+        self.assertTrue(normalization["applied"])
+        self.assertEqual(normalization["source_vertex_count"], 2000)
+        self.assertEqual(normalization["evaluated_vertex_count"], 4)
+        self.assertTrue(normalization["source_geometry_unchanged"])
+        self.assertFalse(authored_evidence["hard_pass"])
 
     def test_folded_graph_materializes_non_flat_formal_surfaces(self):
         sequence = VerbSequence(

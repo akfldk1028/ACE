@@ -1,0 +1,18 @@
+{
+  "http_status": 200,
+  "run_count": 90,
+  "newest_run_title": "book-program-portfolios-r184-bounded-live-vlm-base-relative",
+  "run_node_count": 90,
+  "failed_run_selected": true,
+  "failed_run_mass_card_count": 0,
+  "replay_run_selected": true,
+  "replay_mass_card_count": 20,
+  "selected_mass_node_id": "executed:mass:book-program-portfolios-r182-seven-page-closure-pass:1:44ea87a42f8e",
+  "active_edge_count": 11,
+  "full_graph_count": 1,
+  "mass_only_card_count": 20,
+  "book_raster_dom_count": 0,
+  "console_errors": [],
+  "page_errors": [],
+  "pass": true
+}

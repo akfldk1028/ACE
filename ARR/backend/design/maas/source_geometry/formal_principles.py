@@ -98,6 +98,34 @@ def _clean_piece(role: str, geom, bottom: float, top: float, verb: str, *, clip:
     return SourceVolume(role, clipped, bottom, top, verb)
 
 
+def _continuous_field_proxy(geometry, *, clip: Polygon, min_area: float) -> Polygon | None:
+    """Build one clean occupancy proxy while retaining the exact surface graph.
+
+    A trunk plus two swept arms can leave tessellation notches and a tiny
+    enclosed ring after union. Those details belong to the profiled surface
+    specs, not to the legal/FAR proxy. Simplify with a scale-relative bound,
+    retain at least 97% of plan area, and always clip back to the host.
+    """
+    if geometry is None or geometry.is_empty:
+        return None
+    if isinstance(geometry, MultiPolygon):
+        geometry = max(geometry.geoms, key=lambda item: item.area)
+    if not isinstance(geometry, Polygon):
+        return None
+    filled = Polygon(geometry.exterior)
+    original_area = float(filled.area)
+    tolerance = min(0.75, max(0.05, original_area ** 0.5 * 0.018))
+    simplified = filled.simplify(tolerance, preserve_topology=True).intersection(clip)
+    if isinstance(simplified, MultiPolygon):
+        simplified = max(simplified.geoms, key=lambda item: item.area)
+    if not isinstance(simplified, Polygon) or simplified.area < min_area:
+        return filled.intersection(clip)
+    area_retention = float(simplified.area) / max(original_area, 1e-9)
+    if area_retention < 0.97 or area_retention > 1.03:
+        return filled.intersection(clip)
+    return simplified
+
+
 def _rect(role: str, clip: Polygon, x0: float, y0: float, x1: float, y1: float, bottom: float, top: float, verb: str, *, min_area: float) -> SourceVolume | None:
     return _clean_piece(role, box(x0, y0, x1, y1), bottom, top, verb, clip=clip, min_area=min_area)
 
@@ -349,9 +377,17 @@ def compile_formal_principle_volumes(
             # but union their conservative legal/FAR proxy into one volume.
             branch_pieces = [piece for piece in pieces if piece is not None]
             if branch_pieces:
+                raw_proxy = unary_union([piece.footprint for piece in branch_pieces])
+                proxy = _continuous_field_proxy(
+                    raw_proxy,
+                    clip=footprint,
+                    min_area=min_area,
+                )
+                if proxy is None:
+                    proxy = raw_proxy
                 merged = _clean_piece(
                     "primary_branched_ribbon_field",
-                    unary_union([piece.footprint for piece in branch_pieces]),
+                    proxy,
                     min(piece.bottom_fraction for piece in branch_pieces),
                     max(piece.top_fraction for piece in branch_pieces),
                     "bend",

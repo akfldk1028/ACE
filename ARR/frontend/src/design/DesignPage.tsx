@@ -7,6 +7,7 @@ import { useOptimizationStream } from './hooks/use-optimization-stream';
 import ControlPanel from './components/ControlPanel';
 import ConstraintSummary from './components/ConstraintSummary';
 import DatumInfoCard from './components/DatumInfoCard';
+import { MassExecutionPassportCard } from './components/MassExecutionPassportCard';
 import LegalBasisPanel from './components/LegalBasisPanel';
 import { SunlightSectionDiagram } from './components/SunlightSectionDiagram';
 import GenerationProgress from './components/GenerationProgress';
@@ -955,6 +956,14 @@ const DesignPage: React.FC = () => {
                     design={selectedDesign}
                     objectiveNames={stream.objectives.map(o => o.name)}
                     feature={selectedMassGeojson}
+                  />
+                  <MassExecutionPassportCard
+                    value={selectedMassGeojson?.properties?.mass_execution_passport}
+                    title={String(
+                      selectedMassGeojson?.properties?.variant_id
+                      || selectedMassGeojson?.properties?.mass_shape
+                      || `MASS ${selectedDesign.id}`
+                    )}
                   />
                   {/* 평면 생성 버튼 */}
                   {stream.paretoGeojson?.length > 0 && (

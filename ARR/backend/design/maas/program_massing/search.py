@@ -238,11 +238,21 @@ def _select_diverse_archive(
         selected_step_anchors = sum(1 for item in selected if _is_step_anchor(item))
         step_anchors_needed = max(0, minimum_step_anchors - selected_step_anchors)
         remaining_slots = target_count - len(selected)
-        if step_anchors_needed >= remaining_slots:
+        # Quotas are archive invariants, not late score bonuses. Waiting until
+        # ``needed >= remaining_slots`` allowed early rectilinear winners to
+        # consume topology/principle capacity and made a 12-form sculptural
+        # supply unreachable near the end. Reserve the scarce categories from
+        # the start while all geometry-distance and repetition caps still
+        # apply.
+        if step_anchors_needed > 0:
             step_eligible = [item for item in eligible if _is_step_anchor(item)]
+            if sculptural_needed > 0:
+                joint_eligible = [item for item in step_eligible if _is_sculptural(item)]
+                if joint_eligible:
+                    step_eligible = joint_eligible
             if step_eligible:
                 eligible = step_eligible
-        elif sculptural_needed >= remaining_slots:
+        elif sculptural_needed > 0:
             sculptural_eligible = [item for item in eligible if _is_sculptural(item)]
             if sculptural_eligible:
                 eligible = sculptural_eligible

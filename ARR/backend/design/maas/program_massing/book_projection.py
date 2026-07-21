@@ -9,11 +9,17 @@ The note is a typed compiler boundary, not a name-based geometry shortcut.
 from __future__ import annotations
 
 from collections.abc import Iterable
+from math import copysign
 
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.grammar.vocab import AGGREGATION_VERBS, BOOK_BASE_VERBS
 from design.maas.grammar.parameter_schema import CATEGORICAL_PARAMETER_VALUES, PARAMETER_BOUNDS, PARAMETERS_BY_VERB, bounded_parameter
 from design.maas.book_language.semantics import semantics_for
+from design.maas.book_language.variation_lattice import (
+    book_variation_indices,
+    categorical_variation_index,
+    variation_fraction,
+)
 from .book_scope import BOOK_SCOPE_VERB, BookProjectionScope, projection_scope
 from .section_graph import (
     mutate_program_section_graph_for_book,
@@ -95,18 +101,17 @@ def book_projection_scope(sequence: VerbSequence) -> BookProjectionScope:
 
 
 def _typed_variant(verb: str, index: int, *, active_parameters: frozenset[str] | None) -> VerbCall:
-    fractions = (0.34, 0.50, 0.66, 0.42, 0.58)
     params: dict[str, object] = {}
     for name in PARAMETERS_BY_VERB.get(verb, ()):
         active = active_parameters is None or name in active_parameters
         if name in CATEGORICAL_PARAMETER_VALUES:
             values = CATEGORICAL_PARAMETER_VALUES[name]
-            params[name] = values[index % len(values)] if active else values[0]
+            params[name] = values[categorical_variation_index(name, index, len(values))] if active else values[0]
             continue
         if name not in PARAMETER_BOUNDS:
             continue
         low, high = PARAMETER_BOUNDS[name]
-        fraction = fractions[index % len(fractions)] if active else 0.50
+        fraction = variation_fraction(name, index) if active else 0.50
         params[name] = bounded_parameter(name, low + (high - low) * fraction)
     return VerbCall(verb, params)
 
@@ -120,27 +125,83 @@ def book_operation_variants(verb: str, *, count: int = 3) -> tuple[VerbCall, ...
     """
     if verb not in BOOK_BASE_VERBS:
         raise ValueError(f"unknown BOOK base operative: {verb}")
-    count = max(1, min(5, int(count)))
     semantics = semantics_for(verb)
     variation_parameters = frozenset(semantics.variation_parameters)
-    return tuple(_typed_variant(verb, index, active_parameters=variation_parameters) for index in range(count))
+    return tuple(
+        _typed_variant(verb, index, active_parameters=variation_parameters)
+        for index in book_variation_indices(count)
+    )
+
+
+def _relational_repeat_variant(previous: VerbCall, candidate: VerbCall) -> VerbCall:
+    """Keep a repeated typed move distinct without cancelling its parent."""
+
+    params = dict(candidate.params)
+    if candidate.verb in {"split", "fracture"} and params.get("axis") in {"x", "y"}:
+        # BOOK p.40 is a recursive split of one child branch, not two
+        # orthogonal full-body cuts.  Keep the parent's axis; the recursive
+        # solid lowering selects one of the resulting half-width branches.
+        params["axis"] = previous.params.get("axis", params["axis"])
+    if candidate.verb == "inscribe":
+        # p.39 repeats one open inscription concentrically. Changing facade
+        # on the second pass cuts off a corner instead of forming the source
+        # diagram's parallel nested grooves.
+        params["open_side"] = previous.params.get("open_side", "closed")
+    for name, prior_raw in previous.params.items():
+        bounds = PARAMETER_BOUNDS.get(name)
+        current_raw = params.get(name)
+        if not bounds or bounds[0] >= 0.0 or bounds[1] <= 0.0:
+            continue
+        if not isinstance(prior_raw, (int, float)) or not isinstance(current_raw, (int, float)):
+            continue
+        prior = float(prior_raw)
+        current = float(current_raw)
+        if abs(prior) <= 1e-9:
+            continue
+        magnitude = abs(current)
+        if magnitude <= 1e-9 or abs(magnitude - abs(prior)) <= 1e-9:
+            magnitude = abs(prior) * 0.65
+        params[name] = bounded_parameter(name, copysign(magnitude, prior))
+    return VerbCall(candidate.verb, params)
 
 
 def book_sentence_variants(verbs: Iterable[str], *, count: int = 1) -> tuple[tuple[VerbCall, ...], ...]:
-    """Materialize a BOOK execution sentence in its recorded operation order."""
+    """Materialize a BOOK execution sentence in its recorded operation order.
+
+    A repeated operative is a relation, not the same modifier replayed with
+    identical controls.  Offset later occurrences through the same typed
+    parameter lattice so ``bend+bend`` and ``split+split`` produce a second
+    bounded move while remaining reproducible and schema-driven.
+    """
     execution = tuple(str(verb) for verb in verbs)
     unsupported = [verb for verb in execution if verb not in BOOK_EXECUTABLE_VERBS]
     if not execution or unsupported:
         raise ValueError(f"invalid BOOK execution sentence: {unsupported or execution}")
-    count = max(1, min(3, int(count)))
     result: list[tuple[VerbCall, ...]] = []
-    for index in range(count):
+    repeated_verbs = {verb for verb in execution if execution.count(verb) > 1}
+    for index in book_variation_indices(count):
         calls = []
+        occurrences: dict[str, int] = {}
+        previous_by_verb: dict[str, VerbCall] = {}
         for verb in execution:
             active = frozenset(semantics_for(verb).variation_parameters) if verb in BOOK_BASE_VERBS else None
-            calls.append(_typed_variant(verb, index, active_parameters=active))
+            occurrence = occurrences.get(verb, 0)
+            occurrences[verb] = occurrence + 1
+            call = _typed_variant(
+                verb,
+                index + occurrence * 2,
+                active_parameters=active,
+            )
+            if verb == "split" and verb in repeated_verbs:
+                params = dict(call.params)
+                params["bridge_ratio"] = max(0.32, float(params.get("bridge_ratio", 0.0)))
+                call = VerbCall(verb, params)
+            if occurrence:
+                call = _relational_repeat_variant(previous_by_verb[verb], call)
+            previous_by_verb[verb] = call
+            calls.append(call)
         result.append(tuple(calls))
     return tuple(result)
 
 
-__all__ = ["BOOK_EXECUTABLE_VERBS", "BOOK_PROJECTION_NOTE", "book_operation_variants", "book_projection_calls", "book_projection_scope", "book_sentence_variants", "compose_program_with_book_operations"]
+__all__ = ["BOOK_EXECUTABLE_VERBS", "BOOK_PROJECTION_NOTE", "book_operation_variants", "book_projection_calls", "book_projection_scope", "book_sentence_variants", "book_variation_indices", "compose_program_with_book_operations"]

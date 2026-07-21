@@ -315,6 +315,79 @@ def record_proposal_feedback(
         return {"status": "unavailable_fail_open", "error": str(exc)}
 
 
+def publish_geometry_portfolio_shadow(
+    *,
+    project_key: str,
+    source_sequences: Iterable[VerbSequence],
+    source_features_by_sequence: dict[str, dict[str, Any]],
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Publish exact compiled portfolio traces without changing selection.
+
+    Unlike ``request_shadow_sequences`` this endpoint performs no proposal
+    generation.  It gives the graph service the exact AST/compiler/VLM/hard-
+    gate evidence that ARR already used, while ARR remains the authority for
+    geometry and final selection.
+    """
+    # Final recursive artifacts can share the same legacy VerbCall sequence
+    # while carrying different AST/program/geometry hashes.  The proposal lane
+    # intentionally deduplicates such flat sequences; the evidence lane must
+    # not, or twenty distinct compiled solids collapse back into one graph
+    # record.  Trace identity is the caller-provided unique sequence name,
+    # backed by the artifact hashes below.
+    sequences: list[VerbSequence] = []
+    seen_names: set[str] = set()
+    for sequence in source_sequences:
+        if not sequence.calls or sequence.validate() or sequence.name in seen_names:
+            continue
+        seen_names.add(sequence.name)
+        sequences.append(sequence)
+        if len(sequences) >= 64:
+            break
+    if not sequences:
+        return {
+            "schema_version": "arr.maas.mass_brain_geometry_trace.v1",
+            "status": "empty",
+            "project_key": project_key,
+            "source_count": 0,
+        }
+    envelope = _build_envelope(
+        project_key,
+        sequences,
+        context={**dict(context or {}), "selectionEffect": "none_shadow_only"},
+        source_features_by_sequence=source_features_by_sequence,
+    )
+    artifact_count = sum(
+        isinstance(payload.get("geometryArtifact"), dict)
+        for payload in envelope["domainPayloads"].values()
+    )
+    try:
+        response = config.mass_brain_client.post("/v1/contracts/ingest", json=envelope)
+        response.raise_for_status()
+        result = response.json()
+        return {
+            "schema_version": "arr.maas.mass_brain_geometry_trace.v1",
+            "status": "published_shadow_only",
+            "project_key": project_key,
+            "source_count": len(sequences),
+            "geometry_artifact_count": artifact_count,
+            "selection_effect": "none_shadow_only",
+            "response": result if isinstance(result, dict) else {},
+        }
+    except (httpx.HTTPError, ValueError, TypeError) as exc:
+        response = getattr(exc, "response", None)
+        detail = response.text[:2000] if response is not None else ""
+        return {
+            "schema_version": "arr.maas.mass_brain_geometry_trace.v1",
+            "status": "unavailable_fail_open",
+            "project_key": project_key,
+            "source_count": len(sequences),
+            "geometry_artifact_count": artifact_count,
+            "selection_effect": "none_shadow_only",
+            "error": f"{exc}{': ' + detail if detail else ''}",
+        }
+
+
 def _build_envelope(
     project_key: str,
     sequences: list[VerbSequence],
@@ -395,6 +468,9 @@ def _build_envelope(
                 ],
             },
         }
+        geometry_artifact = _geometry_artifact_from_feature(source_feature)
+        if geometry_artifact:
+            payloads[feature_id]["geometryArtifact"] = geometry_artifact
     circuits = []
     relations = []
     for index, (source, target) in enumerate(_sparse_relation_pairs(feature_ids, payloads)):
@@ -438,6 +514,52 @@ def _build_envelope(
         },
         "domainPayloads": payloads,
     }
+
+
+def _geometry_artifact_from_feature(feature: dict[str, Any] | None) -> dict[str, Any]:
+    """Extract the exact executable trace; never infer geometry from notes."""
+    props = feature.get("properties") if isinstance(feature, dict) and isinstance(feature.get("properties"), dict) else {}
+    explicit = props.get("geometry_artifact")
+    if isinstance(explicit, dict):
+        return deepcopy_json(explicit)
+    program = props.get("geometry_program")
+    compilation = props.get("geometry_program_compilation")
+    graph = props.get("geometry_graph_snapshot")
+    program_relations = props.get("program_component_relation_evidence")
+    if not isinstance(program, dict) or not program:
+        return {}
+    compilation = compilation if isinstance(compilation, dict) else {}
+    graph = graph if isinstance(graph, dict) else {}
+    final_vlm = props.get("final_book_vlm_audit")
+    program_evidence = props.get("program_massing_evidence")
+    clean_evidence = props.get("source_signature")
+    return {
+        "schemaVersion": "arr.maas.geometry_artifact.v1",
+        "authority": "arr_recursive_geometry_program",
+        "geometryProgram": deepcopy_json(program),
+        "geometryGraphSnapshot": deepcopy_json(graph),
+        "programRelationEvidence": (
+            deepcopy_json(program_relations)
+            if isinstance(program_relations, dict)
+            else {}
+        ),
+        "compilation": deepcopy_json(compilation),
+        "identity": {
+            "programHash": str(compilation.get("program_hash") or ""),
+            "geometryHash": str(compilation.get("geometry_hash") or ""),
+        },
+        "vlmAudit": deepcopy_json(final_vlm) if isinstance(final_vlm, dict) else {},
+        "hardGates": {
+            "program": deepcopy_json(program_evidence) if isinstance(program_evidence, dict) else {},
+            "cleanMass": deepcopy_json(clean_evidence.get("coherence_evidence") or {}) if isinstance(clean_evidence, dict) else {},
+        },
+        "selectionEffect": "none_shadow_only",
+    }
+
+
+def deepcopy_json(value: Any) -> Any:
+    """Detach JSON-compatible artifacts without importing geometry objects."""
+    return json.loads(json.dumps(value, ensure_ascii=False, default=str))
 
 
 def _evaluated_parent_evidence(
@@ -660,6 +782,7 @@ __all__ = [
     "MassBrainSequenceBatch",
     "MassBrainShadowBatch",
     "mass_brain_config",
+    "publish_geometry_portfolio_shadow",
     "record_shadow_outcomes",
     "record_proposal_feedback",
     "request_shadow_sequences",

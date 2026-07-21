@@ -18,6 +18,7 @@ from shapely.geometry import Point, Polygon
 from shapely.ops import unary_union
 
 from design.maas.legal_envelope import build_legal_envelope
+from design.maas.geometry_language.execution_passport import enrich_mass_execution_passport
 from design.maas.parking_requirements import (
     load_parking_requirement_rules,
     resolve_candidate_parking_requirement,
@@ -470,6 +471,57 @@ def _evaluate_candidate(
 
     legal_hard_pass = not legal_failures
     parking_hard_pass = not parking_failures
+    legal_projection = {
+        "evaluated": True,
+        "hard_pass": legal_hard_pass,
+        "failure_reasons": legal_failures,
+        "source_volume_count": len(source.volumes),
+        "projected_volume_count": len(projected),
+        "clipped_volume_count": clipped_volume_count,
+        "volume_retention": round(retention, 4),
+        "weighted_plan_iou": round(weighted_iou, 4),
+        "geometry_retention_pass": geometry_retention_pass,
+        "geometry_failure_reasons": geometry_failures,
+    }
+    parking_hard_gate = {
+        "evaluated": True,
+        "hard_pass": parking_hard_pass,
+        "failure_reasons": parking_failures,
+        "requirement": requirement,
+        "selected_strategy": strategy.get("selected_strategy"),
+        "layout_status": layout.get("status"),
+        "required_spaces": required,
+        "provided_spaces": provided,
+    }
+    initial_passport = source.metadata.get("mass_execution_passport") or (
+        source.metadata.get("geometry_program_compilation") or {}
+    ).get("execution_passport") or {}
+    mass_execution_passport = (
+        enrich_mass_execution_passport(
+            initial_passport,
+            downstream_evidence={
+                "site": {
+                    **dict(source.metadata.get("legal_generation_context_evidence") or {}),
+                    "status": "passed",
+                    "pnu": pnu,
+                },
+                "capacity": {
+                    **dict(source.metadata.get("capacity_alternative_projection") or {}),
+                    "measurement": dict(source.metadata.get("source_capacity_measurement") or {}),
+                    "evaluated": bool(
+                        source.metadata.get("capacity_alternative_projection")
+                        or source.metadata.get("source_capacity_measurement")
+                    ),
+                    "hard_pass": (source.metadata.get("source_capacity_measurement") or {}).get("hard_pass"),
+                },
+                "law": legal_projection,
+                "parking": parking_hard_gate,
+                "program_fit": dict(source.metadata.get("program_massing_evidence") or {}),
+            },
+        )
+        if initial_passport
+        else {}
+    )
     return {
         "variant_id": str(candidate.feature.get("properties", {}).get("variant_id") or candidate.sequence.name),
         "source_sequence": candidate.sequence.name,
@@ -481,26 +533,9 @@ def _evaluate_candidate(
         "legal_generation_context_evidence": source.metadata.get("legal_generation_context_evidence") or {},
         "original_metrics": original_metrics,
         "projected_metrics": projected_metrics,
-        "legal_projection": {
-            "hard_pass": legal_hard_pass,
-            "failure_reasons": legal_failures,
-            "source_volume_count": len(source.volumes),
-            "projected_volume_count": len(projected),
-            "clipped_volume_count": clipped_volume_count,
-            "volume_retention": round(retention, 4),
-            "weighted_plan_iou": round(weighted_iou, 4),
-            "geometry_retention_pass": geometry_retention_pass,
-            "geometry_failure_reasons": geometry_failures,
-        },
-        "parking_hard_gate": {
-            "hard_pass": parking_hard_pass,
-            "failure_reasons": parking_failures,
-            "requirement": requirement,
-            "selected_strategy": strategy.get("selected_strategy"),
-            "layout_status": layout.get("status"),
-            "required_spaces": required,
-            "provided_spaces": provided,
-        },
+        "legal_projection": legal_projection,
+        "parking_hard_gate": parking_hard_gate,
+        "mass_execution_passport": mass_execution_passport,
         "combined_hard_pass": bool(legal_hard_pass and geometry_retention_pass and parking_hard_pass),
     }
 

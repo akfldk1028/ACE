@@ -1,0 +1,148 @@
+{
+  "schema_version": "arr.maas.mass_flow_memory.v1",
+  "updated_at": "2026-07-21T13:36:00+09:00",
+  "run_id": "book-program-portfolios-r182-seven-page-closure-pass",
+  "status": "numeric_pass_visual_review_required",
+  "parametric_invariant": {
+    "authority": "evaluated_base_model_or_current_solid",
+    "coordinate_frame": "local_bounds_axes_faces_and_topology",
+    "absolute_completed_form_hardcoding_allowed": false,
+    "dimensionless_named_sampling_policy_allowed": true,
+    "attach_parameter_space": "host_face_normalized.v1"
+  },
+  "frontend_url": "http://127.0.0.1:5175/design/language",
+  "pnu": "1168011800104170004",
+  "program": "neighborhood_living",
+  "selected_count": 20,
+  "target_count": 20,
+  "geometry_replenishment": {
+    "actual_program_pages": true,
+    "cycle_count": 7,
+    "selected_counts": [16, 18, 18, 19, 19, 19, 20],
+    "selection_pool_counts": [419, 459, 476, 488, 493, 498, 499],
+    "capacity_target_pass_count": 177,
+    "quality_gate_relaxation": false
+  },
+  "language_coverage": {
+    "base_volume_scope_count": 6,
+    "book_operation_count": 14,
+    "book_principle_kind_counts": {
+      "base_operative": 13,
+      "combination": 2,
+      "aggregation": 1,
+      "case_study": 4
+    },
+    "visual_language_count": 20,
+    "near_duplicate_pair_count": 0
+  },
+  "capacity_alternative_counts": {
+    "spatial_reserve": 11,
+    "balanced_yield": 5,
+    "brief_target": 3,
+    "maximum_feasible": 1
+  },
+  "site_legal": {
+    "source": "live_pnu_zone_regulation_calculator",
+    "parcel_area_m2": 264.126,
+    "generation_host_area_m2": 102.931,
+    "zone": "제2종일반주거지역",
+    "bcr_limit_pct": 60.0,
+    "far_limit_pct": 250.0,
+    "adjacent_setback_m": 0.5,
+    "landscaping_min_pct": 15.0,
+    "sunlight_field_materialized": true,
+    "parcel_geometry_used_for_fit": true,
+    "absolute_coordinates_used_for_program_authoring": false,
+    "combined_hard_pass_count": 20,
+    "approval_grade_verified": false
+  },
+  "parking": {
+    "source": "local_structured_seed",
+    "neo4j_enrichment": "not_requested",
+    "hard_pass_count": 20,
+    "approval_grade_verified": false
+  },
+  "vlm": {
+    "live_requested": false,
+    "portfolio_status": "not_requested",
+    "archdaily_corpus": {
+      "collection_count": 13,
+      "project_count": 313,
+      "image_count": 375
+    },
+    "selected_mass_retrieved_reference_count": 5,
+    "actual_submitted_reference_count": 0,
+    "paid_request_count": 0,
+    "vlm_approved": false
+  },
+  "chronological_archive": {
+    "frontend_url": "http://127.0.0.1:5175/design/language",
+    "single_graph_authority": true,
+    "run_count": 90,
+    "newest_run_id": "book-program-portfolios-r184-bounded-live-vlm-base-relative",
+    "newest_run_selected_count": 0,
+    "newest_run_status": "completed_without_selected_mass",
+    "replayable_run_id": "book-program-portfolios-r182-seven-page-closure-pass",
+    "replayable_mass_count": 20,
+    "newest_first_left_to_right": true,
+    "mass_only_tab": true,
+    "book_raster_used_as_mass_evidence": false
+  },
+  "r184_bounded_live_vlm": {
+    "paid_request_count": 24,
+    "selected_count": 0,
+    "target_count": 20,
+    "status": "failed_no_final",
+    "input_policy": "actual_mass_render_plus_small_relevant_reference_set"
+  },
+  "program_controller_authority": {
+    "book_language_and_program_controller_are_distinct": true,
+    "book_split_can_satisfy_program_controller": false,
+    "use_specific_controller_requires_explicit_program_provenance": true
+  },
+  "multi_agent_architecture": {
+    "shared_control_plane": "ARR/backend/agents",
+    "shared_memory": "ARR/backend/agents/memory",
+    "template_structure": "ARR/backend/agents/elevationAgent",
+    "mass_domain_engine": "ARR/backend/design/maas",
+    "future_mass_agent": "ARR/backend/agents/massAgent",
+    "copy_private_agent_identity_or_history": false,
+    "handoff_keys": [
+      "run_id",
+      "program_hash",
+      "geometry_hash",
+      "pnu",
+      "artifact_url",
+      "gate_state",
+      "vlm_state"
+    ]
+  },
+  "frontend_verification": {
+    "status": "pass",
+    "graph_count": 1,
+    "executed_mass_node_count": 20,
+    "gallery_image_loaded_count": 20,
+    "selected_mass_image_loaded": true,
+    "book_raster_request_count": 0,
+    "book_raster_dom_count": 0,
+    "console_error_count": 0,
+    "page_error_count": 0,
+    "chronological_run_count": 90,
+    "mass_archive_card_count": 20,
+    "failed_run_truth_visible": true,
+    "vlm_claim_when_not_evaluated": false
+  },
+  "direct_visual_review": {
+    "status": "needs_refinement",
+    "connected_solid_count": 20,
+    "known_issue": "MASS 17 is connected but its layered pinch silhouette reads as floating from the archive camera"
+  },
+  "evidence": {
+    "summary_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r182-seven-page-closure-pass/maas-book-programs-summary.json",
+    "board_png": "docs/playwright/design-route-live-verify/book-program-portfolios-r182-seven-page-closure-pass/maas-book-neighborhood-20.png",
+    "browser_verify_json": "docs/playwright/design-route-live-verify/r182-single-graph-ui-final-images/verify.json",
+    "browser_full_graph_png": "docs/playwright/design-route-live-verify/r182-single-graph-ui-final-images/full-graph.png",
+    "chronological_archive_verify_json": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/verify-chronological-archive.json",
+    "chronological_archive_png": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/chronological-mass-archive.png"
+  }
+}

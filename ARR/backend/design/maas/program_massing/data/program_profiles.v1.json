@@ -47,10 +47,17 @@
       "id": "gymnasium",
       "aliases": ["체육관", "운동시설", "gymnasium", "gym", "sports hall"],
       "design_intent": "one clear long-span hall volume with a subordinate entry/service bar and daylight roof expression",
+      "geometry_language_contract": {
+        "allowed_macro_operators": ["profiled_hall", "carve_void", "notch", "lift", "cantilever", "attach_volume", "bridge", "terrace", "cut_corner"],
+        "required_macro_operators_all": ["profiled_hall"],
+        "requires_access_bound_relation": true
+      },
       "reference_search": {
         "preferred_collections": ["sports_architecture"],
         "required_any_terms": ["gym", "gymnasium", "sports", "sporting", "athletic", "arena", "recreation", "training", "club", "stadium", "natatorium", "swimming", "fitness", "pilates", "sports court", "boathouse"],
         "supporting_terms": ["long span", "hall", "clear span", "court", "roof", "daylight", "monitor", "service spine", "entry"],
+        "excluded_scale_typologies": ["highrise_tower"],
+        "preferred_primary_typologies": ["sports", "education"],
         "minimum_program_specific_images": 3
       },
       "semantic_invariants": [
@@ -110,10 +117,17 @@
       "id": "cultural",
       "aliases": ["문화시설", "집회시설", "전시장", "미술관", "museum", "cultural"],
       "design_intent": "public sequence of carved halls, courts, ramps, and one civic-scale dominant gesture",
+      "geometry_language_contract": {
+        "allowed_macro_operators": ["courtyard", "carve_void", "notch", "setback", "terrace", "cantilever", "bridge", "grid_mass", "cross_mass", "bent_bar", "split_wing", "attach_volume", "lift", "puncture", "cut_corner", "stepped_mass"],
+        "required_macro_operators_any": ["courtyard", "carve_void", "notch", "lift", "split_wing"],
+        "requires_access_bound_relation": true
+      },
       "reference_search": {
         "preferred_collections": ["cultural_architecture"],
         "required_any_terms": ["museum", "gallery", "cultural", "exhibition", "art", "arts", "library", "theatre", "theater", "archive", "visitor center", "civic"],
         "supporting_terms": ["gallery sequence", "controlled daylight", "atrium", "court", "ramp", "public hall", "rooflight", "service"],
+        "excluded_scale_typologies": ["highrise_tower"],
+        "preferred_primary_typologies": ["cultural", "education"],
         "minimum_program_specific_images": 3
       },
       "semantic_invariants": [
@@ -134,10 +148,30 @@
       "id": "neighborhood_living",
       "aliases": ["근린생활시설", "근린생활", "근생", "neighborhood living", "neighborhood commercial"],
       "design_intent": "compact capacity-aware street building with an active ground edge, one clear public void or terrace, and calm upper massing",
+      "geometry_language_contract": {
+        "allowed_macro_operators": ["courtyard", "carve_void", "notch", "setback", "terrace", "cantilever", "bridge", "grid_mass", "cross_mass", "bent_bar", "split_wing", "attach_volume", "lift", "puncture", "cut_corner", "stepped_mass"],
+        "required_macro_operators_any": ["courtyard", "carve_void", "notch", "lift", "split_wing"],
+        "requires_access_bound_relation": true,
+        "public_space_operators": ["courtyard", "split_wing"],
+        "public_threshold_parameters": {
+          "courtyard_margin_ratio": [0.18, 0.24],
+          "notch_depth_ratio": [0.28, 0.40],
+          "notch_width_ratio": [0.38, 0.55],
+          "notch_height_ratio": [0.58, 0.82],
+          "lift_rise_ratio": [0.22, 0.30],
+          "lift_support_ratio": [0.10, 0.12],
+          "split_gap_ratio": [0.18, 0.24],
+          "split_ground_spine_width_ratio": [0.22, 0.30],
+          "split_ground_spine_height_ratio": [0.16, 0.22]
+        }
+      },
       "reference_search": {
-        "preferred_collections": ["cafes_restaurants", "mixed_use", "offices"],
+        "preferred_collections": ["neighborhood_architecture", "cafes_restaurants", "mixed_use", "offices"],
         "required_any_terms": ["cafe", "restaurant", "retail", "shop", "commercial", "mixed use", "community", "market", "neighborhood", "studio", "office"],
         "supporting_terms": ["active frontage", "street edge", "public threshold", "terrace", "courtyard", "mixed program", "pedestrian"],
+        "excluded_terms": ["skyscraper", "high rise", "high-rise", "tallest tower", "office tower", "meter tall"],
+        "excluded_scale_typologies": ["highrise_tower", "large_span_hall"],
+        "preferred_primary_typologies": ["retail_hospitality", "mixed_use", "cultural"],
         "minimum_program_specific_images": 3
       },
       "semantic_invariants": [

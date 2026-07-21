@@ -12,22 +12,29 @@ import json
 import hashlib
 import os
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
 from dataclasses import dataclass, replace
-from math import pi, sqrt
+from math import atan2, cos, degrees, hypot, pi, sin, sqrt
 from pathlib import Path
 from time import perf_counter
 from typing import Any
 
 from PIL import Image
 from shapely.errors import GEOSException
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, mapping, shape
 
 from design.maas.geometry_language import (
     GeometryOutcomeGraph,
     GeometryProgram,
+    GeometryAuthorError,
+    audit_reference_matches_for_massing,
+    author_geometry_programs_with_openai,
+    build_geometry_graph_notes,
+    build_geometry_graph_snapshot,
     apply_book_projection_to_geometry_program,
     apply_geometry_edits,
+    apply_geometry_edits_compiler_safe,
     architectural_shape_programs,
     reference_language_programs,
     replace_source_dominant_with_geometry_program,
@@ -36,8 +43,13 @@ from design.maas.geometry_language import (
     run_geometry_program_a2a_loop,
     synthesize_architectural_programs,
     synthesis_requests_from_program_profile,
+    compile_geometry_program_to_source_mass,
+    compile_geometry_program,
 )
+from design.maas.geometry_language.gate import GeometryGatePolicy, compilation_gate
+from design.maas.capacity_policy import resolve_massing_capacity_policy
 from design.maas.grammar.verb_sequence import VerbSequence
+from design.maas.mass_brain import publish_geometry_portfolio_shadow
 from design.maas.program_massing import (
     ProgramSectionGraphEdit,
     book_sentence_variants,
@@ -56,7 +68,35 @@ from design.maas.program_massing.morphology import (
 )
 from design.maas.program_massing.scoring import attach_program_massing_evidence
 from design.maas.program_massing.search import program_seed_variants, source_feature
+from design.maas.preference.loop import feature_preview_png, openai_preview_preference_scorer
+from design.maas.preference.vlm_scorer import score_portfolio_board_with_openai_vlm
 from design.maas.source_geometry import compile_sequence_to_source_mass
+from design.maas.book_language.mass_passport_bridge import selected_candidate_execution_passport
+
+
+def default_outcome_graph_path(pnu: str) -> Path:
+    """Return the cross-run portable memory for one parcel.
+
+    Diagnostic output directories are intentionally disposable.  Keeping the
+    causal graph below one of those directories made every new benchmark start
+    without the previous VLM failures and typed repairs.  The default is now a
+    PNU-keyed cache at repository scope; callers may still supply an explicit
+    path (for isolated ablations or controlled experiments).
+    """
+    configured_dir = os.getenv("MAAS_OUTCOME_GRAPH_DIR", "").strip()
+    base_dir = (
+        Path(configured_dir).resolve()
+        if configured_dir
+        else Path(__file__).resolve().parents[5]
+        / "docs"
+        / "ai-session-memory"
+        / "maas-cache"
+        / "outcome-graphs"
+    )
+    safe_pnu = "".join(character for character in str(pnu) if character.isalnum() or character in "-_")
+    if not safe_pnu:
+        safe_pnu = hashlib.sha256(str(pnu).encode("utf-8")).hexdigest()[:20]
+    return base_dir / f"pnu-{safe_pnu}.json"
 
 from .registry import build_book_language_registry
 from .semantics import BASE_VOLUME_FRACTIONS
@@ -67,918 +107,102 @@ from .downstream_hard_gate import (
     fit_source_to_sunlight_field,
     generation_site_at_height,
 )
+from .capacity_contract import (
+    build_feasible_capacity_contract,
+    measure_source_capacity,
+    recursive_plan_coverage_floor,
+)
+from .lineage import gate_descendants_by_base, lineage_record, staged_principle_schedule
 
 
-PROGRAMS = (
-    ("neighborhood", "근린생활시설", 15.0, 5),
-    ("gymnasium", "체육관", 18.0, 3),
-    ("cultural", "미술관", 15.0, 4),
+from .candidate_analysis import (
+    _Candidate,
+    _distance,
+    _silhouette_distance,
+    _scope_key,
+    _capacity_alternative_key,
+    _seed_family,
+    _section_family,
+    _roof_archetype,
+    _chassis_family,
+    _geometry_program_family,
+    _geometry_program_metadata,
+    _plan_family,
+    _vlm_reviewed_program_candidate,
+    _llm_authored_candidate,
+    _seed_is_llm_authored,
+    _solid_morphology_metrics,
+    _section_silhouette_flags,
+    _program_form_gate,
+    _architectural_articulation_metrics,
+    _design_concept_descriptor,
+    _program_section_phenotype,
+    _oriented_aspect,
+    _oriented_plan_dimensions,
+    _program_dimensional_context,
+    _fingerprint,
+    _inside_site,
+    _clean_mass_gate,
+    _site_access_side_in_principal_frame,
+)
+
+from .portfolio_selection import (
+    _scope_coverage_anchors,
+    _select,
+    _selection_capacity_diagnostics,
+    _rebalance_measured_morphologies,
+    _bounded_visual_selection_pool,
+    _target_hard_pass_universe,
+)
+
+from .gate_diagnostics import (
+    _empty_gate_diagnostic,
+    _record_gate_diagnostic,
+    _metric_summary,
+    _summarize_gate_diagnostic,
+    _merge_gate_diagnostics,
+)
+
+from .program_catalog import PROGRAMS
+from .portfolio_feedback import enrich_portfolio_vlm_feedback
+from .final_vlm_cycle import run_final_vlm_cycle
+from .portfolio_replenishment import (
+    replenishment_cycle_budget_for_run,
+    replenishment_stop_reason,
+    run_replenishment_cycle,
+)
+from .reference_context import (
+    _audited_final_book_references,
+    _reference_language_author_context,
+)
+
+from .candidate_generation import (
+    _agent_mutated_seeds,
+    _prebook_vlm_quarantined_llm_parents,
+    _geometry_program_registry,
+    _materialize_directed_geometry,
+    _program_pool,
+)
+
+from .vlm_review import (
+    _final_book_vlm_hard_pass,
+    _final_book_vlm_shortlist,
+    _audit_final_book_geometry_with_vlm,
+    audit_book_base_stage_with_vlm,
+    _repair_exact_post_book_candidates_from_vlm,
+    _exact_post_book_repair_shortlist,
 )
 
 
-@dataclass(frozen=True)
-class _Candidate:
-    principle_id: str
-    principle_kind: str
-    operation: str
-    sequence: VerbSequence
-    source: Any
-    feature: dict[str, Any]
-    score: float
-
-
-def _distance(left: _Candidate, right: _Candidate) -> float:
-    volume, plan = intrinsic_shape_distance(left.source, right.source)
-    return min(1.0, float(volume) * 0.72 + float(plan) * 0.28)
-
-
-def _silhouette_distance(left: _Candidate, right: _Candidate) -> float:
-    visual = float(intrinsic_silhouette_distance(left.source, right.source))
-    left_recursive = bool((left.source.metadata.get("geometry_program_bridge_evidence") or {}).get("status") == "materialized")
-    right_recursive = bool((right.source.metadata.get("geometry_program_bridge_evidence") or {}).get("status") == "materialized")
-    if left_recursive or right_recursive:
-        # The full manifold mesh already contributes top/front/side surfaces.
-        # Mixing in the legacy seed's section controls made genuinely distinct
-        # recursive solids appear 50% identical and collapsed selection.
-        return visual
-    section = float(intrinsic_section_profile_distance(left.source, right.source))
-    left_section = left.source.metadata.get("program_section_graph_evidence") or {}
-    right_section = right.source.metadata.get("program_section_graph_evidence") or {}
-    has_profiles = bool(
-        isinstance(left_section, dict) and left_section.get("materialized_nodes")
-        and isinstance(right_section, dict) and right_section.get("materialized_nodes")
+def _partition_replenishment_vlm_candidates(
+    retained_hard_passes: list[_Candidate],
+    new_candidates: list[_Candidate],
+) -> tuple[list[_Candidate], list[_Candidate]]:
+    """Keep prior exact passes out of the new-candidate VLM review pool."""
+    return (
+        list(retained_hard_passes),
+        _bounded_visual_selection_pool(list(new_candidates)),
     )
-    return min(1.0, visual * 0.50 + section * 0.50) if has_profiles else visual
-
-
-def _scope_key(candidate: _Candidate) -> str:
-    evidence = candidate.source.metadata.get("program_book_projection_evidence") or {}
-    scope = evidence.get("scope") if isinstance(evidence, dict) else {}
-    return str(scope.get("base_volume_label") or "1/1") if isinstance(scope, dict) else "1/1"
-
-
-def _seed_family(candidate: _Candidate) -> str:
-    return candidate.sequence.name.split("__book_", 1)[0].split("__search_", 1)[0]
-
-
-def _section_family(candidate: _Candidate) -> str:
-    geometry_family = _geometry_program_family(candidate)
-    if geometry_family:
-        morphology = _solid_morphology_metrics(candidate)
-        if morphology.get("profiled_section_family"):
-            return f"recursive_section:{morphology['profiled_section_family']}"
-        return f"recursive:{morphology['phenotype']}"
-    evidence = candidate.source.metadata.get("program_section_graph_evidence") or {}
-    nodes = evidence.get("materialized_nodes") if isinstance(evidence, dict) else ()
-    operators = tuple(
-        str(node.get("operator") or "")
-        for node in (nodes or ())
-        if isinstance(node, dict) and node.get("operator")
-    )
-    if operators:
-        graph_operators = set(evidence.get("graph_operators") or ())
-        modifiers = graph_operators & {"carved_entry", "daylight_monitor"}
-        return "+".join(sorted(set(operators) | modifiers))
-    signature = candidate.source.signature()
-    return str(signature.get("formal_principle") or signature.get("family") or "flat_proxy")
-
-
-def _roof_archetype(candidate: _Candidate) -> str:
-    """Collapse decorative graph variants into their visible roof genotype."""
-    geometry_family = _geometry_program_family(candidate)
-    if geometry_family:
-        morphology = _solid_morphology_metrics(candidate)
-        if morphology.get("profiled_section_family"):
-            return f"recursive_roof:{morphology['profiled_section_family']}"
-        return f"recursive:{morphology['phenotype']}"
-    evidence = candidate.source.metadata.get("program_section_graph_evidence") or {}
-    operators = set(evidence.get("graph_operators") or ()) if isinstance(evidence, dict) else set()
-    for operator, archetype in (
-        ("ridge_roof", "gable_ridge"),
-        ("flat_roof", "flat_box"),
-        ("shed_roof", "mono_shed"),
-        ("barrel_roof", "barrel_vault"),
-        ("folded_roof", "folded"),
-        ("sawtooth_roof", "sawtooth"),
-        ("stepped_section", "stepped"),
-    ):
-        if operator in operators:
-            return archetype
-    return "flat_proxy"
-
-
-def _chassis_family(candidate: _Candidate) -> str:
-    """Return the normalized program-plan chassis independently of its roof."""
-    geometry_family = _geometry_program_family(candidate)
-    if geometry_family:
-        program = candidate.source.metadata.get("geometry_program") or {}
-        metadata = program.get("metadata") if isinstance(program, dict) else {}
-        return f"recursive_base:{str((metadata or {}).get('base_seed') or 'unknown')}"
-    return program_component_chassis(candidate.sequence.name) or "generic_chassis"
-
-
-def _geometry_program_family(candidate: _Candidate) -> str:
-    evidence = candidate.source.metadata.get("geometry_program_bridge_evidence") or {}
-    if not isinstance(evidence, dict) or evidence.get("status") != "materialized":
-        return ""
-    program = candidate.source.metadata.get("geometry_program") or {}
-    metadata = program.get("metadata") if isinstance(program, dict) else {}
-    return str(
-        (metadata or {}).get("family")
-        or candidate.source.metadata.get("family")
-        or "recursive_solid"
-    )
-
-
-def _geometry_program_metadata(candidate: _Candidate) -> dict[str, Any]:
-    program = candidate.source.metadata.get("geometry_program") or {}
-    metadata = program.get("metadata") if isinstance(program, dict) else {}
-    return metadata if isinstance(metadata, dict) else {}
-
-
-def _vlm_reviewed_program_candidate(candidate: _Candidate) -> bool:
-    metadata = _geometry_program_metadata(candidate)
-    return bool(
-        metadata.get("vlm_geometry_critic_active")
-        and metadata.get("vlm_program_fit_hard_pass")
-    )
-
-
-def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
-    """Measure the rendered recursive mesh, not its family label."""
-    source = candidate.source if hasattr(candidate, "source") else candidate
-    cached = source.metadata.get("measured_solid_morphology")
-    if isinstance(cached, dict):
-        return cached
-    total_area = horizontal_area = vertical_area = sloped_area = 0.0
-    dimensional_context = source.metadata.get("program_dimensional_context") or {}
-    legal_context = source.metadata.get("legal_generation_context_evidence") or {}
-    height_scale = float(
-        dimensional_context.get("effective_height_m")
-        or legal_context.get("requested_program_height_m")
-        or 1.0
-    )
-    normal_bins: set[tuple[int, int, int]] = set()
-    horizontal_levels: set[int] = set()
-    triangle_count = 0
-    z_values: list[float] = []
-    for surface in source.surfaces:
-        if surface.surface_type != "profiled_recursive_solid_mesh" or len(surface.vertices_m) < 3:
-            continue
-        a, b, c = tuple(
-            (float(vertex[0]), float(vertex[1]), float(vertex[2]) * height_scale)
-            for vertex in surface.vertices_m[:3]
-        )
-        z_values.extend((float(a[2]), float(b[2]), float(c[2])))
-        ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
-        vx, vy, vz = c[0] - a[0], c[1] - a[1], c[2] - a[2]
-        nx, ny, nz = uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx
-        magnitude = sqrt(nx * nx + ny * ny + nz * nz)
-        if magnitude <= 1e-12:
-            continue
-        area = magnitude / 2.0
-        nx, ny, nz = nx / magnitude, ny / magnitude, nz / magnitude
-        absolute_z = abs(nz)
-        total_area += area
-        triangle_count += 1
-        normal_bins.add((round(nx * 4), round(ny * 4), round(nz * 4)))
-        if absolute_z >= 0.90:
-            horizontal_area += area
-            horizontal_levels.add(round(sum(vertex[2] for vertex in (a, b, c)) / 3.0 * 20))
-        elif absolute_z <= 0.12:
-            vertical_area += area
-        else:
-            sloped_area += area
-    denominator = max(total_area, 1e-9)
-    program = source.metadata.get("geometry_program") or {}
-    nodes = program.get("nodes") if isinstance(program, dict) else ()
-    operators = {
-        str(node.get("operator") or "")
-        for node in (nodes or ())
-        if isinstance(node, dict)
-    }
-    curved_intent = bool(operators & {"bend", "bent_bar", "sweep", "inflate", "twist"})
-    oblique_intent = bool(operators & {"slice", "clip"})
-    stepped_intent = bool(operators & {"setback", "stepped_mass", "terrace", "stack"})
-    voided_intent = bool(operators & {"courtyard", "carve_void", "notch", "puncture"})
-    winged_intent = bool(operators & {"cross_mass", "split_wing", "radial_array", "mirror_array", "linear_array"})
-    sloped_ratio = sloped_area / denominator
-    horizontal_ratio = horizontal_area / denominator
-    normal_bin_count = len(normal_bins)
-    compilation = source.metadata.get("geometry_program_compilation") or {}
-    compilation_metrics = compilation.get("metrics") if isinstance(compilation, dict) else {}
-    genus = int((compilation_metrics or {}).get("genus") or 0)
-    component_count = int((compilation_metrics or {}).get("component_count") or 1)
-    footprint = source.footprint
-    convex_hull_area = float(footprint.convex_hull.area) if not footprint.is_empty else 0.0
-    plan_convexity = float(footprint.area) / max(convex_hull_area, 1e-9)
-    upper_area_ratio = (
-        float(source.upper_footprint.area) / max(float(footprint.area), 1e-9)
-        if source.upper_footprint is not None and not source.upper_footprint.is_empty
-        else 1.0
-    )
-    oriented_plan_aspect = _oriented_aspect(footprint) if not footprint.is_empty else 1.0
-    profiled_section_family = next((
-        str((node.get("parameters") or {}).get("section_family") or "")
-        for node in (nodes or ())
-        if isinstance(node, dict) and node.get("operator") == "profiled_hall"
-    ), "")
-    measured_profiled_hall = bool(
-        profiled_section_family
-        and oriented_plan_aspect >= 1.45
-        and component_count == 1
-    )
-    horizontal_level_count = len(horizontal_levels)
-    wedge_like, pyramidal_like = _section_silhouette_flags(
-        sloped_surface_ratio=sloped_ratio,
-        upper_area_ratio=upper_area_ratio,
-        horizontal_level_count=horizontal_level_count,
-        vertical_surface_ratio=vertical_area / denominator,
-    )
-    collapsed_profiled_tent_like = bool(
-        measured_profiled_hall
-        and (
-            (
-                # A usable hall needs a retained occupied enclosure below its
-                # roof. If the upper occupied band falls below ten percent and
-                # almost no vertical envelope remains, the result is a canopy
-                # or tent regardless of how many triangulation levels it has.
-                upper_area_ratio < 0.10
-                and vertical_area / denominator < 0.03
-            )
-            or
-            (
-                upper_area_ratio <= 0.14
-                and horizontal_ratio >= 0.90
-                and vertical_area / denominator <= 0.03
-                and horizontal_level_count >= 6
-            )
-            or (
-                # A second failure mode is a shallow stack of sloped/horizontal
-                # caps whose upper occupied plate almost disappears. It reads
-                # as a tent even though the roof profile node itself is valid.
-                upper_area_ratio <= 0.20
-                and horizontal_ratio >= 0.84
-                and sloped_ratio <= 0.17
-                and vertical_area / denominator <= 0.03
-                and horizontal_level_count >= 10
-            )
-            or (
-                # A broader low-vertical barrel/canopy can keep more upper
-                # plan area yet still collapse the occupied hall enclosure
-                # into one triangular tent silhouette.
-                upper_area_ratio <= 0.35
-                and horizontal_ratio >= 0.80
-                and sloped_ratio <= 0.20
-                and vertical_area / denominator <= 0.03
-                and horizontal_level_count >= 12
-            )
-        )
-    )
-    if measured_profiled_hall:
-        # A measured elongated hall with an executable transverse section is
-        # not automatically a compact pyramid merely because its ridge
-        # reduces upper plan area.  The exception must not hide a collapsed
-        # terrace/tent whose upper enclosure has nearly disappeared.
-        pyramidal_like = collapsed_profiled_tent_like
-        wedge_like = profiled_section_family == "shed"
-    degenerate_sheet_like = bool(
-        (
-            upper_area_ratio < 0.06
-            and horizontal_level_count >= 6
-        )
-        or (
-            horizontal_ratio >= 0.94
-            and vertical_area / denominator <= 0.01
-            and sloped_ratio <= 0.06
-            and normal_bin_count >= 20
-        )
-    )
-
-    # Intent labels are only priors.  The final compiled solid is the
-    # authority: a scoped cross/step/notch that disappears inside a union must
-    # not make an otherwise calm prism count as a different phenotype.
-    measured_void = genus > 0
-    measured_wing = (
-        winged_intent
-        and (plan_convexity <= 0.84 or component_count > 1)
-    )
-    measured_curve = (
-        curved_intent
-        and normal_bin_count >= 11
-        and (sloped_ratio >= 0.025 or normal_bin_count >= 14)
-    )
-    measured_step = (
-        (not measured_profiled_hall and horizontal_level_count >= 4)
-        or (stepped_intent and horizontal_level_count >= 3 and normal_bin_count >= 8)
-    )
-    measured_prism = (
-        genus == 0
-        and component_count == 1
-        and sloped_ratio < 0.06
-        and horizontal_level_count <= 3
-        and normal_bin_count <= 10
-        and plan_convexity >= 0.88
-    )
-    measured_oblique = (
-        oblique_intent
-        and sloped_ratio >= 0.055
-        and normal_bin_count <= 10
-        and component_count == 1
-    )
-    section_graph_evidence = source.metadata.get("program_section_graph_evidence") or {}
-    section_graph_operators = set(
-        section_graph_evidence.get("graph_operators") or ()
-    ) if isinstance(section_graph_evidence, dict) else set()
-    section_graph_phenotype = _program_section_phenotype(section_graph_operators)
-    section_phenotype = (
-        {
-            "barrel": "curved",
-            "sawtooth": "stepped",
-            "stepped": "stepped",
-            "ridge": "oblique",
-            "shed": "oblique",
-            "folded": "oblique",
-        }.get(profiled_section_family, "oblique")
-        if measured_profiled_hall
-        else section_graph_phenotype
-    )
-    # Roof/section language is already measured independently.  Do not let a
-    # barrel or sawtooth terminal node erase the body's courtyard, wing,
-    # curve, lift or oblique mutation.  Portfolio diversity must compare both
-    # axes instead of counting the roof twice.
-    if measured_void:
-        phenotype = "voided"
-    elif measured_wing:
-        phenotype = "winged"
-    elif measured_oblique:
-        phenotype = "oblique"
-    elif measured_curve:
-        phenotype = "curved"
-    elif measured_step:
-        phenotype = "stepped"
-    elif triangle_count == 0 and section_graph_phenotype:
-        # Legacy/program-role solids do not carry recursive-mesh surface tags,
-        # but their executable typed section graph still changes the rendered
-        # roof.  Treating every one as a prism hid gable/folded/barrel/sawtooth
-        # repetition and made the phenotype cap meaningless.
-        phenotype = section_graph_phenotype
-    elif sloped_ratio >= 0.24:
-        phenotype = "oblique"
-    elif measured_prism:
-        phenotype = "prismatic"
-    elif voided_intent and plan_convexity <= 0.82:
-        # An open notch has genus zero, but a clearly concave plan still
-        # carries a void/carve phenotype in the rendered mass.
-        phenotype = "voided"
-    elif winged_intent and plan_convexity <= 0.90:
-        phenotype = "winged"
-    else:
-        phenotype = "prismatic"
-    result = {
-        "phenotype": phenotype,
-        "wedge_like": wedge_like,
-        "pyramidal_like": pyramidal_like,
-        "collapsed_profiled_tent_like": collapsed_profiled_tent_like,
-        "body_phenotype": phenotype,
-        "section_phenotype": section_phenotype or "none",
-        "degenerate_sheet_like": degenerate_sheet_like,
-        "horizontal_surface_ratio": round(horizontal_ratio, 4),
-        "vertical_surface_ratio": round(vertical_area / denominator, 4),
-        "sloped_surface_ratio": round(sloped_ratio, 4),
-        "normal_direction_bin_count": normal_bin_count,
-        "horizontal_level_count": horizontal_level_count,
-        "plan_convexity": round(plan_convexity, 4),
-        "upper_area_ratio": round(upper_area_ratio, 4),
-        "genus": genus,
-        "component_count": component_count,
-        "oriented_plan_aspect_ratio": round(oriented_plan_aspect, 4),
-        "profiled_section_family": profiled_section_family,
-        "measured_profiled_hall": measured_profiled_hall,
-        "recursive_triangle_count": triangle_count,
-        "solid_height_m": round(max(z_values) - min(z_values), 4) if z_values else 0.0,
-        "measurement_authority": (
-            "profiled_recursive_solid_mesh"
-            if triangle_count
-            else "compiled_program_section_graph"
-        ),
-    }
-    source.metadata["measured_solid_morphology"] = result
-    return result
-
-
-def _section_silhouette_flags(
-    *,
-    sloped_surface_ratio: float,
-    upper_area_ratio: float,
-    horizontal_level_count: int,
-    vertical_surface_ratio: float,
-) -> tuple[bool, bool]:
-    """Classify visible convergence without topology-based exemptions.
-
-    A carved, multi-component, or highly faceted solid can still read as the
-    same wedge/pyramid silhouette on a review board.  Genus, component count,
-    and normal-bin complexity therefore must not excuse that repetition.
-    """
-    wedge_like = bool(
-        sloped_surface_ratio >= 0.18
-        or (sloped_surface_ratio >= 0.10 and upper_area_ratio <= 0.74)
-    )
-    pyramidal_like = bool(
-        (upper_area_ratio <= 0.68 and horizontal_level_count >= 4)
-        or (
-            sloped_surface_ratio >= 0.08
-            and horizontal_level_count >= 10
-            and vertical_surface_ratio <= 0.03
-        )
-    )
-    return wedge_like, pyramidal_like
-
-
-def _program_form_gate(source: Any, building_type: str) -> dict[str, Any]:
-    """Reject measured forms that erase a program's dominant spatial relation.
-
-    This is deliberately relation-based rather than a named-form template.
-    A gym may be rectilinear, curved, gabled, folded, sawtoothed, or stepped,
-    but its dominant mass must still enclose a usable long-span hall.  A stack
-    of horizontal plates with virtually no vertical enclosure cannot satisfy
-    that invariant even when its metadata calls it a hall.
-    """
-    metrics = _solid_morphology_metrics(source)
-    program_key = str(building_type or "").strip().lower()
-    failures: list[str] = []
-    composition = _architectural_articulation_metrics(source)
-    evidence: dict[str, Any] = {
-        "program": program_key,
-        "measured_morphology": metrics,
-        "architectural_articulation": composition,
-        "rule": "program invariant retained by compiled solid",
-    }
-    if composition["body_rule_count"] > 2:
-        failures.append("architectural_body_rule_budget_exceeded")
-    if composition["duplicated_structural_families"]:
-        failures.append("architectural_body_rule_family_repeated")
-    if "gym" in program_key or "체육" in program_key:
-        level_count = int(metrics.get("horizontal_level_count") or 0)
-        horizontal_ratio = float(metrics.get("horizontal_surface_ratio") or 0.0)
-        vertical_ratio = float(metrics.get("vertical_surface_ratio") or 0.0)
-        sloped_ratio = float(metrics.get("sloped_surface_ratio") or 0.0)
-        cake_tier_without_hall_enclosure = bool(
-            level_count >= 8
-            and horizontal_ratio >= 0.78
-            and vertical_ratio <= 0.04
-        )
-        sloped_cascade_without_hall_enclosure = bool(
-            level_count >= 4
-            and horizontal_ratio >= 0.55
-            and sloped_ratio >= 0.28
-            and vertical_ratio <= 0.04
-        )
-        cascade_without_hall_enclosure = bool(
-            cake_tier_without_hall_enclosure
-            or sloped_cascade_without_hall_enclosure
-        )
-        evidence["required_relation"] = "dominant clear-span hall with vertical enclosure and legible roof/section"
-        evidence["cake_tier_without_hall_enclosure"] = cake_tier_without_hall_enclosure
-        evidence["sloped_cascade_without_hall_enclosure"] = sloped_cascade_without_hall_enclosure
-        evidence["cascade_without_hall_enclosure"] = cascade_without_hall_enclosure
-        measured_profiled_hall = bool(metrics.get("measured_profiled_hall"))
-        evidence["measured_profiled_hall"] = measured_profiled_hall
-        dominant_enclosure_erased = bool(
-            float(metrics.get("upper_area_ratio") or 1.0) < 0.10
-            and vertical_ratio < 0.03
-        )
-        evidence["dominant_enclosure_erased"] = dominant_enclosure_erased
-        dimensional_context = (
-            source.metadata.get("program_dimensional_context")
-            if hasattr(source, "metadata") and isinstance(source.metadata, dict)
-            else {}
-        ) or {}
-        short_span, long_span = _oriented_plan_dimensions(getattr(source, "footprint", None))
-        solid_height = float(metrics.get("solid_height_m") or 0.0)
-        minimum_span = float(dimensional_context.get("minimum_clear_span_m") or 0.0)
-        maximum_height_ratio = float(
-            dimensional_context.get("maximum_height_to_clear_span_ratio") or 0.0
-        )
-        height_to_span = solid_height / max(short_span, 1e-9) if short_span > 0 and solid_height > 0 else 0.0
-        evidence["dimensional_context"] = deepcopy(dimensional_context)
-        evidence["measured_clear_span_m"] = round(short_span, 3)
-        evidence["measured_long_axis_m"] = round(long_span, 3)
-        evidence["measured_solid_height_m"] = round(solid_height, 3)
-        evidence["height_to_clear_span_ratio"] = round(height_to_span, 3)
-        if minimum_span and short_span + 1e-6 < minimum_span:
-            failures.append("gym_clear_span_below_program_minimum")
-        if maximum_height_ratio and height_to_span > maximum_height_ratio + 1e-6:
-            failures.append("gym_height_to_clear_span_ratio_exceeded")
-        if bool(metrics.get("pyramidal_like")) or dominant_enclosure_erased or (
-            not measured_profiled_hall and cascade_without_hall_enclosure
-        ):
-            failures.append("gym_dominant_hall_erased_by_cascade_or_pyramid")
-    return {
-        **evidence,
-        "hard_pass": not failures,
-        "failures": failures,
-    }
-
-
-_BODY_RULE_FAMILIES = {
-    "bend": "deformation",
-    "bent_bar": "deformation",
-    "twist": "deformation",
-    "inflate": "deformation",
-    "pinch": "deformation",
-    "taper": "deformation",
-    "shear": "deformation",
-    "setback": "step",
-    "stepped_mass": "step",
-    "terrace": "step",
-    "courtyard": "void",
-    "carve_void": "void",
-    "notch": "void",
-    "puncture": "void",
-    "cut_corner": "void",
-    "slice": "cut",
-    "clip": "cut",
-    "radial_array": "array",
-    "linear_array": "array",
-    "mirror_array": "array",
-    "cross_mass": "array",
-    "split_wing": "array",
-    "cantilever": "support",
-    "lift": "support",
-    "scale": "transform",
-    "translate": "transform",
-    "rotate": "transform",
-    "union": "composition",
-    "intersection": "composition",
-    "difference": "composition",
-}
-
-
-def _architectural_articulation_metrics(source: Any) -> dict[str, Any]:
-    """Return a cross-layer body-rule budget from the actual recursive AST.
-
-    Program synthesis and BOOK projection used to validate independently. A
-    stepped/cantilever body could therefore receive stack+bend and still pass
-    because the final Boolean was one manifold component. The resulting object
-    is technically clean but architecturally reads as accumulated effects.
-
-    One synthesized node is one program rule. A BOOK call may expand to helper
-    nodes (for example rotate+intersection), so it is counted once through the
-    causal ``book_call_index`` written by the adapter. Administrative p.3
-    clip/recompose nodes and the protected roof/section invariant are excluded.
-    """
-    payload = source.metadata.get("geometry_program") if hasattr(source, "metadata") else None
-    nodes = payload.get("nodes") if isinstance(payload, dict) else ()
-    program_rules: list[dict[str, Any]] = []
-    book_groups: dict[int | str, list[dict[str, Any]]] = {}
-    for order, raw in enumerate(nodes or ()):
-        if not isinstance(raw, dict):
-            continue
-        operator = str(raw.get("operator") or "")
-        if operator == "profiled_hall":
-            continue
-        provenance = raw.get("provenance") if isinstance(raw.get("provenance"), dict) else {}
-        source_kind = str(provenance.get("source") or "")
-        if source_kind == "procedural_geometry_synthesis_agent":
-            family = _BODY_RULE_FAMILIES.get(operator)
-            if family:
-                program_rules.append({
-                    "layer": "program",
-                    "operator": operator,
-                    "family": family,
-                    "node_id": str(raw.get("id") or ""),
-                    "order": order,
-                })
-            continue
-        if source_kind != "book_recursive_projection":
-            continue
-        verb = str(provenance.get("book_verb") or "")
-        call_index = provenance.get("book_call_index", -1)
-        if verb in {"select_book_scope", "recompose_book_scope"} or int(call_index or -1) < 0:
-            continue
-        book_groups.setdefault(call_index, []).append({
-            "operator": operator,
-            "verb": verb,
-            "node_id": str(raw.get("id") or ""),
-            "order": order,
-        })
-
-    book_rules: list[dict[str, Any]] = []
-    for call_index, group in sorted(book_groups.items(), key=lambda item: int(item[0])):
-        terminal = max(group, key=lambda item: item["order"])
-        family = _BODY_RULE_FAMILIES.get(terminal["operator"])
-        if not family:
-            continue
-        book_rules.append({
-            "layer": "book",
-            "operator": terminal["operator"],
-            "verb": terminal["verb"],
-            "family": family,
-            "call_index": int(call_index),
-            "node_id": terminal["node_id"],
-            "order": terminal["order"],
-        })
-
-    rules = sorted((*program_rules, *book_rules), key=lambda item: item["order"])
-    family_counts = Counter(rule["family"] for rule in rules)
-    duplicated_structural_families = sorted(
-        family for family in {"void", "step", "array", "support"}
-        if family_counts[family] > 1
-    )
-    return {
-        "body_rule_count": len(rules),
-        "program_rule_count": len(program_rules),
-        "book_rule_count": len(book_rules),
-        "rules": [
-            {key: value for key, value in rule.items() if key != "order"}
-            for rule in rules
-        ],
-        "family_counts": dict(sorted(family_counts.items())),
-        "duplicated_structural_families": duplicated_structural_families,
-        "hard_pass": len(rules) <= 2 and not duplicated_structural_families,
-        "budget": 2,
-        "section_invariant_excluded": True,
-        "scope_administration_excluded": True,
-    }
-
-
-def _program_section_phenotype(operators: set[str]) -> str:
-    """Map an executable roof/section graph to its visible broad phenotype."""
-    if "barrel_roof" in operators:
-        return "curved"
-    if operators & {"ridge_roof", "shed_roof", "folded_roof"}:
-        return "oblique"
-    if operators & {"sawtooth_roof", "stepped_section"}:
-        return "stepped"
-    if "flat_roof" in operators:
-        return "prismatic"
-    return ""
-
-
-def _oriented_aspect(poly: Polygon) -> float:
-    rectangle = poly.minimum_rotated_rectangle
-    coordinates = list(rectangle.exterior.coords)
-    lengths = sorted(
-        (((right[0] - left[0]) ** 2 + (right[1] - left[1]) ** 2) ** 0.5)
-        for left, right in zip(coordinates, coordinates[1:])
-        if left != right
-    )
-    return float(lengths[-1] / max(lengths[0], 1e-9)) if lengths else 1.0
-
-
-def _oriented_plan_dimensions(poly: Polygon) -> tuple[float, float]:
-    if poly is None or poly.is_empty:
-        return (0.0, 0.0)
-    rectangle = poly.minimum_rotated_rectangle
-    coordinates = list(rectangle.exterior.coords)
-    lengths = sorted(
-        (((right[0] - left[0]) ** 2 + (right[1] - left[1]) ** 2) ** 0.5)
-        for left, right in zip(coordinates, coordinates[1:])
-        if left != right
-    )
-    if len(lengths) < 2:
-        return (0.0, 0.0)
-    return (float(lengths[0]), float(lengths[-1]))
-
-
-def _program_dimensional_context(
-    generation_site: Polygon,
-    building_type: str,
-    requested_height_m: float,
-    requested_floors: int,
-) -> dict[str, Any]:
-    """Select a feasible program subtype before authoring geometry.
-
-    The previous gym benchmark forced an 18 m hall onto every parcel. On the
-    current 103 m2 legal host this produced 3--6 m short spans with height/span
-    ratios above 3, so pyramids were inevitable. Dimensional requirements are
-    program data and normalized site measurements, never parcel templates.
-    """
-    profile = resolve_program_profile(building_type)
-    requirements = profile.get("dimensional_requirements")
-    short_axis, long_axis = _oriented_plan_dimensions(generation_site)
-    span_capacity = short_axis * 0.92
-    base = {
-        "schema_version": "arr.maas.program_dimensional_context.v1",
-        "program_id": str(profile.get("id") or "generic"),
-        "requested_height_m": round(float(requested_height_m), 3),
-        "requested_floors": int(requested_floors),
-        "generation_host_area_m2": round(float(generation_site.area), 3),
-        "generation_host_short_axis_m": round(short_axis, 3),
-        "generation_host_long_axis_m": round(long_axis, 3),
-        "estimated_clear_span_capacity_m": round(span_capacity, 3),
-        "parcel_coordinates_used": False,
-    }
-    if not isinstance(requirements, dict) or not requirements.get("subtypes"):
-        return {
-            **base,
-            "status": "not_required",
-            "selected_subtype": "generic",
-            "effective_height_m": round(float(requested_height_m), 3),
-            "effective_floors": int(requested_floors),
-        }
-    selected = next((
-        dict(item)
-        for item in requirements.get("subtypes") or ()
-        if isinstance(item, dict)
-        and span_capacity >= float(item.get("minimum_clear_span_m") or 0.0)
-        and float(generation_site.area) >= float(item.get("minimum_host_area_m2") or 0.0)
-    ), None)
-    if selected is None:
-        return {
-            **base,
-            "status": "infeasible",
-            "selected_subtype": "none",
-            "effective_height_m": 0.0,
-            "effective_floors": 0,
-            "failure_reasons": ["legal_generation_site_cannot_fit_minimum_program_span"],
-            "available_subtypes": [str(item.get("id") or "") for item in requirements.get("subtypes") or ()],
-        }
-    minimum_height = float(selected.get("minimum_height_m") or 0.0)
-    maximum_height = float(selected.get("maximum_height_m") or requested_height_m)
-    maximum_ratio = float(selected.get("maximum_height_to_clear_span_ratio") or 1.0)
-    target_ratio = float(selected.get("target_height_to_clear_span_ratio") or maximum_ratio)
-    ratio_height = span_capacity * min(target_ratio, maximum_ratio)
-    effective_height = min(float(requested_height_m), maximum_height, ratio_height)
-    if effective_height < minimum_height:
-        return {
-            **base,
-            "status": "infeasible",
-            "selected_subtype": str(selected.get("id") or "none"),
-            "effective_height_m": round(effective_height, 3),
-            "effective_floors": 0,
-            "failure_reasons": ["clear_span_cannot_support_minimum_program_height"],
-        }
-    return {
-        **base,
-        "status": "adapted" if effective_height < float(requested_height_m) else "feasible",
-        "selected_subtype": str(selected.get("id") or "generic"),
-        "minimum_clear_span_m": float(selected.get("minimum_clear_span_m") or 0.0),
-        "maximum_height_to_clear_span_ratio": maximum_ratio,
-        "target_height_to_clear_span_ratio": target_ratio,
-        "effective_height_m": round(effective_height, 3),
-        "effective_floors": min(int(requested_floors), int(selected.get("maximum_floors") or requested_floors)),
-    }
-
-
-def _scope_coverage_anchors(
-    candidates: list[_Candidate],
-    *,
-    seed_family_cap: int,
-    section_family_cap: int,
-    roof_archetype_caps: dict[str, int],
-    chassis_family_cap: int,
-    required_phenotypes: tuple[str, ...] = (),
-) -> list[_Candidate]:
-    """Find joint scope/phenotype anchors before greedy portfolio filling."""
-    by_scope = {
-        label: sorted(
-            (candidate for candidate in candidates if _scope_key(candidate) == label),
-            key=lambda candidate: candidate.score,
-            reverse=True,
-        )
-        for label, _fraction in BASE_VOLUME_FRACTIONS
-    }
-    if any(not options for options in by_scope.values()):
-        return []
-    available_phenotypes = {_solid_morphology_metrics(candidate)["phenotype"] for candidate in candidates}
-    required_phenotypes = tuple(
-        value for value in dict.fromkeys(required_phenotypes)
-        if value in available_phenotypes
-    )
-
-    def solve(phenotype_requirements: tuple[str, ...]) -> list[_Candidate] | None:
-        requirements = tuple(
-            [("scope", label) for label, _fraction in BASE_VOLUME_FRACTIONS]
-            + [("phenotype", value) for value in phenotype_requirements]
-        )
-
-        def visit(
-            picked: list[_Candidate],
-            operation_usage: Counter,
-            seed_usage: Counter,
-            section_usage: Counter,
-            roof_usage: Counter,
-            chassis_usage: Counter,
-        ) -> list[_Candidate] | None:
-            covered_scopes = {_scope_key(candidate) for candidate in picked}
-            covered_phenotypes = {_solid_morphology_metrics(candidate)["phenotype"] for candidate in picked}
-            missing = [
-                requirement for requirement in requirements
-                if (
-                    requirement[1] not in covered_scopes
-                    if requirement[0] == "scope"
-                    else requirement[1] not in covered_phenotypes
-                )
-            ]
-            if not missing:
-                return list(picked)
-
-            def eligible(requirement: tuple[str, str]) -> list[_Candidate]:
-                result = []
-                for candidate in candidates:
-                    if any(candidate is item for item in picked):
-                        continue
-                    if requirement[0] == "scope" and _scope_key(candidate) != requirement[1]:
-                        continue
-                    if requirement[0] == "phenotype" and _solid_morphology_metrics(candidate)["phenotype"] != requirement[1]:
-                        continue
-                    seed = _seed_family(candidate)
-                    section = _section_family(candidate)
-                    roof = _roof_archetype(candidate)
-                    chassis = _chassis_family(candidate)
-                    if operation_usage[candidate.operation] >= 2:
-                        continue
-                    if (
-                        seed_usage[seed] >= seed_family_cap
-                        or section_usage[section] >= section_family_cap
-                        or roof_usage[roof] >= roof_archetype_caps.get(roof, 999)
-                        or chassis_usage[chassis] >= chassis_family_cap
-                    ):
-                        continue
-                    if any(_silhouette_distance(candidate, other) < 0.10 for other in picked):
-                        continue
-                    result.append(candidate)
-                return result
-
-            requirement_options = [(requirement, eligible(requirement)) for requirement in missing]
-            requirement, options = min(
-                requirement_options,
-                key=lambda item: (len(item[1]), item[0][0], item[0][1]),
-            )
-            if not options:
-                return None
-            options.sort(key=lambda candidate: (
-                seed_usage[_seed_family(candidate)],
-                section_usage[_section_family(candidate)],
-                roof_usage[_roof_archetype(candidate)],
-                chassis_usage[_chassis_family(candidate)],
-                -candidate.score,
-            ))
-            for candidate in options:
-                seed = _seed_family(candidate)
-                section = _section_family(candidate)
-                roof = _roof_archetype(candidate)
-                chassis = _chassis_family(candidate)
-                operation_usage[candidate.operation] += 1
-                seed_usage[seed] += 1
-                section_usage[section] += 1
-                roof_usage[roof] += 1
-                chassis_usage[chassis] += 1
-                picked.append(candidate)
-                result = visit(
-                    picked, operation_usage, seed_usage, section_usage,
-                    roof_usage, chassis_usage,
-                )
-                if result is not None:
-                    return result
-                picked.pop()
-                operation_usage[candidate.operation] -= 1
-                seed_usage[seed] -= 1
-                section_usage[section] -= 1
-                roof_usage[roof] -= 1
-                chassis_usage[chassis] -= 1
-            return None
-
-        return visit([], Counter(), Counter(), Counter(), Counter(), Counter())
-
-    # If all requested phenotypes cannot coexist under hard silhouette/family
-    # constraints, preserve the six BOOK scopes and let the explicit failure
-    # remain visible. Never fabricate or relax a geometry threshold.
-    return solve(required_phenotypes) or solve(()) or []
-
-
-def _fingerprint(candidate: _Candidate) -> tuple[Any, ...]:
-    volume_key = tuple(sorted((
-        tuple(round(value, 3) for value in volume.footprint.bounds),
-        round(float(volume.footprint.area), 3),
-        round(float(volume.bottom_fraction), 3),
-        round(float(volume.top_fraction), 3),
-    ) for volume in candidate.source.volumes))
-    section = candidate.source.metadata.get("program_section_graph_evidence") or {}
-    section_key = tuple(
-        (
-            str(node.get("operator") or ""),
-            tuple(tuple(round(float(value), 4) for value in item) for item in (node.get("section_controls") or ())),
-        )
-        for node in (section.get("materialized_nodes") or ())
-        if isinstance(node, dict)
-    ) if isinstance(section, dict) else ()
-    geometry_evidence = candidate.source.metadata.get("geometry_program_bridge_evidence") or {}
-    geometry_key = str(geometry_evidence.get("geometry_hash") or "") if isinstance(geometry_evidence, dict) else ""
-    return volume_key, section_key, geometry_key
-
-
-def _inside_site(source: Any, site: Polygon) -> bool:
-    try:
-        return all(
-            volume.footprint.is_valid
-            and volume.footprint.difference(site).area <= 1e-6
-            for volume in source.volumes
-        )
-    except (GEOSException, ValueError):
-        return False
 
 
 def _load_visual_directive(output_dir: Path, pnu: str) -> dict[str, Any]:
@@ -999,1446 +223,40 @@ def _load_visual_directive(output_dir: Path, pnu: str) -> dict[str, Any]:
     return payload
 
 
-def _agent_mutated_seeds(
-    building_type: str,
-    mutations: list[dict[str, Any]] | None,
-    geometry_mutations: list[dict[str, Any]] | None = None,
-    synthesis_requests: list[dict[str, Any]] | None = None,
-    outcome_graph: GeometryOutcomeGraph | None = None,
-) -> tuple[VerbSequence, ...]:
-    """Apply agent/VLM graph edits to reusable role seeds, never finished forms."""
-    seeds = list(program_seed_sequences(building_type))
-    originals = {sequence.name: sequence for sequence in seeds}
-    for index, record in enumerate(mutations or ()):  # bounded external genotype proposals
-        if not isinstance(record, dict):
-            continue
-        source = originals.get(str(record.get("source_seed") or ""))
-        if source is None:
-            continue
-        edit_records = record.get("edits") if isinstance(record.get("edits"), list) else [record]
-        typed_edits: list[ProgramSectionGraphEdit] = []
-        replacement = "genotype"
-        for edit_record in edit_records:
-            if not isinstance(edit_record, dict):
-                continue
-            operation = str(edit_record.get("operation") or "")
-            if operation not in {"replace_roof_operator", "set_parameter", "set_section_control"}:
-                continue
-            operator_value = str(edit_record.get("operator_value") or "") or None
-            if operator_value:
-                replacement = operator_value
-            try:
-                numeric_value = (
-                    float(edit_record["numeric_value"])
-                    if edit_record.get("numeric_value") is not None
-                    else None
-                )
-                control_index = (
-                    int(edit_record["control_index"])
-                    if edit_record.get("control_index") is not None
-                    else None
-                )
-            except (TypeError, ValueError):
-                continue
-            typed_edits.append(ProgramSectionGraphEdit(
-                operation=operation,
-                target_node_id=str(edit_record.get("target_node_id") or "roof"),
-                parameter_name=str(edit_record.get("parameter_name") or "operator"),
-                numeric_value=numeric_value,
-                control_index=control_index,
-                operator_value=operator_value,
-                rationale=str(edit_record.get("rationale") or record.get("rationale") or "agent-directed genotype mutation"),
-            ))
-        if not typed_edits:
-            continue
-        try:
-            mutated = mutate_program_section_sequence(
-                source,
-                typed_edits,
-                director="vlm_portfolio_critic",
-                name_suffix=f"genotype_{index}_{replacement}",
-            )
-        except ValueError:
-            continue
-        if mutated.name != source.name:
-            seeds.append(mutated)
-    # A geometry directive creates another typed program seed, not a frozen
-    # mesh.  The same program roles and BOOK projection compile first; only
-    # then is the dominant role replaced by the recursive solid program.
-    for index, record in enumerate(geometry_mutations or ()):
-        if not isinstance(record, dict):
-            continue
-        source = originals.get(str(record.get("source_seed") or ""))
-        program_id = str(record.get("geometry_program") or "")
-        if source is None or program_id not in _geometry_program_registry():
-            continue
-        raw_strengths = (
-            record.get("legal_fit_strengths")
-            if isinstance(record.get("legal_fit_strengths"), list)
-            else [record.get("legal_fit_strength") or 0.0]
-        )
-        try:
-            legal_fit_strengths = tuple(dict.fromkeys(
-                max(0.0, min(1.0, float(value))) for value in raw_strengths
-            ))
-        except (TypeError, ValueError):
-            continue
-        edit_records = record.get("geometry_edits") if isinstance(record.get("geometry_edits"), list) else []
-        for strength_index, legal_fit_strength in enumerate(legal_fit_strengths):
-            notes = tuple((*source.notes,
-                f"geometry_program_directive={program_id}",
-                f"geometry_program_source_seed={source.name}",
-                f"geometry_program_edits={json.dumps(edit_records, sort_keys=True, separators=(',', ':'))}",
-                f"geometry_program_rationale={str(record.get('rationale') or 'agent-authored recursive solid mutation')}",
-                f"geometry_program_legal_fit_strength={legal_fit_strength}",
-                "geometry_program_source=typed_agent_directive",
-            ))
-            seeds.append(replace(
-                source,
-                name=f"{source.name}__geometry_genotype_{index}_{strength_index}_{program_id}",
-                notes=notes,
-            ))
-    # Program-profile inference is the deterministic control lane.  A live
-    # VLM/session directive must add an experimental lane, never replace the
-    # control and erase rare-but-required phenotypes from the search pool.
-    # Exact legacy section controls, parcel coordinates, and finished forms
-    # remain excluded from both lanes.
-    profile_requests = tuple({
-        **dict(request),
-        "synthesis_request_source": "program_profile_control",
-    } for request in synthesis_requests_from_program_profile(
-        building_type,
-        source_seeds=tuple(originals),
-    ))
-    directive_requests = tuple({
-        **dict(request),
-        "synthesis_request_source": "vlm_or_session_directive",
-    } for request in (synthesis_requests or ()) if isinstance(request, dict))
-    effective_synthesis_requests = tuple((*profile_requests, *directive_requests))
+def _archive_render_evidence(board: Path, candidate_count: int) -> list[dict[str, Any]]:
+    """Measure whether each accepted card visibly contains rendered mass.
 
-    # A synthesis request describes architectural intent and normalized base
-    # seeds.  The agent expands it into recursive ASTs; unlike the legacy
-    # geometry_program registry, no named completed-form record is selected.
-    for request_index, request in enumerate(effective_synthesis_requests):
-        if not isinstance(request, dict):
-            continue
-        source = originals.get(str(request.get("source_seed") or ""))
-        if source is None:
-            continue
-        programs = synthesize_architectural_programs(request, building_type=building_type)
-        vlm_status = "not_requested"
-        if bool(request.get("live_vlm_revision")):
-            live_opt_in = os.getenv("MAAS_LIVE_GEOMETRY_VLM", "").strip().lower() in {"1", "true", "yes", "on"}
-            rotated_credential_confirmed = os.getenv("MAAS_LIVE_VLM_CREDENTIAL_ROTATED", "").strip().lower() in {"1", "true", "yes", "on"}
-            if not live_opt_in:
-                vlm_status = "inactive_requires_explicit_MAAS_LIVE_GEOMETRY_VLM_opt_in"
-            elif not rotated_credential_confirmed:
-                vlm_status = "inactive_requires_rotated_credential_confirmation"
-            elif not os.getenv("OPENAI_API_KEY"):
-                vlm_status = "inactive_missing_rotated_environment_key"
-            else:
-                try:
-                    reference_contract = program_reference_contract(building_type)
-                    reference_matches = [
-                        item for item in (request.get("reference_matches") or ())
-                        if isinstance(item, dict)
-                    ]
-                    loop = run_geometry_program_a2a_loop(
-                        context={
-                            "building_type": building_type,
-                            "intent_tags": list(request.get("intent_tags") or ()),
-                            "base_seeds": list(request.get("base_seeds") or ()),
-                            "instruction": "critic must propose typed node edits, never a completed mesh",
-                        },
-                        target_count=len(programs),
-                        author_programs=lambda _context, authored=programs: authored,
-                        critic_program=openai_vlm_geometry_critic(
-                            reference_provider=lambda program, explicit=reference_matches: retrieve_geometry_reference_matches(
-                                program,
-                                building_type=building_type,
-                                explicit_matches=explicit,
-                                limit=max(3, min(8, int(request.get("reference_limit") or 5))),
-                            ),
-                            memory_provider=(
-                                lambda program: outcome_graph.agent_neighborhood(
-                                    source_seed=source.name,
-                                    program_hash=program.program_hash(),
-                                )
-                                if outcome_graph is not None
-                                else {}
-                            ),
-                            building_type=building_type,
-                            program_context=reference_contract,
-                            model=str(request.get("vlm_model") or "") or None,
-                        ),
-                        max_generations=max(1, min(3, int(request.get("vlm_generations") or 2))),
-                        author_provider="bounded_procedural_geometry_agent",
-                        critic_provider="openai_vlm",
-                    )
-                    if outcome_graph is not None:
-                        outcome_graph.observe_vlm_loop(
-                            program_slug=building_type,
-                            source_seed=source.name,
-                            trace=loop.trace,
-                        )
-                    if loop.archive:
-                        programs = tuple(replace(
-                            candidate.program,
-                            metadata={
-                                **candidate.program.metadata,
-                                "vlm_critic_score": round(float(candidate.critic_score), 4),
-                                "vlm_revision_generation": int(candidate.generation),
-                                "vlm_geometry_critic_active": True,
-                                "vlm_geometry_revision_count": int(loop.trace.get("geometry_revision_count") or 0),
-                                "vlm_unique_geometry_count": int(loop.trace.get("unique_geometry_count") or 0),
-                                "vlm_model": str(candidate.critic_payload.get("model") or ""),
-                                "vlm_response_id": str(candidate.critic_payload.get("response_id") or ""),
-                                "vlm_program_fit_hard_pass": bool(
-                                    candidate.critic_payload.get("program_fit_hard_pass", True)
-                                ),
-                                "vlm_program_appropriateness": float(
-                                    (candidate.critic_payload.get("concept_scores") or {}).get("program_appropriateness") or 0.0
-                                ),
-                                "vlm_section_program_fit": float(
-                                    (candidate.critic_payload.get("concept_scores") or {}).get("section_program_fit") or 0.0
-                                ),
-                                "vlm_reference_assessments": list(
-                                    candidate.critic_payload.get("reference_assessments") or ()
-                                ),
-                                "vlm_reference_count": len(
-                                    ((candidate.critic_payload.get("maas_causal_context") or {}).get("reference_matches") or ())
-                                ),
-                                "vlm_memory_observation_count": int(
-                                    (((candidate.critic_payload.get("maas_causal_context") or {}).get("outcome_memory") or {}).get("observation_count") or 0)
-                                ),
-                            },
-                        ) for candidate in loop.archive)
-                    else:
-                        # An all-rejected live lane is evidence of failure,
-                        # not permission to silently restore its unreviewed
-                        # parent programs into the accepted candidate pool.
-                        programs = ()
-                    vlm_status = str(loop.trace.get("status") or "completed")
-                except Exception as exc:
-                    # The deterministic graph author and hard gates remain
-                    # usable when an external critic is unavailable. Record
-                    # the failure; never fabricate a synthetic VLM score.
-                    vlm_status = f"error:{type(exc).__name__}"
-        raw_strengths = request.get("legal_fit_strengths")
-        if not isinstance(raw_strengths, list):
-            raw_strengths = [0.0, 0.25, 0.5, 0.75, 1.0]
-        try:
-            fallback_strengths = tuple(dict.fromkeys(
-                max(0.0, min(1.0, round(float(value), 4))) for value in raw_strengths
-            ))
-        except (TypeError, ValueError):
-            fallback_strengths = (0.0, 0.25, 0.5, 0.75, 1.0)
-        for program_index, program in enumerate(programs):
-            strengths = (
-                outcome_graph.preferred_strengths(
-                    source_seed=source.name,
-                    program_hash=program.program_hash(),
-                    fallback=fallback_strengths,
-                    limit=2,
-                )
-                if outcome_graph is not None
-                else fallback_strengths
-            )
-            payload = json.dumps(program.to_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-            family = str(program.metadata.get("family") or "agent_recursive")
-            for strength_index, legal_fit_strength in enumerate(strengths):
-                notes = tuple((*source.notes,
-                    f"geometry_program_payload={payload}",
-                    f"geometry_program_source_seed={source.name}",
-                    "geometry_program_edits=[]",
-                    f"geometry_program_rationale=agent synthesis from normalized base and intent tags: {','.join(program.metadata.get('intent_tags') or ())}",
-                    f"geometry_program_legal_fit_strength={legal_fit_strength}",
-                    "geometry_program_source=procedural_geometry_synthesis_agent",
-                    f"geometry_program_synthesis_request_source={str(request.get('synthesis_request_source') or 'program_profile_control')}",
-                    f"geometry_program_vlm_status={vlm_status}",
-                    f"geometry_program_vlm_reference_count={int(program.metadata.get('vlm_reference_count') or 0)}",
-                    f"geometry_program_vlm_memory_observation_count={int(program.metadata.get('vlm_memory_observation_count') or 0)}",
-                    f"geometry_program_vlm_revision_count={int(program.metadata.get('vlm_geometry_revision_count') or 0)}",
-                ))
-                seeds.append(replace(
-                    source,
-                    name=(
-                        f"{source.name}__synth_{request_index}_{program_index}_{strength_index}_"
-                        f"{family}_{program.program_hash()[:10]}"
-                    ),
-                    notes=notes,
-                ))
-    return tuple(seeds)
-
-
-def _geometry_program_registry() -> dict[str, Any]:
-    references = reference_language_programs()
-    programs = tuple((*references.values(), *architectural_shape_programs()))
-    registry: dict[str, Any] = dict(references)
-    for program in programs:
-        family = str(program.metadata.get("family") or "")
-        for key in (program.name, family):
-            if key:
-                registry.setdefault(key, program)
-    return registry
-
-
-def _materialize_directed_geometry(
-    source: Any,
-    sequence: VerbSequence,
-    *,
-    containment_host: Polygon | None = None,
-    upper_containment_host: Polygon | None = None,
-) -> Any | None:
-    directive = next((
-        note.split("=", 1)[1]
-        for note in sequence.notes
-        if note.startswith("geometry_program_directive=")
-    ), "")
-    raw_payload = next((
-        note.split("=", 1)[1]
-        for note in sequence.notes
-        if note.startswith("geometry_program_payload=")
-    ), "")
-    if not directive and not raw_payload:
-        return source
-    raw_fit_strength = next((
-        note.split("=", 1)[1]
-        for note in sequence.notes
-        if note.startswith("geometry_program_legal_fit_strength=")
-    ), "0")
-    try:
-        fit_strength = max(0.0, min(1.0, float(raw_fit_strength)))
-    except (TypeError, ValueError):
-        return None
-    if raw_payload:
-        try:
-            program = GeometryProgram.from_dict(json.loads(raw_payload))
-        except (TypeError, ValueError, json.JSONDecodeError):
-            return None
-    else:
-        program = _geometry_program_registry().get(directive)
-    if program is None:
-        return None
-    raw_edits = next((
-        note.split("=", 1)[1]
-        for note in sequence.notes
-        if note.startswith("geometry_program_edits=")
-    ), "[]")
-    try:
-        edit_records = json.loads(raw_edits)
-    except (TypeError, ValueError, json.JSONDecodeError):
-        return None
-    if edit_records:
-        mutation = apply_geometry_edits(program, edit_records)
-        if mutation.status != "revised" or mutation.program is None:
-            return None
-        program = mutation.program
-    # BOOK p.3 scope and ordered operations must mutate the same recursive
-    # manifold later rendered and gated. The old SourceMass projection remains
-    # as program/legal evidence, but it is no longer the geometry authority.
-    try:
-        program = apply_book_projection_to_geometry_program(program, sequence)
-    except (TypeError, ValueError):
-        return None
-    materialized = replace_source_dominant_with_geometry_program(
-        source,
-        program,
-        containment_host=containment_host,
-        upper_containment_host=upper_containment_host,
-        upper_fit_strength=fit_strength,
-    )
-    if materialized is None:
-        return None
-    source_seed = next((
-        note.split("=", 1)[1]
-        for note in sequence.notes
-        if note.startswith("geometry_program_source_seed=")
-    ), "")
-    metadata = deepcopy(materialized.metadata)
-    bridge = deepcopy(metadata.get("geometry_program_bridge_evidence") or {})
-    bridge["source_seed"] = source_seed
-    bridge["author_provider"] = next((
-        note.split("=", 1)[1]
-        for note in sequence.notes
-        if note.startswith("geometry_program_source=")
-    ), "unknown")
-    metadata["geometry_program_bridge_evidence"] = bridge
-    return replace(materialized, metadata=metadata)
-
-
-def _select(
-    pool: list[_Candidate],
-    target: int = 20,
-    *,
-    visual_directive: dict[str, Any] | None = None,
-) -> list[_Candidate]:
-    unique: dict[tuple[Any, ...], _Candidate] = {}
-    for candidate in pool:
-        fingerprint = _fingerprint(candidate)
-        current = unique.get(fingerprint)
-        if current is None or candidate.score > current.score:
-            unique[fingerprint] = candidate
-    candidates = list(unique.values())
-    candidate_universe = list(candidates)
-    selected: list[_Candidate] = []
-    operation_usage: dict[str, int] = {}
-    scope_usage: dict[str, int] = {}
-    seed_usage: dict[str, int] = {}
-    section_usage: dict[str, int] = {}
-    roof_usage: dict[str, int] = {}
-    chassis_usage: dict[str, int] = {}
-    available_scopes = {_scope_key(candidate) for candidate in candidates}
-    seed_families = {_seed_family(candidate) for candidate in candidates}
-    roof_archetypes = {_roof_archetype(candidate) for candidate in candidates}
-    chassis_families = {_chassis_family(candidate) for candidate in candidates}
-    seed_family_cap = max(2, (target + max(1, len(seed_families)) - 1) // max(1, len(seed_families)) + 1)
-    section_family_cap = max(3, target // 2)
-    default_roof_cap = target if len(roof_archetypes) <= 1 else max(4, target // 4)
-    roof_archetype_caps = {archetype: default_roof_cap for archetype in roof_archetypes}
-    directive = visual_directive or {}
-    for archetype, cap in (directive.get("max_roof_archetype_counts") or {}).items():
-        if str(archetype) in roof_archetypes:
-            roof_archetype_caps[str(archetype)] = max(1, min(target, int(cap)))
-    chassis_family_cap = max(
-        1,
-        min(
-            target,
-            int(directive.get("max_chassis_family_count") or (
-                target if len(chassis_families) <= 1 else max(4, target // max(1, len(chassis_families)) + 2)
-            )),
-        ),
-    )
-    anchors = _scope_coverage_anchors(
-        candidates,
-        seed_family_cap=seed_family_cap,
-        section_family_cap=section_family_cap,
-        roof_archetype_caps=roof_archetype_caps,
-        chassis_family_cap=chassis_family_cap,
-        required_phenotypes=tuple(
-            str(value) for value in directive.get("required_solid_phenotypes") or ()
-        ),
-    )
-    anchor_ids = {id(candidate) for candidate in anchors}
-    candidates = [candidate for candidate in candidates if id(candidate) not in anchor_ids]
-    for winner in anchors:
-        selected.append(winner)
-        operation_usage[winner.operation] = operation_usage.get(winner.operation, 0) + 1
-        scope_usage[_scope_key(winner)] = scope_usage.get(_scope_key(winner), 0) + 1
-        seed_usage[_seed_family(winner)] = seed_usage.get(_seed_family(winner), 0) + 1
-        section_usage[_section_family(winner)] = section_usage.get(_section_family(winner), 0) + 1
-        roof_usage[_roof_archetype(winner)] = roof_usage.get(_roof_archetype(winner), 0) + 1
-        chassis_usage[_chassis_family(winner)] = chassis_usage.get(_chassis_family(winner), 0) + 1
-
-    # A VLM critic may require missing visual genotypes, but it can only select
-    # candidates that were produced by typed graph mutations and passed all
-    # geometry/program/legal gates.  It never injects a finished mesh.
-    required_roofs = tuple(dict.fromkeys(
-        str(value) for value in (directive.get("required_roof_archetypes") or ())
-        if str(value) in roof_archetypes
-    ))
-    for required_roof in required_roofs:
-        if len(selected) >= target or roof_usage.get(required_roof, 0):
-            continue
-        options = [
-            candidate for candidate in candidates
-            if _roof_archetype(candidate) == required_roof
-            and operation_usage.get(candidate.operation, 0) < 2
-            and seed_usage.get(_seed_family(candidate), 0) < seed_family_cap
-            and section_usage.get(_section_family(candidate), 0) < section_family_cap
-            and roof_usage.get(required_roof, 0) < roof_archetype_caps.get(required_roof, target)
-            and chassis_usage.get(_chassis_family(candidate), 0) < chassis_family_cap
-            and all(_silhouette_distance(candidate, other) >= 0.10 for other in selected)
-        ]
-        if not options:
-            continue
-        winner = max(options, key=lambda candidate: candidate.score)
-        selected.append(winner)
-        operation_usage[winner.operation] = operation_usage.get(winner.operation, 0) + 1
-        scope_usage[_scope_key(winner)] = scope_usage.get(_scope_key(winner), 0) + 1
-        seed_usage[_seed_family(winner)] = seed_usage.get(_seed_family(winner), 0) + 1
-        section_usage[_section_family(winner)] = section_usage.get(_section_family(winner), 0) + 1
-        roof_usage[_roof_archetype(winner)] = roof_usage.get(_roof_archetype(winner), 0) + 1
-        chassis_usage[_chassis_family(winner)] = chassis_usage.get(_chassis_family(winner), 0) + 1
-        candidates.remove(winner)
-    available_geometry_families = {
-        _geometry_program_family(candidate)
-        for candidate in candidates
-        if _geometry_program_family(candidate)
-    }
-    required_geometry_families = tuple(dict.fromkeys(
-        str(value) for value in (directive.get("required_geometry_program_families") or ())
-        if str(value) in available_geometry_families
-    ))
-    for required_family in required_geometry_families:
-        if len(selected) >= target or any(
-            _geometry_program_family(candidate) == required_family
-            for candidate in selected
-        ):
-            continue
-        options = [
-            candidate for candidate in candidates
-            if _geometry_program_family(candidate) == required_family
-            and operation_usage.get(candidate.operation, 0) < 2
-            and seed_usage.get(_seed_family(candidate), 0) < seed_family_cap
-            and section_usage.get(_section_family(candidate), 0) < section_family_cap
-            and roof_usage.get(_roof_archetype(candidate), 0) < roof_archetype_caps.get(_roof_archetype(candidate), target)
-            and chassis_usage.get(_chassis_family(candidate), 0) < chassis_family_cap
-            and all(_silhouette_distance(candidate, other) >= 0.10 for other in selected)
-        ]
-        if not options:
-            continue
-        winner = max(options, key=lambda candidate: candidate.score)
-        selected.append(winner)
-        operation_usage[winner.operation] = operation_usage.get(winner.operation, 0) + 1
-        scope_usage[_scope_key(winner)] = scope_usage.get(_scope_key(winner), 0) + 1
-        seed_usage[_seed_family(winner)] = seed_usage.get(_seed_family(winner), 0) + 1
-        section_usage[_section_family(winner)] = section_usage.get(_section_family(winner), 0) + 1
-        roof_usage[_roof_archetype(winner)] = roof_usage.get(_roof_archetype(winner), 0) + 1
-        chassis_usage[_chassis_family(winner)] = chassis_usage.get(_chassis_family(winner), 0) + 1
-        candidates.remove(winner)
-    while candidates and len(selected) < target:
-        def eligible_with_operation_cap(operation_cap: int) -> list[_Candidate]:
-            return [
-                candidate for candidate in candidates
-                if operation_usage.get(candidate.operation, 0) < operation_cap
-                and seed_usage.get(_seed_family(candidate), 0) < seed_family_cap
-                and section_usage.get(_section_family(candidate), 0) < section_family_cap
-                and roof_usage.get(_roof_archetype(candidate), 0) < roof_archetype_caps.get(_roof_archetype(candidate), target)
-                and chassis_usage.get(_chassis_family(candidate), 0) < chassis_family_cap
-                and all(_silhouette_distance(candidate, other) >= 0.10 for other in selected)
-            ]
-
-        eligible = eligible_with_operation_cap(2)
-        if not eligible:
-            # Only after the two-use diversity cap is exhausted may the same
-            # BOOK sentence appear once more on another program/section
-            # family. Silhouette and family caps remain unchanged.
-            eligible = eligible_with_operation_cap(3)
-        if not eligible:
-            break
-        uncovered_scopes = available_scopes - set(scope_usage)
-        if uncovered_scopes:
-            # BOOK p.3 scope coverage is a portfolio constraint. Start with
-            # the rarest surviving scope so a high-scoring 1/1 family cannot
-            # crowd a valid 1/16 or 1/8 candidate out of the final archive.
-            target_scope = min(
-                uncovered_scopes,
-                key=lambda scope: (
-                    sum(_scope_key(candidate) == scope for candidate in eligible),
-                    scope,
-                ),
-            )
-            scoped = [candidate for candidate in eligible if _scope_key(candidate) == target_scope]
-            if scoped:
-                eligible = scoped
-
-        def selection_key(candidate: _Candidate) -> tuple[float, float]:
-            novelty = 1.0 if not selected else min(
-                _distance(candidate, other) * 0.55 + _silhouette_distance(candidate, other) * 0.45
-                for other in selected
-            )
-            new_language_bonus = 0.08 if operation_usage.get(candidate.operation, 0) == 0 else 0.0
-            new_scope_bonus = 0.05 if scope_usage.get(_scope_key(candidate), 0) == 0 else 0.0
-            new_seed_bonus = 0.06 if seed_usage.get(_seed_family(candidate), 0) == 0 else 0.0
-            new_section_bonus = 0.05 if section_usage.get(_section_family(candidate), 0) == 0 else 0.0
-            new_roof_bonus = 0.09 if roof_usage.get(_roof_archetype(candidate), 0) == 0 else 0.0
-            new_chassis_bonus = 0.06 if chassis_usage.get(_chassis_family(candidate), 0) == 0 else 0.0
-            return (
-                candidate.score * 0.44
-                + novelty * 0.56
-                + new_language_bonus
-                + new_scope_bonus
-                + new_seed_bonus
-                + new_section_bonus
-                + new_roof_bonus
-                + new_chassis_bonus,
-                candidate.score,
-            )
-
-        winner = max(eligible, key=selection_key)
-        selected.append(winner)
-        operation_usage[winner.operation] = operation_usage.get(winner.operation, 0) + 1
-        scope_usage[_scope_key(winner)] = scope_usage.get(_scope_key(winner), 0) + 1
-        seed_usage[_seed_family(winner)] = seed_usage.get(_seed_family(winner), 0) + 1
-        section_usage[_section_family(winner)] = section_usage.get(_section_family(winner), 0) + 1
-        roof_usage[_roof_archetype(winner)] = roof_usage.get(_roof_archetype(winner), 0) + 1
-        chassis_usage[_chassis_family(winner)] = chassis_usage.get(_chassis_family(winner), 0) + 1
-        candidates.remove(winner)
-    return _rebalance_measured_morphologies(
-        selected,
-        candidate_universe,
-        target=target,
-        visual_directive=directive,
-    )
-
-
-def _selection_capacity_diagnostics(
-    pool: list[_Candidate],
-    selected: list[_Candidate],
-    *,
-    target: int,
-    visual_directive: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Explain why a hard-pass pool cannot fill the requested portfolio.
-
-    This is observation only. It never relaxes a diversity cap or changes
-    selection; it exposes whether supply is lost to exact equivalence,
-    silhouette resemblance, BOOK repetition, genotype, roof or chassis caps.
+    Geometry validity alone cannot catch a camera/transport regression that
+    produces an apparently empty review card.  The archive renderer uses one
+    stable orange material, so record a conservative material-pixel ratio as
+    post-render evidence.  This is not a design-quality score and does not
+    replace direct PNG review.
     """
-    unique: dict[tuple[Any, ...], _Candidate] = {}
-    for candidate in pool:
-        fingerprint = _fingerprint(candidate)
-        current = unique.get(fingerprint)
-        if current is None or candidate.score > current.score:
-            unique[fingerprint] = candidate
-    universe = list(unique.values())
-    selected_ids = {id(candidate) for candidate in selected}
-    remaining = [candidate for candidate in universe if id(candidate) not in selected_ids]
-    directive = visual_directive or {}
-    seed_families = {_seed_family(candidate) for candidate in universe}
-    roof_archetypes = {_roof_archetype(candidate) for candidate in universe}
-    chassis_families = {_chassis_family(candidate) for candidate in universe}
-    seed_cap = max(2, (target + max(1, len(seed_families)) - 1) // max(1, len(seed_families)) + 1)
-    section_cap = max(3, target // 2)
-    default_roof_cap = target if len(roof_archetypes) <= 1 else max(4, target // 4)
-    roof_caps = {archetype: default_roof_cap for archetype in roof_archetypes}
-    for archetype, cap in (directive.get("max_roof_archetype_counts") or {}).items():
-        if str(archetype) in roof_caps:
-            roof_caps[str(archetype)] = max(1, min(target, int(cap)))
-    chassis_cap = max(1, min(
-        target,
-        int(directive.get("max_chassis_family_count") or (
-            target if len(chassis_families) <= 1 else max(4, target // max(1, len(chassis_families)) + 2)
-        )),
-    ))
-    operation_usage = Counter(candidate.operation for candidate in selected)
-    seed_usage = Counter(_seed_family(candidate) for candidate in selected)
-    section_usage = Counter(_section_family(candidate) for candidate in selected)
-    roof_usage = Counter(_roof_archetype(candidate) for candidate in selected)
-    chassis_usage = Counter(_chassis_family(candidate) for candidate in selected)
-    reason_counts: Counter[str] = Counter()
-    exclusive_counts: Counter[str] = Counter()
-    signature_counts: Counter[str] = Counter()
-    minimum_distances: list[float] = []
-    for candidate in remaining:
-        distances = [_silhouette_distance(candidate, other) for other in selected]
-        minimum_distance = min(distances, default=1.0)
-        minimum_distances.append(minimum_distance)
-        reasons: list[str] = []
-        if operation_usage[candidate.operation] >= 3:
-            reasons.append("book_operation_cap")
-        if seed_usage[_seed_family(candidate)] >= seed_cap:
-            reasons.append("genotype_cap")
-        if section_usage[_section_family(candidate)] >= section_cap:
-            reasons.append("section_family_cap")
-        if roof_usage[_roof_archetype(candidate)] >= roof_caps.get(_roof_archetype(candidate), target):
-            reasons.append("roof_archetype_cap")
-        if chassis_usage[_chassis_family(candidate)] >= chassis_cap:
-            reasons.append("chassis_family_cap")
-        if minimum_distance < 0.10:
-            reasons.append("silhouette_near_duplicate")
-        for reason in reasons:
-            reason_counts[reason] += 1
-        if len(reasons) == 1:
-            exclusive_counts[reasons[0]] += 1
-        signature_counts["+".join(sorted(reasons)) or "eligible"] += 1
-    return {
-        "schema_version": "arr.maas.selection_capacity_diagnostics.v1",
-        "raw_pool_count": len(pool),
-        "unique_fingerprint_count": len(universe),
-        "exact_fingerprint_collapsed_count": len(pool) - len(universe),
-        "selected_count": len(selected),
-        "target_count": target,
-        "remaining_candidate_count": len(remaining),
-        "reason_counts": dict(sorted(reason_counts.items())),
-        "exclusive_reason_counts": dict(sorted(exclusive_counts.items())),
-        "failure_signature_counts": dict(sorted(signature_counts.items())),
-        "minimum_silhouette_distance_summary": {
-            "minimum": round(min(minimum_distances, default=1.0), 4),
-            "mean": round(sum(minimum_distances) / max(1, len(minimum_distances)), 4),
-            "maximum": round(max(minimum_distances, default=1.0), 4),
-        },
-        "caps": {
-            "book_operation": 3,
-            "genotype": seed_cap,
-            "section_family": section_cap,
-            "roof_archetype_default": default_roof_cap,
-            "chassis_family": chassis_cap,
-            "silhouette_distance_minimum": 0.10,
-        },
-    }
-
-
-def _rebalance_measured_morphologies(
-    selected: list[_Candidate],
-    universe: list[_Candidate],
-    *,
-    target: int,
-    visual_directive: dict[str, Any],
-) -> list[_Candidate]:
-    """Replace measured wedge/family excess with hard-pass mesh alternatives.
-
-    This is phenotype selection, not a form template: categories and wedge
-    status are measured from triangle normals/topology after site fitting.
-    """
-    result = list(selected)
-    available = {_solid_morphology_metrics(candidate)["phenotype"] for candidate in universe}
-    required = tuple(
-        phenotype for phenotype in dict.fromkeys(
-            str(value) for value in visual_directive.get("required_solid_phenotypes") or ()
+    try:
+        image = Image.open(board).convert("RGB")
+    except (OSError, ValueError):
+        return []
+    card_w, card_h, columns, header_h, preview_h = 384, 322, 5, 72, 260
+    evidence: list[dict[str, Any]] = []
+    for index in range(max(0, int(candidate_count))):
+        x = (index % columns) * card_w
+        y = header_h + (index // columns) * card_h
+        pixels = image.crop((x, y, x + card_w, y + preview_h)).getdata()
+        material_pixels = sum(
+            1 for red, green, blue in pixels
+            if red > 90 and red >= green + 18 and green >= blue + 8
         )
-        if phenotype in available
-    )
-    wedge_cap = max(0, min(target, int(visual_directive.get("max_wedge_like_count", max(3, target // 5)))))
-    pyramidal_cap = max(0, min(target, int(visual_directive.get("max_pyramidal_like_count", 2))))
-    phenotype_cap = max(2, min(target, int(visual_directive.get("max_solid_phenotype_count", max(4, target // 4)))))
-
-    def counts(items: list[_Candidate]) -> tuple[Counter[str], Counter[str], int]:
-        return (
-            Counter(_solid_morphology_metrics(item)["phenotype"] for item in items),
-            Counter(_scope_key(item) for item in items),
-            sum(bool(_solid_morphology_metrics(item)["wedge_like"]) for item in items),
-        )
-
-    def replacement_options(
-        removed: _Candidate,
-        *,
-        wanted_phenotype: str = "",
-        require_non_wedge: bool = False,
-        require_non_pyramidal: bool = False,
-    ) -> list[_Candidate]:
-        remaining = [item for item in result if item is not removed]
-        phenotype_counts, scope_counts, wedge_count = counts(remaining)
-        pyramidal_count = sum(
-            bool(_solid_morphology_metrics(item)["pyramidal_like"])
-            for item in remaining
-        )
-        used = {id(item) for item in remaining}
-        removed_scope = _scope_key(removed)
-        must_restore_scope = scope_counts.get(removed_scope, 0) == 0
-        options = []
-        for candidate in universe:
-            if id(candidate) in used:
-                continue
-            metrics = _solid_morphology_metrics(candidate)
-            phenotype = metrics["phenotype"]
-            if wanted_phenotype and phenotype != wanted_phenotype:
-                continue
-            if require_non_wedge and metrics["wedge_like"]:
-                continue
-            if require_non_pyramidal and metrics["pyramidal_like"]:
-                continue
-            if must_restore_scope and _scope_key(candidate) != removed_scope:
-                continue
-            if phenotype_counts[phenotype] >= phenotype_cap:
-                continue
-            if metrics["wedge_like"] and wedge_count >= wedge_cap:
-                continue
-            if metrics["pyramidal_like"] and pyramidal_count >= pyramidal_cap:
-                continue
-            if any(_silhouette_distance(candidate, other) < 0.10 for other in remaining):
-                continue
-            options.append(candidate)
-        return options
-
-    def swap_for(
-        wanted_phenotype: str = "",
-        *,
-        reduce_wedge: bool = False,
-        reduce_pyramidal: bool = False,
-        excess_phenotype: str = "",
-    ) -> bool:
-        phenotype_counts, _scope_counts, _wedge_count = counts(result)
-        if wanted_phenotype:
-            # A required calm/curved/etc. candidate is often close to exactly
-            # one already selected neighbour.  The old greedy swap tested an
-            # unrelated low-score victim first, left that neighbour in place,
-            # and then rejected the required candidate as a duplicate. Search
-            # candidate/victim pairs causally and remove the actual conflict.
-            candidates = sorted(
-                (
-                    candidate for candidate in universe
-                    if _solid_morphology_metrics(candidate)["phenotype"] == wanted_phenotype
-                    and not any(candidate is item for item in result)
-                ),
-                key=lambda item: item.score,
-                reverse=True,
-            )
-            required_set = set(required)
-            for candidate in candidates:
-                conflicts = [
-                    item for item in result
-                    if _silhouette_distance(candidate, item) < 0.10
-                ]
-                if len(conflicts) > 1:
-                    continue
-                victims = conflicts or sorted(result, key=lambda item: item.score)
-                for removed in victims:
-                    removed_phenotype = _solid_morphology_metrics(removed)["phenotype"]
-                    if (
-                        removed_phenotype in required_set
-                        and removed_phenotype != wanted_phenotype
-                        and phenotype_counts[removed_phenotype] <= 1
-                    ):
-                        continue
-                    remaining = [item for item in result if item is not removed]
-                    remaining_scopes = Counter(_scope_key(item) for item in remaining)
-                    if (
-                        remaining_scopes.get(_scope_key(removed), 0) == 0
-                        and _scope_key(candidate) != _scope_key(removed)
-                    ):
-                        continue
-                    candidate_metrics = _solid_morphology_metrics(candidate)
-                    remaining_counts, _unused_scope_counts, remaining_wedges = counts(remaining)
-                    if remaining_counts[wanted_phenotype] >= phenotype_cap:
-                        continue
-                    if candidate_metrics["wedge_like"] and remaining_wedges >= wedge_cap:
-                        continue
-                    if candidate_metrics["pyramidal_like"] and sum(
-                        bool(_solid_morphology_metrics(item)["pyramidal_like"])
-                        for item in remaining
-                    ) >= pyramidal_cap:
-                        continue
-                    if any(_silhouette_distance(candidate, other) < 0.10 for other in remaining):
-                        continue
-                    result[result.index(removed)] = candidate
-                    return True
-            return False
-        removable = [
-            candidate for candidate in result
-            if (
-                (reduce_wedge and _solid_morphology_metrics(candidate)["wedge_like"])
-                or (reduce_pyramidal and _solid_morphology_metrics(candidate)["pyramidal_like"])
-                or (excess_phenotype and _solid_morphology_metrics(candidate)["phenotype"] == excess_phenotype)
-                or (
-                    wanted_phenotype
-                    and phenotype_counts[_solid_morphology_metrics(candidate)["phenotype"]] > 1
-                )
-            )
-            and not (
-                _solid_morphology_metrics(candidate)["phenotype"] in set(required)
-                and phenotype_counts[_solid_morphology_metrics(candidate)["phenotype"]] <= 1
-            )
-        ]
-        removable.sort(key=lambda item: item.score)
-        for removed in removable:
-            options = replacement_options(
-                removed,
-                wanted_phenotype=wanted_phenotype,
-                require_non_wedge=reduce_wedge,
-                require_non_pyramidal=reduce_pyramidal,
-            )
-            if not options:
-                continue
-            remaining = [item for item in result if item is not removed]
-            winner = max(options, key=lambda candidate: (
-                candidate.score
-                + (min((_silhouette_distance(candidate, other) for other in remaining), default=1.0) * 0.45),
-                -float((candidate.source.metadata.get("geometry_program_bridge_evidence") or {}).get("legal_fit_strength") or 0.0),
-            ))
-            result[result.index(removed)] = winner
-            return True
-        return False
-
-    # First guarantee each available requested phenotype, then constrain the
-    # visually observed wedge and dominant-phenotype shares.
-    for phenotype in required:
-        if not any(_solid_morphology_metrics(item)["phenotype"] == phenotype for item in result):
-            swap_for(phenotype)
-    while sum(bool(_solid_morphology_metrics(item)["wedge_like"]) for item in result) > wedge_cap:
-        if not swap_for(reduce_wedge=True):
-            break
-    while sum(bool(_solid_morphology_metrics(item)["pyramidal_like"]) for item in result) > pyramidal_cap:
-        if not swap_for(reduce_pyramidal=True):
-            break
-    while True:
-        phenotype_counts, _scope_counts, _wedge_count = counts(result)
-        excess = next((key for key, count in phenotype_counts.most_common() if count > phenotype_cap), "")
-        if not excess or not swap_for(excess_phenotype=excess):
-            break
-    if len(result) < target:
-        for candidate in sorted(universe, key=lambda item: item.score, reverse=True):
-            if any(candidate is item for item in result):
-                continue
-            metrics = _solid_morphology_metrics(candidate)
-            phenotype_counts, _scope_counts, wedge_count = counts(result)
-            if phenotype_counts[metrics["phenotype"]] >= phenotype_cap:
-                continue
-            if metrics["wedge_like"] and wedge_count >= wedge_cap:
-                continue
-            if metrics["pyramidal_like"] and sum(
-                bool(_solid_morphology_metrics(item)["pyramidal_like"])
-                for item in result
-            ) >= pyramidal_cap:
-                continue
-            if any(_silhouette_distance(candidate, other) < 0.10 for other in result):
-                continue
-            result.append(candidate)
-            if len(result) >= target:
-                break
-    return result[:target]
-
-
-def _bounded_visual_selection_pool(
-    pool: list[_Candidate],
-    *,
-    per_family_scope: int = 3,
-    per_seed_scope: int = 2,
-) -> list[_Candidate]:
-    """Bound expensive mesh comparison without losing scope/genotype breadth."""
-    family_scope: Counter[tuple[str, str]] = Counter()
-    seed_scope: Counter[tuple[str, str]] = Counter()
-    fingerprints: set[tuple[Any, ...]] = set()
-    retained: list[_Candidate] = []
-    for candidate in sorted(pool, key=lambda item: item.score, reverse=True):
-        fingerprint = _fingerprint(candidate)
-        if fingerprint in fingerprints:
-            continue
-        scope = _scope_key(candidate)
-        family = _geometry_program_family(candidate) or _roof_archetype(candidate)
-        seed = _seed_family(candidate)
-        if family_scope[(family, scope)] >= max(1, int(per_family_scope)):
-            continue
-        if seed_scope[(seed, scope)] >= max(1, int(per_seed_scope)):
-            continue
-        fingerprints.add(fingerprint)
-        family_scope[(family, scope)] += 1
-        seed_scope[(seed, scope)] += 1
-        retained.append(candidate)
-    return retained
-
-
-def _program_pool(
-    site: Polygon,
-    building_type: str,
-    height: float,
-    floors: int,
-    *,
-    generation_context: LegalGenerationContext | None = None,
-    parent_variant_indices: tuple[int, ...] = (0,),
-    typed_graph_mutations: list[dict[str, Any]] | None = None,
-    geometry_program_mutations: list[dict[str, Any]] | None = None,
-    synthesis_requests: list[dict[str, Any]] | None = None,
-    outcome_graph: GeometryOutcomeGraph | None = None,
-    recursive_only: bool = False,
-    program_dimensional_context: dict[str, Any] | None = None,
-) -> tuple[list[_Candidate], dict[str, Any]]:
-    accepted: list[_Candidate] = []
-    evaluated = compiled = clean = program_passed = 0
-    scope_stage_counts = {
-        label: {
-            "evaluated": 0,
-            "compiled": 0,
-            "projection_materialized": 0,
-            "projection_failed": 0,
-            "clean": 0,
-            "program_passed": 0,
-        }
-        for label, _fraction in BASE_VOLUME_FRACTIONS
-    }
-    gate_names = ("role_coverage", "dominant_ratio", "site_coverage", "hierarchy", "coherence", "program_form")
-    gate_diagnostics = {label: _empty_gate_diagnostic() for label, _fraction in BASE_VOLUME_FRACTIONS}
-    geometry_gate_diagnostics: dict[str, dict[str, Any]] = {}
-    requested_parent_indices = tuple(sorted({max(0, int(index)) for index in parent_variant_indices})) or (0,)
-    directed_seeds = _agent_mutated_seeds(
-        building_type,
-        typed_graph_mutations,
-        geometry_program_mutations,
-        synthesis_requests,
-        outcome_graph,
-    )
-    if recursive_only:
-        directed_seeds = tuple(
-            seed for seed in directed_seeds
-            if any(
-                note.startswith(("geometry_program_directive=", "geometry_program_payload="))
-                for note in seed.notes
-            )
-        )
-    parent_seeds = tuple(
-        variant
-        for seed_index, seed in enumerate(directed_seeds)
-        for variant_index, variant in enumerate(program_seed_variants(
-            seed,
-            count=max(requested_parent_indices) + 1,
-            random_seed=417 + seed_index * 97,
-        ))
-        if variant_index in requested_parent_indices
-    )
-    principles = tuple(build_book_language_registry()["principles"])
-    for seed_index, seed in enumerate(parent_seeds):
-        recursive_seed = any(
-            note.startswith(("geometry_program_directive=", "geometry_program_payload="))
-            for note in seed.notes
-        )
-        recursive_program: GeometryProgram | None = None
-        if recursive_seed:
-            payload = next((
-                note.split("=", 1)[1]
-                for note in seed.notes
-                if note.startswith("geometry_program_payload=")
-            ), "")
-            try:
-                recursive_program = GeometryProgram.from_dict(json.loads(payload))
-            except (TypeError, ValueError, json.JSONDecodeError):
-                recursive_program = None
-        # The exhaustive 59/59 BOOK compiler audit remains a separate hard
-        # regression. In portfolio synthesis, multiplying every recursive AST
-        # by all 59 sentences and all three probes mostly relabelled the same
-        # geometry thousands of times. Give each genotype a deterministic,
-        # scope-balanced BOOK neighbourhood so the compute budget explores
-        # more actual graph topologies instead.
-        scheduled_principles = (
-            _recursive_principle_schedule(principles, seed_index, count=12)
-            if recursive_seed
-            else tuple(enumerate(principles))
-        )
-        if recursive_seed and outcome_graph is not None:
-            source_seed_name = next((
-                note.split("=", 1)[1]
-                for note in seed.notes
-                if note.startswith("geometry_program_source_seed=")
-            ), "")
-            genotype_hash = recursive_program.program_hash() if recursive_program is not None else ""
-            if genotype_hash and source_seed_name:
-                principle_by_id = {
-                    str(principle["principle_id"]): (index, principle)
-                    for index, principle in enumerate(principles)
-                }
-                preferred_ids = outcome_graph.preferred_book_principle_ids(
-                    source_seed=source_seed_name,
-                    program_hash=genotype_hash,
-                    fallback=(str(principle["principle_id"]) for _index, principle in scheduled_principles),
-                    limit=12,
-                )
-                scheduled_principles = tuple(
-                    principle_by_id[principle_id]
-                    for principle_id in preferred_ids
-                    if principle_id in principle_by_id
-                )
-        recursive_family = str((recursive_program.metadata if recursive_program else {}).get("family") or "")
-        if recursive_program is not None:
-            # Every agent genotype receives one topology-preserving vertical
-            # EXTRUDE baseline before graph-memory reordering.  Otherwise a
-            # scoped BOOK Boolean can erase the authored curve/void/wing/cut,
-            # making it impossible to tell whether the genotype itself was
-            # viable.  This is a generic mutation control, not a form template.
-            principle_by_id = {
-                str(principle["principle_id"]): (index, principle)
-                for index, principle in enumerate(principles)
-            }
-            ordered_ids = tuple(dict.fromkeys((
-                "book:operative:extrude",
-                *(
-                    ("book:operative:expand",)
-                    if recursive_family == "agent_prismatic"
-                    else ()
-                ),
-                *(str(item[1]["principle_id"]) for item in scheduled_principles),
-            )))
-            scheduled_principles = tuple(
-                principle_by_id[principle_id]
-                for principle_id in ordered_ids
-                if principle_id in principle_by_id
-            )[:12]
-        for schedule_index, (principle_index, principle) in enumerate(scheduled_principles):
-            execution_verbs = tuple(principle["execution_verbs"])
-            # One BOOK sentence is a typed operator family, not one frozen
-            # geometry.  Execute three bounded schema-derived parameter probes
-            # so selection can compare real alternatives without parcel or
-            # finished-form templates.
-            sentence_variants = tuple(book_sentence_variants(execution_verbs, count=3))
-            scheduled_variants = (
-                (
-                    (2, sentence_variants[2]),
-                )
-                if recursive_seed and (seed_index + principle_index) % 3 == 0
-                else (
-                    (0, sentence_variants[0]),
-                )
-                if recursive_seed
-                else tuple(enumerate(sentence_variants))
-            )
-            for variant_index, operations in scheduled_variants:
-                evaluated += 1
-                suffix = str(principle["principle_id"]).split("book:", 1)[-1].replace(":", "_")
-                scope_index = schedule_index if recursive_seed else principle_index
-                base_volume_label = BASE_VOLUME_FRACTIONS[scope_index % len(BASE_VOLUME_FRACTIONS)][0]
-                orientation = (
-                    "vertical"
-                    if recursive_program is not None and principle["principle_id"] == "book:operative:extrude"
-                    else ("long_axis", "short_axis", "vertical")[(scope_index // len(BASE_VOLUME_FRACTIONS)) % 3]
-                )
-                scope_counts = scope_stage_counts[base_volume_label]
-                scope_counts["evaluated"] += 1
-                composed = compose_program_with_book_operations(
-                    seed,
-                    operations,
-                    name_suffix=suffix,
-                    base_volume_label=base_volume_label,
-                    orientation=orientation,
-                )
-                sequence = VerbSequence(
-                    name=f"{composed.name}__search_v{variant_index}",
-                    label=composed.label,
-                    calls=composed.calls,
-                    notes=composed.notes,
-                )
-                compile_site = site
-                generation_host_mode = "horizontal_buildable_envelope"
-                recursive_directed = any(
-                    note.startswith(("geometry_program_directive=", "geometry_program_payload="))
-                    for note in sequence.notes
-                )
-                # The third typed parameter probe also explores the vertical
-                # legal field.  Its base host is the sunlight-safe section at
-                # the requested program height, so the resulting geometry is
-                # born inside the envelope instead of repaired after selection.
-                use_height_safe_host = variant_index == 2 or (
-                    base_volume_label == "1/16" and variant_index == 0
-                )
-                if generation_context is not None and use_height_safe_host:
-                    # Use the section at two thirds of design height.  The
-                    # remaining cap is still measured by the exact downstream
-                    # retention gate, while the host remains large enough to
-                    # carry a coherent long-span/program role graph.
-                    generation_section_ratio = 2.0 / 3.0
-                    height_safe_site = generation_site_at_height(
-                        generation_context,
-                        height * generation_section_ratio,
-                    )
-                    if height_safe_site is not None:
-                        compile_site = height_safe_site
-                        generation_host_mode = "height_safe_sunlight_section"
-                source = compile_sequence_to_source_mass(compile_site, sequence)
-                if source is None:
-                    continue
-                source = _materialize_directed_geometry(
-                    source,
-                    sequence,
-                    containment_host=compile_site,
-                    upper_containment_host=(
-                        generation_site_at_height(generation_context, height)
-                        if recursive_directed and generation_context is not None
-                        else None
-                    ),
-                )
-                if source is None:
-                    continue
-                if program_dimensional_context:
-                    source = replace(source, metadata={
-                        **deepcopy(source.metadata),
-                        "program_dimensional_context": deepcopy(program_dimensional_context),
-                    })
-                if generation_context is not None:
-                    metadata = deepcopy(source.metadata)
-                    legal_evidence = deepcopy(generation_context.evidence)
-                    legal_evidence.update({
-                        "generation_host_mode": generation_host_mode,
-                        "candidate_generation_site_area_m2": round(float(compile_site.area), 3),
-                        "requested_program_height_m": float(height),
-                        "generation_host_section_height_m": (
-                            round(float(height) * generation_section_ratio, 3)
-                            if generation_host_mode == "height_safe_sunlight_section"
-                            else 0.0
-                        ),
-                    })
-                    metadata["legal_generation_context_evidence"] = legal_evidence
-                    source = replace(source, metadata=metadata)
-                    if (
-                        not recursive_directed
-                        and base_volume_label == "1/16"
-                        and generation_host_mode == "horizontal_buildable_envelope"
-                    ):
-                        source = fit_source_to_sunlight_field(
-                            source,
-                            generation_context,
-                            height_m=height,
-                            floors=floors,
-                        )
-                compiled += 1
-                scope_counts["compiled"] += 1
-                projection_evidence = source.metadata.get("program_book_projection_evidence") or {}
-                if projection_evidence.get("status") != "materialized":
-                    scope_counts["projection_failed"] += 1
-                    continue
-                scope_counts["projection_materialized"] += 1
-                signature = source.signature()
-                raw_surfaces = int(signature.get("surface_count") or 0)
-                effective_surfaces = int(signature.get("effective_surface_count") or raw_surfaces)
-                profiled = bool((signature.get("continuous_surface_evidence") or {}).get("hard_pass"))
-                recursive_mesh = bool(source.metadata.get("geometry_program_bridge_evidence"))
-                # A manifold solid may need hundreds of kernel triangles for
-                # a smooth bend or array. Those triangles are not hundreds of
-                # architectural surfaces. Keep the clean-mass gate on visible
-                # volumes and semantic/effective surfaces while retaining a
-                # generous corruption guard for the render transport.
-                raw_surface_limit = 2048 if recursive_mesh else (160 if profiled else 48)
-                if len(source.volumes) > 5 or raw_surfaces > raw_surface_limit or effective_surfaces > 28:
-                    continue
-                compilation_metrics = (
-                    source.metadata.get("geometry_program_compilation") or {}
-                ).get("metrics") or {}
-                if (
-                    recursive_mesh
-                    and int(compilation_metrics.get("component_count") or 1) > 1
-                    and float(compilation_metrics.get("minimum_component_volume_ratio") or 0.0) < 0.08
-                ):
-                    # A technically manifold speck is still a disconnected
-                    # Lego fragment. Every visible component must carry at
-                    # least 8% of the compiled solid volume.
-                    continue
-                if not _inside_site(source, compile_site):
-                    continue
-                clean += 1
-                scope_counts["clean"] += 1
-                feature = source_feature(
-                    source,
-                    sequence,
-                    building_type=building_type,
-                    height=height,
-                    floors=floors,
-                    site_area=float(compile_site.area),
-                )
-                program = attach_program_massing_evidence(feature, building_type=building_type)
-                spatial = feature["properties"]["program_spatial_evidence"]
-                program_form_gate = _program_form_gate(source, building_type)
-                feature["properties"]["program_form_gate"] = program_form_gate
-                gate_pass = {
-                    "role_coverage": bool(all(spatial.get("required_role_hits") or ())),
-                    "dominant_ratio": float(spatial.get("dominant_ratio_score") or 0.0) >= 0.55,
-                    "site_coverage": float(spatial.get("site_coverage_score") or 0.0) >= 0.55,
-                    "hierarchy": float(spatial.get("hierarchy_score") or 0.0) >= 0.50,
-                    "coherence": bool((feature["properties"].get("source_signature", {}).get("coherence_evidence") or {}).get("hard_pass", False)),
-                    "program_form": bool(program_form_gate["hard_pass"]),
-                }
-                failed_gates = tuple(name for name in gate_names if not gate_pass[name])
-                combined_program_hard_pass = bool(program["hard_pass"]) and bool(program_form_gate["hard_pass"])
-                _record_gate_diagnostic(
-                    gate_diagnostics[base_volume_label],
-                    spatial=spatial,
-                    hard_pass=combined_program_hard_pass,
-                    failed_gates=failed_gates,
-                    program_form_failures=tuple(program_form_gate.get("failures") or ()),
-                )
-                geometry_family = str(source.metadata.get("family") or "") if source.metadata.get("geometry_program_bridge_evidence") else ""
-                if geometry_family:
-                    _record_gate_diagnostic(
-                        geometry_gate_diagnostics.setdefault(geometry_family, _empty_gate_diagnostic()),
-                        spatial=spatial,
-                        hard_pass=combined_program_hard_pass,
-                        failed_gates=failed_gates,
-                        program_form_failures=tuple(program_form_gate.get("failures") or ()),
-                    )
-                    if outcome_graph is not None:
-                        outcome_graph.observe_program_evaluation(
-                            program_slug=next(
-                                (slug for slug, label, _height, _floors in PROGRAMS if label == building_type),
-                                str(building_type),
-                            ),
-                            source=source,
-                            sequence_name=sequence.name,
-                            principle_id=str(principle["principle_id"]),
-                            spatial=spatial,
-                            failed_gates=failed_gates,
-                        )
-                if not combined_program_hard_pass:
-                    continue
-                program_passed += 1
-                scope_counts["program_passed"] += 1
-                score = float(program["program_fit_score"]) * 0.56 + float(spatial["architectural_score"]) * 0.44
-                bridge = source.metadata.get("geometry_program_bridge_evidence") or {}
-                fit_strength = float(bridge.get("legal_fit_strength") or 0.0) if isinstance(bridge, dict) else 0.0
-                # Selection must not reward a legal interpolation that erases
-                # the AST's section language. Hard gates already decide legal
-                # validity; this small tie-break preserves design geometry.
-                score -= fit_strength * 0.10
-                accepted.append(_Candidate(
-                    str(principle["principle_id"]),
-                    str(principle["kind"]),
-                    str(principle["label"]),
-                    sequence,
-                    source,
-                    feature,
-                    round(score, 6),
-                ))
-    summarized_gate_diagnostics = {
-        label: _summarize_gate_diagnostic(diagnostic)
-        for label, diagnostic in gate_diagnostics.items()
-    }
-    return accepted, {
-        "evaluated": evaluated,
-        "compiled": compiled,
-        "clean": clean,
-        "program_passed": program_passed,
-        "base_role_seed_count": len(program_seed_sequences(building_type)),
-        "agent_mutated_seed_count": max(0, len(directed_seeds) - len(program_seed_sequences(building_type))),
-        "recursive_geometry_seed_count": sum(
-            any(
-                note.startswith(("geometry_program_directive=", "geometry_program_payload="))
-                for note in seed.notes
-            )
-            for seed in directed_seeds
-        ),
-        "geometry_synthesis_request_source": (
-            "program_profile_control+vlm_or_session_directive"
-            if synthesis_requests
-            else "program_profile_control"
-        ),
-        "geometry_synthesis_request_count": (
-            min(2, len(program_seed_sequences(building_type)))
-            + len(tuple(record for record in (synthesis_requests or ()) if isinstance(record, dict)))
-        ),
-        "geometry_program_vlm_status_counts": dict(sorted(Counter(
-            note.split("=", 1)[1]
-            for seed in directed_seeds
-            for note in seed.notes
-            if note.startswith("geometry_program_vlm_status=")
-        ).items())),
-        "geometry_program_vlm_causal_trace": {
-            "maximum_reference_count": max((
-                int(note.split("=", 1)[1])
-                for seed in directed_seeds for note in seed.notes
-                if note.startswith("geometry_program_vlm_reference_count=")
-            ), default=0),
-            "maximum_memory_observation_count": max((
-                int(note.split("=", 1)[1])
-                for seed in directed_seeds for note in seed.notes
-                if note.startswith("geometry_program_vlm_memory_observation_count=")
-            ), default=0),
-            "geometry_revision_count": max((
-                int(note.split("=", 1)[1])
-                for seed in directed_seeds for note in seed.notes
-                if note.startswith("geometry_program_vlm_revision_count=")
-            ), default=0),
-        },
-        "program_passed_by_seed_family": dict(sorted(Counter(_seed_family(candidate) for candidate in accepted).items())),
-        "program_passed_by_section_family": dict(sorted(Counter(_section_family(candidate) for candidate in accepted).items())),
-        "scope_stage_counts": scope_stage_counts,
-        "program_gate_diagnostics_by_scope": summarized_gate_diagnostics,
-        "program_gate_diagnostics_by_recursive_geometry_family": {
-            family: _summarize_gate_diagnostic(diagnostic)
-            for family, diagnostic in sorted(geometry_gate_diagnostics.items())
-        },
-        "program_gate_diagnostics_total": _merge_gate_diagnostics(summarized_gate_diagnostics),
-    }
-
-
-def _recursive_principle_schedule(
-    principles: tuple[dict[str, Any], ...],
-    seed_index: int,
-    *,
-    count: int,
-) -> tuple[tuple[int, dict[str, Any]], ...]:
-    """Assign a reproducible BOOK neighbourhood with all six p.3 scopes.
-
-    Step 5 is coprime to the 59-principle corpus and also walks every residue
-    modulo six, while the seed offset prevents every genotype from seeing the
-    same small subset. No geometry or parcel coordinate is encoded here.
-    """
-    if not principles:
-        return ()
-    total = len(principles)
-    wanted = max(6, min(total, int(count)))
-    indices: list[int] = []
-    cursor = (int(seed_index) * 7) % total
-    while len(indices) < wanted:
-        if cursor not in indices:
-            indices.append(cursor)
-        cursor = (cursor + 5) % total
-    return tuple((index, principles[index]) for index in indices)
-
-
-def _empty_gate_diagnostic() -> dict[str, Any]:
-    gate_names = ("role_coverage", "dominant_ratio", "site_coverage", "hierarchy", "coherence", "program_form")
-    return {
-        "candidate_count": 0,
-        "hard_pass_count": 0,
-        "failed_candidate_count": 0,
-        "gate_failed_counts": {name: 0 for name in gate_names},
-        "exclusive_gate_failed_counts": {name: 0 for name in gate_names},
-        "failure_signature_counts": {},
-        "program_form_failure_counts": {},
-        "metric_samples": {
-            "role_coverage_score": [],
-            "dominant_component_ratio": [],
-            "dominant_ratio_score": [],
-            "site_coverage_ratio": [],
-            "site_coverage_score": [],
-            "hierarchy_score": [],
-            "coherence_score": [],
-        },
-    }
-
-
-def _record_gate_diagnostic(
-    diagnostic: dict[str, Any],
-    *,
-    spatial: dict[str, Any],
-    hard_pass: bool,
-    failed_gates: tuple[str, ...],
-    program_form_failures: tuple[str, ...] = (),
-) -> None:
-    diagnostic["candidate_count"] += 1
-    diagnostic["hard_pass_count" if hard_pass else "failed_candidate_count"] += 1
-    for name in failed_gates:
-        diagnostic["gate_failed_counts"][name] += 1
-    if len(failed_gates) == 1:
-        diagnostic["exclusive_gate_failed_counts"][failed_gates[0]] += 1
-    signature = "+".join(failed_gates) if failed_gates else "none"
-    diagnostic["failure_signature_counts"][signature] = diagnostic["failure_signature_counts"].get(signature, 0) + 1
-    for reason in program_form_failures:
-        diagnostic["program_form_failure_counts"][reason] = (
-            diagnostic["program_form_failure_counts"].get(reason, 0) + 1
-        )
-    for name in diagnostic["metric_samples"]:
-        diagnostic["metric_samples"][name].append(float(spatial.get(name) or 0.0))
-
-
-def _metric_summary(values: list[float]) -> dict[str, float | int]:
-    if not values:
-        return {"count": 0, "minimum": 0.0, "mean": 0.0, "maximum": 0.0}
-    return {
-        "count": len(values),
-        "minimum": round(min(values), 4),
-        "mean": round(sum(values) / len(values), 4),
-        "maximum": round(max(values), 4),
-    }
-
-
-def _summarize_gate_diagnostic(diagnostic: dict[str, Any]) -> dict[str, Any]:
-    result = {key: deepcopy(value) for key, value in diagnostic.items() if key != "metric_samples"}
-    result["metric_summaries"] = {
-        name: _metric_summary(values)
-        for name, values in diagnostic["metric_samples"].items()
-    }
-    return result
-
-
-def _merge_gate_diagnostics(by_scope: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    gate_names = ("role_coverage", "dominant_ratio", "site_coverage", "hierarchy", "coherence", "program_form")
-    total = {
-        "candidate_count": sum(item["candidate_count"] for item in by_scope.values()),
-        "hard_pass_count": sum(item["hard_pass_count"] for item in by_scope.values()),
-        "failed_candidate_count": sum(item["failed_candidate_count"] for item in by_scope.values()),
-        "gate_failed_counts": {
-            name: sum(item["gate_failed_counts"][name] for item in by_scope.values())
-            for name in gate_names
-        },
-        "exclusive_gate_failed_counts": {
-            name: sum(item["exclusive_gate_failed_counts"][name] for item in by_scope.values())
-            for name in gate_names
-        },
-        "failure_signature_counts": {},
-        "program_form_failure_counts": {},
-    }
-    for item in by_scope.values():
-        for signature, count in item["failure_signature_counts"].items():
-            total["failure_signature_counts"][signature] = total["failure_signature_counts"].get(signature, 0) + count
-        for reason, count in item["program_form_failure_counts"].items():
-            total["program_form_failure_counts"][reason] = total["program_form_failure_counts"].get(reason, 0) + count
-    return total
+        ratio = material_pixels / float(card_w * preview_h)
+        evidence.append({
+            "card_index": index + 1,
+            "board_png": str(board),
+            "crop_box": [x, y, x + card_w, y + preview_h],
+            "rendered_mass_pixel_count": material_pixels,
+            "rendered_mass_pixel_ratio": round(ratio, 5),
+            "hard_pass": ratio >= 0.005,
+            "evidence_role": "human_and_vlm_visual_observation_not_geometry_authority",
+        })
+    return evidence
 
 
 def _candidate_language_descriptor(candidate: _Candidate) -> dict[str, Any]:
@@ -2473,7 +291,10 @@ def _candidate_language_descriptor(candidate: _Candidate) -> dict[str, Any]:
                 role_tokens[token] += 1
     morphology = _solid_morphology_metrics(candidate)
     articulation = _architectural_articulation_metrics(source)
+    design_concept = _design_concept_descriptor(candidate)
     program_form = candidate.feature.get("properties", {}).get("program_form_gate", {})
+    capacity_alternative = source.metadata.get("capacity_alternative_projection") or {}
+    capacity_measurement = source.metadata.get("source_capacity_measurement") or {}
     return {
         "seed_family": _seed_family(candidate),
         "section_family": _section_family(candidate),
@@ -2497,9 +318,20 @@ def _candidate_language_descriptor(candidate: _Candidate) -> dict[str, Any]:
         "solid_genus": morphology["genus"],
         "solid_component_count": morphology["component_count"],
         "book_scope": _scope_key(candidate),
+        "capacity_alternative_id": _capacity_alternative_key(candidate),
+        "capacity_target_utilization": float(
+            capacity_alternative.get("target_utilization") or 0.0
+        ),
+        "capacity_achieved_utilization": float(
+            capacity_measurement.get("feasible_capacity_utilization") or 0.0
+        ),
+        "capacity_target_hard_pass": bool(
+            capacity_alternative.get("target_hard_pass")
+        ),
+        "far_pct": float(capacity_measurement.get("far_pct") or 0.0),
         "oriented_plan_aspect_ratio": round(aspect, 4),
         "plan_compactness": round(compactness, 4),
-        "plan_family": "bar" if aspect >= 2.2 else ("compact" if aspect <= 1.35 else "intermediate"),
+        "plan_family": _plan_family(candidate),
         "dominant_component_ratio": round(float(spatial.get("dominant_component_ratio") or 0.0), 4),
         "site_coverage_ratio": round(float(spatial.get("site_coverage_ratio") or 0.0), 4),
         "hierarchy_score": round(float(spatial.get("hierarchy_score") or 0.0), 4),
@@ -2507,9 +339,15 @@ def _candidate_language_descriptor(candidate: _Candidate) -> dict[str, Any]:
         "semantic_role_tokens": dict(sorted(role_tokens.items())),
         "body_rule_count": articulation["body_rule_count"],
         "program_body_rule_count": articulation["program_rule_count"],
+        "public_threshold_rule_count": articulation["public_threshold_rule_count"],
         "book_body_rule_count": articulation["book_rule_count"],
         "body_rule_family_counts": articulation["family_counts"],
         "body_rules": articulation["rules"],
+        "design_concept": design_concept,
+        "design_concept_key": design_concept["concept_key"],
+        "ground_strategy": design_concept["ground_strategy"],
+        "frontage_aligned_public_threshold": design_concept["frontage_aligned"],
+        "missing_required_design_concepts": design_concept["missing_required_concepts"],
         "measured_clear_span_m": float(program_form.get("measured_clear_span_m") or 0.0),
         "measured_solid_height_m": float(program_form.get("measured_solid_height_m") or 0.0),
         "height_to_clear_span_ratio": float(program_form.get("height_to_clear_span_ratio") or 0.0),
@@ -2532,6 +370,12 @@ def _portfolio_language_metrics(selected: list[_Candidate]) -> dict[str, Any]:
     wedge_like_count = sum(bool(item["wedge_like"]) for item in descriptors)
     pyramidal_like_count = sum(bool(item["pyramidal_like"]) for item in descriptors)
     plan_counts = Counter(item["plan_family"] for item in descriptors)
+    ground_strategy_counts = Counter(item["ground_strategy"] for item in descriptors)
+    concept_key_counts = Counter(item["design_concept_key"] for item in descriptors)
+    capacity_alternative_counts = Counter(
+        item["capacity_alternative_id"] for item in descriptors
+        if item["capacity_alternative_id"] != "unclassified"
+    )
     control_signatures = {
         json.dumps(item["section_control_signature"], sort_keys=True)
         for item in descriptors
@@ -2546,6 +390,14 @@ def _portfolio_language_metrics(selected: list[_Candidate]) -> dict[str, Any]:
     return {
         "schema_version": "arr.maas.program_language_metrics.v1",
         "candidate_count": len(descriptors),
+        "capacity_alternative_counts": dict(sorted(capacity_alternative_counts.items())),
+        "capacity_alternative_count": len(capacity_alternative_counts),
+        "capacity_target_pass_count": sum(
+            bool(item["capacity_target_hard_pass"]) for item in descriptors
+        ),
+        "mean_capacity_target_utilization": mean("capacity_target_utilization"),
+        "mean_capacity_achieved_utilization": mean("capacity_achieved_utilization"),
+        "mean_far_pct": mean("far_pct"),
         "seed_family_counts": dict(sorted(seed_counts.items())),
         "seed_family_count": len(seed_counts),
         "dominant_seed_family_share": round(max(seed_counts.values(), default=0) / total, 4),
@@ -2578,6 +430,16 @@ def _portfolio_language_metrics(selected: list[_Candidate]) -> dict[str, Any]:
         "mean_sloped_surface_ratio": mean("sloped_surface_ratio"),
         "section_control_signature_count": len(control_signatures),
         "plan_family_counts": dict(sorted(plan_counts.items())),
+        "ground_strategy_counts": dict(sorted(ground_strategy_counts.items())),
+        "ground_strategy_count": len(ground_strategy_counts),
+        "frontage_aligned_public_threshold_count": sum(
+            bool(item["frontage_aligned_public_threshold"]) for item in descriptors
+        ),
+        "design_concept_key_count": len(concept_key_counts),
+        "maximum_design_concept_key_repeat": max(concept_key_counts.values(), default=0),
+        "missing_required_design_concept_count": sum(
+            len(item["missing_required_design_concepts"]) for item in descriptors
+        ),
         "mean_oriented_plan_aspect_ratio": mean("oriented_plan_aspect_ratio"),
         "mean_plan_compactness": mean("plan_compactness"),
         "mean_dominant_component_ratio": mean("dominant_component_ratio"),
@@ -2590,9 +452,32 @@ def _portfolio_language_metrics(selected: list[_Candidate]) -> dict[str, Any]:
         ),
         "mean_body_rule_count": mean("body_rule_count"),
         "maximum_body_rule_count": max((int(item["body_rule_count"]) for item in descriptors), default=0),
+        "mean_public_threshold_rule_count": mean("public_threshold_rule_count"),
         "body_rule_family_counts": dict(sorted(sum((Counter(item["body_rule_family_counts"]) for item in descriptors), Counter()).items())),
         "semantic_role_token_counts": dict(sorted(sum((Counter(item["semantic_role_tokens"]) for item in descriptors), Counter()).items())),
     }
+
+
+def _order_portfolio_for_capacity_review(
+    selected: list[_Candidate],
+) -> list[_Candidate]:
+    """Group the 5-column review board by yield band, then visual family."""
+    capacity_rank = {
+        "spatial_reserve": 0,
+        "balanced_yield": 1,
+        "brief_target": 2,
+        "maximum_feasible": 3,
+        "unclassified": 4,
+    }
+    return sorted(
+        selected,
+        key=lambda candidate: (
+            capacity_rank.get(_capacity_alternative_key(candidate), 4),
+            _solid_morphology_metrics(candidate)["phenotype"],
+            _geometry_program_family(candidate),
+            -float(candidate.score),
+        ),
+    )
 
 
 def _cross_program_language_comparison(
@@ -2738,30 +623,88 @@ def run_book_program_portfolios(
     recursive_only: bool = False,
     visual_directive_path: Path | None = None,
     outcome_graph_path: Path | None = None,
+    site_boundary_source: str = "",
+    site_access_context: dict[str, Any] | None = None,
+    site_access_geometry: dict[str, Any] | None = None,
+    live_geometry_vlm_revision: bool = False,
 ) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     directive_dir = visual_directive_path.parent if visual_directive_path is not None else output_dir
     visual_directive_payload = _load_visual_directive(directive_dir, pnu)
-    outcome_graph_path = outcome_graph_path or (output_dir / "maas-geometry-mutation-outcome-graph.json")
+    outcome_graph_path_was_explicit = outcome_graph_path is not None
+    outcome_graph_path = outcome_graph_path or default_outcome_graph_path(pnu)
+    outcome_graph_snapshot_path = output_dir / "maas-geometry-mutation-outcome-graph.json"
     outcome_graph = GeometryOutcomeGraph.load(outcome_graph_path, pnu=pnu)
     program_results: list[dict[str, Any]] = []
     selected_by_program: dict[str, list[_Candidate]] = {}
     metrics_by_program: dict[str, dict[str, Any]] = {}
     board_paths: list[Path] = []
+    mass_brain_trace_sequences: list[VerbSequence] = []
+    mass_brain_trace_features: dict[str, dict[str, Any]] = {}
     requested_slugs = set(program_slugs or ())
     for slug, building_type, height, floors in PROGRAMS:
         if requested_slugs and slug not in requested_slugs:
             continue
         started = perf_counter()
         outcome_graph.begin_program_run(slug)
+        memory_visual_directive = outcome_graph.latest_portfolio_directive(slug)
         program_visual_directive = dict(
             (visual_directive_payload.get("programs") or {}).get(slug) or {}
+        )
+        # Plan topology is measured from the final footprint. Requesting a
+        # triangular member has no effect when no valid triangular candidate
+        # survives; when one does survive, the portfolio must not silently
+        # discard the entire non-orthogonal plan language.
+        program_visual_directive.setdefault("required_plan_families", ["triangular"])
+        remembered_families = list(
+            memory_visual_directive.get("required_geometry_program_families") or ()
+        )
+        if remembered_families:
+            program_visual_directive["required_geometry_program_families"] = list(dict.fromkeys((
+                *remembered_families,
+                *(program_visual_directive.get("required_geometry_program_families") or ()),
+            )))
+        remembered_chassis = list(
+            memory_visual_directive.get("required_chassis_families") or ()
+        )
+        if remembered_chassis:
+            program_visual_directive["required_chassis_families"] = list(dict.fromkeys((
+                *remembered_chassis,
+                *(program_visual_directive.get("required_chassis_families") or ()),
+            )))
+        program_visual_directive["portfolio_memory_directive"] = memory_visual_directive
+        remembered_family_caps = dict(
+            memory_visual_directive.get("max_geometry_family_counts") or {}
+        )
+        if remembered_family_caps:
+            program_visual_directive["max_geometry_family_counts"] = {
+                **remembered_family_caps,
+                **dict(program_visual_directive.get("max_geometry_family_counts") or {}),
+            }
+        remembered_chassis_caps = dict(
+            memory_visual_directive.get("max_chassis_family_counts") or {}
+        )
+        if remembered_chassis_caps:
+            program_visual_directive["max_chassis_family_counts"] = {
+                **remembered_chassis_caps,
+                **dict(program_visual_directive.get("max_chassis_family_counts") or {}),
+            }
+        remembered_chassis_cap = int(
+            memory_visual_directive.get("max_chassis_family_count") or 0
+        )
+        if remembered_chassis_cap and not remembered_chassis_caps and not program_visual_directive.get(
+            "max_chassis_family_count"
+        ):
+            program_visual_directive["max_chassis_family_count"] = remembered_chassis_cap
+        runtime_live_vlm = bool(
+            live_geometry_vlm_revision
+            or program_visual_directive.get("live_geometry_vlm_revision")
         )
         typed_graph_mutations = program_visual_directive.get("typed_graph_mutations") or []
         geometry_program_mutations = program_visual_directive.get("geometry_program_mutations") or []
         synthesis_requests = program_visual_directive.get("geometry_synthesis_requests") or []
         if synthesis_requests:
-            live_requested = bool(program_visual_directive.get("live_geometry_vlm_revision"))
+            live_requested = runtime_live_vlm
             reference_matches = [
                 {
                     "local_path": str(path),
@@ -2783,9 +726,13 @@ def run_book_program_portfolios(
                 for request in synthesis_requests
                 if isinstance(request, dict)
             ]
-        geometry_program_authority = bool(
-            recursive_only or synthesis_requests or geometry_program_mutations
-        )
+        # The universal recursive form bank is the default dominant-form
+        # authority.  Legacy program sequences are role/context carriers, not
+        # selectable finished geometry.  Previously this flag became false
+        # without an explicit session mutation even though _program_pool still
+        # injected the universal bank; legacy candidates could then enter the
+        # exact-AST VLM shortlist with no geometry_program nodes at all.
+        geometry_program_authority = True
         generation_context = (
             build_legal_generation_context(
                 site_local_utm=site,
@@ -2828,7 +775,10 @@ def run_book_program_portfolios(
                 "near_duplicate_pair_count": 0,
                 "program_language_metrics": empty_metrics,
                 "program_dimensional_context": dimensional_context,
-                "vlm_portfolio_directive": {"active": bool(program_visual_directive)},
+                "vlm_portfolio_directive": {
+                    "active": bool(runtime_live_vlm or program_visual_directive),
+                    "runtime_live_vlm_requested": runtime_live_vlm,
+                },
                 "downstream_hard_gate": {"status": "not_run", "candidate_count": 0},
                 "counts": {},
                 "failures": list(dimensional_context.get("failure_reasons") or ("program_dimensional_infeasible",)),
@@ -2841,6 +791,23 @@ def run_book_program_portfolios(
             continue
         height = float(dimensional_context["effective_height_m"])
         floors = int(dimensional_context["effective_floors"])
+        capacity_policy = resolve_massing_capacity_policy(
+            building_type=building_type,
+            site_area_m2=float(site.area),
+            parking_options=parking_options,
+        )
+        base_capacity_contract = (
+            build_feasible_capacity_contract(
+                generation_context,
+                site_local_utm=site,
+                height_m=height,
+                floors=floors,
+                target_utilization=float(capacity_policy["target_far_utilization"]),
+                minimum_utilization=float(capacity_policy["min_far_utilization"]),
+            )
+            if generation_context is not None
+            else None
+        )
         pool, counts = _program_pool(
             generation_site,
             building_type,
@@ -2853,13 +820,44 @@ def run_book_program_portfolios(
             outcome_graph=outcome_graph,
             recursive_only=geometry_program_authority,
             program_dimensional_context=dimensional_context,
+            site_boundary_source=site_boundary_source,
+            site_access_context=site_access_context,
+            site_access_geometry=site_access_geometry,
+            live_geometry_vlm_revision=runtime_live_vlm,
+            base_capacity_contract=base_capacity_contract,
+            capacity_site=site,
         )
         counts["program_dimensional_context"] = deepcopy(dimensional_context)
+        counts["capacity_policy"] = deepcopy(capacity_policy)
+        counts["base_capacity_contract"] = deepcopy(base_capacity_contract or {})
+        # The base is a causal visual parent, not necessarily a final legal or
+        # parking solution. Review that parent after program/clean gates, then
+        # release its exact descendants and apply downstream hard gates to
+        # each released candidate. Reversing this order deleted a legal,
+        # parking-valid split+shift descendant merely because its unshifted
+        # visual parent could not itself lay out parking.
+        if runtime_live_vlm:
+            downstream_evaluation_pool, base_stage_vlm_gate = audit_book_base_stage_with_vlm(
+                pool,
+                building_type=building_type,
+                output_dir=output_dir / slug / "book-base-stage",
+                visual_directive=program_visual_directive,
+                outcome_graph=outcome_graph,
+                program_slug=slug,
+            )
+        else:
+            downstream_evaluation_pool = pool
+            base_stage_vlm_gate = {
+                "schema_version": "arr.maas.book_base_stage_vlm_gate.v1",
+                "required": False,
+                "status": "not_requested",
+                "input_count": len(pool),
+            }
         preselection_hard_gate = None
-        selection_pool = pool
+        selection_pool = downstream_evaluation_pool
         if generation_context is not None:
             preselection_hard_gate = evaluate_accepted_sources_downstream(
-                pool,
+                downstream_evaluation_pool,
                 site_local_utm=site,
                 site_origin_utm=site_origin_utm,
                 pnu=pnu,
@@ -2874,10 +872,13 @@ def run_book_program_portfolios(
             )
             selection_pool = [
                 candidate
-                for candidate, row in zip(pool, preselection_hard_gate["rows"])
+                for candidate, row in zip(downstream_evaluation_pool, preselection_hard_gate["rows"])
                 if row["combined_hard_pass"]
             ]
-        counts["preselection_hard_gate"] = _hard_gate_count_summary(preselection_hard_gate, pool)
+        counts["preselection_hard_gate"] = _hard_gate_count_summary(
+            preselection_hard_gate,
+            downstream_evaluation_pool,
+        )
         counts["geometry_program_authority"] = {
             "required": geometry_program_authority,
             "reason": (
@@ -2886,27 +887,36 @@ def run_book_program_portfolios(
                 else (
                     "geometry_synthesis_request"
                     if synthesis_requests
-                    else "geometry_program_mutation"
+                    else (
+                        "geometry_program_mutation"
+                        if geometry_program_mutations
+                        else "universal_form_bank_default"
+                    )
                 )
-            ) if geometry_program_authority else "legacy_and_recursive_allowed",
-            "legacy_geometry_final_selection_allowed": not geometry_program_authority,
+            ),
+            "legacy_geometry_final_selection_allowed": False,
         }
-        live_vlm_selection_required = bool(
-            program_visual_directive.get("live_geometry_vlm_revision")
-            and program_visual_directive.get("geometry_synthesis_requests")
-        )
+        # The default dominant-form supply is now the universal bank. Program
+        # evidence and BOOK projection exist before the live critic sees a
+        # candidate; no program-conditioned VLM authors the base/chassis lane.
+        # Explicit session directives remain additive feedback only.
+        live_vlm_selection_required = False
         pre_vlm_selection_count = len(selection_pool)
-        if live_vlm_selection_required:
-            selection_pool = [
-                candidate for candidate in selection_pool
-                if _vlm_reviewed_program_candidate(candidate)
-            ]
+        pre_book_reviewed_count = sum(
+            _vlm_reviewed_program_candidate(candidate)
+            for candidate in selection_pool
+        )
         counts["vlm_final_selection_gate"] = {
-            "required": live_vlm_selection_required,
+            "required": False,
+            "role": "post_program_exact_book_critic",
+            "universal_form_bank_precedes_program_and_vlm": True,
             "input_count": pre_vlm_selection_count,
-            "reviewed_program_fit_pass_count": len(selection_pool),
-            "unreviewed_or_program_rejected_count": pre_vlm_selection_count - len(selection_pool),
+            "legacy_prebook_reviewed_program_fit_pass_count": pre_book_reviewed_count,
+            "universal_control_count": pre_vlm_selection_count - pre_book_reviewed_count,
+            "universal_control_retained_for_exact_post_book_review": True,
+            "exact_post_book_vlm_is_final_selection_authority": bool(runtime_live_vlm),
         }
+        counts["book_base_stage_vlm_gate"] = base_stage_vlm_gate
         degenerate_sheet_count = sum(
             bool(_solid_morphology_metrics(candidate)["degenerate_sheet_like"])
             for candidate in selection_pool
@@ -2936,100 +946,198 @@ def run_book_program_portfolios(
                 for candidate in selection_pool
             ),
         }
-        selected = _select(selection_pool, 20, visual_directive=program_visual_directive)
+        pre_final_book_vlm_pool = list(selection_pool)
+        if runtime_live_vlm:
+            initial_cycle = run_final_vlm_cycle(
+                pre_final_book_vlm_pool,
+                retained_hard_passes=[],
+                building_type=building_type,
+                output_dir=output_dir / slug,
+                visual_directive=program_visual_directive,
+                outcome_graph=outcome_graph,
+                program_slug=slug,
+                generation_site=generation_site,
+                height=height,
+                floors=floors,
+                generation_context=generation_context,
+                program_dimensional_context=dimensional_context,
+                site_boundary_source=site_boundary_source,
+                site_access_context=site_access_context,
+                site_access_geometry=site_access_geometry,
+                base_capacity_contract=base_capacity_contract,
+                downstream_context={
+                    "site_local_utm": site,
+                    "site_origin_utm": site_origin_utm,
+                    "pnu": pnu,
+                    "building_type": building_type,
+                    "height_m": height,
+                    "floors": floors,
+                    "constraints": constraints,
+                    "regulation_evidence": regulation_evidence or {},
+                    "sunlight_envelope": sunlight_envelope,
+                    "parking_options": parking_options,
+                    "generation_context": generation_context,
+                },
+                hard_gate_summary=_hard_gate_count_summary,
+                completion_status="exact_typed_repair_cycle_complete",
+                no_repair_status="no_downstream_hard_pass_repair_candidates",
+            )
+            selection_pool = initial_cycle.selection_pool
+            counts["initial_final_book_vlm_gate"] = initial_cycle.initial_vlm_gate
+            counts["exact_post_book_typed_repair"] = initial_cycle.repair_evidence
+            final_book_vlm_gate = initial_cycle.final_vlm_gate
+        else:
+            final_book_vlm_gate = {
+                "schema_version": "arr.maas.final_book_vlm_portfolio_gate.v1",
+                "required": False,
+                "status": "not_requested",
+                "input_count": len(selection_pool),
+                "post_book_geometry_reviewed": False,
+            }
+        counts["final_book_vlm_gate"] = final_book_vlm_gate
+        selection_trace: dict[str, Any] = {}
+        selected = _select(
+            selection_pool,
+            20,
+            visual_directive=program_visual_directive,
+            selection_trace=selection_trace,
+        )
         outcome_graph.observe_candidates(
             program_slug=slug,
-            candidates=pool,
+            candidates=downstream_evaluation_pool,
             downstream_report=preselection_hard_gate,
             selected=selected,
         )
         missing_scope = len({_scope_key(candidate) for candidate in selected}) < len(BASE_VOLUME_FRACTIONS)
-        replenishment_pool: list[_Candidate] = []
-        replenishment_hard_gate = None
-        if not recursive_only and (len(selected) < 20 or missing_scope):
-            replenishment_pool, replenishment_counts = _program_pool(
-                generation_site,
-                building_type,
-                height,
-                floors,
-                generation_context=generation_context,
-                parent_variant_indices=(1,),
-                typed_graph_mutations=typed_graph_mutations,
-                geometry_program_mutations=geometry_program_mutations,
-                synthesis_requests=synthesis_requests,
-                outcome_graph=outcome_graph,
-                recursive_only=geometry_program_authority,
-                program_dimensional_context=dimensional_context,
+        replenishment_cycles: list[dict[str, Any]] = []
+        if len(selected) < 20 or missing_scope:
+            excluded_parent_keys = set(base_stage_vlm_gate.get("reviewed_parent_keys") or ())
+            excluded_parent_fingerprints = set(
+                base_stage_vlm_gate.get("reviewed_parent_fingerprints") or ()
             )
-            replenishment_hard_gate = None
-            replenishment_selection_pool = replenishment_pool
-            if generation_context is not None:
-                replenishment_hard_gate = evaluate_accepted_sources_downstream(
-                    replenishment_pool,
-                    site_local_utm=site,
-                    site_origin_utm=site_origin_utm,
-                    pnu=pnu,
-                    building_type=building_type,
-                    height_m=height,
-                    floors=floors,
-                    constraints=constraints,
-                    regulation_evidence=regulation_evidence or {},
-                    sunlight_envelope=sunlight_envelope,
-                    parking_options=parking_options,
-                    generation_context=generation_context,
-                )
-                replenishment_selection_pool = [
-                    candidate
-                    for candidate, row in zip(replenishment_pool, replenishment_hard_gate["rows"])
-                    if row["combined_hard_pass"]
-                ]
-            if live_vlm_selection_required:
-                replenishment_selection_pool = [
-                    candidate for candidate in replenishment_selection_pool
-                    if _vlm_reviewed_program_candidate(candidate)
-                ]
-            replenishment_degenerate_count = sum(
-                bool(_solid_morphology_metrics(candidate)["degenerate_sheet_like"])
-                for candidate in replenishment_selection_pool
+            stop_reason = "cycle_budget_exhausted"
+            cycle_budget = replenishment_cycle_budget_for_run(
+                live_vlm=runtime_live_vlm,
             )
-            replenishment_selection_pool = [
-                candidate for candidate in replenishment_selection_pool
-                if not _solid_morphology_metrics(candidate)["degenerate_sheet_like"]
-            ]
-            counts["bounded_parent_replenishment"] = {
-                **replenishment_counts,
-                "preselection_hard_gate": _hard_gate_count_summary(
-                    replenishment_hard_gate,
-                    replenishment_pool,
-                ),
-                "degenerate_sheet_like_rejected_count": replenishment_degenerate_count,
+            downstream_context = {
+                "site_local_utm": site,
+                "site_origin_utm": site_origin_utm,
+                "pnu": pnu,
+                "building_type": building_type,
+                "height_m": height,
+                "floors": floors,
+                "constraints": constraints,
+                "regulation_evidence": regulation_evidence or {},
+                "sunlight_envelope": sunlight_envelope,
+                "parking_options": parking_options,
+                "generation_context": generation_context,
             }
-            selection_pool = _bounded_visual_selection_pool([
-                *selection_pool,
-                *replenishment_selection_pool,
-            ])
-            selected = _select(selection_pool, 20, visual_directive=program_visual_directive)
-            outcome_graph.observe_candidates(
-                program_slug=slug,
-                candidates=replenishment_pool,
-                downstream_report=replenishment_hard_gate,
-                selected=selected,
-            )
+            for cycle_index in range(1, cycle_budget + 1):
+                previous_pool_count = len(selection_pool)
+                cycle = run_replenishment_cycle(
+                    cycle_index=cycle_index,
+                    parent_variant_index=cycle_index,
+                    retained_selection_pool=selection_pool,
+                    excluded_parent_keys=excluded_parent_keys,
+                    excluded_parent_fingerprints=excluded_parent_fingerprints,
+                    generation_site=generation_site,
+                    building_type=building_type,
+                    height=height,
+                    floors=floors,
+                    generation_context=generation_context,
+                    typed_graph_mutations=typed_graph_mutations,
+                    geometry_program_mutations=geometry_program_mutations,
+                    synthesis_requests=synthesis_requests,
+                    outcome_graph=outcome_graph,
+                    recursive_only=geometry_program_authority,
+                    program_dimensional_context=dimensional_context,
+                    site_boundary_source=site_boundary_source,
+                    site_access_context=site_access_context,
+                    site_access_geometry=site_access_geometry,
+                    runtime_live_vlm=runtime_live_vlm,
+                    live_vlm_selection_required=live_vlm_selection_required,
+                    base_capacity_contract=base_capacity_contract,
+                    capacity_site=site,
+                    output_dir=output_dir / slug,
+                    program_slug=slug,
+                    visual_directive=program_visual_directive,
+                    downstream_context=downstream_context,
+                    hard_gate_summary=_hard_gate_count_summary,
+                )
+                selection_pool = cycle.selection_pool
+                excluded_parent_keys.update(cycle.reviewed_parent_keys)
+                excluded_parent_fingerprints.update(cycle.reviewed_parent_fingerprints)
+                selection_trace = {}
+                selected = _select(
+                    selection_pool,
+                    20,
+                    visual_directive=program_visual_directive,
+                    selection_trace=selection_trace,
+                )
+                pool_growth = len(selection_pool) - previous_pool_count
+                cycle_evidence = {
+                    **cycle.evidence,
+                    "selection_pool_count_before": previous_pool_count,
+                    "selection_pool_count_after": len(selection_pool),
+                    "selection_pool_growth": pool_growth,
+                    "selected_count_after": len(selected),
+                    "selection_capacity_diagnostics": _selection_capacity_diagnostics(
+                        selection_pool,
+                        selected,
+                        target=20,
+                        visual_directive=program_visual_directive,
+                    ),
+                }
+                replenishment_cycles.append(cycle_evidence)
+                if runtime_live_vlm and cycle.evidence.get("final_book_vlm_gate"):
+                    counts["final_book_vlm_gate"] = cycle.evidence["final_book_vlm_gate"]
+                outcome_graph.observe_candidates(
+                    program_slug=slug,
+                    candidates=cycle.downstream_evaluation_pool,
+                    downstream_report=cycle.downstream_report,
+                    selected=selected,
+                )
+                missing_scope = (
+                    len({_scope_key(candidate) for candidate in selected})
+                    < len(BASE_VOLUME_FRACTIONS)
+                )
+                terminal_reason = replenishment_stop_reason(
+                    selected_count=len(selected),
+                    selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
+                    target_count=20,
+                    required_scope_count=len(BASE_VOLUME_FRACTIONS),
+                    cycles_run=cycle_index,
+                    cycle_budget=cycle_budget,
+                )
+                if terminal_reason:
+                    stop_reason = terminal_reason
+                    break
+            if replenishment_cycles:
+                counts["bounded_parent_replenishment"] = {
+                    **replenishment_cycles[-1],
+                    "schema_version": "arr.maas.bounded_parent_replenishment.v2",
+                    "cycle_budget": cycle_budget,
+                    "cycle_count": len(replenishment_cycles),
+                    "cycles": replenishment_cycles,
+                    "stop_reason": stop_reason,
+                }
             # The final selection can displace a first-pass incumbent. Update
             # observation flags instead of leaving stale selected=true memory.
             outcome_graph.observe_candidates(
                 program_slug=slug,
-                candidates=pool,
+                candidates=downstream_evaluation_pool,
                 downstream_report=preselection_hard_gate,
                 selected=selected,
             )
         counts["final_hard_pass_selection_pool_count"] = len(selection_pool)
+        counts["selection_trace"] = selection_trace
         counts["selection_capacity_diagnostics"] = _selection_capacity_diagnostics(
             selection_pool,
             selected,
             target=20,
             visual_directive=program_visual_directive,
         )
+        selected = _order_portfolio_for_capacity_review(selected)
         selected_by_program[slug] = selected
         language_metrics = _portfolio_language_metrics(selected)
         metrics_by_program[slug] = language_metrics
@@ -3058,6 +1166,11 @@ def run_book_program_portfolios(
         )
         features: list[dict[str, Any]] = []
         rows: list[dict[str, Any]] = []
+        downstream_rows = (
+            list(downstream_hard_gate.get("rows") or ())
+            if isinstance(downstream_hard_gate, dict)
+            else []
+        )
         for index, candidate in enumerate(selected):
             feature = deepcopy(candidate.feature)
             props = feature["properties"]
@@ -3066,6 +1179,8 @@ def run_book_program_portfolios(
             props["mass_shape"] = candidate.operation
             props["review_status"] = "accept"
             props["review_reasons"] = ["program hard pass", "clean mass pass"]
+            if runtime_live_vlm:
+                props["review_reasons"].append("exact post-BOOK VLM hard pass")
             features.append(feature)
             signature = candidate.source.signature()
             descriptor = _candidate_language_descriptor(candidate)
@@ -3076,6 +1191,9 @@ def run_book_program_portfolios(
                 "book_principle_id": candidate.principle_id,
                 "book_principle_kind": candidate.principle_kind,
                 "book_scope": candidate.source.metadata.get("program_book_projection_evidence", {}).get("scope", {}),
+                "capacity_alternative": deepcopy(
+                    candidate.source.metadata.get("capacity_alternative_projection") or {}
+                ),
                 "score": candidate.score,
                 "volume_count": len(candidate.source.volumes),
                 "surface_count": int(signature.get("effective_surface_count") or signature.get("surface_count") or 0),
@@ -3096,6 +1214,9 @@ def run_book_program_portfolios(
                 "vlm_critic_score": _geometry_program_metadata(candidate).get("vlm_critic_score"),
                 "vlm_program_appropriateness": _geometry_program_metadata(candidate).get("vlm_program_appropriateness"),
                 "vlm_section_program_fit": _geometry_program_metadata(candidate).get("vlm_section_program_fit"),
+                "final_book_vlm_audit": deepcopy(
+                    candidate.source.metadata.get("final_book_vlm_audit") or {}
+                ),
                 "seed_family": descriptor["seed_family"],
                 "roof_section_family": descriptor["section_family"],
                 "roof_archetype": descriptor["roof_archetype"],
@@ -3126,20 +1247,201 @@ def run_book_program_portfolios(
                 "semantic_role_tokens": descriptor["semantic_role_tokens"],
                 "body_rule_count": descriptor["body_rule_count"],
                 "program_body_rule_count": descriptor["program_body_rule_count"],
+                "public_threshold_rule_count": descriptor["public_threshold_rule_count"],
                 "book_body_rule_count": descriptor["book_body_rule_count"],
                 "body_rule_family_counts": descriptor["body_rule_family_counts"],
                 "body_rules": descriptor["body_rules"],
+                "design_concept": descriptor["design_concept"],
+                "design_concept_key": descriptor["design_concept_key"],
+                "ground_strategy": descriptor["ground_strategy"],
+                "frontage_aligned_public_threshold": descriptor["frontage_aligned_public_threshold"],
+                "missing_required_design_concepts": descriptor["missing_required_design_concepts"],
                 "measured_clear_span_m": descriptor["measured_clear_span_m"],
                 "measured_solid_height_m": descriptor["measured_solid_height_m"],
                 "height_to_clear_span_ratio": descriptor["height_to_clear_span_ratio"],
+                "capacity_alternative_id": descriptor["capacity_alternative_id"],
+                "capacity_target_utilization": descriptor["capacity_target_utilization"],
+                "capacity_achieved_utilization": descriptor["capacity_achieved_utilization"],
+                "capacity_target_hard_pass": descriptor["capacity_target_hard_pass"],
+                "far_pct": descriptor["far_pct"],
             })
+            downstream_row = (
+                downstream_rows[index]
+                if index < len(downstream_rows) and isinstance(downstream_rows[index], dict)
+                else {}
+            )
+            compilation = deepcopy(
+                candidate.source.metadata.get("geometry_program_compilation") or {}
+            )
+            bridge = deepcopy(
+                candidate.source.metadata.get("geometry_program_bridge_evidence") or {}
+            )
+            program_payload = deepcopy(
+                candidate.source.metadata.get("geometry_program") or {}
+            )
+            graph_snapshot = deepcopy(
+                candidate.source.metadata.get("geometry_graph_snapshot") or {}
+            )
+            props["geometry_program_compilation"] = compilation
+            trace_name = f"{slug}__{index + 1:02d}__{candidate.sequence.name}"
+            trace_sequence = VerbSequence(
+                name=trace_name,
+                label=f"{slug} {index + 1:02d} {candidate.sequence.label or candidate.sequence.name}",
+                calls=candidate.sequence.calls,
+                notes=tuple(candidate.sequence.notes) + (
+                    "trace_source=exact_final_selected_geometry",
+                    "selection_effect=none_shadow_only",
+                ),
+            )
+            hard_gates = {
+                "program": {
+                    "hard_pass": bool(props.get("program_massing_evidence", {}).get("hard_pass")),
+                    "evidence": deepcopy(props.get("program_massing_evidence") or {}),
+                },
+                "cleanMass": {
+                    "hard_pass": True,
+                    "visibleVolumeCount": len(candidate.source.volumes),
+                    "effectiveSurfaceCount": int(
+                        candidate.source.signature().get("effective_surface_count")
+                        or candidate.source.signature().get("surface_count")
+                        or 0
+                    ),
+                    "coherence": deepcopy(
+                        (props.get("source_signature") or {}).get("coherence_evidence") or {}
+                    ),
+                },
+                "legal": deepcopy(downstream_row.get("legal_projection") or {}),
+                "parking": deepcopy(downstream_row.get("parking_hard_gate") or {}),
+                "originalMetrics": deepcopy(downstream_row.get("original_metrics") or {}),
+                "projectedMetrics": deepcopy(downstream_row.get("projected_metrics") or {}),
+                "combinedHardPass": bool(downstream_row.get("combined_hard_pass")),
+            }
+            mass_execution_passport = selected_candidate_execution_passport(
+                compilation=compilation,
+                downstream_row=downstream_row,
+                source_metadata=candidate.source.metadata,
+                program_evidence=props.get("program_massing_evidence") or {},
+                descriptor=descriptor,
+                pnu=pnu,
+            )
+            props["mass_execution_passport"] = mass_execution_passport
+            props["geometry_artifact"] = {
+                "schemaVersion": "arr.maas.geometry_artifact.v1",
+                "authority": "arr_recursive_geometry_program",
+                "programType": slug,
+                "programLabel": building_type,
+                "sourceSequence": candidate.sequence.name,
+                "bookPrincipleId": candidate.principle_id,
+                "bookScope": _scope_key(candidate),
+                "capacityAlternative": deepcopy(
+                    candidate.source.metadata.get("capacity_alternative_projection") or {}
+                ),
+                "geometryProgram": program_payload,
+                "geometryGraphSnapshot": graph_snapshot,
+                "programRelationEvidence": deepcopy(
+                    candidate.source.metadata.get("program_component_relation_evidence") or {}
+                ),
+                "compilation": compilation,
+                "identity": {
+                    "programHash": str(
+                        compilation.get("program_hash")
+                        or bridge.get("program_hash")
+                        or ""
+                    ),
+                    "geometryHash": str(
+                        compilation.get("geometry_hash")
+                        or bridge.get("geometry_hash")
+                        or ""
+                    ),
+                },
+                "vlmAudit": deepcopy(
+                    candidate.source.metadata.get("final_book_vlm_audit") or {}
+                ),
+                "hardGates": hard_gates,
+                "executionPassport": mass_execution_passport,
+                "selectionEffect": "none_shadow_only",
+            }
+            mass_brain_trace_sequences.append(trace_sequence)
+            mass_brain_trace_features[trace_name] = feature
         board = output_dir / f"maas-book-{slug}-20.png"
         render_archive_sheet(
             features,
             board,
             title=f"MAAS BOOK × {building_type} · PNU {pnu} · {len(features)}/20 silhouette-distinct masses",
         )
+        render_evidence = _archive_render_evidence(board, len(features))
+        for row, evidence in zip(rows, render_evidence):
+            row["archive_render_evidence"] = evidence
+        outcome_graph.observe_portfolio_render(
+            program_slug=slug,
+            candidates=selected,
+            board_path=board,
+            render_evidence=render_evidence,
+        )
         board_paths.append(board)
+        if runtime_live_vlm and selected:
+            try:
+                portfolio_vlm_audit = score_portfolio_board_with_openai_vlm(
+                    image_path=board,
+                    program_context={
+                        **program_reference_contract(building_type),
+                        "site_access_side_in_program_frame": _site_access_side_in_principal_frame(
+                            generation_site,
+                            site_access_geometry,
+                        ),
+                    },
+                    candidate_summaries=[{
+                        "candidate_id": row["variant_id"],
+                        "book_scope": str((row.get("book_scope") or {}).get("base_volume_label") or ""),
+                        "capacity_alternative_id": row.get("capacity_alternative_id"),
+                        "capacity_target_utilization": row.get("capacity_target_utilization"),
+                        "capacity_achieved_utilization": row.get("capacity_achieved_utilization"),
+                        "base_seed": str((row.get("design_concept") or {}).get("base_seed") or ""),
+                        "body_phenotype": row.get("body_phenotype"),
+                        "roof_archetype": row.get("roof_archetype"),
+                        "ground_strategy": row.get("ground_strategy"),
+                        "design_concept_key": row.get("design_concept_key"),
+                        "geometry_family": _geometry_program_family(candidate),
+                        "form_bank_lane": _geometry_program_metadata(candidate).get("form_bank_lane"),
+                        "chassis_family": row.get("chassis_family"),
+                    } for row, candidate in zip(rows, selected)],
+                )
+                portfolio_vlm_audit = enrich_portfolio_vlm_feedback(
+                    portfolio_vlm_audit,
+                    rows=rows,
+                    candidates=selected,
+                )
+            except Exception as exc:
+                portfolio_vlm_audit = {
+                    "schema_version": "arr.maas.portfolio_visual_audit.v1",
+                    "status": "call_failed",
+                    "hard_pass": False,
+                    "candidate_count": len(selected),
+                    "failure_reasons": ["portfolio_vlm_call_failed"],
+                    "error": f"{type(exc).__name__}:{str(exc)[:240]}",
+                    "legal_or_parking_score": False,
+                }
+            outcome_graph.observe_portfolio_vlm_audit(
+                program_slug=slug,
+                candidate_geometry_hashes=[
+                    str((candidate.source.metadata.get("geometry_program_bridge_evidence") or {}).get("geometry_hash") or "")
+                    for candidate in selected
+                ],
+                audit=portfolio_vlm_audit,
+            )
+        else:
+            portfolio_vlm_audit = {
+                "schema_version": "arr.maas.portfolio_visual_audit.v1",
+                "status": "not_requested" if not runtime_live_vlm else "no_selected_candidates",
+                # Not evaluated is not a visual approval.  Overall non-live
+                # diagnostics remain governed by their numeric gates, while
+                # this field now reports the VLM state truthfully.
+                "hard_pass": False,
+                "evaluated": False,
+                "candidate_count": len(selected),
+                "legal_or_parking_score": False,
+            }
+        counts["portfolio_vlm_audit"] = deepcopy(portfolio_vlm_audit)
         near_duplicates = sum(
             1
             for index, left in enumerate(selected)
@@ -3147,11 +1449,24 @@ def run_book_program_portfolios(
             if _silhouette_distance(left, right) < 0.10
         )
         failures = []
+        if runtime_live_vlm and not portfolio_vlm_audit.get("hard_pass"):
+            failures.append("portfolio_vlm_visual_diversity_hard_gate_failed")
         if len(selected) != 20:
             failures.append("selected_count_below_20")
         operation_count = len({candidate.principle_id for candidate in selected})
         if operation_count < 10:
             failures.append("book_operation_count_below_10")
+        selectable_universe, _measured_capacity_universe = (
+            _target_hard_pass_universe(selection_pool)
+        )
+        available_principle_kinds = {
+            candidate.principle_kind for candidate in selectable_universe
+        }
+        selected_principle_kinds = {
+            candidate.principle_kind for candidate in selected
+        }
+        if not available_principle_kinds.issubset(selected_principle_kinds):
+            failures.append("available_book_principle_kind_missing_from_portfolio")
         visual_languages: list[_Candidate] = []
         for candidate in selected:
             if all(_silhouette_distance(candidate, representative) >= 0.16 for representative in visual_languages):
@@ -3161,8 +1476,30 @@ def run_book_program_portfolios(
         scope_count = len({_scope_key(candidate) for candidate in selected})
         if scope_count < len(BASE_VOLUME_FRACTIONS):
             failures.append("book_base_volume_scope_count_below_6")
+        available_capacity_alternatives = {
+            _capacity_alternative_key(candidate)
+            for candidate in selectable_universe
+            if _capacity_alternative_key(candidate) != "unclassified"
+        }
+        selected_capacity_alternatives = {
+            _capacity_alternative_key(candidate)
+            for candidate in selected
+            if _capacity_alternative_key(candidate) != "unclassified"
+        }
+        if not available_capacity_alternatives.issubset(selected_capacity_alternatives):
+            failures.append("available_capacity_alternative_missing_from_portfolio")
+        if any(
+            not bool((candidate.source.metadata.get("capacity_alternative_projection") or {}).get("target_hard_pass"))
+            for candidate in selected
+            if _capacity_alternative_key(candidate) != "unclassified"
+        ):
+            failures.append("capacity_alternative_target_miss_in_selected_portfolio")
         if any(not row["inside_site"] or not row["program_hard_pass"] for row in rows):
             failures.append("hard_gate_failure_in_selected_portfolio")
+        if len(render_evidence) != len(features) or any(
+            not item.get("hard_pass") for item in render_evidence
+        ):
+            failures.append("accepted_mass_not_visible_in_archive_render")
         if language_metrics["dominant_seed_family_share"] > 0.40:
             failures.append("repeated_seed_footprint_family_above_40_percent")
         if language_metrics["dominant_roof_section_family_share"] > 0.50:
@@ -3190,9 +1527,33 @@ def run_book_program_portfolios(
         pyramidal_cap = int(program_visual_directive.get("max_pyramidal_like_count", 2))
         if language_metrics["pyramidal_like_count"] > pyramidal_cap:
             failures.append("pyramidal_like_count_above_measured_cap")
-        phenotype_cap = int(program_visual_directive.get("max_solid_phenotype_count", max(4, len(selected) // 4)))
+        selection_caps = (
+            (counts.get("selection_capacity_diagnostics") or {}).get("caps")
+            if isinstance(counts.get("selection_capacity_diagnostics"), dict)
+            else {}
+        ) or {}
+        # The final assertion must use the same measured cap as the selector.
+        # Previously selection intentionally admitted five examples of one
+        # broad phenotype, then the summary silently defaulted to four and
+        # marked that identical portfolio failed. This aligns two hard gates;
+        # it does not admit a candidate the selector rejected.
+        phenotype_cap = int(program_visual_directive.get(
+            "max_solid_phenotype_count",
+            int(selection_caps.get("solid_phenotype") or max(4, len(selected) // 4)),
+        ))
         if max(language_metrics["solid_phenotype_counts"].values(), default=0) > phenotype_cap:
             failures.append("solid_phenotype_count_above_measured_cap")
+        if language_metrics["ground_strategy_count"] < 3:
+            failures.append("ground_strategy_count_below_3")
+        if (
+            site_access_geometry
+            and language_metrics["frontage_aligned_public_threshold_count"] < 1
+        ):
+            failures.append("frontage_aligned_public_threshold_missing")
+        if language_metrics["maximum_design_concept_key_repeat"] > 2:
+            failures.append("design_concept_key_repeated_above_2")
+        if language_metrics["missing_required_design_concept_count"]:
+            failures.append("required_design_concept_controller_missing")
         program_results.append({
             "program": building_type,
             "slug": slug,
@@ -3201,24 +1562,61 @@ def run_book_program_portfolios(
             "book_operation_count": operation_count,
             "book_principle_kind_counts": {
                 kind: sum(candidate.principle_kind == kind for candidate in selected)
-                for kind in ("base_operative", "combination", "aggregation")
+                for kind in ("base_operative", "combination", "aggregation", "case_study")
             },
             "visual_language_count": len(visual_languages),
             "book_base_volume_scope_count": scope_count,
             "book_base_volume_scopes": sorted({_scope_key(candidate) for candidate in selected}),
+            "capacity_alternative_count": len(selected_capacity_alternatives),
+            "capacity_alternatives": sorted(selected_capacity_alternatives),
             "near_duplicate_pair_count": near_duplicates,
+            "portfolio_vlm_audit": deepcopy(portfolio_vlm_audit),
+            "archive_render_evidence": {
+                "card_count": len(render_evidence),
+                "visible_mass_card_count": sum(bool(item.get("hard_pass")) for item in render_evidence),
+                "minimum_rendered_mass_pixel_ratio": round(min(
+                    (float(item.get("rendered_mass_pixel_ratio") or 0.0) for item in render_evidence),
+                    default=0.0,
+                ), 5),
+                "direct_png_review_required": True,
+            },
             "program_language_metrics": language_metrics,
             "program_dimensional_context": dimensional_context,
             "vlm_portfolio_directive": {
-                "active": bool(program_visual_directive),
-                "provider": visual_directive_payload.get("provider") if program_visual_directive else None,
+                "active": bool(runtime_live_vlm or program_visual_directive),
+                "provider": (
+                    visual_directive_payload.get("provider")
+                    if program_visual_directive
+                    else ("openai_program_conditioned_vlm" if runtime_live_vlm else None)
+                ),
+                "runtime_live_vlm_requested": runtime_live_vlm,
                 "typed_graph_mutation_count": len(typed_graph_mutations),
                 "geometry_synthesis_request_count": int(counts.get("geometry_synthesis_request_count") or 0),
                 "geometry_synthesis_request_source": counts.get("geometry_synthesis_request_source"),
+                "geometry_program_llm_author_status_counts": counts.get("geometry_program_llm_author_status_counts") or {},
+                "geometry_program_llm_author_active_seed_count": int(
+                    counts.get("geometry_program_llm_author_active_seed_count") or 0
+                ),
+                "geometry_program_prebook_vlm_quarantined_seed_count": int(
+                    counts.get("geometry_program_prebook_vlm_quarantined_seed_count") or 0
+                ),
                 "geometry_program_vlm_status_counts": counts.get("geometry_program_vlm_status_counts") or {},
                 "geometry_program_vlm_causal_trace": counts.get("geometry_program_vlm_causal_trace") or {},
                 "required_roof_archetypes": list(program_visual_directive.get("required_roof_archetypes") or ()),
                 "required_solid_phenotypes": list(program_visual_directive.get("required_solid_phenotypes") or ()),
+                "required_geometry_program_families": list(
+                    program_visual_directive.get("required_geometry_program_families") or ()
+                ),
+                "required_chassis_families": list(
+                    program_visual_directive.get("required_chassis_families") or ()
+                ),
+                "portfolio_memory_directive": deepcopy(memory_visual_directive),
+                "max_geometry_family_counts": dict(
+                    program_visual_directive.get("max_geometry_family_counts") or {}
+                ),
+                "max_chassis_family_counts": dict(
+                    program_visual_directive.get("max_chassis_family_counts") or {}
+                ),
                 "max_wedge_like_count": wedge_cap,
                 "max_pyramidal_like_count": pyramidal_cap,
             },
@@ -3281,14 +1679,77 @@ def run_book_program_portfolios(
         json.dumps(review_fingerprint_payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
     ).hexdigest()
     outcome_graph_payload = outcome_graph.save()
+    # Preserve a self-contained evidence snapshot beside every PNG/summary,
+    # while the next run reads the stable PNU-scoped graph above.
+    if outcome_graph_snapshot_path.resolve() != outcome_graph_path.resolve():
+        snapshot_temporary = outcome_graph_snapshot_path.with_suffix(
+            outcome_graph_snapshot_path.suffix + ".tmp"
+        )
+        snapshot_temporary.write_text(
+            json.dumps(outcome_graph_payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        snapshot_temporary.replace(outcome_graph_snapshot_path)
     result["geometry_mutation_outcome_graph"] = {
         "status": "materialized",
         "path": str(outcome_graph_path),
+        "snapshot_path": str(outcome_graph_snapshot_path),
+        "path_policy": (
+            "explicit_cross_run_memory"
+            if outcome_graph_path_was_explicit
+            else "default_pnu_cross_run_memory"
+        ),
+        "persistent_across_output_directories": True,
         "node_count": outcome_graph_payload["node_count"],
         "edge_count": outcome_graph_payload["edge_count"],
         "observation_count": outcome_graph_payload["observation_count"],
         "neo4j_mirror": outcome_graph.mirror_to_neo4j(),
     }
+    geometry_artifact_records = []
+    for sequence in mass_brain_trace_sequences:
+        feature = mass_brain_trace_features.get(sequence.name) or {}
+        props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+        artifact = props.get("geometry_artifact") if isinstance(props.get("geometry_artifact"), dict) else None
+        if artifact is None:
+            continue
+        geometry_artifact_records.append({
+            "trace_sequence_name": sequence.name,
+            "trace_sequence_label": sequence.label,
+            "legacy_verb_calls": sequence.to_list(),
+            "geometry_artifact": artifact,
+        })
+    geometry_artifact_path = output_dir / "maas-book-exact-geometry-artifacts.json"
+    geometry_artifact_path.write_text(
+        json.dumps({
+            "schema_version": "arr.maas.geometry_artifact_archive.v1",
+            "pnu": pnu,
+            "selection_effect": "none_shadow_only",
+            "record_count": len(geometry_artifact_records),
+            "records": geometry_artifact_records,
+        }, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    result["geometry_artifact_archive"] = {
+        "status": "materialized",
+        "path": str(geometry_artifact_path),
+        "record_count": len(geometry_artifact_records),
+        "program_count": len({
+            str((record["geometry_artifact"] or {}).get("programType") or "")
+            for record in geometry_artifact_records
+        }),
+    }
+    result["mass_brain_geometry_trace"] = publish_geometry_portfolio_shadow(
+        project_key=pnu,
+        source_sequences=mass_brain_trace_sequences,
+        source_features_by_sequence=mass_brain_trace_features,
+        context={
+            "programType": "verified_multi_program_portfolio",
+            "programSlugs": [item["slug"] for item in program_results],
+            "pnu": pnu,
+            "outcomeGraphPath": str(outcome_graph_path),
+            "selectionEffect": "none_shadow_only",
+        },
+    )
     visual_review_path = output_dir / "maas-book-programs-visual-review.json"
     if visual_review_path.exists():
         try:

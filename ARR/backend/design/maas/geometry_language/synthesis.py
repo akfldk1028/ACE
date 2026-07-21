@@ -14,8 +14,11 @@ import re
 from typing import Any, Iterable
 
 from .ast import GeometryNode, GeometryProgram
-from .base_seeds import BASE_SEED_SPECS, base_seed_program
+from .base_seeds import BASE_SEED_SPECS, base_seed_program, profiled_prism_parameters
+from .book_chassis_compatibility import split_wing_gap_ratio_from_unit
 from .section_profiles import SECTION_PROFILES, section_profile_controls
+from .host_face_relations import sample_face_attachment_parameters
+from .typology_priors import typology_prior, typology_priors_for_program
 
 
 _PROFILE_FAMILY_INTENTS: dict[str, tuple[str, ...]] = {
@@ -50,6 +53,7 @@ _TAG_OPERATOR_PALETTE: dict[str, tuple[str, ...]] = {
     # synthesis explores several roof/section graphs before generic cuts and
     # setbacks. The profiles remain parameters, not named building templates.
     "profiled_span_section": ("profiled_hall", "profiled_hall", "profiled_hall", "profiled_hall", "profiled_hall", "profiled_hall"),
+    "face_composition": ("attach",),
 }
 
 _BODY_PHENOTYPE_INTENTS: dict[str, str] = {
@@ -60,6 +64,7 @@ _BODY_PHENOTYPE_INTENTS: dict[str, str] = {
     "oblique": "oblique_section",
     "winged": "distributed_wings",
     "lifted": "lifted_ground",
+    "attached": "face_composition",
 }
 
 _OPERATOR_KIND: dict[str, str] = {
@@ -81,10 +86,25 @@ _OPERATOR_KIND: dict[str, str] = {
     "lift": "macro",
     "puncture": "macro",
     "cross_mass": "macro",
+    "grid_mass": "macro",
     "bent_bar": "macro",
     "split_wing": "macro",
     "stepped_mass": "macro",
     "profiled_hall": "macro",
+    "attach": "composition",
+}
+
+_OPERATOR_EFFECT_FAMILY: dict[str, str] = {
+    "bend": "deformation", "bent_bar": "deformation", "twist": "deformation",
+    "inflate": "deformation", "pinch": "deformation", "taper": "deformation",
+    "shear": "deformation",
+    "setback": "step", "stepped_mass": "step", "terrace": "step",
+    "courtyard": "void", "carve_void": "void", "notch": "void",
+    "puncture": "void", "cut_corner": "void",
+    "slice": "cut",
+    "radial_array": "array", "cross_mass": "array", "grid_mass": "array", "split_wing": "array",
+    "cantilever": "support", "lift": "support",
+    "attach": "attachment",
 }
 
 
@@ -120,12 +140,49 @@ def synthesize_architectural_programs(
         # genotype supply for hard rejection instead of weakening gates.
         target_count = max(1, min(64, int(request.get("candidate_count") or 12)))
         maximum_depth = max(1, min(3, int(request.get("maximum_operator_depth") or 2)))
+        downstream_body_rule_reserve = max(
+            0,
+            min(2, int(request.get("downstream_body_rule_reserve") or 0)),
+        )
         variation_offset = max(0, min(4096, int(request.get("variation_offset") or 0)))
     except (TypeError, ValueError):
         return ()
     required_terminal_operator = str(request.get("required_terminal_operator") or "").strip().lower()
     if required_terminal_operator and required_terminal_operator != "profiled_hall":
         return ()
+    allowed_macro_operator_order = tuple(dict.fromkeys(
+        str(value).strip().lower()
+        for value in request.get("allowed_macro_operators") or ()
+        if str(value).strip()
+    ))
+    allowed_macro_operators = set(allowed_macro_operator_order)
+    requested_typology_priors = []
+    for value in request.get("typology_priors") or ():
+        try:
+            prior = typology_prior(str(value))
+        except KeyError:
+            continue
+        if (
+            prior.primary_operator in _OPERATOR_KIND
+            and (
+                _OPERATOR_KIND[prior.primary_operator] != "macro"
+                or not allowed_macro_operators
+                or prior.primary_operator in allowed_macro_operators
+            )
+        ):
+            requested_typology_priors.append(prior)
+    requested_typology_priors = list(dict.fromkeys(requested_typology_priors))
+    required_macro_operators_all = tuple(dict.fromkeys(
+        str(value).strip().lower()
+        for value in request.get("required_macro_operators_all") or ()
+        if str(value).strip()
+    ))
+    if required_terminal_operator:
+        required_macro_operators_all = tuple(dict.fromkeys((
+            *required_macro_operators_all,
+            required_terminal_operator,
+        )))
+    required_access_bound_relation = bool(request.get("required_access_bound_relation"))
     inferred_intents = tuple(
         _BODY_PHENOTYPE_INTENTS[str(value)]
         for value in (request.get("required_body_phenotypes") or ())
@@ -137,12 +194,51 @@ def synthesize_architectural_programs(
     if not intent_tags:
         return ()
 
-    raw_palette = tuple(
+    intent_palette = tuple(
         operator
         for tag in intent_tags
         for operator in _TAG_OPERATOR_PALETTE[tag]
+        if (
+            operator not in _OPERATOR_KIND
+            or _OPERATOR_KIND[operator] != "macro"
+            or not allowed_macro_operators
+            or operator in allowed_macro_operators
+        )
     )
-    palette = _weighted_operator_palette(raw_palette)
+    # ``allowed_macro_operators`` is an executable program-language contract,
+    # not documentation for the VLM alone.  Previously profile synthesis only
+    # traversed operators that happened to be named by ``preferred_families``;
+    # neighborhood programs therefore advertised cross/split/stepped/cut
+    # language but deterministically authored almost only bend/inflate/notch.
+    # Add every unary contract operator to the search alphabet. Binary bridge
+    # and attach relations remain available to the LLM/AST author, because a
+    # one-input modifier stack cannot fabricate their second typed solid.
+    contract_palette = tuple(
+        operator
+        for operator in allowed_macro_operator_order
+        if operator in _OPERATOR_KIND
+        and operator not in {"profiled_hall"}
+    )
+    raw_palette = tuple((*intent_palette, *contract_palette))
+    # A use-specific author may intentionally weight a capability named by
+    # several semantic intents.  The program-independent universal bank has a
+    # different job: cover the alphabet before any use is known.  Let that
+    # caller request a stratified first-operator traversal so repeated intent
+    # aliases do not turn into repeated form families (for example nine
+    # profiled halls before the gymnasium contract has even been projected).
+    palette = (
+        tuple(dict.fromkeys(raw_palette))
+        if bool(request.get("balanced_operator_sampling"))
+        else _weighted_operator_palette(raw_palette)
+    )
+    # A program-profile source is not the final graph: one BOOK sentence is
+    # still projected over it.  Previously both layers independently spent a
+    # two-rule budget, so source cross+setback+threshold plus BOOK helpers
+    # produced technically valid but visually accumulated Lego objects.  The
+    # request now reserves a body-rule slot for that downstream author.  A
+    # standalone DSL request keeps the old full depth because its reserve is
+    # zero.
+    source_body_rule_budget = max(1, maximum_depth - downstream_body_rule_reserve)
     records: list[GeometryProgram] = []
     seen_hashes: set[str] = set()
     cursor = variation_offset
@@ -154,28 +250,66 @@ def synthesize_architectural_programs(
         # Cycle the first operator directly.  A fixed multiplier can share a
         # divisor with the runtime palette length and accidentally collapse a
         # 14-operator language to only bend/setback.
-        first = palette[cursor % len(palette)]
-        seed_id = _base_seed_for_operator(
-            first,
-            base_seeds,
-            cursor=cursor,
-            palette_size=len(palette),
-            intent_tags=intent_tags,
+        active_typology_prior = (
+            requested_typology_priors[attempts]
+            if attempts < len(requested_typology_priors)
+            else None
+        )
+        first = (
+            active_typology_prior.primary_operator
+            if active_typology_prior is not None
+            else palette[cursor % len(palette)]
+        )
+        preferred_prior_seeds = tuple(
+            seed for seed in (active_typology_prior.preferred_base_seeds if active_typology_prior else ())
+            if seed in base_seeds
+        )
+        seed_id = (
+            # The first executable representative of a named early typology
+            # is its canonical chassis, so its declared seed order is a real
+            # priority contract. Cursor-driven seed variation resumes after
+            # the one-pass typology-prior tranche.
+            preferred_prior_seeds[0]
+            if preferred_prior_seeds
+            else _base_seed_for_operator(
+                first,
+                base_seeds,
+                cursor=cursor,
+                palette_size=len(palette),
+                intent_tags=intent_tags,
+            )
         )
         operators = [first]
         operator_variant_indices = [_operator_occurrence_index(palette, cursor, first)]
-        if maximum_depth >= 2 and len(palette) > 1 and cursor % 3 != 0:
+        if source_body_rule_budget >= 2 and len(palette) > 1 and cursor % 3 != 0:
             second = palette[(cursor * 5 + 3) % len(palette)]
             if second != first and second != "profiled_hall" and _compatible_stack(first, second):
                 operators.append(second)
                 operator_variant_indices.append(_operator_occurrence_index(palette, cursor, second))
-        if maximum_depth >= 3 and len(palette) > 2 and cursor % 7 == 0:
+        if source_body_rule_budget >= 3 and len(palette) > 2 and cursor % 7 == 0:
             third = palette[(cursor * 13 + 5) % len(palette)]
             if third != "profiled_hall" and third not in operators and all(_compatible_stack(item, third) for item in operators):
                 operators.append(third)
                 operator_variant_indices.append(_operator_occurrence_index(palette, cursor, third))
-        if required_terminal_operator and required_terminal_operator not in operators:
-            operators.append(required_terminal_operator)
+        for required_operator in required_macro_operators_all:
+            if required_operator not in operators:
+                operators.append(required_operator)
+                operator_variant_indices.append(cursor)
+        if required_access_bound_relation and not any(
+            operator in {"courtyard", "carve_void", "notch", "lift", "split_wing"}
+            for operator in operators
+        ):
+            access_choices = tuple(
+                operator for operator in ("courtyard", "carve_void", "notch", "lift", "split_wing")
+                if not allowed_macro_operators or operator in allowed_macro_operators
+                if all(_compatible_stack(existing, operator) for existing in operators)
+            )
+            if not access_choices:
+                cursor += 1
+                attempts += 1
+                continue
+            access_operator = access_choices[cursor % len(access_choices)]
+            operators.append(access_operator)
             operator_variant_indices.append(cursor)
         program = _program_from_stack(
             seed_id,
@@ -186,6 +320,10 @@ def synthesize_architectural_programs(
             intent_tags=intent_tags,
             building_type=building_type,
             required_terminal_operator=required_terminal_operator,
+            site_access_side=str(request.get("site_access_side") or "closed"),
+            required_access_bound_relation=required_access_bound_relation,
+            required_macro_operators_all=required_macro_operators_all,
+            typology_prior_id=(active_typology_prior.typology_id if active_typology_prior else ""),
         )
         cursor += 1
         attempts += 1
@@ -204,7 +342,7 @@ def synthesis_requests_from_program_profile(
     building_type: str,
     *,
     source_seeds: Iterable[str],
-    candidates_per_lineage: int = 12,
+    candidates_per_lineage: int = 18,
 ) -> tuple[dict[str, Any], ...]:
     """Infer graph-search intent from program semantics, not named forms.
 
@@ -217,6 +355,22 @@ def synthesis_requests_from_program_profile(
     from design.maas.program_massing.profiles import resolve_program_profile
 
     profile = resolve_program_profile(building_type)
+    profile_id = str(profile.get("id") or building_type)
+    geometry_language_contract = (
+        profile.get("geometry_language_contract")
+        if isinstance(profile.get("geometry_language_contract"), dict)
+        else {}
+    )
+    allowed_macro_operators = [
+        str(value)
+        for value in geometry_language_contract.get("allowed_macro_operators") or ()
+        if str(value)
+    ]
+    required_macro_operators_all = [
+        str(value)
+        for value in geometry_language_contract.get("required_macro_operators_all") or ()
+        if str(value)
+    ]
     preferred = tuple(str(value) for value in profile.get("preferred_families") or ())
     intents = tuple(dict.fromkeys(
         intent
@@ -244,24 +398,67 @@ def synthesis_requests_from_program_profile(
         base_seeds.append("tower")
     bases = list(dict.fromkeys(base_seeds))
     lineage_names = tuple(dict.fromkeys(str(value) for value in source_seeds if str(value)))[:2]
+    lineage_candidate_count = max(4, min(24, int(candidates_per_lineage)))
+    compatible_typologies = typology_priors_for_program(
+        profile_id,
+        allowed_macro_operators=allowed_macro_operators,
+    )
+    # A compatible named chassis must carry at least one of its own primitive
+    # proportions into the author pool. Otherwise Tower + Podium silently
+    # degrades to a block merely because the program prose did not say
+    # "tower", even though the executable typology contract did.
+    bases = list(dict.fromkeys((
+        *bases,
+        *(
+            seed
+            for prior in compatible_typologies
+            for seed in prior.preferred_base_seeds[:1]
+        ),
+    )))
     return tuple({
         "source_seed": source_seed,
         "base_seeds": bases,
         "intent_tags": list(intents),
-        "candidate_count": max(4, min(24, int(candidates_per_lineage))),
+        "typology_priors": [prior.typology_id for prior in compatible_typologies],
+        "candidate_count": lineage_candidate_count,
         "maximum_operator_depth": 2,
-        "legal_fit_strengths": [0.2, 0.6],
+        # Reserve one visual body relation for the later BOOK projection.
+        # Public access/court is a separate terminal invariant and keeps its
+        # own one-rule budget.
+        "downstream_body_rule_reserve": 1,
+        "allowed_macro_operators": allowed_macro_operators,
+        "required_macro_operators_all": required_macro_operators_all,
+        "required_terminal_operator": (
+            "profiled_hall" if "profiled_hall" in required_macro_operators_all else ""
+        ),
+        "required_access_bound_relation": bool(
+            geometry_language_contract.get("requires_access_bound_relation")
+        ),
+        # Each semantic source lineage explores a disjoint low-discrepancy
+        # interval.  Previously both started at zero and authored the same 12
+        # solid programs, so doubling the advertised candidate count did not
+        # double form-language coverage.
+        "variation_offset": lineage_index * lineage_candidate_count,
+        # A legal envelope is a hard constraint, not an untyped form author.
+        # Height-interpolating the lower/upper parcel frames globally tapered
+        # every otherwise distinct courtyard, split wing and cantilever into
+        # the same shed/wedge silhouette.  Keep the recursive AST geometry
+        # unchanged here; the downstream legal lane may uniformly fit, clip
+        # and reject it while explicitly measuring geometry retention.
+        "legal_fit_strengths": [0.0],
         "rationale": (
             "agent-inferred recursive geometry search from program design intent "
             "and preferred language capabilities; named section templates ignored"
         ),
         "inference_evidence": {
-            "profile_id": str(profile.get("id") or "generic"),
+            "profile_id": profile_id or "generic",
+            "early_typology_priors": [prior.typology_id for prior in compatible_typologies],
             "preferred_families": list(preferred),
             "section_control_templates_used": False,
             "parcel_coordinates_used": False,
+            "disjoint_low_discrepancy_lineage_interval": True,
         },
-    } for source_seed in lineage_names)
+    } for lineage_index, source_seed in enumerate(lineage_names))
 
 
 def _program_from_stack(
@@ -274,8 +471,12 @@ def _program_from_stack(
     intent_tags: tuple[str, ...],
     building_type: str,
     required_terminal_operator: str = "",
+    site_access_side: str = "closed",
+    required_access_bound_relation: bool = False,
+    required_macro_operators_all: tuple[str, ...] = (),
+    typology_prior_id: str = "",
 ) -> GeometryProgram:
-    seed = base_seed_program(seed_id)
+    seed = base_seed_program(seed_id, variation_index=variation_index)
     nodes = list(seed.nodes)
     root_id = seed.root_id
     operator_records = list(zip(
@@ -284,9 +485,16 @@ def _program_from_stack(
     ))
     if not operator_records:
         operator_records = [(operator, variation_index) for operator in operators]
-    # Section is a terminal invariant over all body mutations.  Sorting only
-    # this one relation leaves the other authored operator order unchanged.
-    operator_records.sort(key=lambda item: item[0] == "profiled_hall")
+    # Program thresholds and section are terminal relations over the mutated
+    # body. BOOK/body operations are inserted before this suffix later, so a
+    # rotate/taper cannot silently erase the street court or turn a hall roof
+    # into a pyramid. This is relation ordering, not a completed form template.
+    threshold_operators = {"courtyard", "carve_void", "notch", "lift", "cantilever", "split_wing"}
+    operator_records.sort(key=lambda item: (
+        2 if item[0] == "profiled_hall"
+        else 1 if item[0] in threshold_operators
+        else 0
+    ))
     operator_path: list[str] = []
     for stack_index, (operator, operator_variant_index) in enumerate(operator_records, start=1):
         if operator == "identity":
@@ -297,14 +505,44 @@ def _program_from_stack(
             operator,
             operator_variant_index if operator == "profiled_hall" else variation_index + stack_index * 17,
             intent_tags=intent_tags,
+            site_access_side=site_access_side,
+            force_access_bound=required_access_bound_relation,
+            typology_prior_id=typology_prior_id,
         )
+        inputs = (root_id,)
+        if operator == "attach":
+            # The attached guest remains an explicit graph node.  The
+            # composition node places it in the selected host-face frame;
+            # neither the author nor a later agent needs parcel coordinates.
+            guest_parameters = profiled_prism_parameters(operator_variant_index + 1)
+            guest_id = f"agent_{stack_index:02d}_attach_guest"
+            nodes.append(GeometryNode(
+                id=guest_id,
+                kind="primitive",
+                operator="extruded_polygon",
+                parameters=guest_parameters,
+                semantic_role="attached_guest_volume",
+                provenance={
+                    "source": "procedural_geometry_synthesis_agent",
+                    "variation_index": variation_index,
+                    "host_face_placement_deferred_to_attach_node": True,
+                    "parcel_coordinates_used": False,
+                },
+            ))
+            inputs = (root_id, guest_id)
         nodes.append(GeometryNode(
             id=node_id,
             kind=kind,
             operator=operator,
-            inputs=(root_id,),
+            inputs=inputs,
             parameters=parameters,
-            semantic_role=("program_section_invariant" if operator == "profiled_hall" else "dominant_mass"),
+            semantic_role=(
+                "program_section_invariant"
+                if operator == "profiled_hall"
+                else "public_threshold"
+                if operator in threshold_operators
+                else "dominant_mass"
+            ),
             provenance={
                 "source": "procedural_geometry_synthesis_agent",
                 "intent_tags": list(intent_tags),
@@ -312,7 +550,8 @@ def _program_from_stack(
                 "bounded_parameter_generation": True,
                 "parcel_coordinates_used": False,
                 "completed_building_template": False,
-                "program_invariant": operator == "profiled_hall",
+                "program_invariant": operator == "profiled_hall" or operator in threshold_operators,
+                "early_typology_prior": typology_prior_id,
             },
         ))
         root_id = node_id
@@ -341,6 +580,10 @@ def _program_from_stack(
             "parcel_coordinates_in_program": False,
             "completed_building_template": False,
             "required_terminal_operator": required_terminal_operator,
+            "required_macro_operators_all": list(required_macro_operators_all),
+            "required_access_bound_relation": required_access_bound_relation,
+            "site_access_side": site_access_side,
+            "early_typology_prior": typology_prior_id,
         },
     )
 
@@ -350,7 +593,15 @@ def _compatible_stack(left: str, right: str) -> bool:
     # one short stack tend to create fragments or nested Boolean instability.
     if "identity" in {left, right}:
         return True
-    repetition = {"radial_array", "cross_mass", "split_wing"}
+    left_family = _OPERATOR_EFFECT_FAMILY.get(left)
+    right_family = _OPERATOR_EFFECT_FAMILY.get(right)
+    if left_family and left_family == right_family:
+        # The downstream articulation gate treats this as duplicated visual
+        # effect stacking. Do not spend author/critic/BOOK budget on a graph
+        # that is invalid by construction; continue the low-discrepancy
+        # search to a different semantic relationship instead.
+        return False
+    repetition = {"radial_array", "cross_mass", "grid_mass", "split_wing"}
     voids = {"courtyard", "notch", "carve_void"}
     steps = {"setback", "stepped_mass", "terrace"}
     if left in repetition and right in repetition:
@@ -417,6 +668,29 @@ def _base_seed_for_operator(
     parcel coordinates or a completed mass recipe.
     """
     choices = base_seeds
+    if operator in {"cross_mass", "grid_mass", "split_wing", "bent_bar"}:
+        relational = tuple(
+            seed for seed in ("bar", "slab", "profiled_prism")
+            if seed in base_seeds
+        )
+        if relational:
+            # These operators express a relation between long wings. A BLOCK
+            # either makes cross_mass an identity-like rotated cube or makes
+            # split_wing read as two toy chunks. Keep the seed normalized and
+            # coordinate-free, but start from a legible longitudinal body.
+            # A grid needs longitudinal rows whose rotated columns span and
+            # join them. A broad slab produces three disconnected plates;
+            # other relational operators can safely rotate through chassis.
+            if operator == "grid_mass" and "bar" in relational:
+                return "bar"
+            choices = relational
+            # Re-visiting one relation must advance through its compatible
+            # chassis.  The former unconditional BAR return contradicted the
+            # comment above and turned every split/cross/bent family into the
+            # same thin ribbon.  A palette cycle is coordinate-free and gives
+            # the same relation a bar, broad slab and profiled plate host.
+            relation_cycle = max(0, int(cursor)) // max(1, int(palette_size))
+            return choices[relation_cycle % len(choices)]
     if operator == "slice" and "long_span" in intent_tags:
         long_span = tuple(seed for seed in ("bar", "slab") if seed in base_seeds)
         if long_span:
@@ -430,11 +704,18 @@ def _bounded_parameters(
     index: int,
     *,
     intent_tags: tuple[str, ...] = (),
+    site_access_side: str = "closed",
+    force_access_bound: bool = False,
+    typology_prior_id: str = "",
 ) -> dict[str, Any]:
     u = _halton(index + 1, 2)
     v = _halton(index + 1, 3)
     if operator == "bend":
-        return {"axis": "x", "angle_degrees": round(20.0 + 34.0 * u, 3), "subdivisions": 4}
+        return {
+            "axis": "x",
+            "angle_degrees": round((28.0 if typology_prior_id == "freeform" else 20.0) + 34.0 * u, 3),
+            "subdivisions": 8 if typology_prior_id == "freeform" else 4,
+        }
     if operator == "bent_bar":
         return {"axis": "x", "angle_degrees": round(18.0 + 38.0 * u, 3), "subdivisions": 4}
     if operator == "taper":
@@ -457,12 +738,55 @@ def _bounded_parameters(
         return {"axis": "x", "direction": "z", "amount": round(-0.18 + 0.36 * u, 3)}
     if operator == "radial_array":
         return {"count": 3 + index % 3, "total_angle_degrees": round(42.0 + 48.0 * u, 3), "pivot": "center"}
+    if operator == "attach":
+        return sample_face_attachment_parameters(index, u, v)
     if operator in {"courtyard", "carve_void"}:
-        return {"margin_ratio": round(0.18 + 0.16 * u, 3)}
+        return {
+            "margin_ratio": round(0.18 + 0.16 * u, 3),
+            # The access side is derived from the live parcel's principal
+            # frame before synthesis. It is a normalized semantic relation,
+            # not a parcel coordinate or completed-form template.
+            "open_side": (
+                "closed" if typology_prior_id == "courtyard"
+                else site_access_side if site_access_side != "closed" and (
+                    force_access_bound or typology_prior_id == "ushape" or index % 3 != 0
+                )
+                else "south" if typology_prior_id == "ushape"
+                else "closed"
+            ),
+        }
     if operator == "notch":
-        return {"corner": ("ne", "nw", "se", "sw")[index % 4], "ratio": round(0.16 + 0.16 * u, 3), "height_ratio": round(0.48 + 0.28 * v, 3)}
+        if typology_prior_id == "lshape":
+            return {
+                "corner": "ne",
+                "side": (
+                    site_access_side
+                    if force_access_bound and site_access_side != "closed"
+                    else ""
+                ),
+                "ratio": 0.52,
+                "width_ratio": 0.52,
+                "height_ratio": 1.0,
+            }
+        return {
+            "corner": ("ne", "nw", "se", "sw")[index % 4],
+            "side": (
+                site_access_side
+                if site_access_side != "closed" and (force_access_bound or index % 3 != 0)
+                else ""
+            ),
+            "ratio": round(0.14 + 0.14 * u, 3),
+            "width_ratio": round(0.28 + 0.22 * v, 3),
+            "height_ratio": round(0.48 + 0.28 * v, 3),
+        }
     if operator in {"setback", "stepped_mass", "terrace"}:
-        return {"levels": 3 + index % 2, "setback_ratio": round(0.08 + 0.10 * u, 3), "shift_per_level": [round(0.02 + 0.08 * v, 3), 0.0, 0.0]}
+        return {
+            "levels": 4 if typology_prior_id == "tower_podium" else 3 + index % 2,
+            "setback_ratio": round((0.12 if typology_prior_id == "tower_podium" else 0.08) + 0.10 * u, 3),
+            "shift_per_level": [round(0.02 + 0.08 * v, 3), 0.0, 0.0],
+            "podium_scale": 1.65 if typology_prior_id == "tower_podium" else 1.0,
+            "podium_height_ratio": 0.22 if typology_prior_id == "tower_podium" else 0.0,
+        }
     if operator == "profiled_hall":
         families = tuple(SECTION_PROFILES)
         family = families[index % len(families)]
@@ -491,22 +815,43 @@ def _bounded_parameters(
     if operator == "cantilever":
         return {"start_ratio": round(0.48 + 0.22 * u, 3), "vector": [round(0.08 + 0.18 * v, 3), 0.0, 0.0]}
     if operator == "lift":
-        return {"rise_ratio": round(0.12 + 0.20 * u, 3), "support_ratio": round(0.06 + 0.06 * v, 3)}
+        return {
+            "rise_ratio": round(0.12 + 0.20 * u, 3),
+            "support_ratio": round(0.10 + 0.08 * v, 3),
+            "access_side": site_access_side if force_access_bound else "closed",
+        }
     if operator == "puncture":
         return {"axis": "x" if index % 2 == 0 else "y", "count": 2 + index % 2, "ratio": round(0.10 + 0.10 * u, 3)}
     if operator == "cross_mass":
-        return {"angle_degrees": round(68.0 + 34.0 * u, 3)}
+        return {
+            "angle_degrees": (
+                90.0 if typology_prior_id == "grid"
+                else round(74.0 + 22.0 * u, 3) if typology_prior_id == "cross"
+                else round(68.0 + 34.0 * u, 3)
+            ),
+        }
+    if operator == "grid_mass":
+        return {
+            "row_spacing_ratio": round(1.16 + 0.22 * u, 3),
+            "column_offset_ratio": round(0.20 + 0.12 * v, 3),
+        }
     if operator == "split_wing":
         long_span = "long_span" in intent_tags
+        access_bound = force_access_bound and site_access_side in {"east", "west", "north", "south"}
         return {
-            "axis": "x",
-            "gap_ratio": round((0.06 + 0.08 * u) if long_span else (0.10 + 0.15 * u), 3),
+            "axis": (
+                "y" if access_bound and site_access_side in {"east", "west"}
+                else "x"
+            ),
+            "gap_ratio": split_wing_gap_ratio_from_unit(u),
             "bridge": True,
             "height_ratio": round(0.48 + 0.24 * v, 3),
             "height": round(0.12 + 0.18 * u, 3),
-            "ground_spine": long_span,
+            "ground_spine": bool(long_span or access_bound or typology_prior_id == "hshape"),
             "ground_spine_width_ratio": round(0.30 + 0.18 * v, 3),
             "ground_spine_height_ratio": round(0.16 + 0.12 * u, 3),
+            "access_side": site_access_side if access_bound else "closed",
+            "layout": "parallel" if typology_prior_id == "hshape" else "split",
         }
     return {}
 

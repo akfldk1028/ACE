@@ -83,6 +83,7 @@ CATEGORICAL_PARAMETER_VALUES: dict[str, tuple[str, ...]] = {
 # parameter that the mutation layer will silently discard.
 PARAMETERS_BY_VERB: dict[str, tuple[str, ...]] = {
     "select_book_scope": ("base_volume_label", "orientation"),
+    "expand": ("axis", "factor", "upper_ratio", "lower_floor_fraction"),
     "notch": ("corner", "ratio"),
     "cave": ("side", "width_ratio", "depth_ratio"),
     "courtyard": ("ratio", "open_side", "upper_ratio", "lower_floor_fraction"),
@@ -125,8 +126,11 @@ PARAMETERS_BY_VERB: dict[str, tuple[str, ...]] = {
     "pack": ("axis", "n", "spacing_ratio", "unit_scale", "upper_ratio", "lower_floor_fraction"),
     "join": ("axis", "gap_ratio", "unit_scale", "bridge_ratio", "upper_ratio", "lower_floor_fraction"),
     "interlock": ("angle", "bar_ratio", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
-    "overlap": ("axis", "slab_ratio", "shift_ratio", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
-    "lift": ("upper_ratio", "lower_floor_fraction"),
+    "overlap": ("axis", "slab_ratio", "shift_ratio", "vertical_overlap", "upper_ratio", "distance_ratio", "lower_floor_fraction"),
+    "lift": (
+        "axis", "guest_scale", "distance_ratio",
+        "upper_ratio", "lower_floor_fraction",
+    ),
     "taper": (
         "x_ratio", "y_ratio", "lower_floor_fraction",
         "plan_control_points", "top_height_controls", "shoulder_fraction",

@@ -3,9 +3,11 @@
 This is the global Django A2A/worker-agent app. It is required alongside the
 MAAS domain-agent folder, but it owns a different layer.
 
-For MAAS legal-design specialists, use:
-
-`ARR/backend/design/maas/agents/`
+For new independent architecture specialists, create a sibling repository under
+this folder using `elevationAgent/` as the structural reference. This parent
+owns shared memory and coordination. Existing
+`ARR/backend/design/maas/agents/` modules remain compatibility adapters until a
+tested migration is performed.
 
 Boundary reference:
 
@@ -14,6 +16,10 @@ Boundary reference:
 Folder standard:
 
 `docs/ai-session-memory/AGENT_FOLDER_STANDARD.md`
+
+Shared specialist architecture:
+
+`ARR/backend/agents/SHARED_AGENT_ARCHITECTURE.md`
 
 A2A-compliant multi-agent system with LangGraph workers.
 

@@ -66,4 +66,37 @@ def safe_unary_union(geometries: Iterable[Any]):
             return None
 
 
-__all__ = ["repaired_volume_records", "safe_unary_union"]
+def safe_symmetric_difference_ratio(left: Any, right: Any) -> float:
+    """Return a conservative Jaccard distance without leaking GEOS failures.
+
+    Projection and precision operations can occasionally leave an invalid hole
+    ring even when every source footprint passed its own validity check.  This
+    boundary repairs the two derived silhouettes immediately before the overlay
+    operation.  If GEOS still cannot compare them, return ``0`` so an invalid
+    candidate is treated as a duplicate instead of gaining artificial novelty.
+    """
+    repaired_left = _repair_polygon(left)
+    repaired_right = _repair_polygon(right)
+    if repaired_left is None and repaired_right is None:
+        return 0.0
+    if repaired_left is None or repaired_right is None:
+        return 1.0
+    try:
+        difference_area = float(repaired_left.symmetric_difference(repaired_right).area)
+        union_area = float(repaired_left.union(repaired_right).area)
+    except GEOSException:
+        try:
+            clean_left = repaired_left.buffer(0)
+            clean_right = repaired_right.buffer(0)
+            difference_area = float(clean_left.symmetric_difference(clean_right).area)
+            union_area = float(clean_left.union(clean_right).area)
+        except GEOSException:
+            return 0.0
+    return max(0.0, min(1.0, difference_area / max(union_area, 1e-9)))
+
+
+__all__ = [
+    "repaired_volume_records",
+    "safe_symmetric_difference_ratio",
+    "safe_unary_union",
+]

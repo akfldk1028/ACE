@@ -14,7 +14,7 @@ from typing import Any
 from shapely.geometry import MultiPolygon, Polygon
 
 
-POLYGON_QUALITY_SCHEMA_VERSION = "arr.maas.polygon_quality.v1"
+POLYGON_QUALITY_SCHEMA_VERSION = "arr.maas.polygon_quality.v2_structured_outline"
 SITE_CONTAINMENT_SCHEMA_VERSION = "arr.maas.site_containment.v1"
 
 
@@ -93,6 +93,11 @@ def evaluate_polygon_quality(polygon: Polygon | None, *, linear_field: bool = Fa
     # mass look artificially fragmented.
     compactness = float(polygon.exterior.length) ** 2 / max(4.0 * pi * area, 1e-9)
     vertex_count = max(0, len(polygon.exterior.coords) - 1)
+    convex_hull = polygon.convex_hull
+    hull_area = max(float(convex_hull.area), 1e-9)
+    hull_perimeter = max(float(convex_hull.exterior.length), 1e-9)
+    solidity = area / hull_area
+    perimeter_excess_ratio = float(polygon.exterior.length) / hull_perimeter
     failure_reasons: list[str] = []
     if not polygon.is_valid:
         failure_reasons.append("invalid_polygon")
@@ -102,17 +107,22 @@ def evaluate_polygon_quality(polygon: Polygon | None, *, linear_field: bool = Fa
         failure_reasons.append("hairline_polygon")
     if short_edge_count > 2:
         failure_reasons.append("clipping_spikes_or_short_edges")
-    # P^2/(4*pi*A) is 1.0 for a circle and about 1.27 for a square.  Values
-    # above 3 are usually starburst/interlock debris: technically connected,
-    # but visually read as thin LEGO arms rather than one architectural mass.
-    # This is scale independent and intentionally stricter than validity.
-    # P^2/A necessarily rises with aspect ratio, so the compact-monolith
-    # threshold misclassifies a clean occupiable bar/ribbon as tortuous. The
-    # separate minimum-width and short-edge gates still reject hairlines and
-    # clipped spikes; 7.5 allows a smooth architectural spine while remaining
-    # far below the pathological fragmented outlines caught by those gates.
+    # P^2/(4*pi*A) alone cannot distinguish a deliberate U/L/cross/setback
+    # plan from a jagged starburst.  An open courtyard legitimately has a long
+    # perimeter and low area even though its outline contains only one broad,
+    # usable concavity.  Compare the authored perimeter with its convex hull:
+    # clean bars, courts, steps and smooth bends stay close to the hull, while
+    # interlock debris repeatedly leaves and re-enters it.  Width, short-edge,
+    # component and fragment gates remain independent, so this exception does
+    # not admit hairlines or disconnected LEGO pieces.
+    structured_outline = (
+        perimeter_excess_ratio <= 1.45
+        and vertex_count <= 48
+        and short_edge_count <= 2
+        and width_ratio >= 0.055
+    )
     tortuosity_limit = 7.5 if linear_field and vertex_count <= 24 and short_edge_count <= 2 else 2.65
-    if compactness > tortuosity_limit:
+    if compactness > tortuosity_limit and not structured_outline:
         failure_reasons.append("over_tortuous_mass_outline")
     if vertex_count > 96:
         failure_reasons.append("excessive_plan_vertices")
@@ -129,6 +139,9 @@ def evaluate_polygon_quality(polygon: Polygon | None, *, linear_field: bool = Fa
         "short_edge_count": short_edge_count,
         "minimum_width_ratio": round(width_ratio, 5),
         "compactness": round(compactness, 3),
+        "solidity": round(solidity, 4),
+        "perimeter_excess_ratio": round(perimeter_excess_ratio, 4),
+        "structured_outline": structured_outline,
         "linear_field": bool(linear_field),
         "tortuosity_limit": tortuosity_limit,
     }

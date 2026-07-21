@@ -53,6 +53,7 @@ from design.maas.program_massing.vlm_a2a import (
     generation_feedback_from_result,
 )
 from design.maas.program_massing.scoring import attach_program_massing_evidence
+from design.maas.program_massing.assembly import program_component_specs
 from design.maas.program_massing.section_graph import (
     ProgramSectionGraphEdit,
     mutate_program_section_sequence,
@@ -90,6 +91,41 @@ from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 
 
 class MaasProgramMassingTest(SimpleTestCase):
+    def test_typed_attach_edges_materialize_real_parent_contact(self):
+        seed = program_seed_sequences("gymnasium")[0]
+        sequence = compose_program_with_book_operations(
+            seed,
+            (VerbCall("taper", {}),),
+            base_volume_label="1/16",
+            orientation="vertical",
+        )
+        section_graph = program_section_graph_from_sequence(sequence)
+        specs = program_component_specs(
+            sequence.name,
+            box(0, 0, 60, 40),
+            section_graph=section_graph,
+        )
+        by_role = {spec["component_role"]: spec for spec in specs}
+        nodes = {node["node_id"]: node for node in section_graph["nodes"]}
+
+        for node in section_graph["nodes"]:
+            if node.get("relation") != "attach":
+                continue
+            child = by_role[node["component_role"]]
+            parent = by_role[nodes[node["parent_id"]]["component_role"]]
+            minimum_area = min(child["footprint"].area, parent["footprint"].area)
+            contact = child["footprint"].intersection(parent["footprint"]).area / minimum_area
+            self.assertGreaterEqual(contact, 0.06, node["node_id"])
+            self.assertIn(
+                child["typed_attachment_evidence"][-1]["status"],
+                {"already_materialized", "materialized"},
+            )
+        source = compile_sequence_to_source_mass(box(0, 0, 60, 40), sequence)
+        relation_evidence = source.metadata["program_component_relation_evidence"]
+        self.assertTrue(relation_evidence["hard_pass"])
+        self.assertEqual(relation_evidence["attach_edge_count"], 2)
+        self.assertEqual(relation_evidence["failed_attach_edge_count"], 0)
+
     @patch("design.maas.book_language.downstream_hard_gate.build_legal_envelope")
     def test_legal_generation_context_exposes_height_safe_host_before_selection(self, envelope_builder):
         site = box(0.0, 0.0, 20.0, 20.0)
@@ -242,6 +278,28 @@ class MaasProgramMassingTest(SimpleTestCase):
         self.assertGreaterEqual(distance, 0.0)
         self.assertGreaterEqual(volume_distance, 0.0)
         self.assertGreaterEqual(plan_distance, 0.0)
+
+    def test_silhouette_distance_repairs_hole_outside_shell(self):
+        invalid = Polygon(
+            ((0, 0), (12, 0), (12, 8), (0, 8), (0, 0)),
+            holes=[((14, 2), (16, 2), (16, 4), (14, 4), (14, 2))],
+        )
+        invalid_source = SourceMass(
+            "invalid_hole",
+            invalid,
+            volumes=(SourceVolume("primary", invalid, 0.0, 1.0, "bar"),),
+        )
+        valid_footprint = box(0, 0, 12, 8)
+        valid_source = SourceMass(
+            "valid_shell",
+            valid_footprint,
+            volumes=(SourceVolume("primary", valid_footprint, 0.0, 1.0, "bar"),),
+        )
+
+        distance = intrinsic_silhouette_distance(invalid_source, valid_source)
+
+        self.assertGreaterEqual(distance, 0.0)
+        self.assertLessEqual(distance, 1.0)
 
     def test_invalid_source_polygon_does_not_abort_archive_descriptor(self):
         bowtie = Polygon(((0, 0), (10, 10), (0, 10), (10, 0), (0, 0)))
@@ -1685,9 +1743,11 @@ class MaasProgramMassingTest(SimpleTestCase):
 
         self.assertIsNotNone(source)
         roles = {volume.role for volume in source.volumes}
-        self.assertIn("primary_branched_ribbon_trunk", roles)
-        self.assertIn("primary_branched_ribbon_arm_0", roles)
-        self.assertIn("primary_branched_ribbon_arm_1", roles)
+        # The legal/FAR proxy is one continuous field, while the profiled
+        # surface graph retains the authored trunk and two arms. Keeping all
+        # three as separate proxy volumes reintroduces the disconnected Lego
+        # representation this compiler intentionally removed.
+        self.assertEqual(roles, {"primary_branched_ribbon_field"})
         field = source.signature()["architectural_ambition_evidence"]["site_design_field"]
         self.assertEqual(field["field_topology"], "branched")
         self.assertEqual(field["width_profile_source"], "agent_authored")
@@ -1697,6 +1757,11 @@ class MaasProgramMassingTest(SimpleTestCase):
         surface = source.signature()["continuous_surface_evidence"]
         self.assertEqual(surface["status"], "materialized")
         self.assertEqual(surface["profiled_volume_count"], 3)
+        self.assertEqual(set(surface["profiled_roles"]), {
+            "primary_branched_ribbon_trunk",
+            "primary_branched_ribbon_arm_0",
+            "primary_branched_ribbon_arm_1",
+        })
         self.assertEqual(surface["representation"], "agent_field_quad_strips")
 
     def test_generative_a2a_loop_recompiles_typed_graph_edit(self):

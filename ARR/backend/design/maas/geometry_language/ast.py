@@ -30,7 +30,7 @@ OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
     "transform": frozenset({"translate", "rotate", "scale", "mirror", "shear"}),
     "modifier": frozenset({
         "bend", "taper", "twist", "pinch", "inflate",
-        "slice", "clip", "clip_fraction", "cut_corner",
+        "slice", "clip", "clip_fraction", "book_base_volume", "cut_corner",
     }),
     "boolean": frozenset({"union", "difference", "intersection"}),
     "pattern": frozenset({"duplicate", "linear_array", "radial_array", "mirror_array", "stack"}),
@@ -44,16 +44,38 @@ OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
         "cantilever",
         "bridge",
         "cross_mass",
+        "grid_mass",
         "bent_bar",
         "split_wing",
+        "book_split",
         "attach_volume",
         "tapered_tower",
         "leaning_tower",
         "lift",
+        "book_lift",
+        "book_lodge",
+        "book_rotate",
+        "book_carve",
+        "book_fracture",
+        "book_grade",
+        "book_notch",
+        "book_extract",
         "puncture",
         "cut_corner",
         "stepped_mass",
         "profiled_hall",
+        "book_branch",
+        "boundary_expand",
+        "shift_related",
+        "offset_related",
+        "nested_related",
+        "interlock_related",
+        "intersect_related",
+        "embed_void",
+        "related_array",
+        "join_related",
+        "merge_related",
+        "overlap_related",
     }),
 }
 
@@ -222,7 +244,15 @@ class GeometryProgram:
         reachable = {node_id for node_id, value in state.items() if value == 2}
         for node in self.nodes:
             if node.id not in reachable:
-                issues.append(GeometryIssue("unreachable_node", "node is not reachable from root", node.id, "warning"))
+                # A SolidNode graph is an executable program, not a drawing
+                # document with spare objects.  Treating an unreachable node
+                # as a warning let a critic add a ``courtyard``/``void`` node
+                # beside the real root: graph notes then advertised a public
+                # void even though the compiler and render never consumed it.
+                # Requiring every declared solid to participate in the root
+                # ancestry keeps the AI-readable graph, semantic roles and
+                # compiled geometry causally identical.
+                issues.append(GeometryIssue("unreachable_node", "node is not reachable from root", node.id))
         return tuple(_deduplicate_issues(issues))
 
     def topological_nodes(self) -> tuple[GeometryNode, ...]:
@@ -265,6 +295,38 @@ class GeometryProgram:
 
     def program_hash(self) -> str:
         payload = json.dumps(self.canonical_dict(), sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+    def canonical_structure_dict(self) -> dict[str, Any]:
+        """Return an alpha-renaming-independent typed structure.
+
+        ``program_hash`` intentionally preserves stable edit-target ids.  This
+        second form is for candidate deduplication: two LLM programs that only
+        differ in variable/node names receive the same structural hash.
+        """
+        ordered = self.topological_nodes()
+        canonical_ids = {node.id: f"g{index:03d}" for index, node in enumerate(ordered, start=1)}
+        rows = []
+        for node in ordered:
+            inputs = [canonical_ids[value] for value in node.inputs]
+            # Attach is ordered: input 0 is the host and later inputs are
+            # guests. Only genuinely commutative operators may sort inputs.
+            if node.operator in {"union", "intersection"}:
+                inputs.sort()
+            rows.append({
+                "id": canonical_ids[node.id],
+                "kind": node.kind,
+                "operator": node.operator,
+                "inputs": inputs,
+                "parameters": _canonical_value(node.parameters),
+                "semantic_role": node.semantic_role,
+            })
+        return {"root_id": canonical_ids[self.root_id], "nodes": rows}
+
+    def canonical_structure_hash(self) -> str:
+        payload = json.dumps(
+            self.canonical_structure_dict(), sort_keys=True, separators=(",", ":")
+        )
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
@@ -328,6 +390,47 @@ def _parameter_issues(node: GeometryNode) -> list[GeometryIssue]:
                 issues.append(GeometryIssue("scope_fraction_out_of_bounds", "fraction must be 0.01..1.0", node.id))
         except (TypeError, ValueError):
             issues.append(GeometryIssue("invalid_parameter_type", "fraction must be numeric", node.id))
+    if node.operator == "book_base_volume":
+        if str(params.get("label") or "") not in {"1/1", "3/8", "1/2", "1/4", "1/8", "1/16"}:
+            issues.append(GeometryIssue("invalid_book_base_volume", "label must come from BOOK p.3", node.id))
+        if str(params.get("orientation") or "") not in {"long_axis", "short_axis", "vertical"}:
+            issues.append(GeometryIssue("invalid_book_orientation", "orientation must be long_axis, short_axis or vertical", node.id))
+    vector_lengths = {
+        "vector": 3,
+        "normal": 3,
+        "angles": 3,
+        "start_scale": 2,
+        "end_scale": 2,
+        "shift_per_level": 3,
+        "anchor": 2,
+        "guest_extent": 3,
+    }
+    for parameter_name, length in vector_lengths.items():
+        if parameter_name in params and not _vector(params[parameter_name], length):
+            issues.append(GeometryIssue(
+                "invalid_vector_parameter",
+                f"{parameter_name} must contain {length} numeric values",
+                node.id,
+            ))
+    enum_contracts = {
+        ("cut_corner", "corner"): {"ne", "nw", "se", "sw"},
+        ("notch", "corner"): {"ne", "nw", "se", "sw"},
+        ("setback", "direction"): {"x", "y"},
+        ("stepped_mass", "direction"): {"x", "y"},
+        ("terrace", "direction"): {"x", "y"},
+        ("leaning_tower", "direction"): {"x", "y"},
+        ("profiled_hall", "span_axis"): {"x", "y"},
+        ("attach", "host_face"): {"east", "west", "north", "south", "top", "bottom"},
+    }
+    for (operator, parameter_name), allowed in enum_contracts.items():
+        if node.operator != operator or parameter_name not in params:
+            continue
+        if str(params[parameter_name]).lower() not in allowed:
+            issues.append(GeometryIssue(
+                "unsupported_parameter_value",
+                f"{operator}.{parameter_name} supports {sorted(allowed)}",
+                node.id,
+            ))
     return issues
 
 

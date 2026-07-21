@@ -3316,6 +3316,7 @@ def _compile_component_graph_to_source_mass(
             lower_fraction,
         )
     program_section_graph = program_section_graph_from_sequence(sequence)
+    program_component_relation_evidence: dict[str, Any] = {}
     program_specs = program_component_specs(
         sequence.name,
         base_footprint,
@@ -3352,6 +3353,28 @@ def _compile_component_graph_to_source_mass(
             # surface compiler instead of inheriting `slender_podium_tower`
             # from that first plan operation.
             formal_principle = "folded_section"
+        compiled_attachment_edges = [
+            {
+                "child_role": str(spec.get("role") or ""),
+                "child_component_role": str(spec.get("component_role") or spec.get("role") or ""),
+                **dict(edge),
+            }
+            for spec in program_specs
+            for edge in (spec.get("typed_attachment_evidence") or ())
+            if isinstance(edge, dict)
+        ]
+        failed_attachment_edges = [
+            edge for edge in compiled_attachment_edges
+            if str(edge.get("status") or "") not in {"already_materialized", "materialized"}
+        ]
+        program_component_relation_evidence = {
+            "schema_version": "arr.maas.compiled_program_relations.v1",
+            "status": "materialized" if compiled_attachment_edges else "not_applicable",
+            "hard_pass": not failed_attachment_edges,
+            "attach_edge_count": len(compiled_attachment_edges),
+            "failed_attach_edge_count": len(failed_attachment_edges),
+            "attach_edges": compiled_attachment_edges,
+        }
     volumes = _consolidate_section_loft_proxy(
         volumes,
         formal_result.evidence if formal_result is not None else None,
@@ -3377,6 +3400,8 @@ def _compile_component_graph_to_source_mass(
     program_section_surfaces, program_section_profiled_roles, program_section_graph_evidence = (
         _profiled_program_section_surfaces(program_specs, footprint, program_section_graph)
     )
+    if program_section_graph_evidence and program_component_relation_evidence:
+        program_section_graph_evidence["compiled_relation_evidence"] = program_component_relation_evidence
     if program_section_profiled_roles:
         formal_surfaces = tuple(
             surface for surface in formal_surfaces
@@ -3434,6 +3459,7 @@ def _compile_component_graph_to_source_mass(
             "coherence_evidence": coherence_evidence,
             "continuous_surface_evidence": continuous_surface_evidence,
             "program_section_graph_evidence": program_section_graph_evidence,
+            "program_component_relation_evidence": program_component_relation_evidence,
             "program_book_projection_evidence": program_book_projection_evidence,
             "architectural_ambition_evidence": formal_result.evidence if formal_result is not None else {},
             "secondary_family": secondary_family,

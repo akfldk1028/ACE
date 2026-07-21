@@ -2,6 +2,13 @@
 
 Read this folder before touching the legal-design visualization work.
 
+## Single causal MASS graph checkpoint - 2026-07-20
+
+Read `MAAS_SINGLE_CAUSAL_GRAPH_HANDOFF_20260720.md` first. The language route is
+now one machine-readable per-MASS causal graph with one selected visual
+projection, no BOOK raster cards and no duplicate mini/FULL FLOW graphs. It
+also records the r177 14/20 failure and the MILP-based r178 selection rerun.
+
 ## BOOK executable-language checkpoint - 2026-07-15
 
 Read `MAAS_BOOK_EXECUTABLE_LANGUAGE_CHECKPOINT_20260715.md` before changing the

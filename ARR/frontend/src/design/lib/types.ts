@@ -124,6 +124,7 @@ export interface GeoJSONFeature {
     source_iou?: number;
     notes?: string[];
     operation_history?: Array<Record<string, unknown>>;
+    mass_execution_passport?: import('./language-system-types').MassExecutionPassport;
     // Canonical MAAS object: one integrated source for morphology, legal audit,
     // and agent-readable architectural language.
     maas_model?: {

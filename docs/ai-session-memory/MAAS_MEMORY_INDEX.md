@@ -1,6 +1,17 @@
 # MAAS Memory Index
 
-Updated: 2026-07-15
+## Canonical modular MASS-flow memory
+
+Start every new MASS-generation session here:
+
+- `docs/ai-session-memory/maas-mass-flow/00_READ_FIRST.md`
+- machine state: `docs/ai-session-memory/maas-mass-flow/current-checkpoint.json`
+
+This folder owns the stable flow contract, current verified state, code module
+map, unresolved validation gaps and append-only run history. Keep it updated
+after every completed MASS run.
+
+Updated: 2026-07-20
 
 Read this file first before touching MAAS mass generation, prompts, source geometry, legal repair, parking, or PNG/verifier harnesses.
 
@@ -15,6 +26,61 @@ Independent component-graph / MAP-Elites / Mass-Brain audit:
   independently challenge the conclusion against code and current artifacts.
 
 Critical latest handoff:
+
+- Read `MAAS_SINGLE_CAUSAL_GRAPH_HANDOFF_20260720.md` first for the current
+  frontend and execution-graph contract. `/design/language` now has one graph
+  canvas with `FULL GRAPH` and `SELECTED MASS PATH` queries. Selecting an actual
+  MASS joins its exact BOOK/AST/capacity/law/parking/render path, five
+  program-conditioned ArchDaily retrieval images, recorded VLM inputs only,
+  Selector/final MASS and exact geometry-hash outcome-memory slice. BOOK raster
+  images remain forbidden. Latest r179 is still `15/20 · fail`; its truth is
+  5 retrieved / 0 used VLM references and zero paid VLM calls.
+
+- Read `2026-07-20 per-MASS execution passport + causal activation graph r171`
+  and then `2026-07-20 complete BOOK authority + Extended CSG contract r170` in
+  `MAAS_BOOK_VISUAL_CONTINUATION_20260718.md` first before changing the graph,
+  recursive Geometry DSL, 18 phenotype programs, compiler/GATE or VLM render
+  loop. It records the mandatory four-document/134-entry BOOK authority,
+  Base Model -> recursive SolidNode -> 18 compiled MASS -> render -> typed VLM
+  -> GATE contract, hash-cached four-view phenotype previews, structural
+  canonicalization and zero paid VLM calls. The inspectable frontend is
+  `http://127.0.0.1:5175/design/language`.
+
+- Read the final `2026-07-20 activation graph + structured MASS PNG memory`
+  section in `MAAS_BOOK_VISUAL_CONTINUATION_20260718.md` first. It records the
+  verified neural-style frontend projection, correction from three benchmark
+  programs to seven real program profiles, four site-derived FAR alternatives,
+  the fixed policy -> feasible-capacity -> alternative -> gate module boundary,
+  the separate nine-node/ten-edge AG-light responsibility topology,
+  effective ArchDaily corpus and VLM cost guards, the new typed-geometry ->
+  MASS PNG crop -> outcome-memory edge, and the honest fact that the interrupted
+  r161 live run produced candidate previews but no completed board or acceptance
+  result.
+
+- Machine-readable current state is
+  `maas-language-visual-memory-current.json`. Its reviewed MASS evidence source
+  is `maas-latest-mass-visual-evidence.json`: r160 is the latest completed board
+  and remains a 16/20 visual failure, but predates the FAR-alternative contract
+  and therefore validates none of its four alternatives; r161 is incomplete
+  and must not be treated as a result. Exporting this memory never launches
+  live VLM.
+
+- The latest capacity-specific evidence is the non-live r167 preflight recorded
+  in both files above. Its bounded same-AST capacity feedback raises the board
+  to 20/20 and every selected card passes its target; all six Base Volume scopes
+  and 17 BOOK operations survive. It still contains only three of four ALT
+  bands, has no `maximum_feasible` card and misses one required design-concept
+  controller. Do not present it as final aesthetic or live-VLM acceptance. The
+  next fix belongs before the bounded visual pool, where maximum-feasible forms
+  are lost to program/concept supply—not in target relaxation or more macros.
+
+- Read `MAAS_BOOK_VISUAL_CONTINUATION_20260718.md` first before rerunning the
+  neighborhood BOOK portfolio. It records direct original-PNG rejection of
+  r111-r114, the hall-role/access-role defects, longitudinal seed correction,
+  the proved cross+open-court fragmentation, the legal-host scale correction,
+  and the post-r114 BOOK access-spine/two-rule fixes. r114 is 11/20 and still a
+  visual failure. The final two BOOK fixes pass 122/122 geometry-language tests
+  but have not yet been verified in a new live PNG; do not claim completion.
 
 - Read `MAAS_EXTENDED_GEOMETRY_LANGUAGE_CHECKPOINT_20260715.md` first before
   changing primitives, recursive solid AST, Geometry DSL, VLM geometry edits,
@@ -512,3 +578,247 @@ commercial design claim. The next blocker is plan/body topology diversity that
 survives the legal envelope, followed by a new live gym run and then a combined
 neighborhood/gym/cultural comparison. Do not restore older 60/60 claims as the
 latest status and do not weaken similarity or hard constraints.
+
+## r121 language-system hierarchy checkpoint (2026-07-19; live run pending)
+
+Read the r121 section appended to
+`MAAS_BOOK_VISUAL_CONTINUATION_20260718.md`. The public language contract is now
+one ordered manifest assembled from the existing small source modules:
+
+`source -> base_volume -> orientation -> base_seed -> chassis -> book_principle -> variation -> program -> hard_gates -> live_vlm -> portfolio`.
+
+The axes are no longer conflated. BOOK p.3 base volume is a relative share of
+the chosen host, while the seed controls host morphology. Consequently `1/1`
+SLAB is a full wide plate/podium datum, `1/2` SLAB is a half plate/podium band,
+and `1/1` TOWER is a complete tower body. The theoretical pre-gate space is
+2,254,230 paths (6 scopes x 3 orientations x 5 seeds x 11 chassis x 69 BOOK
+principles x 11 variations x 3 programs); it is explicitly not a claim that
+every path survives compatibility and hard gates.
+
+The cross-host audit compiles all 90 scope/orientation/seed states. All 90 are
+connected and hard-pass, and the rendered board visibly distinguishes wide
+SLAB, long BAR and tall TOWER hosts. The `/design/maas/language-system/`
+endpoint and the new frontend activation-flow panel expose the same hierarchy,
+including the VLM feedback edge and portfolio/memory sink. The graph is a
+design-system flow visualization, not a representation of hidden VLM neurons.
+
+Structural verification is green: 178 backend regression tests, frontend
+type-check, production build, API probe and browser verification all pass.
+The fullscreen graph is rendered through `document.body`, fixing the prior
+transformed-ancestor/header clipping bug; the legacy agent graph also no longer
+uses a hardcoded fullscreen viewport.
+
+The r121 live three-program VLM loop is running as PID 33032 and must be judged
+only from its final PNGs. Neighborhood produced 8/20 and is a direct visual
+failure: fragmentation is reduced and a plate/long-body lane exists, but most
+survivors are still box/courtyard/groove relatives. Gym and cultural results
+were not yet complete when this structural checkpoint was written. Do not
+promote the 2.25M theoretical path count or the 90/90 compiler audit into a
+competition-quality claim.
+
+## r122 universal-form-first correction (2026-07-19; supersedes r121 execution order)
+
+The r121 manifest exposed the desired axes, but a code-path audit found that
+the real benchmark still called `_agent_mutated_seeds(building_type, ...)`
+before p.3/BOOK projection. Its default control requests and live author were
+therefore program-conditioned dominant-form authors. That contradicted the
+public hierarchy and explains part of the gym/housing/museum family collapse.
+
+The default dominant-form supply is now `geometry_language/universal_form_bank.py`:
+64 deterministic programs spanning all five base seeds and all eleven early
+chassis. Every program compiles as one connected solid. The exact 64 serialized
+geometry payloads are byte-identical before neighborhood, gymnasium and
+cultural role projection. Program role wrappers, hard gates and live VLM are
+downstream; explicit session/VLM synthesis requests remain additive and cannot
+replace the universal control bank.
+
+The API contract is `arr.maas.language_system.v2` with order `source ->
+base_seed -> chassis -> base_volume -> orientation -> BOOK -> variation ->
+program projection -> hard gates -> live VLM -> portfolio`. The frontend shows
+that same order. VLM feedback no longer points into BOOK or chassis; it returns
+only to program projection and then re-enters the deterministic gates.
+
+During the old-order live baseline, gym selection exposed a derived-silhouette
+GEOS `TopologyException` (free hole outside a shell). The shared geometry-safety
+boundary now repairs both overlay operands and conservatively returns duplicate
+distance if GEOS still cannot compare them. The resumed real candidate pool
+passed the former crash point. Focused regressions are 180/180, the two invalid-
+polygon reproductions pass, and frontend type-check/build/browser verification
+pass.
+
+The old-order live baseline is not evidence for r122 quality. Neighborhood and
+gym each selected 8/20 and both fail direct PNG review: neighborhood remains a
+compact box/groove/courtyard family, while gym remains a shallow long-span hall
+family with ridge/notch variants. Cultural was still running when this memory
+entry was written.
+
+### Completed old-order live baseline (r121; final)
+
+The resumed run completed with empty stderr and fingerprint
+`61d85d383dde81681391c60611943ee13e05f4243609894269d3f17b9eb1e782`.
+Neighborhood/gym/cultural selected 8/8/5 (21 total) with 5/4/5 p.3 scopes and
+5/5/5 measured visual languages. All 21 selected sources pass the downstream
+legal/retention/parking gate, but every program's portfolio-VLM hard gate
+fails. Final geometry-VLM hard-pass supply was 11/15/6 before diversity and
+capacity selection.
+
+Direct combined-PNG verdict remains **fail**. Neighborhood is dominated by
+compact block, shallow court and lifted-threshold relatives. Gym is a single
+low long-span hall family with ridge/groove/notch variants. Cultural has the
+widest internal contrast (stepped block, elbow, curved wall) but only five
+survivors and still includes a shifted box and a fragmented stair mass. Pairwise
+minimum silhouette distances are neighborhood-gym 0.1128,
+neighborhood-cultural 0.2125 and gym-cultural 0.2039. These boards are the
+diagnostic baseline that motivated r122; they are not r122 output.
+
+## r124 explicit post-BOOK program projection (2026-07-19)
+
+Read the final r124 section of
+`MAAS_BOOK_VISUAL_CONTINUATION_20260718.md`. The execution boundary is now
+implemented, not only diagrammed:
+
+`shared universal form -> p.3/BOOK -> typed program relations -> hard gates -> live VLM`.
+
+`geometry_language/program_projection.py` adds no base mass. It consumes the
+final BOOK AST and projects only access-bound threshold controllers and any
+contract-required terminal section (the gym long-span profile). The same 64
+dominant-form payloads remain byte-identical across neighborhood, gymnasium and
+cultural before that boundary. All 192 universal-form/program projections
+compile as one connected solid, and the full geometry-language suite passes
+153/153.
+
+The real-PNU r124 neighborhood preflight is numeric/downstream **pass**:
+20/20, 20 BOOK operations, 17 visual languages, all six p.3 scopes, 20/20
+frontage-aligned thresholds, zero missing concept controllers, three ground
+strategies and downstream legal/retention/parking 20/20. The immediately prior
+r123 run proved the causal fix but failed because all 20 thresholds were the
+same notch; r124 corrects that convergence with 11 notches, eight access-bound
+lifts and one open court. No similarity or hard gate was weakened.
+
+Direct PNG review is improved but not final: the board contains coherent
+court, lifted, stepped, curved and split bodies, while candidates 15/17 remain
+too thin or small and candidate 19 is overly skewed. A fresh r125 neighborhood
+live-VLM run is active and must be judged from its final PNG and audit; do not
+promote the non-live r124 board to competition-final.
+
+### r125 first new-order live-VLM verdict
+
+r125 completed with zero stderr and proves the new ordering reaches real image
+review: 68 exact candidate renders were audited after universal form, BOOK and
+program projection. VLM reduced the portfolio to 7/20. The removed thin,
+fragmented and skewed candidates confirm that the visual gate is active, but
+the remaining board still fails with family resemblance, repeated footprint,
+repeated roof and weak neighborhood program language. It has only four p.3
+scopes, six visual languages and two ground strategies. Downstream remains
+7/7 pass. Direct PNG review agrees with the failure.
+
+The run also exposed a typed-repair infrastructure defect. The VLM proposed a
+valid unary transformation from `taper` (modifier) to `stepped_mass` (macro),
+but the mutation layer incorrectly froze the old node kind, so repair revised
+0/1. Operator replacement now infers the executable kind from the registry,
+clears stale parameters and revalidates arity/graph/compiler output. The exact
+live edit shape is covered by regression, and the full geometry-language suite
+passes 154/154. r126 is running with the unchanged hard criteria and a larger
+96-candidate image-review budget; judge only its final board.
+
+### r126 repair proof and remaining supply failure
+
+r126 also completed with zero stderr. The wider base review scored 96/286
+(64 cache hits), approved 19 bases and increased the final portfolio from 7 to
+10. The repaired mutation path is now proven live: requested/revised/
+geometry-changed = 3/3/3 with no mutation issues. Two materialized repairs
+passed compiler/clean/program gates but none passed the second exact VLM, so
+typed repair was not allowed to bypass visual judgement.
+
+The final board remains **fail**: 10/20, seven visual languages, five p.3
+scopes, two ground strategies; portfolio VLM reports family resemblance,
+repeated footprint/roof, weak program language and fragmented-Lego relations.
+Direct PNG review agrees. The next r127 loop adds only a contract-authorized
+post-BOOK access-bound split-wing/spine relation on simple continuous bodies;
+universal base and BOOK remain unchanged.
+
+r127 completed and disproved that experiment. It remained 10/20, lost one BOOK
+operation, retained only notch/lift ground strategies and added `box_dominated`
+to the portfolio-VLM failures. No split/court candidate survived. The temporary
+split projection was removed rather than accumulated in production code.
+
+r128 tested design-concept-stratified VLM shortlist allocation without changing
+forms or thresholds. It also regressed: 9/20 and only 16 approved base parents
+versus r126's 10/20 and 19. The shortlist change was removed. These two negative
+loops establish that neither another terminal program macro nor quota-style
+review allocation fixes the remaining family problem.
+
+### r173 Agent-aware connected MASS checkpoint
+
+- Frontend graph and Agent reasoning now share the same causal passport data,
+  but the UI SVG itself is not described as hidden-neuron state.
+- `mass_execution_agent_context.v1` is consumed by Critic/Repair/Selector and
+  can condition the next Author; exact AST IDs and pending/failed gates survive
+  in each PNG sidecar.
+- VLM prompt contract v20 prevents reuse of pre-context cache responses. No new
+  paid VLM request was made.
+- Surface-aware `join_related` repairs the false-connectivity defect; the five
+  r173 representative BOOK+program masses are compiled, gated, unique and each
+  has `component_count=1`.
+- Current inspection URL: `http://127.0.0.1:5175/design/language`; select a MASS
+  then use `FULL FLOW`.
+- Evidence: `docs/playwright/design-route-live-verify/r173-agent-aware-connected-mass-flow`.
+- Parcel/site/capacity/law/parking/program-fit/VLM/selector are still pending in
+  these parcel-free probes; unmocked parking performance remains open.
+
+### r174 selected MASS trace and VLM input provenance
+
+- `http://127.0.0.1:5175/design/language` → `사각형 → 18 MASS` now defaults to
+  an actual MASS, shows it in the right sidebar, and exposes all 18 results in
+  the bottom thumbnail strip.
+- Clicking a result renders only its directed Base → Core/Macro → Phenotype →
+  Compiler → Render/VLM/GATE/Selector → final MASS path; unrelated graph edges
+  are omitted.
+- FULL FLOW contains separate rendered-PNG and final-MASS image nodes.
+- Only reference images actually sent to VLM become provenance nodes and Agent
+  context. They carry source, hash, selection reason and an allow-listed local
+  preview URL. Retrieved-only references are not presented as used evidence.
+- Verified: backend focused tests 10/10, frontend type-check pass, browser 18
+  gallery items / one sidebar MASS / 10 path edges / two FULL FLOW image nodes,
+  with zero browser errors. No paid VLM request was made.
+- Evidence directory:
+  `docs/playwright/design-route-live-verify/r174-selected-trace-reference-results`.
+
+### r175 actual executed MASS results
+
+- r174's static 18-shape examples are no longer the MASS result source.
+- `실제 실행 MASS` reads the latest completed r168 execution archive and shows
+  its 20 real selected candidate renders; BOOK scan and static geometry-shape
+  images are excluded from this tab.
+- Each thumbnail is tied to the archived variant/program/geometry hashes and
+  opens its own actual AST → site/FAR/law/parking/program → render → selector →
+  result passport.
+- Candidate 08/10 replay differently under the current compiler; their original
+  archived image and gate evidence remain authoritative and are not replaced.
+- Verified 20/20 PNG 200, 20/20 passport hash matches, 20/20 recorded gates,
+  zero `/geometry-shapes` and `/book-assets` requests in the actual MASS tab,
+  and zero browser errors.
+- Current URL: `http://127.0.0.1:5175/design/language` → `실제 실행 MASS`.
+- Evidence directory:
+  `docs/playwright/design-route-live-verify/r175-actual-executed-mass-results`.
+
+### r182 latest verified checkpoint
+
+- Latest completed portfolio is r182: 20/20 numeric pass, zero paid VLM calls.
+- Actual Geometry Program pages, not relabeled legacy sequences, replenish the
+  candidate pool. Page 7 supplied the final compatible MASS.
+- Six Base Volume scopes, fourteen BOOK principles, four FAR alternatives,
+  twenty visual languages, zero near duplicates, downstream 20/20.
+- One frontend graph only. MASS click activates its exact path; actual MASS
+  gallery 20/20 and sidebar image load are browser-verified.
+- ArchDaily corpus is 13 collections / 313 projects / 375 images. Current MASS
+  shows 5 retrieved references and 0 actually used because Live VLM is OFF.
+- BOOK scans are language provenance only and do not appear as MASS evidence.
+- Numeric pass is not VLM approval. MASS 17 is connected but its layered pinch
+  rendering still deserves camera/form refinement.
+- Read first:
+  `docs/ai-session-memory/MAAS_SINGLE_CAUSAL_GRAPH_HANDOFF_20260720.md` and
+  `docs/ai-session-memory/maas-language-visual-memory-current.json`.
+- Evidence:
+  `docs/playwright/design-route-live-verify/book-program-portfolios-r182-seven-page-closure-pass`
+  and `docs/playwright/design-route-live-verify/r182-single-graph-ui-final-images`.

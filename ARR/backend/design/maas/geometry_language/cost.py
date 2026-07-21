@@ -12,6 +12,7 @@ from .compiler import CompilationResult
 @dataclass(frozen=True)
 class ProgramCost:
     node_count: float
+    tree_depth_penalty: float
     boolean_penalty: float
     deformation_penalty: float
     topology_complexity: float
@@ -22,6 +23,7 @@ class ProgramCost:
     def total(self) -> float:
         return round(
             self.node_count
+            + self.tree_depth_penalty
             + self.boolean_penalty
             + self.deformation_penalty
             + self.topology_complexity
@@ -33,6 +35,7 @@ class ProgramCost:
     def to_dict(self) -> dict[str, float]:
         return {
             "node_count": self.node_count,
+            "tree_depth_penalty": self.tree_depth_penalty,
             "boolean_penalty": self.boolean_penalty,
             "deformation_penalty": self.deformation_penalty,
             "topology_complexity": self.topology_complexity,
@@ -54,8 +57,19 @@ def program_cost(program: GeometryProgram, compilation: CompilationResult | None
     triangle_count = int((compilation.metrics if compilation else {}).get("triangle_count") or 0)
     component_count = int((compilation.metrics if compilation else {}).get("component_count") or 1)
     invalid = compilation is not None and compilation.status != "compiled"
+    node_map = program.node_map
+    depth_cache: dict[str, int] = {}
+
+    def depth(node_id: str) -> int:
+        if node_id not in depth_cache:
+            inputs = node_map[node_id].inputs
+            depth_cache[node_id] = 1 + max((depth(value) for value in inputs), default=0)
+        return depth_cache[node_id]
+
+    tree_depth = depth(program.root_id)
     return ProgramCost(
         node_count=float(len(nodes)),
+        tree_depth_penalty=round(max(0, tree_depth - 3) * 0.35, 6),
         boolean_penalty=1.75 * boolean_count,
         deformation_penalty=0.8 * deformation_count,
         topology_complexity=round(triangle_count / 4000.0 + max(0, component_count - 1) * 2.0, 6),
@@ -89,7 +103,7 @@ def geometry_equivalent(
 
 def candidate_sort_key(program: GeometryProgram, compilation: CompilationResult) -> tuple[Any, ...]:
     cost = program_cost(program, compilation)
-    return (cost.total, program.program_hash(), compilation.geometry_hash)
+    return (cost.total, program.canonical_structure_hash(), compilation.geometry_hash)
 
 
 __all__ = ["ProgramCost", "candidate_sort_key", "geometry_equivalent", "program_cost"]

@@ -20,12 +20,13 @@ import numpy as np
 
 
 SCHEMA_VERSION = "arr.maas.book_ocr.v1"
+BOOK_SCAN_GLOB = "스캔_smallpdf_*.jpg"
 
 
 def extract_book_headings(book_dir: Path, *, crop_height: int = 420) -> dict[str, Any]:
     reader = easyocr.Reader(["en"], gpu=False, download_enabled=False, verbose=False)
     pages: list[dict[str, Any]] = []
-    for path in sorted(book_dir.glob("*.jpg"), key=_page_number):
+    for path in sorted(book_dir.glob(BOOK_SCAN_GLOB), key=_page_number):
         raw = path.read_bytes()
         image = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
         if image is None:

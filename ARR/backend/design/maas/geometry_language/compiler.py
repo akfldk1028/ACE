@@ -5,13 +5,28 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import hashlib
 import json
-from math import atan2, cos, degrees, hypot, pi, radians, sin
+from math import atan2, ceil, cos, degrees, hypot, pi, radians, sin
 from typing import Any, Callable
 
 import numpy as np
 
+from design.maas.book_language.base_volume_contract import oriented_book_base_volume_cells
+
 from .ast import GeometryIssue, GeometryNode, GeometryProgram
+from .book_parameter_projection import BOOK_KERNEL_PARAMETER_PROJECTIONS
+from .host_face_relations import resolve_face_attachment
 from .section_profiles import section_profile_controls
+
+
+_SHIFT_DISTANCE_BOUNDS = BOOK_KERNEL_PARAMETER_PROJECTIONS[
+    ("shift", "distance_ratio")
+].kernel_bounds
+_INTERLOCK_BAR_BOUNDS = BOOK_KERNEL_PARAMETER_PROJECTIONS[
+    ("interlock", "bar_ratio")
+].kernel_bounds
+_INTERLOCK_DISTANCE_BOUNDS = BOOK_KERNEL_PARAMETER_PROJECTIONS[
+    ("interlock", "distance_ratio")
+].kernel_bounds
 
 try:
     import manifold3d as m3d
@@ -32,6 +47,10 @@ class CompilationResult:
     _solid: Any = field(default=None, repr=False, compare=False)
 
     def to_dict(self, *, include_mesh: bool = True) -> dict[str, Any]:
+        # Imported lazily so the evidence layer can depend on the compiler gate
+        # without making compilation itself depend on UI/persistence concerns.
+        from .execution_passport import build_mass_execution_passport
+
         payload: dict[str, Any] = {
             "schema_version": "arr.maas.geometry_compilation.v1",
             "status": self.status,
@@ -40,6 +59,7 @@ class CompilationResult:
             "metrics": self.metrics,
             "trace": list(self.trace),
             "issues": [issue.to_dict() for issue in self.issues],
+            "execution_passport": build_mass_execution_passport(self),
         }
         if include_mesh:
             payload["mesh"] = {
@@ -86,7 +106,7 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
         if "NoError" not in status:
             raise GeometryCompileError("kernel_error", status, node.id)
         cache[node_id] = solid
-        trace.append({
+        trace_row = {
             "node_id": node.id,
             "kind": node.kind,
             "operator": node.operator,
@@ -94,7 +114,20 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
             "triangle_count": int(solid.num_tri()),
             "volume": round(float(solid.volume()), 6),
             "macro_expansion": expansion,
-        })
+        }
+        if node.kind == "composition" and node.operator == "attach" and len(inputs) >= 2:
+            try:
+                trace_row["host_relation_resolution"] = resolve_face_attachment(
+                    _bounds(inputs[0]),
+                    _bounds(inputs[1]),
+                    node.parameters,
+                ).to_dict()
+            except (TypeError, ValueError):
+                # Invalid relations are raised by the operator itself. This
+                # branch only keeps trace serialization from masking that
+                # authoritative compiler error.
+                pass
+        trace.append(trace_row)
         return solid
 
     try:
@@ -104,6 +137,14 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
         raw_triangles = np.asarray(mesh.tri_verts, dtype=np.int64)
         vertices = tuple(tuple(round(float(value), 8) for value in row) for row in raw_vertices)
         triangles = tuple(tuple(int(value) for value in row) for row in raw_triangles)
+        signed_mesh_volume = float(np.einsum(
+            "ij,ij->i",
+            raw_vertices[raw_triangles[:, 0]],
+            np.cross(
+                raw_vertices[raw_triangles[:, 1]],
+                raw_vertices[raw_triangles[:, 2]],
+            ),
+        ).sum() / 6.0)
         bounds = tuple(float(value) for value in solid.bounding_box())
         components = tuple(solid.decompose())
         component_volumes = tuple(sorted(
@@ -122,6 +163,8 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
             "manifold": True,
             "closed_solid": True,
             "self_intersection_checked_by_kernel": True,
+            "outward_normals": signed_mesh_volume > 0.0,
+            "signed_mesh_volume": round(signed_mesh_volume, 6),
             "volume": round(float(solid.volume()), 6),
             "surface_area": round(float(solid.surface_area()), 6),
             "vertex_count": int(solid.num_vert()),
@@ -157,7 +200,7 @@ def _evaluate_node(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str
     if node.kind == "modifier":
         return _modifier(node, inputs[0]), []
     if node.kind == "boolean":
-        return _boolean(node.operator, inputs), []
+        return _boolean(node, inputs), []
     if node.kind == "pattern":
         return _pattern(node, inputs[0]), []
     if node.kind == "composition":
@@ -281,18 +324,45 @@ def _modifier(node: GeometryNode, solid):
         return solid.trim_by_plane(tuple(normal.tolist()), offset)
     if node.operator == "clip_fraction":
         return _clip_fraction(solid, p, node.id)
+    if node.operator == "book_base_volume":
+        return _book_base_volume(solid, p, node.id)
     if node.operator == "cut_corner":
         return _cut_corner(solid, p, node.id)
     raise GeometryCompileError("unsupported_modifier", node.operator, node.id)
 
 
-def _boolean(operator: str, inputs: list[Any]):
+def _boolean(node: GeometryNode, inputs: list[Any]):
     op = {
         "union": m3d.OpType.Add,
         "difference": m3d.OpType.Subtract,
         "intersection": m3d.OpType.Intersect,
-    }[operator]
-    return m3d.Manifold.batch_boolean(inputs, op)
+    }[node.operator]
+    result = m3d.Manifold.batch_boolean(inputs, op)
+    if (
+        node.operator == "union"
+        and str((node.provenance or {}).get("book_verb") or "")
+        == "recompose_book_scope"
+    ):
+        for _pass in range(3):
+            parts = list(result.decompose())
+            if len(parts) <= 1:
+                break
+            # A local p.3 mutation must remain physically engaged with the
+            # unselected host. Connect the actual nearest exposed descendants
+            # at the recomposition boundary; ordinary unions are untouched.
+            connectors = [
+                _bridge_between(
+                    left,
+                    right,
+                    {"width_ratio": 0.24, "height_ratio": 0.72},
+                    node.id,
+                )
+                for left, right in _nearest_component_tree(parts)
+            ]
+            result = m3d.Manifold.batch_boolean(
+                [*parts, *connectors], m3d.OpType.Add
+            )
+    return result
 
 
 def _pattern(node: GeometryNode, solid):
@@ -324,11 +394,57 @@ def _pattern(node: GeometryNode, solid):
 
 def _composition(node: GeometryNode, inputs: list[Any]):
     if node.operator == "attach":
-        return m3d.Manifold.batch_boolean(inputs, m3d.OpType.Add)
+        result = inputs[0]
+        for guest in inputs[1:]:
+            placed = _attach_to_host_face(result, guest, node.parameters, node.id)
+            result = m3d.Manifold.batch_boolean([result, placed], m3d.OpType.Add)
+        return result
     if node.operator == "bridge":
         bridge = _bridge_between(inputs[0], inputs[1], node.parameters, node.id)
         return m3d.Manifold.batch_boolean([*inputs, bridge], m3d.OpType.Add)
     raise GeometryCompileError("unsupported_composition", node.operator, node.id)
+
+
+def _attach_to_host_face(host, guest, params: dict[str, Any], node_id: str):
+    """Scale and place a guest in one normalized face frame of ``host``.
+
+    ``anchor_u``/``anchor_v`` are local face coordinates in ``[-1, 1]``.
+    A small positive embed keeps the Boolean result connected and makes the
+    attachment a volumetric architectural relation rather than a coincident
+    surface or a floating component.
+    """
+
+    host_bounds = _bounds(host)
+    guest_bounds = _bounds(guest)
+    try:
+        resolution = resolve_face_attachment(host_bounds, guest_bounds, params)
+    except (TypeError, ValueError) as exc:
+        raise GeometryCompileError("invalid_attach_parameters", str(exc), node_id) from exc
+    guest_span = [
+        max(guest_bounds[i + 3] - guest_bounds[i], 1e-7)
+        for i in range(3)
+    ]
+    scaled = _around_pivot(
+        guest,
+        _center(guest),
+        lambda item: item.scale(tuple(resolution.target_span[i] / guest_span[i] for i in range(3))),
+    )
+    if abs(resolution.rotation_degrees) > 1e-7:
+        angles = [0.0, 0.0, 0.0]
+        angles[resolution.normal_axis] = resolution.rotation_degrees
+        scaled = _around_pivot(scaled, _center(scaled), lambda item: item.rotate(tuple(angles)))
+    current_center = _center(scaled)
+    placed = scaled.translate(tuple(
+        resolution.target_center[i] - current_center[i] for i in range(3)
+    ))
+    union = m3d.Manifold.batch_boolean([host, placed], m3d.OpType.Add)
+    if union.is_empty() or len(union.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_attach",
+            "attached guest must retain volumetric overlap with its host face",
+            node_id,
+        )
+    return placed
 
 
 def _macro(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str]]:
@@ -341,11 +457,60 @@ def _macro(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str]]:
         else:
             minx, miny, minz, maxx, maxy, maxz = _bounds(base)
             margin = max(0.08, min(0.45, float(p.get("margin_ratio", p.get("margin", 0.22)))))
-            cutter = m3d.Manifold.cube(((maxx - minx) * (1 - margin * 2), (maxy - miny) * (1 - margin * 2), maxz - minz + 2.0)).translate((minx + (maxx - minx) * margin, miny + (maxy - miny) * margin, minz - 1.0))
-        return base - cutter, ["difference", "box_cutter"]
+            inner_minx = minx + (maxx - minx) * margin
+            inner_miny = miny + (maxy - miny) * margin
+            inner_maxx = maxx - (maxx - minx) * margin
+            inner_maxy = maxy - (maxy - miny) * margin
+            open_side = str(p.get("open_side") or "closed").strip().lower()
+            side_aliases = {
+                "long_positive": "east", "+long": "east", "x+": "east",
+                "long_negative": "west", "-long": "west", "x-": "west",
+                "short_positive": "north", "+short": "north", "y+": "north",
+                "short_negative": "south", "-short": "south", "y-": "south",
+            }
+            open_side = side_aliases.get(open_side, open_side)
+            # A closed court subtracts only the inner box. An open court
+            # extends the same normalized cutter through one envelope edge,
+            # producing a continuous U-shaped public threshold. This is a
+            # semantic side relation, never a stored parcel coordinate.
+            if open_side == "east":
+                inner_maxx = maxx + 1.0
+            elif open_side == "west":
+                inner_minx = minx - 1.0
+            elif open_side == "north":
+                inner_maxy = maxy + 1.0
+            elif open_side == "south":
+                inner_miny = miny - 1.0
+            cutter = m3d.Manifold.cube((
+                inner_maxx - inner_minx,
+                inner_maxy - inner_miny,
+                maxz - minz + 2.0,
+            )).translate((inner_minx, inner_miny, minz - 1.0))
+        return base - cutter, ["difference", "open_side_box_cutter" if p.get("open_side") not in (None, "", "closed") else "box_cutter"]
     if operator == "notch":
         minx, miny, minz, maxx, maxy, maxz = _bounds(base)
         ratio = max(0.08, min(0.48, float(p.get("ratio", 0.25))))
+        side = str(p.get("side") or "").strip().lower()
+        side = {
+            "long_positive": "east", "+long": "east", "x+": "east",
+            "long_negative": "west", "-long": "west", "x-": "west",
+            "short_positive": "north", "+short": "north", "y+": "north",
+            "short_negative": "south", "-short": "south", "y-": "south",
+        }.get(side, side)
+        if side in {"east", "west", "north", "south"}:
+            x_span, y_span = maxx - minx, maxy - miny
+            opening = max(0.14, min(0.62, float(p.get("width_ratio", ratio * 1.65))))
+            height = (maxz - minz) * max(0.1, min(1.2, float(p.get("height_ratio", 0.62))))
+            if side in {"east", "west"}:
+                width, depth = x_span * ratio, y_span * opening
+                x = maxx - width if side == "east" else minx
+                y = (miny + maxy - depth) / 2.0
+            else:
+                width, depth = x_span * opening, y_span * ratio
+                x = (minx + maxx - width) / 2.0
+                y = maxy - depth if side == "north" else miny
+            cutter = m3d.Manifold.cube((width, depth, height + 0.5)).translate((x, y, minz - 0.25))
+            return base - cutter, ["difference", "frontage_side_entry_cutter"]
         corner = str(p.get("corner") or "ne").lower()
         width, depth, height = (maxx - minx) * ratio, (maxy - miny) * ratio, (maxz - minz) * max(0.1, min(1.2, float(p.get("height_ratio", 1.0))))
         x = maxx - width if "e" in corner else minx
@@ -359,24 +524,133 @@ def _macro(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str]]:
     if operator == "cantilever":
         minx, miny, minz, maxx, maxy, maxz = _bounds(base)
         cut = minz + (maxz - minz) * max(0.1, min(0.9, float(p.get("start_ratio", 0.55))))
-        upper = base.trim_by_plane((0.0, 0.0, 1.0), cut).translate(_vector(p.get("vector", (2.0, 0.0, 0.0)), 3, node.id))
-        lower = base.trim_by_plane((0.0, 0.0, -1.0), -cut)
+        vector = _vector(p.get("vector", (0.22, 0.0, 0.0)), 3, node.id)
+        if abs(vector[2]) > 1e-7:
+            raise GeometryCompileError(
+                "cantilever_requires_horizontal_vector",
+                "cantilever vector z must be zero; use lift for a vertical relation",
+                node.id,
+            )
+        span_x = max(maxx - minx, 1e-7)
+        span_y = max(maxy - miny, 1e-7)
+        translation = (
+            max(-span_x * 0.45, min(span_x * 0.45, vector[0])),
+            max(-span_y * 0.45, min(span_y * 0.45, vector[1])),
+            0.0,
+        )
+        overlap = max(maxz - minz, span_x, span_y, 1.0) * 1e-4
+        upper = base.trim_by_plane((0.0, 0.0, 1.0), cut - overlap).translate(translation)
+        lower = base.trim_by_plane((0.0, 0.0, -1.0), -(cut + overlap))
         return lower + upper, ["split_by_plane", "translate", "union"]
     if operator == "bridge":
         if len(inputs) < 2:
             raise GeometryCompileError("macro_requires_two_inputs", "bridge macro needs two wings", node.id)
         bridge = _bridge_between(inputs[0], inputs[1], p, node.id)
         return m3d.Manifold.batch_boolean([inputs[0], inputs[1], bridge], m3d.OpType.Add), ["beam_between", "union"]
+    if operator == "book_branch":
+        return _book_branch_macro(base, p, node.id), ["end_scope", "paired_arm_rotate", "union"]
+    if operator == "book_split":
+        return _book_terminal_split_macro(base, p, node.id), [
+            "terminal_child_scope", "hinged_displacement", "union", "retained_trunk",
+        ]
+    if operator == "boundary_expand":
+        return _boundary_expand_macro(base, p, node.id), ["end_scope", "one_face_scale", "union"]
+    if operator == "shift_related":
+        return _shift_related_macro(base, p, node.id), [
+            "plan_partition", "translate_related_child", "shared_edge_overlap",
+            "union",
+        ]
+    if operator == "offset_related":
+        return _offset_related_macro(base, p, node.id), ["scale_related_unit", "live_span_translate", "union"]
+    if operator == "nested_related":
+        return _nested_related_macro(base, p, node.id), ["scale_inner_volume", "bounded_internal_offset", "roof_reveal", "union"]
+    if operator == "interlock_related":
+        return _interlock_related_macro(base, p, node.id), [
+            "notched_l_module", "duplicate", "rotate", "live_span_translate",
+            "shared_interlock_zone", "union",
+        ]
+    if operator == "intersect_related":
+        return _intersect_related_macro(base, p, node.id), [
+            "primary_bar", "scaled_related_bar", "orthogonal_angle_deviation",
+            "intersection_overlap", "union",
+        ]
+    if operator == "embed_void":
+        return _embed_void_macro(base, p, node.id), ["scaled_guest_cutter", "partial_embed", "difference"]
+    if operator == "related_array":
+        return _related_array_macro(base, p, node.id), ["scale_unit", "relational_distribution", "union"]
+    if operator == "join_related":
+        parts = list(base.decompose())
+        if len(parts) < 2:
+            return base, ["already_connected"]
+        bridges = [
+            _bridge_between(left, right, p, node.id)
+            for left, right in _nearest_component_tree(parts)
+        ]
+        return m3d.Manifold.batch_boolean([base, *bridges], m3d.OpType.Add), ["nearest_component_tree", "bridge", "union"]
+    if operator == "merge_related":
+        minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+        spans = (maxx - minx, maxy - miny, maxz - minz)
+        axis = {"x": 0, "y": 1, "z": 2}.get(str(p.get("axis") or "x").lower(), 0)
+        unit_scale = max(0.42, min(0.82, float(p.get("unit_scale", 0.42)) + 0.24))
+        gap = max(0.04, min(0.48, float(p.get("gap_ratio", 0.22))))
+        related = _around_pivot(
+            base,
+            _center(base),
+            lambda item: item.scale((unit_scale, unit_scale, unit_scale)),
+        )
+        # Move just beyond the scaled copy's retracted terminal face. This
+        # exposes the merge while retaining a robust intersection with base.
+        offset = spans[axis] * ((1.0 - unit_scale) / 2.0 + 0.035 + gap * 0.10)
+        vector = [0.0, 0.0, 0.0]
+        vector[axis] = offset
+        related = related.translate(tuple(vector))
+        return m3d.Manifold.batch_boolean([base, related], m3d.OpType.Add), [
+            "scale_related_unit", "live_span_overlap", "union",
+        ]
+    if operator == "overlap_related":
+        return _overlap_related_macro(base, p, node.id), [
+            "primary_bar", "orthogonal_related_bar", "terminal_plan_overlap",
+            "translate", "union",
+        ]
     if operator == "cross_mass":
         pivot = _center(base)
         other = _around_pivot(base, pivot, lambda item: item.rotate((0.0, 0.0, float(p.get("angle_degrees", 90.0)))))
         return base + other, ["rotate", "union"]
+    if operator == "grid_mass":
+        minx, miny, _minz, maxx, maxy, _maxz = _bounds(base)
+        pivot = _center(base)
+        depth = max(maxy - miny, 1e-7)
+        width = max(maxx - minx, 1e-7)
+        row_shift = depth * max(1.05, min(1.8, float(p.get("row_spacing_ratio", 1.28))))
+        column_shift = width * max(0.12, min(0.38, float(p.get("column_offset_ratio", 0.26))))
+        rows = [base.translate((0.0, shift, 0.0)) for shift in (-row_shift, 0.0, row_shift)]
+        vertical = _around_pivot(base, pivot, lambda item: item.rotate((0.0, 0.0, 90.0)))
+        columns = [vertical.translate((shift, 0.0, 0.0)) for shift in (-column_shift, column_shift)]
+        return m3d.Manifold.batch_boolean([*rows, *columns], m3d.OpType.Add), ["parallel_rows", "rotated_columns", "union"]
     if operator == "bent_bar":
         return _warp_bend(base, p, node.id), ["refine", "bend_warp"]
     if operator == "split_wing":
         minx, miny, minz, maxx, maxy, maxz = _bounds(base)
         axis = str(p.get("axis") or "x").lower()
         gap = max(0.05, min(0.5, float(p.get("gap_ratio", 0.18))))
+        if str(p.get("layout") or "split").lower() == "parallel":
+            span_x = max(maxx - minx, 1e-7)
+            span_y = max(maxy - miny, 1e-7)
+            span_z = max(maxz - minz, 1e-7)
+            separation = span_y * (1.0 + gap)
+            first = base.translate((0.0, -separation / 2.0, 0.0))
+            second = base.translate((0.0, separation / 2.0, 0.0))
+            first_center, second_center = _center(first), _center(second)
+            connector = _beam_between(
+                (first_center[0], first_center[1], minz),
+                (second_center[0], second_center[1], minz),
+                width=span_x * max(0.14, min(0.32, float(p.get("connector_width_ratio", 0.20)))),
+                height=span_z * max(0.42, min(1.0, float(p.get("height_ratio", 0.72)))),
+                node_id=node.id,
+            )
+            return m3d.Manifold.batch_boolean([first, second, connector], m3d.OpType.Add), [
+                "parallel_wings", "transverse_spine", "union",
+            ]
         if axis == "y":
             size = (maxx - minx + 2, (maxy - miny) * gap, maxz - minz + 2)
             origin = (minx - 1, (miny + maxy - size[1]) / 2, minz - 1)
@@ -394,23 +668,30 @@ def _macro(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str]]:
             # bounds and is therefore transferable across parcels.  Upper
             # wings remain visually split while the low spine improves role
             # coverage, coherence and downstream geometry retention.
-            left, right = parts[0], parts[1]
-            left_center, right_center = _center(left), _center(right)
             short_span = (maxy - miny) if axis == "x" else (maxx - minx)
             height_span = max(maxz - minz, 1e-7)
             spine_width = short_span * max(0.18, min(0.72, float(p.get("ground_spine_width_ratio", 0.38))))
             spine_height = height_span * max(0.10, min(0.42, float(p.get("ground_spine_height_ratio", 0.22))))
-            additions.append(_beam_between(
-                (left_center[0], left_center[1], minz),
-                (right_center[0], right_center[1], minz),
-                width=spine_width,
-                height=spine_height,
-                node_id=node.id,
-            ))
-            expansion.append("ground_service_spine")
-        if bool(p.get("bridge", False)) and len(parts) >= 2:
-            additions.append(_bridge_between(parts[0], parts[1], p, node.id))
-            expansion.append("upper_bridge")
+            for left, right in _nearest_component_tree(parts):
+                left_center, right_center = _center(left), _center(right)
+                additions.append(_beam_between(
+                    (left_center[0], left_center[1], minz),
+                    (right_center[0], right_center[1], minz),
+                    width=spine_width,
+                    height=spine_height,
+                    node_id=node.id,
+                ))
+            expansion.append("ground_service_spine_tree")
+        if (
+            bool(p.get("bridge", False))
+            and not bool(p.get("ground_spine", False))
+            and len(parts) >= 2
+        ):
+            additions.extend(
+                _bridge_between(left, right, p, node.id)
+                for left, right in _nearest_component_tree(parts)
+            )
+            expansion.append("upper_bridge_tree")
         if additions:
             split = m3d.Manifold.batch_boolean([split, *additions], m3d.OpType.Add)
             return split, [*expansion, "union"]
@@ -429,17 +710,78 @@ def _macro(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str]]:
         height = max(maxz - minz, 1e-7)
         rise = height * max(0.08, min(0.45, float(p.get("rise_ratio", 0.22))))
         lifted = base.translate((0.0, 0.0, rise))
-        support_ratio = max(0.04, min(0.18, float(p.get("support_ratio", 0.08))))
-        support_width = max((maxx - minx) * support_ratio, 1e-5)
-        support_depth = max((maxy - miny) * support_ratio, 1e-5)
-        inset_x = (maxx - minx) * 0.16
-        inset_y = (maxy - miny) * 0.16
-        supports = [
-            m3d.Manifold.cube((support_width, support_depth, rise + height * 0.08)).translate((x, y, minz))
-            for x in (minx + inset_x, maxx - inset_x - support_width)
-            for y in (miny + inset_y, maxy - inset_y - support_depth)
+        support_ratio = max(0.06, min(0.22, float(p.get("support_ratio", 0.12))))
+        access_side = str(p.get("access_side") or "closed").lower()
+        support_height = rise + height * 0.08
+        span_x, span_y = maxx - minx, maxy - miny
+        if access_side in {"east", "west", "north", "south"}:
+            # An occupiable back/service spine leaves a wide sheltered public
+            # frontage under the lifted body. Four tiny corner columns read as
+            # detached pieces and do not encode the access relation. The
+            # placement is normalized to the live solid, never parcel coords.
+            if access_side in {"east", "west"}:
+                width = max(span_x * support_ratio, 1e-5)
+                depth = max(span_y * 0.72, 1e-5)
+                x = minx if access_side == "east" else maxx - width
+                y = miny + (span_y - depth) / 2.0
+            else:
+                width = max(span_x * 0.72, 1e-5)
+                depth = max(span_y * support_ratio, 1e-5)
+                x = minx + (span_x - width) / 2.0
+                y = miny if access_side == "north" else maxy - depth
+            supports = [
+                m3d.Manifold.cube((width, depth, support_height)).translate((x, y, minz))
+            ]
+            expansion = ["translate", "access_bound_service_spine", "union"]
+        else:
+            support_width = max(span_x * support_ratio, 1e-5)
+            support_depth = max(span_y * support_ratio, 1e-5)
+            inset_x = span_x * 0.16
+            inset_y = span_y * 0.16
+            supports = [
+                m3d.Manifold.cube((support_width, support_depth, support_height)).translate((x, y, minz))
+                for x in (minx + inset_x, maxx - inset_x - support_width)
+                for y in (miny + inset_y, maxy - inset_y - support_depth)
+            ]
+            expansion = ["translate", "support_array", "union"]
+        return m3d.Manifold.batch_boolean([lifted, *supports], m3d.OpType.Add), expansion
+    if operator == "book_lift":
+        return _book_lift_related_macro(base, p, node.id), [
+            "scaled_guest_volume", "oriented_displacement", "shared_host_overlap",
+            "union",
         ]
-        return m3d.Manifold.batch_boolean([lifted, *supports], m3d.OpType.Add), ["translate", "support_array", "union"]
+    if operator == "book_lodge":
+        return _book_lodge_macro(base, p, node.id), [
+            "paired_host_volumes", "scaled_lodged_guest", "dual_host_overlap",
+            "union",
+        ]
+    if operator == "book_rotate":
+        return _book_rotate_macro(base, p, node.id), [
+            "paired_bar_partition", "shared_edge_hinge", "rotate_related_bar",
+            "union",
+        ]
+    if operator == "book_carve":
+        return _book_carve_macro(base, p, node.id), [
+            "selected_face_frame", "bounded_rectangular_recess", "difference",
+        ]
+    if operator == "book_fracture":
+        return _book_fracture_macro(base, p, node.id), [
+            "selected_face_frame", "bent_fissure_channel",
+            "retained_back_layer", "difference",
+        ]
+    if operator == "book_grade":
+        return _book_grade_macro(base, p, node.id), [
+            "selected_face_frame", "successive_depth_bands", "difference",
+        ]
+    if operator == "book_notch":
+        return _book_notch_macro(base, p, node.id), [
+            "selected_face_frame", "triangular_wedge_cutter", "difference",
+        ]
+    if operator == "book_extract":
+        return _book_extract_macro(base, p, node.id), [
+            "internal_guest_cutter", "overlapping_extraction_path",
+            "exterior_mouth", "difference",
+        ]
     if operator == "puncture":
         minx, miny, minz, maxx, maxy, maxz = _bounds(base)
         axis = str(p.get("axis") or "x").lower()
@@ -534,22 +876,36 @@ def _warp_mid_profile(solid, params: dict[str, Any], node_id: str, *, mode: str)
 
 def _warp_twist(solid, params: dict[str, Any], node_id: str):
     axis = str(params.get("axis") or "z").lower()
-    if axis != "z":
-        raise GeometryCompileError("unsupported_twist_axis", "twist currently uses the architectural vertical z axis", node_id)
+    axis_index = {"x": 0, "y": 1, "z": 2}.get(axis)
+    if axis_index is None:
+        raise GeometryCompileError("unsupported_twist_axis", axis, node_id)
     minx, miny, minz, maxx, maxy, maxz = _bounds(solid)
-    height = max(maxz - minz, 1e-9)
+    lower = (minx, miny, minz)
+    upper = (maxx, maxy, maxz)
+    length = max(upper[axis_index] - lower[axis_index], 1e-9)
+    transverse = tuple(index for index in range(3) if index != axis_index)
     pivot = params.get("pivot")
-    center = _vector(pivot, 3, node_id) if pivot is not None else ((minx + maxx) / 2, (miny + maxy) / 2, minz)
+    center = (
+        _vector(pivot, 3, node_id)
+        if pivot is not None
+        else tuple((lower[index] + upper[index]) / 2.0 for index in range(3))
+    )
     angle = radians(float(params.get("angle_degrees", params.get("angle", 25.0))))
     refined = solid.refine(max(2, min(6, int(params.get("subdivisions", 3)))))
 
     def warp(points):
         result = np.asarray(points, dtype=float).copy()
-        t = np.clip((result[:, 2] - minz) / height, 0.0, 1.0)
+        t = np.clip(
+            (result[:, axis_index] - lower[axis_index]) / length,
+            0.0,
+            1.0,
+        )
         theta = angle * t
-        x, y = result[:, 0] - center[0], result[:, 1] - center[1]
-        result[:, 0] = center[0] + x * np.cos(theta) - y * np.sin(theta)
-        result[:, 1] = center[1] + x * np.sin(theta) + y * np.cos(theta)
+        first, second = transverse
+        u = result[:, first] - center[first]
+        v = result[:, second] - center[second]
+        result[:, first] = center[first] + u * np.cos(theta) - v * np.sin(theta)
+        result[:, second] = center[second] + u * np.sin(theta) + v * np.cos(theta)
         return result
 
     return refined.warp_batch(warp)
@@ -651,21 +1007,1304 @@ def _clip_fraction(solid, params: dict[str, Any], node_id: str):
     return m3d.Manifold.batch_boolean([solid, cutter], m3d.OpType.Intersect)
 
 
+def _book_base_volume(solid, params: dict[str, Any], node_id: str):
+    """Select the exact connected normalized cell grammar from BOOK p.3."""
+
+    label = str(params.get("label") or "")
+    orientation = str(params.get("orientation") or "")
+    try:
+        cells = oriented_book_base_volume_cells(label, orientation)
+    except KeyError as exc:
+        raise GeometryCompileError("invalid_book_base_volume", str(exc), node_id) from exc
+    minx, miny, minz, maxx, maxy, maxz = _bounds(solid)
+    lower = (minx, miny, minz)
+    lengths = (maxx - minx, maxy - miny, maxz - minz)
+    if min(lengths) <= 1e-9:
+        raise GeometryCompileError("invalid_book_base_host", label, node_id)
+    cutters = []
+    for cell in cells:
+        cell_lower = tuple(
+            lower[index] + lengths[index] * cell.minimum[index]
+            for index in range(3)
+        )
+        size = tuple(
+            lengths[index] * (cell.maximum[index] - cell.minimum[index])
+            for index in range(3)
+        )
+        cutters.append(m3d.Manifold.cube(size).translate(cell_lower))
+    cutter = cutters[0] if len(cutters) == 1 else m3d.Manifold.batch_boolean(cutters, m3d.OpType.Add)
+    return m3d.Manifold.batch_boolean([solid, cutter], m3d.OpType.Intersect)
+
+
+def _book_branch_macro(base, params: dict[str, Any], node_id: str):
+    """Grow two arms from one end of the live trunk.
+
+    A radial array rotates the complete body about its centre and therefore
+    produces a bow-tie.  BOOK branch instead selects only the terminal part of
+    the actual input solid, keeps the input as the trunk, and rotates paired
+    descendants about a shared shoulder.  All dimensions come from live
+    bounds, so the relation transfers across seeds and parcels.
+    """
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    span_x = max(maxx - minx, 1e-7)
+    span_y = max(maxy - miny, 1e-7)
+    span_z = max(maxz - minz, 1e-7)
+    along_x = span_x >= span_y
+    span = span_x if along_x else span_y
+    branch_ratio = max(0.32, min(0.62, float(params.get("trunk_ratio", 0.42))))
+    shoulder = (minx if along_x else miny) + span * branch_ratio
+    overlap = max(span, span_z, 1.0) * 0.035
+    if along_x:
+        arm_source = base.trim_by_plane((1.0, 0.0, 0.0), shoulder - overlap)
+        pivot = (shoulder, (miny + maxy) / 2.0, (minz + maxz) / 2.0)
+    else:
+        arm_source = base.trim_by_plane((0.0, 1.0, 0.0), shoulder - overlap)
+        pivot = ((minx + maxx) / 2.0, shoulder, (minz + maxz) / 2.0)
+    if arm_source.is_empty():
+        raise GeometryCompileError("empty_book_branch_arm", "terminal input scope is empty", node_id)
+    arm_ratio = max(0.10, min(0.90, float(params.get("arm_ratio", 0.28))))
+    transverse_scale = 0.54 + arm_ratio * 0.38
+    scale_vector = (
+        (1.0, transverse_scale, 0.92)
+        if along_x
+        else (transverse_scale, 1.0, 0.92)
+    )
+    arm_source = _around_pivot(
+        arm_source,
+        pivot,
+        lambda item: item.scale(scale_vector),
+    )
+    angle = max(18.0, min(52.0, abs(float(params.get("angle_degrees", 32.0)))))
+    arms = [
+        _around_pivot(
+            arm_source,
+            pivot,
+            lambda item, signed=signed: item.rotate((0.0, 0.0, signed)),
+        )
+        for signed in (-angle, angle)
+    ]
+    result = m3d.Manifold.batch_boolean([base, *arms], m3d.OpType.Add)
+    if result.is_empty():
+        raise GeometryCompileError("empty_book_branch", "branch union is empty", node_id)
+    return result
+
+
+def _book_terminal_split_macro(base, params: dict[str, Any], node_id: str):
+    """Displace one terminal child while retaining a shared trunk (p.16).
+
+    Split partitions the live terminal volume, keeps one child in place, and
+    rotates the other around an overlapping shoulder. Repeating it recursively
+    selects one half-width descendant, producing the three-prong relation on
+    p.40. This is distinct from program-level ``split_wing``, which separates
+    complete parallel wings and may require a separate service connector.
+    """
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    spans = [
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    ]
+    axis_name = str(params.get("axis") or "x").lower()
+    if axis_name not in {"x", "y"}:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    axis = 0 if axis_name == "x" else 1
+    transverse_axis = 1 - axis
+    access_side = str(params.get("access_side") or "closed").lower()
+    outward_sign = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+    if axis_name == "x" and access_side in {"east", "west"}:
+        outward_sign = 1.0 if access_side == "east" else -1.0
+    elif axis_name == "y" and access_side in {"north", "south"}:
+        outward_sign = 1.0 if access_side == "north" else -1.0
+
+    terminal_ratio = max(0.28, min(0.76, float(params.get("terminal_ratio", 0.58))))
+    gap_ratio = max(0.06, min(0.42, float(params.get("gap_ratio", 0.18))))
+    split_generation = max(0, min(6, int(params.get("split_generation", 0))))
+    branch_sign = -1.0 if float(params.get("branch_sign", 1.0)) < 0.0 else 1.0
+    angle = max(
+        8.0,
+        min(38.0, abs(float(params.get("angle_degrees", gap_ratio * 72.0)))),
+    )
+    epsilon = max(*spans, 1.0) * 1e-4
+    lower = [minx - epsilon, miny - epsilon, minz - epsilon]
+    upper = [maxx + epsilon, maxy + epsilon, maxz + epsilon]
+    center = [
+        (minx + maxx) / 2.0,
+        (miny + maxy) / 2.0,
+        (minz + maxz) / 2.0,
+    ]
+    shoulder = (
+        upper[axis] - spans[axis] * terminal_ratio
+        if outward_sign > 0.0
+        else lower[axis] + spans[axis] * terminal_ratio
+    )
+    hinge_overlap = max(spans[axis], spans[2], 1.0) * 0.035
+
+    def scoped_cube(bounds_low, bounds_high):
+        size = tuple(
+            max(epsilon, bounds_high[index] - bounds_low[index])
+            for index in range(3)
+        )
+        return m3d.Manifold.cube(size).translate(tuple(bounds_low))
+
+    # Clean recursive child prisms avoid re-cutting a previously rotated mesh
+    # into triangular shards. Widths follow exact halves: 1/2, 1/4, 1/8...
+    child_fraction = 1.0 / (2.0 ** (split_generation + 1))
+    center_fraction = 0.5 - child_fraction / 2.0
+    child_center = center[transverse_axis] + (
+        branch_sign * spans[transverse_axis] * center_fraction
+    )
+    child_half = spans[transverse_axis] * child_fraction / 2.0
+    child_lower = list(lower)
+    child_upper = list(upper)
+    child_lower[transverse_axis] = child_center - child_half
+    child_upper[transverse_axis] = child_center + child_half
+    if outward_sign > 0.0:
+        child_lower[axis] = shoulder - hinge_overlap
+    else:
+        child_upper[axis] = shoulder + hinge_overlap
+    moving_child = scoped_cube(child_lower, child_upper)
+
+    pivot = list(center)
+    pivot[axis] = shoulder
+    pivot[transverse_axis] = child_center - branch_sign * child_half
+    axis_orientation = 1.0 if axis_name == "x" else -1.0
+    signed_angle = angle * outward_sign * branch_sign * axis_orientation
+    displaced_child = _around_pivot(
+        moving_child,
+        tuple(pivot),
+        lambda item: item.rotate((0.0, 0.0, signed_angle)),
+    )
+
+    if split_generation == 0:
+        trunk_lower = list(lower)
+        trunk_upper = list(upper)
+        if outward_sign > 0.0:
+            trunk_upper[axis] = shoulder + hinge_overlap
+        else:
+            trunk_lower[axis] = shoulder - hinge_overlap
+        trunk = m3d.Manifold.batch_boolean(
+            [base, scoped_cube(trunk_lower, trunk_upper)], m3d.OpType.Intersect
+        )
+        fixed_lower = list(child_lower)
+        fixed_upper = list(child_upper)
+        if branch_sign > 0.0:
+            fixed_lower[transverse_axis] = lower[transverse_axis]
+            fixed_upper[transverse_axis] = center[transverse_axis]
+        else:
+            fixed_lower[transverse_axis] = center[transverse_axis]
+            fixed_upper[transverse_axis] = upper[transverse_axis]
+        fixed_child = scoped_cube(fixed_lower, fixed_upper)
+        result = m3d.Manifold.batch_boolean(
+            [trunk, fixed_child, displaced_child], m3d.OpType.Add
+        )
+    else:
+        # Repetition keeps the existing fork and grows one further descendant,
+        # matching p.40 instead of replacing it with another two-way split.
+        result = m3d.Manifold.batch_boolean(
+            [base, displaced_child], m3d.OpType.Add
+        )
+    result_parts = list(result.decompose())
+    if len(result_parts) != 1:
+        # Rotated/intersected parents can leave only a zero-area pivot contact.
+        # Materialize the thick common junction drawn on p.16/p.40 from the
+        # nearest actual child faces, then run the same connectivity check.
+        hinge_parameters = {
+            "width_ratio": max(0.12, min(0.36, child_fraction * 0.72)),
+            "height_ratio": 0.72,
+        }
+        shared_hinges = [
+            _bridge_between(left, right, hinge_parameters, node_id)
+            for left, right in _nearest_component_tree(result_parts)
+        ]
+        result = m3d.Manifold.batch_boolean(
+            [*result_parts, *shared_hinges], m3d.OpType.Add
+        )
+    if result.is_empty():
+        raise GeometryCompileError("empty_book_split", "terminal split removed the host", node_id)
+    if len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_book_split",
+            "displaced child lost its shared terminal trunk",
+            node_id,
+        )
+    return result
+
+
+def _nearest_component_tree(parts: list[Any]) -> list[tuple[Any, Any]]:
+    """Connect every related component once using a deterministic short tree."""
+
+    if len(parts) < 2:
+        return []
+    connected = [0]
+    remaining = set(range(1, len(parts)))
+    pairs: list[tuple[Any, Any]] = []
+    centers = [_center(part) for part in parts]
+    while remaining:
+        left_index, right_index = min(
+            (
+                (left, right)
+                for left in connected
+                for right in remaining
+            ),
+            key=lambda pair: (
+                (centers[pair[0]][0] - centers[pair[1]][0]) ** 2
+                + (centers[pair[0]][1] - centers[pair[1]][1]) ** 2,
+                pair,
+            ),
+        )
+        pairs.append((parts[left_index], parts[right_index]))
+        connected.append(right_index)
+        remaining.remove(right_index)
+    return pairs
+
+
+def _boundary_expand_macro(base, params: dict[str, Any], node_id: str):
+    """Extend one terminal face while retaining the upstream body."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    spans = [max(maxx - minx, 1e-7), max(maxy - miny, 1e-7), max(maxz - minz, 1e-7)]
+    axis_name = str(params.get("axis") or "x").lower()
+    axis = {"x": 0, "y": 1, "z": 2}.get(axis_name)
+    if axis is None:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    shoulder_fraction = max(0.24, min(0.58, float(params.get("shoulder_fraction", 0.38))))
+    lower_bounds = (minx, miny, minz)
+    shoulder = lower_bounds[axis] + spans[axis] * (1.0 - shoulder_fraction)
+    normal = [0.0, 0.0, 0.0]
+    normal[axis] = 1.0
+    overlap = max(spans) * 1e-4
+    terminal = base.trim_by_plane(tuple(normal), shoulder - overlap)
+    if terminal.is_empty():
+        raise GeometryCompileError("empty_boundary_expand_scope", "terminal input scope is empty", node_id)
+    amount = max(0.12, min(0.90, abs(float(params.get("amount", 0.45)))))
+    scale_vector = [1.0, 1.0, 1.0]
+    if axis == 0:
+        scale_vector[0] = 1.0 + 0.28 * amount
+        scale_vector[1] = 1.0 + 0.72 * amount
+    elif axis == 1:
+        scale_vector[0] = 1.0 + 0.72 * amount
+        scale_vector[1] = 1.0 + 0.28 * amount
+    else:
+        scale_vector[0] = 1.0 + 0.56 * amount
+        scale_vector[1] = 1.0 + 0.56 * amount
+        scale_vector[2] = 1.0 + 0.24 * amount
+    pivot = [(minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0]
+    pivot[axis] = shoulder
+    expanded = _around_pivot(
+        terminal,
+        tuple(pivot),
+        lambda item: item.scale(tuple(scale_vector)),
+    )
+    result = m3d.Manifold.batch_boolean([base, expanded], m3d.OpType.Add)
+    if result.is_empty():
+        raise GeometryCompileError("empty_boundary_expand", "expanded boundary union is empty", node_id)
+    return result
+
+
+def _shift_related_macro(base, params: dict[str, Any], node_id: str):
+    """Shift one of two plan-adjacent volumes along its live axis (p.24)."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    span_x = max(maxx - minx, 1e-7)
+    span_y = max(maxy - miny, 1e-7)
+    span_z = max(maxz - minz, 1e-7)
+    axis_name = str(params.get("axis") or "x").lower()
+    if axis_name not in {"x", "y"}:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    axis = 0 if axis_name == "x" else 1
+    transverse_axis = 1 - axis
+    lower_bounds = [minx, miny, minz]
+    upper_bounds = [maxx, maxy, maxz]
+    spans = [span_x, span_y, span_z]
+    split_ratio = max(0.28, min(0.72, float(params.get("split_ratio", 0.50))))
+    boundary = lower_bounds[transverse_axis] + spans[transverse_axis] * split_ratio
+    overlap = spans[transverse_axis] * 0.025
+
+    primary_size = list(spans)
+    primary_size[transverse_axis] = (
+        boundary - lower_bounds[transverse_axis] + overlap
+    )
+    primary = m3d.Manifold.cube(tuple(primary_size)).translate(tuple(lower_bounds))
+    related_lower = list(lower_bounds)
+    related_lower[transverse_axis] = boundary - overlap
+    related_size = list(spans)
+    related_size[transverse_axis] = (
+        upper_bounds[transverse_axis] - boundary + overlap
+    )
+    related = m3d.Manifold.cube(tuple(related_size)).translate(tuple(related_lower))
+    raw_distance = float(params.get("distance_ratio", 0.18))
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+    magnitude = max(
+        _SHIFT_DISTANCE_BOUNDS[0],
+        min(_SHIFT_DISTANCE_BOUNDS[1], abs(raw_distance)),
+    )
+    vector = [0.0, 0.0, 0.0]
+    vector[axis] = direction * spans[axis] * magnitude
+    shifted = related.translate(tuple(vector))
+    result = m3d.Manifold.batch_boolean([primary, shifted], m3d.OpType.Add)
+    if result.is_empty() or len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_shift_related",
+            "shifted plan child lost its shared edge overlap",
+            node_id,
+        )
+    return result
+
+
+def _offset_related_macro(base, params: dict[str, Any], node_id: str):
+    """Offset a scaled related copy by a ratio of the live input span."""
+
+    minx, miny, _minz, maxx, maxy, _maxz = _bounds(base)
+    spans = (max(maxx - minx, 1e-7), max(maxy - miny, 1e-7))
+    axis_name = str(params.get("axis") or "x").lower()
+    if axis_name not in {"x", "y"}:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    axis = 0 if axis_name == "x" else 1
+    unit_scale = max(0.12, min(0.90, float(params.get("unit_scale", 0.42))))
+    related = _around_pivot(
+        base,
+        _center(base),
+        lambda item: item.scale((unit_scale, unit_scale, max(0.42, unit_scale))),
+    )
+    distance_ratio = max(-0.34, min(0.34, float(params.get("distance_ratio", 0.18))))
+    # A smaller related unit translated only by the raw ratio can remain
+    # completely buried inside its host.  Start at the host terminal face,
+    # then expose a scale-aware portion while preserving a measured overlap.
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+    distance_unit = (distance_ratio + 0.34) / 0.68
+    terminal_offset = (1.0 - unit_scale) / 2.0
+    exposure = 0.04 + max(0.02, unit_scale - 0.08) * (0.25 + 0.65 * distance_unit)
+    magnitude = terminal_offset + exposure
+    vector = [0.0, 0.0, 0.0]
+    vector[axis] = spans[axis] * direction * magnitude
+    result = None
+    # A prior carve can remove the nominal overlap zone. Pull the related
+    # volume back along its measured live-span vector until the actual solids
+    # intersect; do not hide the failure with an arbitrary connector.
+    for pullback in (1.0, 0.85, 0.70, 0.55, 0.40, 0.25, 0.0):
+        moved = related.translate(tuple(value * pullback for value in vector))
+        candidate = m3d.Manifold.batch_boolean([base, moved], m3d.OpType.Add)
+        if len(candidate.decompose()) == 1:
+            result = candidate
+            break
+    if result is None:
+        raise GeometryCompileError(
+            "disconnected_offset_related",
+            "offset relation could not retain live overlap",
+            node_id,
+        )
+    if result.is_empty():
+        raise GeometryCompileError("empty_offset_related", "offset relation is empty", node_id)
+    return result
+
+
+def _nested_related_macro(base, params: dict[str, Any], node_id: str):
+    """Keep a related volume inside the host plan and reveal its roof datum."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    spans = (
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    )
+    axis_name = str(params.get("axis") or "x").lower()
+    if axis_name not in {"x", "y"}:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    axis = 0 if axis_name == "x" else 1
+    unit_scale = max(0.12, min(0.80, float(params.get("unit_scale", 0.50))))
+    height_scale = 0.62 + unit_scale * 0.24
+    related = _around_pivot(
+        base,
+        _center(base),
+        lambda item: item.scale((unit_scale, unit_scale, height_scale)),
+    )
+    distance_ratio = max(-0.34, min(0.34, float(params.get("distance_ratio", 0.0))))
+    plan_shift = spans[axis] * (1.0 - unit_scale) * 0.42 * (distance_ratio / 0.34)
+    roof_reveal = spans[2] * (0.08 + 0.10 * unit_scale)
+    vertical_shift = spans[2] * (1.0 - height_scale) / 2.0 + roof_reveal
+    vector = [0.0, 0.0, vertical_shift]
+    vector[axis] = plan_shift
+    related = related.translate(tuple(vector))
+    result = m3d.Manifold.batch_boolean([base, related], m3d.OpType.Add)
+    if result.is_empty() or len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_nested_related", "nested core lost contact with its host", node_id
+        )
+    return result
+
+
+def _overlap_related_macro(base, params: dict[str, Any], node_id: str):
+    """Partially overlap two co-level orthogonal bars (BOOK p.22)."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    spans = [
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    ]
+    center = list(_center(base))
+    axis_name = str(params.get("axis") or "x").lower()
+    if axis_name not in {"x", "y"}:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    axis = 0 if axis_name == "x" else 1
+    transverse_axis = 1 - axis
+    slab_ratio = max(0.36, min(0.78, float(params.get("slab_ratio", 0.56))))
+    vertical_overlap = max(
+        0.0, min(0.34, float(params.get("vertical_overlap", 0.18)))
+    )
+    shift_ratio = max(-0.34, min(0.34, float(params.get("shift_ratio", 0.0))))
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+
+    primary_size = [spans[0], spans[1], spans[2]]
+    primary_size[transverse_axis] = spans[transverse_axis] * slab_ratio
+    primary_lower = [minx, miny, minz]
+    primary_lower[transverse_axis] = (
+        center[transverse_axis] - primary_size[transverse_axis] / 2.0
+    )
+    primary = m3d.Manifold.cube(tuple(primary_size)).translate(tuple(primary_lower))
+    related = _around_pivot(
+        primary,
+        tuple(center),
+        lambda item: item.rotate((0.0, 0.0, 90.0)),
+    )
+    # Put the crossing near a terminal third rather than at the centre. The
+    # overlap parameter controls engagement; shift moves it along that edge.
+    engagement = slab_ratio * (0.30 + 0.45 * (vertical_overlap / 0.34))
+    vector = [0.0, 0.0, 0.0]
+    vector[axis] = direction * spans[axis] * (0.50 - engagement / 2.0)
+    vector[transverse_axis] = spans[transverse_axis] * shift_ratio * 0.45
+    related = related.translate(tuple(vector))
+    result = m3d.Manifold.batch_boolean([primary, related], m3d.OpType.Add)
+    if result.is_empty() or len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_overlap_related",
+            "orthogonal bars do not retain a terminal overlap",
+            node_id,
+        )
+    return result
+
+
+def _book_carve_macro(base, params: dict[str, Any], node_id: str):
+    """Carve a bounded recess normal to one selected face (BOOK p.26).
+
+    Width is measured on both transverse face spans and depth on the face
+    normal.  Unlike ``notch``, the cutter is centred on the face and never
+    reaches the opposite face, so CARVE remains a single recessed host.
+    """
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    lower = [minx, miny, minz]
+    spans = [
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    ]
+    center = [(minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0]
+    axis_name = str(params.get("axis") or "x").lower()
+    axis = {"x": 0, "y": 1, "z": 2}.get(axis_name)
+    if axis is None:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+    face_side = str(params.get("face_side") or "east").lower()
+    if face_side not in {"east", "west", "north", "south"}:
+        raise GeometryCompileError("invalid_face_side", face_side, node_id)
+    width_ratio = max(0.18, min(0.62, float(params.get("width_ratio", 0.42))))
+    depth_ratio = max(0.12, min(0.52, float(params.get("depth_ratio", 0.28))))
+    cutter_size = [span * width_ratio for span in spans]
+    cutter_size[axis] = spans[axis] * depth_ratio
+    cutter_lower = [
+        center[index] - cutter_size[index] / 2.0
+        for index in range(3)
+    ]
+    transverse_axes = [index for index in range(3) if index != axis]
+    local_axis = transverse_axes[0] if face_side in {"east", "west"} else transverse_axes[1]
+    local_sign = 1.0 if face_side in {"east", "north"} else -1.0
+    available_margin = (spans[local_axis] - cutter_size[local_axis]) / 2.0
+    cutter_lower[local_axis] += local_sign * available_margin * 0.68
+    epsilon = max(spans[axis] * 0.002, 1e-6)
+    cutter_size[axis] += epsilon
+    if direction > 0.0:
+        cutter_lower[axis] = lower[axis] + spans[axis] - spans[axis] * depth_ratio
+    else:
+        cutter_lower[axis] = lower[axis] - epsilon
+    cutter = m3d.Manifold.cube(tuple(cutter_size)).translate(tuple(cutter_lower))
+    result = base - cutter
+    if result.is_empty():
+        raise GeometryCompileError("empty_book_carve", "face recess removed the host", node_id)
+    if len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_book_carve",
+            "face recess split the selected host instead of carving it",
+            node_id,
+        )
+    return result
+
+
+def _book_fracture_macro(base, params: dict[str, Any], node_id: str):
+    """Subtract a bent face fissure while retaining one connected host (p.28)."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    lower = [minx, miny, minz]
+    spans = [
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    ]
+    center = [(minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0]
+    axis_name = str(params.get("axis") or "z").lower()
+    axis = {"x": 0, "y": 1, "z": 2}.get(axis_name)
+    if axis is None:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+    gap_ratio = max(0.04, min(0.14, float(params.get("gap_ratio", 0.08))))
+    angle = max(12.0, min(55.0, abs(float(params.get("angle_degrees", 28.0)))))
+    retained_back = max(
+        0.20,
+        min(0.48, float(params.get("retained_back_ratio", 0.32))),
+    )
+    transverse_axes = [index for index in range(3) if index != axis]
+    u_axis, v_axis = transverse_axes
+    channel_width = min(spans[u_axis], spans[v_axis]) * gap_ratio
+    cut_depth = spans[axis] * (1.0 - retained_back)
+    epsilon = max(spans[axis] * 0.002, 1e-6)
+
+    def segment(length_ratio: float, start_ratio: float):
+        size = [channel_width, channel_width, channel_width]
+        size[axis] = cut_depth + epsilon
+        size[u_axis] = spans[u_axis] * length_ratio
+        segment_lower = [center[index] - size[index] / 2.0 for index in range(3)]
+        segment_lower[u_axis] = center[u_axis] + spans[u_axis] * start_ratio
+        if direction > 0.0:
+            segment_lower[axis] = lower[axis] + spans[axis] - cut_depth
+        else:
+            segment_lower[axis] = lower[axis] - epsilon
+        return m3d.Manifold.cube(tuple(size)).translate(tuple(segment_lower))
+
+    first = segment(0.58, -0.52)
+    second = segment(0.55, -0.03)
+    euler = [0.0, 0.0, 0.0]
+    euler[axis] = angle
+    second = _around_pivot(
+        second,
+        tuple(center),
+        lambda item: item.rotate(tuple(euler)),
+    )
+    cutter = m3d.Manifold.batch_boolean([first, second], m3d.OpType.Add)
+    result = base - cutter
+    if result.is_empty():
+        raise GeometryCompileError("empty_book_fracture", "fissure removed the host", node_id)
+    if len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_book_fracture",
+            "fissure became detached wings instead of one fractured host",
+            node_id,
+        )
+    return result
+
+
+def _book_grade_macro(base, params: dict[str, Any], node_id: str):
+    """Subtract successive face bands to form the four-step p.29 grade."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    lower = [minx, miny, minz]
+    spans = [
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    ]
+    center = [(minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0]
+    axis_name = str(params.get("axis") or "z").lower()
+    axis = {"x": 0, "y": 1, "z": 2}.get(axis_name)
+    if axis is None:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+    face_side = str(params.get("face_side") or "east").lower()
+    if face_side not in {"east", "west", "north", "south"}:
+        raise GeometryCompileError("invalid_face_side", face_side, node_id)
+    levels = max(2, min(5, int(params.get("levels", 4))))
+    width_ratio = max(0.38, min(0.90, float(params.get("width_ratio", 0.62))))
+    depth_ratio = max(0.18, min(0.62, float(params.get("depth_ratio", 0.40))))
+    u_axis, v_axis = [index for index in range(3) if index != axis]
+    graded_span = spans[v_axis] * 0.82
+    band_span = graded_span / levels
+    opening_width = spans[u_axis] * width_ratio
+    u_margin = (spans[u_axis] - opening_width) / 2.0
+    u_shift = 0.0
+    if face_side in {"east", "west"}:
+        u_shift = (1.0 if face_side == "east" else -1.0) * u_margin * 0.68
+    reverse = face_side in {"west", "south"}
+    epsilon = max(spans[axis] * 0.002, 1e-6)
+    cutters = []
+    v_start = center[v_axis] - graded_span / 2.0
+    for index in range(levels):
+        progression = (levels - index) if reverse else (index + 1)
+        cut_depth = spans[axis] * depth_ratio * progression / levels
+        size = [opening_width, band_span + epsilon, opening_width]
+        size[axis] = cut_depth + epsilon
+        size[u_axis] = opening_width
+        size[v_axis] = band_span + epsilon
+        cutter_lower = [center[item] - size[item] / 2.0 for item in range(3)]
+        cutter_lower[u_axis] += u_shift
+        cutter_lower[v_axis] = v_start + index * band_span
+        if direction > 0.0:
+            cutter_lower[axis] = lower[axis] + spans[axis] - cut_depth
+        else:
+            cutter_lower[axis] = lower[axis] - epsilon
+        cutters.append(
+            m3d.Manifold.cube(tuple(size)).translate(tuple(cutter_lower))
+        )
+    cutter = m3d.Manifold.batch_boolean(cutters, m3d.OpType.Add)
+    result = base - cutter
+    if result.is_empty():
+        raise GeometryCompileError("empty_book_grade", "grade removed the host", node_id)
+    if len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_book_grade",
+            "grade separated the selected host instead of stepping one face",
+            node_id,
+        )
+    return result
+
+
+def _book_notch_macro(base, params: dict[str, Any], node_id: str):
+    """Subtract the face-oriented triangular wedge drawn on BOOK p.30."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    lower = [minx, miny, minz]
+    spans = [
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    ]
+    center = [(minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0]
+    axis_name = str(params.get("axis") or "z").lower()
+    axis = {"x": 0, "y": 1, "z": 2}.get(axis_name)
+    if axis is None:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+    corner = str(params.get("corner") or "ne").lower()
+    if corner not in {"ne", "nw", "se", "sw"}:
+        raise GeometryCompileError("invalid_corner", corner, node_id)
+    ratio = max(0.12, min(0.42, float(params.get("ratio", 0.24))))
+    u_axis, v_axis = [index for index in range(3) if index != axis]
+    opening_u = spans[u_axis] * min(0.68, 0.30 + ratio * 0.82)
+    opening_v = spans[v_axis] * min(0.68, 0.28 + ratio * 0.86)
+    depth = spans[axis] * ratio
+    u_margin = max(0.0, (spans[u_axis] - opening_u) / 2.0)
+    v_margin = max(0.0, (spans[v_axis] - opening_v) / 2.0)
+    u_sign = 1.0 if "e" in corner else -1.0
+    v_sign = 1.0 if "n" in corner else -1.0
+    u_center = center[u_axis] + u_sign * u_margin * 0.60
+    v_center = center[v_axis] + v_sign * v_margin * 0.60
+    face = lower[axis] + spans[axis] if direction > 0.0 else lower[axis]
+    inward = face - direction * depth
+    epsilon = max(spans[axis] * 0.002, 1e-6)
+    face += direction * epsilon
+    tip_v = v_center + v_sign * opening_v * 0.16
+    points = []
+    for u in (u_center - opening_u / 2.0, u_center + opening_u / 2.0):
+        for normal, v in (
+            (face, v_center - opening_v / 2.0),
+            (face, v_center + opening_v / 2.0),
+            (inward, tip_v),
+        ):
+            point = [0.0, 0.0, 0.0]
+            point[axis] = normal
+            point[u_axis] = u
+            point[v_axis] = v
+            points.append(tuple(point))
+    cutter = m3d.Manifold.hull_points(points)
+    result = base - cutter
+    if result.is_empty():
+        raise GeometryCompileError("empty_book_notch", "wedge removed the host", node_id)
+    if len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_book_notch",
+            "wedge severed the selected host instead of notching one face",
+            node_id,
+        )
+    return result
+
+
+def _book_extract_macro(base, params: dict[str, Any], node_id: str):
+    """Subtract the continuous guest-extraction path shown on BOOK p.35."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    lower = [minx, miny, minz]
+    spans = [
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    ]
+    center = [(minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0]
+    axis_name = str(params.get("axis") or "z").lower()
+    axis = {"x": 0, "y": 1, "z": 2}.get(axis_name)
+    if axis is None:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+    face_side = str(params.get("face_side") or "east").lower()
+    if face_side not in {"east", "west", "north", "south"}:
+        raise GeometryCompileError("invalid_face_side", face_side, node_id)
+    guest_scale = max(0.24, min(0.56, float(params.get("guest_scale", 0.38))))
+    distance_ratio = max(0.18, min(0.34, float(params.get("distance_ratio", 0.24))))
+    u_axis, v_axis = [index for index in range(3) if index != axis]
+    size = [span * guest_scale for span in spans]
+    size[axis] = spans[axis] * guest_scale * 0.75
+    cutter_lower = [center[index] - size[index] / 2.0 for index in range(3)]
+    u_margin = (spans[u_axis] - size[u_axis]) / 2.0
+    v_margin = (spans[v_axis] - size[v_axis]) / 2.0
+    if face_side == "east":
+        cutter_lower[u_axis] += u_margin * 0.68
+    elif face_side == "west":
+        cutter_lower[u_axis] -= u_margin * 0.68
+    elif face_side == "north":
+        cutter_lower[v_axis] += v_margin * 0.68
+    else:
+        cutter_lower[v_axis] -= v_margin * 0.68
+    travel = spans[axis] * distance_ratio
+    face = lower[axis] + spans[axis] if direction > 0.0 else lower[axis]
+    if direction > 0.0:
+        cutter_lower[axis] = face - travel * 0.55 - size[axis]
+    else:
+        cutter_lower[axis] = face + travel * 0.55
+    initial = m3d.Manifold.cube(tuple(size)).translate(tuple(cutter_lower))
+    step_count = max(2, min(5, int(ceil(travel / max(size[axis] * 0.72, 1e-7))) + 1))
+    cutters = [
+        initial.translate(tuple(
+            direction * travel * index / (step_count - 1) if coordinate == axis else 0.0
+            for coordinate in range(3)
+        ))
+        for index in range(step_count)
+    ]
+    extraction_path = m3d.Manifold.batch_boolean(cutters, m3d.OpType.Add)
+    result = base - extraction_path
+    if result.is_empty():
+        raise GeometryCompileError("empty_book_extract", "extraction path removed the host", node_id)
+    if len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_book_extract",
+            "extraction path severed the host instead of opening one mouth",
+            node_id,
+        )
+    return result
+
+
+def _book_lift_related_macro(base, params: dict[str, Any], node_id: str):
+    """Lift one smaller related volume from a larger host (BOOK p.20).
+
+    This is intentionally separate from the program-level ``lift`` undercroft
+    macro. BOOK Lift establishes a host/guest displacement first; a use- and
+    access-specific threshold may be projected later as a terminal relation.
+    """
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    spans = (
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    )
+    center = _center(base)
+    axis_name = str(params.get("axis") or "x").lower()
+    axis = {"x": 0, "y": 1, "z": 2}.get(axis_name)
+    if axis is None:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+    guest_scale = max(0.30, min(0.84, float(params.get("guest_scale", 0.55))))
+    distance_ratio = max(0.08, min(0.30, float(params.get("distance_ratio", 0.18))))
+    height_scale = 0.68 + guest_scale * 0.24
+    size = [spans[0] * guest_scale, spans[1] * guest_scale, spans[2] * height_scale]
+    guest_lower = [
+        center[index] - size[index] / 2.0
+        for index in range(3)
+    ]
+    # Shift the smaller child beyond one host face while retaining a broad
+    # volumetric engagement. Vertical orientation naturally places it above.
+    guest_lower[axis] += direction * spans[axis] * (
+        (1.0 - guest_scale) / 2.0 + distance_ratio
+    )
+    guest = m3d.Manifold.cube(tuple(size)).translate(tuple(guest_lower))
+    result = m3d.Manifold.batch_boolean([base, guest], m3d.OpType.Add)
+    if result.is_empty() or len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_book_lift",
+            "lifted guest does not retain a shared host overlap",
+            node_id,
+        )
+    return result
+
+
+def _book_lodge_macro(base, params: dict[str, Any], node_id: str):
+    """Lodge one smaller guest between two related hosts (BOOK p.21)."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    spans = [
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    ]
+    center = list(_center(base))
+    axis_name = str(params.get("axis") or "x").lower()
+    if axis_name not in {"x", "y"}:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    axis = 0 if axis_name == "x" else 1
+    transverse_axis = 1 - axis
+    guest_scale = max(0.22, min(0.70, float(params.get("guest_scale", 0.42))))
+    distance_ratio = max(-0.34, min(0.34, float(params.get("distance_ratio", 0.0))))
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+
+    # Host A is the actual selected solid, so a local p.3 projection retains
+    # its connection to the unselected remainder. Host B is the related outer
+    # body; the smaller guest spans their intentional gap.
+    related_axis_ratio = 0.82 + 0.08 * (1.0 - guest_scale)
+    related_transverse_ratio = 0.88 + 0.08 * guest_scale
+    related_height_ratio = 0.88 + 0.08 * guest_scale
+    related_size = [
+        spans[0] * related_transverse_ratio,
+        spans[1] * related_transverse_ratio,
+        spans[2] * related_height_ratio,
+    ]
+    related_size[axis] = spans[axis] * related_axis_ratio
+    gap = spans[axis] * (0.08 + 0.18 * abs(distance_ratio))
+    related_center = list(center)
+    related_center[axis] += direction * (
+        spans[axis] / 2.0 + gap + related_size[axis] / 2.0
+    )
+    related_lower = [
+        related_center[index] - related_size[index] / 2.0
+        for index in range(3)
+    ]
+    related_host = m3d.Manifold.cube(tuple(related_size)).translate(
+        tuple(related_lower)
+    )
+
+    guest_size = [
+        spans[0] * guest_scale,
+        spans[1] * guest_scale,
+        spans[2] * (0.55 + 0.35 * guest_scale),
+    ]
+    guest_size[axis] = gap + spans[axis] * 0.20
+    guest_center = list(center)
+    guest_center[axis] += direction * (spans[axis] / 2.0 + gap / 2.0)
+    guest_center[transverse_axis] += (
+        direction * distance_ratio * spans[transverse_axis] * 0.40
+    )
+    guest_lower = [
+        guest_center[index] - guest_size[index] / 2.0
+        for index in range(3)
+    ]
+    guest = m3d.Manifold.cube(tuple(guest_size)).translate(tuple(guest_lower))
+    result = m3d.Manifold.batch_boolean(
+        [base, related_host, guest], m3d.OpType.Add
+    )
+    if result.is_empty() or len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_book_lodge",
+            "lodged guest does not overlap both related hosts",
+            node_id,
+        )
+    return result
+
+
+def _book_rotate_macro(base, params: dict[str, Any], node_id: str):
+    """Rotate one partitioned bar about the pair's shared edge (BOOK p.23)."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    lower = [minx, miny, minz]
+    upper = [maxx, maxy, maxz]
+    spans = [
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    ]
+    center = list(_center(base))
+    axis_name = str(params.get("axis") or "x").lower()
+    longitudinal_axis = {"x": 0, "y": 1, "z": 2}.get(axis_name)
+    if longitudinal_axis is None:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    transverse_axis = 1 if longitudinal_axis == 0 else 0
+    rotation_axis = next(
+        index for index in range(3)
+        if index not in {longitudinal_axis, transverse_axis}
+    )
+    related_ratio = max(0.28, min(0.78, float(params.get("related_ratio", 0.50))))
+    primary_ratio = 1.0 - related_ratio
+    hinge_overlap = spans[transverse_axis] * 0.035
+
+    primary_size = list(spans)
+    primary_size[transverse_axis] = spans[transverse_axis] * primary_ratio + hinge_overlap
+    primary_lower = list(lower)
+    primary = m3d.Manifold.cube(tuple(primary_size)).translate(tuple(primary_lower))
+
+    related_size = list(spans)
+    related_size[transverse_axis] = spans[transverse_axis] * related_ratio + hinge_overlap
+    related_lower = list(lower)
+    boundary = lower[transverse_axis] + spans[transverse_axis] * primary_ratio
+    related_lower[transverse_axis] = boundary - hinge_overlap
+    related = m3d.Manifold.cube(tuple(related_size)).translate(tuple(related_lower))
+
+    pivot = list(center)
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+    pivot[longitudinal_axis] = (
+        upper[longitudinal_axis]
+        if direction > 0.0
+        else lower[longitudinal_axis]
+    )
+    pivot[transverse_axis] = boundary
+    angle = max(-52.0, min(52.0, float(params.get("angle_degrees", 28.0))))
+    rotation = [0.0, 0.0, 0.0]
+    rotation[rotation_axis] = angle
+    related = _around_pivot(
+        related,
+        tuple(pivot),
+        lambda item: item.rotate(tuple(rotation)),
+    )
+    result = m3d.Manifold.batch_boolean([primary, related], m3d.OpType.Add)
+    if result.is_empty() or len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_book_rotate",
+            "rotated related bar lost its shared hinge edge",
+            node_id,
+        )
+    return result
+
+
+def _interlock_related_macro(base, params: dict[str, Any], node_id: str):
+    """Engage two notched L volumes through one shared zone (BOOK p.18)."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    spans = (
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    )
+    axis_name = str(params.get("axis") or "x").lower()
+    if axis_name not in {"x", "y"}:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    axis = 0 if axis_name == "x" else 1
+    bar_ratio = max(
+        _INTERLOCK_BAR_BOUNDS[0],
+        min(_INTERLOCK_BAR_BOUNDS[1], float(params.get("bar_ratio", 0.58))),
+    )
+    center = ((minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0)
+    # ``bar_ratio`` is the retained leg thickness. Removing the complementary
+    # corner produces the L-shaped base volume shown in the source rather than
+    # disguising a thin rotated tab as an interlock.
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+    cut_x = spans[0] * (1.0 - bar_ratio)
+    cut_y = spans[1] * (1.0 - bar_ratio)
+    cutter_lower = [
+        maxx - cut_x if direction > 0.0 else minx,
+        maxy - cut_y if direction > 0.0 else miny,
+        minz - spans[2] * 1e-4,
+    ]
+    cutter = m3d.Manifold.cube((
+        cut_x,
+        cut_y,
+        spans[2] * 1.0002,
+    )).translate(tuple(cutter_lower))
+    primary = base - cutter
+    if primary.is_empty() or len(primary.decompose()) != 1:
+        raise GeometryCompileError(
+            "invalid_interlock_l_module", "corner subtraction did not retain one L module", node_id
+        )
+    related = primary
+    angle = max(-52.0, min(52.0, float(params.get("angle_degrees", 28.0))))
+    related = _around_pivot(related, center, lambda item: item.rotate((0.0, 0.0, angle)))
+    distance_ratio = max(
+        _INTERLOCK_DISTANCE_BOUNDS[0],
+        min(_INTERLOCK_DISTANCE_BOUNDS[1], float(params.get("distance_ratio", 0.16))),
+    )
+    vector = [0.0, 0.0, 0.0]
+    vector[axis] = spans[axis] * direction * distance_ratio
+    transverse_axis = 1 - axis
+    vector[transverse_axis] = spans[transverse_axis] * direction * distance_ratio
+    related = related.translate(tuple(vector))
+    result = m3d.Manifold.batch_boolean([primary, related], m3d.OpType.Add)
+    if result.is_empty() or len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_interlock_related",
+            "paired L modules do not retain a shared interlock zone",
+            node_id,
+        )
+    return result
+
+
+def _intersect_related_macro(base, params: dict[str, Any], node_id: str):
+    """Cross two volumes while preserving both bodies, as on BOOK p.19."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    spans = (
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    )
+    center = _center(base)
+    axis_name = str(params.get("axis") or "x").lower()
+    if axis_name not in {"x", "y"}:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    axis = 0 if axis_name == "x" else 1
+    transverse_axis = 1 - axis
+    bar_ratio = max(0.18, min(0.52, float(params.get("bar_ratio", 0.32))))
+    primary_size = [spans[0], spans[1], spans[2]]
+    primary_size[transverse_axis] = spans[transverse_axis] * bar_ratio
+    primary_lower = [minx, miny, minz]
+    primary_lower[transverse_axis] = (
+        center[transverse_axis] - primary_size[transverse_axis] / 2.0
+    )
+    primary = m3d.Manifold.cube(tuple(primary_size)).translate(tuple(primary_lower))
+    unit_scale = max(0.86, min(1.0, float(params.get("unit_scale", 0.92))))
+    related = _around_pivot(
+        primary,
+        center,
+        lambda item: item.scale((unit_scale, unit_scale, 1.0)),
+    )
+    angle_deviation = max(
+        -35.0, min(35.0, float(params.get("angle_degrees", 0.0)))
+    )
+    angle = 90.0 + angle_deviation
+    related = _around_pivot(
+        related,
+        center,
+        lambda item: item.rotate((0.0, 0.0, angle)),
+    )
+    result = m3d.Manifold.batch_boolean([primary, related], m3d.OpType.Add)
+    if result.is_empty() or len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_intersect_related", "crossing volumes do not intersect", node_id
+        )
+    return result
+
+
+def _embed_void_macro(base, params: dict[str, Any], node_id: str):
+    """Subtract the overlap of a guest entering one selected face (p.34)."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    lower = [minx, miny, minz]
+    spans = [
+        max(maxx - minx, 1e-7),
+        max(maxy - miny, 1e-7),
+        max(maxz - minz, 1e-7),
+    ]
+    center = [(minx + maxx) / 2.0, (miny + maxy) / 2.0, (minz + maxz) / 2.0]
+    axis_name = str(params.get("axis") or "z").lower()
+    axis = {"x": 0, "y": 1, "z": 2}.get(axis_name)
+    if axis is None:
+        raise GeometryCompileError("invalid_axis", axis_name, node_id)
+    direction = -1.0 if float(params.get("outward_sign", 1.0)) < 0.0 else 1.0
+    scale = max(0.16, min(0.68, float(params.get("guest_scale", 0.34))))
+    position = str(params.get("position") or "center").lower()
+    if position not in {"center", "east", "west", "north", "south"}:
+        raise GeometryCompileError("invalid_position", position, node_id)
+    u_axis, v_axis = [index for index in range(3) if index != axis]
+    size = [span * scale for span in spans]
+    embedded_ratio = max(0.46, min(0.76, float(params.get("embedded_ratio", 0.60))))
+    size[axis] = spans[axis] * embedded_ratio + spans[axis] * 0.08
+    cutter_lower = [center[index] - size[index] / 2.0 for index in range(3)]
+    u_margin = (spans[u_axis] - size[u_axis]) / 2.0
+    v_margin = (spans[v_axis] - size[v_axis]) / 2.0
+    if position == "east":
+        cutter_lower[u_axis] += u_margin * 0.72
+    elif position == "west":
+        cutter_lower[u_axis] -= u_margin * 0.72
+    elif position == "north":
+        cutter_lower[v_axis] += v_margin * 0.72
+    elif position == "south":
+        cutter_lower[v_axis] -= v_margin * 0.72
+    if direction > 0.0:
+        cutter_lower[axis] = lower[axis] + spans[axis] * (1.0 - embedded_ratio)
+    else:
+        cutter_lower[axis] = lower[axis] - spans[axis] * 0.08
+    cutter = m3d.Manifold.cube(tuple(size)).translate(tuple(cutter_lower))
+    result = base - cutter
+    if result.is_empty():
+        raise GeometryCompileError("empty_embed_void", "embedded guest removed the complete host", node_id)
+    if len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_embed_void",
+            "embedded guest severed the host instead of subtracting its overlap",
+            node_id,
+        )
+    return result
+
+
+def _related_array_macro(base, params: dict[str, Any], node_id: str):
+    """Distribute scaled descendants instead of overlapping whole bodies."""
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    spans = (max(maxx - minx, 1e-7), max(maxy - miny, 1e-7))
+    center = _center(base)
+    axis = str(params.get("axis") or "x").lower()
+    if axis not in {"x", "y"}:
+        raise GeometryCompileError("invalid_axis", axis, node_id)
+    requested_axis_index = 0 if axis == "x" else 1
+    long_index = 0 if spans[0] >= spans[1] else 1
+    # Long seeds become parallel wings instead of a train of tiny bars.  For
+    # near-square inputs the typed axis remains authoritative.
+    axis_index = (
+        1 - long_index
+        if max(spans) / max(min(spans), 1e-7) >= 1.35
+        else requested_axis_index
+    )
+    cross_index = 1 - axis_index
+    count = max(2, min(4, int(params.get("count", 3))))
+    unit_scale = max(0.60, min(0.82, float(params.get("unit_scale", 0.66))))
+    mode = str(params.get("mode") or "array").lower()
+    if mode not in {"array", "pack"}:
+        raise GeometryCompileError("invalid_related_array_mode", mode, node_id)
+    scale_vector = [unit_scale, unit_scale, 0.88 + unit_scale * 0.12]
+    unit = _around_pivot(
+        base,
+        center,
+        lambda item: item.scale(tuple(scale_vector)),
+    )
+    spacing = max(0.08, min(0.50, float(params.get("spacing_ratio", 0.18))))
+    unit_span = spans[axis_index] * unit_scale
+    step = (
+        unit_span * (0.82 + spacing * 0.25)
+        if mode == "pack"
+        else unit_span * (1.0 + spacing * 0.50)
+    )
+    stagger = (
+        spans[cross_index]
+        * max(0.0, min(0.28, float(params.get("stagger_ratio", 0.08))))
+        if mode == "pack"
+        else 0.0
+    )
+    copies = []
+    for index in range(count):
+        offset = (index - (count - 1) / 2.0) * step
+        cross_offset = ((index % 2) - 0.5) * stagger
+        vector = [0.0, 0.0, 0.0]
+        vector[axis_index] = offset
+        vector[cross_index] = cross_offset
+        copies.append(unit.translate(tuple(vector)))
+    connectors = []
+    if mode in {"array", "pack"}:
+        connector_width = max(
+            spans[cross_index] * (0.08 if mode == "pack" else 0.10),
+            spans[axis_index] * (0.10 if mode == "pack" else 0.16),
+        )
+        connector_height = max(maxz - minz, 1e-7) * (
+            0.68 if mode == "pack" else 0.94
+        )
+        for left, right in zip(copies, copies[1:]):
+            # A bbox centre can sit in the void of a U/courtyard descendant.
+            # Joining centre-to-centre therefore drew a beam through empty air
+            # and left the nominal array as disconnected sculpture.  Reuse the
+            # surface-aware connector so every repetition physically embeds in
+            # both neighbouring solids.
+            connectors.append(_bridge_between(
+                left,
+                right,
+                {"width": connector_width, "height": connector_height},
+                node_id,
+            ))
+    result = m3d.Manifold.batch_boolean([*copies, *connectors], m3d.OpType.Add)
+    if result.is_empty():
+        raise GeometryCompileError("empty_related_array", "no related units survived", node_id)
+    return result
+
+
 def _stepped_macro(base, params: dict[str, Any], *, terrace: bool):
     minx, miny, minz, maxx, maxy, maxz = _bounds(base)
     levels = max(2, min(10, int(params.get("levels", 4))))
     level_height = (maxz - minz) / levels
     setback = max(0.0, min(0.32, float(params.get("setback_ratio", 0.08))))
     direction = str(params.get("direction") or "x").lower()
+    shift_raw = params.get("shift_per_level", (0.0, 0.0, 0.0))
+    shift = _vector(shift_raw, 3, "stepped_mass")
+    # The author expresses step motion in normalized live-solid space.  The
+    # old compiler accepted this typed parameter but ignored it, collapsing
+    # many nominally different ASTs to the same centered cake-tier geometry.
+    # Convert x/y to plan-span fractions and z to a level-height fraction.
+    shift_world = (
+        max(-0.24, min(0.24, shift[0])) * (maxx - minx),
+        max(-0.24, min(0.24, shift[1])) * (maxy - miny),
+        max(-0.35, min(0.35, shift[2])) * level_height,
+    )
     solids = []
+    center = _center(base)
+    epsilon = max(
+        max(maxz - minz, maxx - minx, maxy - miny, 1.0) * 1e-5,
+        abs(shift_world[2]) * 0.55,
+        # Aggregated/rotated modules need a real shared floor band between
+        # adjacent stack levels. A near-zero kernel epsilon leaves each level
+        # as a separate component even when the BOOK diagram is contiguous.
+        level_height * 0.02,
+    )
     for index in range(levels):
         ratio = max(0.18, 1.0 - setback * index)
-        width = (maxx - minx) * (ratio if not terrace or direction == "y" else 1.0)
-        depth = (maxy - miny) * (ratio if not terrace or direction == "x" else 1.0)
-        x = minx + ((maxx - minx - width) / 2 if not terrace or direction == "y" else (maxx - minx - width) * index / max(levels - 1, 1))
-        y = miny + ((maxy - miny - depth) / 2 if not terrace or direction == "x" else (maxy - miny - depth) * index / max(levels - 1, 1))
-        solids.append(m3d.Manifold.cube((width, depth, level_height)).translate((x, y, minz + index * level_height)))
-    return m3d.Manifold.batch_boolean(solids, m3d.OpType.Add)
+        lower = minz + index * level_height
+        upper = minz + (index + 1) * level_height
+        # Recursive-language invariant: a modifier must transform the actual
+        # input solid.  The old implementation rebuilt every level from its
+        # bounding box, erasing upstream courtyards, bends and notches and
+        # collapsing unrelated programs into the same cake/pyramid family.
+        band = base.trim_by_plane((0.0, 0.0, 1.0), lower - epsilon)
+        band = band.trim_by_plane((0.0, 0.0, -1.0), -(upper + epsilon))
+        if band.is_empty():
+            continue
+        if terrace:
+            scale_vector = (
+                (1.0, ratio, 1.0)
+                if direction == "x"
+                else (ratio, 1.0, 1.0)
+            )
+        else:
+            scale_vector = (ratio, ratio, 1.0)
+        band = _around_pivot(
+            band,
+            center,
+            lambda item, value=scale_vector: item.scale(value),
+        )
+        # Direction expresses a one-sided architectural section, while the
+        # optional normalized shift field remains the agent's bounded extra
+        # mutation.  This avoids turning every setback into a centred pyramid.
+        direction_sign = -1.0 if float(params.get("direction_sign", 1.0)) < 0.0 else 1.0
+        directional_shift = [0.0, 0.0, 0.0]
+        if direction == "x":
+            directional_shift[0] = direction_sign * (maxx - minx) * (1.0 - scale_vector[0]) * 0.5
+        elif direction == "y":
+            directional_shift[1] = direction_sign * (maxy - miny) * (1.0 - scale_vector[1]) * 0.5
+        band = band.translate((
+            directional_shift[0] + shift_world[0] * index,
+            directional_shift[1] + shift_world[1] * index,
+            shift_world[2] * index,
+        ))
+        solids.append(band)
+    podium_scale = max(1.0, min(2.4, float(params.get("podium_scale", 1.0))))
+    podium_height_ratio = max(0.0, min(0.45, float(params.get("podium_height_ratio", 0.0))))
+    if podium_scale > 1.0 + 1e-9 and podium_height_ratio > 0.02:
+        podium_top = minz + (maxz - minz) * podium_height_ratio
+        podium = base.trim_by_plane((0.0, 0.0, -1.0), -(podium_top + epsilon))
+        if not podium.is_empty():
+            podium = _around_pivot(
+                podium,
+                center,
+                lambda item: item.scale((podium_scale, podium_scale, 1.0)),
+            )
+            solids.append(podium)
+    if not solids:
+        raise GeometryCompileError("empty_stepped_mass", "no input solid bands survived", "stepped_mass")
+    result = m3d.Manifold.batch_boolean(solids, m3d.OpType.Add)
+    parts = list(result.decompose())
+    if len(parts) > 1:
+        volumes = [max(0.0, float(part.volume())) for part in parts]
+        largest = max(volumes, default=0.0)
+        substantive = [
+            part for part, volume in zip(parts, volumes)
+            if volume >= max(1e-12, largest * 0.02)
+        ]
+        # Plane trims through already-rotated/packed branches can leave tiny
+        # clipped islands. They are not BOOK descendants and are exactly the
+        # detached fragments the clean-mass gate is intended to eliminate.
+        # Any second component at or above 2% remains substantive and is not
+        # hidden by this cleanup.
+        if substantive and len(substantive) < len(parts):
+            result = m3d.Manifold.batch_boolean(substantive, m3d.OpType.Add)
+    return result
 
 
 def _profiled_hall_macro(base, params: dict[str, Any], node_id: str):
@@ -723,12 +2362,83 @@ def _profiled_hall_macro(base, params: dict[str, Any], node_id: str):
 
 
 def _bridge_between(left, right, params: dict[str, Any], node_id: str):
-    lc, rc = _center(left), _center(right)
+    lc, rc = _nearest_surface_points(left, right)
     lb, rb = _bounds(left), _bounds(right)
-    z = float(params.get("z", min(lb[5], rb[5]) * float(params.get("height_ratio", 0.65))))
-    height = max(0.2, float(params.get("height", min(lb[5] - lb[2], rb[5] - rb[2]) * 0.14)))
-    width = max(0.2, float(params.get("width", min(lb[4] - lb[1], rb[4] - rb[1]) * 0.24)))
-    return _beam_between((lc[0], lc[1], z), (rc[0], rc[1], z), width=width, height=height, node_id=node_id)
+    minimum_height = min(lb[5] - lb[2], rb[5] - rb[2])
+    minimum_plan_span = min(
+        lb[3] - lb[0], lb[4] - lb[1],
+        rb[3] - rb[0], rb[4] - rb[1],
+    )
+    height = max(0.02, float(params.get(
+        "height",
+        minimum_height * float(params.get("height_ratio", 0.14)),
+    )))
+    width = max(0.02, float(params.get(
+        "width",
+        minimum_plan_span * float(params.get("width_ratio", 0.24)),
+    )))
+    delta = np.asarray(rc, dtype=float) - np.asarray(lc, dtype=float)
+    distance = float(np.linalg.norm(delta))
+    if distance <= 1e-8:
+        return m3d.Manifold.cube((width, width, height), center=True).translate(lc)
+
+    # Extend the connector past both measured surface points.  Merely ending
+    # on a surface is a tangent contact and does not make one manifold; the
+    # bounded embed creates a real shared volume at both ends.
+    direction = delta / distance
+    embed = max(0.01, min(distance * 0.18, max(width, height) * 0.55))
+    start = np.asarray(lc, dtype=float) - direction * embed
+    end = np.asarray(rc, dtype=float) + direction * embed
+    half = np.asarray((width / 2.0, width / 2.0, height / 2.0), dtype=float)
+    corners = np.asarray([
+        (sx, sy, sz)
+        for sx in (-1.0, 1.0)
+        for sy in (-1.0, 1.0)
+        for sz in (-1.0, 1.0)
+    ])
+    points = [tuple(point + corners[index] * half) for point in (start, end) for index in range(8)]
+    connector = m3d.Manifold.hull_points(points)
+    if connector.is_empty():
+        raise GeometryCompileError("empty_bridge", "surface connector hull is empty", node_id)
+    return connector
+
+
+def _nearest_surface_points(left, right) -> tuple[tuple[float, float, float], tuple[float, float, float]]:
+    """Return deterministic 3D surface endpoints for a physical connector.
+
+    Component bounding-box centres are not guaranteed to lie inside non-convex
+    architectural solids. Mesh vertices are materialized kernel evidence, so
+    the closest 3D pair gives the bridge an endpoint on each real component. A
+    bounded deterministic sample keeps the repair cheap for dense meshes.
+    """
+
+    try:
+        left_vertices = np.asarray(left.to_mesh64().vert_properties, dtype=float)[:, :3]
+        right_vertices = np.asarray(right.to_mesh64().vert_properties, dtype=float)[:, :3]
+    except (AttributeError, IndexError, TypeError, ValueError):
+        return _center(left), _center(right)
+    if not len(left_vertices) or not len(right_vertices):
+        return _center(left), _center(right)
+
+    def bounded(values: np.ndarray, maximum: int = 512) -> np.ndarray:
+        if len(values) <= maximum:
+            return values
+        indices = np.linspace(0, len(values) - 1, maximum, dtype=np.int64)
+        return values[indices]
+
+    left_sample = bounded(left_vertices)
+    right_sample = bounded(right_vertices)
+    best_distance = float("inf")
+    best_pair = (left_sample[0], right_sample[0])
+    for left_point in left_sample:
+        deltas = right_sample - left_point
+        distances = np.einsum("ij,ij->i", deltas, deltas)
+        right_index = int(np.argmin(distances))
+        distance = float(distances[right_index])
+        if distance < best_distance:
+            best_distance = distance
+            best_pair = (left_point, right_sample[right_index])
+    return tuple(float(value) for value in best_pair[0]), tuple(float(value) for value in best_pair[1])
 
 
 def _sweep_path(path: list[tuple[float, float, float]], *, width: float, height: float):

@@ -18,6 +18,7 @@ const MCPMarket = lazy(() => import("@/pages/Setting/MCPMarket"));
 const LawChat = lazy(() => import("@/law/LawChat"));
 const LandMap = lazy(() => import("@/land/LandMap"));
 const DesignPage = lazy(() => import("@/design/DesignPage"));
+const BookLanguagePage = lazy(() => import("@/design/BookLanguagePage"));
 
 // Main route configuration — no auth guard, all public
 const AppRoutes = () => (
@@ -27,6 +28,7 @@ const AppRoutes = () => (
 		<Route path="/law" element={<LawChat />} />
 		<Route path="/land" element={<LandMap />} />
 		<Route path="/design" element={<DesignPage />} />
+		<Route path="/design/language" element={<BookLanguagePage />} />
 		<Route element={<Layout />}>
 			<Route path="/" element={<Navigate to="/law" replace />} />
 			<Route path="/history" element={<History />} />

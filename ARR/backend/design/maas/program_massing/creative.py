@@ -89,6 +89,11 @@ def attach_creative_mass_evidence(feature: dict[str, Any], *, site_area_m2: floa
             "continuous_ribbon_field",
             "folded_section",
             "terraced_ribbon_section",
+            # A torqued stack is emitted as multiple authored profiled roof
+            # plates, not as clipped rectangular proxy noise. It is one of
+            # the explicit rotated/overlapping architectural mass languages
+            # and must contribute to the sculptural archive supply.
+            "torqued_stack",
         }
     )
     interlock_pair_count = 0

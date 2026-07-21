@@ -24,8 +24,11 @@ def render_compilation_preview(result: CompilationResult, output_path: str | Pat
     views = (
         ("isometric", 35.0, 28.0, 0, 0),
         ("opposite", 215.0, 28.0, 450, 0),
-        ("front", 0.0, 0.0, 0, 325),
-        ("top", 0.0, 90.0, 450, 325),
+        # yaw=0/pitch=0 projects XY (plan); pitch=90 projects XZ
+        # (front elevation). The former labels were reversed and therefore
+        # gave both people and the VLM critic false view semantics.
+        ("top", 0.0, 0.0, 0, 325),
+        ("front", 0.0, -90.0, 450, 325),
     )
     light = np.asarray((0.35, -0.45, 0.82), dtype=float)
     light /= np.linalg.norm(light)
@@ -57,13 +60,22 @@ def render_compilation_preview(result: CompilationResult, output_path: str | Pat
                 235,
             )
             points = [tuple(float(value) for value in screen[index]) for index in face]
-            draw.polygon(points, fill=color, outline=(126, 69, 28, 115))
+            # Triangle edges are tessellation evidence, not architectural
+            # articulation. Showing every internal diagonal made continuous
+            # fields and bends read as piles of fragments to both people and
+            # the VLM critic.
+            draw.polygon(points, fill=color)
     caption = title or result.program.name
     draw.rectangle((8, height - 30, width - 8, height - 5), fill=(244, 247, 251, 245))
     draw.text((16, height - 25), f"{caption[:90]} | {result.metrics.get('triangle_count')} tri | {result.geometry_hash[:12]}", fill=(15, 23, 42, 255))
     temporary = output.with_suffix(".tmp.png")
     image.save(temporary)
     temporary.replace(output)
+    # Every materialized MASS receives a sidecar, even before law, parking or
+    # VLM have run. Missing stages remain explicit NOT EVALUATED evidence.
+    from .execution_passport import write_mass_execution_passport
+
+    write_mass_execution_passport(result, output)
     return output
 
 

@@ -1,9 +1,11 @@
 """Run bounded BOOK × program 20-mass boards on a live PNU parcel."""
 
+import os
 from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 from shapely.affinity import translate
+from shapely.geometry import LineString, mapping
 
 from design.maas.book_language.portfolio_benchmark import run_book_program_portfolios
 from design.services.constraint_bridge import regulations_to_constraints
@@ -21,15 +23,42 @@ class Command(BaseCommand):
         )
         parser.add_argument("--program", action="append", choices=("neighborhood", "gymnasium", "cultural"))
         parser.add_argument("--recursive-only", action="store_true")
+        parser.add_argument(
+            "--live-vlm",
+            action="store_true",
+            help=(
+                "Run the image-grounded critic and typed repair after the shared "
+                "universal form bank, BOOK projection and program projection; "
+                "requires MAAS_LIVE_GEOMETRY_VLM=1, "
+                "MAAS_LIVE_VLM_CREDENTIAL_ROTATED=1 and OPENAI_API_KEY"
+            ),
+        )
         parser.add_argument("--visual-directive", default=None)
         parser.add_argument(
             "--outcome-graph",
             default=None,
-            help="Optional persistent typed outcome graph shared by diagnostic output directories",
+            help=(
+                "Override the persistent typed outcome graph path. By default a PNU-scoped "
+                "repository memory is shared across diagnostic output directories."
+            ),
         )
 
     def handle(self, *args, **options):
         pnu = str(options["pnu"])
+        if options.get("live_vlm"):
+            missing = [
+                name for name in (
+                    "MAAS_LIVE_GEOMETRY_VLM",
+                    "MAAS_LIVE_VLM_CREDENTIAL_ROTATED",
+                    "OPENAI_API_KEY",
+                )
+                if not os.getenv(name)
+            ]
+            if missing:
+                raise CommandError(
+                    "--live-vlm requires explicit runtime credentials/opt-in: "
+                    + ", ".join(missing)
+                )
         boundary = fetch_parcel_boundary(pnu)
         if boundary is None:
             raise CommandError("VWorld parcel boundary is required; no synthetic fallback is allowed")
@@ -68,6 +97,9 @@ class Command(BaseCommand):
             )
             sunlight_envelope = setback_lines.get("sunlight_envelope")
             widths = []
+            frontage_records = []
+            metric_site = wgs84_to_utm(geojson_to_polygon(boundary))
+            site_center = metric_site.centroid
             for road in road_frontages or []:
                 try:
                     width = float(road.get("roadWidthM") or road.get("road_width_m") or 0.0)
@@ -75,6 +107,40 @@ class Command(BaseCommand):
                     width = 0.0
                 if width > 0:
                     widths.append(width)
+                shared_edge = road.get("sharedEdge") if isinstance(road, dict) else None
+                if not isinstance(shared_edge, list) or len(shared_edge) < 2:
+                    continue
+                try:
+                    metric_edge = wgs84_to_utm(LineString(shared_edge))
+                except Exception:
+                    continue
+                midpoint = metric_edge.centroid
+                dx = float(midpoint.x - site_center.x)
+                dy = float(midpoint.y - site_center.y)
+                frontage_records.append({
+                    "side": (
+                        ("east" if dx >= 0 else "west")
+                        if abs(dx) >= abs(dy)
+                        else ("north" if dy >= 0 else "south")
+                    ),
+                    "shared_length_m": round(float(metric_edge.length), 3),
+                    "road_width_m": round(width, 3),
+                    "metric_edge": metric_edge,
+                })
+            primary_frontage = (
+                max(frontage_records, key=lambda item: item["shared_length_m"])
+                if frontage_records
+                else None
+            )
+            site_access_context = {
+                "status": "vworld_neighbor_road" if primary_frontage else "road_frontage_unresolved",
+                "primary_access_edge": str((primary_frontage or {}).get("side") or ""),
+                "road_width_m": max(widths) if widths else None,
+                "frontages": [
+                    {key: value for key, value in item.items() if key != "metric_edge"}
+                    for item in frontage_records
+                ],
+            }
             parking_options = {
                 "road_context": {
                     "road_width_m": max(widths) if widths else None,
@@ -98,6 +164,11 @@ class Command(BaseCommand):
         site = wgs84_to_utm(geojson_to_polygon(boundary))
         minx, miny, _maxx, _maxy = site.bounds
         local_site = translate(site, xoff=-minx, yoff=-miny)
+        site_access_geometry = (
+            mapping(translate(primary_frontage["metric_edge"], xoff=-minx, yoff=-miny))
+            if primary_frontage is not None
+            else None
+        )
         result = run_book_program_portfolios(
             local_site,
             pnu=pnu,
@@ -107,8 +178,12 @@ class Command(BaseCommand):
             regulation_evidence=regulation_evidence,
             sunlight_envelope=sunlight_envelope,
             parking_options=parking_options,
+            site_boundary_source="vworld_live_pnu",
+            site_access_context=site_access_context,
+            site_access_geometry=site_access_geometry,
             program_slugs=tuple(options.get("program") or ()),
             recursive_only=bool(options.get("recursive_only")),
+            live_geometry_vlm_revision=bool(options.get("live_vlm")),
             visual_directive_path=(
                 Path(str(options["visual_directive"])).resolve()
                 if options.get("visual_directive")

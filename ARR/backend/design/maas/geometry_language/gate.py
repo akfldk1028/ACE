@@ -27,6 +27,15 @@ def compilation_gate(result: Any, policy: GeometryGatePolicy | None = None) -> t
     if getattr(result, "status", "failed") != "compiled":
         return tuple(getattr(result, "issues", ()) or (GeometryIssue("compile_failed", "solid did not compile"),))
     metrics = getattr(result, "metrics", {}) or {}
+    for key, code, message in (
+        ("watertight", "non_watertight_mesh", "compiled mesh is not watertight"),
+        ("manifold", "non_manifold_mesh", "compiled mesh is not manifold"),
+        ("closed_solid", "open_solid", "compiled geometry is not a closed solid"),
+        ("self_intersection_checked_by_kernel", "self_intersection_unchecked", "self-intersection was not checked by the kernel"),
+        ("outward_normals", "inverted_normals", "mesh winding does not produce outward normals"),
+    ):
+        if metrics.get(key) is not True:
+            issues.append(GeometryIssue(code, message))
     if float(metrics.get("volume") or 0.0) < policy.minimum_volume:
         issues.append(GeometryIssue("empty_or_tiny_solid", "compiled volume is below the hard minimum"))
     if int(metrics.get("triangle_count") or 0) > policy.maximum_triangles:

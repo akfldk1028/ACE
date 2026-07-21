@@ -466,6 +466,34 @@ def _render_archive_sheet(
             topology = str(props.get("mass_shape") or source_id.split("__search_", 1)[0].replace("creative_", ""))
             label = f"{index + 1:02d} {topology} · creative {evidence['creative_score']:.3f}"
             label = f"{index + 1:02d} {topology} - {display_mode} {display_score:.3f}"
+            capacity = props.get("capacity_alternative_projection")
+            measurement = props.get("source_capacity_measurement")
+            if isinstance(capacity, dict) and capacity.get("alternative_id"):
+                capacity_labels = {
+                    "spatial_reserve": "RESERVE",
+                    "balanced_yield": "BALANCED",
+                    "brief_target": "BRIEF",
+                    "maximum_feasible": "MAX",
+                }
+                alternative_id = str(capacity["alternative_id"])
+                target = float(capacity.get("target_utilization") or 0.0)
+                achieved = float((measurement or {}).get("feasible_capacity_utilization") or 0.0)
+                far_pct = float((measurement or {}).get("far_pct") or 0.0)
+                feasible_floor_area = float(
+                    capacity.get("feasible_maximum_floor_area_m2") or 0.0
+                )
+                base_contract = props.get("base_capacity_contract") or {}
+                parcel_area = float(base_contract.get("parcel_area_m2") or 0.0)
+                feasible_far = (
+                    feasible_floor_area / parcel_area * 100.0
+                    if feasible_floor_area > 0.0 and parcel_area > 0.0
+                    else 0.0
+                )
+                label = (
+                    f"{index + 1:02d} {topology} - "
+                    f"{capacity_labels.get(alternative_id, alternative_id)} "
+                    f"{target:.0%}>{achieved:.0%} | FAR {far_pct:.0f}/{feasible_far:.0f}%"
+                )
             draw.text((x + 12, y + 274), label, fill="#f8fafc", font=label_font)
             if review_status:
                 reasons = [str(value) for value in props.get("review_reasons") or []]

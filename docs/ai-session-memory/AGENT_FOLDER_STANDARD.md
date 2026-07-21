@@ -1,12 +1,26 @@
 # Agent Folder Standard
 
+## 2026-07-21 superseding specialist-repository decision
+
+`ARR/backend/agents/` is now the shared control-plane and shared-memory parent.
+`ARR/backend/agents/elevationAgent/` is the structural reference for new
+independent sibling specialist repositories. Future `massAgent`, `planAgent`,
+`lawAgent`, and similar agents belong directly below `backend/agents/` and copy
+the complete git-native folder vocabulary, not the reference agent's identity,
+history, or memory contents.
+
+Existing `ARR/backend/design/maas/agents/` folders are legacy/in-process domain
+adapters until a tested migration preserves Django imports. They are no longer
+the target location for newly provisioned independent specialist repositories.
+
 Updated: 2026-07-07
 
 This repository follows a GitAgent-style folder contract for agents. An agent is
 not just a Python file or a markdown note. It is a versioned folder with identity,
 rules, memory, runtime adapter, and an exchange contract.
 
-Reference implementation checked in `clone/gitagent/`:
+Current reference implementation checked in
+`ARR/backend/agents/elevationAgent/`:
 
 ```text
 agent.yaml

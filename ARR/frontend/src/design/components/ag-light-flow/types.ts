@@ -41,7 +41,7 @@ export interface AGLightNodeData {
 export interface AGLightEdgeData extends Record<string, unknown> {
   label?: string;
   messages: AGLightMessage[];
-  routingType?: 'primary' | 'secondary';
+  routingType?: 'primary' | 'secondary' | 'feedback';
   bidirectionalPair?: string;
   onClick?: () => void;
 }
@@ -131,7 +131,7 @@ export const createEdge = (
     strokeDasharray?: string;
     opacity?: number;
     label?: string;
-    routingType?: 'primary' | 'secondary';
+    routingType?: 'primary' | 'secondary' | 'feedback';
     messages?: AGLightMessage[];
   } = {}
 ): AGLightEdge => ({

@@ -1,4 +1,4 @@
-"""Executable evidence audit for BOOK operations, sentences and aggregations.
+"""Executable evidence audit for BOOK operations, sentences, aggregations and cases.
 
 An operation is active only when it compiles, changes the 2.5D source mass and
 stays inside the same clean-mass budget used by final visual selection.
@@ -14,7 +14,7 @@ from shapely.geometry import Polygon, box
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.source_geometry import compile_sequence_to_source_mass
 
-from .registry import AGGREGATIONS, BASE_OPERATIVES, COMBINATIONS
+from .registry import AGGREGATIONS, BASE_OPERATIVES, CASE_STUDIES, COMBINATIONS
 
 
 def _canonical_sites() -> tuple[tuple[str, Polygon], ...]:
@@ -108,6 +108,9 @@ def audit_book_principles() -> dict[str, dict[str, Any]]:
     for _page, methods, verb in AGGREGATIONS:
         principle_id = f"book:aggregation:{'+'.join(methods)}:{verb}"
         evidence[principle_id] = _audit_sequence(principle_id, f"{verb}_{'_'.join(methods)}", (verb, *methods))
+    for page, _label, verbs in CASE_STUDIES:
+        principle_id = f"book:case:{page}:{'+'.join(verbs)}"
+        evidence[principle_id] = _audit_sequence(principle_id, f"case_{page}_{'_'.join(verbs)}", verbs)
     return evidence
 
 

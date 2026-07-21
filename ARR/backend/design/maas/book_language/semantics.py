@@ -10,15 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-
-BASE_VOLUME_FRACTIONS: tuple[tuple[str, float], ...] = (
-    ("1/1", 1.0),
-    ("3/8", 3.0 / 8.0),
-    ("1/2", 1.0 / 2.0),
-    ("1/4", 1.0 / 4.0),
-    ("1/8", 1.0 / 8.0),
-    ("1/16", 1.0 / 16.0),
-)
+from .corpus_contract import BASE_VOLUME_FRACTIONS
 
 
 @dataclass(frozen=True)
@@ -59,25 +51,25 @@ OPERATION_SEMANTICS: dict[str, BookOperationSemantics] = {
     "offset": BookOperationSemantics("duplicate and translate a related volume", "multiple_volumes", "offset_related_volumes", ("axis", "distance_ratio", "other_scale")),
     "bend": BookOperationSemantics("deflect a continuous longitudinal axis into a bend", "single_volume", "single_bent_volume", ("axis", "angle", "curvature", "width_gradient")),
     "skew": BookOperationSemantics("obliquely displace faces while preserving continuity", "single_volume", "single_skewed_volume", ("axis", "angle", "upper_ratio")),
-    "split": BookOperationSemantics("divide one volume along a selected axis", "single_volume", "separated_related_volumes", ("axis", "gap_ratio", "bridge_ratio")),
-    "twist": BookOperationSemantics("rotate successive sections around the vertical axis", "single_volume", "single_twisted_volume", ("angle", "upper_ratio")),
-    "interlock": BookOperationSemantics("cross and lock multiple bars through a shared zone", "multiple_volumes", "interlocked_volumes", ("axis", "angle", "bar_ratio", "distance_ratio")),
+    "split": BookOperationSemantics("divide a terminal region and hinge-displace one child while retaining the opposite trunk", "single_volume", "connected_split_descendants", ("axis", "gap_ratio", "bridge_ratio")),
+    "twist": BookOperationSemantics("rotate successive sections around the selected base-volume orientation", "single_volume", "single_twisted_volume", ("angle", "upper_ratio")),
+    "interlock": BookOperationSemantics("engage paired notched L volumes through a shared zone", "multiple_volumes", "interlocked_volumes", ("axis", "angle", "bar_ratio", "distance_ratio")),
     "intersect": BookOperationSemantics("retain the spatial crossing of multiple volumes", "multiple_volumes", "intersecting_volume", ("angle", "factor")),
-    "lift": BookOperationSemantics("raise a volume to create a continuous undercroft", "multiple_volumes", "elevated_volume_and_ground_gap", ("upper_ratio", "lower_floor_fraction")),
-    "lodge": BookOperationSemantics("insert a guest volume partly into a host", "multiple_volumes", "host_with_lodged_guest", ("axis", "distance_ratio", "guest_scale")),
+    "lift": BookOperationSemantics("displace a smaller related guest from a larger host while retaining overlap", "multiple_volumes", "host_and_lifted_guest", ("distance_ratio", "guest_scale")),
+    "lodge": BookOperationSemantics("lodge a smaller guest in the interval between two related hosts", "multiple_volumes", "two_hosts_with_lodged_guest", ("axis", "distance_ratio", "guest_scale")),
     "overlap": BookOperationSemantics("partially superpose related volumes in plan or section", "multiple_volumes", "overlapping_volumes", ("axis", "slab_ratio", "shift_ratio", "vertical_overlap")),
-    "rotate": BookOperationSemantics("rotate a related volume about a shared center", "multiple_volumes", "rotated_related_volumes", ("angle", "factor")),
+    "rotate": BookOperationSemantics("rotate one partitioned child about its shared terminal hinge edge", "multiple_volumes", "hinged_rotated_children", ("axis", "angle", "factor")),
     "shift": BookOperationSemantics("translate a related volume without rotating it", "multiple_volumes", "shifted_related_volumes", ("axis", "distance_ratio")),
     "carve": BookOperationSemantics("remove a bounded recess from an exposed side", "single_volume", "single_recessed_volume", ("side", "width_ratio", "depth_ratio")),
-    "compress": BookOperationSemantics("contract the volume along one selected axis", "single_volume", "single_compressed_volume", ("axis", "factor")),
-    "fracture": BookOperationSemantics("open a directional break through the volume", "single_volume", "fractured_related_parts", ("axis", "gap_ratio", "angle")),
-    "grade": BookOperationSemantics("subtract progressively to form a graded section", "single_volume", "single_graded_volume", ("side", "width_ratio", "depth_ratio")),
-    "notch": BookOperationSemantics("remove a compact piece from one corner", "single_volume", "single_notched_volume", ("corner", "ratio")),
-    "pinch": BookOperationSemantics("contract an intermediate waist while retaining the ends", "single_volume", "single_pinched_volume", ("axis", "waist_ratio", "depth_ratio")),
-    "shear": BookOperationSemantics("laterally displace one section to create an oblique cut", "single_volume", "single_sheared_volume", ("axis", "angle")),
+    "compress": BookOperationSemantics("contract the volume along the selected base-volume orientation", "single_volume", "single_compressed_volume", ("factor",)),
+    "fracture": BookOperationSemantics("subtract a directional bent fissure from the selected base-volume face", "single_volume", "single_fractured_volume", ("gap_ratio", "angle")),
+    "grade": BookOperationSemantics("subtract successive bands from the selected base-volume face to form a grade", "single_volume", "single_graded_volume", ("side", "width_ratio", "depth_ratio")),
+    "notch": BookOperationSemantics("subtract a triangular wedge from the selected base-volume face", "single_volume", "single_notched_volume", ("corner", "ratio")),
+    "pinch": BookOperationSemantics("contract an intermediate waist along the selected base-volume orientation while retaining both ends", "single_volume", "single_pinched_volume", ("waist_ratio", "depth_ratio")),
+    "shear": BookOperationSemantics("subtract an oblique half-space normal to the selected base-volume orientation", "single_volume", "single_sheared_volume", ("angle",)),
     "taper": BookOperationSemantics("reduce successive plan sections toward one end or top", "single_volume", "single_tapered_volume", ("x_ratio", "y_ratio", "top_shift_x_ratio", "top_shift_y_ratio")),
     "embed": BookOperationSemantics("subtract the overlap made by a guest embedded in a host", "multiple_volumes", "host_with_embedded_void", ("guest_scale", "position", "distance_ratio")),
-    "extract": BookOperationSemantics("remove and expose an internal piece through a mouth", "multiple_volumes", "host_and_extracted_void", ("side", "ratio", "distance_ratio")),
+    "extract": BookOperationSemantics("subtract the overlapping path of a guest moving from an internal position through an exterior mouth", "multiple_volumes", "host_with_extraction_channel", ("side", "ratio", "distance_ratio")),
     "inscribe": BookOperationSemantics("subtract a geometrically related inner volume", "multiple_volumes", "inscribed_shell_or_court", ("ratio", "open_side")),
     "puncture": BookOperationSemantics("subtract repeated compact openings through the mass", "multiple_volumes", "perforated_volume", ("axis", "n", "spacing_ratio", "ratio")),
 }

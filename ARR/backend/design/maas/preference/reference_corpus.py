@@ -677,12 +677,23 @@ def _program_reference_evidence(item: ReferenceItem, contract: dict[str, Any]) -
         for term in contract.get("supporting_terms") or ()
         if matches(str(term))
     })
-    hard_match = bool(collection or required)
+    excluded = sorted({
+        str(term).lower()
+        for term in contract.get("excluded_terms") or ()
+        if matches(str(term))
+    })
+    # A preferred collection is a coarse corpus partition, not proof of
+    # typological relevance.  For example, a 230 m office tower is still the
+    # wrong reference for a 2--8 floor neighborhood building even when both
+    # live under mixed-use/offices.  Program-owned negative vocabulary keeps
+    # this data-driven and avoids hard-coding individual precedent IDs.
+    hard_match = bool(collection or required) and not excluded
     return {
         "hard_match": hard_match,
         "tier": "preferred_collection" if collection else ("semantic_program_match" if required else "mismatch"),
         "collection": collection,
         "matched_terms": [*required, *supporting],
+        "excluded_terms": excluded,
         "score": (6 if collection else 0) + len(required) * 3 + len(supporting),
     }
 

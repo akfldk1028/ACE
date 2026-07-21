@@ -10,7 +10,7 @@ from typing import Any, Callable, Iterable
 from .ast import GeometryProgram
 from .compiler import CompilationResult, compile_geometry_program
 from .gate import GeometryGatePolicy, compilation_gate
-from .mutation import GeometryEdit, apply_geometry_edits
+from .mutation import GeometryEdit, apply_geometry_edits_compiler_safe
 from .render import render_compilation_preview
 
 
@@ -33,6 +33,7 @@ class GeometryLoopResult:
 AuthorPrograms = Callable[[dict[str, Any]], Iterable[GeometryProgram]]
 CriticProgram = Callable[[GeometryProgram, CompilationResult, Path], dict[str, Any]]
 SelectPrograms = Callable[[list[GeometryLoopCandidate], int], list[GeometryLoopCandidate]]
+PreviewRenderer = Callable[[GeometryProgram, CompilationResult, Path], Path]
 
 
 def run_geometry_program_a2a_loop(
@@ -47,6 +48,7 @@ def run_geometry_program_a2a_loop(
     preview_dir: str | Path | None = None,
     author_provider: str = "injected_callback",
     critic_provider: str = "injected_callback",
+    preview_renderer: PreviewRenderer | None = None,
 ) -> GeometryLoopResult:
     """Run a real closed loop whose critic edits are recompiled solids.
 
@@ -68,7 +70,10 @@ def run_geometry_program_a2a_loop(
         "generations": [],
         "author_provider": author_provider,
         "critic_provider": critic_provider,
-        "llm_author_active": author_provider.lower() in {"openai", "llm", "openai_llm"},
+        "llm_author_active": author_provider.lower() in {
+            "openai", "llm", "openai_llm", "openai_llm_geometry_author",
+            "bounded_procedural_plus_openai_llm",
+        },
         "vlm_geometry_critic_active": critic_provider.lower() in {"openai", "vlm", "openai_vlm"},
         "author_callback_active": True,
         "critic_callback_active": True,
@@ -106,10 +111,15 @@ def run_geometry_program_a2a_loop(
                     record["status"] = "compile_or_gate_rejected"
                     records.append(record)
                     continue
-                preview = render_compilation_preview(
-                    compilation,
-                    root / f"g{generation:02d}_{program_index:03d}_{program_hash[:10]}.png",
-                    title=program.name,
+                preview_output = root / f"g{generation:02d}_{program_index:03d}_{program_hash[:10]}.png"
+                preview = (
+                    preview_renderer(program, compilation, preview_output)
+                    if preview_renderer is not None
+                    else render_compilation_preview(
+                        compilation,
+                        preview_output,
+                        title=program.name,
+                    )
                 )
                 payload = critic_program(program, compilation, preview)
                 if not isinstance(payload, dict):
@@ -128,7 +138,8 @@ def run_geometry_program_a2a_loop(
                         archive_by_geometry[compilation.geometry_hash] = candidate
                 raw_edits = payload.get("geometry_edits") or []
                 edits = tuple(GeometryEdit.from_dict(item) for item in raw_edits if isinstance(item, dict))
-                mutation = apply_geometry_edits(program, edits)
+                safe_mutation = apply_geometry_edits_compiler_safe(program, edits)
+                mutation = safe_mutation.mutation
                 record.update({
                     "status": (
                         "critic_reviewed"
@@ -150,15 +161,26 @@ def run_geometry_program_a2a_loop(
                     "geometry_edits": [edit.to_dict() for edit in edits],
                     "mutation_status": mutation.status,
                     "mutation_issues": [issue.to_dict() for issue in mutation.issues],
+                    "compiler_safe_recovery_mode": safe_mutation.recovery_mode,
+                    "compiler_safe_rejected_groups": list(safe_mutation.rejected_groups),
                     "preview_path": str(preview),
                     "vlm_causal_context": (
                         payload.get("maas_causal_context")
                         if isinstance(payload.get("maas_causal_context"), dict)
                         else {}
                     ),
+                    "mass_execution_agent_context": (
+                        payload.get("mass_execution_agent_context")
+                        if isinstance(payload.get("mass_execution_agent_context"), dict)
+                        else {}
+                    ),
                 })
                 if mutation.program is not None and generation + 1 < max_generations:
-                    child_compilation = compile_geometry_program(mutation.program)
+                    child_compilation = (
+                        safe_mutation.compilation
+                        if safe_mutation.compilation is not None
+                        else compile_geometry_program(mutation.program)
+                    )
                     child_gate_issues = compilation_gate(child_compilation, policy)
                     geometry_changed = (
                         child_compilation.status == "compiled"
@@ -221,9 +243,19 @@ def _critic_score(payload: dict[str, Any]) -> float:
 
 
 def _default_selector(candidates: list[GeometryLoopCandidate], count: int) -> list[GeometryLoopCandidate]:
+    def selection_key(item: GeometryLoopCandidate) -> tuple[float, float, int]:
+        context = item.critic_payload.get("mass_execution_agent_context")
+        context = context if isinstance(context, dict) else {}
+        failed_count = len(context.get("failed_stages") or ())
+        return (
+            -float(failed_count),
+            item.critic_score,
+            -int(item.compilation.metrics.get("triangle_count") or 0),
+        )
+
     return sorted(
         candidates,
-        key=lambda item: (item.critic_score, -int(item.compilation.metrics.get("triangle_count") or 0)),
+        key=selection_key,
         reverse=True,
     )[:count]
 
@@ -231,5 +263,6 @@ def _default_selector(candidates: list[GeometryLoopCandidate], count: int) -> li
 __all__ = [
     "GeometryLoopCandidate",
     "GeometryLoopResult",
+    "PreviewRenderer",
     "run_geometry_program_a2a_loop",
 ]

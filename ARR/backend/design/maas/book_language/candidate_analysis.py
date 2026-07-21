@@ -926,8 +926,20 @@ def _design_concept_descriptor(candidate: Any) -> dict[str, Any]:
         item["node_id"] for item in frontage_relations
         if item["operator"] == "split_wing" and item["node_id"] in aligned_relation_ids
     ]
+    # A universal court or split chassis remains a real spatial relation even
+    # when the post-BOOK access controller is a separate notch/lift. Mutating
+    # that upstream node after later BOOK operations can invalidate nested
+    # contact. Classify the composed relation instead: chassis + verified
+    # frontage threshold. BOOK split/branch nodes use distinct operator names
+    # and therefore never impersonate this program concept.
+    has_court_chassis = bool(operators & {"courtyard", "carve_void"})
+    has_split_chassis = "split_wing" in operators
     if aligned_open_ids:
         ground_strategy = "frontage_open_court"
+    elif has_court_chassis and frontage_aligned_ids:
+        ground_strategy = "frontage_court_threshold"
+    elif has_split_chassis and frontage_aligned_ids:
+        ground_strategy = "frontage_split_threshold"
     elif aligned_notch_ids:
         ground_strategy = "frontage_entry_notch"
     elif aligned_lift_ids:

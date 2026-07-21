@@ -81,3 +81,28 @@
   ID in the actual MASS sidebar.
 - Exported a hash-bound MASS 10 indexed-mesh packet for elevationAgent. Final
   elevation remains blocked on program fit and the mesh condition-pack adapter.
+
+## 2026-07-21 — r191-r194 isolated loops and truthful frontend replay
+
+- Changed the default outcome graph from the 469 MB shared PNU memory to a
+  run-local causal shard. Cross-run reuse now requires an explicit path.
+- Added bounded run phase/selected-count checkpoints and preserve the last
+  useful phase when the final gate fails.
+- Replaced painter-order diagnostic rendering with a depth-buffered rasterizer;
+  direct r191-r194 PNG review no longer shows the previous false floating
+  fragments. This does not by itself prove manifold geometry.
+- Rejected two experiments after measured regressions: r192's BOOK-scope union
+  relaxation and r193's depth-2 composition lane. Neither remains in the
+  production source.
+- r194, from the retained source, completed 15/20 with downstream hard gates
+  passing. Its failures are selected count, BOOK principle-kind coverage and
+  repeated roof archetype. No triangular plan candidate reached final supply.
+- Made one paid post-run board call on each of r191, r193 and r194 (three calls
+  total in this loop). All failed. r194 reported 9 visible families, dominant
+  share 0.40 and repeated box/bar, roof and weak program-threshold language.
+- Browser replay of r194 passes: one graph, 15 executed nodes and 15 loaded
+  images, 40 related nodes and 38 active edges after MASS click, 5 retrieved
+  ArchDaily nodes, 4 agent-memory nodes, zero BOOK rasters and zero JS errors.
+- Inspected `clone/d4descent` optimizer/rewrite/cleanup code. Retained its staged
+  search principle as research guidance; MAAS does not yet claim its continuous
+  differentiable optimization behavior.

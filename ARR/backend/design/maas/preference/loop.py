@@ -16,6 +16,8 @@ from typing import Any, Callable
 
 from shapely.geometry import shape
 
+from .mesh_rasterizer import RasterTriangle, rasterize_depth_tested_triangles
+
 from design.maas.morphology_operators import largest_polygon
 from design.maas.preference.concept_schema import build_preference_distillation
 from design.maas.preference.reference_corpus import (
@@ -251,10 +253,7 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
             for surface in explicit_surfaces
         ]
         surface_records = [record for record in surface_records if len(record[1]) >= 3]
-        recursive_feature_edges: dict[
-            tuple[tuple[float, float, float], tuple[float, float, float]],
-            list[tuple[tuple[float, float, float], bool, list[float], list[float]]],
-        ] = {}
+        recursive_triangles: list[RasterTriangle] = []
         for surface, vertices in sorted(
             surface_records,
             key=lambda record: sum(camera_depth(vertex) for vertex in record[1]) / len(record[1]),
@@ -264,19 +263,16 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
             is_recursive_mesh = surface_type == "profiled_recursive_solid_mesh"
             profiled_fill = _opaque_profiled_surface_fill(vertices)
             if is_recursive_mesh:
-                a, b, c = vertices[:3]
-                ux, uy, uz = float(b[0]) - float(a[0]), float(b[1]) - float(a[1]), float(b[2]) - float(a[2])
-                vx, vy, vz = float(c[0]) - float(a[0]), float(c[1]) - float(a[1]), float(c[2]) - float(a[2])
-                nx, ny, nz = uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx
-                magnitude = max(sqrt(nx * nx + ny * ny + nz * nz), 1e-12)
-                normal = (nx / magnitude, ny / magnitude, nz / magnitude)
-                view_vector = (sin(theta), cos(theta), 1.0 if top_view else 0.12)
-                facing = sum(normal[index] * view_vector[index] for index in range(3)) >= 0.0
-                for left, right in zip(vertices, (*vertices[1:], vertices[0])):
-                    left_key = tuple(round(float(value), 5) for value in left[:3])
-                    right_key = tuple(round(float(value), 5) for value in right[:3])
-                    low, high = sorted((left_key, right_key))
-                    recursive_feature_edges.setdefault((low, high), []).append((normal, facing, left, right))
+                if len(points) == 3:
+                    color = tuple(int(value) for value in profiled_fill)
+                    if len(color) == 3:
+                        color = (*color, 255)
+                    recursive_triangles.append(RasterTriangle(
+                        points=(points[0], points[1], points[2]),
+                        depths=tuple(camera_depth(vertex) for vertex in vertices[:3]),
+                        color=color,
+                    ))
+                continue
             draw.polygon(
                 points,
                 # Every profiled representation is a closed architectural
@@ -287,6 +283,12 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
                 # Patch/triangle edges stay in the typed graph payload.  They
                 # are not a second visual language in the rendered evidence.
                 outline=None,
+            )
+        if recursive_triangles:
+            rasterize_depth_tested_triangles(
+                image,
+                recursive_triangles,
+                clip_box=(ox + 6, oy + 6, ox + view_width - 6, oy + view_height - 6),
             )
         # Do not redraw every semantic-normal patch edge.  Those edges include
         # occluded back faces and reintroduce the wireframe failure even after

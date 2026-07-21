@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 import hashlib
-import os
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
@@ -47,6 +46,7 @@ from design.maas.geometry_language import (
     compile_geometry_program,
 )
 from design.maas.geometry_language.gate import GeometryGatePolicy, compilation_gate
+from design.maas.geometry_language.run_state import update_run_progress
 from design.maas.capacity_policy import resolve_massing_capacity_policy
 from design.maas.grammar.verb_sequence import VerbSequence
 from design.maas.mass_brain import publish_geometry_portfolio_shadow
@@ -74,29 +74,17 @@ from design.maas.source_geometry import compile_sequence_to_source_mass
 from design.maas.book_language.mass_passport_bridge import selected_candidate_execution_passport
 
 
-def default_outcome_graph_path(pnu: str) -> Path:
-    """Return the cross-run portable memory for one parcel.
+def default_outcome_graph_path(output_dir: Path) -> Path:
+    """Return the one-run causal graph owned by ``output_dir``.
 
-    Diagnostic output directories are intentionally disposable.  Keeping the
-    causal graph below one of those directories made every new benchmark start
-    without the previous VLM failures and typed repairs.  The default is now a
-    PNU-keyed cache at repository scope; callers may still supply an explicit
-    path (for isolated ablations or controlled experiments).
+    A generated MASS must be reproducible from the references, typed program,
+    compiler evidence and critic observations that belonged to that run.  A
+    parcel-wide append-only graph silently imported old selection caps and VLM
+    repairs into unrelated runs and eventually grew large enough to exhaust
+    memory.  Cross-run transfer is therefore opt-in through
+    ``outcome_graph_path``; the safe default is this self-contained shard.
     """
-    configured_dir = os.getenv("MAAS_OUTCOME_GRAPH_DIR", "").strip()
-    base_dir = (
-        Path(configured_dir).resolve()
-        if configured_dir
-        else Path(__file__).resolve().parents[5]
-        / "docs"
-        / "ai-session-memory"
-        / "maas-cache"
-        / "outcome-graphs"
-    )
-    safe_pnu = "".join(character for character in str(pnu) if character.isalnum() or character in "-_")
-    if not safe_pnu:
-        safe_pnu = hashlib.sha256(str(pnu).encode("utf-8")).hexdigest()[:20]
-    return base_dir / f"pnu-{safe_pnu}.json"
+    return Path(output_dir).resolve() / "maas-geometry-mutation-outcome-graph.json"
 
 from .registry import build_book_language_registry
 from .semantics import BASE_VOLUME_FRACTIONS
@@ -633,8 +621,8 @@ def run_book_program_portfolios(
     directive_dir = visual_directive_path.parent if visual_directive_path is not None else output_dir
     visual_directive_payload = _load_visual_directive(directive_dir, pnu)
     outcome_graph_path_was_explicit = outcome_graph_path is not None
-    outcome_graph_path = outcome_graph_path or default_outcome_graph_path(pnu)
     outcome_graph_snapshot_path = output_dir / "maas-geometry-mutation-outcome-graph.json"
+    outcome_graph_path = outcome_graph_path or default_outcome_graph_path(output_dir)
     outcome_graph = GeometryOutcomeGraph.load(outcome_graph_path, pnu=pnu)
     program_results: list[dict[str, Any]] = []
     selected_by_program: dict[str, list[_Candidate]] = {}
@@ -647,6 +635,14 @@ def run_book_program_portfolios(
         if requested_slugs and slug not in requested_slugs:
             continue
         started = perf_counter()
+        update_run_progress(
+            output_dir,
+            phase="candidate_generation",
+            program=slug,
+            selected_mass_count=0,
+            required_scope_count=len(BASE_VOLUME_FRACTIONS),
+            selected_scope_count=0,
+        )
         outcome_graph.begin_program_run(slug)
         memory_visual_directive = outcome_graph.latest_portfolio_directive(slug)
         program_visual_directive = dict(
@@ -945,6 +941,10 @@ def run_book_program_portfolios(
                 bool(_solid_morphology_metrics(candidate)["pyramidal_like"])
                 for candidate in selection_pool
             ),
+            "ground_strategy_counts": dict(sorted(Counter(
+                _design_concept_descriptor(candidate)["ground_strategy"]
+                for candidate in selection_pool
+            ).items())),
         }
         pre_final_book_vlm_pool = list(selection_pool)
         if runtime_live_vlm:
@@ -1001,6 +1001,15 @@ def run_book_program_portfolios(
             20,
             visual_directive=program_visual_directive,
             selection_trace=selection_trace,
+        )
+        update_run_progress(
+            output_dir,
+            phase="initial_selection",
+            program=slug,
+            selection_pool_count=len(selection_pool),
+            selected_mass_count=len(selected),
+            required_scope_count=len(BASE_VOLUME_FRACTIONS),
+            selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
         )
         outcome_graph.observe_candidates(
             program_slug=slug,
@@ -1100,6 +1109,17 @@ def run_book_program_portfolios(
                     ),
                 }
                 replenishment_cycles.append(cycle_evidence)
+                update_run_progress(
+                    output_dir,
+                    phase="replenishment",
+                    program=slug,
+                    cycle_index=cycle_index,
+                    cycle_budget=cycle_budget,
+                    selection_pool_count=len(selection_pool),
+                    selected_mass_count=len(selected),
+                    required_scope_count=len(BASE_VOLUME_FRACTIONS),
+                    selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
+                )
                 if runtime_live_vlm and cycle.evidence.get("final_book_vlm_gate"):
                     counts["final_book_vlm_gate"] = cycle.evidence["final_book_vlm_gate"]
                 outcome_graph.observe_candidates(
@@ -1156,6 +1176,15 @@ def run_book_program_portfolios(
             visual_directive=program_visual_directive,
         )
         selected = _order_portfolio_for_capacity_review(selected)
+        update_run_progress(
+            output_dir,
+            phase="final_gate_and_render",
+            program=slug,
+            selection_pool_count=len(selection_pool),
+            selected_mass_count=len(selected),
+            required_scope_count=len(BASE_VOLUME_FRACTIONS),
+            selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
+        )
         selected_by_program[slug] = selected
         language_metrics = _portfolio_language_metrics(selected)
         metrics_by_program[slug] = language_metrics
@@ -1697,8 +1726,9 @@ def run_book_program_portfolios(
         json.dumps(review_fingerprint_payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
     ).hexdigest()
     outcome_graph_payload = outcome_graph.save()
-    # Preserve a self-contained evidence snapshot beside every PNG/summary,
-    # while the next run reads the stable PNU-scoped graph above.
+    # Preserve a self-contained evidence snapshot beside every PNG/summary.
+    # An explicitly supplied transfer graph remains separate and is never
+    # mistaken for the run-owned provenance shard.
     if outcome_graph_snapshot_path.resolve() != outcome_graph_path.resolve():
         snapshot_temporary = outcome_graph_snapshot_path.with_suffix(
             outcome_graph_snapshot_path.suffix + ".tmp"
@@ -1713,11 +1743,11 @@ def run_book_program_portfolios(
         "path": str(outcome_graph_path),
         "snapshot_path": str(outcome_graph_snapshot_path),
         "path_policy": (
-            "explicit_cross_run_memory"
+            "explicit_controlled_memory"
             if outcome_graph_path_was_explicit
-            else "default_pnu_cross_run_memory"
+            else "default_run_local_provenance"
         ),
-        "persistent_across_output_directories": True,
+        "persistent_across_output_directories": bool(outcome_graph_path_was_explicit),
         "node_count": outcome_graph_payload["node_count"],
         "edge_count": outcome_graph_payload["edge_count"],
         "observation_count": outcome_graph_payload["observation_count"],

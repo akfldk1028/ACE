@@ -104,10 +104,16 @@ def score_portfolio_board_with_openai_vlm(
         for item in candidate_summaries
         if isinstance(item, dict)
     ]
-    cache_root = Path(os.getenv(
-        "MAAS_PORTFOLIO_VLM_CACHE_DIR",
-        "docs/ai-session-memory/reference-corpus/portfolio-vlm-cache",
-    ))
+    configured_cache = os.getenv("MAAS_PORTFOLIO_VLM_CACHE_DIR", "").strip()
+    cache_root = (
+        Path(configured_cache).resolve()
+        if configured_cache
+        else workspace_root()
+        / "docs"
+        / "ai-session-memory"
+        / "reference-corpus"
+        / "portfolio-vlm-cache"
+    )
     cache_key = hashlib.sha256(json.dumps({
         "schema": PORTFOLIO_VLM_SCHEMA_VERSION,
         "prompt": PORTFOLIO_VLM_PROMPT_VERSION,
@@ -294,10 +300,16 @@ def audit_reference_image_for_massing(
         raise VlmScoringError("OPENAI_API_KEY is not set")
     selected_model = model or os.getenv("MAAS_PREFERENCE_VLM_MODEL") or DEFAULT_VLM_MODEL
     image_hash = hashlib.sha256(path.read_bytes()).hexdigest()
-    cache_root = Path(os.getenv(
-        "MAAS_REFERENCE_IMAGE_VLM_CACHE_DIR",
-        "docs/ai-session-memory/reference-corpus/reference-image-vlm-cache",
-    ))
+    configured_cache = os.getenv("MAAS_REFERENCE_IMAGE_VLM_CACHE_DIR", "").strip()
+    cache_root = (
+        Path(configured_cache).resolve()
+        if configured_cache
+        else workspace_root()
+        / "docs"
+        / "ai-session-memory"
+        / "reference-corpus"
+        / "reference-image-vlm-cache"
+    )
     cache_key = hashlib.sha256(json.dumps({
         "schema": REFERENCE_IMAGE_AUDIT_SCHEMA_VERSION,
         "prompt": REFERENCE_IMAGE_AUDIT_PROMPT_VERSION,

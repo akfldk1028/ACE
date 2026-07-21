@@ -39,8 +39,8 @@ class Command(BaseCommand):
             "--outcome-graph",
             default=None,
             help=(
-                "Override the persistent typed outcome graph path. By default a PNU-scoped "
-                "repository memory is shared across diagnostic output directories."
+                "Explicitly opt into a controlled cross-run typed outcome graph. "
+                "By default every output directory owns one isolated causal graph."
             ),
         )
 

@@ -34,6 +34,11 @@ _OPEN_COURT_HAZARDS = frozenset({
     "union", "cut_corner",
 })
 _LIFT_HAZARDS = frozenset({"union", "leaning_tower"})
+_SPLIT_WING_HAZARDS = frozenset({
+    "cross_mass", "grid_mass", "radial_array", "related_array",
+    "split_wing", "book_split", "book_branch", "shift_related", "offset_related",
+    "bend", "bent_bar", "twist", "union", "leaning_tower",
+})
 
 
 def _normalized_access_side(value: str) -> str:
@@ -239,9 +244,15 @@ def _threshold_operator(
     # and a stable normalized sample select one member.  This produces real
     # threshold diversity without turning a use label into a base-form mold.
     if topology_accepts_open_court and open_court_operator and (
-        u < (0.50 if has_public_void_invariant else 0.28)
+        u < (0.34 if has_public_void_invariant else 0.24)
     ):
         return open_court_operator
+    if (
+        "split_wing" in allowed
+        and not operators.intersection(_SPLIT_WING_HAZARDS)
+        and u < (0.58 if has_public_void_invariant else 0.42)
+    ):
+        return "split_wing"
     # A twisted vertical chassis cannot accept another plan split without
     # multiplying its section bands and outline vertices. Its program relation
     # belongs at the ground: one lifted undercroft supplies both access and a
@@ -256,7 +267,7 @@ def _threshold_operator(
         "lift" in allowed
         and "lift" not in operators
         and not operators.intersection(_LIFT_HAZARDS)
-        and u < 0.74
+        and u < 0.78
     ):
         return "lift"
     return "notch"

@@ -9,6 +9,7 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
 - Base-volume and BOOK lowering contracts: `base_volume_audit.py`,
   `book_lowering_contract.py`, `book_parameter_projection.py`
 - Program projection: `program_projection.py`
+- Truthful run lifecycle/progress: `run_state.py`
 - Compiler/GATE: `compiler.py`, `gate.py`
 - Per-MASS passport and Agent context: `execution_passport.py`,
   `execution_evidence.py`, `execution_activation.py`,
@@ -33,8 +34,12 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
   `vlm_stage_policy.py`, `portfolio_feedback.py`
 - ArchDaily query context: `reference_context.py`
 - Post-run paid individual MASS audit: `geometry_language/executed_vlm_audit.py`
+- Post-run paid board audit command:
+  `design/management/commands/audit_maas_portfolio_board.py`
 - GeometryProgram MASS -> elevation packet: `geometry_language/elevation_handoff.py`
 - Same-origin reference image paths: `preference/reference_paths.py`
+- Depth-buffered diagnostic renderer: `preference/mesh_rasterizer.py`, consumed
+  by `preference/loop.py`. Keep rendering mechanics out of the benchmark.
 
 ## Frontend
 
@@ -44,6 +49,7 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
 - Runtime API/types: `ARR/frontend/src/design/lib/api-client.ts`,
   `language-system-types.ts`
 - Browser verification: `docs/playwright/design-route-live-verify/verify-maas-single-graph.cjs`
+- Focused MASS-flow regressions: `ARR/backend/design/test_maas_flow_regressions.py`
 
 ## Memory update protocol
 

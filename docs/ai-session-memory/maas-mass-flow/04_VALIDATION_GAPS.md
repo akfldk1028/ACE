@@ -1,63 +1,51 @@
 # Open Validation Gaps
 
-## P0 — visual and geometry integrity
+## P0 — viable geometry supply
 
-- r188 MASS 07 (`pack · inflate`) contains obvious floating raster fragments
-  although current solid-component and clean-mass metadata pass.
-- Add a post-render connected-component/noise audit and deeper mesh
-  self-intersection, degenerate-face and triangulation checks before archive
-  acceptance. Do not hardcode one candidate or one operator pair.
-- Produce stable multi-view evidence per selected MASS. One isometric crop can
-  hide connecting cores and mislead both humans and VLM.
-- Keep component/manifold checks, but never treat them alone as visual proof.
+- r194 is 15/20. The maximum compatible set cannot reach 20 from current
+  hard-pass supply without violating BOOK coverage or roof diversity.
+- No triangular plan candidate reached final supply. Fix authoring/projection
+  and deterministic geometry validity before adding a selector-only quota.
+- Increase genuinely distinct courtyard, split bridge, bent/cross, terrace and
+  carve-void programs. Parameter jitter on one box/bar chassis is not a family.
+- Preserve Base-Model-relative dimensions and existing hard gates. Do not fix
+  counts by absolute-coordinate recipes, per-candidate exceptions or relaxed
+  law/parking/capacity thresholds.
 
-## P0 — portfolio search
+## P0 — geometry proof
 
-- r188 still stops at 16/20. Analyze the final incompatibility graph and report
-  which pairwise constraints bound the maximum compatible set.
-- Preserve behavior-cell diversity while adding solver-aware compatibility
-  reserves. Do not simply relax silhouette, law, parking or capacity gates.
-- Feed the paid critic's typed missing-family list into the next authoring run:
-  courtyard, split bridge, L/U mass, carve void, lift, notch, terrace and cross.
+- The depth-buffer renderer removed false painter-order fragments, but selected
+  MASSes still need deterministic manifold, self-intersection, degenerate-face,
+  coplanar-Boolean and multi-view silhouette checks.
+- Produce stable isometric, plan, section and street views per MASS. One board
+  thumbnail is insufficient evidence for hidden connectivity or usable voids.
+- Add rendered connected-component/noise metrics as supporting evidence while
+  keeping exact indexed-mesh topology authoritative.
 
 ## P0 — VLM truth
 
-- r188 has one paid board-level audit and three paid individual candidate
-  audits. The remaining 13 selected MASSes have no individual VLM evaluation.
-- Keep board critic and reference critic as separate graph roles. A future
-  bounded reference run must record every submitted image hash, model/response
-  ID, cost and `used_by_vlm=true` edge.
-- The paid critic missed the obvious MASS 07 fragments, so it cannot replace
-  deterministic raster/mesh integrity gates.
-- The new individual critic did flag MASS 07 `too_fragmented`, but a stochastic
-  critic still cannot replace a deterministic post-render fragmentation gate.
-- The legacy elevation condition-pack renderer accepts mass GeoJSON volumes,
-  not GeometryProgram indexed meshes. Do not claim elevation generation is
-  ready until the mesh projection/condition adapter is implemented and tested.
-- r182 was not VLM reviewed. r184 spent 24 calls and produced no final MASS.
-  Preserve both facts; never retroactively approve either run.
+- r194 has one paid board critic only; it has no individual reference-conditioned
+  VLM evaluations. Graph fields correctly show 5 retrieved and 0 used.
+- Keep board critic, individual reference critic and deterministic GATE as
+  different node roles. Record submitted image hashes, response IDs, model,
+  cache state and cost for every paid call.
+- Do not spend hundreds of calls. Use bounded stage triggers after deterministic
+  preflight and cache by image/prompt/model/program hash.
+- r182 was not VLM reviewed; r184 spent 24 calls and produced no final MASS.
 
-## P0 — approval-grade legal authority
+## P0 — legal and elevation authority
 
-- Verify current Seoul/Gangnam parking and building-rule sources against
-  official ordinance text, effective dates, exceptions and parcel overlays.
-- Add source URL, article/appendix, effective date and parsed-text hash.
-- Check road/building-line constraints, district-unit plans, fire access,
-  evacuation, accessibility, landscape calculation and use restrictions.
-- Keep the current result labelled massing preflight, never permit approval.
+- Current site/legal/parking output is preflight only. Verify official ordinance
+  source URL, article/appendix, effective date, exceptions and parsed-text hash.
+- Road/building lines, district plan, fire access, evacuation, accessibility,
+  landscaping, use restrictions and current parking rules remain incomplete.
+- Implement and test GeometryProgram indexed mesh -> elevation condition pack.
+  No facade/elevation result is final before an accepted MASS hash is frozen.
 
-## P1 — runtime efficiency and observability
+## P1 — runtime and modularity
 
-- r188 streaming MAP-Elites held memory near 1.1 GB but repeated morphology
-  descriptor calculation kept runtime at 4,292 seconds.
-- Cache descriptors by geometry hash and add AST/mesh/GATE content-addressed
-  caches plus cycle checkpoints with current selected count and stop reason.
-- Do not regain speed by deleting rare behavior cells.
-
-## P1 — site semantics and module seams
-
-- Keep explicit evidence fields for parcel geometry used for fit versus absolute
-  coordinates used for authoring.
-- Continue splitting large policy modules by stable contracts, not by creating
-  parallel implementations. Keep one public orchestration path and one
-  canonical AST/compiler.
+- Cache descriptors, compilation, mesh and GATE results by content hash.
+- Keep one public benchmark orchestrator, one AST/compiler and one graph. Put
+  rendering, run state, VLM and selection mechanics in their owning modules.
+- Run-local causal graphs are the default. Cross-run shared memory must be an
+  explicit, bounded input and never an implicit 469 MB load.

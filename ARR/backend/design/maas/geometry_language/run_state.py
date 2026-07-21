@@ -34,6 +34,48 @@ def write_run_state(output_dir: Path, payload: dict[str, Any]) -> Path:
     return target
 
 
+def _read_run_state(output_dir: Path) -> dict[str, Any]:
+    target = Path(output_dir).resolve() / RUN_STATE_FILENAME
+    try:
+        payload = json.loads(target.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def update_run_progress(output_dir: Path, **progress: Any) -> Path:
+    """Merge bounded progress into a running lifecycle record."""
+
+    directory = Path(output_dir).resolve()
+    current = _read_run_state(directory)
+    if not current:
+        current = {
+            "schema_version": RUN_STATE_SCHEMA,
+            "run_id": directory.name,
+            "created_at": _now(),
+            "pid": os.getpid(),
+        }
+    if not isinstance(current, dict):
+        current = {}
+    safe_progress = {
+        key: value for key, value in progress.items()
+        if key in {
+            "phase", "program", "cycle_index", "cycle_budget",
+            "selection_pool_count", "selected_mass_count",
+            "required_scope_count", "selected_scope_count", "stop_reason",
+        }
+    }
+    return write_run_state(directory, {
+        **current,
+        **safe_progress,
+        "schema_version": RUN_STATE_SCHEMA,
+        "run_id": directory.name,
+        "pid": int(current.get("pid") or os.getpid()),
+        "status": "running",
+        "updated_at": _now(),
+    })
+
+
 def tracked_mass_command(function: Callable[..., _T]) -> Callable[..., _T]:
     """Decorate a Django command handle so normal failures remain discoverable."""
     @wraps(function)
@@ -65,34 +107,55 @@ def tracked_mass_command(function: Callable[..., _T]) -> Callable[..., _T]:
             "selected_mass_count": 0,
         })
         try:
-            result = function(command, *args, **options)
+            command_result = function(command, *args, **options)
         except BaseException as exc:
+            current = _read_run_state(output_dir)
             write_run_state(output_dir, {
                 **base,
+                **current,
                 "updated_at": _now(),
                 "status": "failed",
-                "selected_mass_count": 0,
+                "selected_mass_count": int(current.get("selected_mass_count") or 0),
                 "error_type": type(exc).__name__,
                 "error": str(exc)[:1000],
             })
             raise
+        evidence_result = command_result
+        if not isinstance(evidence_result, dict):
+            summary_path = output_dir / "maas-book-programs-summary.json"
+            if summary_path.is_file():
+                try:
+                    persisted = json.loads(summary_path.read_text(encoding="utf-8"))
+                except (OSError, ValueError, TypeError):
+                    persisted = None
+                if isinstance(persisted, dict):
+                    evidence_result = persisted
         selected_count = 0
-        if isinstance(result, dict):
+        if isinstance(evidence_result, dict):
             selected_count = sum(
                 int(item.get("selected_count") or 0)
-                for item in result.get("programs") or ()
+                for item in evidence_result.get("programs") or ()
                 if isinstance(item, dict)
             )
+        result_status = (
+            str(evidence_result.get("status") or "unknown")
+            if isinstance(evidence_result, dict)
+            else "unknown"
+        )
+        current = _read_run_state(output_dir)
         write_run_state(output_dir, {
             **base,
+            **current,
             "updated_at": _now(),
-            "status": "completed",
+            "status": (
+                "completed"
+                if result_status == "pass"
+                else "completed_with_failed_gate"
+            ),
             "selected_mass_count": selected_count,
-            "result_status": str(result.get("status") or "unknown")
-            if isinstance(result, dict)
-            else "unknown",
+            "result_status": result_status,
         })
-        return result
+        return command_result
 
     return wrapped
 
@@ -101,5 +164,6 @@ __all__ = [
     "RUN_STATE_FILENAME",
     "RUN_STATE_SCHEMA",
     "tracked_mass_command",
+    "update_run_progress",
     "write_run_state",
 ]

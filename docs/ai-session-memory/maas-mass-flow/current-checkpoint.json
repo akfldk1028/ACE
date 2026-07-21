@@ -1,17 +1,23 @@
 {
   "schema_version": "arr.maas.mass_flow_memory.v1",
-  "updated_at": "2026-07-21T19:05:00+09:00",
+  "updated_at": "2026-07-21T21:35:00+09:00",
   "frontend_url": "http://127.0.0.1:5175/design/language",
   "pnu": "1168011800104170004",
   "latest_run": {
-    "run_id": "book-program-portfolios-r188-map-elites-compatibility-reserve",
+    "run_id": "book-program-portfolios-r194-final-triangular-court",
     "status": "fail",
-    "selected_count": 16,
+    "run_state": "completed_with_failed_gate",
+    "phase": "final_gate_and_render",
+    "selected_count": 15,
     "target_count": 20,
     "numeric_status": "fail",
     "downstream_hard_gate_status": "pass",
-    "duration_seconds": 4291.687,
-    "run_local_outcome_graph_mb": 47.197
+    "run_local_outcome_graph_mb": 13.599,
+    "failure_reasons": [
+      "selected_count_below_20",
+      "available_book_principle_kind_missing_from_portfolio",
+      "repeated_roof_archetype_above_30_percent"
+    ]
   },
   "latest_numeric_baseline": {
     "run_id": "book-program-portfolios-r182-seven-page-closure-pass",
@@ -19,24 +25,31 @@
     "numeric_status": "pass",
     "vlm_approved": false
   },
-  "quality_diversity": {
-    "algorithm": "MAP-Elites with protected BOOK, plan-family and genotype anchors",
-    "descriptor_axes": ["base_scope", "solid_phenotype", "capacity_alternative"],
-    "elites_per_cell": 2,
-    "max_archive_size": 192,
-    "retained_candidate_count": 125,
-    "occupied_cell_count": 58,
-    "streaming_compaction": true
+  "geometry_supply": {
+    "plan_family_counts": {
+      "articulated": 7,
+      "curved_or_complex": 7,
+      "quadrilateral": 1
+    },
+    "triangular_plan_supply_count": 0,
+    "ground_strategy_counts": {
+      "frontage_court_threshold": 1,
+      "frontage_entry_notch": 9,
+      "frontage_lifted_threshold": 5
+    },
+    "selector_plan_coverage_enabled": true,
+    "bottleneck": "viable_distinct_hard_pass_candidate_supply"
   },
   "paid_portfolio_vlm": {
-    "request_count": 1,
+    "request_count_for_r194": 1,
+    "request_count_for_r191_r194_loop": 3,
     "model": "gpt-5.4-mini",
-    "response_id": "resp_08693458daaa8786006a5f2bf259ac81999b54dd75f54c2742",
+    "response_id": "resp_0c1db4c3d006705b006a5f770e85448199a522e34ada21b68d",
     "status": "fail",
     "hard_pass": false,
-    "candidate_count": 16,
-    "visible_family_count": 8,
-    "dominant_family_share": 0.5,
+    "candidate_count": 15,
+    "visible_family_count": 9,
+    "dominant_family_share": 0.4,
     "failure_reasons": [
       "family_resemblance",
       "repeated_footprint",
@@ -45,29 +58,14 @@
       "too_few_candidates"
     ],
     "cache_hit": false,
-    "actual_submitted_reference_count": 0,
-    "board_image_submitted": true
-  },
-  "paid_individual_vlm": {
-    "request_count": 3,
-    "model": "gpt-5.4-mini",
-    "audited_mass_indices": [1, 7, 10],
-    "program_fit_pass_count": 0,
-    "actual_submitted_reference_counts": {"1": 1, "7": 1, "10": 2},
-    "response_ids": {
-      "1": "resp_0ccae7434c758fbb006a5f409268fc8198ba164fb064a1f751",
-      "7": "resp_0989a33a1a0c0c87006a5f409b80f0819abf3ab50506127b52",
-      "10": "resp_0dd0c7b57b42df04006a5f40a458d48199bbba83b48dd4b418"
-    },
-    "visual_means": {"1": 0.5525, "7": 0.3675, "10": 0.6388},
-    "remaining_unevaluated_selected_mass_count": 13
+    "board_image_submitted": true,
+    "individual_reference_images_submitted": 0
   },
   "direct_visual_review": {
-    "status": "fail",
-    "known_fragmented_mass": "maas_07 pack · inflate",
-    "portfolio_vlm_detected_fragmented_lego": false,
-    "individual_vlm_detected_fragmentation": true,
-    "required_new_gate": "post_render_fragmentation_and_mesh_integrity"
+    "status": "fail_portfolio_quality",
+    "false_painter_order_fragments_present": false,
+    "depth_buffer_renderer_active": true,
+    "remaining_issue": "box_bar_repetition_and_missing_nonquadrilateral_supply"
   },
   "parametric_invariant": {
     "authority": "evaluated_base_model_or_current_solid",
@@ -78,24 +76,21 @@
   },
   "frontend_verification": {
     "status": "pass",
-    "run_count": 94,
+    "run_count_visible": 100,
     "graph_count": 1,
-    "selected_run_mass_count": 16,
-    "active_edge_count": 39,
-    "paid_vlm_memory_node_count": 1,
+    "selected_run_mass_count": 15,
+    "loaded_mass_image_count": 15,
+    "related_node_count_after_mass_click": 40,
+    "active_edge_count_after_mass_click": 38,
+    "retrieved_archdaily_reference_count": 5,
+    "active_vlm_reference_count": 0,
+    "exact_agent_memory_node_count": 4,
+    "book_raster_request_count": 0,
     "book_raster_dom_count": 0,
     "console_error_count": 0,
     "page_error_count": 0,
-    "mass_07_reference_node_count": 1,
-    "mass_07_active_visual_reference_edge_count": 1,
-    "mass_07_individual_vlm_status": "live_scored_program_fit_fail",
-    "remote_reference_image_count": 0,
-    "run_local_memory_path": [
-      "compiled_geometry",
-      "geometry_portfolio",
-      "vlm_portfolio_critic",
-      "outcome"
-    ]
+    "selected_path_graph_count": 1,
+    "selected_path_result_count": 1
   },
   "site_legal": {
     "parcel_area_m2": 264.126,
@@ -116,15 +111,11 @@
     "elevation_condition_pack_status": "mesh_handoff_ready_condition_pack_adapter_pending"
   },
   "evidence": {
-    "summary_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/maas-book-programs-summary.json",
-    "board_png": "docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/maas-book-neighborhood-20.png",
-    "paid_vlm_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/maas-paid-portfolio-vlm-audit.json",
-    "paid_individual_vlm_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/maas-paid-individual-vlm-audits.json",
-    "elevation_handoff_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r188-map-elites-compatibility-reserve/elevation-handoffs/mass-10.json",
-    "browser_verify_json": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/verify-chronological-archive.json",
-    "browser_full_graph_png": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-paid-vlm-full-graph.png",
-    "browser_vlm_focus_png": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-paid-vlm-node-focus.png",
-    "browser_individual_vlm_png": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-mass07-individual-vlm-full-graph.png",
-    "browser_reference_focus_png": "docs/playwright/design-route-live-verify/r185-chronological-mass-archive/r188-mass07-reference-vlm-focus.png"
+    "summary_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r194-final-triangular-court/maas-book-programs-summary.json",
+    "board_png": "docs/playwright/design-route-live-verify/book-program-portfolios-r194-final-triangular-court/maas-book-neighborhood-20.png",
+    "paid_vlm_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r194-final-triangular-court/maas-paid-portfolio-vlm-audit.json",
+    "outcome_graph_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r194-final-triangular-court/maas-geometry-mutation-outcome-graph.json",
+    "browser_verify_json": "docs/playwright/design-route-live-verify/frontend-live/r194-interaction/verify.json",
+    "browser_full_graph_png": "docs/playwright/design-route-live-verify/frontend-live/r194-interaction/full-graph.png"
   }
 }

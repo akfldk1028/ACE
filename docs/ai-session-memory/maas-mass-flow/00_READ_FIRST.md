@@ -26,12 +26,14 @@ replaceable and recorded in the Geometry Program.
 
 Current frontend: `http://127.0.0.1:5175/design/language`.
 
-Current runtime checkpoint: r188 is the newest replayable run but is an honest
-`16/20 · FAIL`, not the finished portfolio. It has one paid post-render
-portfolio VLM audit plus paid individual audits for MASS 01, 07 and 10 stored
-in the run-local causal graph. All three individual program-fit verdicts fail;
-MASS 07 is explicitly flagged `too_fragmented`. r182 remains the latest numeric
-`20/20` baseline; it was not VLM-approved.
+Current runtime checkpoint: r194 is the newest run from the current production
+source and is an honest `15/20 · FAIL`, not the finished portfolio. Its
+downstream site/legal/parking preflight passes, its run-local causal graph and
+single-graph frontend replay work, and its one paid post-render portfolio VLM
+audit also fails. The remaining bottleneck is viable, materially distinct
+hard-pass geometry supply, especially triangular/non-quadrilateral plans,
+courtyard/split/cross/terrace relations and less repetitive roof archetypes.
+r182 remains the latest numeric `20/20` baseline; it was not VLM-approved.
 
 Multi-agent folder contract: read `05_MULTI_AGENT_FOLDER_CONTRACT.md` before
 creating or moving any specialist agent. `ARR/backend/agents/` is the shared

@@ -621,8 +621,9 @@ def _select(
         if str(_design_concept_descriptor(candidate)["ground_strategy"]) != "misaligned_open_court"
     }
     ground_priority = (
-        "frontage_open_court", "frontage_entry_notch",
-        "frontage_lifted_threshold", "frontage_split_threshold",
+        "frontage_open_court", "frontage_court_threshold",
+        "frontage_split_threshold", "frontage_entry_notch",
+        "frontage_lifted_threshold",
         "lifted_threshold", "split_threshold",
         "carved_notch", "internal_court", "direct_edge",
     )
@@ -981,6 +982,7 @@ def _select(
                 f"capacity_alt:{capacity_key}",
                 f"principle_kind:{candidate.principle_kind}",
                 f"ground:{concept['ground_strategy']}",
+                f"plan:{_plan_family(candidate)}",
             ]
             if concept["frontage_aligned"]:
                 coverage_tags.append("frontage_aligned")
@@ -1007,6 +1009,11 @@ def _select(
             *(f"capacity_alt:{alternative}" for alternative in capacity_priority if alternative in available_capacity_alternatives),
             *(f"principle_kind:{kind}" for kind in available_principle_kinds),
             *(f"ground:{ground}" for ground in required_ground_strategies),
+            *(f"plan:{plan_family}" for plan_family in dict.fromkeys(
+                str(value) for value in directive.get("required_plan_families") or ()
+            ) if any(
+                _plan_family(item) == plan_family for item in beam_universe
+            )),
             *(('frontage_aligned',) if any(
                 _design_concept_descriptor(item)["frontage_aligned"] for item in beam_universe
             ) else ()),

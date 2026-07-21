@@ -54,7 +54,19 @@ def replenishment_cycle_budget_for_run(*, live_vlm: bool) -> int:
     """Keep paid review bounded while letting local geometry pages close."""
 
     configured = replenishment_cycle_budget()
-    return configured if live_vlm else max(7, configured)
+    if live_vlm:
+        return configured
+    # Production/local closure still defaults to seven geometry pages. A
+    # deliberately named diagnostic override can stop after an early page so
+    # solver supply is inspected before another hour-long run. It never changes
+    # any geometry, legal, parking, capacity or silhouette threshold.
+    diagnostic = os.getenv("MAAS_BOOK_NONLIVE_REPLENISHMENT_CYCLES")
+    if diagnostic is not None:
+        try:
+            return max(1, min(8, int(diagnostic)))
+        except (TypeError, ValueError):
+            pass
+    return max(7, configured)
 
 
 def replenishment_stop_reason(

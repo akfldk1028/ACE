@@ -24,14 +24,40 @@ def enrich_portfolio_vlm_feedback(
     replacement votes and more replacements than keeps becomes a next-run
     supply cap candidate; no individual geometry gains approval from this.
     """
+    descriptors = [{
+        "candidate_id": str(row.get("variant_id") or ""),
+        "geometry_family": _geometry_program_family(candidate),
+        "chassis_family": _chassis_family(candidate),
+    } for row, candidate in zip(rows, candidates)]
+    return enrich_portfolio_vlm_feedback_from_descriptors(
+        audit,
+        candidate_descriptors=descriptors,
+    )
+
+
+def enrich_portfolio_vlm_feedback_from_descriptors(
+    audit: dict[str, Any],
+    *,
+    candidate_descriptors: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Resolve critic actions against persisted exact-AST descriptors.
+
+    Post-run board audits no longer have live ``_Candidate`` objects. They do
+    retain each selected result's exact geometry/chassis descriptor, so this
+    shared boundary produces the same typed next-run feedback without
+    recompiling geometry or parsing free-form VLM prose.
+    """
+
     result = deepcopy(audit)
     family_by_candidate_id = {
-        str(row.get("variant_id") or ""): _geometry_program_family(candidate)
-        for row, candidate in zip(rows, candidates)
+        str(item.get("candidate_id") or ""): str(item.get("geometry_family") or "")
+        for item in candidate_descriptors
+        if isinstance(item, dict)
     }
     chassis_by_candidate_id = {
-        str(row.get("variant_id") or ""): _chassis_family(candidate)
-        for row, candidate in zip(rows, candidates)
+        str(item.get("candidate_id") or ""): str(item.get("chassis_family") or "")
+        for item in candidate_descriptors
+        if isinstance(item, dict)
     }
     action_counts: dict[str, Counter[str]] = {}
     chassis_action_counts: dict[str, Counter[str]] = {}
@@ -92,4 +118,7 @@ def enrich_portfolio_vlm_feedback(
     return result
 
 
-__all__ = ["enrich_portfolio_vlm_feedback"]
+__all__ = [
+    "enrich_portfolio_vlm_feedback",
+    "enrich_portfolio_vlm_feedback_from_descriptors",
+]

@@ -28,7 +28,8 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
 - Bounded page loop: `portfolio_replenishment.py`
 - Set selection and diagnostics: `portfolio_selection.py`,
   `portfolio_constraint_solver.py`
-- Quality-diversity memory bound: `quality_diversity_archive.py`
+- Quality-diversity memory bound and streaming archive:
+  `quality_diversity_archive.py`
 - Benchmark orchestration only: `portfolio_benchmark.py`
 - VLM lifecycle: `vlm_review.py`, `final_vlm_cycle.py`,
   `vlm_stage_policy.py`, `portfolio_feedback.py`

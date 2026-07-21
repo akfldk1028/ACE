@@ -26,13 +26,12 @@ replaceable and recorded in the Geometry Program.
 
 Current frontend: `http://127.0.0.1:5175/design/language`.
 
-Current runtime checkpoint: r194 is the newest run from the current production
-source and is an honest `15/20 · FAIL`, not the finished portfolio. Its
-downstream site/legal/parking preflight passes, its run-local causal graph and
-single-graph frontend replay work, and its one paid post-render portfolio VLM
-audit also fails. The remaining bottleneck is viable, materially distinct
-hard-pass geometry supply, especially triangular/non-quadrilateral plans,
-courtyard/split/cross/terrace relations and less repetitive roof archetypes.
+Current completed checkpoint: r196 is an honest `15/20 · FAIL`, not the
+finished portfolio. It verifies the streaming MAP-Elites memory fix and has no
+new paid VLM judgement. r194 remains the latest paid board audit and also
+failed. r195 and r197 are state-only `ResourceGuard` failures with no final
+MASS PNG; never relabel them as generated portfolios. The current source also
+contains an unbenchmarked topology-aware triangular-profile projection fix.
 r182 remains the latest numeric `20/20` baseline; it was not VLM-approved.
 
 Multi-agent folder contract: read `05_MULTI_AGENT_FOLDER_CONTRACT.md` before

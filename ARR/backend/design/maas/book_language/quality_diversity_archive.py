@@ -50,6 +50,50 @@ def qd_archive_policy() -> dict[str, Any]:
     }
 
 
+class StreamingMapElitesArchive:
+    """Bound heavy candidates while they are authored, not after the page.
+
+    ``_Candidate`` retains an evaluated SourceMass, render Feature and exact
+    program evidence, so waiting for several hundred instances before the
+    first compaction creates a large avoidable memory spike.  This wrapper
+    keeps the existing MAP-Elites selection semantics and only changes when
+    compaction happens.  A small margin amortizes descriptor calculation while
+    bounding the live population to ``max_archive_size + margin``.
+    """
+
+    def __init__(self, *, compaction_margin: int | None = None) -> None:
+        policy = qd_archive_policy()
+        self.maximum_size = int(policy["max_archive_size"])
+        self.compaction_margin = (
+            max(1, int(compaction_margin))
+            if compaction_margin is not None
+            else _configured_integer("MAAS_QD_STREAM_MARGIN", 24, 1, 96)
+        )
+        self._items: list[_Candidate] = []
+        self._next_compaction = self.maximum_size + self.compaction_margin
+        self.compaction_count = 0
+        self.released_count = 0
+        self.peak_candidate_count = 0
+
+    def append(self, candidate: _Candidate) -> None:
+        self._items.append(candidate)
+        self.peak_candidate_count = max(self.peak_candidate_count, len(self._items))
+        if len(self._items) >= self._next_compaction:
+            self._compact()
+
+    def _compact(self) -> None:
+        before = len(self._items)
+        self._items = map_elites_archive(self._items)
+        self.compaction_count += 1
+        self.released_count += before - len(self._items)
+        self._next_compaction = self.maximum_size + self.compaction_margin
+
+    def finalize(self) -> list[_Candidate]:
+        if self._items:
+            self._compact()
+        return list(self._items)
+
+
 def behavior_descriptor(candidate: _Candidate) -> tuple[str, str, str]:
     morphology = _solid_morphology_metrics(candidate)
     return (
@@ -142,4 +186,5 @@ __all__ = [
     "map_elites_archive",
     "qd_archive_evidence",
     "qd_archive_policy",
+    "StreamingMapElitesArchive",
 ]

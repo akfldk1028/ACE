@@ -16,6 +16,7 @@ from design.maas.geometry_language.compiler import compile_geometry_program
 from design.maas.geometry_language.program_projection import project_program_requirements
 from design.maas.geometry_language.run_state import tracked_mass_command, update_run_progress
 from design.maas.geometry_language.universal_form_bank import universal_form_programs
+from design.maas.geometry_language.base_seeds import base_seed_program
 from design.maas.preference.mesh_rasterizer import (
     RasterTriangle,
     rasterize_depth_tested_triangles,
@@ -118,6 +119,21 @@ class MaasFlowRegressionTest(SimpleTestCase):
 
         self.assertGreaterEqual(len(threshold_operators), 3)
         self.assertTrue({"courtyard", "split_wing"} & threshold_operators)
+
+    def test_nonorthogonal_profile_uses_footprint_preserving_threshold(self):
+        triangular = base_seed_program("profiled_prism", variation_index=1)
+        projected = project_program_requirements(
+            triangular,
+            building_type="neighborhood living",
+            access_side="west",
+        )
+        projection = projected.metadata["program_projection"]
+        controller = projected.node_map[projection["threshold_controller_node_id"]]
+
+        self.assertEqual(controller.operator, "lift")
+        compilation = compile_geometry_program(projected)
+        self.assertEqual(compilation.status, "compiled", compilation.issues)
+        self.assertEqual(compilation.metrics["component_count"], 1)
 
     def test_recursive_mesh_preview_uses_per_pixel_depth_not_draw_order(self):
         image = Image.new("RGBA", (32, 32), "white")

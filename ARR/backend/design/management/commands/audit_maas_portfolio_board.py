@@ -9,6 +9,9 @@ from typing import Any
 from django.core.management.base import BaseCommand, CommandError
 
 from design.maas.geometry_language import GeometryOutcomeGraph
+from design.maas.book_language.portfolio_feedback import (
+    enrich_portfolio_vlm_feedback_from_descriptors,
+)
 from design.maas.preference.vlm_scorer import score_portfolio_board_with_openai_vlm
 from design.maas.program_massing import program_reference_contract
 
@@ -127,6 +130,14 @@ class Command(BaseCommand):
             program_context=program_context,
             candidate_summaries=candidate_summaries,
             model=str(options.get("model") or "") or None,
+        )
+        audit = enrich_portfolio_vlm_feedback_from_descriptors(
+            audit,
+            candidate_descriptors=[{
+                "candidate_id": item["candidate_id"],
+                "geometry_family": item["geometry_family"],
+                "chassis_family": item["chassis_family"],
+            } for item in candidate_summaries],
         )
         audit["execution_stage"] = "post_run_final_board"
         audit["run_id"] = run_dir.name

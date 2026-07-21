@@ -773,9 +773,9 @@ def _program_pool(
 ) -> tuple[list[_Candidate], dict[str, Any]]:
     # Local import avoids expanding the ordinary candidate-analysis import
     # surface while allowing online quality-diversity compaction.
-    from .quality_diversity_archive import map_elites_archive, qd_archive_policy
+    from .quality_diversity_archive import StreamingMapElitesArchive
 
-    accepted: list[_Candidate] = []
+    accepted_archive = StreamingMapElitesArchive()
     evaluated = compiled = clean = program_passed = 0
     scope_stage_counts = {
         label: {
@@ -795,8 +795,6 @@ def _program_pool(
     llm_authored_stage_counts: Counter[str] = Counter()
     llm_authored_failure_counts: Counter[str] = Counter()
     capacity_stage_counts: Counter[str] = Counter()
-    qd_maximum_size = int(qd_archive_policy()["max_archive_size"])
-    qd_stream_compaction_trigger = max(qd_maximum_size + 1, qd_maximum_size * 2)
     requested_parent_indices = tuple(sorted({max(0, int(index)) for index in parent_variant_indices})) or (0,)
     directed_seeds = _agent_mutated_seeds(
         building_type,
@@ -1358,9 +1356,13 @@ def _program_pool(
                     ),
                     "program_space_zones": deepcopy(source.metadata.get("program_space_zones") or []),
                 }
-                props["geometry_program"] = deepcopy(source.metadata.get("geometry_program") or {})
-                props["geometry_graph_notes"] = deepcopy(source.metadata.get("geometry_graph_notes") or [])
-                props["geometry_graph_snapshot"] = deepcopy(source.metadata.get("geometry_graph_snapshot") or {})
+                # These records are immutable evidence already owned by this
+                # candidate's SourceMass. Sharing them avoids a second deep
+                # object graph per heavy candidate while preserving exact AST
+                # identity for render/VLM/selector consumers.
+                props["geometry_program"] = source.metadata.get("geometry_program") or {}
+                props["geometry_graph_notes"] = source.metadata.get("geometry_graph_notes") or []
+                props["geometry_graph_snapshot"] = source.metadata.get("geometry_graph_snapshot") or {}
                 props["book_generation_lineage"] = deepcopy(generation_lineage)
                 props["base_capacity_contract"] = deepcopy(base_capacity_contract or {})
                 props["source_capacity_measurement"] = deepcopy(capacity_measurement)
@@ -1447,7 +1449,7 @@ def _program_pool(
                 # the AST's section language. Hard gates already decide legal
                 # validity; this small tie-break preserves design geometry.
                 score -= fit_strength * 0.10
-                accepted.append(_Candidate(
+                accepted_archive.append(_Candidate(
                     str(principle["principle_id"]),
                     str(principle["kind"]),
                     str(principle["label"]),
@@ -1456,13 +1458,10 @@ def _program_pool(
                     feature,
                     round(score, 6),
                 ))
-                if len(accepted) >= qd_stream_compaction_trigger:
-                    before_compaction = len(accepted)
-                    accepted[:] = map_elites_archive(accepted)
-                    capacity_stage_counts["qd_stream_compaction_count"] += 1
-                    capacity_stage_counts["qd_stream_candidates_released"] += (
-                        before_compaction - len(accepted)
-                    )
+    accepted = accepted_archive.finalize()
+    capacity_stage_counts["qd_stream_compaction_count"] += accepted_archive.compaction_count
+    capacity_stage_counts["qd_stream_candidates_released"] += accepted_archive.released_count
+    capacity_stage_counts["qd_stream_peak_candidate_count"] = accepted_archive.peak_candidate_count
     accepted, lineage_gate = gate_descendants_by_base(accepted)
     active_universal_programs = universal_form_program_pages(requested_parent_indices)
     summarized_gate_diagnostics = {

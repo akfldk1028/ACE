@@ -1315,6 +1315,12 @@ def _selection_capacity_diagnostics(
         "book_principle_kind_selected_counts": dict(sorted(Counter(
             candidate.principle_kind for candidate in selected
         ).items())),
+        "plan_family_supply_counts": dict(sorted(Counter(
+            _plan_family(candidate) for candidate in universe
+        ).items())),
+        "plan_family_selected_counts": dict(sorted(Counter(
+            _plan_family(candidate) for candidate in selected
+        ).items())),
         "measured_morphology_selection": {
             "phenotype_counts": dict(sorted(phenotype_usage.items())),
             "wedge_like_count": selected_wedge_count,

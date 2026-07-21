@@ -81,3 +81,31 @@ class MaasQualityDiversityArchiveTest(SimpleTestCase):
             retained = qd.map_elites_archive([third, runner_up, best])
 
         self.assertEqual({item.name for item in retained}, {"best", "runner-up"})
+
+    def test_streaming_archive_compacts_before_heavy_pool_doubles(self):
+        pool = [
+            self.candidate(
+                f"item-{index}", float(index), str(index), "p", "c",
+                f"plan-{index}", f"g-{index}",
+            )
+            for index in range(80)
+        ]
+        with (
+            patch.object(qd, "_scope_key", side_effect=lambda item: item.scope),
+            patch.object(qd, "_solid_morphology_metrics", side_effect=lambda item: {"phenotype": item.phenotype}),
+            patch.object(qd, "_capacity_alternative_key", side_effect=lambda item: item.capacity),
+            patch.object(qd, "_capacity_target_gate", side_effect=lambda item: item.target_pass),
+            patch.object(qd, "_plan_family", side_effect=lambda item: item.plan),
+            patch.object(qd, "_geometry_program_family", side_effect=lambda item: item.genotype),
+            patch.object(qd, "_fingerprint", side_effect=lambda item: (item.name,)),
+            patch.dict("os.environ", {"MAAS_QD_ARCHIVE_MAX_SIZE": "32"}),
+        ):
+            archive = qd.StreamingMapElitesArchive(compaction_margin=4)
+            for item in pool:
+                archive.append(item)
+            retained = archive.finalize()
+
+        self.assertEqual(len(retained), 32)
+        self.assertLessEqual(archive.peak_candidate_count, 36)
+        self.assertGreater(archive.compaction_count, 1)
+        self.assertEqual(archive.released_count, len(pool) - len(retained))

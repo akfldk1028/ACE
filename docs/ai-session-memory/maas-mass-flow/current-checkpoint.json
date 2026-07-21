@@ -1,18 +1,18 @@
 {
   "schema_version": "arr.maas.mass_flow_memory.v1",
-  "updated_at": "2026-07-21T21:35:00+09:00",
+  "updated_at": "2026-07-21T23:49:00+09:00",
   "frontend_url": "http://127.0.0.1:5175/design/language",
   "pnu": "1168011800104170004",
-  "latest_run": {
-    "run_id": "book-program-portfolios-r194-final-triangular-court",
+  "latest_completed_run": {
+    "run_id": "book-program-portfolios-r196-streaming-qd-one-cycle",
     "status": "fail",
     "run_state": "completed_with_failed_gate",
-    "phase": "final_gate_and_render",
     "selected_count": 15,
     "target_count": 20,
     "numeric_status": "fail",
     "downstream_hard_gate_status": "pass",
-    "run_local_outcome_graph_mb": 13.599,
+    "duration_seconds": 1093.214,
+    "run_local_outcome_graph_mb": 13.002,
     "failure_reasons": [
       "selected_count_below_20",
       "available_book_principle_kind_missing_from_portfolio",
@@ -25,23 +25,48 @@
     "numeric_status": "pass",
     "vlm_approved": false
   },
+  "resource_guard_runs": [
+    {
+      "run_id": "book-program-portfolios-r195-current-full-seven-page",
+      "phase": "candidate_generation",
+      "selected_count": 0,
+      "final_png_exists": false,
+      "minimum_free_memory_gb": 0.86
+    },
+    {
+      "run_id": "book-program-portfolios-r197-full-seven-page-vlm-memory",
+      "phase": "replenishment",
+      "completed_cycle_count": 1,
+      "selected_count_at_checkpoint": 15,
+      "final_png_exists": false,
+      "minimum_free_memory_gb": 0.26
+    }
+  ],
+  "streaming_quality_diversity": {
+    "algorithm": "incremental MAP-Elites with rare-plan, BOOK-principle and genotype anchors",
+    "max_archive_size": 192,
+    "compaction_margin": 24,
+    "r196_peak_candidate_count": 193,
+    "r196_compaction_count_before_batch_tuning": 197,
+    "r196_released_candidate_count": 1116,
+    "immutable_geometry_evidence_shared": true,
+    "hard_gate_thresholds_changed": false
+  },
   "geometry_supply": {
-    "plan_family_counts": {
+    "r196_plan_family_counts": {
       "articulated": 7,
       "curved_or_complex": 7,
       "quadrilateral": 1
     },
-    "triangular_plan_supply_count": 0,
-    "ground_strategy_counts": {
-      "frontage_court_threshold": 1,
-      "frontage_entry_notch": 9,
-      "frontage_lifted_threshold": 5
-    },
+    "form_bank_triangular_profile_program_count": 13,
+    "topology_aware_nonorthogonal_lift_projection_in_source": true,
+    "topology_aware_projection_full_benchmark_status": "not_run_resource_limited",
     "selector_plan_coverage_enabled": true,
+    "exact_plan_supply_diagnostics_enabled": true,
     "bottleneck": "viable_distinct_hard_pass_candidate_supply"
   },
-  "paid_portfolio_vlm": {
-    "request_count_for_r194": 1,
+  "latest_paid_portfolio_vlm": {
+    "run_id": "book-program-portfolios-r194-final-triangular-court",
     "request_count_for_r191_r194_loop": 3,
     "model": "gpt-5.4-mini",
     "response_id": "resp_0c1db4c3d006705b006a5f770e85448199a522e34ada21b68d",
@@ -50,22 +75,14 @@
     "candidate_count": 15,
     "visible_family_count": 9,
     "dominant_family_share": 0.4,
-    "failure_reasons": [
-      "family_resemblance",
-      "repeated_footprint",
-      "repeated_roof",
-      "program_language_weak",
-      "too_few_candidates"
-    ],
-    "cache_hit": false,
-    "board_image_submitted": true,
-    "individual_reference_images_submitted": 0
+    "r196_new_paid_request_count": 0
   },
   "direct_visual_review": {
+    "run_id": "book-program-portfolios-r196-streaming-qd-one-cycle",
     "status": "fail_portfolio_quality",
     "false_painter_order_fragments_present": false,
     "depth_buffer_renderer_active": true,
-    "remaining_issue": "box_bar_repetition_and_missing_nonquadrilateral_supply"
+    "remaining_issue": "box_step_repetition_and_missing_nonquadrilateral_selected_supply"
   },
   "parametric_invariant": {
     "authority": "evaluated_base_model_or_current_solid",
@@ -76,15 +93,17 @@
   },
   "frontend_verification": {
     "status": "pass",
-    "run_count_visible": 100,
+    "run_count_visible": 103,
+    "newest_state_only_run": "book-program-portfolios-r197-full-seven-page-vlm-memory",
+    "selected_replayable_run": "book-program-portfolios-r196-streaming-qd-one-cycle",
     "graph_count": 1,
     "selected_run_mass_count": 15,
     "loaded_mass_image_count": 15,
-    "related_node_count_after_mass_click": 40,
-    "active_edge_count_after_mass_click": 38,
+    "related_node_count_after_mass_click": 42,
+    "active_edge_count_after_mass_click": 40,
     "retrieved_archdaily_reference_count": 5,
     "active_vlm_reference_count": 0,
-    "exact_agent_memory_node_count": 4,
+    "exact_agent_memory_node_count": 6,
     "book_raster_request_count": 0,
     "book_raster_dom_count": 0,
     "console_error_count": 0,
@@ -101,21 +120,12 @@
     "landscaping_min_pct": 15.0,
     "approval_grade_verified": false
   },
-  "multi_agent_architecture": {
-    "shared_control_plane": "ARR/backend/agents",
-    "shared_memory": "ARR/backend/agents/memory",
-    "template_structure": "ARR/backend/agents/elevationAgent",
-    "mass_domain_engine": "ARR/backend/design/maas",
-    "future_mass_agent": "ARR/backend/agents/massAgent",
-    "elevation_handoff_schema": "arr.maas.elevation_handoff.v1",
-    "elevation_condition_pack_status": "mesh_handoff_ready_condition_pack_adapter_pending"
-  },
   "evidence": {
-    "summary_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r194-final-triangular-court/maas-book-programs-summary.json",
-    "board_png": "docs/playwright/design-route-live-verify/book-program-portfolios-r194-final-triangular-court/maas-book-neighborhood-20.png",
-    "paid_vlm_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r194-final-triangular-court/maas-paid-portfolio-vlm-audit.json",
-    "outcome_graph_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r194-final-triangular-court/maas-geometry-mutation-outcome-graph.json",
-    "browser_verify_json": "docs/playwright/design-route-live-verify/frontend-live/r194-interaction/verify.json",
-    "browser_full_graph_png": "docs/playwright/design-route-live-verify/frontend-live/r194-interaction/full-graph.png"
+    "summary_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r196-streaming-qd-one-cycle/maas-book-programs-summary.json",
+    "board_png": "docs/playwright/design-route-live-verify/book-program-portfolios-r196-streaming-qd-one-cycle/maas-book-neighborhood-20.png",
+    "outcome_graph_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r196-streaming-qd-one-cycle/maas-geometry-mutation-outcome-graph.json",
+    "r197_run_state_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r197-full-seven-page-vlm-memory/maas-run-state.json",
+    "browser_verify_json": "docs/playwright/design-route-live-verify/frontend-live/r196-after-r197-resource-guard/verify.json",
+    "browser_full_graph_png": "docs/playwright/design-route-live-verify/frontend-live/r196-after-r197-resource-guard/full-graph.png"
   }
 }

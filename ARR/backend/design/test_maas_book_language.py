@@ -1501,6 +1501,9 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             patch.object(portfolio_selection, "_section_family", return_value="section"),
             patch.object(portfolio_selection, "_roof_archetype", return_value="roof"),
             patch.object(portfolio_selection, "_chassis_family", side_effect=lambda item: item.key),
+            patch.object(portfolio_selection, "_plan_family", side_effect=lambda item: (
+                "triangular" if item.key == "valid_remaining" else "quadrilateral"
+            )),
             patch.object(portfolio_selection, "_silhouette_distance", return_value=1.0),
             patch.object(portfolio_selection, "_solid_morphology_metrics", return_value={
                 "phenotype": "prismatic", "wedge_like": False, "pyramidal_like": False,
@@ -1522,6 +1525,10 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertEqual(diagnostics["capacity_target_rejected_count"], 1)
         self.assertEqual(diagnostics["selection_universe_count"], 2)
         self.assertEqual(diagnostics["remaining_candidate_count"], 1)
+        self.assertEqual(
+            diagnostics["plan_family_supply_counts"],
+            {"quadrilateral": 1, "triangular": 1},
+        )
 
     def test_portfolio_feedback_resolves_replace_votes_to_exact_ast_family(self):
         rows = [{"variant_id": f"maas_{index:02}"} for index in range(1, 5)]
@@ -1577,6 +1584,21 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             )
 
         self.assertEqual(enriched["overrepresented_chassis_families"], ["curved_bar"])
+
+    def test_post_run_descriptor_feedback_matches_live_candidate_feedback(self):
+        enriched = portfolio_feedback.enrich_portfolio_vlm_feedback_from_descriptors(
+            {"hard_pass": False, "candidate_actions": [
+                {"candidate_id": "maas_01", "decision": "replace"},
+                {"candidate_id": "maas_02", "decision": "replace"},
+            ]},
+            candidate_descriptors=[
+                {"candidate_id": "maas_01", "geometry_family": "agent_notch", "chassis_family": "carved_monolith"},
+                {"candidate_id": "maas_02", "geometry_family": "agent_notch", "chassis_family": "carved_monolith"},
+            ],
+        )
+
+        self.assertEqual(enriched["overrepresented_geometry_families"], ["agent_notch"])
+        self.assertEqual(enriched["overrepresented_chassis_families"], ["carved_monolith"])
 
     def test_portfolio_feedback_marks_missing_core_chassis_as_review_anchors(self):
         rows = [{"variant_id": "maas_01"}]

@@ -1,94 +1,95 @@
-# Current Verified State — r194
+# Current Verified State — r196 completed, r197 resource-guarded
 
 Generated 2026-07-21 KST.
 
 ## Honest outcome
 
-- Current-source run: `book-program-portfolios-r194-final-triangular-court`.
-- Result: `15/20 · FAIL`; run state is `completed_with_failed_gate` at
-  `final_gate_and_render`.
-- Downstream site/legal/parking preflight passes for all 15 selected candidates.
-- Final failures: `selected_count_below_20`,
-  `available_book_principle_kind_missing_from_portfolio`, and
-  `repeated_roof_archetype_above_30_percent`.
+- Latest completed run: `book-program-portfolios-r196-streaming-qd-one-cycle`.
+- Result: `15/20 · FAIL`; downstream site/legal/parking preflight passes.
+- Failures: selected count below 20, one available BOOK principle kind missing,
+  and repeated roof archetype above 30 percent.
+- Duration 1093.214 seconds; run-local graph 13.002 MB.
+- r194 is the latest paid board audit: FAIL, 9 visible families, dominant share
+  0.40, response `resp_0c1db4c3d006705b006a5f770e85448199a522e34ada21b68d`.
+- r195 was stopped during initial candidate generation and r197 during cycle 2
+  after free physical memory fell below 1 GB. Both are state-only failures with
+  no final MASS/PNG. r197 retained the cycle-1 checkpoint of 15 selected.
 - r182 remains the latest numeric 20/20 baseline and was not VLM-approved.
-- Do not promote r192 or r193: both were measured experiments and their changes
-  were removed from production source.
+
+## Memory/search correction
+
+- Candidate generation now uses a streaming MAP-Elites archive owned by
+  `quality_diversity_archive.py` instead of waiting for 384 heavy candidates.
+- r196 measured peak candidate count 193, 197 compactions and 1116 released
+  candidates. Process memory stabilized near 600–740 MB instead of r195's
+  early 791 MB spike. The retained source now batches compaction at a bounded
+  `max_archive_size + 24` margin to reduce compaction overhead.
+- GeometryProgram, graph notes and graph snapshot are immutable candidate
+  evidence and are shared between SourceMass and Feature instead of deep-copied.
+- No geometry/legal/parking/capacity/silhouette threshold was relaxed.
+- Full seven-page closure could not be completed while other workstation apps
+  left only 0.26 GB free. Continue only when the machine has a stable memory
+  reserve; do not terminate user applications automatically.
 
 ## Geometry/search findings
 
-- Default outcome memory is now run-local. r194's graph is 13.599 MB; accidental
-  loading of the 469 MB shared PNU graph is no longer the default.
-- Final plan families: articulated 7, curved/complex 7, quadrilateral 1.
-  No triangular/non-quadrilateral plan candidate survived into final supply.
-- Ground strategies: court threshold 1, entry notch 9, lifted threshold 5.
-- Roofs: curved 2, oblique 1, prismatic 1, stepped 5, voided 5, sawtooth 1.
-- Chassis: attached 3, bent 1, carved 4, leaning 1, lifted 4, terraced 2.
-- The selector now preserves plan-family coverage when supply exists. It cannot
-  select a triangle that candidate generation/GATE did not supply.
-- Courtyard/split ground semantics are classified from existing evaluated
-  chassis and program relations. Upstream BOOK solids are not rebound or
-  unioned after the fact.
-- Local research code `clone/d4descent` was inspected at its optimizer and
-  rewrite/cleanup implementations. Its useful transferable pattern is staged
-  discrete structure rewrites + continuous parameter optimization + periodic
-  cleanup. MAAS currently has the discrete program/GATE loop but does not yet
-  implement a differentiable continuous optimizer; do not claim paper parity.
+- r196 final supply: 90 capacity-target hard passes from a raw pool of 145;
+  MILP maximum remains 15 for that one-page run.
+- Selected plans: articulated 7, curved/complex 7, quadrilateral 1. Ground:
+  court threshold 1, entry notch 9, lifted threshold 5.
+- Eight form-bank pages contain 13 typed triangular-profile programs, but the
+  old program projection often changed their measured plan via split/notch.
+- Current source now chooses footprint-preserving `lift` for triangular,
+  trapezoidal and kite profiles when topology permits. Unit compilation passes,
+  but this change has not yet completed a full benchmark run; do not claim a
+  generated triangular portfolio result yet.
+- Selection diagnostics now records plan-family supply and selected counts at
+  the exact capacity-target hard-pass universe.
 
-## Render integrity
+## VLM feedback boundary
 
-- The diagnostic renderer now uses a depth buffer instead of painter ordering.
-- Direct review of r191-r194 boards shows no previous false floating-fragment
-  artifact. Exact mesh connectivity and raster appearance agree on this point.
-- This is not a substitute for manifold, self-intersection and multi-view GATEs.
+- Exactly three paid board calls were made in the r191-r194 loop; no new paid
+  call was spent on the visually similar r196 board.
+- Post-run paid audit descriptors now pass through the same typed feedback
+  mapper as live candidates. Candidate actions become exact geometry-family and
+  chassis counts before entering the graph; free-form prose never becomes an
+  operator.
+- r194 graph memory was copied into r197's run-owned transfer graph. Historical
+  r194 evidence was not modified. The transfer was resource-safe but did not
+  improve cycle 1 beyond 15 candidates.
 
-## Paid VLM truth
+## Render and frontend verification
 
-- Exactly three new paid board calls were made in this loop: r191, r193, r194.
-  No bulk image sweep was performed.
-- r194 response:
-  `resp_0c1db4c3d006705b006a5f770e85448199a522e34ada21b68d`.
-- Model: `gpt-5.4-mini`; cache hit false; board submitted true.
-- Verdict: FAIL; 9 visible families; dominant family share 0.40.
-- Reasons: family resemblance, repeated footprint, repeated roof, weak program
-  language and too few candidates.
-- Requested next families: courtyard, split bridge, bent linear mass, cross
-  mass, terrace and carve void.
-- The paid board critic is a visual/program critic, never legal authority.
-
-## Frontend and causal graph
-
+- Direct r196 PNG review: no painter-order floating fragments; all 15 are
+  visible, but the board remains too box/step dominated for acceptance.
 - URL: `http://127.0.0.1:5175/design/language`.
-- Playwright verification passes with one Full Graph.
-- r194 exposes 15 executed MASS nodes and 15 loaded archive images.
-- Clicking a MASS activates 40 related nodes and 38 causal edges; Selected MASS
-  Path remains one graph and one exact result node.
-- Five retrieved ArchDaily reference nodes and four exact agent-memory nodes are
-  visible. Active VLM reference count is zero for r194, which accurately means
-  the post-run board critic did not consume those individual reference images.
-- BOOK scan image requests and DOM nodes are both zero. BOOK contributes typed
-  geometry language, not raster evidence.
-- Console errors and page errors are zero.
+- After r197 failed, the frontend correctly leaves r197 as a 0-MASS state-only
+  timeline entry and selects r196 as the latest replayable portfolio.
+- Browser pass: one graph; 15 executed nodes and 15 loaded images; 42 related
+  nodes and 40 active edges after MASS click; 5 retrieved ArchDaily nodes;
+  6 exact memory nodes; 0 active VLM references for r196; 0 BOOK rasters; 0 JS
+  or page errors; one Selected MASS Path result.
+- The r196 header/footer truthfully say VLM not evaluated/no claim.
 
-## Site/legal boundary
+## Site/legal/elevation boundary
 
-- PNU `1168011800104170004`; parcel area 264.126 m².
-- BCR 60%, FAR 250%, adjacent setback 0.5 m, landscaping minimum 15%.
-- Generation host 102.931 m²; requested 15 m / 5 floors.
-- This remains a massing preflight, not approval-grade permit verification.
+- PNU `1168011800104170004`; parcel 264.126 m²; BCR 60%; FAR 250%; adjacent
+  setback 0.5 m; landscaping minimum 15%; generation host 102.931 m².
+- This is massing preflight, not approval-grade permit verification.
+- Elevation indexed-mesh handoff exists, but final elevation remains blocked on
+  an accepted MASS and the mesh-to-condition-pack adapter.
 
-## Elevation boundary
+## Research alignment
 
-- MASS-to-elevation indexed-mesh handoff exists, but final elevation generation
-  remains blocked on a passing MASS and the mesh-to-condition-pack adapter.
-- Elevation must derive metric depth, normals, silhouettes and facade planes
-  from the accepted GeometryProgram mesh, face by face.
+- `clone/d4descent` optimizer/rewrite/cleanup code was inspected. MAAS uses the
+  staged discrete rewrite/selection/cleanup principle but does not implement
+  equivalent differentiable continuous optimization; do not claim paper parity.
 
 ## Evidence
 
-- `docs/playwright/design-route-live-verify/book-program-portfolios-r194-final-triangular-court/maas-book-neighborhood-20.png`
-- `docs/playwright/design-route-live-verify/book-program-portfolios-r194-final-triangular-court/maas-book-programs-summary.json`
-- `docs/playwright/design-route-live-verify/book-program-portfolios-r194-final-triangular-court/maas-paid-portfolio-vlm-audit.json`
-- `docs/playwright/design-route-live-verify/book-program-portfolios-r194-final-triangular-court/maas-geometry-mutation-outcome-graph.json`
-- `docs/playwright/design-route-live-verify/frontend-live/r194-interaction/verify.json`
-- `docs/playwright/design-route-live-verify/frontend-live/r194-interaction/full-graph.png`
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r196-streaming-qd-one-cycle/maas-book-neighborhood-20.png`
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r196-streaming-qd-one-cycle/maas-book-programs-summary.json`
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r196-streaming-qd-one-cycle/maas-geometry-mutation-outcome-graph.json`
+- `docs/playwright/design-route-live-verify/book-program-portfolios-r197-full-seven-page-vlm-memory/maas-run-state.json`
+- `docs/playwright/design-route-live-verify/frontend-live/r196-after-r197-resource-guard/verify.json`
+- `docs/playwright/design-route-live-verify/frontend-live/r196-after-r197-resource-guard/full-graph.png`

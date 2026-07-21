@@ -106,3 +106,22 @@
 - Inspected `clone/d4descent` optimizer/rewrite/cleanup code. Retained its staged
   search principle as research guidance; MAAS does not yet claim its continuous
   differentiable optimization behavior.
+
+## 2026-07-21 — r195-r197 streaming memory and triangular-plan diagnosis
+
+- Stopped r195 at 0.86 GB free memory during initial generation and recorded a
+  state-only ResourceGuard failure instead of allowing another system crash.
+- Added a streaming MAP-Elites archive and shared immutable SourceMass/Feature
+  geometry evidence. r196 bounded peak candidates at 193 and completed 15/20
+  with the same hard gates; direct PNG review still fails portfolio quality.
+- Added typed post-run descriptor feedback so paid board actions map back to
+  exact AST family/chassis counts before becoming graph memory.
+- Found 13 real triangular-profile programs across the eight form-bank pages.
+  Added topology-aware lift projection for non-orthogonal profiles and explicit
+  capacity-pass plan supply diagnostics; unit compilation passes.
+- Ran r197 with a copied, run-owned r194 VLM graph and the full seven-page
+  budget. It reached cycle 1 at 15 MASS, then was ResourceGuard-stopped during
+  cycle 2 when workstation free memory fell to 0.26 GB. No final PNG exists.
+- Frontend correctly shows r197 as 0 MASS/state-only and r196 as latest
+  replayable: one graph, 15/15 images, 40 active path edges, zero BOOK rasters
+  and zero console/page errors.

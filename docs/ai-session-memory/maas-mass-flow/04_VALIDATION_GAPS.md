@@ -45,6 +45,10 @@
 ## P1 — runtime and modularity
 
 - Cache descriptors, compilation, mesh and GATE results by content hash.
+- r195/r197 prove that even a bounded 600–840 MB worker cannot safely finish
+  while workstation free memory fluctuates below 1 GB. Add a cooperative
+  resource guard/checkpoint between generation pages and resume from saved
+  page archives instead of restarting the whole run.
 - Keep one public benchmark orchestrator, one AST/compiler and one graph. Put
   rendering, run state, VLM and selection mechanics in their owning modules.
 - Run-local causal graphs are the default. Cross-run shared memory must be an

@@ -231,6 +231,14 @@ def _threshold_operator(
         for token in ("court", "atrium", "void", "terrace")
     )
     u = _stable_unit(program, program_id, "threshold-language")
+    profile_families = {
+        str(node.parameters.get("profile_family") or "").strip().lower()
+        for node in program.nodes
+        if isinstance(node.parameters, dict)
+    }
+    preserves_nonorthogonal_profile = bool(
+        profile_families.intersection({"triangular", "trapezoidal", "kite"})
+    )
     topology_accepts_open_court = not (
         operators.intersection(_OPEN_COURT_HAZARDS)
         or operators.intersection({"courtyard", "carve_void", "notch"})
@@ -240,6 +248,18 @@ def _threshold_operator(
         else "carve_void" if "carve_void" in allowed
         else ""
     )
+    # A non-orthogonal base profile is already a meaningful plan language.
+    # Satisfy access with an undercroft when topology permits, instead of
+    # automatically turning the measured footprint into a split or notched
+    # orthogonal-looking outline. This is derived from the primitive's typed
+    # profile family, never from candidate IDs or absolute coordinates.
+    if (
+        preserves_nonorthogonal_profile
+        and "lift" in allowed
+        and "lift" not in operators
+        and not operators.intersection(_LIFT_HAZARDS)
+    ):
+        return "lift"
     # Program contracts select a relation vocabulary; the final BOOK topology
     # and a stable normalized sample select one member.  This produces real
     # threshold diversity without turning a use label into a base-form mold.

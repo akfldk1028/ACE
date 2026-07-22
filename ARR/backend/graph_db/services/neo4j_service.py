@@ -44,7 +44,7 @@ class Neo4jService:
                 return False
 
         except Exception as e:
-            logger.error(f"❌ Error connecting to Neo4j: {str(e)}")
+            logger.error(f"Error connecting to Neo4j: {str(e)}")
             return False
 
     def disconnect(self):
@@ -56,7 +56,7 @@ class Neo4jService:
         if self._driver:
             self._driver.close()
             self._driver = None
-            logger.info("🔌 Disconnected from Neo4j")
+            logger.info("Disconnected from Neo4j")
 
     @property
     def driver(self) -> Driver:
@@ -95,7 +95,7 @@ class Neo4jService:
                 result = session.run(query, parameters or {})
                 return [record.data() for record in result]
         except Exception as e:
-            logger.error(f"❌ Error executing query: {str(e)}")
+            logger.error(f"Error executing query: {str(e)}")
             logger.error(f"Query: {query}")
             logger.error(f"Parameters: {parameters}")
             raise
@@ -110,7 +110,7 @@ class Neo4jService:
 
                 return session.write_transaction(_execute_transaction)
         except Exception as e:
-            logger.error(f"❌ Error executing write query: {str(e)}")
+            logger.error(f"Error executing write query: {str(e)}")
             logger.error(f"Query: {query}")
             logger.error(f"Parameters: {parameters}")
             raise

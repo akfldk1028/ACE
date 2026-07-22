@@ -19,6 +19,18 @@ Current proof packet:
 - final-elevation approval: false
 - status: `mesh_handoff_ready_condition_pack_adapter_pending`
 
+Current execution-graph truth (r206, 2026-07-22):
+
+- Every new MASS passport now carries three downstream nodes in the same causal
+  graph: `elevation:mesh_handoff`, `elevation:condition_pack`, and
+  `elevation:result`.
+- All three are deliberately `not_evaluated` with `artifact_exists=false`.
+  This makes the missing continuation visible without inventing an elevation.
+- `elevationAgent` is still a renamed generic GitAgent and does not consume the
+  GeometryProgram mesh. No generated elevation PNG exists yet.
+- Do not change these nodes to passed until a hash-bound consumer writes a real
+  condition pack and multi-view result for the exact program/geometry/PNU.
+
 Existing paper and implementation memory:
 
 - `docs/ai-session-memory/maas-aesthetic-texturing/PAPERS.md`

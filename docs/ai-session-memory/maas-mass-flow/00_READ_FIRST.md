@@ -12,6 +12,7 @@ legal/parking logic or the `/design/language` graph.
 6. `CHANGELOG.md` — append-only checkpoint history.
 7. `06_ELEVATION_HANDOFF.md` — GeometryProgram MASS to elevationAgent boundary.
 8. `07_FULL_TEST_CONTRACT.md` — mandatory engineering and MAAS acceptance gates.
+9. `08_UNITBOX_MATRIX_AUTHORITY.md` — implemented one-root 4x4 geometry and UI contract.
 
 Primary rule: never turn a retrieved image, BOOK scan, unevaluated VLM stage,
 or rejected geometry into active evidence. One selected MASS has one exact

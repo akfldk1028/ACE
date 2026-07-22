@@ -34,15 +34,20 @@ interface BookLanguageFlowProps {
 const EXECUTION_STAGE_ORDER = [
   'base', 'book_scope', 'book_orientation', 'book_family', 'book_cardinality',
   'book_rule', 'book_apply', 'geometry', 'program', 'compiler', 'gate', 'site', 'capacity',
-  'law', 'parking', 'program_fit', 'render', 'reference', 'vlm', 'repair', 'selector', 'result',
+  'law', 'parking', 'program_fit', 'render', 'reference', 'vlm', 'repair',
+  'agent_design', 'agent_geometry', 'agent_law', 'agent_parking', 'agent_review', 'agent_selector',
+  'selector', 'result', 'elevation_handoff', 'elevation_condition', 'elevation_result',
 ];
 
 const FULL_GRAPH_STAGE_ORDER = [
-  'base_model', 'orientation', 'operation_family', 'cardinality', 'operation',
+  'base_model', 'derived_volume', 'orientation', 'operation_family', 'cardinality', 'operation',
   'book_extension', 'variation', 'reference_corpus', 'reference_query',
   'execution_reference', 'execution_vlm_reference', 'reference_distill', 'execution_geometry', 'execution_program',
-  'execution_compiler', 'execution_gates', 'execution_render',
+  'execution_compiler', 'execution_gates', 'execution_render', 'execution_law_evidence',
+  'execution_agent_design', 'execution_agent_geometry', 'execution_agent_law',
+  'execution_agent_parking', 'execution_agent_review', 'execution_agent_selector',
   'execution_vlm', 'execution_repair', 'execution_selector', 'execution_run', 'executed_mass',
+  'execution_elevation_handoff', 'execution_elevation_condition', 'execution_elevation_result',
   'memory_geometry', 'memory_render', 'memory_portfolio', 'memory_vlm', 'memory_outcome',
 ];
 
@@ -60,7 +65,8 @@ interface BookSemanticPath {
 }
 
 function bookStage(stage: string): string {
-  if (stage === 'base_model') return 'book_scope';
+  if (stage === 'base_model') return 'base';
+  if (stage === 'derived_volume') return 'book_scope';
   if (stage === 'orientation') return 'book_orientation';
   if (stage === 'operation_family') return 'book_family';
   if (stage === 'cardinality') return 'book_cardinality';
@@ -74,7 +80,10 @@ function selectedBookSemanticPath(
   if (!manifest || !mass) return null;
   const graph = manifest.exploration_graph;
   const nodesById = new Map(graph.nodes.map((node) => [node.id, node]));
-  const scopeId = `book:base-model:${mass.book_scope.replace('/', '-')}`;
+  const rootId = 'book:base-model:1-1';
+  const scopeId = mass.book_scope === '1/1'
+    ? rootId
+    : `book:derived-volume:${mass.book_scope.replace('/', '-')}`;
   const orientationId = `book:orientation:${mass.book_orientation || 'long_axis'}`;
   const principleId = mass.book_principle_id;
   if (!nodesById.has(scopeId) || !nodesById.has(orientationId) || !nodesById.has(principleId)) return null;
@@ -139,8 +148,18 @@ function selectedBookSemanticPath(
     scope: 'execution',
     authority: 'book',
   };
-  const pathEdges = [baseEdge, ...semanticEdges];
-  const pathNodeIds = new Set([scopeId, orientationId, principleId]);
+  const rootEdge = scopeId === rootId ? null : graph.edges.find((edge) => (
+    edge.source === rootId && edge.target === scopeId && edge.kind === 'derives_volume'
+  )) ?? {
+    id: `semantic:${rootId}:${scopeId}`,
+    source: rootId,
+    target: scopeId,
+    kind: 'derives_volume',
+    scope: 'execution',
+    authority: 'book',
+  };
+  const pathEdges = [...(rootEdge ? [rootEdge] : []), baseEdge, ...semanticEdges];
+  const pathNodeIds = new Set([rootId, scopeId, orientationId, principleId]);
   pathEdges.forEach((edge) => {
     pathNodeIds.add(edge.source);
     pathNodeIds.add(edge.target);
@@ -169,7 +188,7 @@ function selectedBookSemanticPath(
       kind: edge.kind,
       scope: 'execution',
     })),
-    entryId: scopeId,
+    entryId: rootId,
     targetId: principleId,
   };
 }
@@ -281,16 +300,31 @@ function fullGraph(
   return { nodes, edges };
 }
 
-function runtimeStage(column: string): string {
+function agentStage(nodeId: string, prefix = ''): string {
+  const stage = nodeId.includes('design_orchestrator') ? 'design'
+    : nodeId.includes('maas_geometry_agent') ? 'geometry'
+      : nodeId.includes('law_graph_agent') ? 'law'
+        : nodeId.includes('parking_agent') ? 'parking'
+          : nodeId.includes('review_agent') ? 'review'
+            : 'selector';
+  return `${prefix}agent_${stage}`;
+}
+
+function runtimeStage(column: string, nodeId = ''): string {
   if (column === 'base' || column === 'book' || column === 'geometry') return 'execution_geometry';
   if (column === 'program') return 'execution_program';
   if (column === 'compiler') return 'execution_compiler';
-  if (['gate', 'site', 'capacity', 'law', 'parking', 'program_fit'].includes(column)) return 'execution_gates';
+  if (['gate', 'site', 'capacity', 'parking', 'program_fit'].includes(column)) return 'execution_gates';
+  if (column === 'agent') return agentStage(nodeId, 'execution_');
+  if (column === 'law') return 'execution_law_evidence';
   if (column === 'render') return 'execution_render';
   if (column === 'reference') return 'execution_reference';
   if (column === 'vlm') return 'execution_vlm';
   if (column === 'repair') return 'execution_repair';
   if (column === 'selector') return 'execution_selector';
+  if (column === 'elevation_handoff') return 'execution_elevation_handoff';
+  if (column === 'elevation_condition') return 'execution_elevation_condition';
+  if (column === 'elevation_result') return 'execution_elevation_result';
   return 'execution_geometry';
 }
 
@@ -311,7 +345,7 @@ function selectedRuntimeGraph(
         kind: node.kind,
         stage: node.kind === 'vlm_reference_image'
           ? 'execution_vlm_reference'
-          : runtimeStage(node.column),
+          : runtimeStage(node.column, node.id),
         label: node.label,
         authority: 'observed',
         attributes: {
@@ -691,7 +725,11 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
       return {
         id: node.id,
         kind: node.kind,
-        stage: node.column === 'book' ? 'book_apply' : node.column,
+        stage: node.column === 'book'
+          ? 'book_apply'
+          : node.column === 'agent'
+            ? agentStage(node.id)
+            : node.column,
         label: node.label,
         authority: 'observed',
         attributes: {

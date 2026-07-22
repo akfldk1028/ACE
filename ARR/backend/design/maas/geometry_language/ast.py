@@ -27,7 +27,7 @@ NODE_KINDS = frozenset({
 
 OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
     "primitive": frozenset({"box", "cylinder", "extruded_polygon", "wedge", "sweep", "loft"}),
-    "transform": frozenset({"translate", "rotate", "scale", "mirror", "shear"}),
+    "transform": frozenset({"matrix4", "translate", "rotate", "scale", "mirror", "shear"}),
     "modifier": frozenset({
         "bend", "taper", "twist", "pinch", "inflate",
         "slice", "clip", "clip_fraction", "book_base_volume", "cut_corner",

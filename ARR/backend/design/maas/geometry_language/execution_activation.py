@@ -18,6 +18,8 @@ def build_activation_graph(
     preview: Mapping[str, Any],
     vlm: Mapping[str, Any],
     gate_issues: tuple[Any, ...],
+    agent_collaboration: Mapping[str, Any] | None = None,
+    geometry_hash: str = "",
 ) -> dict[str, Any]:
     nodes: list[dict[str, Any]] = []
     edges: list[dict[str, Any]] = []
@@ -94,6 +96,7 @@ def build_activation_graph(
     nodes.append(flow_node("flow:selector", "selector", selector["label"], selector["status"], evidence=selector["evidence"]))
     edges.append(edge(prior, "flow:selector", "hard_gate_input", status_activation(selector["status"])))
     edges.append(edge("flow:vlm", "flow:selector", "critic_input", status_activation(vlm_status)))
+    append_agent_collaboration_nodes(nodes, edges, agent_collaboration or {})
     nodes.append({
         "id": "result:mass",
         "column": "result",
@@ -104,7 +107,63 @@ def build_activation_graph(
         "evidence": deepcopy(dict(preview)),
     })
     edges.append(edge("render:mass_png", "result:mass", "generated_result", status_activation(render_status)))
-    edges.append(edge("flow:selector", "result:mass", "selection_status", status_activation(selector["status"])))
+    edges.append(edge(
+        "flow:selector",
+        "result:mass",
+        "selection_status",
+        1.0 if agent_collaboration else status_activation(selector["status"]),
+    ))
+    elevation_identity = {
+        "program_hash": _safe_program_hash(program),
+        "geometry_hash": str(geometry_hash or ""),
+        "mass_result_node_id": "result:mass",
+    }
+    nodes.extend((
+        {
+            "id": "elevation:mesh_handoff",
+            "column": "elevation_handoff",
+            "label": "Elevation mesh handoff · pending",
+            "kind": "elevation_mesh_handoff",
+            "status": "not_evaluated",
+            "activation": 0.0,
+            "evidence": {
+                **elevation_identity,
+                "artifact_exists": False,
+                "required_payload": ["indexed_mesh", "stable_face_ids", "camera_contract"],
+            },
+        },
+        {
+            "id": "elevation:condition_pack",
+            "column": "elevation_condition",
+            "label": "Elevation condition pack · pending",
+            "kind": "elevation_condition_pack",
+            "status": "not_evaluated",
+            "activation": 0.0,
+            "evidence": {
+                **elevation_identity,
+                "artifact_exists": False,
+                "required_layers": ["silhouette", "metric_depth", "surface_normals", "floor_guides", "facade_planes"],
+            },
+        },
+        {
+            "id": "elevation:result",
+            "column": "elevation_result",
+            "label": "Generated elevation · not available",
+            "kind": "elevation_result",
+            "status": "not_evaluated",
+            "activation": 0.0,
+            "evidence": {
+                **elevation_identity,
+                "artifact_exists": False,
+                "truth": "elevationAgent consumer and multiview generator are not implemented",
+            },
+        },
+    ))
+    edges.extend((
+        edge("result:mass", "elevation:mesh_handoff", "requests_elevation_handoff", 0.0),
+        edge("elevation:mesh_handoff", "elevation:condition_pack", "builds_condition_pack", 0.0),
+        edge("elevation:condition_pack", "elevation:result", "generates_elevation", 0.0),
+    ))
     ast_node_ids = [f"ast:{node.id}" for node in ordered_nodes]
     incoming_ast_targets = {
         str(item.get("target") or "")
@@ -137,6 +196,90 @@ def build_activation_graph(
         "nodes": nodes,
         "edges": edges,
     }
+
+
+def _safe_program_hash(program: Any) -> str:
+    try:
+        return str(program.program_hash())
+    except (AttributeError, TypeError, ValueError):
+        return ""
+
+
+def append_agent_collaboration_nodes(
+    nodes: list[dict[str, Any]],
+    edges: list[dict[str, Any]],
+    collaboration: Mapping[str, Any],
+) -> None:
+    if not collaboration:
+        return
+    identity = collaboration.get("identity")
+    identity = dict(identity) if isinstance(identity, Mapping) else {}
+    evidence_rows = [row for row in collaboration.get("evidence") or () if isinstance(row, Mapping)]
+    nodes.append({
+        "id": "agent:design_orchestrator",
+        "column": "agent",
+        "label": "Design Orchestrator",
+        "kind": "specialist_agent",
+        "status": "passed",
+        "activation": 1.0,
+        "evidence": {"identity": identity},
+    })
+    edges.append(edge("flow:geometry_gate", "agent:design_orchestrator", "starts_agent_review", 1.0))
+    for row in evidence_rows:
+        agent = str(row.get("agent") or "")
+        if not agent:
+            continue
+        node_id = f"agent:{agent}"
+        status = str(row.get("status") or "not_evaluated")
+        nodes.append({
+            "id": node_id,
+            "column": "agent",
+            "label": agent.replace("_", " ").title(),
+            "kind": "specialist_agent",
+            "status": status,
+            "activation": status_activation(status),
+            "evidence": deepcopy(dict(row)),
+        })
+        payload = row.get("evidence")
+        payload = payload if isinstance(payload, Mapping) else {}
+        if agent == "law_graph_agent":
+            search = payload.get("law_search")
+            search = search if isinstance(search, Mapping) else {}
+            search_status = "passed" if search.get("available") else "needs_evidence"
+            nodes.append({
+                "id": "source:law_domain_search",
+                "column": "law",
+                "label": "Law domain search",
+                "kind": "law_source_attempt",
+                "status": search_status,
+                "activation": status_activation(search_status),
+                "evidence": deepcopy(dict(search)),
+            })
+            edges.append(edge("source:law_domain_search", node_id, "law_source_evidence", status_activation(search_status)))
+            for article_id in payload.get("article_ids") or ():
+                article_node_id = f"law:{article_id}"
+                nodes.append({
+                    "id": article_node_id,
+                    "column": "law",
+                    "label": str(article_id),
+                    "kind": "law_article",
+                    "status": "evaluated",
+                    "activation": 1.0,
+                    "evidence": {"article_id": str(article_id), "identity": identity},
+                })
+                edges.append(edge(article_node_id, node_id, "legal_citation", 1.0))
+    for row in collaboration.get("handoffs") or ():
+        if not isinstance(row, Mapping):
+            continue
+        source = str(row.get("source_agent") or "")
+        target = str(row.get("target_agent") or "")
+        if source and target:
+            # The edge means the handoff actually occurred, not that the target
+            # passed. A needs-evidence result remains visible and typed on the
+            # target node while the causal transfer itself stays active.
+            edges.append(edge(f"agent:{source}", f"agent:{target}", "agent_handoff", 1.0))
+    if any(str(row.get("agent") or "") == "selector" for row in evidence_rows):
+        edges.append(edge("agent:selector", "flow:selector", "agent_selection_decision", 1.0))
 
 
 def append_vlm_nodes(nodes: list[dict[str, Any]], edges: list[dict[str, Any]], vlm: Mapping[str, Any]) -> None:
@@ -200,4 +343,4 @@ def edge(source: str, target: str, relation: str, activation: float) -> dict[str
     return {"id": f"edge:{digest}", "source": source, "target": target, "relation": relation, "activation": round(float(activation), 6)}
 
 
-__all__ = ["append_vlm_nodes", "build_activation_graph", "edge"]
+__all__ = ["append_agent_collaboration_nodes", "append_vlm_nodes", "build_activation_graph", "edge"]

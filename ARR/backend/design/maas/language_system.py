@@ -26,6 +26,7 @@ from .book_language.corpus_contract import (
 from .book_language.base_volume_contract import BOOK_BASE_VOLUME_SPECS
 from .book_language.capacity_alternatives import capacity_alternative_catalog
 from .geometry_language.base_seeds import BASE_SEED_SPECS
+from .geometry_language.affine_matrix import matrix4_to_lists, scale_matrix4
 from .geometry_language.typology_priors import TYPOLOGY_PRIORS
 from .geometry_language.universal_form_bank import (
     universal_form_bank_contract,
@@ -128,6 +129,7 @@ def build_language_system_manifest() -> dict[str, Any]:
     program_profiles = load_program_profiles()
     capacity_alternatives = capacity_alternative_catalog()
     axis_counts = {
+        "base_models": 1,
         "base_volumes": len(BASE_VOLUME_FRACTIONS),
         "orientations": len(BOOK_ORIENTATIONS),
         "base_seeds": len(BASE_SEED_SPECS),
@@ -156,12 +158,18 @@ def build_language_system_manifest() -> dict[str, Any]:
         "fraction": fraction,
         "topology": spec_by_label[label].topology,
         "page": 3,
-        "meaning": "relative selected volume inside the chosen host",
+        "meaning": (
+            "canonical UnitBox authority"
+            if label == "1/1"
+            else "derived occupancy/partition state of the 1/1 UnitBox"
+        ),
+        "role": "canonical_base_model" if label == "1/1" else "derived_volume",
     } for label, fraction in BASE_VOLUME_FRACTIONS]
     base_seeds = [{
         "id": item.seed_id,
         "label": item.label,
         "normalized_scale": list(item.normalized_scale),
+        "matrix4": matrix4_to_lists(scale_matrix4(item.normalized_scale)),
         "architectural_use": item.architectural_use,
         "primitive_operator": item.primitive_operator,
     } for item in BASE_SEED_SPECS]
@@ -201,24 +209,26 @@ def build_language_system_manifest() -> dict[str, Any]:
         },
         "geometry_language_contract": geometry_language_contract,
         "semantic_order": [
-            "base_model", "orientation", "operation_family", "cardinality",
+            "base_model", "derived_volume", "orientation", "operation_family", "cardinality",
             "book_operation", "variation", "book_extension", "program", "capacity_alternative",
             "hard_gates", "live_vlm", "portfolio",
         ],
         "form_bank_contract": {
             **universal_form_bank_contract(),
             "stage_order": [
-                "base_model_selection", "implementation_detail", "orientation",
+                "base_model_selection", "derived_volume_selection", "implementation_detail", "orientation",
                 "book_operation", "book_extension", "program_projection",
                 "capacity_alternative_projection", "hard_gates", "live_vlm",
             ],
             "program_count": len(universal_form_programs()),
-            "dominant_solid_authority": "book_base_model_then_internal_instantiation",
+            "dominant_solid_authority": "unitbox_1_1_then_explicit_derivation",
             "program_role": "downstream_projection_and_gate",
             "vlm_role": "post_program_typed_critic_and_repair",
         },
         "base_volume_contract": {
-            "rule": "book_base_model_is_the_public_root; seed_and_chassis_are_expandable_implementation_details",
+            "rule": "1/1 UnitBox is the sole public root; BOOK ratios, seed proportions and chassis are derived implementation states",
+            "canonical_base_model": "1/1 UnitBox",
+            "affine_representation": "homogeneous_matrix4",
             "examples": [
                 {"base_volume": "1/1", "base_seed": "slab", "reads_as": "wide plate / full podium datum"},
                 {"base_volume": "1/2", "base_seed": "slab", "reads_as": "half plate / podium band"},

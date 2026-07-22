@@ -1,8 +1,77 @@
-# Current Verified State — r196 completed, r197 resource-guarded
+# Current Verified State — r206 UnitBox matrix execution verified
 
 Generated 2026-07-22 KST.
 
-## Bounded paid single-MASS acceptance (r200)
+## r206 one UnitBox + two affine matrices + elevation trace
+
+- `/design/language` now exposes one `1/1 UnitBox` Base Model and five BOOK
+  derived-volume states. It renders one graph and zero BOOK raster images.
+- The 18 executable reference programs lower every Box through an explicit
+  UnitBox. r206 evaluates `UnitBox -> scale[5,5,16] -> lean(x += 0.2z)` and
+  preserves the prior geometry hash.
+- The r206 MASS is geometry-ready, watertight, manifold and one component.
+  Browser proof shows the generated four-view PNG, three matrix glyphs in the
+  full graph (identity + scale + lean), and two executed matrices in the
+  selected path.
+- Final status is still `needs_evidence`: the diagnostic has no PNU/capacity/
+  parking/VLM evidence. This is not a legal or design-quality acceptance.
+- Elevation continuation is visible as three pending nodes. No condition pack
+  or elevation PNG exists because `elevationAgent` is not yet a mesh consumer.
+- Verification: relevant backend 248/248, frontend feature tests 7/7,
+  TypeScript and the standalone Vite web build pass. Full frontend remains
+  336/407 with 71 legacy failures outside the MASS graph feature. The aggregate
+  Electron packaging command remains red because `frontend/build/icon.ico` is
+  absent after the web, main and preload bundles finish.
+
+## r203 current-code browser execution (live law pending)
+
+- Restarted the Vite-owned Django `:18000` process because it was running with
+  `--noreload` and initially emitted an obsolete passport without specialist
+  evidence. The repeated browser button execution now uses current source.
+- Browser-created execution `mass-20260722T060646699517Z` is geometry-ready in
+  1.899 s: one component, 108 triangles, watertight/manifold, zero geometry
+  GATE issues, program hash `b1a77c19c816f324d2abf0eabf1e613e96b5d0e693ae2e4ab749ad6fb4f19472`
+  and geometry hash `285a685cc961ecbd03249ad4a74805a67980597052bfbf9dfa94c6a067fbb26a`.
+- The same passport/full graph contains six specialist nodes, five completed
+  handoff edges and one bounded law-source attempt. The browser produced a new
+  chronological run, loaded the generated MASS PNG, requested zero BOOK
+  rasters, and recorded zero console/page/HTTP errors.
+- Final status is `needs_evidence`: Neo4j `:7687` and law-domain-agents `:8011`
+  are not listening, the built-in diagnostic shape has no PNU, and VLM is
+  `not_evaluated`. No paid request was spent on this non-acceptable diagnostic.
+- The MASS-focused regression group is green: backend 227/227, frontend 6/6,
+  TypeScript and Django checks pass. Repository-wide engineering remains red:
+  backend `design` ran 754 tests with 19 failures and 2 errors in 825.052 s;
+  frontend ran 406 tests with 334 pass, 71 fail and 1 skipped. A post-suite VLM
+  audit `NameError` fix passes its focused 17/17 regression.
+
+## r201 multi-agent acceptance wiring (offline verified, live law pending)
+
+- `execute_single_mass` now creates one immutable identity from execution ID,
+  program hash, geometry hash and PNU, then runs geometry, law graph, parking,
+  review and selector specialists in order.
+- The existing MASS passport and activation graph now persist agent evidence,
+  five handoffs, the bounded :8011 law search attempt and resolved Neo4j article
+  IDs. No second graph or BOOK raster lane was added.
+- A disconnected Neo4j or law-domain service yields `needs_evidence`. Geometry
+  compilation and the four-view PNG remain available for diagnosis, but final
+  acceptance is blocked.
+- VLM program resolution now reads nested `metadata.program_projection` before
+  family/generic fallback. The limit is three references with program, similar
+  and counterfactual roles plus exact local-image SHA-256 deduplication.
+- Verified offline: backend collaboration/single-execution/reference focused
+  tests 18/18; frontend specialist sidebar 3/3; TypeScript type-check PASS.
+- Materialized diagnostic execution `r201-offline-agent-path-verified`:
+  geometry-ready, zero geometry GATE issues, 1.887 s in-process total,
+  specialist handoffs 5/5 visible, final `needs_evidence` because 7687 and 8011
+  were not listening. Browser verification found all six specialist columns,
+  five rendered handoff edges, one selector-decision edge and zero console/page
+  errors.
+- Live Neo4j/:8011 and one bounded paid VLM run have not yet been executed for
+  this new contract. Therefore current new-contract status is
+  `needs_evidence`, not accepted.
+
+## Historical bounded paid single-MASS acceptance (r200, pre-r201 contract)
 
 - Immutable execution `mass-20260722T040843366927Z` replays r196 MASS 04.
   Program hash `e98802e47b7570b63719cd7ed58eb54b066deefce262e75510b43d6914d32f30`;

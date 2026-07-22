@@ -17,6 +17,7 @@ from .book_language.catalog import load_book_language_catalog
 from .book_language.source_bundle import load_book_source_bundle
 from .book_language.registry import build_book_language_registry
 from .geometry_language.base_seeds import BASE_SEED_SPECS
+from .geometry_language.affine_matrix import identity_matrix4, matrix4_to_lists, scale_matrix4
 from .geometry_language.typology_priors import TYPOLOGY_PRIORS
 from .program_massing.profiles import load_program_profiles
 
@@ -25,6 +26,7 @@ SCHEMA_VERSION = "arr.maas.book_exploration_graph.v1"
 
 EXECUTION_STAGE_ORDER = (
     "base_model",
+    "derived_volume",
     "orientation",
     "operation_family",
     "cardinality",
@@ -179,28 +181,50 @@ def build_book_exploration_graph() -> dict[str, Any]:
         for document_id in document_ids:
             edges.append(_edge(document_id, page_id, "contains", scope="evidence"))
 
-    base_model_ids: list[str] = []
+    unit_spec = next(spec for spec in BOOK_BASE_VOLUME_SPECS if spec.label == "1/1")
+    unit_box_id = "book:base-model:1-1"
+    base_model_ids = [unit_box_id]
+    nodes.append(_node(
+        unit_box_id, "base_model", "base_model", "1/1 UnitBox",
+        authority="book", evidence_ids=["book:page:03"], fraction=unit_spec.fraction,
+        topology=unit_spec.topology,
+        cells=[{"minimum": list(cell.minimum), "maximum": list(cell.maximum)} for cell in unit_spec.cells],
+        matrix4=matrix4_to_lists(identity_matrix4()),
+        canonical_base_authority=True,
+        is_exploration_root=True,
+        catalog_layer="diagram", catalog_stage="base_model",
+    ))
+    edges.append(_edge("book:page:03", unit_box_id, "documents", scope="evidence"))
+
+    derived_volume_ids: list[str] = []
+    scope_node_ids = [unit_box_id]
     for spec in BOOK_BASE_VOLUME_SPECS:
-        base_id = f"book:base-model:{spec.label.replace('/', '-')}"
-        base_model_ids.append(base_id)
+        if spec.label == "1/1":
+            continue
+        derived_id = f"book:derived-volume:{spec.label.replace('/', '-')}"
+        derived_volume_ids.append(derived_id)
+        scope_node_ids.append(derived_id)
         nodes.append(_node(
-            base_id, "base_model", "base_model", f"{spec.label} Base Model",
+            derived_id, "derived_volume", "derived_volume", f"{spec.label} Derived Volume",
             authority="book", evidence_ids=["book:page:03"], fraction=spec.fraction,
             topology=spec.topology,
             cells=[{"minimum": list(cell.minimum), "maximum": list(cell.maximum)} for cell in spec.cells],
-            is_exploration_root=True,
-            catalog_layer="diagram", catalog_stage="base_model",
+            derivation_operator="book_base_volume",
+            canonical_parent_id=unit_box_id,
+            is_exploration_root=False,
+            catalog_layer="diagram", catalog_stage="derived_volume",
         ))
-        edges.append(_edge("book:page:03", base_id, "documents", scope="evidence"))
+        edges.append(_edge(unit_box_id, derived_id, "derives_volume"))
+        edges.append(_edge("book:page:03", derived_id, "documents", scope="evidence"))
 
     orientation_ids = []
     for value, label in _ORIENTATIONS:
         node_id = f"book:orientation:{value}"
         orientation_ids.append(node_id)
         nodes.append(_node(node_id, "orientation", "orientation", label, authority="book"))
-    for base_id in base_model_ids:
+    for scope_id in scope_node_ids:
         for orientation_id in orientation_ids:
-            edges.append(_edge(base_id, orientation_id, "orients_as"))
+            edges.append(_edge(scope_id, orientation_id, "orients_as"))
 
     cardinality_ids: dict[tuple[str, str], str] = {}
     for family in ("add", "displace", "subtract"):
@@ -332,10 +356,11 @@ def build_book_exploration_graph() -> dict[str, Any]:
         nodes.append(_node(
             seed_id, "host_proportion", "implementation_detail", seed.label,
             authority="engineered", visible=False,
-            normalized_scale=list(seed.normalized_scale), architectural_use=seed.architectural_use,
+            normalized_scale=list(seed.normalized_scale),
+            matrix4=matrix4_to_lists(scale_matrix4(seed.normalized_scale)),
+            architectural_use=seed.architectural_use,
         ))
-        for base_id in base_model_ids:
-            edges.append(_edge(base_id, seed_id, "implemented_by", scope="detail", authority="engineered"))
+        edges.append(_edge(unit_box_id, seed_id, "derives_host_proportion", scope="detail", authority="engineered"))
     for chassis in TYPOLOGY_PRIORS:
         chassis_id = f"engineered:relation-scaffold:{chassis.typology_id}"
         nodes.append(_node(
@@ -444,6 +469,7 @@ def build_book_exploration_graph() -> dict[str, Any]:
             "edge_count": len(edges),
             "execution_edge_count": len(execution_edges),
             "base_model_count": len(base_model_ids),
+            "derived_volume_count": len(derived_volume_ids),
             "operation_count": len(operation_ids),
             "combination_count": sum(item["kind"] == "combination" for item in nodes),
             "aggregation_count": sum(item["kind"] == "aggregation" for item in nodes),
@@ -454,6 +480,8 @@ def build_book_exploration_graph() -> dict[str, Any]:
         },
         "contracts": {
             "exploration_starts_at_base_model": True,
+            "canonical_base_model_is_unitbox_1_1": True,
+            "book_ratios_are_derived_states": True,
             "source_and_case_edges_are_not_actions": True,
             "program_is_after_book_form": True,
             "base_seed_and_chassis_are_detail_only": True,

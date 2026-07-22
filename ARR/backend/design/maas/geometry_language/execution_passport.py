@@ -32,6 +32,7 @@ def build_mass_execution_passport(
     vlm_result: Mapping[str, Any] | None = None,
     downstream_evidence: Mapping[str, Any] | None = None,
     geometry_gate_evidence: Mapping[str, Any] | None = None,
+    agent_collaboration: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build one truthful passport from evidence materialized for this MASS."""
 
@@ -87,7 +88,25 @@ def build_mass_execution_passport(
         stage("vlm", "VLM critic", vlm["status"], evidence=vlm),
         stage_from_downstream("selector", downstream["selector"]),
     ))
-    activation_graph = build_activation_graph(program=program, ordered_nodes=ordered_nodes, trace_by_id=trace_by_id, stages=stages, preview=preview, vlm=vlm, gate_issues=gate_issues)
+    collaboration = deepcopy(dict(agent_collaboration or {}))
+    collaboration_status = str(collaboration.get("final_status") or "")
+    stages.append(stage(
+        "agent_collaboration",
+        "Specialist agent collaboration",
+        "passed" if collaboration_status == "accepted" else collaboration_status or "not_evaluated",
+        evidence=collaboration,
+    ))
+    activation_graph = build_activation_graph(
+        program=program,
+        ordered_nodes=ordered_nodes,
+        trace_by_id=trace_by_id,
+        stages=stages,
+        preview=preview,
+        vlm=vlm,
+        gate_issues=gate_issues,
+        agent_collaboration=collaboration,
+        geometry_hash=str(compilation.geometry_hash or ""),
+    )
     state = passport_state(stages)
     return {
         "schema_version": MASS_EXECUTION_PASSPORT_SCHEMA,
@@ -106,6 +125,7 @@ def build_mass_execution_passport(
         },
         "stages": stages,
         "activation_graph": activation_graph,
+        "agent_collaboration": collaboration,
     }
 
 

@@ -13,6 +13,7 @@ import numpy as np
 from design.maas.book_language.base_volume_contract import oriented_book_base_volume_cells
 
 from .ast import GeometryIssue, GeometryNode, GeometryProgram
+from .affine_matrix import kernel_matrix3x4, matrix4_for_transform, matrix4_to_lists
 from .book_parameter_projection import BOOK_KERNEL_PARAMETER_PROJECTIONS
 from .host_face_relations import resolve_face_attachment
 from .section_profiles import section_profile_controls
@@ -115,6 +116,12 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
             "volume": round(float(solid.volume()), 6),
             "macro_expansion": expansion,
         }
+        if node.kind == "transform" and inputs:
+            trace_row["matrix4"] = matrix4_to_lists(_transform_matrix4(node, inputs[0]))
+        macro_matrix = _macro_affine_matrix4(node)
+        if macro_matrix is not None:
+            trace_row["matrix4"] = matrix4_to_lists(macro_matrix)
+            trace_row["matrix_role"] = "macro_affine_expansion"
         if node.kind == "composition" and node.operator == "attach" and len(inputs) >= 2:
             try:
                 trace_row["host_relation_resolution"] = resolve_face_attachment(
@@ -250,41 +257,30 @@ def _primitive(node: GeometryNode):
 
 
 def _transform(node: GeometryNode, solid):
-    p = node.parameters
-    pivot_raw = p.get("pivot", (0.0, 0.0, 0.0))
-    pivot = _center(solid) if str(pivot_raw).lower() in {"center", "centroid"} else _vector(pivot_raw, 3, node.id)
-    if node.operator == "translate":
-        return solid.translate(_vector(p.get("vector", (p.get("x", 0), p.get("y", 0), p.get("z", 0))), 3, node.id))
-    if node.operator == "rotate":
-        angles = p.get("angles")
-        if angles is None:
-            axis = str(p.get("axis") or "z").lower()
-            value = float(p.get("angle_degrees", p.get("angle", 0.0)))
-            angles = (value if axis == "x" else 0.0, value if axis == "y" else 0.0, value if axis == "z" else 0.0)
-        return _around_pivot(solid, pivot, lambda item: item.rotate(_vector(angles, 3, node.id)))
-    if node.operator == "scale":
-        value = p.get("vector", p.get("scale", (1.0, 1.0, 1.0)))
-        if isinstance(value, (int, float)):
-            value = (float(value),) * 3
-        scale = _vector(value, 3, node.id)
-        if min(abs(item) for item in scale) <= 1e-6:
-            raise GeometryCompileError("degenerate_scale", "scale components must be non-zero", node.id)
-        return _around_pivot(solid, pivot, lambda item: item.scale(scale))
-    if node.operator == "mirror":
-        normal = _vector(p.get("normal", (1.0, 0.0, 0.0)), 3, node.id)
-        return _around_pivot(solid, pivot, lambda item: item.mirror(normal))
-    if node.operator == "shear":
-        amount = float(p.get("amount", 0.0))
-        axis = str(p.get("axis") or "x").lower()
-        direction = str(p.get("direction") or "z").lower()
-        matrix = np.eye(3, 4, dtype=float)
-        row = {"x": 0, "y": 1, "z": 2}.get(axis)
-        column = {"x": 0, "y": 1, "z": 2}.get(direction)
-        if row is None or column is None or row == column:
-            raise GeometryCompileError("invalid_shear_axes", "shear axis and direction must differ", node.id)
-        matrix[row, column] = amount
-        return _around_pivot(solid, pivot, lambda item: item.transform(matrix.tolist()))
-    raise GeometryCompileError("unsupported_transform", node.operator, node.id)
+    return solid.transform(kernel_matrix3x4(_transform_matrix4(node, solid)))
+
+
+def _transform_matrix4(node: GeometryNode, solid):
+    parameters = dict(node.parameters)
+    pivot_raw = parameters.get("pivot", (0.0, 0.0, 0.0))
+    if str(pivot_raw).lower() in {"center", "centroid"}:
+        parameters["pivot"] = _center(solid)
+    try:
+        return matrix4_for_transform(node.operator, parameters)
+    except (TypeError, ValueError) as exc:
+        code = "invalid_matrix4" if node.operator == "matrix4" else "invalid_affine_transform"
+        raise GeometryCompileError(code, str(exc), node.id) from exc
+
+
+def _macro_affine_matrix4(node: GeometryNode):
+    if node.kind != "macro" or node.operator != "leaning_tower":
+        return None
+    direction = str(node.parameters.get("direction") or "x").lower()
+    return matrix4_for_transform("shear", {
+        "axis": direction,
+        "direction": "z",
+        "amount": float(node.parameters.get("amount", 0.18)),
+    })
 
 
 def _modifier(node: GeometryNode, solid):
@@ -701,10 +697,7 @@ def _macro(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str]]:
     if operator == "tapered_tower":
         return _warp_taper(base, p, node.id), ["taper_warp"]
     if operator == "leaning_tower":
-        amount = float(p.get("amount", 0.18))
-        direction = str(p.get("direction") or "x").lower()
-        matrix = [[1.0, 0.0, amount if direction == "x" else 0.0, 0.0], [0.0, 1.0, amount if direction == "y" else 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]
-        return base.transform(matrix), ["shear"]
+        return base.transform(kernel_matrix3x4(_macro_affine_matrix4(node))), ["shear"]
     if operator == "lift":
         minx, miny, minz, maxx, maxy, maxz = _bounds(base)
         height = max(maxz - minz, 1e-7)

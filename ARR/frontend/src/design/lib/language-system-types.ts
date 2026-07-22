@@ -68,7 +68,7 @@ export interface OutcomeGraphSlice {
 export interface MassExecutionStage {
   id: string;
   label: string;
-  status: 'passed' | 'failed' | 'evaluated' | 'not_evaluated' | 'cache_hit' | 'live_scored';
+  status: 'passed' | 'failed' | 'evaluated' | 'not_evaluated' | 'cache_hit' | 'live_scored' | 'needs_evidence' | 'accepted' | 'rejected';
   required_for_final: boolean;
   node_ids: string[];
   evidence: Record<string, unknown>;
@@ -114,6 +114,23 @@ export interface MassExecutionPassport {
       relation: string;
       activation: number;
     }>;
+  };
+  agent_collaboration?: {
+    final_status: string;
+    identity: {
+      execution_id: string;
+      program_hash: string;
+      geometry_hash: string;
+      pnu: string;
+    };
+    evidence: Array<{
+      evidence_id: string;
+      agent: string;
+      status: string;
+      summary: string;
+      evidence: Record<string, unknown>;
+    }>;
+    handoffs: Array<Record<string, unknown>>;
   };
   retrieved_references?: Array<{
     id: string;
@@ -320,6 +337,8 @@ export interface MaasLanguageSystemManifest {
   };
   base_volume_contract: {
     rule: string;
+    canonical_base_model: string;
+    affine_representation: string;
     examples: Array<{
       base_volume: string;
       base_seed: string;
@@ -353,6 +372,7 @@ export interface MaasLanguageSystemManifest {
     live_vlm: LanguageAxisItem[];
   };
   counts: {
+    base_models: number;
     base_volumes: number;
     orientations: number;
     base_seeds: number;

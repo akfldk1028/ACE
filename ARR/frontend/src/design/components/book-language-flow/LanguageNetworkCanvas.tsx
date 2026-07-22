@@ -39,10 +39,11 @@ const STAGE_LABELS: Record<string, string> = {
   book_process_language: '00 · DESIGN PROCESS LANGUAGE',
   book_geometry_language: '02 · GEOMETRY / DIAGRAM LANGUAGE',
   base_model: '00 · BASE MODEL',
-  orientation: '01 · ORIENTATION',
-  operation_family: '02 · OPERATION FAMILY',
-  cardinality: '03 · CARDINALITY',
-  operation: '04 · BOOK OPERATIVE',
+  derived_volume: '01 · DERIVED BOOK VOLUME',
+  orientation: '02 · ORIENTATION',
+  operation_family: '03 · OPERATION FAMILY',
+  cardinality: '04 · CARDINALITY',
+  operation: '05 · BOOK OPERATIVE',
   combination: '05 · COMBINATION',
   aggregation_method: '06 · AGGREGATION METHOD',
   aggregation_expression: '07 · AGGREGATION EXPRESSION',
@@ -82,10 +83,17 @@ const STAGE_LABELS: Record<string, string> = {
   execution_repair: 'TYPED GEOMETRY REPAIR',
   execution_selector: 'FINAL SELECTOR',
   executed_mass: 'EXECUTED MASS RESULT',
+  elevation_handoff: 'ELEVATION MESH HANDOFF',
+  elevation_condition: 'ELEVATION CONDITION PACK',
+  elevation_result: 'ELEVATION RESULT',
+  execution_elevation_handoff: 'ELEVATION MESH HANDOFF',
+  execution_elevation_condition: 'ELEVATION CONDITION PACK',
+  execution_elevation_result: 'ELEVATION RESULT',
 };
 
 function rowHeight(node: NetworkNode) {
-  return typeof node.attributes.preview_url === 'string' && node.attributes.preview_url ? 126 : ROW_HEIGHT;
+  if (typeof node.attributes.preview_url === 'string' && node.attributes.preview_url) return 126;
+  return Array.isArray(node.attributes.matrix4) ? 84 : ROW_HEIGHT;
 }
 
 function BaseModelGlyph({ cells }: { cells: unknown }) {
@@ -109,6 +117,21 @@ function BaseModelGlyph({ cells }: { cells: unknown }) {
         );
       })}
     </svg>
+  );
+}
+
+function Matrix4Glyph({ matrix }: { matrix: unknown }) {
+  if (!Array.isArray(matrix) || matrix.length !== 4) return null;
+  const values = matrix.flatMap((row) => (Array.isArray(row) ? row.slice(0, 4) : []));
+  if (values.length !== 16) return null;
+  return (
+    <span className="book-network__matrix4" aria-label="homogeneous 4 by 4 transform matrix">
+      {values.map((value, index) => (
+        <code key={`${index}-${String(value)}`} title={String(value)}>
+          {Number(value).toFixed(Number(value) % 1 === 0 ? 0 : 2)}
+        </code>
+      ))}
+    </span>
   );
 }
 
@@ -310,11 +333,13 @@ export function LanguageNetworkCanvas({
                   data-related={related}
                   data-authority={node.authority ?? 'observed'}
                   data-has-preview={typeof node.attributes.preview_url === 'string' && Boolean(node.attributes.preview_url)}
+                  data-has-matrix={Array.isArray(node.attributes.matrix4)}
                   onClick={() => onSelectNode(node.id)}
                   title={`${node.label}\n${node.kind}`}
                 >
                   <span>{(row + 1).toString().padStart(2, '0')}</span>
-                  {node.kind === 'base_model' && <BaseModelGlyph cells={node.attributes.cells} />}
+                  {(node.kind === 'base_model' || node.kind === 'derived_volume') && <BaseModelGlyph cells={node.attributes.cells} />}
+                  <Matrix4Glyph matrix={node.attributes.matrix4} />
                   {typeof node.attributes.preview_url === 'string' && node.attributes.preview_url && (
                     <img src={node.attributes.preview_url} alt={`${node.label} four-view MASS result`} />
                   )}

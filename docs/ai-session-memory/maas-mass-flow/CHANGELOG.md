@@ -265,3 +265,32 @@
 - Required future graph/UI migration to show one base node followed by explicit
   derived-state nodes, so an Agent can trace `1/1 -> 1/2 or 3/8 -> operation ->
   MASS` without treating the ratios as independent primitives.
+
+## 2026-07-22 - r206 UnitBox matrix implementation and browser proof
+
+- Implemented homogeneous row-major 4x4 affine evaluation for translate,
+  rotate, scale, mirror, shear and explicit `matrix4` AST nodes. Compiler trace
+  now records the evaluated matrix; affine macro expansion records its matrix
+  where applicable (`leaning_tower` currently).
+- Changed the BOOK exploration graph from six Base Model roots to one
+  `book:base-model:1-1` UnitBox plus five `derived_volume` nodes. `3/8` remains
+  the exact connected three-octant L, not a fake scale.
+- Lowered every Box in the 18 reference geometry programs to
+  `UnitBox(1,1,1) -> matrix4`. r206 proves `[5,5,16]` scale followed by
+  `x <- x + 0.2z` lean while preserving the previous geometry hash
+  `0c8e115e...0015`.
+- Updated the one `/design/language` graph with a monochrome 4x4 matrix glyph.
+  Browser DOM proof: one Base Model, five derived volumes, one graph, zero BOOK
+  rasters, three full-graph matrix glyphs / two active executed matrices for
+  r206, and no Vite error overlay. The right side of the selected path visibly
+  continues from generated MASS to the three elevation stages.
+- Added honest pending elevation nodes to the same passport graph. No elevation
+  artifact is claimed; `elevationAgent` consumption remains unimplemented.
+- Verification: 248/248 relevant backend regressions pass; all 18 reference
+  shapes compile watertight and single-component; frontend type-check and Vite
+  build pass; focused frontend 7/7 pass. The repository-wide frontend suite is
+  still red at 336/407 passed and 71 failed in unrelated legacy ChatBox,
+  SearchInput, Terminal and installation-hook suites. The aggregate Electron
+  package command also remains red only at its final NSIS step because the
+  repository has no `frontend/build/icon.ico`; the web/main/preload bundles
+  completed first.

@@ -101,7 +101,8 @@ class MaasGeometryLanguageTest(SimpleTestCase):
 
         self.assertEqual(manifest["schema_version"], "arr.maas.language_system.v3")
         self.assertEqual(graph["schema_version"], "arr.maas.book_exploration_graph.v1")
-        self.assertEqual(graph["counts"]["base_model_count"], 6)
+        self.assertEqual(graph["counts"]["base_model_count"], 1)
+        self.assertEqual(graph["counts"]["derived_volume_count"], 5)
         self.assertEqual(graph["counts"]["operation_count"], 30)
         self.assertEqual(graph["counts"]["combination_count"], 20)
         self.assertEqual(graph["counts"]["aggregation_count"], 9)
@@ -114,12 +115,12 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertEqual(len(manifest["axes"]["programs"]), 7)
         self.assertEqual(len(manifest["axes"]["capacity_alternatives"]), 4)
         self.assertEqual(manifest["counts"]["universal_form_programs"], 82)
-        self.assertEqual(manifest["semantic_order"][:5], [
-            "base_model", "orientation", "operation_family", "cardinality", "book_operation",
+        self.assertEqual(manifest["semantic_order"][:6], [
+            "base_model", "derived_volume", "orientation", "operation_family", "cardinality", "book_operation",
         ])
         self.assertFalse(manifest["form_bank_contract"]["program_conditioned"])
         self.assertEqual(
-            manifest["semantic_order"][7:10],
+            manifest["semantic_order"][8:11],
             ["program", "capacity_alternative", "hard_gates"],
         )
         self.assertEqual(

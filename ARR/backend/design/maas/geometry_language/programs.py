@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .ast import GeometryNode, GeometryProgram
+from .affine_matrix import matrix4_to_lists, scale_matrix4
 from .book_chassis_compatibility import SPLIT_WING_RELATION_CONTRACT
 
 
@@ -32,6 +33,49 @@ class GeometryProgramBuilder:
     ) -> str:
         self._counter += 1
         resolved_id = node_id or f"n{self._counter:02d}_{operator}"
+        provenance = {"source": "executable_language_probe"}
+        if kind == "primitive" and operator == "box":
+            authored = dict(parameters or {})
+            scale = (
+                float(authored.get("width", 1.0)),
+                float(authored.get("depth", 1.0)),
+                float(authored.get("height", 1.0)),
+            )
+            unit_parameters: dict[str, Any] = {
+                "width": 1.0,
+                "depth": 1.0,
+                "height": 1.0,
+            }
+            if bool(authored.get("center", False)):
+                unit_parameters["center"] = True
+            self.nodes.append(GeometryNode(
+                id=resolved_id,
+                kind="primitive",
+                operator="box",
+                parameters=unit_parameters,
+                semantic_role="base_authority",
+                provenance={
+                    **provenance,
+                    "canonical_base_model": "1/1 UnitBox",
+                    "authored_box_dimensions": list(scale),
+                },
+            ))
+            matrix_id = f"{resolved_id}_matrix4"
+            self.nodes.append(GeometryNode(
+                id=matrix_id,
+                kind="transform",
+                operator="matrix4",
+                inputs=(resolved_id,),
+                parameters={"matrix4": matrix4_to_lists(scale_matrix4(scale))},
+                semantic_role=semantic_role,
+                provenance={
+                    **provenance,
+                    "canonical_base_model": "1/1 UnitBox",
+                    "derived_from": resolved_id,
+                    "authored_operator": "box",
+                },
+            ))
+            return matrix_id
         self.nodes.append(GeometryNode(
             id=resolved_id,
             kind=kind,
@@ -39,7 +83,7 @@ class GeometryProgramBuilder:
             inputs=inputs,
             parameters=parameters or {},
             semantic_role=semantic_role,
-            provenance={"source": "executable_language_probe"},
+            provenance=provenance,
         ))
         return resolved_id
 

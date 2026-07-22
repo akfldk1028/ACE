@@ -17,6 +17,7 @@ import type {
   OutcomeGraphSlice,
 } from '../../lib/language-system-types';
 import { ExecutedMassEvidence } from './ExecutedMassEvidence';
+import { useSingleMassVlmReview } from './useSingleMassVlmReview';
 import {
   LanguageNetworkCanvas,
   type NetworkEdge,
@@ -616,6 +617,8 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
 
   useEffect(() => {
     if (!archive) return undefined;
+    setExecutionState('idle');
+    setExecutionError('');
     if (archive.masses.length === 0) {
       setPassport(null);
       setPassportError('');
@@ -657,6 +660,12 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
   }, [isFullscreen]);
 
   const selectedMass = archive?.masses.find((mass) => mass.index === selectedMassIndex) ?? null;
+  const vlmReview = useSingleMassVlmReview({
+    archive,
+    mass: selectedMass,
+    onPassport: setPassport,
+    onSync: () => setLastSyncAt(new Date().toLocaleTimeString('ko-KR', { hour12: false })),
+  });
   const bookSemanticPath = useMemo(
     () => selectedBookSemanticPath(languageManifest, selectedMass),
     [languageManifest, selectedMass],
@@ -987,6 +996,9 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
               onExecute={executeSelectedMass}
               executionState={executionState}
               executionError={executionError}
+              onVlmReview={vlmReview.review}
+              vlmReviewState={vlmReview.state}
+              vlmReviewError={vlmReview.error}
             />
           )}
 

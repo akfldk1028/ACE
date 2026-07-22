@@ -24,6 +24,9 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
 - Stable result contract: `single_execution/contracts.py`
 - Compile/GATE/render/passport timing pipeline: `single_execution/pipeline.py`
 - Atomic bundle writers: `single_execution/persistence.py`
+- Bounded cache-first paid review and passport enrichment:
+  `single_execution/vlm_review.py`. It owns the 0..2 reference bound, zero
+  retries, exact image/program/geometry binding and token-usage observation.
 - Existing archive read-model adapter: `single_execution/catalog.py`. It maps
   one-MASS bundles into the same executed-run manifest and timeline contract;
   it must not create a parallel archive or graph.
@@ -67,6 +70,9 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
 - Selected MASS execution/reload: `BookLanguageFlow.tsx` calls
   `executeArchivedMassAndLoad` in `api-client.ts`, then replaces the selected
   archive with the returned `single-execution:<id>` run in the same graph.
+- Single-MASS paid VLM UI state is isolated in
+  `book-language-flow/useSingleMassVlmReview.ts`; do not put network/retry/cost
+  orchestration back into the graph component.
 - Runtime API/types: `ARR/frontend/src/design/lib/api-client.ts`,
   `language-system-types.ts`
 - Browser verification: `docs/playwright/design-route-live-verify/verify-maas-single-graph.cjs`

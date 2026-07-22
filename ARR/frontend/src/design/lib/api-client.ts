@@ -190,6 +190,22 @@ export async function executeArchivedMassAndLoad(
   return { execution, archive };
 }
 
+export async function reviewSingleMassWithVlm(
+  executionId: string,
+  referenceLimit = 2,
+): Promise<import('./language-system-types').SingleMassVlmReviewResponse> {
+  const res = await fetch(`${BASE}/maas/single-executions/${encodeURIComponent(executionId)}/vlm-review/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reference_limit: Math.max(0, Math.min(2, referenceLimit)) }),
+  });
+  if (!res.ok) {
+    const payload = await res.json().catch(() => ({}));
+    throw new Error(payload.error || 'Bounded paid VLM review failed');
+  }
+  return res.json();
+}
+
 export async function getAgLightBusLog(limit = 50): Promise<AgLightBusEvent[]> {
   const res = await fetch(`${AG_LIGHT_BASE}/bus/log?limit=${encodeURIComponent(String(limit))}`);
   if (!res.ok) throw new Error('AG-light bus log fetch failed');

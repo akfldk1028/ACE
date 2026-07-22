@@ -150,6 +150,11 @@ def vlm_evidence(value: Mapping[str, Any] | None) -> dict[str, Any]:
         "reference_massing_gate": deepcopy(result.get("reference_massing_gate") or {}),
         "critique": str(result.get("critique") or result.get("reasoning") or ""),
         "error": str(result.get("error") or ""),
+        "api_usage": deepcopy(result.get("api_usage") or {}),
+        "cost_observation": deepcopy(result.get("cost_observation") or {}),
+        "evidence_binding": deepcopy(result.get("evidence_binding") or {}),
+        "prompt_contract_version": str(result.get("prompt_contract_version") or ""),
+        "provider": str(result.get("provider") or ""),
     }
 
 
@@ -167,9 +172,20 @@ def passport_state(stages: list[dict[str, Any]]) -> dict[str, Any]:
         stage_map.get(stage_id, {}).get("status") == "passed"
         for stage_id in _HARD_ACCEPTANCE_STAGES
     )
-    vlm_status = stage_map.get("vlm", {}).get("status")
+    vlm_stage = stage_map.get("vlm", {})
+    vlm_status = vlm_stage.get("status")
+    vlm_payload = vlm_stage.get("evidence")
+    vlm_payload = vlm_payload if isinstance(vlm_payload, Mapping) else {}
     vlm_complete = vlm_status in {"passed", "evaluated", "cache_hit", "live_scored", "failed"}
-    accepted = bool(hard_pass and vlm_complete)
+    vlm_pass = bool(
+        vlm_status == "passed"
+        or (
+            vlm_status in {"evaluated", "cache_hit", "live_scored"}
+            and vlm_payload.get("hard_pass") is True
+            and vlm_payload.get("program_fit_hard_pass") is not False
+        )
+    )
+    accepted = bool(hard_pass and vlm_pass)
     if accepted:
         status = "accepted"
     elif flow_complete:

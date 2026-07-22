@@ -16,7 +16,7 @@ from design.maas.preference.vlm_scorer import (
     audit_reference_image_for_massing,
     score_candidate_with_openai_vlm,
 )
-from design.maas.preference.reference_paths import resolve_reference_image_path
+from design.maas.preference.reference_paths import resolve_reference_image_path, workspace_root
 from design.maas.preference.reference_corpus import (
     ReferenceItem,
     default_reference_root,
@@ -515,6 +515,8 @@ def score_geometry_program_with_openai_vlm(
     building_type: str = "",
     program_context: dict[str, Any] | None = None,
     model: str | None = None,
+    write_passport_sidecar: bool = True,
+    max_retries: int | None = None,
 ) -> dict[str, Any]:
     """Ask the live critic for bounded typed AST edits, not descriptive labels."""
     from .execution_agent_context import build_mass_execution_agent_context
@@ -526,6 +528,7 @@ def score_geometry_program_with_openai_vlm(
         building_type=building_type,
         model=model,
         limit=5,
+        max_retries=max_retries,
     )
     reference_matches = list(reference_audit["accepted"])
     pre_review_passport = build_mass_execution_passport(
@@ -588,6 +591,7 @@ def score_geometry_program_with_openai_vlm(
             image_path=preview_path,
             reference_matches=reference_matches or [],
             model=model,
+            max_retries=max_retries,
         )
         result = {
             **result,
@@ -648,12 +652,13 @@ def score_geometry_program_with_openai_vlm(
     # No concept activation is drawn before this material evidence exists.
     from .execution_passport import write_mass_execution_passport
 
-    write_mass_execution_passport(
-        compilation,
-        preview_path,
-        vlm_result=result,
-        geometry_graph_snapshot=graph_snapshot,
-    )
+    if write_passport_sidecar:
+        write_mass_execution_passport(
+            compilation,
+            preview_path,
+            vlm_result=result,
+            geometry_graph_snapshot=graph_snapshot,
+        )
     return result
 
 
@@ -711,10 +716,12 @@ def _geometry_vlm_cache_path(
         separators=(",", ":"),
     ).encode("utf-8")
     key = hashlib.sha256(encoded).hexdigest()
-    root = Path(os.getenv(
-        "MAAS_GEOMETRY_VLM_CACHE_DIR",
-        "docs/ai-session-memory/reference-corpus/geometry-vlm-cache",
-    ))
+    configured_root = os.getenv("MAAS_GEOMETRY_VLM_CACHE_DIR", "").strip()
+    root = (
+        Path(configured_root).resolve()
+        if configured_root
+        else workspace_root() / "docs" / "ai-session-memory" / "reference-corpus" / "geometry-vlm-cache"
+    )
     return root / f"{key}.json"
 
 
@@ -732,6 +739,7 @@ def retrieve_geometry_reference_matches(
     limit: int = 5,
 ) -> list[dict[str, Any]]:
     """Retrieve image-backed precedents from intent, never parcel coordinates."""
+    bounded_limit = max(1, int(limit))
     root = Path(reference_root) if reference_root is not None else default_reference_root() / "archdaily"
     context = program_reference_contract(building_type)
     feature = {
@@ -750,7 +758,7 @@ def retrieve_geometry_reference_matches(
     retrieved = match_reference_context(
         feature,
         _cached_reference_items(str(root.resolve())),
-        limit=max(3, int(limit)),
+        limit=bounded_limit,
         program_contract=context,
     )
     # The minimum primary evidence should come from the curated program
@@ -768,7 +776,7 @@ def retrieve_geometry_reference_matches(
     )
     merged: list[dict[str, Any]] = []
     seen: set[tuple[str, str]] = set()
-    ordered = (*retrieved[:3], *(explicit_matches or []), *retrieved[3:])
+    ordered = (*retrieved[:bounded_limit], *(explicit_matches or []), *retrieved[bounded_limit:])
     for item in ordered:
         if not isinstance(item, dict) or not (item.get("local_path") or item.get("image_url")):
             continue
@@ -780,7 +788,7 @@ def retrieve_geometry_reference_matches(
             continue
         seen.add(key)
         merged.append(dict(item))
-    result = merged[: max(3, int(limit))]
+    result = merged[:bounded_limit]
     minimum = int(context.get("minimum_program_specific_images") or 0)
     program_specific_count = sum(
         str(item.get("program_match_tier") or "") in {"preferred_collection", "semantic_program_match"}
@@ -802,6 +810,7 @@ def audit_reference_matches_for_massing(
     building_type: str,
     model: str | None = None,
     limit: int = 5,
+    max_retries: int | None = None,
 ) -> dict[str, Any]:
     """Remove program-correct but visually unusable precedent frames."""
 
@@ -821,7 +830,11 @@ def audit_reference_matches_for_massing(
             })
             continue
         try:
-            audit = audit_reference_image_for_massing(path, model=model)
+            audit = audit_reference_image_for_massing(
+                path,
+                model=model,
+                max_retries=max_retries,
+            )
         except Exception as exc:
             rejected.append({
                 "source_id": str(item.get("source_id") or ""),
@@ -838,6 +851,7 @@ def audit_reference_matches_for_massing(
                 "massing_legibility", "operation_clarity", "building_scale_typology",
                 "primary_building_typology", "typology_confidence", "hard_pass",
                 "failure_reasons", "visible_form_traits", "cache_hit",
+                "api_usage",
             )
         }
         compact_audit["input_rank"] = index

@@ -60,6 +60,7 @@ const archive = {
 describe('ExecutedMassEvidence', () => {
   it('offers one explicit selected-MASS execution action in the existing sidebar', () => {
     const onExecute = vi.fn()
+    const onVlmReview = vi.fn()
     render(
       <ExecutedMassEvidence
         archive={archive}
@@ -69,11 +70,36 @@ describe('ExecutedMassEvidence', () => {
         onExecute={onExecute}
         executionState="idle"
         executionError=""
+        onVlmReview={onVlmReview}
+        vlmReviewState="idle"
+        vlmReviewError=""
       />,
     )
 
     const button = screen.getByRole('button', { name: /execute selected mass/i })
     fireEvent.click(button)
     expect(onExecute).toHaveBeenCalledOnce()
+  })
+
+  it('offers a bounded paid VLM action only after a single-MASS run exists', () => {
+    const onVlmReview = vi.fn()
+    render(
+      <ExecutedMassEvidence
+        archive={{ ...archive, selected_run_id: 'single-execution:mass-fast' }}
+        mass={{ ...mass, variant_id: 'mass-fast', run_id: 'single-execution:mass-fast' }}
+        passport={null}
+        passportError=""
+        onExecute={vi.fn()}
+        executionState="idle"
+        executionError=""
+        onVlmReview={onVlmReview}
+        vlmReviewState="idle"
+        vlmReviewError=""
+      />,
+    )
+
+    const button = screen.getByRole('button', { name: /run bounded paid vlm/i })
+    fireEvent.click(button)
+    expect(onVlmReview).toHaveBeenCalledOnce()
   })
 })

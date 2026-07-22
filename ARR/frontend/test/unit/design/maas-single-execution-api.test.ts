@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { executeArchivedMass, executeArchivedMassAndLoad } from '../../../src/design/lib/api-client'
+import { executeArchivedMass, executeArchivedMassAndLoad, reviewSingleMassWithVlm } from '../../../src/design/lib/api-client'
 
 
 describe('executeArchivedMass', () => {
@@ -61,5 +61,23 @@ describe('executeArchivedMass', () => {
     expect(result.execution).toEqual(execution)
     expect(result.archive).toEqual(archive)
     expect(fetchMock.mock.calls[1][0]).toContain('run_id=single-execution%3Amass-fast')
+  })
+
+  it('runs the bounded paid VLM review with at most two references', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ execution_id: 'mass-fast', status: 'live_scored', hard_pass: true }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await reviewSingleMassWithVlm('mass-fast', 2)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/design/maas/single-executions/mass-fast/vlm-review/',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ reference_limit: 2 }),
+      }),
+    )
   })
 })

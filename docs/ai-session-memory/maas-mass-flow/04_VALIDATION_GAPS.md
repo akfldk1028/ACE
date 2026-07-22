@@ -18,16 +18,16 @@
   suites are green. Preserve this failure ledger across sessions; repair each
   owner module with isolated tests instead of weakening assertions globally.
 
-## P0 - full MAAS acceptance still awaits VLM
+## P0 - one MASS is accepted; portfolio and cost closure remain open
 
-- The r199 one-MASS replay has evaluated site/capacity/law/parking/program,
-  compiler/GATE/render and selector evidence, but VLM is `not_evaluated`.
-- No paid VLM request was made during r199. This is intentional truthfulness,
-  not a pass: `geometry_ready=true`, `full_flow_complete=false`, and
-  `final_hard_pass=false`.
-- A fresh paid call is permitted only for a requested new visual judgement
-  after deterministic gates, using bounded candidates and exact image/prompt/
-  model/program hash caching. Never fabricate VLM approval from retrieval.
+- r200 closes the exact single-MASS flow: deterministic/downstream stages and a
+  bounded paid VLM all passed, so its hash-bound passport is genuinely accepted.
+- This does not approve r196 as a portfolio; r196 remains 15/20 and its board
+  diversity failures remain. Elevation may consume the accepted MASS hash, but
+  approval-grade law and the elevation condition-pack adapter are still open.
+- The r200 candidate call used 27,819 tokens despite only two reference images.
+  Before scaling paid review, compact the causal prompt projection and add a
+  token budget gate. Do not reduce evidence binding or increase image count.
 
 ## P0 — viable geometry supply
 

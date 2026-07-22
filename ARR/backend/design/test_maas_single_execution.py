@@ -3,6 +3,7 @@ from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.parse import quote
+from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
 from django.core.management import call_command
@@ -75,6 +76,23 @@ class MaasSingleExecutionTest(SimpleTestCase):
             payload = json.loads(result.manifest_path.read_text(encoding="utf-8"))
             self.assertEqual(payload["gate_issues"][0]["code"], "non_positive_dimension")
 
+    def test_execution_bundle_is_immutable_and_cannot_be_overwritten(self):
+        with TemporaryDirectory() as directory:
+            execute_single_mass(
+                _box_program(),
+                output_root=directory,
+                execution_id="immutable-run",
+            )
+            changed = _box_program().to_dict()
+            changed["nodes"][0]["parameters"]["width"] = 18
+
+            with self.assertRaisesRegex(ValueError, "already exists"):
+                execute_single_mass(
+                    changed,
+                    output_root=directory,
+                    execution_id="immutable-run",
+                )
+
     def test_compiled_mass_that_fails_geometry_gate_is_not_reported_as_compiled_success(self):
         builder = GeometryProgramBuilder("too_many_components")
         base = builder.add(
@@ -122,6 +140,60 @@ class MaasSingleExecutionTest(SimpleTestCase):
                 manifest_response = self.client.get(payload["manifest_url"])
                 self.assertEqual(manifest_response.status_code, 200)
                 self.assertEqual(manifest_response.json()["execution_id"], payload["execution_id"])
+
+    def test_vlm_review_endpoint_is_bounded_and_updates_the_same_passport(self):
+        downstream = {
+            stage_id: {"evaluated": True, "hard_pass": True, "selected": stage_id == "selector"}
+            for stage_id in ("site", "capacity", "law", "parking", "program_fit", "selector")
+        }
+        mock_result = {
+            "schema_version": "arr.maas.vlm_concept_scores.v1",
+            "prompt_contract_version": "test-prompt-v1",
+            "provider": "openai",
+            "model": "test-paid-vlm",
+            "response_id": "response-test",
+            "cache_hit": False,
+            "program_fit_hard_pass": True,
+            "concept_scores": {"gesture_clarity": 0.82},
+            "critic_actions": [],
+            "rationale": "coherent mass",
+            "api_usage": {"input_tokens": 120, "output_tokens": 20, "total_tokens": 140},
+            "reference_massing_gate": {"accepted": [], "rejected": []},
+            "maas_causal_context": {},
+        }
+        with TemporaryDirectory() as directory:
+            result = execute_single_mass(
+                _box_program(),
+                output_root=directory,
+                execution_id="vlm-bounded",
+                downstream_evidence=downstream,
+            )
+            with override_settings(MAAS_SINGLE_EXECUTION_ROOT=directory), patch(
+                "design.maas.single_execution.vlm_review.retrieve_geometry_reference_matches",
+                return_value=[{"source_id": "ref-1"}, {"source_id": "ref-2"}],
+            ) as retrieve, patch(
+                "design.maas.single_execution.vlm_review.score_geometry_program_with_openai_vlm",
+                return_value=mock_result,
+            ) as score:
+                response = self.client.post(
+                    "/design/maas/single-executions/vlm-bounded/vlm-review/",
+                    data=json.dumps({"reference_limit": 2}),
+                    content_type="application/json",
+                )
+
+            self.assertEqual(response.status_code, 200)
+            payload = response.json()
+            self.assertTrue(payload["hard_pass"])
+            self.assertEqual(payload["cost_observation"]["max_http_attempts"], 3)
+            self.assertEqual(payload["cost_observation"]["usage"]["total_tokens"], 140)
+            self.assertEqual(retrieve.call_args.kwargs["limit"], 2)
+            self.assertEqual(score.call_args.kwargs["max_retries"], 0)
+            self.assertFalse(score.call_args.kwargs["write_passport_sidecar"])
+            passport = json.loads(result.passport_path.read_text(encoding="utf-8"))
+            vlm_stage = next(stage for stage in passport["stages"] if stage["id"] == "vlm")
+            self.assertEqual(vlm_stage["status"], "live_scored")
+            self.assertTrue(vlm_stage["evidence"]["hard_pass"])
+            self.assertEqual(passport["status"], "in_progress")
 
     def test_management_command_executes_one_built_in_shape(self):
         with TemporaryDirectory() as directory:

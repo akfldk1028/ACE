@@ -283,6 +283,7 @@ def audit_reference_image_for_massing(
     *,
     model: str | None = None,
     timeout: float = 120.0,
+    max_retries: int | None = None,
 ) -> dict[str, Any]:
     """Hard-audit whether one precedent image can teach exterior massing.
 
@@ -396,7 +397,7 @@ def audit_reference_image_for_massing(
                                 "low-rise neighborhood precedent merely because its metadata might mention retail."
                             ),
                         },
-                        {"type": "input_image", "image_url": _image_data_url(path)},
+                        {"type": "input_image", "image_url": _image_data_url(path), "detail": "low"},
                     ],
                 },
             ],
@@ -418,7 +419,11 @@ def audit_reference_image_for_massing(
         )
         data: dict[str, Any] | None = None
         last_error: Exception | None = None
-        retry_count = max(0, int(os.getenv("MAAS_PREFERENCE_VLM_RETRIES", "1")))
+        retry_count = (
+            max(0, int(max_retries))
+            if max_retries is not None
+            else max(0, int(os.getenv("MAAS_PREFERENCE_VLM_RETRIES", "1")))
+        )
         for attempt in range(retry_count + 1):
             _consume_live_vlm_request_budget()
             try:
@@ -468,6 +473,7 @@ def audit_reference_image_for_massing(
             "visible_form_traits": [str(value) for value in parsed.get("visible_form_traits") or ()],
             "rationale": str(parsed.get("rationale") or "")[:600],
             "cache_hit": False,
+            "api_usage": dict(data.get("usage") or {}),
         }
         try:
             cache_path.parent.mkdir(parents=True, exist_ok=True)
@@ -486,6 +492,7 @@ def score_candidate_with_openai_vlm(
     reference_matches: list[dict[str, Any]] | None = None,
     model: str | None = None,
     timeout: float = 120.0,
+    max_retries: int | None = None,
 ) -> dict[str, Any]:
     """Score a candidate PNG with OpenAI's Responses API.
 
@@ -505,6 +512,7 @@ def score_candidate_with_openai_vlm(
         {
             "type": "input_image",
             "image_url": image_data_url,
+            "detail": "high",
         },
     ]
     reference_content, reference_input_records = _reference_image_inputs(reference_matches or [])
@@ -547,7 +555,11 @@ def score_candidate_with_openai_vlm(
         },
         method="POST",
     )
-    retry_count = max(0, int(os.getenv("MAAS_PREFERENCE_VLM_RETRIES", "1")))
+    retry_count = (
+        max(0, int(max_retries))
+        if max_retries is not None
+        else max(0, int(os.getenv("MAAS_PREFERENCE_VLM_RETRIES", "1")))
+    )
     data: dict[str, Any] | None = None
     last_error: Exception | None = None
     for attempt in range(retry_count + 1):
@@ -583,6 +595,7 @@ def score_candidate_with_openai_vlm(
         response_id=str(data.get("id") or ""),
         feature=feature,
     )
+    normalized["api_usage"] = dict(data.get("usage") or {})
     candidate_path = Path(image_path).resolve()
     normalized["vlm_image_inputs"] = {
         "schema_version": "arr.maas.vlm_image_inputs.v1",
@@ -890,6 +903,7 @@ def _reference_image_inputs(
         content.append({
             "type": "input_image",
             "image_url": image_url,
+            "detail": "low",
         })
         local_path = resolve_reference_image_path(str(match.get("local_path") or ""))
         records.append({

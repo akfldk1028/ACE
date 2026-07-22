@@ -37,13 +37,13 @@ per-stage latency. `geometry_ready` is separate from full legal/VLM acceptance.
 Completion rule: always apply `07_FULL_TEST_CONTRACT.md`. A partial unit test,
 backend-only implementation, or screenshot can never close a MAAS task.
 
-Current completed checkpoint: r196 is an honest `15/20 · FAIL`, not the
-finished portfolio. It verifies the streaming MAP-Elites memory fix and has no
-new paid VLM judgement. r194 remains the latest paid board audit and also
-failed. r195 and r197 are state-only `ResourceGuard` failures with no final
-MASS PNG; never relabel them as generated portfolios. The current source also
-contains an unbenchmarked topology-aware triangular-profile projection fix.
-r182 remains the latest numeric `20/20` baseline; it was not VLM-approved.
+Current completed single-MASS checkpoint: r200 execution
+`mass-20260722T040843366927Z` is an exact immutable replay with all deterministic
+and downstream stages passed plus one bounded paid `gpt-5.4-mini` VLM review.
+Its final passport is `accepted`; it does not convert the source r196 portfolio
+into a pass. r196 remains an honest `15/20 · FAIL`, r194 remains the latest paid
+board audit and also failed, and r195/r197 remain state-only ResourceGuard
+failures. r182 remains the latest numeric `20/20` baseline and was not VLM-approved.
 
 Multi-agent folder contract: read `05_MULTI_AGENT_FOLDER_CONTRACT.md` before
 creating or moving any specialist agent. `ARR/backend/agents/` is the shared

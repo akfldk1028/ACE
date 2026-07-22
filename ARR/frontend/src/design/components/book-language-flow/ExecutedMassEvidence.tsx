@@ -12,6 +12,9 @@ interface ExecutedMassEvidenceProps {
   onExecute: () => void;
   executionState: 'idle' | 'running' | 'complete' | 'failed';
   executionError: string;
+  onVlmReview: () => void;
+  vlmReviewState: 'idle' | 'running' | 'complete' | 'failed';
+  vlmReviewError: string;
 }
 
 function percent(value: number | null): string {
@@ -66,10 +69,17 @@ export function ExecutedMassEvidence({
   onExecute,
   executionState,
   executionError,
+  onVlmReview,
+  vlmReviewState,
+  vlmReviewError,
 }: ExecutedMassEvidenceProps) {
   const vlmStage = passport?.stages.find((stage) => stage.id === 'vlm');
   const selectorStage = passport?.stages.find((stage) => stage.id === 'selector');
   const vlmProgramFit = vlmStage?.evidence.program_fit_hard_pass;
+  const cost = vlmStage?.evidence.cost_observation as {
+    max_http_attempts?: number;
+    usage?: { total_tokens?: number };
+  } | undefined;
 
   return (
     <aside className="book-evidence executed-mass-evidence">
@@ -98,6 +108,18 @@ export function ExecutedMassEvidence({
           <strong>{executionState === 'complete' ? 'NEW RUN ADDED TO THIS GRAPH' : 'FAST SINGLE-MASS FLOW'}</strong>
         </button>
         {executionError && <p role="alert">{executionError}</p>}
+        {archive.selected_run_id.startsWith('single-execution:') && (
+          <button
+            type="button"
+            onClick={onVlmReview}
+            disabled={vlmReviewState === 'running'}
+            aria-label="Run bounded paid VLM"
+          >
+            <span>{vlmReviewState === 'running' ? 'REVIEWING GENERATED MASS' : 'RUN BOUNDED PAID VLM'}</span>
+            <strong>{vlmReviewState === 'complete' ? 'PASSPORT + GRAPH UPDATED' : '1 MASS · MAX 2 REFERENCES · 0 RETRIES'}</strong>
+          </button>
+        )}
+        {vlmReviewError && <p role="alert">{vlmReviewError}</p>}
       </div>
       <dl className="book-evidence__attributes">
         <div><dt>PNU</dt><dd>{archive.pnu}</dd></div>
@@ -116,6 +138,8 @@ export function ExecutedMassEvidence({
         <div><dt>VLM INPUTS</dt><dd>{referenceCount(passport)} REFERENCES + GENERATED MASS</dd></div>
         <div><dt>VLM ACTIONS</dt><dd>{criticActions(vlmStage?.evidence)}</dd></div>
         <div><dt>VLM RESPONSE</dt><dd>{String(vlmStage?.evidence.response_id || 'NOT RECORDED')}</dd></div>
+        <div><dt>VLM TOKENS</dt><dd>{cost?.usage?.total_tokens?.toLocaleString() ?? 'NOT RECORDED'}</dd></div>
+        <div><dt>VLM HTTP CEILING</dt><dd>{cost?.max_http_attempts ?? 'NOT RECORDED'}</dd></div>
         <div><dt>SELECTOR</dt><dd>{selectorStage?.status?.toUpperCase() ?? 'LOADING'}</dd></div>
         <div><dt>PASSPORT</dt><dd>{passport ? passportDisplayStatus(passport, mass) : (passportError || 'LOADING')}</dd></div>
         <div><dt>PROGRAM HASH</dt><dd>{mass.program_hash.slice(0, 18)}</dd></div>

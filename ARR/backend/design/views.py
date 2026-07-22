@@ -70,6 +70,7 @@ from design.maas.single_execution import (
     single_execution_program,
     single_execution_run_id,
     single_execution_runs,
+    review_single_mass_with_vlm,
 )
 
 logger = logging.getLogger(__name__)
@@ -263,16 +264,13 @@ def maas_single_execution(request):
                 source_passport = materialize_executed_mass_passport(source_mass_index, source_run_id)
             program = resolved_program.to_dict()
             downstream_evidence = _passport_downstream_evidence(source_passport)
-            vlm_result = _passport_vlm_result(source_passport)
+            # A previous VLM judgment is bound to its exact rendered PNG and
+            # execution. Replays must be reviewed explicitly after rendering.
+            vlm_result = None
         result = execute_single_mass(
             program,
             output_root=_single_execution_root(),
-            execution_id=(
-                str(body.get("execution_id") or "")
-                or f"mass-{timezone.now().strftime('%Y%m%dT%H%M%S%fZ')}"
-                if source_replay
-                else str(body.get("execution_id") or "")
-            ),
+            execution_id=f"mass-{timezone.now().strftime('%Y%m%dT%H%M%S%fZ')}",
             title=str(body.get("title") or ""),
             downstream_evidence=downstream_evidence,
             vlm_result=vlm_result,
@@ -280,6 +278,7 @@ def maas_single_execution(request):
     except (TypeError, ValueError, json.JSONDecodeError) as exc:
         return JsonResponse({"error": str(exc)}, status=400)
     payload = result.to_dict()
+    payload.pop("artifacts", None)
     base = f"/design/maas/single-executions/{result.execution_id}"
     payload.update({
         "archive_run_id": single_execution_run_id(result.execution_id),
@@ -288,6 +287,33 @@ def maas_single_execution(request):
         "passport_url": f"{base}/passport/",
     })
     return JsonResponse(payload, status=201 if result.geometry_ready else 422)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def maas_single_execution_vlm_review(request, execution_id):
+    """Run one cache-first, bounded paid VLM review for an immutable MASS."""
+
+    try:
+        body = json.loads(request.body or b"{}")
+        if not isinstance(body, dict):
+            raise ValueError("request body must be an object")
+        reference_limit = int(body.get("reference_limit", 2))
+        if reference_limit < 0 or reference_limit > 2:
+            raise ValueError("reference_limit must be between 0 and 2")
+        payload = review_single_mass_with_vlm(
+            _single_execution_root(),
+            str(execution_id),
+            reference_limit=reference_limit,
+            building_type=str(body.get("building_type") or ""),
+            model=str(body.get("model") or "") or None,
+        )
+    except (TypeError, ValueError, json.JSONDecodeError) as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+    except Exception as exc:
+        logger.exception("single MASS VLM review failed")
+        return JsonResponse({"error": f"{type(exc).__name__}: {exc}"}, status=502)
+    return JsonResponse(payload)
 
 
 @require_http_methods(["GET"])

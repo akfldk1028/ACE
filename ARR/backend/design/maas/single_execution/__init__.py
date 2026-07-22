@@ -11,6 +11,7 @@ from .catalog import (
     single_execution_runs,
 )
 from .pipeline import execute_single_mass
+from .vlm_review import review_single_mass_with_vlm
 
 __all__ = [
     "SingleMassExecutionResult",
@@ -22,4 +23,5 @@ __all__ = [
     "single_execution_program",
     "single_execution_run_id",
     "single_execution_runs",
+    "review_single_mass_with_vlm",
 ]

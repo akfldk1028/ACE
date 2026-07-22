@@ -15,6 +15,7 @@ from pathlib import Path
 import re
 from time import perf_counter
 from typing import Any
+import uuid
 
 from design.maas.geometry_language.ast import GeometryProgram
 from design.maas.geometry_language.compiler import compile_geometry_program
@@ -59,6 +60,10 @@ def execute_single_mass(
         program_hash = resolved_program.program_hash()
     resolved_id = _execution_id(execution_id, resolved_program.name, program_hash)
     directory = Path(output_root).resolve() / resolved_id
+    try:
+        directory.mkdir(parents=True, exist_ok=False)
+    except FileExistsError as exc:
+        raise ValueError(f"single MASS execution already exists: {resolved_id}") from exc
     program_path = directory / "program.json"
     preview_path = directory / "mass.png"
     passport_path = passport_path_for_preview(preview_path)
@@ -127,7 +132,9 @@ def execute_single_mass(
 
 
 def _execution_id(requested: str, name: str, program_hash: str) -> str:
-    raw = requested.strip() or f"{name}-{program_hash[:12] or 'invalid'}"
+    raw = requested.strip() or (
+        f"mass-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')}-{uuid.uuid4().hex[:8]}"
+    )
     resolved = _SAFE_ID.sub("-", raw).strip("-_")[:96]
     return resolved or f"mass-{program_hash[:12] or 'invalid'}"
 

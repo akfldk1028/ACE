@@ -5,7 +5,9 @@ from django.test import SimpleTestCase
 
 from design.maas.geometry_language.executed_vlm_audit import _compact_audit_record
 from design.maas.geometry_language.outcome_graph import GeometryOutcomeGraph
-from design.maas.geometry_language.execution_evidence import vlm_evidence
+from design.maas.geometry_language.execution_evidence import passport_state, stage, vlm_evidence
+from design.maas.geometry_language.vlm_adapter import retrieve_geometry_reference_matches
+from design.maas.geometry_language import GeometryProgramBuilder
 from design.maas.preference.reference_paths import reference_image_preview_url
 
 
@@ -48,6 +50,52 @@ class ExecutedMassVlmAuditTests(SimpleTestCase):
         self.assertFalse(evidence["program_fit_hard_pass"])
         self.assertFalse(evidence["hard_pass"])
         self.assertEqual(evidence["critic_actions"], ["too_fragmented"])
+
+    def test_completed_vlm_with_explicit_hard_failure_rejects_mass(self):
+        stages = [
+            stage(stage_id, stage_id, "passed")
+            for stage_id in (
+                "base_model", "recursive_geometry", "program", "site", "capacity",
+                "law", "parking", "program_fit", "compiler", "geometry_gate",
+                "render", "selector",
+            )
+        ]
+        stages.append(stage(
+            "vlm",
+            "VLM critic",
+            "live_scored",
+            evidence={"hard_pass": False, "program_fit_hard_pass": False},
+        ))
+
+        state = passport_state(stages)
+
+        self.assertTrue(state["full_flow_complete"])
+        self.assertFalse(state["final_hard_pass"])
+        self.assertEqual(state["status"], "rejected")
+
+    def test_reference_limit_is_exact_even_when_explicit_matches_are_supplied(self):
+        builder = GeometryProgramBuilder("bounded-reference-test")
+        root = builder.add("primitive", "box", parameters={"width": 4, "depth": 3, "height": 2})
+        program = builder.build(root)
+        with TemporaryDirectory() as directory:
+            reference_root = Path(directory)
+            first = reference_root / "first.jpg"
+            second = reference_root / "second.jpg"
+            first.write_bytes(b"first")
+            second.write_bytes(b"second")
+
+            matches = retrieve_geometry_reference_matches(
+                program,
+                building_type="generic",
+                explicit_matches=[
+                    {"source": "test", "source_id": "first", "local_path": str(first)},
+                    {"source": "test", "source_id": "second", "local_path": str(second)},
+                ],
+                reference_root=reference_root,
+                limit=1,
+            )
+
+        self.assertEqual(len(matches), 1)
 
     def test_outcome_graph_connects_only_material_vlm_inputs(self):
         with TemporaryDirectory() as directory:

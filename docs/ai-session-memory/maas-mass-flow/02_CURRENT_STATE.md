@@ -2,6 +2,29 @@
 
 Generated 2026-07-22 KST.
 
+## Bounded paid single-MASS acceptance (r200)
+
+- Immutable execution `mass-20260722T040843366927Z` replays r196 MASS 04.
+  Program hash `e98802e47b7570b63719cd7ed58eb54b066deefce262e75510b43d6914d32f30`;
+  geometry hash `1f59803258b651435af06b97883d483c5d79c494026e1eb6b2437b5853ad9436`.
+- Geometry is one watertight/manifold component, 96 triangles. Base, BOOK,
+  recursive geometry, program, site, capacity, law, parking, program fit,
+  compiler, geometry GATE, render and selector all passed before VLM.
+- Paid VLM used the generated four-view PNG plus exactly two massing references:
+  `8 House / BIG` and `BIG Releases First Photographs of The Vancouver House and
+  Telus Sky in Canada`. The endpoint has zero retries and a hard ceiling of
+  three HTTP attempts including cold reference audits; one candidate call is
+  confirmed live (`cache_hit=false`).
+- `gpt-5.4-mini` response
+  `resp_09c96346deac86f1006a604298bb9081988820c96f5ca84354` returned program-fit
+  PASS. Final passport: `status=accepted`, `full_flow_complete=true`,
+  `final_hard_pass=true`. Recorded usage is 26,250 input + 1,569 output = 27,819
+  tokens. This exposes the next cost issue: prompt/graph context size, not image count.
+- Browser verification on `/design/language`: one graph, 258 rendered nodes,
+  141 active edges, two image-backed VLM reference nodes, one image-backed final
+  MASS node, no Vite overlay. The sidebar exposes the bounded paid action and
+  recorded 27,819-token usage.
+
 ## One-MASS deploy fast path
 
 - `design.maas.single_execution.execute_single_mass` is now the canonical
@@ -134,6 +157,11 @@ Generated 2026-07-22 KST.
   equivalent differentiable continuous optimization; do not claim paper parity.
 
 ## Evidence
+
+- `docs/ai-session-memory/maas-service-cache/single-executions/mass-20260722T040843366927Z/mass.png`
+- `docs/ai-session-memory/maas-service-cache/single-executions/mass-20260722T040843366927Z/mass.png.passport.json`
+- `docs/playwright/design-route-live-verify/r200-bounded-single-mass-vlm-selected-path-1920.png`
+- `docs/playwright/design-route-live-verify/r200-bounded-single-mass-vlm-vlm-path-1920.png`
 
 - `docs/playwright/design-route-live-verify/book-program-portfolios-r196-streaming-qd-one-cycle/maas-book-neighborhood-20.png`
 - `docs/playwright/design-route-live-verify/book-program-portfolios-r196-streaming-qd-one-cycle/maas-book-programs-summary.json`

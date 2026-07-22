@@ -203,6 +203,29 @@ export interface SingleMassExecutionResponse {
   manifest_url: string;
 }
 
+export interface SingleMassVlmReviewResponse {
+  schema_version: 'arr.maas.single_execution_vlm_review.v1';
+  execution_id: string;
+  archive_run_id: string;
+  status: string;
+  hard_pass: boolean;
+  full_flow_status: string;
+  model: string;
+  response_id: string;
+  cache_hit: boolean;
+  concept_scores: Record<string, number>;
+  critic_actions: string[];
+  rationale: string;
+  reference_count: number;
+  cost_observation: {
+    reference_limit: number;
+    max_http_attempts: number;
+    retries: number;
+    candidate_cache_hit: boolean;
+    usage: { input_tokens: number; output_tokens: number; total_tokens: number };
+  };
+}
+
 export interface ExecutedMassManifest {
   schema_version: string;
   run_id: string;

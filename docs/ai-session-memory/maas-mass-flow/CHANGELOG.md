@@ -158,3 +158,24 @@
 - Added the mandatory full-test contract. Full audit result is red: backend
   742 tests with 22 failures/2 errors; frontend 403 tests with 71 failures/1
   pending. Focused MASS tests, build, type-check, Django check and E2E pass.
+
+## 2026-07-22 - bounded paid single-MASS VLM accepted (r200)
+
+- Fixed false acceptance of explicit VLM hard failures, exact reference-limit
+  enforcement, immutable execution IDs, workspace-rooted caches and API usage
+  persistence. Replayed VLM evidence is no longer copied to a new PNG.
+- Added `single_execution/vlm_review.py` and
+  `POST /design/maas/single-executions/<id>/vlm-review/`: one MASS, 0..2
+  references, zero retries, maximum three HTTP attempts, cache first.
+- Generated immutable MASS `mass-20260722T040843366927Z`; one component,
+  watertight/manifold, 96 triangles. All non-VLM stages passed first.
+- Made one confirmed live candidate review with `gpt-5.4-mini` and two used
+  ArchDaily references. Response `resp_09c96346deac86f1006a604298bb9081988820c96f5ca84354`
+  passed; final passport is `accepted`. Usage: 27,819 tokens.
+- Added the paid action and cost evidence to the existing right sidebar via a
+  dedicated React hook. Browser proof: one graph, 258 nodes, 141 active edges,
+  two image-backed VLM references and one final generated MASS.
+- Verification: focused backend 25/25, frontend MASS 5/5, TypeScript and Django
+  check pass. Frontend full is still red at 333/405 passed, 71 failed, 1 skipped.
+  Backend full attempt exceeded 900 seconds; preserve the last completed
+  742-test result (22 failures, 2 errors) until a new full run completes.

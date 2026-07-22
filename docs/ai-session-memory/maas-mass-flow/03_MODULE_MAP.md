@@ -24,6 +24,9 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
 - Stable result contract: `single_execution/contracts.py`
 - Compile/GATE/render/passport timing pipeline: `single_execution/pipeline.py`
 - Atomic bundle writers: `single_execution/persistence.py`
+- Existing archive read-model adapter: `single_execution/catalog.py`. It maps
+  one-MASS bundles into the same executed-run manifest and timeline contract;
+  it must not create a parallel archive or graph.
 - CLI: `ARR/backend/design/management/commands/execute_maas_single_mass.py`
 - HTTP: `POST /design/maas/single-executions/` plus returned preview/passport/
   manifest URLs in `design/views.py` and `design/urls.py`
@@ -61,9 +64,15 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
 - Single graph orchestration: `ARR/frontend/src/design/components/book-language-flow/BookLanguageFlow.tsx`
 - Network renderer: `LanguageNetworkCanvas.tsx`
 - Actual MASS sidebar: `ExecutedMassEvidence.tsx`
+- Selected MASS execution/reload: `BookLanguageFlow.tsx` calls
+  `executeArchivedMassAndLoad` in `api-client.ts`, then replaces the selected
+  archive with the returned `single-execution:<id>` run in the same graph.
 - Runtime API/types: `ARR/frontend/src/design/lib/api-client.ts`,
   `language-system-types.ts`
 - Browser verification: `docs/playwright/design-route-live-verify/verify-maas-single-graph.cjs`
+- Frontend single-execution unit contracts:
+  `ARR/frontend/test/unit/design/ExecutedMassEvidence.test.tsx` and
+  `ARR/frontend/test/unit/design/maas-single-execution-api.test.ts`
 - Focused MASS-flow regressions: `ARR/backend/design/test_maas_flow_regressions.py`
 
 ## Memory update protocol
@@ -77,3 +86,6 @@ After every completed run:
 5. Run JSON validation, backend focused tests, TypeScript and browser verify.
 6. Record paid VLM request count and `retrieved` versus `used` separately.
 7. Record direct PNG review independently from numeric status.
+8. A focused PASS never replaces repository-wide results. Record backend full
+   suite, frontend build/full suite/type-check, live proxy API, browser E2E and
+   direct PNG review separately under `07_FULL_TEST_CONTRACT.md`.

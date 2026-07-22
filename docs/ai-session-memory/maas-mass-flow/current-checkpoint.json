@@ -1,6 +1,6 @@
 {
   "schema_version": "arr.maas.mass_flow_memory.v1",
-  "updated_at": "2026-07-22T08:49:09+09:00",
+  "updated_at": "2026-07-22T09:41:00+09:00",
   "frontend_url": "http://127.0.0.1:5175/design/language",
   "pnu": "1168011800104170004",
   "latest_completed_run": {
@@ -99,7 +99,8 @@
     "portfolio_search_invoked": false,
     "verified_source_run": "book-program-portfolios-r196-streaming-qd-one-cycle",
     "verified_mass_index": 1,
-    "execution_id": "r196-mass-01-fast",
+    "execution_id": "mass-20260722T004049081375Z",
+    "archive_run_id": "single-execution:mass-20260722T004049081375Z",
     "program_hash": "cd42f0d7ea22d2de7c1af6cde9fac7006207c249d1d2c021bc1dfd3b021432ed",
     "geometry_hash": "1d15bdc91ac3544502d5c3677d1b527c11d69e189cfe9bef2713a40ccb314c94",
     "geometry_ready": true,
@@ -107,17 +108,18 @@
     "component_count": 1,
     "triangle_count": 40,
     "direct_total_ms": 38.426,
-    "live_http_total_ms": 41.087,
+    "live_http_total_ms": 25.296,
     "passport_stage_count": 14,
     "activation_node_count": 23,
     "activation_edge_count": 28,
-    "active_edge_count": 15,
-    "pending_stages": ["site", "capacity", "law", "parking", "program_fit", "vlm", "selector"],
-    "artifact_manifest": "docs/ai-session-memory/maas-service-cache/single-executions/r196-mass-01-fast/execution.json"
+    "active_edge_count": 23,
+    "pending_stages": ["vlm"],
+    "paid_vlm_request_count": 0,
+    "artifact_manifest": "docs/ai-session-memory/maas-service-cache/single-executions/mass-20260722T004049081375Z/execution.json"
   },
   "frontend_verification": {
     "status": "pass",
-    "run_count_visible": 103,
+    "run_count_visible": 110,
     "newest_state_only_run": "book-program-portfolios-r197-full-seven-page-vlm-memory",
     "selected_replayable_run": "book-program-portfolios-r196-streaming-qd-one-cycle",
     "graph_count": 1,
@@ -133,7 +135,49 @@
     "console_error_count": 0,
     "page_error_count": 0,
     "selected_path_graph_count": 1,
-    "selected_path_result_count": 1
+    "selected_path_result_count": 1,
+    "single_execution_run_id": "single-execution:mass-20260722T004049081375Z",
+    "single_execution_mass_node_count": 1,
+    "single_execution_gallery_image_count": 1,
+    "single_execution_passport_count": 1,
+    "single_execution_related_node_count": 129,
+    "single_execution_active_edge_count": 129,
+    "single_execution_run_added": true
+  },
+  "full_test": {
+    "status": "fail",
+    "contract": "docs/ai-session-memory/maas-mass-flow/07_FULL_TEST_CONTRACT.md",
+    "backend_full": {
+      "command": "python manage.py test design --verbosity 1",
+      "total": 742,
+      "failures": 22,
+      "errors": 2,
+      "status": "fail"
+    },
+    "backend_focused": {
+      "total": 26,
+      "passed": 26,
+      "status": "pass"
+    },
+    "frontend_build": "pass",
+    "frontend_full": {
+      "total": 403,
+      "passed": 331,
+      "failed": 71,
+      "pending": 1,
+      "status": "fail"
+    },
+    "frontend_single_mass_focused": {
+      "total": 3,
+      "passed": 3,
+      "status": "pass"
+    },
+    "frontend_type_check": "pass",
+    "django_check": "pass",
+    "browser_e2e": "pass",
+    "direct_png_review": "pass_connected_geometry_not_visual_acceptance",
+    "paid_vlm_request_count": 0,
+    "full_maas_acceptance": "incomplete_vlm_not_evaluated"
   },
   "site_legal": {
     "parcel_area_m2": 264.126,
@@ -149,7 +193,7 @@
     "board_png": "docs/playwright/design-route-live-verify/book-program-portfolios-r196-streaming-qd-one-cycle/maas-book-neighborhood-20.png",
     "outcome_graph_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r196-streaming-qd-one-cycle/maas-geometry-mutation-outcome-graph.json",
     "r197_run_state_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r197-full-seven-page-vlm-memory/maas-run-state.json",
-    "browser_verify_json": "docs/playwright/design-route-live-verify/frontend-live/r196-after-r197-resource-guard/verify.json",
-    "browser_full_graph_png": "docs/playwright/design-route-live-verify/frontend-live/r196-after-r197-resource-guard/full-graph.png"
+    "browser_verify_json": "docs/playwright/design-route-live-verify/frontend-live/single-execution-full-test-r199/verify.json",
+    "browser_full_graph_png": "docs/playwright/design-route-live-verify/frontend-live/single-execution-full-test-r199/single-execution-full-graph.png"
   }
 }

@@ -10,6 +10,7 @@ from typing import Any
 @dataclass(frozen=True)
 class SingleMassExecutionResult:
     execution_id: str
+    created_at: str
     status: str
     geometry_ready: bool
     full_flow_status: str
@@ -28,6 +29,7 @@ class SingleMassExecutionResult:
         return {
             "schema_version": "arr.maas.single_execution.v1",
             "execution_id": self.execution_id,
+            "created_at": self.created_at,
             "status": self.status,
             "geometry_ready": self.geometry_ready,
             "full_flow_status": self.full_flow_status,

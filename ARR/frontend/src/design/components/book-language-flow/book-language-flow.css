@@ -50,6 +50,25 @@
   letter-spacing: 0.17em;
 }
 
+.executed-mass-evidence__execute { padding: 0 10px 10px; }
+.executed-mass-evidence__execute button {
+  display: grid;
+  width: 100%;
+  gap: 5px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: 2px;
+  background: #ededed;
+  color: #080808;
+  text-align: left;
+  cursor: pointer;
+}
+.executed-mass-evidence__execute button:hover { background: #fff; }
+.executed-mass-evidence__execute button:disabled { cursor: wait; opacity: .55; }
+.executed-mass-evidence__execute span { font: 750 9px/1 ui-monospace, monospace; letter-spacing: .08em; }
+.executed-mass-evidence__execute strong { color: #555; font: 650 7px/1 ui-monospace, monospace; }
+.executed-mass-evidence__execute p { margin: 7px 0 0; color: #ff8f8f; font: 7px/1.4 ui-monospace, monospace; }
+
 .maas-language-flow__header h1 {
   margin: 6px 0 0;
   color: #fff;

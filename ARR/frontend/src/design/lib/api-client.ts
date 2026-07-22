@@ -12,7 +12,7 @@ import type {
   MaasLegalVariantsResult,
   SiteBoundaryResult,
 } from './types';
-import type { ExecutedMassManifest, MaasLanguageSystemManifest, OutcomeGraphSlice } from './language-system-types';
+import type { ExecutedMassManifest, MaasLanguageSystemManifest, OutcomeGraphSlice, SingleMassExecutionResponse } from './language-system-types';
 
 const BASE = '/design';
 const AG_LIGHT_BASE = (((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.VITE_AG_LIGHT_URL)
@@ -157,6 +157,37 @@ export async function getExecutedMassPassport(
   const res = await fetch(`${BASE}/maas/executed-masses/${index}/passport/${query}`, { signal });
   if (!res.ok) throw new Error('실제 실행 MASS 여권을 불러오지 못했습니다.');
   return res.json();
+}
+
+export async function executeArchivedMass(
+  sourceRunId: string,
+  sourceMassIndex: number,
+): Promise<SingleMassExecutionResponse> {
+  const res = await fetch(`${BASE}/maas/single-executions/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      source_run_id: sourceRunId,
+      source_mass_index: sourceMassIndex,
+    }),
+  });
+  if (!res.ok) {
+    const payload = await res.json().catch(() => ({}));
+    throw new Error(payload.error || 'Selected MASS execution failed');
+  }
+  return res.json();
+}
+
+export async function executeArchivedMassAndLoad(
+  sourceRunId: string,
+  sourceMassIndex: number,
+): Promise<{
+  execution: SingleMassExecutionResponse;
+  archive: ExecutedMassManifest;
+}> {
+  const execution = await executeArchivedMass(sourceRunId, sourceMassIndex);
+  const archive = await getExecutedMassManifest(undefined, execution.archive_run_id);
+  return { execution, archive };
 }
 
 export async function getAgLightBusLog(limit = 50): Promise<AgLightBusEvent[]> {

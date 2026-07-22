@@ -5,6 +5,7 @@ import { Maximize2, Minimize2, RotateCcw } from 'lucide-react';
 import {
   getExecutedMassManifest,
   getExecutedMassPassport,
+  executeArchivedMassAndLoad,
   getMaasLanguageSystem,
   getMaasOutcomeGraphSlice,
 } from '../../lib/api-client';
@@ -520,6 +521,8 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
   const [passportError, setPassportError] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [lastSyncAt, setLastSyncAt] = useState('');
+  const [executionState, setExecutionState] = useState<'idle' | 'running' | 'complete' | 'failed'>('idle');
+  const [executionError, setExecutionError] = useState('');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -819,6 +822,27 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
       });
   };
 
+  const executeSelectedMass = async () => {
+    if (!archive || !selectedMass || executionState === 'running') return;
+    setExecutionState('running');
+    setExecutionError('');
+    try {
+      const result = await executeArchivedMassAndLoad(
+        archive.selected_run_id,
+        selectedMass.index,
+      );
+      setArchive(result.archive);
+      setSelectedMassIndex(result.archive.masses[0]?.index ?? 1);
+      setGraphView('full');
+      setSelectedNodeId(null);
+      setExecutionState('complete');
+      setLastSyncAt(new Date().toLocaleTimeString('ko-KR', { hour12: false }));
+    } catch (reason: unknown) {
+      setExecutionState('failed');
+      setExecutionError(reason instanceof Error ? reason.message : 'Selected MASS execution failed');
+    }
+  };
+
   const content = (
     <section
       className={`maas-language-flow${isFullscreen ? ' maas-language-flow--fullscreen' : ''}${standalone ? ' maas-language-flow--standalone' : ''}${compact ? ' maas-language-flow--compact' : ''}`}
@@ -960,6 +984,9 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
               mass={selectedMass}
               passport={passport}
               passportError={passportError}
+              onExecute={executeSelectedMass}
+              executionState={executionState}
+              executionError={executionError}
             />
           )}
 

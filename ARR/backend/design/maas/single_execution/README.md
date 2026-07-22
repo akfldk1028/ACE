@@ -41,3 +41,13 @@ Content-Type: application/json
 The response returns preview, passport, and manifest URLs. Paid VLM input and
 downstream hard-gate evidence are intentionally not accepted from this public
 endpoint; trusted internal agents enrich the same passport.
+
+## Frontend archive integration
+
+Every source-run replay receives a unique UTC execution ID. It is exposed as
+`single-execution:<id>` through the existing `/maas/executed-masses/` read model,
+so `/design/language` adds it to the same chronological timeline and renders
+its one PNG/passport in the same Full Graph. No parallel graph is created.
+
+Before completion, follow
+`docs/ai-session-memory/maas-mass-flow/07_FULL_TEST_CONTRACT.md`.

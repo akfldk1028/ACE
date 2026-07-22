@@ -9,6 +9,7 @@ run deterministically for that one MASS.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 import re
@@ -106,6 +107,7 @@ def execute_single_mass(
     )
     result = SingleMassExecutionResult(
         execution_id=resolved_id,
+        created_at=datetime.now(timezone.utc).isoformat(),
         status=status,
         geometry_ready=geometry_ready,
         full_flow_status=str(passport.get("status") or "in_progress"),

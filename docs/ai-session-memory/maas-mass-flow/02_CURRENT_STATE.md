@@ -24,6 +24,32 @@ Generated 2026-07-22 KST.
   is inherited from the exact r196 program; this single replay does not make
   the overall r196 portfolio visually accepted.
 
+## One-MASS frontend integration and full-test truth (r199)
+
+- `/design/language` now executes the selected archived MASS through
+  `POST /design/maas/single-executions/`, appends the result to the same
+  chronological run timeline, and reloads the same Full Graph with exactly one
+  executed MASS node, its actual four-view PNG and its execution passport.
+- This is not a second graph or a BOOK-image graph. BOOK remains typed language
+  authority; generated MASS PNGs are the visual result. Reference/VLM images
+  enter only when they were actual model inputs.
+- Browser r199 passed: HTTP 200, one graph, original 15/15 MASS PNGs loaded,
+  new run `single-execution:mass-20260722T004049081375Z`, one generated MASS,
+  one loaded gallery PNG, one passport, 129 related/active selected-path edges,
+  zero BOOK raster requests, zero console errors and zero page errors.
+- The replayed passport preserves evaluated r196 downstream evidence: site,
+  capacity, law, parking, program fit, compiler, geometry GATE, render and
+  selector passed. Geometry is one watertight/manifold component with 40
+  triangles. VLM remains `not_evaluated`, so `full_flow_complete=false` and
+  `final_hard_pass=false`; no paid request was made in this verification.
+- Mandatory full test was actually run. Frontend build and TypeScript passed;
+  focused MASS UI/API tests passed 3/3; backend focused tests passed 26/26;
+  Django check passed; browser E2E passed. The repository-wide suites are not
+  green: backend `design` ran 742 tests with 22 failures and 2 errors, while
+  frontend Vitest ran 403 tests with 331 passed, 71 failed and 1 pending.
+  Therefore the honest overall engineering full-test state is **FAIL**, not
+  complete. See `07_FULL_TEST_CONTRACT.md` and `04_VALIDATION_GAPS.md`.
+
 ## Honest outcome
 
 - Latest completed run: `book-program-portfolios-r196-streaming-qd-one-cycle`.
@@ -118,3 +144,6 @@ Generated 2026-07-22 KST.
 - `docs/ai-session-memory/maas-service-cache/single-executions/r196-mass-01-fast/execution.json`
 - `docs/ai-session-memory/maas-service-cache/single-executions/r196-mass-01-fast/mass.png`
 - `docs/ai-session-memory/maas-service-cache/single-executions/r196-mass-01-fast/mass.png.passport.json`
+- `docs/ai-session-memory/maas-service-cache/single-executions/mass-20260722T004049081375Z/execution.json`
+- `docs/playwright/design-route-live-verify/frontend-live/single-execution-full-test-r199/verify.json`
+- `docs/playwright/design-route-live-verify/frontend-live/single-execution-full-test-r199/single-execution-full-graph.png`

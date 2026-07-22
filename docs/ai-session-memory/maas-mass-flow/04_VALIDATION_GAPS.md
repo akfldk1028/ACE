@@ -1,5 +1,34 @@
 # Open Validation Gaps
 
+## P0 - repository-wide full test is red (2026-07-22 r199 audit)
+
+- Backend full command `python manage.py test design --verbosity 1` executed
+  742 tests and ended with 22 failures plus 2 errors. Current failures include
+  BOOK-language visual selection/audit regressions (`surfaces` missing and an
+  undefined `program`), stale outcome-graph/public-threshold expectations,
+  multiple export/selection invariants, geometry-language projection counts,
+  and mass-brain principle-count drift. The new single-MASS focused suite is
+  green, but that does not make the repository suite green.
+- Frontend `npm test` build completed, then Vitest executed 403 tests: 331
+  passed, 71 failed, 1 pending. Failing files are existing global areas:
+  `ChatBox.test.tsx`, `SearchInput.test.tsx`, `Terminal.test.tsx`, and
+  `useInstallationSetup.test.ts`. The focused single-MASS UI/API tests pass 3/3
+  and `npm run type-check` passes.
+- Do not label the current branch "full tested" or "complete" until both full
+  suites are green. Preserve this failure ledger across sessions; repair each
+  owner module with isolated tests instead of weakening assertions globally.
+
+## P0 - full MAAS acceptance still awaits VLM
+
+- The r199 one-MASS replay has evaluated site/capacity/law/parking/program,
+  compiler/GATE/render and selector evidence, but VLM is `not_evaluated`.
+- No paid VLM request was made during r199. This is intentional truthfulness,
+  not a pass: `geometry_ready=true`, `full_flow_complete=false`, and
+  `final_hard_pass=false`.
+- A fresh paid call is permitted only for a requested new visual judgement
+  after deterministic gates, using bounded candidates and exact image/prompt/
+  model/program hash caching. Never fabricate VLM approval from retrieval.
+
 ## P0 — viable geometry supply
 
 - r194 is 15/20. The maximum compatible set cannot reach 20 from current

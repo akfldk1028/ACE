@@ -173,10 +173,11 @@ export interface ExecutedMassRecord {
   far_pct: number | null;
   score: number | null;
   hard_pass: boolean;
+  geometry_ready?: boolean;
   vlm_evaluated: boolean;
   preview_url: string;
   passport_url: string;
-  image_role: 'actual_run_candidate_render';
+  image_role: 'actual_run_candidate_render' | 'single_mass_execution_render';
 }
 
 export interface ExecutedMassRun {
@@ -184,8 +185,22 @@ export interface ExecutedMassRun {
   created_at: string;
   pnu: string;
   selected_mass_count: number;
-  status: 'selected_mass_ready' | 'completed_without_selected_mass' | 'running' | 'failed' | 'aborted_memory_pressure' | 'unknown';
+  status: 'selected_mass_ready' | 'single_mass_ready' | 'completed_without_selected_mass' | 'running' | 'failed' | 'aborted_memory_pressure' | 'unknown';
   replayable: boolean;
+  run_type?: 'portfolio' | 'single_execution';
+}
+
+export interface SingleMassExecutionResponse {
+  execution_id: string;
+  archive_run_id: string;
+  status: string;
+  geometry_ready: boolean;
+  full_flow_status: string;
+  geometry_hash: string;
+  timings_ms: Record<string, number>;
+  preview_url: string;
+  passport_url: string;
+  manifest_url: string;
 }
 
 export interface ExecutedMassManifest {

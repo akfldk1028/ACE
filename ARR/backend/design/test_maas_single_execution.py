@@ -2,6 +2,7 @@ import json
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from urllib.parse import quote
 
 from django.test import SimpleTestCase, override_settings
 from django.core.management import call_command
@@ -48,6 +49,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
             self.assertEqual(manifest["schema_version"], "arr.maas.single_execution.v1")
             self.assertEqual(manifest["execution_id"], "test-box")
             self.assertEqual(manifest["geometry_hash"], result.geometry_hash)
+            self.assertTrue(manifest["created_at"].endswith("+00:00"))
             self.assertEqual(passport["geometry_hash"], result.geometry_hash)
             self.assertEqual(passport["activation_graph"]["result_node_ids"], ["result:mass"])
             self.assertEqual(
@@ -135,3 +137,91 @@ class MaasSingleExecutionTest(SimpleTestCase):
             self.assertEqual(payload["status"], "geometry_ready")
             self.assertTrue(Path(payload["artifacts"]["preview"]).is_file())
             self.assertLess(payload["timings_ms"]["total"], 5_000)
+
+    def test_single_execution_is_replayed_through_the_existing_mass_archive_contract(self):
+        with TemporaryDirectory() as directory:
+            with override_settings(MAAS_SINGLE_EXECUTION_ROOT=directory):
+                execute_single_mass(
+                    _box_program(),
+                    output_root=directory,
+                    execution_id="source-run",
+                )
+                run_id = "single-execution:source-run"
+                query = quote(run_id, safe="")
+
+                manifest_response = self.client.get(
+                    f"/design/maas/executed-masses/?run_id={query}",
+                )
+                self.assertEqual(manifest_response.status_code, 200)
+                manifest = manifest_response.json()
+                self.assertEqual(manifest["run_id"], run_id)
+                self.assertEqual(manifest["mass_count"], 1)
+                self.assertEqual(manifest["masses"][0]["image_role"], "single_mass_execution_render")
+                self.assertEqual(manifest["masses"][0]["geometry_ready"], True)
+                self.assertIn(run_id, {row["run_id"] for row in manifest["runs"]})
+
+                preview = self.client.get(
+                    f"/design/maas/executed-masses/1/?run_id={query}",
+                )
+                self.assertEqual(preview.status_code, 200)
+                b"".join(preview.streaming_content)
+                preview.close()
+                passport = self.client.get(
+                    f"/design/maas/executed-masses/1/passport/?run_id={query}",
+                )
+                self.assertEqual(passport.status_code, 200)
+                self.assertEqual(passport.json()["geometry_hash"], manifest["masses"][0]["geometry_hash"])
+                outcome = self.client.get(
+                    "/design/maas/outcome-graph/",
+                    {"pnu": "test-pnu", "run_id": run_id},
+                )
+                self.assertEqual(outcome.status_code, 200)
+                self.assertEqual(outcome.json()["status"], "not_found")
+
+    def test_post_can_reexecute_a_selected_archive_mass_and_return_its_new_run_id(self):
+        with TemporaryDirectory() as directory:
+            with override_settings(MAAS_SINGLE_EXECUTION_ROOT=directory):
+                execute_single_mass(
+                    _box_program(),
+                    output_root=directory,
+                    execution_id="source-run",
+                )
+                response = self.client.post(
+                    "/design/maas/single-executions/",
+                    data=json.dumps({
+                        "source_run_id": "single-execution:source-run",
+                        "source_mass_index": 1,
+                        "title": "frontend selected MASS replay",
+                    }),
+                    content_type="application/json",
+                )
+
+                self.assertEqual(response.status_code, 201)
+                payload = response.json()
+                self.assertEqual(payload["archive_run_id"], f"single-execution:{payload['execution_id']}")
+                replay = self.client.get(
+                    "/design/maas/executed-masses/",
+                    {"run_id": payload["archive_run_id"]},
+                )
+                self.assertEqual(replay.status_code, 200)
+                self.assertEqual(replay.json()["masses"][0]["geometry_hash"], payload["geometry_hash"])
+
+                second = self.client.post(
+                    "/design/maas/single-executions/",
+                    data=json.dumps({
+                        "source_run_id": "single-execution:source-run",
+                        "source_mass_index": 1,
+                    }),
+                    content_type="application/json",
+                )
+                self.assertEqual(second.status_code, 201)
+                self.assertNotEqual(second.json()["archive_run_id"], payload["archive_run_id"])
+                latest_catalog = self.client.get(
+                    "/design/maas/executed-masses/",
+                    {"run_id": second.json()["archive_run_id"]},
+                ).json()
+                single_runs = [
+                    row for row in latest_catalog["runs"]
+                    if row.get("run_type") == "single_execution"
+                ]
+                self.assertEqual(len(single_runs), 3)

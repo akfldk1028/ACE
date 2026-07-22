@@ -11,6 +11,7 @@ legal/parking logic or the `/design/language` graph.
 5. `current-checkpoint.json` — machine-readable current state.
 6. `CHANGELOG.md` — append-only checkpoint history.
 7. `06_ELEVATION_HANDOFF.md` — GeometryProgram MASS to elevationAgent boundary.
+8. `07_FULL_TEST_CONTRACT.md` — mandatory engineering and MAAS acceptance gates.
 
 Primary rule: never turn a retrieved image, BOOK scan, unevaluated VLM stage,
 or rejected geometry into active evidence. One selected MASS has one exact
@@ -32,6 +33,9 @@ not enter the 20-MASS portfolio benchmark unless portfolio search was actually
 requested. The one-MASS bundle always contains the source AST, four-view PNG
 (only after geometry GATE), execution passport/causal graph, manifest and
 per-stage latency. `geometry_ready` is separate from full legal/VLM acceptance.
+
+Completion rule: always apply `07_FULL_TEST_CONTRACT.md`. A partial unit test,
+backend-only implementation, or screenshot can never close a MAAS task.
 
 Current completed checkpoint: r196 is an honest `15/20 · FAIL`, not the
 finished portfolio. It verifies the streaming MAP-Elites memory fix and has no

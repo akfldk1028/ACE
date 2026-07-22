@@ -139,3 +139,22 @@
   geometry GATE pass, 38.426 ms direct and 41.087 ms through live HTTP.
 - Added valid, invalid and HTTP/CLI regression tests and recorded the output in
   the service cache under `single-executions/r196-mass-01-fast/`.
+
+## 2026-07-22 - selected MASS execution joined to the one Full Graph
+
+- Adapted single-execution bundles into the existing chronological executed
+  archive contract; no second graph, second archive or BOOK raster result lane
+  was added.
+- Added the selected-MASS execute action to `/design/language`. A click creates
+  a unique immutable run, reloads the same Full Graph and shows the actual
+  generated four-view PNG plus execution passport in the right sidebar and
+  bottom MASS archive.
+- Preserved evaluated r196 site/capacity/law/parking/program/selector evidence
+  while leaving VLM honestly `not_evaluated`.
+- r199 browser E2E passed with one graph, one new MASS, 129 active selected-path
+  edges and zero browser errors. Direct PNG inspection found one connected,
+  orderly solid; the inherited leaning-tower composition is not a claim of
+  portfolio-level visual acceptance.
+- Added the mandatory full-test contract. Full audit result is red: backend
+  742 tests with 22 failures/2 errors; frontend 403 tests with 71 failures/1
+  pending. Focused MASS tests, build, type-check, Django check and E2E pass.

@@ -56,11 +56,21 @@ from design.maas.geometry_language import (
     write_mass_execution_passport,
 )
 from design.maas.geometry_language.executed_archive import (
+    compile_executed_mass,
     executed_mass_manifest,
     materialize_executed_mass_passport,
     materialize_executed_mass_preview,
 )
-from design.maas.single_execution import execute_single_mass
+from design.maas.single_execution import (
+    execute_single_mass,
+    is_single_execution_run,
+    single_execution_archive_manifest,
+    single_execution_passport,
+    single_execution_preview,
+    single_execution_program,
+    single_execution_run_id,
+    single_execution_runs,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +111,20 @@ def maas_outcome_graph_slice(request):
     try:
         run_id = str(request.GET.get("run_id") or "").strip()
         graph_path = None
+        if is_single_execution_run(run_id):
+            return JsonResponse({
+                "schema_version": "arr.maas.outcome_graph_slice.v1",
+                "status": "not_found",
+                "pnu": pnu,
+                "root_node_ids": [],
+                "nodes": [],
+                "edges": [],
+                "counts": {"nodes": 0, "edges": 0},
+                "contracts": {
+                    "single_execution_uses_passport_graph": True,
+                    "parallel_outcome_graph_created": False,
+                },
+            })
         if run_id:
             archive = executed_mass_manifest(run_id)
             source_archive = Path(str(archive["source_archive"])).resolve()
@@ -216,19 +240,49 @@ def maas_single_execution(request):
         return JsonResponse({"error": "request body exceeds 1 MB"}, status=413)
     try:
         body = json.loads(request.body or b"{}")
-        program = body.get("program") if isinstance(body, dict) else None
+        if not isinstance(body, dict):
+            raise ValueError("request body must be an object")
+        program = body.get("program")
+        downstream_evidence = None
+        vlm_result = None
+        source_replay = False
         if not isinstance(program, dict):
-            raise ValueError("program must be an object")
+            source_replay = True
+            source_run_id = str(body.get("source_run_id") or "").strip()
+            source_mass_index = int(body.get("source_mass_index") or 0)
+            if not source_run_id or source_mass_index < 1:
+                raise ValueError("program or source_run_id/source_mass_index is required")
+            if is_single_execution_run(source_run_id):
+                if source_mass_index != 1:
+                    raise ValueError("single execution run contains exactly one MASS")
+                resolved_program = single_execution_program(_single_execution_root(), source_run_id)
+                source_passport = single_execution_passport(_single_execution_root(), source_run_id)
+            else:
+                compilation, _, _, _ = compile_executed_mass(source_mass_index, source_run_id)
+                resolved_program = compilation.program
+                source_passport = materialize_executed_mass_passport(source_mass_index, source_run_id)
+            program = resolved_program.to_dict()
+            downstream_evidence = _passport_downstream_evidence(source_passport)
+            vlm_result = _passport_vlm_result(source_passport)
         result = execute_single_mass(
             program,
             output_root=_single_execution_root(),
+            execution_id=(
+                str(body.get("execution_id") or "")
+                or f"mass-{timezone.now().strftime('%Y%m%dT%H%M%S%fZ')}"
+                if source_replay
+                else str(body.get("execution_id") or "")
+            ),
             title=str(body.get("title") or ""),
+            downstream_evidence=downstream_evidence,
+            vlm_result=vlm_result,
         )
     except (TypeError, ValueError, json.JSONDecodeError) as exc:
         return JsonResponse({"error": str(exc)}, status=400)
     payload = result.to_dict()
     base = f"/design/maas/single-executions/{result.execution_id}"
     payload.update({
+        "archive_run_id": single_execution_run_id(result.execution_id),
         "preview_url": f"{base}/preview/" if result.preview_path.is_file() else "",
         "manifest_url": f"{base}/manifest/",
         "passport_url": f"{base}/passport/",
@@ -279,7 +333,30 @@ def maas_executed_masses(request):
     """List one immutable run plus the chronological MAAS run timeline."""
 
     try:
-        return JsonResponse(executed_mass_manifest(request.GET.get("run_id") or None))
+        run_id = str(request.GET.get("run_id") or "").strip()
+        if is_single_execution_run(run_id):
+            portfolio = executed_mass_manifest()
+            payload = single_execution_archive_manifest(
+                _single_execution_root(),
+                run_id,
+                other_runs=portfolio.get("runs") or (),
+            )
+        else:
+            payload = executed_mass_manifest(run_id or None)
+            extra_runs = single_execution_runs(_single_execution_root())
+            if extra_runs:
+                merged = {
+                    str(item.get("run_id") or ""): item
+                    for item in (*payload.get("runs", ()), *extra_runs)
+                    if isinstance(item, dict) and item.get("run_id")
+                }
+                payload["runs"] = sorted(
+                    merged.values(),
+                    key=lambda item: (str(item.get("created_at") or ""), str(item.get("run_id") or "")),
+                )
+                payload["run_count"] = len(payload["runs"])
+                payload["archive_revision"] = f"{payload.get('archive_revision', '')}:{extra_runs[-1]['created_at']}"
+        return JsonResponse(payload)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         logger.warning("MAAS executed archive unavailable: %s", exc)
         return JsonResponse({"error": "executed MASS archive is unavailable"}, status=503)
@@ -290,10 +367,13 @@ def maas_executed_mass_preview(request, index):
     """Serve the exact candidate card rendered during the recorded MAAS run."""
 
     try:
-        output = materialize_executed_mass_preview(
-            int(index),
-            request.GET.get("run_id") or None,
-        )
+        run_id = str(request.GET.get("run_id") or "").strip()
+        if is_single_execution_run(run_id):
+            if int(index) != 1:
+                raise IndexError(index)
+            output = single_execution_preview(_single_execution_root(), run_id)
+        else:
+            output = materialize_executed_mass_preview(int(index), run_id or None)
     except (OSError, ValueError, IndexError, json.JSONDecodeError) as exc:
         logger.warning("MAAS executed preview unavailable: %s", exc)
         raise Http404("executed MASS render not found") from exc
@@ -308,13 +388,41 @@ def maas_executed_mass_passport(request, index):
     """Replay one archived GeometryProgram and expose its real execution passport."""
 
     try:
-        return JsonResponse(materialize_executed_mass_passport(
-            int(index),
-            request.GET.get("run_id") or None,
-        ))
+        run_id = str(request.GET.get("run_id") or "").strip()
+        if is_single_execution_run(run_id):
+            if int(index) != 1:
+                raise IndexError(index)
+            payload = single_execution_passport(_single_execution_root(), run_id)
+        else:
+            payload = materialize_executed_mass_passport(int(index), run_id or None)
+        return JsonResponse(payload)
     except (OSError, ValueError, IndexError, json.JSONDecodeError) as exc:
         logger.warning("MAAS executed passport unavailable: %s", exc)
         return JsonResponse({"error": "executed MASS passport is unavailable"}, status=422)
+
+
+def _passport_downstream_evidence(passport: dict) -> dict[str, dict]:
+    allowed = {"site", "capacity", "law", "parking", "program_fit", "selector"}
+    return {
+        str(stage.get("id")): dict(stage.get("evidence") or {})
+        for stage in passport.get("stages") or ()
+        if isinstance(stage, dict)
+        and stage.get("id") in allowed
+        and stage.get("status") != "not_evaluated"
+    }
+
+
+def _passport_vlm_result(passport: dict):
+    stage = next((
+        item for item in passport.get("stages") or ()
+        if isinstance(item, dict) and item.get("id") == "vlm"
+    ), None)
+    if not stage or stage.get("status") == "not_evaluated":
+        return None
+    evidence = dict(stage.get("evidence") or {})
+    evidence["cache_hit"] = stage.get("status") == "cache_hit"
+    evidence["vlm_image_inputs"] = evidence.pop("image_inputs", {})
+    return evidence
 
 
 @require_http_methods(["GET"])

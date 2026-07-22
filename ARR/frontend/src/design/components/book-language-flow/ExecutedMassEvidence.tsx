@@ -9,6 +9,9 @@ interface ExecutedMassEvidenceProps {
   mass: ExecutedMassRecord;
   passport: MassExecutionPassport | null;
   passportError: string;
+  onExecute: () => void;
+  executionState: 'idle' | 'running' | 'complete' | 'failed';
+  executionError: string;
 }
 
 function percent(value: number | null): string {
@@ -55,7 +58,15 @@ function passportDisplayStatus(
   return passport.status.replaceAll('_', ' ').toUpperCase();
 }
 
-export function ExecutedMassEvidence({ archive, mass, passport, passportError }: ExecutedMassEvidenceProps) {
+export function ExecutedMassEvidence({
+  archive,
+  mass,
+  passport,
+  passportError,
+  onExecute,
+  executionState,
+  executionError,
+}: ExecutedMassEvidenceProps) {
   const vlmStage = passport?.stages.find((stage) => stage.id === 'vlm');
   const selectorStage = passport?.stages.find((stage) => stage.id === 'selector');
   const vlmProgramFit = vlmStage?.evidence.program_fit_hard_pass;
@@ -76,6 +87,18 @@ export function ExecutedMassEvidence({ archive, mass, passport, passportError }:
           </figcaption>
         </figure>
       </div>
+      <div className="executed-mass-evidence__execute">
+        <button
+          type="button"
+          onClick={onExecute}
+          disabled={executionState === 'running'}
+          aria-label="Execute selected MASS"
+        >
+          <span>{executionState === 'running' ? 'EXECUTING AST / GATE / PNG' : 'EXECUTE SELECTED MASS'}</span>
+          <strong>{executionState === 'complete' ? 'NEW RUN ADDED TO THIS GRAPH' : 'FAST SINGLE-MASS FLOW'}</strong>
+        </button>
+        {executionError && <p role="alert">{executionError}</p>}
+      </div>
       <dl className="book-evidence__attributes">
         <div><dt>PNU</dt><dd>{archive.pnu}</dd></div>
         <div><dt>OPERATION</dt><dd>{mass.operation_label}</dd></div>
@@ -85,7 +108,8 @@ export function ExecutedMassEvidence({ archive, mass, passport, passportError }:
         <div><dt>FAR</dt><dd>{mass.far_pct == null ? 'NOT RECORDED' : `${mass.far_pct.toFixed(3)}%`}</dd></div>
         <div><dt>CAPACITY ALT</dt><dd>{mass.capacity_alternative_id}</dd></div>
         <div><dt>TARGET / ACHIEVED</dt><dd>{percent(mass.capacity_target_utilization)} / {percent(mass.capacity_achieved_utilization)}</dd></div>
-        <div><dt>HARD GATES</dt><dd>{mass.hard_pass ? 'PASS' : 'FAIL'}</dd></div>
+        <div><dt>GEOMETRY READY</dt><dd>{mass.geometry_ready === false ? 'FAIL' : 'PASS'}</dd></div>
+        <div><dt>FULL HARD GATES</dt><dd>{mass.hard_pass ? 'PASS' : 'PENDING / FAIL'}</dd></div>
         <div><dt>VLM</dt><dd>{vlmStage?.status?.replaceAll('_', ' ').toUpperCase() ?? 'LOADING'}</dd></div>
         <div><dt>VLM PROGRAM FIT</dt><dd>{typeof vlmProgramFit === 'boolean' ? (vlmProgramFit ? 'PASS' : 'FAIL') : 'NOT RECORDED'}</dd></div>
         <div><dt>VLM VISUAL MEAN</dt><dd>{scoreMean(vlmStage?.evidence)}</dd></div>

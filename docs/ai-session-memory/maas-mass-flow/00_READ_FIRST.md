@@ -25,6 +25,14 @@ dimensions or image-specific vertex recipes in synthesis. Dimensionless
 sampling/safety policies are allowed only when they are named, centralized,
 replaceable and recorded in the Geometry Program.
 
+Canonical-base decision (2026-07-22): there is only one Base Model authority,
+the normalized `1/1 UnitBox`. `1/2`, `3/8`, `1/4`, `1/8` and `1/16` are derived
+states, not additional primitives. Affine derivations share a homogeneous 4x4
+matrix representation; topology-changing Boolean/cut/modifier/pattern/
+composition operators remain recursive because a matrix alone cannot generate
+all architectural solids. The graph must show `1/1 -> derivation -> MASS`, not
+six competing base authorities.
+
 Current frontend: `http://127.0.0.1:5175/design/language`.
 
 Fast deploy/runtime rule: a user-facing request executes one explicit
@@ -37,13 +45,15 @@ per-stage latency. `geometry_ready` is separate from full legal/VLM acceptance.
 Completion rule: always apply `07_FULL_TEST_CONTRACT.md`. A partial unit test,
 backend-only implementation, or screenshot can never close a MAAS task.
 
-Current completed single-MASS checkpoint: r200 execution
-`mass-20260722T040843366927Z` is an exact immutable replay with all deterministic
-and downstream stages passed plus one bounded paid `gpt-5.4-mini` VLM review.
-Its final passport is `accepted`; it does not convert the source r196 portfolio
-into a pass. r196 remains an honest `15/20 · FAIL`, r194 remains the latest paid
-board audit and also failed, and r195/r197 remain state-only ResourceGuard
-failures. r182 remains the latest numeric `20/20` baseline and was not VLM-approved.
+Current acceptance contract (r204): every new single MASS must traverse the
+hash-bound specialist sequence `design_orchestrator -> maas_geometry_agent ->
+law_graph_agent -> parking_agent -> review_agent -> selector`. The immutable
+identity is `execution_id + program_hash + geometry_hash + PNU`. Missing law
+MCP/Neo4j evidence produces `needs_evidence` while preserving the diagnostic
+PNG; it can never produce `accepted`. r204 proved live Neo4j and :8011 law
+evidence can pass for the exact MASS/PNU identity. Its precedent-informed MASS
+still remains `needs_evidence` because the final paid VLM rejected section and
+public-threshold fit and full capacity/parking evidence was not supplied.
 
 Multi-agent folder contract: read `05_MULTI_AGENT_FOLDER_CONTRACT.md` before
 creating or moving any specialist agent. `ARR/backend/agents/` is the shared

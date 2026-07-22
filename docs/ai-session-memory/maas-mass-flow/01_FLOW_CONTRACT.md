@@ -5,8 +5,9 @@
 1. Parcel input: PNU, parcel polygon and jurisdiction.
 2. Legal generation context: buildable footprint, height-dependent sunlight
    field, BCR/FAR limits and setbacks.
-3. Base Volume: BOOK p.3 relative host scopes `1/1`, `3/8`, `1/2`, `1/4`,
-   `1/8`, `1/16` plus long/short/vertical orientation.
+3. Canonical Base Model: exactly one normalized `1/1 UnitBox`. BOOK ratios
+   such as `3/8`, `1/2`, `1/4`, `1/8` and `1/16` are derived occupancy or
+   partition states of that host, never sibling Base Model primitives.
 4. Universal recursive Geometry Program: primitive, transform, modifier,
    boolean, pattern, cutting, profile/sweep and architectural macro nodes.
 5. BOOK language projection: one ordered operative, combination, aggregation
@@ -19,7 +20,11 @@
    maximum feasible. Each candidate must pass its own measured capacity target.
 8. Compiler and geometry GATE: closed/manifold/connected/retained solid,
    program fit and normalized morphology checks.
-9. Site/legal/parking hard gates on the same accepted SourceVolume graph.
+9. Hash-bound specialist collaboration on the same compiled MASS:
+   `design_orchestrator -> maas_geometry_agent -> law_graph_agent ->
+   parking_agent -> review_agent -> selector`. `law_graph_agent` owns calls to
+   the existing law-domain/MCP and Neo4j adapters; the orchestrator may not
+   bypass the agent with a direct scalar pass.
 10. Actual MASS render and immutable program/geometry hashes.
 11. Reference retrieval: ArchDaily images may be retrieved and displayed as
     pending context. Retrieval alone is not VLM input.
@@ -40,11 +45,28 @@
 - Retrieved ArchDaily nodes use pending edges unless `used_by_vlm=true` is
   recorded in the passport.
 - The graph is causal execution evidence for an Agent, not hidden neural state.
+- Specialist agents, source attempts, resolved articles and handoffs are nodes
+  in this same graph. Never create a parallel law or agent graph.
+- Every handoff repeats the exact execution ID, program hash, geometry hash and
+  PNU. Any mismatch fails closed.
 
 ## Base-Model-relative parametric invariant
 
-- `Base Volume` controls the selected BOOK p.3 host scope; it is not a fixed
-  building template.
+- Base authority is singular: `1/1 UnitBox`. The frontend, compiler and Agent
+  graph must not present `3/8`, `1/2`, `1/4`, `1/8` or `1/16` as independent
+  base primitives. They are traceable derived states below the base node.
+- Every affine state is representable by a homogeneous 4x4 matrix in the live
+  local frame: translation, rotation, non-uniform scale, reflection and shear.
+  Matrix composition is the canonical transform stack and must remain relative
+  to the current Solid, not parcel coordinates.
+- A 4x4 affine matrix is not the entire geometry language. It cannot by itself
+  create a void, change topology, branch, bend non-linearly or repeat solids.
+  Boolean, cutting, modifier, pattern and composition nodes remain recursive
+  Solid-to-Solid operations whose inputs ultimately descend from the one
+  `1/1 UnitBox` authority.
+- BOOK p.3 ratios are recorded as matrix/partition/occupancy derivations so an
+  Agent can explain how `1/2` or `3/8` emerged from `1/1`; they must never be
+  hardcoded as unrelated final building templates.
 - Every downstream operator consumes the evaluated current Solid and derives
   its coordinate frame from live bounds/axes/faces/topology.
 - `Attach` stores a host face plus normalized local anchor, guest extent,
@@ -64,5 +86,9 @@
 ## Cost boundary
 
 - Non-live geometry exploration may use bounded form-bank pages 0-7.
+- A single-MASS VLM review uses at most three distinct ArchDaily images: one
+  program precedent, one formally similar precedent and one counterfactual.
+  Exact image bytes are deduplicated and nested `program_projection` identity
+  must be resolved before generic fallback.
 - Live VLM keeps an explicit configured request budget; default is one cycle.
 - Never enable paid VLM merely to make a status appear complete.

@@ -1,5 +1,37 @@
 # MASS Flow Memory Changelog
 
+## 2026-07-22 - r203 browser current-code full-flow verification
+
+- Fixed successful agent node activation, exact-image dedup for zero-byte test
+  placeholders, nested reference role limits, final-AST concept derivation and
+  base-relative L-shape replenishment variation.
+- Passed the MASS regression group 227/227, frontend focused tests 6/6,
+  TypeScript, Django check and compileall.
+- Ran the mandatory repository suites: backend 754 with 19 failures/2 errors;
+  frontend 406 with 71 failures/1 skipped. Engineering full-test remains FAIL.
+- Restarted stale Django `:18000` and executed a MASS through the real frontend
+  button. The new chronological run has one watertight component, five agent
+  handoffs, six specialist nodes, zero BOOK raster/HTTP/console errors and an
+  honest `needs_evidence` status.
+- Paid VLM request count for r203 is zero. Live Neo4j, law search and a real-PNU
+  archived MASS are prerequisites before spending the bounded three-reference
+  call.
+
+## 2026-07-22 - r201 hash-bound multi-agent law/reference contract
+
+- Added a single-MASS specialist acceptance protocol with immutable execution
+  ID, program hash, geometry hash and PNU across every handoff.
+- Routed geometry, law graph/MCP, parking, final review and selector evidence
+  into the existing passport and one FULL GRAPH.
+- Changed missing live law sources from ambiguous progress to explicit
+  `needs_evidence`; diagnostic PNG generation remains available.
+- Fixed nested program projection resolution for ArchDaily retrieval, expanded
+  the bounded ceiling to three references and assigned program/similar/
+  counterfactual roles with exact-image SHA-256 deduplication.
+- Added the specialist statuses to the existing selected-MASS sidebar.
+- Offline verification passed: backend focused 18/18, frontend 3/3 and
+  TypeScript. Live Neo4j/:8011 plus one paid VLM check remain pending.
+
 ## 2026-07-21 — r182
 
 - Created this modular memory folder.
@@ -179,3 +211,57 @@
   check pass. Frontend full is still red at 333/405 passed, 71 failed, 1 skipped.
   Backend full attempt exceeded 900 seconds; preserve the last completed
   742-test result (22 failures, 2 errors) until a new full run completes.
+
+## 2026-07-22 - r204 upstream ArchDaily design proof and live law recovery
+
+- Started the authoritative Neo4j Desktop DBMS `backend` on `7687` and verified
+  31,167 nodes. Started `law-domain-agents` on `8011` with 7 Neo4j-backed
+  domains and 7 A2A agents.
+- Repaired A2A SDK v1 card construction from the removed `url` field to
+  `supportedInterfaces`; the law service A2A regression suite passes 7/7.
+- Ran one bounded, uncached upstream design proof. Four audited ArchDaily
+  whole-building images were lowered to transferable traits before the
+  Geometry Author call. `gpt-5.4-mini` response
+  `resp_0db2d6dfde44ce39006a60779abfa8819ab98965cfae28ed37` authored
+  `neighborhood_living_south_courtyard_bar`; metadata explicitly records
+  `reference_vlm_precedes_author=true`.
+- The exact program `box -> translate -> courtyard` compiled to one connected,
+  watertight/manifold 28-triangle solid and was archived as
+  `mass-20260722T075614737604Z-c22e2274`. This proves precedent-informed
+  authorship works, but the form remains a basic U-shaped bar and is not a
+  competition-quality claim.
+- One final paid candidate VLM call, response
+  `resp_0106532b77bab3a6006a6077dda890819aab9e5a630bad0a07`, correctly failed
+  program fit. `section_program_fit=0.38`; actions include
+  `needs_clean_anchor`, `needs_carved_void`, and `weak_form_continuity`.
+  Recorded candidate-review usage is 23,183 tokens.
+- Increased the bounded law-domain read timeout from 2 to 6 seconds after the
+  cold request timed out while a direct warm request returned 3 results in
+  1.05 seconds. Focused collaboration tests pass 7/7. The same exact MASS/PNU
+  law evidence then passed with 6 Neo4j articles, 3 law-domain results and no
+  missing evidence.
+- Browser verification shows the new run first in the chronological archive;
+  selecting it renders its actual MASS, AST, legal articles, final VLM evidence
+  and specialist handoffs in the one Selected MASS Path. There is no blank page
+  or error overlay.
+- Remaining causal-graph gap: the frontend displays the references used by the
+  final VLM critic, but does not yet project the four upstream ArchDaily author
+  references or explicit `reference -> extracted trait -> AST operator` edges.
+  The evidence exists in `program.metadata.reference_vlm_author_context`; do
+  not claim the frontend exposes it until that projection is implemented.
+
+## 2026-07-22 - canonical 1/1 UnitBox and 4x4 transform decision
+
+- Replaced the six-sibling Base Model interpretation with one canonical
+  `1/1 UnitBox` authority. `1/2`, `3/8`, `1/4`, `1/8` and `1/16` are now an
+  architectural contract for derived occupancy/partition states only.
+- Standardized affine derivation conceptually on homogeneous 4x4 matrices for
+  translate, rotate, scale, mirror and shear in the current Solid's local
+  frame. Existing source is not yet migrated; this entry records the invariant
+  before code/UI changes.
+- Kept recursive Boolean, cutting, deformation, pattern and composition
+  operators. A 4x4 affine transform cannot alone express courtyard voids,
+  topology changes, non-linear bend or multi-solid composition.
+- Required future graph/UI migration to show one base node followed by explicit
+  derived-state nodes, so an Agent can trace `1/1 -> 1/2 or 3/8 -> operation ->
+  MASS` without treating the ratios as independent primitives.

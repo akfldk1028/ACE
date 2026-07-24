@@ -1,6 +1,27 @@
-# Current Verified State — r206 UnitBox matrix execution verified
+# Current Verified State — r207 fresh UnitBox MASS generated
 
-Generated 2026-07-22 KST.
+Generated 2026-07-24 KST.
+
+## r207 genuinely new MASS generation
+
+- This is not an archived shape replay. A new eight-node program named
+  `r207_fresh_notched_taper_cantilever` was authored and executed under
+  `single-execution:r207-fresh-unitbox-notched-taper-cantilever`.
+- One primitive `1/1 UnitBox` is reused by four 4x4 matrices to produce a
+  notched podium, tapered vertical core and 12-degree rotated cantilever.
+  Recursive `difference`, `taper` and three-input `union` compose the result.
+- Freshness audit found no prior program-hash or geometry-hash collision.
+  Program hash is `009ea38b...620c6`; geometry hash is
+  `867fe51f...470e`.
+- The actual new mesh is one closed, watertight, manifold component with
+  outward normals, 200 triangles, volume `1070.793163` and bounds
+  `18 x 12 x 14.5`. Geometry GATE passed with zero issues.
+- `/design/language` lists r207 first in the chronological archive. Browser
+  selection shows the new four-view PNG, four executed matrix glyphs, one
+  causal graph, zero BOOK rasters and no error overlay.
+- Final passport is still `needs_evidence`: no PNU/capacity/parking acceptance
+  or VLM critic was supplied. Elevation remains three unevaluated continuation
+  nodes; this run proves fresh geometry generation, not full design acceptance.
 
 ## r206 one UnitBox + two affine matrices + elevation trace
 

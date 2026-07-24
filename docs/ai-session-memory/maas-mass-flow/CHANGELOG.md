@@ -1,5 +1,22 @@
 # MASS Flow Memory Changelog
 
+## 2026-07-24 - r207 first post-matrix fresh MASS execution
+
+- Corrected the earlier overstatement: r206 verified a fixed leaning-tower
+  program and was not evidence of a newly synthesized MASS.
+- Added and executed a new one-UnitBox recursive program combining a notched
+  podium, tapered core and rotated cantilever. The same UnitBox node feeds four
+  explicit 4x4 matrices before `difference`, `taper` and `union`.
+- New execution `r207-fresh-unitbox-notched-taper-cantilever` has unique
+  program and geometry hashes, one watertight/manifold component, 200
+  triangles, zero Geometry GATE issues and a materialized four-view PNG.
+- Browser verification shows r207 first in the chronological archive and
+  selectable in the single causal graph with four matrix glyphs, zero BOOK
+  rasters, no archive error and no Vite overlay.
+- This was geometry-only validation. Paid VLM, site/capacity/parking acceptance
+  and real elevation generation were not run and remain explicitly
+  `needs_evidence` / `not_evaluated`.
+
 ## 2026-07-22 - r203 browser current-code full-flow verification
 
 - Fixed successful agent node activation, exact-image dedup for zero-byte test

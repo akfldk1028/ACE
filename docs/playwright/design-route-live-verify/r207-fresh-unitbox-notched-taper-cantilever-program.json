@@ -1,0 +1,163 @@
+{
+  "schema_version": "arr.maas.geometry_program.v1",
+  "name": "r207_fresh_notched_taper_cantilever",
+  "root_id": "n08_union",
+  "metadata": {
+    "family": "notched_tapered_cantilever",
+    "generation_mode": "fresh_unitbox_composition",
+    "canonical_base_model": "1/1 UnitBox"
+  },
+  "nodes": [
+    {
+      "id": "n01_unitbox",
+      "kind": "primitive",
+      "operator": "box",
+      "inputs": [],
+      "parameters": {
+        "width": 1.0,
+        "depth": 1.0,
+        "height": 1.0
+      },
+      "semantic_role": "base_authority",
+      "provenance": {
+        "source": "fresh_generation_test",
+        "canonical_base_model": "1/1 UnitBox"
+      }
+    },
+    {
+      "id": "n02_podium_matrix",
+      "kind": "transform",
+      "operator": "matrix4",
+      "inputs": [
+        "n01_unitbox"
+      ],
+      "parameters": {
+        "matrix4": [
+          [18.0, 0.0, 0.0, 0.0],
+          [0.0, 12.0, 0.0, 0.0],
+          [0.0, 0.0, 3.0, 0.0],
+          [0.0, 0.0, 0.0, 1.0]
+        ]
+      },
+      "semantic_role": "host",
+      "provenance": {
+        "source": "fresh_generation_test",
+        "derived_from": "n01_unitbox"
+      }
+    },
+    {
+      "id": "n03_notch_cutter_matrix",
+      "kind": "transform",
+      "operator": "matrix4",
+      "inputs": [
+        "n01_unitbox"
+      ],
+      "parameters": {
+        "matrix4": [
+          [4.0, 0.0, 0.0, 0.0],
+          [0.0, 5.0, 0.0, 3.5],
+          [0.0, 0.0, 3.6, 0.0],
+          [0.0, 0.0, 0.0, 1.0]
+        ]
+      },
+      "semantic_role": "cutter",
+      "provenance": {
+        "source": "fresh_generation_test",
+        "derived_from": "n01_unitbox"
+      }
+    },
+    {
+      "id": "n04_notched_podium",
+      "kind": "boolean",
+      "operator": "difference",
+      "inputs": [
+        "n02_podium_matrix",
+        "n03_notch_cutter_matrix"
+      ],
+      "parameters": {},
+      "semantic_role": "host",
+      "provenance": {
+        "source": "fresh_generation_test",
+        "architectural_intent": "public entry notch"
+      }
+    },
+    {
+      "id": "n05_core_matrix",
+      "kind": "transform",
+      "operator": "matrix4",
+      "inputs": [
+        "n01_unitbox"
+      ],
+      "parameters": {
+        "matrix4": [
+          [7.0, 0.0, 0.0, 5.5],
+          [0.0, 7.0, 0.0, 2.5],
+          [0.0, 0.0, 12.0, 2.5],
+          [0.0, 0.0, 0.0, 1.0]
+        ]
+      },
+      "semantic_role": "vertical_core",
+      "provenance": {
+        "source": "fresh_generation_test",
+        "derived_from": "n01_unitbox"
+      }
+    },
+    {
+      "id": "n06_tapered_core",
+      "kind": "modifier",
+      "operator": "taper",
+      "inputs": [
+        "n05_core_matrix"
+      ],
+      "parameters": {
+        "axis": "z",
+        "start_scale": [1.0, 1.0],
+        "end_scale": [0.55, 0.75],
+        "subdivisions": 4
+      },
+      "semantic_role": "vertical_core",
+      "provenance": {
+        "source": "fresh_generation_test",
+        "architectural_intent": "tapered upper volume"
+      }
+    },
+    {
+      "id": "n07_cantilever_matrix",
+      "kind": "transform",
+      "operator": "matrix4",
+      "inputs": [
+        "n01_unitbox"
+      ],
+      "parameters": {
+        "matrix4": [
+          [12.715919, -0.831647, 0.0, 2.0],
+          [2.702852, 3.91259, 0.0, 3.8],
+          [0.0, 0.0, 3.0, 9.0],
+          [0.0, 0.0, 0.0, 1.0]
+        ]
+      },
+      "semantic_role": "cantilever",
+      "provenance": {
+        "source": "fresh_generation_test",
+        "derived_from": "n01_unitbox",
+        "architectural_intent": "12 degree rotated bridge bar"
+      }
+    },
+    {
+      "id": "n08_union",
+      "kind": "boolean",
+      "operator": "union",
+      "inputs": [
+        "n04_notched_podium",
+        "n06_tapered_core",
+        "n07_cantilever_matrix"
+      ],
+      "parameters": {},
+      "semantic_role": "main",
+      "provenance": {
+        "source": "fresh_generation_test",
+        "architectural_intent": "notched podium with tapered core and rotated cantilever"
+      }
+    }
+  ]
+}

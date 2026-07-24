@@ -1,6 +1,33 @@
-# Current Verified State — r207 fresh UnitBox MASS generated
+# Current Verified State — r211-r216 multi-MASS archive with elevations
 
 Generated 2026-07-24 KST.
+
+## r211-r216 distinct MASS generation and clickable archive
+
+- Six independent geometry programs were executed: radial fan, stepped
+  setback, tapered tower, diagonal slice, swept curved bar and twisted tower.
+- Every program has exactly one primitive `1/1 UnitBox`; one or two explicit
+  `matrix4` nodes derive the working volume before pattern, macro, modifier,
+  cutting or Boolean operations. The six geometry hashes are distinct.
+- Every result is geometry-ready, watertight/manifold, has zero Geometry GATE
+  issues, and generated six deterministic elevation views from the exact
+  indexed mesh: front, right, back, left, top and axon.
+- `/design/language` now builds the bottom MASS-only rail from replayable
+  single-execution runs rather than only `archive.masses` from the selected
+  run. The latest 24 MASS results remain visible while one run is selected.
+- Clicking r214 in browser verification moved the selected rail card, loaded
+  the r214 diagonal-slice graph, and changed all six right-sidebar elevation
+  URLs to r214. The page had zero broken images and no Vite error overlay.
+- Final acceptance remains honestly `needs_evidence`: these diagnostic runs
+  have `PNU_UNRESOLVED`, no site capacity/parking approval and no paid VLM
+  critic. Geometry and elevation generation are proven; regulatory/design
+  acceptance is not.
+
+Browser evidence:
+
+- `docs/playwright/design-route-live-verify/r216-six-distinct-mass-archive-frontend.png`
+- `docs/playwright/design-route-live-verify/r215-multi-mass-elevation-archive-frontend.png`
+- `docs/playwright/design-route-live-verify/r214-selected-mass-six-elevations-visible.png`
 
 ## r207 genuinely new MASS generation
 

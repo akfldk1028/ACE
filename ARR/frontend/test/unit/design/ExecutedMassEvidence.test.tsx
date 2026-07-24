@@ -5,6 +5,7 @@ import { ExecutedMassEvidence } from '../../../src/design/components/book-langua
 import type {
   ExecutedMassManifest,
   ExecutedMassRecord,
+  MassExecutionPassport,
 } from '../../../src/design/lib/language-system-types'
 
 
@@ -101,5 +102,95 @@ describe('ExecutedMassEvidence', () => {
     const button = screen.getByRole('button', { name: /run bounded paid vlm/i })
     fireEvent.click(button)
     expect(onVlmReview).toHaveBeenCalledOnce()
+  })
+
+  it('shows the hash-bound specialist collaboration for the selected MASS', () => {
+    const passport = {
+      status: 'needs_evidence',
+      stages: [],
+      agent_collaboration: {
+        final_status: 'needs_evidence',
+        identity: {
+          execution_id: 'mass-fast',
+          program_hash: mass.program_hash,
+          geometry_hash: mass.geometry_hash,
+          pnu: archive.pnu,
+        },
+        evidence: [
+          { evidence_id: 'geometry', agent: 'maas_geometry_agent', status: 'passed', summary: 'compiled', evidence: {} },
+          { evidence_id: 'law', agent: 'law_graph_agent', status: 'needs_evidence', summary: 'Neo4j unavailable', evidence: {} },
+          { evidence_id: 'parking', agent: 'parking_agent', status: 'passed', summary: 'layout pass', evidence: {} },
+          { evidence_id: 'review', agent: 'review_agent', status: 'needs_evidence', summary: 'blocked', evidence: {} },
+          { evidence_id: 'selector', agent: 'selector', status: 'needs_evidence', summary: 'blocked', evidence: {} },
+        ],
+        handoffs: [],
+      },
+    } as unknown as MassExecutionPassport
+
+    render(
+      <ExecutedMassEvidence
+        archive={archive}
+        mass={mass}
+        passport={passport}
+        passportError=""
+        onExecute={vi.fn()}
+        executionState="complete"
+        executionError=""
+        onVlmReview={vi.fn()}
+        vlmReviewState="idle"
+        vlmReviewError=""
+      />,
+    )
+
+    expect(screen.getByText('SPECIALIST COLLABORATION')).toBeInTheDocument()
+    expect(screen.getByText('LAW GRAPH AGENT')).toBeInTheDocument()
+    expect(screen.getAllByText('NEEDS EVIDENCE').length).toBeGreaterThan(0)
+  })
+
+  it('shows the six generated elevationAgent views for the selected MASS', () => {
+    const views = ['front', 'right', 'back', 'left', 'top', 'axon'].map((view) => ({
+      view,
+      preview_url: `/design/maas/single-executions/mass-fast/elevation/${view}/`,
+      sha256: view.repeat(8),
+    }))
+    const passport = {
+      status: 'needs_evidence',
+      stages: [],
+      activation_graph: {
+        nodes: [{
+          id: 'elevation:result',
+          kind: 'elevation_result',
+          status: 'generated',
+          evidence: {
+            artifact_exists: true,
+            view_count: 6,
+            views,
+          },
+        }],
+        edges: [],
+      },
+    } as unknown as MassExecutionPassport
+
+    render(
+      <ExecutedMassEvidence
+        archive={archive}
+        mass={mass}
+        passport={passport}
+        passportError=""
+        onExecute={vi.fn()}
+        executionState="complete"
+        executionError=""
+        onVlmReview={vi.fn()}
+        vlmReviewState="idle"
+        vlmReviewError=""
+      />,
+    )
+
+    expect(screen.getByText('ELEVATION AGENT · 6 VIEWS')).toBeInTheDocument()
+    expect(screen.getByAltText('MASS 01 front elevation')).toHaveAttribute(
+      'src',
+      '/design/maas/single-executions/mass-fast/elevation/front/',
+    )
+    expect(screen.getAllByRole('img')).toHaveLength(7)
   })
 })

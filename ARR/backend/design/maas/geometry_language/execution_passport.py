@@ -33,6 +33,7 @@ def build_mass_execution_passport(
     downstream_evidence: Mapping[str, Any] | None = None,
     geometry_gate_evidence: Mapping[str, Any] | None = None,
     agent_collaboration: Mapping[str, Any] | None = None,
+    elevation_evidence: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build one truthful passport from evidence materialized for this MASS."""
 
@@ -106,6 +107,7 @@ def build_mass_execution_passport(
         gate_issues=gate_issues,
         agent_collaboration=collaboration,
         geometry_hash=str(compilation.geometry_hash or ""),
+        elevation_evidence=deepcopy(dict(elevation_evidence or {})),
     )
     state = passport_state(stages)
     return {
@@ -126,6 +128,7 @@ def build_mass_execution_passport(
         "stages": stages,
         "activation_graph": activation_graph,
         "agent_collaboration": collaboration,
+        "elevation_evidence": deepcopy(dict(elevation_evidence or {})),
     }
 
 

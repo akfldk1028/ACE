@@ -10,26 +10,24 @@ MASS PNG hash, individual VLM evidence, hard-gate state and required output
 views. Facade/elevation work may style or project onto this mesh but must not
 change its mass geometry.
 
-Current proof packet:
+Current execution-graph truth (r211-r216, 2026-07-24):
 
-- r188 MASS 10
-- 82 vertices, 160 triangles
-- geometry replay match: true
-- individual VLM program fit: false
-- final-elevation approval: false
-- status: `mesh_handoff_ready_condition_pack_adapter_pending`
-
-Current execution-graph truth (r206, 2026-07-22):
-
-- Every new MASS passport now carries three downstream nodes in the same causal
-  graph: `elevation:mesh_handoff`, `elevation:condition_pack`, and
-  `elevation:result`.
-- All three are deliberately `not_evaluated` with `artifact_exists=false`.
-  This makes the missing continuation visible without inventing an elevation.
-- `elevationAgent` is still a renamed generic GitAgent and does not consume the
-  GeometryProgram mesh. No generated elevation PNG exists yet.
-- Do not change these nodes to passed until a hash-bound consumer writes a real
-  condition pack and multi-view result for the exact program/geometry/PNU.
+- `elevationAgent` consumes the exact compiled indexed mesh after the MASS
+  render and writes a hash-bound condition pack plus six PNG views.
+- The camera contract is semantic (`direction` and `up`). Horizontal, vertical
+  and depth axes and the row-major affine `view_matrix4` are derived by vector
+  normalization and cross products; precomputed camera-basis decimals are not
+  an authoring authority.
+- Condition-pack outputs include stable face IDs, camera poses, silhouette
+  bounds, metric depth, triangle normals, 3.3 m floor guides and four facade
+  planes. `geometry_mutation_allowed=false`.
+- Every new passport carries active nodes in the same causal graph:
+  `elevation:mesh_handoff -> elevation:condition_pack -> elevation:result`.
+  Their evidence is generated only after the files exist and their program and
+  geometry hashes match the MASS.
+- r211-r216 each generated front/right/back/left/top/axon views. Clicking a
+  bottom MASS card changes the graph and the right-sidebar elevation bundle to
+  the same execution ID. Elevations never become bottom-archive MASS cards.
 
 Existing paper and implementation memory:
 
@@ -39,9 +37,9 @@ Existing paper and implementation memory:
 
 Next implementation boundary:
 
-`GeometryProgram indexed mesh -> camera poses -> metric depth + normals +
-silhouettes + floor guides -> facade planes -> projection manifest -> locked
-multi-view elevation generation -> cross-view/mesh consistency GATE`.
+`condition pack -> actual facade/section synthesis -> cross-view/mesh
+consistency GATE`. The current views are deterministic mesh projections, not a
+claim that a designed facade, floor plan or code-compliant elevation exists.
 
 Do not route the new mesh through the legacy mass-GeoJSON volume renderer and
 call it complete. Add one adapter; do not create a second geometry authority.

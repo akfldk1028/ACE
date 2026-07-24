@@ -885,6 +885,38 @@ class MaasPreferenceDistillationTest(TestCase):
         self.assertEqual(matches[2]["source_id"], "contrast_1")
         self.assertEqual(matches[2]["selection_role"], "counterfactual")
 
+    def test_program_references_have_distinct_roles_and_exact_images(self):
+        feature = self._feature(family="courtyard")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "housing"
+            root.mkdir()
+            first = root / "first.jpg"
+            duplicate = root / "duplicate.jpg"
+            second = root / "second.jpg"
+            contrast = root / "contrast.jpg"
+            first.write_bytes(b"same-image")
+            duplicate.write_bytes(b"same-image")
+            second.write_bytes(b"second-image")
+            contrast.write_bytes(b"contrast-image")
+            refs = [
+                ReferenceItem(source="archdaily_api", source_id="program", title="Housing courtyard", local_path=str(first), tags=("housing", "courtyard")),
+                ReferenceItem(source="archdaily_api", source_id="duplicate", title="Housing court duplicate", local_path=str(duplicate), tags=("housing", "court")),
+                ReferenceItem(source="archdaily_api", source_id="similar", title="Housing atrium", local_path=str(second), tags=("housing", "atrium")),
+                ReferenceItem(source="archdaily_api", source_id="contrast", title="Housing folded ribbon", local_path=str(contrast), tags=("housing", "ribbon", "folded", "bend")),
+            ]
+            contract = {
+                "program_id": "housing",
+                "preferred_collections": ["housing"],
+                "required_any_terms": ["housing"],
+            }
+
+            matches = match_reference_context(feature, refs, limit=3, program_contract=contract)
+
+        self.assertEqual([row["selection_role"] for row in matches], ["program", "similar", "counterfactual"])
+        selected_ids = {row["source_id"] for row in matches}
+        self.assertEqual(len(selected_ids & {"program", "duplicate"}), 1)
+        self.assertEqual(len({row["image_sha256"] for row in matches}), 3)
+
     def test_reference_signal_changes_precedent_score(self):
         feature = self._feature(family="courtyard")
         without_refs = build_preference_distillation(feature)

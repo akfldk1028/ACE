@@ -17,6 +17,12 @@ import type {
   OutcomeGraphSlice,
 } from '../../lib/language-system-types';
 import { ExecutedMassEvidence } from './ExecutedMassEvidence';
+import {
+  buildRecentMassCards,
+  latestReplayableRunId,
+  reconcileExecutedMassArchive,
+  resolveSelectedMassIndex,
+} from './archive-selection-policy';
 import { useSingleMassVlmReview } from './useSingleMassVlmReview';
 import {
   LanguageNetworkCanvas,
@@ -339,7 +345,9 @@ function selectedRuntimeGraph(
   const nodes = passport.activation_graph.nodes
     .filter((node) => node.id !== 'result:mass')
     .map((node): NetworkNode => {
-      const imageBacked = node.kind === 'mass_render_result' || node.kind === 'vlm_reference_image';
+      const imageBacked = node.kind === 'mass_render_result'
+        || node.kind === 'vlm_reference_image'
+        || node.kind === 'elevation_result';
       return {
         id: mappedId(node.id),
         kind: node.kind,
@@ -598,6 +606,12 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
   useEffect(() => {
     const controller = new AbortController();
     getExecutedMassManifest(controller.signal)
+      .then(async (payload) => {
+        const latestRunId = latestReplayableRunId(payload);
+        return latestRunId !== payload.selected_run_id
+          ? getExecutedMassManifest(controller.signal, latestRunId)
+          : payload;
+      })
       .then((payload) => {
         setArchive(payload);
         setSelectedMassIndex(payload.masses[0]?.index ?? 1);
@@ -623,18 +637,7 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
       getExecutedMassManifest(currentController.signal)
         .then((payload) => {
           if (!active) return;
-          setArchive((current) => (
-            current?.archive_revision === payload.archive_revision
-              ? current
-              : current && current.selected_run_id !== payload.selected_run_id
-                ? {
-                  ...current,
-                  runs: payload.runs,
-                  run_count: payload.run_count,
-                  archive_revision: payload.archive_revision,
-                }
-                : payload
-          ));
+          setArchive((current) => reconcileExecutedMassArchive(current, payload));
           setArchiveError('');
           setLastSyncAt(new Date().toLocaleTimeString('ko-KR', { hour12: false }));
         })
@@ -674,6 +677,12 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
   }, [archive?.mass_count, archive?.selected_run_id, selectedMassIndex]);
 
   useEffect(() => {
+    if (!archive) return;
+    const resolvedIndex = resolveSelectedMassIndex(archive, selectedMassIndex);
+    if (resolvedIndex !== selectedMassIndex) setSelectedMassIndex(resolvedIndex);
+  }, [archive, selectedMassIndex]);
+
+  useEffect(() => {
     const selected = archive?.masses.find((mass) => mass.index === selectedMassIndex);
     setSelectedNodeId(
       graphView === 'full' && selected
@@ -694,6 +703,10 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
   }, [isFullscreen]);
 
   const selectedMass = archive?.masses.find((mass) => mass.index === selectedMassIndex) ?? null;
+  const recentMassCards = useMemo(
+    () => archive ? buildRecentMassCards(archive, selectedMassIndex) : [],
+    [archive, selectedMassIndex],
+  );
   const vlmReview = useSingleMassVlmReview({
     archive,
     mass: selectedMass,
@@ -720,7 +733,9 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
     [
       ...(bookSemanticPath?.nodes ?? []),
       ...(passport?.activation_graph.nodes.map((node) => {
-      const materializedMassImage = node.kind === 'mass_result' || node.kind === 'mass_render_result';
+      const materializedMassImage = node.kind === 'mass_result'
+        || node.kind === 'mass_render_result'
+        || node.kind === 'elevation_result';
       const evaluatedVlmInput = node.id === 'flow:vlm' && node.status !== 'not_evaluated';
       return {
         id: node.id,
@@ -737,9 +752,11 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
           activation: node.activation,
           status: node.status,
           operator: node.operator,
-          preview_url: materializedMassImage || evaluatedVlmInput
-            ? selectedMass?.preview_url
-            : evidenceImageUrl(node.evidence),
+          preview_url: node.kind === 'elevation_result'
+            ? evidenceImageUrl(node.evidence)
+            : materializedMassImage || evaluatedVlmInput
+              ? selectedMass?.preview_url
+              : evidenceImageUrl(node.evidence),
         },
       };
     }) ?? []),
@@ -989,20 +1006,23 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
         <section className="mass-only-archive" aria-label="실제 MASS 결과만 보기">
           <header>
             <div><span>ACTUAL MASS ARCHIVE</span><strong>{archive.selected_run_id}</strong></div>
-            <b>{archive.mass_count} REPLAYABLE MASS RESULTS</b>
+            <b>{recentMassCards.length} REPLAYABLE MASS RESULTS</b>
           </header>
           <div>
-            {archive.masses.map((mass) => (
+            {recentMassCards.map((mass) => (
               <button
                 type="button"
-                key={mass.archive_key}
-                data-selected={mass.index === selectedMassIndex}
-                onClick={() => setSelectedMassIndex(mass.index)}
+                key={mass.key}
+                data-selected={mass.selected}
+                onClick={() => {
+                  if (mass.runId !== archive.selected_run_id) selectRun(mass.runId);
+                  else setSelectedMassIndex(mass.massIndex);
+                }}
               >
-                <img src={mass.preview_url} alt={`${mass.label} actual MASS`} />
-                <span>{String(mass.index).padStart(2, '0')}</span>
+                <img src={mass.previewUrl} alt={`${mass.label} actual MASS`} />
+                <span>{String(mass.massIndex).padStart(2, '0')}</span>
                 <strong>{massLabel(mass.label)}</strong>
-                <em>{mass.operation_label} · FAR {mass.far_pct?.toFixed(1) ?? '--'}%</em>
+                <em>{mass.operationLabel}</em>
               </button>
             ))}
           </div>
@@ -1042,21 +1062,29 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
 
           {!compact && selectedMass && (
             <nav className="geometry-result-gallery" aria-label="실제로 실행된 MASS 결과 선택">
-              <header><span>ACTUAL EXECUTED MASS RESULTS</span><strong>{archive.mass_count} ARCHIVED · SELECT ONE TO TRACE</strong></header>
+              <header><span>ACTUAL EXECUTED MASS RESULTS</span><strong>{recentMassCards.length} ARCHIVED · SELECT ONE TO TRACE</strong></header>
               <div>
-                {archive.masses.map((mass) => (
+                {recentMassCards.map((mass, cardIndex) => (
                   <button
                     type="button"
-                    key={`${mass.run_id}:${mass.variant_id}`}
-                    data-selected={mass.index === selectedMassIndex}
+                    key={mass.key}
+                    data-selected={mass.selected}
                     onClick={() => {
-                      setSelectedMassIndex(mass.index);
-                      setSelectedNodeId(graphView === 'full' ? executedMassNodeId(mass) : 'result:mass');
+                      if (mass.runId !== archive.selected_run_id) {
+                        selectRun(mass.runId);
+                      } else {
+                        setSelectedMassIndex(mass.massIndex);
+                        setSelectedNodeId(
+                          graphView === 'full' && selectedMass
+                            ? executedMassNodeId(selectedMass)
+                            : 'result:mass',
+                        );
+                      }
                     }}
-                    aria-label={`${mass.variant_id} ${mass.label} 실행 경로 보기`}
+                    aria-label={`${mass.executionId} ${mass.label} MASS 실행 경로 보기`}
                   >
-                    <img src={mass.preview_url} alt={`${mass.label} 실제 실행 MASS`} />
-                    <span>{String(mass.index).padStart(2, '0')}</span>
+                    <img src={mass.previewUrl} alt={`${mass.label} 실제 실행 MASS`} />
+                    <span>{String(cardIndex + 1).padStart(2, '0')}</span>
                     <b>{massLabel(mass.label)}</b>
                   </button>
                 ))}

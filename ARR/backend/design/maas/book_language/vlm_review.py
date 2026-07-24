@@ -837,6 +837,9 @@ def _audit_final_book_geometry_with_vlm(
                 "error": error or "missing_result",
             })
             continue
+        program = GeometryProgram.from_dict(
+            candidate.source.metadata.get("geometry_program") or {}
+        )
         scored_count += 1
         cache_hit_count += int(bool(result.get("cache_hit")))
         stage_policy = book_vlm_stage_policy(review_stage)

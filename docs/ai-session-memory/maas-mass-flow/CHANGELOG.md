@@ -1,5 +1,23 @@
 # MASS Flow Memory Changelog
 
+## 2026-07-24 - r211-r216 multi-MASS rail and generated elevation bundle
+
+- Replaced the selected-run-only bottom gallery policy with a modular,
+  newest-first MASS-card policy over replayable single executions.
+- Kept the rail MASS-only: elevation images are not inserted into the bottom
+  archive. Clicking a MASS replays its one graph and loads its six elevations
+  in the right evidence sidebar.
+- Executed six visibly distinct UnitBox/Matrix4 programs: radial fan,
+  stepped setback, tapered tower, diagonal slice, swept curved bar and twisted
+  tower.
+- All six have distinct geometry hashes, zero Geometry GATE issues, one
+  watertight/manifold component and six generated elevation views.
+- Browser verification selected r214 from the bottom rail and confirmed r214
+  graph/elevation URLs, 24 visible archive cards, zero broken images and no
+  Vite error overlay.
+- No paid VLM call was made. PNU/site/capacity/parking evidence remains absent,
+  so all six final statuses correctly remain `needs_evidence`.
+
 ## 2026-07-24 - r207 first post-matrix fresh MASS execution
 
 - Corrected the earlier overstatement: r206 verified a fixed leaning-tower

@@ -47,6 +47,7 @@ from .source_bridge import compile_geometry_program_to_source_mass, replace_sour
 from .system_contract import build_extended_csg_contract
 from .synthesis import synthesize_architectural_programs, synthesis_requests_from_program_profile
 from .typology_priors import TYPOLOGY_PRIORS, TypologyPrior, typology_prior, typology_priors_for_program
+from .unitbox_normalization import normalize_unitbox_program
 from .vlm_adapter import audit_reference_matches_for_massing, build_geometry_graph_notes, build_geometry_graph_snapshot, openai_vlm_geometry_critic, retrieve_geometry_reference_matches, score_geometry_program_with_openai_vlm
 
 __all__ = [
@@ -111,6 +112,7 @@ __all__ = [
     "geometry_programs_from_author_payload",
     "l_mass_difference_program",
     "openai_vlm_geometry_critic",
+    "normalize_unitbox_program",
     "retrieve_geometry_reference_matches",
     "parse_geometry_dsl",
     "passport_path_for_preview",

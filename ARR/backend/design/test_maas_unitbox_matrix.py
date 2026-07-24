@@ -1,5 +1,9 @@
 """Contracts for the one-UnitBox homogeneous-matrix MASS authority."""
 
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 from django.test import SimpleTestCase
 
 from design.maas.book_exploration_graph import build_book_exploration_graph
@@ -14,9 +18,92 @@ from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
 from design.maas.geometry_language.compiler import compile_geometry_program
 from design.maas.geometry_language.execution_passport import build_mass_execution_passport
 from design.maas.geometry_language.programs import architectural_shape_programs
+from design.maas.single_execution import execute_single_mass
 
 
 class UnitBoxMatrixContractTest(SimpleTestCase):
+    def test_multiple_authored_boxes_share_one_unitbox_authority(self):
+        first = GeometryNode(
+            "first_box",
+            "primitive",
+            "box",
+            parameters={"width": 8.0, "depth": 5.0, "height": 3.0},
+        )
+        second = GeometryNode(
+            "second_box",
+            "primitive",
+            "box",
+            parameters={"width": 4.0, "depth": 2.0, "height": 6.0, "center": True},
+        )
+        union = GeometryNode(
+            "result",
+            "boolean",
+            "union",
+            inputs=(first.id, second.id),
+        )
+
+        result = compile_geometry_program(GeometryProgram((first, second, union), union.id))
+        boxes = [
+            node for node in result.program.nodes
+            if node.kind == "primitive" and node.operator == "box"
+        ]
+        matrices = [
+            node for node in result.program.nodes
+            if node.kind == "transform" and node.operator == "matrix4"
+        ]
+
+        self.assertEqual(result.status, "compiled", result.issues)
+        self.assertEqual(len(boxes), 1)
+        self.assertEqual(
+            boxes[0].parameters,
+            {"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        self.assertEqual(len(matrices), 2)
+        self.assertTrue(all(node.inputs == (boxes[0].id,) for node in matrices))
+
+    def test_single_execution_persists_the_normalized_unitbox_program(self):
+        program = GeometryProgram((
+            GeometryNode(
+                "host",
+                "primitive",
+                "box",
+                parameters={"width": 12.0, "depth": 8.0, "height": 5.0},
+            ),
+            GeometryNode(
+                "guest",
+                "primitive",
+                "box",
+                parameters={"width": 4.0, "depth": 8.0, "height": 7.0},
+            ),
+            GeometryNode(
+                "result",
+                "boolean",
+                "union",
+                inputs=("host", "guest"),
+            ),
+        ), "result", "raw_multi_box")
+
+        with TemporaryDirectory() as directory:
+            result = execute_single_mass(
+                program,
+                output_root=Path(directory),
+                execution_id="unitbox-persistence",
+            )
+            persisted = json.loads(result.program_path.read_text(encoding="utf-8"))
+
+        primitives = [
+            node for node in persisted["nodes"]
+            if node["kind"] == "primitive" and node["operator"] == "box"
+        ]
+        matrices = [
+            node for node in persisted["nodes"]
+            if node["kind"] == "transform" and node["operator"] == "matrix4"
+        ]
+        self.assertTrue(result.geometry_ready)
+        self.assertEqual(len(primitives), 1)
+        self.assertEqual(len(matrices), 2)
+        self.assertEqual(persisted["metadata"]["box_instance_contract"], "shared_unitbox_matrix4")
+
     def test_affine_helpers_use_homogeneous_column_vector_contract(self):
         self.assertEqual(identity_matrix4()[3], (0.0, 0.0, 0.0, 1.0))
 
@@ -144,12 +231,26 @@ class UnitBoxMatrixContractTest(SimpleTestCase):
         self.assertEqual(len(programs), 18)
         for program in programs:
             with self.subTest(program=program.name):
-                for node in program.nodes:
-                    if node.kind == "primitive" and node.operator == "box":
-                        self.assertEqual(
-                            (node.parameters["width"], node.parameters["depth"], node.parameters["height"]),
-                            (1.0, 1.0, 1.0),
-                        )
+                boxes = [
+                    node for node in program.nodes
+                    if node.kind == "primitive" and node.operator == "box"
+                ]
+                self.assertEqual(len(boxes), 1)
+                self.assertEqual(
+                    (
+                        boxes[0].parameters["width"],
+                        boxes[0].parameters["depth"],
+                        boxes[0].parameters["height"],
+                    ),
+                    (1.0, 1.0, 1.0),
+                )
+                self.assertGreaterEqual(
+                    sum(
+                        node.kind == "transform" and node.operator == "matrix4"
+                        for node in program.nodes
+                    ),
+                    1,
+                )
                 compilation = compile_geometry_program(program)
                 self.assertEqual(compilation.status, "compiled", compilation.issues)
                 self.assertTrue(compilation.metrics["watertight"])

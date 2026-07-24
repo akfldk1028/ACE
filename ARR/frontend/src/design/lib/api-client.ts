@@ -192,12 +192,12 @@ export async function executeArchivedMassAndLoad(
 
 export async function reviewSingleMassWithVlm(
   executionId: string,
-  referenceLimit = 2,
+  referenceLimit = 3,
 ): Promise<import('./language-system-types').SingleMassVlmReviewResponse> {
   const res = await fetch(`${BASE}/maas/single-executions/${encodeURIComponent(executionId)}/vlm-review/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reference_limit: Math.max(0, Math.min(2, referenceLimit)) }),
+    body: JSON.stringify({ reference_limit: Math.max(0, Math.min(3, referenceLimit)) }),
   });
   if (!res.ok) {
     const payload = await res.json().catch(() => ({}));

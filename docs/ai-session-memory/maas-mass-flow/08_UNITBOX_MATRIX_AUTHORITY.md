@@ -61,12 +61,13 @@ elevation continuation nodes on the same horizontal causal graph.
 
 ## Elevation truth
 
-The graph now exposes the intended continuation, but only as pending:
+The same graph now materializes:
 
-`MASS result -> mesh handoff -> condition pack -> elevation result`.
+`MASS result -> mesh handoff -> condition pack -> six-view elevation result`.
 
-The existing `elevationAgent` is not an implemented elevation consumer. The
-next real work is indexed mesh face extraction, stable facade IDs, camera/depth/
-normal/silhouette/floor-guide generation, then multi-view generation and a
-cross-view/mesh consistency gate. Until real files exist, the UI must show
-`not_evaluated` and `artifact_exists=false`.
+The elevation consumer derives camera matrices from semantic camera vectors,
+extracts stable faces, depth, normals, silhouette, floor guides and facade
+planes, and renders six hash-bound projections without mutating the MASS.
+r211-r216 prove this continuation on six distinct UnitBox/Matrix4 programs.
+Facade design and cross-view facade consistency remain future gates; the
+generated projections must not be relabelled as final facade approval.

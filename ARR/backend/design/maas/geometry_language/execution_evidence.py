@@ -21,10 +21,12 @@ DOWNSTREAM_ALIASES = {
 }
 _VALID_STATUSES = frozenset({
     "passed", "failed", "evaluated", "not_evaluated", "cache_hit", "live_scored",
+    "needs_evidence", "accepted", "rejected",
 })
 _HARD_ACCEPTANCE_STAGES = frozenset({
     "base_model", "recursive_geometry", "program", "site", "capacity", "law",
     "parking", "program_fit", "compiler", "geometry_gate", "render", "selector",
+    "agent_collaboration",
 })
 
 
@@ -159,7 +161,14 @@ def vlm_evidence(value: Mapping[str, Any] | None) -> dict[str, Any]:
 
 
 def status_activation(status: str) -> float:
-    return 1.0 if status in {"passed", "evaluated", "cache_hit", "live_scored"} else 0.0
+    return 1.0 if status in {
+        "passed",
+        "accepted",
+        "completed",
+        "evaluated",
+        "cache_hit",
+        "live_scored",
+    } else 0.0
 
 
 def passport_state(stages: list[dict[str, Any]]) -> dict[str, Any]:
@@ -188,6 +197,8 @@ def passport_state(stages: list[dict[str, Any]]) -> dict[str, Any]:
     accepted = bool(hard_pass and vlm_pass)
     if accepted:
         status = "accepted"
+    elif any(row.get("status") == "needs_evidence" for row in required):
+        status = "needs_evidence"
     elif flow_complete:
         status = "rejected"
     else:

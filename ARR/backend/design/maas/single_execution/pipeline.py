@@ -17,6 +17,13 @@ from time import perf_counter
 from typing import Any
 import uuid
 
+from design.maas.agents.elevation_agent import generate_elevation_bundle
+from design.maas.agents.orchestrator.execution_collaboration import (
+    AgentExecutor,
+    build_default_execution_executors,
+    run_execution_collaboration,
+)
+from design.maas.agents.shared.types import ExecutionIdentity
 from design.maas.geometry_language.ast import GeometryProgram
 from design.maas.geometry_language.compiler import compile_geometry_program
 from design.maas.geometry_language.execution_persistence import (
@@ -25,6 +32,7 @@ from design.maas.geometry_language.execution_persistence import (
 )
 from design.maas.geometry_language.gate import compilation_gate
 from design.maas.geometry_language.render import render_compilation_preview
+from design.maas.geometry_language.unitbox_normalization import normalize_unitbox_program
 
 from .contracts import SingleMassExecutionResult
 from .persistence import write_json_atomic
@@ -42,6 +50,7 @@ def execute_single_mass(
     downstream_evidence: Mapping[str, Any] | None = None,
     vlm_result: Mapping[str, Any] | None = None,
     geometry_graph_snapshot: Mapping[str, Any] | None = None,
+    collaboration_executors: Mapping[str, AgentExecutor] | None = None,
 ) -> SingleMassExecutionResult:
     """Compile, gate, render, and persist exactly one MASS with stage timings."""
 
@@ -52,6 +61,7 @@ def execute_single_mass(
     resolved_program = (
         program if isinstance(program, GeometryProgram) else GeometryProgram.from_dict(dict(program))
     )
+    resolved_program = normalize_unitbox_program(resolved_program)
     validation_issues = tuple(resolved_program.validate())
     timings["parse_validate"] = _elapsed_ms(stage_started)
 
@@ -88,12 +98,52 @@ def execute_single_mass(
     timings["render"] = _elapsed_ms(stage_started)
 
     stage_started = perf_counter()
+    elevation_evidence: dict[str, Any] = {}
+    if geometry_ready:
+        try:
+            elevation_evidence = generate_elevation_bundle(
+                compilation,
+                directory / "elevation",
+                execution_id=resolved_id,
+            )
+        except Exception as exc:
+            elevation_evidence = {
+                "schema_version": "arr.elevation_agent.bundle.v1",
+                "status": "failed",
+                "execution_id": resolved_id,
+                "program_hash": program_hash,
+                "geometry_hash": str(compilation.geometry_hash or ""),
+                "error": f"{type(exc).__name__}: {exc}",
+                "views": [],
+            }
+    timings["elevation_agent"] = _elapsed_ms(stage_started)
+
+    stage_started = perf_counter()
+    normalized_downstream = dict(downstream_evidence or {})
+    identity = ExecutionIdentity(
+        execution_id=resolved_id,
+        program_hash=program_hash or "PROGRAM_HASH_UNRESOLVED",
+        geometry_hash=str(compilation.geometry_hash or "GEOMETRY_HASH_UNRESOLVED"),
+        pnu=_resolve_pnu(resolved_program.metadata or {}, normalized_downstream),
+    )
+    executors = dict(collaboration_executors or build_default_execution_executors(
+        compilation=compilation,
+        geometry_gate_issues=gate_issues,
+        downstream_evidence=normalized_downstream,
+        program_metadata=resolved_program.metadata or {},
+    ))
+    collaboration = run_execution_collaboration(identity, executors=executors)
+    timings["agent_collaboration"] = _elapsed_ms(stage_started)
+
+    stage_started = perf_counter()
     passport_path = write_mass_execution_passport(
         compilation,
         preview_path,
         downstream_evidence=downstream_evidence,
         vlm_result=vlm_result,
         geometry_graph_snapshot=geometry_graph_snapshot,
+        agent_collaboration=collaboration.to_dict(),
+        elevation_evidence=elevation_evidence,
     )
     passport = json.loads(passport_path.read_text(encoding="utf-8"))
     timings["passport"] = _elapsed_ms(stage_started)
@@ -141,6 +191,20 @@ def _execution_id(requested: str, name: str, program_hash: str) -> str:
 
 def _elapsed_ms(started: float) -> float:
     return max(0.0, (perf_counter() - started) * 1000.0)
+
+
+def _resolve_pnu(metadata: Mapping[str, Any], downstream: Mapping[str, Any]) -> str:
+    site = downstream.get("site")
+    site = site if isinstance(site, Mapping) else {}
+    metadata_site = metadata.get("site")
+    metadata_site = metadata_site if isinstance(metadata_site, Mapping) else {}
+    return str(
+        site.get("pnu")
+        or downstream.get("pnu")
+        or metadata.get("pnu")
+        or metadata_site.get("pnu")
+        or "PNU_UNRESOLVED"
+    )
 
 
 __all__ = ["execute_single_mass"]

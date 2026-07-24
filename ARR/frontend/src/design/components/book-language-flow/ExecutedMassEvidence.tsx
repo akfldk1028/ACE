@@ -44,6 +44,34 @@ function criticActions(evidence: Record<string, unknown> | undefined): string {
     : 'NONE RECORDED';
 }
 
+interface ElevationViewEvidence {
+  view: string;
+  preview_url: string;
+  sha256: string;
+}
+
+function elevationViews(passport: MassExecutionPassport | null): ElevationViewEvidence[] {
+  const node = passport?.activation_graph?.nodes.find(
+    (candidate) => candidate.id === 'elevation:result'
+      && candidate.status === 'generated'
+      && candidate.evidence.artifact_exists === true,
+  );
+  const views = node?.evidence.views;
+  if (!Array.isArray(views)) return [];
+  return views.flatMap((value) => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return [];
+    const row = value as Record<string, unknown>;
+    const view = typeof row.view === 'string' ? row.view : '';
+    const previewUrl = typeof row.preview_url === 'string' ? row.preview_url : '';
+    if (!view || !previewUrl.startsWith('/')) return [];
+    return [{
+      view,
+      preview_url: previewUrl,
+      sha256: typeof row.sha256 === 'string' ? row.sha256 : '',
+    }];
+  });
+}
+
 function passportDisplayStatus(
   passport: MassExecutionPassport | null,
   mass: ExecutedMassRecord,
@@ -80,6 +108,8 @@ export function ExecutedMassEvidence({
     max_http_attempts?: number;
     usage?: { total_tokens?: number };
   } | undefined;
+  const specialistEvidence = passport?.agent_collaboration?.evidence ?? [];
+  const generatedElevations = elevationViews(passport);
 
   return (
     <aside className="book-evidence executed-mass-evidence">
@@ -97,6 +127,25 @@ export function ExecutedMassEvidence({
           </figcaption>
         </figure>
       </div>
+      {generatedElevations.length > 0 && (
+        <section className="executed-mass-evidence__elevations">
+          <header>ELEVATION AGENT · {generatedElevations.length} VIEWS</header>
+          <div>
+            {generatedElevations.map((view) => (
+              <figure key={view.view}>
+                <img
+                  src={view.preview_url}
+                  alt={`${mass.label} ${view.view} elevation`}
+                />
+                <figcaption>
+                  <strong>{view.view.toUpperCase()}</strong>
+                  <code>{view.sha256.slice(0, 12)}</code>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
       <div className="executed-mass-evidence__execute">
         <button
           type="button"
@@ -116,7 +165,7 @@ export function ExecutedMassEvidence({
             aria-label="Run bounded paid VLM"
           >
             <span>{vlmReviewState === 'running' ? 'REVIEWING GENERATED MASS' : 'RUN BOUNDED PAID VLM'}</span>
-            <strong>{vlmReviewState === 'complete' ? 'PASSPORT + GRAPH UPDATED' : '1 MASS · MAX 2 REFERENCES · 0 RETRIES'}</strong>
+            <strong>{vlmReviewState === 'complete' ? 'PASSPORT + GRAPH UPDATED' : '1 MASS · MAX 3 REFERENCES · 0 RETRIES'}</strong>
           </button>
         )}
         {vlmReviewError && <p role="alert">{vlmReviewError}</p>}
@@ -145,6 +194,19 @@ export function ExecutedMassEvidence({
         <div><dt>PROGRAM HASH</dt><dd>{mass.program_hash.slice(0, 18)}</dd></div>
         <div><dt>GEOMETRY HASH</dt><dd>{mass.geometry_hash.slice(0, 18)}</dd></div>
       </dl>
+      {specialistEvidence.length > 0 && (
+        <div className="geometry-contract__passport geometry-contract__passport--summary">
+          <span>SPECIALIST COLLABORATION</span>
+          <dl className="book-evidence__attributes">
+            {specialistEvidence.map((row) => (
+              <div key={row.evidence_id}>
+                <dt>{row.agent.replaceAll('_', ' ').toUpperCase()}</dt>
+                <dd>{row.status.replaceAll('_', ' ').toUpperCase()}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
       <div className="geometry-contract__passport geometry-contract__passport--summary">
         <span>SINGLE GRAPH AUTHORITY</span>
         <p>The central graph is the only causal view. Every bright edge is backed by this MASS passport; unevaluated VLM nodes remain inactive.</p>

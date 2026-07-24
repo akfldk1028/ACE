@@ -22,6 +22,8 @@ def write_mass_execution_passport(
     downstream_evidence: Mapping[str, Any] | None = None,
     geometry_graph_snapshot: Mapping[str, Any] | None = None,
     geometry_gate_evidence: Mapping[str, Any] | None = None,
+    agent_collaboration: Mapping[str, Any] | None = None,
+    elevation_evidence: Mapping[str, Any] | None = None,
 ) -> Path:
     """Write a sidecar without erasing later evidence during a rerender."""
 
@@ -36,6 +38,8 @@ def write_mass_execution_passport(
         vlm_result=vlm_result,
         downstream_evidence=downstream_evidence,
         geometry_gate_evidence=geometry_gate_evidence,
+        agent_collaboration=agent_collaboration,
+        elevation_evidence=elevation_evidence,
     )
     existing = _load_matching_passport(
         output,

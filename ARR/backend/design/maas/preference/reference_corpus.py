@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 import time
 import urllib.parse
@@ -619,8 +620,13 @@ def match_reference_context(
         limit=limit,
     )
     result = []
-    for score, item, selection_role in selected:
+    program_specific = bool(
+        isinstance(program_contract, dict)
+        and str(program_contract.get("program_id") or "generic") != "generic"
+    )
+    for index, (score, item, selection_role) in enumerate(selected):
         evidence = program_evidence.get((item.source, item.source_id or item.title), {})
+        resolved_role = "program" if index == 0 and program_specific and evidence.get("hard_match") else selection_role
         result.append({
             "source": item.source,
             "source_id": item.source_id,
@@ -630,7 +636,8 @@ def match_reference_context(
             "local_path": item.local_path,
             "matched_tags": sorted(tags & (_clean_tags(item.tags) | _infer_tags(f"{item.title} {item.caption}") | _precedent_hint_tags(item))),
             "score": score,
-            "selection_role": selection_role,
+            "selection_role": resolved_role,
+            "image_sha256": _reference_image_digest(item),
             "program_id": str((program_contract or {}).get("program_id") or "generic"),
             "program_match_tier": str(evidence.get("tier") or "unconditioned"),
             "program_matched_terms": list(evidence.get("matched_terms") or ()),
@@ -709,12 +716,16 @@ def _select_diverse_references(
         return []
     selected: list[tuple[int, ReferenceItem, str]] = []
     seen: set[tuple[str, str]] = set()
+    seen_images: set[str] = set()
 
     def add(pair: tuple[int, ReferenceItem], role: str) -> None:
         key = (pair[1].source, pair[1].source_id or pair[1].title)
-        if key in seen or len(selected) >= limit:
+        image_digest = _reference_image_digest(pair[1])
+        if key in seen or (image_digest and image_digest in seen_images) or len(selected) >= limit:
             return
         seen.add(key)
+        if image_digest:
+            seen_images.add(image_digest)
         selected.append((pair[0], pair[1], role))
 
     for pair in scored[:2]:
@@ -757,6 +768,21 @@ def _select_diverse_references(
     for pair in scored:
         add(pair, "similar")
     return selected[:limit]
+
+
+def _reference_image_digest(item: ReferenceItem) -> str:
+    if item.local_path:
+        path = Path(item.local_path)
+        # Zero-byte files are corpus/test placeholders, not image evidence.
+        # Hashing their bytes would collapse every placeholder into one fake
+        # duplicate, so only content-backed files participate in byte dedup.
+        try:
+            if path.is_file() and path.stat().st_size > 0:
+                return hashlib.sha256(path.read_bytes()).hexdigest()
+        except OSError:
+            pass
+    locator = str(item.image_url or item.local_path or "").strip()
+    return hashlib.sha256(locator.encode("utf-8")).hexdigest() if locator else ""
 
 
 def _feature_tags(feature: dict[str, Any]) -> set[str]:

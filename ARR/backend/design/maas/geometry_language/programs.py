@@ -11,7 +11,12 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .ast import GeometryNode, GeometryProgram
-from .affine_matrix import matrix4_to_lists, scale_matrix4
+from .affine_matrix import (
+    compose_matrix4,
+    matrix4_to_lists,
+    scale_matrix4,
+    translation_matrix4,
+)
 from .book_chassis_compatibility import SPLIT_WING_RELATION_CONTRACT
 
 
@@ -20,6 +25,7 @@ class GeometryProgramBuilder:
     name: str
     nodes: list[GeometryNode] = field(default_factory=list)
     _counter: int = 0
+    _unitbox_id: str = ""
 
     def add(
         self,
@@ -41,38 +47,40 @@ class GeometryProgramBuilder:
                 float(authored.get("depth", 1.0)),
                 float(authored.get("height", 1.0)),
             )
-            unit_parameters: dict[str, Any] = {
-                "width": 1.0,
-                "depth": 1.0,
-                "height": 1.0,
-            }
-            if bool(authored.get("center", False)):
-                unit_parameters["center"] = True
-            self.nodes.append(GeometryNode(
-                id=resolved_id,
-                kind="primitive",
-                operator="box",
-                parameters=unit_parameters,
-                semantic_role="base_authority",
-                provenance={
-                    **provenance,
-                    "canonical_base_model": "1/1 UnitBox",
-                    "authored_box_dimensions": list(scale),
-                },
-            ))
+            if not self._unitbox_id:
+                self._unitbox_id = resolved_id
+                self.nodes.append(GeometryNode(
+                    id=self._unitbox_id,
+                    kind="primitive",
+                    operator="box",
+                    parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+                    semantic_role="base_authority",
+                    provenance={
+                        **provenance,
+                        "canonical_base_model": "1/1 UnitBox",
+                        "unitbox_authority": True,
+                    },
+                ))
             matrix_id = f"{resolved_id}_matrix4"
+            matrix = scale_matrix4(scale)
+            if bool(authored.get("center", False)):
+                matrix = compose_matrix4(
+                    matrix,
+                    translation_matrix4(tuple(-value / 2.0 for value in scale)),
+                )
             self.nodes.append(GeometryNode(
                 id=matrix_id,
                 kind="transform",
                 operator="matrix4",
-                inputs=(resolved_id,),
-                parameters={"matrix4": matrix4_to_lists(scale_matrix4(scale))},
+                inputs=(self._unitbox_id,),
+                parameters={"matrix4": matrix4_to_lists(matrix)},
                 semantic_role=semantic_role,
                 provenance={
                     **provenance,
                     "canonical_base_model": "1/1 UnitBox",
-                    "derived_from": resolved_id,
+                    "derived_from": self._unitbox_id,
                     "authored_operator": "box",
+                    "authored_box_dimensions": list(scale),
                 },
             ))
             return matrix_id
@@ -293,23 +301,43 @@ def _cut_corner_mass() -> GeometryProgram:
 
 def _lofted_top_bottom_mass() -> GeometryProgram:
     b = GeometryProgramBuilder("shape_15_lofted_top_bottom_mass")
-    profiles = [
-        {"z": 0, "points": [[0, 0], [10, 0], [10, 8], [0, 8]]},
-        {"z": 5, "points": [[0.7, 0.4], [9.6, 0.6], [9.1, 7.5], [0.9, 7.2]]},
-        {"z": 10, "points": [[2.2, 1.4], [8.4, 1.2], [8, 6.5], [2.6, 6.7]]},
-    ]
-    root = b.add("primitive", "loft", parameters={"profiles": profiles}, semantic_role="main")
-    return b.build(root, family="lofted_envelope")
+    base = b.add(
+        "primitive",
+        "box",
+        parameters={"width": 10, "depth": 8, "height": 10},
+        semantic_role="base_seed",
+    )
+    root = b.add(
+        "modifier",
+        "taper",
+        inputs=(base,),
+        parameters={
+            "axis": "z",
+            "start_scale": [1.0, 1.0],
+            "end_scale": [0.62, 0.68],
+            "subdivisions": 4,
+        },
+        semantic_role="main",
+    )
+    return b.build(root, family="lofted_envelope", realization="unitbox_taper")
 
 
 def _swept_curved_bar() -> GeometryProgram:
     b = GeometryProgramBuilder("shape_16_swept_curved_bar")
-    root = b.add("primitive", "sweep", parameters={
-        "profile_width": 2.4,
-        "profile_height": 3.4,
-        "path": [[0, 0, 0], [3, 0.2, 0], [6, 1.1, 0], [8.5, 2.8, 0], [10.5, 5.2, 0]],
-    }, semantic_role="main")
-    return b.build(root, family="swept_bar")
+    base = b.add(
+        "primitive",
+        "box",
+        parameters={"width": 12, "depth": 2.4, "height": 3.4},
+        semantic_role="base_seed",
+    )
+    root = b.add(
+        "modifier",
+        "bend",
+        inputs=(base,),
+        parameters={"axis": "x", "angle_degrees": 52, "subdivisions": 6},
+        semantic_role="main",
+    )
+    return b.build(root, family="swept_bar", realization="unitbox_bend")
 
 
 def _split_bridge_mass() -> GeometryProgram:

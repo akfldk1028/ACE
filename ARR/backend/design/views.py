@@ -298,9 +298,9 @@ def maas_single_execution_vlm_review(request, execution_id):
         body = json.loads(request.body or b"{}")
         if not isinstance(body, dict):
             raise ValueError("request body must be an object")
-        reference_limit = int(body.get("reference_limit", 2))
-        if reference_limit < 0 or reference_limit > 2:
-            raise ValueError("reference_limit must be between 0 and 2")
+        reference_limit = int(body.get("reference_limit", 3))
+        if reference_limit < 0 or reference_limit > 3:
+            raise ValueError("reference_limit must be between 0 and 3")
         payload = review_single_mass_with_vlm(
             _single_execution_root(),
             str(execution_id),
@@ -335,6 +335,22 @@ def maas_single_execution_manifest(request, execution_id):
 @require_http_methods(["GET"])
 def maas_single_execution_passport(request, execution_id):
     return _single_execution_json(execution_id, "mass.png.passport.json")
+
+
+@require_http_methods(["GET"])
+def maas_single_execution_elevation(request, execution_id, view):
+    if str(view) not in {"front", "right", "back", "left", "top", "axon"}:
+        raise Http404("unknown elevation view")
+    output = _single_execution_artifact(
+        execution_id,
+        f"elevation/views/{view}.png",
+    )
+    if not output.is_file():
+        raise Http404("single MASS elevation not found")
+    response = FileResponse(output.open("rb"), content_type="image/png")
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 def _single_execution_json(execution_id: str, filename: str) -> JsonResponse:

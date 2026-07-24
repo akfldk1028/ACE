@@ -3,7 +3,81 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import Any, Mapping, Protocol
+
+
+@dataclass(frozen=True)
+class ExecutionIdentity:
+    """Immutable identity of the exact compiled MASS reviewed by every agent."""
+
+    execution_id: str
+    program_hash: str
+    geometry_hash: str
+    pnu: str
+
+    def __post_init__(self) -> None:
+        missing = [
+            key
+            for key, value in (
+                ("execution_id", self.execution_id),
+                ("program_hash", self.program_hash),
+                ("geometry_hash", self.geometry_hash),
+                ("pnu", self.pnu),
+            )
+            if not str(value).strip()
+        ]
+        if missing:
+            raise ValueError(f"execution identity requires: {', '.join(missing)}")
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "execution_id": self.execution_id,
+            "program_hash": self.program_hash,
+            "geometry_hash": self.geometry_hash,
+            "pnu": self.pnu,
+        }
+
+
+@dataclass(frozen=True)
+class AgentEvidence:
+    evidence_id: str
+    agent: str
+    status: str
+    summary: str
+    identity: ExecutionIdentity
+    evidence: Mapping[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "evidence_id": self.evidence_id,
+            "agent": self.agent,
+            "status": self.status,
+            "summary": self.summary,
+            "identity": self.identity.to_dict(),
+            "evidence": dict(self.evidence),
+        }
+
+
+@dataclass(frozen=True)
+class AgentHandoff:
+    handoff_id: str
+    source_agent: str
+    target_agent: str
+    identity: ExecutionIdentity
+    input_evidence_ids: tuple[str, ...] = ()
+    output_evidence_ids: tuple[str, ...] = ()
+    status: str = "completed"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "handoff_id": self.handoff_id,
+            "source_agent": self.source_agent,
+            "target_agent": self.target_agent,
+            "identity": self.identity.to_dict(),
+            "input_evidence_ids": list(self.input_evidence_ids),
+            "output_evidence_ids": list(self.output_evidence_ids),
+            "status": self.status,
+        }
 
 
 @dataclass(frozen=True)
@@ -84,4 +158,13 @@ def metric(props: dict[str, Any], key: str) -> float | None:
     return float(value) if isinstance(value, (int, float)) else None
 
 
-__all__ = ["AgentCard", "AgentContext", "AgentResult", "MaasAgent", "metric"]
+__all__ = [
+    "AgentCard",
+    "AgentContext",
+    "AgentEvidence",
+    "AgentHandoff",
+    "AgentResult",
+    "ExecutionIdentity",
+    "MaasAgent",
+    "metric",
+]

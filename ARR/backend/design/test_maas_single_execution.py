@@ -10,6 +10,7 @@ from django.core.management import call_command
 
 from design.maas.geometry_language import GeometryProgramBuilder
 from design.maas.single_execution import execute_single_mass
+from design.maas.single_execution.vlm_review import _resolve_building_type
 
 
 def _box_program():
@@ -24,6 +25,21 @@ def _box_program():
 
 
 class MaasSingleExecutionTest(SimpleTestCase):
+    def test_vlm_reference_identity_uses_nested_program_projection(self):
+        program = _box_program()
+        program.metadata.pop("building_type", None)
+        program.metadata.pop("program_id", None)
+        program.metadata["family"] = "agent_stepped_mass"
+        program.metadata["program_projection"] = {
+            "program_id": "neighborhood_living",
+            "building_type": "neighborhood housing",
+        }
+
+        self.assertEqual(
+            _resolve_building_type(program.metadata, explicit=""),
+            "neighborhood housing",
+        )
+
     def test_one_program_materializes_a_fast_auditable_execution_bundle(self):
         with TemporaryDirectory() as directory:
             result = execute_single_mass(
@@ -34,10 +50,10 @@ class MaasSingleExecutionTest(SimpleTestCase):
 
             self.assertEqual(result.status, "geometry_ready")
             self.assertTrue(result.geometry_ready)
-            self.assertEqual(result.full_flow_status, "in_progress")
+            self.assertEqual(result.full_flow_status, "needs_evidence")
             self.assertEqual(
                 list(result.timings_ms),
-                ["parse_validate", "compile", "geometry_gate", "render", "passport", "persist", "total"],
+                ["parse_validate", "compile", "geometry_gate", "render", "elevation_agent", "agent_collaboration", "passport", "persist", "total"],
             )
             self.assertTrue(all(value >= 0 for value in result.timings_ms.values()))
             self.assertTrue(result.preview_path.is_file())
@@ -193,7 +209,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
             vlm_stage = next(stage for stage in passport["stages"] if stage["id"] == "vlm")
             self.assertEqual(vlm_stage["status"], "live_scored")
             self.assertTrue(vlm_stage["evidence"]["hard_pass"])
-            self.assertEqual(passport["status"], "in_progress")
+            self.assertEqual(passport["status"], "needs_evidence")
 
     def test_management_command_executes_one_built_in_shape(self):
         with TemporaryDirectory() as directory:

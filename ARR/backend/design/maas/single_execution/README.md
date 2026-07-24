@@ -5,7 +5,7 @@ This package is the deployable execution boundary for exactly one explicit
 
 ## Flow
 
-`GeometryProgram -> validate -> compile -> geometry GATE -> four-view PNG -> execution passport -> causal agent context`
+`GeometryProgram -> validate -> compile -> geometry GATE -> four-view PNG -> hash-bound specialist handoffs -> execution passport/full graph`
 
 Every run creates one discoverable directory:
 
@@ -18,8 +18,10 @@ Every run creates one discoverable directory:
 ```
 
 `geometry_ready=true` means the deterministic AST/compiler/GATE/render stages
-passed. It does not mean law, parking, VLM, or final selection passed. Those
-stages remain `not_evaluated` until their owning agents provide real evidence.
+passed. It does not mean law, parking, VLM, or final selection passed. Every
+execution binds `execution_id + program_hash + geometry_hash + PNU` across the
+geometry, law, parking, review and selector specialists. Missing authority
+sources produce `needs_evidence`; they never silently become acceptance.
 
 ## CLI
 

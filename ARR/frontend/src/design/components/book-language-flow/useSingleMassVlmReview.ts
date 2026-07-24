@@ -36,7 +36,7 @@ export function useSingleMassVlmReview({ archive, mass, onPassport, onSync }: Op
     setState('running');
     setError('');
     try {
-      await reviewSingleMassWithVlm(archive.selected_run_id.slice(prefix.length), 2);
+      await reviewSingleMassWithVlm(archive.selected_run_id.slice(prefix.length), 3);
       const passport = await getExecutedMassPassport(
         mass.index,
         undefined,

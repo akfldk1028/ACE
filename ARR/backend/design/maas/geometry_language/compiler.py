@@ -17,6 +17,7 @@ from .affine_matrix import kernel_matrix3x4, matrix4_for_transform, matrix4_to_l
 from .book_parameter_projection import BOOK_KERNEL_PARAMETER_PROJECTIONS
 from .host_face_relations import resolve_face_attachment
 from .section_profiles import section_profile_controls
+from .unitbox_normalization import normalize_unitbox_program
 
 
 _SHIFT_DISTANCE_BOUNDS = BOOK_KERNEL_PARAMETER_PROJECTIONS[
@@ -77,6 +78,7 @@ class GeometryCompileError(RuntimeError):
 
 
 def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
+    program = normalize_unitbox_program(program)
     issues = tuple(issue for issue in program.validate() if issue.severity == "error")
     if issues:
         return CompilationResult(program, "invalid_program", issues=issues)

@@ -20,6 +20,7 @@ def build_activation_graph(
     gate_issues: tuple[Any, ...],
     agent_collaboration: Mapping[str, Any] | None = None,
     geometry_hash: str = "",
+    elevation_evidence: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     nodes: list[dict[str, Any]] = []
     edges: list[dict[str, Any]] = []
@@ -113,56 +114,80 @@ def build_activation_graph(
         "selection_status",
         1.0 if agent_collaboration else status_activation(selector["status"]),
     ))
+    elevation = deepcopy(dict(elevation_evidence or {}))
+    elevation_views = [
+        dict(row) for row in elevation.get("views") or ()
+        if isinstance(row, Mapping)
+    ]
+    elevation_generated = (
+        str(elevation.get("status") or "") == "generated"
+        and len(elevation_views) == 6
+    )
+    elevation_status = (
+        "generated"
+        if elevation_generated
+        else str(elevation.get("status") or "not_evaluated")
+    )
+    elevation_activation = 1.0 if elevation_generated else 0.0
     elevation_identity = {
         "program_hash": _safe_program_hash(program),
         "geometry_hash": str(geometry_hash or ""),
         "mass_result_node_id": "result:mass",
     }
+    first_elevation_view = next(
+        (row for row in elevation_views if row.get("view") == "front"),
+        elevation_views[0] if elevation_views else {},
+    )
     nodes.extend((
         {
             "id": "elevation:mesh_handoff",
             "column": "elevation_handoff",
-            "label": "Elevation mesh handoff · pending",
+            "label": f"Elevation mesh handoff · {elevation_status}",
             "kind": "elevation_mesh_handoff",
-            "status": "not_evaluated",
-            "activation": 0.0,
+            "status": elevation_status,
+            "activation": elevation_activation,
             "evidence": {
                 **elevation_identity,
-                "artifact_exists": False,
+                "artifact_exists": elevation_generated,
+                "manifest_path": str(elevation.get("manifest_path") or ""),
                 "required_payload": ["indexed_mesh", "stable_face_ids", "camera_contract"],
             },
         },
         {
             "id": "elevation:condition_pack",
             "column": "elevation_condition",
-            "label": "Elevation condition pack · pending",
+            "label": f"Elevation condition pack · {elevation_status}",
             "kind": "elevation_condition_pack",
-            "status": "not_evaluated",
-            "activation": 0.0,
+            "status": elevation_status,
+            "activation": elevation_activation,
             "evidence": {
                 **elevation_identity,
-                "artifact_exists": False,
+                "artifact_exists": elevation_generated,
+                "condition_pack_path": str(elevation.get("condition_pack_path") or ""),
                 "required_layers": ["silhouette", "metric_depth", "surface_normals", "floor_guides", "facade_planes"],
             },
         },
         {
             "id": "elevation:result",
             "column": "elevation_result",
-            "label": "Generated elevation · not available",
+            "label": f"Generated elevation · {len(elevation_views)} views",
             "kind": "elevation_result",
-            "status": "not_evaluated",
-            "activation": 0.0,
+            "status": elevation_status,
+            "activation": elevation_activation,
             "evidence": {
                 **elevation_identity,
-                "artifact_exists": False,
-                "truth": "elevationAgent consumer and multiview generator are not implemented",
+                "artifact_exists": elevation_generated,
+                "view_count": len(elevation_views),
+                "views": elevation_views,
+                "preview_url": str(first_elevation_view.get("preview_url") or ""),
+                "truth": "deterministic projections of the compiled indexed MASS mesh",
             },
         },
     ))
     edges.extend((
-        edge("result:mass", "elevation:mesh_handoff", "requests_elevation_handoff", 0.0),
-        edge("elevation:mesh_handoff", "elevation:condition_pack", "builds_condition_pack", 0.0),
-        edge("elevation:condition_pack", "elevation:result", "generates_elevation", 0.0),
+        edge("result:mass", "elevation:mesh_handoff", "requests_elevation_handoff", elevation_activation),
+        edge("elevation:mesh_handoff", "elevation:condition_pack", "builds_condition_pack", elevation_activation),
+        edge("elevation:condition_pack", "elevation:result", "generates_elevation", elevation_activation),
     ))
     ast_node_ids = [f"ast:{node.id}" for node in ordered_nodes]
     incoming_ast_targets = {

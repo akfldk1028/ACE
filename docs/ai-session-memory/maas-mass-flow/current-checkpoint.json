@@ -1,8 +1,93 @@
 {
   "schema_version": "arr.maas.mass_flow_memory.v1",
-  "updated_at": "2026-07-22T13:34:00+09:00",
+  "updated_at": "2026-07-24T11:18:00+09:00",
   "frontend_url": "http://127.0.0.1:5175/design/language",
   "pnu": "1168011800104170004",
+  "current_multi_mass_execution": {
+    "execution_ids": [
+      "r211-radial-fan",
+      "r212-stepped-setback",
+      "r213-tapered-mass",
+      "r214-diagonal-slice",
+      "r215-swept-curved-bar",
+      "r216-twisted-tower"
+    ],
+    "distinct_geometry_hash_count": 6,
+    "unitbox_primitive_count_per_program": 1,
+    "matrix4_count_range": [
+      1,
+      2
+    ],
+    "geometry_ready_count": 6,
+    "geometry_gate_issue_count": 0,
+    "elevation_views_per_mass": 6,
+    "bottom_archive_policy": "mass_only_newest_first_replayable_single_executions",
+    "click_contract": "mass_card_to_same_run_graph_and_right_sidebar_elevations",
+    "browser_visible_card_count": 24,
+    "browser_broken_image_count": 0,
+    "browser_vite_overlay": false,
+    "paid_vlm_request_count": 0,
+    "final_status": "needs_evidence",
+    "missing_evidence": [
+      "resolved_pnu",
+      "site_capacity_acceptance",
+      "parking_acceptance",
+      "paid_vlm_critic"
+    ]
+  },
+  "multi_agent_acceptance_contract": {
+    "schema_version": "arr.maas.agent_collaboration.v1",
+    "identity_fields": [
+      "execution_id",
+      "program_hash",
+      "geometry_hash",
+      "pnu"
+    ],
+    "sequence": [
+      "design_orchestrator",
+      "maas_geometry_agent",
+      "law_graph_agent",
+      "parking_agent",
+      "review_agent",
+      "selector"
+    ],
+    "single_full_graph": true,
+    "missing_law_source_status": "needs_evidence",
+    "diagnostic_render_survives_missing_law": true,
+    "current_live_status": "pending_user_service_start",
+    "current_new_contract_acceptance": false,
+    "offline_backend_focused": "227/227 pass",
+    "offline_frontend_focused": "6/6 pass",
+    "frontend_type_check": "pass",
+    "vlm_reference_limit": 3,
+    "vlm_reference_roles": [
+      "program",
+      "similar",
+      "counterfactual"
+    ],
+    "exact_local_image_sha256_dedup": true,
+    "offline_execution_id": "r201-offline-agent-path-verified",
+    "offline_execution_status": "needs_evidence",
+    "offline_geometry_ready": true,
+    "offline_geometry_gate_issue_count": 0,
+    "offline_handoff_count": 5,
+    "offline_browser_handoff_edge_count": 5,
+    "offline_browser_console_error_count": 0,
+    "offline_artifact_manifest": "docs/ai-session-memory/maas-service-cache/single-executions/r201-offline-agent-path-verified/execution.json",
+    "offline_browser_screenshot": "docs/playwright/design-route-live-verify/r203-browser-current-agent-handoff.png",
+    "current_browser_execution_id": "mass-20260722T060646699517Z",
+    "current_browser_archive_run_id": "single-execution:mass-20260722T060646699517Z",
+    "current_browser_status": "needs_evidence",
+    "current_browser_component_count": 1,
+    "current_browser_triangle_count": 108,
+    "current_browser_watertight": true,
+    "current_browser_manifold": true,
+    "current_browser_handoff_count": 5,
+    "current_browser_specialist_node_count": 6,
+    "current_browser_book_raster_count": 0,
+    "current_browser_error_count": 0,
+    "current_browser_paid_vlm_request_count": 0
+  },
   "latest_completed_run": {
     "run_id": "book-program-portfolios-r196-streaming-qd-one-cycle",
     "status": "fail",
@@ -139,7 +224,7 @@
   },
   "frontend_verification": {
     "status": "pass",
-    "run_count_visible": 111,
+    "run_count_visible": 118,
     "newest_state_only_run": "book-program-portfolios-r197-full-seven-page-vlm-memory",
     "selected_replayable_run": "book-program-portfolios-r196-streaming-qd-one-cycle",
     "graph_count": 1,
@@ -167,35 +252,42 @@
     "single_execution_vlm_status": "live_scored",
     "single_execution_final_status": "accepted",
     "vite_error_overlay": false,
-    "single_execution_run_added": true
+    "single_execution_run_added": true,
+    "current_contract_run_id": "single-execution:mass-20260722T060646699517Z",
+    "current_contract_agent_handoff_count": 5,
+    "current_contract_specialist_node_count": 6,
+    "current_contract_law_source_attempt_count": 1,
+    "current_contract_book_raster_count": 0,
+    "current_contract_console_page_http_error_count": 0
   },
   "full_test": {
     "status": "fail",
     "contract": "docs/ai-session-memory/maas-mass-flow/07_FULL_TEST_CONTRACT.md",
     "backend_full": {
       "command": "python manage.py test design --verbosity 1",
-      "total": 742,
-      "failures": 22,
+      "total": 754,
+      "failures": 19,
       "errors": 2,
-      "status": "last_completed_fail",
-      "latest_attempt_status": "timeout_after_900_seconds"
+      "status": "completed_fail",
+      "duration_seconds": 825.052,
+      "post_suite_vlm_name_error_fix_focused": "17/17 pass"
     },
     "backend_focused": {
-      "total": 25,
-      "passed": 25,
+      "total": 227,
+      "passed": 227,
       "status": "pass"
     },
     "frontend_build": "pass",
     "frontend_full": {
-      "total": 405,
-      "passed": 333,
+      "total": 406,
+      "passed": 334,
       "failed": 71,
       "skipped": 1,
       "status": "fail"
     },
     "frontend_single_mass_focused": {
-      "total": 5,
-      "passed": 5,
+      "total": 6,
+      "passed": 6,
       "status": "pass"
     },
     "frontend_type_check": "pass",
@@ -203,7 +295,8 @@
     "browser_e2e": "pass",
     "direct_png_review": "pass_connected_geometry_not_visual_acceptance",
     "paid_vlm_confirmed_candidate_call_count": 1,
-    "full_maas_acceptance": "single_mass_accepted_portfolio_and_repository_suites_open"
+    "r203_paid_vlm_request_count": 0,
+    "full_maas_acceptance": "r203_needs_live_law_pnu_and_vlm; repository_suites_open"
   },
   "site_legal": {
     "parcel_area_m2": 264.126,

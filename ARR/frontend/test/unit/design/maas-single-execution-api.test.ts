@@ -63,20 +63,20 @@ describe('executeArchivedMass', () => {
     expect(fetchMock.mock.calls[1][0]).toContain('run_id=single-execution%3Amass-fast')
   })
 
-  it('runs the bounded paid VLM review with at most two references', async () => {
+  it('runs the bounded paid VLM review with at most three references', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ execution_id: 'mass-fast', status: 'live_scored', hard_pass: true }),
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    await reviewSingleMassWithVlm('mass-fast', 2)
+    await reviewSingleMassWithVlm('mass-fast', 99)
 
     expect(fetchMock).toHaveBeenCalledWith(
       '/design/maas/single-executions/mass-fast/vlm-review/',
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ reference_limit: 2 }),
+        body: JSON.stringify({ reference_limit: 3 }),
       }),
     )
   })

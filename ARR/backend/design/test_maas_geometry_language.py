@@ -5004,12 +5004,19 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertGreater(areas["slab"], areas["block"] * 1.8)
         self.assertLess(areas["tower"], areas["block"] * 0.8)
 
-    def test_original_eighteen_are_not_misreported_as_one_identical_box_seed(self):
+    def test_original_eighteen_share_one_unitbox_authority_but_not_one_program(self):
         primitive_signatures = {
             tuple((node.operator, repr(sorted(node.parameters.items()))) for node in program.nodes if node.kind == "primitive")
             for program in architectural_shape_programs()
         }
-        self.assertGreater(len(primitive_signatures), 1)
+        self.assertEqual(
+            primitive_signatures,
+            {(("box", "[('depth', 1.0), ('height', 1.0), ('width', 1.0)]"),)},
+        )
+        self.assertEqual(
+            len({program.program_hash() for program in architectural_shape_programs()}),
+            18,
+        )
 
     def test_vlm_receives_node_bound_graph_notes_and_scope_seed_distinction(self):
         program = base_seed_programs()[1]
@@ -5291,7 +5298,7 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         operators = {node.operator for program in programs for node in program.nodes}
         self.assertTrue({
             "bend", "radial_array", "courtyard", "notch", "setback", "tapered_tower",
-            "leaning_tower", "slice", "cut_corner", "loft", "sweep", "split_wing", "twist",
+            "leaning_tower", "slice", "cut_corner", "matrix4", "taper", "split_wing", "twist",
         }.issubset(operators))
         expansions = {operation for result in compilations for row in result.trace for operation in row["macro_expansion"]}
         self.assertTrue({"difference", "shear"}.issubset(expansions))

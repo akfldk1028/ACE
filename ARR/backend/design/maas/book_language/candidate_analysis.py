@@ -868,6 +868,16 @@ def _design_concept_descriptor(candidate: Any) -> dict[str, Any]:
     metadata = payload.get("metadata") if isinstance(payload, dict) else {}
     context = source.metadata.get("program_context") or {}
     target_side = str(context.get("site_access_side_in_program_frame") or "closed")
+    graph = source.metadata.get("geometry_graph_snapshot") or {}
+    design_graph = graph.get("design_concept_graph") if isinstance(graph, dict) else {}
+    concept_nodes = design_graph.get("concept_nodes") if isinstance(design_graph, dict) else ()
+    threshold_concept = next((
+        item for item in concept_nodes or ()
+        if isinstance(item, dict) and item.get("concept_id") == "concept:public_threshold"
+    ), {})
+    graph_threshold_controller_ids = {
+        str(node_id) for node_id in threshold_concept.get("controller_node_ids") or ()
+    }
     open_voids: list[dict[str, str]] = []
     closed_void_ids: list[str] = []
     frontage_notches: list[dict[str, str]] = []
@@ -879,20 +889,24 @@ def _design_concept_descriptor(candidate: Any) -> dict[str, Any]:
         operator = str(raw.get("operator") or "")
         node_id = str(raw.get("id") or "")
         parameters = raw.get("parameters") if isinstance(raw.get("parameters"), dict) else {}
-        if is_materialized_program_controller(raw):
+        materialized_controller = bool(
+            node_id in graph_threshold_controller_ids
+            or is_materialized_program_controller(raw)
+        )
+        if materialized_controller:
             threshold_controller_ids.append(node_id)
-        if is_materialized_program_controller(raw) and operator == "notch" and parameters.get("side"):
+        if materialized_controller and operator == "notch" and parameters.get("side"):
             frontage_notches.append({
                 "node_id": node_id,
                 "side": str(parameters.get("side") or "").lower(),
             })
-        if is_materialized_program_controller(raw) and operator in {"lift", "split_wing"} and parameters.get("access_side"):
+        if materialized_controller and operator in {"lift", "split_wing"} and parameters.get("access_side"):
             frontage_relations.append({
                 "node_id": node_id,
                 "operator": operator,
                 "access_side": str(parameters.get("access_side") or "closed").lower(),
             })
-        if not is_materialized_program_controller(raw) or operator not in {"courtyard", "carve_void"}:
+        if not materialized_controller or operator not in {"courtyard", "carve_void"}:
             continue
         open_side = str(parameters.get("open_side") or "closed").lower()
         if open_side == "closed":
@@ -968,8 +982,6 @@ def _design_concept_descriptor(candidate: Any) -> dict[str, Any]:
     base_seed = (metadata or {}).get("base_seed") if isinstance(metadata, dict) else "unknown"
     if isinstance(base_seed, dict):
         base_seed = base_seed.get("id") or base_seed.get("seed_id") or "unknown"
-    graph = source.metadata.get("geometry_graph_snapshot") or {}
-    design_graph = graph.get("design_concept_graph") if isinstance(graph, dict) else {}
     concept_nodes = design_graph.get("concept_nodes") if isinstance(design_graph, dict) else ()
     snapshot_missing_concepts = sorted(
         str(item.get("concept_id") or "")

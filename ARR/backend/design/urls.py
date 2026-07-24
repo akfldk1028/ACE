@@ -31,6 +31,7 @@ urlpatterns = [
     path('maas/single-executions/<slug:execution_id>/preview/', views.maas_single_execution_preview, name='maas_single_execution_preview'),
     path('maas/single-executions/<slug:execution_id>/manifest/', views.maas_single_execution_manifest, name='maas_single_execution_manifest'),
     path('maas/single-executions/<slug:execution_id>/passport/', views.maas_single_execution_passport, name='maas_single_execution_passport'),
+    path('maas/single-executions/<slug:execution_id>/elevation/<slug:view>/', views.maas_single_execution_elevation, name='maas_single_execution_elevation'),
     path('maas/single-executions/<slug:execution_id>/vlm-review/', views.maas_single_execution_vlm_review, name='maas_single_execution_vlm_review'),
     path('maas/executed-masses/', views.maas_executed_masses, name='maas_executed_masses'),
     path('maas/executed-masses/<int:index>/', views.maas_executed_mass_preview, name='maas_executed_mass_preview'),

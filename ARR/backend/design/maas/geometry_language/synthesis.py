@@ -764,8 +764,11 @@ def _bounded_parameters(
                     if force_access_bound and site_access_side != "closed"
                     else ""
                 ),
-                "ratio": 0.52,
-                "width_ratio": 0.52,
+                # Preserve the L topology while sampling the corner removal
+                # from the normalized host.  A fixed 0.52 replayed identical
+                # geometry on every form-bank replenishment page.
+                "ratio": round(0.46 + 0.12 * u, 3),
+                "width_ratio": round(0.44 + 0.14 * v, 3),
                 "height_ratio": 1.0,
             }
         return {

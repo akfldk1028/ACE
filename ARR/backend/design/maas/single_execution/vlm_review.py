@@ -22,13 +22,13 @@ def review_single_mass_with_vlm(
     output_root: str | Path,
     execution_id: str,
     *,
-    reference_limit: int = 2,
+    reference_limit: int = 3,
     building_type: str = "",
     model: str | None = None,
 ) -> dict[str, Any]:
-    """Review one rendered MASS with at most two references and no retries."""
+    """Review one rendered MASS with at most three references and no retries."""
 
-    limit = max(0, min(2, int(reference_limit)))
+    limit = max(0, min(3, int(reference_limit)))
     root = Path(output_root).resolve()
     run_id = single_execution_run_id(execution_id)
     directory = (root / execution_id).resolve()
@@ -50,12 +50,9 @@ def review_single_mass_with_vlm(
     if str(passport.get("geometry_hash") or "") != compilation.geometry_hash:
         raise ValueError("persisted MASS geometry hash does not match its program")
 
-    resolved_building_type = str(
-        building_type
-        or program.metadata.get("building_type")
-        or program.metadata.get("program_id")
-        or program.metadata.get("family")
-        or "generic"
+    resolved_building_type = _resolve_building_type(
+        program.metadata or {},
+        explicit=building_type,
     )
     references = retrieve_geometry_reference_matches(
         program,
@@ -156,6 +153,20 @@ def _cost_observation(result: dict[str, Any], reference_limit: int) -> dict[str,
         "usage": totals,
         "usage_record_count": len(usage_rows),
     }
+
+
+def _resolve_building_type(metadata: dict[str, Any], *, explicit: str = "") -> str:
+    projection = metadata.get("program_projection")
+    projection = projection if isinstance(projection, dict) else {}
+    return str(
+        explicit
+        or metadata.get("building_type")
+        or metadata.get("program_id")
+        or projection.get("building_type")
+        or projection.get("program_id")
+        or metadata.get("family")
+        or "generic"
+    )
 
 
 __all__ = ["review_single_mass_with_vlm"]

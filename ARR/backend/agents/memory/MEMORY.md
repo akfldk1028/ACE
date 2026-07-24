@@ -37,3 +37,18 @@
 - The existing `elevationAgent` nested repository has unrelated dirty user
   changes and placeholder private memory; it was intentionally not overwritten.
 - Shared research memory is in `docs/ai-session-memory/maas-aesthetic-texturing/`.
+
+## 2026-07-24 - Verified MASS-to-render collaboration
+
+- `maas_geometry_agent` owns immutable compiler geometry; the elevation/render
+  specialist owns image proposals only. Identity crosses the boundary through
+  `execution_id`, `program_hash`, and `geometry_hash`.
+- The verified `r230-radial-roof-render` batch produced 10 distinct accepted
+  MASS executions. Neo4j law retrieval and local reference search ran during
+  generation; this does not mean every missing parcel fact is legally approved.
+- `gpt-image-2` render ALT 01 was generated only for MASS 03 and MASS 04, one
+  paid request each with no retries. Both artifacts remain subordinate to the
+  compiler MASS and record roof-semantic-guard evidence.
+- The single `/design/language` graph is the inspection surface. Selecting a
+  MASS replays its causal path and shows compiler MASS -> render ALT -> geometry
+  views; the bottom gallery remains MASS-only.

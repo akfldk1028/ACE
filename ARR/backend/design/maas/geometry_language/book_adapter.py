@@ -739,9 +739,13 @@ def _append_book_call(
         normal = [1.0, 0.0, 0.0] if axis == "x" else [0.0, 1.0, 0.0]
         return add("pattern", "mirror_array", (current,), {"normal": normal, "pivot": "center"}, verb=verb)
     if verb == "stack":
+        levels = max(2, min(4, int(round(_number(p, "levels", 3)))))
         return add("macro", "stepped_mass", (current,), {
-            "levels": max(2, min(4, int(round(_number(p, "levels", 3))))),
-            "setback_ratio": 0.10 + 0.12 * amount,
+            "levels": levels,
+            "setback_ratio": _stack_setback_ratio(
+                levels=levels,
+                upper_ratio=_number(p, "upper_ratio", 1.0),
+            ),
         }, verb=verb)
     # Every BOOK verb is expected to be covered explicitly. Raising here makes
     # omissions a compiler diagnostic instead of silently returning a box.
@@ -758,6 +762,13 @@ def _number(params: dict[str, Any], key: str, default: float) -> float:
         return float(params.get(key, default))
     except (TypeError, ValueError):
         return float(default)
+
+
+def _stack_setback_ratio(*, levels: int, upper_ratio: float) -> float:
+    """Invert the compiler's linear level scale from the BOOK top ratio."""
+
+    bounded_upper = max(0.18, min(0.95, float(upper_ratio)))
+    return max(0.0, min(0.32, (1.0 - bounded_upper) / max(levels - 1, 1)))
 
 
 def _corner_for_side(value: Any) -> str:

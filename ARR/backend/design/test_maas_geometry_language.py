@@ -95,6 +95,39 @@ from design.maas.source_geometry.compiler import compile_sequence_to_source_mass
 
 
 class MaasGeometryLanguageTest(SimpleTestCase):
+    def test_book_stack_upper_ratio_controls_executable_setback_geometry(self):
+        base = base_seed_programs()[2]
+        seed = program_seed_sequences("neighborhood_living")[0]
+        stack = book_sentence_variants(("stack",), count=1)[0][0]
+
+        def projected(upper_ratio: float):
+            call = replace(stack, params={
+                **stack.params,
+                "levels": 3,
+                "upper_ratio": upper_ratio,
+                "lower_floor_fraction": 0.30,
+            })
+            sequence = compose_program_with_book_operations(
+                seed,
+                (call,),
+                base_volume_label="1/1",
+                orientation="long_axis",
+            )
+            return apply_book_projection_to_geometry_program(base, sequence)
+
+        broad_top = projected(0.72)
+        narrow_top = projected(0.36)
+        broad_node = next(node for node in broad_top.nodes if node.operator == "stepped_mass")
+        narrow_node = next(node for node in narrow_top.nodes if node.operator == "stepped_mass")
+
+        self.assertAlmostEqual(broad_node.parameters["setback_ratio"], 0.14)
+        self.assertAlmostEqual(narrow_node.parameters["setback_ratio"], 0.32)
+        self.assertNotEqual(broad_top.program_hash(), narrow_top.program_hash())
+        self.assertNotEqual(
+            compile_geometry_program(broad_top).geometry_hash,
+            compile_geometry_program(narrow_top).geometry_hash,
+        )
+
     def test_language_system_starts_with_book_base_models_and_explicit_edges(self):
         manifest = build_language_system_manifest()
         graph = manifest["exploration_graph"]

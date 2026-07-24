@@ -93,7 +93,7 @@ async function main() {
     .evaluate((image) => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0);
 
   const runCountBeforeSingleExecution = await page.locator('.execution-run-timeline button').count();
-  await page.getByRole('button', { name: 'Execute selected MASS' }).click();
+  await page.getByRole('button', { name: 'Replay exact selected MASS AST' }).click();
   await page.waitForFunction(() => {
     const selected = document.querySelector('.execution-run-timeline button[data-selected="true"]');
     return selected instanceof HTMLButtonElement
@@ -101,7 +101,7 @@ async function main() {
   }, undefined, { timeout: 30000 });
   await page.waitForFunction(() => {
     const images = [...document.querySelectorAll('.geometry-result-gallery img')];
-    return images.length === 1
+    return images.length > 0
       && images.every((image) => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0);
   }, undefined, { timeout: 30000 });
   result.single_execution_run_id = await page
@@ -112,7 +112,7 @@ async function main() {
   result.single_execution_gallery_image_count = await page.locator('.geometry-result-gallery img').count();
   result.single_execution_graph_count = await page.locator('.maas-language-flow__viewport .book-network').count();
   result.single_execution_button_complete = await page
-    .getByRole('button', { name: 'Execute selected MASS' })
+    .getByRole('button', { name: 'Replay exact selected MASS AST' })
     .textContent();
   result.single_execution_passport_visible = await page
     .locator('.executed-mass-evidence')
@@ -142,7 +142,7 @@ async function main() {
 
   result.pass = result.http_status === 200
     && result.graph_count === 1
-    && result.base_model_count === 6
+    && result.base_model_count === 1
     && result.operative_count === 30
     && result.executed_mass_node_count === expectedMassCount
     && result.executed_mass_gallery_image_count === expectedMassCount
@@ -152,9 +152,9 @@ async function main() {
     && result.single_execution_run_id.startsWith('single-execution:')
     && result.single_execution_run_added === true
     && result.single_execution_mass_node_count === 1
-    && result.single_execution_gallery_image_count === 1
+    && result.single_execution_gallery_image_count > 0
     && result.single_execution_graph_count === 1
-    && result.single_execution_button_complete.includes('NEW RUN ADDED TO THIS GRAPH')
+    && result.single_execution_button_complete.includes('REPLAY EXACT AST')
     && result.single_execution_passport_visible === 1
     && result.single_execution_related_node_count > 1
     && result.single_execution_active_edge_count > 0

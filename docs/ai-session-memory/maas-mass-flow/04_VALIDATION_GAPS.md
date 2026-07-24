@@ -1,5 +1,18 @@
 # Open Validation Gaps
 
+## P0 - fresh synthesis must not be confused with exact replay
+
+- `source_run_id/source_mass_index` always means immutable exact AST replay.
+  It may create new evidence and a new execution ID, but the geometry hash is
+  expected to remain identical.
+- New design claims require `execution_mode=fresh_synthesis`, a persisted
+  synthesis request/variation seed, and a geometry hash different from the
+  selected parent. Keep this as an admission gate when a request-time fresh
+  generation endpoint is added.
+- r222 proves the offline fresh synthesis + BOOK + compiler path, but the
+  frontend currently exposes the replay action only. Add a separate
+  `GENERATE NEW MASS` endpoint/button; never overload the replay action again.
+
 ## P0 - local UnitBox to parcel placement authority
 
 - Never infer site fit from `pnu`, `inside_site` or a copied legacy site gate.

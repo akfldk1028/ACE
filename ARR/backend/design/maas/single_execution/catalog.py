@@ -96,6 +96,9 @@ def single_execution_archive_manifest(
         "label": str(passport.get("program_name") or program.name),
         "operation_label": _operation_label(program),
         "source_sequence": "single_execution",
+        "execution_mode": str(manifest.get("execution_mode") or "legacy_unspecified"),
+        "source_run_id": str(manifest.get("source_run_id") or ""),
+        "source_mass_index": int(manifest.get("source_mass_index") or 0),
         "run_id": run_id,
         "program_type": str(projection.get("program_id") or metadata.get("family") or "unassigned"),
         "program_label": str(projection.get("program_label") or projection.get("program_id") or "NOT EVALUATED"),
@@ -104,9 +107,14 @@ def single_execution_archive_manifest(
         "dsl": program_to_dsl(program),
         "node_count": len(program.nodes),
         "operator_path": [node.operator for node in program.topological_nodes()],
-        "book_principle_id": str(book.get("principle_id") or "+".join(book.get("ordered_verbs") or ()) or "NOT EVALUATED"),
+        "book_principle_id": _book_principle_id(book),
         "book_scope": str(book.get("scope_label") or metadata.get("book_scope") or "NOT EVALUATED"),
-        "book_orientation": str(book.get("orientation") or metadata.get("book_orientation") or "NOT EVALUATED"),
+        "book_orientation": str(
+            book.get("scope_orientation")
+            or book.get("orientation")
+            or metadata.get("book_orientation")
+            or "NOT EVALUATED"
+        ),
         "capacity_alternative_id": str(capacity.get("alternative_id") or "NOT EVALUATED"),
         "capacity_target_utilization": _number_or_none(capacity.get("target_utilization")),
         "capacity_achieved_utilization": _number_or_none(capacity.get("achieved_utilization")),
@@ -160,6 +168,9 @@ def _run_row(
         "status": "single_mass_ready",
         "replayable": True,
         "run_type": "single_execution",
+        "execution_mode": str(manifest.get("execution_mode") or "legacy_unspecified"),
+        "source_run_id": str(manifest.get("source_run_id") or ""),
+        "source_mass_index": int(manifest.get("source_mass_index") or 0),
     }
 
 
@@ -205,6 +216,16 @@ def _merge_runs(rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
 def _operation_label(program: GeometryProgram) -> str:
     operators = [node.operator for node in program.topological_nodes()]
     return " -> ".join(operators[-3:]) if operators else "NO OPERATOR"
+
+
+def _book_principle_id(book: dict[str, Any]) -> str:
+    explicit = str(book.get("principle_id") or "").strip()
+    if explicit:
+        return explicit
+    verbs = [str(value).strip() for value in book.get("ordered_verbs") or () if str(value).strip()]
+    if verbs:
+        return f"book:operative:{verbs[-1]}"
+    return "NOT EVALUATED"
 
 
 def _evidence(stage: Any) -> dict[str, Any]:

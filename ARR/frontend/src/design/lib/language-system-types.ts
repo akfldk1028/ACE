@@ -5,6 +5,11 @@ export interface LanguageAxisItem {
 }
 
 export type ExplorationAuthority = 'book' | 'engineered' | 'experimental' | 'observed';
+export type MassExecutionMode =
+  | 'exact_replay'
+  | 'fresh_synthesis'
+  | 'explicit_program'
+  | 'legacy_unspecified';
 
 export interface ExplorationGraphNode {
   id: string;
@@ -173,6 +178,9 @@ export interface ExecutedMassRecord {
   label: string;
   operation_label: string;
   source_sequence: string;
+  execution_mode?: MassExecutionMode;
+  source_run_id?: string;
+  source_mass_index?: number;
   run_id: string;
   program_type: string;
   program_label: string;
@@ -206,12 +214,18 @@ export interface ExecutedMassRun {
   status: 'selected_mass_ready' | 'single_mass_ready' | 'completed_without_selected_mass' | 'running' | 'failed' | 'aborted_memory_pressure' | 'unknown';
   replayable: boolean;
   run_type?: 'portfolio' | 'single_execution';
+  execution_mode?: MassExecutionMode;
+  source_run_id?: string;
+  source_mass_index?: number;
   geometry_hash?: string;
   thumbnail_url?: string;
 }
 
 export interface SingleMassExecutionResponse {
   execution_id: string;
+  execution_mode: Exclude<MassExecutionMode, 'legacy_unspecified'>;
+  source_run_id: string;
+  source_mass_index: number;
   archive_run_id: string;
   status: string;
   geometry_ready: boolean;

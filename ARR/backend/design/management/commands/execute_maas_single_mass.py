@@ -29,6 +29,11 @@ class Command(BaseCommand):
         source.add_argument("--run-id", type=str)
         parser.add_argument("--mass-index", type=int, default=1)
         parser.add_argument("--execution-id", type=str, default="")
+        parser.add_argument(
+            "--execution-mode",
+            choices=("explicit_program", "fresh_synthesis"),
+            default="explicit_program",
+        )
         parser.add_argument("--title", type=str, default="")
         parser.add_argument("--output-root", type=str, default="")
 
@@ -44,6 +49,13 @@ class Command(BaseCommand):
             execution_id=str(options["execution_id"] or ""),
             title=str(options["title"] or ""),
             downstream_evidence=downstream_evidence,
+            execution_mode=(
+                "exact_replay"
+                if options.get("run_id")
+                else str(options.get("execution_mode") or "explicit_program")
+            ),
+            source_run_id=str(options.get("run_id") or ""),
+            source_mass_index=int(options["mass_index"]) if options.get("run_id") else 0,
         )
         self.stdout.write(json.dumps(result.to_dict(), ensure_ascii=False, sort_keys=True))
 

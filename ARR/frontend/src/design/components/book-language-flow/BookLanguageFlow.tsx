@@ -24,6 +24,7 @@ import {
   resolveSelectedMassIndex,
 } from './archive-selection-policy';
 import { useSingleMassVlmReview } from './useSingleMassVlmReview';
+import { executionRunCopy } from './execution-mode';
 import {
   LanguageNetworkCanvas,
   type NetworkEdge,
@@ -989,7 +990,7 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
               >
                 <span>{String(runIndex + 1).padStart(2, '0')}</span>
                 <b>{run.run_id.replace('book-program-portfolios-', '')}</b>
-                <em>{run.selected_mass_count} MASS · {run.replayable ? 'REPLAY' : 'NO FINAL'}</em>
+                <em>{run.selected_mass_count} MASS · {run.replayable ? executionRunCopy(run.execution_mode) : 'NO FINAL'}</em>
               </button>
             ))}
           </div>

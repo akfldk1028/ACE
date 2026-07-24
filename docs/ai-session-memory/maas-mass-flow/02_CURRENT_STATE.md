@@ -2,6 +2,32 @@
 
 Generated 2026-07-24 KST.
 
+## 2026-07-24 r222 fresh synthesis versus exact replay
+
+- r219 was an exact r160 AST replay, not a newly synthesized design. Equal
+  geometry hashes were correct compiler behavior; the UI/action label was
+  wrong.
+- Execution provenance is now explicit and lossless:
+  `execution_mode=exact_replay` records source run/index, while
+  `execution_mode=fresh_synthesis` means an independently authored AST.
+- Current reviewed fresh MASS:
+  `single-execution:r222-fresh-book-offset-courtyard`.
+  Program hash `6c784f4f...16590`; geometry hash `31250e53...5c439`.
+- Executed operators are `box`, `scale`, `book_base_volume`,
+  `nested_related` (BOOK Offset lowering), `notch`, `cantilever`,
+  `split_wing`, `join_related`.
+- The archive adapter resolves `book_scope=1/1`,
+  `book_orientation=long_axis`,
+  `book_principle_id=book:operative:offset`. The frontend full graph therefore
+  connects the real BOOK node to the selected execution rather than showing
+  an untyped or invented path.
+- Browser status: r222 appears in the chronological timeline and 15-item MASS
+  rail, displays `NEW SYNTHESIS`, loads its generated MASS/elevation images,
+  and emits zero console errors.
+- Truthful limit: r222 is geometry-ready but site-unresolved and
+  `needs_evidence`; it is not yet a parcel-, FAR-, parking- or VLM-approved
+  final design.
+
 ## 2026-07-24 r219 render/site-context regression correction
 
 - The “flipped, generic object” regression was presentation and replay

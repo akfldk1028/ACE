@@ -51,6 +51,9 @@ def execute_single_mass(
     vlm_result: Mapping[str, Any] | None = None,
     geometry_graph_snapshot: Mapping[str, Any] | None = None,
     collaboration_executors: Mapping[str, AgentExecutor] | None = None,
+    execution_mode: str = "explicit_program",
+    source_run_id: str = "",
+    source_mass_index: int = 0,
 ) -> SingleMassExecutionResult:
     """Compile, gate, render, and persist exactly one MASS with stage timings."""
 
@@ -162,6 +165,9 @@ def execute_single_mass(
     )
     result = SingleMassExecutionResult(
         execution_id=resolved_id,
+        execution_mode=str(execution_mode or "explicit_program"),
+        source_run_id=str(source_run_id or ""),
+        source_mass_index=max(0, int(source_mass_index or 0)),
         created_at=datetime.now(timezone.utc).isoformat(),
         status=status,
         geometry_ready=geometry_ready,

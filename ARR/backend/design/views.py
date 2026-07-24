@@ -269,6 +269,9 @@ def maas_single_execution(request):
             # A previous VLM judgment is bound to its exact rendered PNG and
             # execution. Replays must be reviewed explicitly after rendering.
             vlm_result = None
+        requested_execution_mode = str(body.get("execution_mode") or "explicit_program")
+        if not source_replay and requested_execution_mode not in {"explicit_program", "fresh_synthesis"}:
+            raise ValueError("execution_mode must be explicit_program or fresh_synthesis")
         result = execute_single_mass(
             program,
             output_root=_single_execution_root(),
@@ -276,6 +279,9 @@ def maas_single_execution(request):
             title=str(body.get("title") or ""),
             downstream_evidence=downstream_evidence,
             vlm_result=vlm_result,
+            execution_mode="exact_replay" if source_replay else requested_execution_mode,
+            source_run_id=source_run_id if source_replay else "",
+            source_mass_index=source_mass_index if source_replay else 0,
         )
     except (TypeError, ValueError, json.JSONDecodeError) as exc:
         return JsonResponse({"error": str(exc)}, status=400)

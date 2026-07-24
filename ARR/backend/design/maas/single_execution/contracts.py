@@ -10,6 +10,9 @@ from typing import Any
 @dataclass(frozen=True)
 class SingleMassExecutionResult:
     execution_id: str
+    execution_mode: str
+    source_run_id: str
+    source_mass_index: int
     created_at: str
     status: str
     geometry_ready: bool
@@ -29,6 +32,9 @@ class SingleMassExecutionResult:
         return {
             "schema_version": "arr.maas.single_execution.v1",
             "execution_id": self.execution_id,
+            "execution_mode": self.execution_mode,
+            "source_run_id": self.source_run_id,
+            "source_mass_index": self.source_mass_index,
             "created_at": self.created_at,
             "status": self.status,
             "geometry_ready": self.geometry_ready,

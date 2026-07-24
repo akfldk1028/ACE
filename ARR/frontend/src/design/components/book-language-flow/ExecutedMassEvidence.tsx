@@ -3,6 +3,7 @@ import type {
   ExecutedMassRecord,
   MassExecutionPassport,
 } from '../../lib/language-system-types';
+import { executionActionCopy, executionRunCopy } from './execution-mode';
 
 interface ExecutedMassEvidenceProps {
   archive: ExecutedMassManifest;
@@ -110,11 +111,12 @@ export function ExecutedMassEvidence({
   } | undefined;
   const specialistEvidence = passport?.agent_collaboration?.evidence ?? [];
   const generatedElevations = elevationViews(passport);
+  const replayCopy = executionActionCopy();
 
   return (
     <aside className="book-evidence executed-mass-evidence">
       <div className="book-evidence__heading">
-        <span>ACTUAL EXECUTED MASS · {mass.variant_id}</span>
+        <span>ACTUAL EXECUTED MASS · {executionRunCopy(mass.execution_mode)} · {mass.variant_id}</span>
         <h4>{mass.label}</h4>
         <code>{mass.geometry_hash}</code>
       </div>
@@ -151,10 +153,10 @@ export function ExecutedMassEvidence({
           type="button"
           onClick={onExecute}
           disabled={executionState === 'running'}
-          aria-label="Execute selected MASS"
+          aria-label="Replay exact selected MASS AST"
         >
-          <span>{executionState === 'running' ? 'EXECUTING AST / GATE / PNG' : 'EXECUTE SELECTED MASS'}</span>
-          <strong>{executionState === 'complete' ? 'NEW RUN ADDED TO THIS GRAPH' : 'FAST SINGLE-MASS FLOW'}</strong>
+          <span>{executionState === 'running' ? 'REPLAYING AST / GATE / PNG' : replayCopy.label}</span>
+          <strong>{executionState === 'complete' ? 'REPLAY RUN ADDED TO THIS GRAPH' : replayCopy.detail}</strong>
         </button>
         {executionError && <p role="alert">{executionError}</p>}
         {archive.selected_run_id.startsWith('single-execution:') && (
@@ -176,6 +178,7 @@ export function ExecutedMassEvidence({
         <div><dt>BOOK RULE</dt><dd>{mass.book_principle_id}</dd></div>
         <div><dt>BASE VOLUME</dt><dd>{mass.book_scope}</dd></div>
         <div><dt>PROGRAM</dt><dd>{mass.program_label || mass.program_type}</dd></div>
+        <div><dt>EXECUTION MODE</dt><dd>{executionRunCopy(mass.execution_mode)}</dd></div>
         <div><dt>FAR</dt><dd>{mass.far_pct == null ? 'NOT RECORDED' : `${mass.far_pct.toFixed(3)}%`}</dd></div>
         <div><dt>CAPACITY ALT</dt><dd>{mass.capacity_alternative_id}</dd></div>
         <div><dt>TARGET / ACHIEVED</dt><dd>{percent(mass.capacity_target_utilization)} / {percent(mass.capacity_achieved_utilization)}</dd></div>

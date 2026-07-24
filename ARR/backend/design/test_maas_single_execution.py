@@ -99,6 +99,49 @@ class MaasSingleExecutionTest(SimpleTestCase):
                     self.assertLess(thumbnail.width, 900)
                     self.assertLess(thumbnail.height, 680)
 
+    def test_single_execution_catalog_maps_book_projection_to_graph_node_id(self):
+        program = _box_program()
+        program.metadata["book_recursive_projection"] = {
+            "active": True,
+            "scope_label": "1/1",
+            "scope_orientation": "long_axis",
+            "ordered_verbs": ["offset"],
+        }
+        with TemporaryDirectory() as directory:
+            with override_settings(MAAS_SINGLE_EXECUTION_ROOT=directory):
+                execute_single_mass(
+                    program,
+                    output_root=directory,
+                    execution_id="book-offset-graph-path",
+                    execution_mode="fresh_synthesis",
+                )
+                manifest = self.client.get(
+                    "/design/maas/executed-masses/",
+                    {"run_id": "single-execution:book-offset-graph-path"},
+                ).json()
+
+        self.assertEqual(
+            manifest["masses"][0]["book_principle_id"],
+            "book:operative:offset",
+        )
+        self.assertEqual(manifest["masses"][0]["book_scope"], "1/1")
+        self.assertEqual(manifest["masses"][0]["book_orientation"], "long_axis")
+        graph = self.client.get("/design/maas/language-system/").json()["exploration_graph"]
+        node_ids = {node["id"] for node in graph["nodes"]}
+        self.assertIn("book:orientation:long_axis", node_ids)
+        self.assertIn("book:operative:offset", node_ids)
+        reachable = {"book:orientation:long_axis"}
+        while True:
+            expanded = reachable | {
+                edge["target"]
+                for edge in graph["edges"]
+                if edge["source"] in reachable and edge.get("scope") == "execution"
+            }
+            if expanded == reachable:
+                break
+            reachable = expanded
+        self.assertIn("book:operative:offset", reachable)
+
     def test_vlm_reference_identity_uses_nested_program_projection(self):
         program = _box_program()
         program.metadata.pop("building_type", None)
@@ -213,12 +256,16 @@ class MaasSingleExecutionTest(SimpleTestCase):
             with override_settings(MAAS_SINGLE_EXECUTION_ROOT=directory):
                 response = self.client.post(
                     "/design/maas/single-executions/",
-                    data=json.dumps({"program": _box_program().to_dict()}),
+                    data=json.dumps({
+                        "program": _box_program().to_dict(),
+                        "execution_mode": "fresh_synthesis",
+                    }),
                     content_type="application/json",
                 )
 
                 self.assertEqual(response.status_code, 201)
                 payload = response.json()
+                self.assertEqual(payload["execution_mode"], "fresh_synthesis")
                 self.assertEqual(payload["status"], "geometry_ready")
                 self.assertTrue(payload["geometry_ready"])
                 self.assertTrue(payload["preview_url"].endswith("/preview/"))
@@ -291,11 +338,13 @@ class MaasSingleExecutionTest(SimpleTestCase):
             call_command(
                 "execute_maas_single_mass",
                 shape_index=10,
+                execution_mode="fresh_synthesis",
                 output_root=directory,
                 stdout=output,
             )
 
             payload = json.loads(output.getvalue())
+            self.assertEqual(payload["execution_mode"], "fresh_synthesis")
             self.assertEqual(payload["status"], "geometry_ready")
             self.assertTrue(Path(payload["artifacts"]["preview"]).is_file())
             self.assertLess(payload["timings_ms"]["total"], 5_000)
@@ -342,6 +391,9 @@ class MaasSingleExecutionTest(SimpleTestCase):
             )
 
             payload = json.loads(output.getvalue())
+            self.assertEqual(payload["execution_mode"], "exact_replay")
+            self.assertEqual(payload["source_run_id"], "portfolio-source")
+            self.assertEqual(payload["source_mass_index"], 1)
             passport = json.loads(
                 Path(payload["artifacts"]["passport"]).read_text(encoding="utf-8"),
             )
@@ -410,6 +462,9 @@ class MaasSingleExecutionTest(SimpleTestCase):
 
                 self.assertEqual(response.status_code, 201)
                 payload = response.json()
+                self.assertEqual(payload["execution_mode"], "exact_replay")
+                self.assertEqual(payload["source_run_id"], "single-execution:source-run")
+                self.assertEqual(payload["source_mass_index"], 1)
                 self.assertEqual(payload["archive_run_id"], f"single-execution:{payload['execution_id']}")
                 replay = self.client.get(
                     "/design/maas/executed-masses/",
@@ -437,3 +492,8 @@ class MaasSingleExecutionTest(SimpleTestCase):
                     if row.get("run_type") == "single_execution"
                 ]
                 self.assertEqual(len(single_runs), 3)
+                replay_run = next(
+                    row for row in single_runs
+                    if row["run_id"] == payload["archive_run_id"]
+                )
+                self.assertEqual(replay_run["execution_mode"], "exact_replay")

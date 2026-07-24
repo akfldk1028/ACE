@@ -1,5 +1,34 @@
 # MASS Flow Memory Changelog
 
+## 2026-07-24 - r222 true fresh synthesis and replay/new-run truth contract
+
+- Root cause: the frontend action called the archive replay API with
+  `source_run_id/source_mass_index`; r219 therefore recompiled the exact r160
+  AST and correctly retained geometry hash `8ff66faf...d702`. It was not a new
+  design and must never be labelled as one.
+- Single execution manifests, archive runs and MASS rows now persist
+  `execution_mode`, `source_run_id` and `source_mass_index`. HTTP and CLI
+  archive paths write `exact_replay`; independently authored programs may
+  write `fresh_synthesis`.
+- The frontend action is now explicitly `REPLAY EXACT AST` with
+  `SAME GEOMETRY PROGRAM · NEW EXECUTION EVIDENCE`. Timeline and evidence
+  sidebar distinguish `EXACT REPLAY`, `NEW SYNTHESIS`, `EXPLICIT AST` and
+  legacy runs.
+- Generated and visually reviewed `r222-fresh-book-offset-courtyard` through
+  `1/1 UnitBox -> slab Matrix4 -> BOOK 1/1 long-axis offset -> notch ->
+  cantilever -> neighborhood threshold/connectivity -> compiler/GATE/render ->
+  elevation/multi-agent evidence`.
+- r222 program hash is `6c784f4f...16590`; geometry hash is
+  `31250e53...5c439`, distinct from r219/r160. Geometry gate passed and the
+  four-view PNG reads as a clean H/bridge mass. Final flow remains
+  `needs_evidence`: PNU placement Matrix4, capacity, parking and VLM were not
+  evaluated for this new local-coordinate MASS.
+- Fixed single-run BOOK metadata projection so `ordered_verbs=["offset"]`
+  becomes graph node `book:operative:offset`, and `scope_orientation` becomes
+  `long_axis`. Browser proof shows the Offset node related to the selected r222
+  MASS with active `permits_operation` and `materializes_selected_execution`
+  edges.
+
 ## 2026-07-24 - r219 upright renderer and site-authority promotion guard
 
 - Corrected isometric Z orientation and replaced centroid painter ordering with

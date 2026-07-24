@@ -152,3 +152,25 @@ Passing this correction means the two targeted form/image defects are fixed.
 It does not mean the MASS is site-bound, FAR-compliant, parking-approved or
 competition-ready. Those claims still require resolved PNU, parcel placement,
 capacity, law and parking evidence.
+
+## Frontend Architectural-Render Presentation
+
+The paid image result is not presented as another elevation drawing. It is an
+architectural render proposal conditioned by the selected, hash-bound MASS.
+
+The selected-MASS detail hierarchy is:
+
+1. actual compiler MASS render;
+2. architectural render proposal (`RENDER ALT 01`);
+3. six deterministic elevation views as verification evidence;
+4. execution and provider metadata.
+
+The bottom chronological gallery remains MASS-only. Render proposals and
+elevation sheets never replace a MASS thumbnail there. Clicking a MASS loads
+only render/elevation artifacts whose execution, program and geometry hashes
+match that selected MASS.
+
+The render card states that it is a generated design proposal and not legal or
+geometry authority. Its evidence includes provider, model, request count,
+retry count, artifact hash, presentation kind and roof-semantic
+post-processing status.

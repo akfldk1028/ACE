@@ -8,12 +8,18 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw
 
+from design.maas.preference.mesh_rasterizer import (
+    RasterTriangle,
+    rasterize_depth_tested_triangles,
+)
+
 from .compiler import CompilationResult
 
 _PANEL_WIDTH = 450
 _PANEL_HEIGHT = 325
 _PANEL_INSET = 7
 _PANEL_LABEL_BOTTOM = 32
+_ISOMETRIC_PITCH_DEGREES = -28.0
 
 
 def render_compilation_preview(result: CompilationResult, output_path: str | Path, *, title: str = "") -> Path:
@@ -27,8 +33,8 @@ def render_compilation_preview(result: CompilationResult, output_path: str | Pat
     image = Image.new("RGB", (width, height), "#f4f7fb")
     draw = ImageDraw.Draw(image, "RGBA")
     views = (
-        ("isometric", 35.0, 28.0, 0, 0),
-        ("opposite", 215.0, 28.0, 450, 0),
+        ("isometric", 35.0, _ISOMETRIC_PITCH_DEGREES, 0, 0),
+        ("opposite", 215.0, _ISOMETRIC_PITCH_DEGREES, 450, 0),
         # yaw=0/pitch=0 projects XY (plan); pitch=90 projects XZ
         # (front elevation). The former labels were reversed and therefore
         # gave both people and the VLM critic false view semantics.
@@ -48,8 +54,8 @@ def render_compilation_preview(result: CompilationResult, output_path: str | Pat
         screen[:, 1] = oy + panel_h / 2 - (projected[:, 1] - center[1]) * scale
         draw.rectangle((ox + 6, oy + 6, ox + panel_w - 6, oy + panel_h - 6), fill=(255, 255, 255, 255), outline=(198, 210, 224, 255), width=1)
         draw.text((ox + 16, oy + 14), label, fill=(51, 65, 85, 255))
-        ordered = sorted(range(len(faces)), key=lambda index: float(depth[faces[index]].mean()))
-        for face_index in ordered:
+        raster_faces: list[RasterTriangle] = []
+        for face_index in range(len(faces)):
             face = faces[face_index]
             a, b, c = rotated[face]
             normal = np.cross(b - a, c - a)
@@ -62,14 +68,27 @@ def render_compilation_preview(result: CompilationResult, output_path: str | Pat
                 int(225 * intensity),
                 int(148 * intensity),
                 int(56 * intensity),
-                235,
+                255,
             )
             points = [tuple(float(value) for value in screen[index]) for index in face]
-            # Triangle edges are tessellation evidence, not architectural
-            # articulation. Showing every internal diagonal made continuous
-            # fields and bends read as piles of fragments to both people and
-            # the VLM critic.
-            draw.polygon(points, fill=color)
+            raster_faces.append(RasterTriangle(
+                points=(points[0], points[1], points[2]),
+                depths=tuple(float(depth[index]) for index in face),
+                color=color,
+            ))
+        # A centroid-sorted painter cannot order crossing or concave faces.
+        # Per-pixel depth keeps rear/bottom triangles from overwriting the
+        # architectural envelope and making an upright solid read as inverted.
+        rasterize_depth_tested_triangles(
+            image,
+            raster_faces,
+            clip_box=(
+                ox + _PANEL_INSET,
+                oy + _PANEL_LABEL_BOTTOM,
+                ox + panel_w - _PANEL_INSET,
+                oy + panel_h - _PANEL_INSET,
+            ),
+        )
     caption = title or result.program.name
     draw.rectangle((8, height - 30, width - 8, height - 5), fill=(244, 247, 251, 245))
     draw.text((16, height - 25), f"{caption[:90]} | {result.metrics.get('triangle_count')} tri | {result.geometry_hash[:12]}", fill=(15, 23, 42, 255))

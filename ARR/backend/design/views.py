@@ -73,6 +73,7 @@ from design.maas.single_execution import (
     single_execution_runs,
     review_single_mass_with_vlm,
 )
+from design.maas.single_execution.replay import downstream_evidence_from_passport
 
 logger = logging.getLogger(__name__)
 
@@ -264,7 +265,7 @@ def maas_single_execution(request):
                 resolved_program = compilation.program
                 source_passport = materialize_executed_mass_passport(source_mass_index, source_run_id)
             program = resolved_program.to_dict()
-            downstream_evidence = _passport_downstream_evidence(source_passport)
+            downstream_evidence = downstream_evidence_from_passport(source_passport)
             # A previous VLM judgment is bound to its exact rendered PNG and
             # execution. Replays must be reviewed explicitly after rendering.
             vlm_result = None
@@ -455,17 +456,6 @@ def maas_executed_mass_passport(request, index):
     except (OSError, ValueError, IndexError, json.JSONDecodeError) as exc:
         logger.warning("MAAS executed passport unavailable: %s", exc)
         return JsonResponse({"error": "executed MASS passport is unavailable"}, status=422)
-
-
-def _passport_downstream_evidence(passport: dict) -> dict[str, dict]:
-    allowed = {"site", "capacity", "law", "parking", "program_fit", "selector"}
-    return {
-        str(stage.get("id")): dict(stage.get("evidence") or {})
-        for stage in passport.get("stages") or ()
-        if isinstance(stage, dict)
-        and stage.get("id") in allowed
-        and stage.get("status") != "not_evaluated"
-    }
 
 
 def _passport_vlm_result(passport: dict):

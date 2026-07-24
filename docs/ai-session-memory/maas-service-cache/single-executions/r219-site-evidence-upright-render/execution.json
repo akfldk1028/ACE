@@ -1,0 +1,29 @@
+{
+  "artifacts": {
+    "directory": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\r219-site-evidence-upright-render",
+    "manifest": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\r219-site-evidence-upright-render\\execution.json",
+    "passport": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\r219-site-evidence-upright-render\\mass.png.passport.json",
+    "preview": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\r219-site-evidence-upright-render\\mass.png",
+    "program": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\r219-site-evidence-upright-render\\program.json"
+  },
+  "created_at": "2026-07-24T05:37:16.517131+00:00",
+  "execution_id": "r219-site-evidence-upright-render",
+  "full_flow_status": "in_progress",
+  "gate_issues": [],
+  "geometry_hash": "8ff66faf0e4251ecd3c6a60fe23a743f22bb582799a8bca8ff4b6fbea1b7d702",
+  "geometry_ready": true,
+  "program_hash": "0b8c552dfad653ee50f6880eb9bf9e8c6cc0b1bc2428eee7d88bc16e21393bb7",
+  "schema_version": "arr.maas.single_execution.v1",
+  "status": "geometry_ready",
+  "timings_ms": {
+    "agent_collaboration": 4619.169,
+    "compile": 2.546,
+    "elevation_agent": 78.27,
+    "geometry_gate": 0.135,
+    "parse_validate": 0.06,
+    "passport": 8.897,
+    "persist": 0.883,
+    "render": 83.731,
+    "total": 4794.134
+  }
+}

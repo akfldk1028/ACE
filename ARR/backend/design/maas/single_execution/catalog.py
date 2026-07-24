@@ -155,11 +155,31 @@ def _run_row(
         "geometry_hash": str(manifest.get("geometry_hash") or passport.get("geometry_hash") or ""),
         "thumbnail_url": f"/design/maas/single-executions/{execution_id}/thumbnail/",
         "pnu": str(_evidence(site).get("pnu") or ""),
+        "site_context_status": _site_context_status(site),
         "selected_mass_count": 1,
         "status": "single_mass_ready",
         "replayable": True,
         "run_type": "single_execution",
     }
+
+
+def _site_context_status(site_stage: Any) -> str:
+    evidence = _evidence(site_stage)
+    pnu = str(evidence.get("pnu") or "").strip()
+    matrix = evidence.get("placement_matrix4")
+    parcel = evidence.get("parcel_geometry")
+    matrix_values = (
+        [value for row in matrix for value in row]
+        if isinstance(matrix, list)
+        and len(matrix) == 4
+        and all(isinstance(row, list) and len(row) == 4 for row in matrix)
+        else ()
+    )
+    if pnu and len(matrix_values) == 16 and isinstance(parcel, dict):
+        return "site_bound"
+    if pnu:
+        return "source_gate_only"
+    return "unresolved"
 
 
 def _directory(root: str | Path, execution_id: str) -> Path:

@@ -88,6 +88,24 @@ describe('executed MASS archive selection policy', () => {
     expect(latestReplayableRunId(archive)).toBe('single-execution:r210')
   })
 
+  it('does not replace a site-bound architectural run with a newer site-less diagnostic run', () => {
+    const archive = manifest(
+      'book-program-portfolios:r196',
+      ['book-program-portfolios:r196', 'single-execution:r218c-diagnostic'],
+      'rev-218c',
+    )
+    archive.runs[0].run_type = 'portfolio'
+    archive.runs[0].pnu = '1168011800104170004'
+    archive.runs[0].site_context_status = 'site_bound'
+    archive.runs[0].created_at = '2026-07-23T00:00:00Z'
+    archive.runs[1].run_type = 'single_execution'
+    archive.runs[1].pnu = 'PNU_UNRESOLVED'
+    archive.runs[1].site_context_status = 'unresolved'
+    archive.runs[1].created_at = '2026-07-24T08:00:00Z'
+
+    expect(latestReplayableRunId(archive)).toBe('book-program-portfolios:r196')
+  })
+
   it('builds a newest-first MASS-only rail from replayable single executions', () => {
     const archive = manifest(
       'single-execution:r212-diagonal-slice',
@@ -150,6 +168,52 @@ describe('executed MASS archive selection policy', () => {
     })
   })
 
+  it('prefers a site-bound execution over a newer diagnostic duplicate in the MASS rail', () => {
+    const archive = manifest(
+      'single-execution:r218-site-bound',
+      [
+        'single-execution:r218-site-bound',
+        'single-execution:r218c-diagnostic',
+      ],
+      'rev-218c',
+    )
+    archive.runs.forEach((run) => {
+      run.run_type = 'single_execution'
+      run.geometry_hash = 'same-geometry'
+    })
+    archive.runs[0].pnu = '1168011800104170004'
+    archive.runs[0].site_context_status = 'site_bound'
+    archive.runs[0].created_at = '2026-07-24T07:00:00Z'
+    archive.runs[1].pnu = ''
+    archive.runs[1].site_context_status = 'unresolved'
+    archive.runs[1].created_at = '2026-07-24T08:00:00Z'
+    archive.masses[0].geometry_hash = 'same-geometry'
+
+    const cards = buildRecentMassCards(archive)
+
+    expect(cards.map((card) => card.runId)).toEqual([
+      'single-execution:r218-site-bound',
+    ])
+  })
+
+  it('does not treat a copied PNU without a parcel placement matrix as site-bound', () => {
+    const archive = manifest(
+      'book-program-portfolios:r196',
+      ['book-program-portfolios:r196', 'single-execution:r219-source-gate-only'],
+      'rev-219',
+    )
+    archive.runs[0].run_type = 'portfolio'
+    archive.runs[0].pnu = '1168011800104170004'
+    archive.runs[0].site_context_status = 'site_bound'
+    archive.runs[0].created_at = '2026-07-23T00:00:00Z'
+    archive.runs[1].run_type = 'single_execution'
+    archive.runs[1].pnu = '1168011800104170004'
+    archive.runs[1].site_context_status = 'source_gate_only'
+    archive.runs[1].created_at = '2026-07-24T09:00:00Z'
+
+    expect(latestReplayableRunId(archive)).toBe('book-program-portfolios:r196')
+  })
+
   it('keeps the selected portfolio MASS candidates without mixing non-MASS evidence', () => {
     const archive = manifest(
       'book-program-portfolios:r196',
@@ -169,6 +233,30 @@ describe('executed MASS archive selection policy', () => {
       massIndex: 1,
       previewUrl: '/design/maas/executed-masses/1/preview/',
       selected: true,
+    })
+  })
+
+  it('keeps site-less diagnostic executions out of a selected portfolio MASS rail', () => {
+    const archive = manifest(
+      'book-program-portfolios:r196',
+      ['book-program-portfolios:r196', 'single-execution:r219-source-gate-only'],
+      'rev-219',
+    )
+    archive.runs[0].run_type = 'portfolio'
+    archive.runs[0].pnu = '1168011800104170004'
+    archive.runs[0].site_context_status = 'site_bound'
+    archive.runs[1].run_type = 'single_execution'
+    archive.runs[1].pnu = '1168011800104170004'
+    archive.runs[1].site_context_status = 'source_gate_only'
+    archive.masses[0].preview_url = '/design/maas/executed-masses/1/?run_id=book-program-portfolios:r196'
+    archive.masses[0].variant_id = 'site-mass-01'
+
+    const cards = buildRecentMassCards(archive)
+
+    expect(cards).toHaveLength(1)
+    expect(cards[0]).toMatchObject({
+      runId: 'book-program-portfolios:r196',
+      executionId: 'site-mass-01',
     })
   })
 })

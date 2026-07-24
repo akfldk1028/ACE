@@ -2,6 +2,33 @@
 
 Generated 2026-07-24 KST.
 
+## 2026-07-24 r219 render/site-context regression correction
+
+- The “flipped, generic object” regression was presentation and replay
+  context, not a changed geometry hash. Positive isometric pitch combined with
+  inverted screen Y projected higher Z downward; face-centroid painter ordering
+  also let rear faces overwrite concave/crossing envelopes.
+- `geometry_language/render.py` now uses `-28°` isometric pitch and the shared
+  per-pixel depth rasterizer. Higher architectural points project upward.
+- Legacy portfolio rows that retained only `card_index` now recover their exact
+  card crop from the immutable board. r160 MASS 01 is materializable again with
+  its recorded parcel/access-line presentation.
+- HTTP and CLI replay now share `single_execution/replay.py`, preserving
+  evaluated source-stage evidence.
+- PNU alone is not placement proof. Single runs are `site_bound` only with PNU,
+  parcel geometry and an explicit local-to-parcel 4x4 matrix. PNU-only replays
+  are `source_gate_only` and cannot replace the default site-bound portfolio.
+- The frontend defaults to the newest site-bound portfolio (`r196` currently)
+  and its bottom rail contains its 15 architectural MASS cards. Diagnostic
+  executions remain in the lossless timeline.
+- Fresh `r219-site-evidence-upright-render` preserves r160 MASS 01 geometry hash
+  `8ff66faf...d702`. Geometry, source site gate, law, parking, program fit,
+  Neo4j and specialist collaboration passed. Capacity failed because the
+  legacy artifact has no `capacityAlternative`; VLM was not run. Truthful
+  status: `in_progress`, not accepted.
+- Browser: HTTP 200, 15 portfolio cards, 0 broken images, 0 console/page
+  errors, no Vite overlay.
+
 ## r218c BOOK-to-agent full-flow audit and stage synchronization
 
 - Replayed selected MASS 01 from

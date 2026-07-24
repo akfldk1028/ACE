@@ -69,6 +69,11 @@ from design.maas.program_massing.morphology import (
 from design.maas.program_massing.scoring import attach_program_massing_evidence
 from design.maas.program_massing.search import program_seed_variants, source_feature
 from design.maas.preference.loop import feature_preview_png, openai_preview_preference_scorer
+from design.maas.book_language.archive_layout import (
+    ARCHIVE_CARD_WIDTH,
+    ARCHIVE_PREVIEW_HEIGHT,
+    archive_card_crop_box,
+)
 from design.maas.preference.vlm_scorer import score_portfolio_board_with_openai_vlm
 from design.maas.source_geometry import compile_sequence_to_source_mass
 from design.maas.book_language.mass_passport_bridge import selected_candidate_execution_passport
@@ -225,21 +230,19 @@ def _archive_render_evidence(board: Path, candidate_count: int) -> list[dict[str
         image = Image.open(board).convert("RGB")
     except (OSError, ValueError):
         return []
-    card_w, card_h, columns, header_h, preview_h = 384, 322, 5, 72, 260
     evidence: list[dict[str, Any]] = []
     for index in range(max(0, int(candidate_count))):
-        x = (index % columns) * card_w
-        y = header_h + (index // columns) * card_h
-        pixels = image.crop((x, y, x + card_w, y + preview_h)).getdata()
+        crop_box = archive_card_crop_box(index + 1)
+        pixels = image.crop(crop_box).getdata()
         material_pixels = sum(
             1 for red, green, blue in pixels
             if red > 90 and red >= green + 18 and green >= blue + 8
         )
-        ratio = material_pixels / float(card_w * preview_h)
+        ratio = material_pixels / float(ARCHIVE_CARD_WIDTH * ARCHIVE_PREVIEW_HEIGHT)
         evidence.append({
             "card_index": index + 1,
             "board_png": str(board),
-            "crop_box": [x, y, x + card_w, y + preview_h],
+            "crop_box": list(crop_box),
             "rendered_mass_pixel_count": material_pixels,
             "rendered_mass_pixel_ratio": round(ratio, 5),
             "hard_pass": ratio >= 0.005,

@@ -3,8 +3,11 @@
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from django.test import SimpleTestCase
+import numpy as np
+from PIL import Image
 
 from design.maas.book_language.catalog import EXPECTED_LAYER_COUNTS, load_book_language_catalog
 from design.maas.book_language.source_bundle import SOURCE_SPECS, load_book_source_bundle
@@ -28,9 +31,103 @@ from design.maas.program_massing import (
     program_seed_sequences,
 )
 from design.maas.geometry_language.system_contract import build_extended_csg_contract
+from design.maas.geometry_language.compiler import CompilationResult
+from design.maas.geometry_language.executed_archive import materialize_executed_mass_preview
+from design.maas.geometry_language import render as geometry_render
 
 
 class MaasExtendedCsgContractTest(SimpleTestCase):
+    def test_isometric_camera_projects_higher_mass_points_upward_on_screen(self):
+        vertices = np.asarray(((2.0, 3.0, 0.0), (2.0, 3.0, 10.0)))
+        projected, _depth, _rotated = geometry_render._project(
+            vertices,
+            yaw=35.0,
+            pitch=geometry_render._ISOMETRIC_PITCH_DEGREES,
+        )
+
+        # Screen Y negates projected Y. Therefore a higher architectural point
+        # must have greater projected Y to appear visually higher, not inverted.
+        self.assertGreater(projected[1, 1], projected[0, 1])
+
+    def test_archived_preview_recovers_the_card_crop_from_legacy_card_index_evidence(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            run = root / "legacy-run"
+            run.mkdir()
+            archive_path = run / "maas-book-exact-geometry-artifacts.json"
+            archive_path.write_text("{}", encoding="utf-8")
+            board = Image.new("RGB", (768, 400), "blue")
+            for x in range(384, 768):
+                for y in range(72, 332):
+                    board.putpixel((x, y), (220, 90, 30))
+            board.save(run / "maas-book-neighborhood-20.png")
+            record = {
+                "geometry_artifact": {
+                    "identity": {"geometryHash": "abc123"},
+                },
+            }
+            row = {
+                "archive_render_evidence": {
+                    "card_index": 2,
+                    "hard_pass": True,
+                },
+            }
+
+            with patch(
+                "design.maas.geometry_language.executed_archive.workspace_root",
+                return_value=root,
+            ), patch(
+                "design.maas.geometry_language.executed_archive.executed_mass_record",
+                return_value=(record, row, archive_path),
+            ):
+                preview = materialize_executed_mass_preview(1, "legacy-run")
+
+            with Image.open(preview) as cropped:
+                self.assertEqual(cropped.size, (384, 260))
+                self.assertEqual(cropped.getpixel((200, 100)), (220, 90, 30))
+
+    def test_compilation_preview_uses_per_pixel_depth_for_crossing_mass_faces(self):
+        builder = GeometryProgramBuilder("crossing_depth_faces")
+        root = builder.add(
+            "primitive",
+            "box",
+            parameters={"width": 1, "depth": 1, "height": 1},
+        )
+        compilation = CompilationResult(
+            program=builder.build(root),
+            status="compiled",
+            vertices=(
+                (0, 0, 10),
+                (10, 0, 0),
+                (0, 10, 0),
+                (0, 0, 0),
+                (10, 0, 12),
+                (0, 10, 5),
+            ),
+            triangles=((0, 1, 2), (3, 4, 5)),
+            metrics={"triangle_count": 2},
+            geometry_hash="a" * 64,
+        )
+
+        with TemporaryDirectory() as directory:
+            preview = render_compilation_preview(
+                compilation,
+                Path(directory) / "crossing.png",
+            )
+            with Image.open(preview) as image:
+                colors = image.convert("RGB").crop((20, 350, 430, 640)).getcolors(
+                    maxcolors=100_000,
+                )
+
+        mass_colors = {
+            color
+            for _count, color in colors or ()
+            if color[0] > 60
+            and color[0] > color[1] * 1.2
+            and color[1] > color[2] * 1.2
+        }
+        self.assertGreaterEqual(len(mass_colors), 2)
+
     def test_all_four_supplied_book_documents_are_required_authorities(self):
         bundle = load_book_source_bundle()
         self.assertEqual(bundle["document_count"], 4)

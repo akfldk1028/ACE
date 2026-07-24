@@ -1,5 +1,23 @@
 # MASS Flow Memory Changelog
 
+## 2026-07-24 - r219 upright renderer and site-authority promotion guard
+
+- Corrected isometric Z orientation and replaced centroid painter ordering with
+  the shared z-buffer rasterizer.
+- Restored legacy archived-card materialization from `card_index`.
+- Added shared replay evidence extraction for HTTP and CLI.
+- Added run `site_context_status`: `site_bound`, `source_gate_only`,
+  `unresolved`.
+- Prevented PNU-only diagnostic replays from becoming the default
+  architectural MASS; a selected portfolio now keeps its own candidates in the
+  bottom rail.
+- Generated `r219-site-evidence-upright-render`. It is geometry ready and its
+  source site/law/parking/program evidence passed, but it is not accepted:
+  capacity failed/missing and VLM was not evaluated.
+- Focused evidence: backend render/archive/replay contracts pass; frontend
+  archive selection 11/11 passes; browser shows 15 loaded portfolio MASS cards
+  with no broken images or runtime errors.
+
 ## 2026-07-24 - r218c full-flow audit and specialist-stage synchronization
 
 - Executed one BOOK- and program-projected archived MASS through the current

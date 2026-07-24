@@ -18,6 +18,7 @@ from .execution_persistence import write_mass_execution_passport
 from .run_state import RUN_STATE_FILENAME
 from .vlm_adapter import retrieve_geometry_reference_matches
 from design.maas.preference.reference_paths import resolve_reference_image_path
+from design.maas.book_language.archive_layout import archive_card_crop_box
 
 
 ARCHIVE_SCHEMA = "arr.maas.executed_mass_archive.v1"
@@ -137,6 +138,11 @@ def _run_catalog_cached(
                 modified_ns / 1_000_000_000, tz=timezone.utc
             ).isoformat()),
             "pnu": str(archive.get("pnu") or state.get("pnu") or ""),
+            "site_context_status": (
+                "site_bound"
+                if record_count and str(archive.get("pnu") or state.get("pnu") or "").strip()
+                else "unresolved"
+            ),
             "selected_mass_count": record_count,
             "status": status,
             "replayable": bool(record_count),
@@ -266,6 +272,10 @@ def materialize_executed_mass_preview(index: int, run_id: str | None = None) -> 
     evidence = row.get("archive_render_evidence") if isinstance(row.get("archive_render_evidence"), dict) else {}
     board = Path(str(evidence.get("board_png") or archive_path.with_name("maas-book-neighborhood-20.png"))).resolve()
     crop_box = tuple(int(value) for value in evidence.get("crop_box") or ())
+    if len(crop_box) != 4:
+        card_index = int(evidence.get("card_index") or index)
+        if card_index >= 1:
+            crop_box = archive_card_crop_box(card_index)
     root = workspace_root().resolve()
     if not board.is_relative_to(root) or not board.is_file() or len(crop_box) != 4:
         raise FileNotFoundError("actual archived MASS render is unavailable")

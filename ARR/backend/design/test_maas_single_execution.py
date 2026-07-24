@@ -10,7 +10,7 @@ from django.core.management import call_command
 from PIL import Image
 
 from design.maas.agents.shared.types import AgentEvidence
-from design.maas.geometry_language import GeometryProgramBuilder
+from design.maas.geometry_language import GeometryProgramBuilder, compile_geometry_program
 from design.maas.single_execution import execute_single_mass
 from design.maas.single_execution.vlm_review import _resolve_building_type
 
@@ -84,6 +84,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
                 run = next(row for row in manifest["runs"] if row["run_id"] == run_id)
 
                 self.assertEqual(run["geometry_hash"], result.geometry_hash)
+                self.assertEqual(run["site_context_status"], "unresolved")
                 self.assertEqual(
                     run["thumbnail_url"],
                     "/design/maas/single-executions/thumbnail-source/thumbnail/",
@@ -298,6 +299,56 @@ class MaasSingleExecutionTest(SimpleTestCase):
             self.assertEqual(payload["status"], "geometry_ready")
             self.assertTrue(Path(payload["artifacts"]["preview"]).is_file())
             self.assertLess(payload["timings_ms"]["total"], 5_000)
+
+    def test_management_archive_replay_preserves_source_site_and_law_evidence(self):
+        compilation = compile_geometry_program(_box_program())
+        source_passport = {
+            "stages": [
+                {
+                    "id": "site",
+                    "status": "passed",
+                    "evidence": {
+                        "evaluated": True,
+                        "hard_pass": True,
+                        "pnu": "1168011800104170004",
+                    },
+                },
+                {
+                    "id": "law",
+                    "status": "passed",
+                    "evidence": {
+                        "evaluated": True,
+                        "hard_pass": True,
+                        "far_pct": 123.4,
+                    },
+                },
+            ],
+        }
+        with TemporaryDirectory() as directory, patch(
+            "design.management.commands.execute_maas_single_mass.compile_executed_mass",
+            return_value=(compilation, {}, {}, Path(directory) / "archive.json"),
+        ), patch(
+            "design.management.commands.execute_maas_single_mass.materialize_executed_mass_passport",
+            return_value=source_passport,
+        ):
+            output = StringIO()
+            call_command(
+                "execute_maas_single_mass",
+                run_id="portfolio-source",
+                mass_index=1,
+                execution_id="preserved-context",
+                output_root=directory,
+                stdout=output,
+            )
+
+            payload = json.loads(output.getvalue())
+            passport = json.loads(
+                Path(payload["artifacts"]["passport"]).read_text(encoding="utf-8"),
+            )
+
+        stages = {stage["id"]: stage for stage in passport["stages"]}
+        self.assertEqual(stages["site"]["evidence"]["pnu"], "1168011800104170004")
+        self.assertEqual(stages["law"]["evidence"]["far_pct"], 123.4)
 
     def test_single_execution_is_replayed_through_the_existing_mass_archive_contract(self):
         with TemporaryDirectory() as directory:

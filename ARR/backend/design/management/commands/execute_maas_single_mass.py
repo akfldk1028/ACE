@@ -8,8 +8,12 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 
 from design.maas.geometry_language import GeometryProgram, architectural_shape_programs
-from design.maas.geometry_language.executed_archive import compile_executed_mass
+from design.maas.geometry_language.executed_archive import (
+    compile_executed_mass,
+    materialize_executed_mass_passport,
+)
 from design.maas.single_execution import execute_single_mass
+from design.maas.single_execution.replay import downstream_evidence_from_passport
 
 
 class Command(BaseCommand):
@@ -29,7 +33,7 @@ class Command(BaseCommand):
         parser.add_argument("--output-root", type=str, default="")
 
     def handle(self, *args, **options):
-        program = self._program(options)
+        program, downstream_evidence = self._execution_source(options)
         output_root = Path(options["output_root"]).resolve() if options["output_root"] else (
             Path(__file__).resolve().parents[5]
             / "docs" / "ai-session-memory" / "maas-service-cache" / "single-executions"
@@ -39,10 +43,14 @@ class Command(BaseCommand):
             output_root=output_root,
             execution_id=str(options["execution_id"] or ""),
             title=str(options["title"] or ""),
+            downstream_evidence=downstream_evidence,
         )
         self.stdout.write(json.dumps(result.to_dict(), ensure_ascii=False, sort_keys=True))
 
-    def _program(self, options) -> GeometryProgram:
+    def _execution_source(
+        self,
+        options,
+    ) -> tuple[GeometryProgram, dict[str, dict] | None]:
         if options.get("program_json"):
             path = Path(str(options["program_json"])).resolve()
             try:
@@ -52,7 +60,7 @@ class Command(BaseCommand):
             if isinstance(payload, dict) and isinstance(payload.get("geometryProgram"), dict):
                 payload = payload["geometryProgram"]
             try:
-                return GeometryProgram.from_dict(payload)
+                return GeometryProgram.from_dict(payload), None
             except (TypeError, ValueError) as exc:
                 raise CommandError(f"invalid GeometryProgram JSON: {exc}") from exc
         if options.get("run_id"):
@@ -61,11 +69,18 @@ class Command(BaseCommand):
                     int(options["mass_index"]),
                     str(options["run_id"]),
                 )
+                source_passport = materialize_executed_mass_passport(
+                    int(options["mass_index"]),
+                    str(options["run_id"]),
+                )
             except (OSError, ValueError, IndexError, KeyError) as exc:
                 raise CommandError(f"cannot replay archived MASS: {exc}") from exc
-            return compilation.program
+            return (
+                compilation.program,
+                downstream_evidence_from_passport(source_passport),
+            )
         shape_index = int(options.get("shape_index") or 1)
         programs = architectural_shape_programs()
         if not 1 <= shape_index <= len(programs):
             raise CommandError(f"shape-index must be between 1 and {len(programs)}")
-        return programs[shape_index - 1]
+        return programs[shape_index - 1], None

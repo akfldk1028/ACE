@@ -1,5 +1,18 @@
 # Open Validation Gaps
 
+## P0 - local UnitBox to parcel placement authority
+
+- Never infer site fit from `pnu`, `inside_site` or a copied legacy site gate.
+  They can describe the original SourceMass while the replayed GeometryProgram
+  remains in local UnitBox coordinates.
+- A replayed/generated single MASS is `site_bound` only with resolved PNU,
+  exact parcel geometry and an evaluated 4x4 local-to-parcel placement matrix.
+  Road/access geometry should use that same frame.
+- r219 is intentionally `source_gate_only`; do not claim its new compiler
+  render itself fits the parcel until the placement adapter exists.
+- r219 has no legacy `capacityAlternative`. Recompute capacity from placed
+  world geometry and current law; do not fabricate a pass from missing data.
+
 ## P0 - selected-MASS critic does not yet close the repair loop (r218c)
 
 - The one-MASS endpoint now compiles, gates, renders, calls specialists,

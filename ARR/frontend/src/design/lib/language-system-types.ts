@@ -201,6 +201,7 @@ export interface ExecutedMassRun {
   run_id: string;
   created_at: string;
   pnu: string;
+  site_context_status?: 'site_bound' | 'source_gate_only' | 'unresolved';
   selected_mass_count: number;
   status: 'selected_mass_ready' | 'single_mass_ready' | 'completed_without_selected_mass' | 'running' | 'failed' | 'aborted_memory_pressure' | 'unknown';
   replayable: boolean;

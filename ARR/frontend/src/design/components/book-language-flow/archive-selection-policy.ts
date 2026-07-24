@@ -50,8 +50,9 @@ export function resolveSelectedMassIndex(
 export function latestReplayableRunId(
   archive: ExecutedMassManifest,
 ): string {
-  return archive.runs
-    .filter((run) => run.replayable)
+  const replayable = archive.runs.filter((run) => run.replayable)
+  const siteBound = replayable.filter(hasResolvedSite)
+  return (siteBound.length > 0 ? siteBound : replayable)
     .reduce((latest, run) => (
       !latest || run.created_at > latest.created_at ? run : latest
     ), null as ExecutedMassManifest['runs'][number] | null)
@@ -62,18 +63,45 @@ function isSingleExecution(runId: string, runType?: string): boolean {
   return runType === 'single_execution' || runId.startsWith('single-execution:')
 }
 
+function hasResolvedSite(run: ExecutedMassManifest['runs'][number]): boolean {
+  if (run.site_context_status) {
+    return run.site_context_status === 'site_bound'
+  }
+  if (isSingleExecution(run.run_id, run.run_type)) {
+    return false
+  }
+  const value = run.pnu?.trim()
+  return Boolean(value && value !== 'PNU_UNRESOLVED' && value !== 'NOT EVALUATED')
+}
+
 export function buildRecentMassCards(
   archive: ExecutedMassManifest,
   selectedMassIndex = archive.masses[0]?.index ?? 1,
   limit = 24,
 ): RecentMassCard[] {
+  if (!isSingleExecution(archive.selected_run_id)) {
+    return archive.masses.slice(0, limit).map((mass): RecentMassCard => ({
+      key: mass.archive_key,
+      runId: mass.run_id,
+      executionId: mass.variant_id,
+      massIndex: mass.index,
+      label: mass.label,
+      operationLabel: mass.operation_label,
+      previewUrl: mass.preview_url,
+      selected: mass.run_id === archive.selected_run_id && mass.index === selectedMassIndex,
+    }))
+  }
   const selectedMass = archive.masses[0]
   const selectedGeometryHash = archive.masses
     .find((mass) => mass.index === selectedMassIndex)
     ?.geometry_hash
   const seenGeometryHashes = new Set<string>()
-  const singleExecutionCards = archive.runs
+  const singleExecutions = archive.runs
     .filter((run) => run.replayable && isSingleExecution(run.run_id, run.run_type))
+  const siteBoundExecutions = singleExecutions.filter(hasResolvedSite)
+  const singleExecutionCards = (
+    siteBoundExecutions.length > 0 ? siteBoundExecutions : singleExecutions
+  )
     .sort((left, right) => right.created_at.localeCompare(left.created_at))
     .filter((run) => {
       const geometryHash = run.geometry_hash?.trim()
@@ -105,7 +133,7 @@ export function buildRecentMassCards(
       }
     })
 
-  if (singleExecutionCards.length > 0 || isSingleExecution(archive.selected_run_id)) {
+  if (singleExecutionCards.length > 0) {
     return singleExecutionCards
   }
 

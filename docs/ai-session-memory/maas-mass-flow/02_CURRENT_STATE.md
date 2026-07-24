@@ -13,6 +13,11 @@ Generated 2026-07-24 KST.
 - Current reviewed fresh MASS:
   `single-execution:r222-fresh-book-offset-courtyard`.
   Program hash `6c784f4f...16590`; geometry hash `31250e53...5c439`.
+- A clean `/design/language` load now selects r222 by default. Selection
+  prioritizes the newest replayable `fresh_synthesis` over an older site-bound
+  portfolio, while a newer exact replay does not take over the "new design"
+  slot. The bottom 16-card rail is historical evidence; only r222 was newly
+  synthesized in this correction cycle.
 - Executed operators are `box`, `scale`, `book_base_volume`,
   `nested_related` (BOOK Offset lowering), `notch`, `cantilever`,
   `split_wing`, `join_related`.

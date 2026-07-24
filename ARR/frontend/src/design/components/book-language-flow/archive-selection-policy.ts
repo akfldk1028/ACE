@@ -51,8 +51,18 @@ export function latestReplayableRunId(
   archive: ExecutedMassManifest,
 ): string {
   const replayable = archive.runs.filter((run) => run.replayable)
+  const freshSyntheses = replayable.filter(
+    (run) => isSingleExecution(run.run_id, run.run_type)
+      && run.execution_mode === 'fresh_synthesis',
+  )
   const siteBound = replayable.filter(hasResolvedSite)
-  return (siteBound.length > 0 ? siteBound : replayable)
+  return (
+    freshSyntheses.length > 0
+      ? freshSyntheses
+      : siteBound.length > 0
+        ? siteBound
+        : replayable
+  )
     .reduce((latest, run) => (
       !latest || run.created_at > latest.created_at ? run : latest
     ), null as ExecutedMassManifest['runs'][number] | null)

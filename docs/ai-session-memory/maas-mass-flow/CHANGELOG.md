@@ -2,6 +2,12 @@
 
 ## 2026-07-24 - r222 true fresh synthesis and replay/new-run truth contract
 
+- Corrected the reload selection policy after browser inspection: the page had
+  been opening older site-bound portfolio r196 although r222 appeared first in
+  the timeline. `/design/language` now opens the newest replayable
+  `fresh_synthesis`; a newer `exact_replay` cannot impersonate a new design.
+  The bottom rail remains a mixed chronological archive, not a claim that all
+  cards were regenerated.
 - Root cause: the frontend action called the archive replay API with
   `source_run_id/source_mass_index`; r219 therefore recompiled the exact r160
   AST and correctly retained geometry hash `8ff66faf...d702`. It was not a new

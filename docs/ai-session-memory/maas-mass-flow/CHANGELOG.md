@@ -1,5 +1,25 @@
 # MASS Flow Memory Changelog
 
+## 2026-07-24 - r218c full-flow audit and specialist-stage synchronization
+
+- Executed one BOOK- and program-projected archived MASS through the current
+  UnitBox/Matrix4 compiler, Geometry GATE, render, multi-agent collaboration,
+  law/Neo4j adapters, elevationAgent and frontend archive.
+- Added a regression test and fixed passport projection so materialized
+  law-graph, parking and selector agent results update the same canonical flow
+  stages instead of leaving them `not_evaluated`.
+- Changed graph activation semantics so evaluated failures and
+  `needs_evidence` paths remain visible as executed evidence without being
+  interpreted as successful gates.
+- Ran one bounded paid VLM review with one reference and zero retries. It
+  truthfully rejected the L+fracture MASS; an exact-image replay reused the
+  response through cache rather than issuing a second live call.
+- Verified 13 unique bottom MASS cards, one image per card, r218c selection,
+  six elevation views, zero broken images and one selected causal graph.
+- MASS-focused backend tests pass 223/223 and TypeScript passes. Repository
+  full suites are still red for pre-existing non-MASS failures and must not be
+  reported as complete.
+
 ## 2026-07-24 - r217 unique single-MASS thumbnail rail
 
 - Added an immutable single-isometric thumbnail endpoint for single MASS runs.

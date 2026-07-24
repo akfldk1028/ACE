@@ -1,5 +1,27 @@
 # Open Validation Gaps
 
+## P0 - selected-MASS critic does not yet close the repair loop (r218c)
+
+- The one-MASS endpoint now compiles, gates, renders, calls specialists,
+  materializes six elevation views and records a bounded VLM judgement in one
+  hash-bound passport.
+- A VLM failure currently stops at `critic_actions`. It does not yet generate
+  a typed repair AST, compile the child, require a new geometry hash, re-run
+  gates and compare parent/child evidence inside the selected-MASS UI.
+- The portfolio Author/Critic/Repair loop exists separately. Reuse its typed
+  repair contract through a small adapter; do not copy portfolio search into
+  request-time execution and do not mutate an immutable execution directory.
+
+## P0 - repository-wide full test is still red (2026-07-24 r218c audit)
+
+- Backend discovered 770 design tests and emitted multiple failures before the
+  long-running audit was stopped. The current MASS-focused suite is 223/223.
+- Frontend build completed and Vitest ran 415 tests: 71 failed, all in existing
+  `ChatBox`, `SearchInput`, `Terminal` and `useInstallationSetup` suites. MASS
+  focused tests remain green and TypeScript passes.
+- This supersedes older counts but not the conclusion: do not claim an
+  engineering full-test pass until the global owners repair those suites.
+
 ## P0 - repository-wide full test is red (2026-07-22 r199 audit)
 
 - Backend full command `python manage.py test design --verbosity 1` executed

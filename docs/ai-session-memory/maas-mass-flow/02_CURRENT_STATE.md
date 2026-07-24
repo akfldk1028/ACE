@@ -2,6 +2,47 @@
 
 Generated 2026-07-24 KST.
 
+## r218c BOOK-to-agent full-flow audit and stage synchronization
+
+- Replayed selected MASS 01 from
+  `book-program-portfolios-r160-single-program-relation-live-neighborhood`
+  through the canonical one-MASS execution boundary as
+  `r218c-flow-stage-sync-audit`.
+- The persisted program has exactly one `1/1 UnitBox`, two `matrix4` nodes,
+  three active BOOK projection nodes (`fracture`) and one active use/program
+  projection node. Program and geometry hashes match across the execution
+  manifest, passport, specialist handoffs and elevation condition pack.
+- Geometry is one closed, watertight, manifold component with 40 vertices and
+  80 triangles. Geometry GATE has zero issues and elevationAgent generated all
+  six front/right/back/left/top/axon condition views.
+- Fixed a causal-graph split found by this audit: law, parking and selector
+  specialists were executing while their canonical flow nodes remained
+  `not_evaluated`. Materialized specialist statuses now project back onto the
+  same `flow:law`, `flow:parking` and `flow:selector` nodes. `needs_evidence`
+  and `failed` activate their actual evidence path without becoming PASS.
+- Live Neo4j and the law-domain service were reached. PNU remains unresolved,
+  so law, parking, review and selector correctly remain `needs_evidence`.
+- One bounded paid VLM call used one reference and zero retries. Model
+  `gpt-5.4-mini`, response
+  `resp_026194fa2be23e18006a62dfdb37a0819b99d8ab64c1ae261f`, rejected the MASS
+  for a blank front, weak public threshold/void, program mismatch and
+  fragmented continuity. The exact-byte r218c replay reused that result with
+  `cache_hit=true`; it did not spend a second live call.
+- Browser verification shows 13 unique geometry cards despite r218b/r218c
+  sharing a geometry hash. Selecting r218c exposes BOOK, program, legal-agent,
+  selector, render and elevation nodes in one graph; all images load and the
+  VLM cache-hit failure remains visible.
+- MASS-focused backend regression is 223/223 and TypeScript passes. Repository
+  full test remains red: frontend ran 415 tests with 71 existing failures in
+  ChatBox/SearchInput/Terminal/useInstallationSetup; backend discovered 770
+  tests and showed multiple existing failures before the long audit process
+  was stopped. Do not call the repository engineering-full-test green.
+
+Browser evidence:
+
+- `docs/playwright/design-route-live-verify/r218c-full-flow-stage-sync.png`
+- `docs/playwright/design-route-live-verify/r218c-selected-causal-flow-stage-sync.png`
+
 ## r217 unique single-MASS thumbnail rail
 
 - The bottom rail no longer displays the 900x680 four-view composite inside

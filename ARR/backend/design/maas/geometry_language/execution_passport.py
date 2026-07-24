@@ -10,6 +10,7 @@ from .execution_activation import append_vlm_nodes, build_activation_graph
 from .execution_evidence import (
     DOWNSTREAM_ALIASES,
     DOWNSTREAM_STAGE_KEYS,
+    merge_agent_stage_evidence,
     normalize_downstream_evidence,
     passport_state,
     preview_evidence,
@@ -50,7 +51,11 @@ def build_mass_execution_passport(
     program_issues = tuple(program.validate())
     preview = preview_evidence(preview_path)
     vlm = vlm_evidence(vlm_result)
-    downstream = normalize_downstream_evidence(metadata, downstream_evidence)
+    collaboration = deepcopy(dict(agent_collaboration or {}))
+    downstream = merge_agent_stage_evidence(
+        normalize_downstream_evidence(metadata, downstream_evidence),
+        collaboration,
+    )
     book_projection = metadata.get("book_recursive_projection")
     book_projection = book_projection if isinstance(book_projection, dict) else {}
     program_projection = metadata.get("program_projection")
@@ -89,7 +94,6 @@ def build_mass_execution_passport(
         stage("vlm", "VLM critic", vlm["status"], evidence=vlm),
         stage_from_downstream("selector", downstream["selector"]),
     ))
-    collaboration = deepcopy(dict(agent_collaboration or {}))
     collaboration_status = str(collaboration.get("final_status") or "")
     stages.append(stage(
         "agent_collaboration",

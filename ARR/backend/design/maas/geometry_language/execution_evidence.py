@@ -59,7 +59,7 @@ def stage_from_downstream(stage_id: str, evidence: Mapping[str, Any]) -> dict[st
         "selector": "Final selector",
     }
     raw_status = str(evidence.get("status") or "")
-    if raw_status in {"passed", "failed", "evaluated"}:
+    if raw_status in {"passed", "failed", "evaluated", "needs_evidence"}:
         status = raw_status
     elif evidence.get("hard_pass") is True or evidence.get("selected") is True:
         status = "passed"
@@ -94,6 +94,60 @@ def normalize_downstream_evidence(
             combined.update(deepcopy(value))
         combined.setdefault("evaluated", True)
         result[stage_id] = combined
+    return result
+
+
+def merge_agent_stage_evidence(
+    downstream: Mapping[str, Mapping[str, Any]],
+    collaboration: Mapping[str, Any] | None,
+) -> dict[str, dict[str, Any]]:
+    """Project materialized specialist results onto their canonical flow stages."""
+
+    result = {
+        str(stage_id): deepcopy(dict(evidence))
+        for stage_id, evidence in downstream.items()
+    }
+    payload = dict(collaboration or {})
+    rows = payload.get("evidence")
+    rows = rows if isinstance(rows, list) else []
+    stage_by_agent = {
+        "law_graph_agent": "law",
+        "parking_agent": "parking",
+        "selector": "selector",
+    }
+    status_map = {
+        "passed": "passed",
+        "accepted": "passed",
+        "failed": "failed",
+        "rejected": "failed",
+        "needs_evidence": "needs_evidence",
+    }
+    for row in rows:
+        if not isinstance(row, Mapping):
+            continue
+        agent = str(row.get("agent") or "")
+        stage_id = stage_by_agent.get(agent)
+        status = status_map.get(str(row.get("status") or ""))
+        if not stage_id or not status:
+            continue
+        current = result.get(stage_id, {})
+        if (
+            str(current.get("status") or "") != "not_evaluated"
+            or current.get("evaluated") is True
+            or "hard_pass" in current
+            or current.get("selected") is True
+        ):
+            continue
+        result[stage_id] = {
+            "status": status,
+            "evaluated": True,
+            "source": "agent_collaboration",
+            "source_agent": agent,
+            "evidence_id": str(row.get("evidence_id") or ""),
+            "summary": str(row.get("summary") or ""),
+            "identity": deepcopy(dict(row.get("identity") or {})),
+            "specialist_evidence": deepcopy(dict(row.get("evidence") or {})),
+        }
     return result
 
 
@@ -161,14 +215,10 @@ def vlm_evidence(value: Mapping[str, Any] | None) -> dict[str, Any]:
 
 
 def status_activation(status: str) -> float:
-    return 1.0 if status in {
-        "passed",
-        "accepted",
-        "completed",
-        "evaluated",
-        "cache_hit",
-        "live_scored",
-    } else 0.0
+    materialized = status == "completed" or (
+        status in _VALID_STATUSES and status != "not_evaluated"
+    )
+    return 1.0 if materialized else 0.0
 
 
 def passport_state(stages: list[dict[str, Any]]) -> dict[str, Any]:
@@ -213,6 +263,7 @@ def passport_state(stages: list[dict[str, Any]]) -> dict[str, Any]:
 __all__ = [
     "DOWNSTREAM_ALIASES",
     "DOWNSTREAM_STAGE_KEYS",
+    "merge_agent_stage_evidence",
     "normalize_downstream_evidence",
     "passport_state",
     "preview_evidence",

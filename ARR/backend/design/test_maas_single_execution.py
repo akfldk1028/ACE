@@ -9,6 +9,7 @@ from django.test import SimpleTestCase, override_settings
 from django.core.management import call_command
 from PIL import Image
 
+from design.maas.agents.shared.types import AgentEvidence
 from design.maas.geometry_language import GeometryProgramBuilder
 from design.maas.single_execution import execute_single_mass
 from design.maas.single_execution.vlm_review import _resolve_building_type
@@ -26,6 +27,47 @@ def _box_program():
 
 
 class MaasSingleExecutionTest(SimpleTestCase):
+    def test_specialist_evidence_materializes_the_same_downstream_flow_nodes(self):
+        def evidence(agent, status):
+            def execute(identity, _accumulated):
+                return AgentEvidence(
+                    evidence_id=f"evidence:{agent}",
+                    agent=agent,
+                    status=status,
+                    summary=f"{agent} status={status}",
+                    identity=identity,
+                    evidence={"source": "test-specialist"},
+                )
+
+            return execute
+
+        with TemporaryDirectory() as directory:
+            result = execute_single_mass(
+                _box_program(),
+                output_root=directory,
+                execution_id="specialist-flow-nodes",
+                collaboration_executors={
+                    "maas_geometry_agent": evidence("maas_geometry_agent", "passed"),
+                    "law_graph_agent": evidence("law_graph_agent", "needs_evidence"),
+                    "parking_agent": evidence("parking_agent", "needs_evidence"),
+                    "review_agent": evidence("review_agent", "needs_evidence"),
+                },
+            )
+
+        stages = {row["id"]: row for row in result.passport["stages"]}
+        nodes = {
+            row["id"]: row
+            for row in result.passport["activation_graph"]["nodes"]
+        }
+        self.assertEqual(stages["law"]["status"], "needs_evidence")
+        self.assertEqual(stages["parking"]["status"], "needs_evidence")
+        self.assertEqual(stages["selector"]["status"], "needs_evidence")
+        self.assertEqual(stages["law"]["evidence"]["source_agent"], "law_graph_agent")
+        self.assertEqual(stages["parking"]["evidence"]["source_agent"], "parking_agent")
+        self.assertEqual(nodes["flow:law"]["activation"], 1.0)
+        self.assertEqual(nodes["flow:parking"]["activation"], 1.0)
+        self.assertEqual(nodes["flow:selector"]["activation"], 1.0)
+
     def test_single_execution_catalog_exposes_one_isometric_mass_thumbnail(self):
         with TemporaryDirectory() as directory:
             with override_settings(MAAS_SINGLE_EXECUTION_ROOT=directory):
@@ -102,7 +144,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
             self.assertEqual(passport["activation_graph"]["result_node_ids"], ["result:mass"])
             self.assertEqual(
                 next(stage for stage in passport["stages"] if stage["id"] == "law")["status"],
-                "not_evaluated",
+                "needs_evidence",
             )
 
     def test_invalid_program_persists_truthful_failure_without_a_fake_png(self):

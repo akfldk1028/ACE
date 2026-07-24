@@ -85,14 +85,14 @@ const STAGE_LABELS: Record<string, string> = {
   executed_mass: 'EXECUTED MASS RESULT',
   elevation_handoff: 'ELEVATION MESH HANDOFF',
   elevation_condition: 'ELEVATION CONDITION PACK',
-  elevation_result: 'ELEVATION RESULT',
-  elevation_image_agent: 'ELEVATION IMAGE AGENT',
-  elevation_proposal: 'ELEVATION ALT 01',
+  elevation_result: '6-VIEW GEOMETRY VERIFICATION',
+  elevation_image_agent: 'ARCHITECTURAL RENDER AGENT',
+  elevation_proposal: 'RENDER ALT 01',
   execution_elevation_handoff: 'ELEVATION MESH HANDOFF',
   execution_elevation_condition: 'ELEVATION CONDITION PACK',
-  execution_elevation_result: 'ELEVATION RESULT',
-  execution_elevation_image_agent: 'ELEVATION IMAGE AGENT',
-  execution_elevation_proposal: 'ELEVATION ALT 01',
+  execution_elevation_result: '6-VIEW GEOMETRY VERIFICATION',
+  execution_elevation_image_agent: 'ARCHITECTURAL RENDER AGENT',
+  execution_elevation_proposal: 'RENDER ALT 01',
 };
 
 function rowHeight(node: NetworkNode) {

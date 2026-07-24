@@ -14,7 +14,19 @@ const proposal = {
     primary_system: 'high-performance glass with vertical metal fins',
   },
   provider: 'gpt-image',
-  provider_metadata: { model: 'gpt-image-test' },
+  provider_metadata: {
+    model: 'gpt-image-test',
+    roof_semantic_guard: {
+      status: 'applied',
+      changed_pixel_count: 42,
+    },
+  },
+  presentation: {
+    kind: 'architectural_render_sheet',
+    authority: 'generated_design_proposal',
+  },
+  request_count: 1,
+  retry_count: 0,
   artifact: {
     preview_url: '/design/maas/single-executions/mass-one/elevation-proposals/alt-01/',
     sha256: 'abc123',
@@ -38,6 +50,12 @@ describe('extractElevationProposal', () => {
       previewUrl: proposal.artifact.preview_url,
       model: 'gpt-image-test',
       strategyId: 'vertical-fins-glass',
+      presentationKind: 'architectural_render_sheet',
+      authority: 'generated_design_proposal',
+      requestCount: 1,
+      retryCount: 0,
+      roofGuardStatus: 'applied',
+      roofGuardChangedPixels: 42,
     });
   });
 

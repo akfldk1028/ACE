@@ -3,6 +3,7 @@ import type {
   ExecutedMassRecord,
   MassExecutionPassport,
 } from '../../lib/language-system-types';
+import { ArchitecturalRenderEvidence } from './ArchitecturalRenderEvidence';
 import { extractElevationProposal } from './elevation-proposal';
 import { executionActionCopy, executionRunCopy } from './execution-mode';
 
@@ -131,16 +132,22 @@ export function ExecutedMassEvidence({
       </div>
       <div className="book-evidence__sources geometry-contract__preview">
         <figure>
-          <img src={mass.preview_url} alt={`${mass.label} actual archived run render`} />
+          <img src={mass.preview_url} alt={`${mass.label} actual compiler MASS`} />
           <figcaption>
-            <strong>ACTUAL RUN CANDIDATE PNG</strong>
-            <span>BOOK raster 0 · {archive.run_id}</span>
+            <strong>ACTUAL COMPILER MASS</strong>
+            <span>GEOMETRY AUTHORITY · BOOK raster 0 · {archive.run_id}</span>
           </figcaption>
         </figure>
       </div>
+      {imageProposal && (
+        <ArchitecturalRenderEvidence
+          massLabel={mass.label}
+          proposal={imageProposal}
+        />
+      )}
       {generatedElevations.length > 0 && (
         <section className="executed-mass-evidence__elevations">
-          <header>ELEVATION AGENT · {generatedElevations.length} VIEWS</header>
+          <header>6-VIEW GEOMETRY VERIFICATION · {generatedElevations.length} VIEWS</header>
           <div>
             {generatedElevations.map((view) => (
               <figure key={view.view}>
@@ -155,25 +162,6 @@ export function ExecutedMassEvidence({
               </figure>
             ))}
           </div>
-        </section>
-      )}
-      {imageProposal && (
-        <section className="executed-mass-evidence__proposal">
-          <header>
-            <span>ELEVATION IMAGE AGENT · ALT 01</span>
-            <strong>{imageProposal.status.toUpperCase()}</strong>
-          </header>
-          <figure>
-            <img
-              src={imageProposal.previewUrl}
-              alt={`${mass.label} generated facade proposal ALT 01`}
-            />
-            <figcaption>
-              <strong>{imageProposal.primarySystem || imageProposal.strategyId}</strong>
-              <span>{imageProposal.provider} · {imageProposal.model || 'MODEL NOT RECORDED'}</span>
-              <code>{imageProposal.sha256.slice(0, 16)}</code>
-            </figcaption>
-          </figure>
         </section>
       )}
       <div className="executed-mass-evidence__execute">

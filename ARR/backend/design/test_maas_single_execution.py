@@ -268,6 +268,14 @@ class MaasSingleExecutionTest(SimpleTestCase):
         }
         self.assertEqual(nodes["elevation:image_agent"]["status"], "complete")
         self.assertEqual(nodes["elevation:proposal"]["status"], "complete")
+        self.assertIn(
+            "Architectural Render Agent",
+            nodes["elevation:image_agent"]["label"],
+        )
+        self.assertIn(
+            "Render ALT 01",
+            nodes["elevation:proposal"]["label"],
+        )
         self.assertEqual(edges["requests_facade_proposal"]["activation"], 1.0)
         self.assertEqual(edges["generates_facade_proposal"]["activation"], 1.0)
         self.assertEqual(response.status_code, 200)

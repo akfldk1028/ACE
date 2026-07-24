@@ -12,6 +12,12 @@ export interface ElevationProposalEvidence {
   model: string;
   strategyId: string;
   primarySystem: string;
+  presentationKind: string;
+  authority: string;
+  requestCount: number;
+  retryCount: number;
+  roofGuardStatus: string;
+  roofGuardChangedPixels: number;
 }
 
 type UnknownRecord = Record<string, unknown>;
@@ -33,6 +39,8 @@ export function extractElevationProposal(
   const artifact = record(proposal?.artifact);
   const strategy = record(proposal?.strategy);
   const providerMetadata = record(proposal?.provider_metadata);
+  const presentation = record(proposal?.presentation);
+  const roofGuard = record(providerMetadata?.roof_semantic_guard);
   if (!proposal || !identity || !artifact || !strategy) return null;
   if (
     passportRecord?.program_hash !== selected.programHash
@@ -57,5 +65,23 @@ export function extractElevationProposal(
     primarySystem: typeof strategy.primary_system === 'string'
       ? strategy.primary_system
       : '',
+    presentationKind: typeof presentation?.kind === 'string'
+      ? presentation.kind
+      : 'legacy_facade_proposal',
+    authority: typeof presentation?.authority === 'string'
+      ? presentation.authority
+      : 'generated_design_proposal',
+    requestCount: typeof proposal.request_count === 'number'
+      ? proposal.request_count
+      : 0,
+    retryCount: typeof proposal.retry_count === 'number'
+      ? proposal.retry_count
+      : 0,
+    roofGuardStatus: typeof roofGuard?.status === 'string'
+      ? roofGuard.status
+      : 'not_recorded',
+    roofGuardChangedPixels: typeof roofGuard?.changed_pixel_count === 'number'
+      ? roofGuard.changed_pixel_count
+      : 0,
   };
 }

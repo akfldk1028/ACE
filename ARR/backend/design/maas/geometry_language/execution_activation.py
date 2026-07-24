@@ -200,7 +200,7 @@ def build_activation_graph(
         {
             "id": "elevation:image_agent",
             "column": "elevation_image_agent",
-            "label": f"Elevation Image Agent · {image_status}",
+            "label": f"Architectural Render Agent · {image_status}",
             "kind": "elevation_image_agent",
             "status": image_status,
             "activation": image_activation,
@@ -212,6 +212,9 @@ def build_activation_graph(
                 ),
                 "request_count": int(image_proposal.get("request_count") or 0),
                 "retry_count": int(image_proposal.get("retry_count") or 0),
+                "presentation": deepcopy(
+                    dict(image_proposal.get("presentation") or {})
+                ),
                 "strategy": deepcopy(dict(image_proposal.get("strategy") or {})),
                 "issues": deepcopy(list(image_proposal.get("issues") or ())),
             },
@@ -219,7 +222,7 @@ def build_activation_graph(
         {
             "id": "elevation:proposal",
             "column": "elevation_proposal",
-            "label": f"Elevation ALT 01 · {image_status}",
+            "label": f"Render ALT 01 · {image_status}",
             "kind": "elevation_image_proposal",
             "status": image_status,
             "activation": image_activation,
@@ -230,6 +233,9 @@ def build_activation_graph(
                 "preview_url": str(proposal_artifact.get("preview_url") or ""),
                 "manifest_path": str(image_proposal.get("manifest_path") or ""),
                 "geometry_mutation_allowed": False,
+                "presentation": deepcopy(
+                    dict(image_proposal.get("presentation") or {})
+                ),
             },
         },
     ))
@@ -299,7 +305,7 @@ def refresh_elevation_proposal_graph(
     identity = deepcopy(dict(proposal.get("identity") or {}))
     artifact = deepcopy(dict(proposal.get("artifact") or {}))
     image_node.update({
-        "label": f"Elevation Image Agent · {status}",
+        "label": f"Architectural Render Agent · {status}",
         "status": status,
         "activation": activation,
         "evidence": {
@@ -311,12 +317,15 @@ def refresh_elevation_proposal_graph(
             ),
             "request_count": int(proposal.get("request_count") or 0),
             "retry_count": int(proposal.get("retry_count") or 0),
+            "presentation": deepcopy(
+                dict(proposal.get("presentation") or {})
+            ),
             "strategy": deepcopy(dict(proposal.get("strategy") or {})),
             "issues": deepcopy(list(proposal.get("issues") or ())),
         },
     })
     proposal_node.update({
-        "label": f"Elevation ALT 01 · {status}",
+        "label": f"Render ALT 01 · {status}",
         "status": status,
         "activation": activation,
         "evidence": {
@@ -327,6 +336,9 @@ def refresh_elevation_proposal_graph(
             "preview_url": str(artifact.get("preview_url") or ""),
             "manifest_path": str(proposal.get("manifest_path") or ""),
             "geometry_mutation_allowed": False,
+            "presentation": deepcopy(
+                dict(proposal.get("presentation") or {})
+            ),
         },
     })
     for item in edges:

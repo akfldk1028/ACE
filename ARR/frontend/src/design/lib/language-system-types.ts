@@ -205,6 +205,8 @@ export interface ExecutedMassRun {
   status: 'selected_mass_ready' | 'single_mass_ready' | 'completed_without_selected_mass' | 'running' | 'failed' | 'aborted_memory_pressure' | 'unknown';
   replayable: boolean;
   run_type?: 'portfolio' | 'single_execution';
+  geometry_hash?: string;
+  thumbnail_url?: string;
 }
 
 export interface SingleMassExecutionResponse {

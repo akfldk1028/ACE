@@ -1,5 +1,18 @@
 # MASS Flow Memory Changelog
 
+## 2026-07-24 - r217 unique single-MASS thumbnail rail
+
+- Added an immutable single-isometric thumbnail endpoint for single MASS runs.
+- Added geometry hash and thumbnail URL to chronological single-run rows.
+- Deduplicated only the bottom MASS rail by geometry hash while preserving all
+  execution runs in the top timeline and causal provenance.
+- Browser proof: 11 unique cards instead of 24 repeated execution cards, one
+  436x286 image per card, zero broken images, and correct r214 six-view
+  elevation switching after card selection.
+- Defined `elevationAgent` as the independent future creative facade agent with
+  replaceable image-provider configuration and cross-view/mesh consistency
+  gates. No paid image-generation call was made.
+
 ## 2026-07-24 - r211-r216 multi-MASS rail and generated elevation bundle
 
 - Replaced the selected-run-only bottom gallery policy with a modular,

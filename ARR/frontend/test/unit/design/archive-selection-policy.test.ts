@@ -114,7 +114,39 @@ describe('executed MASS archive selection policy', () => {
     expect(cards[0]).toMatchObject({
       executionId: 'r212-diagonal-slice',
       selected: true,
-      previewUrl: '/design/maas/single-executions/r212-diagonal-slice/preview/',
+      previewUrl: '/design/maas/single-executions/r212-diagonal-slice/thumbnail/',
+    })
+  })
+
+  it('shows one newest representative card for repeated geometry hashes', () => {
+    const archive = manifest(
+      'single-execution:r209-render-proof',
+      [
+        'single-execution:r211-unique-mass',
+        'single-execution:r209-render-proof',
+        'single-execution:r210-render-proof',
+      ],
+      'rev-211',
+    )
+    archive.runs.forEach((run) => { run.run_type = 'single_execution' })
+    archive.runs[0].created_at = '2026-07-24T02:11:00Z'
+    archive.runs[0].geometry_hash = 'unique-geometry'
+    archive.runs[1].created_at = '2026-07-24T02:09:00Z'
+    archive.runs[1].geometry_hash = 'repeated-geometry'
+    archive.runs[2].created_at = '2026-07-24T02:10:00Z'
+    archive.runs[2].geometry_hash = 'repeated-geometry'
+    archive.masses[0].geometry_hash = 'repeated-geometry'
+
+    const cards = buildRecentMassCards(archive)
+
+    expect(cards).toHaveLength(2)
+    expect(cards.map((card) => card.runId)).toEqual([
+      'single-execution:r211-unique-mass',
+      'single-execution:r210-render-proof',
+    ])
+    expect(cards[1]).toMatchObject({
+      selected: true,
+      previewUrl: '/design/maas/single-executions/r210-render-proof/thumbnail/',
     })
   })
 

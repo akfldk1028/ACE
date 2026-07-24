@@ -29,6 +29,7 @@ urlpatterns = [
     path('maas/geometry-shapes/<int:index>/passport/', views.maas_geometry_shape_passport, name='maas_geometry_shape_passport'),
     path('maas/single-executions/', views.maas_single_execution, name='maas_single_execution'),
     path('maas/single-executions/<slug:execution_id>/preview/', views.maas_single_execution_preview, name='maas_single_execution_preview'),
+    path('maas/single-executions/<slug:execution_id>/thumbnail/', views.maas_single_execution_thumbnail, name='maas_single_execution_thumbnail'),
     path('maas/single-executions/<slug:execution_id>/manifest/', views.maas_single_execution_manifest, name='maas_single_execution_manifest'),
     path('maas/single-executions/<slug:execution_id>/passport/', views.maas_single_execution_passport, name='maas_single_execution_passport'),
     path('maas/single-executions/<slug:execution_id>/elevation/<slug:view>/', views.maas_single_execution_elevation, name='maas_single_execution_elevation'),

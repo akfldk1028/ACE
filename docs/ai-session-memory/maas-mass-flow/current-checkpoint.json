@@ -21,9 +21,15 @@
     "geometry_ready_count": 6,
     "geometry_gate_issue_count": 0,
     "elevation_views_per_mass": 6,
-    "bottom_archive_policy": "mass_only_newest_first_replayable_single_executions",
+    "bottom_archive_policy": "unique_geometry_hash_mass_only_isometric_thumbnails",
+    "single_mass_thumbnail_size": [
+      436,
+      286
+    ],
+    "lossless_execution_timeline": true,
+    "duplicate_geometry_collapsed_in_bottom_rail": true,
     "click_contract": "mass_card_to_same_run_graph_and_right_sidebar_elevations",
-    "browser_visible_card_count": 24,
+    "browser_visible_card_count": 11,
     "browser_broken_image_count": 0,
     "browser_vite_overlay": false,
     "paid_vlm_request_count": 0,

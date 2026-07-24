@@ -1,5 +1,5 @@
 import json
-from io import StringIO
+from io import BytesIO, StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.parse import quote
@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
 from django.core.management import call_command
+from PIL import Image
 
 from design.maas.geometry_language import GeometryProgramBuilder
 from design.maas.single_execution import execute_single_mass
@@ -25,6 +26,36 @@ def _box_program():
 
 
 class MaasSingleExecutionTest(SimpleTestCase):
+    def test_single_execution_catalog_exposes_one_isometric_mass_thumbnail(self):
+        with TemporaryDirectory() as directory:
+            with override_settings(MAAS_SINGLE_EXECUTION_ROOT=directory):
+                result = execute_single_mass(
+                    _box_program(),
+                    output_root=directory,
+                    execution_id="thumbnail-source",
+                )
+                run_id = "single-execution:thumbnail-source"
+                manifest = self.client.get(
+                    "/design/maas/executed-masses/",
+                    {"run_id": run_id},
+                ).json()
+                run = next(row for row in manifest["runs"] if row["run_id"] == run_id)
+
+                self.assertEqual(run["geometry_hash"], result.geometry_hash)
+                self.assertEqual(
+                    run["thumbnail_url"],
+                    "/design/maas/single-executions/thumbnail-source/thumbnail/",
+                )
+
+                response = self.client.get(run["thumbnail_url"])
+                self.assertEqual(response.status_code, 200)
+                payload = b"".join(response.streaming_content)
+                response.close()
+                with Image.open(BytesIO(payload)) as thumbnail:
+                    self.assertEqual(thumbnail.format, "PNG")
+                    self.assertLess(thumbnail.width, 900)
+                    self.assertLess(thumbnail.height, 680)
+
     def test_vlm_reference_identity_uses_nested_program_projection(self):
         program = _box_program()
         program.metadata.pop("building_type", None)

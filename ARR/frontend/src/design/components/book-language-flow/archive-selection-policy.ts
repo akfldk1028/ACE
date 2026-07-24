@@ -68,13 +68,30 @@ export function buildRecentMassCards(
   limit = 24,
 ): RecentMassCard[] {
   const selectedMass = archive.masses[0]
+  const selectedGeometryHash = archive.masses
+    .find((mass) => mass.index === selectedMassIndex)
+    ?.geometry_hash
+  const seenGeometryHashes = new Set<string>()
   const singleExecutionCards = archive.runs
     .filter((run) => run.replayable && isSingleExecution(run.run_id, run.run_type))
     .sort((left, right) => right.created_at.localeCompare(left.created_at))
+    .filter((run) => {
+      const geometryHash = run.geometry_hash?.trim()
+      if (!geometryHash) return true
+      if (seenGeometryHashes.has(geometryHash)) return false
+      seenGeometryHashes.add(geometryHash)
+      return true
+    })
     .slice(0, limit)
     .map((run): RecentMassCard => {
       const executionId = run.run_id.slice('single-execution:'.length)
       const currentMass = run.run_id === archive.selected_run_id ? selectedMass : undefined
+      const selected = run.run_id === archive.selected_run_id
+        || Boolean(
+          selectedGeometryHash
+          && run.geometry_hash
+          && selectedGeometryHash === run.geometry_hash,
+        )
       return {
         key: `${run.run_id}:1`,
         runId: run.run_id,
@@ -82,9 +99,9 @@ export function buildRecentMassCards(
         massIndex: currentMass?.index ?? 1,
         label: currentMass?.label || executionId,
         operationLabel: currentMass?.operation_label || 'EXECUTED MASS',
-        previewUrl: currentMass?.preview_url
-          || `/design/maas/single-executions/${executionId}/preview/`,
-        selected: run.run_id === archive.selected_run_id,
+        previewUrl: run.thumbnail_url
+          || `/design/maas/single-executions/${executionId}/thumbnail/`,
+        selected,
       }
     })
 

@@ -41,5 +41,12 @@ Next implementation boundary:
 consistency GATE`. The current views are deterministic mesh projections, not a
 claim that a designed facade, floor plan or code-compliant elevation exists.
 
+The creative stage belongs to the independent
+`ARR/backend/agents/elevationAgent`, not the MASS compiler. It must call image
+models through a replaceable provider interface and persist provider/model,
+prompt/input/output hashes, response identity and bounded cost evidence. A
+future OpenAI image model can be selected at execution time without changing
+the GeometryProgram or mesh authority.
+
 Do not route the new mesh through the legacy mass-GeoJSON volume renderer and
 call it complete. Add one adapter; do not create a second geometry authority.

@@ -152,6 +152,8 @@ def _run_row(
     return {
         "run_id": single_execution_run_id(execution_id),
         "created_at": created_at,
+        "geometry_hash": str(manifest.get("geometry_hash") or passport.get("geometry_hash") or ""),
+        "thumbnail_url": f"/design/maas/single-executions/{execution_id}/thumbnail/",
         "pnu": str(_evidence(site).get("pnu") or ""),
         "selected_mass_count": 1,
         "status": "single_mass_ready",

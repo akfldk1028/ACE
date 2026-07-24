@@ -2,6 +2,27 @@
 
 Generated 2026-07-24 KST.
 
+## r217 unique single-MASS thumbnail rail
+
+- The bottom rail no longer displays the 900x680 four-view composite inside
+  each card. Every single-execution card requests an immutable 436x286
+  isometric-only `/thumbnail/` derived from the exact compiled MASS render.
+- Single-execution run rows now expose `geometry_hash` and `thumbnail_url`.
+  The rail sorts newest first and collapses identical non-empty geometry hashes
+  to one representative card. The lossless execution timeline is unchanged.
+- Live browser verification reduced 24 recent execution cards to 11 unique
+  geometry cards. Every card contained exactly one loaded image, every source
+  used `/thumbnail/`, broken images were zero, and no Vite overlay existed.
+- Clicking the third unique card selected r214 and changed all six right-side
+  elevation images to the r214 execution ID.
+- The separate `ARR/backend/agents/elevationAgent` now records the future
+  creative provider boundary: immutable MASS input, replaceable image model,
+  prompt/input/output provenance and cross-view/mesh consistency gates.
+
+Browser evidence:
+
+- `docs/playwright/design-route-live-verify/r217-unique-single-mass-thumbnail-rail.png`
+
 ## r211-r216 distinct MASS generation and clickable archive
 
 - Six independent geometry programs were executed: radial fan, stepped

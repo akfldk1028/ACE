@@ -10,6 +10,11 @@ from PIL import Image, ImageDraw
 
 from .compiler import CompilationResult
 
+_PANEL_WIDTH = 450
+_PANEL_HEIGHT = 325
+_PANEL_INSET = 7
+_PANEL_LABEL_BOTTOM = 32
+
 
 def render_compilation_preview(result: CompilationResult, output_path: str | Path, *, title: str = "") -> Path:
     if result.status != "compiled" or not result.vertices or not result.triangles:
@@ -79,6 +84,30 @@ def render_compilation_preview(result: CompilationResult, output_path: str | Pat
     return output
 
 
+def materialize_isometric_thumbnail(preview_path: str | Path) -> Path:
+    """Crop one MASS-only isometric card from the immutable four-view render."""
+
+    preview = Path(preview_path).resolve()
+    if not preview.is_file():
+        raise FileNotFoundError(preview)
+    output = preview.with_name(f"{preview.stem}.thumbnail.png")
+    if output.is_file() and output.stat().st_mtime_ns >= preview.stat().st_mtime_ns:
+        return output
+    with Image.open(preview) as source:
+        if source.width < _PANEL_WIDTH or source.height < _PANEL_HEIGHT:
+            raise ValueError("MASS preview does not contain the isometric panel")
+        thumbnail = source.convert("RGB").crop((
+            _PANEL_INSET,
+            _PANEL_LABEL_BOTTOM,
+            _PANEL_WIDTH - _PANEL_INSET,
+            _PANEL_HEIGHT - _PANEL_INSET,
+        ))
+        temporary = output.with_suffix(".tmp.png")
+        thumbnail.save(temporary, format="PNG", optimize=True)
+        temporary.replace(output)
+    return output
+
+
 def _project(vertices: np.ndarray, *, yaw: float, pitch: float):
     center = (vertices.min(axis=0) + vertices.max(axis=0)) / 2
     points = vertices - center
@@ -90,4 +119,4 @@ def _project(vertices: np.ndarray, *, yaw: float, pitch: float):
     return rotated[:, :2], rotated[:, 2], rotated
 
 
-__all__ = ["render_compilation_preview"]
+__all__ = ["materialize_isometric_thumbnail", "render_compilation_preview"]

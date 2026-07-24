@@ -42,7 +42,7 @@ from .mutation import (
 )
 from .outcome_graph import GeometryOutcomeGraph
 from .programs import GeometryProgramBuilder, architectural_shape_programs, l_mass_difference_program, reference_language_programs
-from .render import render_compilation_preview
+from .render import materialize_isometric_thumbnail, render_compilation_preview
 from .source_bridge import compile_geometry_program_to_source_mass, replace_source_dominant_with_geometry_program
 from .system_contract import build_extended_csg_contract
 from .synthesis import synthesize_architectural_programs, synthesis_requests_from_program_profile
@@ -119,6 +119,7 @@ __all__ = [
     "program_cost",
     "program_to_dsl",
     "reference_language_programs",
+    "materialize_isometric_thumbnail",
     "render_compilation_preview",
     "replace_source_dominant_with_geometry_program",
     "run_geometry_program_a2a_loop",

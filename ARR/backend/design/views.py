@@ -51,6 +51,7 @@ from design.maas.geometry_language import (
     architectural_shape_programs,
     build_mass_execution_passport,
     compile_geometry_program,
+    materialize_isometric_thumbnail,
     passport_path_for_preview,
     render_compilation_preview,
     write_mass_execution_passport,
@@ -321,6 +322,19 @@ def maas_single_execution_preview(request, execution_id):
     output = _single_execution_artifact(execution_id, "mass.png")
     if not output.is_file():
         raise Http404("single MASS preview not found")
+    response = FileResponse(output.open("rb"), content_type="image/png")
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@require_http_methods(["GET"])
+def maas_single_execution_thumbnail(request, execution_id):
+    preview = _single_execution_artifact(execution_id, "mass.png")
+    try:
+        output = materialize_isometric_thumbnail(preview)
+    except (OSError, ValueError) as exc:
+        raise Http404("single MASS thumbnail not found") from exc
     response = FileResponse(output.open("rb"), content_type="image/png")
     response["Cache-Control"] = "public, max-age=31536000, immutable"
     response["X-Content-Type-Options"] = "nosniff"

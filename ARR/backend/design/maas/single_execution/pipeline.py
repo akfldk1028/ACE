@@ -17,7 +17,12 @@ from time import perf_counter
 from typing import Any
 import uuid
 
-from design.maas.agents.elevation_agent import generate_elevation_bundle
+from design.maas.agents.elevation_agent import (
+    generate_elevation_bundle,
+    generate_elevation_image_proposal,
+    select_facade_strategy,
+)
+from design.maas.aesthetic.contracts import AestheticProvider
 from design.maas.agents.orchestrator.execution_collaboration import (
     AgentExecutor,
     build_default_execution_executors,
@@ -54,6 +59,7 @@ def execute_single_mass(
     execution_mode: str = "explicit_program",
     source_run_id: str = "",
     source_mass_index: int = 0,
+    elevation_image_adapter: AestheticProvider | None = None,
 ) -> SingleMassExecutionResult:
     """Compile, gate, render, and persist exactly one MASS with stage timings."""
 
@@ -119,6 +125,55 @@ def execute_single_mass(
                 "error": f"{type(exc).__name__}: {exc}",
                 "views": [],
             }
+        if elevation_evidence.get("status") == "generated":
+            facade_strategy = select_facade_strategy(resolved_program, compilation)
+            elevation_evidence["facade_strategy"] = facade_strategy
+            proposal_identity = {
+                "execution_id": resolved_id,
+                "program_hash": program_hash,
+                "geometry_hash": str(compilation.geometry_hash or ""),
+            }
+            if elevation_image_adapter is not None:
+                try:
+                    elevation_evidence["image_proposal"] = (
+                        generate_elevation_image_proposal(
+                            elevation_evidence,
+                            preview_path,
+                            adapter=elevation_image_adapter,
+                            strategy=facade_strategy,
+                        )
+                    )
+                except Exception as exc:
+                    elevation_evidence["image_proposal"] = {
+                        "schema_version": "arr.elevation_agent.image_proposal.v1",
+                        "status": "failed",
+                        "identity": proposal_identity,
+                        "strategy": facade_strategy,
+                        "provider": str(getattr(elevation_image_adapter, "name", "")),
+                        "provider_metadata": {},
+                        "issues": [{
+                            "code": "provider_error",
+                            "message": f"{type(exc).__name__}: {exc}",
+                        }],
+                        "request_count": 1,
+                        "retry_count": 0,
+                        "artifact": {},
+                    }
+            else:
+                elevation_evidence["image_proposal"] = (
+                    {
+                        "schema_version": "arr.elevation_agent.image_proposal.v1",
+                        "status": "not_evaluated",
+                        "identity": proposal_identity,
+                        "strategy": facade_strategy,
+                        "provider": "",
+                        "provider_metadata": {},
+                        "issues": [],
+                        "request_count": 0,
+                        "retry_count": 0,
+                        "artifact": {},
+                    }
+                )
     timings["elevation_agent"] = _elapsed_ms(stage_started)
 
     stage_started = perf_counter()

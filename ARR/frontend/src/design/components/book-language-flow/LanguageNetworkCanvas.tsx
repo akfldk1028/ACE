@@ -86,9 +86,13 @@ const STAGE_LABELS: Record<string, string> = {
   elevation_handoff: 'ELEVATION MESH HANDOFF',
   elevation_condition: 'ELEVATION CONDITION PACK',
   elevation_result: 'ELEVATION RESULT',
+  elevation_image_agent: 'ELEVATION IMAGE AGENT',
+  elevation_proposal: 'ELEVATION ALT 01',
   execution_elevation_handoff: 'ELEVATION MESH HANDOFF',
   execution_elevation_condition: 'ELEVATION CONDITION PACK',
   execution_elevation_result: 'ELEVATION RESULT',
+  execution_elevation_image_agent: 'ELEVATION IMAGE AGENT',
+  execution_elevation_proposal: 'ELEVATION ALT 01',
 };
 
 function rowHeight(node: NetworkNode) {

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import os
 from pathlib import Path
 from typing import Any
@@ -40,6 +41,12 @@ class OpenAIImageAdapter:
                 "Keep facade rhythm, material palette, floor lines, openings, corners, roofline, and massing steps consistent between panels. "
                 "Replace the diagrammatic orange mass panels with credible finished architecture in each view; keep only the panel layout and locked silhouette. "
             )
+        elif reference_type == "locked_mass_sheet":
+            reference_instruction = (
+                "The input is a locked four-view architectural MASS sheet containing isometric, opposite, top, and front views of the same building. "
+                "Generate one coherent photorealistic facade and material proposal across every panel. "
+                "Keep the sheet layout, every camera, and every MASS outline exactly aligned so the result remains directly comparable to the source. "
+            )
         else:
             reference_instruction = "Edit this legal massing reference into a photorealistic projection-ready architectural facade concept. "
         full_prompt = (
@@ -54,23 +61,57 @@ class OpenAIImageAdapter:
         size = os.getenv("OPENAI_IMAGE_SIZE", "1024x1024")
         self.output_dir.mkdir(parents=True, exist_ok=True)
         output_path = self.output_dir / f"{_safe_id(job)}.openai.png"
+        evidence = {
+            "model": model,
+            "size": size,
+            "reference_asset_id": reference.asset_id,
+            "prompt_sha256": hashlib.sha256(full_prompt.encode("utf-8")).hexdigest(),
+            "input_image_sha256": hashlib.sha256(reference_path.read_bytes()).hexdigest(),
+            "output_image_sha256": "",
+            "request_id": "",
+            "usage": {},
+            "retry_count": 0,
+        }
 
         try:
             client = OpenAI(api_key=api_key)
             with reference_path.open("rb") as image_file:
-                response = client.images.edit(
-                    model=model,
-                    image=image_file,
-                    prompt=full_prompt,
-                    size=size,
-                    n=1,
-                )
+                raw_api = getattr(client.images, "with_raw_response", None)
+                if raw_api is not None:
+                    raw_response = raw_api.edit(
+                        model=model,
+                        image=image_file,
+                        prompt=full_prompt,
+                        size=size,
+                        n=1,
+                    )
+                    response = raw_response.parse()
+                    headers = getattr(raw_response, "headers", {}) or {}
+                    evidence["request_id"] = str(
+                        headers.get("x-request-id")
+                        or headers.get("request-id")
+                        or ""
+                    )
+                else:  # pragma: no cover - compatibility with older SDKs
+                    response = client.images.edit(
+                        model=model,
+                        image=image_file,
+                        prompt=full_prompt,
+                        size=size,
+                        n=1,
+                    )
+            usage = getattr(response, "usage", None)
+            if usage is not None:
+                evidence["usage"] = _serializable_usage(usage)
             item = response.data[0]
             b64_json = getattr(item, "b64_json", None)
             url = getattr(item, "url", None)
             if b64_json:
                 output_path.write_bytes(base64.b64decode(b64_json))
                 asset_uri = str(output_path)
+                evidence["output_image_sha256"] = hashlib.sha256(
+                    output_path.read_bytes()
+                ).hexdigest()
             elif url:
                 asset_uri = url
             else:
@@ -78,7 +119,7 @@ class OpenAIImageAdapter:
                     provider=self.name,
                     status="fail",
                     assets=[],
-                    metadata={"model": model, "size": size},
+                    metadata=evidence,
                     issues=[{"code": "missing_image_payload", "message": "OpenAI response did not include b64_json or url."}],
                 )
         except Exception as exc:  # pragma: no cover - network/provider behavior
@@ -86,7 +127,7 @@ class OpenAIImageAdapter:
                 provider=self.name,
                 status="fail",
                 assets=[],
-                metadata={"model": model, "size": size},
+                metadata=evidence,
                 issues=[{"code": "provider_error", "message": str(exc)}],
             )
 
@@ -104,7 +145,7 @@ class OpenAIImageAdapter:
                     "role": "generated_facade_image",
                 }
             ],
-            metadata={"model": model, "size": size, "reference_asset_id": reference.asset_id},
+            metadata=evidence,
         )
 
 
@@ -121,6 +162,15 @@ def _not_configured(message: str) -> ProviderResult:
         metadata={},
         issues=[{"code": "provider_not_configured", "message": message}],
     )
+
+
+def _serializable_usage(usage: Any) -> dict[str, Any]:
+    if hasattr(usage, "model_dump"):
+        value = usage.model_dump()
+        return dict(value) if isinstance(value, dict) else {}
+    if isinstance(usage, dict):
+        return dict(usage)
+    return {}
 
 
 __all__ = ["OpenAIImageAdapter"]

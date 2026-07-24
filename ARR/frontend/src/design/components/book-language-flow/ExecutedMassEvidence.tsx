@@ -3,6 +3,7 @@ import type {
   ExecutedMassRecord,
   MassExecutionPassport,
 } from '../../lib/language-system-types';
+import { extractElevationProposal } from './elevation-proposal';
 import { executionActionCopy, executionRunCopy } from './execution-mode';
 
 interface ExecutedMassEvidenceProps {
@@ -111,6 +112,14 @@ export function ExecutedMassEvidence({
   } | undefined;
   const specialistEvidence = passport?.agent_collaboration?.evidence ?? [];
   const generatedElevations = elevationViews(passport);
+  const executionId = archive.selected_run_id.startsWith('single-execution:')
+    ? archive.selected_run_id.slice('single-execution:'.length)
+    : (passport?.agent_collaboration?.identity.execution_id ?? '');
+  const imageProposal = extractElevationProposal(passport, {
+    executionId,
+    programHash: mass.program_hash,
+    geometryHash: mass.geometry_hash,
+  });
   const replayCopy = executionActionCopy();
 
   return (
@@ -146,6 +155,25 @@ export function ExecutedMassEvidence({
               </figure>
             ))}
           </div>
+        </section>
+      )}
+      {imageProposal && (
+        <section className="executed-mass-evidence__proposal">
+          <header>
+            <span>ELEVATION IMAGE AGENT · ALT 01</span>
+            <strong>{imageProposal.status.toUpperCase()}</strong>
+          </header>
+          <figure>
+            <img
+              src={imageProposal.previewUrl}
+              alt={`${mass.label} generated facade proposal ALT 01`}
+            />
+            <figcaption>
+              <strong>{imageProposal.primarySystem || imageProposal.strategyId}</strong>
+              <span>{imageProposal.provider} · {imageProposal.model || 'MODEL NOT RECORDED'}</span>
+              <code>{imageProposal.sha256.slice(0, 16)}</code>
+            </figcaption>
+          </figure>
         </section>
       )}
       <div className="executed-mass-evidence__execute">

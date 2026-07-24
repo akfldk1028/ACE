@@ -10,6 +10,10 @@ from django.core.management import call_command
 from PIL import Image
 
 from design.maas.agents.shared.types import AgentEvidence
+from design.maas.aesthetic.contracts import ProviderResult
+from design.maas.elevation_proposal_batch import (
+    generate_execution_elevation_proposal,
+)
 from design.maas.geometry_language import GeometryProgramBuilder, compile_geometry_program
 from design.maas.single_execution import execute_single_mass
 from design.maas.single_execution.vlm_review import _resolve_building_type
@@ -24,6 +28,38 @@ def _box_program():
         semantic_role="base_seed",
     )
     return builder.build(root, family="single_mass_test")
+
+
+class _SingleExecutionImageAdapter:
+    name = "single-execution-test-image"
+
+    def __init__(self, output_directory):
+        self.output_directory = Path(output_directory)
+        self.calls = []
+
+    def generate(self, job, reference):
+        self.calls.append((job, reference))
+        output = self.output_directory / "provider-alt.png"
+        output.parent.mkdir(parents=True, exist_ok=True)
+        Image.new("RGB", (4, 4), "white").save(output)
+        return ProviderResult(
+            provider=self.name,
+            status="complete",
+            assets=[{
+                "asset_id": "asset:test:single-execution-alt",
+                "uri": str(output),
+                "media_type": "image/png",
+            }],
+            metadata={"model": "fake-image-model", "request_id": "fake-request"},
+        )
+
+
+class _RaisingImageAdapter:
+    name = "raising-image"
+
+    @staticmethod
+    def generate(_job, _reference):
+        raise RuntimeError("provider unavailable")
 
 
 class MaasSingleExecutionTest(SimpleTestCase):
@@ -190,6 +226,108 @@ class MaasSingleExecutionTest(SimpleTestCase):
                 next(stage for stage in passport["stages"] if stage["id"] == "law")["status"],
                 "needs_evidence",
             )
+            self.assertEqual(
+                passport["elevation_evidence"]["image_proposal"]["status"],
+                "not_evaluated",
+            )
+            self.assertEqual(
+                passport["elevation_evidence"]["image_proposal"]["request_count"],
+                0,
+            )
+
+    def test_image_adapter_is_bound_once_to_passport_graph_and_proposal_api(self):
+        with TemporaryDirectory() as directory:
+            adapter = _SingleExecutionImageAdapter(Path(directory) / "provider")
+            with override_settings(MAAS_SINGLE_EXECUTION_ROOT=directory):
+                result = execute_single_mass(
+                    _box_program(),
+                    output_root=directory,
+                    execution_id="image-proposal-bound",
+                    elevation_image_adapter=adapter,
+                )
+                response = self.client.get(
+                    "/design/maas/single-executions/"
+                    "image-proposal-bound/elevation-proposals/alt-01/",
+                )
+                payload = b"".join(response.streaming_content)
+                response.close()
+
+        self.assertEqual(len(adapter.calls), 1)
+        proposal = result.passport["elevation_evidence"]["image_proposal"]
+        self.assertEqual(proposal["status"], "complete")
+        self.assertEqual(proposal["identity"]["execution_id"], result.execution_id)
+        self.assertEqual(proposal["identity"]["program_hash"], result.program_hash)
+        self.assertEqual(proposal["identity"]["geometry_hash"], result.geometry_hash)
+        nodes = {
+            row["id"]: row
+            for row in result.passport["activation_graph"]["nodes"]
+        }
+        edges = {
+            row["relation"]: row
+            for row in result.passport["activation_graph"]["edges"]
+        }
+        self.assertEqual(nodes["elevation:image_agent"]["status"], "complete")
+        self.assertEqual(nodes["elevation:proposal"]["status"], "complete")
+        self.assertEqual(edges["requests_facade_proposal"]["activation"], 1.0)
+        self.assertEqual(edges["generates_facade_proposal"]["activation"], 1.0)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/png")
+        self.assertTrue(payload.startswith(b"\x89PNG"))
+
+    def test_image_provider_failure_does_not_discard_technical_elevations(self):
+        with TemporaryDirectory() as directory:
+            result = execute_single_mass(
+                _box_program(),
+                output_root=directory,
+                execution_id="image-proposal-failed",
+                elevation_image_adapter=_RaisingImageAdapter(),
+            )
+
+        elevation = result.passport["elevation_evidence"]
+        self.assertEqual(elevation["status"], "generated")
+        self.assertEqual(elevation["view_count"], 6)
+        self.assertEqual(elevation["image_proposal"]["status"], "failed")
+        self.assertEqual(elevation["image_proposal"]["request_count"], 1)
+        self.assertIn("provider unavailable", elevation["image_proposal"]["issues"][0]["message"])
+
+    def test_explicit_second_stage_generates_once_and_is_idempotent(self):
+        with TemporaryDirectory() as directory:
+            execute_single_mass(
+                _box_program(),
+                output_root=directory,
+                execution_id="explicit-proposal-stage",
+            )
+            adapter = _SingleExecutionImageAdapter(Path(directory) / "provider")
+            first = generate_execution_elevation_proposal(
+                directory,
+                "explicit-proposal-stage",
+                adapter=adapter,
+            )
+            second = generate_execution_elevation_proposal(
+                directory,
+                "explicit-proposal-stage",
+                adapter=adapter,
+            )
+            passport = json.loads(
+                (
+                    Path(directory)
+                    / "explicit-proposal-stage"
+                    / "mass.png.passport.json"
+                ).read_text(encoding="utf-8")
+            )
+
+        self.assertEqual(len(adapter.calls), 1)
+        self.assertFalse(first["skipped_existing"])
+        self.assertTrue(second["skipped_existing"])
+        self.assertEqual(
+            passport["elevation_evidence"]["image_proposal"]["status"],
+            "complete",
+        )
+        nodes = {
+            row["id"]: row
+            for row in passport["activation_graph"]["nodes"]
+        }
+        self.assertEqual(nodes["elevation:proposal"]["activation"], 1.0)
 
     def test_invalid_program_persists_truthful_failure_without_a_fake_png(self):
         invalid = _box_program().to_dict()

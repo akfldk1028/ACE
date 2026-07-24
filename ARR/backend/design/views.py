@@ -374,6 +374,20 @@ def maas_single_execution_elevation(request, execution_id, view):
     return response
 
 
+@require_http_methods(["GET"])
+def maas_single_execution_elevation_proposal(request, execution_id):
+    output = _single_execution_artifact(
+        execution_id,
+        "elevation/proposals/alt-01/proposal.png",
+    )
+    if not output.is_file():
+        raise Http404("single MASS elevation proposal not found")
+    response = FileResponse(output.open("rb"), content_type="image/png")
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
 def _single_execution_json(execution_id: str, filename: str) -> JsonResponse:
     output = _single_execution_artifact(execution_id, filename)
     try:

@@ -120,6 +120,10 @@ export interface MassExecutionPassport {
       activation: number;
     }>;
   };
+  elevation_evidence?: {
+    image_proposal?: Record<string, unknown>;
+    [key: string]: unknown;
+  };
   agent_collaboration?: {
     final_status: string;
     identity: {

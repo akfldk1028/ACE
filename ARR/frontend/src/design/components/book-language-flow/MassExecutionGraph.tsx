@@ -11,12 +11,13 @@ interface MassExecutionGraphProps {
 const COLUMN_ORDER = [
   'base', 'book', 'geometry', 'program', 'compiler', 'gate', 'site',
   'capacity', 'law', 'parking', 'program_fit', 'render', 'reference', 'vlm', 'repair', 'selector', 'result',
+  'elevation_handoff', 'elevation_condition', 'elevation_result', 'elevation_image_agent', 'elevation_proposal',
 ];
 
 function visibleImageUrl(node: MassActivationNode, resultImageUrl?: string) {
   if (node.kind === 'mass_result' || node.kind === 'mass_render_result') return resultImageUrl ?? '';
   const imageUrl = String(node.evidence.preview_url ?? node.evidence.image_url ?? '');
-  return imageUrl.startsWith('https://') || imageUrl.startsWith('http://') || imageUrl.startsWith('data:')
+  return imageUrl.startsWith('/') || imageUrl.startsWith('https://') || imageUrl.startsWith('http://') || imageUrl.startsWith('data:')
     ? imageUrl
     : '';
 }

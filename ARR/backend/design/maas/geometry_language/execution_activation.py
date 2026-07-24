@@ -138,6 +138,20 @@ def build_activation_graph(
         (row for row in elevation_views if row.get("view") == "front"),
         elevation_views[0] if elevation_views else {},
     )
+    image_proposal = elevation.get("image_proposal")
+    image_proposal = (
+        deepcopy(dict(image_proposal))
+        if isinstance(image_proposal, Mapping)
+        else {}
+    )
+    image_status = str(image_proposal.get("status") or "not_evaluated")
+    image_activation = 1.0 if image_status == "complete" else 0.0
+    proposal_artifact = image_proposal.get("artifact")
+    proposal_artifact = (
+        deepcopy(dict(proposal_artifact))
+        if isinstance(proposal_artifact, Mapping)
+        else {}
+    )
     nodes.extend((
         {
             "id": "elevation:mesh_handoff",
@@ -183,11 +197,48 @@ def build_activation_graph(
                 "truth": "deterministic projections of the compiled indexed MASS mesh",
             },
         },
+        {
+            "id": "elevation:image_agent",
+            "column": "elevation_image_agent",
+            "label": f"Elevation Image Agent · {image_status}",
+            "kind": "elevation_image_agent",
+            "status": image_status,
+            "activation": image_activation,
+            "evidence": {
+                **elevation_identity,
+                "provider": str(image_proposal.get("provider") or ""),
+                "provider_metadata": deepcopy(
+                    dict(image_proposal.get("provider_metadata") or {})
+                ),
+                "request_count": int(image_proposal.get("request_count") or 0),
+                "retry_count": int(image_proposal.get("retry_count") or 0),
+                "strategy": deepcopy(dict(image_proposal.get("strategy") or {})),
+                "issues": deepcopy(list(image_proposal.get("issues") or ())),
+            },
+        },
+        {
+            "id": "elevation:proposal",
+            "column": "elevation_proposal",
+            "label": f"Elevation ALT 01 · {image_status}",
+            "kind": "elevation_image_proposal",
+            "status": image_status,
+            "activation": image_activation,
+            "evidence": {
+                **elevation_identity,
+                "artifact_exists": bool(proposal_artifact.get("path")),
+                "artifact": proposal_artifact,
+                "preview_url": str(proposal_artifact.get("preview_url") or ""),
+                "manifest_path": str(image_proposal.get("manifest_path") or ""),
+                "geometry_mutation_allowed": False,
+            },
+        },
     ))
     edges.extend((
         edge("result:mass", "elevation:mesh_handoff", "requests_elevation_handoff", elevation_activation),
         edge("elevation:mesh_handoff", "elevation:condition_pack", "builds_condition_pack", elevation_activation),
         edge("elevation:condition_pack", "elevation:result", "generates_elevation", elevation_activation),
+        edge("elevation:condition_pack", "elevation:image_agent", "requests_facade_proposal", image_activation),
+        edge("elevation:image_agent", "elevation:proposal", "generates_facade_proposal", image_activation),
     ))
     ast_node_ids = [f"ast:{node.id}" for node in ordered_nodes]
     incoming_ast_targets = {
@@ -221,6 +272,73 @@ def build_activation_graph(
         "nodes": nodes,
         "edges": edges,
     }
+
+
+def refresh_elevation_proposal_graph(
+    graph: dict[str, Any],
+    proposal: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Refresh the proposal nodes after an explicit post-MASS image call."""
+
+    result = deepcopy(graph)
+    nodes = result.get("nodes")
+    edges = result.get("edges")
+    if not isinstance(nodes, list) or not isinstance(edges, list):
+        raise ValueError("invalid MASS activation graph")
+    node_map = {
+        str(node.get("id") or ""): node
+        for node in nodes
+        if isinstance(node, dict)
+    }
+    image_node = node_map.get("elevation:image_agent")
+    proposal_node = node_map.get("elevation:proposal")
+    if image_node is None or proposal_node is None:
+        raise ValueError("MASS graph does not contain elevation proposal nodes")
+    status = str(proposal.get("status") or "failed")
+    activation = 1.0 if status == "complete" else 0.0
+    identity = deepcopy(dict(proposal.get("identity") or {}))
+    artifact = deepcopy(dict(proposal.get("artifact") or {}))
+    image_node.update({
+        "label": f"Elevation Image Agent · {status}",
+        "status": status,
+        "activation": activation,
+        "evidence": {
+            **identity,
+            "mass_result_node_id": "result:mass",
+            "provider": str(proposal.get("provider") or ""),
+            "provider_metadata": deepcopy(
+                dict(proposal.get("provider_metadata") or {})
+            ),
+            "request_count": int(proposal.get("request_count") or 0),
+            "retry_count": int(proposal.get("retry_count") or 0),
+            "strategy": deepcopy(dict(proposal.get("strategy") or {})),
+            "issues": deepcopy(list(proposal.get("issues") or ())),
+        },
+    })
+    proposal_node.update({
+        "label": f"Elevation ALT 01 · {status}",
+        "status": status,
+        "activation": activation,
+        "evidence": {
+            **identity,
+            "mass_result_node_id": "result:mass",
+            "artifact_exists": bool(artifact.get("path")),
+            "artifact": artifact,
+            "preview_url": str(artifact.get("preview_url") or ""),
+            "manifest_path": str(proposal.get("manifest_path") or ""),
+            "geometry_mutation_allowed": False,
+        },
+    })
+    for item in edges:
+        if (
+            isinstance(item, dict)
+            and item.get("relation") in {
+                "requests_facade_proposal",
+                "generates_facade_proposal",
+            }
+        ):
+            item["activation"] = activation
+    return result
 
 
 def _safe_program_hash(program: Any) -> str:
@@ -368,4 +486,10 @@ def edge(source: str, target: str, relation: str, activation: float) -> dict[str
     return {"id": f"edge:{digest}", "source": source, "target": target, "relation": relation, "activation": round(float(activation), 6)}
 
 
-__all__ = ["append_agent_collaboration_nodes", "append_vlm_nodes", "build_activation_graph", "edge"]
+__all__ = [
+    "append_agent_collaboration_nodes",
+    "append_vlm_nodes",
+    "build_activation_graph",
+    "edge",
+    "refresh_elevation_proposal_graph",
+]

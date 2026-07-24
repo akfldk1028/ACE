@@ -76,6 +76,15 @@
 .executed-mass-evidence__elevations figcaption { display: flex; justify-content: space-between; gap: 4px; padding: 5px 6px; border-top: 1px solid rgba(255, 255, 255, .08); }
 .executed-mass-evidence__elevations strong,
 .executed-mass-evidence__elevations code { overflow: hidden; color: #777; font: 6px/1 ui-monospace, monospace; text-overflow: ellipsis; }
+.executed-mass-evidence__proposal { margin: 0 10px 10px; border: 1px solid rgba(255, 255, 255, .22); background: #080808; }
+.executed-mass-evidence__proposal > header { display: flex; justify-content: space-between; gap: 8px; padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, .14); color: #aaa; font: 700 7px/1 ui-monospace, monospace; letter-spacing: .1em; }
+.executed-mass-evidence__proposal > header strong { color: #eee; }
+.executed-mass-evidence__proposal figure { margin: 0; }
+.executed-mass-evidence__proposal img { display: block; width: 100%; max-height: 330px; object-fit: contain; background: #111; }
+.executed-mass-evidence__proposal figcaption { display: grid; gap: 4px; padding: 8px; border-top: 1px solid rgba(255, 255, 255, .12); }
+.executed-mass-evidence__proposal figcaption strong { color: #ddd; font: 700 8px/1.35 ui-monospace, monospace; }
+.executed-mass-evidence__proposal figcaption span,
+.executed-mass-evidence__proposal figcaption code { overflow: hidden; color: #777; font: 6px/1.35 ui-monospace, monospace; text-overflow: ellipsis; }
 
 .maas-language-flow__header h1 {
   margin: 6px 0 0;

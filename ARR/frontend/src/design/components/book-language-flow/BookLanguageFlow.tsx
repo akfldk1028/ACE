@@ -44,6 +44,7 @@ const EXECUTION_STAGE_ORDER = [
   'law', 'parking', 'program_fit', 'render', 'reference', 'vlm', 'repair',
   'agent_design', 'agent_geometry', 'agent_law', 'agent_parking', 'agent_review', 'agent_selector',
   'selector', 'result', 'elevation_handoff', 'elevation_condition', 'elevation_result',
+  'elevation_image_agent', 'elevation_proposal',
 ];
 
 const FULL_GRAPH_STAGE_ORDER = [
@@ -55,6 +56,7 @@ const FULL_GRAPH_STAGE_ORDER = [
   'execution_agent_parking', 'execution_agent_review', 'execution_agent_selector',
   'execution_vlm', 'execution_repair', 'execution_selector', 'execution_run', 'executed_mass',
   'execution_elevation_handoff', 'execution_elevation_condition', 'execution_elevation_result',
+  'execution_elevation_image_agent', 'execution_elevation_proposal',
   'memory_geometry', 'memory_render', 'memory_portfolio', 'memory_vlm', 'memory_outcome',
 ];
 
@@ -332,6 +334,8 @@ function runtimeStage(column: string, nodeId = ''): string {
   if (column === 'elevation_handoff') return 'execution_elevation_handoff';
   if (column === 'elevation_condition') return 'execution_elevation_condition';
   if (column === 'elevation_result') return 'execution_elevation_result';
+  if (column === 'elevation_image_agent') return 'execution_elevation_image_agent';
+  if (column === 'elevation_proposal') return 'execution_elevation_proposal';
   return 'execution_geometry';
 }
 
@@ -348,7 +352,8 @@ function selectedRuntimeGraph(
     .map((node): NetworkNode => {
       const imageBacked = node.kind === 'mass_render_result'
         || node.kind === 'vlm_reference_image'
-        || node.kind === 'elevation_result';
+        || node.kind === 'elevation_result'
+        || node.kind === 'elevation_image_proposal';
       return {
         id: mappedId(node.id),
         kind: node.kind,
@@ -736,7 +741,8 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
       ...(passport?.activation_graph.nodes.map((node) => {
       const materializedMassImage = node.kind === 'mass_result'
         || node.kind === 'mass_render_result'
-        || node.kind === 'elevation_result';
+        || node.kind === 'elevation_result'
+        || node.kind === 'elevation_image_proposal';
       const evaluatedVlmInput = node.id === 'flow:vlm' && node.status !== 'not_evaluated';
       return {
         id: node.id,
@@ -754,6 +760,7 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
           status: node.status,
           operator: node.operator,
           preview_url: node.kind === 'elevation_result'
+            || node.kind === 'elevation_image_proposal'
             ? evidenceImageUrl(node.evidence)
             : materializedMassImage || evaluatedVlmInput
               ? selectedMass?.preview_url

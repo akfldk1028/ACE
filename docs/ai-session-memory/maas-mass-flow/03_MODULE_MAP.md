@@ -21,6 +21,10 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
 ## Single MASS deploy execution
 
 - Public orchestration boundary: `ARR/backend/design/maas/single_execution/`
+- Fresh ten-family UnitBox/BOOK authoring and archive-wide novelty rejection:
+  `ARR/backend/design/maas/fresh_batch.py`
+- Fresh batch CLI:
+  `ARR/backend/design/management/commands/generate_maas_fresh_batch.py`
 - Stable result contract: `single_execution/contracts.py`
 - Compile/GATE/render/passport timing pipeline: `single_execution/pipeline.py`
 - Atomic bundle writers: `single_execution/persistence.py`
@@ -31,6 +35,14 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
   one-MASS bundles into the same executed-run manifest and timeline contract;
   it must not create a parallel archive or graph.
 - CLI: `ARR/backend/design/management/commands/execute_maas_single_mass.py`
+- Deterministic elevation projections and MASS-derived facade strategy:
+  `ARR/backend/design/maas/agents/elevation_agent/`
+- One-call-per-MASS image proposal persistence:
+  `ARR/backend/design/maas/elevation_proposal_batch.py`
+- Replaceable paid image provider adapters:
+  `ARR/backend/design/maas/aesthetic/adapters/`
+- Elevation proposal batch CLI:
+  `ARR/backend/design/management/commands/generate_maas_elevation_proposals.py`
 - HTTP: `POST /design/maas/single-executions/` plus returned preview/passport/
   manifest URLs in `design/views.py` and `design/urls.py`
 - Contract tests: `ARR/backend/design/test_maas_single_execution.py`
@@ -75,6 +87,8 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
   orchestration back into the graph component.
 - Runtime API/types: `ARR/frontend/src/design/lib/api-client.ts`,
   `language-system-types.ts`
+- Exact MASS/elevation-proposal identity guard:
+  `ARR/frontend/src/design/lib/elevation-proposal.ts`
 - Browser verification: `docs/playwright/design-route-live-verify/verify-maas-single-graph.cjs`
 - Frontend single-execution unit contracts:
   `ARR/frontend/test/unit/design/ExecutedMassEvidence.test.tsx` and

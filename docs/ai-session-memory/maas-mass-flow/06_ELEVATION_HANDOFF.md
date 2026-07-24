@@ -10,7 +10,7 @@ MASS PNG hash, individual VLM evidence, hard-gate state and required output
 views. Facade/elevation work may style or project onto this mesh but must not
 change its mass geometry.
 
-Current execution-graph truth (r211-r216, 2026-07-24):
+Current execution-graph truth (r227, 2026-07-24):
 
 - `elevationAgent` consumes the exact compiled indexed mesh after the MASS
   render and writes a hash-bound condition pack plus six PNG views.
@@ -28,6 +28,25 @@ Current execution-graph truth (r211-r216, 2026-07-24):
 - r211-r216 each generated front/right/back/left/top/axon views. Clicking a
   bottom MASS card changes the graph and the right-sidebar elevation bundle to
   the same execution ID. Elevations never become bottom-archive MASS cards.
+- r227 adds a second, optional image-proposal stage without changing this mesh
+  authority. `facade_strategy.py` derives a strategy from evaluated geometry
+  metrics and operator history; `image_proposal.py` binds every proposal to the
+  execution/program/geometry hashes.
+- The OpenAI image adapter submits the locked MASS sheet and an edit mask, then
+  deterministically composites the result back over the source outside the MASS
+  mask. This makes silhouette preservation a local invariant rather than a
+  prompt-only request. White/transparent holes inside the editable mask are
+  repaired from the locked MASS source.
+- Provider calls are explicit, idempotent and bounded: one proposal slot
+  (`alt-01`), at most one HTTP attempt per MASS, zero retries. Existing proposal
+  manifests are reused and do not incur a second charge.
+- Successful evidence adds active edges
+  `elevation:condition_pack -> elevation:image_agent ->
+  elevation:proposal`. `needs_review`, `fail` and missing artifacts keep those
+  edges inactive while preserving the audit record.
+- The frontend bottom rail remains MASS-only. Selecting a MASS reveals its six
+  technical projections and its own proposal in the right sidebar; identity
+  mismatches fail closed and suppress the proposal.
 
 Existing paper and implementation memory:
 
@@ -37,9 +56,10 @@ Existing paper and implementation memory:
 
 Next implementation boundary:
 
-`condition pack -> actual facade/section synthesis -> cross-view/mesh
-consistency GATE`. The current views are deterministic mesh projections, not a
-claim that a designed facade, floor plan or code-compliant elevation exists.
+`condition pack + single-view ALT -> multi-view facade/section synthesis ->
+cross-view/mesh consistency GATE`. The current ALT is a visual proposal tied to
+one MASS sheet. It is not yet a metrically reconstructed facade, floor plan or
+code-compliant elevation.
 
 The creative stage belongs to the independent
 `ARR/backend/agents/elevationAgent`, not the MASS compiler. It must call image

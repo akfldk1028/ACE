@@ -2,6 +2,65 @@
 
 Generated 2026-07-24 KST.
 
+## 2026-07-24 r227 UnitBox/BOOK fresh batch and MASS-bound elevation ALT
+
+- `r227-unitbox-book-clean-01..10` are ten fresh synthesis executions, not
+  portfolio replay. Every program descends from one normalized `1/1 UnitBox`;
+  affine states use explicit 4x4 matrices and topology-changing BOOK operations
+  remain recursive Solid-to-Solid nodes.
+- The ten program hashes and ten geometry hashes are unique both within r227
+  and against the pre-existing single-execution archive. The generated form
+  families are curved bar, open courtyard, radial cross, stepped setback,
+  tapered/leaning, diagonal cut, face attachment, profiled span, split bridge
+  and nested offset.
+- MASS generation itself is deterministic compiler execution. It does not
+  silently call a VLM or image model. This separation is intentional:
+  generation -> compiler/GATE/render -> deterministic elevation condition pack
+  -> optional image proposal -> optional bounded MASS VLM critic.
+- All ten executions produced their exact MASS PNG plus six deterministic
+  front/right/back/left/top/axon projections. The projection cameras derive
+  orthonormal bases and 4x4 view matrices from semantic direction/up vectors;
+  pasted decimal camera bases are forbidden.
+- The second-stage elevation image batch made exactly ten paid HTTP attempts,
+  zero retries and at most one attempt per MASS. `gpt-image-2` quality review:
+  6 passed, 3 `needs_review`, 1 failed. Passed post-pilot outputs use an API edit
+  mask plus deterministic post-composite silhouette lock; generated pixels
+  cannot change the MASS exterior.
+- MASS 03 failed honestly because the provider rejected the unsupported
+  `input_fidelity` parameter. It was not retried. MASS 01/02 are retained but
+  inactive as pre-lock pilots, and MASS 05 remains `needs_review` because its
+  top view reads as facade grid rather than roof evidence.
+- The same single graph now traces `result:mass -> elevation:mesh_handoff ->
+  elevation:condition_pack -> elevation:image_agent -> elevation:proposal`.
+  Inactive/failed proposal edges remain at activation 0. The bottom rail remains
+  MASS-only; technical elevations and ALT 01 are children of the selected MASS
+  in the graph/right evidence panel.
+- Browser verification passed after restarting a stale Django process:
+  MASS 10 ALT endpoint returned `200 image/png` (498,051 bytes); the UI loaded
+  its 900x680 MASS, six 720x720 technical views and one 1024x1024 ALT. Clicking
+  MASS 09 changed both the MASS and proposal URLs to execution 09. There were
+  zero failed browser responses, console errors or Vite overlays.
+- One separate bounded paid MASS critic was run only for MASS 10 with one
+  ArchDaily reference and zero retries. `gpt-5.4-mini` response
+  `resp_0988715f6043f7e1006a6322e0f02081988bc3e6cb32764034` used the exact MASS
+  PNG plus Seattle Central Library / OMA + LMN. It returned `live_scored` but
+  hard-failed program fit: coherent silhouette, but weak public threshold,
+  program relation and meaningful void. Usage was 21,902 tokens.
+- Law/parking specialist calls are present, but r227 has `PNU_UNRESOLVED`, no
+  parcel placement matrix, no site/capacity proof and no approval-grade parking
+  result. Therefore law, parking, selector and final status remain
+  `needs_evidence`. These are architectural form studies, not code-compliant or
+  phenomenon-design-complete buildings.
+
+Evidence:
+
+- `docs/playwright/design-route-live-verify/r227-unitbox-book-clean-contact-sheet.png`
+- `docs/playwright/design-route-live-verify/r227-elevation-proposals-05-10.png`
+- `docs/playwright/design-route-live-verify/r227-frontend-final.png`
+- `docs/playwright/design-route-live-verify/r227-frontend-mass09.png`
+- `docs/playwright/design-route-live-verify/r227-frontend-vlm-live.png`
+- `docs/ai-session-memory/maas-service-cache/single-executions/r227-unitbox-book-clean.batch.json`
+
 ## 2026-07-24 r222 fresh synthesis versus exact replay
 
 - r219 was an exact r160 AST replay, not a newly synthesized design. Equal

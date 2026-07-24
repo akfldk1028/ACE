@@ -8,8 +8,14 @@ import types
 from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
+from PIL import Image
 
-from design.maas.aesthetic.adapters.openai_image import OpenAIImageAdapter
+from design.maas.aesthetic.adapters.openai_image import (
+    OpenAIImageAdapter,
+    _composite_locked_mass_output,
+    _prepare_locked_mass_sheet,
+    _write_locked_mass_mask,
+)
 from design.maas.aesthetic.contracts import ProviderResult, RenderedReference
 from design.maas.agents.elevation_agent import (
     generate_elevation_bundle,
@@ -315,3 +321,67 @@ class MaasElevationAgentTest(SimpleTestCase):
             hashlib.sha256(png).hexdigest(),
         )
         self.assertEqual(len(result.metadata["prompt_sha256"]), 64)
+
+    def test_locked_mass_mask_opens_only_colored_mass_pixels(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.png"
+            image = Image.new("RGB", (8, 8), "white")
+            for x in range(2, 6):
+                for y in range(3, 7):
+                    image.putpixel((x, y), (170, 105, 34))
+            image.save(source)
+
+            mask_path, editable_ratio = _write_locked_mass_mask(
+                source,
+                root / "mask.png",
+            )
+            with Image.open(mask_path) as mask:
+                alpha = mask.getchannel("A")
+                self.assertEqual(alpha.getpixel((0, 0)), 255)
+                self.assertEqual(alpha.getpixel((3, 4)), 0)
+
+        self.assertAlmostEqual(editable_ratio, 16 / 64)
+
+    def test_locked_output_composite_cannot_change_pixels_outside_mass(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.png"
+            source_image = Image.new("RGB", (8, 8), "white")
+            for x in range(2, 6):
+                for y in range(3, 7):
+                    source_image.putpixel((x, y), (170, 105, 34))
+            source_image.save(source)
+            prepared = _prepare_locked_mass_sheet(
+                source,
+                root / "prepared.png",
+                "256x256",
+            )
+            mask_path, _ = _write_locked_mass_mask(
+                prepared,
+                root / "mask.png",
+            )
+            generated = root / "generated.png"
+            Image.new("RGB", (256, 256), "black").save(generated)
+
+            _composite_locked_mass_output(
+                generated,
+                prepared,
+                mask_path,
+            )
+
+            with Image.open(generated) as result:
+                self.assertEqual(result.convert("RGB").getpixel((0, 0)), (255, 255, 255))
+                self.assertEqual(result.convert("RGB").getpixel((128, 128)), (0, 0, 0))
+            Image.new("RGB", (256, 256), "white").save(generated)
+            repaired = _composite_locked_mass_output(
+                generated,
+                prepared,
+                mask_path,
+            )
+            with Image.open(generated) as result, Image.open(prepared) as locked:
+                self.assertEqual(
+                    result.convert("RGB").getpixel((128, 128)),
+                    locked.convert("RGB").getpixel((128, 128)),
+                )
+            self.assertGreater(repaired, 0)

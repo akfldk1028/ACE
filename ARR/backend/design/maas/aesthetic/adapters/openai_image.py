@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 from typing import Any
 
+from PIL import Image
+
 from ..contracts import ProviderResult, RenderedReference
 
 
@@ -52,8 +54,10 @@ class OpenAIImageAdapter:
         full_prompt = (
             f"{reference_instruction}{prompt} "
             f"Use real architectural material detail, natural lighting, believable glazing, fine surface texture, and construction-scale facade proportions. "
-            f"Design a refined facade composition with base-middle-top hierarchy, aligned floor datums, deep window reveals, corner-return continuity, parapet coping, and a clear entrance zone. "
+            f"Keep openings, reveals, mullions, parapets, and corner returns strictly inside the existing colored MASS pixels. "
             f"Strictly preserve the exact silhouette, footprint, roofline, height, floor count, and mass steps. "
+            f"The top panel must remain a roof/top view, the front panel must remain an orthographic front view, and no panel may change camera or projection. "
+            f"Do not add landscape, trees, roads, podiums, roofs, floors, or building pixels outside the supplied MASS silhouette. "
             f"Do not make a freestanding beauty render, collage, wallpaper texture, repeated sticker windows, or change the building mass; the image must remain usable as facade texture evidence for the locked MAAS geometry. "
             f"Negative constraints: {negative}"
         )
@@ -61,6 +65,7 @@ class OpenAIImageAdapter:
         size = os.getenv("OPENAI_IMAGE_SIZE", "1024x1024")
         self.output_dir.mkdir(parents=True, exist_ok=True)
         output_path = self.output_dir / f"{_safe_id(job)}.openai.png"
+        provider_reference_path = reference_path
         evidence = {
             "model": model,
             "size": size,
@@ -71,20 +76,49 @@ class OpenAIImageAdapter:
             "request_id": "",
             "usage": {},
             "retry_count": 0,
+            "edit_mask_sha256": "",
+            "edit_mask_editable_ratio": 0.0,
+            "provider_input_image_sha256": "",
+            "post_composite_silhouette_lock": False,
+            "post_composite_white_hole_repairs": 0,
         }
+        mask_path = None
+        if reference_type == "locked_mass_sheet":
+            provider_reference_path = _prepare_locked_mass_sheet(
+                reference_path,
+                self.output_dir / f"{_safe_id(job)}.locked-input.png",
+                size,
+            )
+            mask_path, editable_ratio = _write_locked_mass_mask(
+                provider_reference_path,
+                self.output_dir / f"{_safe_id(job)}.mask.png",
+            )
+            evidence["edit_mask_sha256"] = hashlib.sha256(
+                mask_path.read_bytes()
+            ).hexdigest()
+            evidence["edit_mask_editable_ratio"] = round(editable_ratio, 6)
+        evidence["provider_input_image_sha256"] = hashlib.sha256(
+            provider_reference_path.read_bytes()
+        ).hexdigest()
 
         try:
             client = OpenAI(api_key=api_key)
-            with reference_path.open("rb") as image_file:
+            with (
+                provider_reference_path.open("rb") as image_file,
+                mask_path.open("rb") if mask_path else _null_context() as mask_file,
+            ):
+                request = {
+                    "model": model,
+                    "image": image_file,
+                    "prompt": full_prompt,
+                    "size": size,
+                    "n": 1,
+                }
+                if mask_file is not None:
+                    request["mask"] = mask_file
                 raw_api = getattr(client.images, "with_raw_response", None)
                 if raw_api is not None:
-                    raw_response = raw_api.edit(
-                        model=model,
-                        image=image_file,
-                        prompt=full_prompt,
-                        size=size,
-                        n=1,
-                    )
+                    raw_response = raw_api.edit(**request)
                     response = raw_response.parse()
                     headers = getattr(raw_response, "headers", {}) or {}
                     evidence["request_id"] = str(
@@ -93,13 +127,7 @@ class OpenAIImageAdapter:
                         or ""
                     )
                 else:  # pragma: no cover - compatibility with older SDKs
-                    response = client.images.edit(
-                        model=model,
-                        image=image_file,
-                        prompt=full_prompt,
-                        size=size,
-                        n=1,
-                    )
+                    response = client.images.edit(**request)
             usage = getattr(response, "usage", None)
             if usage is not None:
                 evidence["usage"] = _serializable_usage(usage)
@@ -108,6 +136,14 @@ class OpenAIImageAdapter:
             url = getattr(item, "url", None)
             if b64_json:
                 output_path.write_bytes(base64.b64decode(b64_json))
+                if mask_path is not None:
+                    repaired_pixels = _composite_locked_mass_output(
+                        output_path,
+                        provider_reference_path,
+                        mask_path,
+                    )
+                    evidence["post_composite_silhouette_lock"] = True
+                    evidence["post_composite_white_hole_repairs"] = repaired_pixels
                 asset_uri = str(output_path)
                 evidence["output_image_sha256"] = hashlib.sha256(
                     output_path.read_bytes()
@@ -171,6 +207,116 @@ def _serializable_usage(usage: Any) -> dict[str, Any]:
     if isinstance(usage, dict):
         return dict(usage)
     return {}
+
+
+class _null_context:
+    def __enter__(self):
+        return None
+
+    def __exit__(self, _exc_type, _exc, _traceback):
+        return False
+
+
+def _write_locked_mass_mask(
+    reference_path: Path,
+    output_path: Path,
+) -> tuple[Path, float]:
+    with Image.open(reference_path) as source:
+        rgb = source.convert("RGB")
+        mask = Image.new("RGBA", rgb.size, (255, 255, 255, 255))
+        source_pixels = rgb.load()
+        mask_pixels = mask.load()
+        editable = 0
+        total = max(1, rgb.width * rgb.height)
+        for y in range(rgb.height):
+            for x in range(rgb.width):
+                red, green, blue = source_pixels[x, y]
+                is_mass = (
+                    red >= 60
+                    and red >= green * 1.12
+                    and green >= blue * 1.18
+                    and red - blue >= 35
+                )
+                if is_mass:
+                    mask_pixels[x, y] = (255, 255, 255, 0)
+                    editable += 1
+        if editable == 0:
+            raise ValueError("locked MASS mask contains no editable geometry pixels")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        mask.save(output_path, format="PNG")
+    return output_path, editable / total
+
+
+def _prepare_locked_mass_sheet(
+    reference_path: Path,
+    output_path: Path,
+    requested_size: str,
+) -> Path:
+    try:
+        width, height = (
+            int(value)
+            for value in str(requested_size).lower().split("x", 1)
+        )
+    except (TypeError, ValueError):
+        width, height = 1024, 1024
+    width = max(256, width)
+    height = max(256, height)
+    with Image.open(reference_path) as source:
+        source = source.convert("RGBA")
+        scale = min(width / source.width, height / source.height)
+        resized = source.resize(
+            (
+                max(1, round(source.width * scale)),
+                max(1, round(source.height * scale)),
+            ),
+            Image.Resampling.LANCZOS,
+        )
+        canvas = Image.new("RGBA", (width, height), (255, 255, 255, 255))
+        origin = (
+            (width - resized.width) // 2,
+            (height - resized.height) // 2,
+        )
+        canvas.alpha_composite(resized, origin)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        canvas.save(output_path, format="PNG")
+    return output_path
+
+
+def _composite_locked_mass_output(
+    generated_path: Path,
+    locked_reference_path: Path,
+    mask_path: Path,
+) -> int:
+    with (
+        Image.open(generated_path) as generated,
+        Image.open(locked_reference_path) as locked,
+        Image.open(mask_path) as mask,
+    ):
+        generated_rgba = generated.convert("RGBA").resize(
+            locked.size,
+            Image.Resampling.LANCZOS,
+        )
+        locked_rgba = locked.convert("RGBA")
+        preserve_mask = mask.getchannel("A")
+        generated_pixels = generated_rgba.load()
+        locked_pixels = locked_rgba.load()
+        mask_pixels = preserve_mask.load()
+        repaired_pixels = 0
+        for y in range(locked.height):
+            for x in range(locked.width):
+                if mask_pixels[x, y] != 0:
+                    continue
+                red, green, blue, alpha = generated_pixels[x, y]
+                if alpha < 16 or (red >= 246 and green >= 246 and blue >= 246):
+                    generated_pixels[x, y] = locked_pixels[x, y]
+                    repaired_pixels += 1
+        composite = Image.composite(
+            locked_rgba,
+            generated_rgba,
+            preserve_mask,
+        )
+        composite.save(generated_path, format="PNG")
+    return repaired_pixels
 
 
 __all__ = ["OpenAIImageAdapter"]

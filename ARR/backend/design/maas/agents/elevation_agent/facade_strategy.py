@@ -27,6 +27,7 @@ def select_facade_strategy(program: Any, compilation: Any) -> dict[str, Any]:
     plan_short = max(1e-9, min(width, depth))
     slenderness = height / plan_short
     elongation = plan_long / plan_short
+    height_to_long_side = height / max(plan_long, 1e-9)
     operators = tuple(
         str(getattr(node, "operator", "") or "").lower()
         for node in getattr(program, "nodes", ()) or ()
@@ -82,6 +83,13 @@ def select_facade_strategy(program: Any, compilation: Any) -> dict[str, Any]:
         rhythm = "balanced horizontal floor datums and vertical structural bays"
         opening_logic = "recessed openings sized from facade aspect ratios"
 
+    height_profile = (
+        "single_storey_low"
+        if height_to_long_side < 0.35
+        else "mid_rise"
+        if height_to_long_side < 1.2
+        else "tower"
+    )
     return {
         "schema_version": "arr.elevation_agent.facade_strategy.v1",
         "strategy_id": strategy_id,
@@ -91,6 +99,8 @@ def select_facade_strategy(program: Any, compilation: Any) -> dict[str, Any]:
         "measured_features": {
             "plan_elongation": round(elongation, 6),
             "height_to_short_side": round(slenderness, 6),
+            "height_to_long_side": round(height_to_long_side, 6),
+            "height_profile": height_profile,
             "surface_area": round(float(metrics.get("surface_area") or 0.0), 6),
             "component_count": int(metrics.get("component_count") or 0),
         },

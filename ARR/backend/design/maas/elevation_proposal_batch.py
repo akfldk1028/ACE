@@ -135,12 +135,41 @@ def generate_batch_elevation_proposals(
         "limit": ceiling,
         "provider_call_count": provider_calls,
         "paid_request_attempt_count": paid_attempts,
+        "cumulative_paid_request_attempt_count": _cumulative_paid_attempts(
+            root,
+            batch.get("execution_ids") or (),
+        ),
         "retry_count": 0,
         "proposals": proposals,
     }
-    batch["paid_image_request_count"] = paid_attempts
+    batch["paid_image_request_count"] = batch["elevation_proposal_stage"][
+        "cumulative_paid_request_attempt_count"
+    ]
     write_json_atomic(batch_path, batch)
     return batch["elevation_proposal_stage"]
+
+
+def _cumulative_paid_attempts(root: Path, execution_ids: Any) -> int:
+    count = 0
+    for execution_id in execution_ids:
+        manifest = (
+            root
+            / str(execution_id)
+            / "elevation"
+            / "proposals"
+            / "alt-01"
+            / "proposal.json"
+        )
+        try:
+            payload = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, ValueError, json.JSONDecodeError):
+            continue
+        if (
+            int(payload.get("request_count") or 0) > 0
+            and str(payload.get("status") or "") != "not_configured"
+        ):
+            count += 1
+    return count
 
 
 __all__ = [

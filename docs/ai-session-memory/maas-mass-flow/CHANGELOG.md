@@ -1,5 +1,27 @@
 # MASS Flow Memory Changelog
 
+## 2026-07-24 - r227 fresh UnitBox/BOOK MASS, elevation ALT and bounded VLM
+
+- Generated ten archive-unique fresh MASS programs from one `1/1 UnitBox`.
+  Affine derivations use 4x4 matrices; BOOK modifier/cutting/composition nodes
+  remain recursive and geometry-relative.
+- Produced ten exact MASS PNGs and six deterministic elevation projections per
+  MASS. The bottom rail remains MASS-only and one selected MASS controls the
+  graph, right-side technical views and proposal.
+- Added a bounded, idempotent `alt-01` image stage. Ten `gpt-image-2` attempts,
+  zero retries: 6 passed direct PNG review, 3 need review and 1 failed.
+- Added edit-mask preparation and deterministic post-composite silhouette lock.
+  Provider output cannot change the exterior MASS pixels.
+- Restarted stale Django `:18000`; proposal API changed from 404 to
+  `200 image/png`. Browser verified MASS 10 and MASS 09 identity switching,
+  loaded 1024x1024 proposals and reported zero HTTP/console/overlay errors.
+- Ran one separate bounded MASS VLM critic for MASS 10 with one ArchDaily
+  reference and zero retries. Response
+  `resp_0988715f6043f7e1006a6322e0f02081988bc3e6cb32764034` hard-failed program
+  fit; exact input/ref/model/usage evidence appears in the same graph.
+- Preserved truth boundaries: r227 is geometry/elevation-ready but remains
+  `needs_evidence` for site, capacity, law, parking and final acceptance.
+
 ## 2026-07-24 - r222 true fresh synthesis and replay/new-run truth contract
 
 - Corrected the reload selection policy after browser inspection: the page had

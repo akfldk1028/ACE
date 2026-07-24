@@ -59,7 +59,7 @@ const archive = {
 } as ExecutedMassManifest
 
 describe('ExecutedMassEvidence', () => {
-  it('offers one explicit selected-MASS execution action in the existing sidebar', () => {
+  it('offers one explicit exact-AST replay action in the existing sidebar', () => {
     const onExecute = vi.fn()
     const onVlmReview = vi.fn()
     render(
@@ -77,7 +77,7 @@ describe('ExecutedMassEvidence', () => {
       />,
     )
 
-    const button = screen.getByRole('button', { name: /execute selected mass/i })
+    const button = screen.getByRole('button', { name: /replay exact selected mass ast/i })
     fireEvent.click(button)
     expect(onExecute).toHaveBeenCalledOnce()
   })

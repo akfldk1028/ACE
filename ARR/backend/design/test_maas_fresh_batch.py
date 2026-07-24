@@ -9,10 +9,55 @@ from django.test import SimpleTestCase
 
 from design.maas.agents.orchestrator.execution_collaboration import SPECIALIST_SEQUENCE
 from design.maas.agents.shared.types import AgentEvidence
+from design.maas.fresh_family_contracts import (
+    build_family_contract_program,
+    family_phenotype_issues,
+)
 from design.maas.fresh_batch import fresh_mass_specs, generate_fresh_mass_batch
+from design.maas.geometry_language import compile_geometry_program
 
 
 class FreshMassBatchTests(SimpleTestCase):
+    def test_radial_family_contract_uses_one_unitbox_common_hub_and_radial_array(self):
+        spec = next(
+            item for item in fresh_mass_specs()
+            if item.spec_id == "radial-cross"
+        )
+
+        program = build_family_contract_program(spec, variation_offset=317)
+
+        self.assertIsNotNone(program)
+        assert program is not None
+        operators = [node.operator for node in program.topological_nodes()]
+        self.assertEqual(operators.count("box"), 1)
+        self.assertIn("radial_array", operators)
+        self.assertIn("union", operators)
+        self.assertNotIn("bend", operators)
+        self.assertEqual(family_phenotype_issues(program, spec), ())
+
+    def test_radial_family_contract_compiles_as_one_connected_manifold(self):
+        spec = next(
+            item for item in fresh_mass_specs()
+            if item.spec_id == "radial-cross"
+        )
+        program = build_family_contract_program(spec, variation_offset=319)
+        assert program is not None
+
+        compilation = compile_geometry_program(program)
+
+        self.assertEqual(compilation.status, "compiled")
+        self.assertEqual(compilation.metrics["component_count"], 1)
+        self.assertTrue(compilation.metrics["watertight"])
+        self.assertTrue(compilation.metrics["manifold"])
+        self.assertEqual(
+            family_phenotype_issues(
+                program,
+                spec,
+                compilation=compilation,
+            ),
+            (),
+        )
+
     def test_fresh_mass_specs_cover_ten_distinct_architectural_relations(self):
         specs = fresh_mass_specs()
 
@@ -39,6 +84,29 @@ class FreshMassBatchTests(SimpleTestCase):
         self.assertEqual(result["paid_image_request_count"], 0)
         self.assertTrue(all(row["execution_mode"] == "fresh_synthesis" for row in result["executions"]))
         self.assertTrue(all(row["geometry_ready"] for row in result["executions"]))
+
+    def test_batch_routes_radial_spec_through_focused_family_contract(self):
+        with TemporaryDirectory() as temporary:
+            result = generate_fresh_mass_batch(
+                temporary,
+                batch_id="radial-contract-batch",
+                building_type="generic architectural form study",
+                count=3,
+                collaboration_executors=self._fast_collaboration_executors(),
+            )
+            radial = result["executions"][2]
+            program_path = Path(temporary) / radial["execution_id"] / "program.json"
+            program = json.loads(program_path.read_text(encoding="utf-8"))
+
+        operators = [node["operator"] for node in program["nodes"]]
+        self.assertEqual(radial["spec_id"], "radial-cross")
+        self.assertIn("radial_array", operators)
+        self.assertIn("union", operators)
+        self.assertNotIn("bend", operators)
+        self.assertEqual(
+            program["metadata"]["family_contract"]["contract_id"],
+            "common_hub_radial",
+        )
 
     def test_management_command_writes_a_mass_only_batch_without_paid_calls(self):
         with TemporaryDirectory() as temporary:

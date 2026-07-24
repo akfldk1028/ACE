@@ -14,6 +14,10 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from design.maas.agents.orchestrator.execution_collaboration import AgentExecutor
+from design.maas.fresh_family_contracts import (
+    build_family_contract_program,
+    family_phenotype_issues,
+)
 from design.maas.geometry_language import (
     apply_book_projection_to_geometry_program,
     compile_geometry_program,
@@ -159,17 +163,25 @@ def generate_fresh_mass_batch(
         base_offset = _variation_offset(batch_id, spec.spec_id)
         for cycle in range(12):
             variation_offset = (base_offset + cycle * 37) % 4096
-            candidates = synthesize_architectural_programs(
-                {
-                    "base_seeds": list(spec.base_seeds),
-                    "intent_tags": list(spec.intent_tags),
-                    "candidate_count": 12,
-                    "maximum_operator_depth": spec.source_operator_depth,
-                    "downstream_body_rule_reserve": 2,
-                    "balanced_operator_sampling": True,
-                    "variation_offset": variation_offset,
-                },
-                building_type=building_type,
+            focused = build_family_contract_program(
+                spec,
+                variation_offset=variation_offset,
+            )
+            candidates = (
+                (focused,)
+                if focused is not None
+                else synthesize_architectural_programs(
+                    {
+                        "base_seeds": list(spec.base_seeds),
+                        "intent_tags": list(spec.intent_tags),
+                        "candidate_count": 12,
+                        "maximum_operator_depth": spec.source_operator_depth,
+                        "downstream_body_rule_reserve": 2,
+                        "balanced_operator_sampling": True,
+                        "variation_offset": variation_offset,
+                    },
+                    building_type=building_type,
+                )
             )
             sentences = book_sentence_variants(
                 spec.book_verbs,
@@ -177,20 +189,26 @@ def generate_fresh_mass_batch(
             )
             for candidate_index, source in enumerate(candidates):
                 try:
-                    sequence = compose_program_with_book_operations(
-                        VerbSequence(
-                            name=f"{batch_id}-{spec.spec_id}-source",
-                            label=spec.family,
-                            calls=(VerbCall("base", {}),),
-                        ),
-                        sentences[
-                            (variation_offset + candidate_index) % len(sentences)
-                        ],
-                        name_suffix="-".join(spec.book_verbs),
-                        base_volume_label=spec.scope_label,
-                        orientation=spec.orientation,
-                    )
-                    projected = apply_book_projection_to_geometry_program(source, sequence)
+                    if focused is not None:
+                        projected = source
+                    else:
+                        sequence = compose_program_with_book_operations(
+                            VerbSequence(
+                                name=f"{batch_id}-{spec.spec_id}-source",
+                                label=spec.family,
+                                calls=(VerbCall("base", {}),),
+                            ),
+                            sentences[
+                                (variation_offset + candidate_index) % len(sentences)
+                            ],
+                            name_suffix="-".join(spec.book_verbs),
+                            base_volume_label=spec.scope_label,
+                            orientation=spec.orientation,
+                        )
+                        projected = apply_book_projection_to_geometry_program(
+                            source,
+                            sequence,
+                        )
                     projected = normalize_unitbox_program(projected)
                 except (TypeError, ValueError) as exc:
                     rejected.append({
@@ -238,6 +256,20 @@ def generate_fresh_mass_batch(
                     })
                     continue
                 compilation = compile_geometry_program(projected)
+                phenotype_issues = family_phenotype_issues(
+                    projected,
+                    spec,
+                    compilation=compilation,
+                )
+                if phenotype_issues:
+                    rejected.append({
+                        "spec_id": spec.spec_id,
+                        "cycle": cycle,
+                        "candidate_index": candidate_index,
+                        "reason": "family_phenotype_failed",
+                        "issues": list(phenotype_issues),
+                    })
+                    continue
                 gate_issues = compilation_gate(compilation)
                 geometry_hash = str(compilation.geometry_hash or "")
                 if compilation.status != "compiled" or gate_issues:

@@ -1,5 +1,6 @@
 import hashlib
 import base64
+from io import BytesIO
 import os
 from pathlib import Path
 import sys
@@ -21,6 +22,11 @@ from design.maas.agents.elevation_agent import (
     generate_elevation_bundle,
     generate_elevation_image_proposal,
     select_facade_strategy,
+)
+from design.maas.agents.elevation_agent.panel_roles import (
+    apply_roof_semantic_guard,
+    locked_sheet_panel_roles,
+    roof_mass_mask,
 )
 from design.maas.geometry_language import GeometryProgramBuilder, compile_geometry_program
 from design.maas.single_execution import execute_single_mass
@@ -56,6 +62,16 @@ class _RecordingImageAdapter:
             }],
             metadata={"model": "fake-image-model", "request_id": "fake-request-1"},
         )
+
+
+class _NeedsReviewImageAdapter(_RecordingImageAdapter):
+    def generate(self, job, reference):
+        result = super().generate(job, reference)
+        result.metadata["roof_semantic_guard"] = {
+            "status": "needs_review",
+            "changed_pixel_count": 12,
+        }
+        return result
 
 
 class MaasElevationAgentTest(SimpleTestCase):
@@ -236,10 +252,25 @@ class MaasElevationAgentTest(SimpleTestCase):
                 reference.metadata["identity"],
                 identity,
             )
+            self.assertEqual(
+                job["presentation"]["kind"],
+                "architectural_render_sheet",
+            )
+            top_role = next(
+                row
+                for row in job["presentation"]["panel_roles"]
+                if row["role"] == "top"
+            )
+            self.assertEqual(top_role["surface"], "roof_only")
+            self.assertIn("roof-only", job["prompt"]["prompt"].lower())
             self.assertEqual(proposal["status"], "complete")
             self.assertEqual(proposal["request_count"], 1)
             self.assertEqual(proposal["retry_count"], 0)
             self.assertEqual(proposal["identity"], identity)
+            self.assertEqual(
+                proposal["presentation"]["authority"],
+                "generated_design_proposal",
+            )
             self.assertTrue(Path(proposal["artifact"]["path"]).is_file())
             self.assertTrue(Path(proposal["manifest_path"]).is_file())
 
@@ -322,6 +353,118 @@ class MaasElevationAgentTest(SimpleTestCase):
         )
         self.assertEqual(len(result.metadata["prompt_sha256"]), 64)
 
+    def test_image_proposal_marks_unresolved_roof_grid_as_needs_review(self):
+        compilation = compile_geometry_program(self._program())
+
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            mass_preview = root / "mass.png"
+            Image.new("RGB", (8, 8), (170, 105, 34)).save(mass_preview)
+            bundle = generate_elevation_bundle(
+                compilation,
+                root / "elevation",
+                execution_id="elevation-roof-review",
+            )
+            adapter = _NeedsReviewImageAdapter(root / "provider")
+
+            proposal = generate_elevation_image_proposal(
+                bundle,
+                mass_preview,
+                adapter=adapter,
+                strategy=select_facade_strategy(self._program(), compilation),
+            )
+
+        self.assertEqual(proposal["status"], "needs_review")
+        self.assertEqual(proposal["request_count"], 1)
+        self.assertEqual(proposal["retry_count"], 0)
+        self.assertTrue(proposal["artifact"]["path"])
+
+    def test_openai_locked_sheet_records_applied_roof_semantic_guard(self):
+        locked = Image.new("RGB", (100, 100), "white")
+        generated = Image.new("RGB", (100, 100), "white")
+        for x in range(10, 40):
+            for y in range(60, 90):
+                locked.putpixel((x, y), (170, 105, 34))
+                tone = 45 if (x // 2 + y // 2) % 2 == 0 else 210
+                generated.putpixel((x, y), (tone, tone, tone))
+        output_buffer = BytesIO()
+        generated.save(output_buffer, format="PNG")
+        output_png = output_buffer.getvalue()
+        response = types.SimpleNamespace(
+            data=[types.SimpleNamespace(
+                b64_json=base64.b64encode(output_png).decode(),
+                url=None,
+            )],
+            usage=None,
+        )
+
+        class _RawResponse:
+            headers = {"x-request-id": "roof-guard-request"}
+
+            @staticmethod
+            def parse():
+                return response
+
+        class _Images:
+            def __init__(self):
+                self.with_raw_response = self
+
+            @staticmethod
+            def edit(**_kwargs):
+                return _RawResponse()
+
+        class _OpenAI:
+            def __init__(self, **_kwargs):
+                self.images = _Images()
+
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            reference_path = root / "locked-sheet.png"
+            locked.save(reference_path)
+            adapter = OpenAIImageAdapter(output_dir=root / "generated")
+            reference = RenderedReference(
+                asset_id="asset:locked-sheet",
+                uri=str(reference_path),
+                metadata={
+                    "reference_type": "locked_mass_sheet",
+                    "presentation": {
+                        "panel_roles": list(locked_sheet_panel_roles()),
+                    },
+                },
+            )
+            with patch.dict(
+                os.environ,
+                {
+                    "OPENAI_API_KEY": "test-key",
+                    "OPENAI_IMAGE_MODEL": "test-image-model",
+                    "OPENAI_IMAGE_SIZE": "256x256",
+                },
+                clear=False,
+            ), patch.dict(
+                sys.modules,
+                {"openai": types.SimpleNamespace(OpenAI=_OpenAI)},
+            ):
+                result = adapter.generate(
+                    {
+                        "source_bundle_id": "roof-guard",
+                        "candidate_id": "geometry-roof-guard",
+                        "presentation": {
+                            "panel_roles": list(locked_sheet_panel_roles()),
+                        },
+                        "prompt": {
+                            "prompt": "architectural render",
+                            "negative_prompt": "facade grid on roof",
+                        },
+                    },
+                    reference,
+                )
+
+        guard = result.metadata["roof_semantic_guard"]
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(guard["status"], "applied")
+        self.assertGreater(guard["changed_pixel_count"], 0)
+        self.assertEqual(result.metadata["retry_count"], 0)
+
     def test_locked_mass_mask_opens_only_colored_mass_pixels(self):
         with TemporaryDirectory() as directory:
             root = Path(directory)
@@ -342,6 +485,56 @@ class MaasElevationAgentTest(SimpleTestCase):
                 self.assertEqual(alpha.getpixel((3, 4)), 0)
 
         self.assertAlmostEqual(editable_ratio, 16 / 64)
+
+    def test_roof_role_mask_selects_only_bottom_left_top_panel_mass_pixels(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            reference = root / "four-panel.png"
+            image = Image.new("RGB", (100, 100), "white")
+            for origin_x, origin_y in ((10, 10), (60, 10), (10, 60), (60, 60)):
+                for x in range(origin_x, origin_x + 20):
+                    for y in range(origin_y, origin_y + 20):
+                        image.putpixel((x, y), (170, 105, 34))
+            image.save(reference)
+
+            mask = roof_mass_mask(reference, locked_sheet_panel_roles())
+
+        self.assertEqual(mask.getpixel((15, 65)), 255)
+        self.assertEqual(mask.getpixel((65, 65)), 0)
+        self.assertEqual(mask.getpixel((15, 15)), 0)
+
+    def test_roof_semantic_guard_reduces_facade_grid_only_inside_top_mass(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            locked_path = root / "locked.png"
+            generated_path = root / "generated.png"
+            locked = Image.new("RGB", (100, 100), "white")
+            generated = Image.new("RGB", (100, 100), (245, 245, 245))
+            for x in range(10, 40):
+                for y in range(60, 90):
+                    locked.putpixel((x, y), (170, 105, 34))
+                    tone = 45 if (x // 2 + y // 2) % 2 == 0 else 210
+                    generated.putpixel((x, y), (tone, tone, tone))
+            locked.save(locked_path)
+            generated.save(generated_path)
+            outside_before = generated.getpixel((70, 70))
+
+            evidence = apply_roof_semantic_guard(
+                generated_path,
+                locked_path,
+                locked_sheet_panel_roles(),
+            )
+
+            with Image.open(generated_path) as guarded:
+                outside_after = guarded.convert("RGB").getpixel((70, 70))
+
+        self.assertEqual(evidence["status"], "applied")
+        self.assertGreater(evidence["changed_pixel_count"], 0)
+        self.assertLess(
+            evidence["after_grid_score"],
+            evidence["before_grid_score"],
+        )
+        self.assertEqual(outside_after, outside_before)
 
     def test_locked_output_composite_cannot_change_pixels_outside_mass(self):
         with TemporaryDirectory() as directory:

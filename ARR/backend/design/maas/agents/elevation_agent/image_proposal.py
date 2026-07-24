@@ -10,6 +10,7 @@ from typing import Any
 import uuid
 
 from design.maas.aesthetic.contracts import AestheticProvider, RenderedReference
+from .panel_roles import locked_sheet_panel_roles
 
 
 def generate_elevation_image_proposal(
@@ -47,12 +48,18 @@ def generate_elevation_image_proposal(
         for row in bundle.get("views") or ()
         if isinstance(row, dict)
     ]
+    presentation = {
+        "kind": "architectural_render_sheet",
+        "authority": "generated_design_proposal",
+        "panel_roles": list(locked_sheet_panel_roles()),
+    }
     job = {
         "schema_version": "arr.elevation_agent.image_job.v1",
         "source_bundle_id": identity["execution_id"],
         "candidate_id": identity["geometry_hash"],
         "identity": identity,
         "strategy": strategy,
+        "presentation": presentation,
         "locked_evidence": {
             "mass_preview_sha256": input_sha256,
             "condition_pack_path": str(bundle.get("condition_pack_path") or ""),
@@ -63,13 +70,17 @@ def generate_elevation_image_proposal(
                 f"Facade system: {strategy.get('primary_system')}. "
                 f"Rhythm: {strategy.get('rhythm')}. "
                 f"Opening logic: {strategy.get('opening_logic')}. "
-                "Apply facade materials and openings to the exact supplied MASS. "
+                "Create a credible photorealistic architectural render proposal "
+                "by applying facade materials and openings to the exact supplied MASS. "
+                "The top panel is roof-only: use roof material and roof construction "
+                "detail, with no windows, mullions, balconies, rails or facade bays. "
                 "The MASS geometry, silhouette, roofline, setbacks, voids, bridges, "
                 "cantilevers, proportions and camera panel layout are immutable."
             ),
             "negative_prompt": (
                 "changed silhouette, changed mass, extra volume, removed volume, "
-                "changed roofline, changed height, floating fragments, warped site"
+                "changed roofline, changed height, floating fragments, warped site, "
+                "elevation drawing, diagrammatic orange mass, facade grid on top view"
             ),
         },
     }
@@ -83,17 +94,28 @@ def generate_elevation_image_proposal(
             "condition_pack_path": str(bundle.get("condition_pack_path") or ""),
             "views": views,
             "geometry_mutation_allowed": False,
+            "presentation": presentation,
         },
     )
 
     provider_result = adapter.generate(job, reference)
+    provider_metadata = dict(provider_result.metadata or {})
+    roof_guard = provider_metadata.get("roof_semantic_guard")
+    roof_guard = roof_guard if isinstance(roof_guard, dict) else {}
+    proposal_status = str(provider_result.status or "failed")
+    if (
+        proposal_status == "complete"
+        and roof_guard.get("status") == "needs_review"
+    ):
+        proposal_status = "needs_review"
     payload: dict[str, Any] = {
         "schema_version": "arr.elevation_agent.image_proposal.v1",
-        "status": str(provider_result.status or "failed"),
+        "status": proposal_status,
         "identity": identity,
         "strategy": strategy,
+        "presentation": presentation,
         "provider": str(provider_result.provider or getattr(adapter, "name", "")),
-        "provider_metadata": dict(provider_result.metadata or {}),
+        "provider_metadata": provider_metadata,
         "issues": list(provider_result.issues or ()),
         "input_reference": {
             "path": str(preview),

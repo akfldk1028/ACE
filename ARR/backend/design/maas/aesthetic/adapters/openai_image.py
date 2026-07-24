@@ -10,6 +10,11 @@ from typing import Any
 
 from PIL import Image
 
+from design.maas.agents.elevation_agent.panel_roles import (
+    apply_roof_semantic_guard,
+    is_mass_color,
+    locked_sheet_panel_roles,
+)
 from ..contracts import ProviderResult, RenderedReference
 
 
@@ -81,6 +86,10 @@ class OpenAIImageAdapter:
             "provider_input_image_sha256": "",
             "post_composite_silhouette_lock": False,
             "post_composite_white_hole_repairs": 0,
+            "roof_semantic_guard": {
+                "status": "not_evaluated",
+                "changed_pixel_count": 0,
+            },
         }
         mask_path = None
         if reference_type == "locked_mass_sheet":
@@ -144,6 +153,22 @@ class OpenAIImageAdapter:
                     )
                     evidence["post_composite_silhouette_lock"] = True
                     evidence["post_composite_white_hole_repairs"] = repaired_pixels
+                    presentation = job.get("presentation")
+                    presentation = (
+                        presentation
+                        if isinstance(presentation, dict)
+                        else {}
+                    )
+                    panel_roles = presentation.get("panel_roles")
+                    if not isinstance(panel_roles, list):
+                        panel_roles = list(locked_sheet_panel_roles())
+                    evidence["roof_semantic_guard"] = (
+                        apply_roof_semantic_guard(
+                            output_path,
+                            provider_reference_path,
+                            panel_roles,
+                        )
+                    )
                 asset_uri = str(output_path)
                 evidence["output_image_sha256"] = hashlib.sha256(
                     output_path.read_bytes()
@@ -230,14 +255,7 @@ def _write_locked_mass_mask(
         total = max(1, rgb.width * rgb.height)
         for y in range(rgb.height):
             for x in range(rgb.width):
-                red, green, blue = source_pixels[x, y]
-                is_mass = (
-                    red >= 60
-                    and red >= green * 1.12
-                    and green >= blue * 1.18
-                    and red - blue >= 35
-                )
-                if is_mass:
+                if is_mass_color(source_pixels[x, y]):
                     mask_pixels[x, y] = (255, 255, 255, 0)
                     editable += 1
         if editable == 0:

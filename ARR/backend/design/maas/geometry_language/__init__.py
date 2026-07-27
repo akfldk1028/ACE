@@ -9,7 +9,11 @@ from .universal_form_bank import (
     universal_form_programs,
 )
 from .program_projection import PROGRAM_PROJECTION_SCHEMA, project_program_requirements
-from .book_adapter import apply_book_projection_to_geometry_program, recursive_book_projection_evidence
+from .book_adapter import (
+    apply_book_projection_to_geometry_program,
+    apply_capacity_composition_to_geometry_program,
+    recursive_book_projection_evidence,
+)
 from .book_chassis_compatibility import (
     CHASSIS_RELATION_INVARIANTS,
     SPLIT_WING_RELATION_CONTRACT,
@@ -43,7 +47,12 @@ from .mutation import (
 from .outcome_graph import GeometryOutcomeGraph
 from .programs import GeometryProgramBuilder, architectural_shape_programs, l_mass_difference_program, reference_language_programs
 from .render import materialize_isometric_thumbnail, render_compilation_preview
-from .source_bridge import compile_geometry_program_to_source_mass, replace_source_dominant_with_geometry_program
+from .source_bridge import (
+    compile_geometry_program_to_source_mass,
+    floorwise_source_to_geometry_program,
+    materialize_floorwise_legal_source,
+    replace_source_dominant_with_geometry_program,
+)
 from .system_contract import build_extended_csg_contract
 from .synthesis import synthesize_architectural_programs, synthesis_requests_from_program_profile
 from .typology_priors import TYPOLOGY_PRIORS, TypologyPrior, typology_prior, typology_priors_for_program
@@ -75,6 +84,7 @@ __all__ = [
     "apply_geometry_edits",
     "apply_geometry_edits_compiler_safe",
     "apply_book_projection_to_geometry_program",
+    "apply_capacity_composition_to_geometry_program",
     "BOOK_KERNEL_PARAMETER_PROJECTIONS",
     "BOOK_RELATION_INVARIANTS",
     "CHASSIS_RELATION_INVARIANTS",
@@ -108,6 +118,7 @@ __all__ = [
     "compilation_gate",
     "compile_geometry_program",
     "compile_geometry_program_to_source_mass",
+    "floorwise_source_to_geometry_program",
     "geometry_equivalent",
     "geometry_programs_from_author_payload",
     "l_mass_difference_program",
@@ -120,6 +131,7 @@ __all__ = [
     "program_to_dsl",
     "reference_language_programs",
     "materialize_isometric_thumbnail",
+    "materialize_floorwise_legal_source",
     "render_compilation_preview",
     "replace_source_dominant_with_geometry_program",
     "run_geometry_program_a2a_loop",

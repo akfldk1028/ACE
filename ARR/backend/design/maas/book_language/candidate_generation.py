@@ -17,6 +17,7 @@ from design.maas.geometry_language import (
     GeometryOutcomeGraph,
     GeometryProgram,
     apply_book_projection_to_geometry_program,
+    apply_capacity_composition_to_geometry_program,
     universal_form_program_pages,
     apply_geometry_edits_compiler_safe,
     architectural_shape_programs,
@@ -25,6 +26,7 @@ from design.maas.geometry_language import (
     build_geometry_graph_snapshot,
     compile_geometry_program,
     compile_geometry_program_to_source_mass,
+    materialize_floorwise_legal_source,
     openai_vlm_geometry_critic,
     project_program_requirements,
     reference_language_programs,
@@ -48,6 +50,10 @@ from design.maas.program_massing.scoring import attach_program_massing_evidence
 from design.maas.program_massing.search import program_seed_variants, source_feature
 from design.maas.preference.loop import feature_preview_png
 from design.maas.source_geometry import compile_sequence_to_source_mass
+from design.maas.shared_floor_contract import (
+    bind_shared_floor_contract_capacity,
+    materialize_shared_floor_contract,
+)
 
 from .candidate_analysis import (
     _Candidate,
@@ -76,6 +82,136 @@ from .program_catalog import PROGRAMS
 from .reference_context import _audited_final_book_references, _reference_language_author_context
 from .registry import build_book_language_registry
 from .semantics import BASE_VOLUME_FRACTIONS
+
+
+class _PostBookVlmOnly(RuntimeError):
+    """Stop pre-BOOK review after authorship; the exact final solid owns VLM."""
+
+
+def _eligible_smoke_floor_candidate(
+    source: Any,
+    shared_floor_contract: dict[str, Any] | None,
+    capacity_measurement: dict[str, Any] | None,
+    capacity_projection: dict[str, Any] | None,
+    viable_base_keys: set[str],
+) -> bool:
+    """Stop only on a floor/capacity-valid BOOK candidate with viable lineage."""
+
+    lineage = (
+        source.metadata.get("book_generation_lineage")
+        if isinstance(getattr(source, "metadata", None), dict)
+        else {}
+    ) or {}
+    stage = str(lineage.get("stage") or "")
+    parent_key = str(lineage.get("parent_key") or "")
+    return bool(
+        isinstance(shared_floor_contract, dict)
+        and shared_floor_contract.get("hard_pass") is True
+        and isinstance(capacity_measurement, dict)
+        and capacity_measurement.get("hard_pass") is True
+        and isinstance(capacity_projection, dict)
+        and (
+            capacity_projection.get("selectable_capacity_hard_pass") is True
+            or (
+                "selectable_capacity_hard_pass" not in capacity_projection
+                and capacity_projection.get("target_hard_pass") is True
+            )
+        )
+        and (
+            stage == "base"
+            or (parent_key and parent_key in viable_base_keys)
+        )
+    )
+
+
+def _capacity_pack_retry_eligible(
+    shared_floor_contract: dict[str, Any] | None,
+) -> bool:
+    """Return whether plan packing can repair the measured floor shortfall."""
+
+    if not isinstance(shared_floor_contract, dict):
+        return False
+    if shared_floor_contract.get("hard_pass") is True:
+        return True
+    failures = set(shared_floor_contract.get("failure_reasons") or ())
+    if failures - {"insufficient_clear_floor_depth", "insufficient_floor_area"}:
+        return False
+    plates = shared_floor_contract.get("plates")
+    if not isinstance(plates, list) or not plates:
+        return False
+    return bool(
+        all(float(plate.get("gross_area_m2") or 0.0) > 1e-6 for plate in plates)
+        and all(
+            index == 0 or float(plate.get("support_ratio") or 0.0) >= 0.20
+            for index, plate in enumerate(plates)
+        )
+    )
+
+
+def _capacity_retry_result_is_selectable(
+    floor_contract: dict[str, Any] | None,
+    retried_capacity: dict[str, Any] | None,
+    baseline_capacity: dict[str, Any] | None,
+) -> bool:
+    """Require both an inhabitable floor contract and a measured improvement."""
+
+    if not isinstance(floor_contract, dict) or floor_contract.get("hard_pass") is not True:
+        return False
+    retried = float((retried_capacity or {}).get("feasible_capacity_utilization") or 0.0)
+    baseline = float((baseline_capacity or {}).get("feasible_capacity_utilization") or 0.0)
+    return retried > baseline + 1e-9
+
+
+def _shared_floor_capacity_measurement(
+    source: Any,
+    base_capacity_contract: dict[str, Any],
+    *,
+    generation_context: Any,
+    capacity_site: Polygon,
+    height: float,
+    floors: int,
+    pnu: str = "",
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Measure candidate/retry capacity from the exact legal floor plates."""
+
+    bridge = (
+        source.metadata.get("geometry_program_bridge_evidence")
+        if isinstance(source.metadata.get("geometry_program_bridge_evidence"), dict)
+        else {}
+    )
+    shared_floor_contract = materialize_shared_floor_contract(
+        source,
+        site_local_utm=capacity_site,
+        legal_sections=tuple(
+            generation_site_at_height(
+                generation_context,
+                float(height) * floor_number / max(1, int(floors)),
+            )
+            for floor_number in range(1, max(1, int(floors)) + 1)
+        ),
+        height_m=height,
+        floors=floors,
+        pnu=pnu,
+        program_hash=str(bridge.get("program_hash") or ""),
+        geometry_hash=str(bridge.get("geometry_hash") or ""),
+        floor_capacity_plan_hash=str(
+            base_capacity_contract.get("floor_capacity_plan_hash") or ""
+        ),
+        feasible_capacity_m2=float(
+            base_capacity_contract.get("feasible_maximum_floor_area_m2")
+            or 0.0
+        ),
+    )
+    measurement = measure_source_capacity(
+        source,
+        base_capacity_contract,
+        site_local_utm=capacity_site,
+        height_m=height,
+        floors=floors,
+        shared_floor_contract=shared_floor_contract,
+    )
+    return shared_floor_contract, measurement
+
 
 def _agent_mutated_seeds(
     building_type: str,
@@ -252,12 +388,19 @@ def _agent_mutated_seeds(
         programs = synthesize_architectural_programs(request, building_type=building_type)
         vlm_status = "not_requested"
         llm_author_status = "not_requested"
-        if bool(request.get("live_vlm_revision")):
+        live_prebook_vlm_requested = bool(request.get("live_vlm_revision"))
+        llm_author_requested = bool(request.get("live_llm_author")) or str(
+            request.get("synthesis_request_source") or ""
+        ) == "openai_vlm_experimental"
+        llm_author_only = bool(request.get("llm_author_only")) or (
+            llm_author_requested and not live_prebook_vlm_requested
+        )
+        if live_prebook_vlm_requested or llm_author_requested:
             live_opt_in = os.getenv("MAAS_LIVE_GEOMETRY_VLM", "").strip().lower() in {"1", "true", "yes", "on"}
             rotated_credential_confirmed = os.getenv("MAAS_LIVE_VLM_CREDENTIAL_ROTATED", "").strip().lower() in {"1", "true", "yes", "on"}
-            if not live_opt_in:
+            if live_prebook_vlm_requested and not live_opt_in:
                 vlm_status = "inactive_requires_explicit_MAAS_LIVE_GEOMETRY_VLM_opt_in"
-            elif not rotated_credential_confirmed:
+            elif live_prebook_vlm_requested and not rotated_credential_confirmed:
                 vlm_status = "inactive_requires_rotated_credential_confirmation"
             elif not os.getenv("OPENAI_API_KEY"):
                 vlm_status = "inactive_missing_rotated_environment_key"
@@ -286,7 +429,7 @@ def _agent_mutated_seeds(
                         "selection_authority": "none_author_prior_only",
                         "references": [],
                     }
-                    if programs:
+                    if programs and not llm_author_only:
                         reference_matches, reference_language_audit = _audited_final_book_references(
                             programs[0],
                             building_type=building_type,
@@ -340,20 +483,24 @@ def _agent_mutated_seeds(
                             "later by the image-grounded VLM critic; no parcel coordinates or completed form"
                         ),
                     }
-                    llm_author_requested = bool(request.get("live_llm_author")) or str(
-                        request.get("synthesis_request_source") or ""
-                    ) == "openai_vlm_experimental"
                     if llm_author_requested:
                         try:
                             llm_authored = author_geometry_programs_with_openai(
                                 llm_author_context,
-                                target_count=max(6, min(12, int(request.get("llm_author_count") or 8))),
+                                target_count=max(
+                                    1,
+                                    min(12, int(request.get("llm_author_count") or 8)),
+                                ),
                                 model=str(request.get("llm_author_model") or "") or None,
                             )
                             llm_authored = tuple(replace(item, metadata={
                                 **item.metadata,
                                 "reference_vlm_author_context": reference_language_context,
-                                "reference_vlm_precedes_author": True,
+                                "reference_vlm_precedes_author": bool(
+                                    reference_language_context.get("status")
+                                    not in {"", "not_available"}
+                                ),
+                                "llm_geometry_author_active": True,
                             }) for item in llm_authored)
                             unique_programs = {program.program_hash(): program for program in programs}
                             for authored in llm_authored:
@@ -368,6 +515,8 @@ def _agent_mutated_seeds(
                             # additive lane; a failed external author is explicit
                             # evidence and never replaced with fabricated DSL.
                             llm_author_status = f"error:{type(exc).__name__}:{str(exc)[:160]}"
+                    if llm_author_only:
+                        raise _PostBookVlmOnly
                     seed_source = (
                         compile_sequence_to_source_mass(site, source)
                         if site is not None
@@ -541,6 +690,8 @@ def _agent_mutated_seeds(
                     # no positive score or final-selection authority here.
                     programs = tuple(unique_programs.values())
                     vlm_status = str(loop.trace.get("status") or "completed")
+                except _PostBookVlmOnly:
+                    vlm_status = "deferred_to_exact_post_book_final_solid"
                 except Exception as exc:
                     # The deterministic graph author and hard gates remain
                     # usable when an external critic is unavailable. Record
@@ -584,6 +735,22 @@ def _agent_mutated_seeds(
                     ),
                     notes=notes,
                 ))
+    # A cost-bounded smoke run may stop after three floor-valid candidates.
+    # Put explicitly requested paid authorship at the front so the large
+    # deterministic control bank cannot consume the whole smoke budget before
+    # the authored AST is even compiled. This grants review opportunity only;
+    # every authored candidate still faces BOOK, legal, FAR, parking and VLM.
+    if any(
+        bool(request.get("live_llm_author"))
+        for request in effective_synthesis_requests
+        if isinstance(request, dict)
+    ):
+        seeds.sort(key=lambda sequence: (
+            not any(
+                note == "geometry_program_llm_author_active=True"
+                for note in sequence.notes
+            ),
+        ))
     return tuple(seeds)
 
 
@@ -658,7 +825,11 @@ def _materialize_directed_geometry(
     *,
     containment_host: Polygon | None = None,
     upper_containment_host: Polygon | None = None,
+    floor_containment_hosts: tuple[Polygon, ...] = (),
     minimum_host_plan_coverage: float = 0.0,
+    capacity_composition_utilizations: tuple[float, float] | None = None,
+    floor_capacity_plan_hash: str = "",
+    target_floor_areas_m2: tuple[float, ...] = (),
     building_type: str = "",
     site_access_side: str = "closed",
 ) -> Any | None:
@@ -712,6 +883,13 @@ def _materialize_directed_geometry(
     # as program/legal evidence, but it is no longer the geometry authority.
     try:
         program = apply_book_projection_to_geometry_program(program, sequence)
+        if capacity_composition_utilizations is not None:
+            achieved_utilization, target_utilization = capacity_composition_utilizations
+            program = apply_capacity_composition_to_geometry_program(
+                program,
+                achieved_utilization=achieved_utilization,
+                target_utilization=target_utilization,
+            )
         program = project_program_requirements(
             program,
             building_type=building_type,
@@ -729,6 +907,16 @@ def _materialize_directed_geometry(
     )
     if materialized is None:
         return None
+    if floor_containment_hosts:
+        materialized = materialize_floorwise_legal_source(
+            materialized,
+            legal_sections=floor_containment_hosts,
+            target_plan_coverage=minimum_host_plan_coverage,
+            floor_capacity_plan_hash=floor_capacity_plan_hash,
+            target_floor_areas_m2=target_floor_areas_m2,
+        )
+        if materialized is None:
+            return None
     source_seed = next((
         note.split("=", 1)[1]
         for note in sequence.notes
@@ -770,6 +958,8 @@ def _program_pool(
     live_geometry_vlm_revision: bool = False,
     base_capacity_contract: dict[str, Any] | None = None,
     capacity_site: Polygon | None = None,
+    pnu: str = "",
+    stop_after_shared_floor_hard_passes: int | None = None,
 ) -> tuple[list[_Candidate], dict[str, Any]]:
     # Local import avoids expanding the ordinary candidate-analysis import
     # surface while allowing online quality-diversity compaction.
@@ -795,6 +985,11 @@ def _program_pool(
     llm_authored_stage_counts: Counter[str] = Counter()
     llm_authored_failure_counts: Counter[str] = Counter()
     capacity_stage_counts: Counter[str] = Counter()
+    capacity_target_floor_failure_counts: Counter[str] = Counter()
+    floor_hard_capacity_utilizations: list[float] = []
+    smoke_floor_pass_candidates = 0
+    compiler_clean_base_keys: set[str] = set()
+    early_stop_target = max(0, int(stop_after_shared_floor_hard_passes or 0))
     requested_parent_indices = tuple(sorted({max(0, int(index)) for index in parent_variant_indices})) or (0,)
     directed_seeds = _agent_mutated_seeds(
         building_type,
@@ -847,6 +1042,8 @@ def _program_pool(
         for index, principle in enumerate(principles)
     }
     for seed_index, seed in enumerate(parent_seeds):
+        if early_stop_target and smoke_floor_pass_candidates >= early_stop_target:
+            break
         llm_authored_seed = _seed_is_llm_authored(seed)
         recursive_seed = any(
             note.startswith(("geometry_program_directive=", "geometry_program_payload="))
@@ -918,6 +1115,8 @@ def _program_pool(
                 },
             )
         for schedule_index, (principle_index, principle) in enumerate(scheduled_principles):
+            if early_stop_target and smoke_floor_pass_candidates >= early_stop_target:
+                break
             execution_verbs = tuple(principle["execution_verbs"])
             lineage_base_id = str(
                 principle.get("lineage_base_operative_id")
@@ -946,6 +1145,8 @@ def _program_pool(
                 else indexed_variants
             )
             for variant_index, operations in scheduled_variants:
+                if early_stop_target and smoke_floor_pass_candidates >= early_stop_target:
+                    break
                 evaluated += 1
                 if llm_authored_seed:
                     llm_authored_stage_counts["evaluated"] += 1
@@ -1064,6 +1265,19 @@ def _program_pool(
                     if recursive_directed and generation_context is not None
                     else None
                 )
+                floor_containment_hosts: tuple[Polygon, ...] = ()
+                if recursive_directed and generation_context is not None:
+                    floor_containment_hosts = tuple(
+                        section
+                        for floor_number in range(1, max(1, int(floors)) + 1)
+                        for section in (
+                            generation_site_at_height(
+                                generation_context,
+                                float(height) * floor_number / max(1, int(floors)),
+                            ),
+                        )
+                        if section is not None
+                    )
                 plan_coverage = recursive_plan_coverage_floor(
                     building_type,
                     alternative_capacity_contract,
@@ -1079,7 +1293,23 @@ def _program_pool(
                     ),
                     containment_host=compile_site,
                     upper_containment_host=upper_containment_host,
+                    floor_containment_hosts=floor_containment_hosts,
                     minimum_host_plan_coverage=plan_coverage,
+                    floor_capacity_plan_hash=str(
+                        alternative_capacity_contract.get(
+                            "floor_capacity_plan_hash"
+                        )
+                        or ""
+                    ),
+                    target_floor_areas_m2=tuple(
+                        float(value)
+                        for value in (
+                            alternative_capacity_contract.get(
+                                "target_floor_areas_m2"
+                            )
+                            or ()
+                        )
+                    ),
                 )
                 if source is None:
                     if outcome_graph is not None and recursive_program is not None and source_seed_name:
@@ -1099,17 +1329,21 @@ def _program_pool(
                     continue
                 capacity_plan_fit_evidence: dict[str, Any] = {
                     "schema_version": "arr.maas.capacity_plan_fit.v1",
-                    "retry_limit": 1,
+                    "retry_limit": 2,
                     "retry_attempted": False,
                     "initial_plan_coverage": round(plan_coverage, 6),
                 }
                 if base_capacity_contract and capacity_site is not None and recursive_directed:
-                    initial_capacity = measure_source_capacity(
+                    initial_floor_contract, initial_capacity = (
+                        _shared_floor_capacity_measurement(
                         source,
                         base_capacity_contract,
-                        site_local_utm=capacity_site,
-                        height_m=height,
+                        generation_context=generation_context,
+                        capacity_site=capacity_site,
+                        height=height,
                         floors=floors,
+                        pnu=pnu,
+                        )
                     )
                     retry_coverage = capacity_retry_plan_coverage(
                         plan_coverage,
@@ -1122,9 +1356,15 @@ def _program_pool(
                         ),
                         "derived_retry_plan_coverage": retry_coverage,
                     })
-                    if retry_coverage > plan_coverage + 1e-6:
+                    if (
+                        retry_coverage > plan_coverage + 1e-6
+                        and _capacity_pack_retry_eligible(initial_floor_contract)
+                    ):
                         capacity_stage_counts["plan_fit_retry_attempted"] += 1
                         capacity_plan_fit_evidence["retry_attempted"] = True
+                        # First preserve the exact authored AST and only refit
+                        # its measured plan coverage. A tiny capacity shortfall
+                        # must not force an unnecessary aggregation macro.
                         retried_source = _materialize_directed_geometry(
                             materialization_source,
                             sequence,
@@ -1135,29 +1375,141 @@ def _program_pool(
                             ),
                             containment_host=compile_site,
                             upper_containment_host=upper_containment_host,
+                            floor_containment_hosts=floor_containment_hosts,
                             minimum_host_plan_coverage=retry_coverage,
+                            floor_capacity_plan_hash=str(
+                                alternative_capacity_contract.get(
+                                    "floor_capacity_plan_hash"
+                                )
+                                or ""
+                            ),
+                            target_floor_areas_m2=tuple(
+                                float(value)
+                                for value in (
+                                    alternative_capacity_contract.get(
+                                        "target_floor_areas_m2"
+                                    )
+                                    or ()
+                                )
+                            ),
                         )
+                        baseline_capacity = initial_capacity
                         if retried_source is not None:
-                            retried_capacity = measure_source_capacity(
+                            retried_floor_contract, retried_capacity = (
+                                _shared_floor_capacity_measurement(
                                 retried_source,
                                 base_capacity_contract,
-                                site_local_utm=capacity_site,
-                                height_m=height,
+                                generation_context=generation_context,
+                                capacity_site=capacity_site,
+                                height=height,
                                 floors=floors,
+                                pnu=pnu,
+                                )
                             )
                             capacity_plan_fit_evidence["retry_achieved_utilization"] = (
                                 retried_capacity.get("feasible_capacity_utilization")
                             )
-                            if float(
-                                retried_capacity.get("feasible_capacity_utilization") or 0.0
-                            ) > float(
-                                initial_capacity.get("feasible_capacity_utilization") or 0.0
-                            ) + 1e-9:
+                            if _capacity_retry_result_is_selectable(
+                                retried_floor_contract,
+                                retried_capacity,
+                                baseline_capacity,
+                            ):
                                 source = retried_source
+                                baseline_capacity = retried_capacity
                                 capacity_stage_counts["plan_fit_retry_improved"] += 1
                                 capacity_plan_fit_evidence["retry_selected"] = True
+                                capacity_plan_fit_evidence["retry_mode"] = "plain_plan_refit"
                             else:
                                 capacity_plan_fit_evidence["retry_selected"] = False
+                                if retried_floor_contract.get("hard_pass") is not True:
+                                    capacity_stage_counts[
+                                        "plan_fit_retry_rejected_floor_contract"
+                                    ] += 1
+                        target_after_plain = evaluate_capacity_alternative(
+                            capacity_alternative,
+                            baseline_capacity,
+                        )
+                        if target_after_plain.get("target_hard_pass") is not True:
+                            capacity_stage_counts["capacity_pack_fallback_attempted"] += 1
+                            capacity_plan_fit_evidence["capacity_pack_fallback_attempted"] = True
+                            packed_source = _materialize_directed_geometry(
+                                materialization_source,
+                                sequence,
+                                building_type=building_type,
+                                site_access_side=_site_access_side_in_principal_frame(
+                                    site,
+                                    site_access_geometry,
+                                ),
+                                containment_host=compile_site,
+                                upper_containment_host=upper_containment_host,
+                                floor_containment_hosts=floor_containment_hosts,
+                                minimum_host_plan_coverage=retry_coverage,
+                                capacity_composition_utilizations=(
+                                    float(
+                                        baseline_capacity.get(
+                                            "feasible_capacity_utilization"
+                                        )
+                                        or 0.0
+                                    ),
+                                    float(
+                                        capacity_alternative.get(
+                                            "target_utilization"
+                                        )
+                                        or 0.0
+                                    ),
+                                ),
+                                floor_capacity_plan_hash=str(
+                                    alternative_capacity_contract.get(
+                                        "floor_capacity_plan_hash"
+                                    )
+                                    or ""
+                                ),
+                                target_floor_areas_m2=tuple(
+                                    float(value)
+                                    for value in (
+                                        alternative_capacity_contract.get(
+                                            "target_floor_areas_m2"
+                                        )
+                                        or ()
+                                    )
+                                ),
+                            )
+                            if packed_source is not None:
+                                packed_floor_contract, packed_capacity = (
+                                    _shared_floor_capacity_measurement(
+                                        packed_source,
+                                        base_capacity_contract,
+                                        generation_context=generation_context,
+                                        capacity_site=capacity_site,
+                                        height=height,
+                                        floors=floors,
+                                        pnu=pnu,
+                                    )
+                                )
+                                capacity_plan_fit_evidence[
+                                    "capacity_pack_achieved_utilization"
+                                ] = packed_capacity.get("feasible_capacity_utilization")
+                                if _capacity_retry_result_is_selectable(
+                                    packed_floor_contract,
+                                    packed_capacity,
+                                    baseline_capacity,
+                                ):
+                                    source = packed_source
+                                    capacity_stage_counts[
+                                        "capacity_pack_fallback_improved"
+                                    ] += 1
+                                    capacity_plan_fit_evidence["retry_selected"] = True
+                                    capacity_plan_fit_evidence["retry_mode"] = (
+                                        "typed_capacity_pack"
+                                    )
+                                elif packed_floor_contract.get("hard_pass") is not True:
+                                    capacity_stage_counts[
+                                        "capacity_pack_rejected_floor_contract"
+                                    ] += 1
+                    elif retry_coverage > plan_coverage + 1e-6:
+                        capacity_stage_counts[
+                            "plan_fit_retry_skipped_nonviable_floor_source"
+                        ] += 1
                 if geometry_stages is not None:
                     geometry_stages["directed_geometry_materialized"] += 1
                 if llm_authored_seed:
@@ -1232,6 +1584,47 @@ def _program_pool(
                 metadata["capacity_alternative_projection"] = deepcopy(capacity_alternative)
                 metadata["capacity_plan_fit_evidence"] = deepcopy(capacity_plan_fit_evidence)
                 source = replace(source, metadata=metadata)
+                shared_floor_contract: dict[str, Any] | None = None
+                if generation_context is not None and capacity_site is not None:
+                    bridge = (
+                        source.metadata.get("geometry_program_bridge_evidence")
+                        if isinstance(
+                            source.metadata.get("geometry_program_bridge_evidence"),
+                            dict,
+                        )
+                        else {}
+                    )
+                    shared_floor_contract = materialize_shared_floor_contract(
+                        source,
+                        site_local_utm=capacity_site,
+                        legal_sections=tuple(
+                            generation_site_at_height(
+                                generation_context,
+                                float(height) * floor_number / max(1, int(floors)),
+                            )
+                            for floor_number in range(1, max(1, int(floors)) + 1)
+                        ),
+                        height_m=height,
+                        floors=floors,
+                        pnu=pnu,
+                        program_hash=str(bridge.get("program_hash") or ""),
+                        geometry_hash=str(bridge.get("geometry_hash") or ""),
+                        floor_capacity_plan_hash=str(
+                            (base_capacity_contract or {}).get(
+                                "floor_capacity_plan_hash"
+                            )
+                            or ""
+                        ),
+                        feasible_capacity_m2=float(
+                            (base_capacity_contract or {}).get(
+                                "feasible_maximum_floor_area_m2"
+                            )
+                            or 0.0
+                        ),
+                    )
+                    metadata = deepcopy(source.metadata)
+                    metadata["shared_floor_contract"] = shared_floor_contract
+                    source = replace(source, metadata=metadata)
                 if base_capacity_contract and capacity_site is not None:
                     capacity_stage_counts["measured"] += 1
                     capacity_measurement = measure_source_capacity(
@@ -1240,6 +1633,7 @@ def _program_pool(
                         site_local_utm=capacity_site,
                         height_m=height,
                         floors=floors,
+                        shared_floor_contract=shared_floor_contract,
                     )
                     metadata = deepcopy(source.metadata)
                     metadata["source_capacity_measurement"] = capacity_measurement
@@ -1247,6 +1641,12 @@ def _program_pool(
                         capacity_alternative,
                         capacity_measurement,
                     )
+                    if shared_floor_contract is not None:
+                        shared_floor_contract = bind_shared_floor_contract_capacity(
+                            shared_floor_contract,
+                            metadata["capacity_alternative_projection"],
+                        )
+                        metadata["shared_floor_contract"] = shared_floor_contract
                     source = replace(source, metadata=metadata)
                     capacity_stage_counts[
                         f"alternative:{capacity_alternative['alternative_id']}:measured"
@@ -1254,6 +1654,18 @@ def _program_pool(
                     if metadata["capacity_alternative_projection"]["target_hard_pass"]:
                         capacity_stage_counts[
                             f"alternative:{capacity_alternative['alternative_id']}:target_passed"
+                        ] += 1
+                    if metadata["capacity_alternative_projection"].get(
+                        "selectable_capacity_hard_pass"
+                    ):
+                        resolved_id = str(
+                            metadata["capacity_alternative_projection"].get(
+                                "selectable_capacity_alternative_id"
+                            )
+                            or "unclassified"
+                        )
+                        capacity_stage_counts[
+                            f"realized_band:{resolved_id}:selectable_passed"
                         ] += 1
                     if not capacity_measurement["hard_pass"]:
                         capacity_stage_counts["below_feasible_capacity_floor"] += 1
@@ -1324,6 +1736,15 @@ def _program_pool(
                     continue
                 clean += 1
                 scope_counts["clean"] += 1
+                # A BOOK descendant is allowed to repair its base parent's
+                # program relation.  Its causal parent therefore needs to be
+                # compiler-clean and contained, not already a final
+                # program-hard-pass design.  Record this before the program
+                # gate and carry it across QD compaction.
+                if str(generation_lineage.get("stage") or "") == "base":
+                    base_key = str(generation_lineage.get("parent_key") or "")
+                    if base_key:
+                        compiler_clean_base_keys.add(base_key)
                 capacity_stage_counts[
                     f"alternative:{capacity_alternative['alternative_id']}:clean_passed"
                 ] += 1
@@ -1432,6 +1853,49 @@ def _program_pool(
                 if llm_authored_seed:
                     llm_authored_stage_counts["program_hard_passed"] += 1
                 if capacity_measurement:
+                    capacity_projection = (
+                        source.metadata.get("capacity_alternative_projection")
+                        if isinstance(source.metadata, dict)
+                        else {}
+                    ) or {}
+                    if (
+                        isinstance(shared_floor_contract, dict)
+                        and shared_floor_contract.get("hard_pass") is True
+                    ):
+                        floor_hard_capacity_utilizations.append(
+                            float(
+                                capacity_measurement.get(
+                                    "feasible_capacity_utilization"
+                                )
+                                or 0.0
+                            )
+                        )
+                    if capacity_projection.get("target_hard_pass") is True:
+                        if (
+                            isinstance(shared_floor_contract, dict)
+                            and shared_floor_contract.get("hard_pass") is True
+                        ):
+                            capacity_stage_counts[
+                                "capacity_target_and_floor_contract_passed"
+                            ] += 1
+                        else:
+                            capacity_stage_counts[
+                                "capacity_target_passed_floor_contract_failed"
+                            ] += 1
+                            capacity_target_floor_failure_counts.update(
+                                shared_floor_contract.get("failure_reasons") or ()
+                                if isinstance(shared_floor_contract, dict)
+                                else ("missing_shared_floor_contract",)
+                            )
+                    if capacity_projection.get(
+                        "selectable_capacity_hard_pass"
+                    ) is True and (
+                        isinstance(shared_floor_contract, dict)
+                        and shared_floor_contract.get("hard_pass") is True
+                    ):
+                        capacity_stage_counts[
+                            "capacity_selectable_and_floor_contract_passed"
+                        ] += 1
                     capacity_score = capacity_fit_score(
                         capacity_alternative,
                         capacity_measurement,
@@ -1458,11 +1922,22 @@ def _program_pool(
                     feature,
                     round(score, 6),
                 ))
+                if _eligible_smoke_floor_candidate(
+                    source,
+                    shared_floor_contract,
+                    capacity_measurement,
+                    source.metadata.get("capacity_alternative_projection"),
+                    compiler_clean_base_keys,
+                ):
+                    smoke_floor_pass_candidates += 1
     accepted = accepted_archive.finalize()
     capacity_stage_counts["qd_stream_compaction_count"] += accepted_archive.compaction_count
     capacity_stage_counts["qd_stream_candidates_released"] += accepted_archive.released_count
     capacity_stage_counts["qd_stream_peak_candidate_count"] = accepted_archive.peak_candidate_count
-    accepted, lineage_gate = gate_descendants_by_base(accepted)
+    accepted, lineage_gate = gate_descendants_by_base(
+        accepted,
+        known_viable_base_keys=compiler_clean_base_keys,
+    )
     active_universal_programs = universal_form_program_pages(requested_parent_indices)
     summarized_gate_diagnostics = {
         label: _summarize_gate_diagnostic(diagnostic)
@@ -1473,6 +1948,31 @@ def _program_pool(
         "compiled": compiled,
         "clean": clean,
         "program_passed": program_passed,
+        "shared_floor_early_stop": {
+            "active": bool(early_stop_target),
+            "target": early_stop_target,
+            "observed_program_pass_candidates": smoke_floor_pass_candidates,
+            "stopped_early": bool(
+                early_stop_target
+                and smoke_floor_pass_candidates >= early_stop_target
+            ),
+        },
+        "capacity_floor_intersection": {
+            "target_and_floor_hard_pass_count": int(
+                capacity_stage_counts.get(
+                    "capacity_target_and_floor_contract_passed",
+                    0,
+                )
+            ),
+            "target_pass_floor_failure_reason_counts": dict(
+                capacity_target_floor_failure_counts
+            ),
+            "floor_hard_candidate_count": len(floor_hard_capacity_utilizations),
+            "maximum_floor_hard_capacity_utilization": round(
+                max(floor_hard_capacity_utilizations, default=0.0),
+                6,
+            ),
+        },
         "base_role_seed_count": len(program_seed_sequences(building_type)),
         "agent_mutated_seed_count": max(0, len(directed_seeds) - len(program_seed_sequences(building_type))),
         "recursive_geometry_seed_count": sum(

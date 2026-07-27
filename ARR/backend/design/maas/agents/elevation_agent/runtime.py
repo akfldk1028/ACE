@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from copy import deepcopy
 import hashlib
 import json
 from typing import Any
@@ -16,6 +17,7 @@ def generate_elevation_bundle(
     output_root: str | Path,
     *,
     execution_id: str,
+    shared_floor_contract: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if str(getattr(compilation, "status", "")) != "compiled":
         raise ValueError("elevationAgent requires a compiled MASS")
@@ -40,12 +42,36 @@ def generate_elevation_bundle(
         maximum = [max(float(row[i]) for row in vertices) for i in range(3)]
     program_hash = compilation.program.program_hash()
     geometry_hash = str(compilation.geometry_hash or "")
+    shared_floor = (
+        shared_floor_contract
+        if isinstance(shared_floor_contract, dict)
+        and shared_floor_contract.get("schema_version")
+        == "arr.maas.shared_floor_contract.v1"
+        else None
+    )
+    if shared_floor_contract is not None and shared_floor is None:
+        raise ValueError("elevationAgent requires a valid shared-floor contract")
+    if shared_floor is not None and shared_floor.get("hard_pass") is not True:
+        raise ValueError("elevationAgent requires a hard-pass shared-floor contract")
+    floor_guides = (
+        _contract_floor_guides(shared_floor)
+        if shared_floor is not None
+        else _floor_guides(float(minimum[2]), float(maximum[2]))
+    )
+    floor_capacity_plan_hash = str(
+        (shared_floor or {}).get("floor_capacity_plan_hash")
+        or ((shared_floor or {}).get("identity") or {}).get(
+            "floor_capacity_plan_hash"
+        )
+        or ""
+    )
     condition_pack = {
         "schema_version": "arr.elevation_agent.condition_pack.v1",
         "identity": {
             "execution_id": execution_id,
             "program_hash": program_hash,
             "geometry_hash": geometry_hash,
+            "floor_capacity_plan_hash": floor_capacity_plan_hash,
         },
         "indexed_mesh": {
             "vertex_count": len(vertices),
@@ -74,7 +100,18 @@ def generate_elevation_bundle(
             for view in views
         },
         "surface_normals": triangle_normals(vertices, triangles),
-        "floor_guides_m": _floor_guides(float(minimum[2]), float(maximum[2])),
+        "floor_contract_hash": str(
+            (shared_floor or {}).get("floor_contract_hash") or ""
+        ),
+        "floor_capacity_plan_hash": floor_capacity_plan_hash,
+        "target_floor_areas_m2": [
+            round(max(0.0, float(value)), 4)
+            for value in (shared_floor or {}).get("target_floor_areas_m2", ())
+        ],
+        "capacity_alternative": deepcopy(
+            (shared_floor or {}).get("capacity_alternative") or {}
+        ),
+        "floor_guides_m": floor_guides,
         "facade_planes": _facade_planes(minimum, maximum),
         "geometry_mutation_allowed": False,
     }
@@ -94,6 +131,23 @@ def generate_elevation_bundle(
     payload = bundle.to_dict()
     _write_json_atomic(manifest_path, payload)
     return payload
+
+
+def _contract_floor_guides(contract: dict[str, Any]) -> list[float]:
+    plates = contract.get("plates") if isinstance(contract.get("plates"), list) else []
+    guides = sorted({
+        round(float(value), 6)
+        for plate in plates
+        if isinstance(plate, dict) and plate.get("hard_pass")
+        for value in (
+            plate.get("bottom_height_m"),
+            plate.get("top_height_m"),
+        )
+        if value is not None
+    })
+    if len(guides) < 2:
+        raise ValueError("elevationAgent requires at least one accepted floor plate")
+    return guides
 
 
 def _floor_guides(minimum_z: float, maximum_z: float, interval: float = 3.3) -> list[float]:

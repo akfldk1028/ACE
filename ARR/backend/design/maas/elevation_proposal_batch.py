@@ -8,6 +8,7 @@ from typing import Any
 
 from design.maas.agents.elevation_agent import (
     generate_elevation_image_proposal,
+    generate_multi_view_elevation_proposal,
     select_facade_strategy,
 )
 from design.maas.aesthetic.contracts import AestheticProvider
@@ -15,6 +16,7 @@ from design.maas.geometry_language.ast import GeometryProgram
 from design.maas.geometry_language.compiler import compile_geometry_program
 from design.maas.geometry_language.execution_activation import (
     refresh_elevation_proposal_graph,
+    refresh_multi_view_elevation_graph,
 )
 from design.maas.single_execution.persistence import write_json_atomic
 
@@ -91,6 +93,76 @@ def generate_execution_elevation_proposal(
     }
     write_json_atomic(execution_path, execution)
     return {**proposal, "skipped_existing": False}
+
+
+def generate_execution_multi_view_elevation_proposal(
+    output_root: str | Path,
+    execution_id: str,
+    *,
+    adapter: AestheticProvider,
+    critic: Any,
+) -> dict[str, Any]:
+    """Generate bounded four-view facade evidence for one persisted execution."""
+
+    root = Path(output_root).resolve()
+    directory = (root / execution_id).resolve()
+    if not directory.is_relative_to(root):
+        raise ValueError("execution path escapes MASS archive")
+    program_path = directory / "program.json"
+    passport_path = directory / "mass.png.passport.json"
+    execution_path = directory / "execution.json"
+    bundle_path = directory / "elevation" / "manifest.json"
+    program = GeometryProgram.from_dict(
+        json.loads(program_path.read_text(encoding="utf-8"))
+    )
+    compilation = compile_geometry_program(program)
+    passport = json.loads(passport_path.read_text(encoding="utf-8"))
+    bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+    if compilation.status != "compiled":
+        raise ValueError("persisted MASS no longer compiles")
+    identity = (
+        str(passport.get("program_hash") or ""),
+        str(passport.get("geometry_hash") or ""),
+    )
+    if identity != (program.program_hash(), str(compilation.geometry_hash or "")):
+        raise ValueError("MASS passport identity no longer matches compiled geometry")
+    if (
+        str(bundle.get("execution_id") or "") != str(execution_id)
+        or str(bundle.get("program_hash") or "") != identity[0]
+        or str(bundle.get("geometry_hash") or "") != identity[1]
+    ):
+        raise ValueError("elevation bundle identity does not match selected MASS")
+
+    strategy = select_facade_strategy(program, compilation)
+    proposal = generate_multi_view_elevation_proposal(
+        bundle,
+        adapter=adapter,
+        critic=critic,
+        strategy=strategy,
+    )
+    elevation = passport.get("elevation_evidence")
+    elevation = dict(elevation) if isinstance(elevation, dict) else {}
+    elevation["facade_strategy"] = strategy
+    elevation["multi_view_proposal"] = proposal
+    passport["elevation_evidence"] = elevation
+    passport["activation_graph"] = refresh_multi_view_elevation_graph(
+        dict(passport.get("activation_graph") or {}),
+        proposal,
+    )
+    write_json_atomic(passport_path, passport)
+
+    execution = json.loads(execution_path.read_text(encoding="utf-8"))
+    execution["multi_view_elevation_proposal"] = {
+        "status": str(proposal.get("status") or ""),
+        "paid_request_attempt_count": int(
+            proposal.get("paid_request_attempt_count") or 0
+        ),
+        "retry_count": int(proposal.get("retry_count") or 0),
+        "manifest_path": str(proposal.get("manifest_path") or ""),
+        "accepted": proposal.get("status") == "accepted",
+    }
+    write_json_atomic(execution_path, execution)
+    return proposal
 
 
 def generate_batch_elevation_proposals(
@@ -175,4 +247,5 @@ def _cumulative_paid_attempts(root: Path, execution_ids: Any) -> int:
 __all__ = [
     "generate_batch_elevation_proposals",
     "generate_execution_elevation_proposal",
+    "generate_execution_multi_view_elevation_proposal",
 ]

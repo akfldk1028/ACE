@@ -44,6 +44,7 @@ from design.maas.geometry_language import (
     synthesis_requests_from_program_profile,
     compile_geometry_program_to_source_mass,
     compile_geometry_program,
+    floorwise_source_to_geometry_program,
 )
 from design.maas.geometry_language.gate import GeometryGatePolicy, compilation_gate
 from design.maas.geometry_language.run_state import update_run_progress
@@ -105,6 +106,7 @@ from .capacity_contract import (
     measure_source_capacity,
     recursive_plan_coverage_floor,
 )
+from .floor_capacity_plan import derive_program_floor_capacity_plan
 from .lineage import gate_descendants_by_base, lineage_record, staged_principle_schedule
 
 
@@ -138,6 +140,61 @@ from .candidate_analysis import (
     _clean_mass_gate,
     _site_access_side_in_principal_frame,
 )
+
+
+def _resolve_authoritative_floor_context(
+    *,
+    generation_context: LegalGenerationContext | None,
+    site_local_utm: Polygon,
+    building_type: str,
+    catalog_height_m: float,
+    catalog_floors: int,
+    dimensional_context: dict[str, Any],
+    target_utilization: float,
+) -> tuple[float, int, dict[str, Any]]:
+    """Resolve the sole pre-authoring floor authority for one program run."""
+
+    if generation_context is None:
+        return (
+            float(dimensional_context.get("effective_height_m") or catalog_height_m),
+            int(dimensional_context.get("effective_floors") or catalog_floors),
+            {},
+        )
+    plan = derive_program_floor_capacity_plan(
+        generation_context,
+        site_local_utm=site_local_utm,
+        building_type=building_type,
+        target_utilization=target_utilization,
+        dimensional_context=dimensional_context,
+        legacy_floor_hint=catalog_floors,
+    )
+    return (
+        float(plan.get("selected_height_m") or 0.0),
+        int(plan.get("selected_floor_count") or 0),
+        plan,
+    )
+
+
+def _shared_floor_hard_pass_candidates(candidates):
+    """Keep only exact candidates with inhabitable, identity-bound floor plates."""
+    return [
+        candidate
+        for candidate in candidates
+        if (
+            isinstance(
+                candidate.source.metadata.get("shared_floor_contract"),
+                dict,
+            )
+            and candidate.source.metadata["shared_floor_contract"].get(
+                "schema_version"
+            )
+            == "arr.maas.shared_floor_contract.v1"
+            and candidate.source.metadata["shared_floor_contract"].get(
+                "hard_pass"
+            )
+            is True
+        )
+    ]
 
 from .portfolio_selection import (
     _scope_coverage_anchors,
@@ -179,6 +236,7 @@ from .candidate_generation import (
 )
 
 from .vlm_review import (
+    _book_vlm_review_budget,
     _final_book_vlm_hard_pass,
     _final_book_vlm_shortlist,
     _audit_final_book_geometry_with_vlm,
@@ -186,6 +244,20 @@ from .vlm_review import (
     _repair_exact_post_book_candidates_from_vlm,
     _exact_post_book_repair_shortlist,
 )
+
+
+def _smoke_floor_pass_reserve(
+    selection_target: int,
+    *,
+    live_vlm: bool = False,
+) -> int:
+    """Keep a bounded reserve for downstream parking and legal survival."""
+
+    selection_reserve = max(1, int(selection_target)) * 3
+    if not live_vlm:
+        return selection_reserve
+    paid_review_slots = min(4, _book_vlm_review_budget("final_book"))
+    return max(selection_reserve, paid_review_slots * 3)
 
 
 def _partition_replenishment_vlm_candidates(
@@ -619,6 +691,7 @@ def run_book_program_portfolios(
     site_access_context: dict[str, Any] | None = None,
     site_access_geometry: dict[str, Any] | None = None,
     live_geometry_vlm_revision: bool = False,
+    smoke_mode: bool = False,
 ) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     directive_dir = visual_directive_path.parent if visual_directive_path is not None else output_dir
@@ -633,8 +706,10 @@ def run_book_program_portfolios(
     board_paths: list[Path] = []
     mass_brain_trace_sequences: list[VerbSequence] = []
     mass_brain_trace_features: dict[str, dict[str, Any]] = {}
+    selection_target = 1 if smoke_mode else 20
+    required_scope_target = 1 if smoke_mode else len(BASE_VOLUME_FRACTIONS)
     requested_slugs = set(program_slugs or ())
-    for slug, building_type, height, floors in PROGRAMS:
+    for slug, building_type, catalog_height, catalog_floors in PROGRAMS:
         if requested_slugs and slug not in requested_slugs:
             continue
         started = perf_counter()
@@ -643,7 +718,7 @@ def run_book_program_portfolios(
             phase="candidate_generation",
             program=slug,
             selected_mass_count=0,
-            required_scope_count=len(BASE_VOLUME_FRACTIONS),
+            required_scope_count=required_scope_target,
             selected_scope_count=0,
         )
         outcome_graph.begin_program_run(slug)
@@ -748,10 +823,28 @@ def run_book_program_portfolios(
         dimensional_context = _program_dimensional_context(
             generation_site,
             building_type,
-            height,
-            floors,
+            catalog_height,
+            catalog_floors,
         )
-        if dimensional_context["status"] == "infeasible":
+        capacity_policy = resolve_massing_capacity_policy(
+            building_type=building_type,
+            site_area_m2=float(site.area),
+            parking_options=parking_options,
+        )
+        height, floors, floor_capacity_plan = _resolve_authoritative_floor_context(
+            generation_context=generation_context,
+            site_local_utm=site,
+            building_type=building_type,
+            catalog_height_m=catalog_height,
+            catalog_floors=catalog_floors,
+            dimensional_context=dimensional_context,
+            target_utilization=float(capacity_policy["target_far_utilization"]),
+        )
+        plan_infeasible = bool(
+            floor_capacity_plan
+            and floor_capacity_plan.get("status") == "infeasible"
+        )
+        if dimensional_context["status"] == "infeasible" or plan_infeasible:
             empty_metrics = _portfolio_language_metrics([])
             board = output_dir / f"maas-book-{slug}-20.png"
             render_archive_sheet(
@@ -775,13 +868,21 @@ def run_book_program_portfolios(
                 "near_duplicate_pair_count": 0,
                 "program_language_metrics": empty_metrics,
                 "program_dimensional_context": dimensional_context,
+                "floor_capacity_plan": deepcopy(floor_capacity_plan),
                 "vlm_portfolio_directive": {
                     "active": bool(runtime_live_vlm or program_visual_directive),
                     "runtime_live_vlm_requested": runtime_live_vlm,
                 },
                 "downstream_hard_gate": {"status": "not_run", "candidate_count": 0},
                 "counts": {},
-                "failures": list(dimensional_context.get("failure_reasons") or ("program_dimensional_infeasible",)),
+                "failures": list(
+                    (
+                        floor_capacity_plan.get("failure_reasons")
+                        if plan_infeasible
+                        else dimensional_context.get("failure_reasons")
+                    )
+                    or ("program_dimensional_infeasible",)
+                ),
                 "missing_vlm_required_roof_archetypes": [],
                 "missing_required_solid_phenotypes": [],
                 "duration_seconds": round(perf_counter() - started, 3),
@@ -789,13 +890,21 @@ def run_book_program_portfolios(
                 "png": str(board),
             })
             continue
-        height = float(dimensional_context["effective_height_m"])
-        floors = int(dimensional_context["effective_floors"])
-        capacity_policy = resolve_massing_capacity_policy(
-            building_type=building_type,
-            site_area_m2=float(site.area),
-            parking_options=parking_options,
-        )
+        dimensional_context = {
+            **dimensional_context,
+            "catalog_height_hint_m": float(catalog_height),
+            "catalog_floor_hint": int(catalog_floors),
+            "effective_height_m": float(height),
+            "effective_floors": int(floors),
+            "floor_capacity_plan_hash": str(
+                floor_capacity_plan.get("floor_capacity_plan_hash") or ""
+            ),
+            "floor_authority": (
+                "law_derived_floor_capacity_plan"
+                if floor_capacity_plan
+                else "legacy_no_legal_context"
+            ),
+        }
         base_capacity_contract = (
             build_feasible_capacity_contract(
                 generation_context,
@@ -804,6 +913,7 @@ def run_book_program_portfolios(
                 floors=floors,
                 target_utilization=float(capacity_policy["target_far_utilization"]),
                 minimum_utilization=float(capacity_policy["min_far_utilization"]),
+                floor_capacity_plan=floor_capacity_plan,
             )
             if generation_context is not None
             else None
@@ -826,17 +936,34 @@ def run_book_program_portfolios(
             live_geometry_vlm_revision=runtime_live_vlm,
             base_capacity_contract=base_capacity_contract,
             capacity_site=site,
+            pnu=pnu,
+            stop_after_shared_floor_hard_passes=(
+                _smoke_floor_pass_reserve(
+                    selection_target,
+                    live_vlm=runtime_live_vlm,
+                )
+                if smoke_mode
+                else None
+            ),
         )
         counts["program_dimensional_context"] = deepcopy(dimensional_context)
+        counts["floor_capacity_plan"] = deepcopy(floor_capacity_plan)
         counts["capacity_policy"] = deepcopy(capacity_policy)
         counts["base_capacity_contract"] = deepcopy(base_capacity_contract or {})
+        pre_floor_contract_count = len(pool)
+        pool = _shared_floor_hard_pass_candidates(pool)
+        counts["shared_floor_contract"] = {
+            "evaluated_count": pre_floor_contract_count,
+            "hard_pass_count": len(pool),
+            "rejected_before_paid_vlm_count": pre_floor_contract_count - len(pool),
+        }
         # The base is a causal visual parent, not necessarily a final legal or
         # parking solution. Review that parent after program/clean gates, then
         # release its exact descendants and apply downstream hard gates to
         # each released candidate. Reversing this order deleted a legal,
         # parking-valid split+shift descendant merely because its unshifted
         # visual parent could not itself lay out parking.
-        if runtime_live_vlm:
+        if runtime_live_vlm and not smoke_mode:
             downstream_evaluation_pool, base_stage_vlm_gate = audit_book_base_stage_with_vlm(
                 pool,
                 building_type=building_type,
@@ -850,7 +977,11 @@ def run_book_program_portfolios(
             base_stage_vlm_gate = {
                 "schema_version": "arr.maas.book_base_stage_vlm_gate.v1",
                 "required": False,
-                "status": "not_requested",
+                "status": (
+                    "skipped_cost_bounded_smoke_exact_final_only"
+                    if runtime_live_vlm and smoke_mode
+                    else "not_requested"
+                ),
                 "input_count": len(pool),
             }
         preselection_hard_gate = None
@@ -1001,7 +1132,7 @@ def run_book_program_portfolios(
         selection_trace: dict[str, Any] = {}
         selected = _select(
             selection_pool,
-            20,
+            selection_target,
             visual_directive=program_visual_directive,
             selection_trace=selection_trace,
         )
@@ -1011,7 +1142,7 @@ def run_book_program_portfolios(
             program=slug,
             selection_pool_count=len(selection_pool),
             selected_mass_count=len(selected),
-            required_scope_count=len(BASE_VOLUME_FRACTIONS),
+            required_scope_count=required_scope_target,
             selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
         )
         outcome_graph.observe_candidates(
@@ -1024,9 +1155,12 @@ def run_book_program_portfolios(
         initial_selected_fingerprints = {
             _fingerprint(candidate) for candidate in initial_selected_snapshot
         }
-        missing_scope = len({_scope_key(candidate) for candidate in selected}) < len(BASE_VOLUME_FRACTIONS)
+        missing_scope = (
+            len({_scope_key(candidate) for candidate in selected})
+            < required_scope_target
+        )
         replenishment_cycles: list[dict[str, Any]] = []
-        if len(selected) < 20 or missing_scope:
+        if not smoke_mode and (len(selected) < selection_target or missing_scope):
             excluded_parent_keys = set(base_stage_vlm_gate.get("reviewed_parent_keys") or ())
             excluded_parent_fingerprints = set(
                 base_stage_vlm_gate.get("reviewed_parent_fingerprints") or ()
@@ -1093,7 +1227,7 @@ def run_book_program_portfolios(
                 selection_trace = {}
                 selected = _select(
                     selection_pool,
-                    20,
+                    selection_target,
                     visual_directive=program_visual_directive,
                     selection_trace=selection_trace,
                 )
@@ -1107,7 +1241,7 @@ def run_book_program_portfolios(
                     "selection_capacity_diagnostics": _selection_capacity_diagnostics(
                         selection_pool,
                         selected,
-                        target=20,
+                        target=selection_target,
                         visual_directive=program_visual_directive,
                     ),
                 }
@@ -1120,7 +1254,7 @@ def run_book_program_portfolios(
                     cycle_budget=cycle_budget,
                     selection_pool_count=len(selection_pool),
                     selected_mass_count=len(selected),
-                    required_scope_count=len(BASE_VOLUME_FRACTIONS),
+                    required_scope_count=required_scope_target,
                     selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
                 )
                 if runtime_live_vlm and cycle.evidence.get("final_book_vlm_gate"):
@@ -1133,13 +1267,13 @@ def run_book_program_portfolios(
                 )
                 missing_scope = (
                     len({_scope_key(candidate) for candidate in selected})
-                    < len(BASE_VOLUME_FRACTIONS)
+                    < required_scope_target
                 )
                 terminal_reason = replenishment_stop_reason(
                     selected_count=len(selected),
                     selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
-                    target_count=20,
-                    required_scope_count=len(BASE_VOLUME_FRACTIONS),
+                    target_count=selection_target,
+                    required_scope_count=required_scope_target,
                     cycles_run=cycle_index,
                     cycle_budget=cycle_budget,
                 )
@@ -1175,7 +1309,7 @@ def run_book_program_portfolios(
         counts["selection_capacity_diagnostics"] = _selection_capacity_diagnostics(
             selection_pool,
             selected,
-            target=20,
+            target=selection_target,
             visual_directive=program_visual_directive,
         )
         selected = _order_portfolio_for_capacity_review(selected)
@@ -1185,7 +1319,7 @@ def run_book_program_portfolios(
             program=slug,
             selection_pool_count=len(selection_pool),
             selected_mass_count=len(selected),
-            required_scope_count=len(BASE_VOLUME_FRACTIONS),
+            required_scope_count=required_scope_target,
             selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
         )
         selected_by_program[slug] = selected
@@ -1320,19 +1454,45 @@ def run_book_program_portfolios(
                 if index < len(downstream_rows) and isinstance(downstream_rows[index], dict)
                 else {}
             )
-            compilation = deepcopy(
+            authored_compilation = deepcopy(
                 candidate.source.metadata.get("geometry_program_compilation") or {}
             )
             bridge = deepcopy(
                 candidate.source.metadata.get("geometry_program_bridge_evidence") or {}
             )
-            program_payload = deepcopy(
+            authored_program_payload = deepcopy(
                 candidate.source.metadata.get("geometry_program") or {}
             )
-            graph_snapshot = deepcopy(
+            floorwise_stack = candidate.source.metadata.get(
+                "floorwise_legal_matrix_stack"
+            )
+            execution_program = (
+                floorwise_source_to_geometry_program(
+                    candidate.source,
+                    height_m=height,
+                    name=f"{candidate.sequence.name}_final_legal_projection",
+                )
+                if isinstance(floorwise_stack, dict)
+                and floorwise_stack.get("status") == "materialized"
+                else GeometryProgram.from_dict(authored_program_payload)
+            )
+            execution_compilation = compile_geometry_program(execution_program)
+            if execution_compilation.status != "compiled":
+                raise RuntimeError(
+                    "selected final SourceMass could not compile for exact replay: "
+                    f"{execution_compilation.status} {execution_compilation.issues}"
+                )
+            program_payload = execution_program.to_dict()
+            compilation = execution_compilation.to_dict(include_mesh=False)
+            authored_graph_snapshot = deepcopy(
                 candidate.source.metadata.get("geometry_graph_snapshot") or {}
             )
+            graph_snapshot = build_geometry_graph_snapshot(
+                execution_program,
+                execution_compilation,
+            )
             props["geometry_program_compilation"] = compilation
+            props["authored_geometry_program_compilation"] = authored_compilation
             trace_name = f"{slug}__{index + 1:02d}__{candidate.sequence.name}"
             trace_sequence = VerbSequence(
                 name=trace_name,
@@ -1377,7 +1537,7 @@ def run_book_program_portfolios(
             props["mass_execution_passport"] = mass_execution_passport
             props["geometry_artifact"] = {
                 "schemaVersion": "arr.maas.geometry_artifact.v1",
-                "authority": "arr_recursive_geometry_program",
+                "authority": "final_legal_floorwise_geometry_program",
                 "programType": slug,
                 "programLabel": building_type,
                 "sourceSequence": candidate.sequence.name,
@@ -1387,11 +1547,14 @@ def run_book_program_portfolios(
                     candidate.source.metadata.get("capacity_alternative_projection") or {}
                 ),
                 "geometryProgram": program_payload,
+                "authoredGeometryProgram": authored_program_payload,
                 "geometryGraphSnapshot": graph_snapshot,
+                "authoredGeometryGraphSnapshot": authored_graph_snapshot,
                 "programRelationEvidence": deepcopy(
                     candidate.source.metadata.get("program_component_relation_evidence") or {}
                 ),
                 "compilation": compilation,
+                "authoredCompilation": authored_compilation,
                 "identity": {
                     "programHash": str(
                         compilation.get("program_hash")
@@ -1404,6 +1567,21 @@ def run_book_program_portfolios(
                         or ""
                     ),
                 },
+                "upstreamIdentity": {
+                    "programHash": str(
+                        authored_compilation.get("program_hash")
+                        or bridge.get("program_hash")
+                        or ""
+                    ),
+                    "geometryHash": str(
+                        authored_compilation.get("geometry_hash")
+                        or bridge.get("geometry_hash")
+                        or ""
+                    ),
+                },
+                "floorwiseProjection": deepcopy(
+                    execution_program.metadata.get("floorwise_projection") or {}
+                ),
                 "vlmAudit": deepcopy(
                     candidate.source.metadata.get("final_book_vlm_audit") or {}
                 ),
@@ -1413,11 +1591,18 @@ def run_book_program_portfolios(
             }
             mass_brain_trace_sequences.append(trace_sequence)
             mass_brain_trace_features[trace_name] = feature
-        board = output_dir / f"maas-book-{slug}-20.png"
+        board = output_dir / (
+            f"maas-book-{slug}-smoke.png"
+            if smoke_mode
+            else f"maas-book-{slug}-20.png"
+        )
         render_archive_sheet(
             features,
             board,
-            title=f"MAAS BOOK × {building_type} · PNU {pnu} · {len(features)}/20 silhouette-distinct masses",
+            title=(
+                f"MAAS BOOK × {building_type} · PNU {pnu} · "
+                f"{len(features)}/{selection_target} floor-verified masses"
+            ),
         )
         render_evidence = _archive_render_evidence(board, len(features))
         for row, evidence in zip(rows, render_evidence):
@@ -1429,7 +1614,7 @@ def run_book_program_portfolios(
             render_evidence=render_evidence,
         )
         board_paths.append(board)
-        if runtime_live_vlm and selected:
+        if runtime_live_vlm and selected and not smoke_mode:
             try:
                 portfolio_vlm_audit = score_portfolio_board_with_openai_vlm(
                     image_path=board,
@@ -1480,16 +1665,26 @@ def run_book_program_portfolios(
                 audit=portfolio_vlm_audit,
             )
         else:
+            cost_bounded_smoke_skip = bool(
+                runtime_live_vlm and selected and smoke_mode
+            )
             portfolio_vlm_audit = {
                 "schema_version": "arr.maas.portfolio_visual_audit.v1",
-                "status": "not_requested" if not runtime_live_vlm else "no_selected_candidates",
+                "status": (
+                    "skipped_single_candidate_cost_bounded_smoke"
+                    if cost_bounded_smoke_skip
+                    else "not_requested"
+                    if not runtime_live_vlm
+                    else "no_selected_candidates"
+                ),
                 # Not evaluated is not a visual approval.  Overall non-live
                 # diagnostics remain governed by their numeric gates, while
                 # this field now reports the VLM state truthfully.
-                "hard_pass": False,
+                "hard_pass": cost_bounded_smoke_skip,
                 "evaluated": False,
                 "candidate_count": len(selected),
                 "legal_or_parking_score": False,
+                "single_candidate_diversity_gate_not_applicable": cost_bounded_smoke_skip,
             }
         counts["portfolio_vlm_audit"] = deepcopy(portfolio_vlm_audit)
         near_duplicates = sum(
@@ -1604,6 +1799,33 @@ def run_book_program_portfolios(
             failures.append("design_concept_key_repeated_above_2")
         if language_metrics["missing_required_design_concept_count"]:
             failures.append("required_design_concept_controller_missing")
+        if smoke_mode:
+            failures = []
+            if len(selected) != selection_target:
+                failures.append("smoke_selected_mass_missing")
+            if any(
+                not row["inside_site"]
+                or not row["program_hard_pass"]
+                or not bool(
+                    (
+                        selected[index].source.metadata.get(
+                            "shared_floor_contract"
+                        )
+                        or {}
+                    ).get("hard_pass")
+                )
+                for index, row in enumerate(rows)
+            ):
+                failures.append("smoke_mass_hard_gate_failed")
+            if len(downstream_rows) < len(selected) or any(
+                not bool(row.get("combined_hard_pass"))
+                for row in downstream_rows[:len(selected)]
+            ):
+                failures.append("smoke_downstream_hard_gate_failed")
+            if len(render_evidence) != len(features) or any(
+                not item.get("hard_pass") for item in render_evidence
+            ):
+                failures.append("smoke_mass_not_visible_in_render")
         program_results.append({
             "program": building_type,
             "slug": slug,
@@ -1632,6 +1854,7 @@ def run_book_program_portfolios(
             },
             "program_language_metrics": language_metrics,
             "program_dimensional_context": dimensional_context,
+            "floor_capacity_plan": deepcopy(floor_capacity_plan),
             "vlm_portfolio_directive": {
                 "active": bool(runtime_live_vlm or program_visual_directive),
                 "provider": (
@@ -1676,6 +1899,7 @@ def run_book_program_portfolios(
             "missing_vlm_required_roof_archetypes": missing_required_roofs,
             "missing_required_solid_phenotypes": missing_required_phenotypes,
             "duration_seconds": round(perf_counter() - started, 3),
+            "smoke_mode": bool(smoke_mode),
             "rows": rows,
             "png": str(board),
         })
@@ -1701,6 +1925,7 @@ def run_book_program_portfolios(
         "pnu": pnu,
         "site_area_m2": round(float(site.area), 3),
         "program_count": len(program_results),
+        "smoke_mode": bool(smoke_mode),
         "programs": program_results,
         "cross_program_language_comparison": _cross_program_language_comparison(
             selected_by_program,

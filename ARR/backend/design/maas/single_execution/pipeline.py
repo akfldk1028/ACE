@@ -96,6 +96,7 @@ def execute_single_mass(
     gate_issues = tuple(compilation_gate(compilation))
     timings["geometry_gate"] = _elapsed_ms(stage_started)
     geometry_ready = compilation.status == "compiled" and not gate_issues
+    normalized_downstream = dict(downstream_evidence or {})
 
     stage_started = perf_counter()
     if geometry_ready:
@@ -108,12 +109,26 @@ def execute_single_mass(
 
     stage_started = perf_counter()
     elevation_evidence: dict[str, Any] = {}
-    if geometry_ready:
+    shared_floor_contract = (
+        normalized_downstream.get("shared_floor_contract")
+        if isinstance(normalized_downstream.get("shared_floor_contract"), Mapping)
+        else None
+    )
+    elevation_handoff_accepted = (
+        shared_floor_contract is None
+        or _accepted_elevation_handoff(normalized_downstream)
+    )
+    if geometry_ready and elevation_handoff_accepted:
         try:
             elevation_evidence = generate_elevation_bundle(
                 compilation,
                 directory / "elevation",
                 execution_id=resolved_id,
+                shared_floor_contract=(
+                    dict(shared_floor_contract)
+                    if shared_floor_contract is not None
+                    else None
+                ),
             )
         except Exception as exc:
             elevation_evidence = {
@@ -132,6 +147,12 @@ def execute_single_mass(
                 "execution_id": resolved_id,
                 "program_hash": program_hash,
                 "geometry_hash": str(compilation.geometry_hash or ""),
+                "floor_capacity_plan_hash": str(
+                    (shared_floor_contract or {}).get(
+                        "floor_capacity_plan_hash"
+                    )
+                    or ""
+                ),
             }
             if elevation_image_adapter is not None:
                 try:
@@ -174,10 +195,28 @@ def execute_single_mass(
                         "artifact": {},
                     }
                 )
+    elif geometry_ready:
+        elevation_evidence = {
+            "schema_version": "arr.elevation_agent.bundle.v1",
+            "status": "blocked",
+            "execution_id": resolved_id,
+            "program_hash": program_hash,
+            "geometry_hash": str(compilation.geometry_hash or ""),
+            "floor_contract_hash": str(
+                (shared_floor_contract or {}).get("floor_contract_hash") or ""
+            ),
+            "floor_capacity_plan_hash": str(
+                (shared_floor_contract or {}).get(
+                    "floor_capacity_plan_hash"
+                )
+                or ""
+            ),
+            "reason": "accepted_mass_handoff_required",
+            "views": [],
+        }
     timings["elevation_agent"] = _elapsed_ms(stage_started)
 
     stage_started = perf_counter()
-    normalized_downstream = dict(downstream_evidence or {})
     identity = ExecutionIdentity(
         execution_id=resolved_id,
         program_hash=program_hash or "PROGRAM_HASH_UNRESOLVED",
@@ -266,6 +305,40 @@ def _resolve_pnu(metadata: Mapping[str, Any], downstream: Mapping[str, Any]) -> 
         or metadata_site.get("pnu")
         or "PNU_UNRESOLVED"
     )
+
+
+def _accepted_elevation_handoff(downstream: Mapping[str, Any]) -> bool:
+    floor_contract = downstream.get("shared_floor_contract")
+    if not isinstance(floor_contract, Mapping) or floor_contract.get("hard_pass") is not True:
+        return False
+    site = downstream.get("site")
+    if not isinstance(site, Mapping) or str(site.get("status") or "") != "passed":
+        return False
+    for stage_name in ("capacity", "law", "parking", "program_fit", "selector"):
+        stage = downstream.get(stage_name)
+        if not isinstance(stage, Mapping) or stage.get("hard_pass") is not True:
+            return False
+    capacity = downstream.get("capacity")
+    expected_plan_hash = str(
+        (
+            capacity.get("floor_capacity_plan_hash")
+            or ""
+        )
+        if isinstance(capacity, Mapping)
+        else ""
+    )
+    actual_plan_hash = str(
+        floor_contract.get("floor_capacity_plan_hash")
+        or (
+            floor_contract.get("identity", {})
+            if isinstance(floor_contract.get("identity"), Mapping)
+            else {}
+        ).get("floor_capacity_plan_hash")
+        or ""
+    )
+    if expected_plan_hash and actual_plan_hash != expected_plan_hash:
+        return False
+    return True
 
 
 __all__ = ["execute_single_mass"]

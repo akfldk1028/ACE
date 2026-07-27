@@ -77,7 +77,11 @@ def _capacity_alternative_key(candidate: _Candidate) -> str:
     ) or {}
     if not isinstance(evidence, dict):
         return "unclassified"
-    return str(evidence.get("alternative_id") or "unclassified")
+    return str(
+        evidence.get("selectable_capacity_alternative_id")
+        or evidence.get("alternative_id")
+        or "unclassified"
+    )
 
 
 def _capacity_target_gate(candidate: _Candidate) -> bool | None:
@@ -96,9 +100,29 @@ def _capacity_target_gate(candidate: _Candidate) -> bool | None:
         if isinstance(metadata, dict)
         else {}
     ) or {}
-    if not isinstance(evidence, dict) or "target_hard_pass" not in evidence:
+    if not isinstance(evidence, dict) or (
+        "selectable_capacity_hard_pass" not in evidence
+        and "target_hard_pass" not in evidence
+    ):
         return None
+    if "selectable_capacity_hard_pass" in evidence:
+        return bool(evidence.get("selectable_capacity_hard_pass"))
     return bool(evidence.get("target_hard_pass"))
+
+
+def _capacity_minimum_gate(candidate: _Candidate) -> bool | None:
+    """Return the measured feasible-capacity floor gate when available."""
+
+    source = getattr(candidate, "source", None)
+    metadata = getattr(source, "metadata", {}) if source is not None else {}
+    evidence = (
+        metadata.get("source_capacity_measurement")
+        if isinstance(metadata, dict)
+        else {}
+    ) or {}
+    if not isinstance(evidence, dict) or "hard_pass" not in evidence:
+        return None
+    return bool(evidence.get("hard_pass"))
 
 
 def _seed_family(candidate: _Candidate) -> str:
@@ -1198,13 +1222,25 @@ def _inside_site(source: Any, site: Polygon) -> bool:
 def _clean_mass_gate(source: Any) -> tuple[bool, dict[str, Any]]:
     """Enforce one connected, bounded-complexity architectural solid."""
     signature = source.signature()
+    floorwise_stack = source.metadata.get("floorwise_legal_matrix_stack")
+    floorwise_stack = (
+        floorwise_stack
+        if isinstance(floorwise_stack, dict)
+        and floorwise_stack.get("status") == "materialized"
+        else {}
+    )
+    floor_band_count = max(0, int(floorwise_stack.get("floor_count") or 0))
     raw_surfaces = int(signature.get("surface_count") or 0)
     effective_surfaces = int(signature.get("effective_surface_count") or raw_surfaces)
     profiled = bool((signature.get("continuous_surface_evidence") or {}).get("hard_pass"))
     recursive_mesh = bool(source.metadata.get("geometry_program_bridge_evidence"))
     raw_surface_limit = 2048 if recursive_mesh else (160 if profiled else 48)
     failures: list[str] = []
-    if len(source.volumes) > 5:
+    # A floorwise projection serializes one authored connected building as
+    # legal height bands. Its volume count is therefore driven by the
+    # law-derived floor count, not by visible object/component complexity.
+    volume_limit = max(5, floor_band_count * 4) if floor_band_count else 5
+    if len(source.volumes) > volume_limit:
         failures.append("visible_volume_count")
     if raw_surfaces > raw_surface_limit:
         failures.append("raw_surface_count")
@@ -1214,6 +1250,11 @@ def _clean_mass_gate(source: Any) -> tuple[bool, dict[str, Any]]:
         source.metadata.get("geometry_program_compilation") or {}
     ).get("metrics") or {}
     component_count = int(compilation_metrics.get("component_count") or 1)
+    visible_component_count = (
+        component_count
+        if floor_band_count
+        else len(source.volumes)
+    )
     if recursive_mesh and component_count > 1:
         # A union-shaped AST may still compile to disconnected shells. Large
         # detached pieces are no more architectural than small Lego specks;
@@ -1223,6 +1264,9 @@ def _clean_mass_gate(source: Any) -> tuple[bool, dict[str, Any]]:
         "hard_pass": not failures,
         "failure_reasons": failures,
         "visible_volume_count": len(source.volumes),
+        "visible_component_count": visible_component_count,
+        "floor_band_count": floor_band_count,
+        "volume_limit": volume_limit,
         "raw_surface_count": raw_surfaces,
         "raw_surface_limit": raw_surface_limit,
         "effective_surface_count": effective_surfaces,
@@ -1270,4 +1314,4 @@ def _site_access_side_in_principal_frame(
 
 
 
-__all__ = ["_Candidate","_distance","_silhouette_distance","_scope_key","_capacity_alternative_key","_capacity_target_gate","_seed_family","_section_family","_roof_archetype","_chassis_family","_geometry_program_family","_geometry_program_metadata","_plan_family","_vlm_reviewed_program_candidate","_llm_authored_candidate","_seed_is_llm_authored","_solid_morphology_metrics","_section_silhouette_flags","_program_form_gate","_architectural_articulation_metrics","_design_concept_descriptor","_program_section_phenotype","_oriented_aspect","_oriented_plan_dimensions","_program_dimensional_context","_fingerprint","_inside_site","_clean_mass_gate","_site_access_side_in_principal_frame"]
+__all__ = ["_Candidate","_distance","_silhouette_distance","_scope_key","_capacity_alternative_key","_capacity_target_gate","_capacity_minimum_gate","_seed_family","_section_family","_roof_archetype","_chassis_family","_geometry_program_family","_geometry_program_metadata","_plan_family","_vlm_reviewed_program_candidate","_llm_authored_candidate","_seed_is_llm_authored","_solid_morphology_metrics","_section_silhouette_flags","_program_form_gate","_architectural_articulation_metrics","_design_concept_descriptor","_program_section_phenotype","_oriented_aspect","_oriented_plan_dimensions","_program_dimensional_context","_fingerprint","_inside_site","_clean_mass_gate","_site_access_side_in_principal_frame"]

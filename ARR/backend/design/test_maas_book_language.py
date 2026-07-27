@@ -15,6 +15,7 @@ from design.maas.book_language import audited_book_language_registry, book_base_
 from design.maas.book_language import candidate_analysis, portfolio_benchmark, portfolio_feedback
 from design.maas.book_language import portfolio_selection, vlm_review
 from design.maas.book_language import final_vlm_cycle, portfolio_replenishment
+from design.maas.book_language import lineage as book_lineage
 from design.maas.book_language.corpus_audit import audit_book_corpus
 from design.maas.geometry_language import base_seed_program, compile_geometry_program
 from design.maas.grammar.vocab import BOOK_BASE_VERBS, SUPPORTED_VERBS
@@ -26,6 +27,42 @@ from design.maas.source_geometry import compile_sequence_to_source_mass
 
 
 class MaasBookLanguageRegistryTest(SimpleTestCase):
+    def test_lineage_gate_keeps_descendant_when_viable_base_was_evicted_by_qd(self):
+        def candidate(parent_key: str, stage: str, target_pass: bool):
+            return SimpleNamespace(source=SimpleNamespace(metadata={
+                "book_generation_lineage": {
+                    "parent_key": parent_key,
+                    "stage": stage,
+                },
+                "geometry_program": {
+                    "metadata": {"family": "agent_notch"},
+                },
+                "capacity_alternative_projection": {
+                    "target_hard_pass": target_pass,
+                },
+            }))
+
+        retained_descendant = candidate(
+            "base-evicted-after-program-pass",
+            "combination",
+            True,
+        )
+        rejected_descendant = candidate(
+            "base-never-program-valid",
+            "combination",
+            True,
+        )
+
+        retained, evidence = book_lineage.gate_descendants_by_base(
+            [retained_descendant, rejected_descendant],
+            known_viable_base_keys={"base-evicted-after-program-pass"},
+        )
+
+        self.assertEqual(retained, [retained_descendant])
+        self.assertEqual(evidence["retained_via_known_base_count"], 1)
+        self.assertEqual(evidence["capacity_target_pass_input_count"], 2)
+        self.assertEqual(evidence["capacity_target_pass_retained_count"], 1)
+
     def test_capacity_portfolio_quotas_balance_four_bands_and_absorb_rare_supply(self):
         def candidate(alternative_id: str):
             return SimpleNamespace(source=SimpleNamespace(metadata={
@@ -334,6 +371,136 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertEqual(result.final_vlm_gate["hard_pass_count"], 3)
         self.assertTrue(result.repair_evidence["same_run_causal_loop_closed"])
 
+    def test_final_vlm_cycle_routes_only_capacity_target_passes_to_paid_review(self):
+        target_pass = SimpleNamespace(
+            key="target-pass",
+            source=SimpleNamespace(metadata={
+                "capacity_alternative_projection": {"target_hard_pass": True},
+            }),
+        )
+        target_miss = SimpleNamespace(
+            key="target-miss",
+            source=SimpleNamespace(metadata={
+                "capacity_alternative_projection": {"target_hard_pass": False},
+            }),
+        )
+        reviewed_inputs = []
+
+        def audit(items, **_kwargs):
+            reviewed_inputs.append(list(items))
+            return list(items), {"hard_pass_count": len(items), "audit_records": []}
+
+        with (
+            patch.object(
+                final_vlm_cycle,
+                "_bounded_visual_selection_pool",
+                side_effect=lambda items: list(items),
+            ),
+            patch.object(
+                final_vlm_cycle,
+                "_audit_final_book_geometry_with_vlm",
+                side_effect=audit,
+            ),
+            patch.object(
+                final_vlm_cycle,
+                "_repair_exact_post_book_candidates_from_vlm",
+                return_value=([], {"repaired_candidate_count": 0}),
+            ),
+        ):
+            result = final_vlm_cycle.run_final_vlm_cycle(
+                [target_miss, target_pass],
+                retained_hard_passes=[],
+                building_type="program",
+                output_dir=Path("unused"),
+                visual_directive={},
+                outcome_graph=object(),
+                program_slug="test",
+                generation_site=object(),
+                height=12.0,
+                floors=4,
+                generation_context=None,
+                program_dimensional_context={},
+                site_boundary_source="test",
+                site_access_context={},
+                site_access_geometry={},
+                base_capacity_contract={},
+                downstream_context={},
+                hard_gate_summary=lambda report, pool: {
+                    "candidate_count": len(pool)
+                },
+                completion_status="complete",
+                no_repair_status="no_repair",
+            )
+
+        self.assertEqual(reviewed_inputs, [[target_pass]])
+        self.assertEqual(result.selection_pool, [target_pass])
+        self.assertEqual(
+            result.initial_vlm_gate["capacity_target_routing"][
+                "rejected_before_paid_vlm_count"
+            ],
+            1,
+        )
+
+    def test_final_vlm_cycle_skips_paid_review_when_all_measured_candidates_miss_target(self):
+        target_miss = SimpleNamespace(
+            key="target-miss",
+            source=SimpleNamespace(metadata={
+                "capacity_alternative_projection": {"target_hard_pass": False},
+            }),
+        )
+
+        with (
+            patch.object(
+                final_vlm_cycle,
+                "_bounded_visual_selection_pool",
+                side_effect=lambda items: list(items),
+            ),
+            patch.object(
+                final_vlm_cycle,
+                "_audit_final_book_geometry_with_vlm",
+            ) as paid_review,
+            patch.object(
+                final_vlm_cycle,
+                "_repair_exact_post_book_candidates_from_vlm",
+            ) as repair,
+        ):
+            result = final_vlm_cycle.run_final_vlm_cycle(
+                [target_miss],
+                retained_hard_passes=[],
+                building_type="program",
+                output_dir=Path("unused"),
+                visual_directive={},
+                outcome_graph=object(),
+                program_slug="test",
+                generation_site=object(),
+                height=12.0,
+                floors=4,
+                generation_context=None,
+                program_dimensional_context={},
+                site_boundary_source="test",
+                site_access_context={},
+                site_access_geometry={},
+                base_capacity_contract={},
+                downstream_context={},
+                hard_gate_summary=lambda report, pool: {
+                    "candidate_count": len(pool)
+                },
+                completion_status="complete",
+                no_repair_status="no_repair",
+            )
+
+        paid_review.assert_not_called()
+        repair.assert_not_called()
+        self.assertEqual(result.selection_pool, [])
+        self.assertEqual(
+            result.initial_vlm_gate["status"],
+            "no_capacity_target_hard_pass_candidates",
+        )
+        self.assertEqual(
+            result.final_vlm_gate["status"],
+            "no_capacity_target_hard_pass_candidates",
+        )
+
     def test_replenishment_vlm_reviews_only_new_candidates(self):
         retained = [SimpleNamespace(key="prior-pass")]
         new = [SimpleNamespace(key="new-candidate")]
@@ -622,7 +789,25 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         source = replace(source, metadata={
             **source.metadata,
             "geometry_program": program.to_dict(),
-            "source_capacity_measurement": {"utilization_ratio": 0.8},
+            "source_capacity_measurement": {
+                "utilization_ratio": 0.8,
+                "total_floor_area_m2": 240.0,
+            },
+            "capacity_alternative_projection": {
+                "requested_capacity_alternative_id": "brief_target",
+                "requested_target_utilization": 0.90,
+                "selectable_capacity_alternative_id": "balanced",
+                "selectable_capacity_target_utilization": 0.80,
+                "selectable_capacity_hard_pass": True,
+            },
+            "shared_floor_contract": {
+                "schema_version": "arr.maas.shared_floor_contract.v1",
+                "floor_contract_hash": "floor-contract-test",
+                "floor_capacity_plan_hash": "floor-plan-test",
+                "target_floor_areas_m2": [80.0, 80.0, 80.0],
+                "totals": {"requested_floors": 3, "total_floor_area_m2": 240.0},
+                "hard_pass": True,
+            },
         })
         candidate = portfolio_benchmark._Candidate(
             "book:operative:test",
@@ -634,10 +819,12 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             0.8,
         )
         attempts = 0
+        reviewed_features = []
 
-        def flaky_scorer(**_kwargs):
+        def flaky_scorer(**kwargs):
             nonlocal attempts
             attempts += 1
+            reviewed_features.append(kwargs["feature"])
             if attempts == 1:
                 raise TimeoutError("transient unit-test timeout")
             return {
@@ -676,6 +863,23 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertEqual(evidence["recovered_call_failure_count"], 1)
         self.assertEqual(evidence["unrecovered_call_failure_count"], 0)
         self.assertEqual(evidence["call_failure_records"], [])
+        capacity_context = reviewed_features[-1]["properties"]["capacity_review_context"]
+        self.assertEqual(
+            capacity_context["capacity_alternative"][
+                "selectable_capacity_alternative_id"
+            ],
+            "balanced",
+        )
+        self.assertEqual(
+            capacity_context["target_floor_areas_m2"],
+            [80.0, 80.0, 80.0],
+        )
+        self.assertEqual(
+            accepted[0].source.metadata["final_book_vlm_audit"][
+                "capacity_review_context"
+            ]["floor_contract_hash"],
+            "floor-contract-test",
+        )
 
     def test_final_vlm_rejects_legacy_candidate_before_provider_call(self):
         legacy = SimpleNamespace(
@@ -704,7 +908,7 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertEqual(evidence["invalid_geometry_program_rejected_count"], 1)
         self.assertEqual(evidence["initial_call_failure_count"], 0)
 
-    def test_final_vlm_typed_edit_repairs_the_exact_post_book_ast_without_reprojection(self):
+    def test_final_vlm_typed_edit_keeps_book_ast_and_reprojects_legal_floor_stack(self):
         site = Polygon(((0, 0), (42, 0), (42, 30), (0, 30)))
         sequence = program_seed_sequences("gymnasium")[0]
         source = compile_sequence_to_source_mass(site, sequence)
@@ -731,6 +935,10 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             "geometry_program_bridge_evidence": {"legal_fit_strength": 0.0},
             "legal_generation_context_evidence": {},
             "capacity_alternative_projection": parent_capacity_alternative,
+            "floorwise_legal_matrix_stack": {
+                "status": "materialized",
+                "target_plan_coverage": 0.74,
+            },
         })
         candidate = portfolio_benchmark._Candidate(
             "test-principle",
@@ -777,6 +985,17 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
                 "schema_version": "arr.maas.source_capacity_measurement.v1",
                 "feasible_capacity_utilization": 0.99,
             }),
+            patch.object(
+                vlm_review,
+                "materialize_floorwise_legal_source",
+                side_effect=lambda repaired_source, **_kwargs: repaired_source,
+            ) as floorwise_reprojection,
+            patch.object(
+                vlm_review,
+                "_materialize_repaired_floor_contract",
+                return_value={"hard_pass": True, "failure_reasons": []},
+            ),
+            patch.object(vlm_review, "generation_site_at_height", return_value=site),
         ):
             repaired, counts = portfolio_benchmark._repair_exact_post_book_candidates_from_vlm(
                 [candidate],
@@ -785,7 +1004,7 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
                 building_type="gymnasium",
                 height=18.0,
                 floors=3,
-                generation_context=None,
+                generation_context=SimpleNamespace(),
                 program_dimensional_context={},
                 site_boundary_source="unit_test",
                 site_access_context={},
@@ -797,6 +1016,12 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertEqual(len(repaired), 1)
         self.assertEqual(counts["geometry_changed_count"], 1)
         self.assertEqual(counts["repaired_candidate_count"], 1)
+        self.assertEqual(counts["floorwise_legal_reprojection_count"], 1)
+        self.assertEqual(floorwise_reprojection.call_count, 1)
+        self.assertEqual(
+            floorwise_reprojection.call_args.kwargs["target_plan_coverage"],
+            0.74,
+        )
         self.assertFalse(counts["book_reprojection_applied"])
         repaired_program = repaired[0].source.metadata["geometry_program"]
         self.assertEqual(
@@ -1704,6 +1929,34 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertFalse(hard_pass)
         self.assertIn("disconnected_mesh_component_count", evidence["failure_reasons"])
         self.assertEqual(evidence["mesh_component_count"], 2)
+
+    def test_clean_mass_gate_treats_law_derived_floor_bands_as_one_building(self):
+        source = SimpleNamespace(
+            volumes=tuple(object() for _ in range(6)),
+            metadata={
+                "geometry_program_bridge_evidence": {"program_hash": "recursive"},
+                "geometry_program_compilation": {"metrics": {
+                    "component_count": 1,
+                    "minimum_component_volume_ratio": 1.0,
+                }},
+                "floorwise_legal_matrix_stack": {
+                    "status": "materialized",
+                    "floor_count": 6,
+                },
+            },
+            signature=lambda: {
+                "surface_count": 24,
+                "effective_surface_count": 12,
+                "continuous_surface_evidence": {"hard_pass": False},
+            },
+        )
+
+        hard_pass, evidence = portfolio_benchmark._clean_mass_gate(source)
+
+        self.assertTrue(hard_pass, evidence)
+        self.assertNotIn("visible_volume_count", evidence["failure_reasons"])
+        self.assertEqual(evidence["floor_band_count"], 6)
+        self.assertEqual(evidence["visible_component_count"], 1)
 
     def test_registry_reconciles_all_pages_and_principle_groups(self):
         registry = build_book_language_registry()

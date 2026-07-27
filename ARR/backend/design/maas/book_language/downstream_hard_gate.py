@@ -14,7 +14,7 @@ from dataclasses import dataclass, replace
 from typing import Any, Iterable
 
 from shapely.affinity import scale, translate
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point, Polygon, shape
 from shapely.ops import unary_union
 
 from design.maas.legal_envelope import build_legal_envelope
@@ -409,13 +409,35 @@ def _evaluate_candidate(
         if original_clipped:
             clipped_volume_count += 1
 
-    original_metrics = _metrics(source.volumes, site_local_utm, height_m=height_m, floors=floors)
-    projected_metrics = _metrics(tuple(projected), site_local_utm, height_m=height_m, floors=floors)
+    shared_floor_contract = (
+        source.metadata.get("shared_floor_contract")
+        if isinstance(source.metadata.get("shared_floor_contract"), dict)
+        else None
+    )
+    original_metrics = _metrics(
+        source.volumes,
+        site_local_utm,
+        height_m=height_m,
+        floors=floors,
+        shared_floor_contract=shared_floor_contract,
+    )
+    projected_metrics = _metrics(
+        tuple(projected),
+        site_local_utm,
+        height_m=height_m,
+        floors=floors,
+        shared_floor_contract=shared_floor_contract,
+    )
     retention = projected_volume_total / source_volume_total if source_volume_total > 0 else 0.0
     weighted_iou = weighted_intersection / weighted_union if weighted_union > 0 else 0.0
     legal_failures = []
     if not projected:
         legal_failures.append("empty_after_legal_projection")
+    if (
+        shared_floor_contract is not None
+        and shared_floor_contract.get("hard_pass") is not True
+    ):
+        legal_failures.append("shared_floor_contract_failed")
     if projected_metrics["bcr_pct"] > envelope.bcr_limit + 0.1:
         legal_failures.append("bcr_limit_exceeded")
     if projected_metrics["far_pct"] > envelope.far_limit + 0.1:
@@ -443,7 +465,14 @@ def _evaluate_candidate(
     parking_props = {
         "footprint_area": projected_metrics["footprint_area_m2"],
         "floor_area": projected_metrics["floor_area_m2"],
-        "num_floors": floors,
+        "num_floors": int(
+            (
+                (shared_floor_contract or {}).get("totals")
+                if isinstance((shared_floor_contract or {}).get("totals"), dict)
+                else {}
+            ).get("requested_floors")
+            or floors
+        ),
         "height": height_m,
         "bcr": projected_metrics["bcr_pct"],
         "required_parking_spaces": requirement.get("required_spaces"),
@@ -482,6 +511,17 @@ def _evaluate_candidate(
         "weighted_plan_iou": round(weighted_iou, 4),
         "geometry_retention_pass": geometry_retention_pass,
         "geometry_failure_reasons": geometry_failures,
+        "floor_contract_hash": str(
+            (shared_floor_contract or {}).get("floor_contract_hash") or ""
+        ),
+        "shared_floor_contract_hard_pass": (
+            shared_floor_contract.get("hard_pass")
+            if shared_floor_contract is not None
+            else None
+        ),
+        "shared_floor_failure_reasons": list(
+            (shared_floor_contract or {}).get("failure_reasons") or ()
+        ),
     }
     parking_hard_gate = {
         "evaluated": True,
@@ -508,6 +548,10 @@ def _evaluate_candidate(
                 "capacity": {
                     **dict(source.metadata.get("capacity_alternative_projection") or {}),
                     "measurement": dict(source.metadata.get("source_capacity_measurement") or {}),
+                    "shared_floor_contract": dict(shared_floor_contract or {}),
+                    "floor_contract_hash": str(
+                        (shared_floor_contract or {}).get("floor_contract_hash") or ""
+                    ),
                     "evaluated": bool(
                         source.metadata.get("capacity_alternative_projection")
                         or source.metadata.get("source_capacity_measurement")
@@ -540,21 +584,57 @@ def _evaluate_candidate(
     }
 
 
-def _metrics(volumes: tuple[SourceVolume, ...], site: Polygon, *, height_m: float, floors: int) -> dict[str, float]:
-    ground = _ground_footprint(volumes)
-    footprint_area = float(ground.area) if ground is not None else 0.0
-    floor_area = 0.0
-    for floor in range(max(1, floors)):
-        fraction = (floor + 0.5) / max(1, floors)
-        active = [
-            volume.footprint
-            for volume in volumes
-            if float(volume.bottom_fraction) <= fraction < float(volume.top_fraction)
-        ]
-        if active:
-            floor_area += float(unary_union(active).area)
+def _metrics(
+    volumes: tuple[SourceVolume, ...],
+    site: Polygon,
+    *,
+    height_m: float,
+    floors: int,
+    shared_floor_contract: dict[str, Any] | None = None,
+) -> dict[str, float | str]:
+    shared = (
+        shared_floor_contract
+        if isinstance(shared_floor_contract, dict)
+        and shared_floor_contract.get("schema_version") == "arr.maas.shared_floor_contract.v1"
+        else None
+    )
+    if shared is not None:
+        plates = shared.get("plates") if isinstance(shared.get("plates"), list) else []
+        first_geometry = (
+            plates[0].get("occupied_geometry_utm")
+            if plates and isinstance(plates[0], dict)
+            else None
+        )
+        ground = shape(first_geometry) if isinstance(first_geometry, dict) else None
+        footprint_area = float(ground.area) if ground is not None and not ground.is_empty else 0.0
+        totals = shared.get("totals") if isinstance(shared.get("totals"), dict) else {}
+        floor_area = float(totals.get("total_floor_area_m2") or 0.0)
+        maximum_height = max(
+            (
+                float(plate.get("top_height_m") or 0.0)
+                for plate in plates
+                if isinstance(plate, dict) and plate.get("hard_pass")
+            ),
+            default=0.0,
+        )
+    else:
+        ground = _ground_footprint(volumes)
+        footprint_area = float(ground.area) if ground is not None else 0.0
+        floor_area = 0.0
+        for floor in range(max(1, floors)):
+            fraction = (floor + 0.5) / max(1, floors)
+            active = [
+                volume.footprint
+                for volume in volumes
+                if float(volume.bottom_fraction) <= fraction < float(volume.top_fraction)
+            ]
+            if active:
+                floor_area += float(unary_union(active).area)
+        maximum_height = max(
+            (height_m * float(volume.top_fraction) for volume in volumes),
+            default=0.0,
+        )
     site_area = max(float(site.area), 1e-9)
-    maximum_height = max((height_m * float(volume.top_fraction) for volume in volumes), default=0.0)
     return {
         "footprint_area_m2": round(footprint_area, 3),
         "floor_area_m2": round(floor_area, 3),
@@ -562,6 +642,7 @@ def _metrics(volumes: tuple[SourceVolume, ...], site: Polygon, *, height_m: floa
         "far_pct": round(floor_area / site_area * 100.0, 3),
         "height_m": round(maximum_height, 3),
         "open_pct": round(max(0.0, site_area - footprint_area) / site_area * 100.0, 3),
+        "floor_contract_hash": str((shared or {}).get("floor_contract_hash") or ""),
     }
 
 

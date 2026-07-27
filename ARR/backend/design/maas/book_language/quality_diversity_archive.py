@@ -14,6 +14,7 @@ from typing import Any
 from .candidate_analysis import (
     _Candidate,
     _capacity_alternative_key,
+    _capacity_minimum_gate,
     _capacity_target_gate,
     _fingerprint,
     _geometry_program_family,
@@ -103,9 +104,14 @@ def behavior_descriptor(candidate: _Candidate) -> tuple[str, str, str]:
     )
 
 
-def _performance_key(candidate: _Candidate) -> tuple[int, float]:
+def _performance_key(candidate: _Candidate) -> tuple[int, int, float]:
     measured_target_pass = _capacity_target_gate(candidate)
-    return (int(measured_target_pass is True), float(candidate.score))
+    measured_minimum_pass = _capacity_minimum_gate(candidate)
+    return (
+        int(measured_target_pass is True),
+        int(measured_minimum_pass is True),
+        float(candidate.score),
+    )
 
 
 def map_elites_archive(pool: list[_Candidate]) -> list[_Candidate]:

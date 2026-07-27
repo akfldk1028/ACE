@@ -124,8 +124,12 @@ def lineage_record(
     }
 
 
-def gate_descendants_by_base(candidates: list[Any]) -> tuple[list[Any], dict[str, Any]]:
-    """Keep descendants only when their exact base parent is in the pool."""
+def gate_descendants_by_base(
+    candidates: list[Any],
+    *,
+    known_viable_base_keys: set[str] | None = None,
+) -> tuple[list[Any], dict[str, Any]]:
+    """Keep descendants whose exact base passed before or after QD compaction."""
     def family(candidate: Any) -> str:
         raw_program = candidate.source.metadata.get("geometry_program") or {}
         metadata = raw_program.get("metadata") if isinstance(raw_program, dict) else {}
@@ -135,13 +139,22 @@ def gate_descendants_by_base(candidates: list[Any]) -> tuple[list[Any], dict[str
             or "unclassified"
         )
 
-    base_keys = {
+    retained_base_keys = {
         str((candidate.source.metadata.get("book_generation_lineage") or {}).get("parent_key") or "")
         for candidate in candidates
         if str((candidate.source.metadata.get("book_generation_lineage") or {}).get("stage") or "") == "base"
     }
+    base_keys = {
+        key
+        for key in (
+            *retained_base_keys,
+            *(known_viable_base_keys or set()),
+        )
+        if key
+    }
     retained = []
     rejected = 0
+    retained_via_known_base = 0
     family_counts: dict[str, dict[str, int]] = {}
     for candidate in candidates:
         lineage = candidate.source.metadata.get("book_generation_lineage") or {}
@@ -155,9 +168,16 @@ def gate_descendants_by_base(candidates: list[Any]) -> tuple[list[Any], dict[str
             "rejected_descendant_without_viable_base_count": 0,
         })
         counts["input_base_count" if stage == "base" else "input_descendant_count"] += 1
-        if stage == "base" or str(lineage.get("parent_key") or "") in base_keys:
+        parent_key = str(lineage.get("parent_key") or "")
+        if stage == "base" or parent_key in base_keys:
             retained.append(candidate)
             counts["retained_base_count" if stage == "base" else "retained_descendant_count"] += 1
+            if (
+                stage != "base"
+                and parent_key not in retained_base_keys
+                and parent_key in (known_viable_base_keys or set())
+            ):
+                retained_via_known_base += 1
         else:
             rejected += 1
             counts["rejected_descendant_without_viable_base_count"] += 1
@@ -165,8 +185,33 @@ def gate_descendants_by_base(candidates: list[Any]) -> tuple[list[Any], dict[str
         "schema_version": "arr.maas.book_lineage_gate.v1",
         "input_count": len(candidates),
         "base_parent_count": len(base_keys),
+        "retained_pool_base_parent_count": len(retained_base_keys),
+        "known_viable_base_parent_count": len(known_viable_base_keys or set()),
         "retained_count": len(retained),
+        "retained_via_known_base_count": retained_via_known_base,
         "descendant_without_viable_base_count": rejected,
+        "capacity_target_pass_input_count": sum(
+            bool(
+                (
+                    candidate.source.metadata.get(
+                        "capacity_alternative_projection"
+                    )
+                    or {}
+                ).get("target_hard_pass")
+            )
+            for candidate in candidates
+        ),
+        "capacity_target_pass_retained_count": sum(
+            bool(
+                (
+                    candidate.source.metadata.get(
+                        "capacity_alternative_projection"
+                    )
+                    or {}
+                ).get("target_hard_pass")
+            )
+            for candidate in retained
+        ),
         "by_geometry_family": dict(sorted(family_counts.items())),
         "hard_pass": rejected == 0,
     }

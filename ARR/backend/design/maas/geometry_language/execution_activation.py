@@ -353,6 +353,136 @@ def refresh_elevation_proposal_graph(
     return result
 
 
+def refresh_multi_view_elevation_graph(
+    graph: dict[str, Any],
+    proposal: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Materialize multi-view generation and gates in the existing MASS graph."""
+
+    result = deepcopy(graph)
+    nodes = result.get("nodes")
+    edges = result.get("edges")
+    if not isinstance(nodes, list) or not isinstance(edges, list):
+        raise ValueError("invalid MASS activation graph")
+    node_ids = {
+        "elevation:multi_view_generator",
+        "elevation:multi_view_gate",
+        "elevation:multi_view_critic",
+        "elevation:multi_view_proposal",
+    }
+    relations = {
+        "requests_multi_view_facades",
+        "validates_multi_view_elevation",
+        "requests_joint_elevation_critic",
+        "accepts_multi_view_elevation",
+    }
+    nodes[:] = [
+        node
+        for node in nodes
+        if not isinstance(node, dict) or str(node.get("id") or "") not in node_ids
+    ]
+    edges[:] = [
+        item
+        for item in edges
+        if not isinstance(item, dict)
+        or str(item.get("relation") or "") not in relations
+    ]
+    status = str(proposal.get("status") or "failed")
+    accepted = status == "accepted"
+    identity = deepcopy(dict(proposal.get("identity") or {}))
+    artifacts = deepcopy(dict(proposal.get("artifacts") or {}))
+    gate = deepcopy(dict(proposal.get("deterministic_gate") or {}))
+    critic = deepcopy(dict(proposal.get("critic") or {}))
+    generator_active = 1.0 if artifacts else 0.0
+    gate_active = 1.0 if gate.get("status") == "passed" else 0.0
+    critic_active = 1.0 if critic.get("status") == "passed" else 0.0
+    accepted_active = 1.0 if accepted else 0.0
+    nodes.extend([
+        {
+            "id": "elevation:multi_view_generator",
+            "column": "elevation_image_agent",
+            "label": f"4-Facade Generator · {status}",
+            "kind": "elevation_multi_view_generator",
+            "status": "generated" if artifacts else "failed",
+            "activation": generator_active,
+            "evidence": {
+                **identity,
+                "artifacts": artifacts,
+                "paid_request_attempt_count": int(
+                    proposal.get("image_paid_request_attempt_count") or 0
+                ),
+                "repair_count_by_view": deepcopy(
+                    dict(proposal.get("repair_count_by_view") or {})
+                ),
+                "retry_count": int(proposal.get("retry_count") or 0),
+            },
+        },
+        {
+            "id": "elevation:multi_view_gate",
+            "column": "elevation_condition",
+            "label": f"Multi-View Deterministic GATE · {gate.get('status') or 'not_evaluated'}",
+            "kind": "elevation_multi_view_gate",
+            "status": str(gate.get("status") or "not_evaluated"),
+            "activation": gate_active,
+            "evidence": gate,
+        },
+        {
+            "id": "elevation:multi_view_critic",
+            "column": "elevation_image_agent",
+            "label": f"Joint 4-View Critic · {critic.get('status') or 'not_evaluated'}",
+            "kind": "elevation_multi_view_critic",
+            "status": str(critic.get("status") or "not_evaluated"),
+            "activation": critic_active,
+            "evidence": critic,
+        },
+        {
+            "id": "elevation:multi_view_proposal",
+            "column": "elevation_proposal",
+            "label": f"Multi-View ALT 01 · {status}",
+            "kind": "elevation_multi_view_proposal",
+            "status": status,
+            "activation": accepted_active,
+            "evidence": {
+                **identity,
+                "artifacts": artifacts,
+                "montage": deepcopy(dict(proposal.get("montage") or {})),
+                "manifest_path": str(proposal.get("manifest_path") or ""),
+                "paid_request_attempt_count": int(
+                    proposal.get("paid_request_attempt_count") or 0
+                ),
+                "geometry_mutation_allowed": False,
+            },
+        },
+    ])
+    edges.extend([
+        edge(
+            "elevation:condition_pack",
+            "elevation:multi_view_generator",
+            "requests_multi_view_facades",
+            generator_active,
+        ),
+        edge(
+            "elevation:multi_view_generator",
+            "elevation:multi_view_gate",
+            "validates_multi_view_elevation",
+            gate_active,
+        ),
+        edge(
+            "elevation:multi_view_gate",
+            "elevation:multi_view_critic",
+            "requests_joint_elevation_critic",
+            critic_active,
+        ),
+        edge(
+            "elevation:multi_view_critic",
+            "elevation:multi_view_proposal",
+            "accepts_multi_view_elevation",
+            accepted_active,
+        ),
+    ])
+    return result
+
+
 def _safe_program_hash(program: Any) -> str:
     try:
         return str(program.program_hash())
@@ -504,4 +634,5 @@ __all__ = [
     "build_activation_graph",
     "edge",
     "refresh_elevation_proposal_graph",
+    "refresh_multi_view_elevation_graph",
 ]

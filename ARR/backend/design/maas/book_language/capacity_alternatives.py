@@ -11,6 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from .floor_capacity_plan import allocate_floor_targets
+
 
 CAPACITY_ALTERNATIVE_SCHEMA = "arr.maas.capacity_alternative.v1"
 
@@ -148,7 +150,22 @@ def build_capacity_alternative(
         float(contract.get("generation_site_area_m2") or 0.0),
     )
     target_floor_area = feasible_maximum * target
-    target_plan_area = target_floor_area / floor_count
+    height_field_capacity = max(
+        0.0,
+        float(contract.get("height_field_capacity_m2") or feasible_maximum),
+    )
+    legal_field_yield_ratio = (
+        min(1.0, target_floor_area / height_field_capacity)
+        if height_field_capacity > 1e-9
+        else 0.0
+    )
+    bcr_floor_areas = contract.get("bcr_adjusted_floor_areas_m2")
+    ground_capacity = (
+        max(0.0, float(bcr_floor_areas[0]))
+        if isinstance(bcr_floor_areas, list) and bcr_floor_areas
+        else generation_area
+    )
+    target_plan_area = ground_capacity * legal_field_yield_ratio
     target_plan_coverage = (
         min(0.95, target_plan_area / generation_area)
         if generation_area > 1e-9
@@ -166,6 +183,7 @@ def build_capacity_alternative(
         "target_utilization": round(target, 4),
         "feasible_maximum_floor_area_m2": round(feasible_maximum, 3),
         "target_floor_area_m2": round(target_floor_area, 3),
+        "legal_field_target_yield_ratio": round(legal_field_yield_ratio, 4),
         "target_base_plan_area_m2": round(target_plan_area, 3),
         "target_base_plan_coverage": round(target_plan_coverage, 4),
         "projection_mode": "typed_form_plan_fit",
@@ -180,14 +198,44 @@ def capacity_contract_for_alternative(
     """Return a projected copy consumable by the existing source bridge."""
 
     projected = dict(base_contract or {})
+    target_floor_areas = _alternative_floor_targets(
+        projected,
+        target=float(alternative.get("target_floor_area_m2") or 0.0),
+    )
     projected.update({
         "target_utilization": alternative.get("target_utilization", 0.0),
         "target_floor_area_m2": alternative.get("target_floor_area_m2", 0.0),
+        "target_floor_areas_m2": target_floor_areas,
         "target_base_plan_area_m2": alternative.get("target_base_plan_area_m2", 0.0),
         "target_base_plan_coverage": alternative.get("target_base_plan_coverage", 0.0),
         "capacity_alternative_id": alternative.get("alternative_id", ""),
     })
     return projected
+
+
+def _alternative_floor_targets(
+    contract: dict[str, Any],
+    *,
+    target: float,
+) -> list[float]:
+    """Project one alternative total onto the same exact legal floor stack."""
+
+    floor_count = max(1, int(contract.get("requested_floors") or 1))
+    capacities = contract.get("bcr_adjusted_floor_areas_m2")
+    if not isinstance(capacities, list) or len(capacities) != floor_count:
+        return []
+    normalized = [max(0.0, float(value)) for value in capacities]
+    raw = allocate_floor_targets(normalized, target)
+    rounded = [round(value, 3) for value in raw]
+    desired = round(min(max(0.0, float(target)), sum(normalized)), 3)
+    residual = round(desired - sum(rounded), 3)
+    if abs(residual) > 1e-9:
+        for index in range(len(rounded) - 1, -1, -1):
+            adjusted = rounded[index] + residual
+            if -1e-9 <= adjusted <= normalized[index] + 1e-9:
+                rounded[index] = round(max(0.0, adjusted), 3)
+                break
+    return rounded
 
 
 def evaluate_capacity_alternative(
@@ -200,11 +248,47 @@ def evaluate_capacity_alternative(
         float(measured.get("feasible_capacity_utilization") or 0.0),
     )
     target = max(0.0, float(alternative.get("target_utilization") or 0.0))
+    minimum = max(
+        0.0,
+        float(alternative.get("feasible_minimum_utilization") or 0.0),
+    )
+    brief_target = max(
+        minimum,
+        float(alternative.get("program_brief_target_utilization") or minimum),
+    )
+    measured_band_targets = {
+        "spatial_reserve": minimum,
+        "balanced_yield": minimum + (brief_target - minimum) * 0.5,
+        "brief_target": brief_target,
+        "maximum_feasible": brief_target + (1.0 - brief_target) * 0.5,
+    }
+    achieved_bands = [
+        (alternative_id, band_target)
+        for alternative_id, band_target in measured_band_targets.items()
+        if achieved + 1e-9 >= band_target
+    ]
+    selectable_alternative_id, selectable_target = (
+        max(achieved_bands, key=lambda item: item[1])
+        if achieved_bands
+        else ("", 0.0)
+    )
     return {
         **alternative,
         "achieved_utilization": round(achieved, 4),
         "target_gap": round(achieved - target, 4),
         "target_hard_pass": bool(achieved + 1e-9 >= target),
+        "requested_capacity_alternative_id": str(
+            alternative.get("alternative_id") or ""
+        ),
+        "requested_target_utilization": round(target, 4),
+        "selectable_capacity_alternative_id": selectable_alternative_id,
+        "selectable_capacity_target_utilization": round(selectable_target, 4),
+        "selectable_capacity_hard_pass": bool(selectable_alternative_id),
+        "capacity_band_resolution": (
+            "highest_measured_achieved_band"
+            if selectable_alternative_id
+            else "below_feasible_minimum"
+        ),
         "measurement_schema_version": measured.get("schema_version"),
     }
 

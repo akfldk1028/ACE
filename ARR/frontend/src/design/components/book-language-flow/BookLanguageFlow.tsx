@@ -16,6 +16,7 @@ import type {
   MassExecutionPassport,
   OutcomeGraphSlice,
 } from '../../lib/language-system-types';
+import { EvidencePanelBoundary } from './EvidencePanelBoundary';
 import { ExecutedMassEvidence } from './ExecutedMassEvidence';
 import {
   buildRecentMassCards,
@@ -25,6 +26,7 @@ import {
 } from './archive-selection-policy';
 import { useSingleMassVlmReview } from './useSingleMassVlmReview';
 import { executionRunCopy } from './execution-mode';
+import { LatestRunRequest } from './run-selection-request';
 import {
   LanguageNetworkCanvas,
   type NetworkEdge,
@@ -559,6 +561,7 @@ function massLabel(label: string): string {
 
 export function BookLanguageFlow({ compact = false, standalone = false }: BookLanguageFlowProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
+  const runRequestsRef = useRef(new LatestRunRequest());
   const [languageManifest, setLanguageManifest] = useState<MaasLanguageSystemManifest | null>(null);
   const [archive, setArchive] = useState<ExecutedMassManifest | null>(null);
   const [passport, setPassport] = useState<MassExecutionPassport | null>(null);
@@ -580,6 +583,8 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
       .catch(() => setLanguageManifest(null));
     return () => controller.abort();
   }, []);
+
+  useEffect(() => () => runRequestsRef.current.abort(), []);
 
   useEffect(() => {
     if (!archive?.pnu) return undefined;
@@ -882,16 +887,20 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
   };
 
   const selectRun = (runId: string) => {
-    const controller = new AbortController();
-    getExecutedMassManifest(controller.signal, runId)
+    const request = runRequestsRef.current;
+    const signal = request.start();
+    getExecutedMassManifest(signal, runId)
       .then((payload) => {
+        if (!request.isCurrent(signal)) return;
         setArchive(payload);
         setSelectedMassIndex(payload.masses[0]?.index ?? 1);
         setArchiveError('');
       })
       .catch((reason: unknown) => {
+        if (!request.isCurrent(signal)) return;
         setArchiveError(reason instanceof Error ? reason.message : '실행 run을 불러오지 못했습니다.');
-      });
+      })
+      .finally(() => request.finish(signal));
   };
 
   const executeSelectedMass = async () => {
@@ -958,7 +967,10 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
             onClick={() => changeGraphView('archive')}
           >MASS ARCHIVE</button>
         </div>
-        <div className="maas-language-flow__single-graph-label">
+        <div
+          className="maas-language-flow__single-graph-label"
+          title={`Run: ${archive?.selected_run_id ?? 'loading'} · MASS: ${selectedMass?.variant_id ?? 'loading'}`}
+        >
           <span>{
             graphView === 'full'
               ? 'FULL BOOK LANGUAGE + EXECUTED MASS RESULTS'
@@ -1013,7 +1025,10 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
       {archive && graphView === 'archive' && (
         <section className="mass-only-archive" aria-label="실제 MASS 결과만 보기">
           <header>
-            <div><span>ACTUAL MASS ARCHIVE</span><strong>{archive.selected_run_id}</strong></div>
+            <div>
+              <span>ACTUAL MASS ARCHIVE</span>
+              <strong title={archive.selected_run_id}>{archive.selected_run_id}</strong>
+            </div>
             <b>{recentMassCards.length} REPLAYABLE MASS RESULTS</b>
           </header>
           <div>
@@ -1054,18 +1069,20 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
           </div>
 
           {!compact && selectedMass && (
-            <ExecutedMassEvidence
-              archive={archive}
-              mass={selectedMass}
-              passport={passport}
-              passportError={passportError}
-              onExecute={executeSelectedMass}
-              executionState={executionState}
-              executionError={executionError}
-              onVlmReview={vlmReview.review}
-              vlmReviewState={vlmReview.state}
-              vlmReviewError={vlmReview.error}
-            />
+            <EvidencePanelBoundary resetKey={`${archive.selected_run_id}:${selectedMass.index}`}>
+              <ExecutedMassEvidence
+                archive={archive}
+                mass={selectedMass}
+                passport={passport}
+                passportError={passportError}
+                onExecute={executeSelectedMass}
+                executionState={executionState}
+                executionError={executionError}
+                onVlmReview={vlmReview.review}
+                vlmReviewState={vlmReview.state}
+                vlmReviewError={vlmReview.error}
+              />
+            </EvidencePanelBoundary>
           )}
 
           {!compact && selectedMass && (

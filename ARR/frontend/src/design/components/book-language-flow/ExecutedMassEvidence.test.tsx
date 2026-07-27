@@ -51,11 +51,11 @@ describe('ExecutedMassEvidence', () => {
           status: 'generated',
           evidence: {
             artifact_exists: true,
-            views: [{
-              view: 'front',
-              preview_url: '/front.png',
-              sha256: 'front-hash',
-            }],
+            views: ['front', 'right', 'back', 'left', 'top', 'axon'].map((view) => ({
+              view,
+              preview_url: `/${view}.png`,
+              sha256: `${view}-hash`,
+            })),
           },
         }],
         edges: [],
@@ -91,6 +91,42 @@ describe('ExecutedMassEvidence', () => {
             sha256: 'render-hash',
           },
         },
+        multi_view_proposal: {
+          status: 'accepted',
+          identity: {
+            execution_id: 'mass-one',
+            program_hash: 'program-one',
+            geometry_hash: 'geometry-one',
+          },
+          strategy: {
+            strategy_id: 'stone-grid',
+            primary_system: 'stone and glass',
+          },
+          artifacts: Object.fromEntries(
+            ['front', 'right', 'back', 'left'].map((view) => [
+              view,
+              {
+                view,
+                identity: {
+                  execution_id: 'mass-one',
+                  program_hash: 'program-one',
+                  geometry_hash: 'geometry-one',
+                  view,
+                },
+                artifact: {
+                  preview_url: `/creative-${view}.png`,
+                  sha256: `${view}-hash`,
+                },
+                provider: 'gpt-image',
+                provider_metadata: { model: 'gpt-image-2' },
+              },
+            ]),
+          ),
+          deterministic_gate: { status: 'passed', issues: [] },
+          critic: { status: 'passed', issues: [] },
+          paid_request_attempt_count: 5,
+          retry_count: 0,
+        },
       },
     } as unknown as MassExecutionPassport;
 
@@ -110,11 +146,16 @@ describe('ExecutedMassEvidence', () => {
     );
 
     const renderHeading = screen.getByText(/ARCHITECTURAL RENDER AGENT/);
+    const creativeHeading = screen.getByText(/4 \/ 4 CREATIVE FACADES/);
     const elevationHeading = screen.getByText(/6-VIEW GEOMETRY VERIFICATION/);
     expect(screen.getByText(/ACTUAL COMPILER MASS/)).toBeTruthy();
-    expect(screen.getByText(/NOT GEOMETRY \/ LEGAL AUTHORITY/)).toBeTruthy();
+    expect(screen.getAllByText(/NOT GEOMETRY \/ LEGAL AUTHORITY/)).toHaveLength(2);
     expect(screen.getByText(/1 REQUEST · 0 RETRIES/)).toBeTruthy();
     expect(renderHeading.compareDocumentPosition(elevationHeading)
+      & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(renderHeading.compareDocumentPosition(creativeHeading)
+      & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(creativeHeading.compareDocumentPosition(elevationHeading)
       & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(
       container

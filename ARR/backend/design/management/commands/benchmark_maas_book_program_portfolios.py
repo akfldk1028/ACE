@@ -1,6 +1,7 @@
 """Run bounded BOOK × program 20-mass boards on a live PNU parcel."""
 
 import os
+from copy import deepcopy
 from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
@@ -11,6 +12,22 @@ from design.maas.book_language.portfolio_benchmark import run_book_program_portf
 from design.maas.geometry_language.run_state import tracked_mass_command
 from design.services.constraint_bridge import regulations_to_constraints
 from design.services.site_geometry import fetch_parcel_boundary, geojson_to_polygon, wgs84_to_utm
+
+
+def _with_site_local_parking_frontage(
+    parking_options: dict,
+    site_access_geometry: dict | None,
+) -> dict:
+    """Put the road edge in the same local UTM frame as MASS/parking geometry."""
+
+    result = deepcopy(parking_options or {})
+    if not isinstance(site_access_geometry, dict):
+        return result
+    road_context = dict(result.get("road_context") or {})
+    road_context["frontage_geometry"] = deepcopy(site_access_geometry)
+    road_context["coordinate_frame"] = "site_local_utm"
+    result["road_context"] = road_context
+    return result
 
 
 class Command(BaseCommand):
@@ -24,6 +41,14 @@ class Command(BaseCommand):
         )
         parser.add_argument("--program", action="append", choices=("neighborhood", "gymnasium", "cultural"))
         parser.add_argument("--recursive-only", action="store_true")
+        parser.add_argument(
+            "--smoke",
+            action="store_true",
+            help=(
+                "Stop after one shared-floor/program candidate, select one MASS, "
+                "and skip 20-member replenishment/diversity requirements."
+            ),
+        )
         parser.add_argument(
             "--live-vlm",
             action="store_true",
@@ -171,6 +196,10 @@ class Command(BaseCommand):
             if primary_frontage is not None
             else None
         )
+        parking_options = _with_site_local_parking_frontage(
+            parking_options,
+            site_access_geometry,
+        )
         result = run_book_program_portfolios(
             local_site,
             pnu=pnu,
@@ -186,6 +215,7 @@ class Command(BaseCommand):
             program_slugs=tuple(options.get("program") or ()),
             recursive_only=bool(options.get("recursive_only")),
             live_geometry_vlm_revision=bool(options.get("live_vlm")),
+            smoke_mode=bool(options.get("smoke")),
             visual_directive_path=(
                 Path(str(options["visual_directive"])).resolve()
                 if options.get("visual_directive")
@@ -200,7 +230,11 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f"BOOK program portfolios: {result['status']} · "
             + ", ".join(
-                f"{item['program']} {item['selected_count']}/20 ({item['book_operation_count']} ops)"
+                (
+                    f"{item['program']} {item['selected_count']}/"
+                    f"{1 if options.get('smoke') else 20} "
+                    f"({item['book_operation_count']} ops)"
+                )
                 for item in result["programs"]
             )
         ))

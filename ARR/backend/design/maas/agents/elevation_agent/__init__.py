@@ -7,10 +7,18 @@ pipeline, so a checkout of ARR never depends on an unpinned nested repository.
 
 from .facade_strategy import select_facade_strategy
 from .image_proposal import generate_elevation_image_proposal
+from .multi_view_consistency import evaluate_multi_view_consistency
+from .multi_view_contract import FACADE_VIEWS, MultiViewCritic, proposal_identity
+from .multi_view_proposal import generate_multi_view_elevation_proposal
 from .runtime import generate_elevation_bundle
 
 __all__ = [
     "generate_elevation_bundle",
     "generate_elevation_image_proposal",
+    "generate_multi_view_elevation_proposal",
+    "evaluate_multi_view_consistency",
+    "FACADE_VIEWS",
+    "MultiViewCritic",
+    "proposal_identity",
     "select_facade_strategy",
 ]

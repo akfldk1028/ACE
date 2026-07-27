@@ -537,6 +537,25 @@ class GeometryOutcomeGraph:
             })
             self._upsert_edge(reference_node, critic_node, "informed")
 
+    def failed_final_book_geometry_hashes(self, program_slug: str) -> set[str]:
+        """Return exact final solids already rejected by the image critic.
+
+        A paid retry may explore another hard-pass candidate, but must not
+        spend another request on the same geometry identity. A typed repair
+        has a new geometry hash and therefore remains eligible.
+        """
+
+        slug = str(program_slug)
+        return {
+            str(item.get("geometry_hash") or "")
+            for item in self.observations
+            if item.get("stage") == "final_book_vlm"
+            and str(item.get("program_slug") or "") == slug
+            and item.get("reviewed_exact_post_book_geometry") is True
+            and item.get("final_book_vlm_hard_pass") is not True
+            and str(item.get("geometry_hash") or "")
+        }
+
     def observe_portfolio_render(
         self,
         *,

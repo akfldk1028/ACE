@@ -10,6 +10,10 @@ from urllib.parse import quote
 
 from design.maas.geometry_language.ast import GeometryProgram
 from design.maas.geometry_language.dsl import program_to_dsl
+from design.maas.mass_product_evidence import (
+    floor_capacity_plan_hash,
+    serialize_mass_product_evidence,
+)
 
 
 RUN_PREFIX = "single-execution:"
@@ -88,6 +92,11 @@ def single_execution_archive_manifest(
     projection = metadata.get("program_projection") if isinstance(metadata.get("program_projection"), dict) else {}
     stages = {str(row.get("id") or ""): row for row in passport.get("stages") or () if isinstance(row, dict)}
     capacity = _evidence(stages.get("capacity"))
+    mass_product = serialize_mass_product_evidence(
+        program=program,
+        capacity=capacity,
+        passport=passport,
+    )
     result_id = quote(run_id, safe="")
     mass = {
         "archive_key": f"{run_id}:1",
@@ -118,7 +127,7 @@ def single_execution_archive_manifest(
         "capacity_alternative_id": str(capacity.get("alternative_id") or "NOT EVALUATED"),
         "capacity_target_utilization": _number_or_none(capacity.get("target_utilization")),
         "capacity_achieved_utilization": _number_or_none(capacity.get("achieved_utilization")),
-        "far_pct": _number_or_none(capacity.get("far_pct")),
+        **mass_product,
         "score": None,
         "hard_pass": bool(passport.get("final_hard_pass")),
         "geometry_ready": bool(manifest.get("geometry_ready")),
@@ -153,6 +162,9 @@ def _run_row(
     execution_id: str,
 ) -> dict[str, Any]:
     site = next((row for row in passport.get("stages") or () if isinstance(row, dict) and row.get("id") == "site"), {})
+    vlm = next((row for row in passport.get("stages") or () if isinstance(row, dict) and row.get("id") == "vlm"), {})
+    manifest_vlm = manifest.get("vlm_review") if isinstance(manifest.get("vlm_review"), dict) else {}
+    vlm_evidence = _evidence(vlm)
     created_at = str(manifest.get("created_at") or datetime.fromtimestamp(
         manifest_path.stat().st_mtime,
         tz=timezone.utc,
@@ -171,6 +183,19 @@ def _run_row(
         "execution_mode": str(manifest.get("execution_mode") or "legacy_unspecified"),
         "source_run_id": str(manifest.get("source_run_id") or ""),
         "source_mass_index": int(manifest.get("source_mass_index") or 0),
+        "full_flow_status": str(manifest.get("full_flow_status") or ""),
+        "vlm_status": str(
+            manifest_vlm.get("status")
+            or vlm.get("status")
+            or vlm_evidence.get("status")
+            or "not_evaluated"
+        ),
+        "vlm_hard_pass": bool(
+            manifest_vlm.get("hard_pass")
+            if "hard_pass" in manifest_vlm
+            else vlm_evidence.get("hard_pass")
+        ),
+        "floor_capacity_plan_hash": floor_capacity_plan_hash(passport=passport),
     }
 
 

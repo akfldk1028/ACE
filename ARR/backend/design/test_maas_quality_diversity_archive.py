@@ -82,6 +82,59 @@ class MaasQualityDiversityArchiveTest(SimpleTestCase):
 
         self.assertEqual({item.name for item in retained}, {"best", "runner-up"})
 
+    def test_minimum_capacity_pass_outranks_higher_score_target_miss_in_same_cell(self):
+        minimum_pass = self.candidate(
+            "minimum-pass", 0.55, "1/1", "prismatic", "balanced", "rect", "box"
+        )
+        high_score_miss = self.candidate(
+            "high-score-miss", 0.99, "1/1", "prismatic", "balanced", "rect", "box"
+        )
+        minimum_pass.target_pass = False
+        high_score_miss.target_pass = False
+        minimum_pass.minimum_pass = True
+        high_score_miss.minimum_pass = False
+
+        with (
+            patch.object(qd, "_scope_key", side_effect=lambda item: item.scope),
+            patch.object(
+                qd,
+                "_solid_morphology_metrics",
+                side_effect=lambda item: {"phenotype": item.phenotype},
+            ),
+            patch.object(
+                qd,
+                "_capacity_alternative_key",
+                side_effect=lambda item: item.capacity,
+            ),
+            patch.object(
+                qd,
+                "_capacity_target_gate",
+                side_effect=lambda item: item.target_pass,
+            ),
+            patch.object(
+                qd,
+                "_capacity_minimum_gate",
+                side_effect=lambda item: item.minimum_pass,
+            ),
+            patch.object(qd, "_plan_family", side_effect=lambda item: item.plan),
+            patch.object(
+                qd,
+                "_geometry_program_family",
+                side_effect=lambda item: item.genotype,
+            ),
+            patch.object(qd, "_fingerprint", side_effect=lambda item: (item.name,)),
+            patch.dict(
+                "os.environ",
+                {
+                    "MAAS_QD_ELITES_PER_CELL": "1",
+                    "MAAS_QD_ARCHIVE_MAX_SIZE": "32",
+                },
+            ),
+        ):
+            retained = qd.map_elites_archive([high_score_miss, minimum_pass])
+
+        self.assertEqual([item.name for item in retained], ["minimum-pass"])
+
     def test_streaming_archive_compacts_before_heavy_pool_doubles(self):
         pool = [
             self.candidate(

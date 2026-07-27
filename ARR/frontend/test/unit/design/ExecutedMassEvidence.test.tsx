@@ -147,7 +147,79 @@ describe('ExecutedMassEvidence', () => {
     expect(screen.getAllByText('NEEDS EVIDENCE').length).toBeGreaterThan(0)
   })
 
-  it('shows the six generated elevationAgent views for the selected MASS', () => {
+  it('keeps a legacy passport with an empty collaboration object renderable', () => {
+    const legacyPassport = {
+      status: 'in_progress',
+      stages: [],
+      agent_collaboration: {},
+    } as unknown as MassExecutionPassport
+
+    expect(() => render(
+      <ExecutedMassEvidence
+        archive={{ ...archive, selected_run_id: 'book-program-portfolios-r182-seven-page-closure-pass' }}
+        mass={mass}
+        passport={legacyPassport}
+        passportError=""
+        onExecute={vi.fn()}
+        executionState="idle"
+        executionError=""
+        onVlmReview={vi.fn()}
+        vlmReviewState="idle"
+        vlmReviewError=""
+      />,
+    )).not.toThrow()
+
+    expect(screen.getByText('MASS 01')).toBeInTheDocument()
+  })
+
+  it('shows plan-aware floor product evidence without calling an incomplete passport complete', () => {
+    const planAwareMass = {
+      ...mass,
+      num_floors: 5,
+      floor_height_m: 3,
+      total_floor_area_m2: 294.2,
+      bcr_pct: 55.4,
+      floor_contract_hash: 'floor-contract-123',
+      floor_capacity_plan_hash: 'capacity-plan-123',
+      parking_required: 2,
+      parking_provided: 2,
+      elevation_status: 'blocked',
+    } as ExecutedMassRecord
+    const passport = {
+      status: 'in_progress',
+      full_flow_complete: false,
+      stages: [
+        { id: 'vlm', status: 'not_evaluated', evidence: {} },
+        { id: 'selector', status: 'passed', evidence: {} },
+      ],
+    } as unknown as MassExecutionPassport
+
+    render(
+      <ExecutedMassEvidence
+        archive={archive}
+        mass={planAwareMass}
+        passport={passport}
+        passportError=""
+        onExecute={vi.fn()}
+        executionState="idle"
+        executionError=""
+        onVlmReview={vi.fn()}
+        vlmReviewState="idle"
+        vlmReviewError=""
+      />,
+    )
+
+    expect(screen.getByText('IN PROGRESS')).toBeInTheDocument()
+    expect(screen.queryByText(/COMPLETE · VLM NOT EVALUATED/)).not.toBeInTheDocument()
+    expect(screen.getByText('5 FLOORS · 3.000m')).toBeInTheDocument()
+    expect(screen.getByText('294.200m²')).toBeInTheDocument()
+    expect(screen.getByText('55.400%')).toBeInTheDocument()
+    expect(screen.getByText('2 / 2')).toBeInTheDocument()
+    expect(screen.getByText('BLOCKED')).toBeInTheDocument()
+    expect(screen.getByText('capacity-plan-123')).toBeInTheDocument()
+  })
+
+  it('shows the six generated geometry-verification views for the selected MASS', () => {
     const views = ['front', 'right', 'back', 'left', 'top', 'axon'].map((view) => ({
       view,
       preview_url: `/design/maas/single-executions/mass-fast/elevation/${view}/`,
@@ -186,11 +258,54 @@ describe('ExecutedMassEvidence', () => {
       />,
     )
 
-    expect(screen.getByText('ELEVATION AGENT · 6 VIEWS')).toBeInTheDocument()
+    expect(screen.getByText('6-VIEW GEOMETRY VERIFICATION · 6 VIEWS')).toBeInTheDocument()
     expect(screen.getByAltText('MASS 01 front elevation')).toHaveAttribute(
       'src',
       '/design/maas/single-executions/mass-fast/elevation/front/',
     )
     expect(screen.getAllByRole('img')).toHaveLength(7)
+  })
+
+  it('marks an incomplete or duplicated geometry view set without a six-view claim', () => {
+    const views = ['front', 'right', 'back', 'left', 'front'].map((view, index) => ({
+      view,
+      preview_url: `/design/maas/single-executions/mass-fast/elevation/${view}-${index}/`,
+      sha256: `${view}-${index}`.repeat(8),
+    }))
+    const passport = {
+      status: 'needs_evidence',
+      stages: [],
+      activation_graph: {
+        nodes: [{
+          id: 'elevation:result',
+          kind: 'elevation_result',
+          status: 'generated',
+          evidence: {
+            artifact_exists: true,
+            view_count: 5,
+            views,
+          },
+        }],
+        edges: [],
+      },
+    } as unknown as MassExecutionPassport
+
+    render(
+      <ExecutedMassEvidence
+        archive={archive}
+        mass={mass}
+        passport={passport}
+        passportError=""
+        onExecute={vi.fn()}
+        executionState="complete"
+        executionError=""
+        onVlmReview={vi.fn()}
+        vlmReviewState="idle"
+        vlmReviewError=""
+      />,
+    )
+
+    expect(screen.getByText('GEOMETRY VIEW EVIDENCE INCOMPLETE · 5 / 6 VIEWS')).toBeInTheDocument()
+    expect(screen.queryByText(/6-VIEW GEOMETRY VERIFICATION/)).not.toBeInTheDocument()
   })
 })

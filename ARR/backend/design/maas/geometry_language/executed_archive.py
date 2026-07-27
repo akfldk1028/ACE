@@ -19,6 +19,10 @@ from .run_state import RUN_STATE_FILENAME
 from .vlm_adapter import retrieve_geometry_reference_matches
 from design.maas.preference.reference_paths import resolve_reference_image_path
 from design.maas.book_language.archive_layout import archive_card_crop_box
+from design.maas.mass_product_evidence import (
+    floor_capacity_plan_hash,
+    serialize_mass_product_evidence,
+)
 
 
 ARCHIVE_SCHEMA = "arr.maas.executed_mass_archive.v1"
@@ -146,6 +150,7 @@ def _run_catalog_cached(
             "selected_mass_count": record_count,
             "status": status,
             "replayable": bool(record_count),
+            "floor_capacity_plan_hash": _archive_floor_capacity_plan_hash(archive),
         })
     return tuple(sorted(rows, key=lambda item: (item["created_at"], item["run_id"])))
 
@@ -290,6 +295,29 @@ def materialize_executed_mass_preview(index: int, run_id: str | None = None) -> 
     return output
 
 
+def _archived_capacity_evidence(artifact: dict[str, Any]) -> dict[str, Any]:
+    """Recover the complete selected capacity stage, including floor contract."""
+
+    alternative = _mapping(artifact.get("capacityAlternative"))
+    archived_passport = _mapping(artifact.get("executionPassport"))
+    archived_stage = next(
+        (
+            _mapping(stage.get("evidence"))
+            for stage in archived_passport.get("stages") or ()
+            if isinstance(stage, dict) and stage.get("id") == "capacity"
+        ),
+        {},
+    )
+    capacity = {**alternative, **archived_stage, "evaluated": True}
+    if "selectable_capacity_hard_pass" in capacity:
+        capacity["hard_pass"] = bool(
+            capacity.get("selectable_capacity_hard_pass")
+        )
+    else:
+        capacity["hard_pass"] = bool(capacity.get("target_hard_pass"))
+    return capacity
+
+
 def materialize_executed_mass_passport(
     index: int,
     run_id: str | None = None,
@@ -297,7 +325,7 @@ def materialize_executed_mass_passport(
     compilation, artifact, row, archive_path = archived_compilation(index, run_id)
     preview = materialize_executed_mass_preview(index, run_id)
     hard_gates = artifact.get("hardGates") if isinstance(artifact.get("hardGates"), dict) else {}
-    capacity = artifact.get("capacityAlternative") if isinstance(artifact.get("capacityAlternative"), dict) else {}
+    capacity = _archived_capacity_evidence(artifact)
     program_gate = hard_gates.get("program") if isinstance(hard_gates.get("program"), dict) else {}
     downstream = {
         "site": {
@@ -307,7 +335,7 @@ def materialize_executed_mass_passport(
             "pnu": str(executed_mass_manifest(archive_path.parent.name).get("pnu") or ""),
             "generation_context": row.get("legal_generation_context_evidence") or {},
         },
-        "capacity": {**capacity, "evaluated": True, "hard_pass": bool(capacity.get("target_hard_pass"))},
+        "capacity": capacity,
         "law": {**_mapping(hard_gates.get("legal")), "evaluated": True},
         "parking": {**_mapping(hard_gates.get("parking")), "evaluated": True},
         "program_fit": {
@@ -472,8 +500,21 @@ def _manifest_row(
     phenotype = str(row.get("body_phenotype") or row.get("solid_phenotype") or "mass")
     operation = str(row.get("book_operation") or record.get("trace_sequence_label") or "executed geometry")
     program = GeometryProgram.from_dict(artifact["geometryProgram"])
+    authored_program_payload = artifact.get("authoredGeometryProgram")
+    authored_program = (
+        GeometryProgram.from_dict(authored_program_payload)
+        if isinstance(authored_program_payload, dict)
+        else program
+    )
+    mass_product = serialize_mass_product_evidence(
+        program=program,
+        capacity=capacity,
+        hard_gates=hard_gates,
+        passport=_mapping(artifact.get("executionPassport")),
+        compilation=compilation,
+    )
     book_base_node = next((
-        node for node in program.topological_nodes()
+        node for node in authored_program.topological_nodes()
         if node.operator == "book_base_volume"
     ), None)
     return {
@@ -500,7 +541,12 @@ def _manifest_row(
         "capacity_alternative_id": str(capacity.get("alternative_id") or row.get("capacity_alternative_id") or ""),
         "capacity_target_utilization": capacity.get("target_utilization"),
         "capacity_achieved_utilization": capacity.get("achieved_utilization"),
-        "far_pct": row.get("far_pct"),
+        **mass_product,
+        "far_pct": (
+            mass_product["far_pct"]
+            if mass_product["far_pct"] is not None
+            else row.get("far_pct")
+        ),
         "score": row.get("score"),
         "hard_pass": bool(hard_gates.get("combinedHardPass")),
         "vlm_evaluated": bool(artifact.get("vlmAudit")),
@@ -515,6 +561,27 @@ def _manifest_row(
         ),
         "image_role": "actual_run_candidate_render",
     }
+
+
+def _archive_floor_capacity_plan_hash(archive: dict[str, Any]) -> str:
+    for record in archive.get("records") or ():
+        if not isinstance(record, dict):
+            continue
+        artifact = record.get("geometry_artifact")
+        if not isinstance(artifact, dict):
+            continue
+        program_payload = artifact.get("geometryProgram")
+        if not isinstance(program_payload, dict):
+            continue
+        try:
+            return floor_capacity_plan_hash(
+                program=GeometryProgram.from_dict(program_payload),
+                capacity=_mapping(artifact.get("capacityAlternative")),
+                passport=_mapping(artifact.get("executionPassport")),
+            )
+        except (TypeError, ValueError):
+            continue
+    return ""
 
 
 __all__ = [

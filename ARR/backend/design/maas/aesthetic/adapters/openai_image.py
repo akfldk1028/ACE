@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from collections import Counter
 import hashlib
 import os
 from pathlib import Path
@@ -54,14 +55,30 @@ class OpenAIImageAdapter:
                 "Generate one coherent photorealistic facade and material proposal across every panel. "
                 "Keep the sheet layout, every camera, and every MASS outline exactly aligned so the result remains directly comparable to the source. "
             )
+        elif reference_type == "locked_elevation_view":
+            view = str(reference.metadata.get("view") or job.get("view") or "")
+            reference_instruction = (
+                f"The input is the locked orthographic {view} elevation of one immutable MASS. "
+                f"Apply the shared facade strategy to this {view} view while keeping its camera, "
+                "projection, silhouette, roofline, floor count, setbacks, voids, bridges, "
+                "cantilevers, and proportions exactly registered to the source. "
+            )
         else:
             reference_instruction = "Edit this legal massing reference into a photorealistic projection-ready architectural facade concept. "
+        projection_instruction = (
+            "Keep this orthographic view and do not change its camera or projection. "
+            if reference_type == "locked_elevation_view"
+            else (
+                "The top panel must remain a roof/top view, the front panel must remain "
+                "an orthographic front view, and no panel may change camera or projection. "
+            )
+        )
         full_prompt = (
             f"{reference_instruction}{prompt} "
             f"Use real architectural material detail, natural lighting, believable glazing, fine surface texture, and construction-scale facade proportions. "
             f"Keep openings, reveals, mullions, parapets, and corner returns strictly inside the existing colored MASS pixels. "
             f"Strictly preserve the exact silhouette, footprint, roofline, height, floor count, and mass steps. "
-            f"The top panel must remain a roof/top view, the front panel must remain an orthographic front view, and no panel may change camera or projection. "
+            f"{projection_instruction}"
             f"Do not add landscape, trees, roads, podiums, roofs, floors, or building pixels outside the supplied MASS silhouette. "
             f"Do not make a freestanding beauty render, collage, wallpaper texture, repeated sticker windows, or change the building mass; the image must remain usable as facade texture evidence for the locked MAAS geometry. "
             f"Negative constraints: {negative}"
@@ -90,6 +107,8 @@ class OpenAIImageAdapter:
                 "status": "not_evaluated",
                 "changed_pixel_count": 0,
             },
+            "view": str(reference.metadata.get("view") or job.get("view") or ""),
+            "outside_mask_changed_pixels": None,
         }
         mask_path = None
         if reference_type == "locked_mass_sheet":
@@ -101,6 +120,15 @@ class OpenAIImageAdapter:
             mask_path, editable_ratio = _write_locked_mass_mask(
                 provider_reference_path,
                 self.output_dir / f"{_safe_id(job)}.mask.png",
+            )
+            evidence["edit_mask_sha256"] = hashlib.sha256(
+                mask_path.read_bytes()
+            ).hexdigest()
+            evidence["edit_mask_editable_ratio"] = round(editable_ratio, 6)
+        elif reference_type == "locked_elevation_view":
+            mask_path, editable_ratio = _write_locked_elevation_mask(
+                provider_reference_path,
+                self.output_dir / f"{_safe_id(job)}.{evidence['view']}.mask.png",
             )
             evidence["edit_mask_sha256"] = hashlib.sha256(
                 mask_path.read_bytes()
@@ -153,22 +181,30 @@ class OpenAIImageAdapter:
                     )
                     evidence["post_composite_silhouette_lock"] = True
                     evidence["post_composite_white_hole_repairs"] = repaired_pixels
-                    presentation = job.get("presentation")
-                    presentation = (
-                        presentation
-                        if isinstance(presentation, dict)
-                        else {}
-                    )
-                    panel_roles = presentation.get("panel_roles")
-                    if not isinstance(panel_roles, list):
-                        panel_roles = list(locked_sheet_panel_roles())
-                    evidence["roof_semantic_guard"] = (
-                        apply_roof_semantic_guard(
+                    evidence["outside_mask_changed_pixels"] = (
+                        _outside_mask_change_count(
                             output_path,
                             provider_reference_path,
-                            panel_roles,
+                            mask_path,
                         )
                     )
+                    if reference_type == "locked_mass_sheet":
+                        presentation = job.get("presentation")
+                        presentation = (
+                            presentation
+                            if isinstance(presentation, dict)
+                            else {}
+                        )
+                        panel_roles = presentation.get("panel_roles")
+                        if not isinstance(panel_roles, list):
+                            panel_roles = list(locked_sheet_panel_roles())
+                        evidence["roof_semantic_guard"] = (
+                            apply_roof_semantic_guard(
+                                output_path,
+                                provider_reference_path,
+                                panel_roles,
+                            )
+                        )
                 asset_uri = str(output_path)
                 evidence["output_image_sha256"] = hashlib.sha256(
                     output_path.read_bytes()
@@ -211,7 +247,14 @@ class OpenAIImageAdapter:
 
 
 def _safe_id(job: dict[str, Any]) -> str:
-    raw = f"{job.get('source_bundle_id') or 'bundle'}:{job.get('candidate_id') or 'candidate'}"
+    raw_attempt = job.get("attempt")
+    attempt = raw_attempt if raw_attempt is not None else 0
+    raw = ":".join((
+        str(job.get("source_bundle_id") or "bundle"),
+        str(job.get("candidate_id") or "candidate"),
+        str(job.get("view") or "view"),
+        f"attempt-{attempt}",
+    ))
     return "".join(ch if ch.isalnum() else "_" for ch in raw)[-120:]
 
 
@@ -263,6 +306,61 @@ def _write_locked_mass_mask(
         output_path.parent.mkdir(parents=True, exist_ok=True)
         mask.save(output_path, format="PNG")
     return output_path, editable / total
+
+
+def _write_locked_elevation_mask(
+    reference_path: Path,
+    output_path: Path,
+) -> tuple[Path, float]:
+    with Image.open(reference_path) as source:
+        rgb = source.convert("RGB")
+        border = [
+            rgb.getpixel((x, y))
+            for x, y in (
+                *((x, 0) for x in range(rgb.width)),
+                *((x, rgb.height - 1) for x in range(rgb.width)),
+                *((0, y) for y in range(rgb.height)),
+                *((rgb.width - 1, y) for y in range(rgb.height)),
+            )
+        ]
+        background = Counter(border).most_common(1)[0][0]
+        candidates = {
+            (x, y)
+            for y in range(rgb.height)
+            for x in range(rgb.width)
+            if max(
+                abs(int(rgb.getpixel((x, y))[channel]) - int(background[channel]))
+                for channel in range(3)
+            ) > 12
+        }
+        silhouette: set[tuple[int, int]] = set()
+        while candidates:
+            seed = candidates.pop()
+            component = {seed}
+            stack = [seed]
+            while stack:
+                x, y = stack.pop()
+                for adjacent in (
+                    (x - 1, y),
+                    (x + 1, y),
+                    (x, y - 1),
+                    (x, y + 1),
+                ):
+                    if adjacent in candidates:
+                        candidates.remove(adjacent)
+                        component.add(adjacent)
+                        stack.append(adjacent)
+            if len(component) > len(silhouette):
+                silhouette = component
+        if not silhouette:
+            raise ValueError("locked elevation mask contains no editable geometry pixels")
+        mask = Image.new("RGBA", rgb.size, (255, 255, 255, 255))
+        pixels = mask.load()
+        for x, y in silhouette:
+            pixels[x, y] = (255, 255, 255, 0)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        mask.save(output_path, format="PNG")
+    return output_path, len(silhouette) / max(1, rgb.width * rgb.height)
 
 
 def _prepare_locked_mass_sheet(
@@ -335,6 +433,27 @@ def _composite_locked_mass_output(
         )
         composite.save(generated_path, format="PNG")
     return repaired_pixels
+
+
+def _outside_mask_change_count(
+    generated_path: Path,
+    locked_reference_path: Path,
+    mask_path: Path,
+) -> int:
+    with (
+        Image.open(generated_path) as generated,
+        Image.open(locked_reference_path) as locked,
+        Image.open(mask_path) as mask,
+    ):
+        generated_rgba = generated.convert("RGBA")
+        locked_rgba = locked.convert("RGBA")
+        preserve_mask = mask.getchannel("A")
+        return sum(
+            generated_rgba.getpixel((x, y)) != locked_rgba.getpixel((x, y))
+            for y in range(locked_rgba.height)
+            for x in range(locked_rgba.width)
+            if preserve_mask.getpixel((x, y)) != 0
+        )
 
 
 __all__ = ["OpenAIImageAdapter"]

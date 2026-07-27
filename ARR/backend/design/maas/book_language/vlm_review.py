@@ -21,6 +21,7 @@ from design.maas.geometry_language import (
     build_geometry_graph_notes,
     build_geometry_graph_snapshot,
     compile_geometry_program,
+    materialize_floorwise_legal_source,
     replace_source_dominant_with_geometry_program,
 )
 from design.maas.program_massing import program_reference_contract
@@ -30,6 +31,10 @@ from design.maas.preference.loop import openai_preview_preference_scorer
 from design.maas.preference.vlm_scorer import (
     DEFAULT_VLM_MODEL,
     VLM_PROMPT_CONTRACT_VERSION,
+)
+from design.maas.shared_floor_contract import (
+    bind_shared_floor_contract_capacity,
+    materialize_shared_floor_contract,
 )
 from design.maas.source_geometry import compile_sequence_to_source_mass
 
@@ -54,10 +59,51 @@ from .capacity_alternatives import (
     evaluate_capacity_alternative,
 )
 from .capacity_contract import measure_source_capacity, recursive_plan_coverage_floor
+from .capacity_routing import build_capacity_review_context
 from .downstream_hard_gate import LegalGenerationContext, generation_site_at_height
 from .portfolio_selection import _select
 from .reference_context import _audited_final_book_references
 from .vlm_stage_policy import book_vlm_stage_policy
+
+
+def _materialize_repaired_floor_contract(
+    source: Any,
+    *,
+    generation_context: LegalGenerationContext | None,
+    capacity_site: Polygon | None,
+    height: float,
+    floors: int,
+    base_capacity_contract: dict[str, Any] | None,
+    repaired_program: GeometryProgram,
+    repaired_compilation: Any,
+) -> dict[str, Any] | None:
+    """Recompute floor plates from the exact post-VLM geometry identity."""
+
+    if generation_context is None or capacity_site is None:
+        return None
+    return materialize_shared_floor_contract(
+        source,
+        site_local_utm=capacity_site,
+        legal_sections=tuple(
+            generation_site_at_height(
+                generation_context,
+                float(height) * floor_number / max(1, int(floors)),
+            )
+            for floor_number in range(1, max(1, int(floors)) + 1)
+        ),
+        height_m=height,
+        floors=floors,
+        program_hash=repaired_program.program_hash(),
+        geometry_hash=str(repaired_compilation.geometry_hash or ""),
+        floor_capacity_plan_hash=str(
+            (base_capacity_contract or {}).get("floor_capacity_plan_hash")
+            or ""
+        ),
+        feasible_capacity_m2=float(
+            (base_capacity_contract or {}).get("feasible_maximum_floor_area_m2")
+            or 0.0
+        ),
+    )
 
 
 def _book_stage_capacity_floor(candidate: _Candidate, review_stage: str) -> float:
@@ -178,12 +224,43 @@ def _final_book_vlm_shortlist(
     """Stratify exact final solids before the expensive visual critic."""
     if not pool or target <= 0:
         return []
+    if target == 1:
+        # A one-shot smoke review has no diversity quota to allocate. The
+        # former family-round-robin picked the alphabetically first core
+        # family (attached_volume) even when the measured selector ranked a
+        # cleaner, capacity-target five-floor MASS first. Review the exact
+        # candidate that would otherwise be selected.
+        selector = _select(
+            pool,
+            1,
+            visual_directive=visual_directive,
+        )[:1]
+        selector_winner = (
+            selector[0]
+            if selector
+            else max(
+                pool,
+                key=lambda candidate: float(
+                    getattr(candidate, "score", 0.0) or 0.0
+                ),
+            )
+        )
+        return [
+            _architectural_one_shot_candidate(
+                pool,
+                selector_winner=selector_winner,
+            )
+        ]
     # The procedural control archive is much larger than the live authored
     # lane. Without a review reservation, valid LLM ASTs can pass compiler,
     # clean and program gates yet receive only 2/64 final image reviews. This
     # quota grants review bandwidth, never selection or score preference.
     authored = [candidate for candidate in pool if _llm_authored_candidate(candidate)]
-    authored_target = min(len(authored), max(4, target // 4))
+    authored_target = min(
+        len(authored),
+        target,
+        max(1, target // 4),
+    )
     authored_strata: dict[tuple[str, str, str], list[_Candidate]] = {}
     for candidate in sorted(authored, key=lambda item: item.score, reverse=True):
         key = (
@@ -296,6 +373,104 @@ def _final_book_vlm_shortlist(
     return chosen[:target]
 
 
+def _architectural_one_shot_candidate(
+    pool: list[_Candidate],
+    *,
+    selector_winner: _Candidate,
+) -> _Candidate:
+    """Prefer typed public/program evidence before spending one paid review.
+
+    Every input has already passed the same capacity, legal, parking and
+    shared-floor gates.  This function only prevents a one-shot smoke budget
+    from repeatedly choosing a generic capacity pack when another hard-pass
+    candidate carries executable public-space and program/section relations.
+    """
+
+    priorities: dict[int, tuple[float, float]] = {}
+    for candidate in pool:
+        try:
+            concept = _design_concept_descriptor(candidate)
+            morphology = _solid_morphology_metrics(candidate)
+        except (AttributeError, KeyError, TypeError, ValueError):
+            continue
+        public_controller = bool(
+            concept.get("open_voids")
+            or concept.get("frontage_notches")
+            or concept.get("frontage_relations")
+        )
+        phenotype = str(morphology.get("phenotype") or "prismatic")
+        score = 0.0
+        score += 4.0 if concept.get("frontage_aligned") else 0.0
+        score += 3.0 if public_controller else 0.0
+        score += 2.0 if concept.get("program_controller_node_ids") else 0.0
+        score += 2.0 if concept.get("section_controller_node_ids") else 0.0
+        score += 2.0 if phenotype == "voided" else 0.0
+        score += 1.0 if phenotype in {"winged", "stepped", "curved", "oblique"} else 0.0
+        score -= 3.0 if concept.get("missing_required_concepts") else 0.0
+        score -= 2.0 if concept.get("ground_strategy") == "direct_edge" else 0.0
+        score -= 2.0 if phenotype == "prismatic" else 0.0
+        score -= 2.0 if (
+            morphology.get("pyramidal_like")
+            or morphology.get("wedge_like")
+        ) else 0.0
+        priorities[id(candidate)] = (
+            score,
+            float(getattr(candidate, "score", 0.0) or 0.0),
+        )
+
+    winner_priority = priorities.get(id(selector_winner))
+    if not priorities or winner_priority is None:
+        return selector_winner
+    architectural_winner = max(
+        (
+            candidate for candidate in pool
+            if id(candidate) in priorities
+        ),
+        key=lambda candidate: priorities[id(candidate)],
+    )
+    if priorities[id(architectural_winner)] <= winner_priority:
+        return selector_winner
+    return architectural_winner
+
+
+def _exclude_prior_final_book_vlm_failures(
+    pool: list[_Candidate],
+    *,
+    outcome_graph: GeometryOutcomeGraph | None,
+    program_slug: str,
+) -> tuple[list[_Candidate], dict[str, Any]]:
+    """Avoid paying to review one unchanged exact geometry twice."""
+
+    failed_hashes = (
+        outcome_graph.failed_final_book_geometry_hashes(program_slug)
+        if outcome_graph is not None
+        else set()
+    )
+    filtered = [
+        candidate
+        for candidate in pool
+        if str(
+            (
+                candidate.source.metadata.get(
+                    "geometry_program_bridge_evidence"
+                )
+                or {}
+            ).get("geometry_hash")
+            or ""
+        )
+        not in failed_hashes
+    ]
+    return filtered, {
+        "schema_version": "arr.maas.prior_final_vlm_failure_filter.v1",
+        "program_slug": str(program_slug),
+        "known_failed_geometry_count": len(failed_hashes),
+        "prior_exact_failure_count": len(pool) - len(filtered),
+        "remaining_candidate_count": len(filtered),
+        "identity": "exact_geometry_hash",
+        "paid_repeat_prevented": len(pool) - len(filtered) > 0,
+    }
+
+
 def _lineage_parent_key(candidate: _Candidate) -> str:
     lineage = candidate.source.metadata.get("book_generation_lineage") or {}
     return str(lineage.get("parent_key") or "")
@@ -358,7 +533,7 @@ def _book_vlm_review_budget(review_stage: str) -> int:
     else:
         variable, default, ceiling = "MAAS_FINAL_BOOK_VLM_TOP_K", 12, 48
     try:
-        return max(4, min(ceiling, int(os.getenv(variable, str(default)))))
+        return max(1, min(ceiling, int(os.getenv(variable, str(default)))))
     except (TypeError, ValueError):
         return default
 
@@ -693,6 +868,20 @@ def _audit_final_book_geometry_with_vlm(
     input_count = len(pool)
     pool = [candidate for candidate in pool if _has_exact_geometry_program(candidate)]
     invalid_geometry_program_count = input_count - len(pool)
+    if review_stage == "final_book":
+        pool, prior_failure_filter = _exclude_prior_final_book_vlm_failures(
+            pool,
+            outcome_graph=outcome_graph,
+            program_slug=program_slug or building_type,
+        )
+    else:
+        prior_failure_filter = {
+            "schema_version": "arr.maas.prior_final_vlm_failure_filter.v1",
+            "status": "not_applicable_to_base_stage",
+            "prior_exact_failure_count": 0,
+            "remaining_candidate_count": len(pool),
+            "paid_repeat_prevented": False,
+        }
     if shortlist_override is not None:
         shortlist = [
             candidate for candidate in list(shortlist_override)
@@ -750,6 +939,9 @@ def _audit_final_book_geometry_with_vlm(
             "board_level_sibling_diversity_is_a_separate_vlm_gate": True,
             "volatile_pool_composition_excluded_from_candidate_identity": True,
         }
+        review_feature["properties"]["capacity_review_context"] = (
+            build_capacity_review_context(candidate.source.metadata)
+        )
         result = scorer(
             feature=review_feature,
             reference_matches=list(references or ()),
@@ -885,6 +1077,9 @@ def _audit_final_book_geometry_with_vlm(
             "critic_actions": list(result.get("critic_actions") or ()),
             "geometry_edits": list(result.get("geometry_edits") or ()),
             "rationale": str(result.get("rationale") or "")[:1000],
+            "capacity_review_context": build_capacity_review_context(
+                candidate.source.metadata
+            ),
             "reference_ids": [str(item.get("source_id") or "") for item in references[:5]],
             "reference_records": [
                 {
@@ -978,6 +1173,7 @@ def _audit_final_book_geometry_with_vlm(
         "input_count": input_count,
         "exact_geometry_program_input_count": len(pool),
         "invalid_geometry_program_rejected_count": invalid_geometry_program_count,
+        "prior_final_vlm_failure_filter": prior_failure_filter,
         "shortlist_count": len(shortlist),
         "review_budget": maximum,
         "scored_count": scored_count,
@@ -1319,6 +1515,7 @@ def _repair_exact_post_book_candidates_from_vlm(
         "synthetic_fallback_used": False,
         "compiler_safe_recovery_count": 0,
         "compiler_safe_rejected_group_count": 0,
+        "floorwise_legal_reprojection_count": 0,
     }
     site_access_context = dict(site_access_context or {})
     for candidate in candidates:
@@ -1484,6 +1681,87 @@ def _repair_exact_post_book_candidates_from_vlm(
         })
         metadata["geometry_program_bridge_evidence"] = repaired_bridge
         source = replace(source, metadata=metadata)
+        if generation_context is not None:
+            legal_sections = tuple(
+                generation_site_at_height(
+                    generation_context,
+                    float(height) * floor_number / max(1, int(floors)),
+                )
+                for floor_number in range(1, max(1, int(floors)) + 1)
+            )
+            if any(section is None for section in legal_sections):
+                failures["repaired_floorwise_legal_section_missing"] += 1
+                continue
+            parent_floorwise_stack = candidate.source.metadata.get(
+                "floorwise_legal_matrix_stack"
+            )
+            parent_floorwise_stack = (
+                parent_floorwise_stack
+                if isinstance(parent_floorwise_stack, dict)
+                else {}
+            )
+            try:
+                target_plan_coverage = float(
+                    parent_floorwise_stack.get("target_plan_coverage")
+                    or parent_capacity_alternative.get("target_base_plan_coverage")
+                    or recursive_plan_coverage_floor(
+                        building_type,
+                        alternative_capacity_contract,
+                        host_area_m2=float(compile_site.area),
+                    )
+                )
+            except (TypeError, ValueError):
+                failures["repaired_floorwise_target_coverage_invalid"] += 1
+                continue
+            floorwise_source = materialize_floorwise_legal_source(
+                source,
+                legal_sections=legal_sections,
+                target_plan_coverage=target_plan_coverage,
+                floor_capacity_plan_hash=str(
+                    parent_floorwise_stack.get("floor_capacity_plan_hash")
+                    or (base_capacity_contract or {}).get(
+                        "floor_capacity_plan_hash"
+                    )
+                    or ""
+                ),
+                target_floor_areas_m2=tuple(
+                    float(value)
+                    for value in (
+                        parent_floorwise_stack.get("target_floor_areas_m2")
+                        or (base_capacity_contract or {}).get(
+                            "target_floor_areas_m2"
+                        )
+                        or ()
+                    )
+                ),
+            )
+            if floorwise_source is None:
+                failures["repaired_floorwise_legal_reprojection_failed"] += 1
+                continue
+            source = floorwise_source
+            counts["floorwise_legal_reprojection_count"] += 1
+        shared_floor_contract = _materialize_repaired_floor_contract(
+            source,
+            generation_context=generation_context,
+            capacity_site=capacity_site,
+            height=height,
+            floors=floors,
+            base_capacity_contract=base_capacity_contract,
+            repaired_program=repaired_program,
+            repaired_compilation=repaired_compilation,
+        )
+        if shared_floor_contract is not None:
+            metadata = deepcopy(source.metadata)
+            metadata["shared_floor_contract"] = shared_floor_contract
+            source = replace(source, metadata=metadata)
+            if not shared_floor_contract.get("hard_pass"):
+                failures.update(
+                    f"shared_floor_{reason}"
+                    for reason in shared_floor_contract.get("failure_reasons") or (
+                        "hard_gate_failed",
+                    )
+                )
+                continue
         capacity_measurement: dict[str, Any] = {}
         if base_capacity_contract and capacity_site is not None:
             capacity_measurement = measure_source_capacity(
@@ -1492,6 +1770,7 @@ def _repair_exact_post_book_candidates_from_vlm(
                 site_local_utm=capacity_site,
                 height_m=height,
                 floors=floors,
+                shared_floor_contract=shared_floor_contract,
             )
             metadata = deepcopy(source.metadata)
             metadata["source_capacity_measurement"] = capacity_measurement
@@ -1499,6 +1778,16 @@ def _repair_exact_post_book_candidates_from_vlm(
                 parent_capacity_alternative,
                 capacity_measurement,
             )
+            if (
+                shared_floor_contract is not None
+                and shared_floor_contract.get("schema_version")
+                == "arr.maas.shared_floor_contract.v1"
+            ):
+                shared_floor_contract = bind_shared_floor_contract_capacity(
+                    shared_floor_contract,
+                    metadata["capacity_alternative_projection"],
+                )
+                metadata["shared_floor_contract"] = shared_floor_contract
             source = replace(source, metadata=metadata)
         clean_pass, clean_evidence = _clean_mass_gate(source)
         if not clean_pass:

@@ -22,7 +22,7 @@ from .reference_paths import reference_image_preview_url, resolve_reference_imag
 VLM_SCORE_SCHEMA_VERSION = "arr.maas.vlm_concept_scores.v1"
 VLM_PROMPT_CONTRACT_VERSION = (
     "arr.maas.vlm_prompt.site_visible_program_concept_graph_edit_geometry_edit."
-    "v20_mass_execution_agent_context"
+    "v21_capacity_floor_context"
 )
 DEFAULT_VLM_MODEL = "gpt-5.4-mini"
 REFERENCE_IMAGE_AUDIT_SCHEMA_VERSION = "arr.maas.reference_image_massing_audit.v2"
@@ -848,6 +848,9 @@ def _prompt_text(feature: dict[str, Any], reference_matches: list[dict[str, Any]
         "If candidate_pyramidal_like is true and the measured pool is already saturated with pyramidal/stepped "
         "forms, do not emit good_step_mass merely because the object is coherent; reserve it for an exceptional, "
         "program-meaningful stepped section. Otherwise mark the arbitrary tier or typology problem explicitly. "
+        "When capacity_review_context is present, treat its measured floor schedule and requested/realized "
+        "capacity bands as immutable numeric evidence. Judge whether the visible form expresses that floor "
+        "organization, but never visually waive, invent, or increase a hard-gate capacity result. "
         "Use set_parameter for bounded deformation/cutting/pattern parameters. To wrap the current solid in a new "
         "operator, emit add_node with input_ids=[current root], then any set_parameter edits for that new node, then "
         "set_root targeting the new node. Use replace_operator only within the same node kind. Geometry edits support "

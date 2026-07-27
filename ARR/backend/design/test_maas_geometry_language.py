@@ -324,8 +324,128 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         }):
             self.assertEqual(_book_vlm_review_budget("book_base_operative"), 32)
             self.assertEqual(_book_vlm_review_budget("final_book"), 48)
+        with patch.dict(os.environ, {"MAAS_FINAL_BOOK_VLM_TOP_K": "1"}):
+            self.assertEqual(_book_vlm_review_budget("final_book"), 1)
         with patch.dict(os.environ, {"MAAS_FINAL_BOOK_VLM_TOP_K": "999"}):
             self.assertEqual(_book_vlm_review_budget("final_book"), 48)
+
+    def test_one_shot_final_vlm_reviews_selector_winner_not_alphabetic_family(self):
+        from design.maas.book_language.vlm_review import _final_book_vlm_shortlist
+
+        selector_winner = object()
+        with patch(
+            "design.maas.book_language.vlm_review._select",
+            return_value=[selector_winner],
+        ) as selector:
+            result = _final_book_vlm_shortlist(
+                [object(), object()],
+                target=1,
+                visual_directive={"test": True},
+            )
+
+        self.assertEqual(result, [selector_winner])
+        selector.assert_called_once()
+
+    def test_one_shot_final_vlm_does_not_drop_a_hard_gate_pool_when_portfolio_selector_is_empty(self):
+        from design.maas.book_language.vlm_review import _final_book_vlm_shortlist
+
+        lower = SimpleNamespace(score=0.72)
+        higher = SimpleNamespace(score=0.91)
+        with patch(
+            "design.maas.book_language.vlm_review._select",
+            return_value=[],
+        ):
+            result = _final_book_vlm_shortlist(
+                [lower, higher],
+                target=1,
+                visual_directive={},
+            )
+
+        self.assertEqual(result, [higher])
+
+    def test_one_shot_final_vlm_prefers_typed_public_program_candidate_over_box_like_pack(self):
+        from design.maas.book_language import vlm_review
+
+        generic = SimpleNamespace(key="generic", score=0.95)
+        architectural = SimpleNamespace(key="architectural", score=0.82)
+
+        def descriptor(candidate):
+            if candidate is architectural:
+                return {
+                    "frontage_aligned": True,
+                    "open_voids": [{"node_id": "court"}],
+                    "frontage_notches": [{"node_id": "entry"}],
+                    "program_controller_node_ids": ["program"],
+                    "section_controller_node_ids": ["section"],
+                    "missing_required_concepts": [],
+                    "ground_strategy": "frontage_open_court",
+                }
+            return {
+                "frontage_aligned": False,
+                "open_voids": [],
+                "frontage_notches": [],
+                "program_controller_node_ids": [],
+                "section_controller_node_ids": [],
+                "missing_required_concepts": ["concept:public_threshold"],
+                "ground_strategy": "direct_edge",
+            }
+
+        with (
+            patch.object(vlm_review, "_select", return_value=[generic]),
+            patch.object(
+                vlm_review,
+                "_design_concept_descriptor",
+                side_effect=descriptor,
+            ),
+            patch.object(
+                vlm_review,
+                "_solid_morphology_metrics",
+                side_effect=lambda candidate: {
+                    "phenotype": (
+                        "voided" if candidate is architectural else "prismatic"
+                    ),
+                    "pyramidal_like": False,
+                    "wedge_like": False,
+                },
+            ),
+        ):
+            result = vlm_review._final_book_vlm_shortlist(
+                [generic, architectural],
+                target=1,
+                visual_directive={},
+            )
+
+        self.assertEqual(result, [architectural])
+
+    def test_one_shot_final_vlm_skips_exact_geometry_already_rejected_by_critic(self):
+        from design.maas.book_language.vlm_review import (
+            _exclude_prior_final_book_vlm_failures,
+        )
+
+        def candidate(geometry_hash: str):
+            return SimpleNamespace(source=SimpleNamespace(metadata={
+                "geometry_program_bridge_evidence": {
+                    "geometry_hash": geometry_hash,
+                },
+            }))
+
+        rejected = candidate("geometry-rejected")
+        fresh = candidate("geometry-fresh")
+        graph = SimpleNamespace(
+            failed_final_book_geometry_hashes=lambda program_slug: (
+                {"geometry-rejected"} if program_slug == "neighborhood" else set()
+            ),
+        )
+
+        filtered, evidence = _exclude_prior_final_book_vlm_failures(
+            [rejected, fresh],
+            outcome_graph=graph,
+            program_slug="neighborhood",
+        )
+
+        self.assertEqual(filtered, [fresh])
+        self.assertEqual(evidence["prior_exact_failure_count"], 1)
+        self.assertEqual(evidence["remaining_candidate_count"], 1)
 
     def test_base_stage_vlm_releases_only_descendants_of_approved_exact_parent(self):
         from design.maas.book_language.candidate_analysis import _Candidate
@@ -4631,6 +4751,10 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         observation = next(item for item in graph.observations if item.get("stage") == "final_book_vlm")
         self.assertFalse(observation["final_book_vlm_hard_pass"])
         self.assertEqual(observation["projected_program_hash"], "projected-hash")
+        self.assertEqual(
+            graph.failed_final_book_geometry_hashes("neighborhood"),
+            {"solid-hash"},
+        )
         projected_node = next(
             node for node in graph.nodes.values()
             if node["kind"] == "projected_geometry_program"
@@ -4856,6 +4980,58 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertEqual(
             json.loads(payload)["metadata"]["author_representation"],
             "typed_json_ast",
+        )
+
+    def test_llm_author_can_run_once_without_prebook_vlm(self):
+        from design.maas.book_language.candidate_generation import _agent_mutated_seeds
+
+        source_name = program_seed_sequences("gymnasium")[0].name
+        authored = replace(base_seed_programs()[1], metadata={
+            **base_seed_programs()[1].metadata,
+            "family": "llm_one_shot_mass",
+            "author_provider": "openai_llm_geometry_author",
+            "author_model": "test-model",
+            "author_response_id": "author-one-shot",
+            "author_representation": "typed_json_ast",
+        })
+        with (
+            patch.dict(
+                os.environ,
+                {"OPENAI_API_KEY": "test-only-not-sent"},
+                clear=False,
+            ),
+            patch(
+                "design.maas.book_language.candidate_generation.author_geometry_programs_with_openai",
+                return_value=(authored,),
+            ) as author,
+            patch(
+                "design.maas.book_language.candidate_generation.run_geometry_program_a2a_loop",
+            ) as prebook_vlm,
+        ):
+            seeds = _agent_mutated_seeds(
+                "gymnasium",
+                mutations=None,
+                synthesis_requests=[{
+                    "source_seed": source_name,
+                    "base_seeds": ["slab"],
+                    "intent_tags": ["five_floor", "public_threshold"],
+                    "live_llm_author": True,
+                    "live_vlm_revision": False,
+                    "llm_author_count": 1,
+                }],
+            )
+
+        author.assert_called_once()
+        self.assertEqual(author.call_args.kwargs["target_count"], 1)
+        prebook_vlm.assert_not_called()
+        active = [
+            seed for seed in seeds
+            if "geometry_program_llm_author_active=True" in seed.notes
+        ]
+        self.assertEqual(len(active), 1)
+        self.assertIn(
+            "geometry_program_vlm_status=deferred_to_exact_post_book_final_solid",
+            active[0].notes,
         )
 
     def test_prebook_vlm_rejection_quarantines_connected_llm_parent_without_selection_authority(self):

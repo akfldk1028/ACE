@@ -122,6 +122,7 @@ export interface MassExecutionPassport {
   };
   elevation_evidence?: {
     image_proposal?: Record<string, unknown>;
+    multi_view_proposal?: Record<string, unknown>;
     [key: string]: unknown;
   };
   agent_collaboration?: {
@@ -200,6 +201,20 @@ export interface ExecutedMassRecord {
   capacity_target_utilization: number | null;
   capacity_achieved_utilization: number | null;
   far_pct: number | null;
+  bcr_pct?: number | null;
+  total_floor_area_m2?: number | null;
+  num_floors?: number | null;
+  floor_height_m?: number | null;
+  floor_contract_hash?: string;
+  floor_capacity_plan_hash?: string;
+  parking_required?: number | null;
+  parking_provided?: number | null;
+  elevation_status?: string;
+  matrix_convention?: string;
+  floor_matrix_stack?: Array<{
+    node_id: string;
+    matrix4: number[][];
+  }>;
   score: number | null;
   hard_pass: boolean;
   geometry_ready?: boolean;
@@ -223,6 +238,10 @@ export interface ExecutedMassRun {
   source_mass_index?: number;
   geometry_hash?: string;
   thumbnail_url?: string;
+  full_flow_status?: string;
+  vlm_status?: string;
+  vlm_hard_pass?: boolean;
+  floor_capacity_plan_hash?: string;
 }
 
 export interface SingleMassExecutionResponse {

@@ -143,7 +143,20 @@ def run_replenishment_cycle(
         live_geometry_vlm_revision=runtime_live_vlm,
         base_capacity_contract=base_capacity_contract,
         capacity_site=capacity_site,
+        pnu=str(downstream_context.get("pnu") or ""),
     )
+    generated_pool = [
+        candidate
+        for candidate in generated_pool
+        if (
+            isinstance(
+                candidate.source.metadata.get("shared_floor_contract"),
+                dict,
+            )
+            and candidate.source.metadata["shared_floor_contract"].get("hard_pass")
+            is True
+        )
+    ]
     if runtime_live_vlm:
         downstream_evaluation_pool, base_gate = audit_book_base_stage_with_vlm(
             generated_pool,

@@ -10,7 +10,7 @@ coordinates or completed-building templates.
 from __future__ import annotations
 
 from dataclasses import replace
-from math import tan, radians
+from math import ceil, radians, sqrt, tan
 from typing import Any
 
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
@@ -98,6 +98,114 @@ def _program_access_side(program: GeometryProgram) -> str:
             if value in {"east", "west", "north", "south"}:
                 return value
     return "closed"
+
+
+def apply_capacity_composition_to_geometry_program(
+    program: GeometryProgram,
+    *,
+    achieved_utilization: float,
+    target_utilization: float,
+) -> GeometryProgram:
+    """Recompose a shortfall as a measured typed pack in the same AST.
+
+    The capacity agent is not allowed to swap in a named finished form.  It may
+    only aggregate the already-authored BOOK body, with count and unit scale
+    derived from the exact shared-floor utilization shortfall.  Program access
+    and section relations remain a terminal suffix over the recomposed body.
+    """
+
+    achieved = max(0.0, float(achieved_utilization or 0.0))
+    target = max(0.0, min(0.98, float(target_utilization or 0.0)))
+    if achieved <= 1e-9 or target <= achieved + 1e-9:
+        return program
+
+    required_area_ratio = max(1.0, min(3.2, target / achieved))
+    maximum_unit_area = 0.82**2
+    count = max(2, min(4, int(ceil(required_area_ratio / maximum_unit_area))))
+    # Keep every repeated wing at the grammar's maximum inhabitable width.
+    # The parcel fit scales the complete composition down when necessary;
+    # shrinking units here first only creates thin, non-occupiable strips.
+    unit_scale = 0.82
+
+    nodes = list(program.nodes)
+    node_map = program.node_map
+    terminal_suffix_reversed: list[GeometryNode] = []
+    cursor = node_map.get(program.root_id)
+    while cursor is not None and _is_terminal_program_relation(cursor) and len(cursor.inputs) == 1:
+        terminal_suffix_reversed.append(cursor)
+        cursor = node_map.get(cursor.inputs[0])
+    terminal_suffix = list(reversed(terminal_suffix_reversed))
+    body_root = cursor.id if cursor is not None else program.root_id
+
+    existing_ids = {node.id for node in nodes}
+    node_id = "capacity_composition:measured_pack"
+    suffix = 2
+    while node_id in existing_ids:
+        node_id = f"capacity_composition:measured_pack:{suffix}"
+        suffix += 1
+    capacity_node = GeometryNode(
+        id=node_id,
+        kind="macro",
+        operator="related_array",
+        inputs=(body_root,),
+        parameters={
+            "mode": "pack",
+            "axis": "x",
+            "count": count,
+            "unit_scale": round(unit_scale, 6),
+            "spacing_ratio": 0.08,
+            "stagger_ratio": 0.04,
+        },
+        semantic_role="capacity_composed_building_body",
+        provenance={
+            "source": "capacity_composition_agent",
+            "measurement_source": "shared_floor_contract",
+            "achieved_utilization": round(achieved, 6),
+            "target_utilization": round(target, 6),
+            "required_area_ratio": round(required_area_ratio, 6),
+            "normalized_parameters_only": True,
+            "parcel_coordinates_used": False,
+            "completed_building_template": False,
+        },
+    )
+    nodes.append(capacity_node)
+    root_id = capacity_node.id
+    if terminal_suffix:
+        relation_input = capacity_node.id
+        relation_rewrites: dict[str, str] = {}
+        for relation_node in terminal_suffix:
+            relation_rewrites[relation_node.id] = relation_input
+            relation_input = relation_node.id
+        nodes = [
+            replace(node, inputs=(relation_rewrites[node.id],))
+            if node.id in relation_rewrites
+            else node
+            for node in nodes
+        ]
+        root_id = program.root_id
+
+    return replace(
+        program,
+        nodes=tuple(nodes),
+        root_id=root_id,
+        name=f"{program.name}__capacity_pack_{count}",
+        metadata={
+            **program.metadata,
+            "capacity_composition": {
+                "schema_version": "arr.maas.capacity_composition.v1",
+                "status": "materialized",
+                "mode": "measured_typed_pack",
+                "measurement_source": "shared_floor_contract",
+                "achieved_utilization": round(achieved, 6),
+                "target_utilization": round(target, 6),
+                "required_area_ratio": round(required_area_ratio, 6),
+                "count": count,
+                "unit_scale": round(unit_scale, 6),
+                "named_shape_selected": False,
+                "parcel_coordinates_used": False,
+            },
+        },
+    )
 
 
 def apply_book_projection_to_geometry_program(
@@ -775,4 +883,8 @@ def _corner_for_side(value: Any) -> str:
     return {"north": "ne", "south": "sw", "east": "se", "west": "nw"}.get(str(value or "east"), "se")
 
 
-__all__ = ["apply_book_projection_to_geometry_program", "recursive_book_projection_evidence"]
+__all__ = [
+    "apply_book_projection_to_geometry_program",
+    "apply_capacity_composition_to_geometry_program",
+    "recursive_book_projection_evidence",
+]

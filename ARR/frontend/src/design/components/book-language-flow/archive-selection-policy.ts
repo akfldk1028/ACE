@@ -51,13 +51,26 @@ export function latestReplayableRunId(
   archive: ExecutedMassManifest,
 ): string {
   const replayable = archive.runs.filter((run) => run.replayable)
+  const planAware = replayable.filter(
+    (run) => Boolean(run.floor_capacity_plan_hash?.trim()),
+  )
+  const acceptedVlmMasses = replayable.filter(
+    (run) => isSingleExecution(run.run_id, run.run_type)
+      && run.full_flow_status === 'accepted'
+      && run.vlm_status === 'live_scored'
+      && run.vlm_hard_pass === true,
+  )
   const freshSyntheses = replayable.filter(
     (run) => isSingleExecution(run.run_id, run.run_type)
       && run.execution_mode === 'fresh_synthesis',
   )
   const siteBound = replayable.filter(hasResolvedSite)
   return (
-    freshSyntheses.length > 0
+    planAware.length > 0
+      ? planAware
+      : acceptedVlmMasses.length > 0
+      ? acceptedVlmMasses
+      : freshSyntheses.length > 0
       ? freshSyntheses
       : siteBound.length > 0
         ? siteBound

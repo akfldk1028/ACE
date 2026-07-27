@@ -4,7 +4,9 @@ import type {
   MassExecutionPassport,
 } from '../../lib/language-system-types';
 import { ArchitecturalRenderEvidence } from './ArchitecturalRenderEvidence';
+import { MultiViewElevationEvidence } from './MultiViewElevationEvidence';
 import { extractElevationProposal } from './elevation-proposal';
+import { extractMultiViewElevation } from './multi-view-elevation';
 import { executionActionCopy, executionRunCopy } from './execution-mode';
 
 interface ExecutedMassEvidenceProps {
@@ -53,6 +55,8 @@ interface ElevationViewEvidence {
   sha256: string;
 }
 
+const EXPECTED_GEOMETRY_VIEWS = ['front', 'right', 'back', 'left', 'top', 'axon'] as const;
+
 function elevationViews(passport: MassExecutionPassport | null): ElevationViewEvidence[] {
   const node = passport?.activation_graph?.nodes.find(
     (candidate) => candidate.id === 'elevation:result'
@@ -77,18 +81,8 @@ function elevationViews(passport: MassExecutionPassport | null): ElevationViewEv
 
 function passportDisplayStatus(
   passport: MassExecutionPassport | null,
-  mass: ExecutedMassRecord,
 ): string {
   if (!passport) return 'LOADING';
-  const selector = passport.stages.find((stage) => stage.id === 'selector');
-  const vlm = passport.stages.find((stage) => stage.id === 'vlm');
-  if (
-    mass.hard_pass
-    && selector?.status === 'passed'
-    && vlm?.status === 'not_evaluated'
-  ) {
-    return 'COMPLETE · VLM NOT EVALUATED';
-  }
   return passport.status.replaceAll('_', ' ').toUpperCase();
 }
 
@@ -113,10 +107,18 @@ export function ExecutedMassEvidence({
   } | undefined;
   const specialistEvidence = passport?.agent_collaboration?.evidence ?? [];
   const generatedElevations = elevationViews(passport);
+  const generatedElevationNames = new Set(generatedElevations.map((view) => view.view));
+  const hasCompleteGeometryViewSet = generatedElevations.length === EXPECTED_GEOMETRY_VIEWS.length
+    && EXPECTED_GEOMETRY_VIEWS.every((view) => generatedElevationNames.has(view));
   const executionId = archive.selected_run_id.startsWith('single-execution:')
     ? archive.selected_run_id.slice('single-execution:'.length)
-    : (passport?.agent_collaboration?.identity.execution_id ?? '');
+    : (passport?.agent_collaboration?.identity?.execution_id ?? '');
   const imageProposal = extractElevationProposal(passport, {
+    executionId,
+    programHash: mass.program_hash,
+    geometryHash: mass.geometry_hash,
+  });
+  const multiViewProposal = extractMultiViewElevation(passport, {
     executionId,
     programHash: mass.program_hash,
     geometryHash: mass.geometry_hash,
@@ -145,12 +147,22 @@ export function ExecutedMassEvidence({
           proposal={imageProposal}
         />
       )}
+      {multiViewProposal && (
+        <MultiViewElevationEvidence
+          massLabel={mass.label}
+          proposal={multiViewProposal}
+        />
+      )}
       {generatedElevations.length > 0 && (
         <section className="executed-mass-evidence__elevations">
-          <header>6-VIEW GEOMETRY VERIFICATION · {generatedElevations.length} VIEWS</header>
+          <header>
+            {hasCompleteGeometryViewSet
+              ? `6-VIEW GEOMETRY VERIFICATION · ${generatedElevations.length} VIEWS`
+              : `GEOMETRY VIEW EVIDENCE INCOMPLETE · ${generatedElevations.length} / ${EXPECTED_GEOMETRY_VIEWS.length} VIEWS`}
+          </header>
           <div>
             {generatedElevations.map((view) => (
-              <figure key={view.view}>
+              <figure key={`${view.view}:${view.preview_url}`}>
                 <img
                   src={view.preview_url}
                   alt={`${mass.label} ${view.view} elevation`}
@@ -196,6 +208,19 @@ export function ExecutedMassEvidence({
         <div><dt>PROGRAM</dt><dd>{mass.program_label || mass.program_type}</dd></div>
         <div><dt>EXECUTION MODE</dt><dd>{executionRunCopy(mass.execution_mode)}</dd></div>
         <div><dt>FAR</dt><dd>{mass.far_pct == null ? 'NOT RECORDED' : `${mass.far_pct.toFixed(3)}%`}</dd></div>
+        <div><dt>BCR</dt><dd>{mass.bcr_pct == null ? 'NOT RECORDED' : `${mass.bcr_pct.toFixed(3)}%`}</dd></div>
+        <div><dt>GFA</dt><dd>{mass.total_floor_area_m2 == null ? 'NOT RECORDED' : `${mass.total_floor_area_m2.toFixed(3)}m²`}</dd></div>
+        <div>
+          <dt>FLOORS</dt>
+          <dd>
+            {mass.num_floors == null
+              ? 'NOT RECORDED'
+              : `${mass.num_floors} FLOORS${mass.floor_height_m == null ? '' : ` · ${mass.floor_height_m.toFixed(3)}m`}`}
+          </dd>
+        </div>
+        <div><dt>PARKING REQUIRED / PROVIDED</dt><dd>{mass.parking_required == null || mass.parking_provided == null ? 'NOT RECORDED' : `${mass.parking_required} / ${mass.parking_provided}`}</dd></div>
+        <div><dt>ELEVATION</dt><dd>{mass.elevation_status?.replaceAll('_', ' ').toUpperCase() || 'NOT EVALUATED'}</dd></div>
+        <div><dt>MATRIX PROVENANCE</dt><dd>{mass.floor_matrix_stack?.length ? `${mass.matrix_convention || 'matrix4'} · ${mass.floor_matrix_stack.length} TRANSFORMS` : 'NOT RECORDED'}</dd></div>
         <div><dt>CAPACITY ALT</dt><dd>{mass.capacity_alternative_id}</dd></div>
         <div><dt>TARGET / ACHIEVED</dt><dd>{percent(mass.capacity_target_utilization)} / {percent(mass.capacity_achieved_utilization)}</dd></div>
         <div><dt>GEOMETRY READY</dt><dd>{mass.geometry_ready === false ? 'FAIL' : 'PASS'}</dd></div>
@@ -209,7 +234,9 @@ export function ExecutedMassEvidence({
         <div><dt>VLM TOKENS</dt><dd>{cost?.usage?.total_tokens?.toLocaleString() ?? 'NOT RECORDED'}</dd></div>
         <div><dt>VLM HTTP CEILING</dt><dd>{cost?.max_http_attempts ?? 'NOT RECORDED'}</dd></div>
         <div><dt>SELECTOR</dt><dd>{selectorStage?.status?.toUpperCase() ?? 'LOADING'}</dd></div>
-        <div><dt>PASSPORT</dt><dd>{passport ? passportDisplayStatus(passport, mass) : (passportError || 'LOADING')}</dd></div>
+        <div><dt>PASSPORT</dt><dd>{passport ? passportDisplayStatus(passport) : (passportError || 'LOADING')}</dd></div>
+        <div><dt>FLOOR CONTRACT</dt><dd>{mass.floor_contract_hash || 'NOT RECORDED'}</dd></div>
+        <div><dt>FLOOR CAPACITY PLAN</dt><dd>{mass.floor_capacity_plan_hash || 'NOT RECORDED'}</dd></div>
         <div><dt>PROGRAM HASH</dt><dd>{mass.program_hash.slice(0, 18)}</dd></div>
         <div><dt>GEOMETRY HASH</dt><dd>{mass.geometry_hash.slice(0, 18)}</dd></div>
       </dl>

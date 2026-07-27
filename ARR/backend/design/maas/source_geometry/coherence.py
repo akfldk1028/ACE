@@ -17,7 +17,13 @@ COHERENCE_SCHEMA_VERSION = "arr.maas.mass_coherence.v2"
 def evaluate_source_volume_coherence(volumes: tuple[SourceVolume, ...]) -> dict[str, Any]:
     if not volumes:
         return {"schema_version": COHERENCE_SCHEMA_VERSION, "status": "missing", "score": 0.0, "hard_pass": False}
-    volumes = _typed_components(volumes)
+    source_volumes = volumes
+    floorwise_quality = all(
+        str(volume.verb) == "floorwise_legal_matrix4"
+        for volume in source_volumes
+    )
+    volumes = _typed_components(source_volumes)
+    quality_volumes = source_volumes if floorwise_quality else volumes
     areas = [max(float(volume.footprint.area), 1e-9) for volume in volumes]
     continuous_field = all(
         "continuous_ribbon_lane" in str(volume.role) or "branched_ribbon" in str(volume.role)
@@ -49,7 +55,7 @@ def evaluate_source_volume_coherence(volumes: tuple[SourceVolume, ...]) -> dict[
         ))
 
     polygon_evidence = []
-    for volume in volumes:
+    for volume in quality_volumes:
         quality_polygon, normalization = _coherence_quality_polygon(volume)
         evidence = evaluate_polygon_quality(
             quality_polygon,
@@ -125,6 +131,10 @@ def evaluate_source_volume_coherence(volumes: tuple[SourceVolume, ...]) -> dict[
         "polygon_quality_hard_pass": polygon_failure_count == 0,
         "polygon_quality_failure_count": polygon_failure_count,
         "polygon_quality": polygon_evidence,
+        "floorwise_quality_plate_count": (
+            len(quality_volumes) if floorwise_quality else 0
+        ),
+        "floorwise_quality_uses_occupied_plates": floorwise_quality,
         "continuous_field_exception": continuous_field,
         "intentional_cluster_exception": intentional_cluster,
         "effective_spatial_component_count": effective_spatial_component_count,

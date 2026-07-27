@@ -159,6 +159,37 @@ class MaasPolygonQualityTest(SimpleTestCase):
         self.assertTrue(normalization["source_geometry_unchanged"])
         self.assertFalse(authored_evidence["hard_pass"])
 
+    def test_floorwise_bands_measure_each_plate_not_their_all_height_union(self):
+        # Legal section fitting may rotate and taper otherwise simple plates
+        # from floor to floor. Their all-height plan union is a star outline,
+        # but no occupied floor has that outline; floor quality must therefore
+        # be evaluated on the six actual plates. Vertical support remains a
+        # separate shared-floor hard gate and the rendered stack still reaches
+        # the final VLM.
+        plates = tuple(
+            SourceVolume(
+                "recursive_primary",
+                rotate(box(-12, -2, 12, 2), angle, origin=(0, 0)),
+                index / 6,
+                (index + 1) / 6,
+                "floorwise_legal_matrix4",
+            )
+            for index, angle in enumerate((0, 30, 60, 90, 120, 150))
+        )
+
+        union_quality = evaluate_polygon_quality(
+            unary_union([plate.footprint for plate in plates])
+        )
+        coherence = evaluate_source_volume_coherence(plates)
+
+        self.assertIn(
+            "over_tortuous_mass_outline",
+            union_quality["failure_reasons"],
+        )
+        self.assertTrue(coherence["polygon_quality_hard_pass"], coherence)
+        self.assertTrue(coherence["hard_pass"], coherence)
+        self.assertEqual(coherence["floorwise_quality_plate_count"], 6)
+
     def test_folded_graph_materializes_non_flat_formal_surfaces(self):
         sequence = VerbSequence(
             "grammar_sloped_roof_envelope",

@@ -388,6 +388,53 @@ def maas_single_execution_elevation_proposal(request, execution_id):
     return response
 
 
+@require_http_methods(["GET"])
+def maas_single_execution_multi_view_elevation_artifact(
+    request,
+    execution_id,
+    artifact,
+):
+    filenames = {
+        "front": "front.png",
+        "right": "right.png",
+        "back": "back.png",
+        "left": "left.png",
+        "critic-montage": "critic-montage.png",
+    }
+    filename = filenames.get(str(artifact))
+    if not filename:
+        raise Http404("unknown multi-view elevation artifact")
+    output = _single_execution_artifact(
+        execution_id,
+        f"elevation/proposals/multi-view-alt-01/{filename}",
+    )
+    if not output.is_file():
+        raise Http404("multi-view elevation artifact not found")
+    response = FileResponse(output.open("rb"), content_type="image/png")
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@require_http_methods(["GET"])
+def maas_single_execution_multi_view_elevation_evidence(
+    request,
+    execution_id,
+    document,
+):
+    filenames = {
+        "proposal": "proposal.json",
+        "critic": "critic.json",
+    }
+    filename = filenames.get(str(document))
+    if not filename:
+        raise Http404("unknown multi-view elevation evidence")
+    return _single_execution_json(
+        execution_id,
+        f"elevation/proposals/multi-view-alt-01/{filename}",
+    )
+
+
 def _single_execution_json(execution_id: str, filename: str) -> JsonResponse:
     output = _single_execution_artifact(execution_id, filename)
     try:

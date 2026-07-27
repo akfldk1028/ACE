@@ -63,6 +63,100 @@ class _RaisingImageAdapter:
 
 
 class MaasSingleExecutionTest(SimpleTestCase):
+    def test_archive_capacity_replay_preserves_selected_band_and_floor_contract(self):
+        from design.maas.geometry_language.executed_archive import (
+            _archived_capacity_evidence,
+        )
+
+        floor_contract = {
+            "schema_version": "arr.maas.shared_floor_contract.v1",
+            "floor_contract_hash": "floor-contract-123",
+            "floor_capacity_plan_hash": "floor-plan-123",
+            "hard_pass": True,
+            "plates": [],
+        }
+        artifact = {
+            "capacityAlternative": {
+                "requested_capacity_alternative_id": "brief_target",
+                "target_hard_pass": False,
+                "selectable_capacity_alternative_id": "spatial_reserve",
+                "selectable_capacity_hard_pass": True,
+            },
+            "executionPassport": {
+                "stages": [{
+                    "id": "capacity",
+                    "evidence": {
+                        "measurement": {"utilization_ratio": 0.7033},
+                        "shared_floor_contract": floor_contract,
+                        "floor_contract_hash": "floor-contract-123",
+                    },
+                }],
+            },
+        }
+
+        capacity = _archived_capacity_evidence(artifact)
+
+        self.assertTrue(capacity["hard_pass"])
+        self.assertEqual(
+            capacity["shared_floor_contract"]["floor_contract_hash"],
+            "floor-contract-123",
+        )
+        self.assertEqual(capacity["measurement"]["utilization_ratio"], 0.7033)
+
+    def test_passport_replay_restores_stage_status_for_elevation_handoff(self):
+        from design.maas.single_execution.replay import (
+            downstream_evidence_from_passport,
+        )
+
+        passport = {
+            "stages": [
+                {
+                    "id": stage_id,
+                    "status": "passed",
+                    "evidence": (
+                        {
+                            "selected": True,
+                            "shared_floor_contract": {
+                                "schema_version": "arr.maas.shared_floor_contract.v1",
+                                "floor_contract_hash": "floor-contract-123",
+                                "hard_pass": True,
+                            },
+                        }
+                        if stage_id == "selector"
+                        else (
+                            {
+                                "hard_pass": True,
+                                "shared_floor_contract": {
+                                    "schema_version": "arr.maas.shared_floor_contract.v1",
+                                    "floor_contract_hash": "floor-contract-123",
+                                    "hard_pass": True,
+                                },
+                            }
+                            if stage_id == "capacity"
+                            else {"hard_pass": True}
+                        )
+                    ),
+                }
+                for stage_id in (
+                    "site",
+                    "capacity",
+                    "law",
+                    "parking",
+                    "program_fit",
+                    "selector",
+                )
+            ],
+        }
+
+        replay = downstream_evidence_from_passport(passport)
+
+        self.assertEqual(replay["site"]["status"], "passed")
+        self.assertTrue(replay["selector"]["hard_pass"])
+        self.assertEqual(
+            replay["shared_floor_contract"]["floor_contract_hash"],
+            "floor-contract-123",
+        )
+
     def test_specialist_evidence_materializes_the_same_downstream_flow_nodes(self):
         def evidence(agent, status):
             def execute(identity, _accumulated):

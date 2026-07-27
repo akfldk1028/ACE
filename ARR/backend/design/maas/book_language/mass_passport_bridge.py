@@ -31,6 +31,7 @@ def selected_candidate_execution_passport(
         vlm_audit = {}
     capacity_projection = source_metadata.get("capacity_alternative_projection") or {}
     capacity_measurement = source_metadata.get("source_capacity_measurement") or {}
+    shared_floor_contract = source_metadata.get("shared_floor_contract") or {}
     return enrich_mass_execution_passport(
         initial,
         downstream_evidence={
@@ -42,6 +43,10 @@ def selected_candidate_execution_passport(
             "capacity": {
                 **deepcopy(capacity_projection),
                 "measurement": deepcopy(capacity_measurement),
+                "shared_floor_contract": deepcopy(shared_floor_contract),
+                "floor_contract_hash": str(
+                    shared_floor_contract.get("floor_contract_hash") or ""
+                ),
                 "evaluated": bool(capacity_projection or capacity_measurement),
                 "hard_pass": bool(descriptor.get("capacity_target_hard_pass")),
             },

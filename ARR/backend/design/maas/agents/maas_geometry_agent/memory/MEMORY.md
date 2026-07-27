@@ -105,3 +105,78 @@ Latest bounded proof:
 - Browser proof at port 5178 loaded the selected MASS, six technical
   elevations and the one generated elevation proposal with no broken images,
   console errors or Vite overlay.
+
+## 2026-07-27 - r273 PNG audit correction and unresolved root cause
+
+This section supersedes any earlier description of r273 as a complete
+generative proof. It is an orchestration/replay/elevation integration proof,
+but it did **not** exercise the intended LLM-authored MASS path and it did not
+produce a competition-grade selected MASS.
+
+Directly reviewed evidence:
+
+- `book-program-portfolios-r273-vlm4-diverse-reserve/maas-book-programs-60-summary.png`
+- `single-executions/r273-selected-exact-replay-v3/mass.png`
+- `single-executions/r273-selected-exact-replay-v3/elevation/views/front.png`
+- `single-executions/r273-selected-exact-replay-v3/elevation/views/axon.png`
+- `single-executions/r273-selected-exact-replay-v3/elevation/proposals/alt-01/proposal.png`
+
+Observed visual failure:
+
+- The selected MASS reads as one long carved/extruded monolith with slots, not
+  as a convincing floor-aware architectural composition. The technical
+  elevations expose four floor guides, but the mass hierarchy remains three
+  large stacked blocks and the section strategy is `none`.
+- The portfolio board contains one accepted card and four empty
+  `NO DISTINCT HARD-PASS CANDIDATE` positions. The card itself reports
+  `BRIEF 90% > 70%` and `FAR 88/126%`.
+- GPT Image added credible concrete/glazing and floor rhythm, but it correctly
+  preserved the locked weak silhouette. It cannot repair MASS geometry.
+
+Measured selection conflict:
+
+- The law-derived four-floor plan was reachable: target GFA `299.089 m2`
+  at `90%` of feasible `332.322 m2`.
+- Thirty-two candidates passed the downstream legal/parking pool and four were
+  reviewed with paid VLM. A `311.494 m2` candidate reached `93.73%`, but VLM
+  rejected it as too box-like and the wrong program typology.
+- The only VLM hard-pass candidate was `233.713 m2`, `70.33%`, FAR `88.485%`.
+  Therefore the selector chose visual hard-pass at the minimum capacity band
+  instead of finding the required intersection of target capacity and visual
+  quality.
+- Typed repair changed two failed candidates. One then failed shared-floor
+  clear-depth; the other failed capacity-target routing, so no repaired
+  candidate reached the second paid VLM review.
+
+Missing intended agent participation:
+
+- `geometry_program_llm_author_active_seed_count = 0`.
+- All `164` geometry author statuses were `not_requested_pre_program`.
+- Paid VLM shortlist contained `0` LLM-authored candidates.
+- `mass_brain_geometry_trace` timed out and had `selection_effect =
+  none_shadow_only`.
+- The selected result was a deterministic universal-form/BOOK path
+  (`agent_notch` + `book:operative:embed`), not an LLM-authored
+  GeometryProgram/AST.
+
+Elevation handoff evidence gap:
+
+- The r273 passport records requested `brief_target` and selectable
+  `spatial_reserve`, but its elevation condition pack contains
+  `capacity_alternative = {}` and `target_floor_areas_m2 = []`.
+- The exact floor guides and geometry hash are preserved, so replay identity is
+  correct. However this archived proof does not demonstrate the new
+  capacity-target schedule handoff; that requires a fresh post-fix execution.
+
+Do not call a future run complete unless all are true:
+
+1. At least one actual LLM-authored GeometryProgram/AST reaches compilation.
+2. The same candidate passes shared-floor, law, parking, the requested
+   capacity band and paid VLM.
+3. The selected MASS visibly reads as an occupiable low-rise building with
+   coherent ground threshold, floor hierarchy and section—not merely a carved
+   monolith.
+4. Elevation receives non-empty `target_floor_areas_m2` and the bound
+   `capacity_alternative`.
+5. The frontend shows that one causal selected MASS plus its six locked views
+   and evaluated elevation evidence without broken assets.

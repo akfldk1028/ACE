@@ -16,6 +16,7 @@ from design.maas.book_language import candidate_analysis, portfolio_benchmark, p
 from design.maas.book_language import portfolio_selection, vlm_review
 from design.maas.book_language import final_vlm_cycle, portfolio_replenishment
 from design.maas.book_language import lineage as book_lineage
+from design.maas.book_language import quality_diversity_archive
 from design.maas.book_language.corpus_audit import audit_book_corpus
 from design.maas.geometry_language import base_seed_program, compile_geometry_program
 from design.maas.grammar.vocab import BOOK_BASE_VERBS, SUPPORTED_VERBS
@@ -233,9 +234,14 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
                 "metadata": {"base_seed": "bar"},
                 "nodes": [
                     {
-                        "id": "book03_book_split",
-                        "operator": "book_split",
-                        "parameters": {"access_side": "west"},
+                        "id": "program_projection:public_threshold",
+                        "operator": "notch",
+                        "parameters": {"side": "west"},
+                        "semantic_role": "public_threshold",
+                        "provenance": {
+                            "source": "post_book_program_projection",
+                            "program_invariant": True,
+                        },
                     },
                 ],
             },
@@ -263,7 +269,10 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             descriptor["resolved_snapshot_concepts_from_final_ast"],
             ["concept:public_threshold"],
         )
-        self.assertEqual(descriptor["threshold_controller_node_ids"], ["book03_book_split"])
+        self.assertEqual(
+            descriptor["threshold_controller_node_ids"],
+            ["program_projection:public_threshold"],
+        )
         self.assertTrue(descriptor["frontage_aligned"])
 
     def test_replenishment_cycle_budget_is_bounded(self):
@@ -665,20 +674,18 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         })
         self.assertEqual(evidence["chassis_family_anchor_count"], 4)
 
-    def test_default_outcome_graph_is_pnu_scoped_not_output_directory_scoped(self):
+    def test_default_outcome_graph_is_run_scoped_and_ignores_pnu_cache_env(self):
         with TemporaryDirectory() as temporary_dir, patch.dict(
             os.environ,
-            {"MAAS_OUTCOME_GRAPH_DIR": temporary_dir},
+            {"MAAS_OUTCOME_GRAPH_DIR": str(Path(temporary_dir) / "pnu-cache")},
         ):
-            first = portfolio_benchmark.default_outcome_graph_path("11680/parcel:004")
-            second = portfolio_benchmark.default_outcome_graph_path("11680/parcel:004")
-            other = portfolio_benchmark.default_outcome_graph_path("11680/parcel:005")
+            output_dir = Path(temporary_dir) / "run-r268"
+            graph_path = portfolio_benchmark.default_outcome_graph_path(output_dir)
 
-        self.assertEqual(first, second)
-        self.assertNotEqual(first, other)
-        self.assertEqual(first.parent, Path(temporary_dir).resolve())
-        self.assertNotIn("/", first.name)
-        self.assertNotIn(":", first.name)
+        self.assertEqual(
+            graph_path,
+            output_dir.resolve() / "maas-geometry-mutation-outcome-graph.json",
+        )
 
     def test_final_vlm_shortlist_reserves_review_bandwidth_for_typed_llm_author_lane(self):
         procedural = [
@@ -1666,15 +1673,16 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             "all_available_bands_required_once; nominal quotas are soft preferences",
         )
 
-    def test_bounded_visual_pool_preserves_rare_capacity_pass_before_common_score(self):
+    def test_bounded_visual_pool_preserves_rare_capacity_pass_despite_common_higher_score(self):
         candidates = [
             SimpleNamespace(
                 key=name,
                 score=score,
                 scope="1/1",
+                phenotype="prismatic",
                 family="shared_family",
-                roof="shared_roof",
-                seed="shared_seed",
+                plan="quadrilateral",
+                principle_id="book:shared",
                 source=SimpleNamespace(metadata={
                     "capacity_alternative_projection": {
                         "alternative_id": alternative_id,
@@ -1688,11 +1696,55 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             )
         ]
         with (
-            patch.object(portfolio_selection, "_fingerprint", side_effect=lambda item: (item.key,)),
-            patch.object(portfolio_selection, "_scope_key", side_effect=lambda item: item.scope),
-            patch.object(portfolio_selection, "_geometry_program_family", side_effect=lambda item: item.family),
-            patch.object(portfolio_selection, "_roof_archetype", side_effect=lambda item: item.roof),
-            patch.object(portfolio_selection, "_seed_family", side_effect=lambda item: item.seed),
+            patch.object(
+                quality_diversity_archive,
+                "_fingerprint",
+                side_effect=lambda item: (item.key,),
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_scope_key",
+                side_effect=lambda item: item.scope,
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_solid_morphology_metrics",
+                side_effect=lambda item: {"phenotype": item.phenotype},
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_capacity_alternative_key",
+                side_effect=lambda item: item.source.metadata[
+                    "capacity_alternative_projection"
+                ]["alternative_id"],
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_capacity_target_gate",
+                return_value=True,
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_capacity_minimum_gate",
+                return_value=True,
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_plan_family",
+                side_effect=lambda item: item.plan,
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_geometry_program_family",
+                side_effect=lambda item: item.family,
+            ),
+            patch.dict(
+                os.environ,
+                {
+                    "MAAS_QD_ELITES_PER_CELL": "1",
+                    "MAAS_QD_ARCHIVE_MAX_SIZE": "32",
+                },
+            ),
         ):
             retained = portfolio_selection._bounded_visual_selection_pool(
                 candidates,
@@ -1700,7 +1752,10 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
                 per_seed_scope=1,
             )
 
-        self.assertEqual([candidate.key for candidate in retained], ["rare_maximum"])
+        self.assertEqual(
+            {candidate.key for candidate in retained},
+            {"common_reserve", "rare_maximum"},
+        )
 
     def test_selection_diagnostics_excludes_capacity_target_misses_like_selector(self):
         def candidate(key: str, hard_pass: bool):

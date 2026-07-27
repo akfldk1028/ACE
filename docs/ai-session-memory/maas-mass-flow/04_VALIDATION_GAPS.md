@@ -1,5 +1,76 @@
 # Open Validation Gaps
 
+## P0 - one full legal-to-competition-design transaction does not yet exist
+
+- The declared agent order is `law -> parking -> LLM Architect -> MassDSL ->
+  geometry -> grammar -> preference -> review`, but the public legal-variants
+  runtime generates LLM candidates before candidate parking, attaches
+  MassDSL/grammar evidence after selection and emits mostly post-hoc agent
+  reviews.
+- The BOOK portfolio has stronger PNU/capacity/program/downstream selection,
+  while single execution has stronger immutable passport/VLM/elevation
+  evidence. They are not composed as one request and identity.
+- Add one orchestration contract that carries the same PNU, site, law sources,
+  capacity alternative, parking strategy, LLM author evidence, typed program,
+  authoritative floors and hashes through every generation and repair stage.
+- Agent results must become the next agent's typed input. Rendering the same
+  `AgentContext` through a review registry is evidence narration, not
+  collaboration.
+- The public legal-variants endpoint currently builds its envelope from
+  caller-supplied constraints while carrying PNU separately for identity and
+  later parking paths. Connect PNU -> cited law Graph DB evidence ->
+  deterministic constraints -> envelope in the same fail-closed transaction.
+- Reconcile the declared `grammar -> preference -> review` flow with
+  `GrammarCriticAgent.next_agent=review_agent`; the executable handoff contract
+  must have one unambiguous order.
+
+## P0 - authoritative floor plates are split from GeometryProgram truth
+
+- `legal_envelope.py` owns real per-floor legal plates. BOOK capacity currently
+  samples SourceVolume intersections using requested floor context, while the
+  compiler only proves mesh topology.
+- A requested floor count, FAR proxy or bounding-box level count cannot prove
+  an inhabitable building. This is the direct path by which ribs, radial
+  sculptures and continuous solids can pass as "MASS."
+- Define one floor schema consumed by capacity, program, parking, building
+  legibility, selector and elevation. Each rendered floor datum must trace to
+  one authoritative plate; elevation must not invent guides from height alone.
+- Add hard checks for usable plate area/depth, plate continuity, support/core
+  relation, access/egress reservation and floor-count agreement. Program-
+  specific exceptions such as halls remain explicit.
+
+## P0 - frontend must distinguish product acceptance from partial evidence
+
+- r230 is a `PNU_UNRESOLVED` geometry/elevation fixture and its multi-view
+  proposal is failed. r200 is a legacy exact archived-AST replay of r196
+  MASS04, created before `execution_mode` and live-VLM-accepted under a
+  pre-current collaboration contract. Neither is a complete competition-design
+  proposal.
+- Default selection needs an explicit product-acceptance predicate rather than
+  using recency, `geometry_ready`, or historical `accepted + VLM` alone.
+- If no product-complete run exists, show `NO FULL COMPETITION DESIGN ACCEPTED`
+  and let the user inspect the best partial lane without implying finality.
+- Clear passport, outcome and elevation state atomically on run changes. The
+  selected old r200 sidebar currently has no matching card in the up-to-24-item
+  newest deduplicated single-execution rail.
+- Technical six-view extraction currently lacks the identity guard used by
+  legacy and multi-view creative proposals. Selection swaps archive data before
+  the later passport-clearing effect, and outcome state is not cleared
+  immediately, so prior technical views/outcomes can appear transiently under
+  a newly selected MASS.
+- Timeline text says `CLICK TO REPLAY`, but clicking performs only GET
+  selection. Actual replay is a separate POST action; relabel the timeline so
+  evidence inspection is not confused with execution.
+
+## P0 - render provenance is not sufficient for a default artifact
+
+- The same program/geometry hash can render differently after renderer fixes.
+  Preserve historical PNGs, but record renderer contract/version and do not use
+  an obsolete render as the current visual-quality authority.
+- A current-view regeneration must create new render evidence without mutating
+  the historical execution identity or copying old VLM acceptance to new image
+  bytes.
+
 ## P0 - fresh synthesis must not be confused with exact replay
 
 - `source_run_id/source_mass_index` always means immutable exact AST replay.
@@ -118,6 +189,10 @@
   landscaping, use restrictions and current parking rules remain incomplete.
 - Implement and test GeometryProgram indexed mesh -> elevation condition pack.
   No facade/elevation result is final before an accepted MASS hash is frozen.
+- Current single execution invokes elevation before collaboration/selector
+  completion and supplies only compiled mesh. Move this behind an explicit
+  accepted-MASS guard and pass the identity-matching floor/program/site/law/
+  parking condition pack.
 
 ## P1 — runtime and modularity
 

@@ -2,6 +2,28 @@
 
 Keep changes in the owning module. Do not grow another monolithic benchmark.
 
+## Flow composition truth
+
+No current module alone is the complete product orchestrator.
+
+- `legal_mesh_optimizer.py` has the strongest floor-by-floor legal mass,
+  capacity, parking and service-selection implementation.
+- `book_language/portfolio_benchmark.py` has the strongest PNU-derived
+  capacity-alternative, typed-program, downstream-gate and bounded portfolio
+  search implementation.
+- `single_execution/` has the strongest immutable one-program passport,
+  specialist evidence, render and deploy-time latency boundary.
+- `agents/elevation_agent/` plus `backend/agents/elevationAgent/` has the
+  downstream immutable-MASS facade boundary.
+- `agents/orchestrator/flow.py` declares the intended specialist order, while
+  `execution_collaboration.py` is a shorter post-compile review chain.
+- `agents/orchestrator/generative_loop.py` is a typed loop utility and research
+  integration point; it is not presently the public full-design orchestrator.
+
+The next integration must compose these owners through typed contracts. Do not
+copy their logic into a new monolith and do not describe post-hoc review cards
+as the population-generating collaboration.
+
 ## Geometry language
 
 - AST/DSL/compiler: `ARR/backend/design/maas/geometry_language/`
@@ -88,11 +110,11 @@ Keep changes in the owning module. Do not grow another monolithic benchmark.
 - Runtime API/types: `ARR/frontend/src/design/lib/api-client.ts`,
   `language-system-types.ts`
 - Exact MASS/elevation-proposal identity guard:
-  `ARR/frontend/src/design/lib/elevation-proposal.ts`
+  `ARR/frontend/src/design/components/book-language-flow/elevation-proposal.ts`
 - Browser verification: `docs/playwright/design-route-live-verify/verify-maas-single-graph.cjs`
 - Frontend single-execution unit contracts:
-  `ARR/frontend/test/unit/design/ExecutedMassEvidence.test.tsx` and
-  `ARR/frontend/test/unit/design/maas-single-execution-api.test.ts`
+  `ARR/frontend/src/design/components/book-language-flow/ExecutedMassEvidence.test.tsx`
+  plus the focused tests in the same component folder.
 - Focused MASS-flow regressions: `ARR/backend/design/test_maas_flow_regressions.py`
 
 ## Memory update protocol

@@ -1,7 +1,127 @@
 {
   "schema_version": "arr.maas.mass_flow_memory.v1",
-  "updated_at": "2026-07-24T14:46:00+09:00",
-  "frontend_url": "http://127.0.0.1:5175/design/language",
+  "updated_at": "2026-07-27T11:14:52+09:00",
+  "frontend_url": "http://127.0.0.1:5178/design/language",
+  "canonical_flow_audit_20260727": {
+    "status": "memory_restored_implementation_incomplete",
+    "product_goal": "multi_agent_legal_to_competition_design",
+    "audited_by": [
+      "mass_memory_timeline",
+      "mass_backend_flow_audit",
+      "mass_frontend_review"
+    ],
+    "paid_model_request_count": 0,
+    "canonical_sequence": [
+      "user_brief_pnu_program",
+      "design_orchestrator",
+      "site_datum_and_law_graph",
+      "deterministic_legal_envelope",
+      "authoritative_floor_plates_and_capacity_alternatives",
+      "parking_preconstraint",
+      "optional_reference_language_distillation",
+      "llm_architect_agent",
+      "massdsl_agent",
+      "geometry_program_compiler",
+      "building_capacity_program_law_parking_hard_gates",
+      "technical_mass_render",
+      "bounded_vlm_critic",
+      "typed_repair_and_full_regate",
+      "review_agent",
+      "selector",
+      "archive_and_freeze_accepted_identity",
+      "immutable_mass_handoff",
+      "elevation_agent",
+      "multi_view_facade_consistency",
+      "competition_design_evidence_package"
+    ],
+    "immutable_identity": [
+      "execution_id",
+      "program_hash",
+      "geometry_hash",
+      "pnu"
+    ],
+    "capacity_alternatives": [
+      "spatial_reserve",
+      "balanced_yield",
+      "brief_target",
+      "maximum_feasible"
+    ],
+    "shared_floor_truth_required": true,
+    "current_pipeline_split": [
+      "legal_mesh_optimizer_service",
+      "book_portfolio_pipeline",
+      "single_execution_and_elevation"
+    ],
+    "current_primary_gap": "pnu_law_constraints_floor_plates_geometry_program_and_elevation_do_not_share_one_authoritative_transaction",
+    "public_legal_variants_pnu_caveat": "legal_envelope_uses_caller_constraints_not_pnu_derived_law_evidence",
+    "current_elevation_order_caveat": "single_execution_generates_elevation_before_collaboration_selector_and_without_accepted_mass_guard",
+    "accepted_competition_design_exists": false,
+    "run_truth": {
+      "r230": "pnu_unresolved_geometry_elevation_fixture_with_failed_multi_view_proposal",
+      "r200": "legacy_exact_archived_ast_replay_of_r196_mass04_pre_execution_mode_bounded_procedural_author_live_vlm_accepted_not_full_competition_design",
+      "r204": "live_llm_authored_mass_rejected_by_downstream_vlm"
+    },
+    "frontend_audit_url": "http://127.0.0.1:5178/design/language",
+    "frontend_default": "single-execution:mass-20260722T040843366927Z",
+    "frontend_default_limitation": "historical_accepted_sidebar_is_split_from_up_to_24_newest_deduplicated_single_execution_mass_rail",
+    "timeline_click_truth": "timeline_click_is_get_selection_not_post_replay"
+  },
+  "latest_r230_multi_view_elevation_test": {
+    "execution_id": "r230-radial-roof-render-03-radial-cross",
+    "program_hash": "8c0f2d94de093b6a0183a9841f9385df6cc07980b84bbec420aaf5b58d31550a",
+    "geometry_hash": "6d6cea4d4d24eddee322aec3bd7614d01017b8ac9c1ab118216ace161ee1179a",
+    "scope": "front_right_back_left_creative_facades_only",
+    "mass04_executed": false,
+    "user_cost_directive": "test_only_no_large_vlm_batch",
+    "current_manifest_pipeline_version": "arr.elevation_agent.multi_view_pipeline.v2",
+    "current_manifest_status": "failed",
+    "current_manifest_paid_attempt_count": 6,
+    "paid_attempt_scope": "current_failed_v2_snapshot_only_not_cumulative_experiment_spend",
+    "current_manifest_retry_count": 0,
+    "current_joint_critic_status": "not_evaluated",
+    "archived_false_acceptance": {
+      "history_id": "ad01043cf1a775a0",
+      "original_status": "accepted",
+      "paired_source_output_reaudit_status": "manual_or_external_observation_not_persisted_as_current_critic_artifact",
+      "failed_views": [
+        "front",
+        "right",
+        "back",
+        "left"
+      ],
+      "reason": "generated stacked facade bands contradicted the locked single-storey sources"
+    },
+    "v3_live_test": {
+      "status": "user_stopped_for_cost",
+      "confirmed_completed_image_http_calls": 3,
+      "critic_calls": 0,
+      "manifest_written": false,
+      "evidence_restored_to_v2_snapshot": true
+    },
+    "frontend_browser": {
+      "url": "http://127.0.0.1:5173/design/language",
+      "url_scope": "historical_r230_browser_evidence_not_current_frontend_audit",
+      "selected_execution_verified": true,
+      "creative_facade_image_count": 4,
+      "creative_facade_natural_size": [
+        720,
+        720
+      ],
+      "desktop_columns": 2,
+      "narrow_columns": 1,
+      "console_error_count": 0,
+      "vite_overlay": false,
+      "displayed_status": "failed_joint_consistency_not_evaluated"
+    },
+    "verification": {
+      "backend_focused": "28/28 pass in clean git worktree",
+      "frontend_focused": "12/12 pass",
+      "frontend_type_check": "pass",
+      "frontend_web_build": "pass"
+    },
+    "code_pipeline_version": "arr.elevation_agent.multi_view_pipeline.v3",
+    "next_action": "do not issue paid calls without fresh user approval; use local fixtures/tests by default"
+  },
   "latest_r227_mass_elevation_flow": {
     "batch_id": "r227-unitbox-book-clean",
     "execution_count": 10,
@@ -345,7 +465,7 @@
     "vlm_total_tokens": 27819,
     "artifact_manifest": "docs/ai-session-memory/maas-service-cache/single-executions/mass-20260722T040843366927Z/execution.json"
   },
-  "frontend_verification": {
+  "historical_frontend_verification_r196_r200": {
     "status": "pass",
     "run_count_visible": 118,
     "newest_state_only_run": "book-program-portfolios-r197-full-seven-page-vlm-memory",

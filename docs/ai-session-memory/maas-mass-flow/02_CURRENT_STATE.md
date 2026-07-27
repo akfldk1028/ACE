@@ -1,6 +1,102 @@
-# Current Verified State — r211-r216 multi-MASS archive with elevations
+# Current Verified State — canonical flow audit and historical run ledger
 
-Generated 2026-07-24 KST.
+Last verified 2026-07-27 KST.
+
+## 2026-07-27 canonical full-flow audit
+
+- The user reconfirmed the product goal: law Graph DB and specialist agents,
+  MASS design agents, VLM critics and the independent elevation agent must
+  collaborate to produce a competition-design proposal. A geometry/elevation
+  diagnostic is not the product.
+- Three read-only agents independently audited the recent run chronology,
+  backend execution and `/design/language` frontend. No paid call was made.
+- The repository currently contains three overlapping paths:
+  1. `legal_mesh_optimizer.py`, which owns real legal floor stacks, optional LLM
+     population, parking, preference/VLM and final selection;
+  2. the BOOK portfolio pipeline, which owns the strongest PNU-derived four
+     capacity alternatives, typed GeometryProgram supply and bounded portfolio
+     VLM/selection experiments;
+  3. single execution/elevation, which owns exact AST compile/GATE/render,
+     hash-bound specialist review and downstream facade evidence.
+- These paths are not yet one product transaction. Folder-agent flow describes
+  `law -> parking -> LLM -> MassDSL -> geometry -> grammar -> preference ->
+  review`, but the public legal-variants endpoint executes LLM before parking
+  and attaches MassDSL/grammar/agent reviews mostly after geometry and
+  selection. The generic generative A2A loop is not the public orchestrator.
+- The public legal-variants endpoint passes caller-supplied `constraints` and
+  `pnu` separately. Its legal envelope is built from `constraints`, not derived
+  from PNU; PNU is used later for identity and parking-related paths. Therefore
+  that endpoint does not yet prove a PNU-to-cited-law-to-envelope transaction.
+- The declared agent order also disagrees internally: orchestrator flow lists
+  `grammar -> preference -> review`, while `GrammarCriticAgent` points directly
+  to `review_agent`.
+- The largest geometry truth gap is per-floor representation. The legal service
+  has authoritative `floor_plates`; the BOOK/GeometryProgram lane estimates
+  capacity from SourceVolume intersections and floor-count context. Compiler
+  GATE proves a watertight solid, not inhabitable floors. Elevation currently
+  derives 3.3 m guides from mesh bounds. This allows a valid sculptural solid
+  to be presented as a multi-storey building.
+- Current single execution also creates elevation evidence before specialist
+  collaboration/selector completion and passes only compiled mesh into the
+  elevation runtime. It lacks the required accepted-MASS guard and complete
+  floor/program/law/parking condition pack.
+- Therefore the immediate repair target is not "make r230 look nicer." It is
+  to compose one full transaction and one shared floor truth across law,
+  capacity, LLM/MassDSL, geometry, parking, VLM, selector and elevation.
+- r230 remains a PNU-unresolved geometry/elevation fixture with failed
+  multi-view elevation evidence. r200 remains a historically accepted
+  legacy exact archived-AST replay of r196 MASS04, created before
+  `execution_mode` was recorded and originally authored by the bounded
+  procedural geometry agent, with live VLM acceptance. It is not a complete
+  competition-design proposal. The cached live LLM-authored r204 MASS remains
+  VLM-failed. There is currently no fully accepted end-to-end competition
+  proposal in the archive.
+- The live 5178 UI currently defaults to r200 because it is the only
+  `accepted + live_scored + vlm_hard_pass` single execution. Its sidebar and
+  the up-to-24-card deduplicated single-execution rail are visually split. The
+  sidebar order is compiler MASS, legacy ALT, four-view creative proposal, then
+  six technical views. This policy is safer than defaulting to r230 but still
+  must not be read as final product acceptance.
+- Canonical target, authorities, repair loops, execution-mode distinctions and
+  final acceptance are now recorded in `01_FLOW_CONTRACT.md`.
+
+## 2026-07-26 r230 MASS03 bounded multi-view elevation test
+
+- Scope is MASS plus four creative orthographic facades only: front, right,
+  back and left. Electron is out of scope. MASS04 was not run.
+- The first four-view result was initially accepted after four image edits and
+  one joint critic call, but direct visual review found stacked horizontal
+  bands that contradicted the locked single-storey sources. A paired-source
+  critic failure across all four views was observed during the correction, but
+  that response is not persisted as the current critic artifact; the standalone
+  `critic.json` is stale and must not be treated as current truth. The false
+  acceptance is preserved under history id `ad01043cf1a775a0`.
+- The corrected pipeline now injects the measured single-storey constraint,
+  compares eight images in the joint critic, assigns unique
+  `execution+geometry+view+attempt` artifact IDs, archives superseded evidence,
+  and tolerates only minor bright-material segmentation noise while retaining
+  the exact outside-mask change gate.
+- A v2 test used six image edits and zero retries, then stopped as failed before
+  critic evaluation because right/back deterministic registration failed. A
+  later v3 live test was stopped immediately on the user's cost directive after
+  three confirmed image HTTP completions and no critic call. Its incomplete
+  files were not promoted; the coherent v2 snapshot was restored.
+- The six calls recorded by the current manifest describe only the failed v2
+  snapshot, not cumulative experiment spend. Persisted chronology separately
+  records five calls for the false-acceptance snapshot and three confirmed v3
+  image completions; earlier single-view work is separate.
+- Current canonical proposal status is **failed**, not accepted. The frontend
+  truthfully renders four creative facade images with `FAILED`,
+  `JOINT CONSISTENCY NOT EVALUATED`, and deterministic-gate evidence.
+- Browser verification selected exact execution
+  `r230-radial-roof-render-03-radial-cross`: four 720x720 creative images load,
+  desktop uses two columns, narrow viewport one column, console errors are 0
+  and no Vite overlay appears.
+- Cost boundary: this is a bounded test, never a hundreds-of-images VLM loop.
+  Do not issue another paid image or critic request without fresh user approval;
+  default to fixtures and local tests.
+- Verification: backend elevation focus 28/28 passed again from a clean Git
+  worktree; frontend focus 12/12 passed; TypeScript and web build passed.
 
 ## 2026-07-24 r227 UnitBox/BOOK fresh batch and MASS-bound elevation ALT
 
@@ -69,10 +165,10 @@ Evidence:
 - Execution provenance is now explicit and lossless:
   `execution_mode=exact_replay` records source run/index, while
   `execution_mode=fresh_synthesis` means an independently authored AST.
-- Current reviewed fresh MASS:
+- At this historical checkpoint, the reviewed fresh MASS was:
   `single-execution:r222-fresh-book-offset-courtyard`.
   Program hash `6c784f4f...16590`; geometry hash `31250e53...5c439`.
-- A clean `/design/language` load now selects r222 by default. Selection
+- At that checkpoint, a clean `/design/language` load selected r222 by default. Selection
   prioritizes the newest replayable `fresh_synthesis` over an older site-bound
   portfolio, while a newer exact replay does not take over the "new design"
   slot. The bottom 16-card rail is historical evidence; only r222 was newly
@@ -108,7 +204,8 @@ Evidence:
 - PNU alone is not placement proof. Single runs are `site_bound` only with PNU,
   parcel geometry and an explicit local-to-parcel 4x4 matrix. PNU-only replays
   are `source_gate_only` and cannot replace the default site-bound portfolio.
-- The frontend defaults to the newest site-bound portfolio (`r196` currently)
+- At that checkpoint, the frontend defaulted to the newest site-bound portfolio
+  (`r196`)
   and its bottom rail contains its 15 architectural MASS cards. Diagnostic
   executions remain in the lossless timeline.
 - Fresh `r219-site-evidence-upright-render` preserves r160 MASS 01 geometry hash
@@ -191,9 +288,11 @@ Browser evidence:
 - Every result is geometry-ready, watertight/manifold, has zero Geometry GATE
   issues, and generated six deterministic elevation views from the exact
   indexed mesh: front, right, back, left, top and axon.
-- `/design/language` now builds the bottom MASS-only rail from replayable
-  single-execution runs rather than only `archive.masses` from the selected
-  run. The latest 24 MASS results remain visible while one run is selected.
+- At this historical checkpoint, `/design/language` built the bottom MASS-only
+  rail from replayable single-execution runs rather than only `archive.masses`
+  from the selected run. For a single-execution selection, it shows up to 24
+  newest geometry-hash-deduplicated replayable MASS results; a portfolio
+  selection instead shows that archive's masses.
 - Clicking r214 in browser verification moved the selected rail card, loaded
   the r214 diagonal-slice graph, and changed all six right-sidebar elevation
   URLs to r214. The page had zero broken images and no Vite error overlay.
@@ -300,7 +399,10 @@ Browser evidence:
 
 ## Historical bounded paid single-MASS acceptance (r200, pre-r201 contract)
 
-- Immutable execution `mass-20260722T040843366927Z` replays r196 MASS 04.
+- Immutable execution `mass-20260722T040843366927Z` is a legacy exact
+  archived-AST replay of r196 MASS 04, created before `execution_mode` was
+  recorded. Its stored program was originally authored by the bounded
+  procedural geometry agent.
   Program hash `e98802e47b7570b63719cd7ed58eb54b066deefce262e75510b43d6914d32f30`;
   geometry hash `1f59803258b651435af06b97883d483c5d79c494026e1eb6b2437b5853ad9436`.
 - Geometry is one watertight/manifold component, 96 triangles. Base, BOOK,
@@ -425,13 +527,14 @@ Browser evidence:
   r194 evidence was not modified. The transfer was resource-safe but did not
   improve cycle 1 beyond 15 candidates.
 
-## Render and frontend verification
+## Historical r196 render and frontend verification
 
 - Direct r196 PNG review: no painter-order floating fragments; all 15 are
   visible, but the board remains too box/step dominated for acceptance.
-- URL: `http://127.0.0.1:5175/design/language`.
-- After r197 failed, the frontend correctly leaves r197 as a 0-MASS state-only
-  timeline entry and selects r196 as the latest replayable portfolio.
+- Audited at the time on `http://127.0.0.1:5175/design/language`.
+- At that checkpoint, after r197 failed, the frontend left r197 as a 0-MASS
+  state-only timeline entry and selected r196 as the latest replayable
+  portfolio.
 - Browser pass: one graph; 15 executed nodes and 15 loaded images; 42 related
   nodes and 40 active edges after MASS click; 5 retrieved ArchDaily nodes;
   6 exact memory nodes; 0 active VLM references for r196; 0 BOOK rasters; 0 JS
@@ -471,3 +574,37 @@ Browser evidence:
 - `docs/ai-session-memory/maas-service-cache/single-executions/mass-20260722T004049081375Z/execution.json`
 - `docs/playwright/design-route-live-verify/frontend-live/single-execution-full-test-r199/verify.json`
 - `docs/playwright/design-route-live-verify/frontend-live/single-execution-full-test-r199/single-execution-full-graph.png`
+
+## 2026-07-26 - MASS authoring/elevation boundary and frontend recovery
+
+- Canonical responsibility is restored: the MASS stage is authored as typed
+  geometry language by the LLM/geometry-agent flow and reviewed by VLM.
+  GPT Image belongs only to the downstream elevation/material proposal stage;
+  it is not a MASS author and must not change the locked program or geometry
+  hash.
+- The r230 `radial-roof-render` series is an unreviewed diagnostic fixture.
+  Its manifests say `fresh_synthesis`, but `full_flow_status=needs_evidence`,
+  `vlm_status=not_evaluated`, and its site context is unresolved. It must not
+  displace a reviewed MASS merely because it is newer.
+- The only cached single execution with both final acceptance and a live VLM
+  hard pass is `mass-20260722T040843366927Z`
+  (`geometry_hash=1f598032...9436`, `gpt-5.4-mini`, response
+  `resp_09c96346deac86f1006a604298bb9081988820c96f5ca84354`). It is a
+  bounded procedural geometry-agent proposal, not a live LLM-authored program.
+- The cached live LLM-authored program is
+  `mass-20260722T075614737604Z-c22e2274`
+  (`author_provider=openai_llm_geometry_author`, model `gpt-5.4-mini`,
+  response `resp_0db2d6dfde44ce39006a60779abfa8819ab98965cfae28ed37`), but its
+  downstream VLM hard pass is false. Do not present it as accepted.
+- Historical r109-r121 portfolio evidence contains LLM-authored/VLM-reviewed
+  architectural candidates and visually stronger boards, but those archives
+  require replay/read repair before they can safely become the live default.
+- The archive API now preserves `full_flow_status`, `vlm_status`, and
+  `vlm_hard_pass` for single executions. The frontend first-open policy prefers
+  an accepted live-VLM hard-pass MASS over newer unreviewed fresh diagnostics.
+- Fresh browser proof at `http://127.0.0.1:5178/design/language`: selected
+  `single-execution:mass-20260722T040843366927Z`, actual compiler MASS loaded
+  at 900x680, HTTP 200, zero console errors, and zero request failures.
+  Evidence:
+  `docs/playwright/design-route-live-verify/accepted-vlm-mass-restored-5178.png`.
+- No new paid LLM, VLM, or GPT Image request was made for this recovery.

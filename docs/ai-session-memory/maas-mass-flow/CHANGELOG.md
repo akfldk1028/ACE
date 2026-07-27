@@ -1,5 +1,50 @@
 # MASS Flow Memory Changelog
 
+## 2026-07-27 - canonical multi-agent competition-design flow restored
+
+- Ran three read-only parallel audits over recent MASS chronology, backend
+  generation/collaboration code and the live `/design/language` frontend. No
+  paid model call was made.
+- Restored the product definition as a real-PNU law Graph DB -> authoritative
+  floor/capacity -> parking -> LLM Architect -> MassDSL -> Geometry Compiler ->
+  hard gates -> bounded VLM repair -> selector -> immutable MASS ->
+  elevationAgent collaboration.
+- Recorded that the current code has three partially overlapping pipelines,
+  not one finished product transaction, and that folder-agent results are
+  often post-hoc reviews rather than generative handoffs.
+- Identified the principal building-quality defect: legal `floor_plates`,
+  GeometryProgram capacity/floor context and elevation floor guides do not yet
+  share one authority.
+- Explicitly separated portfolio benchmark, `fresh_synthesis`, `exact_replay`,
+  single execution and elevation proposal semantics.
+- Recorded the honest archive status: r230 is a failed/PNU-unresolved
+  geometry-elevation fixture; r200 is historical procedural+VLM acceptance;
+  r204 is LLM-authored but VLM-failed; no full competition-design proposal is
+  currently accepted.
+
+## 2026-07-26 - r230 MASS03 bounded four-view elevation correction
+
+- Added separately generated front/right/back/left creative facade evidence,
+  deterministic multi-view registration, one joint critic contract and
+  responsive frontend evidence cards.
+- Direct visual review caught a false acceptance: the first critic had not
+  seen the locked technical sources and missed invented storey bands. The
+  corrected contract now receives four source/output pairs. A four-view failure
+  was observed during correction, but that response is not persisted as the
+  current critic artifact; superseded evidence is hash-archived rather than
+  deleted.
+- Added explicit single-storey prompt constraints, unique view/attempt artifact
+  IDs, pipeline-version cache invalidation and a bright-material segmentation
+  regression test.
+- User changed the live-run boundary to low-cost test only. MASS04 was not run;
+  v3 was stopped after three confirmed image completions, before any critic,
+  and the coherent v2 failed snapshot was restored.
+- Browser proof selected MASS03 and loaded all four creative facade images with
+  zero console errors or Vite overlay. The UI correctly reports failed/not
+  evaluated status instead of claiming acceptance.
+- Clean-checkout verification: backend 28/28; frontend 12/12; TypeScript and
+  web build pass. Repository-wide historical failures were not reclassified.
+
 ## 2026-07-24 - r227 fresh UnitBox/BOOK MASS, elevation ALT and bounded VLM
 
 - Generated ten archive-unique fresh MASS programs from one `1/1 UnitBox`.
@@ -235,7 +280,7 @@
   memory failure, but remained an honest 16/20 FAIL.
 - Fixed Django command completion so a persisted dict is not returned to
   `BaseCommand.stdout.write`.
-- Ran one paid cached board critic on the exact r188 PNG. `gpt-5.4-mini`
+- Ran one paid live/uncached board critic on the exact r188 PNG. `gpt-5.4-mini`
   returned FAIL with 8 families and 0.50 dominant share.
 - Persisted the paid audit in r188 summary and run-local graph, and made the
   frontend request outcome slices by selected `run_id`.
@@ -437,3 +482,18 @@
   package command also remains red only at its final NSIS step because the
   repository has no `frontend/build/icon.ico`; the web/main/preload bundles
   completed first.
+
+## 2026-07-26 - reviewed MASS default restored
+
+- Confirmed GPT Image is elevation/material-only; MASS remains typed geometry
+  authored upstream and reviewed by VLM.
+- Found r230 was an unreviewed radial diagnostic incorrectly winning the
+  frontend's newest-run policy.
+- Added single-run acceptance/VLM signals to the archive timeline and changed
+  first-open selection to prefer accepted live-VLM hard-pass MASS evidence.
+- Browser proof on port 5178 restored
+  `single-execution:mass-20260722T040843366927Z` with no console or request
+  failures. No paid model call was made.
+- Recorded the important provenance distinction: the restored accepted cached
+  MASS is procedural+VLM; the only cached live LLM-authored single MASS exists
+  but failed its VLM gate.

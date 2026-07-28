@@ -45,8 +45,8 @@ class Command(BaseCommand):
             "--smoke",
             action="store_true",
             help=(
-                "Stop after one shared-floor/program candidate, select one MASS, "
-                "and skip 20-member replenishment/diversity requirements."
+                "Run the bounded minimum 10-alternative portfolio search. "
+                "Smoke controls cost and search depth, never portfolio completeness."
             ),
         )
         parser.add_argument(
@@ -57,6 +57,14 @@ class Command(BaseCommand):
                 "universal form bank, BOOK projection and program projection; "
                 "requires MAAS_LIVE_GEOMETRY_VLM=1, "
                 "MAAS_LIVE_VLM_CREDENTIAL_ROTATED=1 and OPENAI_API_KEY"
+            ),
+        )
+        parser.add_argument(
+            "--live-llm-author",
+            action="store_true",
+            help=(
+                "Make one bounded OpenAI LLM request for typed GeometryProgram/AST "
+                "alternatives before BOOK, deterministic law/FAR/parking gates and VLM."
             ),
         )
         parser.add_argument("--visual-directive", default=None)
@@ -215,6 +223,7 @@ class Command(BaseCommand):
             program_slugs=tuple(options.get("program") or ()),
             recursive_only=bool(options.get("recursive_only")),
             live_geometry_vlm_revision=bool(options.get("live_vlm")),
+            live_llm_author=bool(options.get("live_llm_author")),
             smoke_mode=bool(options.get("smoke")),
             visual_directive_path=(
                 Path(str(options["visual_directive"])).resolve()
@@ -232,7 +241,7 @@ class Command(BaseCommand):
             + ", ".join(
                 (
                     f"{item['program']} {item['selected_count']}/"
-                    f"{1 if options.get('smoke') else 20} "
+                    f"{10 if options.get('smoke') else 20} "
                     f"({item['book_operation_count']} ops)"
                 )
                 for item in result["programs"]

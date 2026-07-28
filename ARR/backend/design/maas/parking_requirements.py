@@ -279,9 +279,11 @@ def _rule_id_for_building_type(building_type: str) -> str | None:
         return "parking_appendix1_row_01"
     if any(token in text for token in ("근린생활", "생활시설", "숙박")):
         return "parking_appendix1_row_03"
-    if any(token in text for token in ("단독", "다가구")):
+    if any(token in text for token in ("단독",)):
         return "parking_appendix1_row_04"
-    if any(token in text for token in ("공동주택", "아파트", "연립", "다세대", "오피스텔")):
+    if any(token in text for token in (
+        "다가구", "공동주택", "아파트", "연립", "다세대", "오피스텔",
+    )):
         return "parking_appendix1_row_05"
     if any(token in text for token in ("창고",)):
         return "parking_appendix1_row_08"

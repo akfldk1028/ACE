@@ -28,6 +28,19 @@ from design.maas.source_geometry import compile_sequence_to_source_mass
 
 
 class MaasBookLanguageRegistryTest(SimpleTestCase):
+    def test_portfolio_duplicate_threshold_uses_shared_visual_novelty_policy(self):
+        """Selection and replenishment must agree on what counts as a repeat."""
+        from design.maas.program_massing.morphology import DEFAULT_NOVELTY_POLICY
+
+        self.assertEqual(
+            portfolio_selection.PORTFOLIO_SILHOUETTE_DISTANCE,
+            DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat,
+        )
+        self.assertEqual(
+            portfolio_benchmark.PORTFOLIO_SILHOUETTE_DISTANCE,
+            DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat,
+        )
+
     def test_lineage_gate_keeps_descendant_when_viable_base_was_evicted_by_qd(self):
         def candidate(parent_key: str, stage: str, target_pass: bool):
             return SimpleNamespace(source=SimpleNamespace(metadata={
@@ -111,6 +124,38 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             },
         )
 
+    def test_exact_solver_prefers_cardinality_when_full_coverage_is_infeasible(self):
+        """A small coverage set must not hide a larger legal compatible set."""
+        facts = [
+            portfolio_selection.ConstraintCandidateFacts(
+                score=1.0,
+                cap_keys=("slot:1", "slot:2", "slot:3"),
+                coverage_tags=("required:scope",),
+            ),
+            *[
+                portfolio_selection.ConstraintCandidateFacts(
+                    score=0.9 - index * 0.1,
+                    cap_keys=(f"slot:{index + 1}",),
+                )
+                for index in range(3)
+            ],
+        ]
+        compatibility = [[True for _right in range(4)] for _left in range(4)]
+
+        selected = portfolio_selection.solve_maximum_compatible_subset(
+            facts,
+            compatibility,
+            target_count=3,
+            maximum_key_counts={
+                "slot:1": 1,
+                "slot:2": 1,
+                "slot:3": 1,
+            },
+            required_coverage_tags=("required:scope",),
+        )
+
+        self.assertEqual(selected, (1, 2, 3))
+
     def test_bounded_solver_recovers_twenty_set_from_large_greedy_trap(self):
         count = 31
         facts = [
@@ -169,6 +214,44 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertEqual(len(selected), 20)
         self.assertNotIn(0, selected)
         self.assertIn(20, selected)
+
+    def test_milp_solver_falls_back_to_cardinality_when_joint_coverage_is_infeasible(self):
+        """Required tags are a tie-breaker, not authority to return no MASS."""
+        facts = [
+            portfolio_selection.ConstraintCandidateFacts(
+                score=2.0,
+                cap_keys=("candidate:0",),
+                coverage_tags=("scope:rare",),
+            ),
+            portfolio_selection.ConstraintCandidateFacts(
+                score=1.0,
+                cap_keys=("candidate:1",),
+                coverage_tags=("capacity:brief",),
+            ),
+            portfolio_selection.ConstraintCandidateFacts(
+                score=0.9,
+                cap_keys=("candidate:2",),
+            ),
+        ]
+        compatibility = [
+            [True, False, False],
+            [False, True, True],
+            [False, True, True],
+        ]
+
+        selected = portfolio_selection.solve_milp_compatible_subset(
+            facts,
+            compatibility,
+            target_count=2,
+            maximum_key_counts={
+                "candidate:0": 1,
+                "candidate:1": 1,
+                "candidate:2": 1,
+            },
+            required_coverage_tags=("scope:rare", "capacity:brief"),
+        )
+
+        self.assertEqual(selected, (1, 2))
 
     def test_joint_scope_anchors_include_rare_capacity_band_before_greedy_selection(self):
         scopes = ("1/1", "1/2", "1/4", "1/8", "1/16", "3/8")
@@ -285,6 +368,13 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             self.assertEqual(
                 portfolio_replenishment.replenishment_cycle_budget_for_run(live_vlm=False),
                 7,
+            )
+            self.assertEqual(
+                portfolio_replenishment.replenishment_cycle_budget_for_run(
+                    live_vlm=False,
+                    smoke_mode=True,
+                ),
+                1,
             )
         with patch.dict(os.environ, {"MAAS_BOOK_REPLENISHMENT_CYCLES": "0"}):
             self.assertEqual(portfolio_replenishment.replenishment_cycle_budget(), 1)
@@ -1697,6 +1787,11 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         ]
         with (
             patch.object(
+                portfolio_selection,
+                "_fingerprint",
+                side_effect=lambda item: (item.key,),
+            ),
+            patch.object(
                 quality_diversity_archive,
                 "_fingerprint",
                 side_effect=lambda item: (item.key,),
@@ -1755,6 +1850,89 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertEqual(
             {candidate.key for candidate in retained},
             {"common_reserve", "rare_maximum"},
+        )
+
+    def test_bounded_visual_pool_keeps_unique_solver_witnesses_below_memory_cap(self):
+        """QD cell quotas must not shrink an already bounded exact-solver pool."""
+        candidates = [
+            SimpleNamespace(
+                key=f"witness_{index}",
+                score=1.0 - index * 0.01,
+                scope="1/1",
+                phenotype="prismatic",
+                family="shared_family",
+                plan="quadrilateral",
+                principle_id="book:shared",
+                source=SimpleNamespace(metadata={
+                    "capacity_alternative_projection": {
+                        "alternative_id": "balanced_yield",
+                        "target_hard_pass": True,
+                    },
+                }),
+            )
+            for index in range(3)
+        ]
+        with (
+            patch.object(
+                portfolio_selection,
+                "_fingerprint",
+                side_effect=lambda item: (item.key,),
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_fingerprint",
+                side_effect=lambda item: (item.key,),
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_scope_key",
+                side_effect=lambda item: item.scope,
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_solid_morphology_metrics",
+                side_effect=lambda item: {"phenotype": item.phenotype},
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_capacity_alternative_key",
+                return_value="balanced_yield",
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_capacity_target_gate",
+                return_value=True,
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_capacity_minimum_gate",
+                return_value=True,
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_plan_family",
+                side_effect=lambda item: item.plan,
+            ),
+            patch.object(
+                quality_diversity_archive,
+                "_geometry_program_family",
+                side_effect=lambda item: item.family,
+            ),
+            patch.dict(
+                os.environ,
+                {
+                    "MAAS_QD_ELITES_PER_CELL": "1",
+                    "MAAS_QD_ARCHIVE_MAX_SIZE": "32",
+                },
+            ),
+        ):
+            retained = portfolio_selection._bounded_visual_selection_pool(
+                candidates,
+            )
+
+        self.assertEqual(
+            {candidate.key for candidate in retained},
+            {candidate.key for candidate in candidates},
         )
 
     def test_selection_diagnostics_excludes_capacity_target_misses_like_selector(self):

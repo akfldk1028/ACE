@@ -2143,11 +2143,17 @@ def _related_array_macro(base, params: dict[str, Any], node_id: str):
         else requested_axis_index
     )
     cross_index = 1 - axis_index
-    count = max(2, min(4, int(params.get("count", 3))))
-    unit_scale = max(0.60, min(0.82, float(params.get("unit_scale", 0.66))))
     mode = str(params.get("mode") or "array").lower()
     if mode not in {"array", "pack"}:
         raise GeometryCompileError("invalid_related_array_mode", mode, node_id)
+    count = max(2, min(4, int(params.get("count", 3))))
+    unit_scale = max(
+        0.60,
+        min(
+            0.94 if mode == "pack" else 0.82,
+            float(params.get("unit_scale", 0.66)),
+        ),
+    )
     scale_vector = [unit_scale, unit_scale, 0.88 + unit_scale * 0.12]
     unit = _around_pivot(
         base,

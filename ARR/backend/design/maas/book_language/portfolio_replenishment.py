@@ -50,11 +50,27 @@ def replenishment_cycle_budget() -> int:
         return 1
 
 
-def replenishment_cycle_budget_for_run(*, live_vlm: bool) -> int:
+def replenishment_cycle_budget_for_run(
+    *,
+    live_vlm: bool,
+    smoke_mode: bool = False,
+) -> int:
     """Keep paid review bounded while letting local geometry pages close."""
 
     configured = replenishment_cycle_budget()
-    if live_vlm:
+    if smoke_mode:
+        smoke_diagnostic = os.getenv(
+            "MAAS_BOOK_SMOKE_REPLENISHMENT_CYCLES"
+        )
+        if smoke_diagnostic is not None:
+            try:
+                # Zero is an explicit diagnostic-only request. It never makes
+                # an undersized portfolio pass; it only persists the initial
+                # selection diagnostics without compiling another page.
+                return max(0, min(8, int(smoke_diagnostic)))
+            except (TypeError, ValueError):
+                pass
+    if live_vlm or smoke_mode:
         return configured
     # Production/local closure still defaults to seven geometry pages. A
     # deliberately named diagnostic override can stop after an early page so
@@ -123,6 +139,7 @@ def run_replenishment_cycle(
     visual_directive: dict[str, Any],
     downstream_context: dict[str, Any],
     hard_gate_summary: Callable[[dict[str, Any] | None, list[_Candidate]], dict[str, Any]],
+    stop_after_shared_floor_hard_passes: int | None = None,
 ) -> ReplenishmentCycleResult:
     generated_pool, generation_counts = _program_pool(
         generation_site,
@@ -144,6 +161,7 @@ def run_replenishment_cycle(
         base_capacity_contract=base_capacity_contract,
         capacity_site=capacity_site,
         pnu=str(downstream_context.get("pnu") or ""),
+        stop_after_shared_floor_hard_passes=stop_after_shared_floor_hard_passes,
     )
     generated_pool = [
         candidate

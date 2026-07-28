@@ -1195,6 +1195,21 @@ class MaasLegalVariantsTest(TestCase):
         self.assertIn("mechanical_parking_equipment_type", layout["authority_review_check"]["external_evidence_needed"])
         self.assertEqual(layout["stalls"], [])
 
+    def test_basement_parking_needs_ramp_evidence_before_final_pass(self):
+        layout = generate_parking_layout_candidate(
+            box(0, 0, 16, 16),
+            required_spaces=2,
+            strategy="basement",
+            road_context={"sharedEdge": [[0, 0], [16, 0]]},
+        )
+
+        self.assertEqual(layout["provided_spaces"], 2)
+        self.assertEqual(layout["status"], "needs_basement_ramp_review")
+        self.assertIn(
+            "basement_ramp_slope_width_and_turning_geometry",
+            layout["authority_review_check"]["external_evidence_needed"],
+        )
+
     def test_parking_requirement_local_seed_rules_compute_neighborhood_use(self):
         rules = {
             "national": {
@@ -1227,6 +1242,33 @@ class MaasLegalVariantsTest(TestCase):
         self.assertEqual(requirement["selected_rule_id"], "seoul_parking_appendix2_row_03")
         self.assertEqual(requirement["required_spaces"], 2)
         self.assertEqual(requirement["accessible"]["accessible_min"], 0)
+
+    def test_parking_requirement_maps_multifamily_house_to_unit_schedule_rule(self):
+        requirement = resolve_candidate_parking_requirement(
+            pnu="1168011800104170004",
+            building_type="다가구주택",
+            facility_area_m2=300.0,
+            options={
+                "housing_unit_schedule": [
+                    {
+                        "unit_type": "50m2",
+                        "exclusive_area_m2": 50.0,
+                        "count": 4,
+                    },
+                ],
+            },
+        )
+
+        self.assertEqual(requirement["status"], "computed")
+        self.assertEqual(
+            requirement["base_rule_id"],
+            "parking_appendix1_row_05",
+        )
+        self.assertEqual(requirement["required_spaces"], 4)
+        self.assertEqual(
+            requirement["unit_schedule"]["units"][0]["count"],
+            4,
+        )
 
     def test_grammar_sequences_generate_composite_variants(self):
         variants = generate_grammar_variants(box(0, 0, 30, 20))

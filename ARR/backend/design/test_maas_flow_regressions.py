@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
@@ -32,6 +33,8 @@ from design.maas.book_language.portfolio_replenishment import (
 from design.maas.book_language.portfolio_benchmark import default_outcome_graph_path
 from design.maas.book_language import portfolio_benchmark
 from design.maas.book_language.candidate_analysis import _design_concept_descriptor
+from design.maas.program_massing.search import source_feature
+from design.maas.program_massing.sequences import program_seed_sequences
 from design.maas.geometry_language.executed_archive import compile_executed_mass
 from design.maas.geometry_language.elevation_handoff import (
     build_executed_mass_elevation_handoff,
@@ -214,19 +217,18 @@ class MaasFlowRegressionTest(SimpleTestCase):
             },
         )
         legal = box(-10.0, -10.0, 10.0, 10.0)
+        capacity_plate = SourceVolume(
+            role="recursive_primary",
+            footprint=legal,
+            bottom_fraction=0.0,
+            top_fraction=1.0,
+            verb="floorwise_legal_matrix4",
+        )
         projection = project_floorwise_visual_mesh(
             authored,
             legal_sections=(legal,),
             floor_matrices=(identity_matrix4(),),
-            capacity_plates=(
-                SourceVolume(
-                    role="recursive_primary",
-                    footprint=legal,
-                    bottom_fraction=0.0,
-                    top_fraction=1.0,
-                    verb="floorwise_legal_matrix4",
-                ),
-            ),
+            capacity_plates=(capacity_plate,),
             output_origin=(0.0, 0.0),
         )
         if not projection.certificate.hard_pass:
@@ -234,6 +236,7 @@ class MaasFlowRegressionTest(SimpleTestCase):
         return SourceMass(
             name=authored.name,
             footprint=legal,
+            volumes=(capacity_plate,),
             surfaces=projection.surfaces,
             metadata={
                 "floorwise_visual_projection": projection.certificate.to_dict(),
@@ -241,16 +244,40 @@ class MaasFlowRegressionTest(SimpleTestCase):
         )
 
     def test_projected_visual_identity_survives_board_archive_and_elevation(self):
-        artifact, visual_hash = self._projected_visual_artifact()
+        source = self._real_task1_projected_visual_source()
+        artifact, visual_hash = self._projected_visual_artifact(source)
+        feature = source_feature(
+            source,
+            program_seed_sequences("neighborhood_living")[0],
+            building_type="neighborhood_living",
+            height=24.0,
+            floors=8,
+            site_area=float(source.footprint.area),
+        )
+        feature["properties"]["geometry_artifact"] = artifact
         self.assertEqual(artifact["authority"], "certified_projected_visual_mesh")
         self.assertEqual(
             artifact["geometryProgramRole"],
             "capacity_replay_metadata_and_provenance",
         )
         self.assertEqual(artifact["projectedVisualGeometryHash"], visual_hash)
+        self.assertTrue(feature["properties"]["source_surfaces"])
+        self.assertTrue(all(
+            surface["surface_type"] == "profiled_recursive_solid_mesh"
+            for surface in feature["properties"]["source_surfaces"]
+        ))
+        expected_vertices = [
+            list(vertex)
+            for surface in source.surfaces
+            for vertex in surface.vertices_m
+        ]
         self.assertEqual(
-            artifact["projectedVisualMesh"]["triangles"][0]["vertices_m"][0][0],
-            0.123456789,
+            [
+                vertex
+                for triangle in artifact["projectedVisualMesh"]["triangles"]
+                for vertex in triangle["vertices_m"]
+            ],
+            expected_vertices,
         )
 
         with TemporaryDirectory() as temporary:
@@ -259,10 +286,30 @@ class MaasFlowRegressionTest(SimpleTestCase):
                 root,
                 artifact=artifact,
             )
+            portfolio_benchmark.render_archive_sheet(
+                [feature],
+                preview,
+                title="Task 1 projected visual identity",
+            )
+            projected_visual_hashes = [
+                str(
+                    (
+                        feature["properties"].get("geometry_artifact")
+                        or {}
+                    ).get("projectedVisualGeometryHash")
+                    or ""
+                )
+            ]
             board_evidence = portfolio_benchmark._archive_render_evidence(
                 preview,
                 1,
-                projected_visual_hashes=[visual_hash],
+                projected_visual_hashes=projected_visual_hashes,
+            )
+            self.assertEqual(len(board_evidence), 1)
+            self.assertTrue(board_evidence[0]["hard_pass"], board_evidence[0])
+            self.assertGreater(
+                board_evidence[0]["rendered_mass_pixel_count"],
+                0,
             )
             self.assertEqual(
                 board_evidence[0]["projected_visual_geometry_hash"],
@@ -279,8 +326,8 @@ class MaasFlowRegressionTest(SimpleTestCase):
                 )
                 self.assertEqual(compilation.geometry_hash, visual_hash)
                 self.assertEqual(
-                    list(compilation.vertices[0]),
-                    [0.123456789, 0.0, 0.0],
+                    [list(vertex) for vertex in compilation.vertices],
+                    expected_vertices,
                 )
                 with (
                     patch(
@@ -381,6 +428,53 @@ class MaasFlowRegressionTest(SimpleTestCase):
         )
         self.assertTrue(artifact["projectedVisualMesh"]["triangles"])
         self.assertRegex(artifact["projectedVisualPayloadHash"], r"^[0-9a-f]{64}$")
+
+    def test_authored_profiled_source_without_projection_certificate_fails_closed(self):
+        source = replace(
+            self._real_task1_projected_visual_source(),
+            metadata={},
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "authored profiled visual source has no certified projection",
+        ):
+            portfolio_benchmark._certified_projected_visual_artifact(source)
+
+    def test_authored_profiled_source_with_not_applicable_certificate_fails_closed(self):
+        source = self._real_task1_projected_visual_source()
+        certificate = dict(source.metadata["floorwise_visual_projection"])
+        certificate["status"] = "not_applicable_no_authored_mesh"
+        source = replace(
+            source,
+            metadata={"floorwise_visual_projection": certificate},
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "authored profiled visual source has no certified projection",
+        ):
+            portfolio_benchmark._certified_projected_visual_artifact(source)
+
+    def test_proxy_only_source_without_projection_certificate_remains_legacy(self):
+        proxy = SourceMass(
+            name="proxy-only-legacy",
+            footprint=box(-5.0, -5.0, 5.0, 5.0),
+            volumes=(
+                SourceVolume(
+                    role="main",
+                    footprint=box(-5.0, -5.0, 5.0, 5.0),
+                    bottom_fraction=0.0,
+                    top_fraction=1.0,
+                    verb="legacy_proxy",
+                ),
+            ),
+        )
+
+        self.assertEqual(
+            portfolio_benchmark._certified_projected_visual_artifact(proxy),
+            {},
+        )
 
     def test_sub_eight_decimal_projected_visual_tamper_fails_closed(self):
         artifact, _visual_hash = self._projected_visual_artifact()
@@ -547,6 +641,17 @@ class MaasFlowRegressionTest(SimpleTestCase):
             self.assertEqual(replenishment_cycle_budget_for_run(live_vlm=False), 1)
         with patch.dict("os.environ", {}, clear=True):
             self.assertEqual(replenishment_cycle_budget_for_run(live_vlm=False), 7)
+        with patch.dict(
+            "os.environ",
+            {"MAAS_BOOK_SMOKE_REPLENISHMENT_CYCLES": "0"},
+        ):
+            self.assertEqual(
+                replenishment_cycle_budget_for_run(
+                    live_vlm=False,
+                    smoke_mode=True,
+                ),
+                0,
+            )
 
     def test_neighborhood_projection_supplies_three_or_more_real_threshold_languages(self):
         threshold_operators = set()

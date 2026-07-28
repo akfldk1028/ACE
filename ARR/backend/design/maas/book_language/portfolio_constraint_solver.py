@@ -71,7 +71,7 @@ def solve_maximum_compatible_subset(
         if position >= len(order) or len(chosen) >= target_count:
             return
         remaining = len(order) - position
-        incumbent_count = len(best_feasible or best_any)
+        incumbent_count = max(len(best_feasible), len(best_any))
         if len(chosen) + remaining < incumbent_count:
             return
 
@@ -95,7 +95,10 @@ def solve_maximum_compatible_subset(
         visit(position + 1, chosen, usage, covered)
 
     visit(0, (), Counter(), set())
-    winner = best_feasible or best_any
+    # Cardinality is the hard objective promised by this solver. Coverage is
+    # the next tie-breaker, not permission for a one-card coverage witness to
+    # replace a larger legal compatible portfolio.
+    winner = max((best_feasible, best_any), key=quality)
     return tuple(sorted(winner))
 
 
@@ -229,48 +232,92 @@ def solve_milp_compatible_subset(
             0.0,
             float(max(0, int(maximum_key_counts.get(key, target_count)))),
         ))
+    base_rows = list(rows)
+    coverage_rows: list[tuple[dict[int, float], float, float]] = []
+    coverage_supply_complete = True
     for tag in dict.fromkeys(required_coverage_tags):
         indices = [
             index for index, fact in enumerate(facts)
             if tag in fact.coverage_tags
         ]
         if not indices:
-            return ()
-        rows.append((
+            coverage_supply_complete = False
+            continue
+        coverage_rows.append((
             {index: 1.0 for index in indices},
             1.0,
             np.inf,
         ))
-
-    matrix = lil_matrix((len(rows), count), dtype=float)
-    lower = np.empty(len(rows), dtype=float)
-    upper = np.empty(len(rows), dtype=float)
-    for row_index, (coefficients, low, high) in enumerate(rows):
-        for candidate_index, value in coefficients.items():
-            matrix[row_index, candidate_index] = value
-        lower[row_index] = low
-        upper[row_index] = high
     scores = np.asarray([float(fact.score) for fact in facts], dtype=float)
     if scores.size and float(np.max(scores) - np.min(scores)) > 1e-12:
         scores = (scores - np.min(scores)) / (np.max(scores) - np.min(scores))
     objective = -(np.ones(count, dtype=float) + scores * 1e-4)
-    result = milp(
-        c=objective,
-        integrality=np.ones(count, dtype=int),
-        bounds=Bounds(np.zeros(count), np.ones(count)),
-        constraints=LinearConstraint(matrix.tocsr(), lower, upper),
-        options={"time_limit": max(1.0, float(time_limit_seconds)), "presolve": True},
-    )
-    if result.x is None:
+
+    def run_solver(
+        active_rows: list[tuple[dict[int, float], float, float]],
+    ):
+        matrix = lil_matrix((len(active_rows), count), dtype=float)
+        lower = np.empty(len(active_rows), dtype=float)
+        upper = np.empty(len(active_rows), dtype=float)
+        for row_index, (coefficients, low, high) in enumerate(active_rows):
+            for candidate_index, value in coefficients.items():
+                matrix[row_index, candidate_index] = value
+            lower[row_index] = low
+            upper[row_index] = high
+        return milp(
+            c=objective,
+            integrality=np.ones(count, dtype=int),
+            bounds=Bounds(np.zeros(count), np.ones(count)),
+            constraints=LinearConstraint(matrix.tocsr(), lower, upper),
+            options={
+                "time_limit": max(1.0, float(time_limit_seconds)),
+                "presolve": True,
+            },
+        )
+
+    # Cardinality is the primary contract. Solve it without optional coverage
+    # first, then ask whether all coverage tags can be met at that same proven
+    # cardinality. An infeasible scope combination must never collapse a valid
+    # ten-card MASS set to zero.
+    cardinality_result = run_solver(base_rows)
+    if cardinality_result.x is None:
         return ()
-    selected = tuple(index for index, value in enumerate(result.x) if value >= 0.5)
+    cardinality_selected = tuple(
+        index
+        for index, value in enumerate(cardinality_result.x)
+        if value >= 0.5
+    )
     # Reaching the caller's target proves cardinality optimal even if HiGHS
     # stops before closing a tiny score tie. Below target, accept only a solver
     # result explicitly reported as optimal; a time-limited incumbent is not a
     # proof of candidate-supply failure.
-    if len(selected) >= target_count or bool(result.success):
-        return selected
-    return ()
+    if (
+        len(cardinality_selected) < target_count
+        and not bool(cardinality_result.success)
+    ):
+        return ()
+    if not coverage_rows or not coverage_supply_complete:
+        return cardinality_selected
+    cardinality_floor = len(cardinality_selected)
+    coverage_result = run_solver([
+        *base_rows,
+        *coverage_rows,
+        (
+            {index: 1.0 for index in range(count)},
+            float(cardinality_floor),
+            float(target_count),
+        ),
+    ])
+    if coverage_result.x is None:
+        return cardinality_selected
+    coverage_selected = tuple(
+        index
+        for index, value in enumerate(coverage_result.x)
+        if value >= 0.5
+    )
+    if len(coverage_selected) == cardinality_floor:
+        return coverage_selected
+    return cardinality_selected
 
 
 __all__ = [

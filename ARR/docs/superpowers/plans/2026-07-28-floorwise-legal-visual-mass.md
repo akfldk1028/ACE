@@ -117,18 +117,32 @@ Expected: all pass.
 **Files:**
 - Modify: `ARR/backend/design/maas/book_language/portfolio_selection.py`
 - Modify: `ARR/backend/design/maas/book_language/portfolio_benchmark.py`
+- Modify: `ARR/backend/design/maas/book_language/candidate_generation.py`
+- Modify: `ARR/backend/design/maas/book_language/vlm_review.py`
+- Modify: `ARR/backend/design/maas/program_massing/search.py`
+- Modify: `ARR/backend/design/maas/program_massing/semantic_projection.py`
+- Modify: `ARR/backend/design/maas/program_massing/creative.py`
+- Modify: `ARR/backend/design/maas/program_massing/visual_silhouette.py`
 - Test: `ARR/backend/design/test_maas_book_language.py`
 - Test: `ARR/backend/design/test_maas_portfolio_contract.py`
+- Test: `ARR/backend/design/test_maas_program_massing.py`
 
 **Interfaces:**
 - Consumes: certified visual signatures from Task 1.
-- Produces: one shared compatibility analysis reused by selector, solver, and diagnostics.
+- Produces: one shared compatibility analysis reused by selector, solver, and
+  diagnostics, plus lazy render-surface materialization for bounded
+  VLM/selected candidates only.
 
 - [ ] **Step 1: Write failing reuse/cardinality tests**
 
 Add a 54-candidate fixture proving compatibility is measured once per unordered
 pair, MILP maximizes cardinality before coverage, and diagnostics report the
 same matrix used for selection.
+
+Add feature-materialization fixtures proving the main accepted population
+stores only a surface summary, eager and lazy payloads are identical after
+materialization, program/spatial evidence is unchanged, and dropped
+SourceMass objects are not retained by silhouette caches.
 
 - [ ] **Step 2: Verify RED**
 
@@ -141,6 +155,13 @@ Introduce a bounded analysis record containing fingerprints, silhouette keys,
 pairwise compatibility and nearest distances. Pass it to the exact/MILP/beam
 selection and diagnostics instead of recomputing. Retain all hard thresholds
 and caps.
+
+Split `source_feature` into summary and idempotent materialization boundaries.
+Keep eager behavior as the compatibility default; opt the main accepted
+population into summary-only storage and materialize exact surfaces only for
+bounded VLM review and selected-board consumers. Cache compact precomputed
+orthographic views with weak references; never retain full triangle tuples in
+pair keys.
 
 - [ ] **Step 4: Verify GREEN**
 
@@ -187,4 +208,3 @@ and save a screenshot.
 Run the scoped MAAS suite, compile checks, diff checks, update `MEMORY.md` with
 root causes and exact run evidence, then stage only task files, commit, and push
 `DK-BB`.
-

@@ -151,6 +151,7 @@ def generate_parking_layout_candidate(
         candidate["small_attached_parking_relief"] = relief
         _attach_authority_review_check(candidate, relief)
         if candidate["provided_spaces"] >= required_spaces:
+            _attach_basement_ramp_review(candidate, strategy, road_context)
             return candidate
 
     candidate = _place_internal_90_degree_stalls(
@@ -184,6 +185,7 @@ def generate_parking_layout_candidate(
             candidate = grid_candidate
     candidate["small_attached_parking_relief"] = relief
     _attach_authority_review_check(candidate, relief)
+    _attach_basement_ramp_review(candidate, strategy, road_context)
     return candidate
 
 
@@ -338,6 +340,52 @@ def _attach_authority_review_check(candidate: dict[str, Any], relief: dict[str, 
     turning["authority_review_check"] = review
     turning["authority_review"] = review["authority_review"]
     candidate["turning_clearance"] = turning
+
+
+def _attach_basement_ramp_review(
+    candidate: dict[str, Any],
+    strategy: str,
+    road_context: dict[str, Any] | None,
+) -> None:
+    """Do not turn a stall-only basement diagram into a final parking pass."""
+
+    if strategy not in {"basement", "semi_basement"}:
+        return
+    context = road_context if isinstance(road_context, dict) else {}
+    ramp = context.get("basement_ramp")
+    ramp_verified = bool(context.get("basement_ramp_verified")) or (
+        isinstance(ramp, dict) and ramp.get("status") == "pass"
+    )
+    if ramp_verified:
+        return
+
+    evidence_key = "basement_ramp_slope_width_and_turning_geometry"
+    existing = (
+        dict(candidate.get("authority_review_check") or {})
+        if isinstance(candidate.get("authority_review_check"), dict)
+        else {}
+    )
+    evidence_needed = list(existing.get("external_evidence_needed") or ())
+    if evidence_key not in evidence_needed:
+        evidence_needed.append(evidence_key)
+    candidate["authority_review_check"] = {
+        **existing,
+        "schema_version": "arr.maas.basement_parking_review.v1",
+        "status": "prechecked_needs_external_evidence",
+        "basis": (
+            "Placed stalls do not prove a basement ramp's width, slope, "
+            "frontage connection or swept turning path."
+        ),
+        "external_evidence_needed": evidence_needed,
+        "authority_review": True,
+    }
+    if candidate.get("status") == "pass":
+        candidate["status"] = "needs_basement_ramp_review"
+    limitations = list(candidate.get("limitations") or ())
+    limitation = "basement_ramp_geometry_not_verified"
+    if limitation not in limitations:
+        limitations.append(limitation)
+    candidate["limitations"] = limitations
 
 
 def _place_road_as_aisle_stalls(

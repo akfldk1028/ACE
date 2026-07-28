@@ -28,7 +28,6 @@ from design.maas.geometry_language import (
     GeometryProgram,
     GeometryAuthorError,
     audit_reference_matches_for_massing,
-    author_geometry_programs_with_openai,
     build_geometry_graph_notes,
     build_geometry_graph_snapshot,
     apply_book_projection_to_geometry_program,
@@ -40,8 +39,6 @@ from design.maas.geometry_language import (
     openai_vlm_geometry_critic,
     retrieve_geometry_reference_matches,
     run_geometry_program_a2a_loop,
-    synthesize_architectural_programs,
-    synthesis_requests_from_program_profile,
     compile_geometry_program_to_source_mass,
     compile_geometry_program,
     floorwise_source_to_geometry_program,
@@ -200,6 +197,7 @@ def _shared_floor_hard_pass_candidates(candidates):
     ]
 
 from .portfolio_selection import (
+    PORTFOLIO_SILHOUETTE_DISTANCE,
     _scope_coverage_anchors,
     _select,
     _selection_capacity_diagnostics,
@@ -219,6 +217,11 @@ from .gate_diagnostics import (
 
 from .program_catalog import PROGRAMS
 from .portfolio_feedback import enrich_portfolio_vlm_feedback
+from .authorship_policy import bounded_live_llm_synthesis_requests
+from .portfolio_contract import (
+    evaluate_portfolio_completion,
+    resolve_portfolio_requirement,
+)
 from .final_vlm_cycle import run_final_vlm_cycle
 from .portfolio_replenishment import (
     replenishment_cycle_budget_for_run,
@@ -709,6 +712,7 @@ def run_book_program_portfolios(
     site_access_context: dict[str, Any] | None = None,
     site_access_geometry: dict[str, Any] | None = None,
     live_geometry_vlm_revision: bool = False,
+    live_llm_author: bool = False,
     smoke_mode: bool = False,
 ) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -724,8 +728,12 @@ def run_book_program_portfolios(
     board_paths: list[Path] = []
     mass_brain_trace_sequences: list[VerbSequence] = []
     mass_brain_trace_features: dict[str, dict[str, Any]] = {}
-    selection_target = 1 if smoke_mode else 20
-    required_scope_target = 1 if smoke_mode else len(BASE_VOLUME_FRACTIONS)
+    portfolio_requirement = resolve_portfolio_requirement(
+        smoke_mode=smoke_mode,
+        base_volume_scope_count=len(BASE_VOLUME_FRACTIONS),
+    )
+    selection_target = portfolio_requirement.selection_target
+    required_scope_target = portfolio_requirement.required_scope_count
     requested_slugs = set(program_slugs or ())
     for slug, building_type, catalog_height, catalog_floors in PROGRAMS:
         if requested_slugs and slug not in requested_slugs:
@@ -796,6 +804,15 @@ def run_book_program_portfolios(
         typed_graph_mutations = program_visual_directive.get("typed_graph_mutations") or []
         geometry_program_mutations = program_visual_directive.get("geometry_program_mutations") or []
         synthesis_requests = program_visual_directive.get("geometry_synthesis_requests") or []
+        if live_llm_author and not synthesis_requests:
+            synthesis_requests = list(bounded_live_llm_synthesis_requests(
+                building_type,
+                source_seed_names=(
+                    sequence.name
+                    for sequence in program_seed_sequences(building_type)
+                ),
+                target_count=selection_target,
+            ))
         if synthesis_requests:
             live_requested = runtime_live_vlm
             reference_matches = [
@@ -1178,7 +1195,7 @@ def run_book_program_portfolios(
             < required_scope_target
         )
         replenishment_cycles: list[dict[str, Any]] = []
-        if not smoke_mode and (len(selected) < selection_target or missing_scope):
+        if len(selected) < selection_target or missing_scope:
             excluded_parent_keys = set(base_stage_vlm_gate.get("reviewed_parent_keys") or ())
             excluded_parent_fingerprints = set(
                 base_stage_vlm_gate.get("reviewed_parent_fingerprints") or ()
@@ -1186,6 +1203,7 @@ def run_book_program_portfolios(
             stop_reason = "cycle_budget_exhausted"
             cycle_budget = replenishment_cycle_budget_for_run(
                 live_vlm=runtime_live_vlm,
+                smoke_mode=smoke_mode,
             )
             downstream_context = {
                 "site_local_utm": site,
@@ -1238,6 +1256,14 @@ def run_book_program_portfolios(
                     visual_directive=program_visual_directive,
                     downstream_context=downstream_context,
                     hard_gate_summary=_hard_gate_count_summary,
+                    stop_after_shared_floor_hard_passes=(
+                        _smoke_floor_pass_reserve(
+                            selection_target,
+                            live_vlm=runtime_live_vlm,
+                        )
+                        if smoke_mode
+                        else None
+                    ),
                 )
                 selection_pool = cycle.selection_pool
                 excluded_parent_keys.update(cycle.reviewed_parent_keys)
@@ -1644,9 +1670,9 @@ def run_book_program_portfolios(
             mass_brain_trace_sequences.append(trace_sequence)
             mass_brain_trace_features[trace_name] = feature
         board = output_dir / (
-            f"maas-book-{slug}-smoke.png"
+            f"maas-book-{slug}-{selection_target}-smoke.png"
             if smoke_mode
-            else f"maas-book-{slug}-20.png"
+            else f"maas-book-{slug}-{selection_target}.png"
         )
         render_archive_sheet(
             features,
@@ -1683,7 +1709,7 @@ def run_book_program_portfolios(
             render_evidence=render_evidence,
         )
         board_paths.append(board)
-        if runtime_live_vlm and selected and not smoke_mode:
+        if runtime_live_vlm and selected:
             try:
                 portfolio_vlm_audit = score_portfolio_board_with_openai_vlm(
                     image_path=board,
@@ -1715,6 +1741,7 @@ def run_book_program_portfolios(
                     rows=rows,
                     candidates=selected,
                 )
+                portfolio_vlm_audit["evaluated"] = True
             except Exception as exc:
                 portfolio_vlm_audit = {
                     "schema_version": "arr.maas.portfolio_visual_audit.v1",
@@ -1734,39 +1761,34 @@ def run_book_program_portfolios(
                 audit=portfolio_vlm_audit,
             )
         else:
-            cost_bounded_smoke_skip = bool(
-                runtime_live_vlm and selected and smoke_mode
-            )
             portfolio_vlm_audit = {
                 "schema_version": "arr.maas.portfolio_visual_audit.v1",
                 "status": (
-                    "skipped_single_candidate_cost_bounded_smoke"
-                    if cost_bounded_smoke_skip
-                    else "not_requested"
+                    "not_requested"
                     if not runtime_live_vlm
                     else "no_selected_candidates"
                 ),
                 # Not evaluated is not a visual approval.  Overall non-live
                 # diagnostics remain governed by their numeric gates, while
                 # this field now reports the VLM state truthfully.
-                "hard_pass": cost_bounded_smoke_skip,
+                "hard_pass": False,
                 "evaluated": False,
                 "candidate_count": len(selected),
                 "legal_or_parking_score": False,
-                "single_candidate_diversity_gate_not_applicable": cost_bounded_smoke_skip,
             }
         counts["portfolio_vlm_audit"] = deepcopy(portfolio_vlm_audit)
         near_duplicates = sum(
             1
             for index, left in enumerate(selected)
             for right in selected[:index]
-            if _silhouette_distance(left, right) < 0.10
+            if _silhouette_distance(left, right)
+            < PORTFOLIO_SILHOUETTE_DISTANCE
         )
         failures = []
         if runtime_live_vlm and not portfolio_vlm_audit.get("hard_pass"):
             failures.append("portfolio_vlm_visual_diversity_hard_gate_failed")
-        if len(selected) != 20:
-            failures.append("selected_count_below_20")
+        if len(selected) != selection_target:
+            failures.append(f"selected_count_below_target_{selection_target}")
         operation_count = len({candidate.principle_id for candidate in selected})
         if operation_count < 10:
             failures.append("book_operation_count_below_10")
@@ -1783,7 +1805,11 @@ def run_book_program_portfolios(
             failures.append("available_book_principle_kind_missing_from_portfolio")
         visual_languages: list[_Candidate] = []
         for candidate in selected:
-            if all(_silhouette_distance(candidate, representative) >= 0.16 for representative in visual_languages):
+            if all(
+                _silhouette_distance(candidate, representative)
+                >= PORTFOLIO_SILHOUETTE_DISTANCE
+                for representative in visual_languages
+            ):
                 visual_languages.append(candidate)
         if len(visual_languages) < 10:
             failures.append("visual_language_count_below_10")
@@ -1869,9 +1895,8 @@ def run_book_program_portfolios(
         if language_metrics["missing_required_design_concept_count"]:
             failures.append("required_design_concept_controller_missing")
         if smoke_mode:
-            failures = []
             if len(selected) != selection_target:
-                failures.append("smoke_selected_mass_missing")
+                failures.append("smoke_portfolio_target_not_met")
             if any(
                 not row["inside_site"]
                 or not row["program_hard_pass"]
@@ -1895,11 +1920,41 @@ def run_book_program_portfolios(
                 not item.get("hard_pass") for item in render_evidence
             ):
                 failures.append("smoke_mass_not_visible_in_render")
+        exact_vlm_hard_pass_count = sum(
+            bool(
+                (
+                    candidate.source.metadata.get("final_book_vlm_audit")
+                    or {}
+                ).get("hard_pass")
+            )
+            for candidate in selected
+        )
+        llm_authored_selected_count = sum(
+            _llm_authored_candidate(candidate)
+            for candidate in selected
+        )
+        portfolio_completion = evaluate_portfolio_completion(
+            portfolio_requirement,
+            selected_count=len(selected),
+            selected_scope_count=scope_count,
+            runtime_live_vlm=runtime_live_vlm,
+            exact_vlm_hard_pass_count=exact_vlm_hard_pass_count,
+            require_llm_authored_ast=live_llm_author,
+            llm_authored_selected_count=llm_authored_selected_count,
+            portfolio_vlm_audit=portfolio_vlm_audit,
+        )
+        failures.extend(
+            failure
+            for failure in portfolio_completion["failures"]
+            if failure not in failures
+        )
         program_results.append({
             "program": building_type,
             "slug": slug,
             "status": "pass" if not failures else "fail",
             "selected_count": len(selected),
+            "portfolio_requirement": portfolio_requirement.to_evidence(),
+            "portfolio_completion": portfolio_completion,
             "book_operation_count": operation_count,
             "book_principle_kind_counts": {
                 kind: sum(candidate.principle_kind == kind for candidate in selected)

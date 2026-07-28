@@ -41,10 +41,22 @@ def serialize_certified_projected_visual(source: Any) -> dict[str, Any]:
         if isinstance(getattr(source, "metadata", None), dict)
         else {}
     )
+    has_authored_profiled_surface = any(
+        str(getattr(surface, "surface_type", "") or "").startswith("profiled_")
+        for surface in tuple(getattr(source, "surfaces", ()) or ())
+    )
     certificate = metadata.get("floorwise_visual_projection")
     if not isinstance(certificate, dict):
+        if has_authored_profiled_surface:
+            raise ValueError(
+                "authored profiled visual source has no certified projection"
+            )
         return {}
     if certificate.get("status") == "not_applicable_no_authored_mesh":
+        if has_authored_profiled_surface:
+            raise ValueError(
+                "authored profiled visual source has no certified projection"
+            )
         return {}
     _validate_certificate_status(certificate)
 

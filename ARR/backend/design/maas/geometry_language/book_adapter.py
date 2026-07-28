@@ -120,12 +120,19 @@ def apply_capacity_composition_to_geometry_program(
         return program
 
     required_area_ratio = max(1.0, min(3.2, target / achieved))
-    maximum_unit_area = 0.82**2
-    count = max(2, min(4, int(ceil(required_area_ratio / maximum_unit_area))))
-    # Keep every repeated wing at the grammar's maximum inhabitable width.
-    # The parcel fit scales the complete composition down when necessary;
-    # shrinking units here first only creates thin, non-occupiable strips.
-    unit_scale = 0.82
+    # A pack is not four miniature buildings. Account for the useful area of
+    # one overlapping unit and prefer the smallest count that can close the
+    # measured shortfall. The old ``0.82 ** 2`` divisor turned a 1.5x gap into
+    # three narrow wings; legal-host fitting then shrank each wing below the
+    # shared-floor clear-depth minimum.
+    effective_unit_yield = 0.82
+    count = max(
+        2,
+        min(4, int(ceil(required_area_ratio / effective_unit_yield))),
+    )
+    # Preserve inhabitable unit depth. The complete composition still receives
+    # the same site/floor Matrix4 fit and every legal/capacity gate afterward.
+    unit_scale = 0.94
 
     nodes = list(program.nodes)
     node_map = program.node_map

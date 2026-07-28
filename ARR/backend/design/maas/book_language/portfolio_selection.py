@@ -29,10 +29,13 @@ from .portfolio_constraint_solver import (
     solve_milp_compatible_subset,
     solve_maximum_compatible_subset,
 )
-from .quality_diversity_archive import map_elites_archive
+from .quality_diversity_archive import map_elites_archive, qd_archive_policy
+from design.maas.program_massing.morphology import DEFAULT_NOVELTY_POLICY
 
 
-PORTFOLIO_SILHOUETTE_DISTANCE = 0.16
+PORTFOLIO_SILHOUETTE_DISTANCE = (
+    DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat
+)
 ANCHOR_BRANCH_LIMIT = 8
 ANCHOR_SEARCH_STATE_LIMIT = 20_000
 
@@ -1795,7 +1798,21 @@ def _bounded_visual_selection_pool(
     behavior-space policy is now explicit through ``MAAS_QD_*`` settings.
     """
     _ = (per_family_scope, per_seed_scope)
-    return map_elites_archive(pool)
+    maximum_size = int(qd_archive_policy()["max_archive_size"])
+    unique: list[_Candidate] = []
+    fingerprints: set[tuple[Any, ...]] = set()
+    for candidate in pool:
+        fingerprint = _fingerprint(candidate)
+        if fingerprint in fingerprints:
+            continue
+        fingerprints.add(fingerprint)
+        unique.append(candidate)
+    if len(unique) <= maximum_size:
+        # The exact portfolio solver needs every compatible witness while the
+        # pool is already within the declared memory bound. Cell quotas are a
+        # compaction strategy, not authority to reduce feasible cardinality.
+        return unique
+    return map_elites_archive(unique)
 
 
 

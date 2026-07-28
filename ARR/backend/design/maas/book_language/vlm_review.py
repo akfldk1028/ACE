@@ -26,7 +26,10 @@ from design.maas.geometry_language import (
 )
 from design.maas.program_massing import program_reference_contract
 from design.maas.program_massing.scoring import attach_program_massing_evidence
-from design.maas.program_massing.search import source_feature
+from design.maas.program_massing.search import (
+    materialize_source_feature_surfaces,
+    source_feature,
+)
 from design.maas.preference.loop import openai_preview_preference_scorer
 from design.maas.preference.vlm_scorer import (
     DEFAULT_VLM_MODEL,
@@ -920,6 +923,15 @@ def _audit_final_book_geometry_with_vlm(
             reference_provider=reference_provider,
         )
         review_feature = deepcopy(candidate.feature)
+        materialize_source_feature_surfaces(
+            review_feature,
+            candidate.source,
+            height=float(
+                review_feature.get("properties", {}).get("height")
+                or review_feature.get("properties", {}).get("height_m")
+                or 1.0
+            ),
+        )
         # This critic repairs the exact recursive post-BOOK AST.  It must not
         # emit edits against the separate legacy program-role component graph.
         review_feature.setdefault("properties", {})["geometry_only_critic_mode"] = True

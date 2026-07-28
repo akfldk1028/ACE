@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass, replace
-from typing import Any
+from typing import Any, Literal
 
 from shapely.geometry import Polygon, mapping
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
@@ -671,7 +671,38 @@ def program_seed_variants(
     return tuple(variants)
 
 
-def _feature(source: SourceMass, sequence: VerbSequence, *, building_type: str, height: float, floors: int, site_area: float) -> dict[str, Any]:
+def _surface_summary(
+    source: SourceMass,
+    *,
+    materialization: str,
+) -> dict[str, Any]:
+    profiled = tuple(
+        surface
+        for surface in source.surfaces
+        if surface.surface_type.startswith("profiled_")
+    )
+    return {
+        "raw_surface_count": len(source.surfaces),
+        "profiled_surface_count": len(profiled),
+        "profiled_roof_count": sum(
+            "roof" in surface.surface_type for surface in profiled
+        ),
+        "surface_roles": sorted({surface.role for surface in source.surfaces}),
+        "surface_types": sorted({
+            surface.surface_type for surface in source.surfaces
+        }),
+        "materialization": materialization,
+    }
+
+
+def materialize_source_feature_surfaces(
+    feature: dict[str, Any],
+    source: SourceMass,
+    *,
+    height: float,
+) -> dict[str, Any]:
+    """Attach renderer records on demand without changing their eager contract."""
+
     origin = source.footprint.centroid
     source_surfaces = []
     for surface in source.surfaces:
@@ -681,7 +712,30 @@ def _feature(source: SourceMass, sequence: VerbSequence, *, building_type: str, 
             for x, y, z in surface.vertices_m
         ]
         source_surfaces.append(record)
-    return {
+    props = feature.setdefault("properties", {})
+    props["source_surfaces"] = source_surfaces
+    props["source_surface_summary"] = _surface_summary(
+        source,
+        materialization="eager",
+    )
+    return feature
+
+
+def _feature(
+    source: SourceMass,
+    sequence: VerbSequence,
+    *,
+    building_type: str,
+    height: float,
+    floors: int,
+    site_area: float,
+    surface_materialization: Literal["eager", "summary_only"] = "eager",
+) -> dict[str, Any]:
+    if surface_materialization not in {"eager", "summary_only"}:
+        raise ValueError(
+            "surface_materialization must be 'eager' or 'summary_only'"
+        )
+    feature = {
         "type": "Feature",
         "geometry": mapping(source.footprint),
         "properties": {
@@ -697,16 +751,29 @@ def _feature(source: SourceMass, sequence: VerbSequence, *, building_type: str, 
                 "top_height": round(height * volume.top_fraction, 3),
                 "role": volume.role,
             } for volume in source.volumes],
-            "source_surfaces": source_surfaces,
+            "source_surface_summary": _surface_summary(
+                source,
+                materialization=surface_materialization,
+            ),
             "source_signature": source.signature(),
             "component_graph": graph_from_sequence(sequence).to_dict(),
             "maas_verb_sequence": sequence.to_list(),
             "maas_model": {},
         },
     }
+    if surface_materialization == "eager":
+        materialize_source_feature_surfaces(feature, source, height=height)
+    return feature
 
 
 source_feature = _feature
 
 
-__all__ = ["ProgramElite", "program_seed_variants", "search_creative_elites", "search_program_elites", "source_feature"]
+__all__ = [
+    "ProgramElite",
+    "materialize_source_feature_surfaces",
+    "program_seed_variants",
+    "search_creative_elites",
+    "search_program_elites",
+    "source_feature",
+]

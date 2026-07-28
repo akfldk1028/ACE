@@ -37,11 +37,16 @@ def project_spatial_roles(feature: dict[str, Any]) -> dict[str, Any]:
         1 for geometry in geometries
         if hasattr(geometry, "exterior") and len(list(geometry.exterior.coords)) - 1 > 5
     )
+    surface_summary = (
+        props.get("source_surface_summary")
+        if isinstance(props.get("source_surface_summary"), dict)
+        else {}
+    )
     profiled_roof = any(
         isinstance(item, dict) and "roof" in str(item.get("surface_type") or "")
         and str(item.get("surface_type") or "").startswith("profiled_")
         for item in props.get("source_surfaces") or []
-    )
+    ) or int(surface_summary.get("profiled_roof_count") or 0) > 0
     # A public spatial gesture is measurable as a court/canyon in plan, a
     # legible sectional hierarchy, or a deliberately profiled/non-rectilinear
     # envelope.  No topology or volume-name whitelist is involved.

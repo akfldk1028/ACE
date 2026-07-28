@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from functools import lru_cache
+from dataclasses import dataclass
 from math import atan2, cos, degrees, radians, sin
+from threading import RLock
 from typing import TypeAlias
+import weakref
 
 from shapely.affinity import rotate, scale, translate
 from shapely.geometry import Polygon, box
@@ -23,22 +25,40 @@ VisualSilhouetteKey: TypeAlias = tuple[VolumeKey, SurfaceKey]
 LayeredFootprint: TypeAlias = tuple[str, Polygon, float, float]
 
 
-# A portfolio compares the same source against many neighbours.  Serialising
-# every recursive triangle and rebuilding its three projections for every pair
-# dominated the PNU benchmark.  Keep bounded, process-local caches; the source
-# object itself is retained in the entry, so Python object-id reuse cannot
-# return another source's key.
-_SOURCE_KEY_CACHE: OrderedDict[int, tuple[SourceMass, VisualSilhouetteKey]] = OrderedDict()
-_SOURCE_KEY_CACHE_LIMIT = 1_024
+ViewTriple: TypeAlias = tuple[Polygon, Polygon, Polygon]
+ViewVariants: TypeAlias = tuple[ViewTriple, ...]
+
+
+@dataclass(frozen=True)
+class _SourceViewEntry:
+    source_ref: weakref.ReferenceType[SourceMass]
+    variants: ViewVariants
+
+
+@dataclass(frozen=True)
+class _PairDistanceEntry:
+    left_ref: weakref.ReferenceType[SourceMass]
+    right_ref: weakref.ReferenceType[SourceMass]
+    distance: float
+
+
+# Store compact unions, not thousands of triangle tuples. Weak references keep
+# a replenishment cycle from retaining sources already released by MAP-Elites.
+_SOURCE_VIEW_CACHE: OrderedDict[int, _SourceViewEntry] = OrderedDict()
+_PAIR_DISTANCE_CACHE: OrderedDict[tuple[int, int], _PairDistanceEntry] = OrderedDict()
+_SOURCE_VIEW_CACHE_LIMIT = 512
+_PAIR_DISTANCE_CACHE_LIMIT = 32_768
+_CACHE_LOCK = RLock()
+_CACHE_METRICS = {
+    "source_view_build_count": 0,
+    "source_view_cache_hit_count": 0,
+    "exact_pair_evaluation_count": 0,
+    "pair_cache_hit_count": 0,
+}
 
 
 def source_visual_silhouette_key(source: SourceMass) -> VisualSilhouetteKey:
     """Serialize mass solids and renderer-visible profiled surfaces locally."""
-    cache_id = id(source)
-    cached = _SOURCE_KEY_CACHE.get(cache_id)
-    if cached is not None and cached[0] is source:
-        _SOURCE_KEY_CACHE.move_to_end(cache_id)
-        return cached[1]
     center = source.footprint.centroid
     volumes = tuple(sorted(
         (
@@ -68,23 +88,57 @@ def source_visual_silhouette_key(source: SourceMass) -> VisualSilhouetteKey:
         for surface in source.surfaces
         if surface.surface_type.startswith("profiled_") and len(surface.vertices_m) >= 3
     ))
-    key = (volumes, surfaces)
-    _SOURCE_KEY_CACHE[cache_id] = (source, key)
-    _SOURCE_KEY_CACHE.move_to_end(cache_id)
-    while len(_SOURCE_KEY_CACHE) > _SOURCE_KEY_CACHE_LIMIT:
-        _SOURCE_KEY_CACHE.popitem(last=False)
-    return key
+    return volumes, surfaces
 
 
 def visual_silhouette_distance(left: SourceMass, right: SourceMass) -> float:
-    left_key = source_visual_silhouette_key(left)
-    right_key = source_visual_silhouette_key(right)
-    if right_key < left_key:
-        left_key, right_key = right_key, left_key
-    return visual_silhouette_distance_from_keys(left_key, right_key)
+    if left is right:
+        return 0.0
+    if id(right) < id(left):
+        left, right = right, left
+    pair_key = (id(left), id(right))
+    with _CACHE_LOCK:
+        cached = _PAIR_DISTANCE_CACHE.get(pair_key)
+        if (
+            cached is not None
+            and cached.left_ref() is left
+            and cached.right_ref() is right
+        ):
+            _PAIR_DISTANCE_CACHE.move_to_end(pair_key)
+            _CACHE_METRICS["pair_cache_hit_count"] += 1
+            return cached.distance
+    left_variants = _source_view_variants(left)
+    right_variants = _source_view_variants(right)
+    best = 1.0
+    if left_variants and right_variants:
+        left_views = left_variants[0]
+        for right_views in right_variants:
+            distances = tuple(
+                safe_symmetric_difference_ratio(a, b)
+                for a, b in zip(left_views, right_views)
+            )
+            best = min(
+                best,
+                distances[0] * 0.40
+                + distances[1] * 0.30
+                + distances[2] * 0.30,
+            )
+    distance = min(1.0, best)
+    left_ref = weakref.ref(left)
+    right_ref = weakref.ref(right)
+    with _CACHE_LOCK:
+        _CACHE_METRICS["exact_pair_evaluation_count"] += 1
+        _PAIR_DISTANCE_CACHE[pair_key] = _PairDistanceEntry(
+            left_ref,
+            right_ref,
+            distance,
+        )
+        _PAIR_DISTANCE_CACHE.move_to_end(pair_key)
+        while len(_PAIR_DISTANCE_CACHE) > _PAIR_DISTANCE_CACHE_LIMIT:
+            _PAIR_DISTANCE_CACHE.popitem(last=False)
+    return distance
 
 
-@lru_cache(maxsize=131_072)
 def visual_silhouette_distance_from_keys(
     left_key: VisualSilhouetteKey,
     right_key: VisualSilhouetteKey,
@@ -106,7 +160,6 @@ def visual_silhouette_distance_from_keys(
     return min(1.0, best)
 
 
-@lru_cache(maxsize=8_192)
 def _principal_frame(
     key: VisualSilhouetteKey,
 ) -> tuple[tuple[LayeredFootprint, ...], SurfaceKey] | None:
@@ -161,7 +214,6 @@ def _principal_frame(
     return normalized_volumes, normalized_surfaces
 
 
-@lru_cache(maxsize=32_768)
 def _cached_views(
     key: VisualSilhouetteKey,
     *,
@@ -174,6 +226,70 @@ def _cached_views(
     if angle or mirror_x:
         frame = _transform_geometry(*frame, angle=angle, mirror_x=mirror_x)
     return _views(*frame)
+
+
+def _source_view_variants(source: SourceMass) -> ViewVariants:
+    cache_id = id(source)
+    with _CACHE_LOCK:
+        cached = _SOURCE_VIEW_CACHE.get(cache_id)
+        if cached is not None and cached.source_ref() is source:
+            _SOURCE_VIEW_CACHE.move_to_end(cache_id)
+            _CACHE_METRICS["source_view_cache_hit_count"] += 1
+            return cached.variants
+    frame = _principal_frame(source_visual_silhouette_key(source))
+    if frame is None:
+        variants: ViewVariants = ()
+    else:
+        computed: list[ViewTriple] = []
+        for angle in (0.0, 90.0, 180.0, 270.0):
+            for mirror_x in (False, True):
+                transformed = (
+                    frame
+                    if angle == 0.0 and not mirror_x
+                    else _transform_geometry(
+                        *frame,
+                        angle=angle,
+                        mirror_x=mirror_x,
+                    )
+                )
+                computed.append(_views(*transformed))
+        variants = tuple(computed)
+
+    def release(reference: weakref.ReferenceType[SourceMass]) -> None:
+        with _CACHE_LOCK:
+            current = _SOURCE_VIEW_CACHE.get(cache_id)
+            if current is not None and current.source_ref is reference:
+                _SOURCE_VIEW_CACHE.pop(cache_id, None)
+
+    reference = weakref.ref(source, release)
+    with _CACHE_LOCK:
+        _CACHE_METRICS["source_view_build_count"] += 1
+        _SOURCE_VIEW_CACHE[cache_id] = _SourceViewEntry(reference, variants)
+        _SOURCE_VIEW_CACHE.move_to_end(cache_id)
+        while len(_SOURCE_VIEW_CACHE) > _SOURCE_VIEW_CACHE_LIMIT:
+            _SOURCE_VIEW_CACHE.popitem(last=False)
+    return variants
+
+
+def reset_visual_silhouette_cache_metrics() -> None:
+    """Reset bounded runtime caches and counters for benchmark instrumentation."""
+
+    with _CACHE_LOCK:
+        _SOURCE_VIEW_CACHE.clear()
+        _PAIR_DISTANCE_CACHE.clear()
+        for key in _CACHE_METRICS:
+            _CACHE_METRICS[key] = 0
+
+
+def visual_silhouette_cache_metrics() -> dict[str, int]:
+    """Expose cache reuse without retaining source geometry in diagnostics."""
+
+    with _CACHE_LOCK:
+        return {
+            **_CACHE_METRICS,
+            "source_view_cache_size": len(_SOURCE_VIEW_CACHE),
+            "pair_cache_size": len(_PAIR_DISTANCE_CACHE),
+        }
 
 
 def _transform_geometry(
@@ -249,6 +365,8 @@ def _views(
 
 __all__ = [
     "source_visual_silhouette_key",
+    "reset_visual_silhouette_cache_metrics",
     "visual_silhouette_distance",
     "visual_silhouette_distance_from_keys",
+    "visual_silhouette_cache_metrics",
 ]

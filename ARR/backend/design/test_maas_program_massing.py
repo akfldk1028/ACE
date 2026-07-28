@@ -1,6 +1,8 @@
 """Program-conditioned MAAS massing contracts."""
 
+import gc
 import random
+import weakref
 from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -64,10 +66,12 @@ from design.maas.program_massing.search import (
     _descriptor_distance,
     _extract_overrides,
     _feature,
+    materialize_source_feature_surfaces,
     _mutated_graph_parameters,
     _with_overrides,
 )
 from design.maas.program_massing.morphology import intrinsic_shape_distance, intrinsic_silhouette_distance
+from design.maas.program_massing import visual_silhouette
 from design.maas.program_massing.portfolio_solver import PortfolioCandidateFacts, solve_portfolio_beam
 from design.maas.program_massing.capacity_projection import project_bend_capacity
 from design.maas.program_massing.creative import attach_creative_mass_evidence
@@ -91,6 +95,122 @@ from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 
 
 class MaasProgramMassingTest(SimpleTestCase):
+    def test_summary_only_feature_materializes_exact_eager_surface_payload(self):
+        footprint = box(0, 0, 12, 8)
+        surface = SourceSurface(
+            role="roof",
+            volume_role="body",
+            verb="profile",
+            surface_type="profiled_recursive_solid_mesh_roof",
+            vertices_m=((0.0, 0.0, 0.0), (4.0, 0.0, 1.0), (0.0, 4.0, 0.5)),
+            operator="profiled_prism",
+            semantic_patch_id="body:roof:0",
+        )
+        source = SourceMass(
+            "lazy-feature",
+            footprint,
+            volumes=(SourceVolume("body", footprint, 0.0, 1.0, "base"),),
+            surfaces=(surface,),
+        )
+        sequence = program_seed_sequences("neighborhood living")[0]
+
+        eager = _feature(
+            source,
+            sequence,
+            building_type="neighborhood living",
+            height=12.0,
+            floors=3,
+            site_area=96.0,
+        )
+        lazy = _feature(
+            source,
+            sequence,
+            building_type="neighborhood living",
+            height=12.0,
+            floors=3,
+            site_area=96.0,
+            surface_materialization="summary_only",
+        )
+
+        self.assertNotIn("source_surfaces", lazy["properties"])
+        self.assertEqual(
+            lazy["properties"]["source_surface_summary"],
+            {
+                "raw_surface_count": 1,
+                "profiled_surface_count": 1,
+                "profiled_roof_count": 1,
+                "surface_roles": ["roof"],
+                "surface_types": ["profiled_recursive_solid_mesh_roof"],
+                "materialization": "summary_only",
+            },
+        )
+        eager_program = attach_program_massing_evidence(
+            eager,
+            building_type="neighborhood living",
+        )
+        lazy_program = attach_program_massing_evidence(
+            lazy,
+            building_type="neighborhood living",
+        )
+        self.assertEqual(lazy_program, eager_program)
+        self.assertEqual(
+            lazy["properties"]["program_spatial_evidence"],
+            eager["properties"]["program_spatial_evidence"],
+        )
+        materialized = materialize_source_feature_surfaces(
+            lazy,
+            source,
+            height=12.0,
+        )
+        self.assertIs(materialized, lazy)
+        self.assertEqual(
+            materialized["properties"]["source_surfaces"],
+            eager["properties"]["source_surfaces"],
+        )
+        first_payload = list(materialized["properties"]["source_surfaces"])
+        materialize_source_feature_surfaces(
+            materialized,
+            source,
+            height=12.0,
+        )
+        self.assertEqual(materialized["properties"]["source_surfaces"], first_payload)
+
+    def test_visual_silhouette_compact_cache_reuses_unordered_pair_and_releases_sources(self):
+        def mass(name: str, xoff: float) -> SourceMass:
+            footprint = box(xoff, 0, xoff + 10, 8)
+            surface = SourceSurface(
+                role="roof",
+                volume_role="body",
+                verb="profile",
+                surface_type="profiled_recursive_solid_mesh",
+                vertices_m=((-5.0, -4.0, 0.0), (5.0, -4.0, 0.7), (-5.0, 4.0, 1.0)),
+                semantic_patch_id=f"{name}:roof",
+            )
+            return SourceMass(
+                name,
+                footprint,
+                volumes=(SourceVolume("body", footprint, 0.0, 1.0, "base"),),
+                surfaces=(surface,),
+            )
+
+        left = mass("left", 0.0)
+        right = mass("right", 20.0)
+        visual_silhouette.reset_visual_silhouette_cache_metrics()
+        first = intrinsic_silhouette_distance(left, right)
+        self.assertEqual(first, intrinsic_silhouette_distance(right, left))
+        self.assertEqual(first, intrinsic_silhouette_distance(left, right))
+        metrics = visual_silhouette.visual_silhouette_cache_metrics()
+        self.assertEqual(metrics["exact_pair_evaluation_count"], 1)
+        self.assertEqual(metrics["pair_cache_hit_count"], 2)
+
+        left_ref = weakref.ref(left)
+        right_ref = weakref.ref(right)
+        del left
+        del right
+        gc.collect()
+        self.assertIsNone(left_ref())
+        self.assertIsNone(right_ref())
+
     def test_typed_attach_edges_materialize_real_parent_contact(self):
         seed = program_seed_sequences("gymnasium")[0]
         sequence = compose_program_with_book_operations(

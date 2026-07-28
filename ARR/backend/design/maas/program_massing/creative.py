@@ -66,11 +66,20 @@ def attach_creative_mass_evidence(feature: dict[str, Any], *, site_area_m2: floa
     uses_buffered_path = any("ribbon" in role for role in roles)
     effective_surface_count = int(signature.get("effective_surface_count") or (min(surface_count, volume_count * 6) if uses_buffered_path else surface_count))
     economy_score = max(0.0, min(1.0, 1.0 - max(0, effective_surface_count - 24) / 48.0))
+    surface_summary = (
+        props.get("source_surface_summary")
+        if isinstance(props.get("source_surface_summary"), dict)
+        else {}
+    )
     profiled_roof_count = sum(
         1 for item in props.get("source_surfaces") or []
         if isinstance(item, dict) and str(item.get("surface_type") or "").startswith("profiled_")
         and "roof" in str(item.get("surface_type") or "")
     )
+    if not isinstance(props.get("source_surfaces"), list):
+        profiled_roof_count = int(
+            surface_summary.get("profiled_roof_count") or 0
+        )
     non_rectilinear_volume_count = sum(
         1
         for geometry in geometries

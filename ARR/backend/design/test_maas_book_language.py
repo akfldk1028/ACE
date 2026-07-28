@@ -1,6 +1,8 @@
 """Contracts for the architect-supplied BOOK language registry."""
 
+import gc
 import os
+import weakref
 from collections import Counter
 from dataclasses import replace
 from pathlib import Path
@@ -28,6 +30,83 @@ from design.maas.source_geometry import compile_sequence_to_source_mass
 
 
 class MaasBookLanguageRegistryTest(SimpleTestCase):
+    def test_shared_compatibility_analysis_measures_each_unordered_pair_once(self):
+        if not hasattr(portfolio_selection, "build_compatibility_analysis"):
+            self.fail("shared compatibility analysis is not implemented")
+
+        class CandidateProbe:
+            def __init__(self, name):
+                self.name = name
+
+        candidates = [CandidateProbe(f"candidate-{index}") for index in range(54)]
+        calls = Counter()
+
+        def measured_distance(left, right):
+            key = tuple(sorted((left.name, right.name)))
+            calls[key] += 1
+            return 0.25 if left is not right else 0.0
+
+        analysis = portfolio_selection.build_compatibility_analysis(
+            candidates,
+            threshold=0.10,
+            distance_evaluator=measured_distance,
+        )
+        first = analysis.compatibility_matrix(candidates)
+        second = analysis.compatibility_matrix(list(reversed(candidates)))
+        for left in candidates:
+            for right in candidates:
+                analysis.distance(left, right)
+
+        self.assertEqual(len(first), 54)
+        self.assertEqual(len(second), 54)
+        self.assertEqual(sum(calls.values()), 54 * 53 // 2)
+        self.assertTrue(all(value == 1 for value in calls.values()))
+        self.assertEqual(
+            analysis.evidence()["exact_pair_evaluation_count"],
+            54 * 53 // 2,
+        )
+        self.assertEqual(
+            analysis.evidence()["compatibility_threshold"],
+            0.10,
+        )
+
+    def test_shared_compatibility_analysis_does_not_retain_dropped_candidates(self):
+        sequence = program_seed_sequences("neighborhood_living")[0]
+        left = portfolio_benchmark._Candidate(
+            "book:test:left",
+            "base_operative",
+            "left",
+            sequence,
+            SimpleNamespace(),
+            {"type": "Feature", "properties": {}},
+            1.0,
+        )
+        right = portfolio_benchmark._Candidate(
+            "book:test:right",
+            "base_operative",
+            "right",
+            sequence,
+            SimpleNamespace(),
+            {"type": "Feature", "properties": {}},
+            0.9,
+        )
+        left_ref = weakref.ref(left)
+        right_ref = weakref.ref(right)
+        analysis = portfolio_selection.build_compatibility_analysis(
+            [left, right],
+            distance_evaluator=lambda _left, _right: 1.0,
+        )
+        self.assertEqual(analysis.distance(left, right), 1.0)
+        self.assertEqual(analysis.evidence()["cached_pair_count"], 1)
+
+        del left
+        del right
+        gc.collect()
+
+        self.assertIsNone(left_ref())
+        self.assertIsNone(right_ref())
+        self.assertEqual(analysis.evidence()["cached_pair_count"], 0)
+
     def test_portfolio_duplicate_threshold_uses_shared_visual_novelty_policy(self):
         """Selection and replenishment must agree on what counts as a repeat."""
         from design.maas.program_massing.morphology import DEFAULT_NOVELTY_POLICY
@@ -960,6 +1039,11 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertEqual(evidence["recovered_call_failure_count"], 1)
         self.assertEqual(evidence["unrecovered_call_failure_count"], 0)
         self.assertEqual(evidence["call_failure_records"], [])
+        self.assertNotIn("source_surfaces", candidate.feature["properties"])
+        self.assertGreater(
+            len(reviewed_features[-1]["properties"]["source_surfaces"]),
+            0,
+        )
         capacity_context = reviewed_features[-1]["properties"]["capacity_review_context"]
         self.assertEqual(
             capacity_context["capacity_alternative"][
@@ -1491,10 +1575,15 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
 
     def test_selector_consumes_next_run_geometry_family_supply_cap(self):
         scopes = ("1/1", "3/8", "1/2", "1/4", "1/8", "1/16")
+
+        class CandidateProbe:
+            def __init__(self, **values):
+                self.__dict__.update(values)
+
         candidates = []
         for index, scope in enumerate(scopes):
             for family, score in (("repeated_family", 1.0), (f"alternate_{index}", 0.8)):
-                candidates.append(SimpleNamespace(
+                candidates.append(CandidateProbe(
                     key=f"{scope}:{family}", scope=scope,
                     principle_kind="base_operative", operation=f"op_{index}_{family}",
                     score=score, seed=f"seed_{index}_{family}",
@@ -1503,6 +1592,13 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
                     family=family,
                 ))
         trace = {}
+        measured_pairs = Counter()
+
+        def measured_silhouette(left, right):
+            key = tuple(sorted((left.key, right.key)))
+            measured_pairs[key] += 1
+            return 1.0
+
         with (
             patch.object(portfolio_selection, "_fingerprint", side_effect=lambda item: (item.key,)),
             patch.object(portfolio_selection, "_scope_key", side_effect=lambda item: item.scope),
@@ -1514,23 +1610,46 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             patch.object(portfolio_selection, "_solid_morphology_metrics", side_effect=lambda item: {
                 "phenotype": item.phenotype, "wedge_like": False, "pyramidal_like": False,
             }),
-            patch.object(portfolio_selection, "_silhouette_distance", return_value=1.0),
+            patch.object(
+                portfolio_selection,
+                "_silhouette_distance",
+                side_effect=measured_silhouette,
+            ),
             patch.object(portfolio_selection, "_distance", return_value=1.0),
+            patch.object(portfolio_selection, "_plan_family", return_value="quadrilateral"),
             patch.object(portfolio_selection, "_design_concept_descriptor", side_effect=lambda item: {
                 "ground_strategy": "direct_edge", "concept_key": item.key,
                 "frontage_aligned": False,
             }),
             patch.object(portfolio_selection, "_rebalance_measured_morphologies", side_effect=lambda selected, *_args, **_kwargs: selected),
         ):
+            analysis = portfolio_selection.build_compatibility_analysis(candidates)
+            analysis.compatibility_matrix(candidates)
             selected = portfolio_selection._select(
                 candidates,
                 target=6,
                 visual_directive={"max_geometry_family_counts": {"repeated_family": 1}},
                 selection_trace=trace,
+                compatibility_analysis=analysis,
+            )
+            evaluated_after_selection = sum(measured_pairs.values())
+            diagnostics = portfolio_selection._selection_capacity_diagnostics(
+                candidates,
+                selected,
+                target=6,
+                visual_directive={"max_geometry_family_counts": {"repeated_family": 1}},
+                compatibility_analysis=analysis,
             )
 
         self.assertEqual(sum(item.family == "repeated_family" for item in selected), 1)
         self.assertEqual(trace["memory_geometry_family_caps"], {"repeated_family": 1})
+        self.assertEqual(len(measured_pairs), len(candidates) * (len(candidates) - 1) // 2)
+        self.assertTrue(all(count == 1 for count in measured_pairs.values()))
+        self.assertEqual(sum(measured_pairs.values()), evaluated_after_selection)
+        self.assertEqual(
+            diagnostics["compatibility_analysis"]["exact_pair_evaluation_count"],
+            trace["compatibility_analysis"]["exact_pair_evaluation_count"],
+        )
 
     def test_selector_reserves_a_slot_for_missing_chassis_only_after_hard_pass_pool(self):
         candidates = [

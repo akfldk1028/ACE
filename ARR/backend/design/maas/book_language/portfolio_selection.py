@@ -22,6 +22,7 @@ from .candidate_analysis import (
     _silhouette_distance,
     _solid_morphology_metrics,
 )
+from .compatibility_analysis import CompatibilityAnalysis
 from .semantics import BASE_VOLUME_FRACTIONS
 from .portfolio_constraint_solver import (
     ConstraintCandidateFacts,
@@ -38,6 +39,19 @@ PORTFOLIO_SILHOUETTE_DISTANCE = (
 )
 ANCHOR_BRANCH_LIMIT = 8
 ANCHOR_SEARCH_STATE_LIMIT = 20_000
+
+
+def build_compatibility_analysis(
+    candidates: list[Any],
+    *,
+    threshold: float = PORTFOLIO_SILHOUETTE_DISTANCE,
+    distance_evaluator: Any | None = None,
+) -> CompatibilityAnalysis:
+    return CompatibilityAnalysis(
+        candidates,
+        threshold=threshold,
+        distance_evaluator=distance_evaluator or _silhouette_distance,
+    )
 
 
 def _chassis_caps(
@@ -138,6 +152,7 @@ def _scope_coverage_anchors(
     required_principle_kinds: tuple[str, ...] = (),
     required_capacity_alternatives: tuple[str, ...] = (),
     required_plan_families: tuple[str, ...] = (),
+    compatibility_analysis: CompatibilityAnalysis | None = None,
 ) -> list[_Candidate]:
     """Find joint scope/phenotype/BOOK-language anchors before greedy filling.
 
@@ -263,7 +278,11 @@ def _scope_coverage_anchors(
                     ):
                         continue
                     if any(
-                        _silhouette_distance(candidate, other) < PORTFOLIO_SILHOUETTE_DISTANCE
+                        (
+                            compatibility_analysis.distance(candidate, other)
+                            if compatibility_analysis is not None
+                            else _silhouette_distance(candidate, other)
+                        ) < PORTFOLIO_SILHOUETTE_DISTANCE
                         for other in picked
                     ):
                         continue
@@ -387,6 +406,7 @@ def _select(
     *,
     visual_directive: dict[str, Any] | None = None,
     selection_trace: dict[str, Any] | None = None,
+    compatibility_analysis: CompatibilityAnalysis | None = None,
 ) -> list[_Candidate]:
     trace = selection_trace if isinstance(selection_trace, dict) else {}
     trace.clear()
@@ -400,6 +420,10 @@ def _select(
         else 0
     )
     uncapped_candidates = list(candidates)
+    compatibility_analysis = compatibility_analysis or build_compatibility_analysis(
+        uncapped_candidates
+    )
+    silhouette_distance = compatibility_analysis.distance
     trace["unique_candidate_count"] = len(candidates)
     directive = visual_directive or {}
     geometry_family_caps = {
@@ -543,6 +567,7 @@ def _select(
         required_plan_families=tuple(
             str(value) for value in directive.get("required_plan_families") or ()
         ),
+        compatibility_analysis=compatibility_analysis,
     )
     anchor_ids = {id(candidate) for candidate in anchors}
     candidates = [candidate for candidate in candidates if id(candidate) not in anchor_ids]
@@ -574,7 +599,7 @@ def _select(
             and chassis_usage.get(_chassis_family(candidate), 0) < chassis_family_caps.get(_chassis_family(candidate), target)
             and morphology_caps_allow(candidate)
             and concept_usage.get(_design_concept_descriptor(candidate)["concept_key"], 0) < 2
-            and all(_silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
+            and all(silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
         ]
         if not options:
             continue
@@ -606,7 +631,7 @@ def _select(
             and chassis_usage.get(_chassis_family(candidate), 0) < chassis_family_caps.get(_chassis_family(candidate), target)
             and morphology_caps_allow(candidate)
             and concept_usage.get(_design_concept_descriptor(candidate)["concept_key"], 0) < 2
-            and all(_silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
+            and all(silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
         ]
         if not options:
             continue
@@ -647,7 +672,7 @@ def _select(
             and chassis_usage.get(_chassis_family(candidate), 0) < chassis_family_caps.get(_chassis_family(candidate), target)
             and morphology_caps_allow(candidate)
             and concept_usage.get(_design_concept_descriptor(candidate)["concept_key"], 0) < 2
-            and all(_silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
+            and all(silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
         ]
         if not options:
             continue
@@ -676,7 +701,7 @@ def _select(
             and roof_usage.get(required_roof, 0) < roof_archetype_caps.get(required_roof, target)
             and chassis_usage.get(_chassis_family(candidate), 0) < chassis_family_caps.get(_chassis_family(candidate), target)
             and morphology_caps_allow(candidate)
-            and all(_silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
+            and all(silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
         ]
         if not options:
             continue
@@ -709,7 +734,7 @@ def _select(
             and roof_usage.get(_roof_archetype(candidate), 0) < roof_archetype_caps.get(_roof_archetype(candidate), target)
             and chassis_usage.get(_chassis_family(candidate), 0) < chassis_family_caps.get(_chassis_family(candidate), target)
             and morphology_caps_allow(candidate)
-            and all(_silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
+            and all(silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
         ]
         if not options:
             continue
@@ -741,7 +766,7 @@ def _select(
             and chassis_usage.get(chassis, 0) < chassis_family_caps.get(chassis, target)
             and morphology_caps_allow(candidate)
             and concept_usage.get(_design_concept_descriptor(candidate)["concept_key"], 0) < 2
-            and all(_silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
+            and all(silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
         ]
         if not options:
             continue
@@ -762,7 +787,7 @@ def _select(
                 and chassis_usage.get(_chassis_family(candidate), 0) < chassis_family_caps.get(_chassis_family(candidate), target)
                 and morphology_caps_allow(candidate)
                 and concept_usage.get(_design_concept_descriptor(candidate)["concept_key"], 0) < 2
-                and all(_silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
+                and all(silhouette_distance(candidate, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in selected)
             ]
 
         eligible_at_two = eligible_with_operation_cap(2)
@@ -799,7 +824,7 @@ def _select(
 
         def selection_key(candidate: _Candidate) -> tuple[float, float]:
             novelty = 1.0 if not selected else min(
-                _distance(candidate, other) * 0.55 + _silhouette_distance(candidate, other) * 0.45
+                _distance(candidate, other) * 0.55 + silhouette_distance(candidate, other) * 0.45
                 for other in selected
             )
             new_language_bonus = 0.08 if operation_usage.get(candidate.operation, 0) == 0 else 0.0
@@ -896,14 +921,7 @@ def _select(
                     f"capacity_alt:{_capacity_alternative_key(candidate)}",
                 ),
             ))
-        compatibility = [
-            [
-                left == right
-                or _silhouette_distance(candidate_universe[left], candidate_universe[right]) >= PORTFOLIO_SILHOUETTE_DISTANCE
-                for right in range(len(candidate_universe))
-            ]
-            for left in range(len(candidate_universe))
-        ]
+        compatibility = compatibility_analysis.compatibility_matrix(candidate_universe)
         required_scope_tags = tuple(
             f"scope:{label}"
             for label, _fraction in BASE_VOLUME_FRACTIONS
@@ -998,15 +1016,7 @@ def _select(
                 cap_keys=tuple(cap_keys),
                 coverage_tags=tuple(coverage_tags),
             ))
-        beam_compatibility = [
-            [
-                left == right
-                or _silhouette_distance(beam_universe[left], beam_universe[right])
-                >= PORTFOLIO_SILHOUETTE_DISTANCE
-                for right in range(len(beam_universe))
-            ]
-            for left in range(len(beam_universe))
-        ]
+        beam_compatibility = compatibility_analysis.compatibility_matrix(beam_universe)
         beam_required_tags = (
             *(f"scope:{scope}" for scope in sorted({_scope_key(item) for item in beam_universe})),
             *(f"capacity_alt:{alternative}" for alternative in capacity_priority if alternative in available_capacity_alternatives),
@@ -1130,7 +1140,7 @@ def _select(
                 if concept_counts[concept_key] >= 2:
                     continue
                 if any(
-                    _silhouette_distance(candidate, other) < PORTFOLIO_SILHOUETTE_DISTANCE
+                    silhouette_distance(candidate, other) < PORTFOLIO_SILHOUETTE_DISTANCE
                     for other in selected
                 ):
                     continue
@@ -1141,7 +1151,7 @@ def _select(
             def fallback_key(candidate: _Candidate) -> tuple[float, float]:
                 novelty = 1.0 if not selected else min(
                     _distance(candidate, other) * 0.55
-                    + _silhouette_distance(candidate, other) * 0.45
+                    + silhouette_distance(candidate, other) * 0.45
                     for other in selected
                 )
                 return candidate.score * 0.44 + novelty * 0.56, candidate.score
@@ -1162,6 +1172,7 @@ def _select(
         target=target,
         visual_directive=directive,
         capacity_alternative_quotas=capacity_alternative_quotas,
+        compatibility_analysis=compatibility_analysis,
     )
     trace["post_rebalance_count"] = len(rebalanced)
     trace["post_rebalance_principle_kind_counts"] = dict(Counter(
@@ -1170,6 +1181,7 @@ def _select(
     trace["post_rebalance_capacity_alternative_counts"] = dict(sorted(Counter(
         _capacity_alternative_key(candidate) for candidate in rebalanced
     ).items()))
+    trace["compatibility_analysis"] = compatibility_analysis.evidence()
     return rebalanced
 
 
@@ -1179,6 +1191,7 @@ def _selection_capacity_diagnostics(
     *,
     target: int,
     visual_directive: dict[str, Any] | None = None,
+    compatibility_analysis: CompatibilityAnalysis | None = None,
 ) -> dict[str, Any]:
     """Explain why a hard-pass pool cannot fill the requested portfolio.
 
@@ -1187,6 +1200,9 @@ def _selection_capacity_diagnostics(
     silhouette resemblance, BOOK repetition, genotype, roof or chassis caps.
     """
     universe, measured_capacity_universe = _target_hard_pass_universe(pool)
+    compatibility_analysis = compatibility_analysis or build_compatibility_analysis(
+        universe
+    )
     deduplicated_universe_count = len({
         _fingerprint(candidate) for candidate in pool
     })
@@ -1242,7 +1258,10 @@ def _selection_capacity_diagnostics(
     signature_counts: Counter[str] = Counter()
     minimum_distances: list[float] = []
     for candidate in remaining:
-        distances = [_silhouette_distance(candidate, other) for other in selected]
+        distances = [
+            compatibility_analysis.distance(candidate, other)
+            for other in selected
+        ]
         minimum_distance = min(distances, default=1.0)
         minimum_distances.append(minimum_distance)
         reasons: list[str] = []
@@ -1342,6 +1361,7 @@ def _selection_capacity_diagnostics(
             "wedge_like": wedge_cap,
             "pyramidal_like": pyramidal_cap,
         },
+        "compatibility_analysis": compatibility_analysis.evidence(),
     }
 
 
@@ -1352,6 +1372,7 @@ def _rebalance_measured_morphologies(
     target: int,
     visual_directive: dict[str, Any],
     capacity_alternative_quotas: dict[str, int] | None = None,
+    compatibility_analysis: CompatibilityAnalysis | None = None,
 ) -> list[_Candidate]:
     """Replace measured wedge/family excess with hard-pass mesh alternatives.
 
@@ -1359,6 +1380,10 @@ def _rebalance_measured_morphologies(
     status are measured from triangle normals/topology after site fitting.
     """
     result = list(selected)
+    compatibility_analysis = compatibility_analysis or build_compatibility_analysis(
+        universe
+    )
+    silhouette_distance = compatibility_analysis.distance
     available = {_solid_morphology_metrics(candidate)["phenotype"] for candidate in universe}
     required = tuple(
         phenotype for phenotype in dict.fromkeys(
@@ -1495,7 +1520,7 @@ def _rebalance_measured_morphologies(
                 continue
             if metrics["pyramidal_like"] and pyramidal_count >= pyramidal_cap:
                 continue
-            if any(_silhouette_distance(candidate, other) < PORTFOLIO_SILHOUETTE_DISTANCE for other in remaining):
+            if any(silhouette_distance(candidate, other) < PORTFOLIO_SILHOUETTE_DISTANCE for other in remaining):
                 continue
             if not preserves_design_concepts(candidate, remaining):
                 continue
@@ -1529,7 +1554,7 @@ def _rebalance_measured_morphologies(
             for candidate in candidates:
                 conflicts = [
                     item for item in result
-                    if _silhouette_distance(candidate, item) < PORTFOLIO_SILHOUETTE_DISTANCE
+                    if silhouette_distance(candidate, item) < PORTFOLIO_SILHOUETTE_DISTANCE
                 ]
                 if len(conflicts) > 1:
                     continue
@@ -1560,7 +1585,7 @@ def _rebalance_measured_morphologies(
                         for item in remaining
                     ) >= pyramidal_cap:
                         continue
-                    if any(_silhouette_distance(candidate, other) < PORTFOLIO_SILHOUETTE_DISTANCE for other in remaining):
+                    if any(silhouette_distance(candidate, other) < PORTFOLIO_SILHOUETTE_DISTANCE for other in remaining):
                         continue
                     if not preserves_design_concepts(candidate, remaining):
                         continue
@@ -1596,7 +1621,7 @@ def _rebalance_measured_morphologies(
             remaining = [item for item in result if item is not removed]
             winner = max(options, key=lambda candidate: (
                 candidate.score
-                + (min((_silhouette_distance(candidate, other) for other in remaining), default=1.0) * 0.45),
+                + (min((silhouette_distance(candidate, other) for other in remaining), default=1.0) * 0.45),
                 -float((candidate.source.metadata.get("geometry_program_bridge_evidence") or {}).get("legal_fit_strength") or 0.0),
             ))
             result[result.index(removed)] = winner
@@ -1647,7 +1672,7 @@ def _rebalance_measured_morphologies(
                     for item in remaining
                 ) >= pyramidal_cap:
                     continue
-                if any(_silhouette_distance(candidate, other) < PORTFOLIO_SILHOUETTE_DISTANCE for other in remaining):
+                if any(silhouette_distance(candidate, other) < PORTFOLIO_SILHOUETTE_DISTANCE for other in remaining):
                     continue
                 if not preserves_design_concepts(candidate, remaining):
                     continue
@@ -1670,7 +1695,7 @@ def _rebalance_measured_morphologies(
                 for item in result
             ) >= pyramidal_cap:
                 continue
-            if any(_silhouette_distance(candidate, other) < PORTFOLIO_SILHOUETTE_DISTANCE for other in result):
+            if any(silhouette_distance(candidate, other) < PORTFOLIO_SILHOUETTE_DISTANCE for other in result):
                 continue
             if not preserves_design_concepts(candidate, result):
                 continue
@@ -1744,7 +1769,7 @@ def _rebalance_measured_morphologies(
         if sum(bool(_solid_morphology_metrics(item)["pyramidal_like"]) for item in items) > pyramidal_cap:
             return False
         return all(
-            _silhouette_distance(left, right) >= PORTFOLIO_SILHOUETTE_DISTANCE
+            silhouette_distance(left, right) >= PORTFOLIO_SILHOUETTE_DISTANCE
             for index, left in enumerate(items)
             for right in items[:index]
         )
@@ -1757,11 +1782,11 @@ def _rebalance_measured_morphologies(
             remaining = [item for item in result if item is not removed]
             compatible = [
                 item for item in outsiders
-                if all(_silhouette_distance(item, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in remaining)
+                if all(silhouette_distance(item, other) >= PORTFOLIO_SILHOUETTE_DISTANCE for other in remaining)
             ]
             compatible.sort(key=lambda item: (
                 item.score
-                + min((_silhouette_distance(item, other) for other in remaining), default=1.0) * 0.35
+                + min((silhouette_distance(item, other) for other in remaining), default=1.0) * 0.35
             ), reverse=True)
             # The full pool remains evidence, while the bounded local search
             # keeps worst-case pair evaluation predictable.
@@ -1773,7 +1798,7 @@ def _rebalance_measured_morphologies(
                         continue
                     objective = (
                         first.score + second.score - removed.score
-                        + _silhouette_distance(first, second) * 0.45
+                        + silhouette_distance(first, second) * 0.45
                     )
                     if best is None or objective > best[0]:
                         best = (objective, result.index(removed), first, second)

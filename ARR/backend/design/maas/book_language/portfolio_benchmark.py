@@ -68,7 +68,11 @@ from design.maas.program_massing.morphology import (
     intrinsic_silhouette_distance,
 )
 from design.maas.program_massing.scoring import attach_program_massing_evidence
-from design.maas.program_massing.search import program_seed_variants, source_feature
+from design.maas.program_massing.search import (
+    materialize_source_feature_surfaces,
+    program_seed_variants,
+    source_feature,
+)
 from design.maas.preference.loop import feature_preview_png, openai_preview_preference_scorer
 from design.maas.book_language.archive_layout import (
     ARCHIVE_CARD_WIDTH,
@@ -198,6 +202,7 @@ def _shared_floor_hard_pass_candidates(candidates):
 
 from .portfolio_selection import (
     PORTFOLIO_SILHOUETTE_DISTANCE,
+    build_compatibility_analysis,
     _scope_coverage_anchors,
     _select,
     _selection_capacity_diagnostics,
@@ -1164,12 +1169,16 @@ def run_book_program_portfolios(
                 "post_book_geometry_reviewed": False,
             }
         counts["final_book_vlm_gate"] = final_book_vlm_gate
+        selection_compatibility_analysis = build_compatibility_analysis(
+            selection_pool
+        )
         selection_trace: dict[str, Any] = {}
         selected = _select(
             selection_pool,
             selection_target,
             visual_directive=program_visual_directive,
             selection_trace=selection_trace,
+            compatibility_analysis=selection_compatibility_analysis,
         )
         update_run_progress(
             output_dir,
@@ -1274,6 +1283,7 @@ def run_book_program_portfolios(
                     selection_target,
                     visual_directive=program_visual_directive,
                     selection_trace=selection_trace,
+                    compatibility_analysis=selection_compatibility_analysis,
                 )
                 pool_growth = len(selection_pool) - previous_pool_count
                 cycle_evidence = {
@@ -1287,6 +1297,7 @@ def run_book_program_portfolios(
                         selected,
                         target=selection_target,
                         visual_directive=program_visual_directive,
+                        compatibility_analysis=selection_compatibility_analysis,
                     ),
                 }
                 replenishment_cycles.append(cycle_evidence)
@@ -1355,6 +1366,7 @@ def run_book_program_portfolios(
             selected,
             target=selection_target,
             visual_directive=program_visual_directive,
+            compatibility_analysis=selection_compatibility_analysis,
         )
         selected = _order_portfolio_for_capacity_review(selected)
         update_run_progress(
@@ -1401,6 +1413,11 @@ def run_book_program_portfolios(
         )
         for index, candidate in enumerate(selected):
             feature = deepcopy(candidate.feature)
+            materialize_source_feature_surfaces(
+                feature,
+                candidate.source,
+                height=float(height),
+            )
             props = feature["properties"]
             props["archive_variant_id"] = props["variant_id"]
             props["variant_id"] = f"maas_{index + 1:02d}"

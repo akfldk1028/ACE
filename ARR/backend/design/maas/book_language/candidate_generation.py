@@ -1759,6 +1759,7 @@ def _program_pool(
                     height=height,
                     floors=floors,
                     site_area=float(compile_site.area),
+                    surface_materialization="summary_only",
                 )
                 props = feature.setdefault("properties", {})
                 props["site_boundary_geometry"] = mapping(site)

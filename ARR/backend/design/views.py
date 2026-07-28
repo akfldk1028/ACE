@@ -48,7 +48,6 @@ from design.maas.aesthetic.adapters import NanoBananaAdapter, OpenAIImageAdapter
 from design.maas.aesthetic.renderers import MultiViewReferencePackRenderer
 from design.maas.preference.reference_corpus import default_reference_root
 from design.maas.geometry_language import (
-    CompilationResult,
     architectural_shape_programs,
     build_mass_execution_passport,
     compile_geometry_program,
@@ -69,12 +68,12 @@ from design.maas.single_execution import (
     single_execution_archive_manifest,
     single_execution_passport,
     single_execution_preview,
-    single_execution_program,
     single_execution_run_id,
     single_execution_runs,
     review_single_mass_with_vlm,
 )
 from design.maas.single_execution.replay import downstream_evidence_from_passport
+from design.maas.single_execution.pipeline import resolve_single_execution_replay
 
 logger = logging.getLogger(__name__)
 
@@ -260,13 +259,14 @@ def maas_single_execution(request):
             if is_single_execution_run(source_run_id):
                 if source_mass_index != 1:
                     raise ValueError("single execution run contains exactly one MASS")
-                resolved_program = single_execution_program(_single_execution_root(), source_run_id)
-                source_passport = single_execution_passport(_single_execution_root(), source_run_id)
-                validated_compilation = _single_execution_certified_compilation(
-                    _single_execution_root(),
-                    source_run_id,
+                (
                     resolved_program,
                     source_passport,
+                    validated_compilation,
+                ) = resolve_single_execution_replay(
+                    root=_single_execution_root(),
+                    run_id=source_run_id,
+                    compile_archive=compile_executed_mass,
                 )
             else:
                 compilation, _, _, _ = compile_executed_mass(source_mass_index, source_run_id)
@@ -305,54 +305,6 @@ def maas_single_execution(request):
         "passport_url": f"{base}/passport/",
     })
     return JsonResponse(payload, status=201 if result.geometry_ready else 422)
-
-
-def _single_execution_certified_compilation(
-    root: Path,
-    run_id: str,
-    program,
-    passport: dict,
-) -> CompilationResult | None:
-    capacity_replay = compile_geometry_program(program)
-    expected_geometry_hash = str(passport.get("geometry_hash") or "")
-    if capacity_replay.geometry_hash == expected_geometry_hash:
-        return None
-    expected_program_hash = program.program_hash()
-    current_run_id = str(run_id)
-    visited: set[str] = set()
-    for _depth in range(32):
-        if current_run_id in visited:
-            raise ValueError("single execution replay provenance cycle")
-        visited.add(current_run_id)
-        execution_id = current_run_id.removeprefix("single-execution:")
-        manifest_path = (Path(root).resolve() / execution_id / "execution.json").resolve()
-        if (
-            not manifest_path.is_relative_to(Path(root).resolve())
-            or not manifest_path.is_file()
-        ):
-            break
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        origin_run_id = str(manifest.get("source_run_id") or "")
-        origin_mass_index = int(manifest.get("source_mass_index") or 0)
-        if not origin_run_id or origin_mass_index < 1:
-            break
-        if is_single_execution_run(origin_run_id):
-            current_run_id = origin_run_id
-            continue
-        compilation, _, _, _ = compile_executed_mass(
-            origin_mass_index,
-            origin_run_id,
-        )
-        if (
-            compilation.program.program_hash() != expected_program_hash
-            or compilation.geometry_hash != expected_geometry_hash
-            or str(passport.get("program_hash") or "") != expected_program_hash
-        ):
-            raise ValueError("single execution certified compilation identity mismatch")
-        return compilation
-    raise ValueError(
-        "original certified archive is unavailable for exact replay"
-    )
 
 
 @csrf_exempt

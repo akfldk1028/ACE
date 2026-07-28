@@ -298,6 +298,7 @@ def _validated_projected_visual_compilation(
         "coordinate_space": validated.coordinate_space,
         "geometry_authority": "certified_projected_visual_mesh",
         "exact_payload_hash": validated.exact_payload_hash,
+        "capacity_geometry_hash": str(stored.get("geometry_hash") or ""),
         "capacity_replay_metrics": _mapping(stored.get("metrics")),
     }
     trace = tuple({

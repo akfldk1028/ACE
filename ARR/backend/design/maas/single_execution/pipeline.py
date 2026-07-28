@@ -8,7 +8,7 @@ run deterministically for that one MASS.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import replace
 from datetime import datetime, timezone
 import json
@@ -41,6 +41,11 @@ from design.maas.geometry_language.render import render_compilation_preview
 from design.maas.geometry_language.unitbox_normalization import normalize_unitbox_program
 
 from .contracts import SingleMassExecutionResult
+from .catalog import (
+    single_execution_id,
+    single_execution_passport,
+    single_execution_program,
+)
 from .persistence import write_json_atomic
 
 
@@ -92,11 +97,15 @@ def execute_single_mass(
     manifest_path = directory / "execution.json"
 
     stage_started = perf_counter()
-    compilation = (
-        _validated_replay_compilation(validated_compilation, resolved_program)
-        if validated_compilation is not None
-        else compile_geometry_program(resolved_program)
-    )
+    if validated_compilation is not None:
+        compilation = _physical_visual_compilation(
+            _validated_replay_compilation(
+                validated_compilation,
+                resolved_program,
+            ),
+        )
+    else:
+        compilation = compile_geometry_program(resolved_program)
     timings["compile"] = _elapsed_ms(stage_started)
 
     stage_started = perf_counter()
@@ -361,6 +370,8 @@ def _validated_replay_compilation(
         or not compilation.vertices
         or not compilation.triangles
         or metrics.get("geometry_authority") != "certified_projected_visual_mesh"
+        or metrics.get("coordinate_space")
+        != "capacity_source_centroid_local_xy_normalized_z"
         or not re.fullmatch(r"[0-9a-f]{64}", str(compilation.geometry_hash or ""))
         or not re.fullmatch(r"[0-9a-f]{64}", str(metrics.get("exact_payload_hash") or ""))
     ):
@@ -376,4 +387,142 @@ def _validated_replay_compilation(
     return replace(compilation, program=program, metrics=metrics)
 
 
-__all__ = ["execute_single_mass"]
+def _physical_visual_compilation(
+    compilation: CompilationResult,
+) -> CompilationResult:
+    metrics = dict(compilation.metrics or {})
+    capacity_metrics = metrics.get("capacity_replay_metrics")
+    capacity_metrics = (
+        dict(capacity_metrics)
+        if isinstance(capacity_metrics, Mapping)
+        else metrics
+    )
+    bounds = capacity_metrics.get("bounds")
+    if (
+        not isinstance(bounds, list)
+        or len(bounds) != 2
+        or not all(isinstance(row, list) and len(row) == 3 for row in bounds)
+    ):
+        raise ValueError("certified visual replay requires trusted capacity bounds")
+    minimum_z = float(bounds[0][2])
+    maximum_z = float(bounds[1][2])
+    height = maximum_z - minimum_z
+    if height <= 0.0:
+        raise ValueError("certified visual replay requires positive physical height")
+    normalized_z = [float(vertex[2]) for vertex in compilation.vertices]
+    if (
+        min(normalized_z) < -1e-8
+        or max(normalized_z) > 1.0 + 1e-8
+        or max(normalized_z) - min(normalized_z) <= 1e-8
+    ):
+        raise ValueError("certified visual mesh has invalid normalized z coordinates")
+    vertices = tuple(
+        (
+            float(x),
+            float(y),
+            minimum_z + float(z) * height,
+        )
+        for x, y, z in compilation.vertices
+    )
+    physical_bounds = [
+        [min(vertex[axis] for vertex in vertices) for axis in range(3)],
+        [max(vertex[axis] for vertex in vertices) for axis in range(3)],
+    ]
+    return replace(
+        compilation,
+        vertices=vertices,
+        metrics={
+            **metrics,
+            "bounds": physical_bounds,
+            "coordinate_space": "capacity_source_centroid_local_xy_physical_z_m",
+            "identity_coordinate_space": (
+                "capacity_source_centroid_local_xy_normalized_z"
+            ),
+            "certified_visual_geometry_hash": compilation.geometry_hash,
+            "physical_z_scale_m": height,
+            "physical_z_origin_m": minimum_z,
+        },
+    )
+
+
+def resolve_single_execution_replay(
+    *,
+    root: str | Path,
+    run_id: str,
+    compile_archive: Callable[
+        [int, str],
+        tuple[CompilationResult, dict[str, Any], dict[str, Any], Path],
+    ],
+) -> tuple[GeometryProgram, dict[str, Any], CompilationResult | None]:
+    """Resolve one single-execution chain without trusting intermediate files."""
+
+    resolved_root = Path(root).resolve()
+    current_run_id = str(run_id)
+    visited: set[str] = set()
+    requested_program: GeometryProgram | None = None
+    requested_passport: dict[str, Any] | None = None
+    requested_program_hash = ""
+    requested_geometry_hash = ""
+    for _depth in range(32):
+        if current_run_id in visited:
+            raise ValueError("single execution replay provenance cycle")
+        visited.add(current_run_id)
+        execution_id = single_execution_id(current_run_id)
+        program = single_execution_program(resolved_root, current_run_id)
+        passport = single_execution_passport(resolved_root, current_run_id)
+        manifest_path = (resolved_root / execution_id / "execution.json").resolve()
+        if not manifest_path.is_relative_to(resolved_root) or not manifest_path.is_file():
+            raise ValueError("single execution replay manifest is unavailable")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        program_hash = program.program_hash()
+        geometry_hash = str(passport.get("geometry_hash") or "")
+        if (
+            str(manifest.get("execution_id") or "") != execution_id
+            or str(manifest.get("program_hash") or "") != program_hash
+            or str(passport.get("program_hash") or "") != program_hash
+        ):
+            raise ValueError("single execution replay program identity mismatch")
+        if (
+            not geometry_hash
+            or str(manifest.get("geometry_hash") or "") != geometry_hash
+        ):
+            raise ValueError("single execution replay geometry identity mismatch")
+        if requested_program is None:
+            requested_program = program
+            requested_passport = passport
+            requested_program_hash = program_hash
+            requested_geometry_hash = geometry_hash
+        elif (
+            program_hash != requested_program_hash
+            or geometry_hash != requested_geometry_hash
+        ):
+            raise ValueError("single execution replay intermediate identity mismatch")
+
+        origin_run_id = str(manifest.get("source_run_id") or "")
+        origin_mass_index = int(manifest.get("source_mass_index") or 0)
+        if not origin_run_id:
+            capacity = compile_geometry_program(program)
+            if capacity.geometry_hash == geometry_hash:
+                return requested_program, requested_passport, None
+            raise ValueError(
+                "original certified archive is unavailable for exact replay"
+            )
+        if origin_mass_index < 1:
+            raise ValueError("single execution replay source identity is incomplete")
+        if origin_run_id.startswith("single-execution:"):
+            current_run_id = origin_run_id
+            continue
+        compilation, _, _, _ = compile_archive(
+            origin_mass_index,
+            origin_run_id,
+        )
+        if (
+            compilation.program.program_hash() != requested_program_hash
+            or compilation.geometry_hash != requested_geometry_hash
+        ):
+            raise ValueError("single execution certified compilation identity mismatch")
+        return requested_program, requested_passport, compilation
+    raise ValueError("single execution replay provenance depth exceeded")
+
+
+__all__ = ["execute_single_mass", "resolve_single_execution_replay"]

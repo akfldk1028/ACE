@@ -504,6 +504,56 @@ class MaasFlowRegressionTest(SimpleTestCase):
                     }],
                 )
 
+    def test_render_observation_rejects_fabricated_empty_visual_certificate(self):
+        source = SourceMass(
+            name="fabricated-empty",
+            footprint=box(0, 0, 4, 3),
+            surfaces=(),
+            metadata={
+                "geometry_program": {
+                    "name": "fabricated",
+                    "root_id": "root",
+                    "nodes": [],
+                    "metadata": {},
+                },
+                "geometry_program_bridge_evidence": {
+                    "program_hash": "projected-program",
+                    "geometry_hash": "capacity-geometry",
+                },
+                "floorwise_visual_projection": {
+                    "schema_version": "arr.maas.floorwise_visual_projection.v1",
+                    "status": "certified",
+                    "hard_pass": True,
+                    "visual_hash": "f" * 64,
+                    "projected_surface_count": 0,
+                },
+            },
+        )
+        candidate = SimpleNamespace(
+            principle_id="book:fabricated",
+            sequence=SimpleNamespace(name="fabricated"),
+            source=source,
+        )
+        with TemporaryDirectory() as directory:
+            graph = GeometryOutcomeGraph.load(
+                Path(directory) / "outcome.json",
+                pnu="test-pnu",
+            )
+            with self.assertRaisesRegex(
+                ValueError,
+                "certified projected visual mesh is missing or invalid",
+            ):
+                graph.observe_portfolio_render(
+                    program_slug="neighborhood_living",
+                    candidates=[candidate],
+                    board_path=Path(directory) / "board.png",
+                    render_evidence=[{
+                        "card_index": 1,
+                        "hard_pass": True,
+                        "projected_visual_geometry_hash": "f" * 64,
+                    }],
+                )
+
     def test_projected_visual_archive_tamper_fails_closed(self):
         artifact, _visual_hash = self._projected_visual_artifact()
         artifact["projectedVisualMesh"]["triangles"][0]["vertices_m"][0][0] += 0.5
@@ -569,6 +619,32 @@ class MaasFlowRegressionTest(SimpleTestCase):
         )
         self.assertTrue(artifact["projectedVisualMesh"]["triangles"])
         self.assertRegex(artifact["projectedVisualPayloadHash"], r"^[0-9a-f]{64}$")
+
+    def test_production_archive_replay_retains_separate_capacity_geometry_hash(self):
+        artifact, visual_hash = self._projected_visual_artifact()
+        capacity_hash = str(artifact["compilation"]["geometry_hash"])
+        self.assertNotEqual(capacity_hash, visual_hash)
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_id, _preview = self._write_projected_visual_archive(
+                root,
+                artifact=artifact,
+                run_id="book-program-portfolios-capacity-hash",
+            )
+            with patch(
+                "design.maas.geometry_language.executed_archive.workspace_root",
+                return_value=root,
+            ):
+                compilation, _artifact, _row, _path = compile_executed_mass(
+                    1,
+                    run_id,
+                )
+
+        self.assertEqual(compilation.geometry_hash, visual_hash)
+        self.assertEqual(
+            compilation.metrics["capacity_geometry_hash"],
+            capacity_hash,
+        )
 
     def test_authored_profiled_source_without_projection_certificate_fails_closed(self):
         source = replace(

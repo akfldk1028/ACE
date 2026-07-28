@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .chassis_taxonomy import core_chassis_families
+from .floorwise_visual_projection import projected_surface_visual_hash
 
 
 SCHEMA_VERSION = "arr.maas.geometry_mutation_outcome_graph.v1"
@@ -590,7 +591,9 @@ class GeometryOutcomeGraph:
                 evidence.get("projected_visual_geometry_hash") or ""
             )
             if (
-                certificate.get("status") != "certified"
+                certificate.get("schema_version")
+                != "arr.maas.floorwise_visual_projection.v1"
+                or certificate.get("status") != "certified"
                 or certificate.get("hard_pass") is not True
                 or not certified_visual_hash
                 or rendered_visual_hash != certified_visual_hash
@@ -599,6 +602,17 @@ class GeometryOutcomeGraph:
                     "projected visual render hash mismatch: "
                     f"certified={certified_visual_hash or 'missing'} "
                     f"rendered={rendered_visual_hash or 'missing'}"
+                )
+            surfaces = tuple(source.surfaces or ())
+            if (
+                not surfaces
+                or int(certificate.get("projected_surface_count") or 0)
+                != len(surfaces)
+                or projected_surface_visual_hash(surfaces)
+                != certified_visual_hash
+            ):
+                raise ValueError(
+                    "certified projected visual mesh is missing or invalid"
                 )
             geometry_hash = certified_visual_hash
             scope = source.metadata.get("program_book_projection_evidence") or {}

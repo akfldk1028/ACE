@@ -16,7 +16,8 @@ from design.maas.geometry_language.executed_archive import (
     compile_executed_mass,
     materialize_executed_mass_passport,
 )
-from design.maas.single_execution import execute_single_mass
+from design.maas.single_execution import execute_single_mass, is_single_execution_run
+from design.maas.single_execution.pipeline import resolve_single_execution_replay
 from design.maas.single_execution.replay import downstream_evidence_from_passport
 
 
@@ -42,11 +43,14 @@ class Command(BaseCommand):
         parser.add_argument("--output-root", type=str, default="")
 
     def handle(self, *args, **options):
-        program, downstream_evidence, validated_compilation = self._execution_source(options)
         output_root = Path(options["output_root"]).resolve() if options["output_root"] else (
             Path(__file__).resolve().parents[5]
             / "docs" / "ai-session-memory" / "maas-service-cache" / "single-executions"
         ).resolve()
+        program, downstream_evidence, validated_compilation = self._execution_source(
+            options,
+            output_root=output_root,
+        )
         result = execute_single_mass(
             program,
             output_root=output_root,
@@ -67,6 +71,8 @@ class Command(BaseCommand):
     def _execution_source(
         self,
         options,
+        *,
+        output_root: Path,
     ) -> tuple[
         GeometryProgram,
         dict[str, dict] | None,
@@ -86,6 +92,25 @@ class Command(BaseCommand):
                 raise CommandError(f"invalid GeometryProgram JSON: {exc}") from exc
         if options.get("run_id"):
             try:
+                if is_single_execution_run(options["run_id"]):
+                    if int(options["mass_index"]) != 1:
+                        raise ValueError(
+                            "single execution run contains exactly one MASS"
+                        )
+                    (
+                        program,
+                        source_passport,
+                        compilation,
+                    ) = resolve_single_execution_replay(
+                        root=output_root,
+                        run_id=str(options["run_id"]),
+                        compile_archive=compile_executed_mass,
+                    )
+                    return (
+                        program,
+                        downstream_evidence_from_passport(source_passport),
+                        compilation,
+                    )
                 compilation, _, _, _ = compile_executed_mass(
                     int(options["mass_index"]),
                     str(options["run_id"]),

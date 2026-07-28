@@ -9,6 +9,7 @@ from django.test import SimpleTestCase
 
 from design.maas.geometry_language.outcome_graph import GeometryOutcomeGraph
 from design.maas.geometry_language import executed_archive
+from design.maas.source_geometry.ir import SourceSurface
 
 
 class MaasOutcomeRenderMemoryTest(SimpleTestCase):
@@ -87,6 +88,15 @@ class MaasOutcomeRenderMemoryTest(SimpleTestCase):
             root = Path(temporary)
             graph_path = root / "outcome.json"
             board = root / "portfolio.png"
+            surface = SourceSurface(
+                role="main:skin:000",
+                volume_role="main",
+                verb="project",
+                surface_type="profiled_recursive_solid_mesh",
+                vertices_m=((0.0, 0.0, 0.0), (4.0, 0.0, 0.0), (0.0, 3.0, 1.0)),
+                semantic_patch_id="main:skin:000",
+            )
+            visual_hash = "698f96ce6764729597632faf965802989d03249d072a6c9a347c8f43a7e7cdd0"
             candidate = SimpleNamespace(
                 principle_id="book:operative:shift",
                 sequence=SimpleNamespace(name="slab__book_shift"),
@@ -106,9 +116,11 @@ class MaasOutcomeRenderMemoryTest(SimpleTestCase):
                         "source_seed": "slab",
                     },
                     "floorwise_visual_projection": {
+                        "schema_version": "arr.maas.floorwise_visual_projection.v1",
                         "status": "certified",
                         "hard_pass": True,
-                        "visual_hash": "visual-exact",
+                        "visual_hash": visual_hash,
+                        "projected_surface_count": 1,
                     },
                     "program_book_projection_evidence": {
                         "scope": {"base_volume_label": "1/2"},
@@ -119,7 +131,7 @@ class MaasOutcomeRenderMemoryTest(SimpleTestCase):
                         "achieved_utilization": 0.94,
                         "target_hard_pass": False,
                     },
-                }),
+                }, surfaces=(surface,)),
             )
             graph = GeometryOutcomeGraph.load(graph_path, pnu="test-pnu")
             graph.observe_portfolio_render(
@@ -132,14 +144,14 @@ class MaasOutcomeRenderMemoryTest(SimpleTestCase):
                     "rendered_mass_pixel_count": 1200,
                     "rendered_mass_pixel_ratio": 0.012,
                     "hard_pass": True,
-                    "projected_visual_geometry_hash": "visual-exact",
+                    "projected_visual_geometry_hash": visual_hash,
                 }],
             )
             payload = graph.save()
 
             observation = next(item for item in payload["observations"] if item["stage"] == "mass_png_render")
             self.assertEqual(observation["projected_program_hash"], "program-projected")
-            self.assertEqual(observation["geometry_hash"], "visual-exact")
+            self.assertEqual(observation["geometry_hash"], visual_hash)
             self.assertEqual(observation["capacity_geometry_hash"], "geometry-exact")
             self.assertEqual(observation["render_artifact"]["crop_box"], [0, 72, 384, 332])
             self.assertEqual(observation["capacity_alternative_id"], "maximum_feasible")

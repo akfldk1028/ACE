@@ -34,14 +34,24 @@ def _box_program():
 
 def _certified_visual_compilation():
     capacity = compile_geometry_program(_box_program())
+    minimum_z = float(capacity.metrics["bounds"][0][2])
+    maximum_z = float(capacity.metrics["bounds"][1][2])
+    height = maximum_z - minimum_z
     return replace(
         capacity,
+        vertices=tuple(
+            (x, y, (z - minimum_z) / height)
+            for x, y, z in capacity.vertices
+        ),
         geometry_hash="f" * 64,
         metrics={
             **capacity.metrics,
             "geometry_authority": "certified_projected_visual_mesh",
             "exact_payload_hash": "e" * 64,
             "capacity_geometry_hash": capacity.geometry_hash,
+            "coordinate_space": (
+                "capacity_source_centroid_local_xy_normalized_z"
+            ),
         },
     )
 
@@ -79,6 +89,51 @@ class _RaisingImageAdapter:
 
 
 class MaasSingleExecutionTest(SimpleTestCase):
+    def test_certified_normalized_z_is_rendered_at_physical_capacity_height(self):
+        capacity = compile_geometry_program(_box_program())
+        certified = replace(
+            capacity,
+            vertices=tuple((x, y, z / 5.0) for x, y, z in capacity.vertices),
+            geometry_hash="f" * 64,
+            metrics={
+                "geometry_authority": "certified_projected_visual_mesh",
+                "exact_payload_hash": "e" * 64,
+                "coordinate_space": (
+                    "capacity_source_centroid_local_xy_normalized_z"
+                ),
+                "capacity_geometry_hash": capacity.geometry_hash,
+                "capacity_replay_metrics": capacity.metrics,
+            },
+        )
+        with TemporaryDirectory() as directory:
+            result = execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="physical-height",
+                execution_mode="exact_replay",
+                validated_compilation=certified,
+            )
+
+        elevation = result.passport["elevation_evidence"]
+        self.assertEqual(result.geometry_hash, "f" * 64)
+        self.assertEqual(elevation["geometry_hash"], "f" * 64)
+        self.assertEqual(
+            elevation["condition_pack"]["floor_guides_m"],
+            [0.0, 3.3, 5.0],
+        )
+        self.assertEqual(
+            elevation["condition_pack"]["facade_planes"][0]["extent"][1],
+            5.0,
+        )
+        self.assertGreater(
+            elevation["condition_pack"]["facade_planes"][0]["extent"][1],
+            1.0,
+        )
+        front_bounds = elevation["condition_pack"]["silhouette"]["front"][
+            "projected_bounds"
+        ]
+        self.assertEqual(front_bounds[1][1] - front_bounds[0][1], 5.0)
+
     def test_exact_replay_uses_certified_visual_compilation_for_every_identity(self):
         certified = _certified_visual_compilation()
         with TemporaryDirectory() as directory:
@@ -143,12 +198,19 @@ class MaasSingleExecutionTest(SimpleTestCase):
         certified = replace(
             compiled,
             program=raw_program,
+            vertices=tuple(
+                (x, y, z / 5.0)
+                for x, y, z in compiled.vertices
+            ),
             geometry_hash="f" * 64,
             metrics={
                 **compiled.metrics,
                 "geometry_authority": "certified_projected_visual_mesh",
                 "exact_payload_hash": "e" * 64,
                 "capacity_geometry_hash": compiled.geometry_hash,
+                "coordinate_space": (
+                    "capacity_source_centroid_local_xy_normalized_z"
+                ),
             },
         )
 
@@ -858,6 +920,148 @@ class MaasSingleExecutionTest(SimpleTestCase):
             "certified compilation identity mismatch",
             response.json()["error"],
         )
+
+    def test_http_replay_rejects_bogus_program_hash_before_capacity_early_return(self):
+        with TemporaryDirectory() as directory, override_settings(
+            MAAS_SINGLE_EXECUTION_ROOT=directory,
+        ):
+            execute_single_mass(
+                _box_program(),
+                output_root=directory,
+                execution_id="capacity-source",
+            )
+            passport_path = Path(directory) / "capacity-source" / "mass.png.passport.json"
+            passport = json.loads(passport_path.read_text(encoding="utf-8"))
+            passport["program_hash"] = "0" * 64
+            passport_path.write_text(json.dumps(passport), encoding="utf-8")
+
+            response = self.client.post(
+                "/design/maas/single-executions/",
+                data=json.dumps({
+                    "source_run_id": "single-execution:capacity-source",
+                    "source_mass_index": 1,
+                }),
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertIn("program identity mismatch", response.json()["error"])
+
+    def test_cli_replays_single_execution_chain_from_original_archive(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory:
+            execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="visual-source",
+                execution_mode="exact_replay",
+                source_run_id="portfolio-source",
+                source_mass_index=1,
+                validated_compilation=certified,
+            )
+
+            def compile_origin(index, run_id):
+                if (index, run_id) != (1, "portfolio-source"):
+                    raise ValueError(f"unexpected archive origin: {run_id}:{index}")
+                return certified, {}, {}, Path(directory) / "archive.json"
+
+            with patch(
+                "design.management.commands.execute_maas_single_mass.compile_executed_mass",
+                side_effect=compile_origin,
+            ):
+                output = StringIO()
+                call_command(
+                    "execute_maas_single_mass",
+                    run_id="single-execution:visual-source",
+                    mass_index=1,
+                    execution_id="cli-chain",
+                    output_root=directory,
+                    stdout=output,
+                )
+
+        payload = json.loads(output.getvalue())
+        self.assertEqual(payload["geometry_hash"], "f" * 64)
+        self.assertEqual(payload["source_run_id"], "single-execution:visual-source")
+
+    def test_cli_single_execution_replay_missing_origin_fails_closed(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory:
+            execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="orphan",
+                execution_mode="exact_replay",
+                validated_compilation=certified,
+            )
+            with self.assertRaisesRegex(
+                Exception,
+                "original certified archive is unavailable",
+            ):
+                call_command(
+                    "execute_maas_single_mass",
+                    run_id="single-execution:orphan",
+                    mass_index=1,
+                    execution_id="cli-orphan",
+                    output_root=directory,
+                )
+
+    def test_cli_single_execution_replay_cycle_fails_closed(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory:
+            for execution_id, origin in (("cycle-a", "cycle-b"), ("cycle-b", "cycle-a")):
+                execute_single_mass(
+                    certified.program,
+                    output_root=directory,
+                    execution_id=execution_id,
+                    execution_mode="exact_replay",
+                    source_run_id=f"single-execution:{origin}",
+                    source_mass_index=1,
+                    validated_compilation=certified,
+                )
+            with self.assertRaisesRegex(Exception, "provenance cycle"):
+                call_command(
+                    "execute_maas_single_mass",
+                    run_id="single-execution:cycle-a",
+                    mass_index=1,
+                    execution_id="cli-cycle",
+                    output_root=directory,
+                )
+
+    def test_cli_single_execution_replay_intermediate_tamper_fails_closed(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory:
+            execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="origin-link",
+                execution_mode="exact_replay",
+                source_run_id="portfolio-source",
+                source_mass_index=1,
+                validated_compilation=certified,
+            )
+            execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="requested-link",
+                execution_mode="exact_replay",
+                source_run_id="single-execution:origin-link",
+                source_mass_index=1,
+                validated_compilation=certified,
+            )
+            intermediate = (
+                Path(directory) / "origin-link" / "mass.png.passport.json"
+            )
+            passport = json.loads(intermediate.read_text(encoding="utf-8"))
+            passport["program_hash"] = "0" * 64
+            intermediate.write_text(json.dumps(passport), encoding="utf-8")
+            with self.assertRaisesRegex(Exception, "program identity mismatch"):
+                call_command(
+                    "execute_maas_single_mass",
+                    run_id="single-execution:requested-link",
+                    mass_index=1,
+                    execution_id="cli-tampered",
+                    output_root=directory,
+                )
 
     def test_single_execution_is_replayed_through_the_existing_mass_archive_contract(self):
         with TemporaryDirectory() as directory:

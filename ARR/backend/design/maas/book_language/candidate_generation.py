@@ -69,6 +69,7 @@ from .capacity_contract import measure_source_capacity, recursive_plan_coverage_
 from .capacity_alternatives import (
     build_capacity_alternative,
     capacity_fit_score,
+    capacity_retry_floor_targets,
     capacity_retry_plan_coverage,
     capacity_alternative_for_host,
     capacity_contract_for_alternative,
@@ -145,6 +146,29 @@ def _capacity_pack_retry_eligible(
             index == 0 or float(plate.get("support_ratio") or 0.0) >= 0.20
             for index, plate in enumerate(plates)
         )
+    )
+
+
+def _capacity_retry_required(
+    *,
+    current_plan_coverage: float,
+    retry_plan_coverage: float,
+    current_floor_targets: Any,
+    retry_floor_targets: Any,
+) -> bool:
+    """Retry when either the plan ratio or authoritative floor targets change."""
+
+    current_targets = tuple(
+        round(float(value), 3)
+        for value in (current_floor_targets or ())
+    )
+    derived_targets = tuple(
+        round(float(value), 3)
+        for value in (retry_floor_targets or ())
+    )
+    return bool(
+        float(retry_plan_coverage) > float(current_plan_coverage) + 1e-6
+        or current_targets != derived_targets
     )
 
 
@@ -1350,14 +1374,31 @@ def _program_pool(
                         capacity_alternative,
                         initial_capacity,
                     )
+                    retry_floor_targets = capacity_retry_floor_targets(
+                        alternative_capacity_contract,
+                        capacity_alternative,
+                        initial_capacity,
+                    )
+                    retry_required = _capacity_retry_required(
+                        current_plan_coverage=plan_coverage,
+                        retry_plan_coverage=retry_coverage,
+                        current_floor_targets=alternative_capacity_contract.get(
+                            "target_floor_areas_m2"
+                        ),
+                        retry_floor_targets=retry_floor_targets,
+                    )
                     capacity_plan_fit_evidence.update({
                         "initial_achieved_utilization": initial_capacity.get(
                             "feasible_capacity_utilization"
                         ),
                         "derived_retry_plan_coverage": retry_coverage,
+                        "derived_retry_floor_targets_m2": list(
+                            retry_floor_targets
+                        ),
+                        "retry_required": retry_required,
                     })
                     if (
-                        retry_coverage > plan_coverage + 1e-6
+                        retry_required
                         and _capacity_pack_retry_eligible(initial_floor_contract)
                     ):
                         capacity_stage_counts["plan_fit_retry_attempted"] += 1
@@ -1385,12 +1426,7 @@ def _program_pool(
                             ),
                             target_floor_areas_m2=tuple(
                                 float(value)
-                                for value in (
-                                    alternative_capacity_contract.get(
-                                        "target_floor_areas_m2"
-                                    )
-                                    or ()
-                                )
+                                for value in retry_floor_targets
                             ),
                         )
                         baseline_capacity = initial_capacity
@@ -1432,6 +1468,14 @@ def _program_pool(
                         if target_after_plain.get("target_hard_pass") is not True:
                             capacity_stage_counts["capacity_pack_fallback_attempted"] += 1
                             capacity_plan_fit_evidence["capacity_pack_fallback_attempted"] = True
+                            pack_floor_targets = capacity_retry_floor_targets(
+                                alternative_capacity_contract,
+                                capacity_alternative,
+                                baseline_capacity,
+                            )
+                            capacity_plan_fit_evidence[
+                                "capacity_pack_floor_targets_m2"
+                            ] = list(pack_floor_targets)
                             packed_source = _materialize_directed_geometry(
                                 materialization_source,
                                 sequence,
@@ -1466,12 +1510,7 @@ def _program_pool(
                                 ),
                                 target_floor_areas_m2=tuple(
                                     float(value)
-                                    for value in (
-                                        alternative_capacity_contract.get(
-                                            "target_floor_areas_m2"
-                                        )
-                                        or ()
-                                    )
+                                    for value in pack_floor_targets
                                 ),
                             )
                             if packed_source is not None:
@@ -1506,7 +1545,7 @@ def _program_pool(
                                     capacity_stage_counts[
                                         "capacity_pack_rejected_floor_contract"
                                     ] += 1
-                    elif retry_coverage > plan_coverage + 1e-6:
+                    elif retry_required:
                         capacity_stage_counts[
                             "plan_fit_retry_skipped_nonviable_floor_source"
                         ] += 1

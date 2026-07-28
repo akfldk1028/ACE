@@ -323,7 +323,10 @@ def materialize_floorwise_legal_source(
             in prepared_floors
         ),
         legal_floor_caps_m2=tuple(
-            float(legal.area) * 0.95
+            # The caller's planned target already carries its utilization
+            # band. Retry targets may use the remaining legal plate; exact
+            # polygon containment below remains the geometric authority.
+            float(legal.area)
             for _source_plan, legal, _profile_ratio, _planned_area
             in prepared_floors
         ),
@@ -396,51 +399,7 @@ def materialize_floorwise_legal_source(
     pose_fit_mode = (
         "single_global_rotation_translation_with_floor_relative_pose_preserved"
     )
-    pose_fallback_used = (
-        any(fitted is None for fitted in fitted_floor_results)
-        or strict_total < requested_total * 0.78
-    )
-    if pose_fallback_used:
-        # A geometrically infeasible offset must not make every candidate miss
-        # the law-derived capacity floor. Reflow each authored floor plan into
-        # its own legal section, while keeping the authored per-floor area
-        # profile allocated above. Shift-only twins may collapse here and are
-        # then correctly removed by the visual duplicate gate; taper, void,
-        # wing and plan topology remain geometry evidence.
-        fitted_floor_results = []
-        for floor_index, (
-            source_plan,
-            legal,
-            _vertical_profile_ratio,
-            _planned_floor_area,
-        ) in enumerate(prepared_floors):
-            target_area = allocated_floor_targets[floor_index]
-            scales = _requested_plan_axis_scales(
-                source_plan,
-                legal,
-                target_area=target_area,
-            )
-            if scales is None:
-                return None
-            x_scale, y_scale = scales
-            source_angle, _source_width, _source_depth = _principal_frame(
-                source_plan.convex_hull
-            )
-            legal_angle, _legal_width, _legal_depth = _principal_frame(legal)
-            fitted_floor_results.append(_matrix_fit_polygon_to_host(
-                source_plan,
-                legal,
-                target_area=target_area,
-                target_center=(
-                    float(legal.centroid.x),
-                    float(legal.centroid.y),
-                ),
-                target_angle_offset_degrees=legal_angle - source_angle,
-                anisotropy_ratio=x_scale / max(y_scale, 1e-9),
-            ))
-        pose_fit_mode = (
-            "floorwise_legal_reflow_with_authored_vertical_profile_budget"
-        )
+    pose_fallback_used = False
     if any(fitted is None for fitted in fitted_floor_results):
         return None
 
@@ -813,7 +772,13 @@ def _matrix_fit_polygon_to_host(
     target_angle_offset_degrees: float = 0.0,
     anisotropy_ratio: float = 1.0,
 ) -> tuple[Any, tuple[tuple[float, float, float, float], ...]] | None:
-    """Return the largest requested affine fit that stays inside ``host``."""
+    """Return the largest fixed-pose affine fit that stays inside ``host``.
+
+    The old fixed shrink ladder returned the first contained scale, so a jump
+    from 0.97 to 0.95 could silently discard several square metres. Search the
+    exact target first, then use deterministic bisection at the supplied angle
+    and anisotropy. A capacity target never authorizes a different pose.
+    """
 
     source_parts = _polygon_parts(source)
     if not source_parts:
@@ -842,39 +807,22 @@ def _matrix_fit_polygon_to_host(
     requested_area_scale_product = (
         max(0.2, float(target_area)) / max(float(source_union.area), 1e-9)
     )
-    maximum_x_scale = target_width / source_width * 0.995
-    maximum_y_scale = target_depth / source_depth * 0.995
-    available_area_scale_product = maximum_x_scale * maximum_y_scale
-    requested_area_scale_product = min(
-        requested_area_scale_product,
-        available_area_scale_product,
-    )
     if requested_area_scale_product <= 1e-9:
         return None
     ratio = max(0.25, min(4.0, float(anisotropy_ratio or 1.0)))
-    requested_x_scale = (requested_area_scale_product * ratio) ** 0.5
-    requested_y_scale = (requested_area_scale_product / ratio) ** 0.5
-    bounded_uniform_factor = min(
-        1.0,
-        maximum_x_scale / max(requested_x_scale, 1e-9),
-        maximum_y_scale / max(requested_y_scale, 1e-9),
-    )
-    requested_x_scale *= bounded_uniform_factor
-    requested_y_scale *= bounded_uniform_factor
-    if min(requested_x_scale, requested_y_scale) <= 1e-9:
-        return None
 
-    for shrink in (
-        1.0, 0.99, 0.98, 0.97, 0.95, 0.93, 0.90, 0.86,
-        0.82, 0.76, 0.68, 0.58, 0.48,
-    ):
-        x_scale = requested_x_scale * shrink
-        y_scale = requested_y_scale * shrink
+    def fit(
+        ratio: float,
+        angle: float,
+        uniform_factor: float,
+    ) -> tuple[Any, tuple[tuple[float, float, float, float], ...]]:
+        x_scale = (requested_area_scale_product * ratio) ** 0.5 * uniform_factor
+        y_scale = (requested_area_scale_product / ratio) ** 0.5 * uniform_factor
         matrix = compose_matrix4(
             translation_matrix4((-source_center.x, -source_center.y, 0.0)),
             rotation_matrix4((0.0, 0.0, -source_angle)),
             scale_matrix4((x_scale, y_scale, 1.0)),
-            rotation_matrix4((0.0, 0.0, target_angle)),
+            rotation_matrix4((0.0, 0.0, angle)),
             translation_matrix4((
                 resolved_target_center.x,
                 resolved_target_center.y,
@@ -892,9 +840,25 @@ def _matrix_fit_polygon_to_host(
                 matrix[1][3],
             ],
         )
-        if host.buffer(1e-7).covers(fitted):
-            return fitted, matrix
-    return None
+        return fitted, matrix
+
+    containment_host = host.buffer(1e-7)
+    fitted, matrix = fit(ratio, target_angle, 1.0)
+    if containment_host.covers(fitted):
+        return fitted, matrix
+
+    lower = 0.0
+    upper = 1.0
+    candidate = None
+    for _iteration in range(12):
+        probe = (lower + upper) / 2.0
+        fitted, matrix = fit(ratio, target_angle, probe)
+        if containment_host.covers(fitted):
+            lower = probe
+            candidate = (fitted, matrix)
+        else:
+            upper = probe
+    return candidate
 
 
 def compile_geometry_program_to_source_mass(

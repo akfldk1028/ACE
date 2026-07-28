@@ -222,7 +222,7 @@ def _alternative_floor_targets(
 
     floor_count = max(1, int(contract.get("requested_floors") or 1))
     capacities = contract.get("bcr_adjusted_floor_areas_m2")
-    if not isinstance(capacities, list) or len(capacities) != floor_count:
+    if not isinstance(capacities, (list, tuple)) or len(capacities) != floor_count:
         return []
     normalized = [max(0.0, float(value)) for value in capacities]
     raw = allocate_floor_targets(normalized, target)
@@ -309,6 +309,56 @@ def capacity_fit_score(
     return round(target_fit * 0.70 + achieved * 0.30, 6)
 
 
+def capacity_retry_floor_targets(
+    contract: dict[str, Any] | None,
+    alternative: dict[str, Any] | None,
+    measurement: dict[str, Any] | None,
+) -> tuple[float, ...]:
+    """Compensate one measured fit shortfall without exceeding legal plates."""
+
+    contract = contract or {}
+    alternative = alternative or {}
+    measurement = measurement or {}
+    raw_targets = contract.get("target_floor_areas_m2")
+    caps = contract.get("bcr_adjusted_floor_areas_m2")
+    if (
+        not isinstance(raw_targets, (list, tuple))
+        or not raw_targets
+        or not isinstance(caps, (list, tuple))
+        or len(caps) != len(raw_targets)
+    ):
+        return ()
+    current_targets = tuple(
+        round(max(0.0, float(value)), 3)
+        for value in raw_targets
+    )
+    target_utilization = max(
+        0.0,
+        float(alternative.get("target_utilization") or 0.0),
+    )
+    achieved_utilization = max(
+        0.0,
+        float(measurement.get("feasible_capacity_utilization") or 0.0),
+    )
+    if (
+        target_utilization <= 1e-9
+        or achieved_utilization <= 1e-9
+        or achieved_utilization + 1e-9 >= target_utilization
+    ):
+        return current_targets
+    compensated_total = min(
+        sum(max(0.0, float(value)) for value in caps),
+        sum(current_targets) * target_utilization / achieved_utilization,
+    )
+    return tuple(_alternative_floor_targets(
+        {
+            **contract,
+            "requested_floors": len(current_targets),
+        },
+        target=compensated_total,
+    ))
+
+
 def capacity_retry_plan_coverage(
     current_coverage: float,
     alternative: dict[str, Any],
@@ -345,5 +395,6 @@ __all__ = [
     "capacity_alternative_for_host",
     "capacity_alternative_for_lattice_index",
     "capacity_contract_for_alternative",
+    "capacity_retry_floor_targets",
     "evaluate_capacity_alternative",
 ]

@@ -500,6 +500,76 @@ class SharedFloorContractTests(SimpleTestCase):
         )
         self.assertEqual(len(stack["global_plan_axis_scales"]), 2)
 
+    def test_floorwise_matrix_fit_search_reaches_feasible_target_in_irregular_host(self):
+        """A bounded fit must shrink in place, never substitute another pose."""
+        from math import hypot
+        from design.maas.geometry_language import source_bridge
+        from design.maas.geometry_language.source_bridge import (
+            _matrix_fit_polygon_to_host,
+            _principal_frame,
+            _requested_plan_axis_scales,
+        )
+
+        legal_host = Polygon((
+            (19.2093017867, 10.3031964626),
+            (7.9523689583, 4.0761290228),
+            (4.4638355661, 10.3707856369),
+            (4.0776683608, 11.0675501865),
+            (15.3279146364, 17.3083091784),
+        ))
+        authored_notch = Polygon((
+            (0.0, 0.0),
+            (10.0, 0.0),
+            (10.0, 10.0),
+            (6.0, 10.0),
+            (6.0, 4.0),
+            (4.0, 4.0),
+            (4.0, 10.0),
+            (0.0, 10.0),
+        ))
+        target_area = float(legal_host.area) * 0.70
+        scales = _requested_plan_axis_scales(
+            authored_notch,
+            legal_host,
+            target_area=target_area,
+        )
+        self.assertIsNotNone(scales)
+        assert scales is not None
+        source_angle, _source_width, _source_depth = _principal_frame(
+            authored_notch.convex_hull
+        )
+        legal_angle, _legal_width, _legal_depth = _principal_frame(legal_host)
+
+        authored_ratio = scales[0] / scales[1]
+        with patch.object(
+            source_bridge,
+            "affine_transform",
+            wraps=source_bridge.affine_transform,
+        ) as fit_transform:
+            fitted = _matrix_fit_polygon_to_host(
+                authored_notch,
+                legal_host,
+                target_area=target_area,
+                target_center=(
+                    float(legal_host.centroid.x),
+                    float(legal_host.centroid.y),
+                ),
+                target_angle_offset_degrees=legal_angle - source_angle,
+                anisotropy_ratio=authored_ratio,
+            )
+
+        self.assertIsNotNone(fitted)
+        assert fitted is not None
+        occupied, matrix = fitted
+        self.assertTrue(legal_host.buffer(1e-7).covers(occupied))
+        fitted_ratio = (
+            hypot(matrix[0][0], matrix[1][0])
+            / hypot(matrix[0][1], matrix[1][1])
+        )
+        self.assertAlmostEqual(fitted_ratio, authored_ratio, delta=1e-9)
+        self.assertAlmostEqual(float(occupied.area), 65.221, delta=0.02)
+        self.assertLessEqual(fit_transform.call_count, 13)
+
     def test_floorwise_capacity_budget_preserves_distinct_authored_vertical_profiles(self):
         """A capacity target must not rewrite different AST profiles as one step stack."""
         from design.maas.geometry_language.source_bridge import (
@@ -635,6 +705,26 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertIsNotNone(centered_stack)
         self.assertIsNotNone(shifted_stack)
         assert centered_stack is not None and shifted_stack is not None
+        strict_stack = shifted_stack.metadata["floorwise_legal_matrix_stack"]
+        self.assertFalse(strict_stack["pose_fallback_used"])
+        self.assertEqual(
+            strict_stack["pose_fit"],
+            "single_global_rotation_translation_with_floor_relative_pose_preserved",
+        )
+        floor_matrices = [
+            floor["matrix4"]
+            for floor in strict_stack["floors"]
+        ]
+        self.assertEqual(
+            [
+                [round(float(floor_matrices[0][row][column]), 9) for column in range(2)]
+                for row in range(2)
+            ],
+            [
+                [round(float(floor_matrices[1][row][column]), 9) for column in range(2)]
+                for row in range(2)
+            ],
+        )
         lower_center, upper_center = [
             volume.footprint.centroid for volume in shifted_stack.volumes
         ]
@@ -642,6 +732,54 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertGreater(
             intrinsic_silhouette_distance(centered_stack, shifted_stack),
             DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat,
+        )
+
+    def test_floorwise_legal_stack_never_reflows_authored_upper_pose(self):
+        """A tight upper host may reduce area, but cannot recenter the AST floor."""
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+
+        lower = box(0.0, 0.0, 10.0, 6.0)
+        upper = box(12.0, 0.0, 22.0, 6.0)
+        source = SourceMass(
+            name="fixed_pose_tight_upper",
+            footprint=lower,
+            upper_footprint=upper,
+            volumes=(
+                SourceVolume("main", lower, 0.0, 0.5, "base"),
+                SourceVolume("main", upper, 0.5, 1.0, "shift"),
+            ),
+            metadata={"geometry_program_bridge_evidence": {
+                "status": "materialized",
+                "program_hash": "fixed-pose-program",
+                "geometry_hash": "fixed-pose-geometry",
+            }},
+        )
+        legal_sections = (box(-10.0, -10.0, 20.0, 20.0),) * 2
+
+        stacked = materialize_floorwise_legal_source(
+            source,
+            legal_sections=legal_sections,
+            target_plan_coverage=0.5,
+            target_floor_areas_m2=(60.0, 60.0),
+        )
+
+        self.assertIsNotNone(stacked)
+        assert stacked is not None
+        stack = stacked.metadata["floorwise_legal_matrix_stack"]
+        self.assertFalse(stack["pose_fallback_used"])
+        self.assertEqual(
+            stack["pose_fit"],
+            "single_global_rotation_translation_with_floor_relative_pose_preserved",
+        )
+        lower_center, upper_center = [
+            volume.footprint.centroid for volume in stacked.volumes
+        ]
+        self.assertAlmostEqual(upper_center.x - lower_center.x, 12.0, delta=0.01)
+        self.assertLess(
+            stack["floors"][1]["achieved_plan_area_m2"],
+            stack["floors"][1]["target_plan_area_m2"],
         )
 
     def test_floorwise_legal_stack_samples_exact_authored_mesh_sections(self):
@@ -1646,6 +1784,397 @@ class SharedFloorContractTests(SimpleTestCase):
             )
         )
 
+    def test_capacity_retry_is_noop_when_initial_floor_target_is_met(self):
+        """A capacity pass must not be enlarged by a redundant retry."""
+        from design.maas.book_language import capacity_alternatives
+        from design.maas.book_language.capacity_contract import (
+            measure_source_capacity,
+        )
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+        from design.maas.shared_floor_contract import (
+            materialize_shared_floor_contract,
+        )
+
+        legal_sections = tuple(
+            box(5.0, 5.0, 15.0, 15.0)
+            for _floor_index in range(4)
+        )
+        legal_floor_caps = [round(section.area, 3) for section in legal_sections]
+        feasible_capacity = sum(legal_floor_caps)
+        alternative = {
+            "target_utilization": 0.70,
+            "feasible_minimum_utilization": 0.70,
+        }
+        alternative_contract = {
+            "minimum_utilization": 0.70,
+            "feasible_maximum_floor_area_m2": feasible_capacity,
+            "bcr_adjusted_floor_areas_m2": legal_floor_caps,
+            "target_floor_areas_m2": [
+                capacity * 0.70 for capacity in legal_floor_caps
+            ],
+        }
+        source_plan = box(0.0, 0.0, 10.0, 10.0)
+        source = SourceMass(
+            name="r287_capacity_retry_probe",
+            footprint=source_plan,
+            volumes=(
+                SourceVolume("main", source_plan, 0.0, 1.0, "geometry_program"),
+            ),
+            metadata={"geometry_program_bridge_evidence": {
+                "program_hash": "r287-retry-program",
+                "geometry_hash": "r287-retry-geometry",
+            }},
+        )
+        site = box(0.0, 0.0, 20.0, 20.0)
+
+        def materialize_and_measure(
+            plan_coverage: float,
+            floor_targets: tuple[float, ...],
+        ):
+            stacked = materialize_floorwise_legal_source(
+                source,
+                legal_sections=legal_sections,
+                target_plan_coverage=plan_coverage,
+                target_floor_areas_m2=floor_targets,
+            )
+            self.assertIsNotNone(stacked)
+            assert stacked is not None
+            floor_contract = materialize_shared_floor_contract(
+                stacked,
+                site_local_utm=site,
+                legal_sections=legal_sections,
+                height_m=14.0,
+                floors=4,
+                feasible_capacity_m2=feasible_capacity,
+            )
+            measurement = measure_source_capacity(
+                stacked,
+                alternative_contract,
+                site_local_utm=site,
+                height_m=14.0,
+                floors=4,
+                shared_floor_contract=floor_contract,
+            )
+            return stacked, floor_contract, measurement
+
+        initial_targets = tuple(alternative_contract["target_floor_areas_m2"])
+        _initial_stack, initial_floor_contract, initial_measurement = (
+            materialize_and_measure(0.70, initial_targets)
+        )
+        self.assertTrue(initial_floor_contract["hard_pass"])
+        self.assertAlmostEqual(
+            initial_measurement["feasible_capacity_utilization"],
+            0.70,
+            delta=0.0001,
+        )
+        self.assertTrue(initial_measurement["hard_pass"])
+
+        capacity_retry_floor_targets = getattr(
+            capacity_alternatives,
+            "capacity_retry_floor_targets",
+            None,
+        )
+        self.assertIsNotNone(
+            capacity_retry_floor_targets,
+            "capacity retry does not refit the authoritative floor targets",
+        )
+        retry_targets = capacity_retry_floor_targets(
+            alternative_contract,
+            alternative,
+            initial_measurement,
+        )
+        self.assertEqual(
+            retry_targets,
+            tuple(round(value, 3) for value in initial_targets),
+        )
+
+    def test_capacity_retry_dispatch_closes_a_measured_floor_target_miss(self):
+        """Compensated targets must reach a real remeasurement hard pass."""
+        from design.maas.book_language.candidate_generation import (
+            _capacity_retry_required,
+        )
+        from design.maas.book_language.capacity_alternatives import (
+            capacity_retry_floor_targets,
+            capacity_retry_plan_coverage,
+        )
+        from design.maas.book_language.capacity_contract import (
+            measure_source_capacity,
+        )
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+        from design.maas.shared_floor_contract import (
+            materialize_shared_floor_contract,
+        )
+
+        legal_sections = tuple(box(5.0, 5.0, 15.0, 15.0) for _ in range(4))
+        floor_caps = [float(section.area) for section in legal_sections]
+        feasible_capacity = sum(floor_caps)
+        alternative = {
+            "target_utilization": 0.70,
+            "feasible_minimum_utilization": 0.70,
+        }
+        contract = {
+            "minimum_utilization": 0.70,
+            "feasible_maximum_floor_area_m2": feasible_capacity,
+            "bcr_adjusted_floor_areas_m2": floor_caps,
+            "target_floor_areas_m2": [70.0] * 4,
+        }
+        source_plan = box(0.0, 0.0, 10.0, 10.0)
+        source = SourceMass(
+            name="r287_capacity_dispatch_probe",
+            footprint=source_plan,
+            volumes=(
+                SourceVolume("main", source_plan, 0.0, 1.0, "geometry_program"),
+            ),
+            metadata={"geometry_program_bridge_evidence": {
+                "program_hash": "r287-dispatch-program",
+                "geometry_hash": "r287-dispatch-geometry",
+            }},
+        )
+        site = box(0.0, 0.0, 20.0, 20.0)
+
+        def materialize_and_measure(
+            plan_coverage: float,
+            floor_targets: tuple[float, ...],
+        ):
+            stacked = materialize_floorwise_legal_source(
+                source,
+                legal_sections=legal_sections,
+                target_plan_coverage=plan_coverage,
+                target_floor_areas_m2=floor_targets,
+            )
+            self.assertIsNotNone(stacked)
+            assert stacked is not None
+            floor_contract = materialize_shared_floor_contract(
+                stacked,
+                site_local_utm=site,
+                legal_sections=legal_sections,
+                height_m=14.0,
+                floors=4,
+                feasible_capacity_m2=feasible_capacity,
+            )
+            measurement = measure_source_capacity(
+                stacked,
+                contract,
+                site_local_utm=site,
+                height_m=14.0,
+                floors=4,
+                shared_floor_contract=floor_contract,
+            )
+            return floor_contract, measurement
+
+        _initial_floor_contract, initial_measurement = materialize_and_measure(
+            0.68,
+            (68.0, 68.0, 68.0, 68.0),
+        )
+        self.assertFalse(initial_measurement["hard_pass"])
+        self.assertAlmostEqual(
+            initial_measurement["feasible_capacity_utilization"],
+            0.68,
+            delta=0.0001,
+        )
+
+        retry_coverage = capacity_retry_plan_coverage(
+            0.68,
+            alternative,
+            initial_measurement,
+        )
+        retry_targets = capacity_retry_floor_targets(
+            contract,
+            alternative,
+            initial_measurement,
+        )
+        self.assertTrue(_capacity_retry_required(
+            current_plan_coverage=0.68,
+            retry_plan_coverage=retry_coverage,
+            current_floor_targets=contract["target_floor_areas_m2"],
+            retry_floor_targets=retry_targets,
+        ))
+
+        retried_floor_contract, retried_measurement = materialize_and_measure(
+            retry_coverage,
+            retry_targets,
+        )
+        self.assertTrue(retried_floor_contract["hard_pass"])
+        self.assertTrue(retried_measurement["hard_pass"])
+        self.assertGreaterEqual(
+            retried_measurement["feasible_capacity_utilization"],
+            0.70,
+        )
+
+    def test_capacity_retry_floor_targets_compensate_shortfall_within_legal_caps(self):
+        """A measured miss may raise floor targets, but never beyond legal plates."""
+        from design.maas.book_language import capacity_alternatives
+
+        contract = {
+            "bcr_adjusted_floor_areas_m2": [
+                102.931,
+                102.931,
+                74.989,
+                51.471,
+            ],
+            "target_floor_areas_m2": [
+                72.052,
+                72.052,
+                52.492,
+                36.030,
+            ],
+        }
+        capacity_retry_floor_targets = getattr(
+            capacity_alternatives,
+            "capacity_retry_floor_targets",
+            None,
+        )
+        self.assertIsNotNone(
+            capacity_retry_floor_targets,
+            "capacity retry does not refit the authoritative floor targets",
+        )
+        retry_targets = capacity_retry_floor_targets(
+            contract,
+            {
+                "target_utilization": 0.70,
+                "feasible_minimum_utilization": 0.70,
+            },
+            {"feasible_capacity_utilization": 0.65},
+        )
+
+        self.assertAlmostEqual(sum(retry_targets), 250.520, delta=0.002)
+        self.assertTrue(all(
+            target <= cap + 1e-9
+            for target, cap in zip(
+                retry_targets,
+                contract["bcr_adjusted_floor_areas_m2"],
+            )
+        ))
+
+    def test_capacity_retry_enters_when_floor_targets_change_at_maximum_coverage(self):
+        """A 0.95 plan ceiling must not suppress a measured floor-target repair."""
+        from design.maas.book_language import (
+            candidate_generation,
+            capacity_alternatives,
+        )
+
+        contract = {
+            "bcr_adjusted_floor_areas_m2": [
+                102.931,
+                102.931,
+                74.989,
+                51.471,
+            ],
+            "target_floor_areas_m2": [
+                97.784,
+                97.784,
+                71.240,
+                48.898,
+            ],
+        }
+        alternative = {
+            "target_utilization": 0.95,
+            "feasible_minimum_utilization": 0.70,
+        }
+        retry_targets = capacity_alternatives.capacity_retry_floor_targets(
+            contract,
+            alternative,
+            {"feasible_capacity_utilization": 0.90},
+        )
+        retry_required = getattr(
+            candidate_generation,
+            "_capacity_retry_required",
+            None,
+        )
+
+        self.assertIsNotNone(
+            retry_required,
+            "capacity retry is still gated only by plan-coverage growth",
+        )
+        assert retry_required is not None
+        self.assertAlmostEqual(sum(retry_targets), 332.322, delta=0.002)
+        self.assertTrue(retry_required(
+            current_plan_coverage=0.95,
+            retry_plan_coverage=0.95,
+            current_floor_targets=contract["target_floor_areas_m2"],
+            retry_floor_targets=retry_targets,
+        ))
+        self.assertFalse(retry_required(
+            current_plan_coverage=0.95,
+            retry_plan_coverage=0.95,
+            current_floor_targets=retry_targets,
+            retry_floor_targets=retry_targets,
+        ))
+
+    def test_maximum_coverage_retry_targets_increase_legal_allocation(self):
+        """Measured shortfall targets must survive the consumer's legal cap."""
+        from design.maas.book_language.capacity_alternatives import (
+            capacity_retry_floor_targets,
+        )
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+
+        legal_sections = tuple(
+            box(5.0, 5.0, 15.0, 15.0)
+            for _floor_index in range(4)
+        )
+        contract = {
+            "bcr_adjusted_floor_areas_m2": [100.0] * 4,
+            "target_floor_areas_m2": [95.0] * 4,
+        }
+        retry_targets = capacity_retry_floor_targets(
+            contract,
+            {
+                "target_utilization": 0.95,
+                "feasible_minimum_utilization": 0.70,
+            },
+            {"feasible_capacity_utilization": 0.90},
+        )
+        source_plan = box(0.0, 0.0, 10.0, 10.0)
+        source = SourceMass(
+            name="maximum_coverage_consumer_probe",
+            footprint=source_plan,
+            volumes=(
+                SourceVolume("main", source_plan, 0.0, 1.0, "geometry_program"),
+            ),
+            metadata={"geometry_program_bridge_evidence": {
+                "program_hash": "maximum-coverage-program",
+                "geometry_hash": "maximum-coverage-geometry",
+            }},
+        )
+
+        initial = materialize_floorwise_legal_source(
+            source,
+            legal_sections=legal_sections,
+            target_plan_coverage=0.95,
+            target_floor_areas_m2=(95.0,) * 4,
+        )
+        retried = materialize_floorwise_legal_source(
+            source,
+            legal_sections=legal_sections,
+            target_plan_coverage=0.95,
+            target_floor_areas_m2=retry_targets,
+        )
+
+        self.assertEqual(retry_targets, (100.0, 100.0, 100.0, 100.0))
+        self.assertIsNotNone(initial)
+        self.assertIsNotNone(retried)
+        assert initial is not None and retried is not None
+        initial_stack = initial.metadata["floorwise_legal_matrix_stack"]
+        retried_stack = retried.metadata["floorwise_legal_matrix_stack"]
+        initial_total = sum(initial_stack["allocated_floor_areas_m2"])
+        retried_total = sum(retried_stack["allocated_floor_areas_m2"])
+        self.assertAlmostEqual(initial_total, 380.0, delta=0.01)
+        self.assertAlmostEqual(retried_total, 400.0, delta=0.01)
+        self.assertGreater(retried_total, initial_total)
+        self.assertTrue(
+            retried.metadata["floorwise_visual_projection"]["hard_pass"]
+        )
+        self.assertTrue(all(
+            floor["legal_csg_clip_area_m2"] == 0.0
+            for floor in retried_stack["floors"]
+        ))
+
     def test_downstream_metrics_use_the_same_floor_contract_area_and_hash(self):
         """Removing the contract argument must make FAR fall back to volume sampling."""
         from design.maas.book_language.downstream_hard_gate import _metrics
@@ -2047,6 +2576,156 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertEqual(
             replay["capacity"]["floor_contract_hash"],
             floor_contract["floor_contract_hash"],
+        )
+
+    def test_selected_passport_capacity_uses_resolved_selectable_band(self):
+        from design.maas.book_language.mass_passport_bridge import (
+            selected_candidate_execution_passport,
+        )
+
+        initial_passport = {
+            "schema_version": "arr.maas.mass_execution_passport.v1",
+            "stages": [
+                {
+                    "id": stage_id,
+                    "status": "not_evaluated",
+                    "evidence": {},
+                }
+                for stage_id in (
+                    "site",
+                    "capacity",
+                    "law",
+                    "parking",
+                    "program_fit",
+                    "selector",
+                    "vlm",
+                )
+            ],
+            "activation_graph": {"nodes": [], "edges": []},
+        }
+        archived = selected_candidate_execution_passport(
+            compilation={"execution_passport": initial_passport},
+            downstream_row={},
+            source_metadata={
+                "capacity_alternative_projection": {
+                    "alternative_id": "maximum_feasible",
+                    "target_hard_pass": False,
+                    "requested_capacity_alternative_id": "maximum_feasible",
+                    "requested_target_utilization": 0.95,
+                    "selectable_capacity_alternative_id": "balanced_yield",
+                    "selectable_capacity_target_utilization": 0.80,
+                    "selectable_capacity_hard_pass": True,
+                },
+                "source_capacity_measurement": {
+                    "schema_version": "arr.maas.source_capacity_measurement.v1",
+                    "feasible_capacity_utilization": 0.8241,
+                },
+            },
+            program_evidence={"evaluated": True, "hard_pass": True},
+            descriptor={"capacity_target_hard_pass": False},
+            pnu="1168011800104170004",
+        )
+
+        capacity = next(
+            stage for stage in archived["stages"] if stage["id"] == "capacity"
+        )
+        self.assertEqual(capacity["status"], "passed")
+        self.assertFalse(capacity["evidence"]["requested_target_hard_pass"])
+        self.assertEqual(
+            capacity["evidence"]["resolved_capacity_alternative_id"],
+            "balanced_yield",
+        )
+        self.assertEqual(
+            capacity["evidence"]["resolved_capacity_target_utilization"],
+            0.80,
+        )
+        self.assertTrue(capacity["evidence"]["resolved_capacity_hard_pass"])
+        self.assertTrue(capacity["evidence"]["hard_pass"])
+
+    def test_resolved_selectable_capacity_requires_achieving_its_exact_target(self):
+        from design.maas.book_language.mass_passport_bridge import (
+            resolve_capacity_band_evidence,
+        )
+
+        cases = (
+            ("spatial_reserve", 0.70, 0.70, True),
+            ("balanced_yield", 0.80, 0.75, False),
+            ("balanced_yield", 0.80, 0.8241, True),
+            ("tampered_zero_target", 0.0, 0.70, False),
+        )
+        for alternative_id, target, achieved, expected in cases:
+            with self.subTest(
+                alternative_id=alternative_id,
+                target=target,
+                achieved=achieved,
+            ):
+                resolved = resolve_capacity_band_evidence(
+                    {
+                        "selectable_capacity_alternative_id": alternative_id,
+                        "selectable_capacity_target_utilization": target,
+                        "selectable_capacity_hard_pass": True,
+                        "feasible_minimum_utilization": 0.70,
+                    },
+                    capacity_measurement={
+                        "feasible_capacity_utilization": achieved,
+                    },
+                )
+
+                self.assertEqual(
+                    resolved["resolved_capacity_hard_pass"],
+                    expected,
+                )
+
+    def test_certified_passport_hands_off_vlm_evidence_with_geometry_hash(self):
+        from design.maas.book_language.mass_passport_bridge import (
+            selected_candidate_execution_passport,
+        )
+
+        builder = GeometryProgramBuilder("certified_vlm_passport")
+        root = builder.add(
+            "primitive",
+            "box",
+            parameters={"width": 10.0, "depth": 8.0, "height": 12.0},
+            semantic_role="main",
+        )
+        program = builder.build(root)
+        compilation = compile_geometry_program(program)
+        certified_hash = "a" * 64
+        certified = replace(compilation, geometry_hash=certified_hash)
+
+        archived = selected_candidate_execution_passport(
+            compilation={
+                "certified_compilation": certified,
+                "combined_hard_pass": True,
+            },
+            downstream_row={},
+            source_metadata={
+                "final_book_vlm_audit": {
+                    "schema_version": "arr.maas.final_book_vlm_audit.v1",
+                    "status": "pass",
+                    "hard_pass": True,
+                    "model": "review-model",
+                    "response_id": "review-response",
+                    "evidence_binding": {
+                        "geometry_hash": "stale-capacity-hash",
+                    },
+                },
+            },
+            program_evidence={"evaluated": True, "hard_pass": True},
+            descriptor={},
+            pnu="1168011800104170004",
+        )
+
+        vlm = next(stage for stage in archived["stages"] if stage["id"] == "vlm")
+        self.assertEqual(vlm["status"], "live_scored")
+        self.assertTrue(vlm["evidence"]["hard_pass"])
+        self.assertEqual(
+            vlm["evidence"]["evidence_binding"]["program_hash"],
+            program.program_hash(),
+        )
+        self.assertEqual(
+            vlm["evidence"]["evidence_binding"]["geometry_hash"],
+            certified_hash,
         )
 
     def test_vlm_repair_rematerializes_floor_identity_for_the_repaired_geometry(self):

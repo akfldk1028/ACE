@@ -14,7 +14,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
 from dataclasses import dataclass, replace
-from math import atan2, cos, degrees, hypot, pi, sin, sqrt
+from math import atan2, cos, degrees, hypot, isfinite, pi, sin, sqrt
 from pathlib import Path
 from time import perf_counter
 from typing import Any
@@ -289,7 +289,95 @@ def _load_visual_directive(output_dir: Path, pnu: str) -> dict[str, Any]:
     return payload
 
 
-def _archive_render_evidence(board: Path, candidate_count: int) -> list[dict[str, Any]]:
+def _certified_projected_visual_artifact(source: Any) -> dict[str, Any]:
+    """Serialize the exact Task 1 triangle skin without changing its identity."""
+
+    metadata = source.metadata if isinstance(getattr(source, "metadata", None), dict) else {}
+    certificate = metadata.get("floorwise_visual_projection")
+    if not isinstance(certificate, dict):
+        return {}
+    if certificate.get("status") == "not_applicable_no_authored_mesh":
+        return {}
+    if certificate.get("status") != "certified" or certificate.get("hard_pass") is not True:
+        raise ValueError("selected floorwise visual projection is not certified")
+
+    triangles: list[dict[str, Any]] = []
+    hash_payload: list[dict[str, Any]] = []
+    for surface in tuple(getattr(source, "surfaces", ()) or ()):
+        vertices = tuple(getattr(surface, "vertices_m", ()) or ())
+        if (
+            len(vertices) != 3
+            or any(len(vertex) != 3 for vertex in vertices)
+            or any(not isfinite(float(value)) for vertex in vertices for value in vertex)
+        ):
+            raise ValueError("certified projected visual mesh must contain finite triangles")
+        exact_vertices = [
+            [float(x), float(y), float(z)]
+            for x, y, z in vertices
+        ]
+        semantic_patch_id = str(getattr(surface, "semantic_patch_id", "") or "")
+        triangle = {
+            "role": str(getattr(surface, "role", "") or ""),
+            "volume_role": str(getattr(surface, "volume_role", "") or ""),
+            "verb": str(getattr(surface, "verb", "") or ""),
+            "surface_type": str(getattr(surface, "surface_type", "") or ""),
+            "vertices_m": exact_vertices,
+            "operator": str(getattr(surface, "operator", "") or ""),
+            "semantic_patch_id": semantic_patch_id,
+        }
+        triangles.append(triangle)
+        hash_payload.append({
+            "role": triangle["role"],
+            "volume_role": triangle["volume_role"],
+            "surface_type": triangle["surface_type"],
+            "semantic_patch_id": semantic_patch_id,
+            "vertices": [
+                [round(x, 8), round(y, 8), round(z, 8)]
+                for x, y, z in exact_vertices
+            ],
+        })
+
+    expected_hash = str(certificate.get("visual_hash") or "")
+    actual_hash = hashlib.sha256(json.dumps(
+        hash_payload,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
+    expected_count = int(certificate.get("projected_surface_count") or 0)
+    if (
+        not triangles
+        or expected_count != len(triangles)
+        or not expected_hash
+        or actual_hash != expected_hash
+    ):
+        raise ValueError("certified projected visual mesh does not match its certificate")
+
+    coordinate_space = str(
+        certificate.get("projected_surface_coordinate_frame") or ""
+    )
+    if coordinate_space != "capacity_source_centroid_local_xy_normalized_z":
+        raise ValueError("unsupported projected visual coordinate frame")
+    return {
+        "authority": "certified_projected_visual_mesh",
+        "geometryProgramRole": "capacity_replay_metadata_and_provenance",
+        "projectedVisualMesh": {
+            "schemaVersion": "arr.maas.projected_visual_mesh.v1",
+            "coordinateSpace": coordinate_space,
+            "triangles": triangles,
+            "vertexCount": len(triangles) * 3,
+            "triangleCount": len(triangles),
+        },
+        "projectedVisualCertificate": deepcopy(certificate),
+        "projectedVisualGeometryHash": expected_hash,
+    }
+
+
+def _archive_render_evidence(
+    board: Path,
+    candidate_count: int,
+    *,
+    projected_visual_hashes: list[str] | tuple[str, ...] = (),
+) -> list[dict[str, Any]]:
     """Measure whether each accepted card visibly contains rendered mass.
 
     Geometry validity alone cannot catch a camera/transport regression that
@@ -311,6 +399,11 @@ def _archive_render_evidence(board: Path, candidate_count: int) -> list[dict[str
             if red > 90 and red >= green + 18 and green >= blue + 8
         )
         ratio = material_pixels / float(ARCHIVE_CARD_WIDTH * ARCHIVE_PREVIEW_HEIGHT)
+        projected_visual_hash = (
+            str(projected_visual_hashes[index])
+            if index < len(projected_visual_hashes)
+            else ""
+        )
         evidence.append({
             "card_index": index + 1,
             "board_png": str(board),
@@ -319,6 +412,7 @@ def _archive_render_evidence(board: Path, candidate_count: int) -> list[dict[str
             "rendered_mass_pixel_ratio": round(ratio, 5),
             "hard_pass": ratio >= 0.005,
             "evidence_role": "human_and_vlm_visual_observation_not_geometry_authority",
+            "projected_visual_geometry_hash": projected_visual_hash,
         })
     return evidence
 
@@ -1535,9 +1629,42 @@ def run_book_program_portfolios(
                 pnu=pnu,
             )
             props["mass_execution_passport"] = mass_execution_passport
+            projected_visual_artifact = _certified_projected_visual_artifact(
+                candidate.source
+            )
+            projected_visual_hash = str(
+                projected_visual_artifact.get("projectedVisualGeometryHash") or ""
+            )
+            if projected_visual_artifact:
+                visual_origin = candidate.source.footprint.centroid
+                props["source_surfaces"] = []
+                for triangle in (
+                    projected_visual_artifact["projectedVisualMesh"]["triangles"]
+                ):
+                    rendered_triangle = deepcopy(triangle)
+                    rendered_triangle["vertices_world_m"] = [
+                        [
+                            float(visual_origin.x) + float(vertex[0]),
+                            float(visual_origin.y) + float(vertex[1]),
+                            float(height) * float(vertex[2]),
+                        ]
+                        for vertex in triangle["vertices_m"]
+                    ]
+                    props["source_surfaces"].append(rendered_triangle)
+                props["projected_visual_geometry_hash"] = projected_visual_hash
             props["geometry_artifact"] = {
                 "schemaVersion": "arr.maas.geometry_artifact.v1",
-                "authority": "final_legal_floorwise_geometry_program",
+                "authority": (
+                    "certified_projected_visual_mesh"
+                    if projected_visual_artifact
+                    else "final_legal_geometry_program"
+                ),
+                "geometryProgramRole": (
+                    "capacity_replay_metadata_and_provenance"
+                    if isinstance(floorwise_stack, dict)
+                    and floorwise_stack.get("status") == "materialized"
+                    else "executable_geometry"
+                ),
                 "programType": slug,
                 "programLabel": building_type,
                 "sourceSequence": candidate.sequence.name,
@@ -1562,7 +1689,8 @@ def run_book_program_portfolios(
                         or ""
                     ),
                     "geometryHash": str(
-                        compilation.get("geometry_hash")
+                        projected_visual_hash
+                        or compilation.get("geometry_hash")
                         or bridge.get("geometry_hash")
                         or ""
                     ),
@@ -1588,6 +1716,7 @@ def run_book_program_portfolios(
                 "hardGates": hard_gates,
                 "executionPassport": mass_execution_passport,
                 "selectionEffect": "none_shadow_only",
+                **projected_visual_artifact,
             }
             mass_brain_trace_sequences.append(trace_sequence)
             mass_brain_trace_features[trace_name] = feature
@@ -1604,7 +1733,24 @@ def run_book_program_portfolios(
                 f"{len(features)}/{selection_target} floor-verified masses"
             ),
         )
-        render_evidence = _archive_render_evidence(board, len(features))
+        render_evidence = _archive_render_evidence(
+            board,
+            len(features),
+            projected_visual_hashes=[
+                str(
+                    (
+                        (
+                            feature.get("properties")
+                            if isinstance(feature.get("properties"), dict)
+                            else {}
+                        ).get("geometry_artifact")
+                        or {}
+                    ).get("projectedVisualGeometryHash")
+                    or ""
+                )
+                for feature in features
+            ],
+        )
         for row, evidence in zip(rows, render_evidence):
             row["archive_render_evidence"] = evidence
         outcome_graph.observe_portfolio_render(

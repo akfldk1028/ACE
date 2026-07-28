@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -25,11 +26,248 @@ from design.maas.book_language.portfolio_replenishment import (
     replenishment_cycle_budget_for_run,
 )
 from design.maas.book_language.portfolio_benchmark import default_outcome_graph_path
+from design.maas.book_language import portfolio_benchmark
 from design.maas.book_language.candidate_analysis import _design_concept_descriptor
-from design.maas.source_geometry.ir import SourceMass
+from design.maas.geometry_language.executed_archive import compile_executed_mass
+from design.maas.geometry_language.elevation_handoff import (
+    build_executed_mass_elevation_handoff,
+)
+from design.maas.source_geometry.ir import SourceMass, SourceSurface
 
 
 class MaasFlowRegressionTest(SimpleTestCase):
+    @staticmethod
+    def _projected_visual_source() -> tuple[SourceMass, str]:
+        surfaces = (
+            SourceSurface(
+                role="main:skin:000",
+                volume_role="main",
+                verb="extrude",
+                surface_type="profiled_triangle",
+                vertices_m=(
+                    (0.123456789, 0.0, 0.0),
+                    (4.0, 0.0, 0.0),
+                    (0.0, 3.0, 1.0),
+                ),
+                semantic_patch_id="main:skin:000",
+            ),
+            SourceSurface(
+                role="main:skin:001",
+                volume_role="main",
+                verb="extrude",
+                surface_type="profiled_triangle",
+                vertices_m=(
+                    (4.0, 0.0, 0.0),
+                    (4.0, 3.0, 1.0),
+                    (0.0, 3.0, 1.0),
+                ),
+                semantic_patch_id="main:skin:001",
+            ),
+        )
+        hash_payload = [
+            {
+                "role": surface.role,
+                "volume_role": surface.volume_role,
+                "surface_type": surface.surface_type,
+                "semantic_patch_id": surface.semantic_patch_id,
+                "vertices": [
+                    [round(float(x), 8), round(float(y), 8), round(float(z), 8)]
+                    for x, y, z in surface.vertices_m
+                ],
+            }
+            for surface in surfaces
+        ]
+        visual_hash = hashlib.sha256(json.dumps(
+            hash_payload,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")).hexdigest()
+        source = SourceMass(
+            name="projected-visual",
+            footprint=box(0, 0, 4, 3),
+            surfaces=surfaces,
+            metadata={
+                "floorwise_visual_projection": {
+                    "schema_version": "arr.maas.floorwise_visual_projection.v1",
+                    "status": "certified",
+                    "hard_pass": True,
+                    "failure_reasons": [],
+                    "visual_hash": visual_hash,
+                    "source_surface_count": 2,
+                    "projected_surface_count": 2,
+                    "legal_sample_count": 6,
+                    "capacity_gfa_m2": 24.0,
+                    "capacity_authority": "floorwise_legal_volumes",
+                    "source_surface_coordinate_frame": (
+                        "source_footprint_centroid_local_xy_normalized_z"
+                    ),
+                    "projected_surface_coordinate_frame": (
+                        "capacity_source_centroid_local_xy_normalized_z"
+                    ),
+                    "matrix_convention": "row_major_column_vector",
+                },
+            },
+        )
+        return source, visual_hash
+
+    @staticmethod
+    def _write_projected_visual_archive(
+        root: Path,
+        *,
+        artifact: dict,
+        run_id: str = "book-program-portfolios-projected-visual",
+    ) -> tuple[str, Path]:
+        run_dir = (
+            root / "docs" / "playwright" / "design-route-live-verify" / run_id
+        )
+        run_dir.mkdir(parents=True)
+        (run_dir / "maas-book-exact-geometry-artifacts.json").write_text(
+            json.dumps({
+                "schema_version": "arr.maas.geometry_artifact_archive.v1",
+                "pnu": "test-pnu",
+                "record_count": 1,
+                "records": [{
+                    "trace_sequence_name": "projected-visual",
+                    "geometry_artifact": artifact,
+                }],
+            }),
+            encoding="utf-8",
+        )
+        (run_dir / "maas-book-programs-summary.json").write_text(
+            json.dumps({
+                "status": "pass",
+                "pnu": "test-pnu",
+                "programs": [{
+                    "rows": [{
+                        "source_sequence": "projected-visual",
+                        "variant_id": "maas_01",
+                    }],
+                }],
+            }),
+            encoding="utf-8",
+        )
+        preview = run_dir / "preview.png"
+        Image.new("RGB", (384, 322), (220, 120, 50)).save(preview)
+        return run_id, preview
+
+    def _projected_visual_artifact(self) -> tuple[dict, str]:
+        source, visual_hash = self._projected_visual_source()
+        binding = portfolio_benchmark._certified_projected_visual_artifact(source)
+        program = base_seed_program("block")
+        capacity_compilation = compile_geometry_program(program)
+        self.assertEqual(capacity_compilation.status, "compiled")
+        artifact = {
+            "schemaVersion": "arr.maas.geometry_artifact.v1",
+            "programType": "neighborhood",
+            "programLabel": "Neighborhood",
+            "sourceSequence": "projected-visual",
+            "geometryProgram": program.to_dict(),
+            "compilation": capacity_compilation.to_dict(include_mesh=False),
+            "identity": {
+                "programHash": program.program_hash(),
+                "geometryHash": visual_hash,
+            },
+            "hardGates": {"combinedHardPass": True},
+            **binding,
+        }
+        return artifact, visual_hash
+
+    def test_projected_visual_identity_survives_board_archive_and_elevation(self):
+        artifact, visual_hash = self._projected_visual_artifact()
+        self.assertEqual(artifact["authority"], "certified_projected_visual_mesh")
+        self.assertEqual(
+            artifact["geometryProgramRole"],
+            "capacity_replay_metadata_and_provenance",
+        )
+        self.assertEqual(artifact["projectedVisualGeometryHash"], visual_hash)
+        self.assertEqual(
+            artifact["projectedVisualMesh"]["triangles"][0]["vertices_m"][0][0],
+            0.123456789,
+        )
+
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_id, preview = self._write_projected_visual_archive(
+                root,
+                artifact=artifact,
+            )
+            board_evidence = portfolio_benchmark._archive_render_evidence(
+                preview,
+                1,
+                projected_visual_hashes=[visual_hash],
+            )
+            self.assertEqual(
+                board_evidence[0]["projected_visual_geometry_hash"],
+                visual_hash,
+            )
+
+            with patch(
+                "design.maas.geometry_language.executed_archive.workspace_root",
+                return_value=root,
+            ):
+                compilation, archived, _row, _path = compile_executed_mass(
+                    1,
+                    run_id,
+                )
+                self.assertEqual(compilation.geometry_hash, visual_hash)
+                self.assertEqual(
+                    list(compilation.vertices[0]),
+                    [0.123456789, 0.0, 0.0],
+                )
+                with (
+                    patch(
+                        "design.maas.geometry_language.elevation_handoff.executed_mass_manifest",
+                        return_value={"pnu": "test-pnu"},
+                    ),
+                    patch(
+                        "design.maas.geometry_language.elevation_handoff.materialize_executed_mass_passport",
+                        return_value={"executed_mass": {"hard_pass": True}},
+                    ),
+                    patch(
+                        "design.maas.geometry_language.elevation_handoff.materialize_executed_mass_preview",
+                        return_value=preview,
+                    ),
+                ):
+                    handoff = build_executed_mass_elevation_handoff(
+                        run_id=run_id,
+                        index=1,
+                    )
+
+            self.assertEqual(archived["projectedVisualGeometryHash"], visual_hash)
+            self.assertEqual(handoff["identity"]["geometry_hash"], visual_hash)
+            self.assertEqual(
+                handoff["authority"]["source"],
+                "validated_archived_projected_visual_mesh",
+            )
+            self.assertEqual(
+                handoff["indexed_triangle_mesh"]["coordinate_space"],
+                "capacity_source_centroid_local_xy_normalized_z",
+            )
+            self.assertEqual(
+                handoff["indexed_triangle_mesh"]["vertices"],
+                [list(vertex) for vertex in compilation.vertices],
+            )
+
+    def test_projected_visual_archive_tamper_fails_closed(self):
+        artifact, _visual_hash = self._projected_visual_artifact()
+        artifact["projectedVisualMesh"]["triangles"][0]["vertices_m"][0][0] += 0.5
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_id, _preview = self._write_projected_visual_archive(
+                root,
+                artifact=artifact,
+                run_id="book-program-portfolios-tampered-visual",
+            )
+            with patch(
+                "design.maas.geometry_language.executed_archive.workspace_root",
+                return_value=root,
+            ):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "projected visual mesh hash mismatch",
+                ):
+                    compile_executed_mass(1, run_id)
+
     def test_spatial_chassis_and_frontage_controller_form_one_ground_strategy(self):
         def descriptor(chassis: str, controller: str) -> dict:
             parameters = (

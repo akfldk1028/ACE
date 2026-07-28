@@ -20,11 +20,11 @@ SCHEMA_VERSION = "arr.maas.elevation_handoff.v1"
 
 
 def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[str, Any]:
-    """Recompile one archived MASS and expose immutable elevation inputs.
+    """Validate one archived projected mesh and expose immutable elevation inputs.
 
     This packet does not claim that elevations were generated. It closes the
-    identity/mesh boundary that the existing legacy mass-GeoJSON renderer does
-    not yet cover.
+    identity/mesh boundary without promoting the capacity replay program to
+    renderer-visible geometry authority.
     """
 
     compilation, artifact, row, _archive_path = compile_executed_mass(index, run_id)
@@ -33,6 +33,16 @@ def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[st
     preview = materialize_executed_mass_preview(index, run_id).resolve()
     vlm = artifact.get("vlmAudit") if isinstance(artifact.get("vlmAudit"), dict) else {}
     identity = artifact.get("identity") if isinstance(artifact.get("identity"), dict) else {}
+    projected_visual_mesh = (
+        artifact.get("projectedVisualMesh")
+        if isinstance(artifact.get("projectedVisualMesh"), dict)
+        else {}
+    )
+    projected_visual_certificate = (
+        artifact.get("projectedVisualCertificate")
+        if isinstance(artifact.get("projectedVisualCertificate"), dict)
+        else {}
+    )
     geometry_hash = str(compilation.geometry_hash or identity.get("geometryHash") or "")
     program_hash = compilation.program.program_hash()
     handoff_id = hashlib.sha256(
@@ -51,14 +61,26 @@ def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[st
             "geometry_hash": geometry_hash,
         },
         "authority": {
-            "source": "recompiled_executed_geometry_program",
-            "geometry_hash_replay_match": geometry_hash == str(identity.get("geometryHash") or ""),
-            "base_relative_parametric_geometry": True,
+            "source": "validated_archived_projected_visual_mesh",
+            "geometry_hash_replay_match": (
+                geometry_hash
+                == str(artifact.get("projectedVisualGeometryHash") or "")
+                == str(identity.get("geometryHash") or "")
+            ),
+            "projected_visual_certificate_hard_pass": (
+                projected_visual_certificate.get("hard_pass") is True
+            ),
+            "capacity_replay_program_visual_authority": False,
+            "base_relative_parametric_geometry": False,
             "facade_may_not_modify_mass_geometry": True,
         },
         "geometry_program": compilation.program.to_dict(),
+        "geometry_program_role": "capacity_replay_metadata_and_provenance",
+        "projected_visual_certificate": projected_visual_certificate,
         "indexed_triangle_mesh": {
-            "coordinate_space": "local_model_m",
+            "coordinate_space": str(
+                projected_visual_mesh.get("coordinateSpace") or "local_model_m"
+            ),
             "vertices": [list(vertex) for vertex in compilation.vertices],
             "triangles": [list(face) for face in compilation.triangles],
             "vertex_count": len(compilation.vertices),
@@ -92,7 +114,7 @@ def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[st
             ],
             "output_identity_fields": ["run_id", "program_hash", "geometry_hash", "handoff_id"],
             "status": "mesh_handoff_ready_condition_pack_adapter_pending",
-            "next_adapter": "GeometryProgram indexed mesh -> multi-view elevation condition pack",
+            "next_adapter": "validated projected visual mesh -> multi-view elevation condition pack",
         },
         "research_memory": {
             "paper_map": "docs/ai-session-memory/maas-aesthetic-texturing/PAPERS.md",

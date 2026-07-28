@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from functools import lru_cache
 from datetime import datetime, timezone
+import hashlib
 import json
+from math import isfinite
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
@@ -234,6 +236,9 @@ def compile_executed_mass(
     record, row, archive_path = executed_mass_record(index, run_id)
     artifact = _artifact(record)
     program = GeometryProgram.from_dict(artifact["geometryProgram"])
+    projected_visual = _validated_projected_visual_compilation(artifact, program)
+    if projected_visual is not None:
+        return projected_visual, artifact, row, archive_path
     compilation = compile_geometry_program(program)
     expected_hash = str((artifact.get("identity") or {}).get("geometryHash") or "")
     if compilation.status != "compiled" or compilation.geometry_hash != expected_hash:
@@ -252,6 +257,9 @@ def archived_compilation(
     record, row, archive_path = executed_mass_record(index, run_id)
     artifact = _artifact(record)
     program = GeometryProgram.from_dict(artifact["geometryProgram"])
+    projected_visual = _validated_projected_visual_compilation(artifact, program)
+    if projected_visual is not None:
+        return projected_visual, artifact, row, archive_path
     stored = _mapping(artifact.get("compilation"))
     trace = tuple({
         "node_id": node.id,
@@ -268,6 +276,140 @@ def archived_compilation(
         geometry_hash=str((artifact.get("identity") or {}).get("geometryHash") or stored.get("geometry_hash") or ""),
     )
     return result, artifact, row, archive_path
+
+
+def _validated_projected_visual_compilation(
+    artifact: dict[str, Any],
+    program: GeometryProgram,
+) -> CompilationResult | None:
+    """Hydrate a certified archived triangle skin, rejecting partial or altered data."""
+
+    field_names = (
+        "projectedVisualMesh",
+        "projectedVisualCertificate",
+        "projectedVisualGeometryHash",
+    )
+    present = tuple(name in artifact for name in field_names)
+    if not any(present):
+        return None
+    if not all(present):
+        raise ValueError("incomplete projected visual archive binding")
+
+    mesh = artifact.get("projectedVisualMesh")
+    certificate = artifact.get("projectedVisualCertificate")
+    if not isinstance(mesh, dict) or not isinstance(certificate, dict):
+        raise ValueError("invalid projected visual archive binding")
+    expected_hash = str(artifact.get("projectedVisualGeometryHash") or "")
+    identity = _mapping(artifact.get("identity"))
+    if (
+        not expected_hash
+        or str(identity.get("geometryHash") or "") != expected_hash
+        or certificate.get("schema_version")
+        != "arr.maas.floorwise_visual_projection.v1"
+        or certificate.get("status") != "certified"
+        or certificate.get("hard_pass") is not True
+        or str(certificate.get("visual_hash") or "") != expected_hash
+    ):
+        raise ValueError("invalid projected visual certificate identity")
+    if (
+        mesh.get("schemaVersion") != "arr.maas.projected_visual_mesh.v1"
+        or mesh.get("coordinateSpace")
+        != "capacity_source_centroid_local_xy_normalized_z"
+        or certificate.get("projected_surface_coordinate_frame")
+        != mesh.get("coordinateSpace")
+    ):
+        raise ValueError("invalid projected visual mesh coordinate contract")
+
+    expected_program_hash = str(identity.get("programHash") or "")
+    if expected_program_hash and program.program_hash() != expected_program_hash:
+        raise ValueError("capacity replay GeometryProgram identity mismatch")
+
+    triangle_payload = mesh.get("triangles")
+    if not isinstance(triangle_payload, list) or not triangle_payload:
+        raise ValueError("invalid projected visual triangle payload")
+    vertices: list[tuple[float, float, float]] = []
+    triangles: list[tuple[int, int, int]] = []
+    hash_payload: list[dict[str, Any]] = []
+    for triangle_index, triangle in enumerate(triangle_payload):
+        if not isinstance(triangle, dict):
+            raise ValueError("invalid projected visual triangle payload")
+        raw_vertices = triangle.get("vertices_m")
+        if not isinstance(raw_vertices, list) or len(raw_vertices) != 3:
+            raise ValueError("invalid projected visual triangle payload")
+        exact_vertices: list[tuple[float, float, float]] = []
+        for raw_vertex in raw_vertices:
+            if (
+                not isinstance(raw_vertex, list)
+                or len(raw_vertex) != 3
+                or any(isinstance(value, bool) for value in raw_vertex)
+            ):
+                raise ValueError("invalid projected visual triangle payload")
+            try:
+                vertex = tuple(float(value) for value in raw_vertex)
+            except (TypeError, ValueError) as exc:
+                raise ValueError("invalid projected visual triangle payload") from exc
+            if not all(isfinite(value) for value in vertex):
+                raise ValueError("invalid projected visual triangle payload")
+            exact_vertices.append(vertex)
+        base_index = len(vertices)
+        vertices.extend(exact_vertices)
+        triangles.append((base_index, base_index + 1, base_index + 2))
+        hash_payload.append({
+            "role": str(triangle.get("role") or ""),
+            "volume_role": str(triangle.get("volume_role") or ""),
+            "surface_type": str(triangle.get("surface_type") or ""),
+            "semantic_patch_id": str(triangle.get("semantic_patch_id") or ""),
+            "vertices": [
+                [round(x, 8), round(y, 8), round(z, 8)]
+                for x, y, z in exact_vertices
+            ],
+        })
+        if str(triangle.get("surface_type") or "") != "profiled_triangle":
+            raise ValueError(
+                f"invalid projected visual surface type at triangle {triangle_index}"
+            )
+
+    actual_hash = hashlib.sha256(json.dumps(
+        hash_payload,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
+    expected_triangle_count = int(certificate.get("projected_surface_count") or 0)
+    if (
+        actual_hash != expected_hash
+        or expected_triangle_count != len(triangles)
+        or int(mesh.get("triangleCount") or 0) != len(triangles)
+        or int(mesh.get("vertexCount") or 0) != len(vertices)
+    ):
+        raise ValueError(
+            "projected visual mesh hash mismatch: "
+            f"expected={expected_hash} actual={actual_hash}"
+        )
+
+    stored = _mapping(artifact.get("compilation"))
+    metrics = {
+        "vertex_count": len(vertices),
+        "triangle_count": len(triangles),
+        "coordinate_space": str(mesh.get("coordinateSpace") or ""),
+        "geometry_authority": "certified_projected_visual_mesh",
+        "capacity_replay_metrics": _mapping(stored.get("metrics")),
+    }
+    trace = tuple({
+        "node_id": node.id,
+        "operator": node.operator,
+        "status": "capacity_replay_metadata",
+        "evidence_authority": "archived_floorwise_capacity_program",
+    } for node in program.topological_nodes())
+    return CompilationResult(
+        program=program,
+        status="compiled",
+        vertices=tuple(vertices),
+        triangles=tuple(triangles),
+        metrics=metrics,
+        trace=trace,
+        issues=(),
+        geometry_hash=expected_hash,
+    )
 
 
 def materialize_executed_mass_preview(index: int, run_id: str | None = None) -> Path:

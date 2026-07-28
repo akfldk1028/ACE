@@ -27,6 +27,7 @@ from design.maas.legal_mesh_optimizer import (
     _preserve_visible_section_connector,
     _upper_typology_is_viable,
 )
+from design.maas.legal_envelope import allowed_footprint_at_height, build_legal_envelope
 from design.maas.llm_proposals import (
     LLM_BATCH_SCHEMA_VERSION,
     LLM_PARAMETER_SOURCE,
@@ -51,7 +52,7 @@ from design.maas.parking_strategy import infer_parking_strategy
 from design.maas.research_backends import inspect_maas_clone_backend, run_maas_clone_reference_baseline
 from design.maas.training import build_examples_from_design_results, build_sft_examples, evidence_to_review_example, export_sft_seed
 from design.models import DesignResult, OptimizationJob
-from design.services.site_geometry import wgs84_to_utm
+from design.services.site_geometry import geojson_to_polygon, wgs84_to_utm
 
 
 class MaasScadExportServiceTest(TestCase):
@@ -1495,6 +1496,115 @@ class MaasLegalVariantsTest(TestCase):
         top = features[0]["properties"]
         self.assertIn(top["mass_shape"], {"legal_layered_max", "legal_buildable_max", "bcr_fill_light", "bcr_fill_mid", "bcr_fill_strong"})
         self.assertGreaterEqual(top["bcr"], 45.0)
+
+    def test_final_candidates_carry_floorwise_law_evidence_before_ranking(self):
+        constraints = [
+            {"name": "bcr", "type": "Constraint", "Requirement": "Less than", "val": 60, "unit": "%"},
+            {"name": "far", "type": "Constraint", "Requirement": "Less than", "val": 250, "unit": "%"},
+            {"name": "height", "type": "Constraint", "Requirement": "Less than", "val": 50, "unit": "m"},
+        ]
+        sunlight_envelope = self._sunlight_envelope(height=10.0)
+        result = generate_legal_mass_variants(
+            mass_geojson=self._mass(),
+            site_polygon_geojson=self._site(),
+            constraints=constraints,
+            building_type="怨듬룞二쇳깮",
+            max_variants=5,
+            sunlight_envelope=sunlight_envelope,
+        )
+        envelope = build_legal_envelope(
+            site_utm=wgs84_to_utm(geojson_to_polygon(self._site())),
+            constraints=constraints,
+            building_type="怨듬룞二쇳깮",
+            sunlight_envelope=sunlight_envelope,
+        )
+
+        features = result["feature_collection"]["features"]
+        if not features:
+            self.assertEqual(result.get("generation_status"), "infeasible")
+            self.assertTrue(result.get("infeasible_reason"))
+            self.assertTrue(all(rejection.get("reason") for rejection in result.get("rejected", [])))
+            return
+
+        for feature in features:
+            props = feature["properties"]
+            plates = props.get("floor_plates") or []
+            evidence = props.get("floorwise_legal_evidence") or {}
+            volumes = props.get("mass_volumes") or []
+            self.assertGreater(len(plates), 0, props.get("mass_shape"))
+            self.assertEqual(evidence.get("status"), "pass", props.get("mass_shape"))
+            self.assertEqual(evidence.get("checked_floor_count"), len(plates))
+            self.assertEqual(evidence.get("checked_mass_volume_count"), len(volumes))
+            self.assertLessEqual(props["height"], 10.1)
+            for plate in plates:
+                allowed = allowed_footprint_at_height(
+                    envelope,
+                    float(plate["top_height"]),
+                    sunlight_envelope,
+                )
+                self.assertIsNotNone(allowed)
+                occupied = wgs84_to_utm(geojson_to_polygon(plate["geometry"]))
+                self.assertLessEqual(occupied.difference(allowed).area, 0.05)
+
+    def test_feasible_three_floor_candidate_records_floorwise_pass_evidence(self):
+        constraints = [
+            {"name": "bcr", "type": "Constraint", "Requirement": "Less than", "val": 60, "unit": "%"},
+            {"name": "far", "type": "Constraint", "Requirement": "Less than", "val": 250, "unit": "%"},
+            {"name": "height", "type": "Constraint", "Requirement": "Less than", "val": 50, "unit": "m"},
+        ]
+        result = generate_legal_mass_variants(
+            mass_geojson=self._mass(),
+            site_polygon_geojson=self._site(),
+            constraints=constraints,
+            building_type="怨듬룞二쇳깮",
+            max_variants=1,
+            preferred_operator="legal_layered_max",
+            sunlight_envelope=self._sunlight_envelope(height=10.0),
+        )
+
+        self.assertEqual(result["count"], 1)
+        props = result["feature_collection"]["features"][0]["properties"]
+        self.assertEqual(
+            [plate["top_height"] for plate in props["floor_plates"]],
+            [3.0, 6.0, 9.0],
+        )
+        evidence = props.get("floorwise_legal_evidence") or {}
+        self.assertEqual(evidence.get("status"), "pass")
+        self.assertEqual(evidence.get("checked_floor_count"), 3)
+        self.assertEqual(props["source_volumes"], props["mass_volumes"])
+        self.assertEqual(props["maas_model"]["source_volumes"], props["mass_volumes"])
+        self.assertNotIn("source_surfaces", props)
+        self.assertNotIn("section_source_surfaces", props)
+        self.assertEqual(
+            props["geometry_resolution"]["status"],
+            "floorwise_legal_revalidated",
+        )
+
+    def test_floorwise_repair_rejects_candidate_below_existing_far_policy(self):
+        result = generate_legal_mass_variants(
+            mass_geojson=self._mass(),
+            site_polygon_geojson=self._site(),
+            constraints=[
+                {"name": "bcr", "type": "Constraint", "Requirement": "Less than", "val": 60, "unit": "%"},
+                {"name": "far", "type": "Constraint", "Requirement": "Less than", "val": 250, "unit": "%"},
+                {"name": "height", "type": "Constraint", "Requirement": "Less than", "val": 50, "unit": "m"},
+            ],
+            building_type="怨듬룞二쇳깮",
+            max_variants=1,
+            preferred_operator="legal_layered_max",
+            sunlight_envelope=self._sunlight_envelope(height=10.0),
+            parking_options={"min_far_utilization": 0.95},
+        )
+
+        self.assertEqual(result["generation_status"], "infeasible")
+        self.assertEqual(result["count"], 0)
+        underfill = [
+            rejection
+            for rejection in result["rejected"]
+            if rejection.get("reason") == "underused_floorwise_legal_far_capacity"
+        ]
+        self.assertGreater(len(underfill), 0)
+        self.assertTrue(all(item["measured_far_utilization"] < 0.95 for item in underfill))
 
     def test_buildable_max_variant_can_outgrow_small_source_mass(self):
         mass = self._mass()

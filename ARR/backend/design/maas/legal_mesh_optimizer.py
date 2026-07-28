@@ -38,6 +38,7 @@ from design.maas.agents.grammar_critic_agent import build_grammar_review
 from design.maas.agents.llm_architect_agent import LLMArchitectAgent
 from design.maas.agents.massdsl_agent import build_massdsl_proposal
 from design.maas.floor_groups import build_floor_groups
+from design.maas.final_floorwise_legal import revalidate_final_floorwise_feature
 from design.maas.evolution import evolve_massdsl_islands, run_critic_geometry_loop
 from design.maas.evolution.island_loop import sequence_from_variant
 from design.maas.grammar import VerbCall, VerbSequence, generate_grammar_variants, get_sequence_label
@@ -4408,13 +4409,6 @@ def _mass_feature(
     _attach_section_profile(feature)
     _materialize_section_profile_volumes(feature)
     _attach_visual_diversity_evidence(feature)
-    attach_parking_strategy(
-        props,
-        site_area_m2=site_area_m2,
-        building_type=building_type,
-        footprint_utm=footprint_utm,
-        site_utm=site_utm,
-    )
     _attach_3d_diversity(feature)
     return feature
 
@@ -4467,13 +4461,6 @@ def _floor_plate_feature(
     props["mass_volumes"] = model["volumes"]
     props["maas_verb_sequence"] = model["verb_sequence"]
     props["maas_sequence_verbs"] = sequence_verbs(model["verb_sequence"])
-    attach_parking_strategy(
-        props,
-        site_area_m2=site_area_m2,
-        building_type=building_type,
-        footprint_utm=stack.footprint,
-        site_utm=site_utm,
-    )
     feature = {
         "type": "Feature",
         "geometry": mapping(utm_to_wgs84(stack.footprint)),
@@ -4553,6 +4540,77 @@ def generate_legal_mass_variants(
     }
     mass_brain_proposals_by_operator: dict[str, dict[str, Any]] = {}
     mass_brain_shadow_features: dict[str, dict[str, Any]] = {}
+
+    def revalidate_floorwise_candidates(
+        features: list[dict[str, Any]],
+        *,
+        scope: str,
+    ) -> list[dict[str, Any]]:
+        validated: list[dict[str, Any]] = []
+        for candidate in features:
+            outcome = revalidate_final_floorwise_feature(
+                candidate,
+                envelope=envelope,
+                sunlight_envelope=sunlight_envelope,
+                building_type=building_type,
+            )
+            if outcome.feature is None:
+                rejected.append({
+                    "operator": str((candidate.get("properties") or {}).get("mass_shape") or "unknown"),
+                    "reason": "floorwise_legal_validation_failed",
+                    "scope": scope,
+                    "failed_checks": list(outcome.evidence.get("failed_checks") or []),
+                    "floorwise_legal_evidence": outcome.evidence,
+                })
+                continue
+            feature = outcome.feature
+            props = feature["properties"]
+            measured_far_utilization = (
+                float(props.get("far") or 0.0) / envelope.far_limit
+                if envelope.far_limit > 0
+                else 0.0
+            )
+            minimum_far_utilization = float(capacity_policy["min_far_utilization"])
+            if measured_far_utilization < minimum_far_utilization:
+                rejected.append({
+                    "operator": str(props.get("mass_shape") or "unknown"),
+                    "reason": "underused_floorwise_legal_far_capacity",
+                    "scope": scope,
+                    "measured_far_utilization": round(measured_far_utilization, 4),
+                    "minimum_far_utilization": minimum_far_utilization,
+                    "floorwise_legal_evidence": outcome.evidence,
+                })
+                continue
+            props["far_utilization"] = (
+                round(min(1.0, measured_far_utilization), 4)
+                if envelope.far_limit > 0
+                else 0.0
+            )
+            props["bcr_utilization"] = (
+                round(min(1.0, float(props.get("bcr") or 0.0) / envelope.bcr_limit), 4)
+                if envelope.bcr_limit > 0
+                else 0.0
+            )
+            props["maas_score"] = round(
+                props["far_utilization"] * 0.45
+                + props["bcr_utilization"] * 0.35
+                + float(props.get("diversity_score") or 0.0) * 0.20,
+                4,
+            )
+            ground_utm = wgs84_to_utm(geojson_to_polygon(feature["geometry"]))
+            _attach_design_quality(feature, ground_utm)
+            attach_program_massing_evidence(feature, building_type=building_type)
+            attach_parking_strategy(
+                props,
+                site_area_m2=site_area_m2,
+                building_type=building_type,
+                footprint_utm=ground_utm,
+                site_utm=site_utm,
+            )
+            _attach_visual_diversity_evidence(feature)
+            _attach_3d_diversity(feature)
+            validated.append(feature)
+        return validated
 
     layered_stack = build_floor_plate_stack(envelope, sunlight_envelope)
     generation_trace.checkpoint("floor_plate_stack_ready", available=layered_stack is not None)
@@ -4910,6 +4968,12 @@ def generate_legal_mass_variants(
                 selected.append(feature)
             mass_brain_shadow_artifact["promoted_pool_count"] = min(active_slots, len(promotable))
 
+    selected = revalidate_floorwise_candidates(selected, scope="pre_parking_preference_pool")
+    generation_trace.checkpoint(
+        "floorwise_legal_boundary_complete",
+        selected=len(selected),
+        rejected=len(rejected),
+    )
     selected.sort(key=lambda f: f["properties"].get("maas_score", 0), reverse=True)
     legal_candidate_pool = build_bounded_review_pool(
         selected,
@@ -4965,6 +5029,11 @@ def generate_legal_mass_variants(
             building_type=building_type,
             parking_options=parking_options,
             max_results=parking_repair_budget(max_variants),
+        )
+    if parking_repairs:
+        parking_repairs = revalidate_floorwise_candidates(
+            parking_repairs,
+            scope="parking_repair",
         )
     if parking_repairs:
         _attach_parking_requirements(
@@ -5183,9 +5252,14 @@ def generate_legal_mass_variants(
                     actions=actions,
                     scope="critic_legal_footprint",
                 )
-                props = feature["properties"]
-                if failed_constraint_metrics(props, envelope):
+                validated_children = revalidate_floorwise_candidates(
+                    [feature],
+                    scope="critic_geometry_child",
+                )
+                if not validated_children:
                     return None
+                feature = validated_children[0]
+                props = feature["properties"]
                 props["far_utilization"] = min(1.0, props["far"] / envelope.far_limit) if envelope.far_limit > 0 else 0.0
                 props["bcr_utilization"] = min(1.0, props["bcr"] / envelope.bcr_limit) if envelope.bcr_limit > 0 else 0.0
                 props["maas_score"] = round(props["far_utilization"] * 0.45 + props["bcr_utilization"] * 0.35, 4)

@@ -18,6 +18,7 @@ from shapely.ops import unary_union
 from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
 
 from .affine_matrix import Matrix4, transform_point3, validate_matrix4
+from .profiled_mesh_clip import clip_profiled_mesh_above_z
 
 
 @dataclass(frozen=True)
@@ -686,9 +687,70 @@ def projected_surface_visual_hash(
     return _stable_visual_hash(tuple(surfaces))
 
 
+def clip_and_certify_projected_piloti_visual(
+    surfaces: Sequence[SourceSurface],
+    certificate: dict[str, Any],
+    *,
+    void_height_fraction: float,
+) -> tuple[tuple[SourceSurface, ...], dict[str, Any]] | None:
+    """Clip one certified closed visual skin above a piloti void and cap it."""
+
+    source_surfaces = tuple(surfaces)
+    minimum_z = float(void_height_fraction)
+    if (
+        not source_surfaces
+        or not 0.0 < minimum_z < 1.0
+        or certificate.get("schema_version")
+        != "arr.maas.floorwise_visual_projection.v1"
+        or certificate.get("status") != "certified"
+        or certificate.get("hard_pass") is not True
+        or int(certificate.get("projected_surface_count") or 0)
+        != len(source_surfaces)
+        or str(certificate.get("visual_hash") or "")
+        != _stable_visual_hash(source_surfaces)
+    ):
+        return None
+    existing_fraction = certificate.get("piloti_void_height_fraction")
+    if existing_fraction is not None:
+        if (
+            abs(float(existing_fraction) - minimum_z) <= 1e-10
+            and certificate.get("piloti_visual_closed_mesh_hard_pass") is True
+        ):
+            return source_surfaces, dict(certificate)
+        return None
+
+    try:
+        clipped = clip_profiled_mesh_above_z(
+            source_surfaces,
+            minimum_z=minimum_z,
+        )
+    except ValueError:
+        return None
+    output = clipped.surfaces
+    rebound_certificate = dict(certificate)
+    rebound_certificate.update({
+        "visual_hash": _stable_visual_hash(output),
+        "projected_surface_count": len(output),
+        "piloti_void_height_fraction": round(minimum_z, 8),
+        "piloti_visual_projection_status": "clipped_and_capped",
+        "piloti_visual_closed_mesh_hard_pass": (
+            clipped.closed_mesh_hard_pass
+        ),
+        "piloti_visual_boundary_loop_count": clipped.boundary_loop_count,
+        "piloti_visual_removed_degenerate_count": (
+            clipped.removed_degenerate_count
+        ),
+        "piloti_visual_removed_duplicate_count": (
+            clipped.removed_duplicate_count
+        ),
+    })
+    return output, rebound_certificate
+
+
 __all__ = [
     "FloorwiseVisualProjection",
     "FloorwiseVisualProjectionCertificate",
+    "clip_and_certify_projected_piloti_visual",
     "project_floorwise_visual_mesh",
     "projected_surface_visual_hash",
 ]

@@ -349,6 +349,13 @@ def _require_certified_authored_visual(props: dict[str, Any]) -> None:
     certificate = props.get("floorwise_visual_projection")
     if not isinstance(certificate, dict):
         certificate = model.get("floorwise_visual_projection")
+    artifact = (
+        props.get("geometry_artifact")
+        if isinstance(props.get("geometry_artifact"), dict)
+        else {}
+    )
+    if not isinstance(certificate, dict):
+        certificate = artifact.get("projectedVisualCertificate")
     failure = "authored profiled visual mesh requires certified nonempty projection"
     if (
         not isinstance(certificate, dict)
@@ -360,6 +367,11 @@ def _require_certified_authored_visual(props: dict[str, Any]) -> None:
         or int(certificate.get("projected_surface_count") or 0)
         != len(profiled_records)
         or not profiled_records
+        or (
+            artifact
+            and str(artifact.get("projectedVisualGeometryHash") or "")
+            != str(certificate.get("visual_hash") or "")
+        )
     ):
         raise ValueError(failure)
     try:
@@ -393,11 +405,23 @@ def _surface_vertices_world(surface: dict[str, Any], feature: Feature) -> list[l
     if not isinstance(local, list) or not local:
         return []
     try:
-        ground = wgs84_to_utm(geojson_to_polygon(feature.get("geometry")))
-        origin = ground.centroid
-        height = float((feature.get("properties") or {}).get("height") or 0.0)
+        props = (
+            feature.get("properties")
+            if isinstance(feature.get("properties"), dict)
+            else {}
+        )
+        height = float(props.get("height") or 0.0)
         if height <= 0.0 or not isfinite(height):
             raise ValueError
+        projected_feature_frame = bool(
+            props.get("geometry_artifact")
+            or props.get("benchmark_site_area_m2")
+        )
+        if projected_feature_frame:
+            origin = shape(feature.get("geometry")).centroid
+        else:
+            ground = wgs84_to_utm(geojson_to_polygon(feature.get("geometry")))
+            origin = ground.centroid
         vertices: list[list[float]] = []
         for raw_vertex in local:
             if not isinstance(raw_vertex, list) or len(raw_vertex) != 3:
@@ -405,13 +429,19 @@ def _surface_vertices_world(surface: dict[str, Any], feature: Feature) -> list[l
             x, y, z = (float(value) for value in raw_vertex)
             if not all(isfinite(value) for value in (x, y, z)):
                 raise ValueError
-            world = utm_to_wgs84(Point(
-                float(origin.x) + x,
-                float(origin.y) + y,
-            ))
+            if projected_feature_frame:
+                world_x = float(origin.x) + x
+                world_y = float(origin.y) + y
+            else:
+                world = utm_to_wgs84(Point(
+                    float(origin.x) + x,
+                    float(origin.y) + y,
+                ))
+                world_x = float(world.x)
+                world_y = float(world.y)
             vertices.append([
-                round(float(world.x), 8),
-                round(float(world.y), 8),
+                round(world_x, 8),
+                round(world_y, 8),
                 round(height * z, 4),
             ])
         return vertices

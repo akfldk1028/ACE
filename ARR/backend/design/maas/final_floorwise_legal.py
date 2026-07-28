@@ -7,7 +7,7 @@ import math
 from dataclasses import dataclass
 from typing import Any
 
-from shapely.geometry import Point, Polygon, mapping
+from shapely.geometry import Polygon, mapping
 from shapely.ops import unary_union
 
 from design.maas.floor_groups import build_floor_groups
@@ -311,10 +311,7 @@ def _canonical_stack_from_materialized_source(
 
 def _projected_surface_records(
     source: SourceMass,
-    *,
-    height: float,
 ) -> list[dict[str, Any]]:
-    origin = source.footprint.centroid
     records: list[dict[str, Any]] = []
     for surface in source.surfaces:
         record = surface.signature()
@@ -325,18 +322,6 @@ def _projected_surface_records(
             [float(x), float(y), float(z)]
             for x, y, z in surface.vertices_m
         ]
-        world_vertices: list[list[float]] = []
-        for x, y, z in surface.vertices_m:
-            world = utm_to_wgs84(Point(
-                float(origin.x) + float(x),
-                float(origin.y) + float(y),
-            ))
-            world_vertices.append([
-                round(float(world.x), 8),
-                round(float(world.y), 8),
-                round(float(height) * float(z), 4),
-            ])
-        record["vertices_world_m"] = world_vertices
         records.append(record)
     return records
 
@@ -651,7 +636,6 @@ def revalidate_final_floorwise_feature(
         }
         surfaces = _projected_surface_records(
             rebound_source,
-            height=float(props["height"]),
         )
         certificate = copy.deepcopy(
             rebound_source.metadata["floorwise_visual_projection"]

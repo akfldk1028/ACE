@@ -16,7 +16,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from shapely.geometry import LineString, Point, box, mapping, shape
+from shapely.geometry import LineString, box, mapping, shape
 from shapely.affinity import rotate as shapely_rotate, scale as shapely_scale, translate as shapely_translate
 from shapely.ops import unary_union
 
@@ -40,7 +40,7 @@ from design.maas.agents.massdsl_agent import build_massdsl_proposal
 from design.maas.floor_groups import build_floor_groups
 from design.maas.final_floorwise_legal import revalidate_final_floorwise_feature
 from design.maas.geometry_language.floorwise_visual_projection import (
-    projected_surface_visual_hash,
+    clip_and_certify_projected_piloti_visual,
 )
 from design.maas.evolution import evolve_massdsl_islands, run_critic_geometry_loop
 from design.maas.evolution.island_loop import sequence_from_variant
@@ -2232,67 +2232,52 @@ def _rebind_projected_surfaces_after_piloti_void(
         height = float(props.get("height"))
         if height <= 0.0:
             raise ValueError
-        minimum_z = float(void_height) / height
-        ground = wgs84_to_utm(geojson_to_polygon(feature.get("geometry")))
-        origin = ground.centroid
-        rebound_records: list[dict[str, Any]] = []
-        rebound_surfaces: list[SourceSurface] = []
-        for record in records:
-            if (
-                not isinstance(record, dict)
-                or not str(record.get("surface_type") or "").startswith("profiled_")
-            ):
-                rebound_records.append(copy.deepcopy(record))
-                continue
+        source_surfaces: list[SourceSurface] = []
+        for record in profiled_records:
             raw_vertices = record.get("vertices_m")
             if not isinstance(raw_vertices, list) or len(raw_vertices) != 3:
                 raise ValueError
-            local_vertices: list[list[float]] = []
-            world_vertices: list[list[float]] = []
-            for raw_vertex in raw_vertices:
-                if not isinstance(raw_vertex, list) or len(raw_vertex) != 3:
-                    raise ValueError
-                x, y, z = (float(value) for value in raw_vertex)
-                z = max(z, minimum_z)
-                local_vertices.append([x, y, z])
-                world = utm_to_wgs84(Point(
-                    float(origin.x) + x,
-                    float(origin.y) + y,
-                ))
-                world_vertices.append([
-                    round(float(world.x), 8),
-                    round(float(world.y), 8),
-                    round(height * z, 4),
-                ])
-            rebound_record = copy.deepcopy(record)
-            rebound_record["vertices_m"] = local_vertices
-            rebound_record["vertices_world_m"] = world_vertices
-            rebound_records.append(rebound_record)
-            rebound_surfaces.append(SourceSurface(
-                role=str(rebound_record.get("role") or ""),
-                volume_role=str(rebound_record.get("volume_role") or ""),
-                verb=str(rebound_record.get("verb") or ""),
-                surface_type=str(rebound_record.get("surface_type") or ""),
-                vertices_m=tuple(tuple(vertex) for vertex in local_vertices),
-                operator=str(rebound_record.get("operator") or "extrude"),
+            source_surfaces.append(SourceSurface(
+                role=str(record.get("role") or ""),
+                volume_role=str(record.get("volume_role") or ""),
+                verb=str(record.get("verb") or ""),
+                surface_type=str(record.get("surface_type") or ""),
+                vertices_m=tuple(
+                    tuple(float(value) for value in vertex)
+                    for vertex in raw_vertices
+                ),
+                operator=str(record.get("operator") or "extrude"),
                 semantic_patch_id=str(
-                    rebound_record.get("semantic_patch_id") or ""
+                    record.get("semantic_patch_id") or ""
                 ),
             ))
     except (TypeError, ValueError):
         raise ValueError("piloti authored visual projection is malformed") from None
-    rebound_certificate = copy.deepcopy(certificate)
-    rebound_certificate["visual_hash"] = projected_surface_visual_hash(
-        tuple(rebound_surfaces)
+    rebound = clip_and_certify_projected_piloti_visual(
+        tuple(source_surfaces),
+        certificate,
+        void_height_fraction=float(void_height) / height,
     )
-    rebound_certificate["projected_surface_count"] = len(rebound_surfaces)
+    if rebound is None:
+        raise ValueError(
+            "piloti authored visual projection could not be clipped and capped"
+        )
+    rebound_surfaces, rebound_certificate = rebound
+    rebound_records: list[dict[str, Any]] = []
+    for surface in rebound_surfaces:
+        record = surface.signature()
+        record["vertices_m"] = [
+            [float(x), float(y), float(z)]
+            for x, y, z in surface.vertices_m
+        ]
+        rebound_records.append(record)
     props["source_surfaces"] = rebound_records
     props["floorwise_visual_projection"] = rebound_certificate
     model["source_surfaces"] = copy.deepcopy(rebound_records)
     model["floorwise_visual_projection"] = copy.deepcopy(rebound_certificate)
 
 
-def _apply_piloti_parking_void(feature: dict[str, Any]) -> None:
+def _apply_piloti_parking_void_in_place(feature: dict[str, Any]) -> None:
     props = feature.setdefault("properties", {})
     strategy = str(props.get("parking_strategy") or "")
     precheck = props.get("parking_precheck") if isinstance(props.get("parking_precheck"), dict) else {}
@@ -2387,6 +2372,42 @@ def _apply_piloti_parking_void(feature: dict[str, Any]) -> None:
         if isinstance(model, dict):
             model["floorwise_legal_evidence"] = evidence
     _attach_visual_diversity_evidence(feature)
+
+
+def _apply_piloti_parking_void(feature: dict[str, Any]) -> None:
+    """Commit parking volume and visual changes only after both validate."""
+
+    props = (
+        feature.get("properties")
+        if isinstance(feature.get("properties"), dict)
+        else {}
+    )
+    precheck = (
+        props.get("parking_precheck")
+        if isinstance(props.get("parking_precheck"), dict)
+        else {}
+    )
+    layout = (
+        precheck.get("layout_candidate")
+        if isinstance(precheck.get("layout_candidate"), dict)
+        else {}
+    )
+    if (
+        str(props.get("parking_strategy") or "") != "piloti_ground"
+        or not isinstance(layout.get("stalls"), list)
+        or not layout["stalls"]
+        or not isinstance(props.get("mass_volumes"), list)
+        or not props["mass_volumes"]
+    ):
+        return
+    candidate = copy.deepcopy(feature)
+    _apply_piloti_parking_void_in_place(candidate)
+    candidate_props = candidate.pop("properties")
+    feature.clear()
+    feature.update(candidate)
+    props.clear()
+    props.update(candidate_props)
+    feature["properties"] = props
 
 
 def _source_profile_distance(a: dict[str, Any], b: dict[str, Any]) -> float:
@@ -4682,7 +4703,7 @@ class _AuthoredSourceRegistry:
     """Keep immutable authored sources addressable across feature copies."""
 
     def __init__(self) -> None:
-        self._by_feature_id: dict[int, Any] = {}
+        self._by_feature_id: dict[int, tuple[str, Any]] = {}
         self._by_lineage: dict[str, Any] = {}
         self._ambiguous_lineages: set[str] = set()
 
@@ -4691,9 +4712,6 @@ class _AuthoredSourceRegistry:
             return
         identity = _source_identity(source)
         if identity is None:
-            if _profiled_authored_visual(feature):
-                return
-            self._by_feature_id[id(feature)] = source
             return
         props = feature.setdefault("properties", {})
         props["authored_source_identity"] = dict(identity)
@@ -4703,7 +4721,7 @@ class _AuthoredSourceRegistry:
         lineage = _feature_source_lineage(feature)
         if not lineage:
             return
-        self._by_feature_id[id(feature)] = source
+        self._by_feature_id[id(feature)] = (lineage, source)
         existing = self._by_lineage.get(lineage)
         if lineage in self._ambiguous_lineages:
             return
@@ -4717,9 +4735,10 @@ class _AuthoredSourceRegistry:
         lineage = _feature_source_lineage(feature)
         if _profiled_authored_visual(feature) and not lineage:
             return None
-        source = self._by_feature_id.get(id(feature))
-        if source is not None:
-            return source
+        registered = self._by_feature_id.get(id(feature))
+        if registered is not None:
+            registered_lineage, source = registered
+            return source if registered_lineage == lineage else None
         if lineage in self._ambiguous_lineages:
             return None
         return self._by_lineage.get(lineage) if lineage else None

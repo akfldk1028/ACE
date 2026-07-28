@@ -1,5 +1,6 @@
 """Tests for ARR-local MAAS OpenSCAD export."""
 
+import copy
 import json
 import os
 import tempfile
@@ -706,6 +707,127 @@ class MaasLegalVariantsTest(TestCase):
             rebound["floorwise_legal_evidence"]["visual_authority"],
             "certified_projected_authored_mesh",
         )
+
+    def test_final_floorwise_reprojection_is_idempotent_with_returned_authored_source(self):
+        from design.maas.legal_mesh_optimizer import _AuthoredSourceRegistry
+
+        feature = self._floorwise_probe_feature()
+        lower_utm = wgs84_to_utm(geojson_to_polygon(feature["geometry"]))
+        authored = self._authored_profiled_source(lower_utm)
+        envelope = self._floorwise_probe_envelope()
+        feature["properties"]["source_signature"] = authored.signature()
+        feature["properties"]["source_surfaces"] = list(
+            authored.source_surface_signatures()
+        )
+        registry = _AuthoredSourceRegistry()
+        registry.remember(feature, authored)
+
+        first = revalidate_final_floorwise_feature(
+            feature,
+            envelope=envelope,
+            sunlight_envelope=None,
+            building_type="authored-repeat-probe",
+            authored_source=registry.source_for_revalidation(feature),
+        )
+        self.assertIsNotNone(first.feature)
+        self.assertIs(first.authored_source, authored)
+        registry.remember(
+            first.feature,
+            first.authored_source
+            or registry.source_for_revalidation(feature),
+        )
+        repeated_feature = copy.deepcopy(first.feature)
+        repeated_source = registry.source_for_revalidation(repeated_feature)
+        self.assertIs(repeated_source, authored)
+
+        second = revalidate_final_floorwise_feature(
+            repeated_feature,
+            envelope=envelope,
+            sunlight_envelope=None,
+            building_type="authored-repeat-probe",
+            authored_source=repeated_source,
+        )
+
+        self.assertIsNotNone(second.feature, second.evidence)
+        self.assertEqual(
+            second.feature["properties"]["floorwise_visual_projection"]["visual_hash"],
+            first.feature["properties"]["floorwise_visual_projection"]["visual_hash"],
+        )
+        self.assertIs(second.authored_source, authored)
+
+    def test_authored_source_registry_requires_unique_hash_bound_lineage_for_fallback(self):
+        from dataclasses import replace
+
+        from design.maas import legal_mesh_optimizer
+
+        registry_type = getattr(
+            legal_mesh_optimizer,
+            "_AuthoredSourceRegistry",
+            None,
+        )
+        self.assertIsNotNone(registry_type)
+
+        footprint = wgs84_to_utm(
+            geojson_to_polygon(self._floorwise_probe_feature()["geometry"])
+        )
+        base = self._authored_profiled_source(footprint)
+        left = replace(
+            base,
+            name="authored-design-left",
+            metadata={
+                **base.metadata,
+                "geometry_program_bridge_evidence": {
+                    **base.metadata["geometry_program_bridge_evidence"],
+                    "program_hash": "shared-shape-left-program",
+                    "geometry_hash": "shared-shape-left-geometry",
+                },
+            },
+        )
+        right = replace(
+            base,
+            name="authored-design-right",
+            metadata={
+                **base.metadata,
+                "geometry_program_bridge_evidence": {
+                    **base.metadata["geometry_program_bridge_evidence"],
+                    "program_hash": "shared-shape-right-program",
+                    "geometry_hash": "shared-shape-right-geometry",
+                },
+            },
+        )
+
+        def feature_for(source):
+            return {
+                "type": "Feature",
+                "geometry": self._floorwise_probe_feature()["geometry"],
+                "properties": {
+                    "mass_shape": "same-shape-label",
+                    "source_signature": source.signature(),
+                    "source_surfaces": list(source.source_surface_signatures()),
+                },
+            }
+
+        registry = registry_type()
+        left_feature = feature_for(left)
+        right_feature = feature_for(right)
+        registry.remember(left_feature, left)
+        registry.remember(right_feature, right)
+
+        self.assertIs(
+            registry.source_for_revalidation(copy.deepcopy(left_feature)),
+            left,
+        )
+        self.assertIs(
+            registry.source_for_revalidation(copy.deepcopy(right_feature)),
+            right,
+        )
+
+        missing_identity = feature_for(left)
+        missing_identity["properties"]["source_signature"].pop(
+            "geometry_program_bridge_evidence",
+            None,
+        )
+        self.assertIsNone(registry.source_for_revalidation(missing_identity))
 
     def test_final_floorwise_authored_visual_without_reprojection_rejects_closed(self):
         feature = self._floorwise_probe_feature()

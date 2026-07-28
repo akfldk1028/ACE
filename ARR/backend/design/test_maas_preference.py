@@ -25,6 +25,7 @@ from design.maas.preference.loop import (
     PreferenceLoopCallbacks,
     _opaque_profiled_surface_fill,
     apply_preference_loop,
+    feature_preview_png,
     preference_loop_config,
     preference_vlm_scored,
 )
@@ -63,6 +64,83 @@ from shapely.geometry import box
 
 
 class MaasPreferenceDistillationTest(TestCase):
+    def _profiled_preview_feature(self):
+        geometry = box(0, 0, 10, 8).__geo_interface__
+        return {
+            "type": "Feature",
+            "geometry": geometry,
+            "properties": {
+                "variant_id": "authored-preview",
+                "mass_shape": "authored-preview",
+                "height": 6.0,
+                "mass_volumes": [{
+                    "geometry": geometry,
+                    "bottom_height": 0.0,
+                    "top_height": 6.0,
+                    "role": "recursive_solid_primary",
+                }],
+                "source_signature": {
+                    "surface_count": 1,
+                    "effective_surface_count": 1,
+                },
+                "source_surfaces": [{
+                    "role": "authored:triangle:01",
+                    "volume_role": "recursive_solid_primary",
+                    "verb": "geometry_program",
+                    "surface_type": "profiled_recursive_solid_mesh",
+                    "vertices_m": [
+                        [-5.0, -4.0, 0.0],
+                        [5.0, -4.0, 0.0],
+                        [5.0, 4.0, 1.0],
+                    ],
+                    "operator": "extrude",
+                    "semantic_patch_id": "authored:01",
+                }],
+            },
+        }
+
+    def test_preview_rejects_authored_profiled_mesh_without_certified_binding(self):
+        feature = self._profiled_preview_feature()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with self.assertRaisesRegex(
+                ValueError,
+                "authored profiled visual mesh requires certified nonempty projection",
+            ):
+                feature_preview_png(feature, Path(temp_dir))
+
+    def test_preview_renders_certified_authored_profiled_mesh(self):
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            projected_surface_visual_hash,
+        )
+        from design.maas.source_geometry.ir import SourceSurface
+
+        feature = self._profiled_preview_feature()
+        record = feature["properties"]["source_surfaces"][0]
+        surface = SourceSurface(
+            role=record["role"],
+            volume_role=record["volume_role"],
+            verb=record["verb"],
+            surface_type=record["surface_type"],
+            vertices_m=tuple(tuple(vertex) for vertex in record["vertices_m"]),
+            operator=record["operator"],
+            semantic_patch_id=record["semantic_patch_id"],
+        )
+        visual_hash = projected_surface_visual_hash((surface,))
+        feature["properties"]["floorwise_visual_projection"] = {
+            "schema_version": "arr.maas.floorwise_visual_projection.v1",
+            "status": "certified",
+            "hard_pass": True,
+            "visual_hash": visual_hash,
+            "projected_surface_count": 1,
+        }
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = feature_preview_png(feature, Path(temp_dir))
+
+            self.assertTrue(output.exists())
+            self.assertGreater(output.stat().st_size, 0)
+
     def test_profiled_program_and_recursive_surfaces_share_opaque_preview_material(self):
         gable_roof = [[0.0, 0.0, 0.5], [5.0, 0.0, 1.0], [5.0, 8.0, 1.0], [0.0, 8.0, 0.5]]
         recursive_triangle = [[0.0, 0.0, 0.5], [5.0, 0.0, 1.0], [5.0, 8.0, 1.0]]

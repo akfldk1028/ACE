@@ -3615,4 +3615,5 @@ def source_mass_to_variant(source: SourceMass, sequence: VerbSequence) -> Morpho
         source_volumes=source.source_volume_signatures(),
         source_surfaces=source.source_surface_signatures(),
         research_basis=research_basis,
+        source_mass=source,
     )

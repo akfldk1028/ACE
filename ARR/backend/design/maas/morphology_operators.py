@@ -29,6 +29,9 @@ class MorphologyVariant:
     source_volumes: tuple[dict[str, Any], ...] = ()
     source_surfaces: tuple[dict[str, Any], ...] = ()
     research_basis: dict[str, Any] | None = None
+    # Runtime-only typed authority. It is intentionally omitted from feature
+    # transport and exists only long enough for final legal re-materialization.
+    source_mass: Any | None = None
 
 
 def largest_polygon(geometry: Polygon | MultiPolygon) -> Polygon:

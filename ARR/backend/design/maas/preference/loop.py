@@ -19,6 +19,9 @@ from shapely.geometry import shape
 from .mesh_rasterizer import RasterTriangle, rasterize_depth_tested_triangles
 
 from design.maas.morphology_operators import largest_polygon
+from design.maas.geometry_language.floorwise_visual_projection import (
+    projected_surface_visual_hash,
+)
 from design.maas.preference.concept_schema import build_preference_distillation
 from design.maas.preference.reference_corpus import (
     default_reference_root,
@@ -26,6 +29,7 @@ from design.maas.preference.reference_corpus import (
     match_reference_context,
 )
 from design.maas.preference.vlm_scorer import VLM_PROMPT_CONTRACT_VERSION, score_candidate_with_openai_vlm
+from design.maas.source_geometry.ir import SourceSurface
 
 
 Feature = dict[str, Any]
@@ -120,6 +124,7 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
     except Exception as exc:
         raise ValueError(f"Pillow is required for MAAS preference VLM previews: {exc}") from exc
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
+    _require_certified_authored_visual(props)
     site_boundary = None
     site_boundary_geometry = props.get("site_boundary_geometry")
     if isinstance(site_boundary_geometry, dict):
@@ -308,6 +313,79 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
     image.save(temporary_path)
     temporary_path.replace(path)
     return path
+
+
+def _require_certified_authored_visual(props: dict[str, Any]) -> None:
+    raw_surfaces = props.get("source_surfaces")
+    raw_surfaces = raw_surfaces if isinstance(raw_surfaces, list) else []
+    profiled_records = [
+        record
+        for record in raw_surfaces
+        if (
+            isinstance(record, dict)
+            and str(record.get("surface_type") or "")
+            == "profiled_recursive_solid_mesh"
+        )
+    ]
+    signature = (
+        props.get("source_signature")
+        if isinstance(props.get("source_signature"), dict)
+        else {}
+    )
+    bridge = (
+        signature.get("geometry_program_bridge_evidence")
+        if isinstance(signature.get("geometry_program_bridge_evidence"), dict)
+        else {}
+    )
+    authored_profiled = bool(
+        profiled_records
+        or int(bridge.get("raw_mesh_triangle_count") or 0) > 0
+    )
+    if not authored_profiled:
+        return
+
+    model = props.get("maas_model")
+    model = model if isinstance(model, dict) else {}
+    certificate = props.get("floorwise_visual_projection")
+    if not isinstance(certificate, dict):
+        certificate = model.get("floorwise_visual_projection")
+    failure = "authored profiled visual mesh requires certified nonempty projection"
+    if (
+        not isinstance(certificate, dict)
+        or certificate.get("schema_version")
+        != "arr.maas.floorwise_visual_projection.v1"
+        or certificate.get("status") != "certified"
+        or certificate.get("hard_pass") is not True
+        or not str(certificate.get("visual_hash") or "")
+        or int(certificate.get("projected_surface_count") or 0)
+        != len(profiled_records)
+        or not profiled_records
+    ):
+        raise ValueError(failure)
+    try:
+        surfaces = tuple(
+            SourceSurface(
+                role=str(record.get("role") or ""),
+                volume_role=str(record.get("volume_role") or ""),
+                verb=str(record.get("verb") or ""),
+                surface_type=str(record.get("surface_type") or ""),
+                vertices_m=tuple(
+                    tuple(float(value) for value in vertex)
+                    for vertex in record.get("vertices_m") or ()
+                ),
+                operator=str(record.get("operator") or "extrude"),
+                semantic_patch_id=str(record.get("semantic_patch_id") or ""),
+            )
+            for record in profiled_records
+        )
+    except (TypeError, ValueError):
+        raise ValueError(failure) from None
+    if (
+        any(len(surface.vertices_m) != 3 for surface in surfaces)
+        or projected_surface_visual_hash(surfaces)
+        != str(certificate.get("visual_hash") or "")
+    ):
+        raise ValueError(failure)
 
 
 def _surface_vertices_world(surface: dict[str, Any], feature: Feature) -> list[list[float]]:

@@ -4487,6 +4487,139 @@ def _floor_plate_feature(
     return feature
 
 
+_AUTHORED_SOURCE_IDENTITY_SCHEMA = "arr.maas.authored_source_identity.v1"
+
+
+def _profiled_authored_visual(feature: dict[str, Any]) -> bool:
+    props = (
+        feature.get("properties")
+        if isinstance(feature.get("properties"), dict)
+        else {}
+    )
+    surfaces = props.get("source_surfaces")
+    if any(
+        isinstance(surface, dict)
+        and str(surface.get("surface_type") or "").startswith("profiled_")
+        for surface in surfaces or ()
+    ):
+        return True
+    signature = (
+        props.get("source_signature")
+        if isinstance(props.get("source_signature"), dict)
+        else {}
+    )
+    bridge = (
+        signature.get("geometry_program_bridge_evidence")
+        if isinstance(signature.get("geometry_program_bridge_evidence"), dict)
+        else {}
+    )
+    return int(bridge.get("raw_mesh_triangle_count") or 0) > 0
+
+
+def _source_identity(source: Any) -> dict[str, str] | None:
+    metadata = (
+        source.metadata
+        if isinstance(getattr(source, "metadata", None), dict)
+        else {}
+    )
+    bridge = metadata.get("geometry_program_bridge_evidence")
+    bridge = bridge if isinstance(bridge, dict) else {}
+    program_hash = str(bridge.get("program_hash") or "")
+    geometry_hash = str(bridge.get("geometry_hash") or "")
+    design_id = str(
+        metadata.get("design_id")
+        or metadata.get("candidate_id")
+        or getattr(source, "name", "")
+        or ""
+    )
+    if not (design_id and program_hash and geometry_hash):
+        return None
+    return {
+        "schema_version": _AUTHORED_SOURCE_IDENTITY_SCHEMA,
+        "design_id": design_id,
+        "program_hash": program_hash,
+        "geometry_hash": geometry_hash,
+    }
+
+
+def _feature_source_lineage(feature: dict[str, Any]) -> str:
+    props = (
+        feature.get("properties")
+        if isinstance(feature.get("properties"), dict)
+        else {}
+    )
+    identity = props.get("authored_source_identity")
+    identity = identity if isinstance(identity, dict) else {}
+    signature = (
+        props.get("source_signature")
+        if isinstance(props.get("source_signature"), dict)
+        else {}
+    )
+    bridge = (
+        signature.get("geometry_program_bridge_evidence")
+        if isinstance(signature.get("geometry_program_bridge_evidence"), dict)
+        else {}
+    )
+    design_id = str(identity.get("design_id") or "")
+    program_hash = str(identity.get("program_hash") or "")
+    geometry_hash = str(identity.get("geometry_hash") or "")
+    if (
+        identity.get("schema_version") != _AUTHORED_SOURCE_IDENTITY_SCHEMA
+        or not (design_id and program_hash and geometry_hash)
+        or program_hash != str(bridge.get("program_hash") or "")
+        or geometry_hash != str(bridge.get("geometry_hash") or "")
+    ):
+        return ""
+    return "|".join((design_id, program_hash, geometry_hash))
+
+
+class _AuthoredSourceRegistry:
+    """Keep immutable authored sources addressable across feature copies."""
+
+    def __init__(self) -> None:
+        self._by_feature_id: dict[int, Any] = {}
+        self._by_lineage: dict[str, Any] = {}
+        self._ambiguous_lineages: set[str] = set()
+
+    def remember(self, feature: dict[str, Any], source: Any) -> None:
+        if source is None:
+            return
+        identity = _source_identity(source)
+        if identity is None:
+            if _profiled_authored_visual(feature):
+                return
+            self._by_feature_id[id(feature)] = source
+            return
+        props = feature.setdefault("properties", {})
+        props["authored_source_identity"] = dict(identity)
+        model = props.get("maas_model")
+        if isinstance(model, dict):
+            model["authored_source_identity"] = dict(identity)
+        lineage = _feature_source_lineage(feature)
+        if not lineage:
+            return
+        self._by_feature_id[id(feature)] = source
+        existing = self._by_lineage.get(lineage)
+        if lineage in self._ambiguous_lineages:
+            return
+        if existing is not None and existing is not source:
+            self._by_lineage.pop(lineage, None)
+            self._ambiguous_lineages.add(lineage)
+            return
+        self._by_lineage[lineage] = source
+
+    def source_for_revalidation(self, feature: dict[str, Any]) -> Any:
+        lineage = _feature_source_lineage(feature)
+        if _profiled_authored_visual(feature) and not lineage:
+            return None
+        source = self._by_feature_id.get(id(feature))
+        if source is not None:
+            return source
+        if lineage in self._ambiguous_lineages:
+            return None
+        return self._by_lineage.get(lineage) if lineage else None
+
+
 def generate_legal_mass_variants(
     *,
     mass_geojson: dict[str, Any],
@@ -4554,6 +4687,7 @@ def generate_legal_mass_variants(
     }
     mass_brain_proposals_by_operator: dict[str, dict[str, Any]] = {}
     mass_brain_shadow_features: dict[str, dict[str, Any]] = {}
+    authored_source_registry = _AuthoredSourceRegistry()
 
     def revalidate_floorwise_candidates(
         features: list[dict[str, Any]],
@@ -4562,22 +4696,38 @@ def generate_legal_mass_variants(
     ) -> list[dict[str, Any]]:
         validated: list[dict[str, Any]] = []
         for candidate in features:
+            authored_source = authored_source_registry.source_for_revalidation(
+                candidate
+            )
             outcome = revalidate_final_floorwise_feature(
                 candidate,
                 envelope=envelope,
                 sunlight_envelope=sunlight_envelope,
                 building_type=building_type,
+                authored_source=authored_source,
             )
             if outcome.feature is None:
+                failed_checks = list(
+                    outcome.evidence.get("failed_checks") or []
+                )
                 rejected.append({
                     "operator": str((candidate.get("properties") or {}).get("mass_shape") or "unknown"),
-                    "reason": "floorwise_legal_validation_failed",
+                    "reason": (
+                        "authored_floorwise_visual_reprojection_failed"
+                        if "authored_floorwise_visual_reprojection_failed"
+                        in failed_checks
+                        else "floorwise_legal_validation_failed"
+                    ),
                     "scope": scope,
-                    "failed_checks": list(outcome.evidence.get("failed_checks") or []),
+                    "failed_checks": failed_checks,
                     "floorwise_legal_evidence": outcome.evidence,
                 })
                 continue
             feature = outcome.feature
+            authored_source_registry.remember(
+                feature,
+                outcome.authored_source or authored_source,
+            )
             props = feature["properties"]
             measured_far_utilization = (
                 float(props.get("far") or 0.0) / envelope.far_limit
@@ -4888,6 +5038,10 @@ def generate_legal_mass_variants(
                 source_iou=source_iou,
             )
             _apply_variant_verb_sequence(feature, variant)
+        authored_source_registry.remember(
+            feature,
+            getattr(variant, "source_mass", None),
+        )
         props = feature["properties"]
         _attach_repair_delta(
             feature,
@@ -5274,6 +5428,10 @@ def generate_legal_mass_variants(
                     source_iou=round(1.0 - diversity_score(repaired_fp, [], repaired_source), 4),
                 )
                 _apply_variant_verb_sequence(feature, variant)
+                authored_source_registry.remember(
+                    feature,
+                    getattr(variant, "source_mass", None),
+                )
                 _attach_repair_delta(
                     feature,
                     source_area_m2=float(getattr(variant.footprint, "area", 0.0) or 0.0),

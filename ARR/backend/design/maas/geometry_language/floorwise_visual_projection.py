@@ -678,8 +678,17 @@ def _stable_visual_hash(surfaces: tuple[SourceSurface, ...]) -> str:
     ).encode("utf-8")).hexdigest()
 
 
+def projected_surface_visual_hash(
+    surfaces: Sequence[SourceSurface],
+) -> str:
+    """Return the canonical Task-1 hash for projected profiled surfaces."""
+
+    return _stable_visual_hash(tuple(surfaces))
+
+
 __all__ = [
     "FloorwiseVisualProjection",
     "FloorwiseVisualProjectionCertificate",
     "project_floorwise_visual_mesh",
+    "projected_surface_visual_hash",
 ]

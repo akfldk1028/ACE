@@ -231,3 +231,12 @@ notices.
   `test_maas_flow_regressions.py`. It is preserved in the worktree and excluded
   from this commit.
 - No Task 3 selection/performance file was modified.
+
+### Round 2 Shared-Index Coordination
+
+While the Task 2 paths were being staged, a concurrent Task 3 agent committed
+the shared outer-repository index. The exact Task 2 production and regression
+diff therefore landed in outer commit `bacb030a6811dd42b0c366011d22663ca840fc7d`
+alongside that agent's Task 3 changes. Per parent coordination, no history
+rewrite, reset, or duplicate code/test commit was attempted. This report is
+committed separately as the Task 2 evidence record.

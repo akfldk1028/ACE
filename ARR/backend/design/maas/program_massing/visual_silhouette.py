@@ -47,11 +47,12 @@ class _PairDistanceEntry:
 # a replenishment cycle from retaining sources already released by MAP-Elites.
 _SOURCE_VIEW_CACHE: OrderedDict[int, _SourceViewEntry] = OrderedDict()
 _PAIR_DISTANCE_CACHE: OrderedDict[tuple[int, int], _PairDistanceEntry] = OrderedDict()
-_SOURCE_VIEW_INFLIGHT: dict[int, Future[ViewVariants]] = {}
-_PAIR_DISTANCE_INFLIGHT: dict[tuple[int, int], Future[float]] = {}
+_SOURCE_VIEW_INFLIGHT: dict[tuple[int, int], Future[ViewVariants]] = {}
+_PAIR_DISTANCE_INFLIGHT: dict[tuple[int, int, int], Future[float]] = {}
 _SOURCE_VIEW_CACHE_LIMIT = 512
 _PAIR_DISTANCE_CACHE_LIMIT = 32_768
 _CACHE_LOCK = RLock()
+_CACHE_EPOCH = 0
 _CACHE_METRICS = {
     "source_view_build_count": 0,
     "source_view_cache_hit_count": 0,
@@ -101,6 +102,7 @@ def visual_silhouette_distance(left: SourceMass, right: SourceMass) -> float:
         left, right = right, left
     pair_key = (id(left), id(right))
     with _CACHE_LOCK:
+        generation = _CACHE_EPOCH
         cached = _PAIR_DISTANCE_CACHE.get(pair_key)
         if (
             cached is not None
@@ -112,21 +114,23 @@ def visual_silhouette_distance(left: SourceMass, right: SourceMass) -> float:
             return cached.distance
         if cached is not None:
             _PAIR_DISTANCE_CACHE.pop(pair_key, None)
-        future = _PAIR_DISTANCE_INFLIGHT.get(pair_key)
+        inflight_key = (generation, *pair_key)
+        future = _PAIR_DISTANCE_INFLIGHT.get(inflight_key)
         owner = future is None
         if owner:
             future = Future()
-            _PAIR_DISTANCE_INFLIGHT[pair_key] = future
+            _PAIR_DISTANCE_INFLIGHT[inflight_key] = future
     assert future is not None
     if not owner:
         distance = float(future.result())
         with _CACHE_LOCK:
-            _CACHE_METRICS["pair_cache_hit_count"] += 1
+            if generation == _CACHE_EPOCH:
+                _CACHE_METRICS["pair_cache_hit_count"] += 1
         return distance
 
     try:
-        left_variants = _source_view_variants(left)
-        right_variants = _source_view_variants(right)
+        left_variants = _source_view_variants(left, generation=generation)
+        right_variants = _source_view_variants(right, generation=generation)
         best = 1.0
         if left_variants and right_variants:
             left_views = left_variants[0]
@@ -145,22 +149,23 @@ def visual_silhouette_distance(left: SourceMass, right: SourceMass) -> float:
         left_ref = weakref.ref(left)
         right_ref = weakref.ref(right)
         with _CACHE_LOCK:
-            _CACHE_METRICS["exact_pair_evaluation_count"] += 1
-            _PAIR_DISTANCE_CACHE[pair_key] = _PairDistanceEntry(
-                left_ref,
-                right_ref,
-                distance,
-            )
-            _PAIR_DISTANCE_CACHE.move_to_end(pair_key)
-            while len(_PAIR_DISTANCE_CACHE) > _PAIR_DISTANCE_CACHE_LIMIT:
-                _PAIR_DISTANCE_CACHE.popitem(last=False)
+            if generation == _CACHE_EPOCH:
+                _CACHE_METRICS["exact_pair_evaluation_count"] += 1
+                _PAIR_DISTANCE_CACHE[pair_key] = _PairDistanceEntry(
+                    left_ref,
+                    right_ref,
+                    distance,
+                )
+                _PAIR_DISTANCE_CACHE.move_to_end(pair_key)
+                while len(_PAIR_DISTANCE_CACHE) > _PAIR_DISTANCE_CACHE_LIMIT:
+                    _PAIR_DISTANCE_CACHE.popitem(last=False)
             future.set_result(distance)
-            _PAIR_DISTANCE_INFLIGHT.pop(pair_key, None)
+            _PAIR_DISTANCE_INFLIGHT.pop(inflight_key, None)
         return distance
     except BaseException as exc:
         with _CACHE_LOCK:
             future.set_exception(exc)
-            _PAIR_DISTANCE_INFLIGHT.pop(pair_key, None)
+            _PAIR_DISTANCE_INFLIGHT.pop(inflight_key, None)
         raise
 
 
@@ -253,26 +258,36 @@ def _cached_views(
     return _views(*frame)
 
 
-def _source_view_variants(source: SourceMass) -> ViewVariants:
+def _source_view_variants(
+    source: SourceMass,
+    *,
+    generation: int,
+) -> ViewVariants:
     cache_id = id(source)
     with _CACHE_LOCK:
-        cached = _SOURCE_VIEW_CACHE.get(cache_id)
+        cached = (
+            _SOURCE_VIEW_CACHE.get(cache_id)
+            if generation == _CACHE_EPOCH
+            else None
+        )
         if cached is not None and cached.source_ref() is source:
             _SOURCE_VIEW_CACHE.move_to_end(cache_id)
             _CACHE_METRICS["source_view_cache_hit_count"] += 1
             return cached.variants
         if cached is not None:
             _SOURCE_VIEW_CACHE.pop(cache_id, None)
-        future = _SOURCE_VIEW_INFLIGHT.get(cache_id)
+        inflight_key = (generation, cache_id)
+        future = _SOURCE_VIEW_INFLIGHT.get(inflight_key)
         owner = future is None
         if owner:
             future = Future()
-            _SOURCE_VIEW_INFLIGHT[cache_id] = future
+            _SOURCE_VIEW_INFLIGHT[inflight_key] = future
     assert future is not None
     if not owner:
         variants = future.result()
         with _CACHE_LOCK:
-            _CACHE_METRICS["source_view_cache_hit_count"] += 1
+            if generation == _CACHE_EPOCH:
+                _CACHE_METRICS["source_view_cache_hit_count"] += 1
         return variants
 
     try:
@@ -303,25 +318,31 @@ def _source_view_variants(source: SourceMass) -> ViewVariants:
 
         reference = weakref.ref(source, release)
         with _CACHE_LOCK:
-            _CACHE_METRICS["source_view_build_count"] += 1
-            _SOURCE_VIEW_CACHE[cache_id] = _SourceViewEntry(reference, variants)
-            _SOURCE_VIEW_CACHE.move_to_end(cache_id)
-            while len(_SOURCE_VIEW_CACHE) > _SOURCE_VIEW_CACHE_LIMIT:
-                _SOURCE_VIEW_CACHE.popitem(last=False)
+            if generation == _CACHE_EPOCH:
+                _CACHE_METRICS["source_view_build_count"] += 1
+                _SOURCE_VIEW_CACHE[cache_id] = _SourceViewEntry(
+                    reference,
+                    variants,
+                )
+                _SOURCE_VIEW_CACHE.move_to_end(cache_id)
+                while len(_SOURCE_VIEW_CACHE) > _SOURCE_VIEW_CACHE_LIMIT:
+                    _SOURCE_VIEW_CACHE.popitem(last=False)
             future.set_result(variants)
-            _SOURCE_VIEW_INFLIGHT.pop(cache_id, None)
+            _SOURCE_VIEW_INFLIGHT.pop(inflight_key, None)
         return variants
     except BaseException as exc:
         with _CACHE_LOCK:
             future.set_exception(exc)
-            _SOURCE_VIEW_INFLIGHT.pop(cache_id, None)
+            _SOURCE_VIEW_INFLIGHT.pop(inflight_key, None)
         raise
 
 
 def reset_visual_silhouette_cache_metrics() -> None:
     """Reset bounded runtime caches and counters for benchmark instrumentation."""
 
+    global _CACHE_EPOCH
     with _CACHE_LOCK:
+        _CACHE_EPOCH += 1
         _SOURCE_VIEW_CACHE.clear()
         _PAIR_DISTANCE_CACHE.clear()
         for key in _CACHE_METRICS:

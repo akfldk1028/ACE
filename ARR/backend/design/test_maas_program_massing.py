@@ -6,7 +6,7 @@ import weakref
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
-from threading import Barrier
+from threading import Barrier, Event, Lock
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -254,6 +254,72 @@ class MaasProgramMassingTest(SimpleTestCase):
         self.assertEqual(metrics["exact_pair_evaluation_count"], 1)
         self.assertEqual(metrics["source_view_build_count"], 2)
         self.assertEqual(metrics["pair_cache_hit_count"], 7)
+
+    def test_visual_silhouette_reset_isolates_paused_owner_epoch(self):
+        def mass(name: str, xoff: float) -> SourceMass:
+            footprint = box(xoff, 0, xoff + 10, 8)
+            return SourceMass(
+                name,
+                footprint,
+                volumes=(
+                    SourceVolume("body", footprint, 0.0, 1.0, "base"),
+                ),
+            )
+
+        left = mass("reset-left", 0.0)
+        right = mass("reset-right", 20.0)
+        old_owner_started = Event()
+        release_old_owner = Event()
+        pause_lock = Lock()
+        paused_once = False
+        original_key = visual_silhouette.source_visual_silhouette_key
+
+        def paused_key(source):
+            nonlocal paused_once
+            with pause_lock:
+                should_pause = not paused_once
+                if should_pause:
+                    paused_once = True
+            if should_pause:
+                old_owner_started.set()
+                self.assertTrue(release_old_owner.wait(timeout=2.0))
+            return original_key(source)
+
+        visual_silhouette.reset_visual_silhouette_cache_metrics()
+        with (
+            patch.object(
+                visual_silhouette,
+                "source_visual_silhouette_key",
+                side_effect=paused_key,
+            ),
+            ThreadPoolExecutor(max_workers=2) as executor,
+        ):
+            old_result = executor.submit(
+                intrinsic_silhouette_distance,
+                left,
+                right,
+            )
+            self.assertTrue(old_owner_started.wait(timeout=1.0))
+            visual_silhouette.reset_visual_silhouette_cache_metrics()
+            current_result = executor.submit(
+                intrinsic_silhouette_distance,
+                left,
+                right,
+            )
+            try:
+                current_distance = current_result.result(timeout=1.0)
+            finally:
+                release_old_owner.set()
+            self.assertEqual(
+                old_result.result(timeout=1.0),
+                current_distance,
+            )
+
+        metrics = visual_silhouette.visual_silhouette_cache_metrics()
+        self.assertEqual(metrics["exact_pair_evaluation_count"], 1)
+        self.assertEqual(metrics["source_view_build_count"], 2)
+        self.assertEqual(metrics["pair_cache_size"], 1)
+        self.assertEqual(metrics["source_view_cache_size"], 2)
 
     def test_typed_attach_edges_materialize_real_parent_contact(self):
         seed = program_seed_sequences("gymnasium")[0]

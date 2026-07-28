@@ -27,6 +27,7 @@ import {
 import { useSingleMassVlmReview } from './useSingleMassVlmReview';
 import { executionRunCopy } from './execution-mode';
 import { LatestRunRequest } from './run-selection-request';
+import { bindSelectedRuntimePassport } from './selected-runtime-passport';
 import {
   LanguageNetworkCanvas,
   type NetworkEdge,
@@ -714,6 +715,12 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
   }, [isFullscreen]);
 
   const selectedMass = archive?.masses.find((mass) => mass.index === selectedMassIndex) ?? null;
+  const passportBinding = useMemo(
+    () => bindSelectedRuntimePassport(passport, selectedMass),
+    [passport, selectedMass],
+  );
+  const selectedPassport = passportBinding.passport;
+  const selectedPassportError = passportBinding.error || passportError;
   const recentMassCards = useMemo(
     () => archive ? buildRecentMassCards(archive, selectedMassIndex) : [],
     [archive, selectedMassIndex],
@@ -733,8 +740,8 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
     [archive, languageManifest],
   );
   const runtimeGraph = useMemo(
-    () => selectedRuntimeGraph(passport, selectedMass),
-    [passport, selectedMass],
+    () => selectedRuntimeGraph(selectedPassport, selectedMass),
+    [selectedPassport, selectedMass],
   );
   const memoryGraph = useMemo(
     () => agentMemoryGraph(outcomeGraph, archive),
@@ -743,7 +750,7 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
   const graphNodes = useMemo<NetworkNode[]>(() => (
     [
       ...(bookSemanticPath?.nodes ?? []),
-      ...(passport?.activation_graph.nodes.map((node) => {
+      ...(selectedPassport?.activation_graph.nodes.map((node) => {
       const materializedMassImage = node.kind === 'mass_result'
         || node.kind === 'mass_render_result'
         || node.kind === 'elevation_result'
@@ -774,11 +781,11 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
       };
     }) ?? []),
     ]
-  ), [bookSemanticPath, passport, selectedMass?.preview_url]);
+  ), [bookSemanticPath, selectedPassport, selectedMass?.preview_url]);
   const graphEdges = useMemo<NetworkEdge[]>(() => (
     [
       ...(bookSemanticPath?.edges ?? []),
-      ...(passport?.activation_graph.edges.map((edge) => ({
+      ...(selectedPassport?.activation_graph.edges.map((edge) => ({
       id: edge.id,
       source: edge.source,
       target: edge.target,
@@ -786,10 +793,10 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
       scope: edge.activation > 0 ? 'execution' : 'pending',
     })) ?? []),
       ...(() => {
-        if (!passport || !bookSemanticPath) return [];
-        const firstBookNode = passport.activation_graph.nodes.find((node) => node.column === 'book');
+        if (!selectedPassport || !bookSemanticPath) return [];
+        const firstBookNode = selectedPassport.activation_graph.nodes.find((node) => node.column === 'book');
         if (!firstBookNode) return [];
-        const solidInput = passport.activation_graph.edges.find((edge) => edge.target === firstBookNode.id);
+        const solidInput = selectedPassport.activation_graph.edges.find((edge) => edge.target === firstBookNode.id);
         return [
           ...(solidInput ? [{
             id: `book-path:solid:${solidInput.source}:${bookSemanticPath.entryId}`,
@@ -808,7 +815,7 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
         ];
       })(),
     ]
-  ), [bookSemanticPath, passport]);
+  ), [bookSemanticPath, selectedPassport]);
   const stageOrder = useMemo(
     () => EXECUTION_STAGE_ORDER.filter((stage) => graphNodes.some((node) => node.stage === stage)),
     [graphNodes],
@@ -852,14 +859,14 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
       ...memoryGraph.edges.map((edge) => edge.id),
     ]
     : undefined;
-  const vlmStage = passport?.stages.find((stage) => stage.id === 'vlm');
+  const vlmStage = selectedPassport?.stages.find((stage) => stage.id === 'vlm');
   const portfolioVlmAudit = archive?.portfolio_vlm_audit;
   const portfolioVlmEvaluated = Boolean(portfolioVlmAudit?.status && portfolioVlmAudit.status !== 'not_requested');
   const vlmStatusLabel = portfolioVlmEvaluated
     ? `PAID ${portfolioVlmAudit?.hard_pass ? 'PASS' : 'FAIL'}`
     : !vlmStage || vlmStage.status === 'not_evaluated' ? 'OFF' : 'ON';
-  const retrievedReferenceCount = passport?.retrieved_references?.length ?? 0;
-  const activeVlmReferenceCount = passport?.activation_graph.nodes.filter(
+  const retrievedReferenceCount = selectedPassport?.retrieved_references?.length ?? 0;
+  const activeVlmReferenceCount = selectedPassport?.activation_graph.nodes.filter(
     (node) => node.kind === 'vlm_reference_image',
   ).length ?? 0;
 
@@ -994,6 +1001,9 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
       </div>
 
       {archiveError && <div className="maas-language-flow__state" role="alert">{archiveError}</div>}
+      {passportBinding.error && (
+        <div className="maas-language-flow__state" role="alert">{passportBinding.error}</div>
+      )}
       {archive && (
         <nav className="execution-run-timeline" aria-label="MASS 실행 시간순 아카이브">
           <header><span>EXECUTION RUN TIMELINE</span><strong>NEWEST → OLDEST · CLICK TO REPLAY</strong></header>
@@ -1055,7 +1065,7 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
       {archive && graphView !== 'archive' && (selectedMass || graphView === 'full') && (
         <div className="maas-language-flow__workspace maas-language-flow__workspace--geometry">
           <div className="maas-language-flow__viewport" ref={viewportRef} tabIndex={0} aria-label="선택한 MASS의 단일 인과 실행 그래프">
-            {languageManifest && (graphView === 'full' || passport) ? (
+            {languageManifest && (graphView === 'full' || selectedPassport) ? (
               <LanguageNetworkCanvas
                 nodes={displayedNodes}
                 edges={displayedEdges}
@@ -1065,7 +1075,7 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
                 selectionEdgeIds={fullSelectionEdgeIds}
                 axisLabels={['GEOMETRY LANGUAGE', 'MEASURED HARD GATES', 'VISUAL EVIDENCE · FINAL MASS']}
               />
-            ) : <div className="maas-language-flow__state">{passportError || '선택한 MASS 실행 경로를 재생하는 중입니다.'}</div>}
+            ) : <div className="maas-language-flow__state">{selectedPassportError || '선택한 MASS 실행 경로를 재생하는 중입니다.'}</div>}
           </div>
 
           {!compact && selectedMass && (
@@ -1073,8 +1083,8 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
               <ExecutedMassEvidence
                 archive={archive}
                 mass={selectedMass}
-                passport={passport}
-                passportError={passportError}
+                passport={selectedPassport}
+                passportError={selectedPassportError}
                 onExecute={executeSelectedMass}
                 executionState={executionState}
                 executionError={executionError}

@@ -391,7 +391,14 @@ def _evaluate_candidate(
             if clipped is None:
                 original_clipped = True
                 continue
-            if clipped.area < volume.footprint.area - 0.1:
+            containment_epsilon_m2 = max(
+                1e-9,
+                float(volume.footprint.area) * 1e-12,
+            )
+            if (
+                float(volume.footprint.difference(allowed).area)
+                > containment_epsilon_m2
+            ):
                 original_clipped = True
             projected_measure = float(clipped.area) * band_height
             projected_volume_total += projected_measure
@@ -438,6 +445,8 @@ def _evaluate_candidate(
         and shared_floor_contract.get("hard_pass") is not True
     ):
         legal_failures.append("shared_floor_contract_failed")
+    if clipped_volume_count:
+        legal_failures.append("authored_mass_outside_legal_envelope")
     if projected_metrics["bcr_pct"] > envelope.bcr_limit + 0.1:
         legal_failures.append("bcr_limit_exceeded")
     if projected_metrics["far_pct"] > envelope.far_limit + 0.1:

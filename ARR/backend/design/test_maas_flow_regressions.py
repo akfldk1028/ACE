@@ -620,6 +620,11 @@ class MaasFlowRegressionTest(SimpleTestCase):
                 **capacity.metrics,
                 "geometry_authority": "certified_projected_visual_mesh",
                 "capacity_geometry_hash": capacity.geometry_hash,
+                "capacity_replay_metrics": dict(capacity.metrics),
+                "capacity_replay_identity": {
+                    "program_hash": capacity.program.program_hash(),
+                    "geometry_hash": capacity.geometry_hash,
+                },
                 "exact_payload_hash": "e" * 64,
             },
         )
@@ -641,6 +646,24 @@ class MaasFlowRegressionTest(SimpleTestCase):
         self.assertEqual(compiler["status"], "failed")
         self.assertEqual(geometry_gate["status"], "failed")
         self.assertFalse(geometry_gate["evidence"]["hard_pass"])
+        self.assertEqual(
+            geometry_gate["evidence"]["metrics"].get(
+                "capacity_replay_metrics"
+            ),
+            capacity.metrics,
+        )
+        self.assertEqual(
+            geometry_gate["evidence"]["metrics"].get(
+                "capacity_replay_identity"
+            ),
+            {
+                "program_hash": capacity.program.program_hash(),
+                "geometry_hash": capacity.geometry_hash,
+            },
+        )
+        self.assertFalse(
+            geometry_gate["evidence"]["metrics"]["watertight"]
+        )
         self.assertIn(
             "certified_mesh_not_manifold",
             {

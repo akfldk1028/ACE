@@ -176,6 +176,8 @@ def revalidate_compilation_mesh(
             "geometry_authority",
             "exact_payload_hash",
             "capacity_geometry_hash",
+            "capacity_replay_metrics",
+            "capacity_replay_identity",
             "coordinate_space",
         )
         if key in (compilation.metrics or {})

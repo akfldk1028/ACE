@@ -1408,8 +1408,8 @@ class SharedFloorContractTests(SimpleTestCase):
             strategy["layout_candidate"]["grid_solver"]["entrance_verified"]
         )
 
-    def test_smoke_search_stops_only_on_a_floor_valid_base_lineage(self):
-        """A descendant without its BOOK base must not terminate smoke search."""
+    def test_smoke_search_never_stops_before_downstream_hard_gates(self):
+        """Generation cannot prove legal or parking acceptance at this stage."""
         try:
             from design.maas.book_language.candidate_generation import (
                 _eligible_smoke_floor_candidate,
@@ -1424,23 +1424,29 @@ class SharedFloorContractTests(SimpleTestCase):
         capacity_measurement = {"hard_pass": True}
         capacity_target = {"target_hard_pass": True}
         base = SimpleNamespace(
+            status="compiled",
+            volumes=(object(),),
+            surfaces=(object(),),
             metadata={
                 "book_generation_lineage": {
                     "stage": "base",
                     "parent_key": "base-key",
-                }
+                },
             }
         )
         descendant = SimpleNamespace(
+            status="compiled",
+            volumes=(object(),),
+            surfaces=(object(),),
             metadata={
                 "book_generation_lineage": {
                     "stage": "combination",
                     "parent_key": "base-key",
-                }
+                },
             }
         )
 
-        self.assertTrue(
+        self.assertFalse(
             _eligible_smoke_floor_candidate(
                 base,
                 floor_contract,
@@ -1458,7 +1464,7 @@ class SharedFloorContractTests(SimpleTestCase):
                 set(),
             )
         )
-        self.assertTrue(
+        self.assertFalse(
             _eligible_smoke_floor_candidate(
                 descendant,
                 floor_contract,

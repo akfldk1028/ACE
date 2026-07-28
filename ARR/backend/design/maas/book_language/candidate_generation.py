@@ -89,6 +89,21 @@ class _PostBookVlmOnly(RuntimeError):
     """Stop pre-BOOK review after authorship; the exact final solid owns VLM."""
 
 
+def _mass_stage_design_score(
+    *,
+    program_fit_score: float,
+    architectural_score: float,
+    advisory_capacity_score: float | None = None,
+) -> float:
+    """Score MASS design without letting downstream capacity rank the board."""
+
+    _ = advisory_capacity_score
+    return (
+        float(program_fit_score) * 0.56
+        + float(architectural_score) * 0.44
+    )
+
+
 def _eligible_smoke_floor_candidate(
     source: Any,
     shared_floor_contract: dict[str, Any] | None,
@@ -96,33 +111,15 @@ def _eligible_smoke_floor_candidate(
     capacity_projection: dict[str, Any] | None,
     viable_base_keys: set[str],
 ) -> bool:
-    """Stop only on a floor/capacity-valid BOOK candidate with viable lineage."""
-
-    lineage = (
-        source.metadata.get("book_generation_lineage")
-        if isinstance(getattr(source, "metadata", None), dict)
-        else {}
-    ) or {}
-    stage = str(lineage.get("stage") or "")
-    parent_key = str(lineage.get("parent_key") or "")
-    return bool(
-        isinstance(shared_floor_contract, dict)
-        and shared_floor_contract.get("hard_pass") is True
-        and isinstance(capacity_measurement, dict)
-        and capacity_measurement.get("hard_pass") is True
-        and isinstance(capacity_projection, dict)
-        and (
-            capacity_projection.get("selectable_capacity_hard_pass") is True
-            or (
-                "selectable_capacity_hard_pass" not in capacity_projection
-                and capacity_projection.get("target_hard_pass") is True
-            )
-        )
-        and (
-            stage == "base"
-            or (parent_key and parent_key in viable_base_keys)
-        )
+    """Never stop generation from a pre-downstream acceptance proxy."""
+    _ = (
+        source,
+        shared_floor_contract,
+        capacity_measurement,
+        capacity_projection,
+        viable_base_keys,
     )
+    return False
 
 
 def _capacity_pack_retry_eligible(
@@ -1013,7 +1010,13 @@ def _program_pool(
     floor_hard_capacity_utilizations: list[float] = []
     smoke_floor_pass_candidates = 0
     compiler_clean_base_keys: set[str] = set()
-    early_stop_target = max(0, int(stop_after_shared_floor_hard_passes or 0))
+    requested_early_stop_target = max(
+        0,
+        int(stop_after_shared_floor_hard_passes or 0),
+    )
+    # Final legal/parking evidence is created downstream of this generator.
+    # A pre-downstream floor/capacity proxy cannot authorize stopping a page.
+    early_stop_target = 0
     requested_parent_indices = tuple(sorted({max(0, int(index)) for index in parent_variant_indices})) or (0,)
     directed_seeds = _agent_mutated_seeds(
         building_type,
@@ -1940,13 +1943,23 @@ def _program_pool(
                         capacity_alternative,
                         capacity_measurement,
                     )
-                    score = (
-                        float(program["program_fit_score"]) * 0.40
-                        + float(spatial["architectural_score"]) * 0.30
-                        + capacity_score * 0.30
+                    capacity_plan_fit_evidence[
+                        "advisory_capacity_fit_score"
+                    ] = capacity_score
+                    score = _mass_stage_design_score(
+                        program_fit_score=float(program["program_fit_score"]),
+                        architectural_score=float(
+                            spatial["architectural_score"]
+                        ),
+                        advisory_capacity_score=capacity_score,
                     )
                 else:
-                    score = float(program["program_fit_score"]) * 0.56 + float(spatial["architectural_score"]) * 0.44
+                    score = _mass_stage_design_score(
+                        program_fit_score=float(program["program_fit_score"]),
+                        architectural_score=float(
+                            spatial["architectural_score"]
+                        ),
+                    )
                 bridge = source.metadata.get("geometry_program_bridge_evidence") or {}
                 fit_strength = float(bridge.get("legal_fit_strength") or 0.0) if isinstance(bridge, dict) else 0.0
                 # Selection must not reward a legal interpolation that erases
@@ -1962,14 +1975,6 @@ def _program_pool(
                     feature,
                     round(score, 6),
                 ))
-                if _eligible_smoke_floor_candidate(
-                    source,
-                    shared_floor_contract,
-                    capacity_measurement,
-                    source.metadata.get("capacity_alternative_projection"),
-                    compiler_clean_base_keys,
-                ):
-                    smoke_floor_pass_candidates += 1
     accepted = accepted_archive.finalize()
     capacity_stage_counts["qd_stream_compaction_count"] += accepted_archive.compaction_count
     capacity_stage_counts["qd_stream_candidates_released"] += accepted_archive.released_count
@@ -1988,14 +1993,15 @@ def _program_pool(
         "compiled": compiled,
         "clean": clean,
         "program_passed": program_passed,
-        "shared_floor_early_stop": {
-            "active": bool(early_stop_target),
+        "hard_acceptance_early_stop": {
+            "active": False,
             "target": early_stop_target,
-            "observed_program_pass_candidates": smoke_floor_pass_candidates,
-            "stopped_early": bool(
-                early_stop_target
-                and smoke_floor_pass_candidates >= early_stop_target
+            "requested_target": requested_early_stop_target,
+            "disabled_reason": (
+                "final_legal_and_parking_gates_run_after_candidate_generation"
             ),
+            "observed_hard_acceptance_candidates": smoke_floor_pass_candidates,
+            "stopped_early": False,
         },
         "capacity_floor_intersection": {
             "target_and_floor_hard_pass_count": int(

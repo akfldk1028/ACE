@@ -8,13 +8,13 @@ import tempfile
 import hashlib
 import json
 import uuid
-from math import cos, radians, sin, sqrt
+from math import cos, isfinite, radians, sin, sqrt
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-from shapely.geometry import shape
+from shapely.geometry import Point, shape
 
 from .mesh_rasterizer import RasterTriangle, rasterize_depth_tested_triangles
 
@@ -30,6 +30,7 @@ from design.maas.preference.reference_corpus import (
 )
 from design.maas.preference.vlm_scorer import VLM_PROMPT_CONTRACT_VERSION, score_candidate_with_openai_vlm
 from design.maas.source_geometry.ir import SourceSurface
+from design.services.site_geometry import geojson_to_polygon, utm_to_wgs84, wgs84_to_utm
 
 
 Feature = dict[str, Any]
@@ -323,8 +324,7 @@ def _require_certified_authored_visual(props: dict[str, Any]) -> None:
         for record in raw_surfaces
         if (
             isinstance(record, dict)
-            and str(record.get("surface_type") or "")
-            == "profiled_recursive_solid_mesh"
+            and str(record.get("surface_type") or "").startswith("profiled_")
         )
     ]
     signature = (
@@ -389,21 +389,36 @@ def _require_certified_authored_visual(props: dict[str, Any]) -> None:
 
 
 def _surface_vertices_world(surface: dict[str, Any], feature: Feature) -> list[list[float]]:
-    vertices = surface.get("vertices_world_m")
-    if isinstance(vertices, list) and vertices:
-        return vertices
     local = surface.get("vertices_m")
     if not isinstance(local, list) or not local:
         return []
-    geometry = feature.get("geometry") or {}
     try:
-        geom = shape(geometry)
-        centroid = geom.centroid
-        cx, cy = float(centroid.x), float(centroid.y)
-    except Exception:
-        return []
-    height = float((feature.get("properties") or {}).get("height") or 1.0)
-    return [[cx + float(vertex[0]), cy + float(vertex[1]), height * float(vertex[2])] for vertex in local if isinstance(vertex, list) and len(vertex) >= 3]
+        ground = wgs84_to_utm(geojson_to_polygon(feature.get("geometry")))
+        origin = ground.centroid
+        height = float((feature.get("properties") or {}).get("height") or 0.0)
+        if height <= 0.0 or not isfinite(height):
+            raise ValueError
+        vertices: list[list[float]] = []
+        for raw_vertex in local:
+            if not isinstance(raw_vertex, list) or len(raw_vertex) != 3:
+                raise ValueError
+            x, y, z = (float(value) for value in raw_vertex)
+            if not all(isfinite(value) for value in (x, y, z)):
+                raise ValueError
+            world = utm_to_wgs84(Point(
+                float(origin.x) + x,
+                float(origin.y) + y,
+            ))
+            vertices.append([
+                round(float(world.x), 8),
+                round(float(world.y), 8),
+                round(height * z, 4),
+            ])
+        return vertices
+    except (TypeError, ValueError):
+        raise ValueError(
+            "certified profiled visual mesh has invalid local coordinates"
+        ) from None
 
 
 def _vlm_cache_key(feature: Feature, reference_matches: list[dict[str, Any]], model: str | None) -> str:
@@ -427,6 +442,7 @@ def _vlm_cache_key(feature: Feature, reference_matches: list[dict[str, Any]], mo
             "portfolio_diversity_context": props.get("portfolio_diversity_context") or {},
         },
         "geometry": feature.get("geometry"),
+        "height": props.get("height"),
         "volumes": [
             {
                 "geometry": item.get("geometry"),
@@ -446,7 +462,6 @@ def _vlm_cache_key(feature: Feature, reference_matches: list[dict[str, Any]], mo
                 "surface_type": item.get("surface_type"),
                 "operator": item.get("operator"),
                 "vertices_m": item.get("vertices_m"),
-                "vertices_world_m": item.get("vertices_world_m"),
             }
             for item in surfaces if isinstance(item, dict)
         ],

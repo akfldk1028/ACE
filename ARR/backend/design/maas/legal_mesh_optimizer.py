@@ -16,7 +16,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from shapely.geometry import LineString, box, mapping, shape
+from shapely.geometry import LineString, Point, box, mapping, shape
 from shapely.affinity import rotate as shapely_rotate, scale as shapely_scale, translate as shapely_translate
 from shapely.ops import unary_union
 
@@ -39,6 +39,9 @@ from design.maas.agents.llm_architect_agent import LLMArchitectAgent
 from design.maas.agents.massdsl_agent import build_massdsl_proposal
 from design.maas.floor_groups import build_floor_groups
 from design.maas.final_floorwise_legal import revalidate_final_floorwise_feature
+from design.maas.geometry_language.floorwise_visual_projection import (
+    projected_surface_visual_hash,
+)
 from design.maas.evolution import evolve_massdsl_islands, run_critic_geometry_loop
 from design.maas.evolution.island_loop import sequence_from_variant
 from design.maas.grammar import VerbCall, VerbSequence, generate_grammar_variants, get_sequence_label
@@ -77,6 +80,7 @@ from design.maas.preference import (
 from design.maas.program_massing import attach_program_massing_evidence
 from design.maas.research_backends import d4descent_design_evidence
 from design.maas.source_geometry import SourceVolume, evaluate_source_volume_coherence
+from design.maas.source_geometry.ir import SourceSurface
 from design.maas.seed_library import generate_seed_variants, seed_library_metadata
 from design.maas.selection.integer_projection import ProjectionDescriptor, solve_final_integer_projection
 from design.maas.selection.visual_similarity import visual_precedent_signature
@@ -2191,6 +2195,103 @@ def _promote_legal_floor_stack_source_geometry(feature: dict[str, Any]) -> None:
     )
 
 
+def _rebind_projected_surfaces_after_piloti_void(
+    feature: dict[str, Any],
+    *,
+    void_height: float,
+) -> None:
+    props = feature.get("properties")
+    props = props if isinstance(props, dict) else {}
+    records = props.get("source_surfaces")
+    if not isinstance(records, list):
+        return
+    profiled_records = [
+        record
+        for record in records
+        if (
+            isinstance(record, dict)
+            and str(record.get("surface_type") or "").startswith("profiled_")
+        )
+    ]
+    if not profiled_records:
+        return
+    model = props.get("maas_model")
+    model = model if isinstance(model, dict) else {}
+    certificate = props.get("floorwise_visual_projection")
+    if not isinstance(certificate, dict):
+        certificate = model.get("floorwise_visual_projection")
+    if (
+        not isinstance(certificate, dict)
+        or certificate.get("schema_version")
+        != "arr.maas.floorwise_visual_projection.v1"
+        or certificate.get("status") != "certified"
+        or certificate.get("hard_pass") is not True
+    ):
+        raise ValueError("piloti authored visual projection is not certified")
+    try:
+        height = float(props.get("height"))
+        if height <= 0.0:
+            raise ValueError
+        minimum_z = float(void_height) / height
+        ground = wgs84_to_utm(geojson_to_polygon(feature.get("geometry")))
+        origin = ground.centroid
+        rebound_records: list[dict[str, Any]] = []
+        rebound_surfaces: list[SourceSurface] = []
+        for record in records:
+            if (
+                not isinstance(record, dict)
+                or not str(record.get("surface_type") or "").startswith("profiled_")
+            ):
+                rebound_records.append(copy.deepcopy(record))
+                continue
+            raw_vertices = record.get("vertices_m")
+            if not isinstance(raw_vertices, list) or len(raw_vertices) != 3:
+                raise ValueError
+            local_vertices: list[list[float]] = []
+            world_vertices: list[list[float]] = []
+            for raw_vertex in raw_vertices:
+                if not isinstance(raw_vertex, list) or len(raw_vertex) != 3:
+                    raise ValueError
+                x, y, z = (float(value) for value in raw_vertex)
+                z = max(z, minimum_z)
+                local_vertices.append([x, y, z])
+                world = utm_to_wgs84(Point(
+                    float(origin.x) + x,
+                    float(origin.y) + y,
+                ))
+                world_vertices.append([
+                    round(float(world.x), 8),
+                    round(float(world.y), 8),
+                    round(height * z, 4),
+                ])
+            rebound_record = copy.deepcopy(record)
+            rebound_record["vertices_m"] = local_vertices
+            rebound_record["vertices_world_m"] = world_vertices
+            rebound_records.append(rebound_record)
+            rebound_surfaces.append(SourceSurface(
+                role=str(rebound_record.get("role") or ""),
+                volume_role=str(rebound_record.get("volume_role") or ""),
+                verb=str(rebound_record.get("verb") or ""),
+                surface_type=str(rebound_record.get("surface_type") or ""),
+                vertices_m=tuple(tuple(vertex) for vertex in local_vertices),
+                operator=str(rebound_record.get("operator") or "extrude"),
+                semantic_patch_id=str(
+                    rebound_record.get("semantic_patch_id") or ""
+                ),
+            ))
+    except (TypeError, ValueError):
+        raise ValueError("piloti authored visual projection is malformed") from None
+    rebound_certificate = copy.deepcopy(certificate)
+    rebound_certificate["visual_hash"] = projected_surface_visual_hash(
+        tuple(rebound_surfaces)
+    )
+    rebound_certificate["projected_surface_count"] = len(rebound_surfaces)
+    props["source_surfaces"] = rebound_records
+    props["floorwise_visual_projection"] = rebound_certificate
+    model["source_surfaces"] = copy.deepcopy(rebound_records)
+    model["floorwise_visual_projection"] = copy.deepcopy(rebound_certificate)
+
+
 def _apply_piloti_parking_void(feature: dict[str, Any]) -> None:
     props = feature.setdefault("properties", {})
     strategy = str(props.get("parking_strategy") or "")
@@ -2269,6 +2370,10 @@ def _apply_piloti_parking_void(feature: dict[str, Any]) -> None:
         model["volumes"] = updated
         model["source_volumes"] = copy.deepcopy(updated)
         model["parking_piloti_void"] = props["parking_piloti_void"]
+    _rebind_projected_surfaces_after_piloti_void(
+        feature,
+        void_height=void_height,
+    )
     evidence = props.get("floorwise_legal_evidence")
     if isinstance(evidence, dict):
         subtractions = evidence.get("post_validation_subtractions")

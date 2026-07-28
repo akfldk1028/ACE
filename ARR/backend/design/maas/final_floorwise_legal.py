@@ -239,7 +239,7 @@ def _has_authored_profiled_visual(
     authored_source: SourceMass | None,
 ) -> bool:
     if authored_source is not None and any(
-        surface.surface_type == "profiled_recursive_solid_mesh"
+        surface.surface_type.startswith("profiled_")
         for surface in authored_source.surfaces
     ):
         return True
@@ -252,8 +252,7 @@ def _has_authored_profiled_visual(
         surfaces = model.get("source_surfaces")
     return any(
         isinstance(surface, dict)
-        and str(surface.get("surface_type") or "")
-        == "profiled_recursive_solid_mesh"
+        and str(surface.get("surface_type") or "").startswith("profiled_")
         for surface in surfaces or ()
     )
 

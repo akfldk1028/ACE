@@ -292,14 +292,38 @@ def _validated_projected_visual_compilation(
         raise ValueError("capacity replay GeometryProgram identity mismatch")
 
     stored = _mapping(artifact.get("compilation"))
+    fresh_capacity = compile_geometry_program(program)
+    if (
+        fresh_capacity.status != "compiled"
+        or str(stored.get("geometry_hash") or "")
+        != fresh_capacity.geometry_hash
+    ):
+        raise ValueError("capacity replay compilation identity mismatch")
+    stored_metrics = _mapping(stored.get("metrics"))
+    for key in (
+        "bounds",
+        "volume",
+        "watertight",
+        "manifold",
+        "closed_solid",
+        "self_intersection_checked_by_kernel",
+        "outward_normals",
+        "vertex_count",
+        "triangle_count",
+        "component_count",
+    ):
+        if stored_metrics.get(key) != fresh_capacity.metrics.get(key):
+            raise ValueError(
+                f"capacity replay compilation metrics mismatch: {key}"
+            )
     metrics = {
         "vertex_count": len(validated.vertices),
         "triangle_count": len(validated.triangles),
         "coordinate_space": validated.coordinate_space,
         "geometry_authority": "certified_projected_visual_mesh",
         "exact_payload_hash": validated.exact_payload_hash,
-        "capacity_geometry_hash": str(stored.get("geometry_hash") or ""),
-        "capacity_replay_metrics": _mapping(stored.get("metrics")),
+        "capacity_geometry_hash": fresh_capacity.geometry_hash,
+        "capacity_replay_metrics": dict(fresh_capacity.metrics),
     }
     trace = tuple({
         "node_id": node.id,

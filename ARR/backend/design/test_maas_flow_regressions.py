@@ -646,6 +646,46 @@ class MaasFlowRegressionTest(SimpleTestCase):
             capacity_hash,
         )
 
+    def test_projected_archive_rejects_tampered_stored_capacity_hash(self):
+        artifact, _visual_hash = self._projected_visual_artifact()
+        artifact["compilation"]["geometry_hash"] = "0" * 64
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_id, _preview = self._write_projected_visual_archive(
+                root,
+                artifact=artifact,
+                run_id="book-program-portfolios-tampered-capacity-hash",
+            )
+            with patch(
+                "design.maas.geometry_language.executed_archive.workspace_root",
+                return_value=root,
+            ):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "capacity replay compilation identity mismatch",
+                ):
+                    compile_executed_mass(1, run_id)
+
+    def test_projected_archive_rejects_tampered_stored_capacity_bounds(self):
+        artifact, _visual_hash = self._projected_visual_artifact()
+        artifact["compilation"]["metrics"]["bounds"][1][2] = 100.0
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_id, _preview = self._write_projected_visual_archive(
+                root,
+                artifact=artifact,
+                run_id="book-program-portfolios-tampered-capacity-bounds",
+            )
+            with patch(
+                "design.maas.geometry_language.executed_archive.workspace_root",
+                return_value=root,
+            ):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "capacity replay compilation metrics mismatch",
+                ):
+                    compile_executed_mass(1, run_id)
+
     def test_authored_profiled_source_without_projection_certificate_fails_closed(self):
         source = replace(
             self._real_task1_projected_visual_source(),

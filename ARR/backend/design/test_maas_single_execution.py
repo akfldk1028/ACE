@@ -1063,6 +1063,68 @@ class MaasSingleExecutionTest(SimpleTestCase):
                     output_root=directory,
                 )
 
+    def test_single_execution_replay_rejects_nonunit_intermediate_mass_index(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory:
+            execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="origin-link",
+                execution_mode="exact_replay",
+                source_run_id="portfolio-source",
+                source_mass_index=1,
+                validated_compilation=certified,
+            )
+            execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="requested-link",
+                execution_mode="exact_replay",
+                source_run_id="single-execution:origin-link",
+                source_mass_index=1,
+                validated_compilation=certified,
+            )
+            manifest_path = Path(directory) / "requested-link" / "execution.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["source_mass_index"] = 2
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                Exception,
+                "single execution source mass index must equal 1",
+            ):
+                call_command(
+                    "execute_maas_single_mass",
+                    run_id="single-execution:requested-link",
+                    mass_index=1,
+                    execution_id="cli-index-tamper",
+                    output_root=directory,
+                )
+
+    def test_single_execution_replay_rejects_nonzero_terminal_mass_index(self):
+        with TemporaryDirectory() as directory:
+            execute_single_mass(
+                _box_program(),
+                output_root=directory,
+                execution_id="terminal",
+            )
+            manifest_path = Path(directory) / "terminal" / "execution.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["source_mass_index"] = 1
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                Exception,
+                "terminal source mass index must equal 0",
+            ):
+                call_command(
+                    "execute_maas_single_mass",
+                    run_id="single-execution:terminal",
+                    mass_index=1,
+                    execution_id="cli-terminal-index-tamper",
+                    output_root=directory,
+                )
+
     def test_single_execution_is_replayed_through_the_existing_mass_archive_contract(self):
         with TemporaryDirectory() as directory:
             with override_settings(MAAS_SINGLE_EXECUTION_ROOT=directory):

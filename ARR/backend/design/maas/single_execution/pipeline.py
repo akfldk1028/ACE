@@ -501,6 +501,10 @@ def resolve_single_execution_replay(
         origin_run_id = str(manifest.get("source_run_id") or "")
         origin_mass_index = int(manifest.get("source_mass_index") or 0)
         if not origin_run_id:
+            if origin_mass_index != 0:
+                raise ValueError(
+                    "single execution terminal source mass index must equal 0"
+                )
             capacity = compile_geometry_program(program)
             if capacity.geometry_hash == geometry_hash:
                 return requested_program, requested_passport, None
@@ -510,6 +514,10 @@ def resolve_single_execution_replay(
         if origin_mass_index < 1:
             raise ValueError("single execution replay source identity is incomplete")
         if origin_run_id.startswith("single-execution:"):
+            if origin_mass_index != 1:
+                raise ValueError(
+                    "single execution source mass index must equal 1"
+                )
             current_run_id = origin_run_id
             continue
         compilation, _, _, _ = compile_archive(

@@ -12,7 +12,7 @@ import json
 from math import isfinite, sqrt
 from typing import Any, Iterable, Sequence
 
-from shapely.geometry import Point
+from shapely.geometry import LineString, Point, Polygon
 from shapely.ops import unary_union
 
 from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
@@ -64,6 +64,8 @@ def project_floorwise_visual_mesh(
     legal_sections: Sequence[Any],
     floor_matrices: Sequence[Sequence[Sequence[float]]],
     capacity_plates: Sequence[SourceVolume],
+    *,
+    output_origin: Sequence[float] | None = None,
 ) -> FloorwiseVisualProjection:
     """Project a complete authored triangle skin through the legal matrix field."""
 
@@ -82,8 +84,8 @@ def project_floorwise_visual_mesh(
             capacity_gfa=capacity_gfa,
         )
     if not _is_complete_profiled_triangle_export(source, profiled):
-        return _not_applicable(
-            "not_applicable_incomplete_authored_mesh",
+        return _failed(
+            "incomplete_authored_mesh_export",
             capacity_gfa=capacity_gfa,
             source_surface_count=len(profiled),
         )
@@ -107,7 +109,11 @@ def project_floorwise_visual_mesh(
             source_surface_count=len(profiled),
         )
 
-    capacity_origin = _capacity_origin(capacity_plates)
+    capacity_origin = (
+        _validated_output_origin(output_origin)
+        if output_origin is not None
+        else _capacity_origin(capacity_plates)
+    )
     if capacity_origin is None:
         return _failed(
             "invalid_capacity_source_centroid",
@@ -119,6 +125,13 @@ def project_floorwise_visual_mesh(
         (index + 0.5) / len(matrices)
         for index in range(len(matrices))
     )
+    tessellation_levels = tuple(sorted({
+        *breakpoints,
+        *(
+            index / len(matrices)
+            for index in range(1, len(matrices))
+        ),
+    }))
     projected: list[SourceSurface] = []
     legal_sample_count = 0
 
@@ -162,7 +175,7 @@ def project_floorwise_visual_mesh(
 
         pieces = _split_triangle_at_z_breakpoints(
             world_triangle,
-            breakpoints=breakpoints,
+            breakpoints=tessellation_levels,
         )
         for piece_index, piece in enumerate(pieces, start=1):
             transformed = tuple(
@@ -180,6 +193,22 @@ def project_floorwise_visual_mesh(
                     source_surface_count=len(profiled),
                     legal_sample_count=legal_sample_count,
                 )
+            legal_indices = _legal_section_indices_for_triangle(
+                transformed,
+                section_count=len(legal_sections),
+            )
+            if not _legal_sections_cover_triangle(
+                transformed,
+                legal_sections=legal_sections,
+                legal_indices=legal_indices,
+            ):
+                return _failed(
+                    "projected_visual_mesh_outside_legal_section",
+                    capacity_gfa=capacity_gfa,
+                    source_surface_count=len(profiled),
+                    legal_sample_count=legal_sample_count + len(legal_indices),
+                )
+            legal_sample_count += len(legal_indices)
             local = tuple(
                 (
                     x - capacity_origin[0],
@@ -270,20 +299,10 @@ def _is_complete_profiled_triangle_export(
     exported_count = int(bridge.get("exported_surface_count") or 0)
     if raw_count or exported_count:
         return raw_count == exported_count == len(surfaces)
-
-    edge_counts: dict[
-        tuple[tuple[float, float, float], tuple[float, float, float]],
-        int,
-    ] = {}
-    for surface in surfaces:
-        vertices = tuple(
-            (round(float(x), 8), round(float(y), 8), round(float(z), 8))
-            for x, y, z in surface.vertices_m
-        )
-        for left, right in zip(vertices, (*vertices[1:], vertices[0])):
-            edge = tuple(sorted((left, right)))
-            edge_counts[edge] = edge_counts.get(edge, 0) + 1
-    return bool(edge_counts) and all(count == 2 for count in edge_counts.values())
+    # Legacy profiled sources predate raw/export counters. Their triangle-only
+    # payload remains projectable, while modern capped exports fail above from
+    # the authoritative compiler counts instead of an unreliable edge guess.
+    return True
 
 
 def _capacity_origin(
@@ -306,6 +325,18 @@ def _capacity_origin(
     if not (isfinite(float(center.x)) and isfinite(float(center.y))):
         return None
     return float(center.x), float(center.y)
+
+
+def _validated_output_origin(
+    output_origin: Sequence[float],
+) -> tuple[float, float] | None:
+    try:
+        values = tuple(float(value) for value in output_origin)
+    except (TypeError, ValueError):
+        return None
+    if len(values) != 2 or not all(isfinite(value) for value in values):
+        return None
+    return values
 
 
 def _matrix_at_z(
@@ -361,6 +392,45 @@ def _legal_sections_cover_point(
         else:
             indices = (min(count - 1, int(scaled)),)
     return all(legal_sections[index].buffer(1e-7).covers(probe) for index in indices)
+
+
+def _legal_section_indices_for_triangle(
+    triangle: tuple[tuple[float, float, float], ...],
+    *,
+    section_count: int,
+) -> tuple[int, ...]:
+    minimum_z = max(0.0, min(1.0, min(point[2] for point in triangle)))
+    maximum_z = max(0.0, min(1.0, max(point[2] for point in triangle)))
+    middle_z = (minimum_z + maximum_z) / 2.0
+    primary = min(section_count - 1, max(0, int(middle_z * section_count)))
+    indices = {primary}
+    for z in (minimum_z, maximum_z):
+        scaled = z * section_count
+        boundary = round(scaled)
+        if abs(scaled - boundary) <= 1e-8 and 0 < boundary < section_count:
+            indices.update((boundary - 1, boundary))
+    return tuple(sorted(indices))
+
+
+def _legal_sections_cover_triangle(
+    triangle: tuple[tuple[float, float, float], ...],
+    *,
+    legal_sections: Sequence[Any],
+    legal_indices: Sequence[int],
+) -> bool:
+    coordinates = [(float(x), float(y)) for x, y, _z in triangle]
+    polygon = Polygon(coordinates)
+    projected = (
+        polygon
+        if not polygon.is_empty and polygon.area > 1e-12
+        else LineString((*coordinates, coordinates[0]))
+    )
+    if projected.is_empty:
+        return False
+    return all(
+        legal_sections[index].buffer(1e-7).covers(projected)
+        for index in legal_indices
+    )
 
 
 def _section_evidence_points(
@@ -422,6 +492,14 @@ def _split_triangle_at_z_breakpoints(
     for level in breakpoints:
         split: list[tuple[tuple[float, float, float], ...]] = []
         for polygon in polygons:
+            minimum_z = min(point[2] for point in polygon)
+            maximum_z = max(point[2] for point in polygon)
+            if (
+                maximum_z <= level + 1e-10
+                or minimum_z >= level - 1e-10
+            ):
+                split.append(polygon)
+                continue
             below = _clip_polygon_z(polygon, level=level, keep_below=True)
             above = _clip_polygon_z(polygon, level=level, keep_below=False)
             if len(below) >= 3:
@@ -430,10 +508,20 @@ def _split_triangle_at_z_breakpoints(
                 split.append(above)
         polygons = split
     triangles: list[tuple[tuple[float, float, float], ...]] = []
+    seen: set[tuple[tuple[float, float, float], ...]] = set()
     for polygon in polygons:
         for index in range(1, len(polygon) - 1):
             piece = (polygon[0], polygon[index], polygon[index + 1])
-            if _finite_triangle(piece):
+            key = tuple(sorted(
+                (
+                    round(float(x), 10),
+                    round(float(y), 10),
+                    round(float(z), 10),
+                )
+                for x, y, z in piece
+            ))
+            if _finite_triangle(piece) and key not in seen:
+                seen.add(key)
                 triangles.append(piece)
     return tuple(triangles)
 

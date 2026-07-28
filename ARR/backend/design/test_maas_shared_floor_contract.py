@@ -104,6 +104,52 @@ def _authored_profiled_box_source(
     )
 
 
+def _authored_profiled_triangle_source(
+    name: str,
+    *,
+    world_vertices: tuple[tuple[float, float, float], ...],
+    footprint: Polygon,
+    raw_mesh_triangle_count: int = 1,
+    exported_surface_count: int = 1,
+) -> SourceMass:
+    origin = footprint.centroid
+    surface = SourceSurface(
+        role="mesh_triangle",
+        volume_role="recursive_primary",
+        verb="geometry_program",
+        surface_type="profiled_recursive_solid_mesh",
+        vertices_m=tuple(
+            (x - float(origin.x), y - float(origin.y), z)
+            for x, y, z in world_vertices
+        ),
+        operator="loft",
+        semantic_patch_id="recursive_primary:profiled_triangle",
+    )
+    return SourceMass(
+        name=name,
+        footprint=footprint,
+        volumes=(
+            SourceVolume(
+                "recursive_primary",
+                footprint,
+                0.0,
+                1.0,
+                "geometry_program",
+            ),
+        ),
+        surfaces=(surface,),
+        metadata={"geometry_program_bridge_evidence": {
+            "status": "materialized",
+            "program_hash": f"{name}-program",
+            "geometry_hash": f"{name}-geometry",
+            "authoritative_visual_geometry": "manifold_compilation_mesh",
+            "raw_mesh_triangle_count": raw_mesh_triangle_count,
+            "exported_surface_count": exported_surface_count,
+            "surface_coordinate_frame": "source_footprint_centroid_local",
+        }},
+    )
+
+
 class SharedFloorContractTests(SimpleTestCase):
     def test_shared_floor_contract_repairs_non_noded_candidate_topology(self):
         from design.maas.shared_floor_contract import materialize_shared_floor_contract
@@ -829,6 +875,165 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertTrue(three_quarter_x)
         self.assertAlmostEqual(max(quarter_x), 5.0, delta=1e-8)
         self.assertAlmostEqual(max(three_quarter_x), 15.0, delta=1e-8)
+
+    def test_floorwise_visual_projection_rejects_capped_profiled_export(self):
+        """A capped profiled export is a failed mesh, never proxy-only success."""
+        from design.maas.geometry_language.affine_matrix import identity_matrix4
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            project_floorwise_visual_mesh,
+        )
+
+        source = _authored_profiled_box_source("capped_visual_mesh")
+        bridge = dict(source.metadata["geometry_program_bridge_evidence"])
+        bridge["raw_mesh_triangle_count"] = len(source.surfaces) + 1
+        metadata = dict(source.metadata)
+        metadata["geometry_program_bridge_evidence"] = bridge
+        source = replace(source, metadata=metadata)
+        legal = box(-20.0, -20.0, 20.0, 20.0)
+
+        result = project_floorwise_visual_mesh(
+            source,
+            legal_sections=(legal,),
+            floor_matrices=(identity_matrix4(),),
+            capacity_plates=source.volumes,
+        )
+
+        self.assertFalse(result.certificate.hard_pass)
+        self.assertEqual(result.certificate.status, "failed")
+        self.assertIn(
+            "incomplete_authored_mesh_export",
+            result.certificate.failure_reasons,
+        )
+        self.assertEqual(result.surfaces, ())
+
+    def test_floorwise_visual_projection_rejects_triangle_crossing_legal_hole(self):
+        """Point-safe vertices must not hide a triangle crossing a legal void."""
+        from design.maas.geometry_language.affine_matrix import identity_matrix4
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            project_floorwise_visual_mesh,
+        )
+
+        footprint = box(-1.0, -1.0, 11.0, 11.0)
+        source = _authored_profiled_triangle_source(
+            "hole_crossing_visual_mesh",
+            world_vertices=(
+                (0.0, 0.0, 0.5),
+                (10.0, 0.0, 0.5),
+                (0.0, 10.0, 0.5),
+            ),
+            footprint=footprint,
+        )
+        legal = footprint.difference(box(1.5, 1.5, 2.5, 2.5))
+
+        result = project_floorwise_visual_mesh(
+            source,
+            legal_sections=(legal,),
+            floor_matrices=(identity_matrix4(),),
+            capacity_plates=(
+                SourceVolume(
+                    "recursive_primary",
+                    legal,
+                    0.0,
+                    1.0,
+                    "floorwise_legal_matrix4",
+                ),
+            ),
+        )
+
+        self.assertFalse(result.certificate.hard_pass)
+        self.assertIn(
+            "projected_visual_mesh_outside_legal_section",
+            result.certificate.failure_reasons,
+        )
+        self.assertEqual(result.surfaces, ())
+
+    def test_floorwise_visual_projection_uses_explicit_final_footprint_origin(self):
+        """Disconnected capacity evidence must not move final SourceMass-local mesh."""
+        from design.maas.geometry_language.affine_matrix import identity_matrix4
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            project_floorwise_visual_mesh,
+        )
+
+        source = _authored_profiled_box_source("explicit_visual_origin")
+        legal = box(-30.0, -30.0, 30.0, 30.0)
+        capacity_plates = (
+            SourceVolume(
+                "recursive_primary",
+                box(-5.0, -5.0, 5.0, 5.0),
+                0.0,
+                1.0,
+                "floorwise_legal_matrix4",
+            ),
+            SourceVolume(
+                "recursive_primary",
+                box(20.0, 0.0, 22.0, 2.0),
+                0.0,
+                1.0,
+                "floorwise_legal_matrix4",
+            ),
+        )
+
+        result = project_floorwise_visual_mesh(
+            source,
+            legal_sections=(legal,),
+            floor_matrices=(identity_matrix4(),),
+            capacity_plates=capacity_plates,
+            output_origin=(0.0, 0.0),
+        )
+
+        self.assertTrue(result.certificate.hard_pass, result.certificate)
+        all_x = [
+            x
+            for surface in result.surfaces
+            for x, _y, _z in surface.vertices_m
+        ]
+        self.assertAlmostEqual(min(all_x), -5.0, delta=1e-8)
+        self.assertAlmostEqual(max(all_x), 5.0, delta=1e-8)
+
+    def test_floorwise_visual_projection_deduplicates_coplanar_breakpoint_pieces(self):
+        """A triangle on a Matrix4 breakpoint must be emitted exactly once."""
+        from design.maas.geometry_language.affine_matrix import identity_matrix4
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            project_floorwise_visual_mesh,
+        )
+
+        footprint = box(-5.0, -5.0, 5.0, 5.0)
+        source = _authored_profiled_triangle_source(
+            "coplanar_breakpoint_visual_mesh",
+            world_vertices=(
+                (-4.0, -4.0, 0.25),
+                (4.0, -4.0, 0.25),
+                (-4.0, 4.0, 0.25),
+            ),
+            footprint=footprint,
+        )
+        legal = box(-20.0, -20.0, 20.0, 20.0)
+
+        result = project_floorwise_visual_mesh(
+            source,
+            legal_sections=(legal, legal),
+            floor_matrices=(identity_matrix4(), identity_matrix4()),
+            capacity_plates=(
+                SourceVolume(
+                    "recursive_primary",
+                    footprint,
+                    0.0,
+                    0.5,
+                    "floorwise_legal_matrix4",
+                ),
+                SourceVolume(
+                    "recursive_primary",
+                    footprint,
+                    0.5,
+                    1.0,
+                    "floorwise_legal_matrix4",
+                ),
+            ),
+        )
+
+        self.assertTrue(result.certificate.hard_pass, result.certificate)
+        self.assertEqual(result.certificate.projected_surface_count, 1)
+        self.assertEqual(len(result.surfaces), 1)
 
     def test_mesh_fit_containment_uses_occupied_triangles_not_convex_hull_void(self):
         """A legal U/wing plan must not fail because its empty hull crosses a court."""

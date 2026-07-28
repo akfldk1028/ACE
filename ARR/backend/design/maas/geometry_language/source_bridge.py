@@ -515,6 +515,10 @@ def materialize_floorwise_legal_source(
             if fitted is not None
         ),
         capacity_plates=tuple(volumes),
+        output_origin=(
+            float(ground.centroid.x),
+            float(ground.centroid.y),
+        ),
     )
     if not visual_projection.certificate.hard_pass:
         return None

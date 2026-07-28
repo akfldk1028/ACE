@@ -708,6 +708,8 @@ class SharedFloorContractTests(SimpleTestCase):
                     "program_hash": name,
                     "geometry_hash": name,
                     "authoritative_visual_geometry": "manifold_compilation_mesh",
+                    "raw_mesh_triangle_count": len(triangles),
+                    "exported_surface_count": len(surfaces),
                 }},
             )
 
@@ -1034,6 +1036,90 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertTrue(result.certificate.hard_pass, result.certificate)
         self.assertEqual(result.certificate.projected_surface_count, 1)
         self.assertEqual(len(result.surfaces), 1)
+
+    def test_floorwise_visual_projection_allows_lower_piece_at_upper_setback(self):
+        """A lower-floor face may widen below a legal upper setback boundary."""
+        from design.maas.geometry_language.affine_matrix import identity_matrix4
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            project_floorwise_visual_mesh,
+        )
+
+        lower_legal = box(-5.0, -5.0, 5.0, 5.0)
+        upper_legal = box(-2.0, -2.0, 2.0, 2.0)
+        source = _authored_profiled_triangle_source(
+            "legal_lower_wider_than_upper",
+            world_vertices=(
+                (-4.0, -4.0, 0.0),
+                (-1.0, 0.0, 0.5),
+                (1.0, 0.0, 0.5),
+            ),
+            footprint=lower_legal,
+        )
+
+        result = project_floorwise_visual_mesh(
+            source,
+            legal_sections=(lower_legal, upper_legal),
+            floor_matrices=(identity_matrix4(), identity_matrix4()),
+            capacity_plates=(
+                SourceVolume(
+                    "recursive_primary",
+                    lower_legal,
+                    0.0,
+                    0.5,
+                    "floorwise_legal_matrix4",
+                ),
+                SourceVolume(
+                    "recursive_primary",
+                    upper_legal,
+                    0.5,
+                    1.0,
+                    "floorwise_legal_matrix4",
+                ),
+            ),
+            output_origin=(0.0, 0.0),
+        )
+
+        self.assertTrue(result.certificate.hard_pass, result.certificate)
+        self.assertTrue(result.surfaces)
+
+    def test_floorwise_visual_projection_rejects_unproven_legacy_open_mesh(self):
+        """Missing export counts cannot certify an open legacy triangle as complete."""
+        from design.maas.geometry_language.affine_matrix import identity_matrix4
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            project_floorwise_visual_mesh,
+        )
+
+        legal = box(-5.0, -5.0, 5.0, 5.0)
+        source = _authored_profiled_triangle_source(
+            "unproven_open_legacy_mesh",
+            world_vertices=(
+                (-2.0, -2.0, 0.5),
+                (2.0, -2.0, 0.5),
+                (-2.0, 2.0, 0.5),
+            ),
+            footprint=legal,
+        )
+        bridge = dict(source.metadata["geometry_program_bridge_evidence"])
+        bridge.pop("raw_mesh_triangle_count")
+        bridge.pop("exported_surface_count")
+        metadata = dict(source.metadata)
+        metadata["geometry_program_bridge_evidence"] = bridge
+        source = replace(source, metadata=metadata)
+
+        result = project_floorwise_visual_mesh(
+            source,
+            legal_sections=(legal,),
+            floor_matrices=(identity_matrix4(),),
+            capacity_plates=source.volumes,
+        )
+
+        self.assertFalse(result.certificate.hard_pass)
+        self.assertEqual(result.certificate.status, "failed")
+        self.assertIn(
+            "unproven_authored_mesh_completeness",
+            result.certificate.failure_reasons,
+        )
+        self.assertEqual(result.surfaces, ())
 
     def test_mesh_fit_containment_uses_occupied_triangles_not_convex_hull_void(self):
         """A legal U/wing plan must not fail because its empty hull crosses a court."""

@@ -12,7 +12,7 @@ import json
 from math import isfinite, sqrt
 from typing import Any, Iterable, Sequence
 
-from shapely.geometry import LineString, Point, Polygon
+from shapely.geometry import LineString, MultiPoint, Point, Polygon
 from shapely.ops import unary_union
 
 from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
@@ -83,9 +83,13 @@ def project_floorwise_visual_mesh(
             "not_applicable_no_authored_mesh",
             capacity_gfa=capacity_gfa,
         )
-    if not _is_complete_profiled_triangle_export(source, profiled):
+    completeness_failure = _profiled_export_completeness_failure(
+        source,
+        profiled,
+    )
+    if completeness_failure:
         return _failed(
-            "incomplete_authored_mesh_export",
+            completeness_failure,
             capacity_gfa=capacity_gfa,
             source_surface_count=len(profiled),
         )
@@ -209,6 +213,18 @@ def project_floorwise_visual_mesh(
                     legal_sample_count=legal_sample_count + len(legal_indices),
                 )
             legal_sample_count += len(legal_indices)
+            boundary_sample_count = _boundary_intersection_sample_count(
+                transformed,
+                legal_sections=legal_sections,
+            )
+            if boundary_sample_count is None:
+                return _failed(
+                    "projected_visual_mesh_outside_legal_section",
+                    capacity_gfa=capacity_gfa,
+                    source_surface_count=len(profiled),
+                    legal_sample_count=legal_sample_count + 1,
+                )
+            legal_sample_count += boundary_sample_count
             local = tuple(
                 (
                     x - capacity_origin[0],
@@ -284,25 +300,53 @@ def _failed(
     )
 
 
-def _is_complete_profiled_triangle_export(
+def _profiled_export_completeness_failure(
     source: SourceMass,
     surfaces: tuple[SourceSurface, ...],
-) -> bool:
+) -> str:
     if (
         len(surfaces) != len(source.surfaces)
         or any(len(surface.vertices_m) != 3 for surface in surfaces)
     ):
-        return False
+        return "incomplete_authored_mesh_export"
     bridge = source.metadata.get("geometry_program_bridge_evidence")
     bridge = bridge if isinstance(bridge, dict) else {}
     raw_count = int(bridge.get("raw_mesh_triangle_count") or 0)
     exported_count = int(bridge.get("exported_surface_count") or 0)
     if raw_count or exported_count:
-        return raw_count == exported_count == len(surfaces)
-    # Legacy profiled sources predate raw/export counters. Their triangle-only
-    # payload remains projectable, while modern capped exports fail above from
-    # the authoritative compiler counts instead of an unreliable edge guess.
-    return True
+        return (
+            ""
+            if raw_count == exported_count == len(surfaces)
+            else "incomplete_authored_mesh_export"
+        )
+    return (
+        ""
+        if _has_closed_directed_edge_topology(surfaces)
+        else "unproven_authored_mesh_completeness"
+    )
+
+
+def _has_closed_directed_edge_topology(
+    surfaces: tuple[SourceSurface, ...],
+) -> bool:
+    directed_counts: dict[
+        tuple[tuple[float, float, float], tuple[float, float, float]],
+        int,
+    ] = {}
+    for surface in surfaces:
+        vertices = tuple(
+            (round(float(x), 8), round(float(y), 8), round(float(z), 8))
+            for x, y, z in surface.vertices_m
+        )
+        for left, right in zip(vertices, (*vertices[1:], vertices[0])):
+            directed_counts[(left, right)] = (
+                directed_counts.get((left, right), 0) + 1
+            )
+    return bool(directed_counts) and all(
+        count == 1
+        and directed_counts.get((right, left), 0) == 1
+        for (left, right), count in directed_counts.items()
+    )
 
 
 def _capacity_origin(
@@ -403,13 +447,7 @@ def _legal_section_indices_for_triangle(
     maximum_z = max(0.0, min(1.0, max(point[2] for point in triangle)))
     middle_z = (minimum_z + maximum_z) / 2.0
     primary = min(section_count - 1, max(0, int(middle_z * section_count)))
-    indices = {primary}
-    for z in (minimum_z, maximum_z):
-        scaled = z * section_count
-        boundary = round(scaled)
-        if abs(scaled - boundary) <= 1e-8 and 0 < boundary < section_count:
-            indices.update((boundary - 1, boundary))
-    return tuple(sorted(indices))
+    return (primary,)
 
 
 def _legal_sections_cover_triangle(
@@ -431,6 +469,39 @@ def _legal_sections_cover_triangle(
         legal_sections[index].buffer(1e-7).covers(projected)
         for index in legal_indices
     )
+
+
+def _boundary_intersection_sample_count(
+    triangle: tuple[tuple[float, float, float], ...],
+    *,
+    legal_sections: Sequence[Any],
+) -> int | None:
+    count = len(legal_sections)
+    sample_count = 0
+    for boundary in range(1, count):
+        level = boundary / count
+        points = _triangle_plane_intersections(triangle, level)
+        unique = tuple(dict.fromkeys(
+            (
+                round(float(x), 10),
+                round(float(y), 10),
+            )
+            for x, y, _z in points
+        ))
+        if not unique:
+            continue
+        intersection = (
+            Point(unique[0])
+            if len(unique) == 1
+            else MultiPoint(unique).convex_hull
+        )
+        if not all(
+            legal_sections[index].buffer(1e-7).covers(intersection)
+            for index in (boundary - 1, boundary)
+        ):
+            return None
+        sample_count += 2
+    return sample_count
 
 
 def _section_evidence_points(

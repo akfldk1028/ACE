@@ -154,6 +154,12 @@ def project_floorwise_visual_mesh(
                 capacity_gfa=capacity_gfa,
                 source_surface_count=len(profiled),
             )
+        if any(z < 0.0 or z > 1.0 for _x, _y, z in world_triangle):
+            return _failed(
+                "authored_visual_normalized_z_out_of_range",
+                capacity_gfa=capacity_gfa,
+                source_surface_count=len(profiled),
+            )
 
         sample_points = _section_evidence_points(
             world_triangle,
@@ -311,8 +317,15 @@ def _profiled_export_completeness_failure(
         return "incomplete_authored_mesh_export"
     bridge = source.metadata.get("geometry_program_bridge_evidence")
     bridge = bridge if isinstance(bridge, dict) else {}
-    raw_count = int(bridge.get("raw_mesh_triangle_count") or 0)
-    exported_count = int(bridge.get("exported_surface_count") or 0)
+    raw_count = bridge.get("raw_mesh_triangle_count", 0)
+    exported_count = bridge.get("exported_surface_count", 0)
+    if (
+        type(raw_count) is not int
+        or raw_count < 0
+        or type(exported_count) is not int
+        or exported_count < 0
+    ):
+        return "incomplete_authored_mesh_export"
     if raw_count or exported_count:
         return (
             ""

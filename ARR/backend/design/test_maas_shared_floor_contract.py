@@ -827,6 +827,39 @@ class SharedFloorContractTests(SimpleTestCase):
         )
         self.assertEqual(result.surfaces, ())
 
+    def test_floorwise_visual_projection_rejects_normalized_z_out_of_range(self):
+        """Authored normalized Z outside [0, 1] must fail before projection."""
+        from design.maas.geometry_language.affine_matrix import identity_matrix4
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            project_floorwise_visual_mesh,
+        )
+
+        legal = box(-5.0, -5.0, 5.0, 5.0)
+        source = _authored_profiled_triangle_source(
+            "out_of_range_normalized_z",
+            world_vertices=(
+                (-2.0, -2.0, -0.1),
+                (2.0, -2.0, 0.5),
+                (-2.0, 2.0, 0.5),
+            ),
+            footprint=legal,
+        )
+
+        result = project_floorwise_visual_mesh(
+            source,
+            legal_sections=(legal,),
+            floor_matrices=(identity_matrix4(),),
+            capacity_plates=source.volumes,
+        )
+
+        self.assertFalse(result.certificate.hard_pass)
+        self.assertEqual(result.certificate.status, "failed")
+        self.assertIn(
+            "authored_visual_normalized_z_out_of_range",
+            result.certificate.failure_reasons,
+        )
+        self.assertEqual(result.surfaces, ())
+
     def test_floorwise_visual_projection_tessellates_matrix_field_breakpoints(self):
         """Projected triangles must follow the piecewise floor Matrix4 field."""
         from design.maas.geometry_language.affine_matrix import (
@@ -907,6 +940,42 @@ class SharedFloorContractTests(SimpleTestCase):
             result.certificate.failure_reasons,
         )
         self.assertEqual(result.surfaces, ())
+
+    def test_floorwise_visual_projection_rejects_malformed_export_counters(self):
+        """Malformed completeness counters must fail closed without raising."""
+        from design.maas.geometry_language.affine_matrix import identity_matrix4
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            project_floorwise_visual_mesh,
+        )
+
+        legal = box(-20.0, -20.0, 20.0, 20.0)
+        for field in ("raw_mesh_triangle_count", "exported_surface_count"):
+            with self.subTest(field=field):
+                source = _authored_profiled_box_source(
+                    f"malformed_{field}",
+                )
+                bridge = dict(
+                    source.metadata["geometry_program_bridge_evidence"],
+                )
+                bridge[field] = "not-an-integer"
+                metadata = dict(source.metadata)
+                metadata["geometry_program_bridge_evidence"] = bridge
+                source = replace(source, metadata=metadata)
+
+                result = project_floorwise_visual_mesh(
+                    source,
+                    legal_sections=(legal,),
+                    floor_matrices=(identity_matrix4(),),
+                    capacity_plates=source.volumes,
+                )
+
+                self.assertFalse(result.certificate.hard_pass)
+                self.assertEqual(result.certificate.status, "failed")
+                self.assertIn(
+                    "incomplete_authored_mesh_export",
+                    result.certificate.failure_reasons,
+                )
+                self.assertEqual(result.surfaces, ())
 
     def test_floorwise_visual_projection_rejects_triangle_crossing_legal_hole(self):
         """Point-safe vertices must not hide a triangle crossing a legal void."""

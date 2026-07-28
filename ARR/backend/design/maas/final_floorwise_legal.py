@@ -7,7 +7,7 @@ import math
 from dataclasses import dataclass
 from typing import Any
 
-from shapely.geometry import MultiPolygon, mapping
+from shapely.geometry import Polygon, mapping
 from shapely.ops import unary_union
 
 from design.maas.floor_groups import build_floor_groups
@@ -16,12 +16,28 @@ from design.maas.legal_envelope import (
     allowed_footprint_at_height,
     failed_constraint_metrics,
 )
-from design.maas.morphology_operators import largest_polygon
+from design.maas.source_geometry import SourceVolume, evaluate_source_volume_coherence
 from design.services.site_geometry import geojson_to_polygon, utm_to_wgs84, wgs84_to_utm
 
 
 _AREA_TOLERANCE_M2 = 0.05
 _MIN_OCCUPIED_AREA_M2 = 1.0
+
+
+def _largest_areal_polygon(geometry):
+    if isinstance(geometry, Polygon):
+        return geometry
+    polygons = [
+        polygon
+        for item in getattr(geometry, "geoms", ())
+        for polygon in (
+            [item]
+            if isinstance(item, Polygon)
+            else list(getattr(item, "geoms", ()))
+        )
+        if isinstance(polygon, Polygon) and not polygon.is_empty
+    ]
+    return max(polygons, key=lambda polygon: polygon.area) if polygons else None
 
 
 @dataclass(frozen=True)
@@ -39,8 +55,10 @@ def _polygon(value: Any):
         return None
     if polygon.is_empty:
         return None
-    if isinstance(polygon, MultiPolygon):
-        polygon = largest_polygon(polygon)
+    if not isinstance(polygon, Polygon):
+        polygon = _largest_areal_polygon(polygon)
+    if polygon is None:
+        return None
     return polygon if polygon.area >= _MIN_OCCUPIED_AREA_M2 else None
 
 
@@ -92,19 +110,22 @@ def _occupied_sections_from_volumes(
     floor_count = max(1, int(math.ceil(maximum_height / floor_height - 1e-9)))
     sections: list[tuple[int, float, Any, list[str]]] = []
     for floor in range(1, floor_count + 1):
+        bottom_height = (floor - 1) * floor_height
         top_height = floor * floor_height
         active = [
             (polygon, role)
             for bottom, top, polygon, role in parsed
-            if bottom < top_height + 1e-7 and top_height <= top + 1e-7
+            if top > bottom_height + 1e-7 and bottom < top_height - 1e-7
         ]
         if not active:
             if sections:
                 break
             return [], [f"no_occupied_section_at_floor:{floor}"]
         occupied = unary_union([polygon for polygon, _ in active])
-        if isinstance(occupied, MultiPolygon):
-            occupied = largest_polygon(occupied)
+        if not isinstance(occupied, Polygon):
+            occupied = _largest_areal_polygon(occupied)
+        if occupied is None:
+            return [], [f"non_polygon_occupied_section_at_floor:{floor}"]
         sections.append((floor, top_height, occupied, sorted({role for _, role in active})))
     return sections, []
 
@@ -126,6 +147,45 @@ def _occupied_sections_from_plates(
         return [], failed_checks or ["missing_floor_plates"]
     sections.sort(key=lambda item: (item[1], item[0]))
     return sections, []
+
+
+def _plates_cover_claimed_occupancy(
+    plates: list[dict[str, Any]],
+    volumes: list[dict[str, Any]],
+    *,
+    claimed_height: float,
+    floor_height: float,
+) -> bool:
+    if not plates:
+        return False
+    floors: list[int] = []
+    tops: list[float] = []
+    for index, plate in enumerate(plates):
+        try:
+            floors.append(int(plate.get("floor") or index + 1))
+        except (TypeError, ValueError):
+            return False
+        top = _float(plate.get("top_height"))
+        if top is None:
+            return False
+        tops.append(top)
+    if floors != list(range(1, len(plates) + 1)):
+        return False
+    if any(current <= previous for previous, current in zip(tops, tops[1:])):
+        return False
+    volume_tops = [
+        top
+        for volume in volumes
+        for top in [_float(volume.get("top_height"))]
+        if top is not None
+    ]
+    occupied_height = max([claimed_height, *volume_tops], default=claimed_height)
+    expected_floor_count = max(1, int(math.ceil(occupied_height / floor_height - 1e-9)))
+    return (
+        len(plates) == expected_floor_count
+        and abs(tops[-1] - expected_floor_count * floor_height) <= 0.11
+        and tops[-1] + 0.11 >= occupied_height
+    )
 
 
 def _reject(
@@ -178,15 +238,28 @@ def revalidate_final_floorwise_feature(
     original_height = _float(props.get("height")) or 0.0
     original_plates = _explicit_plates(candidate)
     original_volumes = _canonical_volumes(candidate)
-    if original_plates:
+    plates_are_complete = _plates_cover_claimed_occupancy(
+        original_plates,
+        original_volumes,
+        claimed_height=original_height,
+        floor_height=floor_height,
+    )
+    if original_plates and plates_are_complete:
         source = "exact_floor_plates"
         sections, failed_checks = _occupied_sections_from_plates(original_plates)
-    else:
-        source = "derived_mass_volume_sections"
+    elif original_volumes:
+        source = (
+            "derived_mass_volume_sections_incomplete_explicit_plates"
+            if original_plates
+            else "derived_mass_volume_sections"
+        )
         sections, failed_checks = _occupied_sections_from_volumes(
             original_volumes,
             floor_height=floor_height,
         )
+    else:
+        source = "incomplete_explicit_floor_plates"
+        sections, failed_checks = [], ["incomplete_explicit_floor_plates"]
     if failed_checks:
         return _reject(
             source=source,
@@ -215,8 +288,12 @@ def revalidate_final_floorwise_feature(
             repaired = True
             truncation_reasons.append(f"empty_legal_intersection_at_floor:{floor}")
             break
-        if isinstance(legal, MultiPolygon):
-            legal = largest_polygon(legal)
+        if not isinstance(legal, Polygon):
+            legal = _largest_areal_polygon(legal)
+        if legal is None:
+            repaired = True
+            truncation_reasons.append(f"non_polygon_legal_intersection_at_floor:{floor}")
+            break
         if legal.area < _MIN_OCCUPIED_AREA_M2:
             repaired = True
             truncation_reasons.append(f"undersized_legal_intersection_at_floor:{floor}")
@@ -237,7 +314,8 @@ def revalidate_final_floorwise_feature(
             "bottom_height": round(previous_top, 2),
             "top_height": round(float(top_height), 2),
             "geometry": geometry,
-            "role": roles[0] if len(roles) == 1 else "floorwise_legal_union",
+            "role": "floorwise_legal_mass",
+            "source_roles": roles,
             "floorwise_legal": True,
         })
         previous_top = float(top_height)
@@ -319,23 +397,70 @@ def revalidate_final_floorwise_feature(
     model.pop("source_surfaces", None)
     model.pop("section_source_surfaces", None)
     model.pop("section_profile_materialized", None)
-    source_signature = props.get("source_signature")
-    if not isinstance(source_signature, dict):
-        source_signature = model.get("source_signature")
-    if isinstance(source_signature, dict):
-        source_signature = copy.deepcopy(source_signature)
-        areas = [float(plate["area"]) for plate in plates]
-        source_signature["volume_count"] = len(canonical_volumes)
-        source_signature["surface_count"] = 0
-        source_signature["effective_surface_count"] = 0
-        source_signature["area_profile_m2"] = [round(area, 2) for area in areas]
-        source_signature["upper_to_ground_ratio"] = round(
-            areas[-1] / max(areas[0], 1e-9),
-            4,
+    previous_signature = props.get("source_signature")
+    if not isinstance(previous_signature, dict):
+        previous_signature = model.get("source_signature")
+    previous_signature = previous_signature if isinstance(previous_signature, dict) else {}
+    areas = [float(plate["area"]) for plate in plates]
+    total_height = max(float(plates[-1]["top_height"]), floor_height)
+    typed_volumes = tuple(
+        SourceVolume(
+            role="floorwise_legal_mass",
+            footprint=_polygon(plate["geometry"]),
+            bottom_fraction=(index * floor_height) / total_height,
+            top_fraction=float(plate["top_height"]) / total_height,
+            verb="floorwise_legal_matrix4",
         )
-        source_signature["floorwise_legal_revalidated"] = True
-        props["source_signature"] = source_signature
-        model["source_signature"] = copy.deepcopy(source_signature)
+        for index, plate in enumerate(plates)
+    )
+    coherence = evaluate_source_volume_coherence(typed_volumes)
+    intent_keys = (
+        "family",
+        "formal_principle",
+        "dominant_gesture",
+        "primary_language",
+        "secondary_language",
+        "architectural_ambition_evidence",
+        "parameter_provenance",
+        "parameter_default_count",
+        "parameter_authored_count",
+        "parameter_default_ratio",
+        "rule_prior_param_count",
+        "llm_authored_param_count",
+        "invalid_rule_param_count",
+        "rule_prior_param_ratio",
+    )
+    source_signature = {
+        "schema_version": "arr.maas.source_geometry.signature.v1",
+        "status": "floorwise_legal_revalidated",
+        **{
+            key: copy.deepcopy(previous_signature[key])
+            for key in intent_keys
+            if key in previous_signature
+        },
+        "volume_count": len(canonical_volumes),
+        "surface_count": 0,
+        "effective_surface_count": 0,
+        "ground_area_m2": round(areas[0], 2),
+        "upper_area_m2": round(areas[-1], 2),
+        "area_profile_m2": [round(area, 2) for area in areas],
+        "upper_to_ground_ratio": round(areas[-1] / max(areas[0], 1e-9), 4),
+        "verb_profile": ["floorwise_legal_matrix4"],
+        "source_volume_roles": ["floorwise_legal_mass"],
+        "surface_roles": [],
+        "composition_layer_roles": ["floorwise_legal_mass"],
+        "composition_rule": "floorwise_height_field_revalidation",
+        "role_pattern": "floorwise_legal_contiguous_stack",
+        "coherence_evidence": coherence,
+        "floorwise_legal_revalidated": True,
+        "design_intent_provenance": {
+            key: copy.deepcopy(previous_signature[key])
+            for key in ("family", "formal_principle", "dominant_gesture", "verb_profile")
+            if key in previous_signature
+        },
+    }
+    props["source_signature"] = source_signature
+    model["source_signature"] = copy.deepcopy(source_signature)
     geometry_resolution = {
         "schema_version": "arr.maas.geometry_resolution.v1",
         "status": "floorwise_legal_revalidated",

@@ -2257,6 +2257,7 @@ def _apply_piloti_parking_void(feature: dict[str, Any]) -> None:
                     source_geometry["parking_void_tier_relief"] = "role_staggered_above_piloti_void"
                     volume["source_geometry"] = source_geometry
     props["mass_volumes"] = updated
+    props["source_volumes"] = copy.deepcopy(updated)
     props["parking_piloti_void"] = {
         "status": "reserved",
         "void_height_m": void_height,
@@ -2266,7 +2267,20 @@ def _apply_piloti_parking_void(feature: dict[str, Any]) -> None:
     model = props.get("maas_model")
     if isinstance(model, dict):
         model["volumes"] = updated
+        model["source_volumes"] = copy.deepcopy(updated)
         model["parking_piloti_void"] = props["parking_piloti_void"]
+    evidence = props.get("floorwise_legal_evidence")
+    if isinstance(evidence, dict):
+        subtractions = evidence.get("post_validation_subtractions")
+        if not isinstance(subtractions, list):
+            subtractions = []
+        if "piloti_parking_void" not in subtractions:
+            subtractions.append("piloti_parking_void")
+        evidence["post_validation_subtractions"] = subtractions
+        evidence["checked_mass_volume_count"] = len(updated)
+        evidence["canonical_geometry_immutable_after_parking"] = True
+        if isinstance(model, dict):
+            model["floorwise_legal_evidence"] = evidence
     _attach_visual_diversity_evidence(feature)
 
 
@@ -4932,6 +4946,14 @@ def generate_legal_mass_variants(
 
     if mass_brain_proposals_by_operator:
         shadow_features = list(mass_brain_shadow_features.values())
+        shadow_features = revalidate_floorwise_candidates(
+            shadow_features,
+            scope="mass_brain_shadow_pre_parking",
+        )
+        mass_brain_shadow_features = {
+            str((feature.get("properties") or {}).get("mass_shape") or ""): feature
+            for feature in shadow_features
+        }
         if shadow_features:
             _attach_parking_requirements(
                 shadow_features,
@@ -5127,6 +5149,13 @@ def generate_legal_mass_variants(
                 parking_options=parking_options,
             )
             selected.extend(agent_reps[:max_variants])
+    piloti_seen_ids: set[int] = set()
+    for feature in [*selected, *legal_candidate_pool]:
+        if id(feature) in piloti_seen_ids:
+            continue
+        piloti_seen_ids.add(id(feature))
+        _apply_piloti_parking_void(feature)
+    generation_trace.checkpoint("parking_geometry_frozen_before_preference", count=len(piloti_seen_ids))
     if preferred_operator:
         preferred_index = next(
             (
@@ -5272,6 +5301,7 @@ def generate_legal_mass_variants(
                     site_area_m2=site_area_m2,
                     parking_options=parking_options,
                 )
+                _apply_piloti_parking_void(feature)
                 _attach_visual_diversity_evidence(feature)
                 if not final_mass_stage_parking_pass(feature) or not _architectural_order_gate(feature)[0]:
                     return None
@@ -5829,8 +5859,6 @@ def generate_legal_mass_variants(
         if completed_vlm_count != final_limit:
             raise ValueError(f"final MAAS VLM completion failed: {completed_vlm_count}/{final_limit}")
 
-    for feature in selected:
-        _apply_piloti_parking_void(feature)
     for i, feature in enumerate(selected, start=1):
         feature["properties"]["variant_id"] = f"maas_{i:02d}"
     if isinstance(critic_geometry_loop_artifact, dict):

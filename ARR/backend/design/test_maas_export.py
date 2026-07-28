@@ -23,10 +23,12 @@ from design.maas.legal_mesh_optimizer import (
     _feature_distance,
     _final_design_balanced_selection,
     _operator_family,
+    _apply_piloti_parking_void,
     _promote_legal_floor_stack_source_geometry,
     _preserve_visible_section_connector,
     _upper_typology_is_viable,
 )
+from design.maas.final_floorwise_legal import revalidate_final_floorwise_feature
 from design.maas.legal_envelope import allowed_footprint_at_height, build_legal_envelope
 from design.maas.llm_proposals import (
     LLM_BATCH_SCHEMA_VERSION,
@@ -386,6 +388,147 @@ class MaasEvidenceBundleEndpointTest(TestCase):
 
 
 class MaasLegalVariantsTest(TestCase):
+    def _floorwise_probe_feature(self):
+        lower = {
+            "type": "Polygon",
+            "coordinates": [[
+                [127.00020, 37.00020],
+                [127.00045, 37.00020],
+                [127.00045, 37.00080],
+                [127.00020, 37.00080],
+                [127.00020, 37.00020],
+            ]],
+        }
+        upper = {
+            "type": "Polygon",
+            "coordinates": [[
+                [127.00050, 37.00020],
+                [127.00085, 37.00020],
+                [127.00085, 37.00080],
+                [127.00050, 37.00080],
+                [127.00050, 37.00020],
+            ]],
+        }
+        volumes = [
+            {
+                "bottom_height": 0.0,
+                "top_height": 3.0,
+                "geometry": lower,
+                "role": "lower_probe",
+            },
+            {
+                "bottom_height": 3.0,
+                "top_height": 6.0,
+                "geometry": upper,
+                "role": "upper_probe",
+            },
+        ]
+        return {
+            "type": "Feature",
+            "geometry": lower,
+            "properties": {
+                "height": 6.0,
+                "num_floors": 2,
+                "floor_height": 3.0,
+                "mass_shape": "probe_two_band",
+                "mass_volumes": volumes,
+                "maas_model": {"volumes": volumes, "floor_plates": []},
+                "source_signature": {
+                    "family": "probe",
+                    "component_graph": {"stale": True},
+                    "coherence_evidence": {"hard_pass": True, "score": 0.99},
+                    "source_volume_roles": ["lower_probe", "upper_probe"],
+                    "parameter_default_ratio": 0.2,
+                },
+            },
+        }
+
+    def _floorwise_probe_envelope(self):
+        return build_legal_envelope(
+            site_utm=wgs84_to_utm(geojson_to_polygon(self._site())),
+            constraints=[
+                {"name": "bcr", "type": "Constraint", "Requirement": "Less than", "val": 100, "unit": "%"},
+                {"name": "far", "type": "Constraint", "Requirement": "Less than", "val": 500, "unit": "%"},
+                {"name": "height", "type": "Constraint", "Requirement": "Less than", "val": 20, "unit": "m"},
+            ],
+            building_type="怨듬룞二쇳깮",
+            sunlight_envelope=None,
+        )
+
+    def test_floorwise_sections_do_not_mix_next_band_at_shared_height(self):
+        feature = self._floorwise_probe_feature()
+        lower = wgs84_to_utm(geojson_to_polygon(feature["properties"]["mass_volumes"][0]["geometry"]))
+        upper = wgs84_to_utm(geojson_to_polygon(feature["properties"]["mass_volumes"][1]["geometry"]))
+
+        result = revalidate_final_floorwise_feature(
+            feature,
+            envelope=self._floorwise_probe_envelope(),
+            sunlight_envelope=None,
+            building_type="怨듬룞二쇳깮",
+        )
+
+        self.assertIsNotNone(result.feature)
+        plates = result.feature["properties"]["floor_plates"]
+        self.assertEqual(len(plates), 2)
+        first = wgs84_to_utm(geojson_to_polygon(plates[0]["geometry"]))
+        second = wgs84_to_utm(geojson_to_polygon(plates[1]["geometry"]))
+        self.assertLessEqual(first.intersection(upper).area, 0.05)
+        self.assertLessEqual(second.intersection(lower).area, 0.05)
+
+    def test_partial_explicit_plates_cannot_hide_canonical_upper_band(self):
+        feature = self._floorwise_probe_feature()
+        feature["properties"]["floor_plates"] = [{
+            "floor": 1,
+            "top_height": 3.0,
+            "area": 1.0,
+            "geometry": feature["geometry"],
+        }]
+        feature["properties"]["maas_model"]["floor_plates"] = feature["properties"]["floor_plates"]
+
+        result = revalidate_final_floorwise_feature(
+            feature,
+            envelope=self._floorwise_probe_envelope(),
+            sunlight_envelope=None,
+            building_type="怨듬룞二쇳깮",
+        )
+
+        self.assertIsNotNone(result.feature)
+        props = result.feature["properties"]
+        self.assertEqual(len(props["floor_plates"]), 2)
+        self.assertEqual(
+            props["floorwise_legal_evidence"]["source"],
+            "derived_mass_volume_sections_incomplete_explicit_plates",
+        )
+        signature = props["source_signature"]
+        self.assertNotIn("component_graph", signature)
+        self.assertEqual(signature["coherence_evidence"]["status"], "measured")
+        self.assertNotEqual(signature["coherence_evidence"]["score"], 0.99)
+        self.assertEqual(signature["source_volume_roles"], ["floorwise_legal_mass"])
+
+    def test_piloti_subtraction_keeps_canonical_geometry_and_evidence_synchronized(self):
+        feature = self._floorwise_probe_feature()
+        props = feature["properties"]
+        props["parking_strategy"] = "piloti_ground"
+        props["parking_precheck"] = {
+            "layout_candidate": {"stalls": [{"id": "stall-1"}]},
+        }
+        props["source_volumes"] = list(props["mass_volumes"])
+        props["floorwise_legal_evidence"] = {
+            "status": "pass",
+            "checked_mass_volume_count": 2,
+        }
+
+        _apply_piloti_parking_void(feature)
+
+        self.assertIn("parking_piloti_void", props)
+        self.assertEqual(props["mass_volumes"], props["source_volumes"])
+        self.assertEqual(props["mass_volumes"], props["maas_model"]["volumes"])
+        self.assertEqual(props["mass_volumes"], props["maas_model"]["source_volumes"])
+        self.assertIn(
+            "piloti_parking_void",
+            props["floorwise_legal_evidence"]["post_validation_subtractions"],
+        )
+
     def test_bounded_component_graph_revision_preserves_ids_and_clamps_parameter(self):
         graph = graph_from_sequence(VerbSequence(
             name="agent_revision_probe",

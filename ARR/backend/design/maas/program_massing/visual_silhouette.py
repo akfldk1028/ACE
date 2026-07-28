@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+from concurrent.futures import Future
 from dataclasses import dataclass
 from math import atan2, cos, degrees, radians, sin
 from threading import RLock
@@ -46,6 +47,8 @@ class _PairDistanceEntry:
 # a replenishment cycle from retaining sources already released by MAP-Elites.
 _SOURCE_VIEW_CACHE: OrderedDict[int, _SourceViewEntry] = OrderedDict()
 _PAIR_DISTANCE_CACHE: OrderedDict[tuple[int, int], _PairDistanceEntry] = OrderedDict()
+_SOURCE_VIEW_INFLIGHT: dict[int, Future[ViewVariants]] = {}
+_PAIR_DISTANCE_INFLIGHT: dict[tuple[int, int], Future[float]] = {}
 _SOURCE_VIEW_CACHE_LIMIT = 512
 _PAIR_DISTANCE_CACHE_LIMIT = 32_768
 _CACHE_LOCK = RLock()
@@ -107,36 +110,58 @@ def visual_silhouette_distance(left: SourceMass, right: SourceMass) -> float:
             _PAIR_DISTANCE_CACHE.move_to_end(pair_key)
             _CACHE_METRICS["pair_cache_hit_count"] += 1
             return cached.distance
-    left_variants = _source_view_variants(left)
-    right_variants = _source_view_variants(right)
-    best = 1.0
-    if left_variants and right_variants:
-        left_views = left_variants[0]
-        for right_views in right_variants:
-            distances = tuple(
-                safe_symmetric_difference_ratio(a, b)
-                for a, b in zip(left_views, right_views)
+        if cached is not None:
+            _PAIR_DISTANCE_CACHE.pop(pair_key, None)
+        future = _PAIR_DISTANCE_INFLIGHT.get(pair_key)
+        owner = future is None
+        if owner:
+            future = Future()
+            _PAIR_DISTANCE_INFLIGHT[pair_key] = future
+    assert future is not None
+    if not owner:
+        distance = float(future.result())
+        with _CACHE_LOCK:
+            _CACHE_METRICS["pair_cache_hit_count"] += 1
+        return distance
+
+    try:
+        left_variants = _source_view_variants(left)
+        right_variants = _source_view_variants(right)
+        best = 1.0
+        if left_variants and right_variants:
+            left_views = left_variants[0]
+            for right_views in right_variants:
+                distances = tuple(
+                    safe_symmetric_difference_ratio(a, b)
+                    for a, b in zip(left_views, right_views)
+                )
+                best = min(
+                    best,
+                    distances[0] * 0.40
+                    + distances[1] * 0.30
+                    + distances[2] * 0.30,
+                )
+        distance = min(1.0, best)
+        left_ref = weakref.ref(left)
+        right_ref = weakref.ref(right)
+        with _CACHE_LOCK:
+            _CACHE_METRICS["exact_pair_evaluation_count"] += 1
+            _PAIR_DISTANCE_CACHE[pair_key] = _PairDistanceEntry(
+                left_ref,
+                right_ref,
+                distance,
             )
-            best = min(
-                best,
-                distances[0] * 0.40
-                + distances[1] * 0.30
-                + distances[2] * 0.30,
-            )
-    distance = min(1.0, best)
-    left_ref = weakref.ref(left)
-    right_ref = weakref.ref(right)
-    with _CACHE_LOCK:
-        _CACHE_METRICS["exact_pair_evaluation_count"] += 1
-        _PAIR_DISTANCE_CACHE[pair_key] = _PairDistanceEntry(
-            left_ref,
-            right_ref,
-            distance,
-        )
-        _PAIR_DISTANCE_CACHE.move_to_end(pair_key)
-        while len(_PAIR_DISTANCE_CACHE) > _PAIR_DISTANCE_CACHE_LIMIT:
-            _PAIR_DISTANCE_CACHE.popitem(last=False)
-    return distance
+            _PAIR_DISTANCE_CACHE.move_to_end(pair_key)
+            while len(_PAIR_DISTANCE_CACHE) > _PAIR_DISTANCE_CACHE_LIMIT:
+                _PAIR_DISTANCE_CACHE.popitem(last=False)
+            future.set_result(distance)
+            _PAIR_DISTANCE_INFLIGHT.pop(pair_key, None)
+        return distance
+    except BaseException as exc:
+        with _CACHE_LOCK:
+            future.set_exception(exc)
+            _PAIR_DISTANCE_INFLIGHT.pop(pair_key, None)
+        raise
 
 
 def visual_silhouette_distance_from_keys(
@@ -236,39 +261,61 @@ def _source_view_variants(source: SourceMass) -> ViewVariants:
             _SOURCE_VIEW_CACHE.move_to_end(cache_id)
             _CACHE_METRICS["source_view_cache_hit_count"] += 1
             return cached.variants
-    frame = _principal_frame(source_visual_silhouette_key(source))
-    if frame is None:
-        variants: ViewVariants = ()
-    else:
-        computed: list[ViewTriple] = []
-        for angle in (0.0, 90.0, 180.0, 270.0):
-            for mirror_x in (False, True):
-                transformed = (
-                    frame
-                    if angle == 0.0 and not mirror_x
-                    else _transform_geometry(
-                        *frame,
-                        angle=angle,
-                        mirror_x=mirror_x,
-                    )
-                )
-                computed.append(_views(*transformed))
-        variants = tuple(computed)
-
-    def release(reference: weakref.ReferenceType[SourceMass]) -> None:
+        if cached is not None:
+            _SOURCE_VIEW_CACHE.pop(cache_id, None)
+        future = _SOURCE_VIEW_INFLIGHT.get(cache_id)
+        owner = future is None
+        if owner:
+            future = Future()
+            _SOURCE_VIEW_INFLIGHT[cache_id] = future
+    assert future is not None
+    if not owner:
+        variants = future.result()
         with _CACHE_LOCK:
-            current = _SOURCE_VIEW_CACHE.get(cache_id)
-            if current is not None and current.source_ref is reference:
-                _SOURCE_VIEW_CACHE.pop(cache_id, None)
+            _CACHE_METRICS["source_view_cache_hit_count"] += 1
+        return variants
 
-    reference = weakref.ref(source, release)
-    with _CACHE_LOCK:
-        _CACHE_METRICS["source_view_build_count"] += 1
-        _SOURCE_VIEW_CACHE[cache_id] = _SourceViewEntry(reference, variants)
-        _SOURCE_VIEW_CACHE.move_to_end(cache_id)
-        while len(_SOURCE_VIEW_CACHE) > _SOURCE_VIEW_CACHE_LIMIT:
-            _SOURCE_VIEW_CACHE.popitem(last=False)
-    return variants
+    try:
+        frame = _principal_frame(source_visual_silhouette_key(source))
+        if frame is None:
+            variants: ViewVariants = ()
+        else:
+            computed: list[ViewTriple] = []
+            for angle in (0.0, 90.0, 180.0, 270.0):
+                for mirror_x in (False, True):
+                    transformed = (
+                        frame
+                        if angle == 0.0 and not mirror_x
+                        else _transform_geometry(
+                            *frame,
+                            angle=angle,
+                            mirror_x=mirror_x,
+                        )
+                    )
+                    computed.append(_views(*transformed))
+            variants = tuple(computed)
+
+        def release(reference: weakref.ReferenceType[SourceMass]) -> None:
+            with _CACHE_LOCK:
+                current = _SOURCE_VIEW_CACHE.get(cache_id)
+                if current is not None and current.source_ref is reference:
+                    _SOURCE_VIEW_CACHE.pop(cache_id, None)
+
+        reference = weakref.ref(source, release)
+        with _CACHE_LOCK:
+            _CACHE_METRICS["source_view_build_count"] += 1
+            _SOURCE_VIEW_CACHE[cache_id] = _SourceViewEntry(reference, variants)
+            _SOURCE_VIEW_CACHE.move_to_end(cache_id)
+            while len(_SOURCE_VIEW_CACHE) > _SOURCE_VIEW_CACHE_LIMIT:
+                _SOURCE_VIEW_CACHE.popitem(last=False)
+            future.set_result(variants)
+            _SOURCE_VIEW_INFLIGHT.pop(cache_id, None)
+        return variants
+    except BaseException as exc:
+        with _CACHE_LOCK:
+            future.set_exception(exc)
+            _SOURCE_VIEW_INFLIGHT.pop(cache_id, None)
+        raise
 
 
 def reset_visual_silhouette_cache_metrics() -> None:

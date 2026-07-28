@@ -4,8 +4,11 @@ import gc
 import os
 import weakref
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
+from threading import Barrier, Lock
+from time import sleep
 from types import SimpleNamespace
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -106,6 +109,41 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertIsNone(left_ref())
         self.assertIsNone(right_ref())
         self.assertEqual(analysis.evidence()["cached_pair_count"], 0)
+
+    def test_shared_compatibility_analysis_single_flights_same_pair(self):
+        class CandidateProbe:
+            pass
+
+        left = CandidateProbe()
+        right = CandidateProbe()
+        call_count = 0
+        count_lock = Lock()
+        start = Barrier(8)
+
+        def measured_distance(_left, _right):
+            nonlocal call_count
+            with count_lock:
+                call_count += 1
+            sleep(0.04)
+            return 0.25
+
+        analysis = portfolio_selection.build_compatibility_analysis(
+            [left, right],
+            distance_evaluator=measured_distance,
+        )
+
+        def worker(_index):
+            start.wait()
+            return analysis.distance(left, right)
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            distances = list(executor.map(worker, range(8)))
+
+        self.assertEqual(distances, [0.25] * 8)
+        self.assertEqual(call_count, 1)
+        evidence = analysis.evidence()
+        self.assertEqual(evidence["exact_pair_evaluation_count"], 1)
+        self.assertEqual(evidence["pair_cache_hit_count"], 7)
 
     def test_portfolio_duplicate_threshold_uses_shared_visual_novelty_policy(self):
         """Selection and replenishment must agree on what counts as a repeat."""

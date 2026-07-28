@@ -3,8 +3,10 @@
 import gc
 import random
 import weakref
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
+from threading import Barrier
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -210,6 +212,48 @@ class MaasProgramMassingTest(SimpleTestCase):
         gc.collect()
         self.assertIsNone(left_ref())
         self.assertIsNone(right_ref())
+
+    def test_visual_silhouette_cache_single_flights_same_pair(self):
+        def mass(name: str, xoff: float) -> SourceMass:
+            footprint = box(xoff, 0, xoff + 10, 8)
+            surface = SourceSurface(
+                role="roof",
+                volume_role="body",
+                verb="profile",
+                surface_type="profiled_recursive_solid_mesh",
+                vertices_m=(
+                    (-5.0, -4.0, 0.0),
+                    (5.0, -4.0, 0.7),
+                    (-5.0, 4.0, 1.0),
+                ),
+                semantic_patch_id=f"{name}:roof",
+            )
+            return SourceMass(
+                name,
+                footprint,
+                volumes=(
+                    SourceVolume("body", footprint, 0.0, 1.0, "base"),
+                ),
+                surfaces=(surface,),
+            )
+
+        left = mass("concurrent-left", 0.0)
+        right = mass("concurrent-right", 20.0)
+        start = Barrier(8)
+        visual_silhouette.reset_visual_silhouette_cache_metrics()
+
+        def worker(_index):
+            start.wait()
+            return intrinsic_silhouette_distance(left, right)
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            distances = list(executor.map(worker, range(8)))
+
+        self.assertTrue(all(value == distances[0] for value in distances))
+        metrics = visual_silhouette.visual_silhouette_cache_metrics()
+        self.assertEqual(metrics["exact_pair_evaluation_count"], 1)
+        self.assertEqual(metrics["source_view_build_count"], 2)
+        self.assertEqual(metrics["pair_cache_hit_count"], 7)
 
     def test_typed_attach_edges_materialize_real_parent_contact(self):
         seed = program_seed_sequences("gymnasium")[0]

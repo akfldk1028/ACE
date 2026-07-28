@@ -581,9 +581,26 @@ class GeometryOutcomeGraph:
             metadata = program.get("metadata") if isinstance(program.get("metadata"), dict) else {}
             projected_program_hash = str(bridge.get("program_hash") or "")
             program_hash = str(metadata.get("pre_book_program_hash") or projected_program_hash)
-            geometry_hash = str(bridge.get("geometry_hash") or "")
-            if not geometry_hash:
-                continue
+            capacity_geometry_hash = str(bridge.get("geometry_hash") or "")
+            certificate = source.metadata.get("floorwise_visual_projection") or {}
+            if not isinstance(certificate, dict):
+                certificate = {}
+            certified_visual_hash = str(certificate.get("visual_hash") or "")
+            rendered_visual_hash = str(
+                evidence.get("projected_visual_geometry_hash") or ""
+            )
+            if (
+                certificate.get("status") != "certified"
+                or certificate.get("hard_pass") is not True
+                or not certified_visual_hash
+                or rendered_visual_hash != certified_visual_hash
+            ):
+                raise ValueError(
+                    "projected visual render hash mismatch: "
+                    f"certified={certified_visual_hash or 'missing'} "
+                    f"rendered={rendered_visual_hash or 'missing'}"
+                )
+            geometry_hash = certified_visual_hash
             scope = source.metadata.get("program_book_projection_evidence") or {}
             scope = scope.get("scope") if isinstance(scope, dict) else {}
             scope_label = str((scope or {}).get("base_volume_label") or "1/1")
@@ -602,7 +619,9 @@ class GeometryOutcomeGraph:
                 "render_hard_pass": bool(evidence.get("hard_pass")),
                 "direct_png_review_required": True,
                 "evidence_role": "human_and_vlm_visual_observation_not_geometry_authority",
-                "geometry_authority": "typed_ast_plus_program_hash_plus_geometry_hash",
+                "geometry_authority": "certified_projected_visual_mesh",
+                "projected_visual_geometry_hash": geometry_hash,
+                "capacity_geometry_hash": capacity_geometry_hash,
                 "capacity_alternative": deepcopy(capacity_alternative),
                 "capacity_alternative_id": str(
                     capacity_alternative.get("alternative_id") or ""
@@ -626,6 +645,7 @@ class GeometryOutcomeGraph:
                 "program_hash": program_hash,
                 "projected_program_hash": projected_program_hash,
                 "geometry_hash": geometry_hash,
+                "capacity_geometry_hash": capacity_geometry_hash,
                 "book_principle_id": str(candidate.principle_id),
                 "book_scope": scope_label,
                 "capacity_alternative_id": str(
@@ -646,6 +666,7 @@ class GeometryOutcomeGraph:
                 projected_program_hash or geometry_hash,
                 {
                     "geometry_hash": geometry_hash,
+                    "capacity_geometry_hash": capacity_geometry_hash,
                     "book_principle_id": str(candidate.principle_id),
                     "book_scope": scope_label,
                     "capacity_alternative": deepcopy(capacity_alternative),

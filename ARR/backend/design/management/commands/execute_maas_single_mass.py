@@ -7,7 +7,11 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from design.maas.geometry_language import GeometryProgram, architectural_shape_programs
+from design.maas.geometry_language import (
+    CompilationResult,
+    GeometryProgram,
+    architectural_shape_programs,
+)
 from design.maas.geometry_language.executed_archive import (
     compile_executed_mass,
     materialize_executed_mass_passport,
@@ -38,7 +42,7 @@ class Command(BaseCommand):
         parser.add_argument("--output-root", type=str, default="")
 
     def handle(self, *args, **options):
-        program, downstream_evidence = self._execution_source(options)
+        program, downstream_evidence, validated_compilation = self._execution_source(options)
         output_root = Path(options["output_root"]).resolve() if options["output_root"] else (
             Path(__file__).resolve().parents[5]
             / "docs" / "ai-session-memory" / "maas-service-cache" / "single-executions"
@@ -56,13 +60,18 @@ class Command(BaseCommand):
             ),
             source_run_id=str(options.get("run_id") or ""),
             source_mass_index=int(options["mass_index"]) if options.get("run_id") else 0,
+            validated_compilation=validated_compilation,
         )
         self.stdout.write(json.dumps(result.to_dict(), ensure_ascii=False, sort_keys=True))
 
     def _execution_source(
         self,
         options,
-    ) -> tuple[GeometryProgram, dict[str, dict] | None]:
+    ) -> tuple[
+        GeometryProgram,
+        dict[str, dict] | None,
+        CompilationResult | None,
+    ]:
         if options.get("program_json"):
             path = Path(str(options["program_json"])).resolve()
             try:
@@ -72,7 +81,7 @@ class Command(BaseCommand):
             if isinstance(payload, dict) and isinstance(payload.get("geometryProgram"), dict):
                 payload = payload["geometryProgram"]
             try:
-                return GeometryProgram.from_dict(payload), None
+                return GeometryProgram.from_dict(payload), None, None
             except (TypeError, ValueError) as exc:
                 raise CommandError(f"invalid GeometryProgram JSON: {exc}") from exc
         if options.get("run_id"):
@@ -90,9 +99,10 @@ class Command(BaseCommand):
             return (
                 compilation.program,
                 downstream_evidence_from_passport(source_passport),
+                compilation,
             )
         shape_index = int(options.get("shape_index") or 1)
         programs = architectural_shape_programs()
         if not 1 <= shape_index <= len(programs):
             raise CommandError(f"shape-index must be between 1 and {len(programs)}")
-        return programs[shape_index - 1], None
+        return programs[shape_index - 1], None, None

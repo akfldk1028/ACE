@@ -1,4 +1,5 @@
 import json
+from dataclasses import replace
 from io import BytesIO, StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -15,6 +16,7 @@ from design.maas.elevation_proposal_batch import (
     generate_execution_elevation_proposal,
 )
 from design.maas.geometry_language import GeometryProgramBuilder, compile_geometry_program
+from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
 from design.maas.single_execution import execute_single_mass
 from design.maas.single_execution.vlm_review import _resolve_building_type
 
@@ -28,6 +30,20 @@ def _box_program():
         semantic_role="base_seed",
     )
     return builder.build(root, family="single_mass_test")
+
+
+def _certified_visual_compilation():
+    capacity = compile_geometry_program(_box_program())
+    return replace(
+        capacity,
+        geometry_hash="f" * 64,
+        metrics={
+            **capacity.metrics,
+            "geometry_authority": "certified_projected_visual_mesh",
+            "exact_payload_hash": "e" * 64,
+            "capacity_geometry_hash": capacity.geometry_hash,
+        },
+    )
 
 
 class _SingleExecutionImageAdapter:
@@ -63,6 +79,91 @@ class _RaisingImageAdapter:
 
 
 class MaasSingleExecutionTest(SimpleTestCase):
+    def test_exact_replay_uses_certified_visual_compilation_for_every_identity(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory:
+            result = execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="certified-visual-replay",
+                execution_mode="exact_replay",
+                validated_compilation=certified,
+            )
+
+            passport = result.passport
+
+        self.assertEqual(result.geometry_hash, "f" * 64)
+        self.assertEqual(passport["geometry_hash"], "f" * 64)
+        self.assertEqual(
+            passport["agent_collaboration"]["identity"]["geometry_hash"],
+            "f" * 64,
+        )
+        self.assertEqual(
+            passport["elevation_evidence"]["geometry_hash"],
+            "f" * 64,
+        )
+
+    def test_exact_replay_rejects_certified_compilation_for_another_program(self):
+        certified = _certified_visual_compilation()
+        other_builder = GeometryProgramBuilder("other")
+        other_root = other_builder.add(
+            "primitive",
+            "box",
+            parameters={"width": 4, "depth": 4, "height": 4},
+        )
+        other = other_builder.build(other_root)
+
+        with TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(
+                ValueError,
+                "validated compilation program identity mismatch",
+            ):
+                execute_single_mass(
+                    other,
+                    output_root=directory,
+                    execution_id="wrong-program",
+                    execution_mode="exact_replay",
+                    validated_compilation=certified,
+                )
+
+    def test_exact_replay_keeps_certified_pre_normalization_program_identity(self):
+        raw_program = GeometryProgram(
+            name="raw-box",
+            root_id="root",
+            nodes=(
+                GeometryNode(
+                    id="root",
+                    kind="primitive",
+                    operator="box",
+                    parameters={"width": 12, "depth": 8, "height": 5},
+                ),
+            ),
+        )
+        compiled = compile_geometry_program(raw_program)
+        certified = replace(
+            compiled,
+            program=raw_program,
+            geometry_hash="f" * 64,
+            metrics={
+                **compiled.metrics,
+                "geometry_authority": "certified_projected_visual_mesh",
+                "exact_payload_hash": "e" * 64,
+                "capacity_geometry_hash": compiled.geometry_hash,
+            },
+        )
+
+        with TemporaryDirectory() as directory:
+            result = execute_single_mass(
+                raw_program,
+                output_root=directory,
+                execution_id="pre-normalization-identity",
+                execution_mode="exact_replay",
+                validated_compilation=certified,
+            )
+
+        self.assertEqual(result.program_hash, raw_program.program_hash())
+        self.assertEqual(result.geometry_hash, "f" * 64)
+
     def test_archive_capacity_replay_preserves_selected_band_and_floor_contract(self):
         from design.maas.geometry_language.executed_archive import (
             _archived_capacity_evidence,
@@ -590,7 +691,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
             self.assertLess(payload["timings_ms"]["total"], 5_000)
 
     def test_management_archive_replay_preserves_source_site_and_law_evidence(self):
-        compilation = compile_geometry_program(_box_program())
+        compilation = _certified_visual_compilation()
         source_passport = {
             "stages": [
                 {
@@ -634,13 +735,129 @@ class MaasSingleExecutionTest(SimpleTestCase):
             self.assertEqual(payload["execution_mode"], "exact_replay")
             self.assertEqual(payload["source_run_id"], "portfolio-source")
             self.assertEqual(payload["source_mass_index"], 1)
+            self.assertEqual(payload["geometry_hash"], "f" * 64)
             passport = json.loads(
                 Path(payload["artifacts"]["passport"]).read_text(encoding="utf-8"),
             )
 
         stages = {stage["id"]: stage for stage in passport["stages"]}
+        self.assertEqual(passport["geometry_hash"], "f" * 64)
         self.assertEqual(stages["site"]["evidence"]["pnu"], "1168011800104170004")
         self.assertEqual(stages["law"]["evidence"]["far_pct"], 123.4)
+
+    def test_http_archive_replay_retains_certified_visual_compilation(self):
+        compilation = _certified_visual_compilation()
+        with TemporaryDirectory() as directory, override_settings(
+            MAAS_SINGLE_EXECUTION_ROOT=directory,
+        ), patch(
+            "design.views.compile_executed_mass",
+            return_value=(compilation, {}, {}, Path(directory) / "archive.json"),
+        ), patch(
+            "design.views.materialize_executed_mass_passport",
+            return_value={"stages": []},
+        ):
+            response = self.client.post(
+                "/design/maas/single-executions/",
+                data=json.dumps({
+                    "source_run_id": "portfolio-source",
+                    "source_mass_index": 1,
+                }),
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(response.json()["geometry_hash"], "f" * 64)
+
+    def test_http_single_execution_replay_fails_closed_without_original_archive(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory, override_settings(
+            MAAS_SINGLE_EXECUTION_ROOT=directory,
+        ):
+            execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="visual-source",
+                execution_mode="exact_replay",
+                validated_compilation=certified,
+            )
+            response = self.client.post(
+                "/design/maas/single-executions/",
+                data=json.dumps({
+                    "source_run_id": "single-execution:visual-source",
+                    "source_mass_index": 1,
+                }),
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertIn(
+            "original certified archive is unavailable",
+            response.json()["error"],
+        )
+
+    def test_http_single_execution_replay_recovers_original_certified_archive(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory, override_settings(
+            MAAS_SINGLE_EXECUTION_ROOT=directory,
+        ):
+            execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="visual-source",
+                execution_mode="exact_replay",
+                source_run_id="portfolio-source",
+                source_mass_index=1,
+                validated_compilation=certified,
+            )
+            with patch(
+                "design.views.compile_executed_mass",
+                return_value=(certified, {}, {}, Path(directory) / "archive.json"),
+            ):
+                response = self.client.post(
+                    "/design/maas/single-executions/",
+                    data=json.dumps({
+                        "source_run_id": "single-execution:visual-source",
+                        "source_mass_index": 1,
+                    }),
+                    content_type="application/json",
+                )
+
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(response.json()["geometry_hash"], "f" * 64)
+
+    def test_http_single_execution_replay_rejects_tampered_archive_identity(self):
+        certified = _certified_visual_compilation()
+        tampered = replace(certified, geometry_hash="0" * 64)
+        with TemporaryDirectory() as directory, override_settings(
+            MAAS_SINGLE_EXECUTION_ROOT=directory,
+        ):
+            execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="visual-source",
+                execution_mode="exact_replay",
+                source_run_id="portfolio-source",
+                source_mass_index=1,
+                validated_compilation=certified,
+            )
+            with patch(
+                "design.views.compile_executed_mass",
+                return_value=(tampered, {}, {}, Path(directory) / "archive.json"),
+            ):
+                response = self.client.post(
+                    "/design/maas/single-executions/",
+                    data=json.dumps({
+                        "source_run_id": "single-execution:visual-source",
+                        "source_mass_index": 1,
+                    }),
+                    content_type="application/json",
+                )
+
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertIn(
+            "certified compilation identity mismatch",
+            response.json()["error"],
+        )
 
     def test_single_execution_is_replayed_through_the_existing_mass_archive_contract(self):
         with TemporaryDirectory() as directory:

@@ -105,6 +105,11 @@ class MaasOutcomeRenderMemoryTest(SimpleTestCase):
                         "geometry_hash": "geometry-exact",
                         "source_seed": "slab",
                     },
+                    "floorwise_visual_projection": {
+                        "status": "certified",
+                        "hard_pass": True,
+                        "visual_hash": "visual-exact",
+                    },
                     "program_book_projection_evidence": {
                         "scope": {"base_volume_label": "1/2"},
                     },
@@ -127,13 +132,15 @@ class MaasOutcomeRenderMemoryTest(SimpleTestCase):
                     "rendered_mass_pixel_count": 1200,
                     "rendered_mass_pixel_ratio": 0.012,
                     "hard_pass": True,
+                    "projected_visual_geometry_hash": "visual-exact",
                 }],
             )
             payload = graph.save()
 
             observation = next(item for item in payload["observations"] if item["stage"] == "mass_png_render")
             self.assertEqual(observation["projected_program_hash"], "program-projected")
-            self.assertEqual(observation["geometry_hash"], "geometry-exact")
+            self.assertEqual(observation["geometry_hash"], "visual-exact")
+            self.assertEqual(observation["capacity_geometry_hash"], "geometry-exact")
             self.assertEqual(observation["render_artifact"]["crop_box"], [0, 72, 384, 332])
             self.assertEqual(observation["capacity_alternative_id"], "maximum_feasible")
             self.assertEqual(observation["capacity_target_utilization"], 0.98)

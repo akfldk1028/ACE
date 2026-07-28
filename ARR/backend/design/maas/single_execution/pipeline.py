@@ -9,6 +9,7 @@ run deterministically for that one MASS.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import replace
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -30,7 +31,7 @@ from design.maas.agents.orchestrator.execution_collaboration import (
 )
 from design.maas.agents.shared.types import ExecutionIdentity
 from design.maas.geometry_language.ast import GeometryProgram
-from design.maas.geometry_language.compiler import compile_geometry_program
+from design.maas.geometry_language.compiler import CompilationResult, compile_geometry_program
 from design.maas.geometry_language.execution_persistence import (
     passport_path_for_preview,
     write_mass_execution_passport,
@@ -60,6 +61,7 @@ def execute_single_mass(
     source_run_id: str = "",
     source_mass_index: int = 0,
     elevation_image_adapter: AestheticProvider | None = None,
+    validated_compilation: CompilationResult | None = None,
 ) -> SingleMassExecutionResult:
     """Compile, gate, render, and persist exactly one MASS with stage timings."""
 
@@ -70,7 +72,8 @@ def execute_single_mass(
     resolved_program = (
         program if isinstance(program, GeometryProgram) else GeometryProgram.from_dict(dict(program))
     )
-    resolved_program = normalize_unitbox_program(resolved_program)
+    if validated_compilation is None:
+        resolved_program = normalize_unitbox_program(resolved_program)
     validation_issues = tuple(resolved_program.validate())
     timings["parse_validate"] = _elapsed_ms(stage_started)
 
@@ -89,7 +92,11 @@ def execute_single_mass(
     manifest_path = directory / "execution.json"
 
     stage_started = perf_counter()
-    compilation = compile_geometry_program(resolved_program)
+    compilation = (
+        _validated_replay_compilation(validated_compilation, resolved_program)
+        if validated_compilation is not None
+        else compile_geometry_program(resolved_program)
+    )
     timings["compile"] = _elapsed_ms(stage_started)
 
     stage_started = perf_counter()
@@ -339,6 +346,34 @@ def _accepted_elevation_handoff(downstream: Mapping[str, Any]) -> bool:
     if expected_plan_hash and actual_plan_hash != expected_plan_hash:
         return False
     return True
+
+
+def _validated_replay_compilation(
+    compilation: CompilationResult,
+    program: GeometryProgram,
+) -> CompilationResult:
+    if compilation.program.program_hash() != program.program_hash():
+        raise ValueError("validated compilation program identity mismatch")
+    metrics = dict(compilation.metrics or {})
+    if (
+        compilation.status != "compiled"
+        or compilation.issues
+        or not compilation.vertices
+        or not compilation.triangles
+        or metrics.get("geometry_authority") != "certified_projected_visual_mesh"
+        or not re.fullmatch(r"[0-9a-f]{64}", str(compilation.geometry_hash or ""))
+        or not re.fullmatch(r"[0-9a-f]{64}", str(metrics.get("exact_payload_hash") or ""))
+    ):
+        raise ValueError("validated compilation is not a certified projected visual mesh")
+    capacity_metrics = metrics.get("capacity_replay_metrics")
+    if isinstance(capacity_metrics, Mapping):
+        metrics = {
+            **dict(capacity_metrics),
+            **metrics,
+            "vertex_count": len(compilation.vertices),
+            "triangle_count": len(compilation.triangles),
+        }
+    return replace(compilation, program=program, metrics=metrics)
 
 
 __all__ = ["execute_single_mass"]

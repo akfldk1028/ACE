@@ -39,6 +39,7 @@ from design.maas.geometry_language.executed_archive import compile_executed_mass
 from design.maas.geometry_language.elevation_handoff import (
     build_executed_mass_elevation_handoff,
 )
+from design.maas.geometry_language.outcome_graph import GeometryOutcomeGraph
 from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
 
 
@@ -362,6 +363,146 @@ class MaasFlowRegressionTest(SimpleTestCase):
                 handoff["indexed_triangle_mesh"]["vertices"],
                 [list(vertex) for vertex in compilation.vertices],
             )
+
+    def test_render_observation_uses_certified_projected_visual_hash(self):
+        source, visual_hash = self._projected_visual_source()
+        source = replace(
+            source,
+            metadata={
+                **source.metadata,
+                "geometry_program": {
+                    "name": "visual",
+                    "root_id": "root",
+                    "nodes": [],
+                    "metadata": {},
+                },
+                "geometry_program_bridge_evidence": {
+                    "program_hash": "projected-program",
+                    "geometry_hash": "capacity-geometry",
+                },
+            },
+        )
+        candidate = SimpleNamespace(
+            principle_id="book:visual",
+            sequence=SimpleNamespace(name="visual-seed"),
+            source=source,
+        )
+        with TemporaryDirectory() as directory:
+            graph = GeometryOutcomeGraph.load(
+                Path(directory) / "outcome.json",
+                pnu="test-pnu",
+            )
+            graph.observe_portfolio_render(
+                program_slug="neighborhood_living",
+                candidates=[candidate],
+                board_path=Path(directory) / "board.png",
+                render_evidence=[{
+                    "card_index": 1,
+                    "hard_pass": True,
+                    "projected_visual_geometry_hash": visual_hash,
+                }],
+            )
+            payload = graph.to_dict()
+
+        observation = next(
+            item
+            for item in payload["observations"]
+            if item["stage"] == "mass_png_render"
+        )
+        self.assertEqual(observation["geometry_hash"], visual_hash)
+        self.assertEqual(
+            observation["capacity_geometry_hash"],
+            "capacity-geometry",
+        )
+        self.assertEqual(
+            observation["render_artifact"]["projected_visual_geometry_hash"],
+            visual_hash,
+        )
+
+    def test_render_observation_rejects_visual_hash_certificate_mismatch(self):
+        source, _visual_hash = self._projected_visual_source()
+        source = replace(
+            source,
+            metadata={
+                **source.metadata,
+                "geometry_program": {
+                    "name": "visual",
+                    "root_id": "root",
+                    "nodes": [],
+                    "metadata": {},
+                },
+                "geometry_program_bridge_evidence": {
+                    "program_hash": "projected-program",
+                    "geometry_hash": "capacity-geometry",
+                },
+            },
+        )
+        candidate = SimpleNamespace(
+            principle_id="book:visual",
+            sequence=SimpleNamespace(name="visual-seed"),
+            source=source,
+        )
+        with TemporaryDirectory() as directory:
+            graph = GeometryOutcomeGraph.load(
+                Path(directory) / "outcome.json",
+                pnu="test-pnu",
+            )
+            with self.assertRaisesRegex(
+                ValueError,
+                "projected visual render hash mismatch",
+            ):
+                graph.observe_portfolio_render(
+                    program_slug="neighborhood_living",
+                    candidates=[candidate],
+                    board_path=Path(directory) / "board.png",
+                    render_evidence=[{
+                        "card_index": 1,
+                        "hard_pass": True,
+                        "projected_visual_geometry_hash": "0" * 64,
+                    }],
+                )
+
+    def test_render_observation_rejects_missing_visual_certificate(self):
+        source, visual_hash = self._projected_visual_source()
+        source = replace(
+            source,
+            metadata={
+                "geometry_program": {
+                    "name": "legacy",
+                    "root_id": "root",
+                    "nodes": [],
+                    "metadata": {},
+                },
+                "geometry_program_bridge_evidence": {
+                    "program_hash": "projected-program",
+                    "geometry_hash": "capacity-geometry",
+                },
+            },
+        )
+        candidate = SimpleNamespace(
+            principle_id="book:legacy",
+            sequence=SimpleNamespace(name="legacy-seed"),
+            source=source,
+        )
+        with TemporaryDirectory() as directory:
+            graph = GeometryOutcomeGraph.load(
+                Path(directory) / "outcome.json",
+                pnu="test-pnu",
+            )
+            with self.assertRaisesRegex(
+                ValueError,
+                "certified=missing",
+            ):
+                graph.observe_portfolio_render(
+                    program_slug="neighborhood_living",
+                    candidates=[candidate],
+                    board_path=Path(directory) / "board.png",
+                    render_evidence=[{
+                        "card_index": 1,
+                        "hard_pass": True,
+                        "projected_visual_geometry_hash": visual_hash,
+                    }],
+                )
 
     def test_projected_visual_archive_tamper_fails_closed(self):
         artifact, _visual_hash = self._projected_visual_artifact()

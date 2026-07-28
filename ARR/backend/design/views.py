@@ -48,6 +48,7 @@ from design.maas.aesthetic.adapters import NanoBananaAdapter, OpenAIImageAdapter
 from design.maas.aesthetic.renderers import MultiViewReferencePackRenderer
 from design.maas.preference.reference_corpus import default_reference_root
 from design.maas.geometry_language import (
+    CompilationResult,
     architectural_shape_programs,
     build_mass_execution_passport,
     compile_geometry_program,
@@ -248,6 +249,7 @@ def maas_single_execution(request):
         program = body.get("program")
         downstream_evidence = None
         vlm_result = None
+        validated_compilation = None
         source_replay = False
         if not isinstance(program, dict):
             source_replay = True
@@ -260,9 +262,16 @@ def maas_single_execution(request):
                     raise ValueError("single execution run contains exactly one MASS")
                 resolved_program = single_execution_program(_single_execution_root(), source_run_id)
                 source_passport = single_execution_passport(_single_execution_root(), source_run_id)
+                validated_compilation = _single_execution_certified_compilation(
+                    _single_execution_root(),
+                    source_run_id,
+                    resolved_program,
+                    source_passport,
+                )
             else:
                 compilation, _, _, _ = compile_executed_mass(source_mass_index, source_run_id)
                 resolved_program = compilation.program
+                validated_compilation = compilation
                 source_passport = materialize_executed_mass_passport(source_mass_index, source_run_id)
             program = resolved_program.to_dict()
             downstream_evidence = downstream_evidence_from_passport(source_passport)
@@ -282,6 +291,7 @@ def maas_single_execution(request):
             execution_mode="exact_replay" if source_replay else requested_execution_mode,
             source_run_id=source_run_id if source_replay else "",
             source_mass_index=source_mass_index if source_replay else 0,
+            validated_compilation=validated_compilation,
         )
     except (TypeError, ValueError, json.JSONDecodeError) as exc:
         return JsonResponse({"error": str(exc)}, status=400)
@@ -295,6 +305,54 @@ def maas_single_execution(request):
         "passport_url": f"{base}/passport/",
     })
     return JsonResponse(payload, status=201 if result.geometry_ready else 422)
+
+
+def _single_execution_certified_compilation(
+    root: Path,
+    run_id: str,
+    program,
+    passport: dict,
+) -> CompilationResult | None:
+    capacity_replay = compile_geometry_program(program)
+    expected_geometry_hash = str(passport.get("geometry_hash") or "")
+    if capacity_replay.geometry_hash == expected_geometry_hash:
+        return None
+    expected_program_hash = program.program_hash()
+    current_run_id = str(run_id)
+    visited: set[str] = set()
+    for _depth in range(32):
+        if current_run_id in visited:
+            raise ValueError("single execution replay provenance cycle")
+        visited.add(current_run_id)
+        execution_id = current_run_id.removeprefix("single-execution:")
+        manifest_path = (Path(root).resolve() / execution_id / "execution.json").resolve()
+        if (
+            not manifest_path.is_relative_to(Path(root).resolve())
+            or not manifest_path.is_file()
+        ):
+            break
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        origin_run_id = str(manifest.get("source_run_id") or "")
+        origin_mass_index = int(manifest.get("source_mass_index") or 0)
+        if not origin_run_id or origin_mass_index < 1:
+            break
+        if is_single_execution_run(origin_run_id):
+            current_run_id = origin_run_id
+            continue
+        compilation, _, _, _ = compile_executed_mass(
+            origin_mass_index,
+            origin_run_id,
+        )
+        if (
+            compilation.program.program_hash() != expected_program_hash
+            or compilation.geometry_hash != expected_geometry_hash
+            or str(passport.get("program_hash") or "") != expected_program_hash
+        ):
+            raise ValueError("single execution certified compilation identity mismatch")
+        return compilation
+    raise ValueError(
+        "original certified archive is unavailable for exact replay"
+    )
 
 
 @csrf_exempt

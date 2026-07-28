@@ -7,7 +7,7 @@ from io import StringIO
 
 from django.core.management import call_command
 from django.test import TestCase
-from shapely.geometry import Polygon, box
+from shapely.geometry import Polygon, box, mapping
 from unittest.mock import patch
 
 from design.maas import export_mass_geojson_to_scad, generate_legal_mass_variants, mass_geojson_to_scad
@@ -37,6 +37,7 @@ from design.maas.llm_proposals import (
 )
 from design.maas.morphology_operators import generate_morphology_variants
 from design.maas.source_geometry import compile_sequence_to_source_mass
+from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
 from design.maas.grammar.verb_sequence import VerbSequence, call
 from design.maas.grammar.component_graph import graph_from_sequence
 from design.maas.interactive.revision import apply_graph_operations, infer_graph_operations
@@ -54,7 +55,7 @@ from design.maas.parking_strategy import infer_parking_strategy
 from design.maas.research_backends import inspect_maas_clone_backend, run_maas_clone_reference_baseline
 from design.maas.training import build_examples_from_design_results, build_sft_examples, evidence_to_review_example, export_sft_seed
 from design.models import DesignResult, OptimizationJob
-from design.services.site_geometry import geojson_to_polygon, wgs84_to_utm
+from design.services.site_geometry import geojson_to_polygon, utm_to_wgs84, wgs84_to_utm
 
 
 class MaasScadExportServiceTest(TestCase):
@@ -110,6 +111,57 @@ class MaasScadExportServiceTest(TestCase):
         self.assertIn("lower mass / podium", export.scad_text)
         self.assertIn("upper mass / stepback", export.scad_text)
         self.assertEqual(export.scad_text.count("linear_extrude(height=9.0000)"), 2)
+
+    def test_exports_all_three_canonical_floorwise_profiles(self):
+        feature = self._base_feature()
+        profiles = [
+            {
+                "type": "Polygon",
+                "coordinates": [[
+                    [127.0000 + inset, 37.0000 + inset],
+                    [127.0005 - inset, 37.0000 + inset],
+                    [127.0005 - inset, 37.0004 - inset],
+                    [127.0000 + inset, 37.0004 - inset],
+                    [127.0000 + inset, 37.0000 + inset],
+                ]],
+            }
+            for inset in (0.0, 0.00005, 0.00010)
+        ]
+        volumes = [
+            {
+                "band": index,
+                "bottom_height": index * 3.0,
+                "top_height": (index + 1) * 3.0,
+                "geometry": geometry,
+                "role": "floorwise_legal_mass",
+            }
+            for index, geometry in enumerate(profiles)
+        ]
+        feature["properties"].update({
+            "height": 9.0,
+            "num_floors": 3,
+            "mass_volumes": volumes,
+            "floor_plates": [
+                {
+                    "floor": index + 1,
+                    "top_height": (index + 1) * 3.0,
+                    "geometry": geometry,
+                }
+                for index, geometry in enumerate(profiles)
+            ],
+            "maas_model": {"volumes": volumes},
+            "upper_geometry": self._base_feature()["geometry"],
+            "lower_height": 1.0,
+        })
+
+        export = mass_geojson_to_scad(feature, name="floorwise")
+
+        self.assertEqual(export.scad_text.count("linear_extrude(height=3.0000)"), 3)
+        self.assertIn("translate([0,0,0.0000])", export.scad_text)
+        self.assertIn("translate([0,0,3.0000])", export.scad_text)
+        self.assertIn("translate([0,0,6.0000])", export.scad_text)
+        self.assertEqual(export.metadata["canonical_band_count"], 3)
+        self.assertEqual(export.metadata["geometry_source"], "mass_volumes")
 
 
 class MaasScadExportEndpointTest(TestCase):
@@ -388,6 +440,73 @@ class MaasEvidenceBundleEndpointTest(TestCase):
 
 
 class MaasLegalVariantsTest(TestCase):
+    def _authored_profiled_source(self, footprint):
+        minx, miny, maxx, maxy = footprint.bounds
+        cx, cy = float(footprint.centroid.x), float(footprint.centroid.y)
+        vertices = (
+            (minx - cx, miny - cy, 0.0),
+            (maxx - cx, miny - cy, 0.0),
+            (maxx - cx, maxy - cy, 0.0),
+            (minx - cx, maxy - cy, 0.0),
+            (minx - cx, miny - cy, 1.0),
+            (maxx - cx, miny - cy, 1.0),
+            (maxx - cx, maxy - cy, 1.0),
+            (minx - cx, maxy - cy, 1.0),
+        )
+        triangles = (
+            (0, 2, 1), (0, 3, 2),
+            (4, 5, 6), (4, 6, 7),
+            (0, 1, 5), (0, 5, 4),
+            (1, 2, 6), (1, 6, 5),
+            (2, 3, 7), (2, 7, 6),
+            (3, 0, 4), (3, 4, 7),
+        )
+        surfaces = tuple(
+            SourceSurface(
+                role=f"authored:triangle:{index:02d}",
+                volume_role="recursive_solid_primary",
+                verb="geometry_program",
+                surface_type="profiled_recursive_solid_mesh",
+                vertices_m=tuple(vertices[vertex] for vertex in triangle),
+                semantic_patch_id=f"authored:{index:02d}",
+            )
+            for index, triangle in enumerate(triangles, start=1)
+        )
+        return SourceMass(
+            name="authored_visual_probe",
+            footprint=footprint,
+            volumes=(
+                SourceVolume(
+                    "recursive_solid_primary",
+                    footprint,
+                    0.0,
+                    1.0,
+                    "geometry_program",
+                ),
+            ),
+            surfaces=surfaces,
+            metadata={
+                "family": "book_recursive_probe",
+                "geometry_program": {
+                    "schema_version": "arr.maas.geometry_program.v1",
+                    "name": "book_recursive_probe",
+                },
+                "geometry_graph_snapshot": {
+                    "nodes": [{"id": "base-volume"}, {"id": "book-operation"}],
+                },
+                "geometry_program_bridge_evidence": {
+                    "program_hash": "program-hash-probe",
+                    "geometry_hash": "authored-geometry-hash-probe",
+                    "raw_mesh_triangle_count": len(surfaces),
+                    "exported_surface_count": len(surfaces),
+                },
+                "continuous_surface_evidence": {
+                    "hard_pass": True,
+                    "surface_count": len(surfaces),
+                },
+            },
+        )
+
     def _floorwise_probe_feature(self):
         lower = {
             "type": "Polygon",
@@ -475,6 +594,151 @@ class MaasLegalVariantsTest(TestCase):
         self.assertLessEqual(first.intersection(upper).area, 0.05)
         self.assertLessEqual(second.intersection(lower).area, 0.05)
 
+    def test_final_floorwise_repair_reprojects_authored_visual_and_preserves_lineage(self):
+        feature = self._floorwise_probe_feature()
+        props = feature["properties"]
+        lower_utm = wgs84_to_utm(geojson_to_polygon(feature["geometry"]))
+        authored = self._authored_profiled_source(lower_utm)
+        props.update({
+            "variant_id": "agent_book_probe",
+            "geometry_program": {"program_hash": "program-hash-probe"},
+            "geometry_graph_snapshot": {
+                "nodes": [{"id": "base-volume"}, {"id": "book-operation"}],
+            },
+            "component_graph": {
+                "nodes": [{"node_id": "base-volume"}, {"node_id": "book-operation"}],
+            },
+            "base_capacity_contract": {"base_volume_id": "base-volume"},
+            "book_generation_lineage": {
+                "parent_key": "base-volume",
+                "book_scope": "BOOK-p3",
+            },
+            "source_surfaces": [{
+                "role": "stale",
+                "volume_role": "recursive_solid_primary",
+                "surface_type": "profiled_recursive_solid_mesh",
+                "vertices_m": [[0.0, 0.0, 0.0]] * 3,
+            }],
+            "floorwise_visual_projection": {
+                "status": "certified",
+                "hard_pass": True,
+                "visual_hash": "stale-visual-hash",
+                "projected_surface_count": 1,
+            },
+        })
+        props["source_signature"].update({
+            "surface_count": len(authored.surfaces),
+            "effective_surface_count": len(authored.surfaces),
+            "geometry_program": authored.metadata["geometry_program"],
+            "geometry_graph_snapshot": authored.metadata["geometry_graph_snapshot"],
+            "verb_profile": ["base", "book"],
+        })
+        expected_identity = {
+            key: json.loads(json.dumps(props[key]))
+            for key in (
+                "variant_id",
+                "geometry_program",
+                "geometry_graph_snapshot",
+                "component_graph",
+                "base_capacity_contract",
+                "book_generation_lineage",
+            )
+        }
+
+        result = revalidate_final_floorwise_feature(
+            feature,
+            envelope=self._floorwise_probe_envelope(),
+            sunlight_envelope=None,
+            building_type="?⑤벉猷욂틠?녠문",
+            authored_source=authored,
+        )
+
+        self.assertIsNotNone(result.feature)
+        rebound = result.feature["properties"]
+        surfaces = rebound["source_surfaces"]
+        certificate = rebound["floorwise_visual_projection"]
+        self.assertGreater(len(surfaces), 0)
+        self.assertTrue(all(
+            surface["surface_type"] == "profiled_recursive_solid_mesh"
+            for surface in surfaces
+        ))
+        self.assertEqual(certificate["status"], "certified")
+        self.assertTrue(certificate["hard_pass"])
+        self.assertNotEqual(certificate["visual_hash"], "stale-visual-hash")
+        self.assertEqual(certificate["projected_surface_count"], len(surfaces))
+        self.assertAlmostEqual(
+            certificate["capacity_gfa_m2"],
+            rebound["floor_area"],
+            delta=0.2,
+        )
+        self.assertAlmostEqual(
+            rebound["floor_area"],
+            sum(float(plate["area"]) for plate in rebound["floor_plates"]),
+            delta=0.05,
+        )
+        for key, value in expected_identity.items():
+            self.assertEqual(rebound[key], value)
+        self.assertEqual(
+            rebound["source_signature"]["geometry_program"],
+            authored.metadata["geometry_program"],
+        )
+        self.assertEqual(
+            rebound["source_signature"]["geometry_graph_snapshot"],
+            authored.metadata["geometry_graph_snapshot"],
+        )
+        self.assertEqual(
+            rebound["floorwise_legal_evidence"]["visual_authority"],
+            "certified_projected_authored_mesh",
+        )
+
+    def test_final_floorwise_authored_visual_without_reprojection_rejects_closed(self):
+        feature = self._floorwise_probe_feature()
+        feature["properties"]["source_surfaces"] = [{
+            "role": "authored",
+            "volume_role": "recursive_solid_primary",
+            "surface_type": "profiled_recursive_solid_mesh",
+            "vertices_m": [[0.0, 0.0, 0.0]] * 3,
+        }]
+        feature["properties"]["source_signature"].update({
+            "surface_count": 1,
+            "effective_surface_count": 1,
+        })
+
+        result = revalidate_final_floorwise_feature(
+            feature,
+            envelope=self._floorwise_probe_envelope(),
+            sunlight_envelope=None,
+            building_type="?⑤벉猷욂틠?녠문",
+        )
+
+        self.assertIsNone(result.feature)
+        self.assertIn(
+            "authored_floorwise_visual_reprojection_failed",
+            result.evidence["failed_checks"],
+        )
+
+    def test_final_floorwise_proxy_anchor_may_remain_surface_empty(self):
+        feature = self._floorwise_probe_feature()
+
+        result = revalidate_final_floorwise_feature(
+            feature,
+            envelope=self._floorwise_probe_envelope(),
+            sunlight_envelope=None,
+            building_type="?⑤벉猷욂틠?녠문",
+        )
+
+        self.assertIsNotNone(result.feature)
+        props = result.feature["properties"]
+        self.assertNotIn("source_surfaces", props)
+        self.assertEqual(
+            props["floorwise_visual_projection"]["status"],
+            "not_applicable_no_authored_mesh",
+        )
+        self.assertEqual(
+            props["floorwise_legal_evidence"]["visual_authority"],
+            "floorwise_capacity_proxy_only",
+        )
+
     def test_partial_explicit_plates_cannot_hide_canonical_upper_band(self):
         feature = self._floorwise_probe_feature()
         feature["properties"]["floor_plates"] = [{
@@ -528,6 +792,74 @@ class MaasLegalVariantsTest(TestCase):
             "piloti_parking_void",
             props["floorwise_legal_evidence"]["post_validation_subtractions"],
         )
+
+    def test_non_floor_aligned_partial_height_band_fails_closed(self):
+        feature = self._floorwise_probe_feature()
+        feature["properties"]["mass_volumes"][0]["bottom_height"] = 0.1
+        feature["properties"]["mass_volumes"][0]["top_height"] = 0.2
+        feature["properties"]["maas_model"]["volumes"] = feature["properties"]["mass_volumes"]
+
+        result = revalidate_final_floorwise_feature(
+            feature,
+            envelope=self._floorwise_probe_envelope(),
+            sunlight_envelope=None,
+            building_type="怨듬룞二쇳깮",
+        )
+
+        self.assertIsNone(result.feature)
+        self.assertTrue(any(
+            check.startswith("non_floor_aligned_mass_volume:")
+            for check in result.evidence["failed_checks"]
+        ))
+
+    def test_vertical_gap_cannot_hide_higher_occupied_band(self):
+        feature = self._floorwise_probe_feature()
+        upper = feature["properties"]["mass_volumes"][1]
+        upper["bottom_height"] = 6.0
+        upper["top_height"] = 9.0
+        feature["properties"]["height"] = 9.0
+        feature["properties"]["num_floors"] = 3
+
+        result = revalidate_final_floorwise_feature(
+            feature,
+            envelope=self._floorwise_probe_envelope(),
+            sunlight_envelope=None,
+            building_type="怨듬룞二쇳깮",
+        )
+
+        self.assertIsNone(result.feature)
+        self.assertIn(
+            "vertical_occupancy_gap_before_floor:2",
+            result.evidence["failed_checks"],
+        )
+
+    def test_explicit_plate_tops_must_align_to_every_floor(self):
+        feature = self._floorwise_probe_feature()
+        feature["properties"]["mass_volumes"] = []
+        feature["properties"]["maas_model"]["volumes"] = []
+        feature["properties"]["floor_plates"] = [
+            {
+                "floor": 1,
+                "top_height": 0.1,
+                "geometry": feature["geometry"],
+            },
+            {
+                "floor": 2,
+                "top_height": 6.0,
+                "geometry": feature["geometry"],
+            },
+        ]
+        feature["properties"]["maas_model"]["floor_plates"] = feature["properties"]["floor_plates"]
+
+        result = revalidate_final_floorwise_feature(
+            feature,
+            envelope=self._floorwise_probe_envelope(),
+            sunlight_envelope=None,
+            building_type="怨듬룞二쇳깮",
+        )
+
+        self.assertIsNone(result.feature)
+        self.assertIn("incomplete_explicit_floor_plates", result.evidence["failed_checks"])
 
     def test_bounded_component_graph_revision_preserves_ids_and_clamps_parameter(self):
         graph = graph_from_sequence(VerbSequence(

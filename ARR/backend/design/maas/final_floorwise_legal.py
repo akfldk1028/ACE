@@ -22,6 +22,7 @@ from design.services.site_geometry import geojson_to_polygon, utm_to_wgs84, wgs8
 
 _AREA_TOLERANCE_M2 = 0.05
 _MIN_OCCUPIED_AREA_M2 = 1.0
+_HEIGHT_ALIGNMENT_TOLERANCE_M = 0.11
 
 
 def _largest_areal_polygon(geometry):
@@ -102,6 +103,14 @@ def _occupied_sections_from_volumes(
         if bottom is None or top is None or top <= bottom or polygon is None:
             failed_checks.append(f"invalid_mass_volume:{index}")
             continue
+        bottom_grid = round(bottom / floor_height) * floor_height
+        top_grid = round(top / floor_height) * floor_height
+        if (
+            abs(bottom - bottom_grid) > _HEIGHT_ALIGNMENT_TOLERANCE_M
+            or abs(top - top_grid) > _HEIGHT_ALIGNMENT_TOLERANCE_M
+        ):
+            failed_checks.append(f"non_floor_aligned_mass_volume:{index}")
+            continue
         parsed.append((bottom, top, polygon, str(volume.get("role") or "morphology_volume")))
     if failed_checks or not parsed:
         return [], failed_checks or ["missing_mass_volume_sections"]
@@ -110,14 +119,20 @@ def _occupied_sections_from_volumes(
     floor_count = max(1, int(math.ceil(maximum_height / floor_height - 1e-9)))
     sections: list[tuple[int, float, Any, list[str]]] = []
     for floor in range(1, floor_count + 1):
-        bottom_height = (floor - 1) * floor_height
         top_height = floor * floor_height
+        sample_height = top_height - min(0.001, floor_height * 0.0001)
         active = [
             (polygon, role)
             for bottom, top, polygon, role in parsed
-            if top > bottom_height + 1e-7 and bottom < top_height - 1e-7
+            if bottom <= sample_height + 1e-7 and top >= sample_height - 1e-7
         ]
         if not active:
+            has_higher_occupancy = any(
+                top > top_height + _HEIGHT_ALIGNMENT_TOLERANCE_M
+                for _, top, _, _ in parsed
+            )
+            if has_higher_occupancy:
+                return [], [f"vertical_occupancy_gap_before_floor:{floor}"]
             if sections:
                 break
             return [], [f"no_occupied_section_at_floor:{floor}"]
@@ -168,6 +183,9 @@ def _plates_cover_claimed_occupancy(
         top = _float(plate.get("top_height"))
         if top is None:
             return False
+        expected_top = (index + 1) * floor_height
+        if abs(top - expected_top) > _HEIGHT_ALIGNMENT_TOLERANCE_M:
+            return False
         tops.append(top)
     if floors != list(range(1, len(plates) + 1)):
         return False
@@ -183,8 +201,9 @@ def _plates_cover_claimed_occupancy(
     expected_floor_count = max(1, int(math.ceil(occupied_height / floor_height - 1e-9)))
     return (
         len(plates) == expected_floor_count
-        and abs(tops[-1] - expected_floor_count * floor_height) <= 0.11
-        and tops[-1] + 0.11 >= occupied_height
+        and abs(tops[-1] - expected_floor_count * floor_height)
+        <= _HEIGHT_ALIGNMENT_TOLERANCE_M
+        and tops[-1] + _HEIGHT_ALIGNMENT_TOLERANCE_M >= occupied_height
     )
 
 
@@ -366,10 +385,9 @@ def revalidate_final_floorwise_feature(
         for plate in plates
     ]
     candidate["geometry"] = plates[0]["geometry"]
-    if len(plates) > 1:
-        props["upper_geometry"] = plates[-1]["geometry"]
-        props["lower_height"] = round(float(plates[-2]["top_height"]), 2)
-        props["step_floor"] = len(plates) - 1
+    props.pop("upper_geometry", None)
+    props.pop("lower_height", None)
+    props.pop("step_floor", None)
 
     legal_metrics = {
         key: props.get(key)

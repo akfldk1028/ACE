@@ -73,12 +73,67 @@ def _extrude_scad(
     )
 
 
+def _canonical_bands(props: dict[str, Any]) -> tuple[list[dict[str, Any]], str | None]:
+    model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
+    volumes = props.get("mass_volumes")
+    if not isinstance(volumes, list) or not volumes:
+        volumes = model.get("volumes")
+    if isinstance(volumes, list) and volumes:
+        bands: list[dict[str, Any]] = []
+        for index, volume in enumerate(volumes):
+            if not isinstance(volume, dict) or not isinstance(volume.get("geometry"), dict):
+                return [], None
+            try:
+                bottom = float(volume.get("bottom_height"))
+                top = float(volume.get("top_height"))
+            except (TypeError, ValueError):
+                return [], None
+            if top <= bottom:
+                return [], None
+            bands.append({
+                "index": index,
+                "bottom": bottom,
+                "top": top,
+                "geometry": volume["geometry"],
+            })
+        bands.sort(key=lambda band: (band["bottom"], band["top"], band["index"]))
+        return bands, "mass_volumes"
+
+    plates = props.get("floor_plates")
+    if not isinstance(plates, list) or not plates:
+        plates = model.get("floor_plates")
+    if isinstance(plates, list) and plates:
+        bands = []
+        previous_top = 0.0
+        ordered = sorted(
+            [plate for plate in plates if isinstance(plate, dict)],
+            key=lambda plate: int(plate.get("floor") or 0),
+        )
+        for index, plate in enumerate(ordered):
+            if not isinstance(plate.get("geometry"), dict):
+                return [], None
+            try:
+                top = float(plate.get("top_height"))
+            except (TypeError, ValueError):
+                return [], None
+            if top <= previous_top:
+                return [], None
+            bands.append({
+                "index": index,
+                "bottom": previous_top,
+                "top": top,
+                "geometry": plate["geometry"],
+            })
+            previous_top = top
+        return bands, "floor_plates"
+    return [], None
+
+
 def mass_geojson_to_scad(mass_geojson: dict[str, Any], *, name: str | None = None) -> ScadExport:
     """Convert a mass GeoJSON Feature into OpenSCAD text.
 
-    The current ARR mass renderer emits a base footprint plus optional
-    `properties.upper_geometry` and `properties.lower_height` for stepback
-    masses. This exporter preserves that two-tier structure.
+    Canonical floorwise mass bands are exported first. Legacy two-tier
+    compatibility geometry is used only when canonical bands are absent.
     """
     if mass_geojson.get("type") != "Feature":
         raise ValueError("mass_geojson must be a GeoJSON Feature")
@@ -88,12 +143,18 @@ def mass_geojson_to_scad(mass_geojson: dict[str, Any], *, name: str | None = Non
         raise ValueError("mass_geojson.geometry is required")
 
     props = mass_geojson.get("properties") or {}
-    base_wgs = _largest_polygon(geojson_to_polygon(geometry))
+    canonical_bands, geometry_source = _canonical_bands(props)
+    origin_geometry = canonical_bands[0]["geometry"] if canonical_bands else geometry
+    base_wgs = _largest_polygon(geojson_to_polygon(origin_geometry))
     base_utm = wgs84_to_utm(base_wgs)
     cx, cy = base_utm.centroid.x, base_utm.centroid.y
     base_points = _polygon_to_local_points(base_wgs, cx, cy)
 
-    total_height = float(props.get("height") or 0)
+    total_height = (
+        max(float(band["top"]) for band in canonical_bands)
+        if canonical_bands
+        else float(props.get("height") or 0)
+    )
     if total_height <= 0:
         floor_height = float(props.get("floor_height") or 3.0)
         num_floors = float(props.get("num_floors") or 1)
@@ -105,7 +166,19 @@ def mass_geojson_to_scad(mass_geojson: dict[str, Any], *, name: str | None = Non
 
     upper_geometry = props.get("upper_geometry")
     lower_height = float(props.get("lower_height") or 0)
-    if isinstance(upper_geometry, dict) and 0 < lower_height < total_height:
+    if canonical_bands:
+        for band_number, band in enumerate(canonical_bands, start=1):
+            band_wgs = _largest_polygon(geojson_to_polygon(band["geometry"]))
+            band_points = _polygon_to_local_points(band_wgs, cx, cy)
+            body_parts.append(
+                _extrude_scad(
+                    points=band_points,
+                    bottom=float(band["bottom"]),
+                    height=float(band["top"]) - float(band["bottom"]),
+                    label=f"canonical floorwise band {band_number}",
+                )
+            )
+    elif isinstance(upper_geometry, dict) and 0 < lower_height < total_height:
         upper_wgs = _largest_polygon(geojson_to_polygon(upper_geometry))
         upper_points = _polygon_to_local_points(upper_wgs, cx, cy)
         body_parts.append(
@@ -146,6 +219,8 @@ def mass_geojson_to_scad(mass_geojson: dict[str, Any], *, name: str | None = Non
         "mass_shape": props.get("mass_shape"),
         "origin_utm": {"x": round(cx, 4), "y": round(cy, 4)},
         "has_stepback": len(body_parts) > 1,
+        "canonical_band_count": len(canonical_bands),
+        "geometry_source": geometry_source or "legacy_compatibility",
     }
 
     metric_lines = "\n".join(

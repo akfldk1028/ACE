@@ -163,6 +163,22 @@ class MaasScadExportServiceTest(TestCase):
         self.assertEqual(export.metadata["canonical_band_count"], 3)
         self.assertEqual(export.metadata["geometry_source"], "mass_volumes")
 
+    def test_malformed_canonical_volumes_do_not_fall_back_to_stale_legacy_geometry(self):
+        feature = self._base_feature()
+        feature["properties"].update({
+            "mass_volumes": [
+                {
+                    "bottom_height": 0.0,
+                    "top_height": 3.0,
+                }
+            ],
+            "upper_geometry": self._base_feature()["geometry"],
+            "lower_height": 9.0,
+        })
+
+        with self.assertRaisesRegex(ValueError, "mass_volumes"):
+            mass_geojson_to_scad(feature, name="malformed-floorwise")
+
 
 class MaasScadExportEndpointTest(TestCase):
     def test_endpoint_requires_mass_geojson(self):

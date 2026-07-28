@@ -75,21 +75,28 @@ def _extrude_scad(
 
 def _canonical_bands(props: dict[str, Any]) -> tuple[list[dict[str, Any]], str | None]:
     model = props.get("maas_model") if isinstance(props.get("maas_model"), dict) else {}
-    volumes = props.get("mass_volumes")
-    if not isinstance(volumes, list) or not volumes:
-        volumes = model.get("volumes")
-    if isinstance(volumes, list) and volumes:
+    volume_field = None
+    volumes = None
+    if "mass_volumes" in props:
+        volume_field = "mass_volumes"
+        volumes = props["mass_volumes"]
+    elif "volumes" in model:
+        volume_field = "maas_model.volumes"
+        volumes = model["volumes"]
+    if volume_field is not None:
+        if not isinstance(volumes, list) or not volumes:
+            raise ValueError(f"{volume_field} must be a non-empty list")
         bands: list[dict[str, Any]] = []
         for index, volume in enumerate(volumes):
             if not isinstance(volume, dict) or not isinstance(volume.get("geometry"), dict):
-                return [], None
+                raise ValueError(f"{volume_field}[{index}].geometry is required")
             try:
                 bottom = float(volume.get("bottom_height"))
                 top = float(volume.get("top_height"))
             except (TypeError, ValueError):
-                return [], None
+                raise ValueError(f"{volume_field}[{index}] requires numeric heights") from None
             if top <= bottom:
-                return [], None
+                raise ValueError(f"{volume_field}[{index}] top_height must exceed bottom_height")
             bands.append({
                 "index": index,
                 "bottom": bottom,
@@ -99,25 +106,31 @@ def _canonical_bands(props: dict[str, Any]) -> tuple[list[dict[str, Any]], str |
         bands.sort(key=lambda band: (band["bottom"], band["top"], band["index"]))
         return bands, "mass_volumes"
 
-    plates = props.get("floor_plates")
-    if not isinstance(plates, list) or not plates:
-        plates = model.get("floor_plates")
-    if isinstance(plates, list) and plates:
+    plate_field = None
+    plates = None
+    if "floor_plates" in props:
+        plate_field = "floor_plates"
+        plates = props["floor_plates"]
+    elif "floor_plates" in model:
+        plate_field = "maas_model.floor_plates"
+        plates = model["floor_plates"]
+    if plate_field is not None:
+        if not isinstance(plates, list) or not plates:
+            raise ValueError(f"{plate_field} must be a non-empty list")
         bands = []
         previous_top = 0.0
-        ordered = sorted(
-            [plate for plate in plates if isinstance(plate, dict)],
-            key=lambda plate: int(plate.get("floor") or 0),
-        )
+        if any(not isinstance(plate, dict) for plate in plates):
+            raise ValueError(f"{plate_field} entries must be objects")
+        ordered = sorted(plates, key=lambda plate: int(plate.get("floor") or 0))
         for index, plate in enumerate(ordered):
             if not isinstance(plate.get("geometry"), dict):
-                return [], None
+                raise ValueError(f"{plate_field}[{index}].geometry is required")
             try:
                 top = float(plate.get("top_height"))
             except (TypeError, ValueError):
-                return [], None
+                raise ValueError(f"{plate_field}[{index}].top_height must be numeric") from None
             if top <= previous_top:
-                return [], None
+                raise ValueError(f"{plate_field}[{index}] top_height must increase")
             bands.append({
                 "index": index,
                 "bottom": previous_top,

@@ -565,7 +565,7 @@ class MaasFlowRegressionTest(SimpleTestCase):
         )
         self.assertEqual(compiler_gate_edge["activation"], 0.0)
 
-    def test_downstream_pass_cannot_override_stripped_compiler_geometry_evidence(self):
+    def test_stripped_certified_metrics_are_remeasured_before_downstream_pass(self):
         from design.maas.geometry_language.execution_passport import (
             build_mass_execution_passport,
         )
@@ -597,15 +597,87 @@ class MaasFlowRegressionTest(SimpleTestCase):
         geometry_gate = next(
             stage for stage in passport["stages"] if stage["id"] == "geometry_gate"
         )
+        self.assertEqual(geometry_gate["status"], "passed")
+        self.assertTrue(geometry_gate["evidence"]["hard_pass"])
+        self.assertEqual(geometry_gate["evidence"]["issues"], [])
+        self.assertTrue(
+            geometry_gate["evidence"]["metrics"]["certified_mesh_revalidated"]
+        )
+        self.assertTrue(geometry_gate["evidence"]["metrics"]["watertight"])
+        self.assertGreater(geometry_gate["evidence"]["metrics"]["volume"], 0.0)
+
+    def test_certified_geometry_gate_remeasures_mesh_instead_of_capacity_metrics(self):
+        from design.maas.geometry_language.execution_passport import (
+            build_mass_execution_passport,
+        )
+
+        capacity = compile_geometry_program(base_seed_program("block"))
+        open_certified_mesh = replace(
+            capacity,
+            triangles=capacity.triangles[:-1],
+            geometry_hash="f" * 64,
+            metrics={
+                **capacity.metrics,
+                "geometry_authority": "certified_projected_visual_mesh",
+                "capacity_geometry_hash": capacity.geometry_hash,
+                "exact_payload_hash": "e" * 64,
+            },
+        )
+
+        passport = build_mass_execution_passport(
+            open_certified_mesh,
+            geometry_gate_evidence={
+                "hard_pass": True,
+                "authority": "benchmark_final_hard_gates",
+            },
+        )
+
+        compiler = next(
+            stage for stage in passport["stages"] if stage["id"] == "compiler"
+        )
+        geometry_gate = next(
+            stage for stage in passport["stages"] if stage["id"] == "geometry_gate"
+        )
+        self.assertEqual(compiler["status"], "failed")
         self.assertEqual(geometry_gate["status"], "failed")
         self.assertFalse(geometry_gate["evidence"]["hard_pass"])
         self.assertIn(
-            "non_watertight_mesh",
+            "certified_mesh_not_manifold",
             {
                 issue["code"]
                 for issue in geometry_gate["evidence"]["issues"]
             },
         )
+
+    def test_passport_floor_capacity_plan_identity_uses_hash_or_unresolved_sentinel(self):
+        from design.maas.geometry_language.execution_passport import (
+            build_mass_execution_passport,
+        )
+
+        compilation = compile_geometry_program(base_seed_program("block"))
+        cases = (
+            ({}, "FLOOR_CAPACITY_PLAN_HASH_UNRESOLVED"),
+            (
+                {
+                    "capacity": {
+                        "evaluated": True,
+                        "hard_pass": True,
+                        "floor_capacity_plan_hash": "floor-plan-measured",
+                    },
+                },
+                "floor-plan-measured",
+            ),
+        )
+        for downstream, expected in cases:
+            with self.subTest(expected=expected):
+                passport = build_mass_execution_passport(
+                    compilation,
+                    downstream_evidence=downstream,
+                )
+                self.assertEqual(
+                    passport["floor_capacity_plan_hash"],
+                    expected,
+                )
 
     def test_render_observation_uses_certified_projected_visual_hash(self):
         source, visual_hash = self._projected_visual_source()

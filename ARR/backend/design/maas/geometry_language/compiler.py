@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 import hashlib
 import json
 from math import atan2, ceil, cos, degrees, hypot, pi, radians, sin
@@ -146,47 +146,11 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
         raw_triangles = np.asarray(mesh.tri_verts, dtype=np.int64)
         vertices = tuple(tuple(round(float(value), 8) for value in row) for row in raw_vertices)
         triangles = tuple(tuple(int(value) for value in row) for row in raw_triangles)
-        signed_mesh_volume = float(np.einsum(
-            "ij,ij->i",
-            raw_vertices[raw_triangles[:, 0]],
-            np.cross(
-                raw_vertices[raw_triangles[:, 1]],
-                raw_vertices[raw_triangles[:, 2]],
-            ),
-        ).sum() / 6.0)
-        bounds = tuple(float(value) for value in solid.bounding_box())
-        components = tuple(solid.decompose())
-        component_volumes = tuple(sorted(
-            (max(0.0, float(component.volume())) for component in components),
-            reverse=True,
-        ))
-        total_component_volume = max(sum(component_volumes), 1e-12)
-        component_volume_ratios = tuple(
-            round(value / total_component_volume, 6)
-            for value in component_volumes
+        metrics = _measured_solid_metrics(
+            solid,
+            raw_vertices=raw_vertices,
+            raw_triangles=raw_triangles,
         )
-        metrics = {
-            "kernel": "manifold3d",
-            "kernel_status": str(solid.status()),
-            "watertight": True,
-            "manifold": True,
-            "closed_solid": True,
-            "self_intersection_checked_by_kernel": True,
-            "outward_normals": signed_mesh_volume > 0.0,
-            "signed_mesh_volume": round(signed_mesh_volume, 6),
-            "volume": round(float(solid.volume()), 6),
-            "surface_area": round(float(solid.surface_area()), 6),
-            "vertex_count": int(solid.num_vert()),
-            "triangle_count": int(solid.num_tri()),
-            "component_count": len(components),
-            "component_volume_ratios": list(component_volume_ratios),
-            "minimum_component_volume_ratio": min(component_volume_ratios, default=1.0),
-            "genus": int(solid.genus()),
-            "bounds": [
-                [round(bounds[0], 6), round(bounds[1], 6), round(bounds[2], 6)],
-                [round(bounds[3], 6), round(bounds[4], 6), round(bounds[5], 6)],
-            ],
-        }
         return CompilationResult(
             program=program,
             status="compiled",
@@ -199,6 +163,162 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
         )
     except GeometryCompileError as exc:
         return CompilationResult(program, "compile_failed", trace=tuple(trace), issues=(exc.issue,))
+
+
+def revalidate_compilation_mesh(
+    compilation: CompilationResult,
+) -> CompilationResult:
+    """Measure the exact transported mesh instead of trusting prior metrics."""
+
+    preserved = {
+        key: compilation.metrics[key]
+        for key in (
+            "geometry_authority",
+            "exact_payload_hash",
+            "capacity_geometry_hash",
+            "coordinate_space",
+        )
+        if key in (compilation.metrics or {})
+    }
+    if m3d is None:
+        issue = GeometryIssue(
+            "kernel_unavailable",
+            "manifold3d>=3.4 is required to certify transported geometry",
+        )
+        return replace(
+            compilation,
+            status="kernel_unavailable",
+            metrics=preserved,
+            issues=(*tuple(compilation.issues or ()), issue),
+            _solid=None,
+        )
+    try:
+        raw_vertices = np.asarray(compilation.vertices, dtype=np.float64)
+        raw_triangles = np.asarray(compilation.triangles, dtype=np.int64)
+        if (
+            raw_vertices.ndim != 2
+            or raw_vertices.shape[1:] != (3,)
+            or not len(raw_vertices)
+            or not np.isfinite(raw_vertices).all()
+            or raw_triangles.ndim != 2
+            or raw_triangles.shape[1:] != (3,)
+            or not len(raw_triangles)
+            or raw_triangles.min() < 0
+            or raw_triangles.max() >= len(raw_vertices)
+        ):
+            raise ValueError("invalid triangle mesh arrays")
+        mesh = m3d.Mesh(
+            raw_vertices,
+            raw_triangles.astype(np.uint32, copy=False),
+        )
+        mesh.merge()
+        solid = m3d.Manifold(mesh)
+        kernel_status = str(solid.status())
+        if "NoError" not in kernel_status or solid.is_empty():
+            issue = GeometryIssue(
+                "certified_mesh_not_manifold",
+                "certified projected visual mesh failed manifold kernel validation",
+            )
+            return replace(
+                compilation,
+                status="compile_failed",
+                metrics={
+                    **preserved,
+                    "kernel": "manifold3d",
+                    "kernel_status": kernel_status,
+                    "watertight": False,
+                    "manifold": False,
+                    "closed_solid": False,
+                    "self_intersection_checked_by_kernel": True,
+                    "outward_normals": False,
+                    "vertex_count": len(raw_vertices),
+                    "triangle_count": len(raw_triangles),
+                },
+                issues=(*tuple(compilation.issues or ()), issue),
+                _solid=None,
+            )
+        metrics = _measured_solid_metrics(
+            solid,
+            raw_vertices=raw_vertices,
+            raw_triangles=raw_triangles,
+        )
+        metrics.update({
+            **preserved,
+            "input_vertex_count": len(raw_vertices),
+            "input_triangle_count": len(raw_triangles),
+            "certified_mesh_revalidated": True,
+        })
+        return replace(
+            compilation,
+            status="compiled",
+            metrics=metrics,
+            issues=(),
+            _solid=solid,
+        )
+    except (TypeError, ValueError, OverflowError) as exc:
+        issue = GeometryIssue(
+            "certified_mesh_invalid",
+            f"certified projected visual mesh is invalid: {exc}",
+        )
+        return replace(
+            compilation,
+            status="compile_failed",
+            metrics=preserved,
+            issues=(*tuple(compilation.issues or ()), issue),
+            _solid=None,
+        )
+
+
+def _measured_solid_metrics(
+    solid: Any,
+    *,
+    raw_vertices: np.ndarray,
+    raw_triangles: np.ndarray,
+) -> dict[str, Any]:
+    signed_mesh_volume = float(np.einsum(
+        "ij,ij->i",
+        raw_vertices[raw_triangles[:, 0]],
+        np.cross(
+            raw_vertices[raw_triangles[:, 1]],
+            raw_vertices[raw_triangles[:, 2]],
+        ),
+    ).sum() / 6.0)
+    bounds = tuple(float(value) for value in solid.bounding_box())
+    components = tuple(solid.decompose())
+    component_volumes = tuple(sorted(
+        (max(0.0, float(component.volume())) for component in components),
+        reverse=True,
+    ))
+    total_component_volume = max(sum(component_volumes), 1e-12)
+    component_volume_ratios = tuple(
+        round(value / total_component_volume, 6)
+        for value in component_volumes
+    )
+    return {
+        "kernel": "manifold3d",
+        "kernel_status": str(solid.status()),
+        "watertight": True,
+        "manifold": True,
+        "closed_solid": True,
+        "self_intersection_checked_by_kernel": True,
+        "outward_normals": signed_mesh_volume > 0.0,
+        "signed_mesh_volume": round(signed_mesh_volume, 6),
+        "volume": round(float(solid.volume()), 6),
+        "surface_area": round(float(solid.surface_area()), 6),
+        "vertex_count": int(solid.num_vert()),
+        "triangle_count": int(solid.num_tri()),
+        "component_count": len(components),
+        "component_volume_ratios": list(component_volume_ratios),
+        "minimum_component_volume_ratio": min(
+            component_volume_ratios,
+            default=1.0,
+        ),
+        "genus": int(solid.genus()),
+        "bounds": [
+            [round(bounds[0], 6), round(bounds[1], 6), round(bounds[2], 6)],
+            [round(bounds[3], 6), round(bounds[4], 6), round(bounds[5], 6)],
+        ],
+    }
 
 
 def _evaluate_node(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str]]:
@@ -2555,4 +2675,9 @@ def _mesh_hash(vertices: tuple[tuple[float, float, float], ...], triangles: tupl
     return hashlib.sha256(json.dumps(canonical, separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
-__all__ = ["CompilationResult", "GeometryCompileError", "compile_geometry_program"]
+__all__ = [
+    "CompilationResult",
+    "GeometryCompileError",
+    "compile_geometry_program",
+    "revalidate_compilation_mesh",
+]

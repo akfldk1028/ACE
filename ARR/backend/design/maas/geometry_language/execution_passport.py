@@ -9,6 +9,8 @@ from typing import Any, Mapping
 
 from PIL import Image, UnidentifiedImageError
 
+from design.maas.mass_product_evidence import floor_capacity_plan_hash
+
 from .execution_activation import append_vlm_nodes, build_activation_graph
 from .execution_evidence import (
     DOWNSTREAM_ALIASES,
@@ -23,6 +25,7 @@ from .execution_evidence import (
     vlm_evidence,
 )
 from .execution_persistence import passport_path_for_preview, write_mass_execution_passport
+from .compiler import revalidate_compilation_mesh
 from .gate import compilation_gate
 
 
@@ -43,6 +46,11 @@ def build_mass_execution_passport(
 ) -> dict[str, Any]:
     """Build one truthful passport from evidence materialized for this MASS."""
 
+    if (
+        (compilation.metrics or {}).get("geometry_authority")
+        == "certified_projected_visual_mesh"
+    ):
+        compilation = revalidate_compilation_mesh(compilation)
     program = compilation.program
     metadata = deepcopy(program.metadata or {})
     trace_by_id = {
@@ -114,6 +122,10 @@ def build_mass_execution_passport(
         stage_from_downstream("selector", downstream["selector"]),
     ))
     collaboration_status = str(collaboration.get("final_status") or "")
+    capacity_plan_hash = floor_capacity_plan_hash(
+        program=program,
+        capacity=downstream["capacity"],
+    ) or "FLOOR_CAPACITY_PLAN_HASH_UNRESOLVED"
     stages.append(stage(
         "agent_collaboration",
         "Specialist agent collaboration",
@@ -140,6 +152,7 @@ def build_mass_execution_passport(
         "program_hash": _safe_program_hash(program),
         "structural_hash": _safe_structural_hash(program),
         "geometry_hash": str(compilation.geometry_hash or ""),
+        "floor_capacity_plan_hash": capacity_plan_hash,
         **state,
         "truth_policy": {
             "unevaluated_is_never_pass": True,
@@ -240,23 +253,18 @@ def _resolved_vlm_evidence(
     candidate_input = (
         candidate_input if isinstance(candidate_input, Mapping) else {}
     )
-    normalized_binding = {
-        **binding,
-        "schema_version": str(binding.get("schema_version") or ""),
-        "program_hash": str(binding.get("program_hash") or ""),
-        "geometry_hash": str(binding.get("geometry_hash") or ""),
-        "geometry_authority": str(binding.get("geometry_authority") or ""),
-        "candidate_sha256": str(binding.get("candidate_sha256") or ""),
-    }
+    binding_schema = str(binding.get("schema_version") or "")
+    binding_program_hash = str(binding.get("program_hash") or "")
+    binding_geometry_hash = str(binding.get("geometry_hash") or "")
+    binding_authority = str(binding.get("geometry_authority") or "")
+    binding_candidate_sha256 = str(binding.get("candidate_sha256") or "")
 
     required_binding = (
-        normalized_binding["schema_version"]
-        == "arr.maas.vlm_evidence_binding.v1"
-        and normalized_binding["program_hash"]
-        and normalized_binding["geometry_hash"]
-        and normalized_binding["geometry_authority"]
-        == "certified_projected_visual_mesh"
-        and normalized_binding["candidate_sha256"]
+        binding_schema == "arr.maas.vlm_evidence_binding.v1"
+        and binding_program_hash
+        and binding_geometry_hash
+        and binding_authority == "certified_projected_visual_mesh"
+        and binding_candidate_sha256
     )
     candidate_sha256 = str(candidate_input.get("sha256") or "")
     render_sha256 = str(render.get("sha256") or "")
@@ -266,34 +274,48 @@ def _resolved_vlm_evidence(
         or not candidate_sha256
         or not render_sha256
     ):
-        return {
-            "status": "not_evaluated",
-            "reason": "certified_vlm_evidence_binding_missing",
-            "hard_pass": False,
-            "evidence_binding": normalized_binding,
-        }
+        return _unbound_vlm_evidence(
+            value,
+            binding=binding,
+            reason="certified_vlm_evidence_binding_missing",
+        )
     if (
-        normalized_binding["program_hash"] != _safe_program_hash(compilation.program)
-        or normalized_binding["geometry_hash"]
-        != str(compilation.geometry_hash or "")
+        binding_program_hash != _safe_program_hash(compilation.program)
+        or binding_geometry_hash != str(compilation.geometry_hash or "")
     ):
-        return {
-            "status": "not_evaluated",
-            "reason": "certified_vlm_geometry_binding_mismatch",
-            "hard_pass": False,
-            "evidence_binding": normalized_binding,
-        }
+        return _unbound_vlm_evidence(
+            value,
+            binding=binding,
+            reason="certified_vlm_geometry_binding_mismatch",
+        )
     if (
-        normalized_binding["candidate_sha256"] != candidate_sha256
+        binding_candidate_sha256 != candidate_sha256
         or candidate_sha256 != render_sha256
     ):
-        return {
-            "status": "not_evaluated",
-            "reason": "certified_vlm_input_image_digest_mismatch",
-            "hard_pass": False,
-            "evidence_binding": normalized_binding,
-        }
+        return _unbound_vlm_evidence(
+            value,
+            binding=binding,
+            reason="certified_vlm_input_image_digest_mismatch",
+        )
     return vlm_evidence(value)
+
+
+def _unbound_vlm_evidence(
+    source_audit: Mapping[str, Any],
+    *,
+    binding: Mapping[str, Any],
+    reason: str,
+) -> dict[str, Any]:
+    evidence = vlm_evidence(source_audit)
+    evidence.update({
+        "status": "not_evaluated",
+        "reason": reason,
+        "hard_pass": False,
+        "binding_status": "unbound",
+        "evidence_binding": deepcopy(dict(binding)),
+        "source_audit": deepcopy(dict(source_audit)),
+    })
+    return evidence
 
 
 def enrich_mass_execution_passport(

@@ -44,6 +44,7 @@ from design.maas.geometry_language import (
     floorwise_source_to_geometry_program,
 )
 from design.maas.geometry_language.gate import GeometryGatePolicy, compilation_gate
+from design.maas.geometry_language.compiler import revalidate_compilation_mesh
 from design.maas.geometry_language.run_state import update_run_progress
 from design.maas.geometry_language.projected_visual_contract import (
     serialize_certified_projected_visual,
@@ -1708,28 +1709,33 @@ def run_book_program_portfolios(
             validated_visual = validate_projected_visual_artifact(
                 props["geometry_artifact"]
             )
-            archive_compilations.append(
-                replace(
+            certified_compilation = (
+                revalidate_compilation_mesh(replace(
                     execution_compilation,
                     vertices=validated_visual.vertices,
                     triangles=validated_visual.triangles,
                     metrics={
-                        **deepcopy(execution_compilation.metrics or {}),
-                        "vertex_count": len(validated_visual.vertices),
-                        "triangle_count": len(validated_visual.triangles),
                         "coordinate_space": validated_visual.coordinate_space,
                         "geometry_authority": "certified_projected_visual_mesh",
                         "exact_payload_hash": validated_visual.exact_payload_hash,
                         "capacity_geometry_hash": execution_compilation.geometry_hash,
-                        "capacity_replay_metrics": dict(
-                            execution_compilation.metrics or {}
-                        ),
                     },
                     geometry_hash=validated_visual.visual_hash,
-                )
+                ))
                 if validated_visual is not None
                 else execution_compilation
             )
+            certified_gate_issues = compilation_gate(certified_compilation)
+            if (
+                certified_compilation.status != "compiled"
+                or certified_gate_issues
+            ):
+                raise RuntimeError(
+                    "certified projected visual mesh failed geometry gate: "
+                    f"{certified_compilation.status} "
+                    f"{tuple(issue.code for issue in certified_gate_issues)}"
+                )
+            archive_compilations.append(certified_compilation)
             mass_brain_trace_sequences.append(trace_sequence)
             mass_brain_trace_features[trace_name] = feature
         board = output_dir / (

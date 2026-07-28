@@ -2715,6 +2715,13 @@ class SharedFloorContractTests(SimpleTestCase):
                     "hard_pass": True,
                     "model": "review-model",
                     "response_id": "review-response",
+                    "concept_scores": {"gesture_clarity": 0.81},
+                    "vlm_image_inputs": {
+                        "candidate": {
+                            "sha256": "d" * 64,
+                            "used_by_vlm": True,
+                        },
+                    },
                     "evidence_binding": {
                         "geometry_hash": "stale-capacity-hash",
                     },
@@ -2728,9 +2735,26 @@ class SharedFloorContractTests(SimpleTestCase):
         vlm = next(stage for stage in archived["stages"] if stage["id"] == "vlm")
         self.assertEqual(vlm["status"], "not_evaluated")
         self.assertFalse(vlm["evidence"]["hard_pass"])
+        self.assertEqual(vlm["evidence"].get("model"), "review-model")
+        self.assertEqual(vlm["evidence"].get("response_id"), "review-response")
         self.assertEqual(
-            vlm["evidence"]["evidence_binding"]["program_hash"],
-            "",
+            vlm["evidence"].get("concept_scores"),
+            {"gesture_clarity": 0.81},
+        )
+        self.assertEqual(
+            (vlm["evidence"].get("image_inputs") or {}).get("candidate", {}).get(
+                "sha256"
+            ),
+            "d" * 64,
+        )
+        self.assertEqual(vlm["evidence"].get("binding_status"), "unbound")
+        self.assertEqual(
+            (vlm["evidence"].get("source_audit") or {}).get("response_id"),
+            "review-response",
+        )
+        self.assertNotIn(
+            "program_hash",
+            vlm["evidence"]["evidence_binding"],
         )
         self.assertEqual(
             vlm["evidence"]["evidence_binding"]["geometry_hash"],
@@ -2783,6 +2807,7 @@ class SharedFloorContractTests(SimpleTestCase):
                         "hard_pass": True,
                         "model": "review-model",
                         "response_id": "review-response",
+                        "concept_scores": {"gesture_clarity": 0.73},
                         "vlm_image_inputs": {
                             "candidate": {
                                 "sha256": "c" * 64,
@@ -2811,6 +2836,23 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertEqual(
             vlm["evidence"]["reason"],
             "certified_vlm_input_image_digest_mismatch",
+        )
+        self.assertEqual(vlm["evidence"].get("model"), "review-model")
+        self.assertEqual(vlm["evidence"].get("response_id"), "review-response")
+        self.assertEqual(
+            vlm["evidence"].get("concept_scores"),
+            {"gesture_clarity": 0.73},
+        )
+        self.assertEqual(
+            (vlm["evidence"].get("image_inputs") or {}).get("candidate", {}).get(
+                "sha256"
+            ),
+            "c" * 64,
+        )
+        self.assertEqual(vlm["evidence"].get("binding_status"), "unbound")
+        self.assertEqual(
+            (vlm["evidence"].get("source_audit") or {}).get("response_id"),
+            "review-response",
         )
 
     def test_vlm_repair_rematerializes_floor_identity_for_the_repaired_geometry(self):

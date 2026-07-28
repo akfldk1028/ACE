@@ -4262,6 +4262,98 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertGreater(payload["edge_count"], 0)
         self.assertEqual(strengths, (0.4,))
         self.assertFalse(any(item.get("selected") for item in loaded.observations))
+        self.assertFalse(any(
+            item["attributes"].get("selected")
+            for item in loaded.nodes.values()
+            if item["kind"] == "outcome"
+        ))
+
+    def test_selection_only_refresh_preserves_observed_downstream_gate_evidence(self):
+        program = synthesize_architectural_programs({
+            "base_seeds": ["slab"],
+            "intent_tags": ["continuous_curve"],
+            "candidate_count": 1,
+        }, building_type="gymnasium")[0]
+        source = compile_geometry_program_to_source_mass(
+            program,
+            Polygon(((0, 0), (24, 0), (24, 18), (0, 18))),
+            upper_fit_strength=0.4,
+        )
+        self.assertIsNotNone(source)
+        source.metadata["geometry_program_bridge_evidence"]["source_seed"] = "selection-refresh-seed"
+        candidate = SimpleNamespace(
+            source=source,
+            sequence=SimpleNamespace(name="selection-refresh-seed__book_probe"),
+            principle_id="book:operative:bend",
+        )
+        displaced_candidate = SimpleNamespace(
+            source=source,
+            sequence=SimpleNamespace(name="selection-refresh-seed__book_probe"),
+            principle_id="book:operative:expand",
+        )
+        graph = GeometryOutcomeGraph(Path("unused.json"), pnu="test")
+        graph.observe_candidates(
+            program_slug="gymnasium",
+            candidates=[candidate, displaced_candidate],
+            downstream_report={"rows": [
+                {
+                    "combined_hard_pass": True,
+                    "legal_projection": {
+                        "hard_pass": True,
+                        "geometry_retention_pass": True,
+                        "volume_retention": 0.91,
+                        "geometry_failure_reasons": [],
+                    },
+                    "parking_hard_gate": {"hard_pass": True},
+                },
+                {
+                    "combined_hard_pass": True,
+                    "legal_projection": {
+                        "hard_pass": True,
+                        "geometry_retention_pass": True,
+                        "volume_retention": 0.88,
+                        "geometry_failure_reasons": [],
+                    },
+                    "parking_hard_gate": {"hard_pass": True},
+                },
+            ]},
+            selected=[displaced_candidate],
+        )
+
+        graph.observe_candidates(
+            program_slug="gymnasium",
+            candidates=[candidate],
+            downstream_report=None,
+            selected=[candidate],
+        )
+
+        self.assertEqual(len(graph.observations), 2)
+        observation = next(
+            item
+            for item in graph.observations
+            if item["book_principle_id"] == "book:operative:bend"
+        )
+        displaced = next(
+            item
+            for item in graph.observations
+            if item["book_principle_id"] == "book:operative:expand"
+        )
+        self.assertTrue(observation["selected"])
+        self.assertTrue(observation["combined_hard_pass"])
+        self.assertTrue(observation["legal_hard_pass"])
+        self.assertTrue(observation["geometry_retention_pass"])
+        self.assertEqual(observation["volume_retention"], 0.91)
+        self.assertTrue(observation["parking_hard_pass"])
+        self.assertFalse(displaced["selected"])
+        self.assertTrue(displaced["combined_hard_pass"])
+        self.assertEqual(displaced["volume_retention"], 0.88)
+        outcome_nodes = {
+            item["identity"]: item["attributes"]
+            for item in graph.nodes.values()
+            if item["kind"] == "outcome"
+        }
+        self.assertTrue(outcome_nodes[observation["id"]]["selected"])
+        self.assertFalse(outcome_nodes[displaced["id"]]["selected"])
 
     def test_outcome_graph_explores_unseen_fit_then_exploits_lowest_success(self):
         graph = GeometryOutcomeGraph(Path("unused.json"), pnu="test")

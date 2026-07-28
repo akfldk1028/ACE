@@ -47,6 +47,7 @@ from design.maas.geometry_language.gate import GeometryGatePolicy, compilation_g
 from design.maas.geometry_language.run_state import update_run_progress
 from design.maas.geometry_language.projected_visual_contract import (
     serialize_certified_projected_visual,
+    validate_projected_visual_artifact,
 )
 from design.maas.capacity_policy import resolve_massing_capacity_policy
 from design.maas.grammar.verb_sequence import VerbSequence
@@ -81,7 +82,10 @@ from design.maas.book_language.archive_layout import (
 )
 from design.maas.preference.vlm_scorer import score_portfolio_board_with_openai_vlm
 from design.maas.source_geometry import compile_sequence_to_source_mass
-from design.maas.book_language.mass_passport_bridge import selected_candidate_execution_passport
+from design.maas.book_language.mass_passport_bridge import (
+    resolve_capacity_band_evidence,
+    selected_candidate_execution_passport,
+)
 
 
 def default_outcome_graph_path(output_dir: Path) -> Path:
@@ -385,6 +389,10 @@ def _candidate_language_descriptor(candidate: _Candidate) -> dict[str, Any]:
     program_form = candidate.feature.get("properties", {}).get("program_form_gate", {})
     capacity_alternative = source.metadata.get("capacity_alternative_projection") or {}
     capacity_measurement = source.metadata.get("source_capacity_measurement") or {}
+    capacity_resolution = resolve_capacity_band_evidence(
+        capacity_alternative,
+        capacity_measurement=capacity_measurement,
+    )
     return {
         "seed_family": _seed_family(candidate),
         "section_family": _section_family(candidate),
@@ -408,16 +416,19 @@ def _candidate_language_descriptor(candidate: _Candidate) -> dict[str, Any]:
         "solid_genus": morphology["genus"],
         "solid_component_count": morphology["component_count"],
         "book_scope": _scope_key(candidate),
-        "capacity_alternative_id": _capacity_alternative_key(candidate),
-        "capacity_target_utilization": float(
-            capacity_alternative.get("target_utilization") or 0.0
-        ),
+        **capacity_resolution,
+        "capacity_alternative_id": capacity_resolution[
+            "resolved_capacity_alternative_id"
+        ],
+        "capacity_target_utilization": capacity_resolution[
+            "resolved_capacity_target_utilization"
+        ],
         "capacity_achieved_utilization": float(
             capacity_measurement.get("feasible_capacity_utilization") or 0.0
         ),
-        "capacity_target_hard_pass": bool(
-            capacity_alternative.get("target_hard_pass")
-        ),
+        "capacity_target_hard_pass": capacity_resolution[
+            "resolved_capacity_hard_pass"
+        ],
         "far_pct": float(capacity_measurement.get("far_pct") or 0.0),
         "oriented_plan_aspect_ratio": round(aspect, 4),
         "plan_compactness": round(compactness, 4),
@@ -1406,6 +1417,7 @@ def run_book_program_portfolios(
         )
         features: list[dict[str, Any]] = []
         rows: list[dict[str, Any]] = []
+        archive_compilations: list[Any] = []
         downstream_rows = (
             list(downstream_hard_gate.get("rows") or ())
             if isinstance(downstream_hard_gate, dict)
@@ -1508,6 +1520,24 @@ def run_book_program_portfolios(
                 "capacity_target_utilization": descriptor["capacity_target_utilization"],
                 "capacity_achieved_utilization": descriptor["capacity_achieved_utilization"],
                 "capacity_target_hard_pass": descriptor["capacity_target_hard_pass"],
+                "requested_capacity_alternative_id": descriptor[
+                    "requested_capacity_alternative_id"
+                ],
+                "requested_capacity_target_utilization": descriptor[
+                    "requested_capacity_target_utilization"
+                ],
+                "requested_capacity_target_hard_pass": descriptor[
+                    "requested_target_hard_pass"
+                ],
+                "resolved_capacity_alternative_id": descriptor[
+                    "resolved_capacity_alternative_id"
+                ],
+                "resolved_capacity_target_utilization": descriptor[
+                    "resolved_capacity_target_utilization"
+                ],
+                "resolved_capacity_hard_pass": descriptor[
+                    "resolved_capacity_hard_pass"
+                ],
                 "far_pct": descriptor["far_pct"],
             })
             downstream_row = (
@@ -1587,15 +1617,6 @@ def run_book_program_portfolios(
                 "projectedMetrics": deepcopy(downstream_row.get("projected_metrics") or {}),
                 "combinedHardPass": bool(downstream_row.get("combined_hard_pass")),
             }
-            mass_execution_passport = selected_candidate_execution_passport(
-                compilation=compilation,
-                downstream_row=downstream_row,
-                source_metadata=candidate.source.metadata,
-                program_evidence=props.get("program_massing_evidence") or {},
-                descriptor=descriptor,
-                pnu=pnu,
-            )
-            props["mass_execution_passport"] = mass_execution_passport
             projected_visual_artifact = _certified_projected_visual_artifact(
                 candidate.source
             )
@@ -1680,10 +1701,34 @@ def run_book_program_portfolios(
                     candidate.source.metadata.get("final_book_vlm_audit") or {}
                 ),
                 "hardGates": hard_gates,
-                "executionPassport": mass_execution_passport,
+                "executionPassport": {},
                 "selectionEffect": "none_shadow_only",
                 **projected_visual_artifact,
             }
+            validated_visual = validate_projected_visual_artifact(
+                props["geometry_artifact"]
+            )
+            archive_compilations.append(
+                replace(
+                    execution_compilation,
+                    vertices=validated_visual.vertices,
+                    triangles=validated_visual.triangles,
+                    metrics={
+                        "vertex_count": len(validated_visual.vertices),
+                        "triangle_count": len(validated_visual.triangles),
+                        "coordinate_space": validated_visual.coordinate_space,
+                        "geometry_authority": "certified_projected_visual_mesh",
+                        "exact_payload_hash": validated_visual.exact_payload_hash,
+                        "capacity_geometry_hash": execution_compilation.geometry_hash,
+                        "capacity_replay_metrics": dict(
+                            execution_compilation.metrics or {}
+                        ),
+                    },
+                    geometry_hash=validated_visual.visual_hash,
+                )
+                if validated_visual is not None
+                else execution_compilation
+            )
             mass_brain_trace_sequences.append(trace_sequence)
             mass_brain_trace_features[trace_name] = feature
         board = output_dir / (
@@ -1719,6 +1764,44 @@ def run_book_program_portfolios(
         )
         for row, evidence in zip(rows, render_evidence):
             row["archive_render_evidence"] = evidence
+        for index, (
+            candidate,
+            feature,
+            certified_compilation,
+            evidence,
+        ) in enumerate(zip(
+            selected,
+            features,
+            archive_compilations,
+            render_evidence,
+        )):
+            props = feature["properties"]
+            artifact = props["geometry_artifact"]
+            downstream_row = (
+                downstream_rows[index]
+                if index < len(downstream_rows)
+                and isinstance(downstream_rows[index], dict)
+                else {}
+            )
+            passport = selected_candidate_execution_passport(
+                compilation={
+                    "execution_passport": {},
+                    "certified_compilation": certified_compilation,
+                    "archive_render_evidence": evidence,
+                    "combined_hard_pass": bool(
+                        (artifact.get("hardGates") or {}).get(
+                            "combinedHardPass"
+                        )
+                    ),
+                },
+                downstream_row=downstream_row,
+                source_metadata=candidate.source.metadata,
+                program_evidence=props.get("program_massing_evidence") or {},
+                descriptor=_candidate_language_descriptor(candidate),
+                pnu=pnu,
+            )
+            artifact["executionPassport"] = passport
+            props["mass_execution_passport"] = passport
         outcome_graph.observe_portfolio_render(
             program_slug=slug,
             candidates=selected,
@@ -1846,11 +1929,22 @@ def run_book_program_portfolios(
         if not available_capacity_alternatives.issubset(selected_capacity_alternatives):
             failures.append("available_capacity_alternative_missing_from_portfolio")
         if any(
-            not bool((candidate.source.metadata.get("capacity_alternative_projection") or {}).get("target_hard_pass"))
+            not resolve_capacity_band_evidence(
+                candidate.source.metadata.get(
+                    "capacity_alternative_projection"
+                )
+                or {},
+                capacity_measurement=candidate.source.metadata.get(
+                    "source_capacity_measurement"
+                )
+                or {},
+            )["resolved_capacity_hard_pass"]
             for candidate in selected
             if _capacity_alternative_key(candidate) != "unclassified"
         ):
-            failures.append("capacity_alternative_target_miss_in_selected_portfolio")
+            failures.append(
+                "resolved_capacity_alternative_miss_in_selected_portfolio"
+            )
         if any(not row["inside_site"] or not row["program_hard_pass"] for row in rows):
             failures.append("hard_gate_failure_in_selected_portfolio")
         if len(render_evidence) != len(features) or any(

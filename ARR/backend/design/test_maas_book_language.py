@@ -1026,6 +1026,57 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             36,
         )
 
+    def test_portfolio_capacity_descriptor_separates_requested_and_resolved_band(self):
+        site = Polygon(((0, 0), (20, 0), (20, 16), (0, 16)))
+        sequence = program_seed_sequences("neighborhood_living")[0]
+        source = compile_sequence_to_source_mass(site, sequence)
+        self.assertIsNotNone(source)
+        assert source is not None
+        source = replace(source, metadata={
+            **source.metadata,
+            "capacity_alternative_projection": {
+                "alternative_id": "maximum_feasible",
+                "target_utilization": 0.95,
+                "target_hard_pass": False,
+                "requested_capacity_alternative_id": "maximum_feasible",
+                "requested_target_utilization": 0.95,
+                "selectable_capacity_alternative_id": "balanced_yield",
+                "selectable_capacity_target_utilization": 0.80,
+                "selectable_capacity_hard_pass": True,
+            },
+            "source_capacity_measurement": {
+                "feasible_capacity_utilization": 0.8241,
+                "far_pct": 103.689,
+            },
+        })
+        candidate = portfolio_benchmark._Candidate(
+            "book:operative:test",
+            "base_operative",
+            "test",
+            sequence,
+            source,
+            {"type": "Feature", "geometry": None, "properties": {}},
+            0.8,
+        )
+
+        descriptor = portfolio_benchmark._candidate_language_descriptor(candidate)
+
+        self.assertEqual(
+            descriptor.get("requested_capacity_alternative_id"),
+            "maximum_feasible",
+        )
+        self.assertEqual(descriptor.get("requested_capacity_target_utilization"), 0.95)
+        self.assertFalse(descriptor.get("requested_capacity_target_hard_pass"))
+        self.assertEqual(
+            descriptor.get("resolved_capacity_alternative_id"),
+            "balanced_yield",
+        )
+        self.assertEqual(descriptor.get("resolved_capacity_target_utilization"), 0.80)
+        self.assertTrue(descriptor.get("resolved_capacity_hard_pass"))
+        self.assertEqual(descriptor["capacity_alternative_id"], "balanced_yield")
+        self.assertEqual(descriptor["capacity_target_utilization"], 0.80)
+        self.assertTrue(descriptor["capacity_target_hard_pass"])
+
     def test_final_vlm_recovers_transient_call_failure_and_reports_it(self):
         site = Polygon(((0, 0), (20, 0), (20, 16), (0, 16)))
         sequence = program_seed_sequences("neighborhood_living")[0]

@@ -364,6 +364,207 @@ class MaasFlowRegressionTest(SimpleTestCase):
                 [list(vertex) for vertex in compilation.vertices],
             )
 
+    def test_archive_passport_rebinds_certified_visual_identity_and_card_render(self):
+        from design.maas.book_language.mass_passport_bridge import (
+            selected_candidate_execution_passport,
+        )
+        from design.maas.geometry_language.execution_passport import (
+            build_mass_execution_passport,
+        )
+
+        artifact, visual_hash = self._projected_visual_artifact()
+        program = portfolio_benchmark.GeometryProgram.from_dict(
+            artifact["geometryProgram"]
+        )
+        capacity_compilation = compile_geometry_program(program)
+        certified_compilation = replace(
+            capacity_compilation,
+            geometry_hash=visual_hash,
+        )
+        stale_passport = build_mass_execution_passport(capacity_compilation)
+
+        with TemporaryDirectory() as temporary:
+            board = Path(temporary) / "board.png"
+            Image.new("RGB", (384, 332), (220, 120, 50)).save(board)
+            render_evidence = {
+                "status": "passed",
+                "path": str(board),
+                "views": ["portfolio_card"],
+                "card_index": 1,
+                "crop_box": [0, 72, 384, 332],
+                "rendered_mass_pixel_count": 7612,
+                "render_hard_pass": True,
+                "projected_visual_geometry_hash": visual_hash,
+                "geometry_authority": "certified_projected_visual_mesh",
+            }
+            passport = selected_candidate_execution_passport(
+                compilation={
+                    "execution_passport": stale_passport,
+                    "certified_compilation": certified_compilation,
+                    "archive_render_evidence": render_evidence,
+                    "combined_hard_pass": True,
+                },
+                downstream_row={
+                    "legal_generation_context_evidence": {
+                        "status": "passed",
+                        "pnu": "1168011800104170004",
+                    },
+                    "legal_projection": {
+                        "evaluated": True,
+                        "hard_pass": True,
+                    },
+                    "parking_hard_gate": {
+                        "evaluated": True,
+                        "hard_pass": True,
+                        "required_spaces": 2,
+                        "provided_spaces": 2,
+                    },
+                },
+                source_metadata={
+                    "capacity_alternative_projection": {
+                        "requested_capacity_alternative_id": "maximum_feasible",
+                        "requested_target_utilization": 0.95,
+                        "target_hard_pass": False,
+                        "selectable_capacity_alternative_id": "balanced_yield",
+                        "selectable_capacity_target_utilization": 0.80,
+                        "selectable_capacity_hard_pass": True,
+                    },
+                    "source_capacity_measurement": {
+                        "schema_version": "arr.maas.source_capacity_measurement.v1",
+                        "feasible_capacity_utilization": 0.8241,
+                    },
+                },
+                program_evidence={"evaluated": True, "hard_pass": True},
+                descriptor={"capacity_target_hard_pass": False},
+                pnu="1168011800104170004",
+            )
+
+        self.assertEqual(passport["program_hash"], program.program_hash())
+        self.assertEqual(passport["geometry_hash"], visual_hash)
+        self.assertEqual(passport["status"], "in_progress")
+        self.assertFalse(passport["full_flow_complete"])
+        self.assertFalse(passport["final_hard_pass"])
+        stages = {stage["id"]: stage for stage in passport["stages"]}
+        self.assertEqual(stages["law"]["status"], "passed")
+        self.assertEqual(stages["parking"]["status"], "passed")
+        self.assertEqual(stages["render"]["status"], "passed")
+        self.assertEqual(
+            stages["render"]["evidence"]["projected_visual_geometry_hash"],
+            visual_hash,
+        )
+        self.assertEqual(stages["vlm"]["status"], "not_evaluated")
+        self.assertEqual(stages["agent_collaboration"]["status"], "not_evaluated")
+        self.assertEqual(passport["agent_collaboration"], {})
+        graph_nodes = {
+            node["id"]: node for node in passport["activation_graph"]["nodes"]
+        }
+        self.assertEqual(graph_nodes["render:mass_png"]["status"], "passed")
+        self.assertEqual(
+            graph_nodes["render:mass_png"]["evidence"][
+                "projected_visual_geometry_hash"
+            ],
+            visual_hash,
+        )
+        self.assertNotIn("agent:law_graph_agent", graph_nodes)
+
+    def test_archive_render_evidence_requires_certified_geometry_hash(self):
+        from design.maas.geometry_language.execution_passport import (
+            build_mass_execution_passport,
+        )
+
+        compilation = compile_geometry_program(base_seed_program("block"))
+        with TemporaryDirectory() as temporary:
+            board = Path(temporary) / "board.png"
+            Image.new("RGB", (32, 24), (220, 120, 50)).save(board)
+            with self.assertRaisesRegex(
+                ValueError,
+                "render evidence geometry identity is required",
+            ):
+                build_mass_execution_passport(
+                    compilation,
+                    render_evidence={
+                        "board_png": str(board),
+                        "hard_pass": True,
+                        "crop_box": [0, 0, 32, 24],
+                    },
+                )
+
+    def test_archive_render_evidence_requires_decodable_png(self):
+        from design.maas.geometry_language.execution_passport import (
+            build_mass_execution_passport,
+        )
+
+        compilation = compile_geometry_program(base_seed_program("block"))
+        with TemporaryDirectory() as temporary:
+            board = Path(temporary) / "board.png"
+            board.write_bytes(b"not a png")
+            with self.assertRaisesRegex(ValueError, "render evidence PNG is invalid"):
+                build_mass_execution_passport(
+                    compilation,
+                    render_evidence={
+                        "board_png": str(board),
+                        "hard_pass": True,
+                        "crop_box": [0, 0, 1, 1],
+                        "projected_visual_geometry_hash": compilation.geometry_hash,
+                    },
+                )
+
+    def test_archive_render_evidence_rejects_crop_outside_png(self):
+        from design.maas.geometry_language.execution_passport import (
+            build_mass_execution_passport,
+        )
+
+        compilation = compile_geometry_program(base_seed_program("block"))
+        with TemporaryDirectory() as temporary:
+            board = Path(temporary) / "board.png"
+            Image.new("RGB", (32, 24), (220, 120, 50)).save(board)
+            with self.assertRaisesRegex(
+                ValueError,
+                "render evidence crop is invalid",
+            ):
+                build_mass_execution_passport(
+                    compilation,
+                    render_evidence={
+                        "board_png": str(board),
+                        "hard_pass": True,
+                        "crop_box": [0, 0, 33, 24],
+                        "projected_visual_geometry_hash": compilation.geometry_hash,
+                    },
+                )
+
+    def test_explicit_failed_geometry_gate_cannot_render_as_passed(self):
+        from design.maas.geometry_language.execution_passport import (
+            build_mass_execution_passport,
+        )
+
+        compilation = compile_geometry_program(base_seed_program("block"))
+        passport = build_mass_execution_passport(
+            compilation,
+            geometry_gate_evidence={
+                "hard_pass": False,
+                "authority": "benchmark_final_hard_gates",
+            },
+        )
+
+        geometry_gate = next(
+            stage for stage in passport["stages"] if stage["id"] == "geometry_gate"
+        )
+        self.assertEqual(geometry_gate["status"], "failed")
+        self.assertFalse(geometry_gate["evidence"]["hard_pass"])
+        graph_gate = next(
+            node
+            for node in passport["activation_graph"]["nodes"]
+            if node["id"] == "flow:geometry_gate"
+        )
+        self.assertEqual(graph_gate["status"], "failed")
+        compiler_gate_edge = next(
+            edge
+            for edge in passport["activation_graph"]["edges"]
+            if edge["source"] == "flow:compiler"
+            and edge["target"] == "flow:geometry_gate"
+        )
+        self.assertEqual(compiler_gate_edge["activation"], 0.0)
+
     def test_render_observation_uses_certified_projected_visual_hash(self):
         source, visual_hash = self._projected_visual_source()
         source = replace(

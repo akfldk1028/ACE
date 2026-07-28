@@ -4,6 +4,7 @@ from design.maas.book_language.capacity_alternatives import (
     CAPACITY_ALTERNATIVE_SPECS,
     build_capacity_alternative,
     capacity_fit_score,
+    capacity_retry_floor_targets,
     capacity_retry_plan_coverage,
     capacity_alternative_for_host,
     capacity_alternative_for_lattice_index,
@@ -188,3 +189,34 @@ class MaasCapacityAlternativeTest(SimpleTestCase):
             ),
             0.95,
         )
+
+    def test_floor_target_projection_and_retry_accept_tuple_contract_vectors(self):
+        contract = {
+            **self.contract,
+            "requested_floors": 4,
+            "feasible_maximum_floor_area_m2": 340.0,
+            "bcr_adjusted_floor_areas_m2": (100.0, 90.0, 80.0, 70.0),
+            "target_floor_areas_m2": (70.0, 63.0, 56.0, 49.0),
+        }
+        alternative = {
+            **build_capacity_alternative(contract, "spatial_reserve"),
+            "target_floor_area_m2": 238.0,
+        }
+
+        projected = capacity_contract_for_alternative(contract, alternative)
+        retry_targets = capacity_retry_floor_targets(
+            projected,
+            alternative,
+            {"feasible_capacity_utilization": 0.65},
+        )
+
+        self.assertEqual(projected["target_floor_areas_m2"], [70.0, 63.0, 56.0, 49.0])
+        self.assertEqual(len(retry_targets), 4)
+        self.assertAlmostEqual(sum(retry_targets), 256.307, delta=0.002)
+        self.assertTrue(all(
+            target <= cap
+            for target, cap in zip(
+                retry_targets,
+                contract["bcr_adjusted_floor_areas_m2"],
+            )
+        ))

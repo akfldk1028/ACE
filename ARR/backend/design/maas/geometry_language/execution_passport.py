@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
 from pathlib import Path
 from typing import Any, Mapping
+
+from PIL import Image, UnidentifiedImageError
 
 from .execution_activation import append_vlm_nodes, build_activation_graph
 from .execution_evidence import (
@@ -35,6 +38,7 @@ def build_mass_execution_passport(
     geometry_gate_evidence: Mapping[str, Any] | None = None,
     agent_collaboration: Mapping[str, Any] | None = None,
     elevation_evidence: Mapping[str, Any] | None = None,
+    render_evidence: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build one truthful passport from evidence materialized for this MASS."""
 
@@ -47,9 +51,19 @@ def build_mass_execution_passport(
     }
     measured_gate_issues = compilation_gate(compilation)
     gate_override = deepcopy(dict(geometry_gate_evidence or {}))
-    gate_issues = () if gate_override.get("hard_pass") is True else measured_gate_issues
+    explicit_gate_status = gate_override.get("hard_pass")
+    gate_issues = () if explicit_gate_status is True else measured_gate_issues
+    gate_hard_pass = (
+        bool(explicit_gate_status)
+        if isinstance(explicit_gate_status, bool)
+        else not gate_issues
+    )
     program_issues = tuple(program.validate())
-    preview = preview_evidence(preview_path)
+    preview = _resolved_render_evidence(
+        preview_path,
+        render_evidence,
+        geometry_hash=str(compilation.geometry_hash or ""),
+    )
     vlm = vlm_evidence(vlm_result)
     collaboration = deepcopy(dict(agent_collaboration or {}))
     downstream = merge_agent_stage_evidence(
@@ -84,8 +98,8 @@ def build_mass_execution_passport(
     stages.extend(stage_from_downstream(key, downstream[key]) for key in ("site", "capacity", "law", "parking", "program_fit"))
     stages.extend((
         stage("compiler", "Geometry Compiler", "passed" if compilation.status == "compiled" else "failed", node_ids=list(trace_by_id), evidence={"status": compilation.status, "trace_count": len(compilation.trace or ()), "issues": [issue.to_dict() for issue in compilation.issues or ()]}),
-        stage("geometry_gate", "Geometry GATE", "passed" if not gate_issues else "failed", evidence={
-            "hard_pass": not gate_issues,
+        stage("geometry_gate", "Geometry GATE", "passed" if gate_hard_pass else "failed", evidence={
+            "hard_pass": gate_hard_pass,
             "issues": [issue.to_dict() for issue in gate_issues],
             "metrics": deepcopy(compilation.metrics or {}),
             **gate_override,
@@ -134,6 +148,73 @@ def build_mass_execution_passport(
         "agent_collaboration": collaboration,
         "elevation_evidence": deepcopy(dict(elevation_evidence or {})),
     }
+
+
+def _resolved_render_evidence(
+    preview_path: str | Path | None,
+    supplied: Mapping[str, Any] | None,
+    *,
+    geometry_hash: str,
+) -> dict[str, Any]:
+    if not isinstance(supplied, Mapping):
+        return preview_evidence(preview_path)
+    result = deepcopy(dict(supplied))
+    path_value = str(result.get("path") or result.get("board_png") or "")
+    path = Path(path_value) if path_value else None
+    rendered_hash = str(
+        result.get("projected_visual_geometry_hash")
+        or result.get("geometry_hash")
+        or ""
+    )
+    if not rendered_hash or not geometry_hash:
+        raise ValueError("render evidence geometry identity is required")
+    if rendered_hash != geometry_hash:
+        raise ValueError(
+            "render evidence geometry identity mismatch: "
+            f"expected={geometry_hash or 'missing'} actual={rendered_hash}"
+        )
+    if path is None or not path.is_file():
+        result.update({
+            "status": "not_evaluated",
+            "reason": "archive_render_file_missing",
+        })
+        return result
+    try:
+        with Image.open(path) as image:
+            if image.format != "PNG":
+                raise ValueError("render evidence PNG is invalid")
+            image.verify()
+        with Image.open(path) as image:
+            width, height = image.size
+    except (OSError, SyntaxError, UnidentifiedImageError) as exc:
+        raise ValueError("render evidence PNG is invalid") from exc
+    crop = result.get("crop_box")
+    if (
+        not isinstance(crop, (list, tuple))
+        or len(crop) != 4
+        or any(not isinstance(value, int) for value in crop)
+    ):
+        raise ValueError("render evidence crop is invalid")
+    left, top, right, bottom = crop
+    if not (
+        0 <= left < right <= width
+        and 0 <= top < bottom <= height
+    ):
+        raise ValueError("render evidence crop is invalid")
+    content = path.read_bytes()
+    hard_pass = bool(
+        result.get("render_hard_pass")
+        if "render_hard_pass" in result
+        else result.get("hard_pass")
+    )
+    result.update({
+        "status": "passed" if hard_pass else "failed",
+        "path": str(path.resolve()),
+        "sha256": hashlib.sha256(content).hexdigest(),
+        "byte_count": len(content),
+        "views": list(result.get("views") or ("portfolio_card",)),
+    })
+    return result
 
 
 def enrich_mass_execution_passport(

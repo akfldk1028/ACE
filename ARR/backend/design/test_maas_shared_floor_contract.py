@@ -2166,10 +2166,16 @@ class SharedFloorContractTests(SimpleTestCase):
         retried_total = sum(retried_stack["allocated_floor_areas_m2"])
         self.assertAlmostEqual(initial_total, 380.0, delta=0.01)
         self.assertAlmostEqual(retried_total, 400.0, delta=0.01)
+        self.assertLessEqual(retried_total, sum(retry_targets) + 1e-6)
         self.assertGreater(retried_total, initial_total)
+        self.assertEqual(retried_stack["target_plan_coverage"], 0.95)
         self.assertTrue(
             retried.metadata["floorwise_visual_projection"]["hard_pass"]
         )
+        self.assertTrue(all(
+            legal_sections[index].buffer(1e-7).covers(volume.footprint)
+            for index, volume in enumerate(retried.volumes)
+        ))
         self.assertTrue(all(
             floor["legal_csg_clip_area_m2"] == 0.0
             for floor in retried_stack["floors"]

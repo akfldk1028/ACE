@@ -134,9 +134,20 @@ class GeometryOutcomeGraph:
     ) -> None:
         candidate_list = list(candidates)
         rows = list((downstream_report or {}).get("rows") or ())
+        selection_only = downstream_report is None
+        if selection_only:
+            for observation in self.observations:
+                if observation.get("program_slug") == str(program_slug):
+                    self._set_observation_selected(observation, False)
         selected_keys = {_candidate_key(item) for item in selected}
         for index, candidate in enumerate(candidate_list):
-            row = rows[index] if index < len(rows) and isinstance(rows[index], dict) else {}
+            row = (
+                None
+                if selection_only
+                else rows[index]
+                if index < len(rows) and isinstance(rows[index], dict)
+                else {}
+            )
             self._observe_candidate(
                 program_slug=program_slug,
                 candidate=candidate,
@@ -148,7 +159,7 @@ class GeometryOutcomeGraph:
         """Clear stale archive membership before a new causal observation run."""
         for item in self.observations:
             if item.get("program_slug") == str(program_slug):
-                item["selected"] = False
+                self._set_observation_selected(item, False)
 
     def observe_program_evaluation(
         self,
@@ -351,7 +362,7 @@ class GeometryOutcomeGraph:
         *,
         program_slug: str,
         candidate: Any,
-        downstream_row: dict[str, Any],
+        downstream_row: dict[str, Any] | None,
         selected: bool,
     ) -> None:
         source = candidate.source
@@ -369,13 +380,19 @@ class GeometryOutcomeGraph:
         scope = source.metadata.get("program_book_projection_evidence") or {}
         scope = scope.get("scope") if isinstance(scope, dict) else {}
         scope_label = str((scope or {}).get("base_volume_label") or "1/1")
-        legal = downstream_row.get("legal_projection") if isinstance(downstream_row.get("legal_projection"), dict) else {}
-        parking = downstream_row.get("parking_hard_gate") if isinstance(downstream_row.get("parking_hard_gate"), dict) else {}
         observation_key = "|".join((
             str(program_slug), seed_family, program_hash, str(strength),
             str(candidate.principle_id), scope_label, geometry_hash,
         ))
         observation_id = _stable_id("observation", observation_key)
+        if downstream_row is None:
+            self._ensure_observation_indices()
+            existing = self._observation_index.get(observation_id)
+            if existing is not None:
+                self._set_observation_selected(existing, selected)
+            return
+        legal = downstream_row.get("legal_projection") if isinstance(downstream_row.get("legal_projection"), dict) else {}
+        parking = downstream_row.get("parking_hard_gate") if isinstance(downstream_row.get("parking_hard_gate"), dict) else {}
         observation = {
             "id": observation_id,
             "program_slug": str(program_slug),
@@ -1991,6 +2008,18 @@ class GeometryOutcomeGraph:
         key = (str(observation.get("source_seed") or ""), str(observation.get("program_hash") or ""))
         self._genotype_index.setdefault(key, []).append(observation)
         self._indexed_observation_count = len(self.observations)
+
+    def _set_observation_selected(
+        self,
+        observation: dict[str, Any],
+        selected: bool,
+    ) -> None:
+        observation["selected"] = bool(selected)
+        outcome_node = self.nodes.get(
+            _stable_id("outcome", str(observation.get("id") or ""))
+        )
+        if outcome_node is not None:
+            outcome_node.setdefault("attributes", {})["selected"] = bool(selected)
 
     def _observations_for_genotype(self, source_seed: str, program_hash: str) -> list[dict[str, Any]]:
         self._ensure_observation_indices()

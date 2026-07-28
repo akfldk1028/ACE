@@ -113,9 +113,10 @@ def solve_bounded_compatible_subset(
 ) -> tuple[int, ...]:
     """Beam-search a large hard-gated pool without exponential backtracking.
 
-    Required coverage is ranked before score, and low-conflict/rare-coverage
-    candidates are visited first. Every retained state still satisfies the
-    caller's exact pairwise compatibility matrix and typed cap counts.
+    Cardinality is ranked before required coverage and score. Low-conflict
+    candidates with rare required coverage are visited first. Every retained
+    state still satisfies the caller's exact pairwise compatibility matrix and
+    typed cap counts.
     """
 
     count = len(facts)
@@ -130,11 +131,15 @@ def solve_bounded_compatible_subset(
     order = sorted(
         range(count),
         key=lambda index: (
+            sum(
+                not compatibility[index][other]
+                for other in range(count)
+                if other != index
+            ),
             min(
                 (coverage_supply[tag] for tag in facts[index].coverage_tags if tag in required),
                 default=count + 1,
             ),
-            sum(not compatibility[index][other] for other in range(count) if other != index),
             -len(set(facts[index].coverage_tags) & required),
             -facts[index].score,
         ),
@@ -146,7 +151,7 @@ def solve_bounded_compatible_subset(
 
     def rank(state: tuple[tuple[int, ...], Counter[str], frozenset[str], float]) -> tuple[int, int, float]:
         chosen, _usage, covered, score = state
-        return len(covered & required), len(chosen), score
+        return len(chosen), len(covered & required), score
 
     for candidate_index in order:
         candidate = facts[candidate_index]
@@ -177,8 +182,7 @@ def solve_bounded_compatible_subset(
         if complete:
             return tuple(sorted(max(complete, key=rank)[0]))
 
-    feasible = [state for state in states if required.issubset(state[2])]
-    winner = max(feasible or states, key=rank)
+    winner = max(states, key=rank)
     return tuple(sorted(winner[0]))
 
 

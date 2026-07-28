@@ -263,6 +263,39 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertNotIn(0, selected)
         self.assertIn(20, selected)
 
+    def test_bounded_fallback_prefers_cardinality_before_isolated_required_coverage(self):
+        """A rare coverage witness cannot replace a compatible ten-card set."""
+        count = 11
+        facts = [
+            portfolio_selection.ConstraintCandidateFacts(
+                score=2.0 if index == 0 else 1.0 - index * 0.001,
+                cap_keys=(f"candidate:{index}",),
+                coverage_tags=(("required:isolated",) if index == 0 else ()),
+            )
+            for index in range(count)
+        ]
+        compatibility = [
+            [True for _right in range(count)]
+            for _left in range(count)
+        ]
+        for index in range(1, count):
+            compatibility[0][index] = False
+            compatibility[index][0] = False
+
+        selected = portfolio_selection.solve_bounded_compatible_subset(
+            facts,
+            compatibility,
+            target_count=10,
+            maximum_key_counts={
+                f"candidate:{index}": 1
+                for index in range(count)
+            },
+            required_coverage_tags=("required:isolated",),
+            beam_width=32,
+        )
+
+        self.assertEqual(selected, tuple(range(1, 11)))
+
     def test_milp_solver_proves_maximum_set_under_caps_and_coverage(self):
         count = 31
         facts = [

@@ -147,3 +147,87 @@ The combined export suite was not rerun as permitted by the review request; Task
 
 - Previously generated projected-era artifacts from the first Task 2 implementation lack `projectedVisualPayloadHash` and now fail closed. They must be regenerated rather than silently downgraded.
 - The exact payload hash provides deterministic archive-integrity detection; it is not an external signature against an attacker able to rewrite both payload and hash.
+
+## Review Fix Round 2/5
+
+### Root Causes
+
+- `serialize_certified_projected_visual` returned the legacy `{}` binding for
+  a missing certificate or `not_applicable_no_authored_mesh` status before it
+  inspected the source's authored `profiled_*` surfaces. This allowed
+  certificate deletion or a false no-authored-mesh status to downgrade real
+  authored geometry.
+- The prior board/archive/elevation identity test used a manually constructed
+  `profiled_triangle` source, created a solid-color preview, and manually
+  supplied the expected board hash. It did not exercise the production board
+  renderer with Task 1 projector output.
+
+### RED Evidence
+
+Command:
+
+```powershell
+C:\Python313\python.exe manage.py test design.test_maas_flow_regressions.MaasFlowRegressionTest.test_authored_profiled_source_without_projection_certificate_fails_closed design.test_maas_flow_regressions.MaasFlowRegressionTest.test_authored_profiled_source_with_not_applicable_certificate_fails_closed design.test_maas_flow_regressions.MaasFlowRegressionTest.test_proxy_only_source_without_projection_certificate_remains_legacy -v 2
+```
+
+Observed exit code `1`: both authored-profiled tests failed because no
+`ValueError` was raised; the genuine proxy-only preservation test passed.
+
+The strengthened identity test initially exposed a test-fixture type error
+before rendering (`source_feature` was given a `GeometryProgram` instead of a
+`VerbSequence`). After correcting the fixture to use the production
+`program_seed_sequences` factory, it reached the real renderer.
+
+### Fix
+
+- Detect any source `profiled_*` surface before the legacy return branches.
+  Missing projection certificates and false
+  `not_applicable_no_authored_mesh` certificates now raise
+  `authored profiled visual source has no certified projection`.
+- Genuine proxy-only sources with no profiled surface retain the legacy `{}`
+  binding.
+- Replaced the identity test's synthetic source/board path with
+  `project_floorwise_visual_mesh` output using the production
+  `profiled_recursive_solid_mesh` type, converted it through `source_feature`,
+  and called the actual `render_archive_sheet`.
+- The test requires non-empty, hard-pass measured render evidence whose hash
+  comes from the feature's geometry artifact, then verifies the identical hash
+  and exact vertices through archive compilation and elevation handoff.
+
+### GREEN and Static Evidence
+
+Focused regressions:
+
+```powershell
+C:\Python313\python.exe manage.py test design.test_maas_flow_regressions.MaasFlowRegressionTest.test_authored_profiled_source_without_projection_certificate_fails_closed design.test_maas_flow_regressions.MaasFlowRegressionTest.test_authored_profiled_source_with_not_applicable_certificate_fails_closed design.test_maas_flow_regressions.MaasFlowRegressionTest.test_proxy_only_source_without_projection_certificate_remains_legacy design.test_maas_flow_regressions.MaasFlowRegressionTest.test_projected_visual_identity_survives_board_archive_and_elevation -v 2
+```
+
+Observed: `Ran 4 tests ... OK`, exit code `0`.
+
+Full flow module:
+
+```powershell
+C:\Python313\python.exe manage.py test design.test_maas_flow_regressions -v 1
+```
+
+Observed: `Found 19 test(s)`, `Ran 19 tests ... OK`, exit code `0`.
+
+Static verification:
+
+```powershell
+C:\Python313\python.exe -m py_compile ARR/backend/design/maas/geometry_language/projected_visual_contract.py ARR/backend/design/test_maas_flow_regressions.py
+git diff --check -- ARR/backend/design/maas/geometry_language/projected_visual_contract.py ARR/backend/design/test_maas_flow_regressions.py
+```
+
+Observed: both exited `0`; diff check emitted only working-copy LF-to-CRLF
+notices.
+
+### Round 2 Files and Concerns
+
+- Task production change is confined to
+  `projected_visual_contract.py`; regressions are in
+  `test_maas_flow_regressions.py`.
+- The shared worktree contains a pre-existing smoke-cycle regression hunk in
+  `test_maas_flow_regressions.py`. It is preserved in the worktree and excluded
+  from this commit.
+- No Task 3 selection/performance file was modified.

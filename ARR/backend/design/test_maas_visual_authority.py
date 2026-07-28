@@ -47,6 +47,35 @@ def _triangle_area_squared(vertices):
     return sum(value * value for value in cross)
 
 
+def _profiled_tetra_surfaces(vertices):
+    faces = ((0, 1, 2), (0, 3, 1), (1, 3, 2), (2, 3, 0))
+    return tuple(
+        SourceSurface(
+            role=f"tetra:{index:02d}",
+            volume_role="tetra",
+            verb="geometry_program",
+            surface_type="profiled_recursive_solid_mesh",
+            vertices_m=tuple(vertices[vertex_index] for vertex_index in face),
+            semantic_patch_id=f"tetra:{index:02d}",
+        )
+        for index, face in enumerate(faces, start=1)
+    )
+
+
+def _is_exact_closed_directed_mesh(surfaces):
+    directed_edges = {}
+    for surface in surfaces:
+        vertices = surface.vertices_m
+        for left, right in zip(vertices, (*vertices[1:], vertices[0])):
+            directed_edges[(left, right)] = (
+                directed_edges.get((left, right), 0) + 1
+            )
+    return bool(directed_edges) and all(
+        count == 1 and directed_edges.get((right, left), 0) == 1
+        for (left, right), count in directed_edges.items()
+    )
+
+
 class MaasVisualAuthorityTest(SimpleTestCase):
     def _certified_profiled_feature(
         self,
@@ -288,6 +317,73 @@ class MaasVisualAuthorityTest(SimpleTestCase):
             props["floorwise_visual_projection"],
             first_certificate,
         )
+
+    def test_piloti_half_space_preserves_near_above_vertex_exactly(self):
+        from design.maas.geometry_language.profiled_mesh_clip import (
+            clip_profiled_mesh_above_z,
+        )
+
+        near_above = (0.0, 0.0, 0.5000000005)
+        surfaces = _profiled_tetra_surfaces((
+            near_above,
+            (1.0, 0.0, 0.5),
+            (0.0, 1.0, 1.0),
+            (0.0, 0.0, 0.0),
+        ))
+
+        clipped = clip_profiled_mesh_above_z(surfaces, minimum_z=0.5)
+
+        exact_vertices = {
+            vertex
+            for surface in clipped.surfaces
+            for vertex in surface.vertices_m
+        }
+        self.assertIn(near_above, exact_vertices)
+        self.assertTrue(_is_exact_closed_directed_mesh(clipped.surfaces))
+
+    def test_piloti_half_space_preserves_authored_plane_endpoint_exactly(self):
+        from design.maas.geometry_language.profiled_mesh_clip import (
+            clip_profiled_mesh_above_z,
+        )
+
+        authored_plane_endpoint = (-0.1, 0.0, 0.5)
+        surfaces = _profiled_tetra_surfaces((
+            authored_plane_endpoint,
+            (1.0, 0.0, 0.5),
+            (0.0, 1.0, 1.0),
+            (-10.0, 0.0, 0.0),
+        ))
+
+        clipped = clip_profiled_mesh_above_z(surfaces, minimum_z=0.5)
+
+        exact_vertices = {
+            vertex
+            for surface in clipped.surfaces
+            for vertex in surface.vertices_m
+        }
+        self.assertIn(authored_plane_endpoint, exact_vertices)
+        self.assertTrue(_is_exact_closed_directed_mesh(clipped.surfaces))
+
+    def test_piloti_half_space_caps_existing_on_plane_boundary_edge(self):
+        from design.maas.geometry_language.profiled_mesh_clip import (
+            clip_profiled_mesh_above_z,
+        )
+
+        surfaces = _profiled_tetra_surfaces((
+            (0.0, 0.0, 0.5),
+            (1.0, 0.0, 0.5),
+            (0.0, 1.0, 1.0),
+            (0.0, 0.0, 0.0),
+        ))
+
+        clipped = clip_profiled_mesh_above_z(surfaces, minimum_z=0.5)
+
+        self.assertTrue(clipped.closed_mesh_hard_pass)
+        self.assertEqual(clipped.boundary_loop_count, 1)
+        self.assertTrue(any(
+            surface.surface_type == "profiled_piloti_underside"
+            for surface in clipped.surfaces
+        ))
 
     def test_piloti_half_space_cap_preserves_courtyard_hole(self):
         from design.maas.geometry_language.profiled_mesh_clip import (

@@ -46,9 +46,6 @@ def clip_profiled_mesh_above_z(
         raise ValueError("piloti half-space clip requires profiled triangles")
 
     clipped: list[SourceSurface] = []
-    boundary_segments: list[
-        tuple[tuple[float, float, float], tuple[float, float, float]]
-    ] = []
     removed_degenerate = 0
 
     for surface in source:
@@ -61,15 +58,10 @@ def clip_profiled_mesh_above_z(
         polygon = _clip_triangle_above_z(triangle, minimum_z=plane_z)
         if len(polygon) < 3:
             continue
-        if _triangle_crosses_plane(triangle, minimum_z=plane_z):
-            boundary = _plane_boundary_edge(polygon, minimum_z=plane_z)
-            if boundary is None:
-                raise ValueError("piloti half-space boundary is malformed")
-            boundary_segments.append(boundary)
         pieces = _triangulate_convex_polygon(polygon)
         kept_piece_index = 0
         for piece in pieces:
-            if _triangle_area_squared(piece) <= _EPSILON**2:
+            if _triangle_area_squared(piece) <= 0.0:
                 removed_degenerate += 1
                 continue
             kept_piece_index += 1
@@ -90,6 +82,10 @@ def clip_profiled_mesh_above_z(
     if not clipped:
         raise ValueError("piloti half-space clip removed the complete visual mesh")
 
+    boundary_segments = _plane_boundary_segments(
+        clipped,
+        minimum_z=plane_z,
+    )
     caps, boundary_loop_count = _underside_caps(
         boundary_segments,
         minimum_z=plane_z,
@@ -124,9 +120,9 @@ def _clip_triangle_above_z(
 ) -> tuple[tuple[float, float, float], ...]:
     output: list[tuple[float, float, float]] = []
     previous = triangle[-1]
-    previous_inside = previous[2] >= minimum_z - _EPSILON
+    previous_inside = previous[2] >= minimum_z
     for current in triangle:
-        current_inside = current[2] >= minimum_z - _EPSILON
+        current_inside = current[2] >= minimum_z
         if current_inside != previous_inside:
             output.append(_edge_plane_intersection(
                 previous,
@@ -134,13 +130,7 @@ def _clip_triangle_above_z(
                 minimum_z=minimum_z,
             ))
         if current_inside:
-            output.append((
-                current[0],
-                current[1],
-                minimum_z
-                if abs(current[2] - minimum_z) <= _EPSILON
-                else current[2],
-            ))
+            output.append(current)
         previous = current
         previous_inside = current_inside
     return _deduplicate_ring_vertices(output)
@@ -152,8 +142,13 @@ def _edge_plane_intersection(
     *,
     minimum_z: float,
 ) -> tuple[float, float, float]:
+    left, right = sorted((left, right))
+    if left[2] == minimum_z:
+        return left
+    if right[2] == minimum_z:
+        return right
     delta = right[2] - left[2]
-    if abs(delta) <= _EPSILON:
+    if delta == 0.0:
         raise ValueError("piloti half-space edge is parallel to its clip plane")
     amount = (minimum_z - left[2]) / delta
     return (
@@ -175,35 +170,42 @@ def _deduplicate_ring_vertices(
     return tuple(result)
 
 
-def _triangle_crosses_plane(
-    triangle: Sequence[tuple[float, float, float]],
+def _plane_boundary_segments(
+    surfaces: Sequence[SourceSurface],
     *,
     minimum_z: float,
-) -> bool:
-    return (
-        any(vertex[2] > minimum_z + _EPSILON for vertex in triangle)
-        and any(vertex[2] < minimum_z - _EPSILON for vertex in triangle)
+) -> tuple[
+    tuple[tuple[float, float, float], tuple[float, float, float]],
+    ...,
+]:
+    counts: dict[
+        tuple[tuple[float, float, float], tuple[float, float, float]],
+        int,
+    ] = {}
+    representatives: dict[
+        tuple[tuple[float, float, float], tuple[float, float, float]],
+        tuple[tuple[float, float, float], tuple[float, float, float]],
+    ] = {}
+    for surface in surfaces:
+        vertices = surface.vertices_m
+        for left, right in zip(vertices, (*vertices[1:], vertices[0])):
+            if (
+                left[2] != minimum_z
+                or right[2] != minimum_z
+            ):
+                continue
+            key = tuple(sorted((_vertex_key(left), _vertex_key(right))))
+            if key[0] == key[1]:
+                continue
+            counts[key] = counts.get(key, 0) + 1
+            representatives.setdefault(key, (left, right))
+    if any(count > 2 for count in counts.values()):
+        raise ValueError("piloti half-space plane boundary is non-manifold")
+    return tuple(
+        representatives[key]
+        for key, count in counts.items()
+        if count == 1
     )
-
-
-def _plane_boundary_edge(
-    polygon: Sequence[tuple[float, float, float]],
-    *,
-    minimum_z: float,
-) -> tuple[tuple[float, float, float], tuple[float, float, float]] | None:
-    plane_vertices = [
-        vertex
-        for vertex in polygon
-        if abs(vertex[2] - minimum_z) <= _EPSILON
-    ]
-    unique = {
-        _vertex_key(vertex): vertex
-        for vertex in plane_vertices
-    }
-    if len(unique) != 2:
-        return None
-    left, right = unique.values()
-    return left, right
 
 
 def _triangulate_convex_polygon(
@@ -310,7 +312,7 @@ def _deduplicate_surfaces(
     duplicate_count = 0
     degenerate_count = 0
     for surface in surfaces:
-        if _triangle_area_squared(surface.vertices_m) <= _EPSILON**2:
+        if _triangle_area_squared(surface.vertices_m) <= 0.0:
             degenerate_count += 1
             continue
         key = tuple(sorted(_vertex_key(vertex) for vertex in surface.vertices_m))
@@ -369,7 +371,7 @@ def _signed_plan_area_twice(
 
 
 def _vertex_key(vertex: Iterable[float]) -> tuple[float, float, float]:
-    return tuple(round(float(value), _ROUND_DIGITS) for value in vertex)
+    return tuple(float(value) for value in vertex)
 
 
 def _plan_ring_edge_key(coordinates: Iterable[Iterable[float]]) -> frozenset[

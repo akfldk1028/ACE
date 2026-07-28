@@ -11,13 +11,13 @@ from __future__ import annotations
 from collections import OrderedDict
 from copy import deepcopy
 from dataclasses import replace
-from math import atan2, cos, degrees, hypot, isfinite, sin
+from math import atan2, cos, degrees, hypot, isfinite, pi, sin
 from typing import Any
 
 from shapely import make_valid, set_precision
 from shapely.affinity import affine_transform, translate
 from shapely.errors import GEOSException
-from shapely.geometry import LineString, MultiPoint, Polygon
+from shapely.geometry import LineString, MultiPoint, Point, Polygon
 from shapely.geometry.polygon import orient
 from shapely.ops import nearest_points, polygonize, unary_union
 
@@ -40,6 +40,174 @@ from .gate import GeometryGatePolicy, compilation_gate
 
 _COMPILATION_CACHE: "OrderedDict[str, CompilationResult]" = OrderedDict()
 _COMPILATION_CACHE_LIMIT = 512
+
+
+def _allocate_profiled_floor_targets(
+    *,
+    planned_floor_areas_m2: tuple[float, ...],
+    legal_floor_caps_m2: tuple[float, ...],
+    authored_profile_ratios: tuple[float, ...],
+) -> tuple[float, ...]:
+    """Distribute one GFA budget without erasing the authored section profile.
+
+    The law/capacity agent owns the total requested floor area. Geometry owns
+    how that area is distributed through the authored vertical profile.
+    Independent per-floor replacement by the planning vector made every AST
+    converge to the same normalized legal step stack.
+    """
+
+    count = min(
+        len(planned_floor_areas_m2),
+        len(legal_floor_caps_m2),
+        len(authored_profile_ratios),
+    )
+    if count <= 0:
+        return ()
+    planned = tuple(
+        max(0.0, float(value))
+        for value in planned_floor_areas_m2[:count]
+    )
+    caps = tuple(
+        max(0.0, float(value))
+        for value in legal_floor_caps_m2[:count]
+    )
+    desired_total = min(sum(planned), sum(caps))
+    if desired_total <= 1e-9:
+        return (0.0,) * count
+
+    weights = [
+        max(1e-6, planned[index])
+        * max(0.05, float(authored_profile_ratios[index]))
+        for index in range(count)
+    ]
+    allocated = [0.0] * count
+    active = {
+        index
+        for index, cap in enumerate(caps)
+        if cap > 1e-9
+    }
+    remaining = desired_total
+    while active and remaining > 1e-7:
+        weight_total = sum(weights[index] for index in active)
+        if weight_total <= 1e-12:
+            weight_total = float(len(active))
+            shares = {index: remaining / weight_total for index in active}
+        else:
+            shares = {
+                index: remaining * weights[index] / weight_total
+                for index in active
+            }
+        saturated: set[int] = set()
+        progress = 0.0
+        for index in active:
+            room = max(0.0, caps[index] - allocated[index])
+            addition = min(room, shares[index])
+            allocated[index] += addition
+            progress += addition
+            if room - addition <= 1e-7:
+                saturated.add(index)
+        remaining = max(0.0, desired_total - sum(allocated))
+        active.difference_update(saturated)
+        if progress <= 1e-9:
+            break
+    return tuple(allocated)
+
+
+def _requested_plan_axis_scales(
+    source: Any,
+    host: Polygon,
+    *,
+    target_area: float,
+) -> tuple[float, float] | None:
+    """Return the least-anisotropic affine scales that can reach one target."""
+
+    source_parts = _polygon_parts(source)
+    if not source_parts:
+        return None
+    source_union = unary_union(source_parts)
+    if source_union.is_empty or float(source_union.area) <= 1e-9:
+        return None
+    source_frame = source_union.convex_hull
+    if not isinstance(source_frame, Polygon):
+        return None
+    _source_angle, source_width, source_depth = _principal_frame(source_frame)
+    _host_angle, host_width, host_depth = _principal_frame(host)
+    if min(source_width, source_depth, host_width, host_depth) <= 1e-9:
+        return None
+    requested_product = max(0.2, float(target_area)) / max(
+        float(source_union.area),
+        1e-9,
+    )
+    maximum_x = host_width / source_width * 0.995
+    maximum_y = host_depth / source_depth * 0.995
+    requested_product = min(requested_product, maximum_x * maximum_y)
+    uniform = requested_product ** 0.5
+    if uniform <= maximum_x and uniform <= maximum_y:
+        return uniform, uniform
+    x_scale = min(uniform, maximum_x)
+    y_scale = requested_product / max(x_scale, 1e-9)
+    if y_scale > maximum_y:
+        y_scale = maximum_y
+        x_scale = requested_product / max(y_scale, 1e-9)
+    if min(x_scale, y_scale) <= 1e-9:
+        return None
+    return x_scale, y_scale
+
+
+def _exact_authored_mesh_section(
+    source: SourceMass,
+    *,
+    height_fraction: float,
+) -> Any | None:
+    """Measure one horizontal section from the complete authored mesh.
+
+    ``SourceVolume`` bands are conservative legal proxies. They intentionally
+    union several mesh slices and therefore cannot be the geometry source for
+    a later floor plate: doing so erases shear, twist, cuts and curved plans.
+    """
+
+    bridge = source.metadata.get("geometry_program_bridge_evidence")
+    bridge = bridge if isinstance(bridge, dict) else {}
+    raw_triangle_count = int(bridge.get("raw_mesh_triangle_count") or 0)
+    exported_surface_count = int(bridge.get("exported_surface_count") or 0)
+    if (
+        raw_triangle_count > 0
+        and exported_surface_count > 0
+        and exported_surface_count < raw_triangle_count
+    ):
+        return None
+    mesh_surfaces = tuple(
+        surface
+        for surface in source.surfaces
+        if (
+            surface.surface_type == "profiled_recursive_solid_mesh"
+            and len(surface.vertices_m) == 3
+        )
+    )
+    if not mesh_surfaces:
+        return None
+    origin = source.footprint.centroid
+    vertices: list[tuple[float, float, float]] = []
+    triangles: list[tuple[int, int, int]] = []
+    for surface in mesh_surfaces:
+        offset = len(vertices)
+        vertices.extend(
+            (
+                float(x) + float(origin.x),
+                float(y) + float(origin.y),
+                float(z),
+            )
+            for x, y, z in surface.vertices_m
+        )
+        triangles.append((offset, offset + 1, offset + 2))
+    section = _mesh_section_polygon(
+        tuple(vertices),
+        tuple(triangles),
+        max(1e-5, min(1.0 - 1e-5, float(height_fraction))),
+    )
+    if section is None or section.is_empty or float(section.area) <= 1e-9:
+        return None
+    return section
 
 
 def materialize_floorwise_legal_source(
@@ -70,8 +238,17 @@ def materialize_floorwise_legal_source(
         ),
     ).role
     active_by_floor: list[Any] = []
+    exact_mesh_section_count = 0
     for floor_index in range(floor_count):
         fraction = (floor_index + 0.5) / floor_count
+        exact_section = _exact_authored_mesh_section(
+            source,
+            height_fraction=fraction,
+        )
+        if exact_section is not None:
+            active_by_floor.append(exact_section)
+            exact_mesh_section_count += 1
+            continue
         active = [
             volume.footprint
             for volume in source.volumes
@@ -89,13 +266,24 @@ def materialize_floorwise_legal_source(
     if ground_source is None or float(ground_source.area) <= 1e-9:
         return None
     ground_source_area = float(ground_source.area)
+    ground_legal = repair_source_polygon(legal_sections[0], minimum_area=1.0)
+    if ground_legal is None or ground_legal.is_empty:
+        return None
+    source_reference_angle, _source_width, _source_depth = _principal_frame(
+        ground_source.convex_hull
+    )
+    target_reference_angle, _target_width, _target_depth = _principal_frame(
+        ground_legal
+    )
+    pose_rotation_degrees = target_reference_angle - source_reference_angle
+    source_reference_center = ground_source.centroid
+    target_reference_center = ground_legal.centroid
 
-    volumes: list[SourceVolume] = []
-    floor_evidence: list[dict[str, Any]] = []
-    floor_unions: list[Any] = []
-    for floor_index, (raw_source, raw_legal) in enumerate(
-        zip(active_by_floor, legal_sections)
-    ):
+    prepared_floors: list[tuple[Any, Polygon, float, float]] = []
+    for floor_index, (raw_source, raw_legal) in enumerate(zip(
+        active_by_floor,
+        legal_sections,
+    )):
         legal = repair_source_polygon(raw_legal, minimum_area=1.0)
         if (
             raw_source is None
@@ -117,19 +305,160 @@ def materialize_floorwise_legal_source(
             if floor_index < len(target_floor_areas_m2)
             else 0.0
         )
-        target_area = min(
-            float(legal.area) * 0.95,
+        prepared_floors.append((
+            source_plan,
+            legal,
+            vertical_profile_ratio,
             (
                 planned_floor_area
                 if planned_floor_area > 0.0
-                else float(legal.area) * coverage * vertical_profile_ratio
+                else float(legal.area) * coverage
             ),
+        ))
+
+    allocated_floor_targets = _allocate_profiled_floor_targets(
+        planned_floor_areas_m2=tuple(
+            planned_area
+            for _source_plan, _legal, _profile_ratio, planned_area
+            in prepared_floors
+        ),
+        legal_floor_caps_m2=tuple(
+            float(legal.area) * 0.95
+            for _source_plan, legal, _profile_ratio, _planned_area
+            in prepared_floors
+        ),
+        authored_profile_ratios=tuple(
+            profile_ratio
+            for _source_plan, _legal, profile_ratio, _planned_area
+            in prepared_floors
+        ),
+    )
+    global_axis_scales = _requested_plan_axis_scales(
+        ground_source,
+        ground_legal,
+        target_area=(
+            allocated_floor_targets[0]
+            if allocated_floor_targets
+            else float(ground_legal.area) * coverage
+        ),
+    )
+    if global_axis_scales is None:
+        return None
+    global_x_scale, global_y_scale = global_axis_scales
+    global_anisotropy_ratio = global_x_scale / max(global_y_scale, 1e-9)
+
+    fitted_floor_results: list[
+        tuple[Any, tuple[tuple[float, float, float, float], ...]] | None
+    ] = []
+    for floor_index, (
+        source_plan,
+        legal,
+        _vertical_profile_ratio,
+        _planned_floor_area,
+    ) in enumerate(prepared_floors):
+        target_area = allocated_floor_targets[floor_index]
+        source_dx = (
+            float(source_plan.centroid.x) - float(source_reference_center.x)
         )
-        fitted = _matrix_fit_polygon_to_host(
+        source_dy = (
+            float(source_plan.centroid.y) - float(source_reference_center.y)
+        )
+        source_theta = source_reference_angle * pi / 180.0
+        target_theta = target_reference_angle * pi / 180.0
+        local_u = source_dx * cos(source_theta) + source_dy * sin(source_theta)
+        local_v = -source_dx * sin(source_theta) + source_dy * cos(source_theta)
+        fitted_offset_x = (
+            local_u * global_x_scale * cos(target_theta)
+            - local_v * global_y_scale * sin(target_theta)
+        )
+        fitted_offset_y = (
+            local_u * global_x_scale * sin(target_theta)
+            + local_v * global_y_scale * cos(target_theta)
+        )
+        fitted_floor_results.append(_matrix_fit_polygon_to_host(
             source_plan,
             legal,
             target_area=target_area,
+            target_center=(
+                float(target_reference_center.x) + fitted_offset_x,
+                float(target_reference_center.y) + fitted_offset_y,
+            ),
+            target_angle_offset_degrees=pose_rotation_degrees,
+            anisotropy_ratio=global_anisotropy_ratio,
+        ))
+
+    requested_total = sum(allocated_floor_targets)
+    strict_total = sum(
+        float(fitted[0].area)
+        for fitted in fitted_floor_results
+        if fitted is not None
+    )
+    pose_fit_mode = (
+        "single_global_rotation_translation_with_floor_relative_pose_preserved"
+    )
+    pose_fallback_used = (
+        any(fitted is None for fitted in fitted_floor_results)
+        or strict_total < requested_total * 0.78
+    )
+    if pose_fallback_used:
+        # A geometrically infeasible offset must not make every candidate miss
+        # the law-derived capacity floor. Reflow each authored floor plan into
+        # its own legal section, while keeping the authored per-floor area
+        # profile allocated above. Shift-only twins may collapse here and are
+        # then correctly removed by the visual duplicate gate; taper, void,
+        # wing and plan topology remain geometry evidence.
+        fitted_floor_results = []
+        for floor_index, (
+            source_plan,
+            legal,
+            _vertical_profile_ratio,
+            _planned_floor_area,
+        ) in enumerate(prepared_floors):
+            target_area = allocated_floor_targets[floor_index]
+            scales = _requested_plan_axis_scales(
+                source_plan,
+                legal,
+                target_area=target_area,
+            )
+            if scales is None:
+                return None
+            x_scale, y_scale = scales
+            source_angle, _source_width, _source_depth = _principal_frame(
+                source_plan.convex_hull
+            )
+            legal_angle, _legal_width, _legal_depth = _principal_frame(legal)
+            fitted_floor_results.append(_matrix_fit_polygon_to_host(
+                source_plan,
+                legal,
+                target_area=target_area,
+                target_center=(
+                    float(legal.centroid.x),
+                    float(legal.centroid.y),
+                ),
+                target_angle_offset_degrees=legal_angle - source_angle,
+                anisotropy_ratio=x_scale / max(y_scale, 1e-9),
+            ))
+        pose_fit_mode = (
+            "floorwise_legal_reflow_with_authored_vertical_profile_budget"
         )
+    if any(fitted is None for fitted in fitted_floor_results):
+        return None
+
+    volumes: list[SourceVolume] = []
+    floor_evidence: list[dict[str, Any]] = []
+    floor_unions: list[Any] = []
+    for floor_index, (
+        source_plan,
+        legal,
+        vertical_profile_ratio,
+        planned_floor_area,
+    ) in enumerate(prepared_floors):
+        target_area = (
+            allocated_floor_targets[floor_index]
+            if floor_index < len(allocated_floor_targets)
+            else 0.0
+        )
+        fitted = fitted_floor_results[floor_index]
         if fitted is None:
             return None
         occupied, matrix = fitted
@@ -156,6 +485,7 @@ def materialize_floorwise_legal_source(
             "matrix4": matrix4_to_lists(matrix),
             "source_plan_area_m2": round(float(source_plan.area), 4),
             "legal_plan_area_m2": round(float(legal.area), 4),
+            "planned_floor_area_m2": round(planned_floor_area, 4),
             "target_plan_area_m2": round(target_area, 4),
             "achieved_plan_area_m2": round(float(floor_union.area), 4),
             "target_plan_coverage": round(coverage, 4),
@@ -171,6 +501,23 @@ def materialize_floorwise_legal_source(
     upper = repair_source_polygon(floor_unions[-1], minimum_area=1.0)
     if ground is None or upper is None:
         return None
+    # Law-derived floor plates remain the sole GFA authority.  A complete
+    # authored triangle skin is carried separately through the same Matrix4
+    # evidence so renderer/VLM diversity survives capacity materialization.
+    from .floorwise_visual_projection import project_floorwise_visual_mesh
+
+    visual_projection = project_floorwise_visual_mesh(
+        source,
+        legal_sections=legal_sections,
+        floor_matrices=tuple(
+            fitted[1]
+            for fitted in fitted_floor_results
+            if fitted is not None
+        ),
+        capacity_plates=tuple(volumes),
+    )
+    if not visual_projection.certificate.hard_pass:
+        return None
     metadata = deepcopy(source.metadata)
     bridge = metadata.get("geometry_program_bridge_evidence")
     bridge = bridge if isinstance(bridge, dict) else {}
@@ -180,12 +527,38 @@ def materialize_floorwise_legal_source(
         "floor_count": floor_count,
         "target_plan_coverage": round(coverage, 4),
         "matrix_convention": "row_major_column_vector",
+        "pose_fit": pose_fit_mode,
+        "pose_fallback_used": pose_fallback_used,
+        "strict_pose_achieved_total_area_m2": round(strict_total, 4),
+        "strict_pose_required_total_area_m2": round(
+            requested_total * 0.78,
+            4,
+        ),
+        "global_pose_rotation_degrees": round(pose_rotation_degrees, 6),
+        "global_plan_axis_scales": [
+            round(global_x_scale, 6),
+            round(global_y_scale, 6),
+        ],
+        "global_plan_anisotropy_ratio": round(global_anisotropy_ratio, 6),
         "geometry_program_hash": str(bridge.get("program_hash") or ""),
         "geometry_hash": str(bridge.get("geometry_hash") or ""),
         "floor_capacity_plan_hash": str(floor_capacity_plan_hash or ""),
         "target_floor_areas_m2": [
             round(max(0.0, float(value)), 4)
             for value in target_floor_areas_m2[:floor_count]
+        ],
+        "floor_area_allocation": (
+            "total_capacity_budget_weighted_by_authored_vertical_profile"
+        ),
+        "floor_section_source": (
+            "exact_authored_manifold_mesh"
+            if exact_mesh_section_count == floor_count
+            else "conservative_source_volume_proxy"
+        ),
+        "exact_authored_mesh_section_count": exact_mesh_section_count,
+        "allocated_floor_areas_m2": [
+            round(max(0.0, float(value)), 4)
+            for value in allocated_floor_targets
         ],
         "source_authority": "same_authored_geometry_program_ast",
         "primary_component_role": primary_role,
@@ -201,6 +574,9 @@ def materialize_floorwise_legal_source(
         "hard_pass": False,
         "source_geometry_program_preserved": True,
     }
+    metadata["floorwise_visual_projection"] = (
+        visual_projection.certificate.to_dict()
+    )
     # Materialization changes the occupied plan on every level. Never retain
     # coherence evidence measured on the pre-fit BOOK body; downstream
     # program gates must judge the exact legal floor bands they will render.
@@ -212,9 +588,7 @@ def materialize_floorwise_legal_source(
         footprint=ground,
         upper_footprint=upper,
         volumes=tuple(volumes),
-        # The exact law-derived affine bands are now the render/legal authority.
-        # Keeping the pre-fit triangle skin would double-render stale geometry.
-        surfaces=(),
+        surfaces=visual_projection.surfaces,
         metadata=metadata,
     )
 
@@ -431,6 +805,9 @@ def _matrix_fit_polygon_to_host(
     host: Polygon,
     *,
     target_area: float,
+    target_center: tuple[float, float] | None = None,
+    target_angle_offset_degrees: float = 0.0,
+    anisotropy_ratio: float = 1.0,
 ) -> tuple[Any, tuple[tuple[float, float, float, float], ...]] | None:
     """Return the largest requested affine fit that stays inside ``host``."""
 
@@ -444,11 +821,20 @@ def _matrix_fit_polygon_to_host(
     if not isinstance(source_frame_polygon, Polygon):
         return None
     source_angle, source_width, source_depth = _principal_frame(source_frame_polygon)
-    target_angle, target_width, target_depth = _principal_frame(host)
+    _host_angle, target_width, target_depth = _principal_frame(host)
     if min(source_width, source_depth, target_width, target_depth) <= 1e-9:
         return None
     source_center = source_union.centroid
-    target_center = host.centroid
+    # The recursive source is already in the live site's coordinate frame.
+    # Keep that authored centroid and angle through every floor. Re-centering
+    # and independently aligning each plate to the legal host erased shift,
+    # shear, twist and asymmetric setback relations before selection.
+    resolved_target_center = (
+        Point(float(target_center[0]), float(target_center[1]))
+        if target_center is not None
+        else source_center
+    )
+    target_angle = source_angle + float(target_angle_offset_degrees)
     requested_area_scale_product = (
         max(0.2, float(target_area)) / max(float(source_union.area), 1e-9)
     )
@@ -461,12 +847,16 @@ def _matrix_fit_polygon_to_host(
     )
     if requested_area_scale_product <= 1e-9:
         return None
-    uniform_scale = requested_area_scale_product ** 0.5
-    requested_x_scale = min(uniform_scale, maximum_x_scale)
-    requested_y_scale = requested_area_scale_product / requested_x_scale
-    if requested_y_scale > maximum_y_scale:
-        requested_y_scale = maximum_y_scale
-        requested_x_scale = requested_area_scale_product / requested_y_scale
+    ratio = max(0.25, min(4.0, float(anisotropy_ratio or 1.0)))
+    requested_x_scale = (requested_area_scale_product * ratio) ** 0.5
+    requested_y_scale = (requested_area_scale_product / ratio) ** 0.5
+    bounded_uniform_factor = min(
+        1.0,
+        maximum_x_scale / max(requested_x_scale, 1e-9),
+        maximum_y_scale / max(requested_y_scale, 1e-9),
+    )
+    requested_x_scale *= bounded_uniform_factor
+    requested_y_scale *= bounded_uniform_factor
     if min(requested_x_scale, requested_y_scale) <= 1e-9:
         return None
 
@@ -481,7 +871,11 @@ def _matrix_fit_polygon_to_host(
             rotation_matrix4((0.0, 0.0, -source_angle)),
             scale_matrix4((x_scale, y_scale, 1.0)),
             rotation_matrix4((0.0, 0.0, target_angle)),
-            translation_matrix4((target_center.x, target_center.y, 0.0)),
+            translation_matrix4((
+                resolved_target_center.x,
+                resolved_target_center.y,
+                0.0,
+            )),
         )
         fitted = affine_transform(
             source_union,

@@ -10,7 +10,7 @@ from unittest.mock import patch
 from design.maas.geometry_language.source_bridge import _mesh_section_polygon
 from design.maas.geometry_language import GeometryProgramBuilder, compile_geometry_program
 from design.maas.geometry_language.gate import compilation_gate
-from design.maas.source_geometry.ir import SourceMass, SourceVolume
+from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
 
 
 def _hollow_square_prism_mesh():
@@ -34,6 +34,74 @@ def _hollow_square_prism_mesh():
                 (bottom[index], top[next_index], top[index]),
             ))
     return vertices, tuple(triangles)
+
+
+def _authored_profiled_box_source(
+    name: str,
+    *,
+    top_x_offset: float = 0.0,
+) -> SourceMass:
+    lower = (
+        (-5.0, -5.0, 0.0),
+        (5.0, -5.0, 0.0),
+        (5.0, 5.0, 0.0),
+        (-5.0, 5.0, 0.0),
+    )
+    upper = tuple(
+        (x + top_x_offset, y, 1.0)
+        for x, y, _z in lower
+    )
+    vertices = (*lower, *upper)
+    triangles = (
+        (0, 2, 1),
+        (0, 3, 2),
+        (4, 5, 6),
+        (4, 6, 7),
+        (0, 1, 5),
+        (0, 5, 4),
+        (1, 2, 6),
+        (1, 6, 5),
+        (2, 3, 7),
+        (2, 7, 6),
+        (3, 0, 4),
+        (3, 4, 7),
+    )
+    surfaces = tuple(
+        SourceSurface(
+            role=f"mesh_{index}",
+            volume_role="recursive_primary",
+            verb="geometry_program",
+            surface_type="profiled_recursive_solid_mesh",
+            vertices_m=tuple(vertices[vertex] for vertex in triangle),
+            operator="loft",
+            semantic_patch_id="recursive_primary:profiled_box",
+        )
+        for index, triangle in enumerate(triangles)
+    )
+    proxy = box(-5.0, -5.0, 5.0, 5.0)
+    return SourceMass(
+        name=name,
+        footprint=proxy,
+        volumes=(
+            SourceVolume(
+                "recursive_primary",
+                proxy,
+                0.0,
+                1.0,
+                "geometry_program",
+            ),
+        ),
+        surfaces=surfaces,
+        metadata={"geometry_program_bridge_evidence": {
+            "status": "materialized",
+            "program_hash": f"{name}-program",
+            "geometry_hash": f"{name}-geometry",
+            "authoritative_visual_geometry": "manifold_compilation_mesh",
+            "raw_mesh_triangle_count": len(triangles),
+            "exported_surface_count": len(surfaces),
+            "surface_coordinate_frame": "source_footprint_centroid_local",
+        }},
+    )
 
 
 class SharedFloorContractTests(SimpleTestCase):
@@ -337,8 +405,8 @@ class SharedFloorContractTests(SimpleTestCase):
         )
         self.assertGreaterEqual(spatial["dominant_ratio_score"], 0.55)
 
-    def test_floorwise_matrix_fit_uses_bounded_nonuniform_scale_to_reach_target_area(self):
-        """A long authored bar may use both legal-frame axes without becoming a template."""
+    def test_floorwise_matrix_fit_uses_one_global_affine_to_reach_target_area(self):
+        """Site adaptation may use one shared 4x4 plan transform, not per-floor warps."""
         from design.maas.geometry_language.source_bridge import (
             materialize_floorwise_legal_source,
         )
@@ -375,8 +443,392 @@ class SharedFloorContractTests(SimpleTestCase):
         assert stacked is not None
         floor = stacked.metadata["floorwise_legal_matrix_stack"]["floors"][0]
         self.assertAlmostEqual(floor["achieved_plan_area_m2"], 80.0, delta=0.1)
+        volume = stacked.volumes[0]
+        self.assertAlmostEqual(volume.footprint.centroid.y, 5.0, delta=0.01)
         matrix = floor["matrix4"]
         self.assertNotAlmostEqual(abs(matrix[0][0]), abs(matrix[1][1]), delta=0.05)
+        stack = stacked.metadata["floorwise_legal_matrix_stack"]
+        self.assertEqual(
+            stack["pose_fit"],
+            "single_global_rotation_translation_with_floor_relative_pose_preserved",
+        )
+        self.assertEqual(len(stack["global_plan_axis_scales"]), 2)
+
+    def test_floorwise_capacity_budget_preserves_distinct_authored_vertical_profiles(self):
+        """A capacity target must not rewrite different AST profiles as one step stack."""
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+        from design.maas.program_massing.morphology import (
+            intrinsic_silhouette_distance,
+        )
+
+        flat = SourceMass(
+            name="flat_authored_profile",
+            footprint=box(0.0, 0.0, 10.0, 10.0),
+            volumes=(
+                SourceVolume(
+                    "recursive_primary",
+                    box(0.0, 0.0, 10.0, 10.0),
+                    0.0,
+                    1.0,
+                    "geometry_program",
+                ),
+            ),
+            metadata={"geometry_program_bridge_evidence": {
+                "program_hash": "flat-program",
+                "geometry_hash": "flat-geometry",
+            }},
+        )
+        tapered = SourceMass(
+            name="tapered_authored_profile",
+            footprint=box(0.0, 0.0, 10.0, 10.0),
+            volumes=(
+                SourceVolume(
+                    "recursive_primary",
+                    box(0.0, 0.0, 10.0, 10.0),
+                    0.0,
+                    0.5,
+                    "geometry_program",
+                ),
+                SourceVolume(
+                    "recursive_primary",
+                    box(2.5, 2.5, 7.5, 7.5),
+                    0.5,
+                    1.0,
+                    "geometry_program",
+                ),
+            ),
+            metadata={"geometry_program_bridge_evidence": {
+                "program_hash": "tapered-program",
+                "geometry_hash": "tapered-geometry",
+            }},
+        )
+        legal_sections = (box(0.0, 0.0, 10.0, 10.0),) * 4
+        target_areas = (90.0, 90.0, 60.0, 40.0)
+
+        flat_stack = materialize_floorwise_legal_source(
+            flat,
+            legal_sections=legal_sections,
+            target_plan_coverage=0.90,
+            target_floor_areas_m2=target_areas,
+        )
+        tapered_stack = materialize_floorwise_legal_source(
+            tapered,
+            legal_sections=legal_sections,
+            target_plan_coverage=0.90,
+            target_floor_areas_m2=target_areas,
+        )
+
+        self.assertIsNotNone(flat_stack)
+        self.assertIsNotNone(tapered_stack)
+        assert flat_stack is not None and tapered_stack is not None
+        self.assertAlmostEqual(
+            sum(volume.footprint.area for volume in flat_stack.volumes),
+            sum(target_areas),
+            delta=0.1,
+        )
+        self.assertAlmostEqual(
+            sum(volume.footprint.area for volume in tapered_stack.volumes),
+            sum(target_areas),
+            delta=0.1,
+        )
+        self.assertNotEqual(
+            [round(volume.footprint.area, 2) for volume in flat_stack.volumes],
+            [round(volume.footprint.area, 2) for volume in tapered_stack.volumes],
+        )
+        self.assertGreater(
+            intrinsic_silhouette_distance(flat_stack, tapered_stack),
+            0.0,
+        )
+
+    def test_floorwise_legal_stack_preserves_relative_upper_floor_offset(self):
+        """Floor Matrix4 fitting must not recenter authored shift into a twin."""
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+        from design.maas.program_massing.morphology import (
+            DEFAULT_NOVELTY_POLICY,
+            intrinsic_silhouette_distance,
+        )
+
+        lower = box(0.0, 0.0, 10.0, 6.0)
+
+        def source(name, upper):
+            return SourceMass(
+                name=name,
+                footprint=lower,
+                upper_footprint=upper,
+                volumes=(
+                    SourceVolume("main", lower, 0.0, 0.5, "base"),
+                    SourceVolume("main", upper, 0.5, 1.0, "shift"),
+                ),
+                metadata={"geometry_program_bridge_evidence": {
+                    "status": "materialized",
+                    "program_hash": name,
+                    "geometry_hash": name,
+                }},
+            )
+
+        centered = source("centered", lower)
+        shifted = source("shifted", box(4.0, 0.0, 14.0, 6.0))
+        legal_sections = (box(-10.0, -10.0, 20.0, 20.0),) * 2
+        centered_stack = materialize_floorwise_legal_source(
+            centered,
+            legal_sections=legal_sections,
+            target_plan_coverage=0.5,
+            target_floor_areas_m2=(60.0, 60.0),
+        )
+        shifted_stack = materialize_floorwise_legal_source(
+            shifted,
+            legal_sections=legal_sections,
+            target_plan_coverage=0.5,
+            target_floor_areas_m2=(60.0, 60.0),
+        )
+
+        self.assertIsNotNone(centered_stack)
+        self.assertIsNotNone(shifted_stack)
+        assert centered_stack is not None and shifted_stack is not None
+        lower_center, upper_center = [
+            volume.footprint.centroid for volume in shifted_stack.volumes
+        ]
+        self.assertAlmostEqual(upper_center.x - lower_center.x, 4.0, delta=0.01)
+        self.assertGreater(
+            intrinsic_silhouette_distance(centered_stack, shifted_stack),
+            DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat,
+        )
+
+    def test_floorwise_legal_stack_samples_exact_authored_mesh_sections(self):
+        """Floor plates must not substitute a coarse volume proxy for the AST mesh."""
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+        from design.maas.program_massing.morphology import (
+            DEFAULT_NOVELTY_POLICY,
+            intrinsic_silhouette_distance,
+        )
+
+        def authored_source(name: str, top_x_offset: float) -> SourceMass:
+            lower = (
+                (-5.0, -5.0, 0.0),
+                (5.0, -5.0, 0.0),
+                (5.0, 5.0, 0.0),
+                (-5.0, 5.0, 0.0),
+            )
+            upper = tuple(
+                (x + top_x_offset, y, 1.0)
+                for x, y, _z in lower
+            )
+            vertices = (*lower, *upper)
+            triangles = tuple(
+                triangle
+                for index in range(4)
+                for next_index in ((index + 1) % 4,)
+                for triangle in (
+                    (index, next_index, 4 + next_index),
+                    (index, 4 + next_index, 4 + index),
+                )
+            )
+            surfaces = tuple(
+                SourceSurface(
+                    role=f"mesh_{index}",
+                    volume_role="recursive_primary",
+                    verb="geometry_program",
+                    surface_type="profiled_recursive_solid_mesh",
+                    vertices_m=tuple(vertices[vertex] for vertex in triangle),
+                    operator="loft",
+                    semantic_patch_id="recursive_primary:loft_side",
+                )
+                for index, triangle in enumerate(triangles)
+            )
+            # Both sources deliberately expose the same conservative proxy.
+            # Only the authored mesh records the upper-level shift.
+            proxy = box(-5.0, -5.0, 5.0, 5.0)
+            return SourceMass(
+                name=name,
+                footprint=proxy,
+                volumes=(
+                    SourceVolume(
+                        "recursive_primary",
+                        proxy,
+                        0.0,
+                        1.0,
+                        "geometry_program",
+                    ),
+                ),
+                surfaces=surfaces,
+                metadata={"geometry_program_bridge_evidence": {
+                    "status": "materialized",
+                    "program_hash": name,
+                    "geometry_hash": name,
+                    "authoritative_visual_geometry": "manifold_compilation_mesh",
+                }},
+            )
+
+        centered = materialize_floorwise_legal_source(
+            authored_source("centered_mesh", 0.0),
+            legal_sections=(box(-20.0, -20.0, 20.0, 20.0),) * 2,
+            target_plan_coverage=0.5,
+            target_floor_areas_m2=(100.0, 100.0),
+        )
+        shifted = materialize_floorwise_legal_source(
+            authored_source("shifted_mesh", 4.0),
+            legal_sections=(box(-20.0, -20.0, 20.0, 20.0),) * 2,
+            target_plan_coverage=0.5,
+            target_floor_areas_m2=(100.0, 100.0),
+        )
+
+        self.assertIsNotNone(centered)
+        self.assertIsNotNone(shifted)
+        assert centered is not None and shifted is not None
+        shifted_centers = [
+            volume.footprint.centroid.x for volume in shifted.volumes
+        ]
+        self.assertGreater(shifted_centers[1] - shifted_centers[0], 1.5)
+        self.assertGreater(
+            intrinsic_silhouette_distance(centered, shifted),
+            DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat,
+        )
+
+    def test_floorwise_visual_projection_preserves_authored_mesh(self):
+        """Erasing projected mesh surfaces must not collapse authored shift twins."""
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+        from design.maas.program_massing.morphology import (
+            intrinsic_silhouette_distance,
+        )
+
+        legal_sections = (box(-20.0, -20.0, 20.0, 20.0),) * 2
+        centered = materialize_floorwise_legal_source(
+            _authored_profiled_box_source("centered_visual_mesh"),
+            legal_sections=legal_sections,
+            target_plan_coverage=0.5,
+            floor_capacity_plan_hash="capacity-visual-mesh",
+            target_floor_areas_m2=(100.0, 100.0),
+        )
+        shifted = materialize_floorwise_legal_source(
+            _authored_profiled_box_source(
+                "shifted_visual_mesh",
+                top_x_offset=4.0,
+            ),
+            legal_sections=legal_sections,
+            target_plan_coverage=0.5,
+            floor_capacity_plan_hash="capacity-visual-mesh",
+            target_floor_areas_m2=(100.0, 100.0),
+        )
+
+        self.assertIsNotNone(centered)
+        self.assertIsNotNone(shifted)
+        assert centered is not None and shifted is not None
+        centered_certificate = centered.metadata["floorwise_visual_projection"]
+        shifted_certificate = shifted.metadata["floorwise_visual_projection"]
+        self.assertTrue(centered_certificate["hard_pass"], centered_certificate)
+        self.assertTrue(shifted_certificate["hard_pass"], shifted_certificate)
+        self.assertEqual(centered_certificate["status"], "certified")
+        self.assertEqual(shifted_certificate["status"], "certified")
+        self.assertTrue(centered.surfaces)
+        self.assertTrue(shifted.surfaces)
+        self.assertNotEqual(
+            centered_certificate["visual_hash"],
+            shifted_certificate["visual_hash"],
+        )
+        self.assertGreater(
+            intrinsic_silhouette_distance(centered, shifted),
+            0.10,
+        )
+        self.assertAlmostEqual(
+            sum(volume.footprint.area for volume in centered.volumes),
+            200.0,
+            delta=0.1,
+        )
+        self.assertAlmostEqual(
+            sum(volume.footprint.area for volume in shifted.volumes),
+            200.0,
+            delta=0.1,
+        )
+
+    def test_floorwise_visual_projection_rejects_legal_escape(self):
+        """An authored mesh outside its legal host must fail, never empty-pass."""
+        from design.maas.geometry_language.affine_matrix import identity_matrix4
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            project_floorwise_visual_mesh,
+        )
+
+        legal = box(-4.0, -4.0, 4.0, 4.0)
+        result = project_floorwise_visual_mesh(
+            _authored_profiled_box_source("escaped_visual_mesh"),
+            legal_sections=(legal,),
+            floor_matrices=(identity_matrix4(),),
+            capacity_plates=(
+                SourceVolume(
+                    "recursive_primary",
+                    legal,
+                    0.0,
+                    1.0,
+                    "floorwise_legal_matrix4",
+                ),
+            ),
+        )
+
+        self.assertFalse(result.certificate.hard_pass)
+        self.assertEqual(result.certificate.status, "failed")
+        self.assertIn(
+            "projected_visual_mesh_outside_legal_section",
+            result.certificate.failure_reasons,
+        )
+        self.assertEqual(result.surfaces, ())
+
+    def test_floorwise_visual_projection_tessellates_matrix_field_breakpoints(self):
+        """Projected triangles must follow the piecewise floor Matrix4 field."""
+        from design.maas.geometry_language.affine_matrix import (
+            identity_matrix4,
+            translation_matrix4,
+        )
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            project_floorwise_visual_mesh,
+        )
+
+        legal = box(-30.0, -30.0, 30.0, 30.0)
+        result = project_floorwise_visual_mesh(
+            _authored_profiled_box_source("piecewise_visual_mesh"),
+            legal_sections=(legal, legal),
+            floor_matrices=(
+                identity_matrix4(),
+                translation_matrix4((10.0, 0.0, 0.0)),
+            ),
+            capacity_plates=(
+                SourceVolume(
+                    "recursive_primary",
+                    box(-5.0, -5.0, 5.0, 5.0),
+                    0.0,
+                    0.5,
+                    "floorwise_legal_matrix4",
+                ),
+                SourceVolume(
+                    "recursive_primary",
+                    box(5.0, -5.0, 15.0, 5.0),
+                    0.5,
+                    1.0,
+                    "floorwise_legal_matrix4",
+                ),
+            ),
+        )
+
+        self.assertTrue(result.certificate.hard_pass, result.certificate)
+        vertices = [
+            vertex
+            for surface in result.surfaces
+            for vertex in surface.vertices_m
+        ]
+        quarter_x = [x for x, _y, z in vertices if abs(z - 0.25) <= 1e-8]
+        three_quarter_x = [
+            x for x, _y, z in vertices if abs(z - 0.75) <= 1e-8
+        ]
+        self.assertTrue(quarter_x)
+        self.assertTrue(three_quarter_x)
+        self.assertAlmostEqual(max(quarter_x), 5.0, delta=1e-8)
+        self.assertAlmostEqual(max(three_quarter_x), 15.0, delta=1e-8)
 
     def test_mesh_fit_containment_uses_occupied_triangles_not_convex_hull_void(self):
         """A legal U/wing plan must not fail because its empty hull crosses a court."""
@@ -741,7 +1193,8 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertEqual(len(capacity_nodes), 1)
         self.assertEqual(capacity_nodes[0].operator, "related_array")
         self.assertEqual(capacity_nodes[0].parameters["mode"], "pack")
-        self.assertEqual(capacity_nodes[0].parameters["unit_scale"], 0.82)
+        self.assertEqual(capacity_nodes[0].parameters["count"], 2)
+        self.assertEqual(capacity_nodes[0].parameters["unit_scale"], 0.94)
         self.assertEqual(
             capacity_nodes[0].provenance["measurement_source"],
             "shared_floor_contract",

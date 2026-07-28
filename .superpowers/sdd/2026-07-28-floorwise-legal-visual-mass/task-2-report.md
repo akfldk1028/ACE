@@ -96,3 +96,54 @@ Baseline limitation: this is a heavily dirty shared worktree, and no destructive
 
 - The combined export suite is not fully green due to the 16 unrelated failures listed above.
 - Legacy archives without Task 1 projected-visual fields intentionally use the previous geometry-program replay behavior for backward compatibility.
+
+## Review Fix Round 1/5
+
+Implementation commit: `9bdeaf07e6f352927b28ebd3a58f61ea95874230`
+
+### Root Causes
+
+- Task 2 duplicated Task 1 surface and visual-hash rules in portfolio serialization and archive hydration. The duplicate archive validator narrowed the production `profiled_recursive_solid_mesh` type to the test-only `profiled_triangle` spelling.
+- Task 1's visual identity intentionally normalizes coordinates to eight decimals. Task 2 incorrectly treated that semantic identity as an exact transport-integrity hash.
+- Legacy fallback checked only three missing payload fields, ignoring projected-era `authority` and `geometryProgramRole` markers.
+- Elevation emitted projected authority labels unconditionally, even after the archive layer took a genuine legacy replay path.
+
+### RED Evidence
+
+Focused command covered five new review regressions. Result: five failures/errors.
+
+- Production Task 1 type: `ValueError: invalid projected visual surface type at triangle 0`
+- Real Task 1 output: `KeyError: 'projectedVisualPayloadHash'`
+- Sub-eight-decimal mutation: expected `ValueError`, but no exception was raised
+- Projected marker deletion: legacy replay occurred instead of `incomplete projected visual archive binding`
+- Genuine legacy elevation: returned `validated_archived_projected_visual_mesh` instead of `recompiled_executed_geometry_program`
+
+The real Task 1 fixture calls `project_floorwise_visual_mesh` with the production `profiled_recursive_solid_mesh` surface type and uses the projector's actual tessellated output/count.
+
+### Fix
+
+- Added `projected_visual_contract.py` as the single owner of:
+  - Task 1-compatible visual hashing;
+  - exact, unrounded JSON triangle-record hashing;
+  - serialization schema and constants;
+  - projected-era marker detection;
+  - fail-closed hydration and validation.
+- Added `projectedVisualPayloadHash` while retaining `projectedVisualGeometryHash` as the Task 1 visual identity.
+- Accepted all Task 1-certified `profiled_*` triangle surface types.
+- Allowed legacy fallback only when every projected payload and authority marker is absent.
+- Branched elevation authority, program role, coordinate semantics, and adapter description between validated projected and genuine legacy archives.
+- Changed new no-authored-mesh artifacts to `executable_geometry`, so they remain genuine legacy rather than carrying a projected-era capacity marker without a projected binding.
+
+### GREEN and Static Evidence
+
+- Seven focused Task 2 identity/review tests: `Ran 7 tests in 0.116s — OK`
+- Full flow module: `Ran 16 tests in 0.313s — OK`
+- `py_compile` on the new contract, archive, elevation, portfolio, and flow test modules: exit `0`
+- `git diff --check`: exit `0` with only existing Windows line-ending notices
+
+The combined export suite was not rerun as permitted by the review request; Task 2 did not modify `test_maas_export.py` or its legal-variant paths.
+
+### Round 1 Concerns
+
+- Previously generated projected-era artifacts from the first Task 2 implementation lack `projectedVisualPayloadHash` and now fail closed. They must be regenerated rather than silently downgraded.
+- The exact payload hash provides deterministic archive-integrity detection; it is not an external signature against an attacker able to rewrite both payload and hash.

@@ -14,7 +14,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
 from dataclasses import dataclass, replace
-from math import atan2, cos, degrees, hypot, isfinite, pi, sin, sqrt
+from math import atan2, cos, degrees, hypot, pi, sin, sqrt
 from pathlib import Path
 from time import perf_counter
 from typing import Any
@@ -48,6 +48,9 @@ from design.maas.geometry_language import (
 )
 from design.maas.geometry_language.gate import GeometryGatePolicy, compilation_gate
 from design.maas.geometry_language.run_state import update_run_progress
+from design.maas.geometry_language.projected_visual_contract import (
+    serialize_certified_projected_visual,
+)
 from design.maas.capacity_policy import resolve_massing_capacity_policy
 from design.maas.grammar.verb_sequence import VerbSequence
 from design.maas.mass_brain import publish_geometry_portfolio_shadow
@@ -290,86 +293,7 @@ def _load_visual_directive(output_dir: Path, pnu: str) -> dict[str, Any]:
 
 
 def _certified_projected_visual_artifact(source: Any) -> dict[str, Any]:
-    """Serialize the exact Task 1 triangle skin without changing its identity."""
-
-    metadata = source.metadata if isinstance(getattr(source, "metadata", None), dict) else {}
-    certificate = metadata.get("floorwise_visual_projection")
-    if not isinstance(certificate, dict):
-        return {}
-    if certificate.get("status") == "not_applicable_no_authored_mesh":
-        return {}
-    if certificate.get("status") != "certified" or certificate.get("hard_pass") is not True:
-        raise ValueError("selected floorwise visual projection is not certified")
-
-    triangles: list[dict[str, Any]] = []
-    hash_payload: list[dict[str, Any]] = []
-    for surface in tuple(getattr(source, "surfaces", ()) or ()):
-        vertices = tuple(getattr(surface, "vertices_m", ()) or ())
-        if (
-            len(vertices) != 3
-            or any(len(vertex) != 3 for vertex in vertices)
-            or any(not isfinite(float(value)) for vertex in vertices for value in vertex)
-        ):
-            raise ValueError("certified projected visual mesh must contain finite triangles")
-        exact_vertices = [
-            [float(x), float(y), float(z)]
-            for x, y, z in vertices
-        ]
-        semantic_patch_id = str(getattr(surface, "semantic_patch_id", "") or "")
-        triangle = {
-            "role": str(getattr(surface, "role", "") or ""),
-            "volume_role": str(getattr(surface, "volume_role", "") or ""),
-            "verb": str(getattr(surface, "verb", "") or ""),
-            "surface_type": str(getattr(surface, "surface_type", "") or ""),
-            "vertices_m": exact_vertices,
-            "operator": str(getattr(surface, "operator", "") or ""),
-            "semantic_patch_id": semantic_patch_id,
-        }
-        triangles.append(triangle)
-        hash_payload.append({
-            "role": triangle["role"],
-            "volume_role": triangle["volume_role"],
-            "surface_type": triangle["surface_type"],
-            "semantic_patch_id": semantic_patch_id,
-            "vertices": [
-                [round(x, 8), round(y, 8), round(z, 8)]
-                for x, y, z in exact_vertices
-            ],
-        })
-
-    expected_hash = str(certificate.get("visual_hash") or "")
-    actual_hash = hashlib.sha256(json.dumps(
-        hash_payload,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")).hexdigest()
-    expected_count = int(certificate.get("projected_surface_count") or 0)
-    if (
-        not triangles
-        or expected_count != len(triangles)
-        or not expected_hash
-        or actual_hash != expected_hash
-    ):
-        raise ValueError("certified projected visual mesh does not match its certificate")
-
-    coordinate_space = str(
-        certificate.get("projected_surface_coordinate_frame") or ""
-    )
-    if coordinate_space != "capacity_source_centroid_local_xy_normalized_z":
-        raise ValueError("unsupported projected visual coordinate frame")
-    return {
-        "authority": "certified_projected_visual_mesh",
-        "geometryProgramRole": "capacity_replay_metadata_and_provenance",
-        "projectedVisualMesh": {
-            "schemaVersion": "arr.maas.projected_visual_mesh.v1",
-            "coordinateSpace": coordinate_space,
-            "triangles": triangles,
-            "vertexCount": len(triangles) * 3,
-            "triangleCount": len(triangles),
-        },
-        "projectedVisualCertificate": deepcopy(certificate),
-        "projectedVisualGeometryHash": expected_hash,
-    }
+    return serialize_certified_projected_visual(source)
 
 
 def _archive_render_evidence(
@@ -1661,8 +1585,7 @@ def run_book_program_portfolios(
                 ),
                 "geometryProgramRole": (
                     "capacity_replay_metadata_and_provenance"
-                    if isinstance(floorwise_stack, dict)
-                    and floorwise_stack.get("status") == "materialized"
+                    if projected_visual_artifact
                     else "executable_geometry"
                 ),
                 "programType": slug,

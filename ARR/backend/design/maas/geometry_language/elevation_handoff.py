@@ -20,7 +20,7 @@ SCHEMA_VERSION = "arr.maas.elevation_handoff.v1"
 
 
 def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[str, Any]:
-    """Validate one archived projected mesh and expose immutable elevation inputs.
+    """Expose immutable elevation inputs from projected or genuine legacy archives.
 
     This packet does not claim that elevations were generated. It closes the
     identity/mesh boundary without promoting the capacity replay program to
@@ -43,6 +43,7 @@ def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[st
         if isinstance(artifact.get("projectedVisualCertificate"), dict)
         else {}
     )
+    is_projected_visual = bool(projected_visual_mesh)
     geometry_hash = str(compilation.geometry_hash or identity.get("geometryHash") or "")
     program_hash = compilation.program.program_hash()
     handoff_id = hashlib.sha256(
@@ -61,21 +62,33 @@ def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[st
             "geometry_hash": geometry_hash,
         },
         "authority": {
-            "source": "validated_archived_projected_visual_mesh",
+            "source": (
+                "validated_archived_projected_visual_mesh"
+                if is_projected_visual
+                else "recompiled_executed_geometry_program"
+            ),
             "geometry_hash_replay_match": (
                 geometry_hash
-                == str(artifact.get("projectedVisualGeometryHash") or "")
-                == str(identity.get("geometryHash") or "")
+                == (
+                    str(artifact.get("projectedVisualGeometryHash") or "")
+                    if is_projected_visual
+                    else str(identity.get("geometryHash") or "")
+                )
             ),
             "projected_visual_certificate_hard_pass": (
-                projected_visual_certificate.get("hard_pass") is True
+                is_projected_visual
+                and projected_visual_certificate.get("hard_pass") is True
             ),
-            "capacity_replay_program_visual_authority": False,
-            "base_relative_parametric_geometry": False,
+            "capacity_replay_program_visual_authority": not is_projected_visual,
+            "base_relative_parametric_geometry": not is_projected_visual,
             "facade_may_not_modify_mass_geometry": True,
         },
         "geometry_program": compilation.program.to_dict(),
-        "geometry_program_role": "capacity_replay_metadata_and_provenance",
+        "geometry_program_role": (
+            "capacity_replay_metadata_and_provenance"
+            if is_projected_visual
+            else "executable_geometry"
+        ),
         "projected_visual_certificate": projected_visual_certificate,
         "indexed_triangle_mesh": {
             "coordinate_space": str(
@@ -114,7 +127,11 @@ def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[st
             ],
             "output_identity_fields": ["run_id", "program_hash", "geometry_hash", "handoff_id"],
             "status": "mesh_handoff_ready_condition_pack_adapter_pending",
-            "next_adapter": "validated projected visual mesh -> multi-view elevation condition pack",
+            "next_adapter": (
+                "validated projected visual mesh -> multi-view elevation condition pack"
+                if is_projected_visual
+                else "executed GeometryProgram mesh -> multi-view elevation condition pack"
+            ),
         },
         "research_memory": {
             "paper_map": "docs/ai-session-memory/maas-aesthetic-texturing/PAPERS.md",

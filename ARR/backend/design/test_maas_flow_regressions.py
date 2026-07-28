@@ -14,6 +14,10 @@ from PIL import Image
 from shapely.geometry import box
 
 from design.maas.geometry_language.compiler import compile_geometry_program
+from design.maas.geometry_language.affine_matrix import identity_matrix4
+from design.maas.geometry_language.floorwise_visual_projection import (
+    project_floorwise_visual_mesh,
+)
 from design.maas.geometry_language.program_projection import project_program_requirements
 from design.maas.geometry_language.run_state import tracked_mass_command, update_run_progress
 from design.maas.geometry_language.universal_form_bank import universal_form_programs
@@ -32,7 +36,7 @@ from design.maas.geometry_language.executed_archive import compile_executed_mass
 from design.maas.geometry_language.elevation_handoff import (
     build_executed_mass_elevation_handoff,
 )
-from design.maas.source_geometry.ir import SourceMass, SourceSurface
+from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
 
 
 class MaasFlowRegressionTest(SimpleTestCase):
@@ -150,8 +154,16 @@ class MaasFlowRegressionTest(SimpleTestCase):
         Image.new("RGB", (384, 322), (220, 120, 50)).save(preview)
         return run_id, preview
 
-    def _projected_visual_artifact(self) -> tuple[dict, str]:
-        source, visual_hash = self._projected_visual_source()
+    def _projected_visual_artifact(
+        self,
+        source: SourceMass | None = None,
+    ) -> tuple[dict, str]:
+        if source is None:
+            source, visual_hash = self._projected_visual_source()
+        else:
+            visual_hash = str(
+                source.metadata["floorwise_visual_projection"]["visual_hash"]
+            )
         binding = portfolio_benchmark._certified_projected_visual_artifact(source)
         program = base_seed_program("block")
         capacity_compilation = compile_geometry_program(program)
@@ -171,6 +183,62 @@ class MaasFlowRegressionTest(SimpleTestCase):
             **binding,
         }
         return artifact, visual_hash
+
+    @staticmethod
+    def _real_task1_projected_visual_source() -> SourceMass:
+        footprint = box(-5.0, -5.0, 5.0, 5.0)
+        authored = SourceMass(
+            name="real-task1-projected-visual",
+            footprint=footprint,
+            surfaces=(
+                SourceSurface(
+                    role="recursive_primary:skin:000",
+                    volume_role="recursive_primary",
+                    verb="geometry_program",
+                    surface_type="profiled_recursive_solid_mesh",
+                    vertices_m=(
+                        (-1.0, -1.0, 0.0),
+                        (1.0, -1.0, 0.0),
+                        (0.0, 1.0, 1.0),
+                    ),
+                    operator="loft",
+                    semantic_patch_id="recursive_primary:profiled_triangle",
+                ),
+            ),
+            metadata={
+                "geometry_program_bridge_evidence": {
+                    "status": "materialized",
+                    "raw_mesh_triangle_count": 1,
+                    "exported_surface_count": 1,
+                },
+            },
+        )
+        legal = box(-10.0, -10.0, 10.0, 10.0)
+        projection = project_floorwise_visual_mesh(
+            authored,
+            legal_sections=(legal,),
+            floor_matrices=(identity_matrix4(),),
+            capacity_plates=(
+                SourceVolume(
+                    role="recursive_primary",
+                    footprint=legal,
+                    bottom_fraction=0.0,
+                    top_fraction=1.0,
+                    verb="floorwise_legal_matrix4",
+                ),
+            ),
+            output_origin=(0.0, 0.0),
+        )
+        if not projection.certificate.hard_pass:
+            raise AssertionError(projection.certificate)
+        return SourceMass(
+            name=authored.name,
+            footprint=legal,
+            surfaces=projection.surfaces,
+            metadata={
+                "floorwise_visual_projection": projection.certificate.to_dict(),
+            },
+        )
 
     def test_projected_visual_identity_survives_board_archive_and_elevation(self):
         artifact, visual_hash = self._projected_visual_artifact()
@@ -264,9 +332,157 @@ class MaasFlowRegressionTest(SimpleTestCase):
             ):
                 with self.assertRaisesRegex(
                     ValueError,
-                    "projected visual mesh hash mismatch",
+                    "projected visual (?:exact payload|mesh) hash mismatch",
                 ):
                     compile_executed_mass(1, run_id)
+
+    def test_certified_profiled_recursive_surface_type_round_trips_archive(self):
+        source = self._real_task1_projected_visual_source()
+        artifact, visual_hash = self._projected_visual_artifact(source)
+        self.assertEqual(
+            artifact["projectedVisualMesh"]["triangles"][0]["surface_type"],
+            "profiled_recursive_solid_mesh",
+        )
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_id, _preview = self._write_projected_visual_archive(
+                root,
+                artifact=artifact,
+                run_id="book-program-portfolios-production-profiled-type",
+            )
+            with patch(
+                "design.maas.geometry_language.executed_archive.workspace_root",
+                return_value=root,
+            ):
+                compilation, _artifact, _row, _path = compile_executed_mass(
+                    1,
+                    run_id,
+                )
+        self.assertEqual(compilation.geometry_hash, visual_hash)
+        self.assertEqual(
+            len(compilation.triangles),
+            source.metadata["floorwise_visual_projection"][
+                "projected_surface_count"
+            ],
+        )
+
+    def test_real_task1_projector_output_has_exact_transport_identity(self):
+        source = self._real_task1_projected_visual_source()
+        artifact, visual_hash = self._projected_visual_artifact(source)
+        self.assertEqual(
+            artifact["projectedVisualCertificate"]["visual_hash"],
+            visual_hash,
+        )
+        self.assertEqual(
+            len(artifact["projectedVisualMesh"]["triangles"]),
+            source.metadata["floorwise_visual_projection"][
+                "projected_surface_count"
+            ],
+        )
+        self.assertTrue(artifact["projectedVisualMesh"]["triangles"])
+        self.assertRegex(artifact["projectedVisualPayloadHash"], r"^[0-9a-f]{64}$")
+
+    def test_sub_eight_decimal_projected_visual_tamper_fails_closed(self):
+        artifact, _visual_hash = self._projected_visual_artifact()
+        artifact["projectedVisualMesh"]["triangles"][0]["vertices_m"][0][0] += 1e-10
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_id, _preview = self._write_projected_visual_archive(
+                root,
+                artifact=artifact,
+                run_id="book-program-portfolios-sub-eight-decimal-tamper",
+            )
+            with patch(
+                "design.maas.geometry_language.executed_archive.workspace_root",
+                return_value=root,
+            ):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "projected visual exact payload hash mismatch",
+                ):
+                    compile_executed_mass(1, run_id)
+
+    def test_projected_authority_markers_prevent_field_deletion_downgrade(self):
+        artifact, _visual_hash = self._projected_visual_artifact()
+        for field in (
+            "projectedVisualMesh",
+            "projectedVisualCertificate",
+            "projectedVisualGeometryHash",
+            "projectedVisualPayloadHash",
+        ):
+            artifact.pop(field, None)
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_id, _preview = self._write_projected_visual_archive(
+                root,
+                artifact=artifact,
+                run_id="book-program-portfolios-projected-downgrade",
+            )
+            with patch(
+                "design.maas.geometry_language.executed_archive.workspace_root",
+                return_value=root,
+            ):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "incomplete projected visual archive binding",
+                ):
+                    compile_executed_mass(1, run_id)
+
+    def test_genuine_legacy_elevation_keeps_geometry_program_authority_label(self):
+        artifact, _visual_hash = self._projected_visual_artifact()
+        capacity_hash = str(artifact["compilation"]["geometry_hash"])
+        artifact["authority"] = "final_legal_floorwise_geometry_program"
+        artifact.pop("geometryProgramRole", None)
+        for field in (
+            "projectedVisualMesh",
+            "projectedVisualCertificate",
+            "projectedVisualGeometryHash",
+            "projectedVisualPayloadHash",
+        ):
+            artifact.pop(field, None)
+        artifact["identity"]["geometryHash"] = capacity_hash
+
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_id, preview = self._write_projected_visual_archive(
+                root,
+                artifact=artifact,
+                run_id="book-program-portfolios-genuine-legacy",
+            )
+            with (
+                patch(
+                    "design.maas.geometry_language.executed_archive.workspace_root",
+                    return_value=root,
+                ),
+                patch(
+                    "design.maas.geometry_language.elevation_handoff.executed_mass_manifest",
+                    return_value={"pnu": "test-pnu"},
+                ),
+                patch(
+                    "design.maas.geometry_language.elevation_handoff.materialize_executed_mass_passport",
+                    return_value={"executed_mass": {"hard_pass": True}},
+                ),
+                patch(
+                    "design.maas.geometry_language.elevation_handoff.materialize_executed_mass_preview",
+                    return_value=preview,
+                ),
+            ):
+                handoff = build_executed_mass_elevation_handoff(
+                    run_id=run_id,
+                    index=1,
+                )
+
+        self.assertEqual(
+            handoff["authority"]["source"],
+            "recompiled_executed_geometry_program",
+        )
+        self.assertEqual(
+            handoff["geometry_program_role"],
+            "executable_geometry",
+        )
+        self.assertTrue(
+            handoff["authority"]["capacity_replay_program_visual_authority"]
+        )
 
     def test_spatial_chassis_and_frontage_controller_form_one_ground_strategy(self):
         def descriptor(chassis: str, controller: str) -> dict:

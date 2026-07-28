@@ -565,6 +565,48 @@ class MaasFlowRegressionTest(SimpleTestCase):
         )
         self.assertEqual(compiler_gate_edge["activation"], 0.0)
 
+    def test_downstream_pass_cannot_override_stripped_compiler_geometry_evidence(self):
+        from design.maas.geometry_language.execution_passport import (
+            build_mass_execution_passport,
+        )
+
+        measured = compile_geometry_program(base_seed_program("block"))
+        stripped = replace(
+            measured,
+            metrics={
+                "vertex_count": len(measured.vertices),
+                "triangle_count": len(measured.triangles),
+                "coordinate_space": (
+                    "capacity_source_centroid_local_xy_normalized_z"
+                ),
+                "geometry_authority": "certified_projected_visual_mesh",
+                "exact_payload_hash": "certified-visual-payload",
+                "capacity_geometry_hash": measured.geometry_hash,
+                "capacity_replay_metrics": dict(measured.metrics),
+            },
+        )
+
+        passport = build_mass_execution_passport(
+            stripped,
+            geometry_gate_evidence={
+                "hard_pass": True,
+                "authority": "benchmark_final_hard_gates",
+            },
+        )
+
+        geometry_gate = next(
+            stage for stage in passport["stages"] if stage["id"] == "geometry_gate"
+        )
+        self.assertEqual(geometry_gate["status"], "failed")
+        self.assertFalse(geometry_gate["evidence"]["hard_pass"])
+        self.assertIn(
+            "non_watertight_mesh",
+            {
+                issue["code"]
+                for issue in geometry_gate["evidence"]["issues"]
+            },
+        )
+
     def test_render_observation_uses_certified_projected_visual_hash(self):
         source, visual_hash = self._projected_visual_source()
         source = replace(

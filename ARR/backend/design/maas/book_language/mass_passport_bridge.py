@@ -53,17 +53,6 @@ def selected_candidate_execution_passport(
         vlm_audit = {}
     certified_compilation = compilation.get("certified_compilation")
     if certified_compilation is not None:
-        if vlm_audit:
-            evidence_binding = deepcopy(
-                vlm_audit.get("evidence_binding") or {}
-            )
-            evidence_binding.update({
-                "schema_version": "arr.maas.vlm_evidence_binding.v1",
-                "program_hash": certified_compilation.program.program_hash(),
-                "geometry_hash": str(certified_compilation.geometry_hash or ""),
-                "geometry_authority": "certified_projected_visual_mesh",
-            })
-            vlm_audit["evidence_binding"] = evidence_binding
         return build_mass_execution_passport(
             certified_compilation,
             vlm_result=vlm_audit or None,
@@ -77,6 +66,7 @@ def selected_candidate_execution_passport(
                 if isinstance(compilation.get("archive_render_evidence"), Mapping)
                 else None
             ),
+            certified_vlm_binding_required=True,
         )
 
     initial = deepcopy(

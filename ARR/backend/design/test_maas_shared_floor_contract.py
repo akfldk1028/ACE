@@ -2,6 +2,9 @@ import os
 
 from django.test import SimpleTestCase
 from dataclasses import replace
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from PIL import Image
 from shapely.geometry import LineString, MultiPoint, Point, Polygon, box, mapping
 from shapely.geometry.polygon import orient
 from types import SimpleNamespace
@@ -2682,7 +2685,7 @@ class SharedFloorContractTests(SimpleTestCase):
                     expected,
                 )
 
-    def test_certified_passport_hands_off_vlm_evidence_with_geometry_hash(self):
+    def test_certified_passport_does_not_fabricate_missing_vlm_image_binding(self):
         from design.maas.book_language.mass_passport_bridge import (
             selected_candidate_execution_passport,
         )
@@ -2723,15 +2726,91 @@ class SharedFloorContractTests(SimpleTestCase):
         )
 
         vlm = next(stage for stage in archived["stages"] if stage["id"] == "vlm")
-        self.assertEqual(vlm["status"], "live_scored")
-        self.assertTrue(vlm["evidence"]["hard_pass"])
+        self.assertEqual(vlm["status"], "not_evaluated")
+        self.assertFalse(vlm["evidence"]["hard_pass"])
         self.assertEqual(
             vlm["evidence"]["evidence_binding"]["program_hash"],
-            program.program_hash(),
+            "",
         )
         self.assertEqual(
             vlm["evidence"]["evidence_binding"]["geometry_hash"],
-            certified_hash,
+            "stale-capacity-hash",
+        )
+
+    def test_certified_passport_rejects_mismatched_vlm_input_image_digest(self):
+        from design.maas.book_language.mass_passport_bridge import (
+            selected_candidate_execution_passport,
+        )
+
+        builder = GeometryProgramBuilder("certified_vlm_digest_mismatch")
+        root = builder.add(
+            "primitive",
+            "box",
+            parameters={"width": 10.0, "depth": 8.0, "height": 12.0},
+            semantic_role="main",
+        )
+        program = builder.build(root)
+        compilation = compile_geometry_program(program)
+        certified_hash = "b" * 64
+        certified = replace(
+            compilation,
+            geometry_hash=certified_hash,
+            metrics={
+                **compilation.metrics,
+                "geometry_authority": "certified_projected_visual_mesh",
+            },
+        )
+
+        with TemporaryDirectory() as temporary:
+            board = Path(temporary) / "board.png"
+            Image.new("RGB", (32, 24), (220, 120, 50)).save(board)
+            archived = selected_candidate_execution_passport(
+                compilation={
+                    "certified_compilation": certified,
+                    "combined_hard_pass": True,
+                    "archive_render_evidence": {
+                        "board_png": str(board),
+                        "hard_pass": True,
+                        "crop_box": [0, 0, 32, 24],
+                        "projected_visual_geometry_hash": certified_hash,
+                    },
+                },
+                downstream_row={},
+                source_metadata={
+                    "final_book_vlm_audit": {
+                        "schema_version": "arr.maas.final_book_vlm_audit.v1",
+                        "status": "pass",
+                        "hard_pass": True,
+                        "model": "review-model",
+                        "response_id": "review-response",
+                        "vlm_image_inputs": {
+                            "candidate": {
+                                "sha256": "c" * 64,
+                                "used_by_vlm": True,
+                            },
+                        },
+                        "evidence_binding": {
+                            "schema_version": "arr.maas.vlm_evidence_binding.v1",
+                            "program_hash": program.program_hash(),
+                            "geometry_hash": certified_hash,
+                            "geometry_authority": (
+                                "certified_projected_visual_mesh"
+                            ),
+                            "candidate_sha256": "c" * 64,
+                        },
+                    },
+                },
+                program_evidence={"evaluated": True, "hard_pass": True},
+                descriptor={},
+                pnu="1168011800104170004",
+            )
+
+        vlm = next(stage for stage in archived["stages"] if stage["id"] == "vlm")
+        self.assertEqual(vlm["status"], "not_evaluated")
+        self.assertFalse(vlm["evidence"]["hard_pass"])
+        self.assertEqual(
+            vlm["evidence"]["reason"],
+            "certified_vlm_input_image_digest_mismatch",
         )
 
     def test_vlm_repair_rematerializes_floor_identity_for_the_repaired_geometry(self):

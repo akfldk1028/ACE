@@ -1714,6 +1714,7 @@ def run_book_program_portfolios(
                     vertices=validated_visual.vertices,
                     triangles=validated_visual.triangles,
                     metrics={
+                        **deepcopy(execution_compilation.metrics or {}),
                         "vertex_count": len(validated_visual.vertices),
                         "triangle_count": len(validated_visual.triangles),
                         "coordinate_space": validated_visual.coordinate_space,

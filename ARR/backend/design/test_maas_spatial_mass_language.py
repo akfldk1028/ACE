@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
+import json
+from dataclasses import FrozenInstanceError, replace
 
 from django.test import SimpleTestCase
 
 from design.maas.creative_program_author import authored_programs_from_payload
+from design.maas.geometry_language import BoundedSurface
 from design.maas.geometry_language.ast import (
     GeometryNode,
     GeometryProgram,
@@ -15,6 +17,11 @@ from design.maas.geometry_language.ast import (
 )
 from design.maas.geometry_language.compiler import compile_geometry_program
 from design.maas.geometry_language.llm_adapter import GeometryAuthorError
+from design.maas.geometry_language.surface_geometry import (
+    host_face_surface_from_bounds,
+    loft_surface_from_bounds,
+    section_surface_from_bounds,
+)
 
 
 def exactly_one_canonical_unitbox(program: GeometryProgram) -> bool:
@@ -373,6 +380,201 @@ class SurfaceAstTypeTest(SimpleTestCase):
         for program in programs:
             with self.subTest(program=program.to_dict()):
                 self.assertEqual(program.validate(), ())
+
+
+class BoundedSurfaceTest(SimpleTestCase):
+    bounds = (0.0, 0.0, 0.0, 20.0, 12.0, 8.0)
+
+    def test_section_surface_maps_controls_through_live_bounds(self):
+        surface = section_surface_from_bounds(
+            self.bounds,
+            {
+                "span_axis": "x",
+                "section_controls": [[0.0, 0.15], [0.5, 0.85], [1.0, 0.2]],
+            },
+        )
+
+        self.assertEqual(surface.operator, "section_surface")
+        self.assertEqual(len(surface.sections), 3)
+        self.assertEqual(surface.sections[0][0], (0.0, 0.0, 1.2))
+        self.assertEqual(surface.sections[0][1], (0.0, 12.0, 1.2))
+        self.assertEqual(surface.sections[-1][0], (20.0, 0.0, 1.6))
+        self.assertEqual(surface.validate(), ())
+
+    def test_loft_surface_preserves_ordered_normalized_profiles(self):
+        surface = loft_surface_from_bounds(
+            self.bounds,
+            {
+                "profiles": [
+                    [[0.0, 0.0, 0.25], [0.0, 1.0, 0.5]],
+                    [[0.5, 0.0, 0.75], [0.5, 1.0, 1.0]],
+                    [[1.0, 0.0, 0.5], [1.0, 1.0, 0.25]],
+                ],
+            },
+        )
+
+        self.assertEqual(
+            surface.sections,
+            (
+                ((0.0, 0.0, 2.0), (0.0, 12.0, 4.0)),
+                ((10.0, 0.0, 6.0), (10.0, 12.0, 8.0)),
+                ((20.0, 0.0, 4.0), (20.0, 12.0, 2.0)),
+            ),
+        )
+        self.assertEqual(surface.validate(), ())
+
+    def test_host_face_surface_returns_four_inset_live_face_corners(self):
+        surface = host_face_surface_from_bounds(
+            self.bounds,
+            {"host_face": "top", "inset_ratio": 0.25},
+        )
+
+        self.assertEqual(
+            surface.sections,
+            (
+                ((5.0, 3.0, 8.0), (5.0, 9.0, 8.0)),
+                ((15.0, 3.0, 8.0), (15.0, 9.0, 8.0)),
+            ),
+        )
+        self.assertEqual(
+            sum(len(section) for section in surface.sections),
+            4,
+        )
+        self.assertEqual(surface.validate(), ())
+
+    def test_surface_is_immutable_and_serializes_without_kernel_objects(self):
+        surface = section_surface_from_bounds(
+            self.bounds,
+            {
+                "span_axis": "x",
+                "section_controls": [[0.0, 0.2], [1.0, 0.8]],
+            },
+        )
+
+        with self.assertRaises(FrozenInstanceError):
+            surface.operator = "changed"
+        payload = surface.to_dict()
+
+        self.assertEqual(
+            json.loads(json.dumps(payload, sort_keys=True)),
+            payload,
+        )
+        self.assertEqual(
+            payload,
+            {
+                "operator": "section_surface",
+                "sections": [
+                    [[0.0, 0.0, 1.6], [0.0, 12.0, 1.6]],
+                    [[20.0, 0.0, 6.4], [20.0, 12.0, 6.4]],
+                ],
+                "source_bounds": [0.0, 0.0, 0.0, 20.0, 12.0, 8.0],
+            },
+        )
+
+    def test_validate_rejects_each_invalid_surface_geometry(self):
+        valid_sections = (
+            ((0.0, 0.0, 1.0), (0.0, 12.0, 1.0)),
+            ((20.0, 0.0, 2.0), (20.0, 12.0, 2.0)),
+        )
+        cases = (
+            (
+                (
+                    ((0.0, 0.0, float("nan")), (0.0, 12.0, 1.0)),
+                    valid_sections[1],
+                ),
+                "nonfinite_point",
+            ),
+            ((valid_sections[0],), "too_few_sections"),
+            (
+                (
+                    valid_sections[0],
+                    ((20.0, 0.0, 2.0), (20.0, 6.0, 2.0), (20.0, 12.0, 2.0)),
+                ),
+                "inconsistent_section_vertex_count",
+            ),
+            (
+                (
+                    ((0.0, 0.0, 1.0), (0.0, 0.0, 1.0)),
+                    valid_sections[1],
+                ),
+                "zero_length_section_edge",
+            ),
+            (
+                (valid_sections[0], valid_sections[0]),
+                "repeated_consecutive_sections",
+            ),
+            (
+                (
+                    valid_sections[0],
+                    ((20.000001, 0.0, 2.0), (20.0, 12.0, 2.0)),
+                ),
+                "point_outside_source_bounds",
+            ),
+        )
+
+        for sections, expected_error in cases:
+            with self.subTest(expected_error=expected_error):
+                surface = BoundedSurface(
+                    operator="test_surface",
+                    sections=sections,
+                    source_bounds=self.bounds,
+                )
+                self.assertIn(expected_error, surface.validate())
+
+    def test_validate_allows_bounds_tolerance(self):
+        surface = BoundedSurface(
+            operator="test_surface",
+            sections=(
+                ((-0.00000005, 0.0, 1.0), (0.0, 12.0, 1.0)),
+                ((20.00000005, 0.0, 2.0), (20.0, 12.0, 2.0)),
+            ),
+            source_bounds=self.bounds,
+        )
+
+        self.assertEqual(surface.validate(), ())
+
+    def test_constructors_reject_parameters_outside_normalized_domain(self):
+        invalid_calls = (
+            (
+                section_surface_from_bounds,
+                {
+                    "span_axis": "z",
+                    "section_controls": [[0.0, 0.2], [1.0, 0.8]],
+                },
+            ),
+            (
+                section_surface_from_bounds,
+                {
+                    "span_axis": "x",
+                    "section_controls": [[0.0, 0.2], [1.0, 1.01]],
+                },
+            ),
+            (
+                loft_surface_from_bounds,
+                {
+                    "profiles": [
+                        [[0.0, 0.0, 0.2], [0.0, 1.0, 0.2]],
+                        [[1.0, 0.0, 0.2], [1.0, -0.01, 0.2]],
+                    ],
+                },
+            ),
+            (
+                host_face_surface_from_bounds,
+                {"host_face": "front", "inset_ratio": 0.1},
+            ),
+            (
+                host_face_surface_from_bounds,
+                {"host_face": "top", "inset_ratio": 0.5},
+            ),
+        )
+
+        for constructor, parameters in invalid_calls:
+            with self.subTest(
+                constructor=constructor.__name__,
+                parameters=parameters,
+            ):
+                with self.assertRaises(ValueError):
+                    constructor(self.bounds, parameters)
 
 
 def _program_ending_at(source: GeometryProgram, node: GeometryNode) -> GeometryProgram:

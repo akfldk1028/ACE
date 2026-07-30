@@ -53,6 +53,7 @@ from .source_bridge import (
     materialize_floorwise_legal_source,
     replace_source_dominant_with_geometry_program,
 )
+from .surface_geometry import BoundedSurface
 from .system_contract import build_extended_csg_contract
 from .synthesis import synthesize_architectural_programs, synthesis_requests_from_program_profile
 from .typology_priors import TYPOLOGY_PRIORS, TypologyPrior, typology_prior, typology_priors_for_program
@@ -63,6 +64,7 @@ __all__ = [
     "CompilationResult",
     "BASE_SEED_SPECS",
     "BaseSeedSpec",
+    "BoundedSurface",
     "GEOMETRY_PROGRAM_JSON_SCHEMA",
     "GeometryEdit",
     "CompilerSafeMutationResult",

@@ -480,6 +480,74 @@ class SurfaceShellCompileTest(SimpleTestCase):
         self.assertEqual(result.status, "compile_failed")
         self.assertEqual(result.issues[0].code, "self_intersecting_shell")
 
+    def test_partial_and_full_surface_retraces_fail_for_every_side(self):
+        centerlines = {
+            "partial": (
+                (0.1, 0.2),
+                (0.9, 0.8),
+                (0.2, 0.275),
+            ),
+            "full": (
+                (0.1, 0.2),
+                (0.9, 0.8),
+                (0.1, 0.2),
+            ),
+        }
+        for retrace_kind, centerline in centerlines.items():
+            profiles = [
+                [[x, 0.0, z], [x, 1.0, z]]
+                for x, z in centerline
+            ]
+            for side in ("center", "inward", "outward"):
+                with self.subTest(
+                    retrace_kind=retrace_kind,
+                    side=side,
+                ):
+                    result = compile_geometry_program(
+                        site_scale_section_shell_program(
+                            surface_operator="loft_surface",
+                            surface_parameters={"profiles": profiles},
+                            shell_parameters={
+                                "thickness_ratio": 0.04,
+                                "side": side,
+                                "close_edges": True,
+                            },
+                        )
+                    )
+
+                    self.assertEqual(result.status, "compile_failed")
+                    self.assertEqual(
+                        result.issues[0].code,
+                        "self_intersecting_shell",
+                    )
+                    self.assertEqual(
+                        result.issues[0].message,
+                        "surface centerline retraces the previous segment",
+                    )
+
+    def test_closed_seam_triplet_cannot_retrace_first_segment(self):
+        profiles = [
+            [[0.2, 0.0, 0.2], [0.2, 1.0, 0.2]],
+            [[0.8, 0.0, 0.2], [0.8, 1.0, 0.2]],
+            [[0.8, 0.0, 0.8], [0.8, 1.0, 0.8]],
+            [[0.5, 0.0, 0.2], [0.5, 1.0, 0.2]],
+            [[0.2, 0.0, 0.2], [0.2, 1.0, 0.2]],
+        ]
+
+        result = compile_geometry_program(
+            site_scale_section_shell_program(
+                surface_operator="loft_surface",
+                surface_parameters={"profiles": profiles},
+            )
+        )
+
+        self.assertEqual(result.status, "compile_failed")
+        self.assertEqual(result.issues[0].code, "self_intersecting_shell")
+        self.assertEqual(
+            result.issues[0].message,
+            "surface centerline retraces the previous segment",
+        )
+
     def test_fold_joint_cannot_cross_a_nonincident_segment(self):
         centerline = (
             (0.8514422403522063, 0.7582473359297199),

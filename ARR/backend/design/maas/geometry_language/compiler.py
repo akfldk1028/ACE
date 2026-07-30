@@ -476,6 +476,7 @@ def _shell_thicken(
             node_id,
         )
 
+    _reject_retracing_surface(surface, node_id)
     thickness_m = _shell_thickness_m(surface, parameters, node_id)
     lower_distance, upper_distance = {
         "center": (-0.5 * thickness_m, 0.5 * thickness_m),
@@ -658,6 +659,59 @@ def _shell_thicken(
             node_id,
         )
     return result
+
+
+def _reject_retracing_surface(
+    surface: BoundedSurface,
+    node_id: str,
+) -> None:
+    centroids = [
+        np.asarray(section, dtype=float).mean(axis=0)
+        for section in surface.sections
+    ]
+    triplets = list(zip(centroids, centroids[1:], centroids[2:]))
+    if _surface_has_closed_seam(surface) and len(centroids) >= 4:
+        triplets.append((centroids[-2], centroids[0], centroids[1]))
+
+    extents = np.asarray(
+        (
+            surface.source_bounds[3] - surface.source_bounds[0],
+            surface.source_bounds[4] - surface.source_bounds[1],
+            surface.source_bounds[5] - surface.source_bounds[2],
+        ),
+        dtype=float,
+    )
+    scale = max(float(np.linalg.norm(extents)), 1.0)
+    position_tolerance = scale * 1e-9
+    angular_tolerance = 1e-9
+
+    for previous, shared, following in triplets:
+        incoming = shared - previous
+        outgoing = following - shared
+        incoming_length = float(np.linalg.norm(incoming))
+        outgoing_length = float(np.linalg.norm(outgoing))
+        if min(incoming_length, outgoing_length) <= position_tolerance:
+            continue
+        cross_length = float(np.linalg.norm(np.cross(incoming, outgoing)))
+        length_product = incoming_length * outgoing_length
+        collinear = cross_length <= max(
+            length_product * angular_tolerance,
+            position_tolerance * max(incoming_length, outgoing_length),
+        )
+        anti_parallel = float(np.dot(incoming, outgoing)) < (
+            -length_product * angular_tolerance
+        )
+        overlap_length = min(incoming_length, outgoing_length)
+        if (
+            collinear
+            and anti_parallel
+            and overlap_length > position_tolerance
+        ):
+            raise GeometryCompileError(
+                "self_intersecting_shell",
+                "surface centerline retraces the previous segment",
+                node_id,
+            )
 
 
 def _shell_has_positive_overlap(

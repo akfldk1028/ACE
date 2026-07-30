@@ -480,6 +480,70 @@ class SurfaceShellCompileTest(SimpleTestCase):
         self.assertEqual(result.status, "compile_failed")
         self.assertEqual(result.issues[0].code, "self_intersecting_shell")
 
+    def test_fold_joint_cannot_cross_a_nonincident_segment(self):
+        centerline = (
+            (0.8514422403522063, 0.7582473359297199),
+            (0.7121736535540322, 0.3080880368672024),
+            (0.7484019761981957, 0.15014077878288984),
+            (0.5128414338424889, 0.8227140118828640),
+            (0.1951909705426227, 0.6708298998937252),
+            (0.0845895855070813, 0.2545692735969854),
+        )
+        profiles = [
+            [[x, 0.0, z], [x, 1.0, z]]
+            for x, z in centerline
+        ]
+
+        result = compile_geometry_program(
+            site_scale_section_shell_program(
+                surface_operator="loft_surface",
+                surface_parameters={"profiles": profiles},
+                shell_parameters={
+                    "thickness_ratio": 0.04,
+                    "side": "center",
+                    "close_edges": True,
+                },
+            )
+        )
+
+        self.assertEqual(result.status, "compile_failed")
+        self.assertEqual(result.issues[0].code, "self_intersecting_shell")
+        self.assertEqual(
+            result.issues[0].message,
+            "fold joint intersects a nonincident surface segment",
+        )
+
+    def test_disjoint_joint_incidence_activates_joint_crossing_gate(self):
+        profiles = [
+            [[0.0, 0.0, 0.2], [0.0, 1.0, 0.2]],
+            [[0.25, 0.0, 0.6], [0.25, 1.0, 0.6]],
+            [[0.5, 0.0, 0.2], [0.5, 1.0, 0.2]],
+            [[0.75, 0.0, 0.6], [0.75, 1.0, 0.6]],
+            [[1.0, 0.0, 0.2], [1.0, 1.0, 0.2]],
+        ]
+        checked_labels: list[str] = []
+
+        def simulated_overlap(*_args, **kwargs):
+            label = str(kwargs["label"])
+            checked_labels.append(label)
+            return label.startswith("joints ")
+
+        with patch.object(
+            geometry_compiler,
+            "_shell_has_positive_overlap",
+            side_effect=simulated_overlap,
+        ):
+            result = compile_geometry_program(
+                site_scale_section_shell_program(
+                    surface_operator="loft_surface",
+                    surface_parameters={"profiles": profiles},
+                )
+            )
+
+        self.assertEqual(result.status, "compile_failed")
+        self.assertEqual(result.issues[0].code, "self_intersecting_shell")
+        self.assertIn("joints 0:2", checked_labels)
+
     def test_outward_fold_uses_joint_hull_to_remain_connected(self):
         result = compile_geometry_program(
             site_scale_section_shell_program(

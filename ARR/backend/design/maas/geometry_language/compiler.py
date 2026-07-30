@@ -537,35 +537,12 @@ def _shell_thicken(
             ):
                 continue
             right = segments[right_index]
-            overlap = _shell_kernel_call(
-                node_id,
-                "segment intersection",
-                lambda left=left, right=right: _shell_batch_boolean(
-                    [left, right],
-                    m3d.OpType.Intersect,
-                ),
-            )
-            overlap_empty, overlap_status, overlap_volume = _shell_kernel_call(
-                node_id,
-                "intersection validation",
-                lambda overlap=overlap: (
-                    overlap.is_empty(),
-                    _shell_status(overlap),
-                    float(overlap.volume()),
-                ),
-            )
-            if "NoError" not in overlap_status:
-                raise GeometryCompileError(
-                    "shell_kernel_error",
-                    overlap_status,
-                    node_id,
-                )
-            if (
-                not overlap_empty
-                and overlap_volume > max(
-                    thickness_m ** 3 * 1e-9,
-                    1e-12,
-                )
+            if _shell_has_positive_overlap(
+                left,
+                right,
+                thickness_m=thickness_m,
+                node_id=node_id,
+                label=f"segments {left_index}:{right_index}",
             ):
                 raise GeometryCompileError(
                     "self_intersecting_shell",
@@ -573,7 +550,7 @@ def _shell_thicken(
                     node_id,
                 )
 
-    joints: list[Any] = []
+    joint_records: list[tuple[Any, frozenset[int]]] = []
     for previous_index, next_index, shared_section in _fold_joint_specs(
         surface,
         normals,
@@ -607,13 +584,52 @@ def _shell_thicken(
             label=f"fold joint {previous_index}:{next_index}",
             empty_code="empty_shell_joint",
         )
-        joints.append(joint)
+        joint_records.append((
+            joint,
+            frozenset({previous_index, next_index}),
+        ))
+
+    for joint_index, (joint, incident_segments) in enumerate(joint_records):
+        for segment_index, segment in enumerate(segments):
+            if segment_index in incident_segments:
+                continue
+            if _shell_has_positive_overlap(
+                joint,
+                segment,
+                thickness_m=thickness_m,
+                node_id=node_id,
+                label=f"joint {joint_index}:segment {segment_index}",
+            ):
+                raise GeometryCompileError(
+                    "self_intersecting_shell",
+                    "fold joint intersects a nonincident surface segment",
+                    node_id,
+                )
+        for other_index in range(joint_index + 1, len(joint_records)):
+            other_joint, other_incident_segments = joint_records[other_index]
+            if incident_segments & other_incident_segments:
+                continue
+            if _shell_has_positive_overlap(
+                joint,
+                other_joint,
+                thickness_m=thickness_m,
+                node_id=node_id,
+                label=f"joints {joint_index}:{other_index}",
+            ):
+                raise GeometryCompileError(
+                    "self_intersecting_shell",
+                    "nonadjacent fold joints intersect",
+                    node_id,
+                )
 
     result = _shell_kernel_call(
         node_id,
         "shell union",
         lambda: _shell_batch_boolean(
-            [*segments, *joints],
+            [
+                *segments,
+                *(joint for joint, _incident in joint_records),
+            ],
             m3d.OpType.Add,
         ),
     )
@@ -642,6 +658,46 @@ def _shell_thicken(
             node_id,
         )
     return result
+
+
+def _shell_has_positive_overlap(
+    left,
+    right,
+    *,
+    thickness_m: float,
+    node_id: str,
+    label: str,
+) -> bool:
+    overlap = _shell_kernel_call(
+        node_id,
+        f"{label} intersection",
+        lambda: _shell_batch_boolean(
+            [left, right],
+            m3d.OpType.Intersect,
+        ),
+    )
+    overlap_empty, overlap_status, overlap_volume = _shell_kernel_call(
+        node_id,
+        f"{label} intersection validation",
+        lambda: (
+            overlap.is_empty(),
+            _shell_status(overlap),
+            float(overlap.volume()),
+        ),
+    )
+    if "NoError" not in overlap_status:
+        raise GeometryCompileError(
+            "shell_kernel_error",
+            overlap_status,
+            node_id,
+        )
+    return (
+        not overlap_empty
+        and overlap_volume > max(
+            thickness_m ** 3 * 1e-9,
+            1e-12,
+        )
+    )
 
 
 def _closed_shell_hull(

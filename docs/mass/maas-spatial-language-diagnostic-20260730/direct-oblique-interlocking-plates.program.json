@@ -1,0 +1,169 @@
+{
+  "metadata": {
+    "checkpoint_status": "PRE-LEGAL / NOT EVALUATED",
+    "paid_author_request_count": 0,
+    "paid_vlm_request_count": 0
+  },
+  "name": "direct_oblique_interlocking_plates",
+  "nodes": [
+    {
+      "id": "unitbox",
+      "inputs": [],
+      "kind": "primitive",
+      "operator": "box",
+      "parameters": {
+        "depth": 1.0,
+        "height": 1.0,
+        "width": 1.0
+      },
+      "provenance": {},
+      "semantic_role": "base_seed"
+    },
+    {
+      "id": "plate",
+      "inputs": [
+        "unitbox"
+      ],
+      "kind": "transform",
+      "operator": "matrix4",
+      "parameters": {
+        "matrix4": [
+          [
+            4.0,
+            0.0,
+            0.0,
+            -2.0
+          ],
+          [
+            0.0,
+            1.6,
+            0.0,
+            -0.8
+          ],
+          [
+            0.0,
+            0.0,
+            0.25,
+            -0.125
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "provenance": {},
+      "semantic_role": "occupied_slab"
+    },
+    {
+      "id": "disc",
+      "inputs": [
+        "plate"
+      ],
+      "kind": "modifier",
+      "operator": "circularize",
+      "parameters": {
+        "segments": 32
+      },
+      "provenance": {},
+      "semantic_role": "envelope"
+    },
+    {
+      "id": "assembly",
+      "inputs": [
+        "disc"
+      ],
+      "kind": "pattern",
+      "operator": "matrix_array",
+      "parameters": {
+        "matrices": [
+          [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.573576,
+              -0.819152,
+              0.0
+            ],
+            [
+              0.0,
+              0.819152,
+              0.573576,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          [
+            [
+              0.707107,
+              0.0,
+              -0.707107,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.707107,
+              0.0,
+              0.707107,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        ],
+        "require_connected": true
+      },
+      "provenance": {},
+      "semantic_role": "envelope"
+    }
+  ],
+  "root_id": "assembly",
+  "schema_version": "arr.maas.geometry_program.v1"
+}

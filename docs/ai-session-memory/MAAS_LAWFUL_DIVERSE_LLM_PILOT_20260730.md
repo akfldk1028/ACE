@@ -1,6 +1,6 @@
 # MAAS Lawful Diverse LLM Pilot - Active Recovery Memory
 
-Updated: 2026-07-30 19:45 KST
+Updated: 2026-07-30 23:50 KST
 
 ## Read this first
 
@@ -414,3 +414,113 @@ Specify one exact-parcel, spatially inhabitable 20-candidate pipeline with a
 generic plane-to-thickened-space layer, deterministic spatial-capacity gates,
 preserved reject renders, and a bounded image-backed VLM shortlist. Do not
 implement until that design is reviewed and approved.
+
+## Spatial MASS language checkpoint - 2026-07-30 23:50 KST
+
+The first subsystem of the competition-grade pivot is implemented and
+verified. This checkpoint proves generic authored geometry capability only.
+It does not prove parcel placement, occupied space, law, parking, or visual
+acceptance.
+
+### Executable author contracts
+
+The strict author schema, parameter validator, author prompt, body-rule
+classification, compiler trace, and VLM graph vocabulary now agree on:
+
+- `matrix4(matrix4)`;
+- `circularize(segments)`;
+- `matrix_array(matrices, require_connected)`;
+- `profile_sweep_3d(path, require_connected)`;
+- `attach(host_face, anchor, guest_extent, engagement, rotation_degrees)`;
+- `bridge(height, height_ratio, width, width_ratio)`;
+- `section_surface(span_axis, section_controls)`;
+- `loft_surface(profiles)`;
+- `host_face_surface(host_face, inset_ratio)`; and
+- `shell_thicken(thickness_ratio, side, close_edges)`.
+
+Unknown operators, unknown parameters, invalid value types, invalid enums,
+zero/negative thickness, open shell edges, retraced centerlines, disconnected
+shells, and self-intersecting shell segments or fold joints fail closed.
+Named buildings and architects remain capability-range prose only; no named
+operator, selector, recipe, or quota was added.
+
+### Typed AST/compiler boundary
+
+`GeometryProgram` now has typed intermediate `solid | surface` values.
+`section_surface`, `loft_surface`, and `host_face_surface` each consume one
+solid and return a bounded surface. A surface cannot be a final root or enter
+a solid-only Boolean, pattern, composition, law, floor, or render path.
+`shell_thicken` is the single surface-to-solid boundary: it requires positive
+live-bounds-relative thickness, `center|inward|outward`, explicit edge
+closure, kernel intersection checks, and one closed connected watertight
+manifold result. The final geometry hash remains the exact compiled solid
+authority and the canonical source remains one `1/1 UnitBox`.
+
+### Exact zero-paid diagnostics
+
+Run:
+
+```text
+docs/mass/maas-spatial-language-diagnostic-20260730
+```
+
+Direct oblique interlocking plates:
+
+- program hash:
+  `c7615bb2af92fcd662e1716e992799ba88c2522ad298c4a25f66f2786676166e`
+- geometry hash:
+  `68b976554bc6e12bf1fbfdaa261cd025787ce2e0faaddd8f48fd1d39d32be418`
+- PNG SHA-256:
+  `1332d85e8f0941baaf92cea155334be416a94504ad97b9de7be0327772174273`
+- visual check: three visibly oblique intersecting circular plates, no
+  disconnected fragment.
+
+Continuous section surface shell:
+
+- program hash:
+  `a9b646dcb4f237a49b67a607e175335d59515393f02dd5daa142dd8471376f49`
+- geometry hash:
+  `2f7ecfcc846f9db6feace91b5737d8d57ccaaf6fbe4e40528ced8a740cb934b3`
+- PNG SHA-256:
+  `59fe6707464003b6fd65e1224edd245167bd01f8d522bf749431ab6ab48aee66`
+- visual check: one continuous thickened low-plane/rising-wall/upper-plane/
+  descending-plane field, not a stepped box and with no disconnected
+  fragment.
+
+Both exact compiler results have `component_count=1`,
+`closed_solid=true`, `watertight=true`, `manifold=true`, positive volume,
+hash-matching render passports, `paid_author_request_count=0`, and
+`paid_vlm_request_count=0`. Both are explicitly
+`PRE-LEGAL / NOT EVALUATED`. No PNU, law, parking, provider, or VLM route ran.
+
+### Verification truth
+
+The exact five-module command discovered 263 tests and completed with 260
+passes plus three known baseline/environment errors:
+
+- one external BOOK bundle error because four required local BOOK files are
+  absent (`source_count:0`);
+- two deterministic recipe-fixture command errors because the first `bent`
+  fixture is already rejected as `invalid scheduled creative candidate`.
+
+Every runnable selected test passed when those exact three were excluded:
+53/53 spatial/strict/author tests, 202/202 geometry-language tests, and 5/5
+remaining creative-command tests, for 260/260. Targeted `py_compile`, the
+named-identifier scan, whitespace checks, diagnostic hash checks, and JSON
+parsing all passed.
+
+### Exact next boundary
+
+Do not spend a provider request from this diagnostic. The next implementation
+boundary is:
+
+```text
+same real parcel
+-> occupied-space evidence
+-> exact BCR / FAR / GFA
+```
+
+After access, circulation, program, law, parking, and identity-preservation
+gates pass on the exact placed solid, retain every reject on the board and
+make only the separately authorized single paid VLM smoke request using the
+exact final legal image plus verified local reference images.

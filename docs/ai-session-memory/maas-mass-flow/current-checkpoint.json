@@ -1,7 +1,76 @@
 {
   "schema_version": "arr.maas.mass_flow_memory.v1",
-  "updated_at": "2026-07-30T20:15:00+09:00",
+  "updated_at": "2026-07-30T23:50:00+09:00",
   "frontend_url": "http://127.0.0.1:5178/design/language",
+  "spatial_mass_language_checkpoint": {
+    "status": "implemented_and_zero_paid_diagnostic_verified",
+    "scope": "generic_geometry_language_only_prelegal_not_accepted",
+    "canonical_base": "one_1_1_unitbox",
+    "solid_operator_contracts": {
+      "matrix4": ["matrix4"],
+      "circularize": ["segments"],
+      "matrix_array": ["matrices", "require_connected"],
+      "profile_sweep_3d": ["path", "require_connected"],
+      "attach": ["host_face", "anchor", "guest_extent", "engagement", "rotation_degrees"],
+      "bridge": ["height", "height_ratio", "width", "width_ratio"]
+    },
+    "surface_ast": {
+      "value_kinds": ["solid", "surface"],
+      "surface_operators": {
+        "section_surface": ["span_axis", "section_controls"],
+        "loft_surface": ["profiles"],
+        "host_face_surface": ["host_face", "inset_ratio"]
+      },
+      "single_surface_to_solid_boundary": "shell_thicken",
+      "shell_thicken_contract": ["thickness_ratio", "side", "close_edges"],
+      "surface_root_allowed": false,
+      "solid_only_consumers_reject_surface": true
+    },
+    "diagnostic_run": "docs/mass/maas-spatial-language-diagnostic-20260730",
+    "diagnostics": [
+      {
+        "candidate_id": "direct-oblique-interlocking-plates",
+        "status": "PRE-LEGAL / NOT EVALUATED",
+        "program_hash": "c7615bb2af92fcd662e1716e992799ba88c2522ad298c4a25f66f2786676166e",
+        "geometry_hash": "68b976554bc6e12bf1fbfdaa261cd025787ce2e0faaddd8f48fd1d39d32be418",
+        "render_sha256": "1332d85e8f0941baaf92cea155334be416a94504ad97b9de7be0327772174273",
+        "component_count": 1,
+        "closed_solid": true,
+        "watertight": true,
+        "manifold": true
+      },
+      {
+        "candidate_id": "continuous-section-surface-shell",
+        "status": "PRE-LEGAL / NOT EVALUATED",
+        "program_hash": "a9b646dcb4f237a49b67a607e175335d59515393f02dd5daa142dd8471376f49",
+        "geometry_hash": "2f7ecfcc846f9db6feace91b5737d8d57ccaaf6fbe4e40528ced8a740cb934b3",
+        "render_sha256": "59fe6707464003b6fd65e1224edd245167bd01f8d522bf749431ab6ab48aee66",
+        "component_count": 1,
+        "closed_solid": true,
+        "watertight": true,
+        "manifold": true
+      }
+    ],
+    "paid_author_request_count": 0,
+    "paid_vlm_request_count": 0,
+    "verification": {
+      "exact_suite_discovered": 263,
+      "exact_suite_passed": 260,
+      "known_baseline_environment_errors": 3,
+      "known_errors": [
+        "external_BOOK_source_bundle_missing_four_files_source_count_0",
+        "creative_count_3_legacy_bent_recipe_fixture_invalid_scheduled_candidate",
+        "creative_count_100_legacy_bent_recipe_fixture_invalid_scheduled_candidate"
+      ],
+      "all_runnable_selected_tests": "260/260 pass",
+      "py_compile": "pass",
+      "named_identifier_scan": "pass_no_qatar_sanaa_oma_identifiers",
+      "diff_check": "pass",
+      "artifact_hash_and_json_check": "pass"
+    },
+    "next_boundary": "same_real_parcel_to_occupied_space_evidence_to_exact_bcr_far_gfa",
+    "vlm_next_policy": "no_call_here_exactly_one_separately_authorized_paid_smoke_only_after_all_free_exact_gates"
+  },
   "active_lawful_diverse_llm_pilot": {
     "memory": "docs/ai-session-memory/MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md",
     "design_spec": "docs/superpowers/specs/2026-07-30-lawful-diverse-llm-mass-pilot-design.md",

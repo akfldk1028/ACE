@@ -186,3 +186,30 @@ must see the exact final legal render plus actual ArchDaily images. Preserve
 every rejected render and failure reason on the board. Read the newest
 `Active competition-grade pivot` section in
 `../MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md` before continuing.
+
+Newest spatial-language checkpoint (2026-07-30 23:50 KST): the generic MASS
+language subsystem is now implemented. Direct structured authorship can use
+`matrix4`, `circularize`, connected arbitrary `matrix_array`,
+`profile_sweep_3d`, exact `attach`/`bridge` parameters, and typed
+`section_surface|loft_surface|host_face_surface -> shell_thicken`. Surface
+values are intermediate only; `shell_thicken` is the sole positive-thickness
+boundary back to one closed connected watertight manifold solid. The canonical
+source remains one `1/1 UnitBox`, and there are no named-building operators,
+recipes, selectors, or quotas.
+
+Two directly inspected zero-paid diagnostics are under
+`docs/mass/maas-spatial-language-diagnostic-20260730`: one three-way oblique
+interlocking plate solid and one continuous thickened sectional field. Their
+program/geometry/render identities and exact hashes are in `manifest.json`
+and matching render passport sidecars. Both are
+`PRE-LEGAL / NOT EVALUATED`, with paid author/VLM counts `0`; they do not
+claim parcel, occupancy, BCR, FAR, GFA, parking, or visual acceptance.
+
+Verification truth: the exact five-module suite found 263 tests, with 260
+passes and three known baseline/environment errors (one missing external BOOK
+bundle and two rejected legacy `bent` recipe-fixture command cases). Every
+runnable selected test passed 260/260; targeted compile, static identifier,
+whitespace, JSON, and artifact hash checks passed. The exact next boundary is
+`same real parcel -> occupied-space evidence -> exact BCR/FAR/GFA`. Read the
+newest `Spatial MASS language checkpoint` section in
+`../MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md` before any MASS continuation.

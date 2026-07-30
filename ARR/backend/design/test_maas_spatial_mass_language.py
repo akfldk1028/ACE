@@ -9,6 +9,7 @@ from django.test import SimpleTestCase
 from design.maas.creative_program_author import authored_programs_from_payload
 from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
 from design.maas.geometry_language.compiler import compile_geometry_program
+from design.maas.geometry_language.llm_adapter import GeometryAuthorError
 
 
 def exactly_one_canonical_unitbox(program: GeometryProgram) -> bool:
@@ -92,6 +93,22 @@ def direct_interlocking_plate_program() -> GeometryProgram:
     )
 
 
+def valid_legacy_author_payload() -> dict[str, object]:
+    return {
+        "programs": [{
+            "name": "legacy_would_succeed",
+            "base_seed": "slab",
+            "dsl": (
+                "mass base = scale(box(1, 1, 1), "
+                "vector=[2.2, 1.45, 0.28])\n"
+                "mass result = courtyard("
+                "base, margin_ratio=0.22, open_side='west')"
+            ),
+            "intent_tags": ["public_court"],
+        }],
+    }
+
+
 class DirectPlateAuthorshipTest(SimpleTestCase):
     def test_payload_authorship_accepts_unnamed_interlocking_plate_program(self):
         source = direct_interlocking_plate_program()
@@ -152,3 +169,52 @@ class DirectPlateAuthorshipTest(SimpleTestCase):
 
         self.assertEqual(result.status, "compile_failed")
         self.assertEqual(result.issues[0].code, "disconnected_matrix_array")
+
+    def test_geometry_programs_wins_when_both_exact_keys_are_present(self):
+        source = direct_interlocking_plate_program()
+        alternate_nodes = tuple(
+            replace(node, parameters={**node.parameters, "segments": 8})
+            if node.id == "disc"
+            else node
+            for node in source.nodes
+        )
+        alternate = source.with_nodes(alternate_nodes)
+
+        authored = authored_programs_from_payload(
+            {
+                "geometry_programs": [source.to_dict()],
+                "compiled_programs": [alternate.to_dict()],
+            },
+            expected_count=1,
+        )
+
+        self.assertEqual(
+            authored[0].program.node_map["disc"].parameters["segments"],
+            32,
+        )
+
+    def test_malformed_geometry_programs_cannot_fall_back(self):
+        source = direct_interlocking_plate_program()
+        for malformed in (None, [], {"unexpected": True}, [None]):
+            with self.subTest(malformed=malformed):
+                with self.assertRaises(GeometryAuthorError):
+                    authored_programs_from_payload(
+                        {
+                            **valid_legacy_author_payload(),
+                            "geometry_programs": malformed,
+                            "compiled_programs": [source.to_dict()],
+                        },
+                        expected_count=1,
+                    )
+
+    def test_malformed_compiled_programs_cannot_fall_through_to_legacy(self):
+        for malformed in (None, [], {"unexpected": True}, [None]):
+            with self.subTest(malformed=malformed):
+                with self.assertRaises(GeometryAuthorError):
+                    authored_programs_from_payload(
+                        {
+                            **valid_legacy_author_payload(),
+                            "compiled_programs": malformed,
+                        },
+                        expected_count=1,
+                    )

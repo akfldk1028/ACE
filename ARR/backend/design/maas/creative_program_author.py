@@ -14,6 +14,7 @@ from .geometry_language.compiler import CompilationResult
 from .geometry_language.compiler import compile_geometry_program
 from .geometry_language.gate import GeometryGatePolicy, compilation_gate
 from .geometry_language.llm_adapter import (
+    GeometryAuthorError,
     geometry_programs_from_author_payload,
 )
 from .geometry_language.unitbox_normalization import (
@@ -59,17 +60,34 @@ def authored_programs_from_payload(
     expected_count: int,
     program_context: dict[str, Any] | None = None,
 ) -> tuple[CreativeAuthoredProgram, ...]:
-    exact_programs = payload.get("geometry_programs")
-    if exact_programs is None:
-        exact_programs = payload.get("compiled_programs")
-    if isinstance(exact_programs, list):
-        programs = tuple(
-            GeometryProgram.from_dict(item)
-            for item in exact_programs
-            if isinstance(item, dict)
-        )
+    if "geometry_programs" in payload:
+        exact_key = "geometry_programs"
+    elif "compiled_programs" in payload:
+        exact_key = "compiled_programs"
+    else:
+        exact_key = ""
+    if exact_key:
+        exact_programs = payload[exact_key]
+        if not isinstance(exact_programs, list) or not exact_programs:
+            raise GeometryAuthorError(
+                f"author payload {exact_key} must be a non-empty array"
+            )
+        programs_list: list[GeometryProgram] = []
+        for index, item in enumerate(exact_programs):
+            if not isinstance(item, dict):
+                raise GeometryAuthorError(
+                    f"author payload {exact_key}[{index}] must be a "
+                    "geometry program object"
+                )
+            try:
+                programs_list.append(GeometryProgram.from_dict(item))
+            except (TypeError, ValueError) as exc:
+                raise GeometryAuthorError(
+                    f"author payload {exact_key}[{index}] is invalid: {exc}"
+                ) from exc
+        programs = tuple(programs_list)
         if len(programs) < max(1, int(expected_count)):
-            raise ValueError(
+            raise GeometryAuthorError(
                 "author payload contains fewer exact programs than requested"
             )
     elif isinstance(payload.get("nodes"), list) and payload.get("root_id"):

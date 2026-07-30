@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+from math import isfinite
 import os
 from dataclasses import replace
 from pathlib import Path
@@ -19,8 +20,10 @@ from .dsl import GeometryDslError, parse_geometry_dsl, program_to_dsl
 from .gate import GeometryGatePolicy, compilation_gate
 from .mutation import (
     BOOLEAN_PARAMETERS,
+    INTEGER_PARAMETERS,
     NUMERIC_BOUNDS,
     OPERATOR_PARAMETER_CONTRACTS,
+    OPERATOR_VECTOR_LENGTHS,
     STRING_PARAMETER_VALUES,
     VECTOR_LENGTHS,
 )
@@ -505,6 +508,11 @@ def _program_from_structured_author_item(item: dict[str, Any], *, index: int) ->
         if str(raw.get("id") or "") in identity_aliases:
             continue
         operator = str(raw.get("operator") or "")
+        allowed_parameters = OPERATOR_PARAMETER_CONTRACTS.get(operator)
+        if allowed_parameters is None:
+            raise ValueError(
+                f"unsupported structured author operator {operator}"
+            )
         raw_kind = str(raw.get("kind") or "")
         compatible_kinds = [
             kind for kind, operators in OPERATORS_BY_KIND.items()
@@ -528,6 +536,11 @@ def _program_from_structured_author_item(item: dict[str, Any], *, index: int) ->
             name = str(parameter.get("name") or "").strip()
             if not name:
                 raise ValueError("structured author parameter name is required")
+            if name not in allowed_parameters:
+                raise ValueError(
+                    "unsupported structured author parameter "
+                    f"{operator}.{name}"
+                )
             declared_value_type = str(parameter.get("value_type") or "")
             value_contract = _author_parameter_value_contract(operator, name)
             contract_type = str(value_contract.get("type") or "")
@@ -558,6 +571,17 @@ def _program_from_structured_author_item(item: dict[str, Any], *, index: int) ->
                 value = json.loads(str(parameter.get("structured_json") or "null"))
             else:
                 raise ValueError(f"unsupported structured parameter value_type {value_type}")
+            _validate_structured_author_parameter_value(
+                operator,
+                name,
+                value,
+                value_contract,
+            )
+            if (
+                contract_type == "number"
+                and bool(value_contract.get("integer"))
+            ):
+                value = int(float(value))
             parameters[name] = value
         nodes.append(GeometryNode(
             id=str(raw.get("id") or ""),
@@ -1265,11 +1289,22 @@ def _author_parameter_value_contract(operator: str, parameter: str) -> Any:
         return {"type": "string", "enum": sorted(allowed)}
     if parameter == "axis":
         return {"type": "string", "enum": ["x", "y", "z"]}
+    operator_lengths = OPERATOR_VECTOR_LENGTHS.get((operator, parameter))
+    if operator_lengths is not None:
+        return {
+            "type": "numeric_vector",
+            "lengths": list(operator_lengths),
+        }
     if parameter in VECTOR_LENGTHS:
         return {"type": "numeric_vector", "lengths": list(VECTOR_LENGTHS[parameter])}
     if parameter in NUMERIC_BOUNDS:
         lower, upper = NUMERIC_BOUNDS[parameter]
-        return {"type": "number", "minimum": lower, "maximum": upper}
+        return {
+            "type": "number",
+            "minimum": lower,
+            "maximum": upper,
+            **({"integer": True} if parameter in INTEGER_PARAMETERS else {}),
+        }
     if parameter in {"x", "y", "z"}:
         # Normalized local translation/bridge coordinates. These parameters
         # are intentionally absent from the mutation clamp table because the
@@ -1283,6 +1318,51 @@ def _author_parameter_value_contract(operator: str, parameter: str) -> Any:
     }:
         return {"type": "structured_literal"}
     return {"type": "literal"}
+
+
+def _validate_structured_author_parameter_value(
+    operator: str,
+    parameter: str,
+    value: Any,
+    contract: dict[str, Any],
+) -> None:
+    """Fail closed when an authored value violates its executable contract."""
+
+    label = f"{operator}.{parameter}"
+    contract_type = str(contract.get("type") or "")
+    if contract_type == "number":
+        try:
+            number = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"{label} must be a finite number") from exc
+        if not isfinite(number):
+            raise ValueError(f"{label} must be a finite number")
+        if bool(contract.get("integer")) and not number.is_integer():
+            raise ValueError(f"{label} must be an integer")
+        minimum = float(contract["minimum"])
+        maximum = float(contract["maximum"])
+        if number < minimum or number > maximum:
+            raise ValueError(
+                f"{label} must be between {minimum:g} and {maximum:g}"
+            )
+        return
+    if contract_type == "string":
+        allowed = [str(item) for item in contract.get("enum") or ()]
+        if allowed and str(value) not in allowed:
+            raise ValueError(
+                f"{label} must be one of {', '.join(allowed)}"
+            )
+        return
+    if contract_type == "numeric_vector":
+        lengths = [int(item) for item in contract.get("lengths") or ()]
+        if not isinstance(value, list) or len(value) not in lengths:
+            raise ValueError(f"{label} expects vector lengths {lengths}")
+        try:
+            finite = all(isfinite(float(component)) for component in value)
+        except (TypeError, ValueError):
+            finite = False
+        if not finite:
+            raise ValueError(f"{label} vector values must be finite numbers")
 
 
 def _author_cache_path(*, context: dict[str, Any], count: int, model: str) -> Path:

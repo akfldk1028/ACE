@@ -301,6 +301,273 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             )["type"],
             "structured_literal",
         )
+        self.assertNotIn("z", OPERATOR_PARAMETER_CONTRACTS["bridge"])
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "attach", "anchor"
+            ),
+            {"type": "numeric_vector", "lengths": [2]},
+        )
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "attach", "guest_extent"
+            ),
+            {"type": "numeric_vector", "lengths": [3]},
+        )
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "attach", "host_face"
+            ),
+            {
+                "type": "string",
+                "enum": ["bottom", "east", "north", "south", "top", "west"],
+            },
+        )
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "attach", "engagement"
+            ),
+            {"type": "number", "minimum": 0.015, "maximum": 0.24},
+        )
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "attach", "rotation_degrees"
+            ),
+            {"type": "number", "minimum": -45.0, "maximum": 45.0},
+        )
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "circularize", "segments"
+            ),
+            {
+                "type": "number", "minimum": 8.0, "maximum": 96.0,
+                "integer": True,
+            },
+        )
+
+    def test_structured_author_rejects_unknown_operator_and_parameter_before_compile(self):
+        def number(name, value):
+            return {
+                "name": name,
+                "value_type": "number",
+                "numeric_value": value,
+                "string_value": "",
+                "boolean_value": False,
+                "vector_value": [],
+                "structured_json": "null",
+            }
+
+        base = {
+            "name": "closed_author_contract",
+            "root_id": "body",
+            "nodes": [{
+                "id": "body",
+                "kind": "primitive",
+                "operator": "box",
+                "inputs": [],
+                "parameters": [
+                    number("width", 1.0),
+                    number("depth", 1.0),
+                    number("height", 1.0),
+                    number("decorative_label", 1.0),
+                ],
+                "semantic_role": "base_seed",
+            }],
+        }
+        with self.assertRaisesRegex(
+            ValueError,
+            r"unsupported structured author parameter box\.decorative_label",
+        ):
+            geometry_llm_adapter._program_from_structured_author_item(
+                base, index=0
+            )
+
+        unknown = {
+            **base,
+            "nodes": [{
+                **base["nodes"][0],
+                "operator": "named_building_shape",
+                "parameters": [],
+            }],
+        }
+        with self.assertRaisesRegex(
+            ValueError,
+            "unsupported structured author operator named_building_shape",
+        ):
+            geometry_llm_adapter._program_from_structured_author_item(
+                unknown, index=0
+            )
+
+    def test_structured_author_decodes_exact_attach_and_circularize_contracts(self):
+        def parameter(
+            name,
+            declared_type,
+            *,
+            number=0.0,
+            string="",
+            vector=(),
+        ):
+            return {
+                "name": name,
+                "value_type": declared_type,
+                "numeric_value": number,
+                "string_value": string,
+                "boolean_value": False,
+                "vector_value": list(vector),
+                "structured_json": "null",
+            }
+
+        box_parameters = [
+            parameter("width", "number", number=1.0),
+            parameter("depth", "number", number=1.0),
+            parameter("height", "number", number=1.0),
+        ]
+        program = geometry_llm_adapter._program_from_structured_author_item({
+            "name": "typed_spatial_parameters",
+            "root_id": "attached",
+            "nodes": [
+                {
+                    "id": "host", "kind": "primitive", "operator": "box",
+                    "inputs": [], "parameters": box_parameters,
+                    "semantic_role": "host",
+                },
+                {
+                    "id": "disc", "kind": "modifier",
+                    "operator": "circularize", "inputs": ["host"],
+                    "parameters": [
+                        parameter("segments", "string", number=32.0),
+                    ],
+                    "semantic_role": "plate",
+                },
+                {
+                    "id": "guest", "kind": "primitive", "operator": "box",
+                    "inputs": [], "parameters": box_parameters,
+                    "semantic_role": "guest",
+                },
+                {
+                    "id": "attached", "kind": "composition",
+                    "operator": "attach", "inputs": ["disc", "guest"],
+                    "parameters": [
+                        parameter(
+                            "host_face", "number", string="top"
+                        ),
+                        parameter(
+                            "anchor", "string", vector=(0.1, -0.2)
+                        ),
+                        parameter(
+                            "guest_extent", "string",
+                            vector=(0.18, 0.42, 0.36),
+                        ),
+                        parameter(
+                            "engagement", "string", number=0.12
+                        ),
+                        parameter(
+                            "rotation_degrees", "string", number=12.0
+                        ),
+                    ],
+                    "semantic_role": "engaged_plate",
+                },
+            ],
+        }, index=0)
+
+        self.assertEqual(program.node_map["disc"].parameters["segments"], 32.0)
+        self.assertIsInstance(
+            program.node_map["disc"].parameters["segments"], int
+        )
+        self.assertEqual(program.node_map["attached"].parameters, {
+            "host_face": "top",
+            "anchor": [0.1, -0.2],
+            "guest_extent": [0.18, 0.42, 0.36],
+            "engagement": 0.12,
+            "rotation_degrees": 12.0,
+        })
+        corrections = {
+            (row["operator"], row["parameter"], row["contract_value_type"])
+            for row in program.metadata[
+                "contract_lowered_parameter_type_corrections"
+            ]
+        }
+        self.assertTrue({
+            ("circularize", "segments", "number"),
+            ("attach", "host_face", "string"),
+            ("attach", "anchor", "vector"),
+            ("attach", "guest_extent", "vector"),
+            ("attach", "engagement", "number"),
+            ("attach", "rotation_degrees", "number"),
+        }.issubset(corrections))
+
+    def test_structured_author_rejects_out_of_contract_spatial_values(self):
+        def item(operator, kind, parameter, *, inputs=("host",)):
+            return {
+                "name": "invalid_spatial_parameter",
+                "root_id": "result",
+                "nodes": [{
+                    "id": "result",
+                    "kind": kind,
+                    "operator": operator,
+                    "inputs": list(inputs),
+                    "parameters": [parameter],
+                    "semantic_role": "invalid",
+                }],
+            }
+
+        def parameter(
+            name,
+            value_type,
+            *,
+            number=0.0,
+            string="",
+            vector=(),
+        ):
+            return {
+                "name": name,
+                "value_type": value_type,
+                "numeric_value": number,
+                "string_value": string,
+                "boolean_value": False,
+                "vector_value": list(vector),
+                "structured_json": "null",
+            }
+
+        invalid_cases = (
+            (
+                item(
+                    "circularize", "modifier",
+                    parameter("segments", "number", number=32.5),
+                ),
+                r"circularize\.segments must be an integer",
+            ),
+            (
+                item(
+                    "attach", "composition",
+                    parameter("host_face", "string", string="sideways"),
+                    inputs=("host", "guest"),
+                ),
+                r"attach\.host_face must be one of",
+            ),
+            (
+                item(
+                    "attach", "composition",
+                    parameter("anchor", "vector", vector=(0.1,)),
+                    inputs=("host", "guest"),
+                ),
+                r"attach\.anchor expects vector lengths \[2\]",
+            ),
+            (
+                item(
+                    "attach", "composition",
+                    parameter("engagement", "number", number=0.5),
+                    inputs=("host", "guest"),
+                ),
+                r"attach\.engagement must be between 0.015 and 0.24",
+            ),
+        )
+        for invalid_item, message in invalid_cases:
+            with self.subTest(message=message):
+                with self.assertRaisesRegex(ValueError, message):
+                    geometry_llm_adapter._program_from_structured_author_item(
+                        invalid_item, index=0
+                    )
 
     def test_book_operations_do_not_translate_in_world_or_seed_units(self):
         base = base_seed_programs()[2]

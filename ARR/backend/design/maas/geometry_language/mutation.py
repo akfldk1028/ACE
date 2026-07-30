@@ -137,7 +137,12 @@ NUMERIC_BOUNDS: dict[str, tuple[float, float]] = {
     "height": (0.01, 1000.0),
     "profile_width": (0.01, 1000.0),
     "profile_height": (0.01, 1000.0),
+    "engagement": (0.015, 0.24),
+    "rotation_degrees": (-45.0, 45.0),
+    "segments": (8.0, 96.0),
 }
+
+INTEGER_PARAMETERS = frozenset({"segments"})
 
 VECTOR_LENGTHS: dict[str, tuple[int, ...]] = {
     "vector": (3,),
@@ -148,6 +153,11 @@ VECTOR_LENGTHS: dict[str, tuple[int, ...]] = {
     "start_scale": (2,),
     "end_scale": (2,),
     "shift_per_level": (3,),
+}
+
+OPERATOR_VECTOR_LENGTHS: dict[tuple[str, str], tuple[int, ...]] = {
+    ("attach", "anchor"): (2,),
+    ("attach", "guest_extent"): (3,),
 }
 
 STRING_PARAMETER_VALUES: dict[tuple[str, str], frozenset[str]] = {
@@ -188,6 +198,9 @@ STRING_PARAMETER_VALUES: dict[tuple[str, str], frozenset[str]] = {
     ("embed_void", "position"): frozenset({"center", "east", "west", "north", "south"}),
     ("book_extract", "axis"): frozenset({"x", "y", "z"}),
     ("book_extract", "face_side"): frozenset({"east", "west", "north", "south"}),
+    ("attach", "host_face"): frozenset({
+        "bottom", "east", "north", "south", "top", "west",
+    }),
 }
 
 BOOLEAN_PARAMETERS = frozenset({
@@ -237,7 +250,7 @@ OPERATOR_PARAMETER_CONTRACTS: dict[str, frozenset[str]] = {
         "rotation_degrees",
     }),
     "bridge": frozenset({
-        "z", "height", "height_ratio", "width", "width_ratio",
+        "height", "height_ratio", "width", "width_ratio",
     }),
     "courtyard": frozenset({"margin_ratio", "open_side"}),
     "carve_void": frozenset({"margin_ratio", "open_side"}),
@@ -762,11 +775,16 @@ def _operator_parameter_value_issue(
 
 __all__ = [
     "ALLOWED_EDIT_OPERATIONS",
+    "BOOLEAN_PARAMETERS",
     "GeometryEdit",
     "CompilerSafeMutationResult",
+    "INTEGER_PARAMETERS",
     "MutationResult",
+    "NUMERIC_BOUNDS",
     "OPERATOR_PARAMETER_CONTRACTS",
+    "OPERATOR_VECTOR_LENGTHS",
     "STRING_PARAMETER_VALUES",
+    "VECTOR_LENGTHS",
     "apply_geometry_edits",
     "apply_geometry_edits_compiler_safe",
 ]

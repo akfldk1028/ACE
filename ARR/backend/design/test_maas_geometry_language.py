@@ -559,6 +559,152 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             "solid",
         )
 
+    @patch(
+        "design.maas.geometry_language.llm_adapter.urllib.request.urlopen",
+        side_effect=AssertionError("type rejection must not call provider"),
+    )
+    def test_surface_author_rejects_declared_value_type_mismatches(
+        self,
+        _urlopen,
+    ):
+        def parameter(
+            name,
+            value_type,
+            *,
+            number=0.0,
+            string="",
+            boolean=False,
+            structured="null",
+        ):
+            return {
+                "name": name,
+                "value_type": value_type,
+                "numeric_value": number,
+                "string_value": string,
+                "boolean_value": boolean,
+                "vector_value": [],
+                "structured_json": structured,
+            }
+
+        surface_parameters = {
+            "section_surface": [
+                parameter("span_axis", "string", string="x"),
+                parameter(
+                    "section_controls",
+                    "structured_json",
+                    structured=json.dumps([[0.0, 0.2], [1.0, 0.8]]),
+                ),
+            ],
+            "loft_surface": [
+                parameter(
+                    "profiles",
+                    "structured_json",
+                    structured=json.dumps([
+                        [[0.0, 0.0, 0.2], [0.0, 1.0, 0.2]],
+                        [[1.0, 0.0, 0.8], [1.0, 1.0, 0.8]],
+                    ]),
+                ),
+            ],
+            "host_face_surface": [
+                parameter("host_face", "string", string="top"),
+                parameter("inset_ratio", "number", number=0.1),
+            ],
+        }
+        shell_parameters = [
+            parameter("thickness_ratio", "number", number=0.04),
+            parameter("side", "string", string="center"),
+            parameter("close_edges", "boolean", boolean=True),
+        ]
+        cases = (
+            ("section_surface", "span_axis", "number"),
+            ("section_surface", "section_controls", "string"),
+            ("loft_surface", "profiles", "string"),
+            ("host_face_surface", "host_face", "number"),
+            ("host_face_surface", "inset_ratio", "string"),
+            ("shell_thicken", "thickness_ratio", "string"),
+            ("shell_thicken", "side", "number"),
+            ("shell_thicken", "close_edges", "string"),
+        )
+
+        for operator, target_parameter, wrong_type in cases:
+            with self.subTest(
+                operator=operator,
+                parameter=target_parameter,
+                wrong_type=wrong_type,
+            ):
+                surface_operator = (
+                    operator if operator != "shell_thicken"
+                    else "section_surface"
+                )
+                surface_rows = [
+                    dict(row) for row in surface_parameters[surface_operator]
+                ]
+                shell_rows = [dict(row) for row in shell_parameters]
+                target_rows = (
+                    shell_rows
+                    if operator == "shell_thicken"
+                    else surface_rows
+                )
+                next(
+                    row
+                    for row in target_rows
+                    if row["name"] == target_parameter
+                )["value_type"] = wrong_type
+                payload = {
+                    "programs": [{
+                        "name": f"wrong_{operator}_{target_parameter}",
+                        "base_seed": "block",
+                        "intent_tags": ["typed_surface"],
+                        "nodes": [
+                            {
+                                "id": "base",
+                                "kind": "primitive",
+                                "operator": "box",
+                                "inputs": [],
+                                "parameters": [
+                                    parameter(
+                                        "width", "number", number=1.0
+                                    ),
+                                    parameter(
+                                        "depth", "number", number=1.0
+                                    ),
+                                    parameter(
+                                        "height", "number", number=1.0
+                                    ),
+                                ],
+                                "semantic_role": "base_seed",
+                            },
+                            {
+                                "id": "surface",
+                                "kind": "surface",
+                                "operator": surface_operator,
+                                "inputs": ["base"],
+                                "parameters": surface_rows,
+                                "semantic_role": "section_carrier",
+                            },
+                            {
+                                "id": "shell",
+                                "kind": "conversion",
+                                "operator": "shell_thicken",
+                                "inputs": ["surface"],
+                                "parameters": shell_rows,
+                                "semantic_role": "envelope",
+                            },
+                        ],
+                        "root_id": "shell",
+                        "rationale": "type mismatch must reject",
+                    }],
+                }
+
+                with self.assertRaisesRegex(
+                    geometry_llm_adapter.GeometryAuthorError,
+                    rf"{operator}\.{target_parameter} declared value_type",
+                ):
+                    geometry_programs_from_author_payload(
+                        payload,
+                        expected_count=1,
+                    )
+
     def test_structured_author_rejects_unknown_operator_and_parameter_before_compile(self):
         def number(name, value):
             return {

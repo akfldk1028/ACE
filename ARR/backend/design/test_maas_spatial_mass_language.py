@@ -17,7 +17,10 @@ from design.maas.geometry_language.ast import (
     geometry_node_input_kinds,
     geometry_node_output_kind,
 )
-from design.maas.geometry_language.compiler import compile_geometry_program
+from design.maas.geometry_language.compiler import (
+    CompilationResult,
+    compile_geometry_program,
+)
 from design.maas.geometry_language.llm_adapter import GeometryAuthorError
 from design.maas.geometry_language.surface_geometry import (
     host_face_surface_from_bounds,
@@ -273,10 +276,70 @@ class SurfaceShellCompileTest(SimpleTestCase):
         self.assertAlmostEqual(shell_note["thickness_m"], 0.32, places=6)
         self.assertEqual(shell_note["side"], "center")
         self.assertTrue(shell_note["close_edges"])
+        self.assertTrue(surface_note["compiler_evidence_available"])
+        self.assertTrue(shell_note["compiler_evidence_available"])
         self.assertNotIn(
             "occupiable",
             json.dumps(shell_note, ensure_ascii=False).lower(),
         )
+
+    @patch(
+        "design.maas.geometry_language.vlm_adapter.score_candidate_with_openai_vlm",
+        side_effect=AssertionError("rejected graph notes must not call provider"),
+    )
+    def test_rejected_surface_shell_graph_notes_do_not_fabricate_trace_evidence(
+        self,
+        _provider,
+    ):
+        program = site_scale_section_shell_program()
+        rejected = CompilationResult(
+            program=program,
+            status="compile_failed",
+        )
+        rejected_notes = {
+            note["operator"]: note
+            for note in build_geometry_graph_notes(program, rejected)
+        }
+
+        self.assertEqual(
+            rejected_notes["section_surface"]["output_value_kind"],
+            "surface",
+        )
+        self.assertEqual(
+            rejected_notes["shell_thicken"]["output_value_kind"],
+            "solid",
+        )
+        self.assertFalse(
+            rejected_notes["section_surface"]["compiler_evidence_available"]
+        )
+        self.assertFalse(
+            rejected_notes["shell_thicken"]["compiler_evidence_available"]
+        )
+        for key in ("thickness_m", "side", "close_edges"):
+            self.assertNotIn(key, rejected_notes["shell_thicken"])
+
+        partial = CompilationResult(
+            program=program,
+            status="compile_failed",
+            trace=({
+                "node_id": "surface",
+                "operator": "section_surface",
+                "output_value_kind": "surface",
+            },),
+        )
+        partial_notes = {
+            note["operator"]: note
+            for note in build_geometry_graph_notes(program, partial)
+        }
+
+        self.assertTrue(
+            partial_notes["section_surface"]["compiler_evidence_available"]
+        )
+        self.assertFalse(
+            partial_notes["shell_thicken"]["compiler_evidence_available"]
+        )
+        for key in ("thickness_m", "side", "close_edges"):
+            self.assertNotIn(key, partial_notes["shell_thicken"])
 
     def test_all_surface_constructors_and_side_modes_compile_end_to_end(self):
         surfaces = (

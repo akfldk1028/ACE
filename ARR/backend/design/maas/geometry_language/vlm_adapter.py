@@ -25,7 +25,7 @@ from design.maas.preference.reference_corpus import (
 )
 from design.maas.program_massing.profiles import program_reference_contract
 
-from .ast import GeometryProgram
+from .ast import GeometryProgram, geometry_node_output_kind
 from .base_seeds import base_seed_catalog
 from .compiler import CompilationResult
 from .mutation import (
@@ -107,6 +107,17 @@ def build_geometry_graph_notes(
     for node in program.topological_nodes():
         provenance = node.provenance if isinstance(node.provenance, dict) else {}
         trace = trace_by_node.get(node.id, {})
+        compiler_evidence_available = bool(trace)
+        shell_evidence: dict[str, Any] = {}
+        if node.operator == "shell_thicken" and compiler_evidence_available:
+            if "thickness_m" in trace:
+                shell_evidence["thickness_m"] = float(trace["thickness_m"])
+            if "side" in trace:
+                shell_evidence["side"] = str(trace["side"])
+            if "close_edges" in trace:
+                shell_evidence["close_edges"] = bool(trace["close_edges"])
+            elif "edge_closure" in (trace.get("macro_expansion") or ()):
+                shell_evidence["close_edges"] = True
         notes.append({
             "node_id": node.id,
             "semantic_role": node.semantic_role or "unspecified",
@@ -120,12 +131,12 @@ def build_geometry_graph_notes(
             "expected_geometry_effect": OPERATOR_EFFECTS.get(node.operator, f"apply typed {node.operator} geometry operation"),
             "editable_parameters": sorted(node.parameters),
             "operator_parameter_contract": sorted(OPERATOR_PARAMETER_CONTRACTS.get(node.operator, ())),
-            "output_value_kind": str(trace.get("output_value_kind") or "solid"),
-            **({
-                "thickness_m": float(trace.get("thickness_m") or 0.0),
-                "side": str(trace.get("side") or node.parameters.get("side") or ""),
-                "close_edges": bool(node.parameters.get("close_edges")),
-            } if node.operator == "shell_thicken" else {}),
+            "output_value_kind": str(
+                trace.get("output_value_kind")
+                or geometry_node_output_kind(node)
+            ),
+            "compiler_evidence_available": compiler_evidence_available,
+            **shell_evidence,
             "protected_program_invariant": bool(
                 node.operator == "profiled_hall"
                 or node.semantic_role == "program_section_invariant"

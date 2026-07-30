@@ -52,6 +52,12 @@ CANONICAL_OPERATOR_KIND: dict[str, str] = {
 }
 
 AUTHOR_GEOMETRY_GATE_POLICY = GeometryGatePolicy(maximum_components=1)
+STRICT_DECLARED_PARAMETER_TYPE_OPERATORS = frozenset({
+    "section_surface",
+    "loft_surface",
+    "host_face_surface",
+    "shell_thicken",
+})
 
 
 class GeometryAuthorError(RuntimeError):
@@ -552,13 +558,20 @@ def _program_from_structured_author_item(item: dict[str, Any], *, index: int) ->
             if value_type not in {"number", "string", "boolean", "vector", "structured_json"}:
                 value_type = declared_value_type
             if value_type != declared_value_type:
-                parameter_type_corrections.append({
-                    "node_id": str(raw.get("id") or ""),
-                    "operator": operator,
-                    "parameter": name,
-                    "declared_value_type": declared_value_type,
-                    "contract_value_type": value_type,
-                })
+                if operator in STRICT_DECLARED_PARAMETER_TYPE_OPERATORS:
+                    raise ValueError(
+                        f"{operator}.{name} declared value_type "
+                        f"{declared_value_type!r} does not match contract "
+                        f"{value_type!r}"
+                    )
+                else:
+                    parameter_type_corrections.append({
+                        "node_id": str(raw.get("id") or ""),
+                        "operator": operator,
+                        "parameter": name,
+                        "declared_value_type": declared_value_type,
+                        "contract_value_type": value_type,
+                    })
             if value_type == "number":
                 value: Any = float(parameter.get("numeric_value") or 0.0)
             elif value_type == "string":

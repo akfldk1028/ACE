@@ -345,6 +345,220 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             },
         )
 
+    @patch(
+        "design.maas.geometry_language.llm_adapter.urllib.request.urlopen",
+        side_effect=AssertionError("offline author parser must not call provider"),
+    )
+    def test_author_schema_exposes_typed_surface_to_shell_path(self, _urlopen):
+        schema = geometry_llm_adapter._author_schema(1)
+        node_schema = (
+            schema["properties"]["programs"]["items"]["properties"]["nodes"]["items"]
+        )
+        variants = node_schema["anyOf"]
+        surface = next((
+            item
+            for item in variants
+            if item["properties"]["kind"]["enum"] == ["surface"]
+        ), None)
+        conversion = next((
+            item
+            for item in variants
+            if item["properties"]["kind"]["enum"] == ["conversion"]
+        ), None)
+
+        self.assertIsNotNone(surface)
+        self.assertIsNotNone(conversion)
+
+        self.assertEqual(
+            surface["properties"]["operator"]["enum"],
+            ["host_face_surface", "loft_surface", "section_surface"],
+        )
+        self.assertEqual(surface["properties"]["inputs"]["minItems"], 1)
+        self.assertEqual(surface["properties"]["inputs"]["maxItems"], 1)
+        self.assertEqual(
+            conversion["properties"]["operator"]["enum"],
+            ["shell_thicken"],
+        )
+        self.assertEqual(conversion["properties"]["inputs"]["minItems"], 1)
+        self.assertEqual(conversion["properties"]["inputs"]["maxItems"], 1)
+
+        expected_contracts = {
+            "section_surface": {"span_axis", "section_controls"},
+            "loft_surface": {"profiles"},
+            "host_face_surface": {"host_face", "inset_ratio"},
+            "shell_thicken": {"thickness_ratio", "side", "close_edges"},
+        }
+        for operator, parameters in expected_contracts.items():
+            self.assertEqual(
+                OPERATOR_PARAMETER_CONTRACTS[operator],
+                frozenset(parameters),
+            )
+            self.assertIn(operator, geometry_vlm_adapter.OPERATOR_EFFECTS)
+
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "section_surface", "section_controls"
+            ),
+            {"type": "structured_literal"},
+        )
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "loft_surface", "profiles"
+            ),
+            {"type": "structured_literal"},
+        )
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "section_surface", "span_axis"
+            ),
+            {"type": "string", "enum": ["x", "y"]},
+        )
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "host_face_surface", "host_face"
+            ),
+            {
+                "type": "string",
+                "enum": ["bottom", "east", "north", "south", "top", "west"],
+            },
+        )
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "shell_thicken", "side"
+            ),
+            {"type": "string", "enum": ["center", "inward", "outward"]},
+        )
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "shell_thicken", "close_edges"
+            ),
+            {"type": "boolean"},
+        )
+        thickness = geometry_llm_adapter._author_parameter_value_contract(
+            "shell_thicken", "thickness_ratio"
+        )
+        self.assertEqual(thickness["type"], "number")
+        self.assertGreater(thickness["minimum"], 0.0)
+        prompt = geometry_llm_adapter._author_prompt(
+            {"instruction": "author one generic spatial mass"},
+            1,
+        )
+        for required_rule in (
+            "Surface nodes are typed intermediate values, never roots",
+            "Every surface path must end in shell_thicken",
+            "Zero-thickness planes are forbidden",
+            "normalized to the current live BaseVolume bounds",
+            "connected, watertight and manifold gate",
+            "Named buildings and precedents are capability evidence only",
+            "never output recipes",
+            "permission to claim that a generated shell is occupiable",
+        ):
+            self.assertIn(required_rule, prompt)
+        self.assertEqual(
+            geometry_llm_adapter._AUTHOR_BODY_RULE_FAMILIES["shell_thicken"],
+            "surface_shell",
+        )
+
+        def parameter(
+            name,
+            value_type,
+            *,
+            number=0.0,
+            string="",
+            boolean=False,
+            structured="null",
+        ):
+            return {
+                "name": name,
+                "value_type": value_type,
+                "numeric_value": number,
+                "string_value": string,
+                "boolean_value": boolean,
+                "vector_value": [],
+                "structured_json": structured,
+            }
+
+        payload = {
+            "programs": [{
+                "name": "direct_typed_section_shell",
+                "base_seed": "block",
+                "intent_tags": ["continuous_section"],
+                "nodes": [
+                    {
+                        "id": "base",
+                        "kind": "primitive",
+                        "operator": "box",
+                        "inputs": [],
+                        "parameters": [
+                            parameter("width", "number", number=1.0),
+                            parameter("depth", "number", number=1.0),
+                            parameter("height", "number", number=1.0),
+                        ],
+                        "semantic_role": "base_seed",
+                    },
+                    {
+                        "id": "surface",
+                        "kind": "surface",
+                        "operator": "section_surface",
+                        "inputs": ["base"],
+                        "parameters": [
+                            parameter("span_axis", "string", string="x"),
+                            parameter(
+                                "section_controls",
+                                "structured_json",
+                                structured=json.dumps(
+                                    [[0.0, 0.15], [0.5, 0.85], [1.0, 0.2]]
+                                ),
+                            ),
+                        ],
+                        "semantic_role": "section_carrier",
+                    },
+                    {
+                        "id": "shell",
+                        "kind": "conversion",
+                        "operator": "shell_thicken",
+                        "inputs": ["surface"],
+                        "parameters": [
+                            parameter(
+                                "thickness_ratio", "number", number=0.04
+                            ),
+                            parameter("side", "string", string="center"),
+                            parameter(
+                                "close_edges", "boolean", boolean=True
+                            ),
+                        ],
+                        "semantic_role": "envelope",
+                    },
+                ],
+                "root_id": "shell",
+                "rationale": "normalized bounded surface thickened into a solid",
+            }],
+        }
+        programs = geometry_programs_from_author_payload(
+            payload,
+            expected_count=1,
+        )
+        result = compile_geometry_program(programs[0])
+
+        self.assertEqual(result.status, "compiled", result.issues)
+        self.assertEqual(programs[0].root_id, "shell")
+        self.assertEqual(
+            next(
+                row["output_value_kind"]
+                for row in result.trace
+                if row["operator"] == "section_surface"
+            ),
+            "surface",
+        )
+        self.assertEqual(
+            next(
+                row["output_value_kind"]
+                for row in result.trace
+                if row["operator"] == "shell_thicken"
+            ),
+            "solid",
+        )
+
     def test_structured_author_rejects_unknown_operator_and_parameter_before_compile(self):
         def number(name, value):
             return {

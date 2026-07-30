@@ -9,7 +9,7 @@ from unittest.mock import patch
 from django.test import SimpleTestCase
 
 from design.maas.creative_program_author import authored_programs_from_payload
-from design.maas.geometry_language import BoundedSurface
+from design.maas.geometry_language import BoundedSurface, build_geometry_graph_notes
 from design.maas.geometry_language import compiler as geometry_compiler
 from design.maas.geometry_language.ast import (
     GeometryNode,
@@ -249,6 +249,34 @@ class SurfaceShellCompileTest(SimpleTestCase):
         self.assertEqual(shell_row["segment_count"], 2)
         self.assertEqual(shell_row["fold_joint_count"], 1)
         self.assertFalse(shell_row["closed_seam"])
+
+    @patch(
+        "design.maas.geometry_language.vlm_adapter.score_candidate_with_openai_vlm",
+        side_effect=AssertionError("VLM graph notes must not call provider"),
+    )
+    def test_surface_shell_graph_notes_expose_typed_conversion_evidence(
+        self,
+        _urlopen,
+    ):
+        program = site_scale_section_shell_program()
+        result = compile_geometry_program(program)
+
+        notes = {
+            note["operator"]: note
+            for note in build_geometry_graph_notes(program, result)
+        }
+        surface_note = notes["section_surface"]
+        shell_note = notes["shell_thicken"]
+
+        self.assertEqual(surface_note["output_value_kind"], "surface")
+        self.assertEqual(shell_note["output_value_kind"], "solid")
+        self.assertAlmostEqual(shell_note["thickness_m"], 0.32, places=6)
+        self.assertEqual(shell_note["side"], "center")
+        self.assertTrue(shell_note["close_edges"])
+        self.assertNotIn(
+            "occupiable",
+            json.dumps(shell_note, ensure_ascii=False).lower(),
+        )
 
     def test_all_surface_constructors_and_side_modes_compile_end_to_end(self):
         surfaces = (

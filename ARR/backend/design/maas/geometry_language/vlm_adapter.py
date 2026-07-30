@@ -88,6 +88,12 @@ OPERATOR_EFFECTS = {
     "profiled_hall": "compile a normalized long-span roof/section profile over the live base solid",
     "attach": "engage a guest with a normalized live host face through real overlap",
     "bridge": "join two distinct solids with an embedded volumetric connector",
+    "section_surface": "derive a bounded normalized sectional surface",
+    "loft_surface": "derive a bounded surface through ordered section profiles",
+    "host_face_surface": "derive a bounded sub-surface from a live solid face",
+    "shell_thicken": (
+        "convert a bounded surface into a positive-thickness closed solid"
+    ),
 }
 
 
@@ -114,6 +120,12 @@ def build_geometry_graph_notes(
             "expected_geometry_effect": OPERATOR_EFFECTS.get(node.operator, f"apply typed {node.operator} geometry operation"),
             "editable_parameters": sorted(node.parameters),
             "operator_parameter_contract": sorted(OPERATOR_PARAMETER_CONTRACTS.get(node.operator, ())),
+            "output_value_kind": str(trace.get("output_value_kind") or "solid"),
+            **({
+                "thickness_m": float(trace.get("thickness_m") or 0.0),
+                "side": str(trace.get("side") or node.parameters.get("side") or ""),
+                "close_edges": bool(node.parameters.get("close_edges")),
+            } if node.operator == "shell_thicken" else {}),
             "protected_program_invariant": bool(
                 node.operator == "profiled_hall"
                 or node.semantic_role == "program_section_invariant"

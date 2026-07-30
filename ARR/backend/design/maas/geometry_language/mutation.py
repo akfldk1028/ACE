@@ -140,6 +140,8 @@ NUMERIC_BOUNDS: dict[str, tuple[float, float]] = {
     "engagement": (0.015, 0.24),
     "rotation_degrees": (-45.0, 45.0),
     "segments": (8.0, 96.0),
+    "inset_ratio": (0.0, 0.49),
+    "thickness_ratio": (0.005, 0.25),
 }
 
 INTEGER_PARAMETERS = frozenset({"segments"})
@@ -201,10 +203,17 @@ STRING_PARAMETER_VALUES: dict[tuple[str, str], frozenset[str]] = {
     ("attach", "host_face"): frozenset({
         "bottom", "east", "north", "south", "top", "west",
     }),
+    ("section_surface", "span_axis"): frozenset({"x", "y"}),
+    ("host_face_surface", "host_face"): frozenset({
+        "bottom", "east", "north", "south", "top", "west",
+    }),
+    ("shell_thicken", "side"): frozenset({
+        "center", "inward", "outward",
+    }),
 }
 
 BOOLEAN_PARAMETERS = frozenset({
-    "center", "bridge", "ground_spine", "require_connected",
+    "center", "bridge", "close_edges", "ground_spine", "require_connected",
 })
 
 # Executable compiler parameters exposed to LLM/VLM graph editors.  This is
@@ -242,6 +251,12 @@ OPERATOR_PARAMETER_CONTRACTS: dict[str, frozenset[str]] = {
     "mirror_array": frozenset({"normal", "pivot"}),
     "stack": frozenset({"count", "spacing", "shift_per_level"}),
     "matrix_array": frozenset({"matrices", "require_connected"}),
+    "section_surface": frozenset({"span_axis", "section_controls"}),
+    "loft_surface": frozenset({"profiles"}),
+    "host_face_surface": frozenset({"host_face", "inset_ratio"}),
+    "shell_thicken": frozenset({
+        "thickness_ratio", "side", "close_edges",
+    }),
     "union": frozenset(),
     "difference": frozenset(),
     "intersection": frozenset(),

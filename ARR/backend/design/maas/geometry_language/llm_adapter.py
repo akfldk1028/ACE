@@ -30,7 +30,7 @@ from .mutation import (
 
 
 DEFAULT_GEOMETRY_AUTHOR_MODEL = "gpt-5.4-mini"
-GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v24_nonfragmenting_relation_pairs"
+GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v25_typed_surface_shell"
 MAX_AUTHOR_COMPILER_REPAIR_GENERATIONS = 3
 
 SEMANTIC_MACRO_BASE_SEEDS: dict[str, frozenset[str]] = {
@@ -666,11 +666,19 @@ circularize, profile_sweep_3d.
 Allowed booleans: union, subtract/difference, intersection.
 Allowed patterns: duplicate, linear_array, radial_array, mirror_array, stack, matrix_array.
 Allowed compositions: attach, bridge.
+Allowed surface constructors: section_surface, loft_surface, host_face_surface.
+Allowed surface-to-solid conversion: shell_thicken.
 Program-conditioned allowed macros: {allowed_macro_operators}.
 
 Rules:
 - Every node is one typed function call; parameters are explicit typed JSON values.
 - A prior node can be reused; input references must remain acyclic.
+- Surface nodes are typed intermediate values, never roots. Every surface path must end in shell_thicken,
+  and only the resulting positive-thickness closed solid may be root_id. Zero-thickness planes are forbidden.
+- Surface controls and thickness ratios are normalized to the current live BaseVolume bounds, never copied
+  parcel coordinates. shell_thicken does not bypass the unchanged connected, watertight and manifold gate.
+- Named buildings and precedents are capability evidence only, never output recipes, operators, requested
+  silhouettes or permission to claim that a generated shell is occupiable.
 - semantic_role must name the architectural job carried by that executable node, using program_context
   semantic-invariant roles where applicable. The current program is {program_id}; its role vocabulary is:
   {role_vocabulary_text}. Do not borrow hall, gallery, tower, roof-section, or other roles from another program
@@ -917,6 +925,8 @@ def _author_node_schema(allowed_operators: list[str]) -> dict[str, Any]:
         variant("transform", OPERATORS_BY_KIND["transform"], minimum_inputs=1, maximum_inputs=1),
         variant("modifier", OPERATORS_BY_KIND["modifier"], minimum_inputs=1, maximum_inputs=1),
         variant("pattern", OPERATORS_BY_KIND["pattern"], minimum_inputs=1, maximum_inputs=1),
+        variant("surface", OPERATORS_BY_KIND["surface"], minimum_inputs=1, maximum_inputs=1),
+        variant("conversion", OPERATORS_BY_KIND["conversion"], minimum_inputs=1, maximum_inputs=1),
         variant("boolean", {"difference"}, minimum_inputs=2, maximum_inputs=2),
         variant("boolean", {"union", "intersection"}, minimum_inputs=2, maximum_inputs=4),
         variant("composition", {"attach"}, minimum_inputs=2, maximum_inputs=4),
@@ -1220,6 +1230,7 @@ _AUTHOR_BODY_RULE_FAMILIES = {
     "matrix4": "transform", "scale": "transform", "translate": "transform", "rotate": "transform",
     "union": "composition", "intersection": "composition", "difference": "composition",
     "attach": "composition", "bridge": "composition",
+    "shell_thicken": "surface_shell",
 }
 
 

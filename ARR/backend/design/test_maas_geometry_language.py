@@ -50,9 +50,13 @@ from design.maas.geometry_language import (
     synthesize_architectural_programs,
     synthesis_requests_from_program_profile,
 )
-from design.maas.geometry_language.mutation import OPERATOR_PARAMETER_CONTRACTS
+from design.maas.geometry_language.mutation import (
+    BOOLEAN_PARAMETERS,
+    OPERATOR_PARAMETER_CONTRACTS,
+)
 from design.maas.geometry_language import llm_adapter as geometry_llm_adapter
 from design.maas.geometry_language import synthesis as geometry_synthesis
+from design.maas.geometry_language import vlm_adapter as geometry_vlm_adapter
 from design.maas.book_language.registry import build_book_language_registry
 from design.maas.book_language.corpus_contract import BASE_OPERATIVES
 from design.maas.geometry_language.base_volume_audit import audit_book_base_volumes
@@ -256,6 +260,47 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertTrue({"podium_scale", "podium_height_ratio"}.issubset(
             OPERATOR_PARAMETER_CONTRACTS["stepped_mass"]
         ))
+
+    def test_direct_author_contract_exposes_existing_plate_disc_operators(self):
+        expected = {
+            "matrix4": {"matrix4"},
+            "circularize": {"segments"},
+            "matrix_array": {"matrices", "require_connected"},
+            "profile_sweep_3d": {"path", "require_connected"},
+            "attach": {
+                "host_face", "anchor", "guest_extent",
+                "engagement", "rotation_degrees",
+            },
+            "bridge": {"height", "height_ratio", "width", "width_ratio"},
+        }
+        prompt = geometry_llm_adapter._author_prompt({
+            "program": "neighborhood_living",
+            "instruction": "author one executable spatial mass",
+        }, 1)
+        for operator, parameters in expected.items():
+            self.assertIn(operator, prompt)
+            self.assertTrue(
+                parameters.issubset(OPERATOR_PARAMETER_CONTRACTS[operator])
+            )
+            self.assertIn(operator, geometry_vlm_adapter.OPERATOR_EFFECTS)
+            self.assertIn(
+                operator,
+                geometry_llm_adapter._AUTHOR_BODY_RULE_FAMILIES,
+            )
+
+        self.assertIn("require_connected", BOOLEAN_PARAMETERS)
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "matrix4", "matrix4"
+            )["type"],
+            "structured_literal",
+        )
+        self.assertEqual(
+            geometry_llm_adapter._author_parameter_value_contract(
+                "matrix_array", "matrices"
+            )["type"],
+            "structured_literal",
+        )
 
     def test_book_operations_do_not_translate_in_world_or_seed_units(self):
         base = base_seed_programs()[2]

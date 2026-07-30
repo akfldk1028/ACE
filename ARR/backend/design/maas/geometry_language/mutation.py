@@ -190,7 +190,9 @@ STRING_PARAMETER_VALUES: dict[tuple[str, str], frozenset[str]] = {
     ("book_extract", "face_side"): frozenset({"east", "west", "north", "south"}),
 }
 
-BOOLEAN_PARAMETERS = frozenset({"center", "bridge", "ground_spine"})
+BOOLEAN_PARAMETERS = frozenset({
+    "center", "bridge", "ground_spine", "require_connected",
+})
 
 # Executable compiler parameters exposed to LLM/VLM graph editors.  This is
 # deliberately exhaustive: an unknown parameter must not be accepted merely
@@ -204,6 +206,7 @@ OPERATOR_PARAMETER_CONTRACTS: dict[str, frozenset[str]] = {
     "wedge": frozenset({"width", "depth", "start_height", "end_height"}),
     "sweep": frozenset({"path", "profile_width", "profile_height", "width", "height"}),
     "loft": frozenset({"profiles"}),
+    "matrix4": frozenset({"matrix4"}),
     "translate": frozenset({"vector", "x", "y", "z"}),
     "rotate": frozenset({"axis", "angle", "angle_degrees", "angles", "pivot"}),
     "scale": frozenset({"vector", "scale", "pivot"}),
@@ -218,16 +221,24 @@ OPERATOR_PARAMETER_CONTRACTS: dict[str, frozenset[str]] = {
     "clip": frozenset({"normal", "offset", "offset_ratio", "keep_side"}),
     "clip_fraction": frozenset({"axis", "fraction", "anchor"}),
     "cut_corner": frozenset({"corner", "ratio", "distance"}),
+    "circularize": frozenset({"segments"}),
+    "profile_sweep_3d": frozenset({"path", "require_connected"}),
     "duplicate": frozenset({"count", "vector", "spacing"}),
     "linear_array": frozenset({"count", "vector", "spacing"}),
     "radial_array": frozenset({"count", "total_angle_degrees", "angle_degrees", "pivot"}),
     "mirror_array": frozenset({"normal", "pivot"}),
     "stack": frozenset({"count", "spacing", "shift_per_level"}),
+    "matrix_array": frozenset({"matrices", "require_connected"}),
     "union": frozenset(),
     "difference": frozenset(),
     "intersection": frozenset(),
-    "attach": frozenset(),
-    "bridge": frozenset({"z", "height_ratio", "height", "width"}),
+    "attach": frozenset({
+        "host_face", "anchor", "guest_extent", "engagement",
+        "rotation_degrees",
+    }),
+    "bridge": frozenset({
+        "z", "height", "height_ratio", "width", "width_ratio",
+    }),
     "courtyard": frozenset({"margin_ratio", "open_side"}),
     "carve_void": frozenset({"margin_ratio", "open_side"}),
     "notch": frozenset({"corner", "side", "ratio", "width_ratio", "height_ratio"}),

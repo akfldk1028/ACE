@@ -41,6 +41,7 @@ from .mutation import (
 OPERATOR_EFFECTS = {
     "box": "establish a rectilinear solid datum",
     "extruded_polygon": "establish a profiled plan extrusion",
+    "matrix4": "apply one explicit affine transform to the live solid",
     "translate": "move a solid without changing its topology",
     "scale": "change normalized width, depth or height proportion",
     "rotate": "change orientation about a declared pivot",
@@ -51,6 +52,8 @@ OPERATOR_EFFECTS = {
     "pinch": "contract an intermediate waist while preserving both ends",
     "inflate": "swell the middle of a continuous solid without adding fragments",
     "slice": "retain one side of a declared cutting plane",
+    "circularize": "derive a bounded positive-thickness elliptical plate from live bounds",
+    "profile_sweep_3d": "sweep the live positive section along a three-dimensional path",
     "clip_fraction": "select a normalized BOOK p.3 fraction of the live solid bounds",
     "book_base_volume": "select the exact connected normalized cell volume shown on BOOK p.3",
     "cut_corner": "remove a bounded corner with a plane cut",
@@ -67,6 +70,7 @@ OPERATOR_EFFECTS = {
     "union": "join input solids into one Boolean result",
     "difference": "subtract the second input from the first",
     "radial_array": "repeat and rotate a solid about a pivot",
+    "matrix_array": "place explicit affine instances and require a connected volumetric union",
     "grid_mass": "cross connected parallel rows and columns into an occupiable field",
     "merge_related": "fuse a scaled related unit through a measured live-solid overlap",
     "overlap_related": "overlap a shifted slab while retaining a measured vertical intersection",
@@ -82,6 +86,8 @@ OPERATOR_EFFECTS = {
     "sweep": "carry a profile along an explicit spatial path",
     "loft": "interpolate a solid between explicit profiles",
     "profiled_hall": "compile a normalized long-span roof/section profile over the live base solid",
+    "attach": "engage a guest with a normalized live host face through real overlap",
+    "bridge": "join two distinct solids with an embedded volumetric connector",
 }
 
 

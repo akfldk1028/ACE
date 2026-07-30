@@ -18,6 +18,7 @@ from .compiler import compile_geometry_program
 from .dsl import GeometryDslError, parse_geometry_dsl, program_to_dsl
 from .gate import GeometryGatePolicy, compilation_gate
 from .mutation import (
+    BOOLEAN_PARAMETERS,
     NUMERIC_BOUNDS,
     OPERATOR_PARAMETER_CONTRACTS,
     STRING_PARAMETER_VALUES,
@@ -635,10 +636,11 @@ Example concept (the schema, not prose, is authoritative): unit box -> scale vec
 -> bend axis x, angle_degrees 28, subdivisions 4 -> courtyard margin_ratio 0.28, open_side matching access.
 
 Allowed primitives: box, cylinder, extruded_polygon, wedge, sweep, loft.
-Allowed transforms: translate/move, rotate, scale, mirror, shear.
-Allowed modifiers: bend, taper, twist, pinch, inflate, slice, clip, clip_fraction, cut_corner.
+Allowed transforms: matrix4, translate/move, rotate, scale, mirror, shear.
+Allowed modifiers: bend, taper, twist, pinch, inflate, slice, clip, clip_fraction, cut_corner,
+circularize, profile_sweep_3d.
 Allowed booleans: union, subtract/difference, intersection.
-Allowed patterns: duplicate, linear_array, radial_array, mirror_array, stack.
+Allowed patterns: duplicate, linear_array, radial_array, mirror_array, stack, matrix_array.
 Allowed compositions: attach, bridge.
 Program-conditioned allowed macros: {allowed_macro_operators}.
 
@@ -1183,14 +1185,17 @@ def _program_language_contract_issue(
 _AUTHOR_BODY_RULE_FAMILIES = {
     "bend": "deformation", "bent_bar": "deformation", "twist": "deformation",
     "inflate": "deformation", "pinch": "deformation", "taper": "deformation",
-    "shear": "deformation", "setback": "step", "stepped_mass": "step",
+    "shear": "deformation", "circularize": "deformation",
+    "profile_sweep_3d": "deformation", "setback": "step", "stepped_mass": "step",
     "terrace": "step", "courtyard": "void", "carve_void": "void",
     "notch": "void", "puncture": "void", "cut_corner": "void",
     "slice": "cut", "clip": "cut", "radial_array": "array",
+    "matrix_array": "array",
     "linear_array": "array", "mirror_array": "array", "cross_mass": "array", "grid_mass": "array",
     "split_wing": "array", "cantilever": "support", "lift": "support",
-    "scale": "transform", "translate": "transform", "rotate": "transform",
+    "matrix4": "transform", "scale": "transform", "translate": "transform", "rotate": "transform",
     "union": "composition", "intersection": "composition", "difference": "composition",
+    "attach": "composition", "bridge": "composition",
 }
 
 
@@ -1270,9 +1275,12 @@ def _author_parameter_value_contract(operator: str, parameter: str) -> Any:
         # are intentionally absent from the mutation clamp table because the
         # site fitter rebases them later, but their JSON type is still numeric.
         return {"type": "number", "minimum": -4.0, "maximum": 4.0}
-    if parameter in {"center", "bridge", "ground_spine"}:
+    if parameter in BOOLEAN_PARAMETERS:
         return {"type": "boolean"}
-    if parameter in {"points", "holes", "path", "profiles", "section_controls"}:
+    if parameter in {
+        "matrix4", "matrices", "points", "holes", "path", "profiles",
+        "section_controls",
+    }:
         return {"type": "structured_literal"}
     return {"type": "literal"}
 

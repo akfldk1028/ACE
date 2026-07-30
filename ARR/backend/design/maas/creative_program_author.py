@@ -60,6 +60,8 @@ def authored_programs_from_payload(
     program_context: dict[str, Any] | None = None,
 ) -> tuple[CreativeAuthoredProgram, ...]:
     exact_programs = payload.get("geometry_programs")
+    if exact_programs is None:
+        exact_programs = payload.get("compiled_programs")
     if isinstance(exact_programs, list):
         programs = tuple(
             GeometryProgram.from_dict(item)

@@ -161,6 +161,205 @@ def surface_program(
     )
 
 
+def site_scale_section_shell_program(
+    *,
+    surface_operator: str = "section_surface",
+    surface_parameters: dict[str, object] | None = None,
+    shell_parameters: dict[str, object] | None = None,
+) -> GeometryProgram:
+    unitbox = GeometryNode(
+        "unitbox",
+        "primitive",
+        "box",
+        parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+    )
+    host = GeometryNode(
+        "host",
+        "transform",
+        "matrix4",
+        inputs=("unitbox",),
+        parameters={
+            "matrix4": [
+                [20.0, 0.0, 0.0, 0.0],
+                [0.0, 12.0, 0.0, 0.0],
+                [0.0, 0.0, 8.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        },
+    )
+    surface = GeometryNode(
+        "surface",
+        "surface",
+        surface_operator,
+        inputs=("host",),
+        parameters=surface_parameters or {
+            "span_axis": "x",
+            "section_controls": [[0.0, 0.15], [0.5, 0.85], [1.0, 0.2]],
+        },
+    )
+    shell = GeometryNode(
+        "shell",
+        "conversion",
+        "shell_thicken",
+        inputs=("surface",),
+        parameters=shell_parameters or {
+            "thickness_ratio": 0.04,
+            "side": "center",
+            "close_edges": True,
+        },
+    )
+    return GeometryProgram(
+        nodes=(unitbox, host, surface, shell),
+        root_id="shell",
+        name="site_scale_section_shell",
+    )
+
+
+class SurfaceShellCompileTest(SimpleTestCase):
+    def test_section_surface_thickens_to_closed_mass(self):
+        result = compile_geometry_program(site_scale_section_shell_program())
+
+        self.assertEqual(result.status, "compiled", result.issues)
+        self.assertTrue(exactly_one_canonical_unitbox(result.program))
+        self.assertEqual(result.metrics["component_count"], 1)
+        self.assertTrue(result.metrics["closed_solid"])
+        self.assertTrue(result.metrics["watertight"])
+        self.assertTrue(result.metrics["manifold"])
+        self.assertGreater(result.metrics["volume"], 0.0)
+
+        surface_row = next(
+            row for row in result.trace if row["operator"] == "section_surface"
+        )
+        self.assertEqual(surface_row["output_value_kind"], "surface")
+        self.assertNotIn("volume", surface_row)
+        self.assertEqual(surface_row["section_count"], 3)
+        self.assertEqual(surface_row["point_count"], 6)
+
+        shell_row = next(
+            row for row in result.trace if row["operator"] == "shell_thicken"
+        )
+        self.assertEqual(shell_row["output_value_kind"], "solid")
+        self.assertAlmostEqual(shell_row["thickness_m"], 0.32, places=6)
+
+    def test_ast_rejects_zero_thickness_and_open_edges_before_kernel(self):
+        cases = (
+            (
+                {
+                    "thickness_ratio": 0.0,
+                    "side": "center",
+                    "close_edges": True,
+                },
+                "shell_thickness_out_of_bounds",
+            ),
+            (
+                {
+                    "thickness_ratio": 0.04,
+                    "side": "center",
+                    "close_edges": False,
+                },
+                "open_shell_edges",
+            ),
+        )
+
+        for parameters, issue_code in cases:
+            with self.subTest(issue_code=issue_code):
+                result = compile_geometry_program(
+                    site_scale_section_shell_program(
+                        shell_parameters=parameters,
+                    )
+                )
+
+                self.assertEqual(result.status, "invalid_program")
+                self.assertIn(
+                    issue_code,
+                    {issue.code for issue in result.issues},
+                )
+
+    def test_collapsed_surface_section_fails_closed_at_compile_boundary(self):
+        result = compile_geometry_program(
+            site_scale_section_shell_program(
+                surface_operator="loft_surface",
+                surface_parameters={
+                    "profiles": [
+                        [[0.0, 0.0, 0.2], [0.0, 1.0, 0.2]],
+                        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5]],
+                        [[1.0, 0.0, 0.8], [1.0, 1.0, 0.8]],
+                    ],
+                },
+            )
+        )
+
+        self.assertEqual(result.status, "compile_failed")
+        self.assertEqual(result.issues[0].code, "invalid_surface_geometry")
+
+    def test_self_intersecting_surface_fails_before_shell_union(self):
+        result = compile_geometry_program(
+            site_scale_section_shell_program(
+                surface_operator="loft_surface",
+                surface_parameters={
+                    "profiles": [
+                        [[0.0, 0.0, 0.1], [0.0, 1.0, 0.1]],
+                        [[0.2, 0.0, 0.3], [0.2, 1.0, 0.3]],
+                        [[0.0, 0.0, 0.3], [0.0, 1.0, 0.3]],
+                        [[1.0, 0.0, 0.1], [1.0, 1.0, 0.1]],
+                    ],
+                },
+            )
+        )
+
+        self.assertEqual(result.status, "compile_failed")
+        self.assertEqual(result.issues[0].code, "self_intersecting_shell")
+
+    def test_outward_shell_rejects_edge_only_disconnected_segments(self):
+        result = compile_geometry_program(
+            site_scale_section_shell_program(
+                surface_operator="loft_surface",
+                surface_parameters={
+                    "profiles": [
+                        [[0.0, 0.0, 0.1], [0.0, 1.0, 0.1]],
+                        [[0.0, 0.0, 0.9], [0.0, 1.0, 0.9]],
+                        [[0.5, 0.0, 0.1], [0.5, 1.0, 0.1]],
+                    ],
+                },
+                shell_parameters={
+                    "thickness_ratio": 0.04,
+                    "side": "outward",
+                    "close_edges": True,
+                },
+            )
+        )
+
+        self.assertEqual(result.status, "compile_failed")
+        self.assertEqual(result.issues[0].code, "disconnected_shell")
+
+    def test_surface_cannot_reach_solid_only_union_compiler_path(self):
+        source = site_scale_section_shell_program()
+        other = GeometryNode(
+            "other",
+            "primitive",
+            "box",
+            parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        union = GeometryNode(
+            "result",
+            "boolean",
+            "union",
+            inputs=("surface", "other"),
+        )
+        program = GeometryProgram(
+            nodes=(*source.nodes[:-1], other, union),
+            root_id="result",
+        )
+
+        result = compile_geometry_program(program)
+
+        self.assertEqual(result.status, "invalid_program")
+        self.assertIn(
+            "geometry_value_kind_mismatch",
+            {issue.code for issue in result.issues},
+        )
+
+
 class SurfaceAstTypeTest(SimpleTestCase):
     def test_geometry_value_kind_contracts_are_explicit(self):
         source = surface_program()

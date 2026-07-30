@@ -17,6 +17,12 @@ from .affine_matrix import kernel_matrix3x4, matrix4_for_transform, matrix4_to_l
 from .book_parameter_projection import BOOK_KERNEL_PARAMETER_PROJECTIONS
 from .host_face_relations import resolve_face_attachment
 from .section_profiles import section_profile_controls
+from .surface_geometry import (
+    BoundedSurface,
+    host_face_surface_from_bounds,
+    loft_surface_from_bounds,
+    section_surface_from_bounds,
+)
 from .unitbox_normalization import normalize_unitbox_program
 
 
@@ -103,21 +109,44 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
             raise
         except Exception as exc:
             raise GeometryCompileError("operator_exception", f"{type(exc).__name__}: {exc}", node.id) from exc
-        if solid is None or solid.is_empty():
-            raise GeometryCompileError("empty_operator_result", f"{node.operator} returned an empty solid", node.id)
-        status = str(solid.status())
-        if "NoError" not in status:
-            raise GeometryCompileError("kernel_error", status, node.id)
-        cache[node_id] = solid
-        trace_row = {
+        value = solid
+        trace_row: dict[str, Any] = {
             "node_id": node.id,
             "kind": node.kind,
             "operator": node.operator,
             "input_ids": list(node.inputs),
-            "triangle_count": int(solid.num_tri()),
-            "volume": round(float(solid.volume()), 6),
             "macro_expansion": expansion,
         }
+        if isinstance(value, BoundedSurface):
+            surface_errors = value.validate()
+            if surface_errors:
+                raise GeometryCompileError(
+                    "invalid_bounded_surface",
+                    ", ".join(surface_errors),
+                    node.id,
+                )
+            trace_row.update({
+                "output_value_kind": "surface",
+                "section_count": len(value.sections),
+                "point_count": sum(len(section) for section in value.sections),
+            })
+        else:
+            if value is None or value.is_empty():
+                raise GeometryCompileError("empty_operator_result", f"{node.operator} returned an empty solid", node.id)
+            status = str(value.status())
+            if "NoError" not in status:
+                raise GeometryCompileError("kernel_error", status, node.id)
+            trace_row.update({
+                "output_value_kind": "solid",
+                "triangle_count": int(value.num_tri()),
+                "volume": round(float(value.volume()), 6),
+            })
+            if node.kind == "conversion" and node.operator == "shell_thicken":
+                trace_row["thickness_m"] = round(
+                    _shell_thickness_m(inputs[0], node.parameters, node.id),
+                    6,
+                )
+        cache[node_id] = value
         if node.kind == "transform" and inputs:
             trace_row["matrix4"] = matrix4_to_lists(_transform_matrix4(node, inputs[0]))
         if node.kind == "pattern" and node.operator == "matrix_array":
@@ -160,10 +189,16 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
                 # authoritative compiler error.
                 pass
         trace.append(trace_row)
-        return solid
+        return value
 
     try:
         solid = evaluate(program.root_id)
+        if not isinstance(solid, m3d.Manifold):
+            raise GeometryCompileError(
+                "non_solid_root",
+                "compiled program root must be a manifold solid",
+                program.root_id,
+            )
         mesh = solid.to_mesh64()
         raw_vertices = np.asarray(mesh.vert_properties, dtype=float)[:, :3]
         raw_triangles = np.asarray(mesh.tri_verts, dtype=np.int64)
@@ -374,10 +409,245 @@ def _evaluate_node(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str
         return _pattern(node, inputs[0]), []
     if node.kind == "composition":
         return _composition(node, inputs), []
+    if node.kind == "surface":
+        return _surface_node(node, inputs[0]), ["live_bounds", node.operator]
+    if node.kind == "conversion" and node.operator == "shell_thicken":
+        return _shell_thicken(inputs[0], node.parameters, node.id), [
+            "surface_offset",
+            "edge_closure",
+            "segment_hulls",
+            "union",
+        ]
     if node.kind == "macro":
         solid, expansion = _macro(node, inputs)
         return solid, expansion
     raise GeometryCompileError("unknown_node_kind", node.kind, node.id)
+
+
+def _surface_node(node: GeometryNode, source_solid) -> BoundedSurface:
+    constructors = {
+        "section_surface": section_surface_from_bounds,
+        "loft_surface": loft_surface_from_bounds,
+        "host_face_surface": host_face_surface_from_bounds,
+    }
+    constructor = constructors.get(node.operator)
+    if constructor is None:
+        raise GeometryCompileError(
+            "unsupported_surface",
+            node.operator,
+            node.id,
+        )
+    try:
+        return constructor(_bounds(source_solid), node.parameters)
+    except (TypeError, ValueError) as exc:
+        raise GeometryCompileError(
+            "invalid_surface_geometry",
+            str(exc),
+            node.id,
+        ) from exc
+
+
+def _shell_thicken(
+    surface: BoundedSurface,
+    parameters: dict[str, Any],
+    node_id: str,
+):
+    if not isinstance(surface, BoundedSurface):
+        raise GeometryCompileError(
+            "invalid_shell_input",
+            "shell_thicken requires a bounded surface",
+            node_id,
+        )
+    surface_errors = surface.validate()
+    if surface_errors:
+        raise GeometryCompileError(
+            "invalid_bounded_surface",
+            ", ".join(surface_errors),
+            node_id,
+        )
+    if parameters.get("close_edges") is not True:
+        raise GeometryCompileError(
+            "open_shell_edges",
+            "shell_thicken requires close_edges=true",
+            node_id,
+        )
+
+    thickness_m = _shell_thickness_m(surface, parameters, node_id)
+    lower_distance, upper_distance = {
+        "center": (-0.5 * thickness_m, 0.5 * thickness_m),
+        "inward": (-thickness_m, 0.0),
+        "outward": (0.0, thickness_m),
+    }.get(
+        str(parameters.get("side") or "").lower(),
+        (float("nan"), float("nan")),
+    )
+    if not np.isfinite(lower_distance):
+        raise GeometryCompileError(
+            "invalid_shell_side",
+            "shell_thicken side must be center, inward, or outward",
+            node_id,
+        )
+
+    segments: list[Any] = []
+    for start, end in zip(surface.sections, surface.sections[1:]):
+        if len(start) != len(end):
+            raise GeometryCompileError(
+                "inconsistent_shell_sections",
+                "adjacent surface sections must have equal vertex counts",
+                node_id,
+            )
+        normal = _shell_segment_normal(start, end, node_id)
+        lower_start = _offset_points(start, normal, lower_distance)
+        upper_start = _offset_points(start, normal, upper_distance)
+        lower_end = _offset_points(end, normal, lower_distance)
+        upper_end = _offset_points(end, normal, upper_distance)
+        segment = m3d.Manifold.hull_points([
+            *lower_start,
+            *upper_start,
+            *lower_end,
+            *upper_end,
+        ])
+        if segment.is_empty():
+            raise GeometryCompileError(
+                "empty_shell_segment",
+                "surface segment collapsed during shell thickening",
+                node_id,
+            )
+        status = str(segment.status())
+        if "NoError" not in status:
+            raise GeometryCompileError(
+                "shell_kernel_error",
+                status,
+                node_id,
+            )
+        segments.append(segment)
+
+    if not segments:
+        raise GeometryCompileError(
+            "empty_shell",
+            "shell_thicken produced no surface segments",
+            node_id,
+        )
+    for left_index, left in enumerate(segments):
+        for right in segments[left_index + 2:]:
+            overlap = m3d.Manifold.batch_boolean(
+                [left, right],
+                m3d.OpType.Intersect,
+            )
+            overlap_status = str(overlap.status())
+            if "NoError" not in overlap_status:
+                raise GeometryCompileError(
+                    "shell_kernel_error",
+                    overlap_status,
+                    node_id,
+                )
+            if (
+                not overlap.is_empty()
+                and float(overlap.volume()) > max(
+                    thickness_m ** 3 * 1e-9,
+                    1e-12,
+                )
+            ):
+                raise GeometryCompileError(
+                    "self_intersecting_shell",
+                    "non-adjacent thickened surface segments intersect",
+                    node_id,
+                )
+    result = m3d.Manifold.batch_boolean(segments, m3d.OpType.Add)
+    status = str(result.status())
+    if "NoError" not in status:
+        raise GeometryCompileError("shell_kernel_error", status, node_id)
+    if result.is_empty():
+        raise GeometryCompileError(
+            "empty_shell",
+            "shell_thicken produced an empty union",
+            node_id,
+        )
+    if len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_shell",
+            "shell_thicken segment union is disconnected",
+            node_id,
+        )
+    return result
+
+
+def _shell_thickness_m(
+    surface: BoundedSurface,
+    parameters: dict[str, Any],
+    node_id: str,
+) -> float:
+    try:
+        thickness_ratio = float(parameters.get("thickness_ratio"))
+    except (TypeError, ValueError) as exc:
+        raise GeometryCompileError(
+            "invalid_shell_thickness",
+            "shell thickness_ratio must be numeric",
+            node_id,
+        ) from exc
+    live_scale = min(
+        surface.source_bounds[3] - surface.source_bounds[0],
+        surface.source_bounds[4] - surface.source_bounds[1],
+        surface.source_bounds[5] - surface.source_bounds[2],
+    )
+    thickness_m = live_scale * thickness_ratio
+    if not np.isfinite(thickness_m) or thickness_m <= 0.0:
+        raise GeometryCompileError(
+            "non_positive_shell_thickness",
+            "shell thickness must be finite and positive",
+            node_id,
+        )
+    return thickness_m
+
+
+def _shell_segment_normal(
+    start: tuple[tuple[float, float, float], ...],
+    end: tuple[tuple[float, float, float], ...],
+    node_id: str,
+) -> np.ndarray:
+    start_points = np.asarray(start, dtype=float)
+    end_points = np.asarray(end, dtype=float)
+    tangent = end_points.mean(axis=0) - start_points.mean(axis=0)
+    section_direction = (
+        (start_points[-1] - start_points[0])
+        + (end_points[-1] - end_points[0])
+    )
+    normal = np.cross(tangent, section_direction)
+    normal_length = float(np.linalg.norm(normal))
+    if normal_length <= 1e-12:
+        tangent_length = float(np.linalg.norm(tangent))
+        if tangent_length <= 1e-12:
+            raise GeometryCompileError(
+                "collapsed_shell_section",
+                "adjacent surface section centroids coincide",
+                node_id,
+            )
+        tangent_unit = tangent / tangent_length
+        axes = np.eye(3)
+        fallback_axis = axes[
+            int(np.argmin(np.abs(axes @ tangent_unit)))
+        ]
+        normal = np.cross(tangent_unit, fallback_axis)
+        normal_length = float(np.linalg.norm(normal))
+    if normal_length <= 1e-12:
+        raise GeometryCompileError(
+            "collapsed_shell_section",
+            "surface segment has no stable normal",
+            node_id,
+        )
+    return normal / normal_length
+
+
+def _offset_points(
+    points: tuple[tuple[float, float, float], ...],
+    normal: np.ndarray,
+    distance: float,
+) -> list[tuple[float, float, float]]:
+    offset = normal * distance
+    return [
+        tuple(float(value) for value in np.asarray(point, dtype=float) + offset)
+        for point in points
+    ]
 
 
 def _primitive(node: GeometryNode):

@@ -133,6 +133,43 @@ def unitbox_profile_sweep_program(path: object) -> GeometryProgram:
 
 
 class StrictUnitBoxOperatorsTest(SimpleTestCase):
+    def test_typed_surface_evaluator_preserves_existing_solid_geometry_hashes(self):
+        programs = {
+            "circularize": unitbox_circularize_program(
+                radius_x=2.0,
+                radius_y=1.0,
+                height=0.4,
+            ),
+            "matrix_array": unitbox_matrix_array_program(),
+            "profile_sweep_3d": unitbox_profile_sweep_program(
+                [[0.0, 0.0, 1.0], [2.0, 1.0, 2.5], [4.0, 1.5, 5.0]]
+            ),
+        }
+        expected_hashes = {
+            "circularize": (
+                "0c8437f125b96b0c38493397ec3ddfc2a"
+                "e0f674ff496f62a089223d8fdb54aff"
+            ),
+            "matrix_array": (
+                "9c2f84f85946f704654ad98f401b0e2c"
+                "2838e17f744a72f6f183c94bb1fe0e85"
+            ),
+            "profile_sweep_3d": (
+                "dc571a223ffe96bfc7e911248073e497e"
+                "34aef7484b2e143a5548f8e0602dfe4"
+            ),
+        }
+
+        for operator, program in programs.items():
+            with self.subTest(operator=operator):
+                result = compile_geometry_program(program)
+
+                self.assertEqual(result.status, "compiled", result.issues)
+                self.assertEqual(
+                    result.geometry_hash,
+                    expected_hashes[operator],
+                )
+
     def test_circularize_consumes_unitbox_derived_input_deterministically(self):
         program = unitbox_circularize_program(
             radius_x=2.0,

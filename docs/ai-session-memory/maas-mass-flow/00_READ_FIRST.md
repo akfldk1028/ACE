@@ -1,5 +1,51 @@
 # MAAS MASS Flow Memory
 
+## Active lawful-diversity correction - 2026-07-30 16:28 KST
+
+Read `../MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md` before any creative MASS
+generation or paid provider call. The production goal is materially diverse
+solutions that obey real-PNU law, capacity, floor, and parking constraints.
+Triangular, disc, long-span, stepped, and other named forms are possible
+outcomes, not required families or quotas. Stepped mass is one valid option;
+stepped-only or otherwise repetitive output is a diversity failure.
+
+Production LLM authoring must use the canonical UnitBox/BaseVolume and generic
+typed operators without selecting recipes. Existing named recipes are fixtures
+only. A pre-legal payload run is not completion. Final acceptance requires
+exact legal/parking hard passes and image-backed VLM review. The first live
+pilot has a total paid-request ceiling of 20, cache first, with no automatic
+retries.
+
+## Active authoring correction — 2026-07-30
+
+Read
+`../../superpowers/specs/2026-07-30-llm-authored-mass-research-bundle-design.md`
+before continuing creative MASS generation. A named family recipe is no longer
+a production prerequisite. The LLM authors typed `GeometryProgram` ASTs from
+the canonical UnitBox and generic operators; the compiler/gates validate them;
+family/morphology is classified only after compilation. Existing family
+recipes are explicit fixtures and regression examples only.
+
+Every generated creative MASS must also persist an independent research folder
+with the program, author evidence, Matrix4 trace, indexed vertices/triangles,
+OBJ/CSV exports, six deterministic 3D views, and a pre-legal hash-bound
+elevation research handoff. Missing provider credentials must fail closed and
+must never silently select a fixture recipe.
+
+## Active checkpoint — 2026-07-28
+
+Read `../MAAS_R293_V6_SOLID_ELEVATION_DELTA_20260728.md` first through EOF.
+Its bottom append-only r9 sections are the active Task-5 recovery authority:
+authored-solid CSG, breadth supply, frozen acceptance, program/capacity audit
+separation and legal-field Matrix4 placement. The work did not stop at the
+original v6 triangulation correction, and no live r9 acceptance/PNG exists.
+
+Read
+`../MAAS_R293_V5_AUTHORED_LEGAL_ELEVATION_CHECKPOINT_20260728.md`
+before continuing. It contains the current 10 authored MASS result, v5 exact
+replay, corrected 14 m elevation, law/parking agent state, three-hash guard,
+PNG/browser evidence, test results and honest unresolved limits.
+
 This folder is the canonical, modular handoff for the complete MAAS massing
 flow. Read these files in order before changing generation, selection, VLM,
 legal/parking logic or the `/design/language` graph.
@@ -86,3 +132,57 @@ Multi-agent folder contract: read `05_MULTI_AGENT_FOLDER_CONTRACT.md` before
 creating or moving any specialist agent. `ARR/backend/agents/` is the shared
 control-plane/memory parent; `ARR/backend/agents/elevationAgent/` is the
 structural reference for independent sibling specialist repositories.
+
+Active live-pilot override (2026-07-30 17:47 KST): read
+`../MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md` before generating MASS.
+Production authorship is direct LLM `GeometryProgram` AST from the one
+`1/1 UnitBox`/BaseVolume language; named recipes/families are fixtures or
+post-hoc labels only. Triangular, disc, long-span, stepped and other forms are
+optional outcomes, never quotas. A stepped-only or repetitive portfolio is a
+failure. Every final claim requires exact PNU law/capacity/floor/GFA/height/
+BCR/FAR/parking hard gates and an image-backed VLM review of the exact same
+legal geometry. The latest live `llm_bend_lift` diagnostic passed law and
+parking but was rejected by VLM and direct review because legal execution
+collapsed it into a generic stepped/pyramidal stack. It is rejected evidence,
+not an accepted candidate. Next work must preserve continuous authored form
+identity through legal projection or reject/repair it.
+
+Newest actual-VLM checkpoint (2026-07-30 18:35 KST): the exact bent-bar legal
+render in `docs/mass/maas-lawful-explicit-replay-20260730-51` was submitted
+once to VLM together with two actual ArchDaily image files. Response
+`resp_0b63d731f9506d4c006a6b209cb140819895df2ad5c9b94dc7` rejected it with
+`program_fit_hard_pass=false` as too sealed, terraced/box-like, weak at the
+west public threshold, and wrong for the neighborhood-living program. That
+checkpoint added exactly one paid VLM request; cached replays added zero.
+Do not spend another paid call until local exact geometry, PNU law, capacity,
+shared-floor, authored-identity, and parking gates all pass. Read the newest
+section of `../MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md` for hashes,
+reference identities, candidate failures, and replay environment variables.
+
+Newest visible-supply checkpoint (2026-07-30 19:45 KST): a zero-paid accepted
+LLM author-cache pool produced twenty exact compiled MASS renders and one 5x4
+board at
+`docs/mass/maas-latest-20-cache-pool-20260730/maas-creative-board.png`.
+All twenty have unique program and geometry hashes and are connected,
+watertight, and manifold. They are explicitly `PRE-LEGAL / NOT EVALUATED`;
+none may be described as law, capacity, parking, or VLM accepted. Read the
+latest section of `../MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md` for the board
+hash, counts, implementation paths, and the exact next legal-routing step.
+
+Active competition-grade correction (2026-07-30, after user board review):
+the 20-board is only a normalized prelegal supply diagnostic. It is not yet
+twenty alternatives on the same parcel and its zero VLM count has no visual
+acceptance authority. The next portfolio must use the exact same PNU parcel,
+access orientation, buildable/legal field, and spatial program for every
+candidate. Keep the one canonical `1/1 UnitBox`, but derive generic typed
+plate/plane/slab/wall/roof/fold/tilt/intersection/void/support relations from
+it so light plate fields, continuous floor-wall-roof sections, and
+interlocking disc/plane systems are possible without named
+SANAA/OMA/Qatar recipes or quotas. Reject sculptures that cannot prove usable
+occupied floors, clear height/depth, circulation, program capacity,
+connectedness, watertightness, and manifoldness. Paid text LLM is optional;
+bounded VLM is mandatory after free hard gates for any visual acceptance and
+must see the exact final legal render plus actual ArchDaily images. Preserve
+every rejected render and failure reason on the board. Read the newest
+`Active competition-grade pivot` section in
+`../MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md` before continuing.

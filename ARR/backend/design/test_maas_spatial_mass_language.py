@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 from dataclasses import FrozenInstanceError, replace
+from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
 from design.maas.creative_program_author import authored_programs_from_payload
 from design.maas.geometry_language import BoundedSurface
+from design.maas.geometry_language import compiler as geometry_compiler
 from design.maas.geometry_language.ast import (
     GeometryNode,
     GeometryProgram,
@@ -216,9 +218,7 @@ def site_scale_section_shell_program(
 
 
 class SurfaceShellCompileTest(SimpleTestCase):
-    def test_section_surface_thickens_to_closed_mass(self):
-        result = compile_geometry_program(site_scale_section_shell_program())
-
+    def assert_shell_invariants(self, result):
         self.assertEqual(result.status, "compiled", result.issues)
         self.assertTrue(exactly_one_canonical_unitbox(result.program))
         self.assertEqual(result.metrics["component_count"], 1)
@@ -226,6 +226,11 @@ class SurfaceShellCompileTest(SimpleTestCase):
         self.assertTrue(result.metrics["watertight"])
         self.assertTrue(result.metrics["manifold"])
         self.assertGreater(result.metrics["volume"], 0.0)
+
+    def test_section_surface_thickens_to_closed_mass(self):
+        result = compile_geometry_program(site_scale_section_shell_program())
+
+        self.assert_shell_invariants(result)
 
         surface_row = next(
             row for row in result.trace if row["operator"] == "section_surface"
@@ -240,6 +245,171 @@ class SurfaceShellCompileTest(SimpleTestCase):
         )
         self.assertEqual(shell_row["output_value_kind"], "solid")
         self.assertAlmostEqual(shell_row["thickness_m"], 0.32, places=6)
+        self.assertEqual(shell_row["side"], "center")
+        self.assertEqual(shell_row["segment_count"], 2)
+        self.assertEqual(shell_row["fold_joint_count"], 1)
+        self.assertFalse(shell_row["closed_seam"])
+
+    def test_all_surface_constructors_and_side_modes_compile_end_to_end(self):
+        surfaces = (
+            (
+                "section_surface",
+                {
+                    "span_axis": "x",
+                    "section_controls": [
+                        [0.0, 0.2],
+                        [0.5, 0.8],
+                        [1.0, 0.3],
+                    ],
+                },
+            ),
+            (
+                "loft_surface",
+                {
+                    "profiles": [
+                        [[0.0, 0.0, 0.2], [0.0, 1.0, 0.2]],
+                        [[0.5, 0.0, 0.8], [0.5, 1.0, 0.8]],
+                        [[1.0, 0.0, 0.3], [1.0, 1.0, 0.3]],
+                    ],
+                },
+            ),
+            (
+                "host_face_surface",
+                {"host_face": "top", "inset_ratio": 0.1},
+            ),
+        )
+        for operator, surface_parameters in surfaces:
+            for side in ("center", "inward", "outward"):
+                with self.subTest(operator=operator, side=side):
+                    result = compile_geometry_program(
+                        site_scale_section_shell_program(
+                            surface_operator=operator,
+                            surface_parameters=surface_parameters,
+                            shell_parameters={
+                                "thickness_ratio": 0.04,
+                                "side": side,
+                                "close_edges": True,
+                            },
+                        )
+                    )
+
+                    self.assert_shell_invariants(result)
+                    shell_row = next(
+                        row
+                        for row in result.trace
+                        if row["operator"] == "shell_thicken"
+                    )
+                    self.assertEqual(shell_row["side"], side)
+                    self.assertAlmostEqual(
+                        shell_row["thickness_m"],
+                        0.32,
+                        places=6,
+                    )
+                    normals = shell_row["oriented_normals"]
+                    self.assertTrue(all(
+                        sum(
+                            left_value * right_value
+                            for left_value, right_value in zip(left, right)
+                        )
+                        >= -1e-8
+                        for left, right in zip(normals, normals[1:])
+                    ))
+
+    def test_host_face_outward_and_inward_follow_all_six_host_directions(self):
+        expected_axis_bounds = {
+            "west": (
+                0, (-0.32, 0.0), (0.0, 0.32), [-1.0, 0.0, 0.0]
+            ),
+            "east": (
+                0, (20.0, 20.32), (19.68, 20.0), [1.0, 0.0, 0.0]
+            ),
+            "south": (
+                1, (-0.32, 0.0), (0.0, 0.32), [0.0, -1.0, 0.0]
+            ),
+            "north": (
+                1, (12.0, 12.32), (11.68, 12.0), [0.0, 1.0, 0.0]
+            ),
+            "bottom": (
+                2, (-0.32, 0.0), (0.0, 0.32), [0.0, 0.0, -1.0]
+            ),
+            "top": (
+                2, (8.0, 8.32), (7.68, 8.0), [0.0, 0.0, 1.0]
+            ),
+        }
+        for host_face, (
+            axis,
+            expected_outward,
+            expected_inward,
+            expected_normal,
+        ) in expected_axis_bounds.items():
+            for side, expected in (
+                ("outward", expected_outward),
+                ("inward", expected_inward),
+            ):
+                with self.subTest(host_face=host_face, side=side):
+                    result = compile_geometry_program(
+                        site_scale_section_shell_program(
+                            surface_operator="host_face_surface",
+                            surface_parameters={
+                                "host_face": host_face,
+                                "inset_ratio": 0.0,
+                            },
+                            shell_parameters={
+                                "thickness_ratio": 0.04,
+                                "side": side,
+                                "close_edges": True,
+                            },
+                        )
+                    )
+
+                    self.assert_shell_invariants(result)
+                    actual = (
+                        result.metrics["bounds"][0][axis],
+                        result.metrics["bounds"][1][axis],
+                    )
+                    self.assertAlmostEqual(actual[0], expected[0], places=6)
+                    self.assertAlmostEqual(actual[1], expected[1], places=6)
+                    shell_row = next(
+                        row
+                        for row in result.trace
+                        if row["operator"] == "shell_thicken"
+                    )
+                    self.assertEqual(
+                        shell_row["oriented_normals"],
+                        [expected_normal],
+                    )
+
+    def test_closed_rectangular_loft_loop_compiles_without_false_crossing(self):
+        profiles = [
+            [[0.2, 0.0, 0.2], [0.2, 1.0, 0.2]],
+            [[0.8, 0.0, 0.2], [0.8, 1.0, 0.2]],
+            [[0.8, 0.0, 0.8], [0.8, 1.0, 0.8]],
+            [[0.2, 0.0, 0.8], [0.2, 1.0, 0.8]],
+            [[0.2, 0.0, 0.2], [0.2, 1.0, 0.2]],
+        ]
+        for side in ("center", "inward", "outward"):
+            with self.subTest(side=side):
+                result = compile_geometry_program(
+                    site_scale_section_shell_program(
+                        surface_operator="loft_surface",
+                        surface_parameters={"profiles": profiles},
+                        shell_parameters={
+                            "thickness_ratio": 0.04,
+                            "side": side,
+                            "close_edges": True,
+                        },
+                    )
+                )
+
+                self.assert_shell_invariants(result)
+                shell_row = next(
+                    row
+                    for row in result.trace
+                    if row["operator"] == "shell_thicken"
+                )
+                self.assertTrue(shell_row["closed_seam"])
+                self.assertEqual(shell_row["segment_count"], 4)
+                self.assertEqual(shell_row["fold_joint_count"], 4)
 
     def test_ast_rejects_zero_thickness_and_open_edges_before_kernel(self):
         cases = (
@@ -292,16 +462,16 @@ class SurfaceShellCompileTest(SimpleTestCase):
         self.assertEqual(result.status, "compile_failed")
         self.assertEqual(result.issues[0].code, "invalid_surface_geometry")
 
-    def test_self_intersecting_surface_fails_before_shell_union(self):
+    def test_true_nonadjacent_crossing_fails_before_shell_union(self):
         result = compile_geometry_program(
             site_scale_section_shell_program(
                 surface_operator="loft_surface",
                 surface_parameters={
                     "profiles": [
-                        [[0.0, 0.0, 0.1], [0.0, 1.0, 0.1]],
-                        [[0.2, 0.0, 0.3], [0.2, 1.0, 0.3]],
-                        [[0.0, 0.0, 0.3], [0.0, 1.0, 0.3]],
-                        [[1.0, 0.0, 0.1], [1.0, 1.0, 0.1]],
+                        [[0.0, 0.0, 0.2], [0.0, 1.0, 0.2]],
+                        [[1.0, 0.0, 0.8], [1.0, 1.0, 0.8]],
+                        [[0.0, 0.0, 0.8], [0.0, 1.0, 0.8]],
+                        [[1.0, 0.0, 0.2], [1.0, 1.0, 0.2]],
                     ],
                 },
             )
@@ -310,7 +480,7 @@ class SurfaceShellCompileTest(SimpleTestCase):
         self.assertEqual(result.status, "compile_failed")
         self.assertEqual(result.issues[0].code, "self_intersecting_shell")
 
-    def test_outward_shell_rejects_edge_only_disconnected_segments(self):
+    def test_outward_fold_uses_joint_hull_to_remain_connected(self):
         result = compile_geometry_program(
             site_scale_section_shell_program(
                 surface_operator="loft_surface",
@@ -329,8 +499,80 @@ class SurfaceShellCompileTest(SimpleTestCase):
             )
         )
 
+        self.assert_shell_invariants(result)
+        shell_row = next(
+            row for row in result.trace if row["operator"] == "shell_thicken"
+        )
+        self.assertEqual(shell_row["fold_joint_count"], 1)
+
+    def test_shell_kernel_exceptions_keep_shell_specific_error_code(self):
+        intersection_program = site_scale_section_shell_program(
+            surface_operator="loft_surface",
+            surface_parameters={
+                "profiles": [
+                    [[0.0, 0.0, 0.1], [0.0, 1.0, 0.1]],
+                    [[0.2, 0.0, 0.3], [0.2, 1.0, 0.3]],
+                    [[0.0, 0.0, 0.3], [0.0, 1.0, 0.3]],
+                    [[1.0, 0.0, 0.1], [1.0, 1.0, 0.1]],
+                ],
+            },
+        )
+        cases = (
+            (
+                "hull",
+                "_shell_hull_points",
+                site_scale_section_shell_program(),
+            ),
+            (
+                "intersection",
+                "_shell_batch_boolean",
+                intersection_program,
+            ),
+            (
+                "union",
+                "_shell_batch_boolean",
+                site_scale_section_shell_program(),
+            ),
+            (
+                "status",
+                "_shell_status",
+                site_scale_section_shell_program(),
+            ),
+            (
+                "decompose",
+                "_shell_decompose",
+                site_scale_section_shell_program(),
+            ),
+        )
+        for kernel_path, helper_name, program in cases:
+            with self.subTest(
+                kernel_path=kernel_path,
+                helper_name=helper_name,
+            ):
+                with patch.object(
+                    geometry_compiler,
+                    helper_name,
+                    side_effect=RuntimeError(f"{helper_name} failed"),
+                    create=True,
+                ):
+                    result = compile_geometry_program(program)
+
+                self.assertEqual(result.status, "compile_failed")
+                self.assertEqual(result.issues[0].code, "shell_kernel_error")
+                self.assertEqual(result.issues[0].node_id, "shell")
+
+    def test_compiler_defense_rejects_non_solid_root_after_ast_boundary(self):
+        source = site_scale_section_shell_program()
+        program = GeometryProgram(
+            nodes=source.nodes[:-1],
+            root_id="surface",
+        )
+
+        with patch.object(GeometryProgram, "validate", return_value=()):
+            result = compile_geometry_program(program)
+
         self.assertEqual(result.status, "compile_failed")
-        self.assertEqual(result.issues[0].code, "disconnected_shell")
+        self.assertEqual(result.issues[0].code, "non_solid_root")
 
     def test_surface_cannot_reach_solid_only_union_compiler_path(self):
         source = site_scale_section_shell_program()

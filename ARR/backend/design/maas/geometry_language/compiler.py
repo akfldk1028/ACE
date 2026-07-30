@@ -142,9 +142,12 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
                 "volume": round(float(value.volume()), 6),
             })
             if node.kind == "conversion" and node.operator == "shell_thicken":
-                trace_row["thickness_m"] = round(
-                    _shell_thickness_m(inputs[0], node.parameters, node.id),
-                    6,
+                trace_row.update(
+                    _shell_trace_metrics(
+                        inputs[0],
+                        node.parameters,
+                        node.id,
+                    )
                 )
         cache[node_id] = value
         if node.kind == "transform" and inputs:
@@ -416,6 +419,7 @@ def _evaluate_node(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str
             "surface_offset",
             "edge_closure",
             "segment_hulls",
+            "fold_joint_hulls",
             "union",
         ]
     if node.kind == "macro":
@@ -488,38 +492,33 @@ def _shell_thicken(
             node_id,
         )
 
+    normals = _oriented_shell_normals(surface, node_id)
     segments: list[Any] = []
-    for start, end in zip(surface.sections, surface.sections[1:]):
+    for segment_index, (start, end) in enumerate(
+        zip(surface.sections, surface.sections[1:])
+    ):
         if len(start) != len(end):
             raise GeometryCompileError(
                 "inconsistent_shell_sections",
                 "adjacent surface sections must have equal vertex counts",
                 node_id,
             )
-        normal = _shell_segment_normal(start, end, node_id)
+        normal = normals[segment_index]
         lower_start = _offset_points(start, normal, lower_distance)
         upper_start = _offset_points(start, normal, upper_distance)
         lower_end = _offset_points(end, normal, lower_distance)
         upper_end = _offset_points(end, normal, upper_distance)
-        segment = m3d.Manifold.hull_points([
-            *lower_start,
-            *upper_start,
-            *lower_end,
-            *upper_end,
-        ])
-        if segment.is_empty():
-            raise GeometryCompileError(
-                "empty_shell_segment",
-                "surface segment collapsed during shell thickening",
-                node_id,
-            )
-        status = str(segment.status())
-        if "NoError" not in status:
-            raise GeometryCompileError(
-                "shell_kernel_error",
-                status,
-                node_id,
-            )
+        segment = _closed_shell_hull(
+            [
+                *lower_start,
+                *upper_start,
+                *lower_end,
+                *upper_end,
+            ],
+            node_id=node_id,
+            label=f"segment {segment_index}",
+            empty_code="empty_shell_segment",
+        )
         segments.append(segment)
 
     if not segments:
@@ -528,13 +527,33 @@ def _shell_thicken(
             "shell_thicken produced no surface segments",
             node_id,
         )
+    closed_seam = _surface_has_closed_seam(surface)
     for left_index, left in enumerate(segments):
-        for right in segments[left_index + 2:]:
-            overlap = m3d.Manifold.batch_boolean(
-                [left, right],
-                m3d.OpType.Intersect,
+        for right_index in range(left_index + 2, len(segments)):
+            if (
+                closed_seam
+                and left_index == 0
+                and right_index == len(segments) - 1
+            ):
+                continue
+            right = segments[right_index]
+            overlap = _shell_kernel_call(
+                node_id,
+                "segment intersection",
+                lambda left=left, right=right: _shell_batch_boolean(
+                    [left, right],
+                    m3d.OpType.Intersect,
+                ),
             )
-            overlap_status = str(overlap.status())
+            overlap_empty, overlap_status, overlap_volume = _shell_kernel_call(
+                node_id,
+                "intersection validation",
+                lambda overlap=overlap: (
+                    overlap.is_empty(),
+                    _shell_status(overlap),
+                    float(overlap.volume()),
+                ),
+            )
             if "NoError" not in overlap_status:
                 raise GeometryCompileError(
                     "shell_kernel_error",
@@ -542,8 +561,8 @@ def _shell_thicken(
                     node_id,
                 )
             if (
-                not overlap.is_empty()
-                and float(overlap.volume()) > max(
+                not overlap_empty
+                and overlap_volume > max(
                     thickness_m ** 3 * 1e-9,
                     1e-12,
                 )
@@ -553,23 +572,141 @@ def _shell_thicken(
                     "non-adjacent thickened surface segments intersect",
                     node_id,
                 )
-    result = m3d.Manifold.batch_boolean(segments, m3d.OpType.Add)
-    status = str(result.status())
+
+    joints: list[Any] = []
+    for previous_index, next_index, shared_section in _fold_joint_specs(
+        surface,
+        normals,
+    ):
+        previous_normal = normals[previous_index]
+        next_normal = normals[next_index]
+        joint = _closed_shell_hull(
+            [
+                *_offset_points(
+                    shared_section,
+                    previous_normal,
+                    lower_distance,
+                ),
+                *_offset_points(
+                    shared_section,
+                    previous_normal,
+                    upper_distance,
+                ),
+                *_offset_points(
+                    shared_section,
+                    next_normal,
+                    lower_distance,
+                ),
+                *_offset_points(
+                    shared_section,
+                    next_normal,
+                    upper_distance,
+                ),
+            ],
+            node_id=node_id,
+            label=f"fold joint {previous_index}:{next_index}",
+            empty_code="empty_shell_joint",
+        )
+        joints.append(joint)
+
+    result = _shell_kernel_call(
+        node_id,
+        "shell union",
+        lambda: _shell_batch_boolean(
+            [*segments, *joints],
+            m3d.OpType.Add,
+        ),
+    )
+    result_empty, status = _shell_kernel_call(
+        node_id,
+        "union validation",
+        lambda: (result.is_empty(), _shell_status(result)),
+    )
     if "NoError" not in status:
         raise GeometryCompileError("shell_kernel_error", status, node_id)
-    if result.is_empty():
+    if result_empty:
         raise GeometryCompileError(
             "empty_shell",
             "shell_thicken produced an empty union",
             node_id,
         )
-    if len(result.decompose()) != 1:
+    components = _shell_kernel_call(
+        node_id,
+        "union decomposition",
+        lambda: _shell_decompose(result),
+    )
+    if len(components) != 1:
         raise GeometryCompileError(
             "disconnected_shell",
             "shell_thicken segment union is disconnected",
             node_id,
         )
     return result
+
+
+def _closed_shell_hull(
+    points: list[tuple[float, float, float]],
+    *,
+    node_id: str,
+    label: str,
+    empty_code: str,
+):
+    hull = _shell_kernel_call(
+        node_id,
+        f"{label} hull",
+        lambda: _shell_hull_points(points),
+    )
+    is_empty, status, volume = _shell_kernel_call(
+        node_id,
+        f"{label} validation",
+        lambda: (
+            hull.is_empty(),
+            _shell_status(hull),
+            float(hull.volume()),
+        ),
+    )
+    if "NoError" not in status:
+        raise GeometryCompileError("shell_kernel_error", status, node_id)
+    if is_empty or volume <= 1e-12:
+        raise GeometryCompileError(
+            empty_code,
+            f"{label} collapsed during shell thickening",
+            node_id,
+        )
+    return hull
+
+
+def _shell_kernel_call(
+    node_id: str,
+    label: str,
+    operation: Callable[[], Any],
+) -> Any:
+    try:
+        return operation()
+    except GeometryCompileError:
+        raise
+    except Exception as exc:
+        raise GeometryCompileError(
+            "shell_kernel_error",
+            f"{label}: {type(exc).__name__}: {exc}",
+            node_id,
+        ) from exc
+
+
+def _shell_hull_points(points):
+    return m3d.Manifold.hull_points(points)
+
+
+def _shell_batch_boolean(solids, operation):
+    return m3d.Manifold.batch_boolean(solids, operation)
+
+
+def _shell_status(solid) -> str:
+    return str(solid.status())
+
+
+def _shell_decompose(solid):
+    return list(solid.decompose())
 
 
 def _shell_thickness_m(
@@ -600,7 +737,7 @@ def _shell_thickness_m(
     return thickness_m
 
 
-def _shell_segment_normal(
+def _raw_shell_segment_normal(
     start: tuple[tuple[float, float, float], ...],
     end: tuple[tuple[float, float, float], ...],
     node_id: str,
@@ -609,8 +746,8 @@ def _shell_segment_normal(
     end_points = np.asarray(end, dtype=float)
     tangent = end_points.mean(axis=0) - start_points.mean(axis=0)
     section_direction = (
-        (start_points[-1] - start_points[0])
-        + (end_points[-1] - end_points[0])
+        _section_direction(start_points)
+        + _section_direction(end_points)
     )
     normal = np.cross(tangent, section_direction)
     normal_length = float(np.linalg.norm(normal))
@@ -636,6 +773,135 @@ def _shell_segment_normal(
             node_id,
         )
     return normal / normal_length
+
+
+def _section_direction(points: np.ndarray) -> np.ndarray:
+    offsets = points - points[0]
+    lengths = np.linalg.norm(offsets, axis=1)
+    return offsets[int(np.argmax(lengths))]
+
+
+def _oriented_shell_normals(
+    surface: BoundedSurface,
+    node_id: str,
+) -> list[np.ndarray]:
+    normals = [
+        _raw_shell_segment_normal(start, end, node_id)
+        for start, end in zip(surface.sections, surface.sections[1:])
+    ]
+    if not normals:
+        raise GeometryCompileError(
+            "empty_shell",
+            "shell surface has no segments",
+            node_id,
+        )
+
+    host_outward = _host_face_outward_normal(surface, node_id)
+    first = normals[0]
+    if host_outward is not None:
+        if float(np.dot(first, host_outward)) < 0.0:
+            first = -first
+    else:
+        dominant_axis = int(np.argmax(np.abs(first)))
+        if first[dominant_axis] < 0.0:
+            first = -first
+    oriented = [first]
+    for normal in normals[1:]:
+        if float(np.dot(oriented[-1], normal)) < 0.0:
+            normal = -normal
+        oriented.append(normal)
+    return oriented
+
+
+def _host_face_outward_normal(
+    surface: BoundedSurface,
+    node_id: str,
+) -> np.ndarray | None:
+    if surface.operator != "host_face_surface":
+        return None
+    points = np.asarray(
+        [point for section in surface.sections for point in section],
+        dtype=float,
+    )
+    bounds = surface.source_bounds
+    for axis in range(3):
+        low = bounds[axis]
+        high = bounds[axis + 3]
+        if np.all(np.abs(points[:, axis] - low) <= 1e-7):
+            normal = np.zeros(3)
+            normal[axis] = -1.0
+            return normal
+        if np.all(np.abs(points[:, axis] - high) <= 1e-7):
+            normal = np.zeros(3)
+            normal[axis] = 1.0
+            return normal
+    raise GeometryCompileError(
+        "invalid_host_face_orientation",
+        "host_face_surface does not lie on one source bound face",
+        node_id,
+    )
+
+
+def _surface_has_closed_seam(surface: BoundedSurface) -> bool:
+    return _sections_equal(surface.sections[0], surface.sections[-1])
+
+
+def _sections_equal(
+    left: tuple[tuple[float, float, float], ...],
+    right: tuple[tuple[float, float, float], ...],
+) -> bool:
+    return (
+        len(left) == len(right)
+        and all(
+            np.allclose(
+                np.asarray(left_point, dtype=float),
+                np.asarray(right_point, dtype=float),
+                rtol=0.0,
+                atol=1e-12,
+            )
+            for left_point, right_point in zip(left, right)
+        )
+    )
+
+
+def _fold_joint_specs(
+    surface: BoundedSurface,
+    normals: list[np.ndarray],
+) -> list[tuple[int, int, tuple[tuple[float, float, float], ...]]]:
+    specs = [
+        (index, index + 1, surface.sections[index + 1])
+        for index in range(len(normals) - 1)
+        if float(np.dot(normals[index], normals[index + 1]))
+        < 1.0 - 1e-9
+    ]
+    if (
+        _surface_has_closed_seam(surface)
+        and float(np.dot(normals[-1], normals[0])) < 1.0 - 1e-9
+    ):
+        specs.append((len(normals) - 1, 0, surface.sections[0]))
+    return specs
+
+
+def _shell_trace_metrics(
+    surface: BoundedSurface,
+    parameters: dict[str, Any],
+    node_id: str,
+) -> dict[str, Any]:
+    normals = _oriented_shell_normals(surface, node_id)
+    return {
+        "thickness_m": round(
+            _shell_thickness_m(surface, parameters, node_id),
+            6,
+        ),
+        "side": str(parameters.get("side") or "").lower(),
+        "segment_count": len(normals),
+        "fold_joint_count": len(_fold_joint_specs(surface, normals)),
+        "closed_seam": _surface_has_closed_seam(surface),
+        "oriented_normals": [
+            [round(float(value), 8) for value in normal]
+            for normal in normals
+        ],
+    }
 
 
 def _offset_points(

@@ -19,7 +19,8 @@
 - Surface values cannot enter solid-only Boolean, pattern, composition, law, floor, render, or final-root operations.
 - No paid LLM, image, or VLM provider call is allowed in this plan.
 - The local ArchDaily Qatar National Library asset is later VLM evidence, not a geometry recipe.
-- Work in the current dirty repository without staging unrelated user files.
+- Work in the isolated `D:\Data\25_ACE-spatial-mass` worktree without staging
+  unrelated user files. The source checkout remains untouched.
 
 ## File Structure
 
@@ -32,7 +33,74 @@
 - Modify `ARR/backend/design/maas/geometry_language/__init__.py`: export only the new public surface value type needed by callers.
 - Create `ARR/backend/design/test_maas_spatial_mass_language.py`: focused direct-authorship, type, compile, and regression tests.
 - Modify `ARR/backend/design/test_maas_geometry_language.py`: author/VLM contract integration assertions.
-- Modify `ARR/backend/design/test_maas_strict_unitbox_operators.py`: preserve exact UnitBox and kernel invariants.
+- Create, then modify `ARR/backend/design/test_maas_strict_unitbox_operators.py`:
+  preserve exact UnitBox and kernel invariants.
+
+---
+
+### Task 0: Restore the already-authored generic solid operators
+
+**Why this prerequisite exists:** The original dirty checkout contains the
+tested `circularize`, `matrix_array`, and `profile_sweep_3d` implementation,
+but those bounded hunks and their standalone strict test were not present in
+commit `317bcd6`. Task 1 must not advertise operators that the isolated
+compiler cannot execute.
+
+**Files:**
+- Modify selectively: `ARR/backend/design/maas/geometry_language/ast.py`
+- Modify selectively: `ARR/backend/design/maas/geometry_language/compiler.py`
+- Create: `ARR/backend/design/test_maas_strict_unitbox_operators.py`
+- Source only: the corresponding files in `D:\Data\25_ACE`
+
+- [ ] **Step 1: Add the strict test unchanged and verify RED**
+
+Copy the complete standalone test from the source checkout. Run:
+
+```powershell
+python manage.py test design.test_maas_strict_unitbox_operators --verbosity 2
+```
+
+Expected: import or validation failures because the three operators are absent.
+
+- [ ] **Step 2: Transplant only the bounded AST hunks**
+
+Add `isfinite`; register `circularize` and `profile_sweep_3d` as modifiers and
+`matrix_array` as a pattern; add only their parameter validation plus
+`_finite_vector` and `_affine_matrix4`.
+
+Exclude `legal_section_clip`, execution contracts, capacity replay, schema
+transport, and every other unrelated dirty-checkout change.
+
+- [ ] **Step 3: Transplant only the bounded compiler hunks**
+
+Add:
+
+- trace rows for explicit `matrix_array` matrices and `profile_sweep_3d` path
+  metrics;
+- special dispatch for `circularize` and `profile_sweep_3d`;
+- `_circularize`;
+- the leading `matrix_array` pattern branch;
+- `_profile_sweep_3d`.
+
+Reuse the clean compiler's existing imports and helpers. Exclude mesh
+canonicalization/repair, gate changes, law clipping, capacity replay,
+host-subset Boolean optimization, and `_evaluate_node(..., node_map=...)`.
+
+- [ ] **Step 4: Verify the restored executable baseline**
+
+```powershell
+python -m py_compile design/maas/geometry_language/ast.py design/maas/geometry_language/compiler.py design/test_maas_strict_unitbox_operators.py
+python manage.py test design.test_maas_strict_unitbox_operators --verbosity 2
+python manage.py test design.test_maas_geometry_language --verbosity 1
+git diff --check -- ARR/backend/design/maas/geometry_language/ast.py ARR/backend/design/maas/geometry_language/compiler.py ARR/backend/design/test_maas_strict_unitbox_operators.py
+```
+
+- [ ] **Step 5: Commit Task 0**
+
+```powershell
+git add -- ARR/backend/design/maas/geometry_language/ast.py ARR/backend/design/maas/geometry_language/compiler.py ARR/backend/design/test_maas_strict_unitbox_operators.py docs/superpowers/plans/2026-07-30-spatial-mass-geometry-language.md
+git commit -m "feat(maas): restore generic spatial operators"
+```
 
 ---
 
@@ -69,7 +137,7 @@ def test_direct_author_contract_exposes_existing_plate_disc_operators(self):
     prompt = geometry_llm_adapter._author_prompt({
         "program": "neighborhood_living",
         "instruction": "author one executable spatial mass",
-    })
+    }, 1)
     for operator, parameters in expected.items():
         self.assertIn(operator, prompt)
         self.assertTrue(
@@ -79,7 +147,8 @@ def test_direct_author_contract_exposes_existing_plate_disc_operators(self):
 ```
 
 Also assert `require_connected` is a Boolean parameter and `matrix4` and
-`matrices` are serialized as `structured_json` by the strict author schema.
+`matrices` use the adapter's `structured_literal` value contract, which is
+serialized as `structured_json` in the strict author schema.
 
 - [ ] **Step 2: Run the focused test and verify RED**
 

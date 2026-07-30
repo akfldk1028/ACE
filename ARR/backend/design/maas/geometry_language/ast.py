@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 import hashlib
 import json
+from math import isfinite
 import re
 from typing import Any, Iterable
 
@@ -31,9 +32,13 @@ OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
     "modifier": frozenset({
         "bend", "taper", "twist", "pinch", "inflate",
         "slice", "clip", "clip_fraction", "book_base_volume", "cut_corner",
+        "circularize", "profile_sweep_3d",
     }),
     "boolean": frozenset({"union", "difference", "intersection"}),
-    "pattern": frozenset({"duplicate", "linear_array", "radial_array", "mirror_array", "stack"}),
+    "pattern": frozenset({
+        "duplicate", "linear_array", "radial_array", "mirror_array", "stack",
+        "matrix_array",
+    }),
     "composition": frozenset({"attach", "bridge"}),
     "macro": frozenset({
         "courtyard",
@@ -379,6 +384,56 @@ def _parameter_issues(node: GeometryNode) -> list[GeometryIssue]:
         path = params.get("path")
         if not isinstance(path, list) or len(path) < 2:
             issues.append(GeometryIssue("missing_path", "sweep requires at least two path points", node.id))
+    if node.operator == "profile_sweep_3d":
+        path = params.get("path")
+        if not isinstance(path, list) or len(path) < 2:
+            issues.append(GeometryIssue(
+                "missing_path",
+                "profile_sweep_3d requires at least two path points",
+                node.id,
+            ))
+        elif not all(_finite_vector(point, 3) for point in path):
+            issues.append(GeometryIssue(
+                "invalid_profile_sweep_path",
+                "profile_sweep_3d path points must contain three finite numbers",
+                node.id,
+            ))
+        else:
+            points = [tuple(float(value) for value in point) for point in path]
+            segment_lengths = [
+                sum((end[axis] - start[axis]) ** 2 for axis in range(3)) ** 0.5
+                for start, end in zip(points, points[1:])
+            ]
+            if any(length <= 1e-9 for length in segment_lengths):
+                issues.append(GeometryIssue(
+                    "zero_length_profile_sweep_path",
+                    "profile_sweep_3d path contains a zero-length segment",
+                    node.id,
+                ))
+            if any(
+                sum((right[axis] - left[axis]) ** 2 for axis in range(3)) ** 0.5 <= 1e-9
+                for index, left in enumerate(points)
+                for right in points[index + 1:]
+            ):
+                issues.append(GeometryIssue(
+                    "repeated_profile_sweep_point",
+                    "profile_sweep_3d path points must be unique",
+                    node.id,
+                ))
+    if node.operator == "matrix_array":
+        matrices = params.get("matrices")
+        if not isinstance(matrices, list) or not 2 <= len(matrices) <= 24:
+            issues.append(GeometryIssue(
+                "matrix_array_count_out_of_bounds",
+                "matrix_array requires 2..24 explicit matrices",
+                node.id,
+            ))
+        elif not all(_affine_matrix4(matrix) for matrix in matrices):
+            issues.append(GeometryIssue(
+                "invalid_matrix_array_matrix",
+                "matrix_array matrices must be finite affine 4x4 matrices",
+                node.id,
+            ))
     if node.operator in {"slice", "clip"}:
         normal = params.get("normal")
         if not _vector(normal, 3) or sum(float(value) ** 2 for value in normal) <= 1e-12:
@@ -441,6 +496,27 @@ def _vector(value: Any, length: int) -> bool:
         return all(float(item) == float(item) for item in value)
     except (TypeError, ValueError):
         return False
+
+
+def _finite_vector(value: Any, length: int) -> bool:
+    if not isinstance(value, (list, tuple)) or len(value) != length:
+        return False
+    try:
+        return all(isfinite(float(item)) for item in value)
+    except (TypeError, ValueError):
+        return False
+
+
+def _affine_matrix4(value: Any) -> bool:
+    if not isinstance(value, (list, tuple)) or len(value) != 4:
+        return False
+    if not all(_finite_vector(row, 4) for row in value):
+        return False
+    expected = (0.0, 0.0, 0.0, 1.0)
+    return all(
+        abs(float(value[3][index]) - expected[index]) <= 1e-9
+        for index in range(4)
+    )
 
 
 def _deduplicate_issues(issues: Iterable[GeometryIssue]) -> list[GeometryIssue]:

@@ -120,6 +120,29 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
         }
         if node.kind == "transform" and inputs:
             trace_row["matrix4"] = matrix4_to_lists(_transform_matrix4(node, inputs[0]))
+        if node.kind == "pattern" and node.operator == "matrix_array":
+            trace_row["matrix_entries"] = [
+                {
+                    "matrix_index": index,
+                    "matrix4": matrix4_to_lists(matrix),
+                }
+                for index, matrix in enumerate(node.parameters.get("matrices") or ())
+            ]
+        if node.kind == "modifier" and node.operator == "profile_sweep_3d":
+            path = [
+                tuple(float(value) for value in point)
+                for point in node.parameters.get("path") or ()
+            ]
+            trace_row["operator_metrics"] = {
+                "path_length": round(sum(
+                    float(np.linalg.norm(
+                        np.asarray(end, dtype=float)
+                        - np.asarray(start, dtype=float)
+                    ))
+                    for start, end in zip(path, path[1:])
+                ), 6),
+                "frame_count": len(path),
+            }
         macro_matrix = _macro_affine_matrix4(node)
         if macro_matrix is not None:
             trace_row["matrix4"] = matrix4_to_lists(macro_matrix)
@@ -329,6 +352,21 @@ def _evaluate_node(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str
     if node.kind == "transform":
         return _transform(node, inputs[0]), []
     if node.kind == "modifier":
+        if node.operator == "circularize":
+            return _circularize(inputs[0], node.parameters, node.id), [
+                "live_bounds",
+                "bounded_circular_section",
+                "extrude",
+                "unitbox_consumed",
+            ]
+        if node.operator == "profile_sweep_3d":
+            return _profile_sweep_3d(inputs[0], node.parameters, node.id), [
+                "live_bounds",
+                "parallel_transport_frames",
+                "section_hulls",
+                "union",
+                "unitbox_consumed",
+            ]
         return _modifier(node, inputs[0]), []
     if node.kind == "boolean":
         return _boolean(node, inputs), []
@@ -451,6 +489,38 @@ def _modifier(node: GeometryNode, solid):
     raise GeometryCompileError("unsupported_modifier", node.operator, node.id)
 
 
+def _circularize(solid, params: dict[str, Any], node_id: str):
+    minx, miny, minz, maxx, maxy, maxz = _bounds(solid)
+    radius_x = (maxx - minx) / 2.0
+    radius_y = (maxy - miny) / 2.0
+    height = maxz - minz
+    if min(radius_x, radius_y, height) <= 1e-9:
+        raise GeometryCompileError(
+            "degenerate_circularize_bounds",
+            "circularize requires positive live input bounds",
+            node_id,
+        )
+    try:
+        segments = max(8, min(96, int(params.get("segments", 24))))
+    except (TypeError, ValueError) as exc:
+        raise GeometryCompileError(
+            "invalid_circularize_segments",
+            "circularize segments must be an integer",
+            node_id,
+        ) from exc
+    center_x = (minx + maxx) / 2.0
+    center_y = (miny + maxy) / 2.0
+    return (
+        m3d.Manifold.cylinder(
+            height,
+            1.0,
+            circular_segments=segments,
+        )
+        .scale((radius_x, radius_y, 1.0))
+        .translate((center_x, center_y, minz))
+    )
+
+
 def _boolean(node: GeometryNode, inputs: list[Any]):
     op = {
         "union": m3d.OpType.Add,
@@ -487,6 +557,50 @@ def _boolean(node: GeometryNode, inputs: list[Any]):
 
 def _pattern(node: GeometryNode, solid):
     p = node.parameters
+    if node.operator == "matrix_array":
+        matrices = p.get("matrices")
+        if not isinstance(matrices, list) or not 2 <= len(matrices) <= 24:
+            raise GeometryCompileError(
+                "matrix_array_count_out_of_bounds",
+                "matrix_array requires 2..24 explicit matrices",
+                node.id,
+            )
+        copies: list[Any] = []
+        for matrix in matrices:
+            try:
+                transformed = solid.transform(kernel_matrix3x4(matrix))
+            except (TypeError, ValueError) as exc:
+                raise GeometryCompileError(
+                    "invalid_matrix_array_matrix",
+                    str(exc),
+                    node.id,
+                ) from exc
+            if transformed.is_empty():
+                raise GeometryCompileError(
+                    "empty_matrix_array",
+                    "matrix_array transform returned an empty solid",
+                    node.id,
+                )
+            copies.append(transformed)
+        result = copies[0]
+        for copy in copies[1:]:
+            result = m3d.Manifold.batch_boolean(
+                [result, copy],
+                m3d.OpType.Add,
+            )
+        if result.is_empty():
+            raise GeometryCompileError(
+                "empty_matrix_array",
+                "matrix_array union returned an empty solid",
+                node.id,
+            )
+        if bool(p.get("require_connected", False)) and len(result.decompose()) != 1:
+            raise GeometryCompileError(
+                "disconnected_matrix_array",
+                "matrix_array must produce one connected component",
+                node.id,
+            )
+        return result
     count = max(1, min(24, int(p.get("count", 2))))
     copies: list[Any] = []
     if node.operator in {"duplicate", "linear_array"}:
@@ -2573,6 +2687,150 @@ def _sweep_path(path: list[tuple[float, float, float]], *, width: float, height:
     if not solids:
         raise GeometryCompileError("degenerate_sweep_path", "sweep path has no measurable segments")
     return m3d.Manifold.batch_boolean(solids, m3d.OpType.Add)
+
+
+def _profile_sweep_3d(solid, params: dict[str, Any], node_id: str):
+    path = _points(
+        params.get("path"),
+        dimensions=3,
+        minimum=2,
+        node_id=node_id,
+    )
+    points = [np.asarray(point, dtype=float) for point in path]
+    if not all(np.isfinite(point).all() for point in points):
+        raise GeometryCompileError(
+            "invalid_profile_sweep_path",
+            "profile_sweep_3d path points must contain finite coordinates",
+            node_id,
+        )
+    segments = [
+        end - start
+        for start, end in zip(points, points[1:])
+    ]
+    lengths = [float(np.linalg.norm(segment)) for segment in segments]
+    if any(length <= 1e-9 for length in lengths):
+        raise GeometryCompileError(
+            "zero_length_profile_sweep_path",
+            "profile_sweep_3d path contains a zero-length segment",
+            node_id,
+        )
+    if any(
+        float(np.linalg.norm(right - left)) <= 1e-9
+        for index, left in enumerate(points)
+        for right in points[index + 1:]
+    ):
+        raise GeometryCompileError(
+            "repeated_profile_sweep_point",
+            "profile_sweep_3d path points must be unique",
+            node_id,
+        )
+
+    segment_tangents = [
+        segment / length
+        for segment, length in zip(segments, lengths)
+    ]
+    point_tangents = [segment_tangents[0]]
+    for previous, following in zip(segment_tangents, segment_tangents[1:]):
+        blended = previous + following
+        norm = float(np.linalg.norm(blended))
+        point_tangents.append(
+            following if norm <= 1e-9 else blended / norm
+        )
+    point_tangents.append(segment_tangents[-1])
+
+    frames: list[tuple[np.ndarray, np.ndarray]] = []
+    tangent = point_tangents[0]
+    axes = (
+        np.asarray((1.0, 0.0, 0.0), dtype=float),
+        np.asarray((0.0, 1.0, 0.0), dtype=float),
+        np.asarray((0.0, 0.0, 1.0), dtype=float),
+    )
+    reference = min(axes, key=lambda axis: abs(float(np.dot(axis, tangent))))
+    frame_u = reference - float(np.dot(reference, tangent)) * tangent
+    frame_u /= float(np.linalg.norm(frame_u))
+    frame_v = np.cross(tangent, frame_u)
+    frame_v /= float(np.linalg.norm(frame_v))
+    frames.append((frame_u, frame_v))
+
+    for tangent in point_tangents[1:]:
+        transported = frame_u - float(np.dot(frame_u, tangent)) * tangent
+        norm = float(np.linalg.norm(transported))
+        if norm <= 1e-9:
+            reference = min(
+                axes,
+                key=lambda axis: abs(float(np.dot(axis, tangent))),
+            )
+            transported = (
+                reference
+                - float(np.dot(reference, tangent)) * tangent
+            )
+            norm = float(np.linalg.norm(transported))
+        frame_u = transported / norm
+        if float(np.dot(frame_u, frames[-1][0])) < 0.0:
+            frame_u = -frame_u
+        frame_v = np.cross(tangent, frame_u)
+        frame_v /= float(np.linalg.norm(frame_v))
+        frames.append((frame_u, frame_v))
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(solid)
+    half_extents = np.asarray((
+        (maxx - minx) / 2.0,
+        (maxy - miny) / 2.0,
+        (maxz - minz) / 2.0,
+    ))
+    if float(np.min(half_extents)) <= 1e-9:
+        raise GeometryCompileError(
+            "degenerate_profile_sweep_bounds",
+            "profile_sweep_3d requires positive live input bounds",
+            node_id,
+        )
+    profile_u = float(np.dot(np.abs(frames[0][0]), half_extents))
+    profile_v = float(np.dot(np.abs(frames[0][1]), half_extents))
+
+    sections: list[list[tuple[float, float, float]]] = []
+    for point, (frame_u, frame_v) in zip(points, frames):
+        sections.append([
+            tuple(float(value) for value in (
+                point + sign_u * profile_u * frame_u
+                + sign_v * profile_v * frame_v
+            ))
+            for sign_u, sign_v in (
+                (-1.0, -1.0),
+                (1.0, -1.0),
+                (1.0, 1.0),
+                (-1.0, 1.0),
+            )
+        ])
+
+    swept_segments = [
+        m3d.Manifold.hull_points([*start, *end])
+        for start, end in zip(sections, sections[1:])
+    ]
+    if not swept_segments or any(segment.is_empty() for segment in swept_segments):
+        raise GeometryCompileError(
+            "empty_profile_sweep_3d",
+            "profile_sweep_3d produced a degenerate section hull",
+            node_id,
+        )
+    result = swept_segments[0]
+    for segment in swept_segments[1:]:
+        result = m3d.Manifold.batch_boolean(
+            [result, segment],
+            m3d.OpType.Add,
+        )
+    if result.is_empty():
+        raise GeometryCompileError(
+            "empty_profile_sweep_3d",
+            "profile_sweep_3d produced an empty solid",
+            node_id,
+        )
+    if bool(params.get("require_connected", True)) and len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_profile_sweep_3d",
+            "profile_sweep_3d must produce one connected component",
+            node_id,
+        )
+    return result
 
 
 def _beam_between(start, end, *, width: float, height: float, node_id: str):

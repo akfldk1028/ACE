@@ -315,17 +315,46 @@ class SurfaceShellCompileTest(SimpleTestCase):
         self.assertFalse(
             rejected_notes["shell_thicken"]["compiler_evidence_available"]
         )
+        for operator in (
+            "box",
+            "matrix4",
+            "section_surface",
+            "shell_thicken",
+        ):
+            self.assertFalse(
+                rejected_notes[operator]["compiler_evidence_available"]
+            )
+            self.assertNotIn(
+                "compiled_evidence",
+                rejected_notes[operator],
+            )
         for key in ("thickness_m", "side", "close_edges"):
             self.assertNotIn(key, rejected_notes["shell_thicken"])
 
         partial = CompilationResult(
             program=program,
             status="compile_failed",
-            trace=({
-                "node_id": "surface",
-                "operator": "section_surface",
-                "output_value_kind": "surface",
-            },),
+            trace=(
+                {
+                    "node_id": "host",
+                    "operator": "matrix4",
+                    "output_value_kind": "solid",
+                    "triangle_count": 12,
+                },
+                {
+                    "node_id": "surface",
+                    "operator": "section_surface",
+                    "output_value_kind": "surface",
+                    "section_count": 3,
+                    "point_count": 6,
+                },
+                {
+                    "node_id": "shell",
+                    "operator": "shell_thicken",
+                    "output_value_kind": "solid",
+                    "volume": 1.25,
+                },
+            ),
         )
         partial_notes = {
             note["operator"]: note
@@ -335,8 +364,24 @@ class SurfaceShellCompileTest(SimpleTestCase):
         self.assertTrue(
             partial_notes["section_surface"]["compiler_evidence_available"]
         )
-        self.assertFalse(
+        self.assertTrue(
             partial_notes["shell_thicken"]["compiler_evidence_available"]
+        )
+        self.assertFalse(
+            partial_notes["box"]["compiler_evidence_available"]
+        )
+        self.assertNotIn("compiled_evidence", partial_notes["box"])
+        self.assertEqual(
+            partial_notes["matrix4"]["compiled_evidence"],
+            {"triangle_count": 12},
+        )
+        self.assertNotIn(
+            "compiled_evidence",
+            partial_notes["section_surface"],
+        )
+        self.assertEqual(
+            partial_notes["shell_thicken"]["compiled_evidence"],
+            {"volume": 1.25},
         )
         for key in ("thickness_m", "side", "close_edges"):
             self.assertNotIn(key, partial_notes["shell_thicken"])

@@ -118,6 +118,11 @@ def build_geometry_graph_notes(
                 shell_evidence["close_edges"] = bool(trace["close_edges"])
             elif "edge_closure" in (trace.get("macro_expansion") or ()):
                 shell_evidence["close_edges"] = True
+        compiled_evidence: dict[str, int | float] = {}
+        if "triangle_count" in trace:
+            compiled_evidence["triangle_count"] = int(trace["triangle_count"])
+        if "volume" in trace:
+            compiled_evidence["volume"] = float(trace["volume"])
         notes.append({
             "node_id": node.id,
             "semantic_role": node.semantic_role or "unspecified",
@@ -151,10 +156,9 @@ def build_geometry_graph_notes(
                 "declared input references", "closed manifold solid", "hard-gate constraints",
                 *( ["program section invariant"] if node.operator == "profiled_hall" else [] ),
             ],
-            "compiled_evidence": {
-                "triangle_count": int(trace.get("triangle_count") or 0),
-                "volume": float(trace.get("volume") or 0.0),
-            },
+            **({
+                "compiled_evidence": compiled_evidence,
+            } if compiled_evidence else {}),
             "note_is_non_executable": True,
         })
     return notes

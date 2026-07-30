@@ -7,7 +7,12 @@ from dataclasses import replace
 from django.test import SimpleTestCase
 
 from design.maas.creative_program_author import authored_programs_from_payload
-from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
+from design.maas.geometry_language.ast import (
+    GeometryNode,
+    GeometryProgram,
+    geometry_node_input_kinds,
+    geometry_node_output_kind,
+)
 from design.maas.geometry_language.compiler import compile_geometry_program
 from design.maas.geometry_language.llm_adapter import GeometryAuthorError
 
@@ -107,6 +112,288 @@ def valid_legacy_author_payload() -> dict[str, object]:
             "intent_tags": ["public_court"],
         }],
     }
+
+
+def surface_program(
+    *,
+    surface_operator: str = "section_surface",
+    surface_parameters: dict[str, object] | None = None,
+    shell_parameters: dict[str, object] | None = None,
+) -> GeometryProgram:
+    base = GeometryNode(
+        "base",
+        "primitive",
+        "box",
+        parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+    )
+    surface = GeometryNode(
+        "surface",
+        "surface",
+        surface_operator,
+        inputs=("base",),
+        parameters=surface_parameters or {
+            "span_axis": "x",
+            "section_controls": [[0.0, 0.15], [0.5, 0.85], [1.0, 0.2]],
+        },
+    )
+    shell = GeometryNode(
+        "shell",
+        "conversion",
+        "shell_thicken",
+        inputs=("surface",),
+        parameters=shell_parameters or {
+            "thickness_ratio": 0.04,
+            "side": "center",
+            "close_edges": True,
+        },
+    )
+    return GeometryProgram(
+        nodes=(base, surface, shell),
+        root_id="shell",
+        name="typed_surface_program",
+    )
+
+
+class SurfaceAstTypeTest(SimpleTestCase):
+    def test_geometry_value_kind_contracts_are_explicit(self):
+        source = surface_program()
+
+        self.assertEqual(
+            geometry_node_output_kind(source.node_map["base"]),
+            "solid",
+        )
+        self.assertEqual(
+            geometry_node_output_kind(source.node_map["surface"]),
+            "surface",
+        )
+        self.assertEqual(
+            geometry_node_input_kinds(source.node_map["surface"]),
+            ("solid",),
+        )
+        self.assertEqual(
+            geometry_node_input_kinds(source.node_map["shell"]),
+            ("surface",),
+        )
+
+    def test_surface_node_cannot_be_program_root(self):
+        source = surface_program()
+        program = source.with_nodes(source.nodes[:-1], root_id="surface")
+
+        self.assertIn(
+            "surface_root_not_allowed",
+            {issue.code for issue in program.validate()},
+        )
+
+    def test_surface_cannot_enter_solid_boolean(self):
+        source = surface_program()
+        other = GeometryNode(
+            "other",
+            "primitive",
+            "box",
+            parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        union = GeometryNode(
+            "result",
+            "boolean",
+            "union",
+            inputs=("surface", "other"),
+        )
+        program = GeometryProgram(
+            nodes=(source.node_map["base"], source.node_map["surface"], other, union),
+            root_id="result",
+        )
+
+        self.assertIn(
+            "geometry_value_kind_mismatch",
+            {issue.code for issue in program.validate()},
+        )
+
+    def test_shell_thicken_converts_surface_to_solid(self):
+        self.assertEqual(surface_program().validate(), ())
+
+    def test_unknown_surface_operator_rejects(self):
+        program = surface_program(surface_operator="unknown_surface")
+
+        self.assertIn(
+            "unknown_operator",
+            {issue.code for issue in program.validate()},
+        )
+
+    def test_shell_thicken_rejects_solid_input(self):
+        source = surface_program()
+        shell = replace(source.node_map["shell"], inputs=("base",))
+        program = GeometryProgram(
+            nodes=(source.node_map["base"], shell),
+            root_id="shell",
+        )
+
+        self.assertIn(
+            "geometry_value_kind_mismatch",
+            {issue.code for issue in program.validate()},
+        )
+
+    def test_surface_and_conversion_require_exactly_one_input(self):
+        source = surface_program()
+        cases = (
+            replace(source.node_map["surface"], inputs=()),
+            replace(source.node_map["surface"], inputs=("base", "base")),
+            replace(source.node_map["shell"], inputs=()),
+            replace(source.node_map["shell"], inputs=("surface", "surface")),
+        )
+
+        for node in cases:
+            with self.subTest(kind=node.kind, inputs=node.inputs):
+                self.assertIn(
+                    "invalid_arity",
+                    {issue.code for issue in _program_ending_at(source, node).validate()},
+                )
+
+    def test_section_surface_rejects_invalid_controls(self):
+        invalid_controls = (
+            [],
+            [[0.0, 0.2]],
+            [[0.0, 0.2]] * 13,
+            [[0.0, 0.2], [0.0, 0.4], [1.0, 0.2]],
+            [[0.1, 0.2], [1.0, 0.2]],
+            [[0.0, 0.2], [0.9, 0.2]],
+            [[0.0, 0.2], [1.0, float("inf")]],
+            [[0.0, 0.2, 0.3], [1.0, 0.2]],
+        )
+
+        for controls in invalid_controls:
+            with self.subTest(controls=controls):
+                program = surface_program(
+                    surface_parameters={
+                        "span_axis": "x",
+                        "section_controls": controls,
+                    },
+                )
+                self.assertIn(
+                    "invalid_surface_controls",
+                    {issue.code for issue in program.validate()},
+                )
+
+    def test_loft_surface_rejects_invalid_profiles(self):
+        valid_profile = [[0.0, 0.0, 0.2], [0.0, 1.0, 0.2]]
+        invalid_profiles = (
+            [],
+            [valid_profile],
+            [valid_profile] * 13,
+            [valid_profile, [[0.0, 0.0, float("nan")], [1.0, 1.0, 0.2]]],
+            [valid_profile, [[0.0, 0.2], [1.0, 0.2]]],
+            [valid_profile, [[0.0, 0.0, 0.2]]],
+            [valid_profile, [[0.0, 0.0, 0.2], [1.1, 1.0, 0.2]]],
+        )
+
+        for profiles in invalid_profiles:
+            with self.subTest(profiles=profiles):
+                program = surface_program(
+                    surface_operator="loft_surface",
+                    surface_parameters={"profiles": profiles},
+                )
+                self.assertIn(
+                    "invalid_surface_profile",
+                    {issue.code for issue in program.validate()},
+                )
+
+    def test_host_face_surface_rejects_unsupported_face(self):
+        for host_face in ("", "front", None):
+            with self.subTest(host_face=host_face):
+                program = surface_program(
+                    surface_operator="host_face_surface",
+                    surface_parameters={"host_face": host_face},
+                )
+                self.assertIn(
+                    "unsupported_host_face",
+                    {issue.code for issue in program.validate()},
+                )
+
+    def test_shell_thicken_rejects_invalid_parameters(self):
+        cases = (
+            (
+                {"thickness_ratio": 0.004, "side": "center", "close_edges": True},
+                "shell_thickness_out_of_bounds",
+            ),
+            (
+                {"thickness_ratio": 0.251, "side": "center", "close_edges": True},
+                "shell_thickness_out_of_bounds",
+            ),
+            (
+                {"thickness_ratio": float("nan"), "side": "center", "close_edges": True},
+                "shell_thickness_out_of_bounds",
+            ),
+            (
+                {"thickness_ratio": 0.04, "side": "both", "close_edges": True},
+                "unsupported_shell_side",
+            ),
+            (
+                {"thickness_ratio": 0.04, "side": "center", "close_edges": False},
+                "open_shell_edges",
+            ),
+        )
+
+        for parameters, expected_code in cases:
+            with self.subTest(parameters=parameters):
+                program = surface_program(shell_parameters=parameters)
+                self.assertIn(
+                    expected_code,
+                    {issue.code for issue in program.validate()},
+                )
+
+    def test_surface_parameter_contract_accepts_all_documented_boundaries(self):
+        valid_profiles = [
+            [[0.0, 0.0, 0.15], [0.0, 1.0, 0.15]],
+            [[1.0, 0.0, 0.85], [1.0, 1.0, 0.85]],
+        ]
+        programs = [
+            surface_program(
+                surface_operator="loft_surface",
+                surface_parameters={"profiles": valid_profiles},
+            ),
+            *[
+                surface_program(
+                    surface_operator="host_face_surface",
+                    surface_parameters={"host_face": host_face},
+                )
+                for host_face in ("east", "west", "north", "south", "top", "bottom")
+            ],
+            *[
+                surface_program(
+                    shell_parameters={
+                        "thickness_ratio": thickness_ratio,
+                        "side": side,
+                        "close_edges": True,
+                    },
+                )
+                for thickness_ratio in (0.005, 0.25)
+                for side in ("center", "inward", "outward")
+            ],
+        ]
+
+        for program in programs:
+            with self.subTest(program=program.to_dict()):
+                self.assertEqual(program.validate(), ())
+
+
+def _program_ending_at(source: GeometryProgram, node: GeometryNode) -> GeometryProgram:
+    nodes_by_id = {
+        item.id: item
+        for item in source.nodes
+        if item.id != node.id
+    }
+    nodes_by_id[node.id] = node
+    reachable_ids = set(node.inputs)
+    if node.kind == "conversion":
+        reachable_ids.add("surface")
+        reachable_ids.add("base")
+    elif node.kind == "surface":
+        reachable_ids.add("base")
+    nodes = tuple(
+        nodes_by_id[node_id]
+        for node_id in ("base", "surface", "shell")
+        if node_id in nodes_by_id and (node_id == node.id or node_id in reachable_ids)
+    )
+    return GeometryProgram(nodes=nodes, root_id=node.id)
 
 
 class DirectPlateAuthorshipTest(SimpleTestCase):

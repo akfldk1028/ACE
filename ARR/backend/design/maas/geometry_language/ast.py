@@ -13,7 +13,10 @@ import hashlib
 import json
 from math import isfinite
 import re
-from typing import Any, Iterable
+from typing import Any, Iterable, Literal
+
+
+GeometryValueKind = Literal["solid", "surface"]
 
 
 NODE_KINDS = frozenset({
@@ -24,6 +27,8 @@ NODE_KINDS = frozenset({
     "pattern",
     "composition",
     "macro",
+    "surface",
+    "conversion",
 })
 
 OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
@@ -40,6 +45,12 @@ OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
         "matrix_array",
     }),
     "composition": frozenset({"attach", "bridge"}),
+    "surface": frozenset({
+        "section_surface",
+        "loft_surface",
+        "host_face_surface",
+    }),
+    "conversion": frozenset({"shell_thicken"}),
     "macro": frozenset({
         "courtyard",
         "carve_void",
@@ -86,6 +97,18 @@ OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
 
 UNARY_KINDS = frozenset({"transform", "modifier", "pattern"})
 IDENTIFIER_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.:-]{0,79}$")
+
+
+def geometry_node_output_kind(node: GeometryNode) -> GeometryValueKind:
+    return "surface" if node.kind == "surface" else "solid"
+
+
+def geometry_node_input_kinds(node: GeometryNode) -> tuple[GeometryValueKind, ...]:
+    if node.kind == "surface":
+        return ("solid",)
+    if node.operator == "shell_thicken":
+        return ("surface",)
+    return tuple("solid" for _ in node.inputs)
 
 
 @dataclass(frozen=True)
@@ -229,6 +252,7 @@ class GeometryProgram:
 
         node_map = self.node_map
         state: dict[str, int] = {}
+        topological_ids: list[str] = []
 
         def visit(node_id: str, depth: int) -> None:
             if depth > maximum_depth:
@@ -243,6 +267,7 @@ class GeometryProgram:
             for input_id in node_map[node_id].inputs:
                 visit(input_id, depth + 1)
             state[node_id] = 2
+            topological_ids.append(node_id)
 
         if self.root_id in node_map:
             visit(self.root_id, 1)
@@ -258,6 +283,30 @@ class GeometryProgram:
                 # ancestry keeps the AI-readable graph, semantic roles and
                 # compiled geometry causally identical.
                 issues.append(GeometryIssue("unreachable_node", "node is not reachable from root", node.id))
+        for node_id in topological_ids:
+            node = node_map[node_id]
+            expected_kinds = geometry_node_input_kinds(node)
+            for input_id, expected_kind in zip(node.inputs, expected_kinds):
+                input_node = node_map.get(input_id)
+                if input_node is None:
+                    continue
+                actual_kind = geometry_node_output_kind(input_node)
+                if actual_kind != expected_kind:
+                    issues.append(GeometryIssue(
+                        "geometry_value_kind_mismatch",
+                        (
+                            f"{node.operator} input {input_id} requires "
+                            f"{expected_kind}, received {actual_kind}"
+                        ),
+                        node.id,
+                    ))
+        root = node_map.get(self.root_id)
+        if root is not None and geometry_node_output_kind(root) != "solid":
+            issues.append(GeometryIssue(
+                "surface_root_not_allowed",
+                "geometry program root must produce a solid",
+                root.id,
+            ))
         return tuple(_deduplicate_issues(issues))
 
     def topological_nodes(self) -> tuple[GeometryNode, ...]:
@@ -341,6 +390,8 @@ def _arity_issues(node: GeometryNode) -> list[GeometryIssue]:
         return [GeometryIssue("invalid_arity", "primitive accepts no solid inputs", node.id)]
     if node.kind in UNARY_KINDS and count != 1:
         return [GeometryIssue("invalid_arity", f"{node.kind} requires one input", node.id)]
+    if node.kind in {"surface", "conversion"} and count != 1:
+        return [GeometryIssue("invalid_arity", f"{node.kind} requires one input", node.id)]
     if node.kind == "boolean":
         if node.operator == "difference" and count != 2:
             return [GeometryIssue("invalid_arity", "difference requires exactly two inputs", node.id)]
@@ -356,6 +407,89 @@ def _arity_issues(node: GeometryNode) -> list[GeometryIssue]:
 def _parameter_issues(node: GeometryNode) -> list[GeometryIssue]:
     issues: list[GeometryIssue] = []
     params = node.parameters
+    if node.operator == "section_surface":
+        controls = params.get("section_controls")
+        controls_valid = (
+            isinstance(controls, list)
+            and 2 <= len(controls) <= 12
+            and all(_finite_vector(control, 2) for control in controls)
+        )
+        if controls_valid:
+            u_values = [float(control[0]) for control in controls]
+            controls_valid = (
+                abs(u_values[0]) <= 1e-9
+                and abs(u_values[-1] - 1.0) <= 1e-9
+                and all(left < right for left, right in zip(u_values, u_values[1:]))
+            )
+        if not controls_valid:
+            issues.append(GeometryIssue(
+                "invalid_surface_controls",
+                (
+                    "section_controls must contain 2..12 finite "
+                    "[u, height_ratio] pairs from u=0 to u=1 in strict order"
+                ),
+                node.id,
+            ))
+    if node.operator == "loft_surface":
+        profiles = params.get("profiles")
+        profiles_valid = (
+            isinstance(profiles, list)
+            and 2 <= len(profiles) <= 12
+            and all(
+                isinstance(profile, list)
+                and len(profile) >= 2
+                and all(_finite_normalized_point(point, 3) for point in profile)
+                for profile in profiles
+            )
+        )
+        if not profiles_valid:
+            issues.append(GeometryIssue(
+                "invalid_surface_profile",
+                (
+                    "profiles must contain 2..12 ordered profiles of at least "
+                    "two finite normalized 3D points"
+                ),
+                node.id,
+            ))
+    if node.operator == "host_face_surface":
+        supported_faces = {"east", "west", "north", "south", "top", "bottom"}
+        if str(params.get("host_face") or "").lower() not in supported_faces:
+            issues.append(GeometryIssue(
+                "unsupported_host_face",
+                f"host_face_surface supports {sorted(supported_faces)}",
+                node.id,
+            ))
+    if node.operator == "shell_thicken":
+        try:
+            thickness_ratio = float(params.get("thickness_ratio"))
+            thickness_valid = (
+                isfinite(thickness_ratio)
+                and 0.005 <= thickness_ratio <= 0.25
+            )
+        except (TypeError, ValueError):
+            thickness_valid = False
+        if not thickness_valid:
+            issues.append(GeometryIssue(
+                "shell_thickness_out_of_bounds",
+                "thickness_ratio must be finite and in [0.005, 0.25]",
+                node.id,
+            ))
+        if str(params.get("side") or "").lower() not in {
+            "center",
+            "inward",
+            "outward",
+        }:
+            issues.append(GeometryIssue(
+                "unsupported_shell_side",
+                "shell_thicken.side must be center, inward, or outward",
+                node.id,
+            ))
+        if params.get("close_edges") is not True:
+            issues.append(GeometryIssue(
+                "open_shell_edges",
+                "shell_thicken requires close_edges=true",
+                node.id,
+            ))
     positive_fields = {
         "width", "depth", "height", "radius", "radius_low", "radius_high",
         "start_height", "end_height", "profile_width", "profile_height", "level_height",
@@ -507,6 +641,12 @@ def _finite_vector(value: Any, length: int) -> bool:
         return False
 
 
+def _finite_normalized_point(value: Any, length: int) -> bool:
+    if not _finite_vector(value, length):
+        return False
+    return all(0.0 <= float(item) <= 1.0 for item in value)
+
+
 def _affine_matrix4(value: Any) -> bool:
     if not isinstance(value, (list, tuple)) or len(value) != 4:
         return False
@@ -583,6 +723,9 @@ __all__ = [
     "GeometryIssue",
     "GeometryNode",
     "GeometryProgram",
+    "GeometryValueKind",
     "NODE_KINDS",
     "OPERATORS_BY_KIND",
+    "geometry_node_input_kinds",
+    "geometry_node_output_kind",
 ]

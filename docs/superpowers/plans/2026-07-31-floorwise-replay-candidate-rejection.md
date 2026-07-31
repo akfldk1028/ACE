@@ -11,6 +11,8 @@
 ## Global Constraints
 
 - Work only in `D:\Data\25_ACE`; do not create another project copy or worktree.
+- `ARR/backend/design/test_maas_mass_stage.py` is a pre-existing untracked
+  user file. Do not stage it or add task-owned tests to it.
 - Do not modify `floorwise_source_to_geometry_program` to skip or delete invalid floor volumes.
 - Catch only the exact message `floorwise volume has no replayable footprint`.
 - Every other `ValueError` must continue to propagate.
@@ -23,7 +25,7 @@
 ### Task 1: Candidate-Level Replay Rejection
 
 **Files:**
-- Modify: `ARR/backend/design/test_maas_mass_stage.py`
+- Create: `ARR/backend/design/test_maas_floorwise_candidate_rejection.py`
 - Modify: `ARR/backend/design/maas/book_language/candidate_generation.py:1251-1255`
 
 **Interfaces:**
@@ -32,11 +34,13 @@
 
 - [ ] **Step 1: Add the regression tests**
 
-Add tests beside `test_real_slab_uses_final_floorwise_program_as_geometry_authority`.
-Reuse `canonical_gym_materialization_context`, `canonical_gym_semantic_source`,
-the `slab` program from `base_seed_programs()`, a four-floor
-`box(-15.0, -10.0, 15.0, 10.0)` legal field, and a
-`geometry_program_directive=unreplayable-floor-slab` sequence.
+Add a self-contained test module owned by this task. Build a real `SourceMass`
+with gymnasium roles and trusted component-graph provenance, the `slab`
+program from `base_seed_program("slab")`, candidate height `16.0`, four
+floors, a four-floor `box(-15.0, -10.0, 15.0, 10.0)` legal field, and a
+`geometry_program_directive=real-slab` sequence. This mirrors the canonical
+real-slab fallback boundary without importing from either pre-existing
+untracked test module.
 
 Patch `select_legal_field_affine_projection` to return `None`,
 `_authored_projection_identity_evidence` to return `{"hard_pass": True}`, and
@@ -62,8 +66,8 @@ Run:
 
 ```powershell
 python manage.py test `
-  design.test_maas_mass_stage.MaasStageHardContractTests.test_unreplayable_floor_volume_is_rejected_as_one_candidate `
-  design.test_maas_mass_stage.MaasStageHardContractTests.test_other_floorwise_replay_value_error_still_aborts `
+  design.test_maas_floorwise_candidate_rejection.FloorwiseCandidateReplayRejectionTests.test_unreplayable_floor_volume_is_rejected_as_one_candidate `
+  design.test_maas_floorwise_candidate_rejection.FloorwiseCandidateReplayRejectionTests.test_other_floorwise_replay_value_error_still_aborts `
   --verbosity 2
 ```
 
@@ -116,10 +120,10 @@ Run:
 
 ```powershell
 git diff --check -- `
-  backend/design/test_maas_mass_stage.py `
+  backend/design/test_maas_floorwise_candidate_rejection.py `
   backend/design/maas/book_language/candidate_generation.py
 git diff --stat -- `
-  backend/design/test_maas_mass_stage.py `
+  backend/design/test_maas_floorwise_candidate_rejection.py `
   backend/design/maas/book_language/candidate_generation.py
 ```
 

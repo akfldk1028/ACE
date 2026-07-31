@@ -1,5 +1,50 @@
 # MAAS MASS Flow Memory
 
+## Latest real-PNU full-test checkpoint - r183, 2026-07-31 KST
+
+Read the newest `Real-PNU full run r183 and bounded VLM checkpoint` section in
+`../MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md` before changing MASS generation
+or claiming a successful portfolio.
+
+Current truth:
+
+- PNU `1168011800104170004`, neighborhood program, seven-page
+  `--publishable-20` run was executed against actual parcel and law context.
+- Candidate generation used zero paid requests and accumulated 22 individually
+  observed combined-hard-pass outcomes.
+- The final publishable solver selected `0/20`; the official board is empty
+  and the run status is `failed`. The 22 observations are not selected,
+  publishable, or replay-time law-recertified candidates.
+- The former fatal floorwise replay error was reproduced four times and safely
+  rejected per candidate. The focused regression tests pass 2/2.
+- Restoring the compact AST's fixed numeric transport contract gives 22/22
+  projected program-hash matches, 22/22 standalone compilation-gate passes,
+  and 14 tiny-edge repairs.
+- The exact-program replay board is:
+  `../../playwright/design-route-live-verify/book-program-portfolios-r183-proper-full-pnu/outcome-hardpass-floorwise-renders/r183-outcome-hardpass-22.png`.
+- One low-detail `gpt-5.4-mini` portfolio VLM request reviewed three
+  near-identical visual reconstructions with Qatar National Library and
+  Seattle Central Library references. It rejected all three as repeated
+  bar/box chassis. Because the fixed execution contract was restored only
+  after that paid call, the response is a visual diagnostic, not exact
+  hash-bound acceptance. No second paid call was made.
+- Floor polygons, support, depth, GFA/FAR/BCR and parking are evaluated by the
+  full candidate path. Physical core, egress and room-level packing are not
+  yet proved.
+
+Do not loosen legal gates to manufacture twenty cards. The next blocker is
+genuine supply/selection diversity: courtyard, attached volume, lifted or
+cantilevered plate, split bridge, radial/cross organization, terrace and
+profiled hall relations must survive legal projection as occupied
+architectures. The fail-closed solver proved a maximum compatible subset of
+four from the 22-candidate pool; 181 of 231 pairs were incompatible, achieved
+capacity bands were `5/2/1/6` plus eight unclassified, and six-scope supply was
+`5/2/4/5/4/2`. Also fix semantic classification only: design-concept and
+chassis labels currently read the stripped final transport AST and collapse to
+`direct_edge`/`recursive_chassis:unclassified`; they should read the preserved
+authored semantic AST. Morphology, plan and pair distance must stay bound to
+the final certified mesh.
+
 ## Latest visible Matrix4 MASS checkpoint - 2026-07-31 KST
 
 Open these first:

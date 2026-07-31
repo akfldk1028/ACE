@@ -615,3 +615,122 @@ GeometryProgram identities onto the real PNU buildable field, compute occupied
 floor/capacity/clear-depth/circulation evidence, preserve authored identity,
 and retain all rejects. Spend one VLM request only if three exact survivors
 remain; otherwise spend zero.
+
+## Real-PNU full run r183 and bounded VLM checkpoint - 2026-07-31 KST
+
+The proper command was executed for the real parcel and neighborhood program:
+
+```text
+python manage.py benchmark_maas_book_program_portfolios \
+  --pnu 1168011800104170004 \
+  --program neighborhood \
+  --publishable-20 \
+  --output-dir .../book-program-portfolios-r183-proper-full-pnu
+```
+
+VWorld parcel, land-use, price, adjacent parcel, road, ordinance, sunlight,
+setback, parking, floor, capacity and final geometry stages were entered.
+Candidate generation itself used zero paid requests. The bounded seven-page
+replenishment produced 22 individually observed `combined_hard_pass=true`
+candidates.
+
+This is not a successful twenty-MASS portfolio. The final fail-closed solver
+selected zero candidates, the exact artifact archive has zero records, and the
+official `maas-book-neighborhood-20.png` contains `0/20 floor-verified masses`.
+The run failed the publishable contract because the 22-candidate supply could
+not satisfy pairwise compatibility, exact capacity-band counts, scope and
+body/roof/chassis/plan diversity quotas, shared legal-floor-field selection
+identity, and target-20 certification together. Never present the 22 outcome
+observations as selected, publishable, or newly law-recertified candidates.
+
+The prior r182 run crashed when one legal floor band contained no replayable
+footprint. The exact message
+`floorwise volume has no replayable footprint` is now converted to rejection
+of that one candidate only; every other `ValueError` still propagates. Focused
+TDD is 2/2 passing. In r183 the same bad input occurred four times and all four
+were isolated while the run continued through page seven.
+
+The outcome graph retains 22 final floorwise typed ASTs. Its compact AST omits
+the fixed `FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT`. Restoring that
+contract gives 22/22 matching projected program hashes, 22/22 compiled mesh
+gate passes, and 14 numeric tiny-edge repairs. The outcome `geometry_hash` is
+`final_floorwise_visual_geometry_hash`, while the replay compiler hash is a
+mesh hash; these are different hash roles and must not be compared directly.
+
+Exact-program replay evidence:
+
+```text
+docs/playwright/design-route-live-verify/
+book-program-portfolios-r183-proper-full-pnu/
+outcome-hardpass-floorwise-renders/
+```
+
+- 22-card PNG: `r183-outcome-hardpass-22.png`
+- PNG SHA-256:
+  `22cba4da0ac860df1640910bb1f8576ddcd378c6aacd32c9e17969013ff9105e`
+- Replay manifest: `r183-outcome-hardpass-render-manifest.json`
+- Candidate count: 22
+- Projected program hash match: 22/22
+- Standalone compilation gate: 22/22
+- Numeric transport repair attempted: 14/22
+- Source-run selection status: not selected
+- Legal and parking recertification during replay: not performed
+
+A three-card visual shortlist was submitted to `gpt-5.4-mini` once at low
+detail with the actual Qatar National Library and Seattle Central Library
+ArchDaily image files. The paid-provider guard recorded exactly one
+`portfolio_vlm` request and no retry:
+
+```text
+response_id = resp_0d9bfd302c642410006a6c211eb378819a828fe1576cba6d9f
+```
+
+The VLM rejected all three candidates. It found three visible variants but one
+dominant bar/box chassis with minor subtraction, weak program-specific
+section/threshold language, and family resemblance. It requested courtyard or
+attached-volume relations, lifted/cantilevered plates, split bridges, radial
+fans, cross masses, terraces and profiled halls as next-run typed anchors.
+
+Identity limitation: the paid request occurred before the omitted execution
+contract was restored. Its input board and the exact-program replay board have
+four-view dHash distance `0.0013020833333333333`, so the visual conclusion is
+useful as a near-identical-board diagnostic, but the response is not exact
+program-hash-bound and cannot certify law, parking, selection or acceptance.
+No second paid request was made. Read:
+
+```text
+maas-paid-3-survivor-vlm-audit-20260731.json
+maas-paid-3-survivor-vlm-audit-20260731-identity-note.json
+```
+
+Current physical-evidence boundary: the full pipeline proves occupied
+floorwise polygons, floor support, clear-depth checks, GFA/FAR/BCR and parking
+calculations for candidates that reach the corresponding gates. It does not
+yet physically prove a constructed vertical core, egress route or room-level
+program packing. Do not describe those as solved.
+
+The 22-to-zero selection is intended fail-closed behavior, not a MILP solver
+crash. All 231 candidate pairs were evaluated; 181 pairs failed the composite
+gestalt threshold and the proven maximum compatible subset size was four.
+The achieved capacity-band supply was only `5/2/1/6` plus eight unclassified,
+while the publishable contract requires exact `5/5/5/5` and all twenty
+classified. Scope supply was `5/2/4/5/4/2`, which also cannot satisfy three to
+four examples in every one of six scopes.
+
+One classification bug was exposed but is not the whole blocker. The final
+floorwise transport AST contains mainly floor plates, translations and a
+union, so reading semantic design concept and chassis from that transport AST
+collapsed all 22 to `direct_edge` and `recursive_chassis:unclassified`. The
+authored semantic AST is still preserved in the outcome graph. The smallest
+safe code boundary is to make only design-concept and chassis classification
+read the validated authored semantic payload; morphology, plan and visual
+distance must continue to read the final certified mesh. Do not weaken the
+solver, pair threshold or publishable contract. Even after that metadata fix,
+replenishment must receive achieved-band, scope and novelty deficits or the
+twenty-candidate portfolio will remain impossible.
+
+Next action: repair supply and selection semantics so at least twenty
+compatible candidates can be certified without loosening law or disguising
+bar/step repetition. Keep ordinary BaseVolume outcomes, but make plate, slab,
+wall, void, bridge, courtyard and intersection relations survive legal
+projection as genuinely different occupied architectures.

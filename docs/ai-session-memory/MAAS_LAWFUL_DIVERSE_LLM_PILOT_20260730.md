@@ -414,3 +414,204 @@ Specify one exact-parcel, spatially inhabitable 20-candidate pipeline with a
 generic plane-to-thickened-space layer, deterministic spatial-capacity gates,
 preserved reject renders, and a bounded image-backed VLM shortlist. Do not
 implement until that design is reviewed and approved.
+
+## Paid same-parcel creative-range VLM audit - 2026-07-31 KST
+
+This checkpoint records the user's latest correction and one deliberately
+bounded paid visual test in the existing `D:\Data\25_ACE` checkout. No folder
+was copied from the spatial-mass worktree.
+
+### Exact product intent
+
+- Keep ordinary lawful BaseVolume-derived masses available. Do not force every
+  result to be exotic, curved, long-span, stepped, SANAA-like, or OMA-like.
+- The same open language must also be capable of a few competition-grade
+  relational candidates using plate, surface, slab, wall, roof, void,
+  intersection, overlap, continuous section, and circulation relationships.
+- Qatar National Library, Seattle Central Library, SANAA, OMA, and Qatar
+  National Museum are capability-range references only. They are never named
+  recipes, copies, mandatory families, or portfolio quotas.
+- A disc or ellipse with no usable occupied volume is not a MASS. Advanced
+  geometry must carry plausible floors, clear height/depth, program area,
+  circulation, public threshold, and connected spatial volume.
+- A stepped mass remains one valid option. A board dominated by box, gable, or
+  code-minimum step variants is a diversity failure even when hashes and
+  post-hoc family labels differ.
+- Law remains deterministic authority. Use the same PNU, parcel, road/access
+  edge, legal field, BCR/FAR/height, capacity, parking, geometry-retention, and
+  authored-identity gates before any visual acceptance.
+
+### Existing board audited
+
+The audited board is:
+
+```text
+docs/playwright/design-route-live-verify/
+book-program-portfolios-r181-bounded-geometry-page-loop-pass/
+maas-book-neighborhood-20.png
+```
+
+It visibly contains 19 candidates for PNU `1168011800104170004` and one
+`NO DISTINCT HARD-PASS CANDIDATE` slot. The existing run records 19/19 legal,
+parking, geometry-retention, and combined hard passes, but the final portfolio
+status is fail because it reached only 19/20. Direct review shows that the
+board is still dominated by compact boxes, gables, and stepped solids. This is
+the precise visual-collapse problem; the board is not accepted as a
+competition-grade portfolio.
+
+Board SHA-256:
+
+```text
+7aad78eed2b2d7e156397a1fb7d8b4d2a642f544cb706d08e14d148468a8bd4d
+```
+
+### Exactly one new paid VLM request
+
+One `gpt-5.4-mini` candidate-VLM request was made with automatic retries
+disabled and both live/provider budgets hard-set to one.
+
+- Audit:
+  `docs/playwright/design-route-live-verify/book-program-portfolios-r181-bounded-geometry-page-loop-pass/maas-paid-creative-range-vlm-audit-20260731.json`
+- Response ID:
+  `resp_0d8419abad9b8221006a6bf98cfb98819a9d64690019da4454`
+- Paid request evidence:
+  `limit=1`, `request_count=1`, `remaining_count=0`,
+  `candidate_vlm=1`
+- Usage:
+  `input_tokens=13214`, `output_tokens=461`, `total_tokens=13675`
+- Candidate image detail: `high`
+- Reference count: `2`; both exact local files have
+  `used_by_vlm=true`
+- Retry count: `0`
+
+Actual ArchDaily inputs:
+
+1. `archdaily_0006`, Qatar National Library / OMA,
+   SHA-256
+   `ffaea1357ea01ac45cb07c2564dad4edc617521b0ef9e3dfb02cdee701d714e1`.
+2. `archdaily_0001`, Seattle Central Library / OMA + LMN,
+   SHA-256
+   `8433714f6a2f7518efb4b465d044faf884238923202b1914c7d4043641049210`.
+
+The critic returned `program_fit_hard_pass=false` and low scores for
+`gesture_clarity=0.33`, `hierarchy=0.28`, `void_publicness=0.12`,
+`precedent_resonance=0.21`, `program_appropriateness=0.18`, and
+`section_program_fit=0.16`. Actions included `too_box_like`,
+`needs_carved_void`, `weak_primary_mass`, `needs_clean_anchor`,
+`too_fragmented`, `wrong_program_typology`, and
+`weak_form_continuity`. It found high visible repair integrity (`0.93`) but no
+meaningful public ground void, active threshold, or relational occupied
+section.
+
+### Audit limitation that must not be hidden
+
+The paid request used the existing per-candidate scorer because it is the
+available path that submits actual local reference images in the same HTTP
+request. Its fixed prompt calls the first image a four-view candidate, while
+the supplied image is a 19-candidate portfolio board. The response therefore
+described a representative compact block rather than reliably enumerating all
+19 siblings. Treat the call as valid evidence that the VLM received and
+compared the exact board and references, and as confirmation of the visible
+box/void/section deficit. Do not treat it as a complete per-card portfolio
+ranking, and do not spend a second request to correct it. Before the next paid
+portfolio audit, the board-specific scorer must accept reference image inputs
+and bind board/run identity explicitly.
+
+### Next generation directive
+
+Spend zero additional paid requests now. Generate and hard-gate candidates
+locally on the same parcel. Keep the normal BaseVolume/solid lanes, but open
+generic relational operations as optional outcomes:
+
+```text
+BaseVolume
+-> section/host face/derived surface
+-> thicken into inhabitable slab, wall, roof, or shell
+-> transform/fold/tilt/loft/sweep/circularize
+-> intersect/join/bridge/carve while preserving one connected manifold
+-> prove occupied floor schedule, clear height/depth, circulation and capacity
+-> preserve authored identity through real-PNU law and parking projection
+-> retain both passes and rejects with exact reasons
+-> build one same-site 20-card PNG
+-> shortlist only deterministic survivors for bounded VLM
+```
+
+Do not require a named morphology count. Diversity selection must measure
+spatial relations and architectural organization, not merely operator,
+program, geometry hashes, roof labels, or silhouette labels.
+
+## Zero-paid Matrix4 relational MASS PNG checkpoint - 2026-07-31 KST
+
+The user approved the integrated board-scorer approach with a cheaper visual
+review contract: generate and hard-gate twenty locally, then submit at most
+three survivors as one contact-sheet request rather than three separate VLM
+calls.
+
+The BaseVolume affine contract is now executable and tested:
+
+```text
+one normalized 1/1 UnitBox
+-> explicit persisted homogeneous Matrix4
+-> evaluated block/slab/bar/tower BaseVolume
+-> optional topology-changing operations
+```
+
+The prior `scale` shorthand for affine base seeds now persists as an explicit
+`matrix4` node. This does not claim Matrix4 can create discs, shells, voids, or
+intersections. Those remain typed operations after the evaluated BaseVolume.
+
+Implementation commit:
+
+```text
+3583047 feat(maas): render Matrix4 relational MASS shortlist
+```
+
+Zero-paid artifacts:
+
+```text
+docs/playwright/design-route-live-verify/maas-relational-shortlist-r1/
+```
+
+- Twenty-card PNG: `maas-same-site-20.png`
+- Twenty-card SHA-256:
+  `532ed5ee3b1c315af37cacbc7f2032cd5208cfa43acdf3cee0092f5cbaa5312e`
+- Three-card PNG: `maas-vlm-shortlist-3.png`
+- Three-card SHA-256:
+  `921e9d95e5db13a4054a2ab0358a60e937c2baa30a4e7e6475899e5b0c7d729a`
+- Machine manifest: `manifest.json`
+- Exact GeometryProgram JSON count: `20`
+- Compiled count: `20/20`
+- Connected component count: `1` for every compiled candidate
+- Paid provider requests: `0`
+- Shortlist IDs: `mass-19`, `mass-17`, `mass-15`
+
+The visible portfolio contains ordinary solids, bent and swept bars, L/U/cross
+plans, courtyard, bridge, step, taper, loft, and one interlocking elliptic
+plate system. The continuous-section probe remains visible as `mass-20`, but
+it was removed from the paid shortlist because its current narrow strip does
+not yet prove adequate occupiable depth. This is the intended behavior:
+relational capability is open, not automatically accepted.
+
+The board-specific scorer now accepts exact reference images in the same
+request, binds board/reference SHA-256 and response identity, carries candidate
+program/geometry hashes, distinguishes a three-card contact sheet from a
+single four-view candidate, and supports `expected_candidate_count=3`.
+The focused transport and paid-budget tests pass without a network call. The
+scorer, global paid-provider guard, and focused tests are committed in the
+actual nested ARR repository as:
+
+```text
+cbf267d fix(maas): bind references to bounded portfolio VLM
+```
+
+The final caller wiring in the already-dirty `portfolio_benchmark.py` working
+file was not committed because that file contains more than 1,600 lines of
+pre-existing unrelated edits. The scorer itself is committed and callable.
+
+Current truth: these PNGs are normalized geometry-language previews, not
+same-parcel legal acceptance. They explicitly say law, capacity, and parking
+are not evaluated. The next deterministic step is to project the twenty exact
+GeometryProgram identities onto the real PNU buildable field, compute occupied
+floor/capacity/clear-depth/circulation evidence, preserve authored identity,
+and retain all rejects. Spend one VLM request only if three exact survivors
+remain; otherwise spend zero.

@@ -1,6 +1,6 @@
 {
   "schema_version": "arr.maas.mass_flow_memory.v1",
-  "updated_at": "2026-07-30T20:15:00+09:00",
+  "updated_at": "2026-07-31T11:10:00+09:00",
   "frontend_url": "http://127.0.0.1:5178/design/language",
   "active_lawful_diverse_llm_pilot": {
     "memory": "docs/ai-session-memory/MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md",
@@ -20,8 +20,74 @@
     "paid_provider_request_ceiling_is_target": false,
     "cache_first": true,
     "automatic_retry_allowed": false,
+    "latest_zero_paid_matrix4_relational_preview": {
+      "status": "geometry_preview_only_not_legal_acceptance",
+      "run_id": "maas-relational-shortlist-r1",
+      "pnu_label": "1168011800104170004",
+      "candidate_count": 20,
+      "compiled_count": 20,
+      "connected_component_one_count": 20,
+      "paid_provider_request_count": 0,
+      "board_png": "docs/playwright/design-route-live-verify/maas-relational-shortlist-r1/maas-same-site-20.png",
+      "board_sha256": "532ed5ee3b1c315af37cacbc7f2032cd5208cfa43acdf3cee0092f5cbaa5312e",
+      "shortlist_png": "docs/playwright/design-route-live-verify/maas-relational-shortlist-r1/maas-vlm-shortlist-3.png",
+      "shortlist_sha256": "921e9d95e5db13a4054a2ab0358a60e937c2baa30a4e7e6475899e5b0c7d729a",
+      "shortlist_candidate_ids": [
+        "mass-19",
+        "mass-17",
+        "mass-15"
+      ],
+      "continuous_section_probe_candidate_id": "mass-20",
+      "continuous_section_shortlist_status": "held_back_current_narrow_strip_does_not_prove_occupied_depth",
+      "geometry_program_json_count": 20,
+      "manifest_json": "docs/playwright/design-route-live-verify/maas-relational-shortlist-r1/manifest.json",
+      "basevolume_authority": "one_normalized_unitbox_then_explicit_persisted_matrix4",
+      "topology_authority": "typed_operations_after_evaluated_basevolume",
+      "law_status": "not_evaluated",
+      "capacity_status": "not_evaluated",
+      "parking_status": "not_evaluated",
+      "vlm_status": "not_requested",
+      "implementation_commit_outer": "3583047",
+      "implementation_commit_arr": "3d0c4fc",
+      "bounded_portfolio_vlm_commit_arr": "cbf267d"
+    },
+    "latest_paid_creative_range_board_audit": {
+      "status": "completed_rejected_visual_range",
+      "run_id": "book-program-portfolios-r181-bounded-geometry-page-loop-pass",
+      "pnu": "1168011800104170004",
+      "board_candidate_count": 19,
+      "board_target_count": 20,
+      "existing_combined_hard_pass_count": 19,
+      "board_sha256": "7aad78eed2b2d7e156397a1fb7d8b4d2a642f544cb706d08e14d148468a8bd4d",
+      "audit_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r181-bounded-geometry-page-loop-pass/maas-paid-creative-range-vlm-audit-20260731.json",
+      "model": "gpt-5.4-mini",
+      "response_id": "resp_0d8419abad9b8221006a6bf98cfb98819a9d64690019da4454",
+      "request_count": 1,
+      "retry_count": 0,
+      "total_tokens": 13675,
+      "reference_ids": [
+        "archdaily_0006",
+        "archdaily_0001"
+      ],
+      "reference_sha256": [
+        "ffaea1357ea01ac45cb07c2564dad4edc617521b0ef9e3dfb02cdee701d714e1",
+        "8433714f6a2f7518efb4b465d044faf884238923202b1914c7d4043641049210"
+      ],
+      "program_fit_hard_pass": false,
+      "critic_actions": [
+        "too_box_like",
+        "needs_carved_void",
+        "weak_primary_mass",
+        "needs_clean_anchor",
+        "too_fragmented",
+        "wrong_program_typology",
+        "weak_form_continuity"
+      ],
+      "scorer_limitation": "reference_images_were_submitted_but_single_candidate_four_view_prompt_interpreted_the_portfolio_board_as_one_representative_compact_mass",
+      "next_paid_call_policy": "do_not_repeat_fix_board_specific_reference_input_contract_before_any_later_paid_portfolio_audit"
+    },
     "current_live_llm_author_request_count": "not_exactly_persisted_estimated_upper_bound_from_recovery_required",
-    "current_live_vlm_request_count": "at_least_3_confirmed_diagnostic_candidate_calls_in_recovery_including_exactly_1_new_call_at_18_35",
+    "current_live_vlm_request_count": "at_least_4_confirmed_diagnostic_candidate_calls_in_recovery_including_exactly_1_new_call_on_2026_07_31",
     "latest_live_run": "docs/mass/maas-lawful-explicit-replay-20260730-51",
     "latest_llm_author_response_id": "resp_0db697c82d12db73006a6b03796ff4819896c14aece38c38d0",
     "latest_vlm_response_id": "resp_0b63d731f9506d4c006a6b209cb140819895df2ad5c9b94dc7",

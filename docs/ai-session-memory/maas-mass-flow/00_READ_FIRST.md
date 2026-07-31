@@ -1,5 +1,63 @@
 # MAAS MASS Flow Memory
 
+## Latest visible Matrix4 MASS checkpoint - 2026-07-31 KST
+
+Open these first:
+
+```text
+../../playwright/design-route-live-verify/maas-relational-shortlist-r1/
+maas-same-site-20.png
+
+../../playwright/design-route-live-verify/maas-relational-shortlist-r1/
+maas-vlm-shortlist-3.png
+```
+
+The first PNG shows twenty zero-paid compiled MASS options. The shortlist uses
+`mass-19` interlocking elliptic plates, `mass-17` split-wing bridge, and
+`mass-15` lofted solid. The thin continuous-section probe remains visible as
+`mass-20` but is not shortlisted until it proves useful occupied depth.
+
+Affine BaseVolume derivation is now explicit:
+`UnitBox -> Matrix4 -> evaluated BaseVolume`. Matrix4 supplies proportion,
+orientation, placement, and shear; circularize/sweep/surface/shell/boolean
+operators supply topology changes afterward. Named buildings and architects
+remain capability-range references, never recipes or quotas.
+
+All 20 GeometryProgram JSON files and `manifest.json` are stored beside the
+PNGs. This checkpoint used zero provider calls and passed focused tests. It is
+still geometry-preview evidence: exact PNU placement, capacity, law, parking,
+and VLM are not evaluated and must not be described as accepted.
+
+## Active same-parcel creative-range correction - 2026-07-31 KST
+
+The newest authority is the bottom section `Paid same-parcel creative-range
+VLM audit - 2026-07-31 KST` in
+`../MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md`.
+
+The target is not an all-OMA, all-SANAA, all-disc, all-long-span, or all-step
+portfolio. Keep normal lawful BaseVolume masses possible while allowing some
+same-site candidates to use inhabitable plate, surface, slab, wall, shell,
+void, intersection, and continuous-section relationships. Named precedents
+are capability-range evidence only, never recipes or quotas. Any unusual form
+must still prove usable occupied space, capacity, circulation, connectedness,
+watertightness, manifoldness, exact PNU law, parking, and authored-identity
+retention.
+
+One new paid `gpt-5.4-mini` VLM request was completed with no retry. It received
+the existing r181 same-PNU 19/20 board plus actual local Qatar National Library
+and Seattle Central Library ArchDaily images. Response
+`resp_0d8419abad9b8221006a6bf98cfb98819a9d64690019da4454` rejected program
+fit and identified `too_box_like`, weak void/public threshold, weak hierarchy,
+and weak spatial continuity. The exact audit is
+`../../playwright/design-route-live-verify/book-program-portfolios-r181-bounded-geometry-page-loop-pass/maas-paid-creative-range-vlm-audit-20260731.json`.
+
+Important limitation: the current reference-image scorer is a single-candidate
+four-view critic, so it treated the 19-card board as a representative compact
+mass rather than ranking every sibling. Do not repeat the paid call. Add
+reference inputs and explicit board identity to the board-specific scorer
+before any later paid portfolio audit. Current action is zero-paid
+same-parcel generation and deterministic gating.
+
 ## Active lawful-diversity correction - 2026-07-30 16:28 KST
 
 Read `../MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md` before any creative MASS

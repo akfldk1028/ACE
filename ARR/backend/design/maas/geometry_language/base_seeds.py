@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from .affine_matrix import matrix4_to_lists, scale_matrix4
 from .ast import GeometryNode, GeometryProgram
 
 
@@ -106,8 +107,12 @@ def base_seed_program(seed_id: str, *, variation_index: int = 0) -> GeometryProg
             semantic_role="base_seed", provenance=provenance,
         )
         scaled = GeometryNode(
-            f"seed_{spec.seed_id}", "transform", "scale", inputs=(unit.id,),
-            parameters={"vector": list(spec.normalized_scale)},
+            f"seed_{spec.seed_id}", "transform", "matrix4", inputs=(unit.id,),
+            parameters={
+                "matrix4": matrix4_to_lists(
+                    scale_matrix4(spec.normalized_scale),
+                ),
+            },
             semantic_role="base_seed",
             provenance={**provenance, "core_expansion": spec.core_expansion},
         )
@@ -134,6 +139,12 @@ def base_seed_program(seed_id: str, *, variation_index: int = 0) -> GeometryProg
                 else "rectangular"
             ),
             "site_scope_is_separate": True,
+            "canonical_root": "1/1 UnitBox",
+            "basevolume_affine_authority": (
+                "explicit_matrix4"
+                if spec.primitive_operator == "box"
+                else "derived_topology"
+            ),
         },
     )
 

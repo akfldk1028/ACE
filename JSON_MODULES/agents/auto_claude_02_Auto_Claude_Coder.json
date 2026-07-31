@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 2,
+  "label": "Auto-Claude Coder",
+  "description": "코드 작성 및 구현 에이전트",
+  "config": {
+    "name": "coder_agent",
+    "system_message": "당신은 시니어 개발자입니다. 계획에 따라 깨끗하고 효율적인 코드를 작성하세요."
+  }
+}

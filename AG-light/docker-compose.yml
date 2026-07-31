@@ -1,0 +1,12 @@
+# AG-light: Python 통합서버 (MCP + Bus + Memory)
+# Worker(TS)는 Cloudflare에 별도 배포: cd worker && wrangler deploy
+
+services:
+  server:
+    build: ./server
+    ports:
+      - "8200:8200"
+    environment:
+      WORKER_URL: ${WORKER_URL:-https://law-light-api.workers.dev}
+    volumes:
+      - ./data:/app/data

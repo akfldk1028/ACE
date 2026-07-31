@@ -1,0 +1,123 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "description": "Spec creation: Spec Writer -> Spec Critic. Deep analysis with Opus.",
+  "label": "Auto-Claude Spec Creation",
+  "config": {
+    "name": "RoundRobinGroupChat",
+    "description": "Spec creation: Spec Writer -> Spec Critic. Deep analysis with Opus.",
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "Spec Writer - synthesizes context into actionable spec.md.",
+        "label": "Auto-Claude Spec Writer",
+        "config": {
+          "name": "spec_writer_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Opus 4.5 (Max OAuth)",
+            "description": "Claude Opus 4.5 - Max OAuth. Auto-Claude Complex/Auto profile.",
+            "config": {
+              "model": "claude-opus-4-5-20251101"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "Spec Writer - synthesizes context into actionable spec.md.",
+          "system_message": "You are the Spec Writer Agent. Read project_index.json, requirements.json, and context.json, then write a complete spec.md document with all required sections. Do not interact with the user. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "Spec Critic - deep analysis to find spec issues before implementation.",
+        "label": "Auto-Claude Spec Critic",
+        "config": {
+          "name": "spec_critic_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Opus 4.5 (Max OAuth)",
+            "description": "Claude Opus 4.5 - Max OAuth. Auto-Claude Complex/Auto profile.",
+            "config": {
+              "model": "claude-opus-4-5-20251101"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "Spec Critic - deep analysis to find spec issues before implementation.",
+          "system_message": "You are the Spec Critic Agent. Use deep analytical thinking to critically review spec.md. Find issues, inconsistencies, missing requirements, and fix them. Output a critique_report.json summarizing issues and fixes. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate when TERMINATE is mentioned.",
+            "label": "TextMentionTermination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Max 10 messages.",
+            "label": "MaxMessageTermination(10)",
+            "config": {
+              "max_messages": 10,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

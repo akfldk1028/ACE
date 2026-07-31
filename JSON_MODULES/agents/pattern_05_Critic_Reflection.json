@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Critic (Reflection)",
+  "description": "품질 검토 및 피드백 에이전트",
+  "config": {
+    "name": "critic",
+    "system_message": "생성된 결과를 검토하고 구체적인 개선점을 제시하세요. 문제가 없으면 APPROVED라고 말하세요."
+  }
+}

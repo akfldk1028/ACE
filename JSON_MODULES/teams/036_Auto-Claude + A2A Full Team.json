@@ -1,0 +1,553 @@
+{
+  "provider": "autogen_agentchat.teams.SelectorGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "description": "Auto-Claude Full Team: Planner, Coder, QA, Spec, Insights + A2A agents (First, Calculator, Deep Research, News, ChatGPT Clone). Selector routes to the best agent.",
+  "label": "Auto-Claude + A2A Full Team",
+  "config": {
+    "name": "SelectorGroupChat",
+    "description": "Auto-Claude core agents + A2A external agents. Selector picks the best agent per task.",
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "Planner Agent - codebase investigation then subtask-based implementation plan.",
+        "label": "Auto-Claude Planner",
+        "config": {
+          "name": "planner_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Opus 4.5 (Max OAuth)",
+            "description": "Claude Opus 4.5 - Max OAuth. Auto-Claude Complex/Auto profile.",
+            "config": {
+              "model": "claude-opus-4-5-20251101"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "Planner Agent - codebase investigation then subtask-based implementation plan.",
+          "system_message": "You are the Planner Agent in an autonomous development process. Your job is to create a subtask-based implementation plan. Investigate the codebase deeply first, then create ordered subtasks that respect dependencies. Each subtask should be scoped to one service. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "Coder Agent - implements subtasks one at a time, verifies each.",
+        "label": "Auto-Claude Coder",
+        "config": {
+          "name": "coder_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "Coder Agent - implements subtasks one at a time, verifies each.",
+          "system_message": "You are the Coding Agent. Work on ONE subtask at a time. Complete it, verify it, move on. Use relative paths. Never assume paths exist - check first. When all subtasks are done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "QA Reviewer - validates completeness, correctness, production-readiness.",
+        "label": "Auto-Claude QA Reviewer",
+        "config": {
+          "name": "qa_reviewer_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Opus 4.5 (Max OAuth)",
+            "description": "Claude Opus 4.5 - Max OAuth. Auto-Claude Complex/Auto profile.",
+            "config": {
+              "model": "claude-opus-4-5-20251101"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "QA Reviewer - validates completeness, correctness, production-readiness.",
+          "system_message": "You are the QA Reviewer Agent. Validate that the implementation is complete, correct, and production-ready. Check for edge cases, missing tests, security vulnerabilities, console errors, and broken functionality. If everything passes, say APPROVED. If issues found, describe them clearly for the QA Fixer.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "QA Fixer - fixes all issues found by QA Reviewer.",
+        "label": "Auto-Claude QA Fixer",
+        "config": {
+          "name": "qa_fixer_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Opus 4.5 (Max OAuth)",
+            "description": "Claude Opus 4.5 - Max OAuth. Auto-Claude Complex/Auto profile.",
+            "config": {
+              "model": "claude-opus-4-5-20251101"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "QA Fixer - fixes all issues found by QA Reviewer.",
+          "system_message": "You are the QA Fix Agent. Fix ALL issues found by the QA Reviewer efficiently and correctly. Do not introduce new issues. When all fixes are complete, say FIXED.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "Spec Writer - synthesizes context into actionable spec.md.",
+        "label": "Auto-Claude Spec Writer",
+        "config": {
+          "name": "spec_writer_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Opus 4.5 (Max OAuth)",
+            "description": "Claude Opus 4.5 - Max OAuth. Auto-Claude Complex/Auto profile.",
+            "config": {
+              "model": "claude-opus-4-5-20251101"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "Spec Writer - synthesizes context into actionable spec.md.",
+          "system_message": "You are the Spec Writer Agent. Read project_index.json, requirements.json, and context.json, then write a complete spec.md document with all required sections. Do not interact with the user. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "Insights Agent - codebase analysis and pattern discovery.",
+        "label": "Auto-Claude Insights",
+        "config": {
+          "name": "insights_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "Insights Agent - codebase analysis and pattern discovery.",
+          "system_message": "You are the Insights Agent. Analyze code and provide insights about patterns, issues, and improvements. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "A2A 기본 에이전트 (OpenAI SDK, port 9017)",
+        "label": "A2A: First Agent",
+        "config": {
+          "name": "first_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "A2A 기본 에이전트 (OpenAI SDK, port 9017)",
+          "system_message": "You are a basic agent with weather tool. Use call_first_agent tool. Respond in user's language. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {},
+          "tools": [
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: First Agent (9017)",
+              "description": "A2A Protocol로 기본 에이전트를 호출합니다. OpenAI SDK 기반. 포트 9017.",
+              "config": {
+                "name": "call_first_agent",
+                "description": "A2A Protocol로 기본 에이전트를 호출합니다. OpenAI SDK 기반. 포트 9017.",
+                "content": "def call_first_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 기본 에이전트를 호출합니다. OpenAI SDK 기반. 포트 9017.\n    A2A Protocol (JSON-RPC 2.0) - Port 9017\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9017/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9017/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            }
+          ]
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "A2A 수학 계산 에이전트 (port 8006)",
+        "label": "A2A: Calculator Agent",
+        "config": {
+          "name": "calculator_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "A2A 수학 계산 에이전트 (port 8006)",
+          "system_message": "You are a Calculator agent. Use call_calculator_agent tool. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {},
+          "tools": [
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Calculator Agent (8006)",
+              "description": "A2A Protocol로 수학 계산 에이전트를 호출합니다. 포트 8006.",
+              "config": {
+                "name": "call_calculator_agent",
+                "description": "A2A Protocol로 수학 계산 에이전트를 호출합니다. 포트 8006.",
+                "content": "def call_calculator_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 수학 계산 에이전트를 호출합니다. 포트 8006.\n    A2A Protocol (JSON-RPC 2.0) - Port 8006\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:8006/\", json=payload, timeout=30)\n        resp.raise_for_status()\n        result = resp.json()\n        # Google ADK format\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            # LangGraph/FastAPI format\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:8006/. Start the agent first.\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            }
+          ]
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "A2A 심층 리서치 (AutoGen, port 9013)",
+        "label": "A2A: Deep Research",
+        "config": {
+          "name": "deep_research_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "A2A 심층 리서치 (AutoGen, port 9013)",
+          "system_message": "You are a Deep Research agent. Use call_deep_research tool. Respond in user's language. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {},
+          "tools": [
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Deep Research (9013)",
+              "description": "A2A Protocol로 심층 리서치 에이전트를 호출합니다. AutoGen 기반. 포트 9013.",
+              "config": {
+                "name": "call_deep_research",
+                "description": "A2A Protocol로 심층 리서치 에이전트를 호출합니다. AutoGen 기반. 포트 9013.",
+                "content": "def call_deep_research(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 심층 리서치 에이전트를 호출합니다. AutoGen 기반. 포트 9013.\n    A2A Protocol (JSON-RPC 2.0) - Port 9013\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9013/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9013/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            }
+          ]
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "A2A 뉴스 수집 (CrewAI, port 9008)",
+        "label": "A2A: News Reader",
+        "config": {
+          "name": "news_reader_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "A2A 뉴스 수집 (CrewAI, port 9008)",
+          "system_message": "You are a News Reader agent. Use call_news_reader tool. Respond in user's language. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {},
+          "tools": [
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: News Reader (9008)",
+              "description": "A2A Protocol로 뉴스 수집 에이전트를 호출합니다. CrewAI 기반. 포트 9008.",
+              "config": {
+                "name": "call_news_reader",
+                "description": "A2A Protocol로 뉴스 수집 에이전트를 호출합니다. CrewAI 기반. 포트 9008.",
+                "content": "def call_news_reader(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 뉴스 수집 에이전트를 호출합니다. CrewAI 기반. 포트 9008.\n    A2A Protocol (JSON-RPC 2.0) - Port 9008\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9008/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9008/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            }
+          ]
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "A2A ChatGPT 클론 - 웹검색/이미지생성/코드실행 (port 9001)",
+        "label": "A2A: ChatGPT Clone",
+        "config": {
+          "name": "chatgpt_clone_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "A2A ChatGPT 클론 - 웹검색/이미지생성/코드실행 (port 9001)",
+          "system_message": "You are a ChatGPT Clone agent with web search, image gen, code exec. Use call_chatgpt_clone tool. Respond in user's language. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {},
+          "tools": [
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: ChatGPT Clone (9001)",
+              "description": "A2A Protocol로 ChatGPT 클론 에이전트를 호출합니다. 웹 검색, 이미지 생성, 코드 실행. 포트 9001.",
+              "config": {
+                "name": "call_chatgpt_clone",
+                "description": "A2A Protocol로 ChatGPT 클론 에이전트를 호출합니다. 웹 검색, 이미지 생성, 코드 실행. 포트 9001.",
+                "content": "def call_chatgpt_clone(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 ChatGPT 클론 에이전트를 호출합니다. 웹 검색, 이미지 생성, 코드 실행. 포트 9001.\n    A2A Protocol (JSON-RPC 2.0) - Port 9001\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9001/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9001/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "model_client": {
+      "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+      "component_type": "model",
+      "version": 1,
+      "component_version": 1,
+      "label": "Claude Sonnet 4.5 (Max OAuth)",
+      "config": {
+        "model": "claude-sonnet-4-5-20250929"
+      }
+    },
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "config": {
+              "text": "APPROVED"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "config": {
+              "max_messages": 20,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "selector_prompt": "You are coordinating the Auto-Claude + A2A team.\n\nAuto-Claude Agents (internal):\n- planner_agent: Creates subtask-based implementation plans\n- coder_agent: Implements code one subtask at a time\n- qa_reviewer_agent: Validates completeness and correctness\n- qa_fixer_agent: Fixes issues found by reviewer\n- spec_writer_agent: Writes spec documents\n- insights_agent: Codebase analysis and insights\n\nA2A External Agents (via protocol):\n- first_agent: General knowledge agent (port 9017)\n- calculator_agent: Math calculations (port 8006)\n- deep_research_agent: Deep research and investigation (port 9013)\n- news_reader_agent: News collection and analysis (port 9008)\n- chatgpt_clone_agent: Web search, image gen, code exec (port 9001)\n\nRules:\n1. For planning tasks -> planner_agent\n2. For coding tasks -> coder_agent\n3. For review/validation -> qa_reviewer_agent\n4. For fixing issues -> qa_fixer_agent\n5. For spec writing -> spec_writer_agent\n6. For codebase analysis -> insights_agent\n7. For math calculations -> calculator_agent\n8. For research topics -> deep_research_agent\n9. For news/current events -> news_reader_agent\n10. For web search or general external queries -> chatgpt_clone_agent\n11. For simple general questions -> first_agent\n\nReturn ONLY the agent name.",
+    "allow_repeated_speaker": false,
+    "emit_team_events": false
+  }
+}

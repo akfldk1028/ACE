@@ -1,0 +1,230 @@
+{
+  "provider": "autogen_agentchat.teams.SelectorGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "label": "Land Regulation Analysis Team (토지규제분석팀)",
+  "description": "토지 정보(PNU/주소/용도지역)를 분석하여 건폐율, 용적률, 건축제한 및 관련 법조항을 종합 보고하는 3-agent 팀",
+  "config": {
+    "name": "SelectorGroupChat",
+    "description": "Land Analyst(토지규제분석가) + Law Researcher(법률연구원) + Report Writer(보고서작성자)",
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "토지 규제 데이터를 조회하고 건폐율/용적률/건축제한을 분석하는 에이전트",
+        "label": "Land Analyst (토지규제분석가)",
+        "config": {
+          "name": "land_analyst",
+          "description": "토지 규제 데이터를 조회하고 건폐율/용적률/건축제한을 분석하는 에이전트",
+          "system_message": "You are a Korean land regulation analyst. Given land information (PNU code, address, or zoning), you analyze building regulations including 건폐율 (BCR), 용적률 (FAR), and building restrictions. Use the land analysis tools to get regulation data, then explain the results clearly in Korean.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "tools": [
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "Land: Search Zones",
+              "description": "21개 용도지역의 건폐율/용적률 규제 목록을 조회합니다.",
+              "config": {
+                "name": "search_land_zones",
+                "description": "21개 용도지역의 건폐율/용적률 규제 목록을 조회합니다. GET /land/zones/",
+                "content": "def search_land_zones() -> str:\n    \"\"\"\n    21개 용도지역의 건폐율/용적률 규제 목록을 조회합니다.\n    GET http://127.0.0.1:8000/land/zones/\n\n    Returns:\n        JSON string with all zoning zones and their BCR/FAR limits\n    \"\"\"\n    import requests, json\n    try:\n        resp = requests.get(\"http://127.0.0.1:8000/land/zones/\", timeout=30)\n        resp.raise_for_status()\n        return json.dumps(resp.json(), ensure_ascii=False, indent=2)\n    except requests.exceptions.ConnectionError:\n        return json.dumps({\"error\": \"ARR Django 서버 미실행 (http://127.0.0.1:8000). python manage.py runserver 8000 으로 시작하세요.\"}, ensure_ascii=False)\n    except Exception as e:\n        return json.dumps({\"error\": str(e)}, ensure_ascii=False)\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "Land: Analyze Regulation",
+              "description": "PNU/주소/용도지역으로 건폐율, 용적률, 건축제한, 관련 법조항을 분석합니다.",
+              "config": {
+                "name": "analyze_land_regulation",
+                "description": "PNU/주소/용도지역으로 건폐율, 용적률, 건축제한, 관련 법조항을 분석합니다. POST /land/analyze/",
+                "content": "def analyze_land_regulation(pnu_or_address: str, input_type: str = \"pnu\", zones_json: str = \"[]\", include_law: bool = True) -> str:\n    \"\"\"\n    토지 규제 분석: 건폐율(BCR), 용적률(FAR), 건축제한, 관련 법조항.\n    POST http://127.0.0.1:8000/land/analyze/\n\n    Args:\n        pnu_or_address: PNU 코드(19자리) 또는 주소 또는 빈 문자열(raw 모드시)\n        input_type: \"pnu\" | \"address\" | \"raw\" (raw는 zones만 사용)\n        zones_json: JSON 배열 문자열, 예: '[\"제1종일반주거지역\"]'\n        include_law: 관련 법조항 검색 여부 (기본 True)\n\n    Returns:\n        JSON string with regulation, law_articles, restrictions\n    \"\"\"\n    import requests, json\n    try:\n        zones = json.loads(zones_json) if zones_json else []\n    except json.JSONDecodeError:\n        zones = []\n    payload = {\n        \"input\": pnu_or_address,\n        \"input_type\": input_type,\n        \"zones\": zones,\n        \"include_law\": include_law\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:8000/land/analyze/\", json=payload, timeout=30)\n        resp.raise_for_status()\n        return json.dumps(resp.json(), ensure_ascii=False, indent=2)\n    except requests.exceptions.ConnectionError:\n        return json.dumps({\"error\": \"ARR Django 서버 미실행 (http://127.0.0.1:8000). python manage.py runserver 8000 으로 시작하세요.\"}, ensure_ascii=False)\n    except Exception as e:\n        return json.dumps({\"error\": str(e)}, ensure_ascii=False)\n",
+                "global_imports": []
+              }
+            },
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "Land: Resolve PNU",
+              "description": "주소를 PNU 코드로 변환하거나 PNU 코드를 검증/파싱합니다.",
+              "config": {
+                "name": "resolve_land_pnu",
+                "description": "주소를 PNU 코드로 변환하거나 PNU 코드를 검증/파싱합니다. POST /land/resolve/",
+                "content": "def resolve_land_pnu(input_val: str, input_type: str = \"pnu\") -> str:\n    \"\"\"\n    주소→PNU 변환 또는 PNU 검증/파싱.\n    POST http://127.0.0.1:8000/land/resolve/\n\n    Args:\n        input_val: PNU 코드(19자리) 또는 주소\n        input_type: \"pnu\" (검증/파싱) 또는 \"address\" (Vworld 지오코딩)\n\n    Returns:\n        JSON string with parsed PNU info or geocoding result\n    \"\"\"\n    import requests, json\n    payload = {\n        \"input\": input_val,\n        \"input_type\": input_type\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:8000/land/resolve/\", json=payload, timeout=30)\n        resp.raise_for_status()\n        return json.dumps(resp.json(), ensure_ascii=False, indent=2)\n    except requests.exceptions.ConnectionError:\n        return json.dumps({\"error\": \"ARR Django 서버 미실행 (http://127.0.0.1:8000). python manage.py runserver 8000 으로 시작하세요.\"}, ensure_ascii=False)\n    except Exception as e:\n        return json.dumps({\"error\": str(e)}, ensure_ascii=False)\n",
+                "global_imports": []
+              }
+            }
+          ],
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "국토계획법/건축법 등 관련 법조항을 검색하고 법적 근거를 설명하는 에이전트",
+        "label": "Law Researcher (법률연구원)",
+        "config": {
+          "name": "law_researcher",
+          "description": "국토계획법/건축법 등 관련 법조항을 검색하고 법적 근거를 설명하는 에이전트",
+          "system_message": "You are a Korean law article researcher specializing in land use regulation laws (국토계획법, 건축법). You search for relevant law articles and explain legal basis for regulations. Always cite specific article numbers (조/항).",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "tools": [
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "Law: Search Articles",
+              "description": "Neo4j 법률 데이터베이스에서 관련 법조항을 검색합니다 (하이브리드 검색: exact+vector+relationship).",
+              "config": {
+                "name": "search_law_articles",
+                "description": "Neo4j 법률 데이터베이스에서 관련 법조항을 검색합니다 (하이브리드 검색). POST /api/search on law-domain-agents :8011",
+                "content": "def search_law_articles(query: str, limit: int = 10) -> str:\n    \"\"\"\n    Neo4j 법률 DB에서 관련 법조항을 하이브리드 검색합니다.\n    POST http://127.0.0.1:8011/api/search\n\n    Args:\n        query: 검색어 (예: \"제1종일반주거지역 건폐율\", \"제76조\")\n        limit: 최대 결과 수 (기본 10)\n\n    Returns:\n        JSON string with search results including hang_id, content, similarity, law_name\n    \"\"\"\n    import requests, json\n    payload = {\n        \"query\": query,\n        \"limit\": limit\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:8011/api/search\", json=payload, timeout=30)\n        resp.raise_for_status()\n        return json.dumps(resp.json(), ensure_ascii=False, indent=2)\n    except requests.exceptions.ConnectionError:\n        return json.dumps({\"error\": \"법률 검색 서버 미실행 (http://127.0.0.1:8011). law-domain-agents 서버를 시작하세요.\"}, ensure_ascii=False)\n    except Exception as e:\n        return json.dumps({\"error\": str(e)}, ensure_ascii=False)\n",
+                "global_imports": []
+              }
+            }
+          ],
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "토지 규제 분석 결과와 법조항 연구를 종합하여 구조화된 보고서를 작성하는 에이전트",
+        "label": "Report Writer (보고서작성자)",
+        "config": {
+          "name": "report_writer",
+          "description": "토지 규제 분석 결과와 법조항 연구를 종합하여 구조화된 보고서를 작성하는 에이전트",
+          "system_message": "You are a regulation report writer. You synthesize land regulation analysis and law article research into a clear, structured report in Korean. Include: 1) 토지 정보, 2) 건폐율/용적률 제한, 3) 법적 근거, 4) 건축 시 주의사항. When the report is complete, end your message with TERMINATE.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "model_client": {
+      "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+      "component_type": "model",
+      "version": 1,
+      "component_version": 1,
+      "label": "Claude Sonnet 4.5 (Max OAuth)",
+      "description": "Selector model - Claude Sonnet 4.5 for agent routing decisions.",
+      "config": {
+        "model": "claude-sonnet-4-5-20250929"
+      }
+    },
+    "selector_prompt": "You select which agent should handle each step. For land data and regulation numbers, pick land_analyst. For finding specific law articles, pick law_researcher. For final summary, pick report_writer.\n\nAgents:\n- land_analyst: 토지 규제 데이터 조회 및 건폐율/용적률 분석 (tools: search_land_zones, analyze_land_regulation, resolve_land_pnu)\n- law_researcher: 관련 법조항 검색 및 법적 근거 설명 (tool: search_law_articles)\n- report_writer: 분석 결과 종합 보고서 작성 (no tools, synthesis only)\n\n{roles}\n{history}\n\nReturn ONLY the agent name.",
+    "allow_repeated_speaker": false,
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate the conversation if a specific text is mentioned.",
+            "label": "TextMentionTermination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate the conversation after a maximum number of messages have been exchanged.",
+            "label": "MaxMessageTermination",
+            "config": {
+              "max_messages": 15,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

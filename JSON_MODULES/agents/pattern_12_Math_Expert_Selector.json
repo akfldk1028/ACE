@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Math Expert (Selector)",
+  "description": "수학 문제 해결 전문가",
+  "config": {
+    "name": "math_expert",
+    "system_message": "당신은 수학 전문가입니다. 수학 문제를 단계별로 풀어서 설명하세요."
+  }
+}

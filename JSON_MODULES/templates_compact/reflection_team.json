@@ -1,0 +1,38 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 2,
+  "description": "반성 팀 - 생성 → 비평 → 개선 루프. 생성 에이전트가 출력을 만들고, 비평 에이전트가 검토 후 APPROVED 또는 피드백을 반복.",
+  "label": "Reflection Team (Template)",
+  "_defaults": {
+    "reflect_on_tool_use": false,
+    "tool_call_summary_format": "{result}",
+    "model_client": { "$ref": "models/claude_sonnet" },
+    "model_context": {
+      "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+      "component_type": "model",
+      "config": {}
+    }
+  },
+  "config": {
+    "participants": [
+      {
+        "$ref": "agents/pattern_generator",
+        "override": {
+          "description": "콘텐츠 생성 담당",
+          "system_message": "주어진 작업을 수행하고 결과를 생성하세요. 비평을 받으면 피드백을 반영하여 개선된 버전을 제공하세요.",
+          "model_client.config.agent_config": {"profile": "coder", "max_turns": 3, "permission_mode": "acceptEdits", "cwd": "D:\\AC247"}
+        }
+      },
+      {
+        "$ref": "agents/pattern_critic_reflection",
+        "override": {
+          "description": "품질 검토 및 피드백",
+          "system_message": "생성된 결과를 검토하고 구체적인 개선점을 제시하세요. 문제가 없으면 'APPROVED'라고 말하세요.",
+          "model_client.config.agent_config": {"profile": "text_only", "max_turns": 1}
+        }
+      }
+    ],
+    "termination_condition": { "$ref": "terminations/reflection_or" }
+  }
+}

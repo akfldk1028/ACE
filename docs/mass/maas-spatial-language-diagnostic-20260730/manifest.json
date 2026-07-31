@@ -1,0 +1,121 @@
+{
+  "candidate_count": 2,
+  "candidates": [
+    {
+      "candidate_id": "direct-oblique-interlocking-plates",
+      "geometry_hash": "68b976554bc6e12bf1fbfdaa261cd025787ce2e0faaddd8f48fd1d39d32be418",
+      "law_status": "NOT EVALUATED",
+      "metrics": {
+        "bounds": [
+          [
+            -2.0,
+            -0.8,
+            -1.502602
+          ],
+          [
+            2.0,
+            0.8,
+            1.502602
+          ]
+        ],
+        "closed_solid": true,
+        "component_count": 1,
+        "component_volume_ratios": [
+          1.0
+        ],
+        "genus": 0,
+        "kernel": "manifold3d",
+        "kernel_status": "Error.NoError",
+        "manifold": true,
+        "minimum_component_volume_ratio": 1.0,
+        "outward_normals": true,
+        "self_intersection_checked_by_kernel": true,
+        "signed_mesh_volume": 3.197358,
+        "surface_area": 27.857297,
+        "triangle_count": 508,
+        "vertex_count": 256,
+        "volume": 3.197358,
+        "watertight": true
+      },
+      "operators": [
+        "box",
+        "matrix4",
+        "circularize",
+        "matrix_array"
+      ],
+      "paid_author_request_count": 0,
+      "paid_vlm_request_count": 0,
+      "parking_status": "NOT EVALUATED",
+      "passport_json": "direct-oblique-interlocking-plates.png.passport.json",
+      "passport_sha256": "6d17f8699e8e89e43afcf1ed003c9a60dbd826a6ff45e21ca99aa265dc73090a",
+      "program_hash": "c7615bb2af92fcd662e1716e992799ba88c2522ad298c4a25f66f2786676166e",
+      "program_json": "direct-oblique-interlocking-plates.program.json",
+      "program_sha256": "de69d93083ffe07df73d223f5d296548e422af12ad6324e4824c9e22af10a3dd",
+      "render_png": "direct-oblique-interlocking-plates.png",
+      "render_sha256": "1332d85e8f0941baaf92cea155334be416a94504ad97b9de7be0327772174273",
+      "status": "PRE-LEGAL / NOT EVALUATED",
+      "vlm_status": "NOT EVALUATED"
+    },
+    {
+      "candidate_id": "continuous-section-surface-shell",
+      "geometry_hash": "2f7ecfcc846f9db6feace91b5737d8d57ccaaf6fbe4e40528ced8a740cb934b3",
+      "law_status": "NOT EVALUATED",
+      "metrics": {
+        "bounds": [
+          [
+            0.0,
+            0.0,
+            0.8
+          ],
+          [
+            20.107034,
+            12.0,
+            6.72
+          ]
+        ],
+        "closed_solid": true,
+        "component_count": 1,
+        "component_volume_ratios": [
+          1.0
+        ],
+        "genus": 0,
+        "kernel": "manifold3d",
+        "kernel_status": "Error.NoError",
+        "manifold": true,
+        "minimum_component_volume_ratio": 1.0,
+        "outward_normals": true,
+        "self_intersection_checked_by_kernel": true,
+        "signed_mesh_volume": 94.15073,
+        "surface_area": 611.78633,
+        "triangle_count": 72,
+        "vertex_count": 38,
+        "volume": 94.15073,
+        "watertight": true
+      },
+      "operators": [
+        "box",
+        "matrix4",
+        "section_surface",
+        "shell_thicken"
+      ],
+      "paid_author_request_count": 0,
+      "paid_vlm_request_count": 0,
+      "parking_status": "NOT EVALUATED",
+      "passport_json": "continuous-section-surface-shell.png.passport.json",
+      "passport_sha256": "1610411b7368c1fa7a031c093a17908fa49a8277672af61b925f0e461bf74b4a",
+      "program_hash": "a9b646dcb4f237a49b67a607e175335d59515393f02dd5daa142dd8471376f49",
+      "program_json": "continuous-section-surface-shell.program.json",
+      "program_sha256": "c19f1c2067c1f06f80d8a98c917a5edb18780c9fb385a335c73fe09bab50aea8",
+      "render_png": "continuous-section-surface-shell.png",
+      "render_sha256": "59fe6707464003b6fd65e1224edd245167bd01f8d522bf749431ab6ab48aee66",
+      "status": "PRE-LEGAL / NOT EVALUATED",
+      "vlm_status": "NOT EVALUATED"
+    }
+  ],
+  "paid_author_request_count": 0,
+  "paid_vlm_request_count": 0,
+  "purpose": "Zero-paid MASS language checkpoint; no parcel, law, parking, occupancy, selector, or VLM evaluation.",
+  "run_id": "maas-spatial-language-diagnostic-20260730",
+  "schema_version": "arr.maas.spatial_language_diagnostic.v1",
+  "status": "PRE-LEGAL / NOT EVALUATED"
+}

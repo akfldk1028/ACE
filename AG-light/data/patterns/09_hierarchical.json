@@ -1,0 +1,128 @@
+{
+  "id": "hierarchical",
+  "name": {
+    "en": "Hierarchical Orchestration",
+    "ko": "계층적 오케스트레이션"
+  },
+  "description": {
+    "en": "A manager agent coordinates multiple worker agents in a tree-like structure. The manager decomposes complex tasks, delegates to appropriate workers, and synthesizes their outputs.",
+    "ko": "관리자 에이전트가 트리 구조로 여러 작업자 에이전트를 조율합니다. 관리자가 복잡한 작업을 분해하고, 적절한 작업자에게 위임하며, 결과를 종합합니다."
+  },
+  "diagram": "                    ┌───────────────┐\n                    │   CEO Agent   │\n                    └───────┬───────┘\n              ┌─────────────┼─────────────┐\n              ↓             ↓             ↓\n        ┌─────────┐   ┌─────────┐   ┌─────────┐\n        │ Manager │   │ Manager │   │ Manager │\n        │    A    │   │    B    │   │    C    │\n        └────┬────┘   └────┬────┘   └────┬────┘\n          ┌──┴──┐       ┌──┴──┐       ┌──┴──┐\n          ↓     ↓       ↓     ↓       ↓     ↓\n       Worker Worker Worker Worker Worker Worker",
+  "complexity": "high",
+  "when_to_use": [
+    "대규모 복잡한 프로젝트",
+    "명확한 책임 분리가 필요할 때",
+    "조직 구조를 모방해야 할 때",
+    "작업 분해 및 병렬 처리가 필요할 때",
+    "여러 레벨의 추상화가 필요할 때"
+  ],
+  "when_to_avoid": [
+    "단순하고 작은 작업",
+    "평면적 협업이 더 효율적일 때",
+    "계층 간 통신 오버헤드가 문제될 때",
+    "동적 팀 구성이 필요할 때"
+  ],
+  "pros": [
+    "명확한 책임 분리",
+    "확장성",
+    "복잡성 관리",
+    "병렬 처리 가능"
+  ],
+  "cons": [
+    "통신 오버헤드",
+    "관리자 병목 가능",
+    "설계 복잡성",
+    "유연성 제한"
+  ],
+  "hierarchy_levels": [
+    {
+      "level": "Strategic",
+      "role": "CEO/Executive Agent",
+      "responsibility": "전체 목표 설정, 고수준 계획, 최종 결정"
+    },
+    {
+      "level": "Tactical",
+      "role": "Manager Agents",
+      "responsibility": "하위 작업 분해, 작업자 조율, 중간 결과 통합"
+    },
+    {
+      "level": "Operational",
+      "role": "Worker Agents",
+      "responsibility": "구체적 작업 수행, 전문 기능 제공"
+    }
+  ],
+  "example_use_cases": [
+    {
+      "name": "소프트웨어 개발 프로젝트",
+      "structure": {
+        "project_manager": ["frontend_lead", "backend_lead", "qa_lead"],
+        "frontend_lead": ["react_dev", "css_dev"],
+        "backend_lead": ["api_dev", "db_dev"],
+        "qa_lead": ["tester_1", "tester_2"]
+      }
+    },
+    {
+      "name": "연구 프로젝트",
+      "structure": {
+        "lead_researcher": ["literature_team", "experiment_team", "analysis_team"]
+      }
+    }
+  ],
+  "autogen_implementation": {
+    "provider": "custom_hierarchical_team",
+    "note": "AutoGen에서는 중첩된 팀으로 구현",
+    "config_template": {
+      "ceo_team": {
+        "provider": "autogen_agentchat.teams.SelectorGroupChat",
+        "participants": ["ceo", "manager_a", "manager_b"]
+      },
+      "sub_team_a": {
+        "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+        "participants": ["manager_a", "worker_a1", "worker_a2"]
+      },
+      "sub_team_b": {
+        "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+        "participants": ["manager_b", "worker_b1", "worker_b2"]
+      }
+    }
+  },
+  "communication_patterns": [
+    {
+      "name": "top_down",
+      "description": "상위에서 하위로 작업 위임"
+    },
+    {
+      "name": "bottom_up",
+      "description": "하위에서 상위로 결과 보고"
+    },
+    {
+      "name": "lateral",
+      "description": "동일 레벨 간 협업 (선택적)"
+    }
+  ],
+  "best_practices": [
+    "각 레벨의 책임 범위 명확히 정의",
+    "관리자의 작업 분해 능력 중요",
+    "결과 통합 전략 사전 정의",
+    "계층 깊이 최소화"
+  ],
+  "visual_override": {
+    "layout": "tree",
+    "category": "hierarchical",
+    "icon": "GitMerge",
+    "primaryColor": "#6366f1",
+    "secondaryColor": "#a5b4fc",
+    "edgeStyle": "solid"
+  },
+  "references": [
+    {
+      "title": "MetaGPT: Meta Programming for Multi-Agent Collaborative Framework",
+      "url": "https://arxiv.org/abs/2308.00352"
+    },
+    {
+      "title": "ChatDev: Communicative Agents for Software Development",
+      "url": "https://arxiv.org/abs/2307.07924"
+    }
+  ]
+}

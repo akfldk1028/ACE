@@ -1,0 +1,310 @@
+{
+  "metadata": {
+    "base_seed": "bar",
+    "base_volume_authority": "1/1 UnitBox",
+    "book_recursive_projection": {
+      "active": true,
+      "application_order": "program_solid_then_book_scope_and_operations",
+      "chassis_compatibility": {
+        "book_verbs": [
+          "fracture"
+        ],
+        "checked_relations": [],
+        "completed_form_template_used": false,
+        "parcel_coordinates_used": false,
+        "schema_version": "arr.maas.book_chassis_compatibility.v1",
+        "source_chassis_operators": [
+          "box",
+          "union"
+        ],
+        "status": "compatible"
+      },
+      "geometry_authority": "recursive_manifold_ast",
+      "ordered_verbs": [
+        "fracture"
+      ],
+      "outward_direction_source": "oriented_p3_cell_volume_weighted_center",
+      "parameter_projection": {
+        "coordinate_system": "selected_live_solid_normalized_bounds",
+        "projections": [],
+        "relation_invariants": [],
+        "schema_version": "arr.maas.book_kernel_parameter_projection.v1"
+      },
+      "parcel_coordinates_hardcoded": false,
+      "program_relation_suffix_node_ids": [],
+      "program_section_node_id": "",
+      "scope_fraction": 0.5,
+      "scope_label": "1/2",
+      "scope_orientation": "vertical"
+    },
+    "box_instance_contract": "shared_unitbox_matrix4",
+    "canonical_alternative": "union",
+    "chassis": "l_wings",
+    "chassis_taxonomy_authority": "exact_core_family",
+    "family": "l_mass",
+    "final_vlm_repair": {
+      "critic_response_id": "resp_0a5d169322299ca9006a5d66efcf2c819983b329804f1fbd68",
+      "edit_count": 6,
+      "parent_geometry_hash": "d2d6619afbe8fd1188a48a1c58d539ecbaca84ef85f46317b978ff01b8eba34f",
+      "parent_program_hash": "871029f8e33f95d758e5ed869fb2693dab8d1f216021bcc97c92699f507ba72f",
+      "schema_version": "arr.maas.final_vlm_typed_repair_lineage.v1",
+      "source_sequence": "program_neighborhood_active_bar__universal_0_66_a0dc03ac36__book_operative_fracture__search_v0"
+    },
+    "form_bank_lane": "executable_core_language",
+    "form_bank_schema_version": "arr.maas.universal_form_bank.v2",
+    "language_layer": "universal_form_bank",
+    "parcel_coordinates_in_program": false,
+    "pre_book_program_hash": "a0dc03ac3661ef81ca28a9f08b3caf7051af0361047ff5b769457c0e5e146f61",
+    "program_conditioned": true,
+    "program_projection": {
+      "access_side": "west",
+      "base_or_book_authority": false,
+      "building_type": "근린생활시설",
+      "controller_node_ids": [
+        "book03_split_wing",
+        "book03_split_wing"
+      ],
+      "pre_program_projection_hash": "641a40ce49929a8ab61ebfe10ae7ecbf0e25e0eb5fb69992caf8655bfa0af33d",
+      "program_id": "neighborhood_living",
+      "public_space_controller_node_id": "book03_split_wing",
+      "public_space_status": "reused_existing_spatial_relation",
+      "schema_version": "arr.maas.post_book_program_projection.v1",
+      "section_controller_node_id": "",
+      "threshold_controller_node_id": "book03_split_wing",
+      "threshold_status": "rebound_existing_final_ast_controller",
+      "universal_form_preserved": true,
+      "vlm_role": "downstream_critic_and_repair_only"
+    },
+    "program_projection_applied": true,
+    "program_projection_stage": "post_book"
+  },
+  "name": "shape_03_l_mass_union__book_1_2_fracture__critic_revision__final_vlm_repair",
+  "nodes": [
+    {
+      "id": "n01_box",
+      "inputs": [],
+      "kind": "primitive",
+      "operator": "box",
+      "parameters": {
+        "depth": 1.0,
+        "height": 1.0,
+        "width": 1.0
+      },
+      "provenance": {
+        "canonical_base_model": "1/1 UnitBox",
+        "source": "executable_language_probe",
+        "unitbox_authority": true
+      },
+      "semantic_role": "base_authority"
+    },
+    {
+      "id": "n01_box_matrix4",
+      "inputs": [
+        "n01_box"
+      ],
+      "kind": "transform",
+      "operator": "matrix4",
+      "parameters": {
+        "matrix4": [
+          [
+            8.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            3.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            3.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "provenance": {
+        "authored_box_parameters": {
+          "depth": 3,
+          "height": 3,
+          "width": 8
+        },
+        "authored_operator": "box",
+        "canonical_base_model": "1/1 UnitBox",
+        "source": "executable_language_probe"
+      },
+      "semantic_role": "wing"
+    },
+    {
+      "id": "n02_box",
+      "inputs": [
+        "n01_box"
+      ],
+      "kind": "transform",
+      "operator": "matrix4",
+      "parameters": {
+        "matrix4": [
+          [
+            3.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            8.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            3.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "provenance": {
+        "authored_box_parameters": {
+          "depth": 8,
+          "height": 3,
+          "width": 3
+        },
+        "authored_operator": "box",
+        "canonical_base_model": "1/1 UnitBox",
+        "source": "executable_language_probe"
+      },
+      "semantic_role": "wing"
+    },
+    {
+      "id": "n03_union",
+      "inputs": [
+        "n01_box_matrix4",
+        "n02_box"
+      ],
+      "kind": "boolean",
+      "operator": "union",
+      "parameters": {},
+      "provenance": {
+        "source": "executable_language_probe"
+      },
+      "semantic_role": "main"
+    },
+    {
+      "id": "book01_book_base_volume",
+      "inputs": [
+        "n03_union"
+      ],
+      "kind": "modifier",
+      "operator": "book_base_volume",
+      "parameters": {
+        "label": "1/2",
+        "orientation": "vertical"
+      },
+      "provenance": {
+        "book_call_index": -1,
+        "book_verb": "select_book_scope",
+        "normalized_parameters_only": true,
+        "scope_fraction": 0.5,
+        "scope_label": "1/2",
+        "scope_orientation": "vertical",
+        "source": "book_recursive_projection"
+      },
+      "semantic_role": "book_mutated_dominant"
+    },
+    {
+      "id": "book02_difference",
+      "inputs": [
+        "n03_union",
+        "book01_book_base_volume"
+      ],
+      "kind": "boolean",
+      "operator": "difference",
+      "parameters": {},
+      "provenance": {
+        "book_call_index": -1,
+        "book_verb": "select_book_scope",
+        "normalized_parameters_only": true,
+        "scope_fraction": 0.5,
+        "scope_label": "1/2",
+        "scope_orientation": "vertical",
+        "source": "book_recursive_projection"
+      },
+      "semantic_role": "book_mutated_dominant"
+    },
+    {
+      "id": "book03_split_wing",
+      "inputs": [
+        "book01_book_base_volume"
+      ],
+      "kind": "macro",
+      "operator": "split_wing",
+      "parameters": {
+        "access_side": "west",
+        "axis": "y",
+        "bridge": false,
+        "gap_ratio": 0.22,
+        "ground_spine": true,
+        "ground_spine_height_ratio": 0.167,
+        "ground_spine_width_ratio": 0.286,
+        "height": 0.18,
+        "height_ratio": 0.64,
+        "layout": "split"
+      },
+      "provenance": {
+        "architectural_use": "resolve the existing public threshold to the verified access side",
+        "base_or_book_authority": false,
+        "book_call_index": 1,
+        "book_verb": "fracture",
+        "completed_building_template": false,
+        "normalized_parameters_only": true,
+        "parcel_coordinates_used": false,
+        "program_conditioning_stage": "after_book",
+        "program_invariant": true,
+        "scope_fraction": 0.5,
+        "scope_label": "1/2",
+        "scope_orientation": "vertical",
+        "source": "post_book_program_projection",
+        "upstream_source": "book_recursive_projection"
+      },
+      "semantic_role": "book_mutated_dominant"
+    },
+    {
+      "id": "book04_union",
+      "inputs": [
+        "book02_difference",
+        "book03_split_wing"
+      ],
+      "kind": "boolean",
+      "operator": "union",
+      "parameters": {},
+      "provenance": {
+        "book_call_index": -1,
+        "book_verb": "recompose_book_scope",
+        "normalized_parameters_only": true,
+        "scope_fraction": 0.5,
+        "scope_label": "1/2",
+        "scope_orientation": "vertical",
+        "source": "book_recursive_projection"
+      },
+      "semantic_role": "book_mutated_dominant"
+    }
+  ],
+  "root_id": "book04_union",
+  "schema_version": "arr.maas.geometry_program.v1"
+}

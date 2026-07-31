@@ -1,0 +1,282 @@
+{
+  "metadata": {
+    "author_provider": "bounded_procedural_geometry_agent",
+    "base_seed": "profiled_prism",
+    "book_recursive_projection": {
+      "active": true,
+      "application_order": "program_solid_then_book_scope_and_operations",
+      "chassis_compatibility": {
+        "book_verbs": [
+          "extrude"
+        ],
+        "checked_relations": [],
+        "completed_form_template_used": false,
+        "parcel_coordinates_used": false,
+        "schema_version": "arr.maas.book_chassis_compatibility.v1",
+        "source_chassis_operators": [
+          "extruded_polygon",
+          "stepped_mass"
+        ],
+        "status": "compatible"
+      },
+      "geometry_authority": "recursive_manifold_ast",
+      "ordered_verbs": [
+        "extrude"
+      ],
+      "outward_direction_source": "oriented_p3_cell_volume_weighted_center",
+      "parameter_projection": {
+        "coordinate_system": "selected_live_solid_normalized_bounds",
+        "projections": [],
+        "relation_invariants": [],
+        "schema_version": "arr.maas.book_kernel_parameter_projection.v1"
+      },
+      "parcel_coordinates_hardcoded": false,
+      "program_relation_suffix_node_ids": [],
+      "program_section_node_id": "",
+      "scope_fraction": 1.0,
+      "scope_label": "1/1",
+      "scope_orientation": "vertical"
+    },
+    "chassis": "terraced_monolith",
+    "chassis_taxonomy_authority": "exact_source_operator",
+    "completed_building_template": false,
+    "early_typology_prior": "",
+    "family": "agent_stepped_mass",
+    "form_bank_lane": "bounded_synthesis",
+    "form_bank_schema_version": "arr.maas.universal_form_bank.v2",
+    "form_bank_variation_page": 1,
+    "intent_tags": [
+      "calm_prismatic",
+      "continuous_curve",
+      "long_span",
+      "oblique_section",
+      "stepped_section",
+      "carved_void",
+      "lifted_ground",
+      "daylight_section",
+      "distributed_wings",
+      "vertical_landmark",
+      "profiled_span_section",
+      "face_composition"
+    ],
+    "language_layer": "universal_form_bank",
+    "operator_path": [
+      "stepped_mass"
+    ],
+    "parcel_coordinates_in_program": false,
+    "pre_book_program_hash": "eb911857a1f00fef76f957e066ec33d042505d880721f62bde4307761d9c4ec3",
+    "program_conditioned": true,
+    "program_projection": {
+      "access_side": "west",
+      "base_or_book_authority": false,
+      "building_type": "근린생활시설",
+      "controller_node_ids": [
+        "program_projection:neighborhood_living:public_threshold",
+        "program_projection:neighborhood_living:public_threshold"
+      ],
+      "pre_program_projection_hash": "cd15a12bac5a5078f3648b0d0dbf3237fe7ea1700a6ae3f7ee1a89bf24d10e0f",
+      "program_id": "neighborhood_living",
+      "public_space_controller_node_id": "program_projection:neighborhood_living:public_threshold",
+      "public_space_status": "reused_program_threshold_as_public_space",
+      "schema_version": "arr.maas.post_book_program_projection.v2",
+      "section_controller_node_id": "",
+      "threshold_controller_node_id": "program_projection:neighborhood_living:public_threshold",
+      "threshold_status": "added_post_book_controller",
+      "universal_form_preserved": true,
+      "vlm_role": "downstream_critic_and_repair_only"
+    },
+    "program_projection_applied": true,
+    "program_projection_stage": "post_book",
+    "required_access_bound_relation": false,
+    "required_macro_operators_all": [],
+    "required_terminal_operator": "",
+    "site_access_side": "closed",
+    "variation_index": 105,
+    "variation_offset": 64
+  },
+  "name": "synth_unconditioned_form_bank_profiled_prism_c7f32f3f34__book_1_1_extrude",
+  "nodes": [
+    {
+      "id": "seed_profiled_prism",
+      "inputs": [],
+      "kind": "primitive",
+      "operator": "extruded_polygon",
+      "parameters": {
+        "height": 0.75,
+        "points": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.6,
+            0.0
+          ],
+          [
+            1.35,
+            1.15
+          ],
+          [
+            0.35,
+            1.2
+          ],
+          [
+            -0.15,
+            0.55
+          ]
+        ],
+        "profile_family": "faceted",
+        "profile_variant_index": 0
+      },
+      "provenance": {
+        "architectural_use": "non-rectangular footprint seed",
+        "core_expansion": "Extrude(PolygonProfile, height)",
+        "not_a_building_template": true,
+        "seed_id": "profiled_prism",
+        "source": "normalized_base_seed_catalog"
+      },
+      "semantic_role": "base_seed"
+    },
+    {
+      "id": "agent_01_stepped_mass",
+      "inputs": [
+        "seed_profiled_prism"
+      ],
+      "kind": "macro",
+      "operator": "stepped_mass",
+      "parameters": {
+        "levels": 3,
+        "podium_height_ratio": 0.0,
+        "podium_scale": 1.0,
+        "setback_ratio": 0.167,
+        "shift_per_level": [
+          0.042,
+          0.0,
+          0.0
+        ]
+      },
+      "provenance": {
+        "bounded_parameter_generation": true,
+        "completed_building_template": false,
+        "early_typology_prior": "",
+        "intent_tags": [
+          "calm_prismatic",
+          "continuous_curve",
+          "long_span",
+          "oblique_section",
+          "stepped_section",
+          "carved_void",
+          "lifted_ground",
+          "daylight_section",
+          "distributed_wings",
+          "vertical_landmark",
+          "profiled_span_section",
+          "face_composition"
+        ],
+        "parcel_coordinates_used": false,
+        "program_invariant": false,
+        "source": "procedural_geometry_synthesis_agent",
+        "variation_index": 105
+      },
+      "semantic_role": "dominant_mass"
+    },
+    {
+      "id": "book01_book_base_volume",
+      "inputs": [
+        "agent_01_stepped_mass"
+      ],
+      "kind": "modifier",
+      "operator": "book_base_volume",
+      "parameters": {
+        "label": "1/1",
+        "orientation": "vertical"
+      },
+      "provenance": {
+        "book_call_index": -1,
+        "book_verb": "select_book_scope",
+        "normalized_parameters_only": true,
+        "scope_fraction": 1.0,
+        "scope_label": "1/1",
+        "scope_orientation": "vertical",
+        "source": "book_recursive_projection"
+      },
+      "semantic_role": "book_mutated_dominant"
+    },
+    {
+      "id": "book02_scale",
+      "inputs": [
+        "book01_book_base_volume"
+      ],
+      "kind": "transform",
+      "operator": "scale",
+      "parameters": {
+        "pivot": "center",
+        "vector": [
+          1.0,
+          1.0,
+          1.1441
+        ]
+      },
+      "provenance": {
+        "book_call_index": 1,
+        "book_verb": "extrude",
+        "normalized_parameters_only": true,
+        "scope_fraction": 1.0,
+        "scope_label": "1/1",
+        "scope_orientation": "vertical",
+        "source": "book_recursive_projection"
+      },
+      "semantic_role": "book_mutated_dominant"
+    },
+    {
+      "id": "program_projection:neighborhood_living:public_threshold",
+      "inputs": [
+        "book02_scale"
+      ],
+      "kind": "macro",
+      "operator": "lift",
+      "parameters": {
+        "access_side": "west",
+        "rise_ratio": 0.231,
+        "support_ratio": 0.11
+      },
+      "provenance": {
+        "architectural_use": "bind the public threshold to the verified access side",
+        "base_or_book_authority": false,
+        "bounded_parameter_generation": true,
+        "completed_building_template": false,
+        "parcel_coordinates_used": false,
+        "program_conditioning_stage": "after_book",
+        "program_id": "neighborhood_living",
+        "program_invariant": true,
+        "source": "post_book_program_projection"
+      },
+      "semantic_role": "public_threshold"
+    },
+    {
+      "id": "program_projection:neighborhood_living:public_threshold_connectivity",
+      "inputs": [
+        "program_projection:neighborhood_living:public_threshold"
+      ],
+      "kind": "macro",
+      "operator": "join_related",
+      "parameters": {
+        "height_ratio": 0.28,
+        "width_ratio": 0.2
+      },
+      "provenance": {
+        "architectural_use": "retain one connected building after public-threshold projection",
+        "base_or_book_authority": false,
+        "completed_building_template": false,
+        "parcel_coordinates_used": false,
+        "program_conditioning_stage": "after_book",
+        "program_id": "neighborhood_living",
+        "program_invariant": true,
+        "source": "program_projection_connectivity_guard"
+      },
+      "semantic_role": "program_connectivity_guard"
+    }
+  ],
+  "root_id": "program_projection:neighborhood_living:public_threshold_connectivity",
+  "schema_version": "arr.maas.geometry_program.v1"
+}

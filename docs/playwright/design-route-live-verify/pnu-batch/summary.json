@@ -1,0 +1,94 @@
+[
+  {
+    "pnu": "1168011800104170004",
+    "name": "gangnam-small-neighborhood-stalls",
+    "pass": false,
+    "strategy": "piloti_ground",
+    "voidHeight": 3.5,
+    "designMassEntities": 20,
+    "parkingEntities": 12,
+    "parkingStallEntities": 6,
+    "pilotiEntities": 0,
+    "sunlightContainment": {
+      "applies": true,
+      "status": "needs_height_layer_check",
+      "baseHeightM": 10,
+      "datumElevationM": 17.2293387484479,
+      "datumCase": "neighbor_avg_86",
+      "baseSetbackM": 1.5,
+      "slope": 2,
+      "envelopeLayerCount": 4,
+      "maxMassTopM": 17.5,
+      "method": "base_ring_plus_pending_height_layer_check",
+      "checked_points": 9,
+      "outside_points": 0,
+      "inside": false,
+      "checks": [
+        {
+          "index": 0,
+          "top_height_m": 7,
+          "method": "base_1_5m_ring",
+          "checked_points": 5,
+          "outside_points": 0,
+          "inside": true
+        },
+        {
+          "index": 1,
+          "top_height_m": 17.5,
+          "method": "needs_height_layer_check",
+          "checked_points": 4,
+          "outside_points": 0,
+          "inside": true
+        }
+      ]
+    },
+    "hasFallback": false,
+    "hasDisabledText": false,
+    "waitError": null,
+    "responseErrors": 0,
+    "pngPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\zoom_01_gangnam-small-neighborhood-stalls_1168011800104170004.png",
+    "jsonPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\01_gangnam-small-neighborhood-stalls_1168011800104170004.json"
+  },
+  {
+    "pnu": "1168011800104670003",
+    "name": "gangnam-dogok-neighborhood-stalls",
+    "pass": true,
+    "strategy": "ground_surface",
+    "voidHeight": 0,
+    "designMassEntities": 11,
+    "parkingEntities": 8,
+    "parkingStallEntities": 4,
+    "pilotiEntities": 0,
+    "sunlightContainment": {
+      "applies": true,
+      "status": "pass",
+      "baseHeightM": 10,
+      "datumElevationM": 15,
+      "datumCase": "neighbor_avg_86",
+      "baseSetbackM": 1.5,
+      "slope": 2,
+      "envelopeLayerCount": 1,
+      "maxMassTopM": 7,
+      "method": "base_1_5m_ring",
+      "checked_points": 116,
+      "outside_points": 0,
+      "inside": true,
+      "checks": [
+        {
+          "index": 0,
+          "top_height_m": 7,
+          "method": "base_1_5m_ring",
+          "checked_points": 116,
+          "outside_points": 0,
+          "inside": true
+        }
+      ]
+    },
+    "hasFallback": false,
+    "hasDisabledText": false,
+    "waitError": null,
+    "responseErrors": 0,
+    "pngPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\zoom_02_gangnam-dogok-neighborhood-stalls_1168011800104670003.png",
+    "jsonPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\02_gangnam-dogok-neighborhood-stalls_1168011800104670003.json"
+  }
+]

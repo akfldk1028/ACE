@@ -1,0 +1,122 @@
+[
+  {
+    "id": "sci_easy",
+    "category": "factual",
+    "domain": "science",
+    "difficulty": "easy",
+    "task": "Explain the first law of thermodynamics in simple terms. What does conservation of energy mean in practice?",
+    "eval_rubric": "Accuracy of definition, clarity of explanation, at least one practical example"
+  },
+  {
+    "id": "sci_med",
+    "category": "analytical",
+    "domain": "science",
+    "difficulty": "medium",
+    "task": "Compare the three laws of thermodynamics. For each law, explain the core principle and provide an engineering application where it is critical.",
+    "eval_rubric": "Accuracy of all three laws, quality of engineering examples, comparative structure"
+  },
+  {
+    "id": "sci_hard",
+    "category": "creative",
+    "domain": "science",
+    "difficulty": "hard",
+    "task": "Design a novel waste heat recovery cycle for a data center that exploits thermodynamic principles beyond conventional Rankine/Brayton cycles. Justify your design with first and second law analysis, estimate theoretical efficiency bounds, and identify key engineering challenges.",
+    "eval_rubric": "Thermodynamic rigor, novelty beyond standard cycles, efficiency analysis, practical feasibility assessment"
+  },
+  {
+    "id": "cs_easy",
+    "category": "factual",
+    "domain": "CS",
+    "difficulty": "easy",
+    "task": "Explain the client-server architecture model. What are its main components and how do they communicate?",
+    "eval_rubric": "Accuracy of description, identification of key components (client, server, protocol), clarity"
+  },
+  {
+    "id": "cs_med",
+    "category": "analytical",
+    "domain": "CS",
+    "difficulty": "medium",
+    "task": "Compare microservices architecture with monolithic architecture. Discuss tradeoffs in scalability, deployment complexity, team organization, and data consistency.",
+    "eval_rubric": "Technical accuracy, breadth of tradeoff analysis, balanced presentation of pros/cons"
+  },
+  {
+    "id": "cs_hard",
+    "category": "creative",
+    "domain": "CS",
+    "difficulty": "hard",
+    "task": "Design a migration strategy to decompose a monolithic e-commerce platform serving 100K daily users into microservices. Address service boundaries, data migration, zero-downtime deployment, observability, and rollback planning. Provide a phased timeline with risk mitigation for each phase.",
+    "eval_rubric": "Architectural soundness, migration phasing, risk analysis depth, operational considerations, completeness"
+  },
+  {
+    "id": "hist_easy",
+    "category": "factual",
+    "domain": "history",
+    "difficulty": "easy",
+    "task": "List and briefly explain three major causes of the fall of the Roman Empire.",
+    "eval_rubric": "Historical accuracy, identification of at least three distinct causes, clarity"
+  },
+  {
+    "id": "hist_med",
+    "category": "analytical",
+    "domain": "history",
+    "difficulty": "medium",
+    "task": "Compare the decline of the Roman Empire with the decline of the British Empire. What structural, economic, and military factors were similar and different?",
+    "eval_rubric": "Historical accuracy, quality of comparative framework, identification of both similarities and differences"
+  },
+  {
+    "id": "hist_hard",
+    "category": "creative",
+    "domain": "history",
+    "difficulty": "hard",
+    "task": "Develop a general theory of imperial decline applicable to modern superpowers by synthesizing patterns from at least three historical empires (Roman, Ottoman, British, etc.). Identify falsifiable predictions your theory makes about the current global order and discuss limitations of historical analogy.",
+    "eval_rubric": "Theoretical coherence, breadth of historical evidence, falsifiable predictions, intellectual honesty about limitations"
+  },
+  {
+    "id": "eng_easy",
+    "category": "factual",
+    "domain": "engineering",
+    "difficulty": "easy",
+    "task": "Explain the difference between dead loads and live loads in bridge engineering. Give an example of each.",
+    "eval_rubric": "Accuracy of definitions, clear examples, basic understanding of structural loading"
+  },
+  {
+    "id": "eng_med",
+    "category": "analytical",
+    "domain": "engineering",
+    "difficulty": "medium",
+    "task": "Compare suspension bridges and cable-stayed bridges for spans exceeding 500 meters. Analyze structural behavior, construction methodology, cost factors, and maintenance requirements.",
+    "eval_rubric": "Technical accuracy, depth of comparison across multiple dimensions, practical considerations"
+  },
+  {
+    "id": "eng_hard",
+    "category": "creative",
+    "domain": "engineering",
+    "difficulty": "hard",
+    "task": "Design a seismic-resistant bridge for a tsunami-prone coastal region with a 600m main span. Specify the structural system, foundation type, seismic isolation strategy, tsunami load considerations, and materials selection. Justify design choices with quantitative reasoning where possible.",
+    "eval_rubric": "Structural engineering rigor, multi-hazard design integration, quantitative justification, innovation, constructability"
+  },
+  {
+    "id": "biz_easy",
+    "category": "factual",
+    "domain": "business",
+    "difficulty": "easy",
+    "task": "What is venture capital? Explain how VC funding works, including the roles of GPs and LPs, and the typical stages of funding (seed, Series A, etc.).",
+    "eval_rubric": "Accuracy of VC mechanics, clear stage definitions, role explanations"
+  },
+  {
+    "id": "biz_med",
+    "category": "analytical",
+    "domain": "business",
+    "difficulty": "medium",
+    "task": "Compare venture capital funding versus bootstrapping for a B2B SaaS startup. Under what conditions is each approach optimal? Consider growth rate, market timing, founder dilution, and company culture.",
+    "eval_rubric": "Quality of comparative analysis, scenario identification, balanced consideration of financial and non-financial factors"
+  },
+  {
+    "id": "biz_hard",
+    "category": "creative",
+    "domain": "business",
+    "difficulty": "hard",
+    "task": "Design a multi-stage funding strategy for a deep-tech AI startup entering Southeast Asian markets. Address pre-seed through Series B, incorporating government grants, strategic corporate investors, regional VC dynamics, currency risk hedging, and regulatory considerations across at least three ASEAN countries.",
+    "eval_rubric": "Strategic sophistication, multi-market regulatory awareness, financial structuring depth, risk mitigation, practical feasibility"
+  }
+]

@@ -1,0 +1,77 @@
+[
+  {
+    "name": "Gangnam Yeoksam 677",
+    "input": "1168010100106770000",
+    "buildingType": "공동주택",
+    "expectAdjacent": true,
+    "expectDaylight": true,
+    "expectSunlight": false
+  },
+  {
+    "name": "Jung Myeongdong 31-1",
+    "input": "1114012700100310001",
+    "buildingType": "공동주택",
+    "expectAdjacent": true,
+    "expectDaylight": true,
+    "expectSunlight": false
+  },
+  {
+    "name": "Songpa Jamsil 40-1",
+    "input": "1171010100100400001",
+    "buildingType": "공동주택",
+    "expectAdjacent": true,
+    "expectDaylight": true,
+    "expectSunlight": false
+  },
+  {
+    "name": "Gangnam Dogok 467-3",
+    "input": "1168011800104670003",
+    "buildingType": "공동주택",
+    "expectedDatumSource": "ngii_local_dem",
+    "expectRoadDatum": true,
+    "expectNeighborDatum": true,
+    "expectAdjacent": true,
+    "expectDaylight": true,
+    "expectSunlight": true
+  },
+  {
+    "name": "Seongbuk Seongbuk 330",
+    "input": "1129010100103300000",
+    "buildingType": "공동주택",
+    "expectAdjacent": true,
+    "expectDaylight": true,
+    "expectSunlight": true
+  },
+  {
+    "name": "Gangseo Hwagok 1125",
+    "input": "1150010300111250000",
+    "buildingType": "공동주택",
+    "expectAdjacent": true,
+    "expectDaylight": true,
+    "expectSunlight": true
+  },
+  {
+    "name": "Seocho Seocho 1317-29",
+    "input": "1165010800113170029",
+    "buildingType": "공동주택",
+    "expectAdjacent": true,
+    "expectDaylight": true,
+    "expectSunlight": false
+  },
+  {
+    "name": "Gangnam Samseong 159",
+    "input": "1168010500101590000",
+    "buildingType": "공동주택",
+    "expectAdjacent": true,
+    "expectDaylight": true,
+    "expectSunlight": false
+  },
+  {
+    "name": "Jongno Sajik 1",
+    "input": "1111011500100010001",
+    "buildingType": "공동주택",
+    "expectAdjacent": true,
+    "expectDaylight": true,
+    "expectSunlight": true
+  }
+]

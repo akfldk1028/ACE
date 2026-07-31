@@ -1,0 +1,56 @@
+{
+  "artifacts": {
+    "directory": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\mass-20260722T040843366927Z",
+    "manifest": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\mass-20260722T040843366927Z\\execution.json",
+    "passport": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\mass-20260722T040843366927Z\\mass.png.passport.json",
+    "preview": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\mass-20260722T040843366927Z\\mass.png",
+    "program": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\mass-20260722T040843366927Z\\program.json"
+  },
+  "created_at": "2026-07-22T04:08:43.461790+00:00",
+  "execution_id": "mass-20260722T040843366927Z",
+  "full_flow_status": "accepted",
+  "gate_issues": [],
+  "geometry_hash": "1f59803258b651435af06b97883d483c5d79c494026e1eb6b2437b5853ad9436",
+  "geometry_ready": true,
+  "program_hash": "e98802e47b7570b63719cd7ed58eb54b066deefce262e75510b43d6914d32f30",
+  "schema_version": "arr.maas.single_execution.v1",
+  "status": "geometry_ready",
+  "timings_ms": {
+    "compile": 3.312,
+    "geometry_gate": 0.165,
+    "parse_validate": 0.258,
+    "passport": 6.481,
+    "persist": 1.655,
+    "render": 82.153,
+    "total": 94.845
+  },
+  "vlm_review": {
+    "cache_hit": false,
+    "cost_observation": {
+      "candidate_cache_hit": false,
+      "max_http_attempts": 3,
+      "reference_limit": 2,
+      "retries": 0,
+      "schema_version": "arr.maas.vlm_cost_observation.v1",
+      "usage": {
+        "input_tokens": 26250,
+        "output_tokens": 1569,
+        "total_tokens": 27819
+      },
+      "usage_record_count": 1
+    },
+    "evidence_binding": {
+      "candidate_sha256": "18126ce2e57e825355d4b2b833feb6d0863838c8305022117523131c8c4ccd14",
+      "execution_id": "mass-20260722T040843366927Z",
+      "geometry_hash": "1f59803258b651435af06b97883d483c5d79c494026e1eb6b2437b5853ad9436",
+      "model": "gpt-5.4-mini",
+      "program_hash": "e98802e47b7570b63719cd7ed58eb54b066deefce262e75510b43d6914d32f30",
+      "prompt_contract_version": "arr.maas.vlm_prompt.site_visible_program_concept_graph_edit_geometry_edit.v20_mass_execution_agent_context",
+      "schema_version": "arr.maas.vlm_evidence_binding.v1"
+    },
+    "hard_pass": true,
+    "model": "gpt-5.4-mini",
+    "response_id": "resp_09c96346deac86f1006a604298bb9081988820c96f5ca84354",
+    "status": "live_scored"
+  }
+}

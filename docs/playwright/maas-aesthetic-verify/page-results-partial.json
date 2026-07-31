@@ -1,0 +1,105 @@
+{
+  "results": [
+    {
+      "url": "http://127.0.0.1:5174/",
+      "status": 200,
+      "title": "Eigent",
+      "bodyText": "무엇을 찾고 계신가요?\n\n18개 법률 · 16,081개 조항 · 하이브리드 시맨틱 검색\n\n연결됨\n실시간 OFF\nEnter\n개발행위 허가 요건\n건폐율 용적률 제한\n용도지역 변경 절차\n일조권 높이제한\n농지 전용 허가\n검색\n빠른 분석\nAI 심화 분석\n🏢 건물 ON\n\n3D 지도 로드 실패\n\nWebGL을 사용할 수 없어 3D 지도를 비활성화했습니다.",
+      "screenshot": "/mnt/d/Data/25_ACE/docs/playwright/maas-aesthetic-verify/_127_0_0_1_5174_.png",
+      "screenshotError": "TimeoutError: page.screenshot: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m    - disabled all CSS animations\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+    },
+    {
+      "url": "http://127.0.0.1:5174/design",
+      "status": 200,
+      "title": "Eigent",
+      "bodyText": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n△\n왼쪽 지도에서 대지를 선택하고\n최적화를 시작하면\n파레토 프론트가 표시됩니다\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nWebGL을 사용할 수 없어 3D 지도를 비활성화했습니다.\nAI 설계 협업\nMAAS Agent Workspace\n후보를 선택하면 대화형 수정이 열립니다.",
+      "screenshot": "/mnt/d/Data/25_ACE/docs/playwright/maas-aesthetic-verify/_127_0_0_1_5174_design.png",
+      "screenshotError": "TimeoutError: page.screenshot: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m    - disabled all CSS animations\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+    },
+    {
+      "url": "http://127.0.0.1:5174/land",
+      "status": 200,
+      "title": "Eigent",
+      "bodyText": "+–\n⇧\ni\n검색\n\n필지를 선택하세요\n\n지도에서 필지를 클릭하거나\n주소를 검색하면\n건폐율 · 용적률 · 건축제한 · 관련 법조항이\n자동으로 분석됩니다",
+      "screenshot": "/mnt/d/Data/25_ACE/docs/playwright/maas-aesthetic-verify/_127_0_0_1_5174_land.png",
+      "screenshotError": "TimeoutError: page.screenshot: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m    - disabled all CSS animations\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+    }
+  ],
+  "events": [
+    {
+      "type": "console",
+      "level": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "console",
+      "level": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "🌐 i18next is maintained with support from Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙"
+    },
+    {
+      "type": "console",
+      "level": "log",
+      "text": "[ProjectStore] No active project found, creating new project"
+    },
+    {
+      "type": "console",
+      "level": "log",
+      "text": "Create Task 6b48adfc-cd91-4b01-8ce8-0307c0a0831f"
+    },
+    {
+      "type": "console",
+      "level": "log",
+      "text": "[store] Creating a new project"
+    },
+    {
+      "type": "console",
+      "level": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "console",
+      "level": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "🌐 i18next is maintained with support from Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙"
+    },
+    {
+      "type": "console",
+      "level": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "console",
+      "level": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "🌐 i18next is maintained with support from Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙"
+    }
+  ]
+}

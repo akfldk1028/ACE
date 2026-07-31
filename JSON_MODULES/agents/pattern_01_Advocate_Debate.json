@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Advocate (Debate)",
+  "description": "제안을 지지하고 장점을 강조하는 에이전트",
+  "config": {
+    "name": "advocate",
+    "system_message": "당신은 제안의 지지자입니다. 장점과 기회를 강조하고, 반대 의견에 논리적으로 반박하세요."
+  }
+}

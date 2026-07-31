@@ -1,0 +1,10 @@
+{
+  "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+  "component_type": "model",
+  "version": 1,
+  "label": "OpenAI GPT-4o Mini",
+  "description": "OpenAI GPT-4o-mini",
+  "config": {
+    "model": "gpt-4o-mini"
+  }
+}

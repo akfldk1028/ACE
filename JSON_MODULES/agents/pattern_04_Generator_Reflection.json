@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Generator (Reflection)",
+  "description": "콘텐츠 생성 에이전트",
+  "config": {
+    "name": "generator",
+    "system_message": "주어진 작업을 수행하고 결과를 생성하세요. 비평을 받으면 피드백을 반영하여 개선하세요."
+  }
+}

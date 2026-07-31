@@ -1,0 +1,174 @@
+{
+  "pnu": "1129010100103300000",
+  "name": "seongbuk-seongbuk-330",
+  "buildingType": "공동주택",
+  "waitError": null,
+  "pngPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\05_seongbuk-seongbuk-330_1129010100103300000.png",
+  "jsonPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\05_seongbuk-seongbuk-330_1129010100103300000.json",
+  "state": {
+    "hasDisabledText": false,
+    "hasFallback": false,
+    "hasComplete": true,
+    "hasDesignList": true,
+    "hasMassText": true,
+    "hasVworldCanvas": true,
+    "bodyHead": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\n대지면적\n1,962.62 m²\n용도지역\n자연녹지지역\n제1종전용주거지역\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n법규 산정 근거\n수치지형도 소스\nfailed\n대지 샘플\n0개 / -\n도로 샘플\n0개 / -\n인접대지 샘플\n0개 / -\n검출 도로폭\n-\n전면도로 후보\n0개\n인접대지 후보\n7개\n정북일조\n적용 / 기준면 0.00m\n채광사선 참고면\n0.00m / 매스 창면 검토 필요\n화면 기본 레이어\n정북면 / 채광옵션 / 인접\n\nVWorld 기본 화면은 검토용 요약 레이어입니다. 전체 디버그는 URL에 ?layers=all, 도로 라벨 전체는 ?roadLabels=all 을 붙여 확인합니다.\n\nCONSTRAINTS\n건폐율 ≤ 20%\n≤ 20%\n용적률 ≤ 100%\n≤ 100%\n인접대지 이격 ≥ 0.5m\n≥ 0.5m\n조경면적 ≥ 20%\n≥ 20%\n지반 레벨 (§119 DATUM)\n정북일조 기준 H = 0\n0.00m\n정북일조 기준 H=0\n0.00 m\n대지 §119 기준면\n0.00 m\n§119/§86 케이스\n평탄지 (§119① 5호)\n산정 방법\n⚠ fetch 실패 → 0.0 fallback\n데이터 소스\n⚠ fetch 실패\n\nenvelope walls/slanted_polygons 의 H는 이 datum 기준 상대값. Cesium 렌더 시 datum_m 위에 envelope 위치.\n\n정북일조 사선제한 단면 (§86①, 2023.9.12 개정)\n인접대지 경계선\n1.5m 이격\nH ≤ 10m: 직각\nH > 10m: slope 2:1 (H = 2x)\n건물 (H = 18m)\n0m\n10m\n20m\n0m\n1.5m\n5m\n10m\n15m\n20m\n법규 envelope\n인접대지 경계\n건물 단면\nOPTIMIZATION\nCOMPLETE\n100%\n세대\n50/50\n적합\n2798\n파레토\n18\n총평가\n2800\nPARETO FRONT\n0 evaluated\n18 pareto\nGen\n0 → 50\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nDESIGN LIST\n18\n#\n매스\n형태\n연면적\n일조\n주차\n1\n법규엔벨로프\n1.9k\n80.2\n지하\n2\n포디움/타워\n2.0k\n80.4\n지하\n3\n브랜치+핀치+테이퍼\n2.0k\n80.4\n지하\n4\n오버랩+시프트+테라스\n2.0k\n80.4\n지하\n5\n인터락+스텝+테이퍼\n2.0k\n80.4\n지하\n6\n코너/오픈코트\n1.2k\n80.4\n외부지상\n7\n중정형\n1.2k\n80.4\n외부지상\n8\n바형\n1.2k\n80.4\n외부지상\n9\n분절/브릿지\n1.2k\n80.4\n외부지상\n10\n브랜치형\n1.2k\n80.4\n외부지상\n11\n핀치형\n1.2k\n80.4\n외부지상\n12\n인터락\n1.2k\n80.4\n외부지상\n13\n오버랩\n1.2k\n80.4\n외부지상\n14\n테이퍼\n2.0k\n80.4\n지하\n15\n테라스\n2.0k\n80.4\n지하\n16\n인셋\n1.2k\n80.4\n외부지상\n17\n건폐확장\n1.2k\n80.4\n외부지상\n18\n다단 일조스텝\n2.0k\n80.4\n지하\n브이월드\n\n연속지적도를 포함한 모든 주제도는 참고용으로만 사용하시기 바랍니다.\n\n209 m\n32\n나침반\n현재위치\n확대\n축소\n초기화면\n이동컨트롤 열기\n거리\n면적\n높이\n초기화\n좌로 이동\n우로 이동\n위로 이동\n아래로 이동\n닫기\nBUILDING MASS\n형태\nmaas_legal_envelope\n층그룹\n1G / +99.0%\n패킹\n1/1G / 4실\n높이\n14.0m\n층수\n5F\n건폐율\n19.8%\n용적률\n99.0%\n연면적\n1.9km²\n주차\n지하\n법정/계획\n산정필요 / -\nAI 설계 협업\nMAAS Agent Workspace\n후보를 선택하면 대화형 수정이 열립니다.",
+    "entityCount": 140,
+    "designMassEntities": [
+      "design-mass-floor-group-900000-0",
+      "design-mass-floor-900000-1",
+      "design-mass-floor-900000-2",
+      "design-mass-floor-900000-3",
+      "design-mass-floor-900000-4",
+      "design-mass-footprint-900000",
+      "design-mass-parking-envelope-900000",
+      "design-mass-parking-boundary-900000",
+      "design-mass-parking-guide-900000-1",
+      "design-mass-parking-guide-900000-2",
+      "design-mass-parking-guide-900000-3",
+      "design-mass-parking-guide-900000-4",
+      "design-mass-parking-guide-900000-5",
+      "design-mass-parking-label-900000",
+      "design-mass-edge-900000-0",
+      "design-mass-edge-900000-1",
+      "design-mass-edge-900000-2",
+      "design-mass-edge-900000-3",
+      "design-mass-edge-900000-4",
+      "design-mass-edge-900000-5",
+      "design-mass-edge-900000-6",
+      "design-mass-edge-900000-7",
+      "design-mass-edge-900000-8",
+      "design-mass-edge-900000-9",
+      "design-mass-edge-900000-10",
+      "design-mass-edge-900000-11",
+      "design-mass-edge-900000-12",
+      "design-mass-edge-900000-13",
+      "design-mass-edge-900000-14",
+      "design-mass-edge-900000-15",
+      "design-mass-edge-900000-16",
+      "design-mass-edge-900000-17",
+      "design-mass-edge-900000-18",
+      "design-mass-edge-900000-19",
+      "design-mass-edge-900000-20",
+      "design-mass-edge-900000-21",
+      "design-mass-edge-900000-22",
+      "design-mass-edge-900000-23",
+      "design-mass-edge-900000-24",
+      "design-mass-edge-900000-25",
+      "design-mass-edge-900000-26",
+      "design-mass-edge-900000-27",
+      "design-mass-edge-900000-28",
+      "design-mass-edge-900000-29",
+      "design-mass-edge-900000-30",
+      "design-mass-edge-900000-31",
+      "design-mass-edge-900000-32",
+      "design-mass-edge-900000-33",
+      "design-mass-edge-900000-34",
+      "design-mass-edge-900000-35",
+      "design-mass-edge-900000-36",
+      "design-mass-edge-900000-37",
+      "design-mass-edge-900000-38"
+    ],
+    "parkingEntities": [
+      "design-mass-parking-envelope-900000",
+      "design-mass-parking-boundary-900000",
+      "design-mass-parking-guide-900000-1",
+      "design-mass-parking-guide-900000-2",
+      "design-mass-parking-guide-900000-3",
+      "design-mass-parking-guide-900000-4",
+      "design-mass-parking-guide-900000-5",
+      "design-mass-parking-label-900000"
+    ],
+    "pilotiEntities": [],
+    "massDebug": {
+      "featureCount": 1,
+      "selectedId": 900000,
+      "hasOverlayUrl": false,
+      "hasFacadeTextureUrl": false,
+      "hasTexturedGltfUrl": false,
+      "facadeTexturePanelViews": [],
+      "aestheticFacadeStyle": "",
+      "facadeAttempts": 0,
+      "facadeEligibleFeatures": 0,
+      "overlayAttempts": 0,
+      "gltfAttempts": 0,
+      "gltfStatus": "",
+      "pilotiFeatures": []
+    },
+    "canvases": [
+      {
+        "i": 0,
+        "width": 343,
+        "height": 380,
+        "rect": {
+          "width": 343,
+          "height": 380
+        },
+        "className": ""
+      },
+      {
+        "i": 1,
+        "width": 966,
+        "height": 976,
+        "rect": {
+          "width": 966,
+          "height": 976
+        },
+        "className": ""
+      },
+      {
+        "i": 2,
+        "width": 300,
+        "height": 150,
+        "rect": {
+          "width": 0,
+          "height": 0
+        },
+        "className": "tempCanvas"
+      },
+      {
+        "i": 3,
+        "width": 1024,
+        "height": 600,
+        "rect": {
+          "width": 676.1875,
+          "height": 585.59375
+        },
+        "className": "hudCanvas"
+      },
+      {
+        "i": 4,
+        "width": 1024,
+        "height": 15,
+        "rect": {
+          "width": 0,
+          "height": 0
+        },
+        "className": "mapStatusBarCanvas"
+      },
+      {
+        "i": 5,
+        "width": 50,
+        "height": 50,
+        "rect": {
+          "width": 0,
+          "height": 0
+        },
+        "className": "mapCompassCanvas"
+      },
+      {
+        "i": 6,
+        "width": 125,
+        "height": 30,
+        "rect": {
+          "width": 125,
+          "height": 30
+        },
+        "className": "distanceLegendCanvas"
+      }
+    ]
+  },
+  "errorCount": 0,
+  "consoleProblems": [],
+  "responseErrors": []
+}

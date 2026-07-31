@@ -1,0 +1,200 @@
+{
+  "gotoError": null,
+  "result": {
+    "url": "http://127.0.0.1:5174/design",
+    "title": "Eigent",
+    "overlay": false,
+    "bodyLength": 477,
+    "bodyText": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n△\n왼쪽 지도에서 대지를 선택하고\n최적화를 시작하면\n파레토 프론트가 표시됩니다\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nWebGL을 사용할 수 없어 3D 지도를 비활성화했습니다.\nAI 설계 협업\nMAAS Agent Workspace\n후보를 선택하면 대화형 수정이 열립니다.",
+    "buttons": [
+      {
+        "i": 0,
+        "text": "조회",
+        "disabled": true
+      },
+      {
+        "i": 1,
+        "text": "OPTIMIZE",
+        "disabled": true
+      },
+      {
+        "i": 2,
+        "text": "매스",
+        "disabled": false
+      },
+      {
+        "i": 3,
+        "text": "평면",
+        "disabled": false
+      },
+      {
+        "i": 4,
+        "text": "자동 ON",
+        "disabled": false
+      }
+    ],
+    "inputs": [
+      {
+        "i": 0,
+        "tag": "INPUT",
+        "placeholder": "PNU 코드 (19자리) 또는 주소",
+        "value": "",
+        "aria": null
+      },
+      {
+        "i": 1,
+        "tag": "SELECT",
+        "placeholder": null,
+        "value": "공동주택",
+        "aria": null
+      },
+      {
+        "i": 2,
+        "tag": "SELECT",
+        "placeholder": null,
+        "value": "maas_legal_envelope",
+        "aria": null
+      },
+      {
+        "i": 3,
+        "tag": "INPUT",
+        "placeholder": null,
+        "value": "50",
+        "aria": null
+      },
+      {
+        "i": 4,
+        "tag": "INPUT",
+        "placeholder": null,
+        "value": "30",
+        "aria": null
+      },
+      {
+        "i": 5,
+        "tag": "SELECT",
+        "placeholder": null,
+        "value": "ga",
+        "aria": null
+      }
+    ],
+    "canvases": []
+  },
+  "screenshot": {
+    "ok": false,
+    "name": "TimeoutError",
+    "message": "page.screenshot: Timeout 8000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m    - disabled all CSS animations\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+  },
+  "logs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "info",
+      "text": "🌐 i18next is maintained with support from Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙"
+    }
+  ],
+  "errors": [],
+  "responses": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/design"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/DesignPage.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/lib/api-client.ts"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/lib/room-presets.ts"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/hooks/use-design-job.ts"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/hooks/use-optimization-stream.ts"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/ControlPanel.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/ConstraintSummary.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/DatumInfoCard.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/LegalBasisPanel.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/GenerationProgress.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/ParetoChart.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/DesignInspector.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/DesignList.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/SunlightSectionDiagram.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/FloorPlanViewer.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/InteractiveDesignPanel.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/A2UISurfaceRenderer.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/components/SiteMapPanel.tsx"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/land/hooks/use-vworld-3d.ts"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/lib/envelopes/elevation-grid.ts"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/lib/envelopes/datum-plane.ts"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5174/src/design/lib/envelopes/sunlight.ts"
+    }
+  ]
+}

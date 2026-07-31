@@ -1,0 +1,28 @@
+{
+  "afterLookup": {
+    "text": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n△\n왼쪽 지도에서 대지를 선택하고\n최적화를 시작하면\n파레토 프론트가 표시됩니다\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nUnexpected token '<', \"<!DOCTYPE \"... is not valid JSON\nWebGL을 사용할 수 없어 3D 지도를 비활성화했습니다.\nAI 설계 협업\nMAAS Agent Workspace\n후보를 선택하면 대화형 수정이 열립니다.",
+    "hasOptimize": true,
+    "hasDatum": false,
+    "hasWebglDisabled": true
+  },
+  "waitError": {
+    "name": "TimeoutError",
+    "message": "page.waitForFunction: Timeout 90000ms exceeded."
+  },
+  "state": {
+    "hasComplete": false,
+    "hasPareto": false,
+    "hasDesignList": false,
+    "hasMassText": false,
+    "hasFallback": true,
+    "hasParkingGraphUnavailable": false,
+    "body": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n△\n왼쪽 지도에서 대지를 선택하고\n최적화를 시작하면\n파레토 프론트가 표시됩니다\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nUnexpected token '<', \"<!DOCTYPE \"... is not valid JSON\nWebGL을 사용할 수 없어 3D 지도를 비활성화했습니다.\nAI 설계 협업\nMAAS Agent Workspace\n후보를 선택하면 대화형 수정이 열립니다.",
+    "rowTexts": []
+  },
+  "screenshot": {
+    "error": "page.screenshot: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m    - disabled all CSS animations\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+  },
+  "errors": [],
+  "consoleProblems": [],
+  "responseErrors": []
+}

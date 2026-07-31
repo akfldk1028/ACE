@@ -1,0 +1,150 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "label": "Sequential Team (순차적 협업)",
+  "description": "에이전트를 미리 정의된 선형 순서로 연결합니다. 각 에이전트는 이전 에이전트의 출력을 처리하여 전문화된 변환 파이프라인을 만듭니다.",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "label": "Researcher",
+        "config": {
+          "name": "researcher",
+          "description": "리서치 담당 - 정보 수집 및 조사",
+          "system_message": "당신은 리서처입니다. 주어진 주제에 대해 조사하고 핵심 정보를 수집하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Haiku 4.5 (Max OAuth)",
+            "description": "Claude Haiku 4.5 - Max OAuth. Cheapest model for testing.",
+            "config": {
+              "model": "claude-haiku-4-5-20251001"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "label": "Writer",
+        "config": {
+          "name": "writer",
+          "description": "작가 담당 - 콘텐츠 작성",
+          "system_message": "당신은 작가입니다. 리서처가 수집한 정보를 바탕으로 글을 작성하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Haiku 4.5 (Max OAuth)",
+            "description": "Claude Haiku 4.5 - Max OAuth. Cheapest model for testing.",
+            "config": {
+              "model": "claude-haiku-4-5-20251001"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "label": "Reviewer",
+        "config": {
+          "name": "reviewer",
+          "description": "리뷰어 담당 - 검토 및 피드백",
+          "system_message": "당신은 리뷰어입니다. 작성된 글을 검토하세요. 완료되면 TERMINATE라고 말하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Haiku 4.5 (Max OAuth)",
+            "description": "Claude Haiku 4.5 - Max OAuth. Cheapest model for testing.",
+            "config": {
+              "model": "claude-haiku-4-5-20251001"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "label": "TextMentionTermination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "label": "MaxMessageTermination",
+            "config": {
+              "max_messages": 10,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

@@ -1,0 +1,95 @@
+# Virtual environments (각자 생성)
+venv/
+autogen_env/
+.venv/
+env/
+
+# AutoGen source (수정된 버전 포함 - 빌드 결과물 제외)
+# autogen_source/
+
+# Node.js
+node_modules/
+.next/
+.cache/
+public/
+
+# Python build
+__pycache__/
+*.egg-info/
+.eggs/
+
+# Dotnet build
+**/bin/
+**/obj/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Frontend build artifacts (소스는 AG-Frontend/, 빌드 결과는 커밋)
+autogen_a2a_kit/autogen_source/python/packages/autogen-studio/frontend/node_modules/
+autogen_a2a_kit/autogen_source/python/packages/autogen-studio/frontend/.cache/
+autogen_a2a_kit/autogen_source/python/packages/autogen-studio/frontend/public/
+autogen_a2a_kit/autogen_source/python/packages/autogen-studio/autogenstudio/web/ui/
+autogen_a2a_kit/AG-cli/tmpclaude-*
+tmpclaude-*
+agent/**/venv/
+agent/**/.venv/
+
+# Environment files with secrets
+.env
+.env.local
+*.env
+
+# Claude local settings (contains API keys in permissions)
+.claude/settings.local.json
+
+# AutoGen Studio local data (contains API keys)
+.autogenstudio/*.db
+.autogenstudio/*.env
+
+# Batch files with keys
+*_with_key.bat
+*_with_key.ps1
+**/logs/security/
+
+# Test outputs
+nul
+.playwright-mcp
+
+# Root-level files only (don't affect autogen_source subdirectories)
+/a2a_demo
+/agent/
+/requirements.txt
+/AI_HANDOFF.md
+/check_db.py
+/check_install.py
+/install_studio.bat
+/main.py
+/PROJECT_SETUP.md
+/README.md
+/.claude-flow
+/.swarm
+/.autogenstudio
+docs

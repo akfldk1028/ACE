@@ -1,0 +1,2691 @@
+{
+  "activation_graph": {
+    "causal_program_trace": true,
+    "edges": [
+      {
+        "activation": 1.0,
+        "id": "edge:0d9f4a20dde700ec",
+        "relation": "solid_input",
+        "source": "ast:seed_profiled_prism",
+        "target": "ast:agent_01_stepped_mass"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:42b8898c1699d92c",
+        "relation": "solid_input",
+        "source": "ast:agent_01_stepped_mass",
+        "target": "ast:book01_book_base_volume"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:9c009f9c233e820b",
+        "relation": "solid_input",
+        "source": "ast:book01_book_base_volume",
+        "target": "ast:book02_scale"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:d7f1d63d1ec135af",
+        "relation": "solid_input",
+        "source": "ast:book02_scale",
+        "target": "ast:program_projection:neighborhood_living:public_threshold"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:c7e6207ee5408894",
+        "relation": "solid_input",
+        "source": "ast:program_projection:neighborhood_living:public_threshold",
+        "target": "ast:program_projection:neighborhood_living:public_threshold_connectivity"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:2ff3a72f39ca3e0d",
+        "relation": "program_projection_result",
+        "source": "ast:program_projection:neighborhood_living:public_threshold_connectivity",
+        "target": "flow:program"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:5e4bf33aa8bcfe06",
+        "relation": "compile",
+        "source": "flow:program",
+        "target": "flow:compiler"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:a73e2146fa06aa11",
+        "relation": "validate",
+        "source": "flow:compiler",
+        "target": "flow:geometry_gate"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:4454e87c52023b9a",
+        "relation": "downstream_gate",
+        "source": "flow:geometry_gate",
+        "target": "flow:site"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:555ce903486136d7",
+        "relation": "downstream_gate",
+        "source": "flow:site",
+        "target": "flow:capacity"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:243423a2a680f36d",
+        "relation": "downstream_gate",
+        "source": "flow:capacity",
+        "target": "flow:law"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:19321e8a2617ea42",
+        "relation": "downstream_gate",
+        "source": "flow:law",
+        "target": "flow:parking"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:fed65219c086253a",
+        "relation": "downstream_gate",
+        "source": "flow:parking",
+        "target": "flow:program_fit"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:1cd092587c65da49",
+        "relation": "render",
+        "source": "flow:compiler",
+        "target": "flow:render"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:a62c061ba5c0fbfb",
+        "relation": "view",
+        "source": "flow:render",
+        "target": "render:isometric"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:bf34293243293046",
+        "relation": "view",
+        "source": "flow:render",
+        "target": "render:opposite"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:d43b60a74ff4c2cb",
+        "relation": "view",
+        "source": "flow:render",
+        "target": "render:front"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:3ebf8c905f05f4cc",
+        "relation": "view",
+        "source": "flow:render",
+        "target": "render:top"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:37ce81f57633203d",
+        "relation": "materialized_png",
+        "source": "flow:render",
+        "target": "render:mass_png"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:160f79121d124871",
+        "relation": "visual_input",
+        "source": "render:isometric",
+        "target": "flow:vlm"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:c047e58471e34902",
+        "relation": "visual_input",
+        "source": "render:opposite",
+        "target": "flow:vlm"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:9492a24bf47af3c4",
+        "relation": "visual_input",
+        "source": "render:front",
+        "target": "flow:vlm"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:183def78f7d32602",
+        "relation": "visual_input",
+        "source": "render:top",
+        "target": "flow:vlm"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:0261747b34fa77f8",
+        "relation": "candidate_image_input",
+        "source": "render:mass_png",
+        "target": "flow:vlm"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:e0a37eb57e51960a",
+        "relation": "hard_gate_input",
+        "source": "flow:program_fit",
+        "target": "flow:selector"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:4176d055fd793676",
+        "relation": "critic_input",
+        "source": "flow:vlm",
+        "target": "flow:selector"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:d8689ce6e4a9a1c0",
+        "relation": "generated_result",
+        "source": "render:mass_png",
+        "target": "result:mass"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:6f1e3b02f94fbf41",
+        "relation": "selection_status",
+        "source": "flow:selector",
+        "target": "result:mass"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:698d2499ac508108",
+        "relation": "visual_reference_input",
+        "source": "vlm:reference:cfa0f4c53e27",
+        "target": "flow:vlm"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:a79e2eb61a54a1a4",
+        "relation": "visual_reference_input",
+        "source": "vlm:reference:00dc8398d4c7",
+        "target": "flow:vlm"
+      },
+      {
+        "activation": 0.86,
+        "id": "edge:02155dc545e0a7eb",
+        "relation": "concept_score",
+        "source": "flow:vlm",
+        "target": "vlm:concept:gesture_clarity"
+      },
+      {
+        "activation": 0.88,
+        "id": "edge:7a4696c56bb0198e",
+        "relation": "concept_score",
+        "source": "flow:vlm",
+        "target": "vlm:concept:hierarchy"
+      },
+      {
+        "activation": 0.72,
+        "id": "edge:3b16c4c5c510cdeb",
+        "relation": "concept_score",
+        "source": "flow:vlm",
+        "target": "vlm:concept:non_stair_silhouette"
+      },
+      {
+        "activation": 0.62,
+        "id": "edge:b11822e634986fa4",
+        "relation": "concept_score",
+        "source": "flow:vlm",
+        "target": "vlm:concept:precedent_resonance"
+      },
+      {
+        "activation": 0.84,
+        "id": "edge:a2e454fd2f01df9a",
+        "relation": "concept_score",
+        "source": "flow:vlm",
+        "target": "vlm:concept:program_appropriateness"
+      },
+      {
+        "activation": 0.97,
+        "id": "edge:ca9890eddc3bf65f",
+        "relation": "concept_score",
+        "source": "flow:vlm",
+        "target": "vlm:concept:repair_integrity"
+      },
+      {
+        "activation": 0.58,
+        "id": "edge:c9e3475261352849",
+        "relation": "concept_score",
+        "source": "flow:vlm",
+        "target": "vlm:concept:section_program_fit"
+      },
+      {
+        "activation": 0.14,
+        "id": "edge:b86828400929cb25",
+        "relation": "concept_score",
+        "source": "flow:vlm",
+        "target": "vlm:concept:void_publicness"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:5b93eb161f61c80e",
+        "relation": "requests_edit",
+        "source": "flow:vlm",
+        "target": "vlm:edit:1"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:d9200145c0e93fac",
+        "relation": "requests_edit",
+        "source": "flow:vlm",
+        "target": "vlm:edit:2"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:9159db0367e36b72",
+        "relation": "requests_edit",
+        "source": "flow:vlm",
+        "target": "vlm:edit:3"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:c37a9fe87ba93fc3",
+        "relation": "requests_edit",
+        "source": "flow:vlm",
+        "target": "vlm:edit:4"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:092ade38740eaf19",
+        "relation": "requests_edit",
+        "source": "flow:vlm",
+        "target": "vlm:edit:5"
+      },
+      {
+        "activation": 1.0,
+        "id": "edge:b913169ea31d0a49",
+        "relation": "requests_edit",
+        "source": "flow:vlm",
+        "target": "vlm:edit:6"
+      }
+    ],
+    "graph_id": "mass-execution:e98802e47b7570b63719cd7ed58eb54b066deefce262e75510b43d6914d32f30",
+    "internal_neuron_claim": false,
+    "nodes": [
+      {
+        "activation": 1.0,
+        "column": "base",
+        "evidence": {
+          "input_ids": [],
+          "kind": "primitive",
+          "macro_expansion": [],
+          "node_id": "seed_profiled_prism",
+          "operator": "extruded_polygon",
+          "triangle_count": 16,
+          "volume": 1.28625
+        },
+        "id": "ast:seed_profiled_prism",
+        "kind": "primitive",
+        "label": "extruded_polygon",
+        "operator": "extruded_polygon",
+        "semantic_role": "base_seed",
+        "source_id": "seed_profiled_prism",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "geometry",
+        "evidence": {
+          "input_ids": [
+            "seed_profiled_prism"
+          ],
+          "kind": "macro",
+          "macro_expansion": [
+            "slice",
+            "scale",
+            "translate",
+            "union"
+          ],
+          "node_id": "agent_01_stepped_mass",
+          "operator": "stepped_mass",
+          "triangle_count": 72,
+          "volume": 0.922848
+        },
+        "id": "ast:agent_01_stepped_mass",
+        "kind": "macro",
+        "label": "stepped_mass",
+        "operator": "stepped_mass",
+        "semantic_role": "dominant_mass",
+        "source_id": "agent_01_stepped_mass",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "book",
+        "evidence": {
+          "input_ids": [
+            "agent_01_stepped_mass"
+          ],
+          "kind": "modifier",
+          "macro_expansion": [],
+          "node_id": "book01_book_base_volume",
+          "operator": "book_base_volume",
+          "triangle_count": 72,
+          "volume": 0.922848
+        },
+        "id": "ast:book01_book_base_volume",
+        "kind": "modifier",
+        "label": "select_book_scope",
+        "operator": "book_base_volume",
+        "semantic_role": "book_mutated_dominant",
+        "source_id": "book01_book_base_volume",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "book",
+        "evidence": {
+          "input_ids": [
+            "book01_book_base_volume"
+          ],
+          "kind": "transform",
+          "macro_expansion": [],
+          "node_id": "book02_scale",
+          "operator": "scale",
+          "triangle_count": 72,
+          "volume": 1.055831
+        },
+        "id": "ast:book02_scale",
+        "kind": "transform",
+        "label": "extrude",
+        "operator": "scale",
+        "semantic_role": "book_mutated_dominant",
+        "source_id": "book02_scale",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "program",
+        "evidence": {
+          "input_ids": [
+            "book02_scale"
+          ],
+          "kind": "macro",
+          "macro_expansion": [
+            "translate",
+            "access_bound_service_spine",
+            "union"
+          ],
+          "node_id": "program_projection:neighborhood_living:public_threshold",
+          "operator": "lift",
+          "triangle_count": 96,
+          "volume": 1.103843
+        },
+        "id": "ast:program_projection:neighborhood_living:public_threshold",
+        "kind": "macro",
+        "label": "lift",
+        "operator": "lift",
+        "semantic_role": "public_threshold",
+        "source_id": "program_projection:neighborhood_living:public_threshold",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "program",
+        "evidence": {
+          "input_ids": [
+            "program_projection:neighborhood_living:public_threshold"
+          ],
+          "kind": "macro",
+          "macro_expansion": [
+            "already_connected"
+          ],
+          "node_id": "program_projection:neighborhood_living:public_threshold_connectivity",
+          "operator": "join_related",
+          "triangle_count": 96,
+          "volume": 1.103843
+        },
+        "id": "ast:program_projection:neighborhood_living:public_threshold_connectivity",
+        "kind": "macro",
+        "label": "join_related",
+        "operator": "join_related",
+        "semantic_role": "program_connectivity_guard",
+        "source_id": "program_projection:neighborhood_living:public_threshold_connectivity",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "program",
+        "evidence": {
+          "access_side": "west",
+          "base_or_book_authority": false,
+          "building_type": "근린생활시설",
+          "controller_node_ids": [
+            "program_projection:neighborhood_living:public_threshold",
+            "program_projection:neighborhood_living:public_threshold"
+          ],
+          "pre_program_projection_hash": "cd15a12bac5a5078f3648b0d0dbf3237fe7ea1700a6ae3f7ee1a89bf24d10e0f",
+          "program_id": "neighborhood_living",
+          "public_space_controller_node_id": "program_projection:neighborhood_living:public_threshold",
+          "public_space_status": "reused_program_threshold_as_public_space",
+          "schema_version": "arr.maas.post_book_program_projection.v2",
+          "section_controller_node_id": "",
+          "threshold_controller_node_id": "program_projection:neighborhood_living:public_threshold",
+          "threshold_status": "added_post_book_controller",
+          "universal_form_preserved": true,
+          "vlm_role": "downstream_critic_and_repair_only"
+        },
+        "id": "flow:program",
+        "kind": "pipeline_stage",
+        "label": "Use / program projection",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "compiler",
+        "evidence": {},
+        "id": "flow:compiler",
+        "kind": "pipeline_stage",
+        "label": "Geometry Compiler",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "gate",
+        "evidence": {
+          "issues": []
+        },
+        "id": "flow:geometry_gate",
+        "kind": "pipeline_stage",
+        "label": "Geometry GATE",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "site",
+        "evidence": {
+          "evaluated": true,
+          "generation_context": {
+            "bcr_limit_pct": 60.0,
+            "candidate_generation_site_area_m2": 102.931,
+            "far_limit_pct": 250.0,
+            "generation_host_mode": "height_safe_sunlight_section",
+            "generation_host_section_height_m": 10.0,
+            "generation_precedes_selection": true,
+            "generation_site_area_m2": 102.931,
+            "height_limit_m": 50.0,
+            "original_site_area_m2": 264.126,
+            "requested_program_height_m": 15.0,
+            "schema_version": "arr.maas.legal_generation_context.v1",
+            "status": "materialized",
+            "sunlight_field_status": "materialized"
+          },
+          "hard_pass": true,
+          "inside_site": true,
+          "pnu": "1168011800104170004"
+        },
+        "id": "flow:site",
+        "kind": "pipeline_stage",
+        "label": "Site / parcel",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "capacity",
+        "evidence": {
+          "achieved_utilization": 0.7,
+          "alternative_id": "spatial_reserve",
+          "evaluated": true,
+          "feasible_maximum_floor_area_m2": 418.167,
+          "feasible_minimum_utilization": 0.7,
+          "hard_gates_remain_downstream": true,
+          "hard_pass": true,
+          "intent": "retain the feasible minimum while preserving void and public-space capacity",
+          "label": "Spatial reserve",
+          "measurement_schema_version": "arr.maas.source_capacity_measurement.v1",
+          "program_brief_target_utilization": 0.9,
+          "projection_mode": "typed_form_plan_fit",
+          "schema_version": "arr.maas.capacity_alternative.v1",
+          "stage": "post_program_pre_hard_gate",
+          "target_base_plan_area_m2": 58.543,
+          "target_base_plan_coverage": 0.5688,
+          "target_floor_area_m2": 292.717,
+          "target_gap": 0.0,
+          "target_hard_pass": true,
+          "target_rule": "feasible_minimum",
+          "target_utilization": 0.7
+        },
+        "id": "flow:capacity",
+        "kind": "pipeline_stage",
+        "label": "FAR / capacity alternatives",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "law",
+        "evidence": {
+          "clipped_volume_count": 1,
+          "evaluated": true,
+          "failure_reasons": [],
+          "geometry_failure_reasons": [],
+          "geometry_retention_pass": true,
+          "hard_pass": true,
+          "projected_volume_count": 7,
+          "source_volume_count": 3,
+          "volume_retention": 0.8813,
+          "weighted_plan_iou": 0.8813
+        },
+        "id": "flow:law",
+        "kind": "pipeline_stage",
+        "label": "Legal hard gate",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "parking",
+        "evidence": {
+          "evaluated": true,
+          "failure_reasons": [],
+          "hard_pass": true,
+          "layout_status": "pass",
+          "provided_spaces": 2,
+          "required_spaces": 2,
+          "requirement": {
+            "accessible": {
+              "accessible_max": 0,
+              "accessible_min": 0,
+              "status": "not_applicable_under_10"
+            },
+            "base_rule_id": "parking_appendix1_row_03",
+            "building_type": "근린생활시설",
+            "formula_detail": null,
+            "jurisdiction_code": "11680",
+            "metric": "facility_area_m2",
+            "metric_value": 252.79,
+            "pnu": "1168011800104170004",
+            "raw_spaces": 1.8865298507462687,
+            "reason": null,
+            "required_spaces": 2,
+            "rounding_rule": "ordinance_note_6_half_up_total_under_one_zero",
+            "selected_rule_id": "seoul_parking_appendix2_row_03",
+            "source": {
+              "rule_kind": "local_override",
+              "source_appendix": null,
+              "source_ordinance": null,
+              "source_parse_status": "official_pdf_text_extracted_manual_review"
+            },
+            "status": "computed",
+            "unit_schedule": null
+          },
+          "selected_strategy": "piloti_ground"
+        },
+        "id": "flow:parking",
+        "kind": "pipeline_stage",
+        "label": "Parking hard gate",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "program_fit",
+        "evidence": {
+          "building_type": "근린생활시설",
+          "coherence_fit": 1.0,
+          "design_intent": "compact capacity-aware street building with an active ground edge, one clear public void or terrace, and calm upper massing",
+          "evaluated": true,
+          "family": "agent_stepped_mass",
+          "family_fit": 0.55,
+          "floor_count": 5,
+          "floor_fit": 1.0,
+          "hard_pass": true,
+          "preferred_families": [
+            "slender_bar",
+            "courtyard",
+            "terrace_link",
+            "void_notch",
+            "offset",
+            "bend"
+          ],
+          "profile_id": "neighborhood_living",
+          "program_fit_score": 0.916,
+          "schema_version": "arr.maas.program_massing_evidence.v1",
+          "spatial_fit": 0.991,
+          "volume_count": 3,
+          "volume_fit": 1.0
+        },
+        "id": "flow:program_fit",
+        "kind": "pipeline_stage",
+        "label": "Program-fit gate",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "render",
+        "evidence": {
+          "byte_count": 35445,
+          "path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\mass-20260722T040843366927Z\\mass.png",
+          "sha256": "18126ce2e57e825355d4b2b833feb6d0863838c8305022117523131c8c4ccd14",
+          "status": "passed",
+          "views": [
+            "isometric",
+            "opposite",
+            "front",
+            "top"
+          ]
+        },
+        "id": "flow:render",
+        "kind": "pipeline_stage",
+        "label": "4-view render",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "render",
+        "evidence": {},
+        "id": "render:isometric",
+        "kind": "pipeline_stage",
+        "label": "isometric",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "render",
+        "evidence": {},
+        "id": "render:opposite",
+        "kind": "pipeline_stage",
+        "label": "opposite",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "render",
+        "evidence": {},
+        "id": "render:front",
+        "kind": "pipeline_stage",
+        "label": "front",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "render",
+        "evidence": {},
+        "id": "render:top",
+        "kind": "pipeline_stage",
+        "label": "top",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "render",
+        "evidence": {
+          "byte_count": 35445,
+          "path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\mass-20260722T040843366927Z\\mass.png",
+          "sha256": "18126ce2e57e825355d4b2b833feb6d0863838c8305022117523131c8c4ccd14",
+          "status": "passed",
+          "views": [
+            "isometric",
+            "opposite",
+            "front",
+            "top"
+          ]
+        },
+        "id": "render:mass_png",
+        "kind": "mass_render_result",
+        "label": "Generated MASS PNG",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "vlm",
+        "evidence": {
+          "api_usage": {
+            "input_tokens": 26250,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 1569,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 27819
+          },
+          "cache_hit": false,
+          "concept_scores": {
+            "gesture_clarity": 0.86,
+            "hierarchy": 0.88,
+            "non_stair_silhouette": 0.72,
+            "precedent_resonance": 0.62,
+            "program_appropriateness": 0.84,
+            "repair_integrity": 0.97,
+            "section_program_fit": 0.58,
+            "void_publicness": 0.14
+          },
+          "cost_observation": {
+            "candidate_cache_hit": false,
+            "max_http_attempts": 3,
+            "reference_limit": 2,
+            "retries": 0,
+            "schema_version": "arr.maas.vlm_cost_observation.v1",
+            "usage": {
+              "input_tokens": 26250,
+              "output_tokens": 1569,
+              "total_tokens": 27819
+            },
+            "usage_record_count": 1
+          },
+          "critic_actions": [
+            "needs_carved_void",
+            "good_step_mass",
+            "preserve_dominant_gesture"
+          ],
+          "critique": "",
+          "error": "",
+          "evidence_binding": {
+            "candidate_sha256": "18126ce2e57e825355d4b2b833feb6d0863838c8305022117523131c8c4ccd14",
+            "execution_id": "mass-20260722T040843366927Z",
+            "geometry_hash": "1f59803258b651435af06b97883d483c5d79c494026e1eb6b2437b5853ad9436",
+            "model": "gpt-5.4-mini",
+            "program_hash": "e98802e47b7570b63719cd7ed58eb54b066deefce262e75510b43d6914d32f30",
+            "prompt_contract_version": "arr.maas.vlm_prompt.site_visible_program_concept_graph_edit_geometry_edit.v20_mass_execution_agent_context",
+            "schema_version": "arr.maas.vlm_evidence_binding.v1"
+          },
+          "geometry_edits": [
+            {
+              "boolean_value": false,
+              "input_ids": [
+                "seed_profiled_prism"
+              ],
+              "input_index": 0,
+              "input_node_id": "",
+              "node_id": "",
+              "node_kind": "",
+              "numeric_value": 0.0,
+              "operation": "replace_operator",
+              "operator": "terrace",
+              "parameter_name": "",
+              "rationale": "Shift the dominant mass from generic stepped_mass toward a terraced sectional logic that better supports a continuous cascading mass.",
+              "semantic_role": "dominant_mass",
+              "string_value": "",
+              "target_node_id": "agent_01_stepped_mass",
+              "vector_value": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "boolean_value": false,
+              "input_ids": [],
+              "input_index": 0,
+              "input_node_id": "",
+              "node_id": "",
+              "node_kind": "",
+              "numeric_value": 4.0,
+              "operation": "set_parameter",
+              "operator": "",
+              "parameter_name": "levels",
+              "rationale": "Increase sectional depth while keeping the mass unified.",
+              "semantic_role": "dominant_mass",
+              "string_value": "",
+              "target_node_id": "agent_01_stepped_mass",
+              "vector_value": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "boolean_value": false,
+              "input_ids": [],
+              "input_index": 0,
+              "input_node_id": "",
+              "node_id": "",
+              "node_kind": "",
+              "numeric_value": 0.21,
+              "operation": "set_parameter",
+              "operator": "",
+              "parameter_name": "setback_ratio",
+              "rationale": "Amplify the step articulation without breaking continuity.",
+              "semantic_role": "dominant_mass",
+              "string_value": "",
+              "target_node_id": "agent_01_stepped_mass",
+              "vector_value": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "boolean_value": false,
+              "input_ids": [
+                "program_projection:neighborhood_living:public_threshold"
+              ],
+              "input_index": 0,
+              "input_node_id": "",
+              "node_id": "public_entry_void",
+              "node_kind": "macro",
+              "numeric_value": 0.0,
+              "operation": "add_node",
+              "operator": "carve_void",
+              "parameter_name": "",
+              "rationale": "Introduce a public edge carve as a bound void anchored to the protected public-threshold chain.",
+              "semantic_role": "void",
+              "string_value": "",
+              "target_node_id": "",
+              "vector_value": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "boolean_value": false,
+              "input_ids": [],
+              "input_index": 0,
+              "input_node_id": "",
+              "node_id": "",
+              "node_kind": "",
+              "numeric_value": 0.0,
+              "operation": "set_parameter",
+              "operator": "",
+              "parameter_name": "open_side",
+              "rationale": "Match the verified access side.",
+              "semantic_role": "void",
+              "string_value": "west",
+              "target_node_id": "public_entry_void",
+              "vector_value": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "boolean_value": false,
+              "input_ids": [],
+              "input_index": 0,
+              "input_node_id": "",
+              "node_id": "",
+              "node_kind": "",
+              "numeric_value": 0.18,
+              "operation": "set_parameter",
+              "operator": "",
+              "parameter_name": "margin_ratio",
+              "rationale": "Keep the void proportionally restrained and legible.",
+              "semantic_role": "void",
+              "string_value": "",
+              "target_node_id": "public_entry_void",
+              "vector_value": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "hard_pass": true,
+          "image_inputs": {
+            "candidate": {
+              "input_id": "candidate:render",
+              "input_order": 0,
+              "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\mass-20260722T040843366927Z\\mass.png",
+              "role": "candidate_mass",
+              "sha256": "18126ce2e57e825355d4b2b833feb6d0863838c8305022117523131c8c4ccd14",
+              "used_by_vlm": true
+            },
+            "reference_count": 2,
+            "references": [
+              {
+                "image_url": "https://images.adsttc.com/media/images/6068/d1d7/f91c/813d/5b00/0004/large_jpg/IMG_8445.jpg?1617482169",
+                "input_id": "reference:archdaily_0007",
+                "input_order": 1,
+                "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\seeded\\iconic_precedents\\images\\archdaily_0007.jpg",
+                "matched_tags": [
+                  "courtyard",
+                  "ramp",
+                  "sectional",
+                  "terrace",
+                  "terrace_ribbon"
+                ],
+                "preview_url": "/design/maas/reference-assets/archdaily/seeded/iconic_precedents/images/archdaily_0007.jpg",
+                "program_id": "generic",
+                "program_match_tier": "unconditioned",
+                "program_matched_terms": [],
+                "program_relevance_score": 0,
+                "reference_collection": "",
+                "role": "reference_image",
+                "score": 5,
+                "selection_role": "similar",
+                "sha256": "7ba725473e0eb4dc2b746b790bfe4d9fbfe277abfeb4617e6d90be1cccfb0d1c",
+                "source": "archdaily",
+                "source_id": "archdaily_0007",
+                "source_url": "https://www.archdaily.com/83307/8-house-big",
+                "title": "8 House / BIG",
+                "used_by_vlm": true
+              },
+              {
+                "image_url": "https://images.adsttc.com/media/images/6369/df09/0036/5969/c22b/b988/large_jpg/big-releases-vancouver-house-and-telus-sky-towers-pictures-for-first-time_22.jpg?1667882844",
+                "input_id": "reference:archdaily_0008",
+                "input_order": 2,
+                "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\seeded\\iconic_precedents\\images\\archdaily_0008.jpg",
+                "matched_tags": [
+                  "curvilinear",
+                  "torque",
+                  "torqued",
+                  "torqued_stack",
+                  "tower",
+                  "twist",
+                  "twisted",
+                  "undercut",
+                  "vancouver"
+                ],
+                "preview_url": "/design/maas/reference-assets/archdaily/seeded/iconic_precedents/images/archdaily_0008.jpg",
+                "program_id": "generic",
+                "program_match_tier": "unconditioned",
+                "program_matched_terms": [],
+                "program_relevance_score": 0,
+                "reference_collection": "",
+                "role": "reference_image",
+                "score": 9,
+                "selection_role": "similar",
+                "sha256": "7beeda4cfafb10e7d7232435da5fc67d868522d5c921b9e5b96d18056344d67d",
+                "source": "archdaily",
+                "source_id": "archdaily_0008",
+                "source_url": "https://www.archdaily.com/991864/big-releases-first-photographs-of-the-vancouver-house-and-telus-sky-in-canada",
+                "title": "BIG Releases First Photographs of The Vancouver House and Telus Sky in Canada",
+                "used_by_vlm": true
+              }
+            ],
+            "schema_version": "arr.maas.vlm_image_inputs.v1"
+          },
+          "model": "gpt-5.4-mini",
+          "program_fit_hard_pass": true,
+          "prompt_contract_version": "arr.maas.vlm_prompt.site_visible_program_concept_graph_edit_geometry_edit.v20_mass_execution_agent_context",
+          "provider": "openai",
+          "rationale": "The candidate reads as one coherent stepped/tiered mass with a clear dominant direction, and it survives the four-view check without obvious inter-view collisions. The primary gesture is legible, and the stepped silhouette is not merely decorative; it does resolve as a single spatial rule. However, the mass is still mostly sealed at grade: the thick blue frontage/access edge is not answered by a strong court, undercut, seam, or public void, so the public-threshold performance is weak. That said, for the generic neighborhood program the form remains plausible because it still offers a clear main mass with restrained secondary offsets, and the overall volume is repairable and coherent.",
+          "reference_assessments": [
+            {
+              "mismatch_warning": "Reference is housing/terrace-ribbon driven; its court/public-edge logic is more explicit than the candidate's current sealed ground response.",
+              "program_relevance": 0.77,
+              "source_id": "archdaily_0007",
+              "transferable_principle": "Terraced sectional massing can produce a strong dominant/support hierarchy and a meaningful carved court when the section remains continuous."
+            },
+            {
+              "mismatch_warning": "This is a high-rise urban tower precedent; the candidate is much lower and more horizontal, so only the threshold/step logic is transferable.",
+              "program_relevance": 0.58,
+              "source_id": "archdaily_0008",
+              "transferable_principle": "A tall primary volume can be made legible through podium-tower separation, setback articulation, and a distinct ground-level access response."
+            }
+          ],
+          "reference_massing_gate": {
+            "audited_image_count": 2,
+            "hard_pass": true,
+            "input_image_count": 2,
+            "massing_suitable_image_count": 2,
+            "massing_suitable_program_image_count": 0,
+            "minimum_program_specific_images": 0,
+            "program_id": "generic",
+            "rejected": [],
+            "schema_version": "arr.maas.reference_massing_gate.v1"
+          },
+          "response_id": "resp_09c96346deac86f1006a604298bb9081988820c96f5ca84354",
+          "retrieved_reference_candidates": [
+            {
+              "matched_tags": [
+                "courtyard",
+                "ramp",
+                "sectional",
+                "terrace",
+                "terrace_ribbon"
+              ],
+              "program_id": "generic",
+              "program_match_tier": "unconditioned",
+              "program_relevance_score": 0,
+              "score": 5,
+              "selection_role": "similar",
+              "source": "archdaily",
+              "source_id": "archdaily_0007",
+              "title": "8 House / BIG"
+            },
+            {
+              "matched_tags": [
+                "curvilinear",
+                "torque",
+                "torqued",
+                "torqued_stack",
+                "tower",
+                "twist",
+                "twisted",
+                "undercut",
+                "vancouver"
+              ],
+              "program_id": "generic",
+              "program_match_tier": "unconditioned",
+              "program_relevance_score": 0,
+              "score": 9,
+              "selection_role": "similar",
+              "source": "archdaily",
+              "source_id": "archdaily_0008",
+              "title": "BIG Releases First Photographs of The Vancouver House and Telus Sky in Canada"
+            }
+          ],
+          "status": "live_scored"
+        },
+        "id": "flow:vlm",
+        "kind": "pipeline_stage",
+        "label": "VLM critic",
+        "status": "live_scored"
+      },
+      {
+        "activation": 1.0,
+        "column": "selector",
+        "evidence": {
+          "archive_run_id": "book-program-portfolios-r196-streaming-qd-one-cycle",
+          "evaluated": true,
+          "score": 0.9367,
+          "selected": true,
+          "variant_id": "maas_04"
+        },
+        "id": "flow:selector",
+        "kind": "pipeline_stage",
+        "label": "Final selector",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "result",
+        "evidence": {
+          "byte_count": 35445,
+          "path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\mass-20260722T040843366927Z\\mass.png",
+          "sha256": "18126ce2e57e825355d4b2b833feb6d0863838c8305022117523131c8c4ccd14",
+          "status": "passed",
+          "views": [
+            "isometric",
+            "opposite",
+            "front",
+            "top"
+          ]
+        },
+        "id": "result:mass",
+        "kind": "mass_result",
+        "label": "synth_unconditioned_form_bank_profiled_prism_c7f32f3f34__book_1_1_extrude",
+        "status": "passed"
+      },
+      {
+        "activation": 1.0,
+        "column": "reference",
+        "evidence": {
+          "image_url": "https://images.adsttc.com/media/images/6068/d1d7/f91c/813d/5b00/0004/large_jpg/IMG_8445.jpg?1617482169",
+          "input_id": "reference:archdaily_0007",
+          "input_order": 1,
+          "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\seeded\\iconic_precedents\\images\\archdaily_0007.jpg",
+          "matched_tags": [
+            "courtyard",
+            "ramp",
+            "sectional",
+            "terrace",
+            "terrace_ribbon"
+          ],
+          "preview_url": "/design/maas/reference-assets/archdaily/seeded/iconic_precedents/images/archdaily_0007.jpg",
+          "program_id": "generic",
+          "program_match_tier": "unconditioned",
+          "program_matched_terms": [],
+          "program_relevance_score": 0,
+          "reference_collection": "",
+          "role": "reference_image",
+          "score": 5,
+          "selection_role": "similar",
+          "sha256": "7ba725473e0eb4dc2b746b790bfe4d9fbfe277abfeb4617e6d90be1cccfb0d1c",
+          "source": "archdaily",
+          "source_id": "archdaily_0007",
+          "source_url": "https://www.archdaily.com/83307/8-house-big",
+          "title": "8 House / BIG",
+          "used_by_vlm": true,
+          "vlm_assessment": {
+            "mismatch_warning": "Reference is housing/terrace-ribbon driven; its court/public-edge logic is more explicit than the candidate's current sealed ground response.",
+            "program_relevance": 0.77,
+            "source_id": "archdaily_0007",
+            "transferable_principle": "Terraced sectional massing can produce a strong dominant/support hierarchy and a meaningful carved court when the section remains continuous."
+          }
+        },
+        "id": "vlm:reference:cfa0f4c53e27",
+        "kind": "vlm_reference_image",
+        "label": "8 House / BIG",
+        "source_id": "archdaily_0007",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "reference",
+        "evidence": {
+          "image_url": "https://images.adsttc.com/media/images/6369/df09/0036/5969/c22b/b988/large_jpg/big-releases-vancouver-house-and-telus-sky-towers-pictures-for-first-time_22.jpg?1667882844",
+          "input_id": "reference:archdaily_0008",
+          "input_order": 2,
+          "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\seeded\\iconic_precedents\\images\\archdaily_0008.jpg",
+          "matched_tags": [
+            "curvilinear",
+            "torque",
+            "torqued",
+            "torqued_stack",
+            "tower",
+            "twist",
+            "twisted",
+            "undercut",
+            "vancouver"
+          ],
+          "preview_url": "/design/maas/reference-assets/archdaily/seeded/iconic_precedents/images/archdaily_0008.jpg",
+          "program_id": "generic",
+          "program_match_tier": "unconditioned",
+          "program_matched_terms": [],
+          "program_relevance_score": 0,
+          "reference_collection": "",
+          "role": "reference_image",
+          "score": 9,
+          "selection_role": "similar",
+          "sha256": "7beeda4cfafb10e7d7232435da5fc67d868522d5c921b9e5b96d18056344d67d",
+          "source": "archdaily",
+          "source_id": "archdaily_0008",
+          "source_url": "https://www.archdaily.com/991864/big-releases-first-photographs-of-the-vancouver-house-and-telus-sky-in-canada",
+          "title": "BIG Releases First Photographs of The Vancouver House and Telus Sky in Canada",
+          "used_by_vlm": true,
+          "vlm_assessment": {
+            "mismatch_warning": "This is a high-rise urban tower precedent; the candidate is much lower and more horizontal, so only the threshold/step logic is transferable.",
+            "program_relevance": 0.58,
+            "source_id": "archdaily_0008",
+            "transferable_principle": "A tall primary volume can be made legible through podium-tower separation, setback articulation, and a distinct ground-level access response."
+          }
+        },
+        "id": "vlm:reference:00dc8398d4c7",
+        "kind": "vlm_reference_image",
+        "label": "BIG Releases First Photographs of The Vancouver House and Telus Sky in Canada",
+        "source_id": "archdaily_0008",
+        "status": "evaluated"
+      },
+      {
+        "activation": 0.86,
+        "column": "vlm",
+        "evidence": {
+          "score": 0.86
+        },
+        "id": "vlm:concept:gesture_clarity",
+        "kind": "vlm_concept_score",
+        "label": "gesture_clarity",
+        "status": "evaluated"
+      },
+      {
+        "activation": 0.88,
+        "column": "vlm",
+        "evidence": {
+          "score": 0.88
+        },
+        "id": "vlm:concept:hierarchy",
+        "kind": "vlm_concept_score",
+        "label": "hierarchy",
+        "status": "evaluated"
+      },
+      {
+        "activation": 0.72,
+        "column": "vlm",
+        "evidence": {
+          "score": 0.72
+        },
+        "id": "vlm:concept:non_stair_silhouette",
+        "kind": "vlm_concept_score",
+        "label": "non_stair_silhouette",
+        "status": "evaluated"
+      },
+      {
+        "activation": 0.62,
+        "column": "vlm",
+        "evidence": {
+          "score": 0.62
+        },
+        "id": "vlm:concept:precedent_resonance",
+        "kind": "vlm_concept_score",
+        "label": "precedent_resonance",
+        "status": "evaluated"
+      },
+      {
+        "activation": 0.84,
+        "column": "vlm",
+        "evidence": {
+          "score": 0.84
+        },
+        "id": "vlm:concept:program_appropriateness",
+        "kind": "vlm_concept_score",
+        "label": "program_appropriateness",
+        "status": "evaluated"
+      },
+      {
+        "activation": 0.97,
+        "column": "vlm",
+        "evidence": {
+          "score": 0.97
+        },
+        "id": "vlm:concept:repair_integrity",
+        "kind": "vlm_concept_score",
+        "label": "repair_integrity",
+        "status": "evaluated"
+      },
+      {
+        "activation": 0.58,
+        "column": "vlm",
+        "evidence": {
+          "score": 0.58
+        },
+        "id": "vlm:concept:section_program_fit",
+        "kind": "vlm_concept_score",
+        "label": "section_program_fit",
+        "status": "evaluated"
+      },
+      {
+        "activation": 0.14,
+        "column": "vlm",
+        "evidence": {
+          "score": 0.14
+        },
+        "id": "vlm:concept:void_publicness",
+        "kind": "vlm_concept_score",
+        "label": "void_publicness",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "repair",
+        "evidence": {
+          "boolean_value": false,
+          "input_ids": [
+            "seed_profiled_prism"
+          ],
+          "input_index": 0,
+          "input_node_id": "",
+          "node_id": "",
+          "node_kind": "",
+          "numeric_value": 0.0,
+          "operation": "replace_operator",
+          "operator": "terrace",
+          "parameter_name": "",
+          "rationale": "Shift the dominant mass from generic stepped_mass toward a terraced sectional logic that better supports a continuous cascading mass.",
+          "semantic_role": "dominant_mass",
+          "string_value": "",
+          "target_node_id": "agent_01_stepped_mass",
+          "vector_value": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "id": "vlm:edit:1",
+        "kind": "typed_geometry_edit",
+        "label": "replace_operator",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "repair",
+        "evidence": {
+          "boolean_value": false,
+          "input_ids": [],
+          "input_index": 0,
+          "input_node_id": "",
+          "node_id": "",
+          "node_kind": "",
+          "numeric_value": 4.0,
+          "operation": "set_parameter",
+          "operator": "",
+          "parameter_name": "levels",
+          "rationale": "Increase sectional depth while keeping the mass unified.",
+          "semantic_role": "dominant_mass",
+          "string_value": "",
+          "target_node_id": "agent_01_stepped_mass",
+          "vector_value": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "id": "vlm:edit:2",
+        "kind": "typed_geometry_edit",
+        "label": "set_parameter",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "repair",
+        "evidence": {
+          "boolean_value": false,
+          "input_ids": [],
+          "input_index": 0,
+          "input_node_id": "",
+          "node_id": "",
+          "node_kind": "",
+          "numeric_value": 0.21,
+          "operation": "set_parameter",
+          "operator": "",
+          "parameter_name": "setback_ratio",
+          "rationale": "Amplify the step articulation without breaking continuity.",
+          "semantic_role": "dominant_mass",
+          "string_value": "",
+          "target_node_id": "agent_01_stepped_mass",
+          "vector_value": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "id": "vlm:edit:3",
+        "kind": "typed_geometry_edit",
+        "label": "set_parameter",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "repair",
+        "evidence": {
+          "boolean_value": false,
+          "input_ids": [
+            "program_projection:neighborhood_living:public_threshold"
+          ],
+          "input_index": 0,
+          "input_node_id": "",
+          "node_id": "public_entry_void",
+          "node_kind": "macro",
+          "numeric_value": 0.0,
+          "operation": "add_node",
+          "operator": "carve_void",
+          "parameter_name": "",
+          "rationale": "Introduce a public edge carve as a bound void anchored to the protected public-threshold chain.",
+          "semantic_role": "void",
+          "string_value": "",
+          "target_node_id": "",
+          "vector_value": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "id": "vlm:edit:4",
+        "kind": "typed_geometry_edit",
+        "label": "add_node",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "repair",
+        "evidence": {
+          "boolean_value": false,
+          "input_ids": [],
+          "input_index": 0,
+          "input_node_id": "",
+          "node_id": "",
+          "node_kind": "",
+          "numeric_value": 0.0,
+          "operation": "set_parameter",
+          "operator": "",
+          "parameter_name": "open_side",
+          "rationale": "Match the verified access side.",
+          "semantic_role": "void",
+          "string_value": "west",
+          "target_node_id": "public_entry_void",
+          "vector_value": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "id": "vlm:edit:5",
+        "kind": "typed_geometry_edit",
+        "label": "set_parameter",
+        "status": "evaluated"
+      },
+      {
+        "activation": 1.0,
+        "column": "repair",
+        "evidence": {
+          "boolean_value": false,
+          "input_ids": [],
+          "input_index": 0,
+          "input_node_id": "",
+          "node_id": "",
+          "node_kind": "",
+          "numeric_value": 0.18,
+          "operation": "set_parameter",
+          "operator": "",
+          "parameter_name": "margin_ratio",
+          "rationale": "Keep the void proportionally restrained and legible.",
+          "semantic_role": "void",
+          "string_value": "",
+          "target_node_id": "public_entry_void",
+          "vector_value": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "id": "vlm:edit:6",
+        "kind": "typed_geometry_edit",
+        "label": "set_parameter",
+        "status": "evaluated"
+      }
+    ],
+    "query_contract": {
+      "active_edge_predicate": "activation > 0",
+      "book_image_policy": "BOOK is typed language provenance, not raster image evidence",
+      "default_query": "active_ancestors_of_result:mass",
+      "edge_direction": "cause_to_effect",
+      "inactive_evidence_policy": "retain node and edge with activation=0; never infer pass",
+      "node_identity": "stable node.id within program_hash",
+      "selection_unit": "one_executed_mass",
+      "visualization_policy": "render one selected MASS induced subgraph; never create parallel authority graphs",
+      "vlm_image_policy": "materialize only images actually submitted to a recorded VLM evaluation"
+    },
+    "result_node_ids": [
+      "result:mass"
+    ],
+    "root_node_ids": [
+      "ast:seed_profiled_prism"
+    ],
+    "schema_version": "arr.maas.mass_activation_graph.v1"
+  },
+  "agent_context": {
+    "active_edges": [
+      {
+        "activation": 1.0,
+        "relation": "solid_input",
+        "source": "ast:seed_profiled_prism",
+        "target": "ast:agent_01_stepped_mass"
+      },
+      {
+        "activation": 1.0,
+        "relation": "solid_input",
+        "source": "ast:agent_01_stepped_mass",
+        "target": "ast:book01_book_base_volume"
+      },
+      {
+        "activation": 1.0,
+        "relation": "solid_input",
+        "source": "ast:book01_book_base_volume",
+        "target": "ast:book02_scale"
+      },
+      {
+        "activation": 1.0,
+        "relation": "solid_input",
+        "source": "ast:book02_scale",
+        "target": "ast:program_projection:neighborhood_living:public_threshold"
+      },
+      {
+        "activation": 1.0,
+        "relation": "solid_input",
+        "source": "ast:program_projection:neighborhood_living:public_threshold",
+        "target": "ast:program_projection:neighborhood_living:public_threshold_connectivity"
+      },
+      {
+        "activation": 1.0,
+        "relation": "program_projection_result",
+        "source": "ast:program_projection:neighborhood_living:public_threshold_connectivity",
+        "target": "flow:program"
+      },
+      {
+        "activation": 1.0,
+        "relation": "compile",
+        "source": "flow:program",
+        "target": "flow:compiler"
+      },
+      {
+        "activation": 1.0,
+        "relation": "validate",
+        "source": "flow:compiler",
+        "target": "flow:geometry_gate"
+      },
+      {
+        "activation": 1.0,
+        "relation": "downstream_gate",
+        "source": "flow:geometry_gate",
+        "target": "flow:site"
+      },
+      {
+        "activation": 1.0,
+        "relation": "downstream_gate",
+        "source": "flow:site",
+        "target": "flow:capacity"
+      },
+      {
+        "activation": 1.0,
+        "relation": "downstream_gate",
+        "source": "flow:capacity",
+        "target": "flow:law"
+      },
+      {
+        "activation": 1.0,
+        "relation": "downstream_gate",
+        "source": "flow:law",
+        "target": "flow:parking"
+      },
+      {
+        "activation": 1.0,
+        "relation": "downstream_gate",
+        "source": "flow:parking",
+        "target": "flow:program_fit"
+      },
+      {
+        "activation": 1.0,
+        "relation": "render",
+        "source": "flow:compiler",
+        "target": "flow:render"
+      },
+      {
+        "activation": 1.0,
+        "relation": "view",
+        "source": "flow:render",
+        "target": "render:isometric"
+      },
+      {
+        "activation": 1.0,
+        "relation": "view",
+        "source": "flow:render",
+        "target": "render:opposite"
+      },
+      {
+        "activation": 1.0,
+        "relation": "view",
+        "source": "flow:render",
+        "target": "render:front"
+      },
+      {
+        "activation": 1.0,
+        "relation": "view",
+        "source": "flow:render",
+        "target": "render:top"
+      },
+      {
+        "activation": 1.0,
+        "relation": "materialized_png",
+        "source": "flow:render",
+        "target": "render:mass_png"
+      },
+      {
+        "activation": 1.0,
+        "relation": "hard_gate_input",
+        "source": "flow:program_fit",
+        "target": "flow:selector"
+      },
+      {
+        "activation": 1.0,
+        "relation": "generated_result",
+        "source": "render:mass_png",
+        "target": "result:mass"
+      },
+      {
+        "activation": 1.0,
+        "relation": "selection_status",
+        "source": "flow:selector",
+        "target": "result:mass"
+      }
+    ],
+    "active_nodes": [
+      {
+        "activation": 1.0,
+        "column": "base",
+        "id": "ast:seed_profiled_prism",
+        "label": "extruded_polygon",
+        "operator": "extruded_polygon",
+        "source_id": "seed_profiled_prism"
+      },
+      {
+        "activation": 1.0,
+        "column": "geometry",
+        "id": "ast:agent_01_stepped_mass",
+        "label": "stepped_mass",
+        "operator": "stepped_mass",
+        "source_id": "agent_01_stepped_mass"
+      },
+      {
+        "activation": 1.0,
+        "column": "book",
+        "id": "ast:book01_book_base_volume",
+        "label": "select_book_scope",
+        "operator": "book_base_volume",
+        "source_id": "book01_book_base_volume"
+      },
+      {
+        "activation": 1.0,
+        "column": "book",
+        "id": "ast:book02_scale",
+        "label": "extrude",
+        "operator": "scale",
+        "source_id": "book02_scale"
+      },
+      {
+        "activation": 1.0,
+        "column": "program",
+        "id": "ast:program_projection:neighborhood_living:public_threshold",
+        "label": "lift",
+        "operator": "lift",
+        "source_id": "program_projection:neighborhood_living:public_threshold"
+      },
+      {
+        "activation": 1.0,
+        "column": "program",
+        "id": "ast:program_projection:neighborhood_living:public_threshold_connectivity",
+        "label": "join_related",
+        "operator": "join_related",
+        "source_id": "program_projection:neighborhood_living:public_threshold_connectivity"
+      },
+      {
+        "activation": 1.0,
+        "column": "program",
+        "id": "flow:program",
+        "label": "Use / program projection",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "compiler",
+        "id": "flow:compiler",
+        "label": "Geometry Compiler",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "gate",
+        "id": "flow:geometry_gate",
+        "label": "Geometry GATE",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "site",
+        "id": "flow:site",
+        "label": "Site / parcel",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "capacity",
+        "id": "flow:capacity",
+        "label": "FAR / capacity alternatives",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "law",
+        "id": "flow:law",
+        "label": "Legal hard gate",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "parking",
+        "id": "flow:parking",
+        "label": "Parking hard gate",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "program_fit",
+        "id": "flow:program_fit",
+        "label": "Program-fit gate",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "render",
+        "id": "flow:render",
+        "label": "4-view render",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "render",
+        "id": "render:isometric",
+        "label": "isometric",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "render",
+        "id": "render:opposite",
+        "label": "opposite",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "render",
+        "id": "render:front",
+        "label": "front",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "render",
+        "id": "render:top",
+        "label": "top",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "render",
+        "id": "render:mass_png",
+        "label": "Generated MASS PNG",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "selector",
+        "id": "flow:selector",
+        "label": "Final selector",
+        "operator": "",
+        "source_id": ""
+      },
+      {
+        "activation": 1.0,
+        "column": "result",
+        "id": "result:mass",
+        "label": "synth_unconditioned_form_bank_profiled_prism_c7f32f3f34__book_1_1_extrude",
+        "operator": "",
+        "source_id": ""
+      }
+    ],
+    "agent_rules": [
+      "Treat this as observed execution evidence, never as hidden-neuron data.",
+      "Target only exact editable AST node IDs also present in the current geometry graph contract.",
+      "Repair failed stages; do not infer a pass from a pending stage.",
+      "Recompile, rerender and rerun hard gates after every typed edit."
+    ],
+    "editable_ast_nodes": [
+      {
+        "kind": "primitive",
+        "node_id": "seed_profiled_prism",
+        "operator": "extruded_polygon",
+        "semantic_role": "base_seed",
+        "status": "evaluated"
+      },
+      {
+        "kind": "macro",
+        "node_id": "agent_01_stepped_mass",
+        "operator": "stepped_mass",
+        "semantic_role": "dominant_mass",
+        "status": "evaluated"
+      },
+      {
+        "kind": "modifier",
+        "node_id": "book01_book_base_volume",
+        "operator": "book_base_volume",
+        "semantic_role": "book_mutated_dominant",
+        "status": "evaluated"
+      },
+      {
+        "kind": "transform",
+        "node_id": "book02_scale",
+        "operator": "scale",
+        "semantic_role": "book_mutated_dominant",
+        "status": "evaluated"
+      },
+      {
+        "kind": "macro",
+        "node_id": "program_projection:neighborhood_living:public_threshold",
+        "operator": "lift",
+        "semantic_role": "public_threshold",
+        "status": "evaluated"
+      },
+      {
+        "kind": "macro",
+        "node_id": "program_projection:neighborhood_living:public_threshold_connectivity",
+        "operator": "join_related",
+        "semantic_role": "program_connectivity_guard",
+        "status": "evaluated"
+      }
+    ],
+    "failed_stages": [],
+    "geometry_hash": "1f59803258b651435af06b97883d483c5d79c494026e1eb6b2437b5853ad9436",
+    "passport_status": "in_progress",
+    "pending_required_stages": [
+      "vlm"
+    ],
+    "program_hash": "e98802e47b7570b63719cd7ed58eb54b066deefce262e75510b43d6914d32f30",
+    "protected_ast_node_ids": [],
+    "purpose": "causal_observation_for_author_critic_repair_selector",
+    "research_method_context": {
+      "active_source_count": 4,
+      "claim_policy": "method_adaptation_provenance_not_paper_reimplementation",
+      "schema_version": "arr.maas.executable_paper_method_context.v1",
+      "source_count": 6,
+      "sources": [
+        {
+          "evidence": {
+            "matched_operators": [
+              "join_related"
+            ],
+            "recursive_geometry": "passed"
+          },
+          "limitation": "cuboid part assembly is not sufficient for architectural bends, profiles, cuts, or legal site adaptation",
+          "maas_adaptation": "typed parametric shape programs whose attachment and symmetry relations generate editable families",
+          "method_layer": "recursive_parametric_assembly",
+          "paper_url": "https://arxiv.org/abs/2009.08026",
+          "runtime_components": [
+            "geometry_language.ast",
+            "geometry_language.compiler",
+            "geometry_language.programs"
+          ],
+          "runtime_status": "adaptation_active",
+          "source_id": "shapeassembly_siggraph_asia_2020",
+          "title": "ShapeAssembly: Learning to Generate Programs for 3D Shape Structure Synthesis"
+        },
+        {
+          "evidence": {
+            "compiler": "passed",
+            "structural_hash_present": true
+          },
+          "limitation": "semantic architectural program and visual quality objectives remain MAAS-specific",
+          "maas_adaptation": "canonical AST rewriting and equivalence-aware candidate collapse instead of retaining redundant CSG programs",
+          "method_layer": "canonical_program_normalization",
+          "paper_url": "https://arxiv.org/abs/1909.12252",
+          "runtime_components": [
+            "geometry_language.ast",
+            "geometry_language.cost",
+            "geometry_language.compiler"
+          ],
+          "runtime_status": "adaptation_active",
+          "source_id": "szalinski_siggraph_2020",
+          "title": "Synthesizing Structured CAD Models with Equality Saturation and Inverse Transformations"
+        },
+        {
+          "evidence": {
+            "render": "passed",
+            "vlm": "not_evaluated"
+          },
+          "limitation": "CAD visual similarity does not encode architectural program, law, parking, or competition-board diversity",
+          "maas_adaptation": "alternate executable parametric-program learning with rendered visual feedback rather than scoring labels alone",
+          "method_layer": "rendered_visual_feedback",
+          "paper_url": "https://arxiv.org/abs/2501.19054",
+          "runtime_components": [
+            "geometry_language.render",
+            "geometry_language.vlm_adapter",
+            "preference.vlm_scorer"
+          ],
+          "runtime_status": "registered_not_active_for_this_mass",
+          "source_id": "cadfusion_2025",
+          "title": "Text-to-CAD Generation Through Infusing Visual Feedback in Large Language Models"
+        },
+        {
+          "evidence": {
+            "typed_geometry_edit_count": 0,
+            "vlm": "not_evaluated"
+          },
+          "limitation": "near-miss CAD reconstruction repair is narrower than open-ended architectural mass generation",
+          "maas_adaptation": "VLM infers design intent while a symbolic compiler performs typed AST repair and deterministic geometry verification",
+          "method_layer": "neuro_symbolic_typed_repair",
+          "paper_url": "https://openaccess.thecvf.com/content/CVPR2026W/NeXD/html/Zhang_CADLoop_An_Equivariant-Aware_Skill-Grounded_Loop_for_CAD_Data_Curation_CVPRW_2026_paper.html",
+          "runtime_components": [
+            "geometry_language.vlm_adapter",
+            "geometry_language.loop",
+            "geometry_language.gate"
+          ],
+          "runtime_status": "registered_not_active_for_this_mass",
+          "source_id": "cadloop_cvprw_2026",
+          "title": "CADLoop: An Equivariant-Aware Skill-Grounded Loop for CAD Data Curation"
+        },
+        {
+          "evidence": {
+            "recursive_geometry": "passed",
+            "semantic_role_count": 6
+          },
+          "limitation": "semantic comments must remain grounded in compiled geometry and cannot substitute for executable relations",
+          "maas_adaptation": "pair executable graph nodes with architectural semantic roles so agents and users can understand and revise the same program",
+          "method_layer": "semantic_program_trace",
+          "paper_url": "https://openaccess.thecvf.com/content/CVPR2024/html/Yuan_CADTalk_An_Algorithm_and_Benchmark_for_Semantic_Commenting_of_CAD_CVPR_2024_paper.html",
+          "runtime_components": [
+            "geometry_language.ast",
+            "geometry_language.execution_activation",
+            "geometry_language.execution_agent_context"
+          ],
+          "runtime_status": "adaptation_active",
+          "source_id": "cadtalk_cvpr_2024",
+          "title": "CADTalk: An Algorithm and Benchmark for Semantic Commenting of CAD Programs"
+        },
+        {
+          "evidence": {
+            "capacity": "passed",
+            "selector": "passed"
+          },
+          "limitation": "MAAS uses a typed geometry compiler and hard gates rather than reproducing the Rhino-Grasshopper EvoMass implementation",
+          "maas_adaptation": "typology-oriented candidate populations with explicit capacity, site, legal, parking and diversity feedback before portfolio selection",
+          "method_layer": "performance_bounded_typology_exploration",
+          "paper_url": "https://doi.org/10.1016/j.foar.2024.06.001",
+          "runtime_components": [
+            "book_language.candidate_generation",
+            "book_language.capacity_alternatives",
+            "book_language.portfolio_selection",
+            "book_language.downstream_hard_gate"
+          ],
+          "runtime_status": "adaptation_active",
+          "source_id": "evomass_foar_2024",
+          "title": "Optimization-based Design Exploration of Building Massing Typologies—EvoMass"
+        }
+      ]
+    },
+    "schema_version": "arr.maas.mass_execution_agent_context.v1",
+    "stage_status": {
+      "base_model": "passed",
+      "book_language": "evaluated",
+      "capacity": "passed",
+      "compiler": "passed",
+      "geometry_gate": "passed",
+      "law": "passed",
+      "parking": "passed",
+      "program": "passed",
+      "program_fit": "passed",
+      "recursive_geometry": "passed",
+      "render": "passed",
+      "selector": "passed",
+      "site": "passed",
+      "vlm": "not_evaluated"
+    },
+    "typed_geometry_edits": [],
+    "vlm_concept_scores": {},
+    "vlm_reference_images": []
+  },
+  "final_hard_pass": true,
+  "full_flow_complete": true,
+  "geometry_hash": "1f59803258b651435af06b97883d483c5d79c494026e1eb6b2437b5853ad9436",
+  "mass_id": "mass:1f59803258b651435af06b97883d483c5d79c494026e1eb6b2437b5853ad9436",
+  "program_hash": "e98802e47b7570b63719cd7ed58eb54b066deefce262e75510b43d6914d32f30",
+  "program_name": "synth_unconditioned_form_bank_profiled_prism_c7f32f3f34__book_1_1_extrude",
+  "schema_version": "arr.maas.mass_execution_passport.v1",
+  "stages": [
+    {
+      "evidence": {
+        "operators": [
+          "extruded_polygon"
+        ],
+        "seed_family": ""
+      },
+      "id": "base_model",
+      "label": "Base Model",
+      "node_ids": [
+        "seed_profiled_prism"
+      ],
+      "required_for_final": true,
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "application_order": "program_solid_then_book_scope_and_operations",
+        "ordered_verbs": [
+          "extrude"
+        ],
+        "scope_fraction": 1.0,
+        "scope_label": "1/1"
+      },
+      "id": "book_language",
+      "label": "BOOK geometry language",
+      "node_ids": [
+        "book01_book_base_volume",
+        "book02_scale"
+      ],
+      "required_for_final": false,
+      "status": "evaluated"
+    },
+    {
+      "evidence": {
+        "form_bank_lane": "bounded_synthesis",
+        "form_bank_variation_page": 1,
+        "issues": [],
+        "node_count": 6,
+        "program_conditioned": true,
+        "root_id": "program_projection:neighborhood_living:public_threshold_connectivity"
+      },
+      "id": "recursive_geometry",
+      "label": "Recursive Geometry AST",
+      "node_ids": [
+        "seed_profiled_prism",
+        "agent_01_stepped_mass",
+        "book01_book_base_volume",
+        "book02_scale",
+        "program_projection:neighborhood_living:public_threshold",
+        "program_projection:neighborhood_living:public_threshold_connectivity"
+      ],
+      "required_for_final": true,
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "access_side": "west",
+        "base_or_book_authority": false,
+        "building_type": "근린생활시설",
+        "controller_node_ids": [
+          "program_projection:neighborhood_living:public_threshold",
+          "program_projection:neighborhood_living:public_threshold"
+        ],
+        "pre_program_projection_hash": "cd15a12bac5a5078f3648b0d0dbf3237fe7ea1700a6ae3f7ee1a89bf24d10e0f",
+        "program_id": "neighborhood_living",
+        "public_space_controller_node_id": "program_projection:neighborhood_living:public_threshold",
+        "public_space_status": "reused_program_threshold_as_public_space",
+        "schema_version": "arr.maas.post_book_program_projection.v2",
+        "section_controller_node_id": "",
+        "threshold_controller_node_id": "program_projection:neighborhood_living:public_threshold",
+        "threshold_status": "added_post_book_controller",
+        "universal_form_preserved": true,
+        "vlm_role": "downstream_critic_and_repair_only"
+      },
+      "id": "program",
+      "label": "Use / program projection",
+      "node_ids": [
+        "program_projection:neighborhood_living:public_threshold",
+        "program_projection:neighborhood_living:public_threshold_connectivity"
+      ],
+      "required_for_final": true,
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "evaluated": true,
+        "generation_context": {
+          "bcr_limit_pct": 60.0,
+          "candidate_generation_site_area_m2": 102.931,
+          "far_limit_pct": 250.0,
+          "generation_host_mode": "height_safe_sunlight_section",
+          "generation_host_section_height_m": 10.0,
+          "generation_precedes_selection": true,
+          "generation_site_area_m2": 102.931,
+          "height_limit_m": 50.0,
+          "original_site_area_m2": 264.126,
+          "requested_program_height_m": 15.0,
+          "schema_version": "arr.maas.legal_generation_context.v1",
+          "status": "materialized",
+          "sunlight_field_status": "materialized"
+        },
+        "hard_pass": true,
+        "inside_site": true,
+        "pnu": "1168011800104170004"
+      },
+      "id": "site",
+      "label": "Site / parcel",
+      "node_ids": [],
+      "required_for_final": true,
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "achieved_utilization": 0.7,
+        "alternative_id": "spatial_reserve",
+        "evaluated": true,
+        "feasible_maximum_floor_area_m2": 418.167,
+        "feasible_minimum_utilization": 0.7,
+        "hard_gates_remain_downstream": true,
+        "hard_pass": true,
+        "intent": "retain the feasible minimum while preserving void and public-space capacity",
+        "label": "Spatial reserve",
+        "measurement_schema_version": "arr.maas.source_capacity_measurement.v1",
+        "program_brief_target_utilization": 0.9,
+        "projection_mode": "typed_form_plan_fit",
+        "schema_version": "arr.maas.capacity_alternative.v1",
+        "stage": "post_program_pre_hard_gate",
+        "target_base_plan_area_m2": 58.543,
+        "target_base_plan_coverage": 0.5688,
+        "target_floor_area_m2": 292.717,
+        "target_gap": 0.0,
+        "target_hard_pass": true,
+        "target_rule": "feasible_minimum",
+        "target_utilization": 0.7
+      },
+      "id": "capacity",
+      "label": "FAR / capacity alternatives",
+      "node_ids": [],
+      "required_for_final": true,
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "clipped_volume_count": 1,
+        "evaluated": true,
+        "failure_reasons": [],
+        "geometry_failure_reasons": [],
+        "geometry_retention_pass": true,
+        "hard_pass": true,
+        "projected_volume_count": 7,
+        "source_volume_count": 3,
+        "volume_retention": 0.8813,
+        "weighted_plan_iou": 0.8813
+      },
+      "id": "law",
+      "label": "Legal hard gate",
+      "node_ids": [],
+      "required_for_final": true,
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "evaluated": true,
+        "failure_reasons": [],
+        "hard_pass": true,
+        "layout_status": "pass",
+        "provided_spaces": 2,
+        "required_spaces": 2,
+        "requirement": {
+          "accessible": {
+            "accessible_max": 0,
+            "accessible_min": 0,
+            "status": "not_applicable_under_10"
+          },
+          "base_rule_id": "parking_appendix1_row_03",
+          "building_type": "근린생활시설",
+          "formula_detail": null,
+          "jurisdiction_code": "11680",
+          "metric": "facility_area_m2",
+          "metric_value": 252.79,
+          "pnu": "1168011800104170004",
+          "raw_spaces": 1.8865298507462687,
+          "reason": null,
+          "required_spaces": 2,
+          "rounding_rule": "ordinance_note_6_half_up_total_under_one_zero",
+          "selected_rule_id": "seoul_parking_appendix2_row_03",
+          "source": {
+            "rule_kind": "local_override",
+            "source_appendix": null,
+            "source_ordinance": null,
+            "source_parse_status": "official_pdf_text_extracted_manual_review"
+          },
+          "status": "computed",
+          "unit_schedule": null
+        },
+        "selected_strategy": "piloti_ground"
+      },
+      "id": "parking",
+      "label": "Parking hard gate",
+      "node_ids": [],
+      "required_for_final": true,
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "building_type": "근린생활시설",
+        "coherence_fit": 1.0,
+        "design_intent": "compact capacity-aware street building with an active ground edge, one clear public void or terrace, and calm upper massing",
+        "evaluated": true,
+        "family": "agent_stepped_mass",
+        "family_fit": 0.55,
+        "floor_count": 5,
+        "floor_fit": 1.0,
+        "hard_pass": true,
+        "preferred_families": [
+          "slender_bar",
+          "courtyard",
+          "terrace_link",
+          "void_notch",
+          "offset",
+          "bend"
+        ],
+        "profile_id": "neighborhood_living",
+        "program_fit_score": 0.916,
+        "schema_version": "arr.maas.program_massing_evidence.v1",
+        "spatial_fit": 0.991,
+        "volume_count": 3,
+        "volume_fit": 1.0
+      },
+      "id": "program_fit",
+      "label": "Program-fit gate",
+      "node_ids": [],
+      "required_for_final": true,
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "issues": [],
+        "status": "compiled",
+        "trace_count": 6
+      },
+      "id": "compiler",
+      "label": "Geometry Compiler",
+      "node_ids": [
+        "seed_profiled_prism",
+        "agent_01_stepped_mass",
+        "book01_book_base_volume",
+        "book02_scale",
+        "program_projection:neighborhood_living:public_threshold",
+        "program_projection:neighborhood_living:public_threshold_connectivity"
+      ],
+      "required_for_final": true,
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "hard_pass": true,
+        "issues": [],
+        "metrics": {
+          "bounds": [
+            [
+              -0.15,
+              0.0,
+              -0.054037
+            ],
+            [
+              1.747,
+              1.2,
+              1.002253
+            ]
+          ],
+          "closed_solid": true,
+          "component_count": 1,
+          "component_volume_ratios": [
+            1.0
+          ],
+          "genus": 0,
+          "kernel": "manifold3d",
+          "kernel_status": "Error.NoError",
+          "manifold": true,
+          "minimum_component_volume_ratio": 1.0,
+          "outward_normals": true,
+          "self_intersection_checked_by_kernel": true,
+          "signed_mesh_volume": 1.103843,
+          "surface_area": 8.380109,
+          "triangle_count": 96,
+          "vertex_count": 50,
+          "volume": 1.103843,
+          "watertight": true
+        }
+      },
+      "id": "geometry_gate",
+      "label": "Geometry GATE",
+      "node_ids": [],
+      "required_for_final": true,
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "byte_count": 35445,
+        "path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\mass-20260722T040843366927Z\\mass.png",
+        "sha256": "18126ce2e57e825355d4b2b833feb6d0863838c8305022117523131c8c4ccd14",
+        "status": "passed",
+        "views": [
+          "isometric",
+          "opposite",
+          "front",
+          "top"
+        ]
+      },
+      "id": "render",
+      "label": "Four-view PNG",
+      "node_ids": [],
+      "required_for_final": true,
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "api_usage": {
+          "input_tokens": 26250,
+          "input_tokens_details": {
+            "cache_write_tokens": 0,
+            "cached_tokens": 0
+          },
+          "output_tokens": 1569,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 27819
+        },
+        "cache_hit": false,
+        "concept_scores": {
+          "gesture_clarity": 0.86,
+          "hierarchy": 0.88,
+          "non_stair_silhouette": 0.72,
+          "precedent_resonance": 0.62,
+          "program_appropriateness": 0.84,
+          "repair_integrity": 0.97,
+          "section_program_fit": 0.58,
+          "void_publicness": 0.14
+        },
+        "cost_observation": {
+          "candidate_cache_hit": false,
+          "max_http_attempts": 3,
+          "reference_limit": 2,
+          "retries": 0,
+          "schema_version": "arr.maas.vlm_cost_observation.v1",
+          "usage": {
+            "input_tokens": 26250,
+            "output_tokens": 1569,
+            "total_tokens": 27819
+          },
+          "usage_record_count": 1
+        },
+        "critic_actions": [
+          "needs_carved_void",
+          "good_step_mass",
+          "preserve_dominant_gesture"
+        ],
+        "critique": "",
+        "error": "",
+        "evidence_binding": {
+          "candidate_sha256": "18126ce2e57e825355d4b2b833feb6d0863838c8305022117523131c8c4ccd14",
+          "execution_id": "mass-20260722T040843366927Z",
+          "geometry_hash": "1f59803258b651435af06b97883d483c5d79c494026e1eb6b2437b5853ad9436",
+          "model": "gpt-5.4-mini",
+          "program_hash": "e98802e47b7570b63719cd7ed58eb54b066deefce262e75510b43d6914d32f30",
+          "prompt_contract_version": "arr.maas.vlm_prompt.site_visible_program_concept_graph_edit_geometry_edit.v20_mass_execution_agent_context",
+          "schema_version": "arr.maas.vlm_evidence_binding.v1"
+        },
+        "geometry_edits": [
+          {
+            "boolean_value": false,
+            "input_ids": [
+              "seed_profiled_prism"
+            ],
+            "input_index": 0,
+            "input_node_id": "",
+            "node_id": "",
+            "node_kind": "",
+            "numeric_value": 0.0,
+            "operation": "replace_operator",
+            "operator": "terrace",
+            "parameter_name": "",
+            "rationale": "Shift the dominant mass from generic stepped_mass toward a terraced sectional logic that better supports a continuous cascading mass.",
+            "semantic_role": "dominant_mass",
+            "string_value": "",
+            "target_node_id": "agent_01_stepped_mass",
+            "vector_value": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "boolean_value": false,
+            "input_ids": [],
+            "input_index": 0,
+            "input_node_id": "",
+            "node_id": "",
+            "node_kind": "",
+            "numeric_value": 4.0,
+            "operation": "set_parameter",
+            "operator": "",
+            "parameter_name": "levels",
+            "rationale": "Increase sectional depth while keeping the mass unified.",
+            "semantic_role": "dominant_mass",
+            "string_value": "",
+            "target_node_id": "agent_01_stepped_mass",
+            "vector_value": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "boolean_value": false,
+            "input_ids": [],
+            "input_index": 0,
+            "input_node_id": "",
+            "node_id": "",
+            "node_kind": "",
+            "numeric_value": 0.21,
+            "operation": "set_parameter",
+            "operator": "",
+            "parameter_name": "setback_ratio",
+            "rationale": "Amplify the step articulation without breaking continuity.",
+            "semantic_role": "dominant_mass",
+            "string_value": "",
+            "target_node_id": "agent_01_stepped_mass",
+            "vector_value": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "boolean_value": false,
+            "input_ids": [
+              "program_projection:neighborhood_living:public_threshold"
+            ],
+            "input_index": 0,
+            "input_node_id": "",
+            "node_id": "public_entry_void",
+            "node_kind": "macro",
+            "numeric_value": 0.0,
+            "operation": "add_node",
+            "operator": "carve_void",
+            "parameter_name": "",
+            "rationale": "Introduce a public edge carve as a bound void anchored to the protected public-threshold chain.",
+            "semantic_role": "void",
+            "string_value": "",
+            "target_node_id": "",
+            "vector_value": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "boolean_value": false,
+            "input_ids": [],
+            "input_index": 0,
+            "input_node_id": "",
+            "node_id": "",
+            "node_kind": "",
+            "numeric_value": 0.0,
+            "operation": "set_parameter",
+            "operator": "",
+            "parameter_name": "open_side",
+            "rationale": "Match the verified access side.",
+            "semantic_role": "void",
+            "string_value": "west",
+            "target_node_id": "public_entry_void",
+            "vector_value": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "boolean_value": false,
+            "input_ids": [],
+            "input_index": 0,
+            "input_node_id": "",
+            "node_id": "",
+            "node_kind": "",
+            "numeric_value": 0.18,
+            "operation": "set_parameter",
+            "operator": "",
+            "parameter_name": "margin_ratio",
+            "rationale": "Keep the void proportionally restrained and legible.",
+            "semantic_role": "void",
+            "string_value": "",
+            "target_node_id": "public_entry_void",
+            "vector_value": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "hard_pass": true,
+        "image_inputs": {
+          "candidate": {
+            "input_id": "candidate:render",
+            "input_order": 0,
+            "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\single-executions\\mass-20260722T040843366927Z\\mass.png",
+            "role": "candidate_mass",
+            "sha256": "18126ce2e57e825355d4b2b833feb6d0863838c8305022117523131c8c4ccd14",
+            "used_by_vlm": true
+          },
+          "reference_count": 2,
+          "references": [
+            {
+              "image_url": "https://images.adsttc.com/media/images/6068/d1d7/f91c/813d/5b00/0004/large_jpg/IMG_8445.jpg?1617482169",
+              "input_id": "reference:archdaily_0007",
+              "input_order": 1,
+              "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\seeded\\iconic_precedents\\images\\archdaily_0007.jpg",
+              "matched_tags": [
+                "courtyard",
+                "ramp",
+                "sectional",
+                "terrace",
+                "terrace_ribbon"
+              ],
+              "preview_url": "/design/maas/reference-assets/archdaily/seeded/iconic_precedents/images/archdaily_0007.jpg",
+              "program_id": "generic",
+              "program_match_tier": "unconditioned",
+              "program_matched_terms": [],
+              "program_relevance_score": 0,
+              "reference_collection": "",
+              "role": "reference_image",
+              "score": 5,
+              "selection_role": "similar",
+              "sha256": "7ba725473e0eb4dc2b746b790bfe4d9fbfe277abfeb4617e6d90be1cccfb0d1c",
+              "source": "archdaily",
+              "source_id": "archdaily_0007",
+              "source_url": "https://www.archdaily.com/83307/8-house-big",
+              "title": "8 House / BIG",
+              "used_by_vlm": true
+            },
+            {
+              "image_url": "https://images.adsttc.com/media/images/6369/df09/0036/5969/c22b/b988/large_jpg/big-releases-vancouver-house-and-telus-sky-towers-pictures-for-first-time_22.jpg?1667882844",
+              "input_id": "reference:archdaily_0008",
+              "input_order": 2,
+              "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\seeded\\iconic_precedents\\images\\archdaily_0008.jpg",
+              "matched_tags": [
+                "curvilinear",
+                "torque",
+                "torqued",
+                "torqued_stack",
+                "tower",
+                "twist",
+                "twisted",
+                "undercut",
+                "vancouver"
+              ],
+              "preview_url": "/design/maas/reference-assets/archdaily/seeded/iconic_precedents/images/archdaily_0008.jpg",
+              "program_id": "generic",
+              "program_match_tier": "unconditioned",
+              "program_matched_terms": [],
+              "program_relevance_score": 0,
+              "reference_collection": "",
+              "role": "reference_image",
+              "score": 9,
+              "selection_role": "similar",
+              "sha256": "7beeda4cfafb10e7d7232435da5fc67d868522d5c921b9e5b96d18056344d67d",
+              "source": "archdaily",
+              "source_id": "archdaily_0008",
+              "source_url": "https://www.archdaily.com/991864/big-releases-first-photographs-of-the-vancouver-house-and-telus-sky-in-canada",
+              "title": "BIG Releases First Photographs of The Vancouver House and Telus Sky in Canada",
+              "used_by_vlm": true
+            }
+          ],
+          "schema_version": "arr.maas.vlm_image_inputs.v1"
+        },
+        "model": "gpt-5.4-mini",
+        "program_fit_hard_pass": true,
+        "prompt_contract_version": "arr.maas.vlm_prompt.site_visible_program_concept_graph_edit_geometry_edit.v20_mass_execution_agent_context",
+        "provider": "openai",
+        "rationale": "The candidate reads as one coherent stepped/tiered mass with a clear dominant direction, and it survives the four-view check without obvious inter-view collisions. The primary gesture is legible, and the stepped silhouette is not merely decorative; it does resolve as a single spatial rule. However, the mass is still mostly sealed at grade: the thick blue frontage/access edge is not answered by a strong court, undercut, seam, or public void, so the public-threshold performance is weak. That said, for the generic neighborhood program the form remains plausible because it still offers a clear main mass with restrained secondary offsets, and the overall volume is repairable and coherent.",
+        "reference_assessments": [
+          {
+            "mismatch_warning": "Reference is housing/terrace-ribbon driven; its court/public-edge logic is more explicit than the candidate's current sealed ground response.",
+            "program_relevance": 0.77,
+            "source_id": "archdaily_0007",
+            "transferable_principle": "Terraced sectional massing can produce a strong dominant/support hierarchy and a meaningful carved court when the section remains continuous."
+          },
+          {
+            "mismatch_warning": "This is a high-rise urban tower precedent; the candidate is much lower and more horizontal, so only the threshold/step logic is transferable.",
+            "program_relevance": 0.58,
+            "source_id": "archdaily_0008",
+            "transferable_principle": "A tall primary volume can be made legible through podium-tower separation, setback articulation, and a distinct ground-level access response."
+          }
+        ],
+        "reference_massing_gate": {
+          "audited_image_count": 2,
+          "hard_pass": true,
+          "input_image_count": 2,
+          "massing_suitable_image_count": 2,
+          "massing_suitable_program_image_count": 0,
+          "minimum_program_specific_images": 0,
+          "program_id": "generic",
+          "rejected": [],
+          "schema_version": "arr.maas.reference_massing_gate.v1"
+        },
+        "response_id": "resp_09c96346deac86f1006a604298bb9081988820c96f5ca84354",
+        "retrieved_reference_candidates": [
+          {
+            "matched_tags": [
+              "courtyard",
+              "ramp",
+              "sectional",
+              "terrace",
+              "terrace_ribbon"
+            ],
+            "program_id": "generic",
+            "program_match_tier": "unconditioned",
+            "program_relevance_score": 0,
+            "score": 5,
+            "selection_role": "similar",
+            "source": "archdaily",
+            "source_id": "archdaily_0007",
+            "title": "8 House / BIG"
+          },
+          {
+            "matched_tags": [
+              "curvilinear",
+              "torque",
+              "torqued",
+              "torqued_stack",
+              "tower",
+              "twist",
+              "twisted",
+              "undercut",
+              "vancouver"
+            ],
+            "program_id": "generic",
+            "program_match_tier": "unconditioned",
+            "program_relevance_score": 0,
+            "score": 9,
+            "selection_role": "similar",
+            "source": "archdaily",
+            "source_id": "archdaily_0008",
+            "title": "BIG Releases First Photographs of The Vancouver House and Telus Sky in Canada"
+          }
+        ],
+        "status": "live_scored"
+      },
+      "id": "vlm",
+      "label": "VLM critic",
+      "node_ids": [],
+      "required_for_final": true,
+      "status": "live_scored"
+    },
+    {
+      "evidence": {
+        "archive_run_id": "book-program-portfolios-r196-streaming-qd-one-cycle",
+        "evaluated": true,
+        "score": 0.9367,
+        "selected": true,
+        "variant_id": "maas_04"
+      },
+      "id": "selector",
+      "label": "Final selector",
+      "node_ids": [],
+      "required_for_final": true,
+      "status": "passed"
+    }
+  ],
+  "status": "accepted",
+  "structural_hash": "8ffe954c5ced0fa0f73cc8be09f98e0f9147a1b0c8744c23ed1ee15a77af00ec",
+  "truth_policy": {
+    "causal_program_trace": true,
+    "execution_complete_is_not_acceptance": true,
+    "internal_neuron_claim": false,
+    "unevaluated_is_never_pass": true,
+    "visual_activation_uses_materialized_evidence_only": true
+  }
+}

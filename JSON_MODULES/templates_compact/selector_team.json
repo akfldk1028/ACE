@@ -1,0 +1,34 @@
+{
+  "provider": "autogen_agentchat.teams.SelectorGroupChat",
+  "component_type": "team",
+  "version": 2,
+  "description": "선택자 오케스트레이션 팀 - 질문 유형별 전문가 라우팅. 중앙 선택자가 컨텍스트에 따라 적합한 전문 에이전트에게 라우팅.",
+  "label": "Selector Team (Template)",
+  "_defaults": {
+    "reflect_on_tool_use": false,
+    "tool_call_summary_format": "{result}",
+    "model_client": {
+      "$ref": "models/claude_sonnet",
+      "override": { "config.agent_config": {"profile": "text_only", "max_turns": 1} }
+    },
+    "model_context": {
+      "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+      "component_type": "model",
+      "config": {}
+    }
+  },
+  "config": {
+    "participants": [
+      { "$ref": "agents/pattern_coordinator" },
+      { "$ref": "agents/pattern_history_expert" },
+      { "$ref": "agents/pattern_science_expert" },
+      { "$ref": "agents/pattern_math_expert" }
+    ],
+    "model_client": {
+      "$ref": "models/claude_sonnet",
+      "override": { "config.agent_config": {"profile": "text_only", "max_turns": 1} }
+    },
+    "selector_prompt": "다음 역할들이 있습니다: {roles}\n\n대화 내용을 읽고 다음 발언에 가장 적합한 역할을 선택하세요:\n- 역사 관련: history_expert\n- 과학 관련: science_expert\n- 수학 관련: math_expert\n- 기타: coordinator\n\n{history}\n\n역할 이름만 반환하세요.",
+    "termination_condition": { "$ref": "terminations/default_or" }
+  }
+}

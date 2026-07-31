@@ -1,0 +1,624 @@
+{
+  "pnu": "1168011800104670003",
+  "name": "gangnam-dogok-neighborhood-stalls-rerun",
+  "buildingType": "근린생활시설",
+  "waitError": null,
+  "pngPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\01_gangnam-dogok-neighborhood-stalls-rerun_1168011800104670003.png",
+  "jsonPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\01_gangnam-dogok-neighborhood-stalls-rerun_1168011800104670003.json",
+  "state": {
+    "hasDisabledText": false,
+    "hasFallback": false,
+    "hasComplete": true,
+    "hasDesignList": true,
+    "hasMassText": true,
+    "hasVworldCanvas": true,
+    "bodyHead": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\n대지면적\n437.85 m²\n용도지역\n제3종일반주거지역\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n법규 산정 근거\n수치지형도 소스\nngii_local_dem\n대지 샘플\n36개 / 15.00-15.00m\n도로 샘플\n10개 / 15.00-15.00m\n인접대지 샘플\n196개 / 15.00-15.00m\n검출 도로폭\n40.0m\n전면도로 후보\n4개\n인접대지 후보\n2개\n정북일조\n적용 / 기준면 15.00m\n채광사선 참고면\n미표시\n화면 기본 레이어\n정북면 / 도로 / 인접\n\nVWorld 기본 화면은 검토용 요약 레이어입니다. 전체 디버그는 URL에 ?layers=all, 도로 라벨 전체는 ?roadLabels=all 을 붙여 확인합니다.\n\nCONSTRAINTS\n건폐율 ≤ 50%\n≤ 50%\n용적률 ≤ 300%\n≤ 300%\n인접대지 이격 ≥ 0.5m\n≥ 0.5m\n조경면적 ≥ 15%\n≥ 15%\n지반 레벨 (§119 DATUM)\n정북일조 기준 H = 0\n15.00m\n정북일조 기준 H=0\n15.00 m\n대지 §119 기준면\n15.00 m\n전면도로 기준면\n15.00 m\n인접대지 기준면\n15.00 m\n§86 평균수평면\n15.00 m\n§119/§86 케이스\n정북인접 평균 (§86)\n산정 방법\n인접지 평균\n데이터 소스\nNGII 수치지형도 SHP→DEM (5m)\n\nenvelope walls/slanted_polygons 의 H는 이 datum 기준 상대값. Cesium 렌더 시 datum_m 위에 envelope 위치.\n\n정북일조 사선제한 단면 (§86①, 2023.9.12 개정)\n인접대지 경계선\n1.5m 이격\nH ≤ 10m: 직각\nH > 10m: slope 2:1 (H = 2x)\n건물 (H = 18m)\n0m\n10m\n20m\n0m\n1.5m\n5m\n10m\n15m\n20m\n법규 envelope\n인접대지 경계\n건물 단면\nOPTIMIZATION\nCOMPLETE\n100%\n세대\n50/50\n적합\n2792\n파레토\n18\n총평가\n2800\nPARETO FRONT\n0 evaluated\n18 pareto\nGen\n0 → 50\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nDESIGN LIST\n18\n#\n매스\n형태\n연면적\n외부공간\n주차\n1\n법규엔벨로프\n278\n50.5\n외부지상\n2\n분절+브릿지+계단\n167\n74.3\n외부지상\n3\n분절/브릿지\n229\n73.9\n외부지상\n4\n인터락\n151\n82.8\n외부지상\n5\n중정형\n148\n83.1\n외부지상\n6\n포디움+타워오프셋\n372\n57.5\n외부지상\n7\n코너/오픈코트\n371\n57.6\n외부지상\n8\n핀치형\n370\n57.7\n외부지상\n9\n인셋\n364\n58.5\n외부지상\n10\n포디움/타워\n343\n59.3\n외부지상\n11\n테라스\n325\n57.5\n외부지상\n12\n테이퍼\n282\n57.5\n외부지상\n13\n인터락+스텝+테이퍼\n281\n57.5\n외부지상\n14\n오버랩\n312\n64.4\n외부지상\n15\n오버랩+시프트+테라스\n226\n66.7\n외부지상\n16\n바형\n44\n95.0\n외부지상\n17\n브랜치형\n134\n84.7\n외부지상\n18\n건폐확장\n67\n92.4\n외부지상\n브이월드\n\n연속지적도를 포함한 모든 주제도는 참고용으로만 사용하시기 바랍니다.\n\n141 m\n32\n나침반\n현재위치\n확대\n축소\n초기화면\n이동컨트롤 열기\n거리\n면적\n높이\n초기화\n좌로 이동\n우로 이동\n위로 이동\n아래로 이동\n닫기\nBUILDING MASS\n형태\nmaas_legal_envelope\n층그룹\n1G / +63.5%\n패킹\n1/1G / 5실\n높이\n7.0m\n층수\n2F\n건폐율\n49.5%\n용적률\n63.5%\n연면적\n278m²\n주차\n외부 지상\n법정/계획\n2 / 2\nAI 설계 협업\nMAAS Agent Workspace\n후보를 선택하면 대화형 수정이 열립니다.",
+    "entityCount": 157,
+    "designMassEntities": [
+      "design-mass-floor-group-900000-0",
+      "design-mass-floor-900000-1",
+      "design-mass-footprint-900000",
+      "design-mass-parking-envelope-900000",
+      "design-mass-parking-boundary-900000",
+      "design-mass-parking-stall-900000-0",
+      "design-mass-parking-stall-900000-1",
+      "design-mass-parking-guide-900000-1",
+      "design-mass-parking-guide-900000-2",
+      "design-mass-parking-guide-900000-3",
+      "design-mass-parking-label-900000",
+      "design-mass-edge-900000-0",
+      "design-mass-edge-900000-1",
+      "design-mass-edge-900000-2",
+      "design-mass-edge-900000-3",
+      "design-mass-edge-900000-4",
+      "design-mass-edge-900000-5",
+      "design-mass-edge-900000-6",
+      "design-mass-edge-900000-7",
+      "design-mass-edge-900000-8",
+      "design-mass-edge-900000-9",
+      "design-mass-edge-900000-10",
+      "design-mass-edge-900000-11",
+      "design-mass-edge-900000-12",
+      "design-mass-edge-900000-13",
+      "design-mass-edge-900000-14",
+      "design-mass-edge-900000-15",
+      "design-mass-edge-900000-16",
+      "design-mass-edge-900000-17",
+      "design-mass-edge-900000-18",
+      "design-mass-edge-900000-19",
+      "design-mass-edge-900000-20",
+      "design-mass-edge-900000-21",
+      "design-mass-edge-900000-22",
+      "design-mass-edge-900000-23",
+      "design-mass-edge-900000-24",
+      "design-mass-edge-900000-25",
+      "design-mass-edge-900000-26",
+      "design-mass-edge-900000-27",
+      "design-mass-edge-900000-28",
+      "design-mass-edge-900000-29",
+      "design-mass-edge-900000-30",
+      "design-mass-edge-900000-31",
+      "design-mass-edge-900000-32",
+      "design-mass-edge-900000-33",
+      "design-mass-edge-900000-34",
+      "design-mass-edge-900000-35",
+      "design-mass-edge-900000-36",
+      "design-mass-edge-900000-37",
+      "design-mass-edge-900000-38",
+      "design-mass-edge-900000-39",
+      "design-mass-edge-900000-40",
+      "design-mass-edge-900000-41",
+      "design-mass-edge-900000-42",
+      "design-mass-edge-900000-43",
+      "design-mass-edge-900000-44",
+      "design-mass-edge-900000-45",
+      "design-mass-edge-900000-46",
+      "design-mass-edge-900000-47",
+      "design-mass-edge-900000-48",
+      "design-mass-edge-900000-49",
+      "design-mass-edge-900000-50",
+      "design-mass-edge-900000-51",
+      "design-mass-edge-900000-52",
+      "design-mass-edge-900000-53",
+      "design-mass-edge-900000-54",
+      "design-mass-edge-900000-55",
+      "design-mass-edge-900000-56",
+      "design-mass-edge-900000-57",
+      "design-mass-edge-900000-58",
+      "design-mass-edge-900000-59",
+      "design-mass-edge-900000-60",
+      "design-mass-edge-900000-61",
+      "design-mass-edge-900000-62",
+      "design-mass-edge-900000-63",
+      "design-mass-edge-900000-64",
+      "design-mass-edge-900000-65",
+      "design-mass-edge-900000-66",
+      "design-mass-edge-900000-67",
+      "design-mass-edge-900000-68",
+      "design-mass-edge-900000-69",
+      "design-mass-edge-900000-70",
+      "design-mass-edge-900000-71",
+      "design-mass-edge-900000-72",
+      "design-mass-edge-900000-73",
+      "design-mass-edge-900000-74",
+      "design-mass-edge-900000-75",
+      "design-mass-edge-900000-76",
+      "design-mass-edge-900000-77",
+      "design-mass-edge-900000-78",
+      "design-mass-edge-900000-79",
+      "design-mass-edge-900000-80",
+      "design-mass-edge-900000-81",
+      "design-mass-edge-900000-82",
+      "design-mass-edge-900000-83",
+      "design-mass-edge-900000-84",
+      "design-mass-edge-900000-85",
+      "design-mass-edge-900000-86",
+      "design-mass-edge-900000-87",
+      "design-mass-edge-900000-88",
+      "design-mass-edge-900000-89",
+      "design-mass-edge-900000-90",
+      "design-mass-edge-900000-91",
+      "design-mass-edge-900000-92",
+      "design-mass-edge-900000-93",
+      "design-mass-edge-900000-94",
+      "design-mass-edge-900000-95",
+      "design-mass-edge-900000-96",
+      "design-mass-edge-900000-97",
+      "design-mass-edge-900000-98",
+      "design-mass-edge-900000-99",
+      "design-mass-edge-900000-100",
+      "design-mass-edge-900000-101",
+      "design-mass-edge-900000-102",
+      "design-mass-edge-900000-103",
+      "design-mass-edge-900000-104",
+      "design-mass-edge-900000-105",
+      "design-mass-edge-900000-106",
+      "design-mass-edge-900000-107",
+      "design-mass-edge-900000-108",
+      "design-mass-edge-900000-109",
+      "design-mass-edge-900000-110",
+      "design-mass-edge-900000-111",
+      "design-mass-edge-900000-112",
+      "design-mass-edge-900000-113",
+      "design-mass-edge-900000-114",
+      "design-mass-edge-900000-115"
+    ],
+    "parkingEntities": [
+      "design-mass-parking-envelope-900000",
+      "design-mass-parking-boundary-900000",
+      "design-mass-parking-stall-900000-0",
+      "design-mass-parking-stall-900000-1",
+      "design-mass-parking-guide-900000-1",
+      "design-mass-parking-guide-900000-2",
+      "design-mass-parking-guide-900000-3",
+      "design-mass-parking-label-900000"
+    ],
+    "parkingStallEntities": [
+      "design-mass-parking-stall-900000-0",
+      "design-mass-parking-stall-900000-1"
+    ],
+    "pilotiEntities": [],
+    "selectedParkingPrecheck": {
+      "schema_version": "arr.maas.parking_strategy.v0",
+      "status": "has_layout_candidate",
+      "selected_strategy": "ground_surface",
+      "strategy_candidates": [
+        "ground_surface",
+        "piloti_ground",
+        "semi_basement",
+        "mixed"
+      ],
+      "basis": {
+        "site_area_m2": 437.85,
+        "footprint_area_m2": 216.74,
+        "open_area_m2": 221.11,
+        "total_floor_area_m2": 278.15,
+        "num_floors": 2,
+        "building_type": "근린생활시설",
+        "small_lot": false,
+        "dense_footprint": false,
+        "residential_like": true
+      },
+      "mass_generation_constraints": {
+        "vehicle_access": "needs_driveway_and_aisle_check",
+        "pedestrian_access": "separate_from_vehicle_path_where_required",
+        "accessible_parking": "needs_accessible_stall_and_route_check",
+        "core_placement": "must_not_block_parking_access_or_primary_egress",
+        "surface_yard": "use_open_area_before_cutting_mass"
+      },
+      "layout_precheck": {
+        "status": "heuristic_only",
+        "strategy": "ground_surface",
+        "envelope_area_m2": 221.11,
+        "effective_area_m2": 187.94,
+        "oriented_rect": {
+          "long_side_m": 88.55,
+          "short_side_m": 6.22
+        },
+        "module_dimensions": {
+          "stall_width_m": 2.5,
+          "stall_length_m": 5,
+          "aisle_width_m": 6,
+          "double_loaded_depth_m": 16,
+          "single_loaded_depth_m": 11,
+          "accessible_width_m": 3.3,
+          "accessible_length_m": 5
+        },
+        "capacity_estimates": {
+          "single_loaded_spaces": 0,
+          "double_loaded_spaces": 0,
+          "area_limited_spaces": 6,
+          "estimated_capacity_spaces": 0
+        },
+        "limitations": [
+          "does_not_place_exact_stalls",
+          "does_not_model_columns_or_core_obstructions",
+          "does_not_check_ramp_slope_or_turning_swept_path",
+          "does_not_verify_accessible_route"
+        ]
+      },
+      "small_attached_parking_relief": {
+        "status": "needs_required_count",
+        "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+        "applies_to": "attached_self_parking_total_spaces_8_or_less",
+        "required_spaces": null,
+        "road_context": {
+          "road_width_m": null,
+          "has_sidewalk_separation": null,
+          "is_dead_end_road": false
+        },
+        "road_as_aisle_options": [
+          {
+            "key": "undivided_road_under_12m",
+            "available": false,
+            "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+            "aisle_width_counting_road_m": 6,
+            "parallel_aisle_width_counting_road_m": 4,
+            "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+          },
+          {
+            "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+            "available": false,
+            "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+            "parking_angle": "perpendicular_only",
+            "needs_authority_review": true
+          }
+        ],
+        "tandem_parking": {
+          "available": true,
+          "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+          "max_depth_from_aisle": 2
+        },
+        "entrance_width": {
+          "min_width_m": 3,
+          "dead_end_road_approval_min_width_m": null
+        },
+        "limitations": [
+          "does_not_replace_required_stall_count",
+          "needs_actual_road_geometry_and_centerline",
+          "needs_local_authority_no_traffic_obstruction_review"
+        ]
+      },
+      "required_count": {
+        "status": "computed",
+        "pnu": "1168011800104670003",
+        "jurisdiction_code": "11680",
+        "building_type": "근린생활시설",
+        "selected_rule_id": "seoul_parking_appendix2_row_03",
+        "base_rule_id": "parking_appendix1_row_03",
+        "metric": "facility_area_m2",
+        "metric_value": 278.15,
+        "required_spaces": 2,
+        "raw_spaces": 2.075746268656716,
+        "rounding_rule": "ordinance_note_6_half_up_total_under_one_zero",
+        "accessible": {
+          "status": "not_applicable_under_10",
+          "accessible_min": 0,
+          "accessible_max": 0
+        },
+        "source": {
+          "rule_kind": "local_override",
+          "source_appendix": "서울특별시 주차장 설치 및 관리 조례::별표2",
+          "source_ordinance": "seoul_parking_ordinance",
+          "source_parse_status": "official_law_go_kr_text_extracted_manual_review"
+        },
+        "reason": null
+      },
+      "repair_request_templates": [
+        {
+          "operation": "move_core",
+          "reason": "Core blocks parking aisle or accessible route.",
+          "target_agent": "maas_geometry_agent"
+        },
+        {
+          "operation": "reduce_or_split_footprint",
+          "reason": "Open area or parking aisle is insufficient.",
+          "target_agent": "maas_geometry_agent"
+        }
+      ],
+      "layout_candidate": {
+        "schema_version": "arr.maas.parking_layout_candidate.v0",
+        "status": "needs_aisle_review",
+        "strategy": "ground_surface",
+        "placement_mode": "single_row_aisle_review",
+        "required_spaces": 2,
+        "required_accessible_spaces": 0,
+        "provided_spaces": 2,
+        "provided_accessible_spaces": 0,
+        "unmet_spaces": 0,
+        "stalls": [
+          {
+            "stall_id": "P01",
+            "type": "standard",
+            "width_m": 2.5,
+            "length_m": 5,
+            "row": 1,
+            "mode": "single_row_aisle_review",
+            "polygon": [
+              [
+                327707.6694,
+                4150874.5266
+              ],
+              [
+                327705.4758,
+                4150873.3274
+              ],
+              [
+                327703.0772,
+                4150877.7145
+              ],
+              [
+                327705.2708,
+                4150878.9138
+              ],
+              [
+                327707.6694,
+                4150874.5266
+              ]
+            ],
+            "polygon_wgs84": [
+              [
+                127.05116414,
+                37.48872834
+              ],
+              [
+                127.05113963,
+                37.48871713
+              ],
+              [
+                127.05111148,
+                37.4887562
+              ],
+              [
+                127.051136,
+                37.48876741
+              ],
+              [
+                127.05116414,
+                37.48872834
+              ]
+            ]
+          },
+          {
+            "stall_id": "P02",
+            "type": "standard",
+            "width_m": 2.5,
+            "length_m": 5,
+            "row": 1,
+            "mode": "single_row_aisle_review",
+            "polygon": [
+              [
+                327650.6365,
+                4150843.3456
+              ],
+              [
+                327648.443,
+                4150842.1463
+              ],
+              [
+                327646.0444,
+                4150846.5335
+              ],
+              [
+                327648.238,
+                4150847.7328
+              ],
+              [
+                327650.6365,
+                4150843.3456
+              ]
+            ],
+            "polygon_wgs84": [
+              [
+                127.05052668,
+                37.48843681
+              ],
+              [
+                127.05050216,
+                37.48842559
+              ],
+              [
+                127.05047402,
+                37.48846467
+              ],
+              [
+                127.05049853,
+                37.48847588
+              ],
+              [
+                127.05052668,
+                37.48843681
+              ]
+            ]
+          }
+        ],
+        "limitations": [
+          "deterministic_first_candidate_not_global_optimum",
+          "does_not_model_columns_core_or_swept_path",
+          "does_not_replace_grid_mip_solver"
+        ],
+        "reason": "single_row_stalls_need_drive_aisle_or_road_as_aisle_review",
+        "repair_requests": [],
+        "small_attached_parking_relief": {
+          "status": "evaluated",
+          "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+          "applies_to": "attached_self_parking_total_spaces_8_or_less",
+          "required_spaces": 2,
+          "road_context": {
+            "road_width_m": null,
+            "has_sidewalk_separation": null,
+            "is_dead_end_road": false
+          },
+          "road_as_aisle_options": [
+            {
+              "key": "undivided_road_under_12m",
+              "available": false,
+              "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+              "aisle_width_counting_road_m": 6,
+              "parallel_aisle_width_counting_road_m": 4,
+              "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+            },
+            {
+              "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+              "available": false,
+              "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+              "parking_angle": "perpendicular_only",
+              "needs_authority_review": true
+            }
+          ],
+          "tandem_parking": {
+            "available": true,
+            "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+            "max_depth_from_aisle": 2
+          },
+          "entrance_width": {
+            "min_width_m": 3,
+            "dead_end_road_approval_min_width_m": null
+          },
+          "limitations": [
+            "does_not_replace_required_stall_count",
+            "needs_actual_road_geometry_and_centerline",
+            "needs_local_authority_no_traffic_obstruction_review"
+          ]
+        }
+      },
+      "parking_envelope_wgs84": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              127.05128673361207,
+              37.48878440345477
+            ],
+            [
+              127.05041830955523,
+              37.48838724468229
+            ],
+            [
+              127.05045341421538,
+              37.488467869689536
+            ],
+            [
+              127.05094790408492,
+              37.48868354355037
+            ],
+            [
+              127.05113475462659,
+              37.48876851966929
+            ],
+            [
+              127.05128673361207,
+              37.48878440345477
+            ]
+          ],
+          [
+            [
+              127.05052964600772,
+              37.48844627734337
+            ],
+            [
+              127.0511246348522,
+              37.488718385416774
+            ],
+            [
+              127.05103824569477,
+              37.488716959789514
+            ],
+            [
+              127.05090577260096,
+              37.48865671338073
+            ],
+            [
+              127.05055457798899,
+              37.488503538478746
+            ],
+            [
+              127.05052964600772,
+              37.48844627734337
+            ]
+          ]
+        ]
+      }
+    },
+    "massDebug": {
+      "featureCount": 1,
+      "selectedId": 900000,
+      "hasOverlayUrl": false,
+      "hasFacadeTextureUrl": false,
+      "hasTexturedGltfUrl": false,
+      "facadeTexturePanelViews": [],
+      "aestheticFacadeStyle": "",
+      "facadeAttempts": 0,
+      "facadeEligibleFeatures": 0,
+      "overlayAttempts": 0,
+      "gltfAttempts": 0,
+      "gltfStatus": "",
+      "pilotiFeatures": [],
+      "parkingLayouts": [
+        {
+          "designId": 900000,
+          "strategy": "ground_surface",
+          "status": "needs_aisle_review",
+          "provided": 2,
+          "stalls": 2,
+          "stallsWithWgs84": 2
+        }
+      ]
+    },
+    "canvases": [
+      {
+        "i": 0,
+        "width": 343,
+        "height": 380,
+        "rect": {
+          "width": 343,
+          "height": 380
+        },
+        "className": ""
+      },
+      {
+        "i": 1,
+        "width": 966,
+        "height": 976,
+        "rect": {
+          "width": 966,
+          "height": 976
+        },
+        "className": ""
+      },
+      {
+        "i": 2,
+        "width": 300,
+        "height": 150,
+        "rect": {
+          "width": 0,
+          "height": 0
+        },
+        "className": "tempCanvas"
+      },
+      {
+        "i": 3,
+        "width": 1024,
+        "height": 600,
+        "rect": {
+          "width": 676.1875,
+          "height": 585.59375
+        },
+        "className": "hudCanvas"
+      },
+      {
+        "i": 4,
+        "width": 1024,
+        "height": 15,
+        "rect": {
+          "width": 0,
+          "height": 0
+        },
+        "className": "mapStatusBarCanvas"
+      },
+      {
+        "i": 5,
+        "width": 50,
+        "height": 50,
+        "rect": {
+          "width": 0,
+          "height": 0
+        },
+        "className": "mapCompassCanvas"
+      },
+      {
+        "i": 6,
+        "width": 125,
+        "height": 30,
+        "rect": {
+          "width": 125,
+          "height": 30
+        },
+        "className": "distanceLegendCanvas"
+      }
+    ]
+  },
+  "errorCount": 0,
+  "consoleProblems": [],
+  "responseErrors": []
+}

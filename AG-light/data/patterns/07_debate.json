@@ -1,0 +1,152 @@
+{
+  "id": "debate",
+  "name": {
+    "en": "Multi-Agent Debate",
+    "ko": "멀티 에이전트 토론"
+  },
+  "description": {
+    "en": "Multiple agents with different perspectives or roles engage in structured debate. They challenge each other's reasoning, leading to more robust conclusions through adversarial collaboration.",
+    "ko": "서로 다른 관점이나 역할을 가진 여러 에이전트가 구조화된 토론에 참여합니다. 서로의 추론에 도전하여 적대적 협력을 통해 더 강건한 결론에 도달합니다."
+  },
+  "diagram": "Round 1:  Agent A ←──debate──→ Agent B\n              ↓                    ↓\nRound 2:  Agent A ←──debate──→ Agent B\n              ↓                    ↓\nRound N:       └────→ Judge ←────┘\n                        ↓\n                   Final Verdict",
+  "complexity": "high",
+  "when_to_use": [
+    "복잡한 결정에 대한 다각도 검토가 필요할 때",
+    "편향을 줄이고 균형 잡힌 분석이 필요할 때",
+    "찬반 논증이 필요한 의사결정",
+    "창의적 아이디어의 강도를 테스트할 때",
+    "정책 분석이나 윤리적 판단"
+  ],
+  "when_to_avoid": [
+    "명확한 정답이 있는 문제",
+    "빠른 응답이 필요할 때",
+    "토론이 수렴하지 않을 수 있는 주관적 주제",
+    "비용 민감한 애플리케이션"
+  ],
+  "pros": [
+    "다양한 관점 고려",
+    "약점과 반론 식별",
+    "더 강건한 결론 도출",
+    "편향 감소"
+  ],
+  "cons": [
+    "높은 토큰 비용",
+    "수렴하지 않을 수 있음",
+    "시간 소요가 큼",
+    "토론 품질이 프롬프트에 의존"
+  ],
+  "debate_formats": [
+    {
+      "name": "adversarial",
+      "description": "찬성/반대 입장으로 나뉘어 토론",
+      "use_case": "정책 분석, 투자 결정"
+    },
+    {
+      "name": "socratic",
+      "description": "질문을 통해 논리적 결함 탐색",
+      "use_case": "아이디어 검증, 가설 테스트"
+    },
+    {
+      "name": "multi_perspective",
+      "description": "여러 이해관계자 관점에서 분석",
+      "use_case": "제품 기획, 정책 영향 분석"
+    }
+  ],
+  "example_use_cases": [
+    {
+      "name": "투자 결정",
+      "agents": {
+        "bull": "긍정적 전망 분석",
+        "bear": "부정적 리스크 분석",
+        "judge": "최종 투자 추천"
+      }
+    },
+    {
+      "name": "기술 도입 검토",
+      "agents": {
+        "advocate": "새 기술의 장점 주장",
+        "skeptic": "리스크와 비용 분석",
+        "cto": "최종 결정"
+      }
+    }
+  ],
+  "requiredConfig": {
+    "allow_repeated_speaker": false,
+    "max_turns": 10
+  },
+  "autogen_implementation": {
+    "provider": "autogen_agentchat.teams.SelectorGroupChat",
+    "label": "Debate Team (찬반 토론)",
+    "team_config": {
+      "participants": [
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "advocate",
+            "description": "제안을 지지하고 장점을 강조",
+            "system_message": "당신은 제안의 지지자입니다. 장점과 기회를 강조하고, 반대 의견에 논리적으로 반박하세요."
+          }
+        },
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "critic",
+            "description": "비판적 분석과 리스크 지적",
+            "system_message": "당신은 비평가입니다. 약점, 리스크, 잠재적 문제를 지적하고, 지지자의 주장에 도전하세요."
+          }
+        },
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "judge",
+            "description": "중립적 심판 및 최종 결정",
+            "system_message": "당신은 중립적 심판입니다. 양측의 논증을 평가하고 균형 잡힌 최종 판단을 내리세요. 결론이 나면 TERMINATE라고 말하세요."
+          }
+        }
+      ],
+      "selector_prompt": "당신은 토론 진행자입니다. 공정한 발언 기회를 보장해야 합니다.\n\n참가자: {roles}\n\n=== 1단계: 발언 횟수 카운팅 ===\n대화 기록을 분석하여 각 참가자의 발언 횟수를 세세요:\n{history}\n\n=== 2단계: 균형 체크 ===\n발언 횟수가 가장 적은 참가자를 찾으세요.\n최다 발언자와 최소 발언자의 차이가 2회 이상이면 → 최소 발언자 선택 (필수!)\n\n=== 3단계: 선택 규칙 ===\n1. [필수] 직전 발언자와 다른 사람 선택\n2. [필수] 발언 횟수가 가장 적은 참가자 우선\n3. [권장] 아직 한번도 발언 안한 참가자 있으면 반드시 선택\n4. [예외] 모든 참가자가 2회 이상 발언했으면 judge 선택 가능\n\n=== 예시 ===\n- A:3회, B:1회, C:2회 → B 선택 (가장 적음)\n- A:2회, B:2회, C:0회 → C 선택 (아직 0회)\n- A:2회, B:2회, C:2회 → 자유 선택 (균형 상태)\n\n다음 발언자 이름만 반환하세요:"
+    }
+  },
+  "termination_strategies": [
+    {
+      "name": "round_limit",
+      "description": "고정된 라운드 수 후 종료"
+    },
+    {
+      "name": "consensus",
+      "description": "합의에 도달하면 종료"
+    },
+    {
+      "name": "judge_decision",
+      "description": "심판이 결론을 내리면 종료"
+    }
+  ],
+  "best_practices": [
+    "각 에이전트에게 명확한 역할과 입장 부여",
+    "토론 규칙과 형식 사전 정의",
+    "최대 라운드 수 제한",
+    "중립적 심판 또는 합의 메커니즘 포함"
+  ],
+  "visual_override": {
+    "layout": "ring",
+    "category": "dynamic",
+    "icon": "RefreshCw",
+    "primaryColor": "#f59e0b",
+    "secondaryColor": "#fcd34d",
+    "showCrossConnections": true,
+    "edgeStyle": "animated"
+  },
+  "references": [
+    {
+      "title": "Improving Factuality and Reasoning in Language Models through Multiagent Debate",
+      "url": "https://arxiv.org/abs/2305.14325"
+    },
+    {
+      "title": "Multi-Agent Collaboration Mechanisms Survey",
+      "url": "https://arxiv.org/abs/2501.06322"
+    }
+  ]
+}

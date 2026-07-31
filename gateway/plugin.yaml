@@ -1,0 +1,10 @@
+name: arr-gateway
+version: 0.1.0
+description: ARR 토지/건축법규 분석 도구 (PoC Step 1 — land_analyst만)
+author: DK (akfldk1028)
+provides_tools:
+  - land_analyst
+requires_env:
+  - name: ARR_BACKEND_URL
+    description: "ARR Django Backend URL on Railway (default: https://arr-backend-production.up.railway.app)"
+    secret: false

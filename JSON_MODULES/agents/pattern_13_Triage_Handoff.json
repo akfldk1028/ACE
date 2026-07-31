@@ -1,0 +1,16 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Triage Agent (Handoff)",
+  "description": "고객 문의 분류",
+  "config": {
+    "name": "triage_agent",
+    "system_message": "당신은 고객 문의 분류 담당입니다. 문의 유형을 파악하고 적절한 담당자에게 전달하세요.",
+    "handoffs": [
+      "support_agent",
+      "sales_agent",
+      "refund_agent"
+    ]
+  }
+}

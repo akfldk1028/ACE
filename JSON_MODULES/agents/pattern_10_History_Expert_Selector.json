@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "History Expert (Selector)",
+  "description": "역사 관련 질문 전문가",
+  "config": {
+    "name": "history_expert",
+    "system_message": "당신은 역사 전문가입니다. 역사 관련 질문에 정확하고 상세하게 답변하세요."
+  }
+}

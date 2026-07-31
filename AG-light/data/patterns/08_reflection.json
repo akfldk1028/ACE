@@ -1,0 +1,153 @@
+{
+  "id": "reflection",
+  "name": {
+    "en": "Reflection Pattern",
+    "ko": "반성/성찰 패턴"
+  },
+  "description": {
+    "en": "An agent generates output, then a critic agent (or the same agent in reflection mode) reviews and provides feedback. The original agent iteratively improves based on the critique.",
+    "ko": "에이전트가 출력을 생성한 후, 비평 에이전트(또는 반성 모드의 동일 에이전트)가 검토하고 피드백을 제공합니다. 원래 에이전트는 비평을 바탕으로 반복적으로 개선합니다."
+  },
+  "diagram": "           ┌──────────────────────┐\n           ↓                      │\n        Generator ───→ Output ───→ Critic\n           ↑                      │\n           └──── Feedback ────────┘\n                      ↓\n              (Iterate until satisfied)\n                      ↓\n                Final Output",
+  "complexity": "medium",
+  "when_to_use": [
+    "출력 품질을 높여야 할 때",
+    "코드 리뷰, 글쓰기 개선 등 반복적 개선이 필요할 때",
+    "자기 수정(self-correction) 능력이 필요할 때",
+    "오류 검출 및 수정",
+    "복잡한 추론의 검증"
+  ],
+  "when_to_avoid": [
+    "첫 번째 출력이 충분히 좋을 때",
+    "반복 비용이 품질 향상보다 클 때",
+    "실시간 응답이 필요한 경우",
+    "명확한 개선 기준이 없을 때"
+  ],
+  "pros": [
+    "출력 품질 향상",
+    "오류 자동 수정",
+    "자기 개선 능력",
+    "다양한 관점에서 검토"
+  ],
+  "cons": [
+    "추가적인 API 호출 비용",
+    "수렴하지 않을 수 있음",
+    "응답 시간 증가",
+    "과도한 수정으로 원래 의도 왜곡 가능"
+  ],
+  "reflection_types": [
+    {
+      "name": "self_reflection",
+      "description": "동일 에이전트가 자신의 출력을 검토",
+      "pros": "단순함, 컨텍스트 유지",
+      "cons": "자기 편향 가능"
+    },
+    {
+      "name": "critic_based",
+      "description": "별도의 비평 에이전트가 검토",
+      "pros": "객관적 피드백",
+      "cons": "추가 에이전트 필요"
+    },
+    {
+      "name": "tool_based",
+      "description": "외부 도구로 검증 (테스트 실행, 린터 등)",
+      "pros": "객관적, 자동화 가능",
+      "cons": "도구 의존적"
+    }
+  ],
+  "example_use_cases": [
+    {
+      "name": "코드 생성 및 리뷰",
+      "flow": "코드 생성 → 린터/테스트 실행 → 오류 수정 → 재검증"
+    },
+    {
+      "name": "에세이 작성",
+      "flow": "초안 작성 → 문법/논리 검토 → 수정 → 최종 검토"
+    },
+    {
+      "name": "수학 문제 풀이",
+      "flow": "풀이 생성 → 단계별 검증 → 오류 수정"
+    }
+  ],
+  "autogen_implementation": {
+    "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+    "label": "Reflection Team (품질 개선)",
+    "team_config": {
+      "participants": [
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "generator",
+            "description": "콘텐츠 생성 담당",
+            "system_message": "주어진 작업을 수행하고 결과를 생성하세요. 비평을 받으면 피드백을 반영하여 개선된 버전을 제공하세요."
+          }
+        },
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "critic",
+            "description": "품질 검토 및 피드백",
+            "system_message": "생성된 결과를 검토하고 구체적인 개선점을 제시하세요. 문제가 없으면 'APPROVED'라고 말하세요."
+          }
+        }
+      ],
+      "termination_condition": {
+        "provider": "autogen_agentchat.conditions.OrTermination",
+        "component_type": "termination",
+        "config": {
+          "conditions": [
+            {
+              "provider": "autogen_agentchat.conditions.TextMentionTermination",
+              "config": { "text": "APPROVED" }
+            },
+            {
+              "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+              "config": { "max_messages": 6 }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "convergence_strategies": [
+    {
+      "name": "approval_signal",
+      "description": "비평 에이전트가 승인 신호를 보내면 종료"
+    },
+    {
+      "name": "max_iterations",
+      "description": "최대 반복 횟수 후 종료"
+    },
+    {
+      "name": "quality_threshold",
+      "description": "품질 점수가 임계값에 도달하면 종료"
+    }
+  ],
+  "best_practices": [
+    "명확한 종료 조건 설정",
+    "구체적인 피드백 요청",
+    "최대 반복 횟수 제한",
+    "개선 기준 명시"
+  ],
+  "visual_override": {
+    "layout": "chain",
+    "category": "sequential",
+    "icon": "RotateCcw",
+    "primaryColor": "#06b6d4",
+    "secondaryColor": "#67e8f9",
+    "bidirectional": true,
+    "edgeStyle": "animated"
+  },
+  "references": [
+    {
+      "title": "Self-Refine: Iterative Refinement with Self-Feedback",
+      "url": "https://arxiv.org/abs/2303.17651"
+    },
+    {
+      "title": "Reflexion: Language Agents with Verbal Reinforcement Learning",
+      "url": "https://arxiv.org/abs/2303.11366"
+    }
+  ]
+}

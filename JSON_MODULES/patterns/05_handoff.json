@@ -1,0 +1,139 @@
+{
+  "id": "handoff",
+  "name": {
+    "en": "Handoff Orchestration",
+    "ko": "핸드오프 오케스트레이션"
+  },
+  "description": {
+    "en": "Agents dynamically transfer control to other agents based on task requirements. Each agent decides when and to whom to delegate, enabling flexible workflow transitions.",
+    "ko": "에이전트가 작업 요구사항에 따라 다른 에이전트에게 동적으로 제어권을 이전합니다. 각 에이전트가 언제, 누구에게 위임할지 결정하여 유연한 워크플로우 전환을 가능하게 합니다."
+  },
+  "diagram": "User ──→ Triage Agent ──┬──→ Sales Agent\n                        ├──→ Support Agent ──→ Refund Agent\n                        └──→ FAQ Agent",
+  "complexity": "medium-high",
+  "when_to_use": [
+    "작업 흐름이 동적으로 결정되어야 할 때",
+    "에이전트가 자율적으로 위임 결정을 내려야 할 때",
+    "고객 서비스와 같은 복잡한 라우팅이 필요할 때",
+    "에스컬레이션 패턴이 필요할 때",
+    "작업 완료 후 원래 에이전트로 돌아가야 할 때"
+  ],
+  "when_to_avoid": [
+    "고정된 순서의 워크플로우",
+    "핸드오프 결정이 복잡하고 오류 가능성이 높을 때",
+    "에이전트 간 의존성이 명확하지 않을 때"
+  ],
+  "pros": [
+    "높은 유연성과 적응성",
+    "복잡한 워크플로우 처리 가능",
+    "에이전트별 전문성 활용",
+    "동적 에스컬레이션 지원"
+  ],
+  "cons": [
+    "핸드오프 로직 설계가 복잡",
+    "무한 루프 발생 가능성",
+    "디버깅이 어려울 수 있음",
+    "컨텍스트 손실 위험"
+  ],
+  "example_use_cases": [
+    {
+      "name": "고객 서비스 센터",
+      "flow": "접수 → 분류 → 전문 상담원 → 필요시 관리자 에스컬레이션"
+    },
+    {
+      "name": "기술 지원",
+      "flow": "기본 진단 → 레벨1 지원 → 레벨2 지원 → 개발팀 에스컬레이션"
+    },
+    {
+      "name": "여행 예약",
+      "flow": "접수 → 항공 에이전트 → 호텔 에이전트 → 결제 에이전트"
+    }
+  ],
+  "autogen_implementation": {
+    "provider": "autogen_agentchat.teams.Swarm",
+    "label": "Handoff Team (고객 서비스)",
+    "team_config": {
+      "participants": [
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "triage_agent",
+            "description": "고객 문의 분류",
+            "system_message": "당신은 고객 문의 분류 담당입니다. 문의 유형을 파악하고 적절한 담당자에게 전달하세요.",
+            "handoffs": ["support_agent", "sales_agent", "refund_agent"]
+          }
+        },
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "support_agent",
+            "description": "기술 지원",
+            "system_message": "당신은 기술 지원 담당입니다. 기술적인 문제를 해결하세요.",
+            "handoffs": ["triage_agent"]
+          }
+        },
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "sales_agent",
+            "description": "영업 담당",
+            "system_message": "당신은 영업 담당입니다. 제품 문의와 구매 관련 질문에 답하세요.",
+            "handoffs": ["triage_agent"]
+          }
+        },
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "refund_agent",
+            "description": "환불 담당",
+            "system_message": "당신은 환불 담당입니다. 환불 요청을 처리하세요.",
+            "handoffs": ["triage_agent"]
+          }
+        }
+      ]
+    }
+  },
+  "handoff_patterns": [
+    {
+      "name": "explicit_handoff",
+      "description": "에이전트가 명시적으로 다른 에이전트를 호출"
+    },
+    {
+      "name": "conditional_handoff",
+      "description": "조건에 따라 자동 핸드오프"
+    },
+    {
+      "name": "return_handoff",
+      "description": "작업 완료 후 원래 에이전트로 복귀"
+    }
+  ],
+  "best_practices": [
+    "핸드오프 가능한 에이전트 목록 명확히 정의",
+    "무한 루프 방지를 위한 최대 핸드오프 횟수 설정",
+    "컨텍스트 전달 시 필수 정보 명시",
+    "핸드오프 로깅으로 추적 가능성 확보"
+  ],
+  "visual_override": {
+    "layout": "mesh",
+    "category": "dynamic",
+    "icon": "GitBranch",
+    "primaryColor": "#10b981",
+    "secondaryColor": "#6ee7b7",
+    "centerNodeType": "triage",
+    "bidirectional": true,
+    "edgeStyle": "animated"
+  },
+  "references": [
+    {
+      "title": "AutoGen Swarm Documentation",
+      "url": "https://microsoft.github.io/autogen/stable/user-guide/agentchat-user-guide/swarm.html"
+    },
+    {
+      "title": "OpenAI Swarm Framework",
+      "url": "https://github.com/openai/swarm"
+    }
+  ]
+}

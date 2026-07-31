@@ -1,0 +1,210 @@
+{
+  "provider": "autogen_agentchat.teams.SelectorGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "description": "A2A Research: First Agent + Calculator + Deep Research via A2A Protocol",
+  "label": "A2A Research Team",
+  "config": {
+    "name": "SelectorGroupChat",
+    "description": "A2A Research: First Agent(9017) + Calculator(8006) + Deep Research(9013)",
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "A2A basic agent (port 9017)",
+        "label": "A2A: First Agent",
+        "config": {
+          "name": "first_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "A2A basic agent (port 9017)",
+          "system_message": "You are a basic agent. Use call_first_agent tool. Respond in user language. When done, say TERMINATE.",
+          "tools": [
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: First Agent (9017)",
+              "description": "A2A Protocol로 기본 에이전트를 호출합니다. OpenAI SDK 기반. 포트 9017.",
+              "config": {
+                "name": "call_first_agent",
+                "description": "A2A Protocol로 기본 에이전트를 호출합니다. OpenAI SDK 기반. 포트 9017.",
+                "content": "def call_first_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 기본 에이전트를 호출합니다. OpenAI SDK 기반. 포트 9017.\n    A2A Protocol (JSON-RPC 2.0) - Port 9017\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9017/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9017/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            }
+          ],
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "A2A math calculator (port 8006)",
+        "label": "A2A: Calculator Agent",
+        "config": {
+          "name": "calculator_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "A2A math calculator (port 8006)",
+          "system_message": "You are a Calculator agent. Use call_calculator_agent tool for math. When done, say TERMINATE.",
+          "tools": [
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Calculator Agent (8006)",
+              "description": "A2A Protocol로 수학 계산 에이전트를 호출합니다. 포트 8006.",
+              "config": {
+                "name": "call_calculator_agent",
+                "description": "A2A Protocol로 수학 계산 에이전트를 호출합니다. 포트 8006.",
+                "content": "def call_calculator_agent(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 수학 계산 에이전트를 호출합니다. 포트 8006.\n    A2A Protocol (JSON-RPC 2.0) - Port 8006\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:8006/\", json=payload, timeout=30)\n        resp.raise_for_status()\n        result = resp.json()\n        # Google ADK format\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            # LangGraph/FastAPI format\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:8006/. Start the agent first.\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            }
+          ],
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "A2A deep research (port 9013)",
+        "label": "A2A: Deep Research",
+        "config": {
+          "name": "deep_research_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "A2A deep research (port 9013)",
+          "system_message": "You are a Deep Research agent. Use call_deep_research tool. Respond in user language. When done, say TERMINATE.",
+          "tools": [
+            {
+              "provider": "autogen_ext.tools.code_execution.PythonCodeExecutionTool",
+              "component_type": "tool",
+              "version": 1,
+              "component_version": 1,
+              "label": "A2A: Deep Research (9013)",
+              "description": "A2A Protocol로 심층 리서치 에이전트를 호출합니다. AutoGen 기반. 포트 9013.",
+              "config": {
+                "name": "call_deep_research",
+                "description": "A2A Protocol로 심층 리서치 에이전트를 호출합니다. AutoGen 기반. 포트 9013.",
+                "content": "def call_deep_research(query: str) -> str:\n    \"\"\"\n    A2A Protocol로 심층 리서치 에이전트를 호출합니다. AutoGen 기반. 포트 9013.\n    A2A Protocol (JSON-RPC 2.0) - Port 9013\n\n    Args:\n        query: 질문 또는 요청 텍스트\n\n    Returns:\n        에이전트 응답 텍스트\n    \"\"\"\n    import requests, uuid, json\n    message_id = str(uuid.uuid4())\n    payload = {\n        \"jsonrpc\": \"2.0\",\n        \"method\": \"message/send\",\n        \"id\": message_id,\n        \"params\": {\n            \"message\": {\n                \"messageId\": message_id,\n                \"role\": \"user\",\n                \"parts\": [{\"kind\": \"text\", \"text\": query}]\n            }\n        }\n    }\n    try:\n        resp = requests.post(\"http://127.0.0.1:9013/\", json=payload, timeout=60)\n        resp.raise_for_status()\n        result = resp.json()\n        if \"result\" in result:\n            for artifact in result[\"result\"].get(\"artifacts\", []):\n                for part in artifact.get(\"parts\", []):\n                    if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                        return part.get(\"text\", \"\")\n            parts = result[\"result\"].get(\"parts\", [])\n            for part in parts:\n                if part.get(\"kind\") == \"text\" or part.get(\"type\") == \"text\":\n                    return part.get(\"text\", \"\")\n        return json.dumps(result, ensure_ascii=False)\n    except requests.exceptions.ConnectionError:\n        return f\"[Error] A2A server not running at http://127.0.0.1:9013/. Start with: python a2a_server.py\"\n    except Exception as e:\n        return f\"[Error] {str(e)}\"\n",
+                "global_imports": []
+              }
+            }
+          ],
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "model_client": {
+      "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+      "component_type": "model",
+      "version": 1,
+      "component_version": 1,
+      "label": "Claude Sonnet 4.5 (Max OAuth)",
+      "config": {
+        "model": "claude-sonnet-4-5-20250929"
+      }
+    },
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "config": {
+              "max_messages": 10,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "selector_prompt": "You are coordinating a research team.\n\nAgents:\n- first_agent: General knowledge (port 9017)\n- calculator_agent: Math calculations (port 8006)\n- deep_research_agent: Deep research (port 9013)\n\nFor math -> calculator_agent\nFor research -> deep_research_agent\nOtherwise -> first_agent\n\nReturn ONLY the agent name.",
+    "allow_repeated_speaker": false,
+    "emit_team_events": false
+  }
+}

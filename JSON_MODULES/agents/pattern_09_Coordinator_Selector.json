@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Coordinator (Selector)",
+  "description": "일반적인 질문 및 조율 담당",
+  "config": {
+    "name": "coordinator",
+    "system_message": "당신은 코디네이터입니다. 전문가가 없는 일반적인 질문에 답하고, 대화를 조율하세요."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "provider": "autogen_ext.models.anthropic.AnthropicChatCompletionClient",
+  "component_type": "model",
+  "version": 1,
+  "label": "Anthropic Claude-3-7",
+  "description": "Anthropic Claude-3 model client.",
+  "config": {
+    "model": "claude-3-5-sonnet-20241022"
+  }
+}

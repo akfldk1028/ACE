@@ -1,0 +1,1339 @@
+experiment_id,task_id,pattern,repeat_index,pattern_category,agent_count,stop_reason,duration_sec,total_tokens_in,total_tokens_out,total_tokens,turn_count,agent_turn_count,terminated_by,error,quality_score,converged_at
+exp01,fact_01,rr2,0,A,2,Text 'TERMINATE' mentioned,36.79,883,1267,2150,3,2,keyword,,,
+exp01,fact_01,rr2,1,A,2,Text 'TERMINATE' mentioned,38.8,868,1220,2088,3,2,keyword,,,
+exp01,fact_01,rr2,2,A,2,Text 'TERMINATE' mentioned,38.34,850,1375,2225,3,2,keyword,,,
+exp01,fact_02,rr2,0,A,2,Text 'TERMINATE' mentioned,46.37,834,2113,2947,3,2,keyword,,,
+exp01,fact_02,rr2,1,A,2,Text 'TERMINATE' mentioned,40.12,862,1231,2093,3,2,keyword,,,
+exp01,fact_02,rr2,2,A,2,Text 'TERMINATE' mentioned,39.6,978,1119,2097,3,2,keyword,,,
+exp01,fact_03,rr2,0,A,2,Text 'TERMINATE' mentioned,44.51,1353,1811,3164,3,2,keyword,,,
+exp01,fact_03,rr2,1,A,2,Text 'TERMINATE' mentioned,51.49,1537,2613,4150,3,2,keyword,,,
+exp01,fact_03,rr2,2,A,2,Text 'TERMINATE' mentioned,47.55,1597,2068,3665,3,2,keyword,,,
+exp01,fact_04,rr2,0,A,2,Text 'TERMINATE' mentioned,38.76,1101,1541,2642,3,2,keyword,,,
+exp01,fact_04,rr2,1,A,2,Text 'TERMINATE' mentioned,42.63,1095,2167,3262,3,2,keyword,,,
+exp01,fact_04,rr2,2,A,2,Text 'TERMINATE' mentioned,44.41,1224,2257,3481,3,2,keyword,,,
+exp01,fact_05,rr2,0,A,2,Text 'TERMINATE' mentioned,47.69,1542,2477,4019,3,2,keyword,,,
+exp01,fact_05,rr2,1,A,2,Text 'TERMINATE' mentioned,46.25,2027,2472,4499,3,2,keyword,,,
+exp01,fact_05,rr2,2,A,2,Text 'TERMINATE' mentioned,45.1,1843,2181,4024,3,2,keyword,,,
+exp01,crea_01,rr2,0,A,2,Text 'TERMINATE' mentioned,58.22,1904,3359,5263,3,2,keyword,,,
+exp01,crea_01,rr2,1,A,2,Text 'TERMINATE' mentioned,64.02,2376,3798,6174,3,2,keyword,,,
+exp01,crea_01,rr2,2,A,2,Text 'TERMINATE' mentioned,62.19,1848,4012,5860,3,2,keyword,,,
+exp01,crea_02,rr2,0,A,2,Text 'TERMINATE' mentioned,42.04,882,1343,2225,3,2,keyword,,,
+exp01,crea_02,rr2,1,A,2,Text 'TERMINATE' mentioned,40.96,820,1177,1997,3,2,keyword,,,
+exp01,crea_02,rr2,2,A,2,Text 'TERMINATE' mentioned,42.13,786,1341,2127,3,2,keyword,,,
+exp01,crea_03,rr2,0,A,2,Text 'TERMINATE' mentioned,52.65,2087,2863,4950,3,2,keyword,,,
+exp01,crea_03,rr2,1,A,2,Text 'TERMINATE' mentioned,58.58,1696,3404,5100,3,2,keyword,,,
+exp01,crea_03,rr2,2,A,2,Text 'TERMINATE' mentioned,49.7,1661,2340,4001,3,2,keyword,,,
+exp01,crea_04,rr2,0,A,2,Text 'TERMINATE' mentioned,59.91,2189,3089,5278,3,2,keyword,,,
+exp01,crea_04,rr2,1,A,2,Text 'TERMINATE' mentioned,65.31,2054,3720,5774,3,2,keyword,,,
+exp01,crea_04,rr2,2,A,2,Text 'TERMINATE' mentioned,78.6,2513,4426,6939,3,2,keyword,,,
+exp01,crea_05,rr2,0,A,2,Text 'TERMINATE' mentioned,36.91,696,862,1558,3,2,keyword,,,
+exp01,crea_05,rr2,1,A,2,Text 'TERMINATE' mentioned,39.99,761,993,1754,3,2,keyword,,,
+exp01,crea_05,rr2,2,A,2,Text 'TERMINATE' mentioned,39.95,793,1246,2039,3,2,keyword,,,
+exp01,anal_01,rr2,0,A,2,Text 'TERMINATE' mentioned,55.99,1904,2885,4789,3,2,keyword,,,
+exp01,anal_01,rr2,1,A,2,Text 'TERMINATE' mentioned,42.95,1142,1627,2769,3,2,keyword,,,
+exp01,anal_01,rr2,2,A,2,Text 'TERMINATE' mentioned,44.59,1436,2111,3547,3,2,keyword,,,
+exp01,anal_02,rr2,0,A,2,Text 'TERMINATE' mentioned,49.27,1320,2005,3325,3,2,keyword,,,
+exp01,anal_02,rr2,1,A,2,Text 'TERMINATE' mentioned,49.8,1456,2648,4104,3,2,keyword,,,
+exp01,anal_02,rr2,2,A,2,Text 'TERMINATE' mentioned,59.34,1319,2904,4223,3,2,keyword,,,
+exp01,anal_03,rr2,0,A,2,Text 'TERMINATE' mentioned,51.76,1292,2410,3702,3,2,keyword,,,
+exp01,anal_03,rr2,1,A,2,Text 'TERMINATE' mentioned,49.93,1477,2358,3835,3,2,keyword,,,
+exp01,anal_03,rr2,2,A,2,Text 'TERMINATE' mentioned,49.07,1282,2249,3531,3,2,keyword,,,
+exp01,anal_04,rr2,0,A,2,Text 'TERMINATE' mentioned,65.31,1941,3978,5919,3,2,keyword,,,
+exp01,anal_04,rr2,1,A,2,Text 'TERMINATE' mentioned,73.55,2395,4735,7130,3,2,keyword,,,
+exp01,anal_04,rr2,2,A,2,Text 'TERMINATE' mentioned,61.19,2223,3837,6060,3,2,keyword,,,
+exp01,anal_05,rr2,0,A,2,Text 'TERMINATE' mentioned,47.52,1890,2142,4032,3,2,keyword,,,
+exp01,anal_05,rr2,1,A,2,Text 'TERMINATE' mentioned,49.26,1538,2884,4422,3,2,keyword,,,
+exp01,anal_05,rr2,2,A,2,Text 'TERMINATE' mentioned,37.48,1582,1968,3550,3,2,keyword,,,
+exp01,tech_01,rr2,0,A,2,,63.75,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,tech_01,rr2,1,A,2,,59.71,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,tech_01,rr2,2,A,2,,55.61,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,tech_02,rr2,0,A,2,Text 'TERMINATE' mentioned,89.57,67,11417,11484,3,2,keyword,,,
+exp01,tech_02,rr2,1,A,2,Text 'TERMINATE' mentioned,79.17,67,9664,9731,3,2,keyword,,,
+exp01,tech_02,rr2,2,A,2,Text 'TERMINATE' mentioned,57.64,67,5342,5409,3,2,keyword,,,
+exp01,tech_03,rr2,0,A,2,Text 'TERMINATE' mentioned,57.74,3393,4734,8127,3,2,keyword,,,
+exp01,tech_03,rr2,1,A,2,Text 'TERMINATE' mentioned,59.2,3161,5405,8566,3,2,keyword,,,
+exp01,tech_03,rr2,2,A,2,Text 'TERMINATE' mentioned,54.86,3319,4968,8287,3,2,keyword,,,
+exp01,tech_04,rr2,0,A,2,Text 'TERMINATE' mentioned,59.22,3536,5429,8965,3,2,keyword,,,
+exp01,tech_04,rr2,1,A,2,Text 'TERMINATE' mentioned,64.68,4116,6284,10400,3,2,keyword,,,
+exp01,tech_04,rr2,2,A,2,Text 'TERMINATE' mentioned,57.17,4006,5015,9021,3,2,keyword,,,
+exp01,tech_05,rr2,0,A,2,Text 'TERMINATE' mentioned,78.02,74,9218,9292,3,2,keyword,,,
+exp01,tech_05,rr2,1,A,2,,64.46,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,tech_05,rr2,2,A,2,,55.18,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,fact_01,rr3,0,A,3,Text 'TERMINATE' mentioned,55.41,2962,2258,5220,4,3,keyword,,,
+exp01,fact_01,rr3,1,A,3,Text 'TERMINATE' mentioned,159.53,5085,9185,14270,7,6,keyword,,,
+exp01,fact_01,rr3,2,A,3,Text 'TERMINATE' mentioned,67.69,3124,2721,5845,4,3,keyword,,,
+exp01,fact_02,rr3,0,A,3,Text 'TERMINATE' mentioned,62.12,2901,2336,5237,4,3,keyword,,,
+exp01,fact_02,rr3,1,A,3,Text 'TERMINATE' mentioned,154.65,8811,7231,16042,7,6,keyword,,,
+exp01,fact_02,rr3,2,A,3,Text 'TERMINATE' mentioned,62.86,2193,1637,3830,4,3,keyword,,,
+exp01,fact_03,rr3,0,A,3,Text 'TERMINATE' mentioned,208.43,8259,15290,23549,7,6,keyword,,,
+exp01,fact_03,rr3,1,A,3,Text 'TERMINATE' mentioned,67.07,5771,3812,9583,4,3,keyword,,,
+exp01,fact_03,rr3,2,A,3,Text 'TERMINATE' mentioned,65.5,5002,3683,8685,4,3,keyword,,,
+exp01,fact_04,rr3,0,A,3,Text 'TERMINATE' mentioned,58.69,2951,2155,5106,4,3,keyword,,,
+exp01,fact_04,rr3,1,A,3,Text 'TERMINATE' mentioned,63.97,3510,2902,6412,4,3,keyword,,,
+exp01,fact_04,rr3,2,A,3,Text 'TERMINATE' mentioned,126.39,7821,4872,12693,7,6,keyword,,,
+exp01,fact_05,rr3,0,A,3,Text 'TERMINATE' mentioned,67.96,4486,3395,7881,4,3,keyword,,,
+exp01,fact_05,rr3,1,A,3,Text 'TERMINATE' mentioned,63.22,4117,3151,7268,4,3,keyword,,,
+exp01,fact_05,rr3,2,A,3,Text 'TERMINATE' mentioned,62.88,4210,3163,7373,4,3,keyword,,,
+exp01,crea_01,rr3,0,A,3,Text 'TERMINATE' mentioned,70.66,4818,3106,7924,4,3,keyword,,,
+exp01,crea_01,rr3,1,A,3,Text 'TERMINATE' mentioned,85.63,5917,4569,10486,4,3,keyword,,,
+exp01,crea_01,rr3,2,A,3,,220.21,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,crea_02,rr3,0,A,3,Text 'TERMINATE' mentioned,145.58,8265,6539,14804,7,6,keyword,,,
+exp01,crea_02,rr3,1,A,3,Text 'TERMINATE' mentioned,58.98,2231,1768,3999,4,3,keyword,,,
+exp01,crea_02,rr3,2,A,3,Text 'TERMINATE' mentioned,57.82,2187,1777,3964,4,3,keyword,,,
+exp01,crea_03,rr3,0,A,3,Text 'TERMINATE' mentioned,75.65,4936,3604,8540,4,3,keyword,,,
+exp01,crea_03,rr3,1,A,3,Text 'TERMINATE' mentioned,86.89,5830,4607,10437,4,3,keyword,,,
+exp01,crea_03,rr3,2,A,3,Text 'TERMINATE' mentioned,99.29,2011,6081,8092,4,3,keyword,,,
+exp01,crea_04,rr3,0,A,3,Text 'TERMINATE' mentioned,111.7,2369,6624,8993,4,3,keyword,,,
+exp01,crea_04,rr3,1,A,3,,279.1,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,crea_04,rr3,2,A,3,Text 'TERMINATE' mentioned,80.85,1853,5609,7462,4,3,keyword,,,
+exp01,crea_05,rr3,0,A,3,Text 'TERMINATE' mentioned,237.25,4624,16684,21308,7,6,keyword,,,
+exp01,crea_05,rr3,1,A,3,Text 'TERMINATE' mentioned,257.82,7210,18474,25684,7,6,keyword,,,
+exp01,crea_05,rr3,2,A,3,,140.48,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,anal_01,rr3,0,A,3,Text 'TERMINATE' mentioned,70.02,3826,2981,6807,4,3,keyword,,,
+exp01,anal_01,rr3,1,A,3,,239.63,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,anal_01,rr3,2,A,3,Text 'TERMINATE' mentioned,70.94,4419,3250,7669,4,3,keyword,,,
+exp01,anal_02,rr3,0,A,3,,148.7,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,anal_02,rr3,1,A,3,,249.77,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,anal_02,rr3,2,A,3,Text 'TERMINATE' mentioned,72.11,4618,3787,8405,4,3,keyword,,,
+exp01,anal_03,rr3,0,A,3,Text 'TERMINATE' mentioned,71.7,4144,2844,6988,4,3,keyword,,,
+exp01,anal_03,rr3,1,A,3,Text 'TERMINATE' mentioned,211.77,5409,14465,19874,7,6,keyword,,,
+exp01,anal_03,rr3,2,A,3,Text 'TERMINATE' mentioned,69.57,4353,3026,7379,4,3,keyword,,,
+exp01,anal_04,rr3,0,A,3,Text 'TERMINATE' mentioned,67.61,5942,4894,10836,4,3,keyword,,,
+exp01,anal_04,rr3,1,A,3,Text 'TERMINATE' mentioned,89.09,5841,4805,10646,4,3,keyword,,,
+exp01,anal_04,rr3,2,A,3,Text 'TERMINATE' mentioned,103.3,1744,6472,8216,4,3,keyword,,,
+exp01,anal_05,rr3,0,A,3,Text 'TERMINATE' mentioned,70.73,5013,4068,9081,4,3,keyword,,,
+exp01,anal_05,rr3,1,A,3,Text 'TERMINATE' mentioned,62.94,4476,4353,8829,4,3,keyword,,,
+exp01,anal_05,rr3,2,A,3,Text 'TERMINATE' mentioned,77.39,5250,4901,10151,4,3,keyword,,,
+exp01,tech_01,rr3,0,A,3,,58.39,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,tech_01,rr3,1,A,3,,66.27,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,tech_01,rr3,2,A,3,,52.99,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,tech_02,rr3,0,A,3,Text 'TERMINATE' mentioned,115.66,69,13377,13446,4,3,keyword,,,
+exp01,tech_02,rr3,1,A,3,Text 'TERMINATE' mentioned,98.58,69,10507,10576,4,3,keyword,,,
+exp01,tech_02,rr3,2,A,3,,97.27,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,tech_03,rr3,0,A,3,Text 'TERMINATE' mentioned,90.08,3146,8530,11676,4,3,keyword,,,
+exp01,tech_03,rr3,1,A,3,Text 'TERMINATE' mentioned,90.99,72,8937,9009,4,3,keyword,,,
+exp01,tech_03,rr3,2,A,3,Text 'TERMINATE' mentioned,120.88,72,11704,11776,4,3,keyword,,,
+exp01,tech_04,rr3,0,A,3,Text 'TERMINATE' mentioned,88.29,4152,7771,11923,4,3,keyword,,,
+exp01,tech_04,rr3,1,A,3,Text 'TERMINATE' mentioned,86.19,4000,7587,11587,4,3,keyword,,,
+exp01,tech_04,rr3,2,A,3,,147.35,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,tech_05,rr3,0,A,3,,56.58,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,tech_05,rr3,1,A,3,,79.58,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,tech_05,rr3,2,A,3,,78.64,0,0,0,0,0,,"RuntimeError: NameError: name 'sys' is not defined
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\auto",,
+exp01,fact_01,rr4,0,A,4,Text 'TERMINATE' mentioned,108.54,3039,6228,9267,5,4,keyword,,,
+exp01,fact_01,rr4,1,A,4,Text 'TERMINATE' mentioned,101.76,2556,5420,7976,5,4,keyword,,,
+exp01,fact_01,rr4,2,A,4,Text 'TERMINATE' mentioned,105.58,3004,5941,8945,5,4,keyword,,,
+exp01,fact_02,rr4,0,A,4,Text 'TERMINATE' mentioned,92.62,6455,4591,11046,5,4,keyword,,,
+exp01,fact_02,rr4,1,A,4,Text 'TERMINATE' mentioned,88.99,5707,4244,9951,5,4,keyword,,,
+exp01,fact_02,rr4,2,A,4,Text 'TERMINATE' mentioned,102.5,5954,5084,11038,5,4,keyword,,,
+exp01,fact_03,rr4,0,A,4,Text 'TERMINATE' mentioned,110.5,5352,8620,13972,5,4,keyword,,,
+exp01,fact_03,rr4,1,A,4,Text 'TERMINATE' mentioned,96.71,4021,6164,10185,5,4,keyword,,,
+exp01,fact_03,rr4,2,A,4,Text 'TERMINATE' mentioned,110.97,4546,8502,13048,5,4,keyword,,,
+exp01,fact_04,rr4,0,A,4,Text 'TERMINATE' mentioned,106.25,3576,6507,10083,5,4,keyword,,,
+exp01,fact_04,rr4,1,A,4,Text 'TERMINATE' mentioned,100.33,3689,5382,9071,5,4,keyword,,,
+exp01,fact_04,rr4,2,A,4,Text 'TERMINATE' mentioned,98.04,3272,5305,8577,5,4,keyword,,,
+exp01,fact_05,rr4,0,A,4,Text 'TERMINATE' mentioned,118.11,5156,8175,13331,5,4,keyword,,,
+exp01,fact_05,rr4,1,A,4,Text 'TERMINATE' mentioned,111.8,4929,7374,12303,5,4,keyword,,,
+exp01,fact_05,rr4,2,A,4,Text 'TERMINATE' mentioned,111.14,5092,7490,12582,5,4,keyword,,,
+exp01,crea_01,rr4,0,A,4,Text 'TERMINATE' mentioned,202.43,3832,15328,19160,5,4,keyword,,,
+exp01,crea_01,rr4,1,A,4,Text 'TERMINATE' mentioned,253.8,2472,21680,24152,5,4,keyword,,,
+exp01,crea_01,rr4,2,A,4,,134.29,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,crea_02,rr4,0,A,4,,86.89,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,crea_02,rr4,1,A,4,,87.61,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,crea_02,rr4,2,A,4,,83.55,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,crea_03,rr4,0,A,4,,85.12,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,crea_03,rr4,1,A,4,,98.77,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,crea_03,rr4,2,A,4,,84.96,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,crea_04,rr4,0,A,4,,83.12,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,crea_04,rr4,1,A,4,,81.92,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,crea_04,rr4,2,A,4,,83.0,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,crea_05,rr4,0,A,4,,83.5,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,crea_05,rr4,1,A,4,,90.35,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,crea_05,rr4,2,A,4,,84.1,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_01,rr4,0,A,4,,83.58,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_01,rr4,1,A,4,,82.55,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_01,rr4,2,A,4,,81.97,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_02,rr4,0,A,4,,82.29,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_02,rr4,1,A,4,,83.77,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_02,rr4,2,A,4,,84.37,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_03,rr4,0,A,4,,109.79,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_03,rr4,1,A,4,,82.66,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_03,rr4,2,A,4,,84.32,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_04,rr4,0,A,4,,84.49,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_04,rr4,1,A,4,,84.77,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_04,rr4,2,A,4,,82.19,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_05,rr4,0,A,4,,86.55,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_05,rr4,1,A,4,,84.02,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,anal_05,rr4,2,A,4,,83.09,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_01,rr4,0,A,4,,82.38,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_01,rr4,1,A,4,,82.33,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_01,rr4,2,A,4,,86.97,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_02,rr4,0,A,4,,83.5,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_02,rr4,1,A,4,,85.14,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_02,rr4,2,A,4,,85.31,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_03,rr4,0,A,4,,86.14,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_03,rr4,1,A,4,,86.79,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_03,rr4,2,A,4,,85.88,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_04,rr4,0,A,4,,84.42,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_04,rr4,1,A,4,,86.27,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_04,rr4,2,A,4,,96.95,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_05,rr4,0,A,4,,91.44,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_05,rr4,1,A,4,,93.71,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,tech_05,rr4,2,A,4,,104.47,0,0,0,0,0,,"RuntimeError: RuntimeError: Claude CLI failed: Unknown error
+Traceback:
+Traceback (most recent call last):
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\packages\autogen-agentchat\src\autogen_agentchat\teams\_group_chat\_chat_agent_container.py"", line 133, in handle_request
+    async for msg in self._agent.on_messages_stream(self._message_buffer, ctx.cancellation_token):
+    ...<4 lines>...
+            await self._log_message(msg)
+
+  File ""D:\Data\22_AG\autogen_a2a_kit\autogen_source\python\pac",,
+exp01,fact_01,sel3,0,B,3,Text 'TERMINATE' mentioned,107.65,3002,3059,6061,4,3,keyword,,,
+exp01,fact_01,sel3,1,B,3,Text 'TERMINATE' mentioned,122.74,2636,2954,5590,4,3,keyword,,,
+exp01,fact_01,sel3,2,B,3,Text 'TERMINATE' mentioned,130.72,3506,3883,7389,4,3,keyword,,,
+exp01,fact_02,sel3,0,B,3,Text 'TERMINATE' mentioned,67.22,526,911,1437,3,2,keyword,,,
+exp01,fact_02,sel3,1,B,3,Text 'TERMINATE' mentioned,61.04,608,910,1518,3,2,keyword,,,
+exp01,fact_02,sel3,2,B,3,Text 'TERMINATE' mentioned,62.91,593,1097,1690,3,2,keyword,,,
+exp01,fact_03,sel3,0,B,3,Text 'TERMINATE' mentioned,91.66,6024,5380,11404,4,3,keyword,,,
+exp01,fact_03,sel3,1,B,3,Text 'TERMINATE' mentioned,96.82,5507,5341,10848,4,3,keyword,,,
+exp01,fact_03,sel3,2,B,3,Text 'TERMINATE' mentioned,129.44,5043,4736,9779,4,3,keyword,,,
+exp01,fact_04,sel3,0,B,3,Text 'TERMINATE' mentioned,74.1,1159,1630,2789,3,2,keyword,,,
+exp01,fact_04,sel3,1,B,3,Text 'TERMINATE' mentioned,116.46,3696,3238,6934,4,3,keyword,,,
+exp01,fact_04,sel3,2,B,3,Text 'TERMINATE' mentioned,117.99,3452,3841,7293,4,3,keyword,,,
+exp01,fact_05,sel3,0,B,3,Text 'TERMINATE' mentioned,80.72,2074,2872,4946,3,2,keyword,,,
+exp01,fact_05,sel3,1,B,3,Text 'TERMINATE' mentioned,139.61,5514,5870,11384,4,3,keyword,,,
+exp01,fact_05,sel3,2,B,3,Text 'TERMINATE' mentioned,81.33,2221,3190,5411,3,2,keyword,,,
+exp01,crea_01,sel3,0,B,3,Text 'TERMINATE' mentioned,161.01,2002,8059,10061,4,3,keyword,,,
+exp01,crea_01,sel3,1,B,3,Text 'TERMINATE' mentioned,162.23,2128,7877,10005,4,3,keyword,,,
+exp01,crea_01,sel3,2,B,3,Text 'TERMINATE' mentioned,157.77,1938,7815,9753,4,3,keyword,,,
+exp01,crea_02,sel3,0,B,3,Text 'TERMINATE' mentioned,73.0,852,1229,2081,3,2,keyword,,,
+exp01,crea_02,sel3,1,B,3,Text 'TERMINATE' mentioned,71.96,811,1119,1930,3,2,keyword,,,
+exp01,crea_02,sel3,2,B,3,Text 'TERMINATE' mentioned,164.1,5565,4601,10166,5,4,keyword,,,
+exp01,crea_03,sel3,0,B,3,Text 'TERMINATE' mentioned,80.08,1659,2391,4050,3,2,keyword,,,
+exp01,crea_03,sel3,1,B,3,Text 'TERMINATE' mentioned,81.2,1525,2420,3945,3,2,keyword,,,
+exp01,crea_03,sel3,2,B,3,Text 'TERMINATE' mentioned,86.34,1706,2822,4528,3,2,keyword,,,
+exp01,crea_04,sel3,0,B,3,Text 'TERMINATE' mentioned,83.32,1713,2421,4134,3,2,keyword,,,
+exp01,crea_04,sel3,1,B,3,Text 'TERMINATE' mentioned,93.1,1704,2577,4281,3,2,keyword,,,
+exp01,crea_04,sel3,2,B,3,Text 'TERMINATE' mentioned,86.26,1847,2911,4758,3,2,keyword,,,
+exp01,crea_05,sel3,0,B,3,Text 'TERMINATE' mentioned,79.65,1003,1990,2993,3,2,keyword,,,
+exp01,crea_05,sel3,1,B,3,Text 'TERMINATE' mentioned,77.27,908,1765,2673,3,2,keyword,,,
+exp01,crea_05,sel3,2,B,3,Text 'TERMINATE' mentioned,74.59,949,1520,2469,3,2,keyword,,,
+exp01,anal_01,sel3,0,B,3,Text 'TERMINATE' mentioned,87.41,1370,2702,4072,3,2,keyword,,,
+exp01,anal_01,sel3,1,B,3,Text 'TERMINATE' mentioned,77.02,1180,1643,2823,3,2,keyword,,,
+exp01,anal_01,sel3,2,B,3,Text 'TERMINATE' mentioned,80.61,1450,2178,3628,3,2,keyword,,,
+exp01,anal_02,sel3,0,B,3,Text 'TERMINATE' mentioned,137.39,4777,5376,10153,4,3,keyword,,,
+exp01,anal_02,sel3,1,B,3,Text 'TERMINATE' mentioned,136.73,3821,5104,8925,4,3,keyword,,,
+exp01,anal_02,sel3,2,B,3,Text 'TERMINATE' mentioned,141.35,4316,5668,9984,4,3,keyword,,,
+exp01,anal_03,sel3,0,B,3,Text 'TERMINATE' mentioned,82.56,1078,2124,3202,3,2,keyword,,,
+exp01,anal_03,sel3,1,B,3,Text 'TERMINATE' mentioned,78.05,1178,1868,3046,3,2,keyword,,,
+exp01,anal_03,sel3,2,B,3,Text 'TERMINATE' mentioned,77.28,1146,1804,2950,3,2,keyword,,,
+exp01,anal_04,sel3,0,B,3,Text 'TERMINATE' mentioned,96.21,2049,4250,6299,3,2,keyword,,,
+exp01,anal_04,sel3,1,B,3,Text 'TERMINATE' mentioned,74.83,1658,3228,4886,3,2,keyword,,,
+exp01,anal_04,sel3,2,B,3,Text 'TERMINATE' mentioned,65.14,1486,2507,3993,3,2,keyword,,,
+exp01,anal_05,sel3,0,B,3,Text 'TERMINATE' mentioned,110.79,2061,7233,9294,4,3,keyword,,,
+exp01,anal_05,sel3,1,B,3,Text 'TERMINATE' mentioned,120.34,1890,7873,9763,4,3,keyword,,,
+exp01,anal_05,sel3,2,B,3,Text 'TERMINATE' mentioned,115.0,1526,7437,8963,4,3,keyword,,,
+exp01,tech_01,sel3,0,B,3,Text 'TERMINATE' mentioned,188.3,69,15113,15182,4,3,keyword,,,
+exp01,tech_01,sel3,1,B,3,Text 'TERMINATE' mentioned,203.0,69,17345,17414,4,3,keyword,,,
+exp01,tech_01,sel3,2,B,3,Text 'TERMINATE' mentioned,210.39,69,17671,17740,4,3,keyword,,,
+exp01,tech_02,sel3,0,B,3,Text 'TERMINATE' mentioned,146.08,66,12943,13009,4,3,keyword,,,
+exp01,tech_02,sel3,1,B,3,Text 'TERMINATE' mentioned,220.26,66,19502,19568,4,3,keyword,,,
+exp01,tech_02,sel3,2,B,3,Text 'TERMINATE' mentioned,177.83,66,14183,14249,4,3,keyword,,,
+exp01,tech_03,sel3,0,B,3,Text 'TERMINATE' mentioned,90.06,3880,4916,8796,3,2,keyword,,,
+exp01,tech_03,sel3,1,B,3,Text 'TERMINATE' mentioned,85.14,2666,3839,6505,3,2,keyword,,,
+exp01,tech_03,sel3,2,B,3,Text 'TERMINATE' mentioned,89.6,3905,5601,9506,3,2,keyword,,,
+exp01,tech_04,sel3,0,B,3,Text 'TERMINATE' mentioned,148.26,3513,9040,12553,4,3,keyword,,,
+exp01,tech_04,sel3,1,B,3,Text 'TERMINATE' mentioned,135.0,3642,8394,12036,4,3,keyword,,,
+exp01,tech_04,sel3,2,B,3,Text 'TERMINATE' mentioned,169.74,3479,10973,14452,4,3,keyword,,,
+exp01,tech_05,sel3,0,B,3,Text 'TERMINATE' mentioned,197.2,73,16535,16608,4,3,keyword,,,
+exp01,tech_05,sel3,1,B,3,Text 'TERMINATE' mentioned,169.6,73,14566,14639,4,3,keyword,,,
+exp01,tech_05,sel3,2,B,3,Text 'TERMINATE' mentioned,186.18,73,14474,14547,4,3,keyword,,,
+exp01,fact_01,sel4,0,B,4,Text 'TERMINATE' mentioned,119.35,2894,2855,5749,4,3,keyword,,,
+exp01,fact_01,sel4,1,B,4,Text 'TERMINATE' mentioned,161.01,5504,3596,9100,5,4,keyword,,,
+exp01,fact_01,sel4,2,B,4,Text 'TERMINATE' mentioned,185.89,3463,7036,10499,5,4,keyword,,,
+exp01,fact_02,sel4,0,B,4,Text 'TERMINATE' mentioned,50.72,558,744,1302,3,2,keyword,,,
+exp01,fact_02,sel4,1,B,4,Text 'TERMINATE' mentioned,71.25,720,1146,1866,3,2,keyword,,,
+exp01,fact_02,sel4,2,B,4,Text 'TERMINATE' mentioned,71.21,668,1095,1763,3,2,keyword,,,
+exp01,fact_03,sel4,0,B,4,Text 'TERMINATE' mentioned,115.73,4281,3416,7697,4,3,keyword,,,
+exp01,fact_03,sel4,1,B,4,Text 'TERMINATE' mentioned,139.49,5411,5963,11374,4,3,keyword,,,
+exp01,fact_03,sel4,2,B,4,Text 'TERMINATE' mentioned,90.45,5334,4674,10008,4,3,keyword,,,
+exp01,fact_04,sel4,0,B,4,Text 'TERMINATE' mentioned,73.5,1149,1470,2619,3,2,keyword,,,
+exp01,fact_04,sel4,1,B,4,Text 'TERMINATE' mentioned,75.58,1270,1837,3107,3,2,keyword,,,
+exp01,fact_04,sel4,2,B,4,Text 'TERMINATE' mentioned,73.32,1252,1632,2884,3,2,keyword,,,
+exp01,fact_05,sel4,0,B,4,Text 'TERMINATE' mentioned,143.67,6240,6561,12801,4,3,keyword,,,
+exp01,fact_05,sel4,1,B,4,Text 'TERMINATE' mentioned,159.29,1934,9360,11294,4,3,keyword,,,
+exp01,fact_05,sel4,2,B,4,Text 'TERMINATE' mentioned,138.03,2053,6356,8409,4,3,keyword,,,
+exp01,crea_01,sel4,0,B,4,Text 'TERMINATE' mentioned,196.73,2034,10449,12483,4,3,keyword,,,
+exp01,crea_01,sel4,1,B,4,Text 'TERMINATE' mentioned,263.09,2150,16203,18353,5,4,keyword,,,
+exp01,crea_01,sel4,2,B,4,Text 'TERMINATE' mentioned,159.87,2496,7342,9838,4,3,keyword,,,
+exp01,crea_02,sel4,0,B,4,Text 'TERMINATE' mentioned,75.23,822,1334,2156,3,2,keyword,,,
+exp01,crea_02,sel4,1,B,4,Text 'TERMINATE' mentioned,120.6,2455,2910,5365,4,3,keyword,,,
+exp01,crea_02,sel4,2,B,4,Text 'TERMINATE' mentioned,76.1,800,1488,2288,3,2,keyword,,,
+exp01,crea_03,sel4,0,B,4,Text 'TERMINATE' mentioned,140.13,5571,5150,10721,4,3,keyword,,,
+exp01,crea_03,sel4,1,B,4,Text 'TERMINATE' mentioned,148.86,5224,6380,11604,4,3,keyword,,,
+exp01,crea_03,sel4,2,B,4,Text 'TERMINATE' mentioned,89.8,1622,3217,4839,3,2,keyword,,,
+exp01,crea_04,sel4,0,B,4,Text 'TERMINATE' mentioned,180.51,2141,9316,11457,4,3,keyword,,,
+exp01,crea_04,sel4,1,B,4,Text 'TERMINATE' mentioned,201.49,2823,11461,14284,4,3,keyword,,,
+exp01,crea_04,sel4,2,B,4,Text 'TERMINATE' mentioned,237.89,5458,12766,18224,5,4,keyword,,,
+exp01,crea_05,sel4,0,B,4,Text 'TERMINATE' mentioned,116.64,2358,2677,5035,4,3,keyword,,,
+exp01,crea_05,sel4,1,B,4,Text 'TERMINATE' mentioned,129.94,3551,4006,7557,4,3,keyword,,,
+exp01,crea_05,sel4,2,B,4,Text 'TERMINATE' mentioned,122.51,2850,3031,5881,4,3,keyword,,,
+exp01,anal_01,sel4,0,B,4,Text 'TERMINATE' mentioned,140.08,3924,4735,8659,4,3,keyword,,,
+exp01,anal_01,sel4,1,B,4,Text 'TERMINATE' mentioned,207.37,3769,9467,13236,5,4,keyword,,,
+exp01,anal_01,sel4,2,B,4,Text 'TERMINATE' mentioned,243.59,5195,13418,18613,5,4,keyword,,,
+exp01,anal_02,sel4,0,B,4,Text 'TERMINATE' mentioned,157.96,5212,6927,12139,4,3,keyword,,,
+exp01,anal_02,sel4,1,B,4,Text 'TERMINATE' mentioned,197.3,5144,8103,13247,5,4,keyword,,,
+exp01,anal_02,sel4,2,B,4,Text 'TERMINATE' mentioned,226.61,4284,11324,15608,5,4,keyword,,,
+exp01,anal_03,sel4,0,B,4,Text 'TERMINATE' mentioned,80.8,1210,1963,3173,3,2,keyword,,,
+exp01,anal_03,sel4,1,B,4,Text 'TERMINATE' mentioned,79.43,1171,1886,3057,3,2,keyword,,,
+exp01,anal_03,sel4,2,B,4,Text 'TERMINATE' mentioned,86.3,1385,2570,3955,3,2,keyword,,,
+exp01,anal_04,sel4,0,B,4,Text 'TERMINATE' mentioned,70.76,2214,3090,5304,3,2,keyword,,,
+exp01,anal_04,sel4,1,B,4,Text 'TERMINATE' mentioned,121.17,1601,7417,9018,4,3,keyword,,,
+exp01,anal_04,sel4,2,B,4,Text 'TERMINATE' mentioned,180.04,1835,12492,14327,5,4,keyword,,,
+exp01,anal_05,sel4,0,B,4,Text 'TERMINATE' mentioned,149.72,4659,5372,10031,4,3,keyword,,,
+exp01,anal_05,sel4,1,B,4,Text 'TERMINATE' mentioned,122.9,1675,8476,10151,4,3,keyword,,,
+exp01,anal_05,sel4,2,B,4,Text 'TERMINATE' mentioned,150.79,1914,9574,11488,5,4,keyword,,,
+exp01,tech_01,sel4,0,B,4,Text 'TERMINATE' mentioned,313.18,72,27311,27383,5,4,keyword,,,
+exp01,tech_01,sel4,1,B,4,Text 'TERMINATE' mentioned,197.09,69,16779,16848,4,3,keyword,,,
+exp01,tech_01,sel4,2,B,4,Text 'TERMINATE' mentioned,401.29,75,37784,37859,6,5,keyword,,,
+exp01,tech_02,sel4,0,B,4,Text 'TERMINATE' mentioned,262.88,69,19095,19164,5,4,keyword,,,
+exp01,tech_02,sel4,1,B,4,Text 'TERMINATE' mentioned,304.21,69,30103,30172,5,4,keyword,,,
+exp01,tech_02,sel4,2,B,4,Text 'TERMINATE' mentioned,240.16,69,23827,23896,5,4,keyword,,,
+exp01,tech_03,sel4,0,B,4,Text 'TERMINATE' mentioned,153.97,2539,8583,11122,4,3,keyword,,,
+exp01,tech_03,sel4,1,B,4,Text 'TERMINATE' mentioned,91.17,3453,4845,8298,3,2,keyword,,,
+exp01,tech_03,sel4,2,B,4,Text 'TERMINATE' mentioned,92.63,3282,5323,8605,3,2,keyword,,,
+exp01,tech_04,sel4,0,B,4,Text 'TERMINATE' mentioned,270.7,70,18605,18675,5,4,keyword,,,
+exp01,tech_04,sel4,1,B,4,Text 'TERMINATE' mentioned,215.78,3821,11195,15016,5,4,keyword,,,
+exp01,tech_04,sel4,2,B,4,Text 'TERMINATE' mentioned,204.91,3352,12421,15773,5,4,keyword,,,
+exp01,tech_05,sel4,0,B,4,Text 'TERMINATE' mentioned,258.24,76,19846,19922,5,4,keyword,,,
+exp01,tech_05,sel4,1,B,4,Text 'TERMINATE' mentioned,292.26,76,27721,27797,5,4,keyword,,,
+exp01,tech_05,sel4,2,B,4,Text 'TERMINATE' mentioned,275.79,76,22550,22626,5,4,keyword,,,
+exp01,fact_01,swm3,0,B,3,"Maximum number of messages 10 reached, current message count: 10",164.59,3171,3358,6529,28,27,max_messages,,,
+exp01,fact_01,swm3,1,B,3,Text 'TERMINATE' mentioned,42.68,423,1281,1704,5,4,keyword,,,
+exp01,fact_01,swm3,2,B,3,Text 'TERMINATE' mentioned,39.51,423,1016,1439,5,4,keyword,,,
+exp01,fact_02,swm3,0,B,3,Text 'TERMINATE' mentioned,41.19,431,1189,1620,5,4,keyword,,,
+exp01,fact_02,swm3,1,B,3,Text 'TERMINATE' mentioned,39.3,431,1041,1472,5,4,keyword,,,
+exp01,fact_02,swm3,2,B,3,Text 'TERMINATE' mentioned,36.46,431,748,1179,5,4,keyword,,,
+exp01,fact_03,swm3,0,B,3,"Maximum number of messages 10 reached, current message count: 10",170.52,3198,5165,8363,28,27,max_messages,,,
+exp01,fact_03,swm3,1,B,3,"Maximum number of messages 10 reached, current message count: 10",163.34,3524,4677,8201,26,25,max_messages,,,
+exp01,fact_03,swm3,2,B,3,"Maximum number of messages 10 reached, current message count: 10",167.2,3198,4590,7788,28,27,max_messages,,,
+exp01,fact_04,swm3,0,B,3,Text 'TERMINATE' mentioned,39.48,429,974,1403,5,4,keyword,,,
+exp01,fact_04,swm3,1,B,3,Text 'TERMINATE' mentioned,35.23,429,659,1088,5,4,keyword,,,
+exp01,fact_04,swm3,2,B,3,Text 'TERMINATE' mentioned,39.26,429,856,1285,5,4,keyword,,,
+exp01,fact_05,swm3,0,B,3,Text 'TERMINATE' mentioned,39.15,451,1202,1653,5,4,keyword,,,
+exp01,fact_05,swm3,1,B,3,Text 'TERMINATE' mentioned,38.66,451,1195,1646,5,4,keyword,,,
+exp01,fact_05,swm3,2,B,3,Text 'TERMINATE' mentioned,37.12,451,951,1402,5,4,keyword,,,
+exp01,crea_01,swm3,0,B,3,Text 'TERMINATE' mentioned,40.48,435,1290,1725,5,4,keyword,,,
+exp01,crea_01,swm3,1,B,3,Text 'TERMINATE' mentioned,36.71,435,688,1123,5,4,keyword,,,
+exp01,crea_01,swm3,2,B,3,Text 'TERMINATE' mentioned,41.31,435,1207,1642,5,4,keyword,,,
+exp01,crea_02,swm3,0,B,3,Text 'TERMINATE' mentioned,40.07,431,644,1075,5,4,keyword,,,
+exp01,crea_02,swm3,1,B,3,Text 'TERMINATE' mentioned,36.9,431,618,1049,5,4,keyword,,,
+exp01,crea_02,swm3,2,B,3,Text 'TERMINATE' mentioned,37.59,431,570,1001,5,4,keyword,,,
+exp01,crea_03,swm3,0,B,3,Text 'TERMINATE' mentioned,42.75,421,1511,1932,5,4,keyword,,,
+exp01,crea_03,swm3,1,B,3,Text 'TERMINATE' mentioned,40.2,421,1188,1609,5,4,keyword,,,
+exp01,crea_03,swm3,2,B,3,Text 'TERMINATE' mentioned,40.19,421,1248,1669,5,4,keyword,,,
+exp01,crea_04,swm3,0,B,3,Text 'TERMINATE' mentioned,45.23,443,1690,2133,5,4,keyword,,,
+exp01,crea_04,swm3,1,B,3,Text 'TERMINATE' mentioned,52.57,443,2513,2956,5,4,keyword,,,
+exp01,crea_04,swm3,2,B,3,Text 'TERMINATE' mentioned,43.85,443,1574,2017,5,4,keyword,,,
+exp01,crea_05,swm3,0,B,3,Text 'TERMINATE' mentioned,35.92,441,665,1106,5,4,keyword,,,
+exp01,crea_05,swm3,1,B,3,Text 'TERMINATE' mentioned,155.82,17801,5044,22845,11,10,keyword,,,
+exp01,crea_05,swm3,2,B,3,Text 'TERMINATE' mentioned,44.71,441,1444,1885,5,4,keyword,,,
+exp01,anal_01,swm3,0,B,3,Text 'TERMINATE' mentioned,44.06,447,1778,2225,5,4,keyword,,,
+exp01,anal_01,swm3,1,B,3,Text 'TERMINATE' mentioned,37.84,447,1557,2004,5,4,keyword,,,
+exp01,anal_01,swm3,2,B,3,Text 'TERMINATE' mentioned,42.05,447,1418,1865,5,4,keyword,,,
+exp01,anal_02,swm3,0,B,3,Text 'TERMINATE' mentioned,37.42,441,917,1358,5,4,keyword,,,
+exp01,anal_02,swm3,1,B,3,Text 'TERMINATE' mentioned,41.79,441,1525,1966,5,4,keyword,,,
+exp01,anal_02,swm3,2,B,3,Text 'TERMINATE' mentioned,44.34,441,1820,2261,5,4,keyword,,,
+exp01,anal_03,swm3,0,B,3,Text 'TERMINATE' mentioned,46.05,439,1909,2348,5,4,keyword,,,
+exp01,anal_03,swm3,1,B,3,Text 'TERMINATE' mentioned,42.04,439,1318,1757,5,4,keyword,,,
+exp01,anal_03,swm3,2,B,3,Text 'TERMINATE' mentioned,46.18,439,1752,2191,5,4,keyword,,,
+exp01,anal_04,swm3,0,B,3,Text 'TERMINATE' mentioned,48.87,439,1533,1972,5,4,keyword,,,
+exp01,anal_04,swm3,1,B,3,Text 'TERMINATE' mentioned,39.53,439,939,1378,5,4,keyword,,,
+exp01,anal_04,swm3,2,B,3,Text 'TERMINATE' mentioned,42.54,439,1331,1770,5,4,keyword,,,
+exp01,anal_05,swm3,0,B,3,Text 'TERMINATE' mentioned,43.67,437,1807,2244,5,4,keyword,,,
+exp01,anal_05,swm3,1,B,3,Text 'TERMINATE' mentioned,120.27,1797,3850,5647,17,16,keyword,,,
+exp01,anal_05,swm3,2,B,3,Text 'TERMINATE' mentioned,43.44,437,1652,2089,5,4,keyword,,,
+exp01,tech_01,swm3,0,B,3,Text 'TERMINATE' mentioned,48.19,445,3579,4024,5,4,keyword,,,
+exp01,tech_01,swm3,1,B,3,"Maximum number of messages 10 reached, current message count: 10",197.73,3270,11276,14546,28,27,max_messages,,,
+exp01,tech_01,swm3,2,B,3,"Maximum number of messages 10 reached, current message count: 10",192.54,3270,10082,13352,28,27,max_messages,,,
+exp01,tech_02,swm3,0,B,3,"Maximum number of messages 10 reached, current message count: 10",183.11,3243,7031,10274,28,27,max_messages,,,
+exp01,tech_02,swm3,1,B,3,"Maximum number of messages 10 reached, current message count: 10",175.51,3243,6598,9841,28,27,max_messages,,,
+exp01,tech_02,swm3,2,B,3,Text 'TERMINATE' mentioned,46.66,439,2796,3235,5,4,keyword,,,
+exp01,tech_03,swm3,0,B,3,Text 'TERMINATE' mentioned,43.87,445,2071,2516,5,4,keyword,,,
+exp01,tech_03,swm3,1,B,3,"Maximum number of messages 10 reached, current message count: 10",175.77,3270,5767,9037,28,27,max_messages,,,
+exp01,tech_03,swm3,2,B,3,Text 'TERMINATE' mentioned,41.37,445,1573,2018,5,4,keyword,,,
+exp01,tech_04,swm3,0,B,3,Text 'TERMINATE' mentioned,42.23,441,1873,2314,5,4,keyword,,,
+exp01,tech_04,swm3,1,B,3,Text 'TERMINATE' mentioned,44.88,441,2231,2672,5,4,keyword,,,
+exp01,tech_04,swm3,2,B,3,"Maximum number of messages 10 reached, current message count: 10",194.55,3252,9135,12387,28,27,max_messages,,,
+exp01,tech_05,swm3,0,B,3,"Maximum number of messages 10 reached, current message count: 10",191.98,3306,9610,12916,28,27,max_messages,,,
+exp01,tech_05,swm3,1,B,3,"Maximum number of messages 10 reached, current message count: 10",196.25,3306,9313,12619,28,27,max_messages,,,
+exp01,tech_05,swm3,2,B,3,"Maximum number of messages 10 reached, current message count: 10",191.41,3306,11111,14417,28,27,max_messages,,,
+exp01,fact_01,swm4,0,B,4,Text 'TERMINATE' mentioned,68.06,2768,2094,4862,9,8,keyword,,,
+exp01,fact_01,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",188.61,4234,3632,7866,34,33,max_messages,,,
+exp01,fact_01,swm4,2,B,4,Text 'TERMINATE' mentioned,135.14,11120,5996,17116,11,10,keyword,,,
+exp01,fact_02,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",164.72,17858,5472,23330,20,19,max_messages,,,
+exp01,fact_02,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",217.04,13587,5639,19226,28,27,max_messages,,,
+exp01,fact_02,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",212.51,13625,6450,20075,28,27,max_messages,,,
+exp01,fact_03,swm4,0,B,4,Text 'TERMINATE' mentioned,168.63,15259,6337,21596,17,16,keyword,,,
+exp01,fact_03,swm4,1,B,4,Text 'TERMINATE' mentioned,63.78,3077,2323,5400,9,8,keyword,,,
+exp01,fact_03,swm4,2,B,4,Text 'TERMINATE' mentioned,109.48,6257,4033,10290,16,15,keyword,,,
+exp01,fact_04,swm4,0,B,4,Text 'TERMINATE' mentioned,49.73,1905,1430,3335,6,5,keyword,,,
+exp01,fact_04,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",216.82,16480,6768,23248,22,21,max_messages,,,
+exp01,fact_04,swm4,2,B,4,Text 'TERMINATE' mentioned,56.37,1881,1385,3266,6,5,keyword,,,
+exp01,fact_05,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",206.36,13780,5567,19347,24,23,max_messages,,,
+exp01,fact_05,swm4,1,B,4,Text 'TERMINATE' mentioned,83.81,3772,2777,6549,9,8,keyword,,,
+exp01,fact_05,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",203.49,19549,8501,28050,20,19,max_messages,,,
+exp01,crea_01,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",156.75,4387,5114,9501,34,33,max_messages,,,
+exp01,crea_01,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",218.9,8237,6969,15206,32,31,max_messages,,,
+exp01,crea_01,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",208.38,4387,5530,9917,32,31,max_messages,,,
+exp01,crea_02,swm4,0,B,4,Text 'TERMINATE' mentioned,99.72,1972,1588,3560,6,5,keyword,,,
+exp01,crea_02,swm4,1,B,4,Text 'TERMINATE' mentioned,67.65,1996,1415,3411,6,5,keyword,,,
+exp01,crea_02,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",215.38,14335,6740,21075,12,11,max_messages,,,
+exp01,crea_03,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",210.12,7632,5675,13307,30,29,max_messages,,,
+exp01,crea_03,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",214.53,19244,7103,26347,22,21,max_messages,,,
+exp01,crea_03,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",207.42,4310,5357,9667,34,33,max_messages,,,
+exp01,crea_04,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",209.39,4378,5083,9461,32,31,max_messages,,,
+exp01,crea_04,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",204.88,4378,5436,9814,34,33,max_messages,,,
+exp01,crea_04,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",200.04,4239,4665,8904,34,33,max_messages,,,
+exp01,crea_05,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",206.78,19598,6177,25775,16,15,max_messages,,,
+exp01,crea_05,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",205.58,13297,5355,18652,24,23,max_messages,,,
+exp01,crea_05,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",206.78,6066,5049,11115,28,27,max_messages,,,
+exp01,anal_01,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",222.24,16103,7989,24092,24,23,max_messages,,,
+exp01,anal_01,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",210.81,4453,6710,11163,34,33,max_messages,,,
+exp01,anal_01,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",210.21,4453,5918,10371,34,33,max_messages,,,
+exp01,anal_02,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",211.05,4420,5892,10312,34,33,max_messages,,,
+exp01,anal_02,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",224.74,11773,7992,19765,30,29,max_messages,,,
+exp01,anal_02,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",211.39,4420,5874,10294,32,31,max_messages,,,
+exp01,anal_03,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",215.7,4409,6644,11053,34,33,max_messages,,,
+exp01,anal_03,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",216.03,4409,7083,11492,32,31,max_messages,,,
+exp01,anal_03,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",221.95,4409,6654,11063,34,33,max_messages,,,
+exp01,anal_04,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",213.05,4409,5192,9601,34,33,max_messages,,,
+exp01,anal_04,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",217.52,4409,5560,9969,34,33,max_messages,,,
+exp01,anal_04,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",212.73,4228,5655,9883,34,33,max_messages,,,
+exp01,anal_05,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",209.07,4221,5856,10077,34,33,max_messages,,,
+exp01,anal_05,swm4,1,B,4,Text 'TERMINATE' mentioned,200.41,3914,5571,9485,27,26,keyword,,,
+exp01,anal_05,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",216.95,4193,6277,10470,34,33,max_messages,,,
+exp01,tech_01,swm4,0,B,4,Text 'TERMINATE' mentioned,121.75,216,10773,10989,9,8,keyword,,,
+exp01,tech_01,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",234.48,4722,11171,15893,32,31,max_messages,,,
+exp01,tech_01,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",248.9,4208,15111,19319,34,33,max_messages,,,
+exp01,tech_02,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",234.52,4248,10981,15229,34,33,max_messages,,,
+exp01,tech_02,swm4,1,B,4,"Maximum number of messages 12 reached, current message count: 12",227.92,4248,10659,14907,34,33,max_messages,,,
+exp01,tech_02,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",226.19,4171,9819,13990,34,33,max_messages,,,
+exp01,tech_03,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",218.88,10157,9283,19440,30,29,max_messages,,,
+exp01,tech_03,swm4,1,B,4,Text 'TERMINATE' mentioned,181.79,3207,7372,10579,26,25,keyword,,,
+exp01,tech_03,swm4,2,B,4,"Maximum number of messages 12 reached, current message count: 12",220.9,7881,8886,16767,32,31,max_messages,,,
+exp01,tech_04,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",245.75,4186,11236,15422,34,33,max_messages,,,
+exp01,tech_04,swm4,1,B,4,Text 'TERMINATE' mentioned,132.62,1839,7953,9792,17,16,keyword,,,
+exp01,tech_04,swm4,2,B,4,Text 'TERMINATE' mentioned,71.63,5511,3736,9247,6,5,keyword,,,
+exp01,tech_05,swm4,0,B,4,"Maximum number of messages 12 reached, current message count: 12",241.14,4285,10807,15092,34,33,max_messages,,,
+exp01,tech_05,swm4,1,B,4,Text 'TERMINATE' mentioned,163.29,226,10727,10953,15,14,keyword,,,
+exp01,tech_05,swm4,2,B,4,Text 'TERMINATE' mentioned,140.95,220,13067,13287,9,8,keyword,,,
+exp01,fact_01,refl2,0,C,2,Text 'APPROVED' mentioned,43.81,980,1368,2348,3,2,keyword,,,
+exp01,fact_01,refl2,1,C,2,Text 'APPROVED' mentioned,45.66,1015,1183,2198,3,2,keyword,,,
+exp01,fact_01,refl2,2,C,2,Text 'APPROVED' mentioned,37.36,1117,1571,2688,3,2,keyword,,,
+exp01,fact_02,refl2,0,C,2,Text 'APPROVED' mentioned,36.91,934,1406,2340,3,2,keyword,,,
+exp01,fact_02,refl2,1,C,2,Text 'APPROVED' mentioned,33.1,821,1304,2125,3,2,keyword,,,
+exp01,fact_02,refl2,2,C,2,Text 'APPROVED' mentioned,42.02,859,1229,2088,3,2,keyword,,,
+exp01,fact_03,refl2,0,C,2,Text 'APPROVED' mentioned,46.53,1618,2125,3743,3,2,keyword,,,
+exp01,fact_03,refl2,1,C,2,Text 'APPROVED' mentioned,47.71,1564,2074,3638,3,2,keyword,,,
+exp01,fact_03,refl2,2,C,2,Text 'APPROVED' mentioned,36.92,1695,1906,3601,3,2,keyword,,,
+exp01,fact_04,refl2,0,C,2,Text 'APPROVED' mentioned,45.53,1198,1776,2974,3,2,keyword,,,
+exp01,fact_04,refl2,1,C,2,Text 'APPROVED' mentioned,43.38,1221,1535,2756,3,2,keyword,,,
+exp01,fact_04,refl2,2,C,2,Text 'APPROVED' mentioned,44.65,1143,1563,2706,3,2,keyword,,,
+exp01,fact_05,refl2,0,C,2,Text 'APPROVED' mentioned,46.07,1582,1830,3412,3,2,keyword,,,
+exp01,fact_05,refl2,1,C,2,Text 'APPROVED' mentioned,49.88,1926,2520,4446,3,2,keyword,,,
+exp01,fact_05,refl2,2,C,2,Text 'APPROVED' mentioned,49.49,1529,2076,3605,3,2,keyword,,,
+exp01,crea_01,refl2,0,C,2,Text 'APPROVED' mentioned,47.52,1542,2024,3566,3,2,keyword,,,
+exp01,crea_01,refl2,1,C,2,Text 'APPROVED' mentioned,185.25,4524,13494,18018,5,4,keyword,,,
+exp01,crea_01,refl2,2,C,2,Text 'APPROVED' mentioned,56.76,2364,2846,5210,3,2,keyword,,,
+exp01,crea_02,refl2,0,C,2,Text 'APPROVED' mentioned,43.98,840,1199,2039,3,2,keyword,,,
+exp01,crea_02,refl2,1,C,2,Text 'APPROVED' mentioned,45.46,806,1155,1961,3,2,keyword,,,
+exp01,crea_02,refl2,2,C,2,Text 'APPROVED' mentioned,45.47,820,1227,2047,3,2,keyword,,,
+exp01,crea_03,refl2,0,C,2,Text 'APPROVED' mentioned,58.65,1866,2504,4370,3,2,keyword,,,
+exp01,crea_03,refl2,1,C,2,Text 'APPROVED' mentioned,198.95,4235,12959,17194,5,4,keyword,,,
+exp01,crea_03,refl2,2,C,2,Text 'APPROVED' mentioned,45.38,1605,2383,3988,3,2,keyword,,,
+exp01,crea_04,refl2,0,C,2,Text 'APPROVED' mentioned,60.35,2028,2817,4845,3,2,keyword,,,
+exp01,crea_04,refl2,1,C,2,Text 'APPROVED' mentioned,59.04,2064,2688,4752,3,2,keyword,,,
+exp01,crea_04,refl2,2,C,2,Text 'APPROVED' mentioned,60.95,2291,3170,5461,3,2,keyword,,,
+exp01,crea_05,refl2,0,C,2,Text 'APPROVED' mentioned,82.76,4146,2685,6831,5,4,keyword,,,
+exp01,crea_05,refl2,1,C,2,Text 'APPROVED' mentioned,42.51,776,1074,1850,3,2,keyword,,,
+exp01,crea_05,refl2,2,C,2,Text 'APPROVED' mentioned,41.05,748,976,1724,3,2,keyword,,,
+exp01,anal_01,refl2,0,C,2,Text 'APPROVED' mentioned,46.99,1264,1488,2752,3,2,keyword,,,
+exp01,anal_01,refl2,1,C,2,Text 'APPROVED' mentioned,47.04,1197,1738,2935,3,2,keyword,,,
+exp01,anal_01,refl2,2,C,2,Text 'APPROVED' mentioned,49.4,1285,1866,3151,3,2,keyword,,,
+exp01,anal_02,refl2,0,C,2,Text 'APPROVED' mentioned,46.15,1030,1753,2783,3,2,keyword,,,
+exp01,anal_02,refl2,1,C,2,Text 'APPROVED' mentioned,49.04,1334,1797,3131,3,2,keyword,,,
+exp01,anal_02,refl2,2,C,2,Text 'APPROVED' mentioned,49.49,1145,1813,2958,3,2,keyword,,,
+exp01,anal_03,refl2,0,C,2,Text 'APPROVED' mentioned,46.94,999,1568,2567,3,2,keyword,,,
+exp01,anal_03,refl2,1,C,2,Text 'APPROVED' mentioned,46.86,1305,1531,2836,3,2,keyword,,,
+exp01,anal_03,refl2,2,C,2,Text 'APPROVED' mentioned,50.47,1335,1834,3169,3,2,keyword,,,
+exp01,anal_04,refl2,0,C,2,Text 'APPROVED' mentioned,51.52,1947,2745,4692,3,2,keyword,,,
+exp01,anal_04,refl2,1,C,2,Text 'APPROVED' mentioned,51.31,2145,2736,4881,3,2,keyword,,,
+exp01,anal_04,refl2,2,C,2,Text 'APPROVED' mentioned,47.57,1769,2383,4152,3,2,keyword,,,
+exp01,anal_05,refl2,0,C,2,Text 'APPROVED' mentioned,36.49,1411,1581,2992,3,2,keyword,,,
+exp01,anal_05,refl2,1,C,2,Text 'APPROVED' mentioned,35.86,1846,2724,4570,3,2,keyword,,,
+exp01,anal_05,refl2,2,C,2,Text 'APPROVED' mentioned,37.71,1547,1803,3350,3,2,keyword,,,
+exp01,tech_01,refl2,0,C,2,Text 'APPROVED' mentioned,62.93,81,5989,6070,3,2,keyword,,,
+exp01,tech_01,refl2,1,C,2,Text 'APPROVED' mentioned,73.79,81,7924,8005,3,2,keyword,,,
+exp01,tech_01,refl2,2,C,2,Text 'APPROVED' mentioned,79.05,81,8636,8717,3,2,keyword,,,
+exp01,tech_02,refl2,0,C,2,Text 'APPROVED' mentioned,66.9,78,6430,6508,3,2,keyword,,,
+exp01,tech_02,refl2,1,C,2,Text 'APPROVED' mentioned,65.77,78,6350,6428,3,2,keyword,,,
+exp01,tech_02,refl2,2,C,2,Text 'APPROVED' mentioned,75.85,78,7661,7739,3,2,keyword,,,
+exp01,tech_03,refl2,0,C,2,Text 'APPROVED' mentioned,58.27,3456,4154,7610,3,2,keyword,,,
+exp01,tech_03,refl2,1,C,2,Text 'APPROVED' mentioned,50.6,3049,3201,6250,3,2,keyword,,,
+exp01,tech_03,refl2,2,C,2,Text 'APPROVED' mentioned,239.21,2726,23890,26616,7,6,keyword,,,
+exp01,tech_04,refl2,0,C,2,Text 'APPROVED' mentioned,56.65,3544,4091,7635,3,2,keyword,,,
+exp01,tech_04,refl2,1,C,2,Text 'APPROVED' mentioned,74.06,79,7208,7287,3,2,keyword,,,
+exp01,tech_04,refl2,2,C,2,Text 'APPROVED' mentioned,62.49,4095,5308,9403,3,2,keyword,,,
+exp01,tech_05,refl2,0,C,2,Text 'APPROVED' mentioned,68.34,85,8232,8317,3,2,keyword,,,
+exp01,tech_05,refl2,1,C,2,Text 'APPROVED' mentioned,90.19,85,10581,10666,3,2,keyword,,,
+exp01,tech_05,refl2,2,C,2,Text 'APPROVED' mentioned,71.34,85,7460,7545,3,2,keyword,,,
+exp01,fact_01,refl3,0,C,3,Text 'APPROVED' mentioned,188.55,6099,10795,16894,7,6,keyword,,,
+exp01,fact_01,refl3,1,C,3,Text 'APPROVED' mentioned,152.38,9430,5970,15400,7,6,keyword,,,
+exp01,fact_01,refl3,2,C,3,Text 'APPROVED' mentioned,79.8,2894,3198,6092,4,3,keyword,,,
+exp01,fact_02,refl3,0,C,3,Text 'APPROVED' mentioned,68.8,2463,2357,4820,4,3,keyword,,,
+exp01,fact_02,refl3,1,C,3,Text 'APPROVED' mentioned,79.51,2748,3654,6402,4,3,keyword,,,
+exp01,fact_02,refl3,2,C,3,Text 'APPROVED' mentioned,66.82,2046,2022,4068,4,3,keyword,,,
+exp01,fact_03,refl3,0,C,3,Text 'APPROVED' mentioned,86.07,5199,5273,10472,4,3,keyword,,,
+exp01,fact_03,refl3,1,C,3,Text 'APPROVED' mentioned,78.86,4891,4433,9324,4,3,keyword,,,
+exp01,fact_03,refl3,2,C,3,Text 'APPROVED' mentioned,96.22,4995,6160,11155,4,3,keyword,,,
+exp01,fact_04,refl3,0,C,3,Text 'APPROVED' mentioned,68.78,2580,2659,5239,4,3,keyword,,,
+exp01,fact_04,refl3,1,C,3,Text 'APPROVED' mentioned,81.08,3458,4183,7641,4,3,keyword,,,
+exp01,fact_04,refl3,2,C,3,Text 'APPROVED' mentioned,76.25,3016,3318,6334,4,3,keyword,,,
+exp01,fact_05,refl3,0,C,3,Text 'APPROVED' mentioned,91.86,4390,5436,9826,4,3,keyword,,,
+exp01,fact_05,refl3,1,C,3,Text 'APPROVED' mentioned,80.45,4201,4343,8544,4,3,keyword,,,
+exp01,fact_05,refl3,2,C,3,Text 'APPROVED' mentioned,77.05,4121,3537,7658,4,3,keyword,,,
+exp01,crea_01,refl3,0,C,3,Text 'APPROVED' mentioned,341.52,1377,26634,28011,7,6,keyword,,,
+exp01,crea_01,refl3,1,C,3,Text 'APPROVED' mentioned,95.38,4286,5691,9977,4,3,keyword,,,
+exp01,crea_01,refl3,2,C,3,Text 'APPROVED' mentioned,108.5,5462,6747,12209,4,3,keyword,,,
+exp01,crea_02,refl3,0,C,3,Text 'APPROVED' mentioned,165.05,5517,7045,12562,7,6,keyword,,,
+exp01,crea_02,refl3,1,C,3,Text 'APPROVED' mentioned,77.17,2742,3132,5874,4,3,keyword,,,
+exp01,crea_02,refl3,2,C,3,Text 'APPROVED' mentioned,62.43,2474,2136,4610,4,3,keyword,,,
+exp01,crea_03,refl3,0,C,3,Text 'APPROVED' mentioned,102.34,4958,5829,10787,4,3,keyword,,,
+exp01,crea_03,refl3,1,C,3,Text 'APPROVED' mentioned,154.9,5581,11389,16970,4,3,keyword,,,
+exp01,crea_03,refl3,2,C,3,Text 'APPROVED' mentioned,89.93,4968,3962,8930,4,3,keyword,,,
+exp01,crea_04,refl3,0,C,3,Text 'APPROVED' mentioned,129.52,4658,8376,13034,4,3,keyword,,,
+exp01,crea_04,refl3,1,C,3,Text 'APPROVED' mentioned,153.65,1840,11866,13706,4,3,keyword,,,
+exp01,crea_04,refl3,2,C,3,Text 'APPROVED' mentioned,385.2,4984,30456,35440,7,6,keyword,,,
+exp01,crea_05,refl3,0,C,3,Text 'APPROVED' mentioned,80.1,2752,3618,6370,4,3,keyword,,,
+exp01,crea_05,refl3,1,C,3,Text 'APPROVED' mentioned,81.93,2325,3358,5683,4,3,keyword,,,
+exp01,crea_05,refl3,2,C,3,Text 'APPROVED' mentioned,84.34,2600,3297,5897,4,3,keyword,,,
+exp01,anal_01,refl3,0,C,3,Text 'APPROVED' mentioned,84.11,3572,4018,7590,4,3,keyword,,,
+exp01,anal_01,refl3,1,C,3,Text 'APPROVED' mentioned,80.37,3336,3861,7197,4,3,keyword,,,
+exp01,anal_01,refl3,2,C,3,Text 'APPROVED' mentioned,93.25,3281,4276,7557,4,3,keyword,,,
+exp01,anal_02,refl3,0,C,3,Text 'APPROVED' mentioned,181.41,6655,11073,17728,6,5,keyword,,,
+exp01,anal_02,refl3,1,C,3,Text 'APPROVED' mentioned,108.61,5378,6254,11632,4,3,keyword,,,
+exp01,anal_02,refl3,2,C,3,Text 'APPROVED' mentioned,85.23,3021,3821,6842,4,3,keyword,,,
+exp01,anal_03,refl3,0,C,3,Text 'APPROVED' mentioned,87.8,3809,4376,8185,4,3,keyword,,,
+exp01,anal_03,refl3,1,C,3,Text 'APPROVED' mentioned,78.51,3883,3252,7135,4,3,keyword,,,
+exp01,anal_03,refl3,2,C,3,Text 'APPROVED' mentioned,78.14,3473,4140,7613,4,3,keyword,,,
+exp01,anal_04,refl3,0,C,3,Text 'APPROVED' mentioned,71.51,6008,4564,10572,4,3,keyword,,,
+exp01,anal_04,refl3,1,C,3,Text 'APPROVED' mentioned,90.52,1988,5988,7976,4,3,keyword,,,
+exp01,anal_04,refl3,2,C,3,Text 'APPROVED' mentioned,261.21,5409,18999,24408,7,6,keyword,,,
+exp01,anal_05,refl3,0,C,3,Text 'APPROVED' mentioned,254.38,4714,18014,22728,7,6,keyword,,,
+exp01,anal_05,refl3,1,C,3,Text 'APPROVED' mentioned,87.32,4275,5730,10005,4,3,keyword,,,
+exp01,anal_05,refl3,2,C,3,Text 'APPROVED' mentioned,90.9,5132,6288,11420,4,3,keyword,,,
+exp01,tech_01,refl3,0,C,3,Text 'APPROVED' mentioned,100.56,73,12118,12191,4,3,keyword,,,
+exp01,tech_01,refl3,1,C,3,Text 'APPROVED' mentioned,195.9,76,25432,25508,5,4,keyword,,,
+exp01,tech_01,refl3,2,C,3,Text 'APPROVED' mentioned,132.98,73,14109,14182,4,3,keyword,,,
+exp01,tech_02,refl3,0,C,3,Text 'APPROVED' mentioned,164.32,70,20126,20196,4,3,keyword,,,
+exp01,tech_02,refl3,1,C,3,Text 'APPROVED' mentioned,155.52,70,18140,18210,4,3,keyword,,,
+exp01,tech_02,refl3,2,C,3,Text 'APPROVED' mentioned,149.14,70,18263,18333,4,3,keyword,,,
+exp01,tech_03,refl3,0,C,3,Text 'APPROVED' mentioned,85.15,2930,5273,8203,4,3,keyword,,,
+exp01,tech_03,refl3,1,C,3,Text 'APPROVED' mentioned,96.42,2564,8592,11156,4,3,keyword,,,
+exp01,tech_03,refl3,2,C,3,Text 'APPROVED' mentioned,93.73,3617,8282,11899,4,3,keyword,,,
+exp01,tech_04,refl3,0,C,3,Text 'APPROVED' mentioned,90.57,3575,6600,10175,4,3,keyword,,,
+exp01,tech_04,refl3,1,C,3,Text 'APPROVED' mentioned,94.95,4160,7748,11908,4,3,keyword,,,
+exp01,tech_04,refl3,2,C,3,Text 'APPROVED' mentioned,107.99,71,9604,9675,4,3,keyword,,,
+exp01,tech_05,refl3,0,C,3,Text 'APPROVED' mentioned,135.62,77,16765,16842,4,3,keyword,,,
+exp01,tech_05,refl3,1,C,3,Text 'APPROVED' mentioned,129.54,77,16102,16179,4,3,keyword,,,
+exp01,tech_05,refl3,2,C,3,Text 'APPROVED' mentioned,261.48,86,32465,32551,7,6,keyword,,,
+exp01,fact_01,debate3,0,C,3,Text 'VERDICT' mentioned,162.57,5562,3677,9239,5,4,keyword,,,
+exp01,fact_01,debate3,1,C,3,Text 'VERDICT' mentioned,111.31,2262,2300,4562,4,3,keyword,,,
+exp01,fact_01,debate3,2,C,3,Text 'VERDICT' mentioned,109.23,2134,1932,4066,4,3,keyword,,,
+exp01,fact_02,debate3,0,C,3,Text 'VERDICT' mentioned,179.0,3066,5584,8650,5,4,keyword,,,
+exp01,fact_02,debate3,1,C,3,Text 'VERDICT' mentioned,163.31,4293,3145,7438,5,4,keyword,,,
+exp01,fact_02,debate3,2,C,3,Text 'VERDICT' mentioned,182.63,6408,5450,11858,5,4,keyword,,,
+exp01,fact_03,debate3,0,C,3,Text 'VERDICT' mentioned,137.49,3966,7849,11815,5,4,keyword,,,
+exp01,fact_03,debate3,1,C,3,Text 'VERDICT' mentioned,165.8,6445,4158,10603,5,4,keyword,,,
+exp01,fact_03,debate3,2,C,3,Text 'VERDICT' mentioned,122.32,3123,2701,5824,4,3,keyword,,,
+exp01,fact_04,debate3,0,C,3,Text 'VERDICT' mentioned,153.87,5957,3365,9322,5,4,keyword,,,
+exp01,fact_04,debate3,1,C,3,Text 'VERDICT' mentioned,164.93,4904,3229,8133,5,4,keyword,,,
+exp01,fact_04,debate3,2,C,3,Text 'VERDICT' mentioned,114.87,2607,2018,4625,4,3,keyword,,,
+exp01,fact_05,debate3,0,C,3,Text 'VERDICT' mentioned,133.25,4534,3468,8002,4,3,keyword,,,
+exp01,fact_05,debate3,1,C,3,Text 'VERDICT' mentioned,134.14,4626,4907,9533,4,3,keyword,,,
+exp01,fact_05,debate3,2,C,3,Text 'VERDICT' mentioned,118.88,4041,3403,7444,4,3,keyword,,,
+exp01,crea_01,debate3,0,C,3,Text 'VERDICT' mentioned,259.37,2419,17047,19466,5,4,keyword,,,
+exp01,crea_01,debate3,1,C,3,Text 'VERDICT' mentioned,225.92,2501,9356,11857,5,4,keyword,,,
+exp01,crea_01,debate3,2,C,3,Text 'VERDICT' mentioned,236.26,2107,10586,12693,5,4,keyword,,,
+exp01,crea_02,debate3,0,C,3,Text 'VERDICT' mentioned,156.0,5402,3709,9111,5,4,keyword,,,
+exp01,crea_02,debate3,1,C,3,Text 'VERDICT' mentioned,162.03,4967,3547,8514,5,4,keyword,,,
+exp01,crea_02,debate3,2,C,3,Text 'VERDICT' mentioned,164.2,5693,4006,9699,5,4,keyword,,,
+exp01,crea_03,debate3,0,C,3,Text 'VERDICT' mentioned,196.69,4059,6575,10634,5,4,keyword,,,
+exp01,crea_03,debate3,1,C,3,Text 'VERDICT' mentioned,128.36,3521,3540,7061,4,3,keyword,,,
+exp01,crea_03,debate3,2,C,3,Text 'VERDICT' mentioned,211.34,4408,8105,12513,5,4,keyword,,,
+exp01,crea_04,debate3,0,C,3,Text 'VERDICT' mentioned,202.56,4291,7064,11355,5,4,keyword,,,
+exp01,crea_04,debate3,1,C,3,Text 'VERDICT' mentioned,185.45,3259,4731,7990,5,4,keyword,,,
+exp01,crea_04,debate3,2,C,3,Text 'VERDICT' mentioned,207.84,4879,6470,11349,5,4,keyword,,,
+exp01,crea_05,debate3,0,C,3,Text 'VERDICT' mentioned,172.24,7150,4839,11989,5,4,keyword,,,
+exp01,crea_05,debate3,1,C,3,Text 'VERDICT' mentioned,184.34,5223,4032,9255,5,4,keyword,,,
+exp01,crea_05,debate3,2,C,3,Text 'VERDICT' mentioned,183.17,4100,2761,6861,5,4,keyword,,,
+exp01,anal_01,debate3,0,C,3,Text 'VERDICT' mentioned,233.49,3131,6438,9569,5,4,keyword,,,
+exp01,anal_01,debate3,1,C,3,Text 'VERDICT' mentioned,181.54,3884,8033,11917,5,4,keyword,,,
+exp01,anal_01,debate3,2,C,3,Text 'VERDICT' mentioned,103.79,2518,2217,4735,4,3,keyword,,,
+exp01,anal_02,debate3,0,C,3,Text 'VERDICT' mentioned,126.69,3458,3285,6743,4,3,keyword,,,
+exp01,anal_02,debate3,1,C,3,Text 'VERDICT' mentioned,199.04,3599,6376,9975,5,4,keyword,,,
+exp01,anal_02,debate3,2,C,3,Text 'VERDICT' mentioned,198.21,3529,5840,9369,5,4,keyword,,,
+exp01,anal_03,debate3,0,C,3,Text 'VERDICT' mentioned,134.1,3850,3597,7447,4,3,keyword,,,
+exp01,anal_03,debate3,1,C,3,Text 'VERDICT' mentioned,179.32,4015,6392,10407,5,4,keyword,,,
+exp01,anal_03,debate3,2,C,3,Text 'VERDICT' mentioned,133.64,3928,3817,7745,4,3,keyword,,,
+exp01,anal_04,debate3,0,C,3,Text 'VERDICT' mentioned,116.2,4237,4942,9179,4,3,keyword,,,
+exp01,anal_04,debate3,1,C,3,Text 'VERDICT' mentioned,127.04,5204,5332,10536,4,3,keyword,,,
+exp01,anal_04,debate3,2,C,3,Text 'VERDICT' mentioned,130.04,4445,4811,9256,4,3,keyword,,,
+exp01,anal_05,debate3,0,C,3,Text 'VERDICT' mentioned,91.57,3363,3224,6587,4,3,keyword,,,
+exp01,anal_05,debate3,1,C,3,Text 'VERDICT' mentioned,103.12,2534,2551,5085,4,3,keyword,,,
+exp01,anal_05,debate3,2,C,3,Text 'VERDICT' mentioned,99.17,2159,2332,4491,4,3,keyword,,,
+exp01,tech_01,debate3,0,C,3,Text 'VERDICT' mentioned,168.05,77,12236,12313,4,3,keyword,,,
+exp01,tech_01,debate3,1,C,3,Text 'VERDICT' mentioned,161.87,77,11201,11278,4,3,keyword,,,
+exp01,tech_01,debate3,2,C,3,Text 'VERDICT' mentioned,158.13,77,8878,8955,4,3,keyword,,,
+exp01,tech_02,debate3,0,C,3,Text 'VERDICT' mentioned,146.71,74,8746,8820,4,3,keyword,,,
+exp01,tech_02,debate3,1,C,3,Text 'VERDICT' mentioned,153.2,4161,7975,12136,4,3,keyword,,,
+exp01,tech_02,debate3,2,C,3,Text 'VERDICT' mentioned,161.99,74,11450,11524,4,3,keyword,,,
+exp01,tech_03,debate3,0,C,3,Text 'VERDICT' mentioned,124.6,6455,4602,11057,4,3,keyword,,,
+exp01,tech_03,debate3,1,C,3,Text 'VERDICT' mentioned,114.32,2830,5226,8056,4,3,keyword,,,
+exp01,tech_03,debate3,2,C,3,Text 'VERDICT' mentioned,124.32,2602,5183,7785,4,3,keyword,,,
+exp01,tech_04,debate3,0,C,3,Text 'VERDICT' mentioned,152.87,4096,7835,11931,4,3,keyword,,,
+exp01,tech_04,debate3,1,C,3,Text 'VERDICT' mentioned,133.89,2651,5149,7800,4,3,keyword,,,
+exp01,tech_04,debate3,2,C,3,Text 'VERDICT' mentioned,141.1,3603,6647,10250,4,3,keyword,,,
+exp01,tech_05,debate3,0,C,3,Text 'VERDICT' mentioned,142.85,81,8299,8380,4,3,keyword,,,
+exp01,tech_05,debate3,1,C,3,Text 'VERDICT' mentioned,157.91,81,11967,12048,4,3,keyword,,,
+exp01,tech_05,debate3,2,C,3,Text 'VERDICT' mentioned,165.05,81,11878,11959,4,3,keyword,,,
+exp01,fact_01,debate4,0,C,4,Text 'VERDICT' mentioned,173.84,6460,3223,9683,6,5,keyword,,,
+exp01,fact_01,debate4,1,C,4,Text 'VERDICT' mentioned,179.11,7960,4633,12593,6,5,keyword,,,
+exp01,fact_01,debate4,2,C,4,Text 'VERDICT' mentioned,201.1,8660,5479,14139,6,5,keyword,,,
+exp01,fact_02,debate4,0,C,4,Text 'VERDICT' mentioned,303.96,7364,10354,17718,8,7,keyword,,,
+exp01,fact_02,debate4,1,C,4,Text 'VERDICT' mentioned,158.32,5345,2892,8237,6,5,keyword,,,
+exp01,fact_02,debate4,2,C,4,Text 'VERDICT' mentioned,304.86,4991,12154,17145,8,7,keyword,,,
+exp01,fact_03,debate4,0,C,4,Text 'VERDICT' mentioned,184.91,6275,6746,13021,6,5,keyword,,,
+exp01,fact_03,debate4,1,C,4,Text 'VERDICT' mentioned,184.96,6126,4953,11079,6,5,keyword,,,
+exp01,fact_03,debate4,2,C,4,Text 'VERDICT' mentioned,163.0,7107,4238,11345,5,4,keyword,,,
+exp01,fact_04,debate4,0,C,4,Text 'VERDICT' mentioned,183.47,7056,3913,10969,6,5,keyword,,,
+exp01,fact_04,debate4,1,C,4,Text 'VERDICT' mentioned,199.31,5559,5412,10971,6,5,keyword,,,
+exp01,fact_04,debate4,2,C,4,Text 'VERDICT' mentioned,116.81,3992,2925,6917,5,4,keyword,,,
+exp01,fact_05,debate4,0,C,4,Text 'VERDICT' mentioned,147.49,7542,6106,13648,5,4,keyword,,,
+exp01,fact_05,debate4,1,C,4,Text 'VERDICT' mentioned,112.19,8263,4805,13068,5,4,keyword,,,
+exp01,fact_05,debate4,2,C,4,Text 'VERDICT' mentioned,149.62,6822,4110,10932,5,4,keyword,,,
+exp01,crea_01,debate4,0,C,4,Text 'VERDICT' mentioned,176.94,5455,7071,12526,5,4,keyword,,,
+exp01,crea_01,debate4,1,C,4,Text 'VERDICT' mentioned,191.63,2228,7122,9350,5,4,keyword,,,
+exp01,crea_01,debate4,2,C,4,Text 'VERDICT' mentioned,196.53,5870,6368,12238,5,4,keyword,,,
+exp01,crea_02,debate4,0,C,4,Text 'VERDICT' mentioned,201.15,7064,4407,11471,6,5,keyword,,,
+exp01,crea_02,debate4,1,C,4,Text 'VERDICT' mentioned,147.12,4916,3665,8581,5,4,keyword,,,
+exp01,crea_02,debate4,2,C,4,Text 'VERDICT' mentioned,175.9,3905,2199,6104,5,4,keyword,,,
+exp01,crea_03,debate4,0,C,4,Text 'VERDICT' mentioned,167.74,6861,4097,10958,5,4,keyword,,,
+exp01,crea_03,debate4,1,C,4,Text 'VERDICT' mentioned,408.83,3738,18744,22482,8,7,keyword,,,
+exp01,crea_03,debate4,2,C,4,Text 'VERDICT' mentioned,171.32,6955,4022,10977,5,4,keyword,,,
+exp01,crea_04,debate4,0,C,4,Text 'VERDICT' mentioned,167.16,7950,5905,13855,5,4,keyword,,,
+exp01,crea_04,debate4,1,C,4,Text 'VERDICT' mentioned,140.9,8350,5371,13721,5,4,keyword,,,
+exp01,crea_04,debate4,2,C,4,Text 'VERDICT' mentioned,161.41,7234,4322,11556,5,4,keyword,,,
+exp01,crea_05,debate4,0,C,4,Text 'VERDICT' mentioned,198.57,7545,4175,11720,6,5,keyword,,,
+exp01,crea_05,debate4,1,C,4,Text 'VERDICT' mentioned,153.95,4038,2471,6509,5,4,keyword,,,
+exp01,crea_05,debate4,2,C,4,Text 'VERDICT' mentioned,310.89,7635,8424,16059,8,7,keyword,,,
+exp01,anal_01,debate4,0,C,4,Text 'VERDICT' mentioned,157.54,4784,3775,8559,5,4,keyword,,,
+exp01,anal_01,debate4,1,C,4,Text 'VERDICT' mentioned,220.16,7371,5903,13274,6,5,keyword,,,
+exp01,anal_01,debate4,2,C,4,Text 'VERDICT' mentioned,152.67,5415,3538,8953,5,4,keyword,,,
+exp01,anal_02,debate4,0,C,4,Text 'VERDICT' mentioned,174.7,6983,4397,11380,5,4,keyword,,,
+exp01,anal_02,debate4,1,C,4,Text 'VERDICT' mentioned,170.21,5577,4053,9630,5,4,keyword,,,
+exp01,anal_02,debate4,2,C,4,Text 'VERDICT' mentioned,160.99,7479,4987,12466,5,4,keyword,,,
+exp01,anal_03,debate4,0,C,4,Text 'VERDICT' mentioned,158.62,6739,4030,10769,5,4,keyword,,,
+exp01,anal_03,debate4,1,C,4,Text 'VERDICT' mentioned,159.67,5980,3692,9672,5,4,keyword,,,
+exp01,anal_03,debate4,2,C,4,Text 'VERDICT' mentioned,164.88,5658,3504,9162,5,4,keyword,,,
+exp01,anal_04,debate4,0,C,4,Text 'VERDICT' mentioned,154.22,7137,5436,12573,5,4,keyword,,,
+exp01,anal_04,debate4,1,C,4,Text 'VERDICT' mentioned,164.92,4448,5311,9759,5,4,keyword,,,
+exp01,anal_04,debate4,2,C,4,Text 'VERDICT' mentioned,127.4,7845,4912,12757,5,4,keyword,,,
+exp01,anal_05,debate4,0,C,4,Text 'VERDICT' mentioned,149.05,4868,3231,8099,5,4,keyword,,,
+exp01,anal_05,debate4,1,C,4,Text 'VERDICT' mentioned,162.71,4464,2812,7276,5,4,keyword,,,
+exp01,anal_05,debate4,2,C,4,Text 'VERDICT' mentioned,95.51,4239,3315,7554,5,4,keyword,,,
+exp01,tech_01,debate4,0,C,4,Text 'VERDICT' mentioned,190.76,70,12491,12561,5,4,keyword,,,
+exp01,tech_01,debate4,1,C,4,Text 'VERDICT' mentioned,252.42,73,14030,14103,6,5,keyword,,,
+exp01,tech_01,debate4,2,C,4,Text 'VERDICT' mentioned,211.85,70,15111,15181,5,4,keyword,,,
+exp01,tech_02,debate4,0,C,4,Text 'VERDICT' mentioned,186.1,3652,10176,13828,5,4,keyword,,,
+exp01,tech_02,debate4,1,C,4,Text 'VERDICT' mentioned,184.55,67,9945,10012,5,4,keyword,,,
+exp01,tech_02,debate4,2,C,4,Text 'VERDICT' mentioned,181.25,3904,8846,12750,5,4,keyword,,,
+exp01,tech_03,debate4,0,C,4,Text 'VERDICT' mentioned,164.36,2588,5860,8448,5,4,keyword,,,
+exp01,tech_03,debate4,1,C,4,Text 'VERDICT' mentioned,151.55,2814,6559,9373,5,4,keyword,,,
+exp01,tech_03,debate4,2,C,4,Text 'VERDICT' mentioned,156.45,5865,5523,11388,5,4,keyword,,,
+exp01,tech_04,debate4,0,C,4,Text 'VERDICT' mentioned,155.03,3022,6632,9654,5,4,keyword,,,
+exp01,tech_04,debate4,1,C,4,Text 'VERDICT' mentioned,137.51,6549,4743,11292,5,4,keyword,,,
+exp01,tech_04,debate4,2,C,4,Text 'VERDICT' mentioned,223.21,5854,9951,15805,6,5,keyword,,,
+exp01,tech_05,debate4,0,C,4,Text 'VERDICT' mentioned,202.55,77,16429,16506,6,5,keyword,,,
+exp01,tech_05,debate4,1,C,4,Text 'VERDICT' mentioned,174.06,74,13326,13400,5,4,keyword,,,
+exp01,tech_05,debate4,2,C,4,Text 'VERDICT' mentioned,176.0,74,12405,12479,5,4,keyword,,,
+exp01,fact_01,pipe,0,D,5,Text 'TERMINATE' mentioned,148.91,4819,8973,13792,7,5,keyword,,,
+exp01,fact_01,pipe,1,D,5,Text 'TERMINATE' mentioned,84.18,5489,4896,10385,6,4,keyword,,,
+exp01,fact_01,pipe,2,D,5,Text 'TERMINATE' mentioned,99.04,2190,6513,8703,6,4,keyword,,,
+exp01,fact_02,pipe,0,D,5,Text 'TERMINATE' mentioned,48.4,2450,2159,4609,5,3,keyword,,,
+exp01,fact_02,pipe,1,D,5,Text 'TERMINATE' mentioned,44.58,2308,1834,4142,5,3,keyword,,,
+exp01,fact_02,pipe,2,D,5,Text 'TERMINATE' mentioned,45.83,2501,2001,4502,5,3,keyword,,,
+exp01,fact_03,pipe,0,D,5,Text 'TERMINATE' mentioned,98.92,6994,5856,12850,6,4,keyword,,,
+exp01,fact_03,pipe,1,D,5,Text 'TERMINATE' mentioned,143.81,3336,10669,14005,6,4,keyword,,,
+exp01,fact_03,pipe,2,D,5,Text 'TERMINATE' mentioned,75.46,3967,3708,7675,6,4,keyword,,,
+exp01,fact_04,pipe,0,D,5,Text 'TERMINATE' mentioned,84.28,5443,4505,9948,6,4,keyword,,,
+exp01,fact_04,pipe,1,D,5,Text 'TERMINATE' mentioned,98.2,6575,5281,11856,6,4,keyword,,,
+exp01,fact_04,pipe,2,D,5,Text 'TERMINATE' mentioned,73.2,4215,3517,7732,6,4,keyword,,,
+exp01,fact_05,pipe,0,D,5,Text 'TERMINATE' mentioned,149.5,3696,11749,15445,6,4,keyword,,,
+exp01,fact_05,pipe,1,D,5,Text 'TERMINATE' mentioned,98.15,3901,7613,11514,6,4,keyword,,,
+exp01,fact_05,pipe,2,D,5,Text 'TERMINATE' mentioned,89.41,6331,5468,11799,6,4,keyword,,,
+exp01,crea_01,pipe,0,D,5,Text 'TERMINATE' mentioned,211.06,5979,17317,23296,7,5,keyword,,,
+exp01,crea_01,pipe,1,D,5,Text 'TERMINATE' mentioned,152.82,4417,11724,16141,6,4,keyword,,,
+exp01,crea_01,pipe,2,D,5,Text 'TERMINATE' mentioned,221.0,5602,14947,20549,7,5,keyword,,,
+exp01,crea_02,pipe,0,D,5,Text 'TERMINATE' mentioned,142.17,7833,6139,13972,7,5,keyword,,,
+exp01,crea_02,pipe,1,D,5,Text 'TERMINATE' mentioned,125.38,5571,4010,9581,7,5,keyword,,,
+exp01,crea_02,pipe,2,D,5,Text 'TERMINATE' mentioned,129.38,7511,6263,13774,7,5,keyword,,,
+exp01,crea_03,pipe,0,D,5,Text 'TERMINATE' mentioned,136.92,4182,8177,12359,6,4,keyword,,,
+exp01,crea_03,pipe,1,D,5,Text 'TERMINATE' mentioned,141.13,3792,9023,12815,6,4,keyword,,,
+exp01,crea_03,pipe,2,D,5,Text 'TERMINATE' mentioned,268.2,2188,23267,25455,7,5,keyword,,,
+exp01,crea_04,pipe,0,D,5,Text 'TERMINATE' mentioned,114.18,1706,5691,7397,5,3,keyword,,,
+exp01,crea_04,pipe,1,D,5,Text 'TERMINATE' mentioned,154.3,2529,11773,14302,5,3,keyword,,,
+exp01,crea_04,pipe,2,D,5,Text 'TERMINATE' mentioned,88.47,2444,6188,8632,5,3,keyword,,,
+exp01,crea_05,pipe,0,D,5,Text 'TERMINATE' mentioned,155.61,4518,8211,12729,7,5,keyword,,,
+exp01,crea_05,pipe,1,D,5,Text 'TERMINATE' mentioned,87.37,4868,4003,8871,6,4,keyword,,,
+exp01,crea_05,pipe,2,D,5,Text 'TERMINATE' mentioned,98.19,5016,4045,9061,6,4,keyword,,,
+exp01,anal_01,pipe,0,D,5,Text 'TERMINATE' mentioned,81.23,5899,3885,9784,5,3,keyword,,,
+exp01,anal_01,pipe,1,D,5,Text 'TERMINATE' mentioned,70.75,5207,3527,8734,5,3,keyword,,,
+exp01,anal_01,pipe,2,D,5,Text 'TERMINATE' mentioned,60.35,3269,2726,5995,5,3,keyword,,,
+exp01,anal_02,pipe,0,D,5,Text 'TERMINATE' mentioned,203.72,5247,15672,20919,7,5,keyword,,,
+exp01,anal_02,pipe,1,D,5,Text 'TERMINATE' mentioned,90.03,5169,4130,9299,6,4,keyword,,,
+exp01,anal_02,pipe,2,D,5,Text 'TERMINATE' mentioned,112.03,6302,5448,11750,6,4,keyword,,,
+exp01,anal_03,pipe,0,D,5,Text 'TERMINATE' mentioned,100.58,5366,4741,10107,6,4,keyword,,,
+exp01,anal_03,pipe,1,D,5,Text 'TERMINATE' mentioned,93.7,4294,3934,8228,6,4,keyword,,,
+exp01,anal_03,pipe,2,D,5,Text 'TERMINATE' mentioned,107.95,3051,7371,10422,6,4,keyword,,,
+exp01,anal_04,pipe,0,D,5,Text 'TERMINATE' mentioned,158.52,4490,10230,14720,6,4,keyword,,,
+exp01,anal_04,pipe,1,D,5,Text 'TERMINATE' mentioned,155.47,4253,8409,12662,6,4,keyword,,,
+exp01,anal_04,pipe,2,D,5,Text 'TERMINATE' mentioned,152.47,2067,11845,13912,5,3,keyword,,,
+exp01,anal_05,pipe,0,D,5,Text 'TERMINATE' mentioned,187.88,5043,13884,18927,7,5,keyword,,,
+exp01,anal_05,pipe,1,D,5,Text 'TERMINATE' mentioned,93.23,2065,5535,7600,5,3,keyword,,,
+exp01,anal_05,pipe,2,D,5,Text 'TERMINATE' mentioned,166.62,9038,13026,22064,7,5,keyword,,,
+exp01,tech_01,pipe,0,D,5,Text 'TERMINATE' mentioned,220.72,75,23022,23097,7,5,keyword,,,
+exp01,tech_01,pipe,1,D,5,Text 'TERMINATE' mentioned,118.34,1852,11186,13038,6,4,keyword,,,
+exp01,tech_01,pipe,2,D,5,Text 'TERMINATE' mentioned,238.23,72,30180,30252,6,4,keyword,,,
+exp01,tech_02,pipe,0,D,5,Text 'TERMINATE' mentioned,238.69,72,25330,25402,7,5,keyword,,,
+exp01,tech_02,pipe,1,D,5,Text 'TERMINATE' mentioned,141.86,3689,13582,17271,6,4,keyword,,,
+exp01,tech_02,pipe,2,D,5,Text 'TERMINATE' mentioned,179.49,69,16544,16613,6,4,keyword,,,
+exp01,tech_03,pipe,0,D,5,Text 'TERMINATE' mentioned,125.52,5914,10156,16070,6,4,keyword,,,
+exp01,tech_03,pipe,1,D,5,Text 'TERMINATE' mentioned,104.9,5706,8933,14639,6,4,keyword,,,
+exp01,tech_03,pipe,2,D,5,Text 'TERMINATE' mentioned,103.45,9128,7706,16834,6,4,keyword,,,
+exp01,tech_04,pipe,0,D,5,Text 'TERMINATE' mentioned,106.69,9612,7935,17547,6,4,keyword,,,
+exp01,tech_04,pipe,1,D,5,Text 'TERMINATE' mentioned,111.65,5497,9432,14929,6,4,keyword,,,
+exp01,tech_04,pipe,2,D,5,Text 'TERMINATE' mentioned,149.19,3719,12901,16620,6,4,keyword,,,
+exp01,tech_05,pipe,0,D,5,Text 'TERMINATE' mentioned,168.47,76,19325,19401,6,4,keyword,,,
+exp01,tech_05,pipe,1,D,5,Text 'TERMINATE' mentioned,179.45,3927,21334,25261,6,4,keyword,,,
+exp01,tech_05,pipe,2,D,5,Text 'TERMINATE' mentioned,145.05,3946,17424,21370,6,4,keyword,,,
+exp01,fact_01,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",77.88,7262,8638,15900,11,7,max_messages,,,
+exp01,fact_01,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",72.14,6211,8066,14277,11,7,max_messages,,,
+exp01,fact_01,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",76.68,6555,8986,15541,11,7,max_messages,,,
+exp01,fact_02,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",75.02,5624,7013,12637,11,7,max_messages,,,
+exp01,fact_02,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",62.35,5410,6107,11517,11,7,max_messages,,,
+exp01,fact_02,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",72.75,5923,7818,13741,11,7,max_messages,,,
+exp01,fact_03,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",86.96,4608,9979,14587,11,7,max_messages,,,
+exp01,fact_03,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",81.48,4312,10490,14802,11,7,max_messages,,,
+exp01,fact_03,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",82.98,4458,13479,17937,11,7,max_messages,,,
+exp01,fact_04,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",68.8,7020,8082,15102,11,7,max_messages,,,
+exp01,fact_04,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",89.86,3518,10753,14271,11,7,max_messages,,,
+exp01,fact_04,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",74.89,7800,9215,17015,11,7,max_messages,,,
+exp01,fact_05,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",77.58,4669,11597,16266,11,7,max_messages,,,
+exp01,fact_05,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",85.1,4286,12256,16542,11,7,max_messages,,,
+exp01,fact_05,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",79.19,4355,11463,15818,11,7,max_messages,,,
+exp01,crea_01,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",138.39,7788,20590,28378,11,7,max_messages,,,
+exp01,crea_01,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",144.11,6189,20313,26502,11,7,max_messages,,,
+exp01,crea_01,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",169.98,6915,21486,28401,11,7,max_messages,,,
+exp01,crea_02,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",57.06,4576,5181,9757,11,7,max_messages,,,
+exp01,crea_02,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",51.97,4481,4478,8959,11,7,max_messages,,,
+exp01,crea_02,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",55.93,4598,5196,9794,11,7,max_messages,,,
+exp01,crea_03,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",111.75,4725,15978,20703,11,7,max_messages,,,
+exp01,crea_03,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",106.64,4603,13733,18336,11,7,max_messages,,,
+exp01,crea_03,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",125.26,5414,16046,21460,11,7,max_messages,,,
+exp01,crea_04,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",120.46,6228,15383,21611,11,7,max_messages,,,
+exp01,crea_04,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",111.17,6007,15609,21616,11,7,max_messages,,,
+exp01,crea_04,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",100.08,5366,13291,18657,11,7,max_messages,,,
+exp01,crea_05,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",65.24,5180,5690,10870,11,7,max_messages,,,
+exp01,crea_05,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",74.82,6133,7400,13533,11,7,max_messages,,,
+exp01,crea_05,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",58.39,4179,4639,8818,11,7,max_messages,,,
+exp01,anal_01,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",92.12,4247,12400,16647,11,7,max_messages,,,
+exp01,anal_01,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",74.52,7700,8328,16028,11,7,max_messages,,,
+exp01,anal_01,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",94.37,4591,11313,15904,11,7,max_messages,,,
+exp01,anal_02,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",108.0,3569,13223,16792,11,7,max_messages,,,
+exp01,anal_02,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",83.32,3974,10553,14527,11,7,max_messages,,,
+exp01,anal_02,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",107.97,4085,13035,17120,11,7,max_messages,,,
+exp01,anal_03,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",89.16,4116,10993,15109,11,7,max_messages,,,
+exp01,anal_03,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",103.72,3911,13075,16986,11,7,max_messages,,,
+exp01,anal_03,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",100.03,3892,11938,15830,11,7,max_messages,,,
+exp01,anal_04,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",127.16,5866,18268,24134,11,7,max_messages,,,
+exp01,anal_04,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",125.24,6271,17583,23854,11,7,max_messages,,,
+exp01,anal_04,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",112.32,5973,16860,22833,11,7,max_messages,,,
+exp01,anal_05,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",103.52,5088,14966,20054,11,7,max_messages,,,
+exp01,anal_05,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",106.64,4848,17262,22110,11,7,max_messages,,,
+exp01,anal_05,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",98.18,5088,15947,21035,11,7,max_messages,,,
+exp01,tech_01,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",143.36,245,38627,38872,11,7,max_messages,,,
+exp01,tech_01,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",169.39,245,50948,51193,11,7,max_messages,,,
+exp01,tech_01,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",148.28,245,48548,48793,11,7,max_messages,,,
+exp01,tech_02,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",173.95,236,43818,44054,11,7,max_messages,,,
+exp01,tech_02,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",160.6,236,37923,38159,11,7,max_messages,,,
+exp01,tech_02,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",165.26,236,38300,38536,11,7,max_messages,,,
+exp01,tech_03,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",92.5,9908,19896,29804,11,7,max_messages,,,
+exp01,tech_03,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",82.04,8751,18103,26854,11,7,max_messages,,,
+exp01,tech_03,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",99.89,9591,23006,32597,11,7,max_messages,,,
+exp01,tech_04,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",108.4,6878,21201,28079,11,7,max_messages,,,
+exp01,tech_04,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",108.28,7978,25357,33335,11,7,max_messages,,,
+exp01,tech_04,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",102.62,9570,20926,30496,11,7,max_messages,,,
+exp01,tech_05,moa,0,D,4,"Maximum number of messages 2 reached, current message count: 2",152.92,257,44515,44772,11,7,max_messages,,,
+exp01,tech_05,moa,1,D,4,"Maximum number of messages 2 reached, current message count: 2",138.87,257,37656,37913,11,7,max_messages,,,
+exp01,tech_05,moa,2,D,4,"Maximum number of messages 2 reached, current message count: 2",149.85,257,43949,44206,11,7,max_messages,,,

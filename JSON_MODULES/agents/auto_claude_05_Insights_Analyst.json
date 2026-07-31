@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 2,
+  "label": "Insights Analyst",
+  "description": "코드베이스 분석 및 패턴 발견 에이전트",
+  "config": {
+    "name": "insights_agent",
+    "system_message": "당신은 코드베이스 분석가입니다. 프로젝트 구조와 패턴을 분석하세요."
+  }
+}

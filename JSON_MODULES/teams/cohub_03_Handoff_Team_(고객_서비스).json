@@ -1,0 +1,199 @@
+{
+  "provider": "autogen_agentchat.teams.Swarm",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "label": "Handoff Team (고객 서비스)",
+  "description": "에이전트가 작업 요구사항에 따라 다른 에이전트에게 동적으로 제어권을 이전합니다.",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "label": "Triage Agent",
+        "config": {
+          "name": "triage_agent",
+          "description": "고객 문의 분류",
+          "system_message": "당신은 고객 문의 분류 담당입니다. 문의 유형을 파악하고 적절한 담당자에게 전달하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Haiku 4.5 (Max OAuth)",
+            "description": "Claude Haiku 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-haiku-4-5-20251001"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "handoffs": [
+            "support_agent",
+            "sales_agent",
+            "refund_agent"
+          ],
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "label": "Support Agent",
+        "config": {
+          "name": "support_agent",
+          "description": "기술 지원",
+          "system_message": "당신은 기술 지원 담당입니다. 기술적인 문제를 해결하세요. 완료되면 TERMINATE라고 말하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Haiku 4.5 (Max OAuth)",
+            "description": "Claude Haiku 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-haiku-4-5-20251001"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "handoffs": [
+            "triage_agent"
+          ],
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "label": "Sales Agent",
+        "config": {
+          "name": "sales_agent",
+          "description": "영업 담당",
+          "system_message": "당신은 영업 담당입니다. 제품 문의와 구매 관련 질문에 답하세요. 완료되면 TERMINATE라고 말하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Haiku 4.5 (Max OAuth)",
+            "description": "Claude Haiku 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-haiku-4-5-20251001"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "handoffs": [
+            "triage_agent"
+          ],
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "label": "Refund Agent",
+        "config": {
+          "name": "refund_agent",
+          "description": "환불 담당",
+          "system_message": "당신은 환불 담당입니다. 환불 요청을 처리하세요. 완료되면 TERMINATE라고 말하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Haiku 4.5 (Max OAuth)",
+            "description": "Claude Haiku 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-haiku-4-5-20251001"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "handoffs": [
+            "triage_agent"
+          ],
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "label": "TextMentionTermination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "label": "MaxMessageTermination",
+            "config": {
+              "max_messages": 10,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

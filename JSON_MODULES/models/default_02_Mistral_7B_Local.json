@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+  "component_type": "model",
+  "version": 1,
+  "label": "Mistral-7B Local",
+  "description": "Local Mistral-7B model client for instruction-based generation (Ollama)",
+  "config": {
+    "model": "mistral:7b-instruct",
+    "base_url": "http://localhost:11434/v1"
+  }
+}

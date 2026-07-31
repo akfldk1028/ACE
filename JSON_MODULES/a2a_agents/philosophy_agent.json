@@ -1,0 +1,23 @@
+{
+  "provider": "autogenstudio.a2a.A2AAgent",
+  "component_type": "agent",
+  "version": 1,
+  "description": "철학적 질문에 답하고 동서양 사상가들의 지혜를 나누는 철학 전문 에이전트",
+  "label": "Philosophy Agent",
+  "config": {
+    "name": "philosophy_agent",
+    "a2a_server_url": "http://localhost:8004",
+    "description": "철학자 명언, 철학적 주제 탐구, 동서양 철학 비교",
+    "timeout": 300,
+    "skills": [
+      {"name": "get_philosopher_quote", "description": "철학자의 명언을 가져옵니다"},
+      {"name": "explore_philosophical_question", "description": "철학적 주제를 탐구합니다"},
+      {"name": "compare_eastern_western", "description": "동서양 철학을 비교합니다"}
+    ]
+  },
+  "_source": {
+    "agent_file": "D:/Data/22_AG/autogen_a2a_kit/a2a_demo/philosophy_agent/agent.py",
+    "port": 8004,
+    "framework": "google_adk"
+  }
+}

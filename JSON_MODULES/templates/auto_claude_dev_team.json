@@ -1,0 +1,136 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 2,
+  "description": "Auto-Claude 개발팀 - Planner→Coder→QA Reviewer→QA Fixer 파이프라인. 실제 파일 작성과 빌드 실행 가능.",
+  "label": "Auto-Claude Dev Team (4-Agent Pipeline)",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "planner_agent",
+          "description": "프로젝트 계획 및 태스크 분해",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "system_message": "당신은 프로젝트 플래너입니다. 요구사항을 분석하고 실행 가능한 태스크로 분해하세요.\n\n출력 형식:\n1. 요구사항 요약\n2. 태스크 목록 (파일 경로 포함)\n3. 의존성 순서\n4. 주의사항\n\n계획이 완료되면 coder_agent가 바로 실행할 수 있도록 구체적으로 작성하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "agent_config": {"profile": "reader", "max_turns": 3, "permission_mode": "plan", "cwd": "D:\\AC247"}
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          }
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "coder_agent",
+          "description": "코드 작성 및 구현 (파일 쓰기 + 실행 가능)",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "system_message": "당신은 시니어 개발자입니다. planner_agent의 계획에 따라 깨끗하고 효율적인 코드를 작성하세요.\n\n중요: 반드시 Write 도구로 실제 파일을 작성하고, Bash 도구로 실행/테스트하세요.\n코드 블록만 출력하지 말고 도구를 사용하여 실제 파일을 생성하세요.\n\n작업 순서:\n1. Write 도구로 파일 작성\n2. Bash 도구로 실행/테스트\n3. 결과 보고",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "agent_config": {"profile": "coder", "max_turns": 5, "permission_mode": "acceptEdits", "cwd": "D:\\AC247"}
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          }
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "qa_reviewer_agent",
+          "description": "코드 리뷰 및 품질 검증",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "system_message": "당신은 QA 리뷰어입니다. coder_agent가 작성한 코드를 검토하세요.\n\n검토 기준:\n1. 정확성 - 요구사항 충족 여부\n2. 버그 - 논리 오류, 경계값 문제\n3. 보안 - 취약점 존재 여부\n4. 코드 품질 - 가독성, 유지보수성\n5. 테스트 - 테스트 커버리지\n\n문제가 없으면 'APPROVED'라고 말하세요.\n문제가 있으면 구체적인 이슈와 수정 방안을 제시하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "agent_config": {"profile": "reader", "max_turns": 2, "permission_mode": "acceptEdits", "cwd": "D:\\AC247"}
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          }
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "qa_fixer_agent",
+          "description": "이슈 수정 및 리팩토링 (파일 수정 + 실행 가능)",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "system_message": "당신은 QA 수정 담당입니다. qa_reviewer_agent가 발견한 이슈를 수정하세요.\n\n중요: 반드시 Edit/Write 도구로 실제 파일을 수정하고, Bash 도구로 재실행하여 수정 확인하세요.\n\n작업 순서:\n1. 리뷰어가 지적한 이슈 확인\n2. Edit 도구로 코드 수정\n3. Bash 도구로 재실행/테스트\n4. 수정 완료 보고\n\n모든 이슈가 해결되면 'TERMINATE'라고 말하세요.\nqa_reviewer_agent가 APPROVED라고 말했으면 추가 수정 없이 'TERMINATE'라고 말하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "agent_config": {"profile": "coder", "max_turns": 5, "permission_mode": "acceptEdits", "cwd": "D:\\AC247"}
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          }
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "config": {
+              "text": "APPROVED"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "config": {
+              "max_messages": 12
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+\begin{table*}[t]
+\centering
+\caption{Six-model difficulty $\times$ pattern quality (mean G-Eval overall $\pm$ SD). Bold = highest per row. Models ordered by approximate capability (weak $\to$ strong). Haiku/GPT-4o-mini: 3 repeats per cell; others: 1 repeat.}
+\label{tab:difficulty_6model}
+\vspace{-2mm}
+{\footnotesize
+\begin{tabular}{@{}llccccc@{}}
+\toprule
+\textbf{Model} & \textbf{Diff.} & \textbf{Solo} & \textbf{Swm-3} & \textbf{Sel-3} & \textbf{Refl-2} & \textbf{Deb-3} \\
+\midrule
+Grok 3 Mini & Easy & \textbf{4.80}$\pm$0.45 & 4.20$\pm$0.45 & 3.40$\pm$0.55 & 4.00$\pm$0.71 & 2.40$\pm$0.55 \\
+ & Medium & \textbf{3.00} & 2.80$\pm$0.45 & 2.60$\pm$0.55 & 2.80$\pm$0.45 & 1.40$\pm$0.55 \\
+ & Hard & \textbf{2.60}$\pm$0.55 & \textbf{2.60}$\pm$0.55 & 2.40$\pm$0.89 & 2.40$\pm$0.55 & 1.60$\pm$0.55 \\
+\midrule
+GPT-4o-mini & Easy & \textbf{4.79}$\pm$0.43 & 4.73$\pm$0.46 & 4.20$\pm$0.77 & 4.20$\pm$0.56 & 4.20$\pm$0.68 \\
+ & Medium & \textbf{3.67}$\pm$0.62 & 3.13$\pm$0.64 & 3.13$\pm$0.35 & 3.27$\pm$0.46 & 3.00 \\
+ & Hard & \textbf{3.00}$\pm$0.53 & 2.93$\pm$0.46 & 2.93$\pm$0.26 & 2.93$\pm$0.26 & 2.87$\pm$0.35 \\
+\midrule
+Haiku 4.6 & Easy & \textbf{4.73}$\pm$0.70 & 3.82$\pm$1.25 & 4.07$\pm$0.88 & 4.67$\pm$0.49 & 4.40$\pm$0.63 \\
+ & Medium & 3.27$\pm$0.46 & 3.80$\pm$1.01 & 3.33$\pm$0.49 & \textbf{3.93}$\pm$0.59 & 3.67$\pm$0.72 \\
+ & Hard & \textbf{3.67}$\pm$0.98 & 3.00$\pm$0.88 & 3.47$\pm$0.74 & 3.47$\pm$0.52 & 2.93$\pm$0.46 \\
+\midrule
+Gemini 2.0 Flash & Easy & \textbf{4.80}$\pm$0.45 & 4.00$\pm$1.73 & 3.40$\pm$0.89 & 4.60$\pm$0.55 & 3.00$\pm$0.71 \\
+ & Medium & 3.40$\pm$0.55 & 3.40$\pm$0.55 & 3.40$\pm$0.89 & \textbf{3.60}$\pm$0.55 & 2.80$\pm$0.45 \\
+ & Hard & 3.00 & 3.00$\pm$0.71 & 3.00 & \textbf{3.40}$\pm$0.55 & 3.00 \\
+\midrule
+GPT-5.4 & Easy & \textbf{5.00} & 4.80$\pm$0.45 & 4.80$\pm$0.45 & \textbf{5.00} & 4.40$\pm$0.89 \\
+ & Medium & 3.60$\pm$0.55 & 3.40$\pm$0.55 & 3.40$\pm$0.55 & \textbf{4.60}$\pm$0.55 & 3.20$\pm$0.45 \\
+ & Hard & 3.00 & 3.00 & 3.20$\pm$0.45 & \textbf{3.80}$\pm$0.84 & 3.00 \\
+\midrule
+Opus 4.6 & Easy & \textbf{5.00} & 4.25$\pm$0.50 & 4.60$\pm$0.55 & 4.60$\pm$0.55 & 3.80$\pm$0.45 \\
+ & Medium & 4.20$\pm$0.45 & 3.80$\pm$0.84 & 3.60$\pm$0.55 & \textbf{4.40}$\pm$0.89 & 3.00$\pm$0.71 \\
+ & Hard & 3.00 & 3.20$\pm$0.45 & 3.00$\pm$0.71 & \textbf{3.60}$\pm$1.14 & 2.60$\pm$0.55 \\
+\bottomrule
+\end{tabular}
+}
+\end{table*}

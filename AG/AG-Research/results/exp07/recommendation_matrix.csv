@@ -1,0 +1,4 @@
+difficulty,best_quality_pattern,best_quality_score,best_efficiency_pattern,best_efficiency_score,quality_range,token_range
+easy,solo,4.73,solo,9.643,0.92,490-11200
+medium,refl2,3.93,solo,3.165,0.67,1032-15752
+hard,solo,3.67,solo,0.646,0.73,5680-28876

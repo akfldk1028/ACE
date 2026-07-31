@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 2,
+  "label": "Deep Research Agent",
+  "description": "심층 리서치 및 정보 수집 에이전트",
+  "config": {
+    "name": "deep_research_agent",
+    "system_message": "당신은 리서처입니다. 주어진 주제에 대해 심층적으로 조사하세요."
+  }
+}

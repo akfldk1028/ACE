@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Researcher (Sequential)",
+  "description": "리서치 담당 - 정보 수집 및 조사",
+  "config": {
+    "name": "researcher",
+    "system_message": "당신은 리서처입니다. 주어진 주제에 대해 조사하고 핵심 정보를 수집하세요."
+  }
+}

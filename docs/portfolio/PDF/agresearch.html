@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Multi-Agent Termination Dynamics — Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { font-family: 'Pretendard', 'Inter', sans-serif; color: #0A0A0A; background: #FFFFFF; -webkit-font-smoothing: antialiased; }
+  .page { width: 210mm; min-height: 297mm; padding: 16mm 18mm; page-break-after: always; position: relative; overflow: hidden; }
+  .page:last-child { page-break-after: auto; }
+  .accent { color: #4F46E5; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .num { font-variant-numeric: tabular-nums; }
+  .card { border: 1px solid #E5E7EB; border-radius: 12px; padding: 12px 14px; }
+  .card-accent { border-color: #4F46E5; background: #EEF2FF; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+  h1 { font-size: 56px; font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; }
+  h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+  h3 { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 4px; }
+  p, li { font-size: 11.5px; line-height: 1.5; color: #525252; }
+  .lede { font-size: 14px; line-height: 1.55; color: #0A0A0A; font-weight: 500; }
+  .metric-num { font-size: 38px; font-weight: 800; letter-spacing: -0.04em; color: #4F46E5; line-height: 1; font-family: 'JetBrains Mono', monospace; }
+  .metric-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-top: 5px; font-family: 'JetBrains Mono', monospace; }
+  .chip { display: inline-block; padding: 3px 8px; border: 1px solid #E5E7EB; border-radius: 999px; font-size: 9.5px; font-family: 'JetBrains Mono', monospace; color: #0A0A0A; margin: 2px; }
+  .chip-accent { border-color: #4F46E5; color: #4F46E5; background: #EEF2FF; }
+  .blob { position: absolute; width: 380px; height: 380px; background: radial-gradient(circle, rgba(79,70,229,0.18) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+  .nav { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #525252; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 4mm; }
+  .footer-nav { position: absolute; bottom: 10mm; left: 18mm; right: 18mm; display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: #A3A3A3; letter-spacing: 0.1em; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th { text-align: left; padding: 6px 4px; border-bottom: 1px solid #0A0A0A; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td { padding: 6px 4px; border-bottom: 1px solid #E5E7EB; font-size: 11px; color: #0A0A0A; }
+  td.label { color: #525252; }
+  .figure-wrap { background: #FAFAFA; border: 1px solid #E5E7EB; border-radius: 8px; padding: 10px; text-align: center; margin: 8px 0; }
+  .figure-wrap img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  .caption { font-size: 10.5px; color: #525252; margin-top: 8px; line-height: 1.5; text-align: left; padding: 0 4px; }
+  .caption .stat { color: #4F46E5; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #EEF2FF; color: #4F46E5; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 600; letter-spacing: 0.05em; }
+  .underline-accent { display: inline-block; border-bottom: 4px solid #4F46E5; padding-bottom: 0; line-height: 1; }
+  .divider-strong { height: 1px; background: #0A0A0A; margin: 10px 0; }
+  .divider { height: 1px; background: #E5E7EB; margin: 10px 0; }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1 — COVER -->
+<section class="page">
+  <div class="blob" style="top: -120px; right: -100px;"></div>
+  <div class="blob" style="bottom: -180px; left: -120px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(79,70,229,0.10) 0%, transparent 70%);"></div>
+
+  <div class="nav">Portfolio · Research Track · 2026</div>
+
+  <div style="margin-top: 60mm;">
+    <h1>When should<br>multi-agent <span class="accent">LLM teams</span><br>stop?</h1>
+    <p class="lede" style="margin-top: 22px; max-width: 150mm;">
+      First systematic study of termination dynamics across 14 coordination topologies. 2,200+ unified runs · 7 experiments · 5 LLMs · COLM 2026 target.
+    </p>
+  </div>
+
+  <div style="margin-top: 14mm;" class="grid-4">
+    <div><div class="metric-num">14</div><div class="metric-label">topologies</div></div>
+    <div><div class="metric-num">2,200+</div><div class="metric-label">runs</div></div>
+    <div><div class="metric-num">7</div><div class="metric-label">experiments</div></div>
+    <div><div class="metric-num">5</div><div class="metric-label">LLMs</div></div>
+  </div>
+
+  <div class="footer-nav">
+    <div>DongHyeon Kim · AG-Research</div>
+    <div>hanvit4303@gmail.com · 2026</div>
+  </div>
+</section>
+
+<!-- PAGE 2 — PROBLEM -->
+<section class="page">
+  <div class="nav">01 · Problem</div>
+  <h2>Termination Regret</h2>
+  <p style="margin-bottom: 14px; max-width: 165mm;">Multi-agent LLM systems (AutoGen, LangGraph, CrewAI) commonly use a fixed <code style="background:#F8FAFC;padding:2px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:10px;">max_turns=10</code> across all topologies. But a 2-agent chain and a 4-agent debate have <span class="accent">fundamentally different convergence behaviors</span>. Applying a uniform stop rule produces what we term <strong>termination regret</strong> — three failure modes:</p>
+
+  <div class="grid-3" style="margin-bottom: 16px;">
+    <div class="card">
+      <h3 style="font-size: 14px;">Over-termination</h3>
+      <p>Debate team continues 4 rounds past consensus, burning tokens with zero quality gain.</p>
+    </div>
+    <div class="card">
+      <h3 style="font-size: 14px;">Under-termination</h3>
+      <p>Sequential pipeline stops after the draft stage, never reaching the refinement that would have caught factual errors.</p>
+    </div>
+    <div class="card">
+      <h3 style="font-size: 14px;">Topology mismatch</h3>
+      <p>Selector-based team applies max-turn calibrated for flat patterns, cutting routing agent off mid-deliberation.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 8px;">Research Gap — Prior work in isolation</h3>
+
+  <table>
+    <thead>
+      <tr><th>Study</th><th>Patterns</th><th>Topology</th><th>Termination?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>REFRAIN (2025)</td><td>1</td><td class="label">single-agent CoT</td><td>yes</td></tr>
+      <tr><td>Hu et al. NeurIPS 2025</td><td>1</td><td class="label">debate-only</td><td>yes</td></tr>
+      <tr><td>Aegean (2025)</td><td>—</td><td class="label">parallel consensus</td><td>yes</td></tr>
+      <tr><td>MAST (Cemri 2025)</td><td>~5</td><td class="label">mixed</td><td>no</td></tr>
+      <tr style="background:#EEF2FF;"><td><strong style="color:#4F46E5;">Ours</strong></td><td><strong style="color:#4F46E5;">14</strong></td><td class="label" style="color:#4F46E5;">6 categories unified</td><td><strong style="color:#4F46E5;">yes (topology-aware)</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer-nav">
+    <div>Problem · Research Gap</div>
+    <div>02 / 12</div>
+  </div>
+</section>
+
+<!-- PAGE 3 — 14 PATTERNS TAXONOMY -->
+<section class="page">
+  <div class="nav">02 · Methodology</div>
+  <h2>14 Coordination Topologies · 6 Categories</h2>
+  <p style="margin-bottom: 8px;">Patterns grounded in <strong>Masterman et al. (2025)</strong> Chain/Star/Mesh + <strong>Tran et al. (2025)</strong> centralized/distributed split. The B1/B2 decomposition is a contribution of this work.</p>
+
+  <div class="figure-wrap">
+    <img src="figures/fig1_taxonomy.png" alt="14 patterns taxonomy">
+    <div class="caption"><strong>Figure 1.</strong> Pattern taxonomy. <span class="stat">S</span> baseline · <span class="stat">A</span> sequential chain (RR-2/3/4) · <span class="stat">B1</span> centralized routing/Star (Sel-3/4) · <span class="stat">B2</span> decentralized handoff/Mesh (Swm-3/4) · <span class="stat">C</span> structured feedback (Refl + Debate) · <span class="stat">D</span> composed (Pipe + MoA).</div>
+  </div>
+
+  <div class="footer-nav">
+    <div>Pattern Taxonomy</div>
+    <div>03 / 12</div>
+  </div>
+</section>
+
+<!-- PAGE 4 — ARCHITECTURES -->
+<section class="page">
+  <div class="nav">02 · Methodology</div>
+  <h2>Coordination Architectures</h2>
+
+  <div class="figure-wrap">
+    <img src="figures/fig2_architectures.png" alt="Coordination architectures">
+    <div class="caption"><strong>Figure 2.</strong> Communication patterns per category. Chain passes context linearly; Star concentrates routing in a selector node; Mesh enables peer-to-peer handoff; Reflexion adds feedback loops; Debate parallelizes argument; Composed combines primitives.</div>
+  </div>
+
+  <div class="card-accent card" style="margin-top: 8px;">
+    <strong>Why categories matter:</strong> previous literature treated B (dynamic routing) as one bucket. Our experiments show <span class="accent">centralized (B1) and decentralized (B2) scale opposite directions</span> — sub-linear vs super-linear. New cost hierarchy: <span class="mono">A ≈ B2 &lt; B1 ≈ C ≪ D</span>.
+  </div>
+
+  <div class="footer-nav">
+    <div>Architectures</div>
+    <div>04 / 12</div>
+  </div>
+</section>
+
+<!-- PAGE 5 — EXPERIMENTAL DESIGN -->
+<section class="page">
+  <div class="nav">02 · Methodology</div>
+  <h2>Experimental Design</h2>
+
+  <div class="figure-wrap">
+    <img src="figures/fig3_experimental_design.png" alt="Experimental design">
+    <div class="caption"><strong>Figure 3.</strong> Unified experimental matrix: <span class="stat">14 patterns × 25 tasks × 9 domains × 4 task types × 3 reps = 2,200+ runs</span>. Cross-validated across <span class="stat">5 LLMs</span> (Haiku 4.5, Sonnet 4.5, GPT-4o-mini, Gemini, GPT-5.4).</div>
+  </div>
+
+  <div class="grid-3" style="margin-top: 8px;">
+    <div class="card">
+      <h3>Tasks</h3>
+      <p>25 tasks across 9 domains (science, CS, history, philosophy, law, games, engineering, business, medicine) × 4 types (factual, analytical, technical, creative).</p>
+    </div>
+    <div class="card">
+      <h3>Models</h3>
+      <p>Claude Haiku 4.5 (agents) · Sonnet 4.5 (G-Eval judge) · GPT-4o-mini (cross-val ρ=0.900) · Gemini · GPT-5.4.</p>
+    </div>
+    <div class="card">
+      <h3>Statistics</h3>
+      <p>Kruskal-Wallis · Mann-Whitney U · Cohen's d · 5-fold CV · Spearman ρ · bootstrap CI.</p>
+    </div>
+  </div>
+
+  <div class="footer-nav">
+    <div>Experimental Design</div>
+    <div>05 / 12</div>
+  </div>
+</section>
+
+<!-- PAGE 6 — COST MAIN -->
+<section class="page">
+  <div class="nav">03 · Findings</div>
+  <h2>F1 — Cost Inversion <span class="pill">Exp01 · 980 runs</span></h2>
+
+  <div class="figure-wrap">
+    <img src="figures/fig4_exp01_main.png" alt="Cost analysis main">
+    <div class="caption"><strong>Figure 4.</strong> Token cost per pattern (4-panel: total tokens · turns · time · per-turn). <span class="stat">3-agent Swm-3 (3,203 tok) is cheaper than 2-agent RR-2 (4,759 tok). Mann-Whitney U=95, p&lt;0.001.</span> Communication pattern dominates raw agent count.</div>
+  </div>
+
+  <div class="card-accent card" style="margin-top: 6px;">
+    <span class="mono" style="font-size: 10px;">Solo (1,287) &lt; Swm-3 &lt; RR-2 &lt; Refl-2 &lt; Sel-3 &lt; Deb-3 &lt; RR-3 &lt; Sel-4 ≈ Deb-4 &lt; Swm-4 &lt; Pipe &lt; RR-4 &lt; MoA (22,333)</span> · <span class="accent">17.4× cost gap</span>
+  </div>
+
+  <div class="footer-nav">
+    <div>Finding 1 · Cost Inversion</div>
+    <div>06 / 12</div>
+  </div>
+</section>
+
+<!-- PAGE 7 — TASK HEATMAP + QUALITY TRAJECTORIES -->
+<section class="page">
+  <div class="nav">03 · Findings</div>
+  <h2>F2 — Quality by Task & Trajectory <span class="pill">Exp02 · G-Eval</span></h2>
+
+  <div class="grid-2">
+    <div class="figure-wrap">
+      <img src="figures/fig4b_task_heatmap.png" alt="Task heatmap">
+      <div class="caption"><strong>Figure 4b.</strong> Quality heatmap (pattern × task type). <span class="stat">2.3× gap on technical tasks (refl-2 = 5.0 vs sel-3 = 2.2)</span>. Factual tasks: small variance.</div>
+    </div>
+    <div class="figure-wrap">
+      <img src="figures/fig5_quality_trajectories.png" alt="Quality trajectories">
+      <div class="caption"><strong>Figure 5.</strong> 3 trajectory types: <span class="stat">Plateau</span> (RR-3) · <span class="stat">Peak</span> (Refl-2) · <span class="stat">Decline</span> (Debate-3 monotonic 3.8→3.4→3.3). Du et al. ICML 2024 contradicted on debate quality.</div>
+    </div>
+  </div>
+
+  <div class="figure-wrap" style="margin-top: 6px;">
+    <img src="figures/fig5b_termination_regret.png" alt="Termination regret">
+    <div class="caption"><strong>Figure 5b.</strong> Termination regret (turns past optimal stop). <span class="stat">Debate-3: 0.65 G-Eval points lost from regret.</span> Refl-2: nearly zero loss (peak trajectory).</div>
+  </div>
+
+  <div class="footer-nav">
+    <div>Finding 2 · Quality Trajectories</div>
+    <div>07 / 12</div>
+  </div>
+</section>
+
+<!-- PAGE 8 — CONVERGENCE -->
+<section class="page">
+  <div class="nav">03 · Findings</div>
+  <h2>F3 — Semantic Convergence <span class="pill">Exp03 · Sentence-BERT</span></h2>
+
+  <div class="figure-wrap">
+    <img src="figures/fig6_convergence.png" alt="Convergence">
+    <div class="caption"><strong>Figure 6.</strong> Semantic stability per turn (Sentence-BERT cosine). <span class="stat">Pipe 32% > B1 26% > A 16% > B2 12% > C 0%</span>. Debate-3 has highest cosine (0.673) but never converges — every turn introduces new arguments. Convergence signals are <span class="accent">topology-dependent</span>; one-size-fits-all detection fails.</div>
+  </div>
+
+  <div class="card" style="margin-top: 6px;">
+    <strong>Engineering takeaway:</strong> Convergence-based termination only viable for Pipeline / B1 / A. For B2 / Debate, use <span class="accent">topology-specific signals</span> (turn loop detection, argument novelty score).
+  </div>
+
+  <div class="footer-nav">
+    <div>Finding 3 · Convergence</div>
+    <div>08 / 12</div>
+  </div>
+</section>
+
+<!-- PAGE 9 — PARETO + ΔU -->
+<section class="page">
+  <div class="nav">03 · Findings</div>
+  <h2>F4 — ΔU Negative Result <span class="pill">Exp05 · 800 runs</span></h2>
+
+  <div class="grid-2">
+    <div class="figure-wrap">
+      <img src="figures/fig8_pareto.png" alt="Pareto frontier">
+      <div class="caption"><strong>Figure 8.</strong> Pareto frontier — quality vs cost. Solo dominates lower-left. Refl-2 anchors high-quality region. <span class="stat">Debate / MoA fall off frontier.</span></div>
+    </div>
+    <div class="figure-wrap">
+      <img src="figures/fig8b_cost_reduction.png" alt="Cost reduction">
+      <div class="caption"><strong>Figure 8b.</strong> ΔU adaptive vs keyword baseline. <span class="stat">Swm-4: −70%</span> (only success). <span class="stat">Refl-2: +258% overhead</span>. RR-3 +32%, Sel-3 +63%.</div>
+    </div>
+  </div>
+
+  <div class="card-accent card" style="margin-top: 6px;">
+    <strong>Negative result with practical value:</strong> <span class="accent">7 of 8 patterns: keyword TERMINATE is near-optimal.</span> ΔU(t) = ΔQ(t) − λ·ΔC(t) is a diagnostic lens, not a replacement. Hybrid strategy: keyword everywhere, ΔU only for B2 (decentralized handoff) where keyword fails (28% success rate).
+  </div>
+
+  <div class="footer-nav">
+    <div>Finding 4 · Keyword vs ΔU</div>
+    <div>09 / 12</div>
+  </div>
+</section>
+
+<!-- PAGE 10 — COST PREDICTION -->
+<section class="page">
+  <div class="nav">03 · Findings</div>
+  <h2>F5 — Cost Prediction Model <span class="pill">Exp06 · 718 runs · 5-fold CV</span></h2>
+
+  <div class="figure-wrap">
+    <img src="figures/fig9_cost_prediction.png" alt="Cost prediction">
+    <div class="caption"><strong>Figure 9.</strong> Random Forest feature importance. <span class="stat">R² = 0.54 on 5-fold CV.</span> Top features: <span class="stat">task_technical (0.27)</span> · <span class="stat">pat_D (0.17)</span> · <span class="stat">agent_count × max_messages (0.16)</span>. The interaction term — not raw count — emerges as the strongest topology signal.</div>
+  </div>
+
+  <div class="card" style="margin-top: 6px;">
+    <strong>Honest boundary:</strong> Topology features alone explain <span class="accent">54% of cost variance</span>. The remaining <span class="accent">46% is task-content complexity</span> — not predictable from coordination structure. Holdout on Exp05 task suite: R²=0.29 (recalibration needed across task domains).
+  </div>
+
+  <div class="footer-nav">
+    <div>Finding 5 · Cost Prediction</div>
+    <div>10 / 12</div>
+  </div>
+</section>
+
+<!-- PAGE 11 — DIFFICULTY -->
+<section class="page">
+  <div class="nav">03 · Findings</div>
+  <h2>F6 — Difficulty Dominates Pattern <span class="pill">Exp07 · 669 runs · 5 LLMs</span></h2>
+
+  <div class="figure-wrap">
+    <img src="figures/fig10_difficulty_analysis.png" alt="Difficulty analysis">
+    <div class="caption"><strong>Figure 10.</strong> Quality by difficulty × pattern across 5 models. <span class="stat">Difficulty effect η²=0.363 (large)</span> vs <span class="stat">pattern effect η²=0.039</span> — <span class="accent">9.3× difference</span>. Solo dominates Easy & Hard. Refl-2 helps only Haiku & GPT-5.4 at Medium (Cohen's d=1.26 / 1.83).</div>
+  </div>
+
+  <div class="card-accent card" style="margin-top: 6px;">
+    <strong>Recommendation matrix:</strong> Solo as default for cost-efficiency. Activate multi-agent coordination only when task difficulty approaches the model's capability frontier. The previously-reported inverted-U pattern holds for only 1 of 5 models (Haiku). <span class="accent">Capability-aware topology selection</span> beats blanket multi-agent strategies.
+  </div>
+
+  <div class="footer-nav">
+    <div>Finding 6 · Difficulty</div>
+    <div>11 / 12</div>
+  </div>
+</section>
+
+<!-- PAGE 12 — CONCLUSIONS -->
+<section class="page">
+  <div class="blob" style="bottom: -200px; right: -160px; width: 600px; height: 600px;"></div>
+  <div class="nav">04 · Contributions</div>
+  <h2>Seven Contributions</h2>
+
+  <div class="grid-2" style="gap: 8px;">
+    <div class="card">
+      <h3>1 · Cross-topology study</h3>
+      <p>First systematic comparison of 13 patterns × 7 experiments × 2,200+ runs in unified AutoGen framework. Prior work: 1-3 patterns max.</p>
+    </div>
+    <div class="card">
+      <h3>2 · Termination regret metric</h3>
+      <p>Post-hoc G-Eval trajectory analysis identifies optimal stop point vs actual stop point. Quantifies systematic over-/under-computation.</p>
+    </div>
+    <div class="card">
+      <h3>3 · Claim-level convergence</h3>
+      <p>Sentence-BERT semantic stability extending Hu NeurIPS 2025 KS-test to all 13 topologies. Shows convergence is topology-dependent.</p>
+    </div>
+    <div class="card">
+      <h3>4 · Pattern-specific error taxonomy</h3>
+      <p>Aligned with MAST (Cemri 2025): topology-correlated error types (token overflow / turn loop / missing keyword) per pattern.</p>
+    </div>
+    <div class="card-accent card">
+      <h3>5 · ΔU diagnostic framework</h3>
+      <p>Negative result: 7/8 keyword optimal. Positive result: B2 −70% with ΔU. Marginal utility as <span class="accent">principled diagnostic lens</span>, not optimizer.</p>
+    </div>
+    <div class="card-accent card">
+      <h3>6 · Cost prediction model</h3>
+      <p><span class="accent">RF R² = 0.54</span> · agents × max_messages strongest predictor · 46% task-content boundary acknowledged.</p>
+    </div>
+  </div>
+
+  <div class="card-accent card" style="margin-top: 8px;">
+    <h3>7 · Difficulty-aware recommendation matrix</h3>
+    <p>5 LLMs × 3 difficulty levels mapping. <span class="accent">Solo dominates cost-efficiency at every level</span>. Refl-2 helps only weak models at medium difficulty (capability moderation).</p>
+  </div>
+
+  <div class="divider-strong" style="margin: 14px 0;"></div>
+
+  <div style="text-align: center; padding: 8px;">
+    <h2 style="font-size: 22px; margin-bottom: 6px;">"Termination strategy should be a <span class="underline-accent">first-class</span> design decision."</h2>
+    <p style="font-size: 11px; color: #525252;">Framework released — 13 pattern implementations · 7 experiment runners · analysis scripts.</p>
+  </div>
+
+  <div style="position: absolute; bottom: 16mm; left: 18mm; right: 18mm;">
+    <div class="divider"></div>
+    <div class="grid-3" style="margin-top: 8px;">
+      <div>
+        <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 2px;">Author</h3>
+        <p style="color: #0A0A0A; font-size: 12px; font-weight: 600;">DongHyeon Kim</p>
+      </div>
+      <div>
+        <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 2px;">Contact</h3>
+        <p style="color: #4F46E5; font-size: 10px; font-family: 'JetBrains Mono', monospace;">hanvit4303@gmail.com</p>
+      </div>
+      <div>
+        <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #525252; margin-bottom: 2px;">Venue</h3>
+        <p style="font-size: 10px; font-family: 'JetBrains Mono', monospace;">COLM 2026 · Track 16</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-nav">
+    <div>Conclusions · DongHyeon Kim · 2026</div>
+    <div>12 / 12</div>
+  </div>
+</section>
+
+</body>
+</html>

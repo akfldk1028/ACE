@@ -1,0 +1,23 @@
+{
+  "provider": "autogenstudio.a2a.A2AAgent",
+  "component_type": "agent",
+  "version": 1,
+  "description": "기본 수학 연산, 피보나치 수열, 팩토리얼 계산을 수행하는 수학 계산 에이전트",
+  "label": "Calculator Agent",
+  "config": {
+    "name": "calculator_agent",
+    "a2a_server_url": "http://localhost:8006",
+    "description": "기본 수학 연산, 피보나치 수열, 팩토리얼 계산",
+    "timeout": 300,
+    "skills": [
+      {"name": "calculate", "description": "수학 표현식을 계산합니다"},
+      {"name": "fibonacci", "description": "n번째 피보나치 수를 계산합니다"},
+      {"name": "factorial", "description": "n의 팩토리얼을 계산합니다"}
+    ]
+  },
+  "_source": {
+    "agent_file": "D:/Data/22_AG/autogen_a2a_kit/a2a_demo/calculator_agent/agent.py",
+    "port": 8006,
+    "framework": "google_adk"
+  }
+}

@@ -1,0 +1,36 @@
+model,test,H,p,eta_sq,n
+Grok 3 Mini,difficulty_main,27.91,1e-06,0.36,75
+Grok 3 Mini,pattern_main,24.26,7.1e-05,0.289,75
+Grok 3 Mini,pattern_within_easy,17.26,0.00172,0.663,25
+Grok 3 Mini,pattern_within_medium,14.73,0.005285,0.537,25
+Grok 3 Mini,pattern_within_hard,6.83,0.145125,0.142,25
+GPT-4o-mini,difficulty_main,136.68,0.0,0.609,224
+GPT-4o-mini,pattern_main,8.01,0.091362,0.018,224
+GPT-4o-mini,pattern_within_easy,13.79,0.008013,0.142,74
+GPT-4o-mini,pattern_within_medium,14.56,0.0057,0.151,75
+GPT-4o-mini,pattern_within_hard,0.84,0.933355,0.0,75
+Haiku 4.6,difficulty_main,55.95,0.0,0.249,220
+Haiku 4.6,pattern_main,8.24,0.083247,0.02,220
+Haiku 4.6,pattern_within_easy,10.59,0.031634,0.1,71
+Haiku 4.6,pattern_within_medium,11.76,0.019259,0.111,75
+Haiku 4.6,pattern_within_hard,11.81,0.018785,0.113,74
+Gemini 2.0 Flash,difficulty_main,15.69,0.000391,0.19,75
+Gemini 2.0 Flash,pattern_main,12.27,0.015445,0.118,75
+Gemini 2.0 Flash,pattern_within_easy,12.18,0.01603,0.409,25
+Gemini 2.0 Flash,pattern_within_medium,4.79,0.309199,0.04,25
+Gemini 2.0 Flash,pattern_within_hard,4.11,0.391443,0.005,25
+GPT-5.4,difficulty_main,42.86,0.0,0.568,75
+GPT-5.4,pattern_main,9.57,0.048284,0.08,75
+GPT-5.4,pattern_within_easy,4.22,0.377283,0.011,25
+GPT-5.4,pattern_within_medium,10.95,0.027113,0.348,25
+GPT-5.4,pattern_within_hard,9.89,0.042306,0.295,25
+Opus 4.6,difficulty_main,29.77,0.0,0.391,74
+Opus 4.6,pattern_main,12.3,0.015254,0.12,74
+Opus 4.6,pattern_within_easy,11.58,0.020765,0.399,24
+Opus 4.6,pattern_within_medium,8.7,0.069066,0.235,25
+Opus 4.6,pattern_within_hard,4.93,0.294942,0.046,25
+ALL,difficulty_main,271.55,0.0,0.364,743
+ALL,pattern_main,38.27,0.0,0.046,743
+ALL,pattern_within_easy,38.17,0.0,0.143,244
+ALL,pattern_within_medium,19.72,0.000567,0.064,250
+ALL,pattern_within_hard,15.86,0.00321,0.049,249

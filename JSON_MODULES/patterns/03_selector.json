@@ -1,0 +1,114 @@
+{
+  "id": "selector",
+  "name": {
+    "en": "Selector/Router Orchestration",
+    "ko": "선택자/라우터 오케스트레이션"
+  },
+  "description": {
+    "en": "A central selector agent analyzes the task and routes it to the most appropriate specialist agent. The selector uses context and agent descriptions to make routing decisions.",
+    "ko": "중앙 선택자 에이전트가 작업을 분석하고 가장 적합한 전문 에이전트에게 라우팅합니다. 선택자는 컨텍스트와 에이전트 설명을 사용하여 라우팅 결정을 내립니다."
+  },
+  "diagram": "              ┌→ Expert A\nInput → Selector ┼→ Expert B → Result\n              └→ Expert C",
+  "complexity": "medium",
+  "when_to_use": [
+    "다양한 전문 분야의 에이전트가 있을 때",
+    "작업 유형에 따라 다른 에이전트가 필요할 때",
+    "동적 라우팅이 필요할 때",
+    "사용자 질문의 의도를 파악해야 할 때"
+  ],
+  "when_to_avoid": [
+    "모든 작업이 동일한 에이전트로 처리될 때",
+    "라우팅 로직이 단순하고 규칙 기반일 때",
+    "선택자의 오판이 심각한 결과를 초래할 때"
+  ],
+  "pros": [
+    "효율적인 리소스 사용",
+    "전문성에 기반한 작업 분배",
+    "확장성 (새 에이전트 추가 용이)",
+    "유연한 워크플로우"
+  ],
+  "cons": [
+    "선택자의 정확도에 의존",
+    "선택자 자체가 병목이 될 수 있음",
+    "잘못된 라우팅 시 성능 저하",
+    "selector_prompt 설계가 중요"
+  ],
+  "example_use_cases": [
+    {
+      "name": "고객 서비스 봇",
+      "selector": "의도 분류기",
+      "experts": ["결제 문의", "기술 지원", "제품 정보", "불만 처리"]
+    },
+    {
+      "name": "연구 어시스턴트",
+      "selector": "주제 분류기",
+      "experts": ["역사 전문가", "과학 전문가", "문학 전문가", "수학 전문가"]
+    }
+  ],
+  "autogen_implementation": {
+    "provider": "autogen_agentchat.teams.SelectorGroupChat",
+    "label": "Selector Team (전문가 라우팅)",
+    "team_config": {
+      "participants": [
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "coordinator",
+            "description": "일반적인 질문 및 조율 담당",
+            "system_message": "당신은 코디네이터입니다. 전문가가 없는 일반적인 질문에 답하고, 대화를 조율하세요."
+          }
+        },
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "history_expert",
+            "description": "역사 관련 질문 전문가",
+            "system_message": "당신은 역사 전문가입니다. 역사 관련 질문에 정확하고 상세하게 답변하세요."
+          }
+        },
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "science_expert",
+            "description": "과학 관련 질문 전문가",
+            "system_message": "당신은 과학 전문가입니다. 과학 관련 질문에 정확하고 상세하게 답변하세요."
+          }
+        },
+        {
+          "provider": "autogen_agentchat.agents.AssistantAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "math_expert",
+            "description": "수학 문제 해결 전문가",
+            "system_message": "당신은 수학 전문가입니다. 수학 문제를 단계별로 풀어서 설명하세요."
+          }
+        }
+      ],
+      "selector_prompt": "다음 역할들이 있습니다: {roles}\n\n대화 내용을 읽고 다음 발언에 가장 적합한 역할을 선택하세요:\n- 역사 관련: history_expert\n- 과학 관련: science_expert\n- 수학 관련: math_expert\n- 기타: coordinator\n\n{history}\n\n역할 이름만 반환하세요."
+    }
+  },
+  "best_practices": [
+    "selector_prompt에 각 에이전트의 역할을 명확히 기술",
+    "에이전트 description을 상세하게 작성",
+    "폴백 에이전트 지정",
+    "선택 로그 기록으로 성능 모니터링"
+  ],
+  "visual_override": {
+    "layout": "hub-spoke",
+    "category": "dynamic",
+    "icon": "Share2",
+    "primaryColor": "#8b5cf6",
+    "secondaryColor": "#c4b5fd",
+    "centerNodeType": "selector",
+    "edgeStyle": "dashed"
+  },
+  "references": [
+    {
+      "title": "AutoGen SelectorGroupChat",
+      "url": "https://microsoft.github.io/autogen/stable/user-guide/agentchat-user-guide/selector-group-chat.html"
+    }
+  ]
+}

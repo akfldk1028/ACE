@@ -1,0 +1,86 @@
+{
+  "id": "concurrent",
+  "name": {
+    "en": "Concurrent Orchestration",
+    "ko": "병렬 오케스트레이션"
+  },
+  "description": {
+    "en": "Runs multiple AI agents simultaneously on the same task. Each agent provides independent analysis from its unique perspective or specialization.",
+    "ko": "동일한 작업에 대해 여러 AI 에이전트를 동시에 실행합니다. 각 에이전트는 고유한 관점이나 전문성에서 독립적인 분석을 제공합니다."
+  },
+  "diagram": "        ┌→ Agent A ─┐\nInput ──┼→ Agent B ─┼→ Aggregator → Result\n        └→ Agent C ─┘",
+  "complexity": "medium",
+  "when_to_use": [
+    "고정/동적 에이전트 선택으로 병렬 실행 가능한 작업",
+    "여러 관점이 필요한 문제 (기술적, 비즈니스, 창의적)",
+    "병렬 처리로 지연 시간을 줄여야 하는 시간 민감한 시나리오",
+    "앙상블 추론, 브레인스토밍, 투표 기반 결정"
+  ],
+  "when_to_avoid": [
+    "에이전트가 특정 순서로 누적 컨텍스트가 필요할 때",
+    "결정론적, 재현 가능한 결과가 필요할 때",
+    "리소스 제약으로 병렬 처리가 비효율적일 때",
+    "상충되는 결과에 대한 충돌 해결 전략이 없을 때"
+  ],
+  "pros": [
+    "처리 시간 단축",
+    "다양한 관점 확보",
+    "단일 에이전트 실패에 강건함",
+    "앙상블 효과로 정확도 향상"
+  ],
+  "cons": [
+    "리소스 소비 증가",
+    "결과 통합 로직 필요",
+    "상충되는 의견 해결 메커니즘 필요",
+    "동기화 오버헤드"
+  ],
+  "example_use_cases": [
+    {
+      "name": "주식 평가",
+      "agents": ["기본적 분석", "기술적 분석", "감성 분석", "ESG 분석"],
+      "aggregation": "종합 투자 추천"
+    },
+    {
+      "name": "제품 리뷰 분석",
+      "agents": ["품질 분석", "가격 분석", "사용성 분석"],
+      "aggregation": "종합 평가"
+    }
+  ],
+  "autogen_implementation": {
+    "provider": "custom_parallel_executor",
+    "note": "AutoGen에서는 asyncio를 사용한 커스텀 구현 필요",
+    "config_template": {
+      "agents": ["analyst_1", "analyst_2", "analyst_3"],
+      "aggregator": "aggregator_agent",
+      "aggregation_strategy": "weighted_voting"
+    }
+  },
+  "aggregation_strategies": [
+    {
+      "name": "majority_voting",
+      "description": "다수결로 최종 결과 결정"
+    },
+    {
+      "name": "weighted_average",
+      "description": "가중 평균으로 결과 통합"
+    },
+    {
+      "name": "llm_synthesis",
+      "description": "LLM이 모든 결과를 종합하여 최종 답변 생성"
+    }
+  ],
+  "visual_override": {
+    "layout": "fork-join",
+    "category": "parallel",
+    "icon": "Split",
+    "primaryColor": "#22c55e",
+    "secondaryColor": "#86efac",
+    "edgeStyle": "solid"
+  },
+  "references": [
+    {
+      "title": "Microsoft AI Agent Design Patterns",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns"
+    }
+  ]
+}

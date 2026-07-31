@@ -1,0 +1,951 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://25-ace.local/schemas/arr.maas.evidence.v0.schema.json",
+  "title": "ARR MAAS Evidence Bundle v0",
+  "description": "Canonical evidence packet for one MAAS design candidate. This is a review/evidence contract, not a geometry engine.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "created_at",
+    "source",
+    "project",
+    "site",
+    "candidate",
+    "geometry",
+    "legal",
+    "program",
+    "mobility",
+    "life_safety",
+    "environment",
+    "checks",
+    "issues",
+    "validators",
+    "assets",
+    "provenance",
+    "agent_reviews",
+    "final_decision"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "arr.maas.evidence.v0"
+    },
+    "bundle_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "project": {
+      "$ref": "#/$defs/project"
+    },
+    "site": {
+      "$ref": "#/$defs/site"
+    },
+    "candidate": {
+      "$ref": "#/$defs/candidate"
+    },
+    "geometry": {
+      "$ref": "#/$defs/geometry"
+    },
+    "legal": {
+      "$ref": "#/$defs/legal"
+    },
+    "program": {
+      "$ref": "#/$defs/program"
+    },
+    "mobility": {
+      "$ref": "#/$defs/mobility"
+    },
+    "life_safety": {
+      "$ref": "#/$defs/domainBlock"
+    },
+    "environment": {
+      "$ref": "#/$defs/domainBlock"
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/check"
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/issue"
+      }
+    },
+    "validators": {
+      "$ref": "#/$defs/validators"
+    },
+    "assets": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/asset"
+      }
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+    "agent_reviews": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/agentReview"
+      }
+    },
+    "final_decision": {
+      "$ref": "#/$defs/finalDecision"
+    }
+  },
+  "$defs": {
+    "status": {
+      "enum": [
+        "pass",
+        "fail",
+        "needs_evidence",
+        "not_applicable",
+        "text_only",
+        "unknown"
+      ]
+    },
+    "decisionStatus": {
+      "enum": [
+        "pass",
+        "fail",
+        "needs_evidence",
+        "unknown"
+      ]
+    },
+    "severity": {
+      "enum": [
+        "hard",
+        "soft",
+        "info"
+      ]
+    },
+    "sourceKind": {
+      "enum": [
+        "arr",
+        "ag-light",
+        "cli",
+        "law_text",
+        "manual",
+        "external",
+        "unknown"
+      ]
+    },
+    "reviewDomain": {
+      "enum": [
+        "project_admin",
+        "site_rights_and_cadastre",
+        "zoning_and_land_use",
+        "bulk_and_density",
+        "building_line_and_setbacks",
+        "datum_and_terrain",
+        "sunlight_daylight_view",
+        "roads_access_and_fire_access",
+        "parking_loading_and_mobility",
+        "landscape_open_space_public",
+        "program_and_occupancy",
+        "core_circulation_and_egress",
+        "fire_and_life_safety",
+        "structure_and_geotechnical",
+        "accessibility_and_welfare",
+        "energy_green_and_environment",
+        "mechanical_electrical_plumbing",
+        "external_restricted_zones",
+        "housing_or_special_use_law",
+        "model_documents_and_artifacts",
+        "provenance_and_review"
+      ]
+    },
+    "looseObject": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "system",
+        "algorithm"
+      ],
+      "properties": {
+        "system": {
+          "type": "string",
+          "minLength": 1
+        },
+        "algorithm": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generator_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "git_sha": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "review_stage",
+        "application_type",
+        "jurisdiction",
+        "review_scope",
+        "assumptions",
+        "exclusions"
+      ],
+      "properties": {
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "review_stage": {
+          "enum": [
+            "concept",
+            "precheck",
+            "building_permit",
+            "change_of_use",
+            "major_repair",
+            "construction_start",
+            "use_approval",
+            "unknown"
+          ]
+        },
+        "application_type": {
+          "enum": [
+            "new_construction",
+            "extension",
+            "renovation",
+            "relocation",
+            "change_of_use",
+            "major_repair",
+            "unknown"
+          ]
+        },
+        "jurisdiction": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "applicant": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "review_scope": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "assumptions": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "exclusions": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "site": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "pnu",
+        "site_area_m2",
+        "site_polygon",
+        "zones",
+        "matched_zones",
+        "unmatched_zones",
+        "overlay_zones",
+        "land_info",
+        "road_frontages",
+        "neighbor_parcels"
+      ],
+      "properties": {
+        "pnu": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9]{19}$"
+        },
+        "address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "site_area_m2": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "site_polygon": {
+          "$ref": "#/$defs/geojson"
+        },
+        "administrative_codes": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "zones": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "matched_zones": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "unmatched_zones": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "overlay_zones": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "district_unit_plan": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "land_info": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "road_frontages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/looseObject"
+          }
+        },
+        "neighbor_parcels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/looseObject"
+          }
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "job_id",
+        "candidate_id",
+        "mass_shape",
+        "intended_use",
+        "is_feasible",
+        "objectives",
+        "repair_actions",
+        "rejected_siblings"
+      ],
+      "properties": {
+        "job_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "design_id": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "variant_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mass_shape": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "maas_concept": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "intended_use": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "score": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "rank": {
+          "type": [
+            "number",
+            "integer",
+            "null"
+          ]
+        },
+        "is_pareto_optimal": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "is_feasible": {
+          "type": "boolean"
+        },
+        "objectives": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "repair_actions": {
+          "type": "array"
+        },
+        "rejected_siblings": {
+          "type": "array"
+        }
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "crs",
+        "mass_geojson",
+        "floor_plates",
+        "floor_groups",
+        "mass_volumes",
+        "geometry_metrics"
+      ],
+      "properties": {
+        "crs": {
+          "type": "string"
+        },
+        "mass_geojson": {
+          "$ref": "#/$defs/geojson"
+        },
+        "bbox": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "floor_plates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/looseObject"
+          }
+        },
+        "floor_groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/looseObject"
+          }
+        },
+        "mass_volumes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/looseObject"
+          }
+        },
+        "maas_model": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "verb_sequence": {
+          "type": "array"
+        },
+        "geometry_metrics": {
+          "$ref": "#/$defs/looseObject"
+        }
+      }
+    },
+    "legal": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "summary",
+        "limits",
+        "metrics",
+        "datum",
+        "setbacks",
+        "sunlight",
+        "daylight_spacing",
+        "road_building_line",
+        "corner_cutoff",
+        "landscaping",
+        "building_use",
+        "site_road_requirement",
+        "split_zoning",
+        "use_classification",
+        "ordinance_overrides",
+        "law_articles",
+        "extended_regulations"
+      ],
+      "properties": {
+        "summary": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "limits": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "metrics": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "datum": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "setbacks": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "sunlight": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "daylight_spacing": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "road_building_line": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "corner_cutoff": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "landscaping": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "building_use": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "site_road_requirement": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "split_zoning": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "use_classification": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "ordinance_overrides": {
+          "type": "array"
+        },
+        "law_articles": {
+          "type": "array"
+        },
+        "extended_regulations": {
+          "$ref": "#/$defs/looseObject"
+        }
+      }
+    },
+    "program": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "building_type",
+        "program_packing",
+        "core",
+        "usable_depth",
+        "egress_precheck",
+        "floor_plate_viability"
+      ],
+      "properties": {
+        "building_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "program_packing": {
+          "type": "array"
+        },
+        "core": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "usable_depth": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "egress_precheck": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "floor_plate_viability": {
+          "type": "array"
+        }
+      }
+    },
+    "mobility": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "parking",
+        "access"
+      ],
+      "properties": {
+        "parking": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "access": {
+          "$ref": "#/$defs/looseObject"
+        }
+      }
+    },
+    "domainBlock": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "key",
+        "domain",
+        "status",
+        "severity",
+        "source",
+        "basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "$ref": "#/$defs/reviewDomain"
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "source": {
+          "$ref": "#/$defs/sourceKind"
+        },
+        "basis": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "applicability": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "inputs": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "computed": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "required": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "provided": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "object_refs": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "asset_refs": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "warnings": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "errors": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "topic_type",
+        "severity",
+        "title",
+        "status",
+        "check_refs"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "topic_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "enum": [
+            "open",
+            "resolved",
+            "accepted_risk",
+            "dismissed"
+          ]
+        },
+        "check_refs": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "asset_refs": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "assignee": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "validators": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "overall_status",
+        "runs"
+      ],
+      "properties": {
+        "overall_status": {
+          "$ref": "#/$defs/decisionStatus"
+        },
+        "runs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validatorRun"
+          }
+        }
+      }
+    },
+    "validatorRun": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "validator",
+        "status",
+        "checked_at"
+      ],
+      "properties": {
+        "validator": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "checked_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "inputs_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "result": {
+          "$ref": "#/$defs/looseObject"
+        },
+        "hard_failures": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "warnings": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "href",
+        "type",
+        "roles"
+      ],
+      "properties": {
+        "href": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "roles": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "created_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "entities",
+        "activities",
+        "agents",
+        "relations"
+      ],
+      "properties": {
+        "entities": {
+          "type": "array"
+        },
+        "activities": {
+          "type": "array"
+        },
+        "agents": {
+          "type": "array"
+        },
+        "relations": {
+          "type": "array"
+        }
+      }
+    },
+    "agentReview": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "agent",
+        "status",
+        "scope",
+        "evidence_refs",
+        "summary"
+      ],
+      "properties": {
+        "agent": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/decisionStatus"
+        },
+        "scope": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "claims": {
+          "type": "array"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "hard_failures": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "warnings": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    },
+    "finalDecision": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "status",
+        "decided_by",
+        "blocking_failures",
+        "missing_evidence",
+        "accepted_risks",
+        "summary"
+      ],
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/decisionStatus"
+        },
+        "decided_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "blocking_failures": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "missing_evidence": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "accepted_risks": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    },
+    "geojson": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "Feature",
+            "FeatureCollection",
+            "Polygon",
+            "MultiPolygon",
+            "LineString",
+            "MultiLineString",
+            "Point",
+            "MultiPoint",
+            "GeometryCollection"
+          ]
+        }
+      }
+    }
+  }
+}

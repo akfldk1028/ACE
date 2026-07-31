@@ -1,0 +1,163 @@
+{
+  "name": "AG_Cohub - Multi-Agent Collaboration Patterns",
+  "version": "1.0.0",
+  "description": {
+    "en": "A comprehensive collection of multi-agent collaboration patterns for AI agent orchestration. Based on research papers, industry best practices, and AutoGen implementation patterns.",
+    "ko": "AI 에이전트 오케스트레이션을 위한 멀티 에이전트 협업 패턴 종합 컬렉션. 연구 논문, 산업 모범 사례, AutoGen 구현 패턴을 기반으로 합니다."
+  },
+  "patterns": [
+    {
+      "id": "sequential",
+      "file": "patterns/01_sequential.json",
+      "complexity": "low",
+      "autogen_provider": "RoundRobinGroupChat",
+      "summary": "에이전트를 선형 순서로 연결하는 파이프라인 패턴"
+    },
+    {
+      "id": "concurrent",
+      "file": "patterns/02_concurrent.json",
+      "complexity": "medium",
+      "autogen_provider": "custom (asyncio)",
+      "summary": "여러 에이전트를 동시에 실행하고 결과를 통합"
+    },
+    {
+      "id": "selector",
+      "file": "patterns/03_selector.json",
+      "complexity": "medium",
+      "autogen_provider": "SelectorGroupChat",
+      "summary": "중앙 선택자가 작업을 적합한 에이전트에게 라우팅"
+    },
+    {
+      "id": "group_chat",
+      "file": "patterns/04_group_chat.json",
+      "complexity": "high",
+      "autogen_provider": "SelectorGroupChat",
+      "summary": "여러 에이전트가 자유 형식으로 토론"
+    },
+    {
+      "id": "handoff",
+      "file": "patterns/05_handoff.json",
+      "complexity": "medium-high",
+      "autogen_provider": "Swarm",
+      "summary": "에이전트 간 동적 제어권 이전"
+    },
+    {
+      "id": "magentic",
+      "file": "patterns/06_magentic.json",
+      "complexity": "very-high",
+      "autogen_provider": "MagenticOneGroupChat",
+      "summary": "동적 작업 원장을 유지하는 정교한 오케스트레이터"
+    },
+    {
+      "id": "debate",
+      "file": "patterns/07_debate.json",
+      "complexity": "high",
+      "autogen_provider": "SelectorGroupChat",
+      "summary": "여러 에이전트가 구조화된 토론으로 결론 도출"
+    },
+    {
+      "id": "reflection",
+      "file": "patterns/08_reflection.json",
+      "complexity": "medium",
+      "autogen_provider": "RoundRobinGroupChat",
+      "summary": "생성 후 비평을 통한 반복적 품질 개선"
+    },
+    {
+      "id": "hierarchical",
+      "file": "patterns/09_hierarchical.json",
+      "complexity": "high",
+      "autogen_provider": "nested teams",
+      "summary": "관리자-작업자 트리 구조의 계층적 조율"
+    }
+  ],
+  "complexity_guide": {
+    "low": "초보자도 쉽게 구현 가능, 단순한 워크플로우에 적합",
+    "medium": "기본적인 이해 필요, 대부분의 일반적인 사용 사례에 적합",
+    "medium-high": "세심한 설계 필요, 복잡한 라우팅에 적합",
+    "high": "경험 있는 개발자 권장, 복잡한 다중 에이전트 시나리오에 적합",
+    "very-high": "고급 사용 사례, 자율적 작업 해결에 적합"
+  },
+  "selection_flowchart": {
+    "question_1": {
+      "question": "작업이 독립적인 단계로 나뉘는가?",
+      "yes": "question_2",
+      "no": "question_4"
+    },
+    "question_2": {
+      "question": "단계들이 순차적 의존성이 있는가?",
+      "yes": "sequential",
+      "no": "concurrent"
+    },
+    "question_4": {
+      "question": "작업 유형에 따라 다른 전문가가 필요한가?",
+      "yes": "selector",
+      "no": "question_5"
+    },
+    "question_5": {
+      "question": "에이전트 간 토론/협력이 필요한가?",
+      "yes": "question_6",
+      "no": "question_7"
+    },
+    "question_6": {
+      "question": "찬반 논증이 필요한가?",
+      "yes": "debate",
+      "no": "group_chat"
+    },
+    "question_7": {
+      "question": "동적 위임이 필요한가?",
+      "yes": "handoff",
+      "no": "question_8"
+    },
+    "question_8": {
+      "question": "출력 품질 개선이 필요한가?",
+      "yes": "reflection",
+      "no": "question_9"
+    },
+    "question_9": {
+      "question": "복잡한 자율 작업인가?",
+      "yes": "magentic",
+      "no": "hierarchical"
+    }
+  },
+  "autogen_provider_mapping": {
+    "RoundRobinGroupChat": ["sequential", "reflection"],
+    "SelectorGroupChat": ["selector", "group_chat", "debate"],
+    "Swarm": ["handoff"],
+    "MagenticOneGroupChat": ["magentic"],
+    "custom": ["concurrent", "hierarchical"]
+  },
+  "key_research_papers": [
+    {
+      "title": "Multi-Agent Collaboration Mechanisms: A Survey of LLMs",
+      "year": 2025,
+      "url": "https://arxiv.org/abs/2501.06322"
+    },
+    {
+      "title": "MetaGPT: Meta Programming for Multi-Agent Collaborative Framework",
+      "year": 2023,
+      "url": "https://arxiv.org/abs/2308.00352"
+    },
+    {
+      "title": "Chain-of-Agents: Large Language Models Collaborating on Long-Context Tasks",
+      "year": 2024,
+      "url": "https://arxiv.org/abs/2406.02818"
+    },
+    {
+      "title": "Magentic-One: A Generalist Multi-Agent System",
+      "year": 2024,
+      "url": "https://arxiv.org/abs/2411.04468"
+    }
+  ],
+  "components_summary": {
+    "agents": { "count": 12, "path": "agents/" },
+    "models": { "count": 7, "path": "models/" },
+    "teams": { "count": 20, "path": "teams/" },
+    "patterns": { "count": 14, "path": "patterns/" },
+    "templates": { "count": 6, "path": "templates/" },
+    "registry": "registry.json",
+    "gallery": "cohub_gallery.json"
+  },
+  "created_at": "2025-01-08",
+  "updated_at": "2026-02-07",
+  "author": "AutoGen A2A Kit"
+}

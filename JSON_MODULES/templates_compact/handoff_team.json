@@ -1,0 +1,29 @@
+{
+  "provider": "autogen_agentchat.teams.Swarm",
+  "component_type": "team",
+  "version": 2,
+  "description": "핸드오프 팀 - 고객 서비스 라우팅. 에이전트가 작업 요구사항에 따라 다른 에이전트에게 동적으로 제어권을 이전.",
+  "label": "Handoff Team (Template)",
+  "_defaults": {
+    "reflect_on_tool_use": false,
+    "tool_call_summary_format": "{result}",
+    "model_client": {
+      "$ref": "models/claude_sonnet",
+      "override": { "config.agent_config": {"profile": "text_only", "max_turns": 1} }
+    },
+    "model_context": {
+      "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+      "component_type": "model",
+      "config": {}
+    }
+  },
+  "config": {
+    "participants": [
+      { "$ref": "agents/pattern_triage" },
+      { "$ref": "agents/pattern_support" },
+      { "$ref": "agents/pattern_sales" },
+      { "$ref": "agents/pattern_refund" }
+    ],
+    "termination_condition": { "$ref": "terminations/default_or" }
+  }
+}

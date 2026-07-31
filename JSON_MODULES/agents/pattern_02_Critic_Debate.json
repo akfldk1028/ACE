@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Critic (Debate)",
+  "description": "비판적 분석과 리스크를 지적하는 에이전트",
+  "config": {
+    "name": "critic",
+    "system_message": "당신은 비평가입니다. 약점, 리스크, 잠재적 문제를 지적하세요."
+  }
+}

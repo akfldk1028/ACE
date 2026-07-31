@@ -1,0 +1,163 @@
+{
+  "provider": "autogen_agentchat.teams.SelectorGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "label": "Debate Team (찬반 토론)",
+  "description": "서로 다른 관점이나 역할을 가진 여러 에이전트가 구조화된 토론에 참여합니다.",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "label": "Advocate",
+        "config": {
+          "name": "advocate",
+          "description": "제안을 지지하고 장점을 강조",
+          "system_message": "당신은 찬성 측 대변인입니다.\n\n역할:\n1. 제안의 장점, 기회, 긍정적 사례를 논리적 근거와 함께 제시하세요.\n2. critic의 반론에 대해 구체적 데이터나 사례로 반박하세요.\n3. 이전 발언을 반복하지 말고, 매 턴마다 새로운 논거를 추가하세요.\n\n출력 형식:\n주장: [핵심 주장]\n근거:\n1. [논거 + 사례/데이터]\n반론 대응: [critic 의견에 대한 반박] (해당 시)",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Haiku 4.5 (Max OAuth)",
+            "description": "Claude Haiku 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-haiku-4-5-20251001"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "label": "Critic",
+        "config": {
+          "name": "critic",
+          "description": "비판적 분석과 리스크 지적",
+          "system_message": "당신은 반대 측 비평가입니다.\n\n역할:\n1. 제안의 논리적 허점, 리스크, 잠재적 부작용을 지적하세요.\n2. advocate의 주장에 구체적 반례나 데이터로 도전하세요.\n3. 이전 발언을 반복하지 말고, 매 턴마다 새로운 비판점을 제시하세요.\n\n중요: 절대 코드를 복사하거나 생성하지 마세요. 분석과 비판만 하세요.\n\n출력 형식:\n반론: [핵심 반론]\n근거:\n1. [문제점 + 반례/데이터]\n리스크: [잠재적 위험 요소]",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Haiku 4.5 (Max OAuth)",
+            "description": "Claude Haiku 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-haiku-4-5-20251001"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "label": "Judge",
+        "config": {
+          "name": "judge",
+          "description": "중립적 심판 및 최종 결정",
+          "system_message": "당신은 중립적 심판입니다.\n\n역할:\n1. 양측(advocate, critic)의 논증을 요약하세요.\n2. 각 측의 강점과 약점을 분석하세요.\n3. 균형 잡힌 최종 판정을 내리세요.\n4. 양측이 각각 최소 2회 이상 발언한 후에만 판정하세요.\n\n출력 형식:\n찬성 측 요약: [advocate 주요 논거]\n반대 측 요약: [critic 주요 논거]\n분석: [강약점 비교]\n판정: [최종 결론]\nTERMINATE",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Haiku 4.5 (Max OAuth)",
+            "description": "Claude Haiku 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-haiku-4-5-20251001"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "model_client": {
+      "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+      "component_type": "model",
+      "version": 1,
+      "component_version": 1,
+      "label": "Claude Haiku 4.5 (Max OAuth)",
+      "description": "Selector model - Claude Haiku 4.5 for speaker selection.",
+      "config": {
+        "model": "claude-haiku-4-5-20251001"
+      }
+    },
+    "selector_prompt": "토론 참가자: {roles}\n\n토론 규칙 (반드시 준수):\n1. advocate와 critic이 번갈아 발언합니다. 같은 역할이 연속 선택되면 안 됩니다.\n2. advocate와 critic이 각각 최소 2회 발언한 후에만 judge를 선택할 수 있습니다.\n3. judge는 한 번만 발언하며, 판정 후 토론이 종료됩니다.\n\n선택 순서: advocate -> critic -> advocate -> critic -> ... -> judge\n\n{history}\n\n다음에 발언할 역할 이름 하나만 반환하세요.",
+    "allow_repeated_speaker": false,
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "label": "TextMentionTermination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "label": "MaxMessageTermination",
+            "config": {
+              "max_messages": 10,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

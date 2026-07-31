@@ -1,0 +1,114 @@
+{
+  "timestamp": "2026-02-07T15:07:35.738050",
+  "summary": {
+    "pass": 3,
+    "fail": 6,
+    "total_duration_s": 16.1
+  },
+  "results": [
+    {
+      "test": "ref_resolver --all",
+      "status": "PASS",
+      "detail": "7 resolved, 0 failed",
+      "duration_s": 0.1
+    },
+    {
+      "test": "validate_json.py",
+      "status": "FAIL",
+      "detail": "expected string or bytes-like object, got 'NoneType'",
+      "duration_s": 0.1
+    },
+    {
+      "test": "a2a_manager --list",
+      "status": "FAIL",
+      "detail": "expected string or bytes-like object, got 'NoneType'",
+      "duration_s": 0.1
+    },
+    {
+      "test": "A2A Calculator Health",
+      "status": "PASS",
+      "detail": "calculator_agent: skills=['model', 'calculate', 'fibonacci', 'factorial']",
+      "duration_s": 1.0
+    },
+    {
+      "test": "Playwright UI + Screenshots",
+      "status": "PASS",
+      "detail": "Title=, body=9043 chars, screenshots saved",
+      "duration_s": 12.8
+    },
+    {
+      "test": "Hybrid Team (Claude+A2A)",
+      "status": "FAIL",
+      "detail": "unknown: Failed to create run: {\"status\":true,\"data\":{\"run_id\":186}}",
+      "duration_s": 0.5
+    },
+    {
+      "test": "Debate Team",
+      "status": "FAIL",
+      "detail": "unknown: Failed to create run: {\"status\":true,\"data\":{\"run_id\":187}}",
+      "duration_s": 0.5
+    },
+    {
+      "test": "Reflection Team",
+      "status": "FAIL",
+      "detail": "unknown: Failed to create run: {\"status\":true,\"data\":{\"run_id\":188}}",
+      "duration_s": 0.5
+    },
+    {
+      "test": "Code Generation (Dev Team)",
+      "status": "FAIL",
+      "detail": "unknown: Failed to create run: {\"status\":true,\"data\":{\"run_id\":189}}",
+      "duration_s": 0.5
+    }
+  ],
+  "conversation_logs": {
+    "hybrid_calculator": [
+      {
+        "event": "task_submitted",
+        "task": "100의 팩토리얼을 계산하고, 피보나치 수열의 10번째 수도 알려주세요.",
+        "team_id": 62,
+        "time": "2026-02-07T15:07:33.908300"
+      },
+      {
+        "event": "error",
+        "detail": "run creation failed: {\"status\":true,\"data\":{\"run_id\":186}}"
+      }
+    ],
+    "debate": [
+      {
+        "event": "task_submitted",
+        "task": "AI가 인간의 창의성을 대체할 수 있는가?",
+        "team_id": 60,
+        "time": "2026-02-07T15:07:34.373909"
+      },
+      {
+        "event": "error",
+        "detail": "run creation failed: {\"status\":true,\"data\":{\"run_id\":187}}"
+      }
+    ],
+    "reflection": [
+      {
+        "event": "task_submitted",
+        "task": "Python으로 이진 탐색 알고리즘을 설명하고 구현하세요.",
+        "team_id": 63,
+        "time": "2026-02-07T15:07:34.829954"
+      },
+      {
+        "event": "error",
+        "detail": "run creation failed: {\"status\":true,\"data\":{\"run_id\":188}}"
+      }
+    ],
+    "code_generation": [
+      {
+        "event": "task_submitted",
+        "task": "D:\\AC247 폴더에 e2e_test_calc.py 파일을 만들어주세요. 간단한 사칙연산 함수(add, sub, mul, div)를 구현하고, if __name__=='__main__' 에서 2+3=5, 10*5=50, 100/4=25.0 을 출력하세요.",
+        "team_id": 57,
+        "time": "2026-02-07T15:07:35.282413"
+      },
+      {
+        "event": "error",
+        "detail": "run creation failed: {\"status\":true,\"data\":{\"run_id\":189}}"
+      }
+    ]
+  }
+}

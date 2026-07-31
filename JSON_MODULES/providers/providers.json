@@ -1,0 +1,107 @@
+{
+  "_README": "새 AutoGen provider 추가 시 이 파일만 수정. TypeScript 코드 수정 불필요.",
+
+  "RoundRobinGroupChat": {
+    "full": "autogen_agentchat.teams.RoundRobinGroupChat",
+    "category": "sequential",
+    "layout": "chain",
+    "icon": "ArrowRight",
+    "colors": { "primary": "#3b82f6", "secondary": "#93c5fd" },
+    "communicationStyle": "turn-based",
+    "connections": [
+      { "type": "sequential", "from": "agent[i]", "to": "agent[i+1]" }
+    ],
+    "requiresModelClient": false,
+    "defaultParticipants": {
+      "en": [
+        { "name": "Analyst", "description": "Analyzes tasks", "systemMessage": "You are an analyst. Break down tasks and create plans." },
+        { "name": "Executor", "description": "Executes tasks", "systemMessage": "You are an executor. Execute the plan." },
+        { "name": "Reviewer", "description": "Reviews results", "systemMessage": "You are a reviewer. Review results and say TERMINATE when done." }
+      ],
+      "ko": [
+        { "name": "Analyst", "description": "작업 분석 담당", "systemMessage": "당신은 분석가입니다. 작업을 분석하고 계획을 세우세요." },
+        { "name": "Executor", "description": "실행 담당", "systemMessage": "당신은 실행자입니다. 계획을 실행하세요." },
+        { "name": "Reviewer", "description": "검토 담당", "systemMessage": "당신은 검토자입니다. 결과를 검토하고 완료되면 TERMINATE라고 하세요." }
+      ]
+    }
+  },
+
+  "SelectorGroupChat": {
+    "full": "autogen_agentchat.teams.SelectorGroupChat",
+    "category": "dynamic",
+    "layout": "hub-spoke",
+    "icon": "GitBranch",
+    "colors": { "primary": "#8b5cf6", "secondary": "#c4b5fd" },
+    "communicationStyle": "request-response",
+    "connections": [
+      { "type": "selective", "from": "selector", "to": "all" },
+      { "type": "return", "from": "all", "to": "selector" }
+    ],
+    "requiresModelClient": true,
+    "defaultParticipants": {
+      "en": [
+        { "name": "Coordinator", "description": "Coordinates tasks", "systemMessage": "You are a coordinator. Answer general questions and coordinate." },
+        { "name": "Specialist_A", "description": "Specialist A", "systemMessage": "You are Specialist A. Answer questions in your domain." },
+        { "name": "Specialist_B", "description": "Specialist B", "systemMessage": "You are Specialist B. Answer questions in your domain." }
+      ],
+      "ko": [
+        { "name": "Coordinator", "description": "조율 담당", "systemMessage": "당신은 코디네이터입니다. 일반적인 질문에 답하고 대화를 조율하세요." },
+        { "name": "Specialist_A", "description": "전문가 A", "systemMessage": "당신은 전문가 A입니다. 전문 분야에 대해 답하세요." },
+        { "name": "Specialist_B", "description": "전문가 B", "systemMessage": "당신은 전문가 B입니다. 전문 분야에 대해 답하세요." }
+      ]
+    }
+  },
+
+  "Swarm": {
+    "full": "autogen_agentchat.teams.Swarm",
+    "category": "dynamic",
+    "layout": "mesh",
+    "icon": "Share2",
+    "colors": { "primary": "#f59e0b", "secondary": "#fcd34d" },
+    "communicationStyle": "event-driven",
+    "connections": [
+      { "type": "handoff", "from": "all", "to": "all" }
+    ],
+    "requiresModelClient": false,
+    "defaultParticipants": {
+      "en": [
+        { "name": "Triage", "description": "Initial triage", "systemMessage": "You are the triage agent. Route requests to appropriate specialists." },
+        { "name": "Worker_A", "description": "Worker A", "systemMessage": "You are Worker A. Complete assigned tasks." },
+        { "name": "Worker_B", "description": "Worker B", "systemMessage": "You are Worker B. Complete assigned tasks." }
+      ],
+      "ko": [
+        { "name": "Triage", "description": "초기 분류 담당", "systemMessage": "당신은 트리아지 에이전트입니다. 요청을 분석하고 적절한 에이전트에게 전달하세요." },
+        { "name": "Worker_A", "description": "작업자 A", "systemMessage": "당신은 작업자 A입니다. 할당된 작업을 수행하세요." },
+        { "name": "Worker_B", "description": "작업자 B", "systemMessage": "당신은 작업자 B입니다. 할당된 작업을 수행하세요." }
+      ]
+    }
+  },
+
+  "MagenticOneGroupChat": {
+    "full": "autogen_ext.teams.MagenticOneGroupChat",
+    "category": "hierarchical",
+    "layout": "tree",
+    "icon": "GitMerge",
+    "colors": { "primary": "#14b8a6", "secondary": "#5eead4" },
+    "communicationStyle": "broadcast",
+    "connections": [
+      { "type": "broadcast", "from": "orchestrator", "to": "all" },
+      { "type": "return", "from": "all", "to": "orchestrator" }
+    ],
+    "requiresModelClient": true,
+    "defaultParticipants": {
+      "en": [
+        { "name": "Orchestrator", "description": "Task orchestrator", "systemMessage": "You are the orchestrator. Analyze tasks and delegate to appropriate agents." },
+        { "name": "WebSurfer", "description": "Web browsing agent", "systemMessage": "You are a web surfer. Search and browse the web for information." },
+        { "name": "FileSurfer", "description": "File navigation agent", "systemMessage": "You are a file surfer. Navigate and read file systems." },
+        { "name": "Coder", "description": "Code writing agent", "systemMessage": "You are a coder. Write and analyze code." }
+      ],
+      "ko": [
+        { "name": "Orchestrator", "description": "작업 오케스트레이터", "systemMessage": "당신은 오케스트레이터입니다. 작업을 분석하고 적절한 에이전트에게 위임하세요." },
+        { "name": "WebSurfer", "description": "웹 검색 담당", "systemMessage": "당신은 웹 서퍼입니다. 웹에서 정보를 검색하세요." },
+        { "name": "FileSurfer", "description": "파일 탐색 담당", "systemMessage": "당신은 파일 서퍼입니다. 파일 시스템을 탐색하세요." },
+        { "name": "Coder", "description": "코드 작성 담당", "systemMessage": "당신은 코더입니다. 코드를 작성하고 분석하세요." }
+      ]
+    }
+  }
+}

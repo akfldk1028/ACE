@@ -1,0 +1,2590 @@
+{
+  "pnu": "1168011800104170004",
+  "name": "gangnam-small-piloti",
+  "buildingType": "공동주택",
+  "algorithm": "maas_legal_envelope",
+  "maxGenerations": 5,
+  "populationSize": 10,
+  "requireParkingStalls": true,
+  "waitError": null,
+  "pngPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\zoom_01_gangnam-small-piloti_1168011800104170004.png",
+  "jsonPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\01_gangnam-small-piloti_1168011800104170004.json",
+  "zoomState": {
+    "zoomed": true,
+    "parkingLineCount": 6,
+    "parkingCoordinateCount": 15,
+    "center": {
+      "lng": 127.04506705200002,
+      "lat": 37.48504320333334
+    },
+    "bounds": {
+      "minLng": 127.04502761,
+      "maxLng": 127.04511911,
+      "minLat": 37.48500299,
+      "maxLat": 37.48508405
+    },
+    "beforeHeight": 76.74376771602229,
+    "afterHeight": 37.999999999441386,
+    "ids": [
+      "design-mass-parking-line-shadow-900000-0",
+      "design-mass-parking-space-outline-900000-0",
+      "design-mass-parking-line-shadow-900000-1",
+      "design-mass-parking-space-outline-900000-1",
+      "design-mass-parking-line-shadow-900000-2",
+      "design-mass-parking-space-outline-900000-2"
+    ]
+  },
+  "state": {
+    "hasDisabledText": false,
+    "hasFallback": false,
+    "hasComplete": true,
+    "hasDesignList": true,
+    "hasMassText": true,
+    "hasAuthorityReviewText": false,
+    "hasEvidenceNeededText": false,
+    "hasVworldCanvas": true,
+    "bodyHead": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\n대지면적\n264.13 m²\n용도지역\n제2종일반주거지역\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n법규 산정 근거\n수치지형도 소스\nngii_local_dem\n대지 샘플\n14개 / 16.90-17.35m\n도로 샘플\n3개 / 16.34-16.61m\n인접대지 샘플\n13개 / 17.04-17.59m\n검출 도로폭\n37.5m\n전면도로 후보\n1개\n인접대지 후보\n4개\n정북일조\n적용 / 기준면 17.23m\n채광사선 참고면\n17.10m / 매스 창면 검토 필요\n화면 기본 레이어\n정북면 / 채광옵션 / 도로 / 인접\n\nVWorld 기본 화면은 검토용 요약 레이어입니다. 전체 디버그는 URL에 ?layers=all, 도로 라벨 전체는 ?roadLabels=all 을 붙여 확인합니다.\n\nCONSTRAINTS\n건폐율 ≤ 60%\n≤ 60%\n용적률 ≤ 250%\n≤ 250%\n인접대지 이격 ≥ 0.5m\n≥ 0.5m\n조경면적 ≥ 15%\n≥ 15%\n지반 레벨 (§119 DATUM)\n정북일조 기준 H = 0\n17.23m\n정북일조 기준 H=0\n17.23 m\n대지 §119 기준면\n17.10 m\n전면도로 기준면\n16.48 m\n인접대지 기준면\n17.35 m\n§86 평균수평면\n17.23 m\n§119/§86 케이스\n정북인접 평균 (§86)\n산정 방법\n인접지 평균\n데이터 소스\nNGII 수치지형도 SHP→DEM (5m)\n\nenvelope walls/slanted_polygons 의 H는 이 datum 기준 상대값. Cesium 렌더 시 datum_m 위에 envelope 위치.\n\n정북일조 사선제한 단면 (§86①, 2023.9.12 개정)\n인접대지 경계선\n1.5m 이격\nH ≤ 10m: 직각\nH > 10m: slope 2:1 (H = 2x)\n건물 (H = 18m)\n0m\n10m\n20m\n0m\n1.5m\n5m\n10m\n15m\n20m\n법규 envelope\n인접대지 경계\n건물 단면\nOPTIMIZATION\nCOMPLETE\n100%\n세대\n0/5\n적합\n0\n파레토\n18\n총평가\n400\nPARETO FRONT\n0 evaluated\n18 pareto\nGen\n0 → 5\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nDESIGN LIST\n18\n#\n매스\n형태\n연면적\n일조\n주차\n1\n코너/오픈코트\n293\n63.0\n필로티\n2\nparking_repair_shrink\n208\n86.9\n외부지상\n3\n코너/오픈코트\n294\n63.0\n외부지상\n4\n핀치형\n275\n65.3\n외부지상\n5\n코너/오픈코트\n262\n66.9\n외부지상\n6\n인셋\n261\n67.0\n기계식\n7\n오버랩\n264\n66.7\n외부지상\n8\n건폐확장\n256\n67.7\n외부지상\n9\n중정형\n247\n68.8\n외부지상\n10\n인터락\n236\n70.2\n외부지상\n11\n분절/브릿지\n208\n73.8\n외부지상\n12\n브랜치형\n162\n79.5\n외부지상\n13\n바형\n134\n83.2\n외부지상\n14\n법규엔벨로프\n463\n61.0\n필로티\n15\n다단 일조스텝\n463\n61.0\n필로티\n16\n테라스\n448\n61.0\n필로티\n17\n포디움/타워\n429\n62.4\n필로티\n18\n포디움+타워오프셋\n309\n61.0\n필로티\n브이월드\n\n연속지적도를 포함한 모든 주제도는 참고용으로만 사용하시기 바랍니다.\n\n38 m\n72\n나침반\n현재위치\n확대\n축소\n초기화면\n이동컨트롤 열기\n거리\n면적\n높이\n초기화\n좌로 이동\n우로 이동\n위로 이동\n아래로 이동\n닫기\nBUILDING MASS\n형태\nnotch_south_west\n높이\n8.4m\n층수\n3F\n건폐율\n37.0%\n용적률\n111.1%\n연면적\n293m²\n주차\n필로티\n법정/계획\n3 / 3\nAI 설계 협업\nMAAS Agent Workspace\n후보를 선택하면 대화형 수정이 열립니다.",
+    "entityCount": 82,
+    "designMassEntities": [
+      "design-mass-volume-900000-0",
+      "design-mass-floor-900000-2",
+      "design-mass-footprint-900000",
+      "design-mass-parking-line-shadow-900000-0",
+      "design-mass-parking-space-outline-900000-0",
+      "design-mass-parking-visible-line-900000-0",
+      "design-mass-parking-stall-label-900000-0",
+      "design-mass-parking-line-shadow-900000-1",
+      "design-mass-parking-space-outline-900000-1",
+      "design-mass-parking-visible-line-900000-1",
+      "design-mass-parking-stall-label-900000-1",
+      "design-mass-parking-line-shadow-900000-2",
+      "design-mass-parking-space-outline-900000-2",
+      "design-mass-parking-visible-line-900000-2",
+      "design-mass-parking-stall-label-900000-2",
+      "design-mass-parking-connector-corridor-900000",
+      "design-mass-parking-connector-outline-900000",
+      "design-mass-parking-connector-centerline-900000"
+    ],
+    "parkingEntities": [
+      "design-mass-parking-line-shadow-900000-0",
+      "design-mass-parking-space-outline-900000-0",
+      "design-mass-parking-visible-line-900000-0",
+      "design-mass-parking-stall-label-900000-0",
+      "design-mass-parking-line-shadow-900000-1",
+      "design-mass-parking-space-outline-900000-1",
+      "design-mass-parking-visible-line-900000-1",
+      "design-mass-parking-stall-label-900000-1",
+      "design-mass-parking-line-shadow-900000-2",
+      "design-mass-parking-space-outline-900000-2",
+      "design-mass-parking-visible-line-900000-2",
+      "design-mass-parking-stall-label-900000-2",
+      "design-mass-parking-connector-corridor-900000",
+      "design-mass-parking-connector-outline-900000",
+      "design-mass-parking-connector-centerline-900000"
+    ],
+    "parkingStallEntities": [
+      "design-mass-parking-space-outline-900000-0",
+      "design-mass-parking-stall-label-900000-0",
+      "design-mass-parking-space-outline-900000-1",
+      "design-mass-parking-stall-label-900000-1",
+      "design-mass-parking-space-outline-900000-2",
+      "design-mass-parking-stall-label-900000-2"
+    ],
+    "pilotiEntities": [],
+    "parkingRequiredSpaces": 3,
+    "parkingProvidedSpaces": 3,
+    "selectedParkingPrecheck": {
+      "schema_version": "arr.maas.parking_strategy.v0",
+      "status": "has_layout_candidate",
+      "selected_strategy": "piloti_ground",
+      "strategy_candidates": [
+        "piloti_ground",
+        "ground_surface",
+        "mechanical",
+        "semi_basement",
+        "basement",
+        "mixed"
+      ],
+      "basis": {
+        "site_area_m2": 264.13,
+        "footprint_area_m2": 97.82,
+        "open_area_m2": 166.31,
+        "total_floor_area_m2": 293.46,
+        "num_floors": 3,
+        "building_type": "공동주택",
+        "small_lot": true,
+        "dense_footprint": false,
+        "residential_like": true
+      },
+      "mass_generation_constraints": {
+        "vehicle_access": "needs_driveway_and_aisle_check",
+        "pedestrian_access": "separate_from_vehicle_path_where_required",
+        "accessible_parking": "needs_accessible_stall_and_route_check",
+        "core_placement": "must_not_block_parking_access_or_primary_egress",
+        "ground_floor": "reserve_void_or_partial_void_for_parking",
+        "column_grid": "needs_usable_bay_width_check",
+        "lost_program_area": "deduct_or_reassign_1f_program"
+      },
+      "layout_precheck": {
+        "status": "heuristic_only",
+        "strategy": "piloti_ground",
+        "envelope_area_m2": 97.82,
+        "effective_area_m2": 60.65,
+        "oriented_rect": {
+          "long_side_m": 12.87,
+          "short_side_m": 8.01
+        },
+        "module_dimensions": {
+          "stall_width_m": 2.5,
+          "stall_length_m": 5,
+          "aisle_width_m": 6,
+          "double_loaded_depth_m": 16,
+          "single_loaded_depth_m": 11,
+          "accessible_width_m": 3.3,
+          "accessible_length_m": 5
+        },
+        "capacity_estimates": {
+          "single_loaded_spaces": 0,
+          "double_loaded_spaces": 0,
+          "area_limited_spaces": 1,
+          "estimated_capacity_spaces": 0
+        },
+        "limitations": [
+          "does_not_place_exact_stalls",
+          "does_not_model_columns_or_core_obstructions",
+          "does_not_check_ramp_slope_or_turning_swept_path",
+          "does_not_verify_accessible_route"
+        ]
+      },
+      "small_attached_parking_relief": {
+        "status": "needs_required_count",
+        "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+        "applies_to": "attached_self_parking_total_spaces_8_or_less",
+        "required_spaces": null,
+        "road_context": {
+          "road_width_m": 37.48059008167424,
+          "has_sidewalk_separation": null,
+          "is_dead_end_road": false
+        },
+        "road_as_aisle_options": [
+          {
+            "key": "undivided_road_under_12m",
+            "available": false,
+            "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+            "aisle_width_counting_road_m": 6,
+            "parallel_aisle_width_counting_road_m": 4,
+            "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+          },
+          {
+            "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+            "available": true,
+            "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+            "parking_angle": "perpendicular_only",
+            "needs_authority_review": true,
+            "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+          }
+        ],
+        "tandem_parking": {
+          "available": true,
+          "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+          "max_depth_from_aisle": 2
+        },
+        "entrance_width": {
+          "min_width_m": 3,
+          "dead_end_road_approval_min_width_m": null
+        },
+        "limitations": [
+          "does_not_replace_required_stall_count",
+          "needs_actual_road_geometry_and_centerline",
+          "needs_local_authority_no_traffic_obstruction_review"
+        ]
+      },
+      "required_count": {
+        "status": "computed_estimate",
+        "pnu": "1168011800104170004",
+        "jurisdiction_code": "11680",
+        "building_type": "공동주택",
+        "selected_rule_id": "seoul_parking_appendix2_row_05",
+        "base_rule_id": "parking_appendix1_row_05",
+        "metric": "household_or_unit_area",
+        "metric_value": 293.46,
+        "required_spaces": 3,
+        "raw_spaces": 3,
+        "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
+        "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
+        "unit_schedule": {
+          "source": "mass_stage_estimate",
+          "fallback_area_m2": 293.46,
+          "area_ratio_raw_spaces": 2.9344,
+          "household_min_raw_spaces": 3,
+          "units": [
+            {
+              "unit_type": "F01",
+              "count": 1,
+              "exclusive_area_m2": 73.36,
+              "area_divisor_m2_per_space": 75,
+              "min_spaces_per_unit": 1,
+              "source": "mass_stage_estimate"
+            },
+            {
+              "unit_type": "F02",
+              "count": 1,
+              "exclusive_area_m2": 73.36,
+              "area_divisor_m2_per_space": 75,
+              "min_spaces_per_unit": 1,
+              "source": "mass_stage_estimate"
+            },
+            {
+              "unit_type": "F03",
+              "count": 1,
+              "exclusive_area_m2": 73.36,
+              "area_divisor_m2_per_space": 75,
+              "min_spaces_per_unit": 1,
+              "source": "mass_stage_estimate"
+            }
+          ]
+        },
+        "accessible": {
+          "status": "not_applicable_under_10",
+          "accessible_min": 0,
+          "accessible_max": 0
+        },
+        "source": {
+          "rule_kind": "local_override",
+          "source_appendix": "서울특별시 주차장 설치 및 관리 조례::별표2",
+          "source_ordinance": "seoul_parking_ordinance",
+          "source_parse_status": "official_law_go_kr_text_extracted_manual_review"
+        },
+        "reason": null
+      },
+      "repair_request_templates": [
+        {
+          "operation": "reserve_piloti_void",
+          "reason": "Ground floor must reserve enough covered parking envelope.",
+          "target_agent": "maas_geometry_agent"
+        },
+        {
+          "operation": "move_core",
+          "reason": "Core blocks parking aisle or accessible route.",
+          "target_agent": "maas_geometry_agent"
+        },
+        {
+          "operation": "reduce_or_split_footprint",
+          "reason": "Open area or parking aisle is insufficient.",
+          "target_agent": "maas_geometry_agent"
+        }
+      ],
+      "layout_candidate": {
+        "schema_version": "arr.maas.parking_layout_candidate.v0",
+        "status": "pass",
+        "strategy": "piloti_ground",
+        "placement_mode": "grid_connected_90",
+        "required_spaces": 3,
+        "required_accessible_spaces": 0,
+        "provided_spaces": 3,
+        "provided_accessible_spaces": 0,
+        "unmet_spaces": 0,
+        "unmet_accessible_spaces": 0,
+        "stalls": [
+          {
+            "stall_id": "P01",
+            "type": "standard",
+            "width_m": 2.5,
+            "length_m": 5,
+            "row": 2,
+            "mode": "grid_connected_90",
+            "orientation": "v",
+            "polygon": [
+              [
+                327156.6444,
+                4150478.9
+              ],
+              [
+                327157.856,
+                4150476.7132
+              ],
+              [
+                327162.2295,
+                4150479.1365
+              ],
+              [
+                327161.0179,
+                4150481.3233
+              ],
+              [
+                327156.6444,
+                4150478.9
+              ]
+            ],
+            "polygon_wgs84": [
+              [
+                127.04502761,
+                37.48506141
+              ],
+              [
+                127.04504182,
+                37.48504193
+              ],
+              [
+                127.04509069,
+                37.48506458
+              ],
+              [
+                127.04507648,
+                37.48508405
+              ],
+              [
+                127.04502761,
+                37.48506141
+              ]
+            ]
+          },
+          {
+            "stall_id": "P02",
+            "type": "standard",
+            "width_m": 2.5,
+            "length_m": 5,
+            "row": 2,
+            "mode": "grid_connected_90",
+            "orientation": "v",
+            "polygon": [
+              [
+                327157.856,
+                4150476.7132
+              ],
+              [
+                327159.0676,
+                4150474.5265
+              ],
+              [
+                327163.4412,
+                4150476.9497
+              ],
+              [
+                327162.2295,
+                4150479.1365
+              ],
+              [
+                327157.856,
+                4150476.7132
+              ]
+            ],
+            "polygon_wgs84": [
+              [
+                127.04504182,
+                37.48504193
+              ],
+              [
+                127.04505603,
+                37.48502246
+              ],
+              [
+                127.0451049,
+                37.48504511
+              ],
+              [
+                127.04509069,
+                37.48506458
+              ],
+              [
+                127.04504182,
+                37.48504193
+              ]
+            ]
+          },
+          {
+            "stall_id": "P03",
+            "type": "standard",
+            "width_m": 2.5,
+            "length_m": 5,
+            "row": 2,
+            "mode": "grid_connected_90",
+            "orientation": "v",
+            "polygon": [
+              [
+                327159.0676,
+                4150474.5265
+              ],
+              [
+                327160.2793,
+                4150472.3397
+              ],
+              [
+                327164.6528,
+                4150474.7629
+              ],
+              [
+                327163.4412,
+                4150476.9497
+              ],
+              [
+                327159.0676,
+                4150474.5265
+              ]
+            ],
+            "polygon_wgs84": [
+              [
+                127.04505603,
+                37.48502246
+              ],
+              [
+                127.04507024,
+                37.48500299
+              ],
+              [
+                127.04511911,
+                37.48502564
+              ],
+              [
+                127.0451049,
+                37.48504511
+              ],
+              [
+                127.04505603,
+                37.48502246
+              ]
+            ]
+          }
+        ],
+        "layout_formula": {
+          "schema_version": "arr.maas.parking_formula.v1",
+          "mode": "grid_connected_90",
+          "required_spaces": 3,
+          "stall": {
+            "standard_width_m": 2.5,
+            "standard_length_m": 5,
+            "parallel_width_m": 2,
+            "parallel_length_m": 6,
+            "residential_undivided_road_parallel_length_m": 5,
+            "accessible_width_m": 3.3,
+            "accessible_length_m": 5
+          },
+          "aisle": {
+            "two_way_90deg_width_m": 6,
+            "small_attached_parallel_width_m": 3
+          },
+          "module": {
+            "single_loaded_90_depth_m": 11,
+            "single_loaded_90_formula": "stall_length + aisle_width",
+            "double_loaded_90_depth_m": 16,
+            "double_loaded_90_formula": "stall_length + aisle_width + stall_length",
+            "parallel_stall_formula": "parallel_length 6.0m x parallel_width 2.0m"
+          },
+          "small_attached_parking": {
+            "max_spaces": 8,
+            "tandem_allowed_max_spaces": 5,
+            "entrance_width_m": 3
+          }
+        },
+        "adjacency": {
+          "status": "row_contiguous",
+          "touching_pairs": 2,
+          "row_touching_pairs": 2,
+          "gap_pairs": 0,
+          "min_gap_m": 0,
+          "max_gap_m": 0,
+          "row_groups": 1,
+          "connected_components": 1,
+          "row_contiguous_ok": true,
+          "cluster_contiguous_ok": true,
+          "contiguous_ok": true
+        },
+        "column_clearance": {
+          "status": "deferred_structural_review",
+          "method": "clear_bay_record_only",
+          "assumed_column_size_m": 0.45,
+          "required_clear_bay_width_m": 7.5,
+          "assumed_clear_bay_width_m": 8.1,
+          "required_clear_depth_m": 11,
+          "margin_each_side_m": 0.3,
+          "reason": "No explicit column/core polygons are supplied; structural column/core clearance is deferred."
+        },
+        "drive_aisle_clearance": {
+          "status": "pass",
+          "source": "generated_drive_cells",
+          "required_width_m": 6,
+          "provided_width_m": 6,
+          "drive_cell_count": 3
+        },
+        "turning_clearance": {
+          "required_aisle_width_m": 6,
+          "note": "This is a mass-stage v1 frontage/aisle/entrance check, not a vehicle swept-path simulation.",
+          "status": "v1_pass",
+          "method": "stall_frontage_and_entrance_connector_v1",
+          "frontage_checked": true,
+          "frontage_connected_stalls": 1,
+          "frontage_total_stalls": 3,
+          "frontage_checks": [
+            {
+              "stall_id": "P01",
+              "required_frontage_m": 2,
+              "provided_frontage_m": 1.001,
+              "connected": false
+            },
+            {
+              "stall_id": "P02",
+              "required_frontage_m": 2,
+              "provided_frontage_m": 2.5,
+              "connected": true
+            },
+            {
+              "stall_id": "P03",
+              "required_frontage_m": 2,
+              "provided_frontage_m": 0.676,
+              "connected": false
+            }
+          ],
+          "contiguous_row_frontage_relief": {
+            "available": true,
+            "basis": "contiguous grid row with one generated 6m drive cell per stall",
+            "row_groups": 1,
+            "touching_pairs": 2,
+            "connected_components": 1,
+            "cluster_contiguous_ok": true,
+            "small_attached_cluster_relief": true,
+            "drive_cell_count": 3
+          },
+          "small_attached_tandem_relief": {
+            "available": false,
+            "max_spaces": 5,
+            "reason": "Tandem relief is only applied to explicit road-as-aisle tandem layouts."
+          },
+          "entrance_connected": true,
+          "entrance_connection_type": "site_connector_v1"
+        },
+        "limitations": [
+          "grid_solver_first_feasible_not_global_mip_optimum",
+          "does_not_model_swept_path_columns_or_core_obstructions"
+        ],
+        "repair_requests": [],
+        "grid_solver": {
+          "schema_version": "arr.maas.parking_grid_solver.v0",
+          "cell_step_m": 0.5,
+          "candidate_stalls": 11,
+          "selected_stalls": 3,
+          "drive_components_connected": true,
+          "entrance_connected": true,
+          "entrance_verified": true,
+          "entrance_connection_method": "road_frontage_geometry",
+          "entrance_connection_type": "site_connector_v1",
+          "entrance_edge_count": 1,
+          "entrance_min_distance_m": 8,
+          "entrance_connector_length_m": 8,
+          "entrance_connector_width_m": 3,
+          "entrance_connector_polygon": [
+            [
+              327162.915,
+              4150484.0893
+            ],
+            [
+              327164.369,
+              4150481.4652
+            ],
+            [
+              327157.3714,
+              4150477.5879
+            ],
+            [
+              327155.9174,
+              4150480.212
+            ],
+            [
+              327162.915,
+              4150484.0893
+            ]
+          ],
+          "drive_cells": [
+            [
+              [
+                327151.3961,
+                4150475.9921
+              ],
+              [
+                327152.6078,
+                4150473.8053
+              ],
+              [
+                327157.856,
+                4150476.7132
+              ],
+              [
+                327156.6444,
+                4150478.9
+              ],
+              [
+                327151.3961,
+                4150475.9921
+              ]
+            ],
+            [
+              [
+                327152.6078,
+                4150473.8053
+              ],
+              [
+                327153.8194,
+                4150471.6185
+              ],
+              [
+                327159.0676,
+                4150474.5265
+              ],
+              [
+                327157.856,
+                4150476.7132
+              ],
+              [
+                327152.6078,
+                4150473.8053
+              ]
+            ],
+            [
+              [
+                327153.8194,
+                4150471.6185
+              ],
+              [
+                327155.031,
+                4150469.4318
+              ],
+              [
+                327160.2793,
+                4150472.3397
+              ],
+              [
+                327159.0676,
+                4150474.5265
+              ],
+              [
+                327153.8194,
+                4150471.6185
+              ]
+            ]
+          ],
+          "variable_mapping": {
+            "x": "selected stall candidates",
+            "y": "drive aisle cells adjacent to selected stalls",
+            "connectivity": "drive cells must touch into one component and connect to road/frontage or site access boundary"
+          },
+          "entrance_connector_polygon_wgs84": [
+            [
+              127.04509728,
+              37.48510933
+            ],
+            [
+              127.04511433,
+              37.48508596
+            ],
+            [
+              127.04503613,
+              37.48504972
+            ],
+            [
+              127.04501908,
+              37.48507309
+            ],
+            [
+              127.04509728,
+              37.48510933
+            ]
+          ]
+        },
+        "small_attached_parking_relief": {
+          "status": "evaluated",
+          "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+          "applies_to": "attached_self_parking_total_spaces_8_or_less",
+          "required_spaces": 3,
+          "road_context": {
+            "road_width_m": 37.48059008167424,
+            "has_sidewalk_separation": null,
+            "is_dead_end_road": false
+          },
+          "road_as_aisle_options": [
+            {
+              "key": "undivided_road_under_12m",
+              "available": false,
+              "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+              "aisle_width_counting_road_m": 6,
+              "parallel_aisle_width_counting_road_m": 4,
+              "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+            },
+            {
+              "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+              "available": true,
+              "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+              "parking_angle": "perpendicular_only",
+              "needs_authority_review": true,
+              "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+            }
+          ],
+          "tandem_parking": {
+            "available": true,
+            "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+            "max_depth_from_aisle": 2
+          },
+          "entrance_width": {
+            "min_width_m": 3,
+            "dead_end_road_approval_min_width_m": null
+          },
+          "limitations": [
+            "does_not_replace_required_stall_count",
+            "needs_actual_road_geometry_and_centerline",
+            "needs_local_authority_no_traffic_obstruction_review"
+          ]
+        }
+      },
+      "parking_envelope_wgs84": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              127.04499741428906,
+              37.484969239193134
+            ],
+            [
+              127.04499659129414,
+              37.48500081079964
+            ],
+            [
+              127.04496928504375,
+              37.48500035878574
+            ],
+            [
+              127.04495245255596,
+              37.485023418856045
+            ],
+            [
+              127.04494792345574,
+              37.485029623344715
+            ],
+            [
+              127.04507363785986,
+              37.485087948022205
+            ],
+            [
+              127.0451191604328,
+              37.485025569245174
+            ],
+            [
+              127.04499741428906,
+              37.484969239193134
+            ]
+          ]
+        ]
+      }
+    },
+    "selectedMassFeature": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              127.04499741428906,
+              37.484969239193134
+            ],
+            [
+              127.04499659129414,
+              37.48500081079964
+            ],
+            [
+              127.04496928504375,
+              37.48500035878574
+            ],
+            [
+              127.04495245255596,
+              37.48502341885605
+            ],
+            [
+              127.04494792345574,
+              37.485029623344715
+            ],
+            [
+              127.04507363785986,
+              37.485087948022205
+            ],
+            [
+              127.0451191604328,
+              37.485025569245174
+            ],
+            [
+              127.04499741428906,
+              37.484969239193134
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "algorithm": "maas_legal_envelope",
+        "mass_shape": "notch_south_west",
+        "maas_concept": "코너/오픈코트",
+        "height": 8.4,
+        "num_floors": 3,
+        "floor_height": 2.8,
+        "footprint_area": 97.82,
+        "floor_area": 293.46,
+        "bcr": 37.04,
+        "far": 111.11,
+        "min_setback": 3,
+        "open_pct": 62.96,
+        "diversity_score": 0.0496,
+        "source_iou": 0.6296,
+        "shape_signature": {
+          "area": 97.822,
+          "perimeter": 43.002,
+          "compactness": 18.903
+        },
+        "notes": [
+          "코너를 비워 채광/개방감 proxy를 올리는 notch",
+          "setback_clip_3.0m"
+        ],
+        "maas_model": {
+          "algorithm": "maas_legal_envelope",
+          "operator": "notch_south_west",
+          "verb_sequence": [
+            {
+              "verb": "base",
+              "params": {
+                "proportion": "1/1"
+              }
+            },
+            {
+              "verb": "notch",
+              "params": {
+                "corner": "-x-y"
+              }
+            }
+          ],
+          "volumes": [
+            {
+              "band": 0,
+              "bottom_height": 0,
+              "top_height": 8.4,
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.04499741428906,
+                      37.484969239193134
+                    ],
+                    [
+                      127.04499659129414,
+                      37.48500081079964
+                    ],
+                    [
+                      127.04496928504375,
+                      37.48500035878574
+                    ],
+                    [
+                      127.04495245255596,
+                      37.48502341885605
+                    ],
+                    [
+                      127.04494792345574,
+                      37.485029623344715
+                    ],
+                    [
+                      127.04507363785986,
+                      37.485087948022205
+                    ],
+                    [
+                      127.0451191604328,
+                      37.485025569245174
+                    ],
+                    [
+                      127.04499741428906,
+                      37.484969239193134
+                    ]
+                  ]
+                ]
+              },
+              "role": "morphology_volume"
+            }
+          ],
+          "floor_plates": [],
+          "legal_metrics": {
+            "far": 111.11,
+            "bcr": 37.04,
+            "height": 8.4,
+            "num_floors": 3,
+            "footprint_area": 97.82,
+            "floor_area": 293.46,
+            "min_setback": 3,
+            "open_pct": 62.96
+          },
+          "parking_strategy": "piloti_ground",
+          "parking_precheck": {
+            "schema_version": "arr.maas.parking_strategy.v0",
+            "status": "has_layout_candidate",
+            "selected_strategy": "piloti_ground",
+            "strategy_candidates": [
+              "piloti_ground",
+              "ground_surface",
+              "mechanical",
+              "semi_basement",
+              "basement",
+              "mixed"
+            ],
+            "basis": {
+              "site_area_m2": 264.13,
+              "footprint_area_m2": 97.82,
+              "open_area_m2": 166.31,
+              "total_floor_area_m2": 293.46,
+              "num_floors": 3,
+              "building_type": "공동주택",
+              "small_lot": true,
+              "dense_footprint": false,
+              "residential_like": true
+            },
+            "mass_generation_constraints": {
+              "vehicle_access": "needs_driveway_and_aisle_check",
+              "pedestrian_access": "separate_from_vehicle_path_where_required",
+              "accessible_parking": "needs_accessible_stall_and_route_check",
+              "core_placement": "must_not_block_parking_access_or_primary_egress",
+              "ground_floor": "reserve_void_or_partial_void_for_parking",
+              "column_grid": "needs_usable_bay_width_check",
+              "lost_program_area": "deduct_or_reassign_1f_program"
+            },
+            "layout_precheck": {
+              "status": "heuristic_only",
+              "strategy": "piloti_ground",
+              "envelope_area_m2": 97.82,
+              "effective_area_m2": 60.65,
+              "oriented_rect": {
+                "long_side_m": 12.87,
+                "short_side_m": 8.01
+              },
+              "module_dimensions": {
+                "stall_width_m": 2.5,
+                "stall_length_m": 5,
+                "aisle_width_m": 6,
+                "double_loaded_depth_m": 16,
+                "single_loaded_depth_m": 11,
+                "accessible_width_m": 3.3,
+                "accessible_length_m": 5
+              },
+              "capacity_estimates": {
+                "single_loaded_spaces": 0,
+                "double_loaded_spaces": 0,
+                "area_limited_spaces": 1,
+                "estimated_capacity_spaces": 0
+              },
+              "limitations": [
+                "does_not_place_exact_stalls",
+                "does_not_model_columns_or_core_obstructions",
+                "does_not_check_ramp_slope_or_turning_swept_path",
+                "does_not_verify_accessible_route"
+              ]
+            },
+            "small_attached_parking_relief": {
+              "status": "needs_required_count",
+              "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+              "applies_to": "attached_self_parking_total_spaces_8_or_less",
+              "required_spaces": null,
+              "road_context": {
+                "road_width_m": 37.48059008167424,
+                "has_sidewalk_separation": null,
+                "is_dead_end_road": false
+              },
+              "road_as_aisle_options": [
+                {
+                  "key": "undivided_road_under_12m",
+                  "available": false,
+                  "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+                  "aisle_width_counting_road_m": 6,
+                  "parallel_aisle_width_counting_road_m": 4,
+                  "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+                },
+                {
+                  "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+                  "available": true,
+                  "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+                  "parking_angle": "perpendicular_only",
+                  "needs_authority_review": true,
+                  "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+                }
+              ],
+              "tandem_parking": {
+                "available": true,
+                "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+                "max_depth_from_aisle": 2
+              },
+              "entrance_width": {
+                "min_width_m": 3,
+                "dead_end_road_approval_min_width_m": null
+              },
+              "limitations": [
+                "does_not_replace_required_stall_count",
+                "needs_actual_road_geometry_and_centerline",
+                "needs_local_authority_no_traffic_obstruction_review"
+              ]
+            },
+            "required_count": {
+              "status": "computed_estimate",
+              "pnu": "1168011800104170004",
+              "jurisdiction_code": "11680",
+              "building_type": "공동주택",
+              "selected_rule_id": "seoul_parking_appendix2_row_05",
+              "base_rule_id": "parking_appendix1_row_05",
+              "metric": "household_or_unit_area",
+              "metric_value": 293.46,
+              "required_spaces": 3,
+              "raw_spaces": 3,
+              "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
+              "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
+              "unit_schedule": {
+                "source": "mass_stage_estimate",
+                "fallback_area_m2": 293.46,
+                "area_ratio_raw_spaces": 2.9344,
+                "household_min_raw_spaces": 3,
+                "units": [
+                  {
+                    "unit_type": "F01",
+                    "count": 1,
+                    "exclusive_area_m2": 73.36,
+                    "area_divisor_m2_per_space": 75,
+                    "min_spaces_per_unit": 1,
+                    "source": "mass_stage_estimate"
+                  },
+                  {
+                    "unit_type": "F02",
+                    "count": 1,
+                    "exclusive_area_m2": 73.36,
+                    "area_divisor_m2_per_space": 75,
+                    "min_spaces_per_unit": 1,
+                    "source": "mass_stage_estimate"
+                  },
+                  {
+                    "unit_type": "F03",
+                    "count": 1,
+                    "exclusive_area_m2": 73.36,
+                    "area_divisor_m2_per_space": 75,
+                    "min_spaces_per_unit": 1,
+                    "source": "mass_stage_estimate"
+                  }
+                ]
+              },
+              "accessible": {
+                "status": "not_applicable_under_10",
+                "accessible_min": 0,
+                "accessible_max": 0
+              },
+              "source": {
+                "rule_kind": "local_override",
+                "source_appendix": "서울특별시 주차장 설치 및 관리 조례::별표2",
+                "source_ordinance": "seoul_parking_ordinance",
+                "source_parse_status": "official_law_go_kr_text_extracted_manual_review"
+              },
+              "reason": null
+            },
+            "repair_request_templates": [
+              {
+                "operation": "reserve_piloti_void",
+                "reason": "Ground floor must reserve enough covered parking envelope.",
+                "target_agent": "maas_geometry_agent"
+              },
+              {
+                "operation": "move_core",
+                "reason": "Core blocks parking aisle or accessible route.",
+                "target_agent": "maas_geometry_agent"
+              },
+              {
+                "operation": "reduce_or_split_footprint",
+                "reason": "Open area or parking aisle is insufficient.",
+                "target_agent": "maas_geometry_agent"
+              }
+            ],
+            "layout_candidate": {
+              "schema_version": "arr.maas.parking_layout_candidate.v0",
+              "status": "pass",
+              "strategy": "piloti_ground",
+              "placement_mode": "grid_connected_90",
+              "required_spaces": 3,
+              "required_accessible_spaces": 0,
+              "provided_spaces": 3,
+              "provided_accessible_spaces": 0,
+              "unmet_spaces": 0,
+              "unmet_accessible_spaces": 0,
+              "stalls": [
+                {
+                  "stall_id": "P01",
+                  "type": "standard",
+                  "width_m": 2.5,
+                  "length_m": 5,
+                  "row": 2,
+                  "mode": "grid_connected_90",
+                  "orientation": "v",
+                  "polygon": [
+                    [
+                      327156.6444,
+                      4150478.9
+                    ],
+                    [
+                      327157.856,
+                      4150476.7132
+                    ],
+                    [
+                      327162.2295,
+                      4150479.1365
+                    ],
+                    [
+                      327161.0179,
+                      4150481.3233
+                    ],
+                    [
+                      327156.6444,
+                      4150478.9
+                    ]
+                  ],
+                  "polygon_wgs84": [
+                    [
+                      127.04502761,
+                      37.48506141
+                    ],
+                    [
+                      127.04504182,
+                      37.48504193
+                    ],
+                    [
+                      127.04509069,
+                      37.48506458
+                    ],
+                    [
+                      127.04507648,
+                      37.48508405
+                    ],
+                    [
+                      127.04502761,
+                      37.48506141
+                    ]
+                  ]
+                },
+                {
+                  "stall_id": "P02",
+                  "type": "standard",
+                  "width_m": 2.5,
+                  "length_m": 5,
+                  "row": 2,
+                  "mode": "grid_connected_90",
+                  "orientation": "v",
+                  "polygon": [
+                    [
+                      327157.856,
+                      4150476.7132
+                    ],
+                    [
+                      327159.0676,
+                      4150474.5265
+                    ],
+                    [
+                      327163.4412,
+                      4150476.9497
+                    ],
+                    [
+                      327162.2295,
+                      4150479.1365
+                    ],
+                    [
+                      327157.856,
+                      4150476.7132
+                    ]
+                  ],
+                  "polygon_wgs84": [
+                    [
+                      127.04504182,
+                      37.48504193
+                    ],
+                    [
+                      127.04505603,
+                      37.48502246
+                    ],
+                    [
+                      127.0451049,
+                      37.48504511
+                    ],
+                    [
+                      127.04509069,
+                      37.48506458
+                    ],
+                    [
+                      127.04504182,
+                      37.48504193
+                    ]
+                  ]
+                },
+                {
+                  "stall_id": "P03",
+                  "type": "standard",
+                  "width_m": 2.5,
+                  "length_m": 5,
+                  "row": 2,
+                  "mode": "grid_connected_90",
+                  "orientation": "v",
+                  "polygon": [
+                    [
+                      327159.0676,
+                      4150474.5265
+                    ],
+                    [
+                      327160.2793,
+                      4150472.3397
+                    ],
+                    [
+                      327164.6528,
+                      4150474.7629
+                    ],
+                    [
+                      327163.4412,
+                      4150476.9497
+                    ],
+                    [
+                      327159.0676,
+                      4150474.5265
+                    ]
+                  ],
+                  "polygon_wgs84": [
+                    [
+                      127.04505603,
+                      37.48502246
+                    ],
+                    [
+                      127.04507024,
+                      37.48500299
+                    ],
+                    [
+                      127.04511911,
+                      37.48502564
+                    ],
+                    [
+                      127.0451049,
+                      37.48504511
+                    ],
+                    [
+                      127.04505603,
+                      37.48502246
+                    ]
+                  ]
+                }
+              ],
+              "layout_formula": {
+                "schema_version": "arr.maas.parking_formula.v1",
+                "mode": "grid_connected_90",
+                "required_spaces": 3,
+                "stall": {
+                  "standard_width_m": 2.5,
+                  "standard_length_m": 5,
+                  "parallel_width_m": 2,
+                  "parallel_length_m": 6,
+                  "residential_undivided_road_parallel_length_m": 5,
+                  "accessible_width_m": 3.3,
+                  "accessible_length_m": 5
+                },
+                "aisle": {
+                  "two_way_90deg_width_m": 6,
+                  "small_attached_parallel_width_m": 3
+                },
+                "module": {
+                  "single_loaded_90_depth_m": 11,
+                  "single_loaded_90_formula": "stall_length + aisle_width",
+                  "double_loaded_90_depth_m": 16,
+                  "double_loaded_90_formula": "stall_length + aisle_width + stall_length",
+                  "parallel_stall_formula": "parallel_length 6.0m x parallel_width 2.0m"
+                },
+                "small_attached_parking": {
+                  "max_spaces": 8,
+                  "tandem_allowed_max_spaces": 5,
+                  "entrance_width_m": 3
+                }
+              },
+              "adjacency": {
+                "status": "row_contiguous",
+                "touching_pairs": 2,
+                "row_touching_pairs": 2,
+                "gap_pairs": 0,
+                "min_gap_m": 0,
+                "max_gap_m": 0,
+                "row_groups": 1,
+                "connected_components": 1,
+                "row_contiguous_ok": true,
+                "cluster_contiguous_ok": true,
+                "contiguous_ok": true
+              },
+              "column_clearance": {
+                "status": "deferred_structural_review",
+                "method": "clear_bay_record_only",
+                "assumed_column_size_m": 0.45,
+                "required_clear_bay_width_m": 7.5,
+                "assumed_clear_bay_width_m": 8.1,
+                "required_clear_depth_m": 11,
+                "margin_each_side_m": 0.3,
+                "reason": "No explicit column/core polygons are supplied; structural column/core clearance is deferred."
+              },
+              "drive_aisle_clearance": {
+                "status": "pass",
+                "source": "generated_drive_cells",
+                "required_width_m": 6,
+                "provided_width_m": 6,
+                "drive_cell_count": 3
+              },
+              "turning_clearance": {
+                "required_aisle_width_m": 6,
+                "note": "This is a mass-stage v1 frontage/aisle/entrance check, not a vehicle swept-path simulation.",
+                "status": "v1_pass",
+                "method": "stall_frontage_and_entrance_connector_v1",
+                "frontage_checked": true,
+                "frontage_connected_stalls": 1,
+                "frontage_total_stalls": 3,
+                "frontage_checks": [
+                  {
+                    "stall_id": "P01",
+                    "required_frontage_m": 2,
+                    "provided_frontage_m": 1.001,
+                    "connected": false
+                  },
+                  {
+                    "stall_id": "P02",
+                    "required_frontage_m": 2,
+                    "provided_frontage_m": 2.5,
+                    "connected": true
+                  },
+                  {
+                    "stall_id": "P03",
+                    "required_frontage_m": 2,
+                    "provided_frontage_m": 0.676,
+                    "connected": false
+                  }
+                ],
+                "contiguous_row_frontage_relief": {
+                  "available": true,
+                  "basis": "contiguous grid row with one generated 6m drive cell per stall",
+                  "row_groups": 1,
+                  "touching_pairs": 2,
+                  "connected_components": 1,
+                  "cluster_contiguous_ok": true,
+                  "small_attached_cluster_relief": true,
+                  "drive_cell_count": 3
+                },
+                "small_attached_tandem_relief": {
+                  "available": false,
+                  "max_spaces": 5,
+                  "reason": "Tandem relief is only applied to explicit road-as-aisle tandem layouts."
+                },
+                "entrance_connected": true,
+                "entrance_connection_type": "site_connector_v1"
+              },
+              "limitations": [
+                "grid_solver_first_feasible_not_global_mip_optimum",
+                "does_not_model_swept_path_columns_or_core_obstructions"
+              ],
+              "repair_requests": [],
+              "grid_solver": {
+                "schema_version": "arr.maas.parking_grid_solver.v0",
+                "cell_step_m": 0.5,
+                "candidate_stalls": 11,
+                "selected_stalls": 3,
+                "drive_components_connected": true,
+                "entrance_connected": true,
+                "entrance_verified": true,
+                "entrance_connection_method": "road_frontage_geometry",
+                "entrance_connection_type": "site_connector_v1",
+                "entrance_edge_count": 1,
+                "entrance_min_distance_m": 8,
+                "entrance_connector_length_m": 8,
+                "entrance_connector_width_m": 3,
+                "entrance_connector_polygon": [
+                  [
+                    327162.915,
+                    4150484.0893
+                  ],
+                  [
+                    327164.369,
+                    4150481.4652
+                  ],
+                  [
+                    327157.3714,
+                    4150477.5879
+                  ],
+                  [
+                    327155.9174,
+                    4150480.212
+                  ],
+                  [
+                    327162.915,
+                    4150484.0893
+                  ]
+                ],
+                "drive_cells": [
+                  [
+                    [
+                      327151.3961,
+                      4150475.9921
+                    ],
+                    [
+                      327152.6078,
+                      4150473.8053
+                    ],
+                    [
+                      327157.856,
+                      4150476.7132
+                    ],
+                    [
+                      327156.6444,
+                      4150478.9
+                    ],
+                    [
+                      327151.3961,
+                      4150475.9921
+                    ]
+                  ],
+                  [
+                    [
+                      327152.6078,
+                      4150473.8053
+                    ],
+                    [
+                      327153.8194,
+                      4150471.6185
+                    ],
+                    [
+                      327159.0676,
+                      4150474.5265
+                    ],
+                    [
+                      327157.856,
+                      4150476.7132
+                    ],
+                    [
+                      327152.6078,
+                      4150473.8053
+                    ]
+                  ],
+                  [
+                    [
+                      327153.8194,
+                      4150471.6185
+                    ],
+                    [
+                      327155.031,
+                      4150469.4318
+                    ],
+                    [
+                      327160.2793,
+                      4150472.3397
+                    ],
+                    [
+                      327159.0676,
+                      4150474.5265
+                    ],
+                    [
+                      327153.8194,
+                      4150471.6185
+                    ]
+                  ]
+                ],
+                "variable_mapping": {
+                  "x": "selected stall candidates",
+                  "y": "drive aisle cells adjacent to selected stalls",
+                  "connectivity": "drive cells must touch into one component and connect to road/frontage or site access boundary"
+                },
+                "entrance_connector_polygon_wgs84": [
+                  [
+                    127.04509728,
+                    37.48510933
+                  ],
+                  [
+                    127.04511433,
+                    37.48508596
+                  ],
+                  [
+                    127.04503613,
+                    37.48504972
+                  ],
+                  [
+                    127.04501908,
+                    37.48507309
+                  ],
+                  [
+                    127.04509728,
+                    37.48510933
+                  ]
+                ]
+              },
+              "small_attached_parking_relief": {
+                "status": "evaluated",
+                "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+                "applies_to": "attached_self_parking_total_spaces_8_or_less",
+                "required_spaces": 3,
+                "road_context": {
+                  "road_width_m": 37.48059008167424,
+                  "has_sidewalk_separation": null,
+                  "is_dead_end_road": false
+                },
+                "road_as_aisle_options": [
+                  {
+                    "key": "undivided_road_under_12m",
+                    "available": false,
+                    "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+                    "aisle_width_counting_road_m": 6,
+                    "parallel_aisle_width_counting_road_m": 4,
+                    "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+                  },
+                  {
+                    "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+                    "available": true,
+                    "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+                    "parking_angle": "perpendicular_only",
+                    "needs_authority_review": true,
+                    "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+                  }
+                ],
+                "tandem_parking": {
+                  "available": true,
+                  "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+                  "max_depth_from_aisle": 2
+                },
+                "entrance_width": {
+                  "min_width_m": 3,
+                  "dead_end_road_approval_min_width_m": null
+                },
+                "limitations": [
+                  "does_not_replace_required_stall_count",
+                  "needs_actual_road_geometry_and_centerline",
+                  "needs_local_authority_no_traffic_obstruction_review"
+                ]
+              }
+            },
+            "parking_envelope_wgs84": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499741428906,
+                    37.484969239193134
+                  ],
+                  [
+                    127.04499659129414,
+                    37.48500081079964
+                  ],
+                  [
+                    127.04496928504375,
+                    37.48500035878574
+                  ],
+                  [
+                    127.04495245255596,
+                    37.485023418856045
+                  ],
+                  [
+                    127.04494792345574,
+                    37.485029623344715
+                  ],
+                  [
+                    127.04507363785986,
+                    37.485087948022205
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499741428906,
+                    37.484969239193134
+                  ]
+                ]
+              ]
+            }
+          }
+        },
+        "mass_volumes": [
+          {
+            "band": 0,
+            "bottom_height": 0,
+            "top_height": 8.4,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499741428906,
+                    37.484969239193134
+                  ],
+                  [
+                    127.04499659129414,
+                    37.48500081079964
+                  ],
+                  [
+                    127.04496928504375,
+                    37.48500035878574
+                  ],
+                  [
+                    127.04495245255596,
+                    37.48502341885605
+                  ],
+                  [
+                    127.04494792345574,
+                    37.485029623344715
+                  ],
+                  [
+                    127.04507363785986,
+                    37.485087948022205
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499741428906,
+                    37.484969239193134
+                  ]
+                ]
+              ]
+            },
+            "role": "morphology_volume"
+          }
+        ],
+        "maas_verb_sequence": [
+          {
+            "verb": "base",
+            "params": {
+              "proportion": "1/1"
+            }
+          },
+          {
+            "verb": "notch",
+            "params": {
+              "corner": "-x-y"
+            }
+          }
+        ],
+        "parking_strategy": "piloti_ground",
+        "parking_strategy_candidates": [
+          "piloti_ground",
+          "ground_surface",
+          "mechanical",
+          "semi_basement",
+          "basement",
+          "mixed"
+        ],
+        "parking_precheck": {
+          "schema_version": "arr.maas.parking_strategy.v0",
+          "status": "has_layout_candidate",
+          "selected_strategy": "piloti_ground",
+          "strategy_candidates": [
+            "piloti_ground",
+            "ground_surface",
+            "mechanical",
+            "semi_basement",
+            "basement",
+            "mixed"
+          ],
+          "basis": {
+            "site_area_m2": 264.13,
+            "footprint_area_m2": 97.82,
+            "open_area_m2": 166.31,
+            "total_floor_area_m2": 293.46,
+            "num_floors": 3,
+            "building_type": "공동주택",
+            "small_lot": true,
+            "dense_footprint": false,
+            "residential_like": true
+          },
+          "mass_generation_constraints": {
+            "vehicle_access": "needs_driveway_and_aisle_check",
+            "pedestrian_access": "separate_from_vehicle_path_where_required",
+            "accessible_parking": "needs_accessible_stall_and_route_check",
+            "core_placement": "must_not_block_parking_access_or_primary_egress",
+            "ground_floor": "reserve_void_or_partial_void_for_parking",
+            "column_grid": "needs_usable_bay_width_check",
+            "lost_program_area": "deduct_or_reassign_1f_program"
+          },
+          "layout_precheck": {
+            "status": "heuristic_only",
+            "strategy": "piloti_ground",
+            "envelope_area_m2": 97.82,
+            "effective_area_m2": 60.65,
+            "oriented_rect": {
+              "long_side_m": 12.87,
+              "short_side_m": 8.01
+            },
+            "module_dimensions": {
+              "stall_width_m": 2.5,
+              "stall_length_m": 5,
+              "aisle_width_m": 6,
+              "double_loaded_depth_m": 16,
+              "single_loaded_depth_m": 11,
+              "accessible_width_m": 3.3,
+              "accessible_length_m": 5
+            },
+            "capacity_estimates": {
+              "single_loaded_spaces": 0,
+              "double_loaded_spaces": 0,
+              "area_limited_spaces": 1,
+              "estimated_capacity_spaces": 0
+            },
+            "limitations": [
+              "does_not_place_exact_stalls",
+              "does_not_model_columns_or_core_obstructions",
+              "does_not_check_ramp_slope_or_turning_swept_path",
+              "does_not_verify_accessible_route"
+            ]
+          },
+          "small_attached_parking_relief": {
+            "status": "needs_required_count",
+            "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+            "applies_to": "attached_self_parking_total_spaces_8_or_less",
+            "required_spaces": null,
+            "road_context": {
+              "road_width_m": 37.48059008167424,
+              "has_sidewalk_separation": null,
+              "is_dead_end_road": false
+            },
+            "road_as_aisle_options": [
+              {
+                "key": "undivided_road_under_12m",
+                "available": false,
+                "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+                "aisle_width_counting_road_m": 6,
+                "parallel_aisle_width_counting_road_m": 4,
+                "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+              },
+              {
+                "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+                "available": true,
+                "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+                "parking_angle": "perpendicular_only",
+                "needs_authority_review": true,
+                "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+              }
+            ],
+            "tandem_parking": {
+              "available": true,
+              "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+              "max_depth_from_aisle": 2
+            },
+            "entrance_width": {
+              "min_width_m": 3,
+              "dead_end_road_approval_min_width_m": null
+            },
+            "limitations": [
+              "does_not_replace_required_stall_count",
+              "needs_actual_road_geometry_and_centerline",
+              "needs_local_authority_no_traffic_obstruction_review"
+            ]
+          },
+          "required_count": {
+            "status": "computed_estimate",
+            "pnu": "1168011800104170004",
+            "jurisdiction_code": "11680",
+            "building_type": "공동주택",
+            "selected_rule_id": "seoul_parking_appendix2_row_05",
+            "base_rule_id": "parking_appendix1_row_05",
+            "metric": "household_or_unit_area",
+            "metric_value": 293.46,
+            "required_spaces": 3,
+            "raw_spaces": 3,
+            "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
+            "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
+            "unit_schedule": {
+              "source": "mass_stage_estimate",
+              "fallback_area_m2": 293.46,
+              "area_ratio_raw_spaces": 2.9344,
+              "household_min_raw_spaces": 3,
+              "units": [
+                {
+                  "unit_type": "F01",
+                  "count": 1,
+                  "exclusive_area_m2": 73.36,
+                  "area_divisor_m2_per_space": 75,
+                  "min_spaces_per_unit": 1,
+                  "source": "mass_stage_estimate"
+                },
+                {
+                  "unit_type": "F02",
+                  "count": 1,
+                  "exclusive_area_m2": 73.36,
+                  "area_divisor_m2_per_space": 75,
+                  "min_spaces_per_unit": 1,
+                  "source": "mass_stage_estimate"
+                },
+                {
+                  "unit_type": "F03",
+                  "count": 1,
+                  "exclusive_area_m2": 73.36,
+                  "area_divisor_m2_per_space": 75,
+                  "min_spaces_per_unit": 1,
+                  "source": "mass_stage_estimate"
+                }
+              ]
+            },
+            "accessible": {
+              "status": "not_applicable_under_10",
+              "accessible_min": 0,
+              "accessible_max": 0
+            },
+            "source": {
+              "rule_kind": "local_override",
+              "source_appendix": "서울특별시 주차장 설치 및 관리 조례::별표2",
+              "source_ordinance": "seoul_parking_ordinance",
+              "source_parse_status": "official_law_go_kr_text_extracted_manual_review"
+            },
+            "reason": null
+          },
+          "repair_request_templates": [
+            {
+              "operation": "reserve_piloti_void",
+              "reason": "Ground floor must reserve enough covered parking envelope.",
+              "target_agent": "maas_geometry_agent"
+            },
+            {
+              "operation": "move_core",
+              "reason": "Core blocks parking aisle or accessible route.",
+              "target_agent": "maas_geometry_agent"
+            },
+            {
+              "operation": "reduce_or_split_footprint",
+              "reason": "Open area or parking aisle is insufficient.",
+              "target_agent": "maas_geometry_agent"
+            }
+          ],
+          "layout_candidate": {
+            "schema_version": "arr.maas.parking_layout_candidate.v0",
+            "status": "pass",
+            "strategy": "piloti_ground",
+            "placement_mode": "grid_connected_90",
+            "required_spaces": 3,
+            "required_accessible_spaces": 0,
+            "provided_spaces": 3,
+            "provided_accessible_spaces": 0,
+            "unmet_spaces": 0,
+            "unmet_accessible_spaces": 0,
+            "stalls": [
+              {
+                "stall_id": "P01",
+                "type": "standard",
+                "width_m": 2.5,
+                "length_m": 5,
+                "row": 2,
+                "mode": "grid_connected_90",
+                "orientation": "v",
+                "polygon": [
+                  [
+                    327156.6444,
+                    4150478.9
+                  ],
+                  [
+                    327157.856,
+                    4150476.7132
+                  ],
+                  [
+                    327162.2295,
+                    4150479.1365
+                  ],
+                  [
+                    327161.0179,
+                    4150481.3233
+                  ],
+                  [
+                    327156.6444,
+                    4150478.9
+                  ]
+                ],
+                "polygon_wgs84": [
+                  [
+                    127.04502761,
+                    37.48506141
+                  ],
+                  [
+                    127.04504182,
+                    37.48504193
+                  ],
+                  [
+                    127.04509069,
+                    37.48506458
+                  ],
+                  [
+                    127.04507648,
+                    37.48508405
+                  ],
+                  [
+                    127.04502761,
+                    37.48506141
+                  ]
+                ]
+              },
+              {
+                "stall_id": "P02",
+                "type": "standard",
+                "width_m": 2.5,
+                "length_m": 5,
+                "row": 2,
+                "mode": "grid_connected_90",
+                "orientation": "v",
+                "polygon": [
+                  [
+                    327157.856,
+                    4150476.7132
+                  ],
+                  [
+                    327159.0676,
+                    4150474.5265
+                  ],
+                  [
+                    327163.4412,
+                    4150476.9497
+                  ],
+                  [
+                    327162.2295,
+                    4150479.1365
+                  ],
+                  [
+                    327157.856,
+                    4150476.7132
+                  ]
+                ],
+                "polygon_wgs84": [
+                  [
+                    127.04504182,
+                    37.48504193
+                  ],
+                  [
+                    127.04505603,
+                    37.48502246
+                  ],
+                  [
+                    127.0451049,
+                    37.48504511
+                  ],
+                  [
+                    127.04509069,
+                    37.48506458
+                  ],
+                  [
+                    127.04504182,
+                    37.48504193
+                  ]
+                ]
+              },
+              {
+                "stall_id": "P03",
+                "type": "standard",
+                "width_m": 2.5,
+                "length_m": 5,
+                "row": 2,
+                "mode": "grid_connected_90",
+                "orientation": "v",
+                "polygon": [
+                  [
+                    327159.0676,
+                    4150474.5265
+                  ],
+                  [
+                    327160.2793,
+                    4150472.3397
+                  ],
+                  [
+                    327164.6528,
+                    4150474.7629
+                  ],
+                  [
+                    327163.4412,
+                    4150476.9497
+                  ],
+                  [
+                    327159.0676,
+                    4150474.5265
+                  ]
+                ],
+                "polygon_wgs84": [
+                  [
+                    127.04505603,
+                    37.48502246
+                  ],
+                  [
+                    127.04507024,
+                    37.48500299
+                  ],
+                  [
+                    127.04511911,
+                    37.48502564
+                  ],
+                  [
+                    127.0451049,
+                    37.48504511
+                  ],
+                  [
+                    127.04505603,
+                    37.48502246
+                  ]
+                ]
+              }
+            ],
+            "layout_formula": {
+              "schema_version": "arr.maas.parking_formula.v1",
+              "mode": "grid_connected_90",
+              "required_spaces": 3,
+              "stall": {
+                "standard_width_m": 2.5,
+                "standard_length_m": 5,
+                "parallel_width_m": 2,
+                "parallel_length_m": 6,
+                "residential_undivided_road_parallel_length_m": 5,
+                "accessible_width_m": 3.3,
+                "accessible_length_m": 5
+              },
+              "aisle": {
+                "two_way_90deg_width_m": 6,
+                "small_attached_parallel_width_m": 3
+              },
+              "module": {
+                "single_loaded_90_depth_m": 11,
+                "single_loaded_90_formula": "stall_length + aisle_width",
+                "double_loaded_90_depth_m": 16,
+                "double_loaded_90_formula": "stall_length + aisle_width + stall_length",
+                "parallel_stall_formula": "parallel_length 6.0m x parallel_width 2.0m"
+              },
+              "small_attached_parking": {
+                "max_spaces": 8,
+                "tandem_allowed_max_spaces": 5,
+                "entrance_width_m": 3
+              }
+            },
+            "adjacency": {
+              "status": "row_contiguous",
+              "touching_pairs": 2,
+              "row_touching_pairs": 2,
+              "gap_pairs": 0,
+              "min_gap_m": 0,
+              "max_gap_m": 0,
+              "row_groups": 1,
+              "connected_components": 1,
+              "row_contiguous_ok": true,
+              "cluster_contiguous_ok": true,
+              "contiguous_ok": true
+            },
+            "column_clearance": {
+              "status": "deferred_structural_review",
+              "method": "clear_bay_record_only",
+              "assumed_column_size_m": 0.45,
+              "required_clear_bay_width_m": 7.5,
+              "assumed_clear_bay_width_m": 8.1,
+              "required_clear_depth_m": 11,
+              "margin_each_side_m": 0.3,
+              "reason": "No explicit column/core polygons are supplied; structural column/core clearance is deferred."
+            },
+            "drive_aisle_clearance": {
+              "status": "pass",
+              "source": "generated_drive_cells",
+              "required_width_m": 6,
+              "provided_width_m": 6,
+              "drive_cell_count": 3
+            },
+            "turning_clearance": {
+              "required_aisle_width_m": 6,
+              "note": "This is a mass-stage v1 frontage/aisle/entrance check, not a vehicle swept-path simulation.",
+              "status": "v1_pass",
+              "method": "stall_frontage_and_entrance_connector_v1",
+              "frontage_checked": true,
+              "frontage_connected_stalls": 1,
+              "frontage_total_stalls": 3,
+              "frontage_checks": [
+                {
+                  "stall_id": "P01",
+                  "required_frontage_m": 2,
+                  "provided_frontage_m": 1.001,
+                  "connected": false
+                },
+                {
+                  "stall_id": "P02",
+                  "required_frontage_m": 2,
+                  "provided_frontage_m": 2.5,
+                  "connected": true
+                },
+                {
+                  "stall_id": "P03",
+                  "required_frontage_m": 2,
+                  "provided_frontage_m": 0.676,
+                  "connected": false
+                }
+              ],
+              "contiguous_row_frontage_relief": {
+                "available": true,
+                "basis": "contiguous grid row with one generated 6m drive cell per stall",
+                "row_groups": 1,
+                "touching_pairs": 2,
+                "connected_components": 1,
+                "cluster_contiguous_ok": true,
+                "small_attached_cluster_relief": true,
+                "drive_cell_count": 3
+              },
+              "small_attached_tandem_relief": {
+                "available": false,
+                "max_spaces": 5,
+                "reason": "Tandem relief is only applied to explicit road-as-aisle tandem layouts."
+              },
+              "entrance_connected": true,
+              "entrance_connection_type": "site_connector_v1"
+            },
+            "limitations": [
+              "grid_solver_first_feasible_not_global_mip_optimum",
+              "does_not_model_swept_path_columns_or_core_obstructions"
+            ],
+            "repair_requests": [],
+            "grid_solver": {
+              "schema_version": "arr.maas.parking_grid_solver.v0",
+              "cell_step_m": 0.5,
+              "candidate_stalls": 11,
+              "selected_stalls": 3,
+              "drive_components_connected": true,
+              "entrance_connected": true,
+              "entrance_verified": true,
+              "entrance_connection_method": "road_frontage_geometry",
+              "entrance_connection_type": "site_connector_v1",
+              "entrance_edge_count": 1,
+              "entrance_min_distance_m": 8,
+              "entrance_connector_length_m": 8,
+              "entrance_connector_width_m": 3,
+              "entrance_connector_polygon": [
+                [
+                  327162.915,
+                  4150484.0893
+                ],
+                [
+                  327164.369,
+                  4150481.4652
+                ],
+                [
+                  327157.3714,
+                  4150477.5879
+                ],
+                [
+                  327155.9174,
+                  4150480.212
+                ],
+                [
+                  327162.915,
+                  4150484.0893
+                ]
+              ],
+              "drive_cells": [
+                [
+                  [
+                    327151.3961,
+                    4150475.9921
+                  ],
+                  [
+                    327152.6078,
+                    4150473.8053
+                  ],
+                  [
+                    327157.856,
+                    4150476.7132
+                  ],
+                  [
+                    327156.6444,
+                    4150478.9
+                  ],
+                  [
+                    327151.3961,
+                    4150475.9921
+                  ]
+                ],
+                [
+                  [
+                    327152.6078,
+                    4150473.8053
+                  ],
+                  [
+                    327153.8194,
+                    4150471.6185
+                  ],
+                  [
+                    327159.0676,
+                    4150474.5265
+                  ],
+                  [
+                    327157.856,
+                    4150476.7132
+                  ],
+                  [
+                    327152.6078,
+                    4150473.8053
+                  ]
+                ],
+                [
+                  [
+                    327153.8194,
+                    4150471.6185
+                  ],
+                  [
+                    327155.031,
+                    4150469.4318
+                  ],
+                  [
+                    327160.2793,
+                    4150472.3397
+                  ],
+                  [
+                    327159.0676,
+                    4150474.5265
+                  ],
+                  [
+                    327153.8194,
+                    4150471.6185
+                  ]
+                ]
+              ],
+              "variable_mapping": {
+                "x": "selected stall candidates",
+                "y": "drive aisle cells adjacent to selected stalls",
+                "connectivity": "drive cells must touch into one component and connect to road/frontage or site access boundary"
+              },
+              "entrance_connector_polygon_wgs84": [
+                [
+                  127.04509728,
+                  37.48510933
+                ],
+                [
+                  127.04511433,
+                  37.48508596
+                ],
+                [
+                  127.04503613,
+                  37.48504972
+                ],
+                [
+                  127.04501908,
+                  37.48507309
+                ],
+                [
+                  127.04509728,
+                  37.48510933
+                ]
+              ]
+            },
+            "small_attached_parking_relief": {
+              "status": "evaluated",
+              "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+              "applies_to": "attached_self_parking_total_spaces_8_or_less",
+              "required_spaces": 3,
+              "road_context": {
+                "road_width_m": 37.48059008167424,
+                "has_sidewalk_separation": null,
+                "is_dead_end_road": false
+              },
+              "road_as_aisle_options": [
+                {
+                  "key": "undivided_road_under_12m",
+                  "available": false,
+                  "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+                  "aisle_width_counting_road_m": 6,
+                  "parallel_aisle_width_counting_road_m": 4,
+                  "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+                },
+                {
+                  "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+                  "available": true,
+                  "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+                  "parking_angle": "perpendicular_only",
+                  "needs_authority_review": true,
+                  "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+                }
+              ],
+              "tandem_parking": {
+                "available": true,
+                "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+                "max_depth_from_aisle": 2
+              },
+              "entrance_width": {
+                "min_width_m": 3,
+                "dead_end_road_approval_min_width_m": null
+              },
+              "limitations": [
+                "does_not_replace_required_stall_count",
+                "needs_actual_road_geometry_and_centerline",
+                "needs_local_authority_no_traffic_obstruction_review"
+              ]
+            }
+          },
+          "parking_envelope_wgs84": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.04499741428906,
+                  37.484969239193134
+                ],
+                [
+                  127.04499659129414,
+                  37.48500081079964
+                ],
+                [
+                  127.04496928504375,
+                  37.48500035878574
+                ],
+                [
+                  127.04495245255596,
+                  37.485023418856045
+                ],
+                [
+                  127.04494792345574,
+                  37.485029623344715
+                ],
+                [
+                  127.04507363785986,
+                  37.485087948022205
+                ],
+                [
+                  127.0451191604328,
+                  37.485025569245174
+                ],
+                [
+                  127.04499741428906,
+                  37.484969239193134
+                ]
+              ]
+            ]
+          }
+        },
+        "shape_signature_3d": {
+          "height_m": 8.4,
+          "num_floors": 3,
+          "volume_count": 1,
+          "volume_profile": [
+            {
+              "bottom_height": 0,
+              "top_height": 8.4,
+              "area_m2": 97.8
+            }
+          ],
+          "floor_plate_count": 0,
+          "floor_plate_area_profile": []
+        },
+        "candidate_diversity": {
+          "class": "near_duplicate",
+          "footprint_diversity_score": 0.0496,
+          "source_iou": 0.6296,
+          "shape_signature_3d": {
+            "height_m": 8.4,
+            "num_floors": 3,
+            "volume_count": 1,
+            "volume_profile": [
+              {
+                "bottom_height": 0,
+                "top_height": 8.4,
+                "area_m2": 97.8
+              }
+            ],
+            "floor_plate_count": 0,
+            "floor_plate_area_profile": []
+          }
+        },
+        "far_utilization": 0.4444,
+        "bcr_utilization": 0.6173,
+        "maas_score": 0.426,
+        "parking_required_count": {
+          "status": "computed_estimate",
+          "pnu": "1168011800104170004",
+          "jurisdiction_code": "11680",
+          "building_type": "공동주택",
+          "selected_rule_id": "seoul_parking_appendix2_row_05",
+          "base_rule_id": "parking_appendix1_row_05",
+          "metric": "household_or_unit_area",
+          "metric_value": 293.46,
+          "required_spaces": 3,
+          "raw_spaces": 3,
+          "rounding_rule": "housing_standard_article_27_ceil_plus_seoul_household_minimum",
+          "formula_detail": "공동주택: 전용 85㎡ 이하 75㎡당 1대, 85㎡ 초과 65㎡당 1대와 서울 조례 세대별 최소값을 비교해 큰 값 적용",
+          "unit_schedule": {
+            "source": "mass_stage_estimate",
+            "fallback_area_m2": 293.46,
+            "area_ratio_raw_spaces": 2.9344,
+            "household_min_raw_spaces": 3,
+            "units": [
+              {
+                "unit_type": "F01",
+                "count": 1,
+                "exclusive_area_m2": 73.36,
+                "area_divisor_m2_per_space": 75,
+                "min_spaces_per_unit": 1,
+                "source": "mass_stage_estimate"
+              },
+              {
+                "unit_type": "F02",
+                "count": 1,
+                "exclusive_area_m2": 73.36,
+                "area_divisor_m2_per_space": 75,
+                "min_spaces_per_unit": 1,
+                "source": "mass_stage_estimate"
+              },
+              {
+                "unit_type": "F03",
+                "count": 1,
+                "exclusive_area_m2": 73.36,
+                "area_divisor_m2_per_space": 75,
+                "min_spaces_per_unit": 1,
+                "source": "mass_stage_estimate"
+              }
+            ]
+          },
+          "accessible": {
+            "status": "not_applicable_under_10",
+            "accessible_min": 0,
+            "accessible_max": 0
+          },
+          "source": {
+            "rule_kind": "local_override",
+            "source_appendix": "서울특별시 주차장 설치 및 관리 조례::별표2",
+            "source_ordinance": "seoul_parking_ordinance",
+            "source_parse_status": "official_law_go_kr_text_extracted_manual_review"
+          },
+          "reason": null
+        },
+        "required_parking_spaces": 3,
+        "required_accessible_parking_spaces": 0,
+        "variant_id": "maas_01",
+        "design_id": 900000,
+        "design_uid": "maas:maas_01",
+        "objectives": [
+          293.46,
+          62.96
+        ]
+      }
+    },
+    "parkingPrecheckSummaries": [
+      {
+        "designId": 900000,
+        "variantId": "maas_01",
+        "score": 0.426,
+        "shape": "notch_south_west",
+        "strategy": "piloti_ground",
+        "status": "pass",
+        "required": 3,
+        "provided": 3,
+        "adjacency": {
+          "status": "row_contiguous",
+          "touching_pairs": 2,
+          "row_touching_pairs": 2,
+          "gap_pairs": 0,
+          "min_gap_m": 0,
+          "max_gap_m": 0,
+          "row_groups": 1,
+          "connected_components": 1,
+          "row_contiguous_ok": true,
+          "cluster_contiguous_ok": true,
+          "contiguous_ok": true
+        }
+      }
+    ],
+    "massDebug": {
+      "featureCount": 1,
+      "selectedId": 900000,
+      "hasOverlayUrl": false,
+      "hasFacadeTextureUrl": false,
+      "hasTexturedGltfUrl": false,
+      "facadeTexturePanelViews": [],
+      "aestheticFacadeStyle": "",
+      "facadeAttempts": 0,
+      "facadeEligibleFeatures": 0,
+      "overlayAttempts": 0,
+      "gltfAttempts": 0,
+      "gltfStatus": "",
+      "pilotiFeatures": [
+        {
+          "designId": 900000,
+          "strategy": "piloti_ground",
+          "voidHeight": 3
+        }
+      ],
+      "parkingLayouts": [
+        {
+          "designId": 900000,
+          "strategy": "piloti_ground",
+          "status": "pass",
+          "provided": 3,
+          "stalls": 3,
+          "stallsWithWgs84": 3
+        }
+      ]
+    },
+    "canvases": [
+      {
+        "i": 0,
+        "width": 343,
+        "height": 380,
+        "rect": {
+          "width": 343,
+          "height": 380
+        },
+        "className": ""
+      },
+      {
+        "i": 1,
+        "width": 966,
+        "height": 976,
+        "rect": {
+          "width": 966,
+          "height": 976
+        },
+        "className": ""
+      },
+      {
+        "i": 2,
+        "width": 300,
+        "height": 150,
+        "rect": {
+          "width": 0,
+          "height": 0
+        },
+        "className": "tempCanvas"
+      },
+      {
+        "i": 3,
+        "width": 1024,
+        "height": 600,
+        "rect": {
+          "width": 676.1875,
+          "height": 585.59375
+        },
+        "className": "hudCanvas"
+      },
+      {
+        "i": 4,
+        "width": 1024,
+        "height": 15,
+        "rect": {
+          "width": 0,
+          "height": 0
+        },
+        "className": "mapStatusBarCanvas"
+      },
+      {
+        "i": 5,
+        "width": 50,
+        "height": 50,
+        "rect": {
+          "width": 0,
+          "height": 0
+        },
+        "className": "mapCompassCanvas"
+      },
+      {
+        "i": 6,
+        "width": 125,
+        "height": 30,
+        "rect": {
+          "width": 125,
+          "height": 30
+        },
+        "className": "distanceLegendCanvas"
+      }
+    ]
+  },
+  "errorCount": 0,
+  "consoleProblems": [
+    {
+      "type": "error",
+      "text": "Permissions policy violation: unload is not allowed in this document."
+    }
+  ],
+  "responseErrors": []
+}

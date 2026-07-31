@@ -1,0 +1,115 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "label": "Reflection Team (품질 개선)",
+  "description": "에이전트가 출력을 생성한 후, 비평 에이전트가 검토하고 피드백을 제공합니다. 원래 에이전트는 비평을 바탕으로 반복적으로 개선합니다.",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "label": "Generator",
+        "config": {
+          "name": "generator",
+          "description": "콘텐츠 생성 담당",
+          "system_message": "당신은 코드/콘텐츠 생성 전문가입니다.\n\n역할:\n1. 사용자의 요청을 분석하고 고품질 결과물을 생성하세요.\n2. critic의 피드백을 받으면, 지적된 사항을 반영하여 개선된 전체 버전을 다시 제공하세요.\n3. 코드 작성 시 타입 힌트, docstring, 에러 처리를 포함하세요.\n\n출력 형식:\n- 코드는 ```python 블록으로 감싸세요.\n- 변경 사항이 있으면 \"변경 사항:\" 섹션에 정리하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Haiku 4.5 (Max OAuth)",
+            "description": "Claude Haiku 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-haiku-4-5-20251001"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "label": "Critic",
+        "config": {
+          "name": "critic",
+          "description": "품질 검토 및 피드백",
+          "system_message": "당신은 코드/콘텐츠 품질 검토 전문가입니다.\n\n역할:\n1. generator의 출력을 평가하세요: 정확성, 완전성, 코드 품질.\n2. 문제가 있으면 구체적 개선점을 번호로 나열하세요.\n3. 모든 기준을 충족하면 첫 줄에 \"APPROVED\"라고 작성하세요.\n\n중요: 절대 generator의 코드를 복사하지 마세요. 평가만 하세요.\n\n출력 형식:\n[문제 있을 때]\n개선 필요:\n1. [구체적 문제]\n\n[문제 없을 때]\nAPPROVED\n이유: [승인 근거]",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Haiku 4.5 (Max OAuth)",
+            "description": "Claude Haiku 4.5 - Max OAuth.",
+            "config": {
+              "model": "claude-haiku-4-5-20251001"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "label": "ApprovedTermination",
+            "config": {
+              "text": "APPROVED"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "label": "MaxMessageTermination",
+            "config": {
+              "max_messages": 6,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "id": "cli_collaboration",
+  "name": {
+    "en": "CLI Collaboration",
+    "ko": "CLI 협업"
+  },
+  "description": {
+    "en": "Multiple Claude CLI agents collaborate on a project, each specializing in a folder (frontend, backend, db, tests). Agents communicate through Message Bus and share information via SharedMemory.",
+    "ko": "여러 Claude CLI 에이전트가 프로젝트에서 협업합니다. 각 에이전트는 폴더별 전문성을 가지며(frontend, backend, db, tests), Message Bus를 통해 대화하고 SharedMemory로 정보를 공유합니다."
+  },
+  "diagram": "Orchestrator → [DB Agent → Backend Agent → Frontend Agent → Test Agent] (via Message Bus)",
+  "complexity": "advanced",
+  "when_to_use": [
+    "Building a complete application with multiple components",
+    "When you need real file generation and code writing",
+    "Projects requiring frontend, backend, and database work",
+    "When agents need to share context (API specs, schemas)"
+  ],
+  "when_to_avoid": [
+    "Simple single-file tasks",
+    "Tasks that don't require actual code generation",
+    "When Claude CLI is not installed"
+  ],
+  "pros": [
+    "Real code generation using Claude CLI",
+    "Folder isolation prevents conflicts",
+    "Visible agent dialogue in real-time",
+    "SharedMemory enables context sharing",
+    "Each agent has independent Claude instance"
+  ],
+  "cons": [
+    "Requires Claude Code installation",
+    "Needs Message Bus and SharedMemory servers running",
+    "More resource intensive than single agent",
+    "Requires proper orchestration"
+  ],
+  "example_use_cases": [
+    {
+      "name": "E-commerce Application",
+      "description": "Build a shopping mall with DB schema, REST API, React UI, and tests"
+    },
+    {
+      "name": "Dashboard Application",
+      "description": "Create an admin dashboard with authentication and data visualization"
+    },
+    {
+      "name": "API-First Development",
+      "description": "Design database first, generate API, then build frontend consuming the API"
+    }
+  ],
+  "autogen_implementation": {
+    "provider": "autogen_agentchat.teams.SelectorGroupChat",
+    "team_config": {
+      "participants": [
+        {
+          "provider": "autogenstudio.a2a.agent.A2AAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "cli_db_agent",
+            "description": "Database specialist using Claude CLI. Designs schemas, migrations in db/ folder.",
+            "a2a_url": "http://localhost:8110"
+          }
+        },
+        {
+          "provider": "autogenstudio.a2a.agent.A2AAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "cli_backend_agent",
+            "description": "Backend API specialist using Claude CLI. Creates FastAPI endpoints in backend/ folder.",
+            "a2a_url": "http://localhost:8111"
+          }
+        },
+        {
+          "provider": "autogenstudio.a2a.agent.A2AAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "cli_frontend_agent",
+            "description": "Frontend specialist using Claude CLI. Builds React components in frontend/ folder.",
+            "a2a_url": "http://localhost:8112"
+          }
+        },
+        {
+          "provider": "autogenstudio.a2a.agent.A2AAgent",
+          "component_type": "agent",
+          "config": {
+            "name": "cli_test_agent",
+            "description": "Testing specialist using Claude CLI. Writes pytest/jest tests in tests/ folder.",
+            "a2a_url": "http://localhost:8113"
+          }
+        }
+      ],
+      "selector_prompt": "You are coordinating a multi-agent software development team.\n\nAvailable Agents:\n- cli_db_agent: Database specialist - designs schemas, migrations\n- cli_backend_agent: Backend API specialist - creates FastAPI/Express endpoints\n- cli_frontend_agent: Frontend specialist - builds React/Vue components\n- cli_test_agent: Testing specialist - writes unit/integration tests\n\nWorkflow Rules:\n1. For new projects, start with cli_db_agent to design the database schema\n2. After schema is ready, cli_backend_agent creates the API\n3. Once API is defined, cli_frontend_agent builds the UI\n4. cli_test_agent writes tests after code is implemented\n\nContext Sharing:\n- cli_db_agent shares schema via SharedMemory\n- cli_backend_agent shares API spec via SharedMemory\n- Other agents can query SharedMemory for context\n\nBased on the conversation and current state, select the next agent to speak.\nReturn ONLY the agent name.",
+      "termination_condition": {
+        "provider": "autogen_agentchat.conditions.MaxTurns",
+        "config": {
+          "max_turns": 20
+        }
+      }
+    },
+    "requiredConfig": {
+      "allow_repeated_speaker": false
+    }
+  },
+  "cli_integration": {
+    "message_bus_port": 8100,
+    "shared_memory_port": 8101,
+    "websocket_bridge_port": 8102,
+    "agent_ports": {
+      "cli_db_agent": 8110,
+      "cli_backend_agent": 8111,
+      "cli_frontend_agent": 8112,
+      "cli_test_agent": 8113
+    },
+    "start_commands": [
+      "python AG-cli/mcp/message_bus.py",
+      "python AG-cli/mcp/shared_memory.py",
+      "python AG-cli/studio/cli_agent.py --folder db --expertise PostgreSQL --port 8110",
+      "python AG-cli/studio/cli_agent.py --folder backend --expertise FastAPI --port 8111",
+      "python AG-cli/studio/cli_agent.py --folder frontend --expertise React --port 8112",
+      "python AG-cli/studio/cli_agent.py --folder tests --expertise pytest --port 8113"
+    ]
+  },
+  "references": [
+    {
+      "title": "Claude Code CLI Documentation",
+      "url": "https://code.claude.com/docs/en/headless"
+    },
+    {
+      "title": "Claude Agent SDK",
+      "url": "https://platform.claude.com/docs/en/agent-sdk/overview"
+    },
+    {
+      "title": "AG-CLI Architecture",
+      "url": "file://AG-cli/docs/ARCHITECTURE.md"
+    }
+  ]
+}

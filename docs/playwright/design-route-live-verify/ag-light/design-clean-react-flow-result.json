@@ -1,0 +1,11 @@
+{
+  "attrNodes": "6",
+  "attrEdges": "5",
+  "overlayEdges": 5,
+  "reactFlowInternalEdges": 0,
+  "overlayZIndex": "1",
+  "reactFlowLayerZIndex": "2",
+  "messageVisibleInLawNode": true,
+  "lawNodeText": "법규law_graph_agentlaw_graph_agent 직접 메시지 표시 검증",
+  "errors": []
+}

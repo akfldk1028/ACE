@@ -1,0 +1,24 @@
+{
+  "provider": "autogenstudio.a2a.A2AAgent",
+  "component_type": "agent",
+  "version": 1,
+  "description": "컴퓨터 그래픽스 이론과 렌더링 기술을 전문으로 하는 에이전트",
+  "label": "Graphics Agent",
+  "config": {
+    "name": "graphics_agent",
+    "a2a_server_url": "http://localhost:8008",
+    "description": "색 공간 변환, 렌더링 파이프라인, 셰이딩 모델, 변환 행렬",
+    "timeout": 300,
+    "skills": [
+      {"name": "color_space_convert", "description": "RGB 색상을 다른 색공간으로 변환합니다"},
+      {"name": "explain_render_pipeline", "description": "그래픽스 렌더링 파이프라인을 설명합니다"},
+      {"name": "shading_models", "description": "주요 셰이딩 모델들을 설명합니다"},
+      {"name": "transformation_matrix", "description": "변환 행렬을 생성하고 설명합니다"}
+    ]
+  },
+  "_source": {
+    "agent_file": "D:/Data/22_AG/autogen_a2a_kit/a2a_demo/graphics_agent/agent.py",
+    "port": 8008,
+    "framework": "google_adk"
+  }
+}

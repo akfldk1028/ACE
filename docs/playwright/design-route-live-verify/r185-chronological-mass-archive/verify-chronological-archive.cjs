@@ -1,0 +1,148 @@
+const fs = require('fs');
+const path = require('path');
+const { chromium } = require(path.resolve(__dirname, '../../../../ARR/frontend/node_modules/playwright'));
+
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+  const consoleErrors = [];
+  const pageErrors = [];
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  page.on('pageerror', (error) => pageErrors.push(error.message));
+
+  const response = await page.goto('http://127.0.0.1:5175/design/language', {
+    waitUntil: 'domcontentloaded', timeout: 60000,
+  });
+  await page.locator('[data-testid="maas-book-language-flow"]').waitFor({ state: 'visible', timeout: 30000 });
+  const timeline = page.locator('.execution-run-timeline');
+  await timeline.waitFor({ state: 'visible', timeout: 30000 });
+  const runButtons = timeline.locator('button');
+  await runButtons.first().waitFor({ state: 'visible', timeout: 30000 });
+  const runCount = await runButtons.count();
+  const newestRunTitle = await runButtons.first().getAttribute('title');
+
+  const failedRun = timeline.locator('button[title="book-program-portfolios-r185-program-controller-archive-preflight"]');
+  await failedRun.click();
+  await page.getByText('실행 상태: aborted_memory_pressure.').waitFor({ state: 'visible', timeout: 30000 });
+  const failedRunSelected = await failedRun.getAttribute('data-selected');
+  const failedRunMassCards = await page.locator('.geometry-result-gallery button').count();
+
+  const replayRun = timeline.locator('button[title="book-program-portfolios-r188-map-elites-compatibility-reserve"]');
+  await replayRun.click();
+  await page.locator('.geometry-result-gallery button').first().waitFor({ state: 'visible', timeout: 30000 });
+  const replayRunSelected = await replayRun.getAttribute('data-selected');
+  const replayMassCards = await page.locator('.geometry-result-gallery button').count();
+  const firstMassCard = page.locator('.geometry-result-gallery button').first();
+  await firstMassCard.click();
+  const selectedMassNode = page.locator('[data-node-kind="executed_mass_result"][data-selected="true"]');
+  await selectedMassNode.waitFor({ state: 'visible', timeout: 30000 });
+  await page.locator('[data-node-stage="execution_compiler"]').first().waitFor({ state: 'visible', timeout: 30000 });
+  await page.locator('[data-node-stage="memory_vlm"]').first().waitFor({ state: 'visible', timeout: 30000 });
+  const selectedMassNodeId = await selectedMassNode.getAttribute('data-node-id');
+  const activeEdgeCount = await page.locator('.book-network__edge.is-active').count();
+  const activeEdgeFacts = await page.locator('.book-network__edge.is-active').evaluateAll((edges) => (
+    edges.map((edge) => ({
+      source: edge.getAttribute('data-edge-source'),
+      target: edge.getAttribute('data-edge-target'),
+      relation: edge.getAttribute('data-edge-relation'),
+    }))
+  ));
+  const relatedStages = await page.locator('.book-network__node[data-related="true"]').evaluateAll((nodes) => (
+    [...new Set(nodes.map((node) => node.getAttribute('data-node-stage')).filter(Boolean))]
+  ));
+  const requiredRelations = [
+    'solid_input', 'materializes_selected_execution', 'program_projection_result',
+    'compile', 'validate', 'downstream_gate', 'render', 'materialized_png',
+    'hard_gate_input', 'selection_status', 'generated_result',
+  ];
+  const requiredStages = [
+    'execution_geometry', 'execution_program', 'execution_compiler',
+    'execution_gates', 'execution_render', 'execution_selector', 'executed_mass',
+  ];
+  const activeRelations = [...new Set(activeEdgeFacts.map((edge) => edge.relation).filter(Boolean))];
+  const resultIncomingRelations = activeEdgeFacts
+    .filter((edge) => edge.target === selectedMassNodeId)
+    .map((edge) => edge.relation);
+  const runNodeCount = await page.locator('[data-node-kind="execution_run_archive"]').count();
+  const bookRasterDomCount = await page.locator('img[src*="book-assets"], a[href*="book-assets"]').count();
+  const fullGraphCount = await page.locator('.maas-language-flow__viewport .book-network').count();
+  const paidVlmMemoryNodeCount = await page.locator('[data-node-kind="agent_memory_vlm_portfolio_critic"]').count();
+
+  await page.getByRole('tab', { name: 'MASS ARCHIVE' }).click();
+  const massOnlyArchive = page.locator('.mass-only-archive');
+  await massOnlyArchive.waitFor({ state: 'visible', timeout: 30000 });
+  const massOnlyCardCount = await massOnlyArchive.locator('button').count();
+  const paidVlmHeaderCount = await page.getByText('PAID FAIL', { exact: true }).count();
+
+  await page.getByRole('tab', { name: 'FULL GRAPH' }).click();
+  await page.locator('[data-node-kind="agent_memory_vlm_portfolio_critic"]').waitFor({ state: 'visible', timeout: 30000 });
+  await page.screenshot({
+    path: path.join(__dirname, 'r188-paid-vlm-full-graph.png'),
+    fullPage: true,
+  });
+  await page.locator('[data-node-kind="agent_memory_vlm_portfolio_critic"]').scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: path.join(__dirname, 'r188-paid-vlm-node-focus.png'),
+    fullPage: true,
+  });
+  await page.getByRole('tab', { name: 'MASS ARCHIVE' }).click();
+  await massOnlyArchive.waitFor({ state: 'visible', timeout: 30000 });
+
+  await page.screenshot({
+    path: path.join(__dirname, 'chronological-mass-archive.png'),
+    fullPage: true,
+  });
+  const result = {
+    http_status: response?.status() ?? null,
+    run_count: runCount,
+    newest_run_title: newestRunTitle,
+    run_node_count: runNodeCount,
+    failed_run_selected: failedRunSelected === 'true',
+    failed_run_mass_card_count: failedRunMassCards,
+    replay_run_selected: replayRunSelected === 'true',
+    replay_mass_card_count: replayMassCards,
+    selected_mass_node_id: selectedMassNodeId,
+    active_edge_count: activeEdgeCount,
+    active_relations: activeRelations,
+    related_stages: relatedStages,
+    result_incoming_relations: resultIncomingRelations,
+    full_graph_count: fullGraphCount,
+    paid_vlm_memory_node_count: paidVlmMemoryNodeCount,
+    paid_vlm_header_count: paidVlmHeaderCount,
+    mass_only_card_count: massOnlyCardCount,
+    book_raster_dom_count: bookRasterDomCount,
+    console_errors: consoleErrors,
+    page_errors: pageErrors,
+  };
+  result.pass = result.http_status === 200
+    && result.run_count >= 2
+    && String(result.newest_run_title || '').includes('r188-map-elites-compatibility-reserve')
+    && result.run_node_count === result.run_count
+    && result.failed_run_selected
+    && result.failed_run_mass_card_count === 0
+    && result.replay_run_selected
+    && result.replay_mass_card_count === 16
+    && String(result.selected_mass_node_id || '').includes('r188-map-elites-compatibility-reserve')
+    && result.active_edge_count > 0
+    && requiredRelations.every((relation) => result.active_relations.includes(relation))
+    && requiredStages.every((stage) => result.related_stages.includes(stage))
+    && result.result_incoming_relations.includes('selection_status')
+    && result.result_incoming_relations.includes('generated_result')
+    && result.full_graph_count === 1
+    && result.paid_vlm_memory_node_count >= 1
+    && result.paid_vlm_header_count >= 1
+    && result.mass_only_card_count === 16
+    && result.book_raster_dom_count === 0
+    && result.console_errors.length === 0
+    && result.page_errors.length === 0;
+  fs.writeFileSync(path.join(__dirname, 'verify-chronological-archive.json'), `${JSON.stringify(result, null, 2)}\n`);
+  await browser.close();
+  if (!result.pass) {
+    console.error(JSON.stringify(result, null, 2));
+    process.exit(1);
+  }
+  console.log(JSON.stringify(result, null, 2));
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

@@ -1,0 +1,44 @@
+[
+  {
+    "file": "references.bib",
+    "chunks": 4,
+    "size": 4696,
+    "b64_len": 6264
+  },
+  {
+    "file": "colm2026_conference.sty",
+    "chunks": 6,
+    "size": 7727,
+    "b64_len": 10304
+  },
+  {
+    "file": "colm2026_conference.bst",
+    "chunks": 18,
+    "size": 26973,
+    "b64_len": 35964
+  },
+  {
+    "file": "fancyhdr.sty",
+    "chunks": 14,
+    "size": 20521,
+    "b64_len": 27364
+  },
+  {
+    "file": "natbib.sty",
+    "chunks": 31,
+    "size": 45154,
+    "b64_len": 60208
+  },
+  {
+    "file": "main.tex",
+    "chunks": 45,
+    "size": 67484,
+    "b64_len": 89980
+  },
+  {
+    "file": "math_commands.tex",
+    "chunks": 9,
+    "size": 12284,
+    "b64_len": 16380
+  }
+]

@@ -1,381 +1,419 @@
-# 25_ACE Integration Architecture
+# 25_ACE Architecture
 
-Auto-Claude (24/7 자율 코딩)와 AG (멀티 에이전트 프레임워크) 통합 아키텍처
+> 자연어 → 에이전트 설계 → 자동 빌드 → 완성된 프로젝트
 
-## 개요
+---
+
+## 핵심 아키텍처
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    25_ACE UNIFIED AGENT ECOSYSTEM                    │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌────────────────────┐              ┌────────────────────┐        │
-│  │   AUTO-CLAUDE      │    A2A       │        AG          │        │
-│  │   24/7 Autonomous  │ ◄─────────►  │   Multi-Agent      │        │
-│  │   Coding Framework │   Bridge     │   Framework        │        │
-│  │                    │              │                    │        │
-│  │   4 Core Agents    │              │   13+ Agents       │        │
-│  └─────────┬──────────┘              └─────────┬──────────┘        │
-│            │                                   │                    │
-│            ▼                                   ▼                    │
-│  ┌────────────────────┐              ┌────────────────────┐        │
-│  │  Graphiti Memory   │ ◄─────────►  │  Neo4j Knowledge   │        │
-│  │  (LadybugDB)       │    Sync      │  Graph             │        │
-│  │                    │              │                    │        │
-│  │  - Code Patterns   │              │  - Domain Knowledge│        │
-│  │  - Session Context │              │  - Legal Rules     │        │
-│  │  - Insights        │              │  - Compliance      │        │
-│  └────────────────────┘              └────────────────────┘        │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+                        사용자
+                          │
+                          │ "계산기 앱 만들어줘"
+                          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    Platform UI (Vite + React 19)                             │
+│                    http://localhost:5173                                      │
+│                                                                             │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐        │
+│  │Dashboard │ │ Teams    │ │Playground│ │ History  │ │ Agents   │        │
+│  │(통계)    │ │(팀 관리) │ │(WS 실행) │ │(이력)    │ │(마켓)    │        │
+│  └──────────┘ └──────────┘ └────┬─────┘ └──────────┘ └──────────┘        │
+│                                  │                                         │
+│  Vite Proxy: /api/* ─────────────┼─────────────────────────────────────►  │
+└──────────────────────────────────┼─────────────────────────────────────────┘
+                                   │ REST + WebSocket
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    AutoGen Studio Engine (:8081)                             │
+│                                                                             │
+│  Teams / Sessions / Runs / Gallery / A2A Registry                          │
+│  7 Team Templates (Sequential/Selector/Handoff/Debate/Reflection/etc.)     │
+│  98 JSON Components ($ref resolver system)                                  │
+│  SQLite: ~/.autogenstudio/autogen04203.db                                   │
+│                                                                             │
+└────────────────┬──────────────────────────────┬─────────────────────────────┘
+                 │                              │
+                 ▼                              ▼
+┌────────────────────────────┐   ┌──────────────────────────────┐
+│  Claude SDK                │   │  A2A Agents (8003-8120)      │
+│  (code execution)          │   │  10 agents, JSON-RPC 2.0     │
+│                            │   │  Google ADK                   │
+│  Planner → Coder →         │   └──────────────────────────────┘
+│  QA Reviewer → QA Fixer    │
+│                            │
+│  AG/Auto-Claude CLI        │
+│  (24/7 orchestrator)       │
+└────────────────────────────┘
 ```
 
 ---
 
-## 시스템 구성요소
+## 핵심 컴포넌트
 
-### Auto-Claude (D:\Data\25_ACE\Auto-Claude)
+### 1. Platform UI (SaaS Frontend)
 
-24/7 자율 코딩 프레임워크
+| 항목 | 값 |
+|------|-----|
+| URL | http://localhost:5173 |
+| 스택 | Vite 7 + React 19 + TypeScript 5.9 + Tailwind v4 |
+| 역할 | 커스텀 SaaS 프론트엔드 (AutoGen Studio API 프록시) |
 
-| 에이전트 | 역할 | 기능 |
-|----------|------|------|
-| **Planner** | 구현 계획 | 서브태스크 기반 implementation_plan.json 생성 |
-| **Coder** | 24/7 코딩 | `while True:` 무한 루프로 자율 구현 |
-| **QA Reviewer** | 품질 검증 | E2E 테스팅 (Electron MCP via CDP) |
-| **QA Fixer** | 이슈 수정 | QA 이슈 자동 수정 (최대 5회 반복) |
+**6 Pages** (lazy-loaded):
+- Dashboard, Teams, Playground, History, Agents, Settings
 
-**파이프라인**: SPEC → PLANNER → CODER → QA LOOP → MERGE
+**핵심 파일:**
+- `AG-frontend/src/shared/api/client.ts` - REST API client (AutoGen Studio 1:1 match)
+- `AG-frontend/src/shared/api/ws.ts` - WebSocket client (execution streaming)
+- `AG-frontend/src/features/playground/PlaygroundPage.tsx` - Real-time execution UI
+- `AG-frontend/vite.config.ts` - Vite proxy: `/api/*` → `:8081`
 
-**메모리**: Graphiti (LadybugDB 내장, Docker 불필요)
+### 2. AutoGen Studio (Backend API Engine)
 
-### AG (D:\Data\25_ACE\AG)
+| 항목 | 값 |
+|------|-----|
+| URL | http://localhost:8081 |
+| 역할 | 에이전트 팀 실행 엔진 (REST + WebSocket API) |
+| 기능 | 팀/세션/런 관리, 패턴 갤러리, A2A 연동 |
 
-멀티 에이전트 연구/분석 프레임워크
+**지원 패턴:**
+- Sequential: A → B → C
+- Selector: LLM이 에이전트 선택
+- Swarm: 핸드오프 기반 협업
+- Magentic One: Orchestrator가 작업 분배
+- Reflection: Worker + Reviewer 루프
 
-#### autogen_a2a_kit (8 에이전트)
+### 3. Auto-Claude (24/7 실행)
 
-| 에이전트 | 역할 |
-|----------|------|
-| Research Agent | 정보 수집 및 분석 |
-| Analyst Agent | 데이터 분석 |
-| Writer Agent | 문서 작성 |
-| Reviewer Agent | 검토 및 피드백 |
-| Coordinator Agent | 작업 조율 |
-| 외 3개 | 특수 목적 에이전트 |
+| 항목 | 값 |
+|------|-----|
+| 위치 | AG/Auto-Claude |
+| 역할 | 24/7 자율 코딩 (CLI + Electron Kanban) |
+| 핵심 파일 | `cli.py`, `src/bridge/workflow_executor.py` |
 
-#### law-domain-agents (5 에이전트)
+**에이전트 파이프라인:**
+1. **Planner Agent**: 구현 계획 수립, subtask 분해
+2. **Coder Agent**: 코드 작성 (subagent 병렬 처리)
+3. **QA Reviewer**: 코드 리뷰, 테스트 실행
+4. **QA Fixer**: 이슈 수정 (필요시)
 
-| 에이전트 | 역할 | Neo4j 연동 |
-|----------|------|-----------|
-| **CaseAnalyzer** | 판례 분석 | 판례 지식 그래프 |
-| **LegalResearcher** | 법률 조사 | 법령 DB 검색 |
-| **RiskAssessor** | 리스크 평가 | 리스크 패턴 매칭 |
-| **ComplianceChecker** | 컴플라이언스 검증 | 규정 준수 확인 |
-| **DocumentDrafter** | 문서 초안 | 템플릿 기반 생성 |
-
----
-
-## 통합 아키텍처
-
-### Layer 1: A2A Protocol Bridge
-
-에이전트 간 통신을 위한 중앙 게이트웨이
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     A2A PROTOCOL BRIDGE                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Protocol: HTTP/WebSocket + JSON-RPC 2.0                       │
-│                                                                 │
-│  Message Types:                                                 │
-│  ├── task_request    → 작업 요청                               │
-│  ├── task_response   → 작업 응답                               │
-│  ├── context_share   → 컨텍스트 공유                           │
-│  ├── memory_sync     → 메모리 동기화                           │
-│  └── agent_discover  → 에이전트 탐색                           │
-│                                                                 │
-│  Components:                                                    │
-│  ├── gateway.py      → 메시지 라우팅                           │
-│  ├── router.py       → 에이전트 매칭                           │
-│  ├── protocol.py     → 프로토콜 정의                           │
-│  └── registry.py     → 에이전트 레지스트리                     │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Layer 2: Memory Synchronization
-
-Graphiti ↔ Neo4j 양방향 메모리 동기화
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                   MEMORY SYNC LAYER                              │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Graphiti (Auto-Claude)          Neo4j (AG)                    │
-│  ├── Code Patterns        ─────► Domain Knowledge              │
-│  ├── Session Insights     ─────► Implementation Context        │
-│  │                                                              │
-│  │                        ◄───── Legal Rules                   │
-│  │                        ◄───── Compliance Requirements       │
-│  └── Project Context      ◄───── Domain Constraints            │
-│                                                                 │
-│  Sync Strategy:                                                 │
-│  ├── Event-driven (실시간 변경 감지)                           │
-│  ├── Eventual Consistency (최종 일관성)                        │
-│  └── Conflict Resolution (충돌 해결 정책)                      │
-│                                                                 │
-│  Shared Data:                                                   │
-│  ├── Embedding Vectors (시맨틱 유사도)                         │
-│  ├── Entity References (엔티티 참조)                           │
-│  └── Metadata (메타데이터)                                     │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Layer 3: Task Orchestration
-
-크로스 시스템 작업 조율
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                   TASK ORCHESTRATION                             │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Auto-Claude Tasks:                AG Tasks:                   │
-│  ├── SPEC (명세 생성)              ├── RESEARCH (조사)         │
-│  ├── PLAN (계획 수립)              ├── ANALYZE (분석)          │
-│  ├── CODE (구현)                   ├── REVIEW (검토)           │
-│  ├── QA (품질 검증)                └── DOMAIN_VALIDATE (검증)  │
-│  └── MERGE (병합)                                              │
-│                                                                 │
-│  Cross-System Workflows:                                        │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │ 1. Research-to-Code                                     │   │
-│  │    AG Research → Auto-Claude SPEC → CODE → QA          │   │
-│  │                                                         │   │
-│  │ 2. Domain-Validated Development                        │   │
-│  │    Auto-Claude SPEC → AG Domain Validate → CODE        │   │
-│  │                                                         │   │
-│  │ 3. Compliance-Checked Implementation                   │   │
-│  │    Auto-Claude QA → AG ComplianceChecker → MERGE       │   │
-│  │                                                         │   │
-│  │ 4. Legal Software Development                          │   │
-│  │    AG LegalResearcher → Auto-Claude Full Pipeline      │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Layer 4: Agent Registry
-
-에이전트 탐색 및 기능 매칭
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                   AGENT REGISTRY                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Total: 17 Coordinated Agents                                   │
-│                                                                 │
-│  Auto-Claude (4 agents):                                        │
-│  ├── planner     [planning, subtask-decomposition]             │
-│  ├── coder       [implementation, 24/7-autonomous]             │
-│  ├── qa_reviewer [testing, e2e, validation]                    │
-│  └── qa_fixer    [debugging, issue-resolution]                 │
-│                                                                 │
-│  AG autogen_a2a_kit (8 agents):                                │
-│  ├── research    [information-gathering, web-search]           │
-│  ├── analyst     [data-analysis, pattern-detection]            │
-│  ├── writer      [documentation, content-creation]             │
-│  ├── reviewer    [feedback, quality-assessment]                │
-│  ├── coordinator [orchestration, task-routing]                 │
-│  └── ... (3 more specialized agents)                           │
-│                                                                 │
-│  AG law-domain (5 agents):                                     │
-│  ├── case_analyzer    [case-law, precedent-analysis]           │
-│  ├── legal_researcher [statute-search, regulation]             │
-│  ├── risk_assessor    [risk-evaluation, liability]             │
-│  ├── compliance       [compliance-check, regulation]           │
-│  └── document_drafter [legal-docs, contracts]                  │
-│                                                                 │
-│  Capability Matching:                                           │
-│  ├── Semantic Search (embedding-based)                         │
-│  ├── Tag Matching (explicit capabilities)                      │
-│  └── Context Awareness (project/domain specific)               │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 디렉토리 구조
-
-```
-D:\Data\25_ACE\
-├── Auto-Claude/                # 24/7 자율 코딩 프레임워크
-│   ├── apps/backend/           # Python 백엔드
-│   │   ├── agents/             # 에이전트 구현
-│   │   ├── core/               # 핵심 인프라
-│   │   ├── integrations/       # 외부 연동 (Graphiti)
-│   │   └── prompts/            # 시스템 프롬프트
-│   └── README_INDEX.md         # 문서 목록
-│
-├── AG/                         # 멀티 에이전트 프레임워크
-│   ├── agent/                  # 에이전트 프로젝트
-│   │   ├── autogen_a2a_kit/    # A2A 프로토콜 에이전트
-│   │   └── law-domain-agents/  # 법률 도메인 에이전트
-│   └── agent/README_INDEX.md   # 문서 목록
-│
-├── bridge/                     # (NEW) 통합 브릿지
-│   ├── gateway.py              # A2A 게이트웨이
-│   ├── router.py               # 메시지 라우터
-│   ├── protocol.py             # 프로토콜 정의
-│   ├── registry.py             # 에이전트 레지스트리
-│   └── sync/                   # 메모리 동기화
-│       ├── graphiti_neo4j.py   # Graphiti ↔ Neo4j 동기화
-│       └── conflict_resolver.py # 충돌 해결
-│
-├── ARCHITECTURE.md             # 이 파일
-└── README.md                   # 프로젝트 개요
-```
-
----
-
-## 구현 로드맵
-
-### Phase 1: Foundation (기초)
-
-1. **A2A Gateway 기초 구현**
-   - HTTP 엔드포인트 설정
-   - JSON-RPC 2.0 프로토콜
-   - 기본 메시지 라우팅
-
-2. **Agent Registry 구현**
-   - 에이전트 등록/탐색
-   - 기능 태그 시스템
-   - 상태 모니터링
-
-### Phase 2: Memory Integration (메모리 통합)
-
-1. **Graphiti → Neo4j 동기화**
-   - 코드 패턴 export
-   - 세션 인사이트 공유
-
-2. **Neo4j → Graphiti 동기화**
-   - 도메인 지식 import
-   - 컴플라이언스 규칙 공유
-
-### Phase 3: Workflow Automation (워크플로우 자동화)
-
-1. **Cross-System Tasks**
-   - Research-to-Code 파이프라인
-   - Domain-Validated Development
-
-2. **Orchestration Rules**
-   - 자동 에이전트 매칭
-   - 작업 체이닝
-
-### Phase 4: Advanced Features (고급 기능)
-
-1. **Self-Learning**
-   - 패턴 학습
-   - 최적화 자동화
-
-2. **Scalability**
-   - 분산 처리
-   - 로드 밸런싱
-
----
-
-## 사용 예시
-
-### 1. 법률 소프트웨어 개발
-
-```
-[User Request: "계약서 자동 생성 기능 구현"]
-
-1. AG LegalResearcher → 계약 법률 조사
-2. AG DocumentDrafter → 계약서 템플릿 분석
-3. Auto-Claude SPEC → 기능 명세 생성
-4. Auto-Claude CODER → 구현 (24/7)
-5. AG ComplianceChecker → 법적 검토
-6. Auto-Claude QA → E2E 테스트
-7. Auto-Claude MERGE → 병합 완료
-```
-
-### 2. 연구 기반 개발
-
-```
-[User Request: "최신 AI 논문 기반 추천 시스템"]
-
-1. AG Research Agent → 논문 수집 및 분석
-2. AG Analyst Agent → 알고리즘 비교
-3. Auto-Claude SPEC → 구현 계획
-4. Auto-Claude CODER → 코드 구현
-5. Auto-Claude QA → 성능 테스트
-```
-
-### 3. 컴플라이언스 검증 개발
-
-```
-[User Request: "GDPR 준수 데이터 처리 모듈"]
-
-1. Auto-Claude SPEC → 기능 명세
-2. AG ComplianceChecker → GDPR 요구사항 확인
-3. AG RiskAssessor → 리스크 평가
-4. Auto-Claude CODER → 구현 (컴플라이언스 반영)
-5. AG ComplianceChecker → 최종 검증
-6. Auto-Claude MERGE → 병합
-```
-
----
-
-## 환경 설정
-
-### 필수 환경 변수
-
+**사용법 (CLI):**
 ```bash
-# D:\Data\25_ACE\.env
-
-# Auto-Claude
-GRAPHITI_ENABLED=true
-ANTHROPIC_API_KEY=sk-ant-...
-
-# AG (law-domain-agents)
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=...
-OPENAI_API_KEY=sk-...
-
-# Bridge
-BRIDGE_PORT=8080
-A2A_PROTOCOL_VERSION=1.0
+cd AG/Auto-Claude
+python cli.py run --task "계산기 앱 만들어줘"  # single task
+python cli.py                                    # 24/7 factory
 ```
 
-### 서비스 시작
+**Git Worktree:**
+- 브랜치: `auto-claude/{spec-name}`
+- 디렉토리: `.worktrees/{spec-name}/`
+- 안전한 격리 빌드 후 병합
 
-```bash
-# Neo4j 시작 (AG용)
-neo4j start
+---
 
-# Auto-Claude Backend
-cd D:\Data\25_ACE\Auto-Claude\apps\backend
-python run.py --list
+## 실행 흐름 (상세)
 
-# AG law-domain-agents
-cd D:\Data\25_ACE\AG\agent\law-domain-agents
-python -m uvicorn main:app --port 8000
-
-# Bridge (구현 후)
-cd D:\Data\25_ACE\bridge
-python gateway.py
 ```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           전체 실행 흐름                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. 사용자 입력                                                             │
+│     └─ "계산기 앱 만들어줘" (Platform UI Playground 또는 CLI)              │
+│                                                                             │
+│  2. AutoGen Studio Engine                                                   │
+│     └─ POST /api/sessions/ → POST /api/runs/                              │
+│     └─ WS ws://localhost:8081/api/ws/runs/{run_id}                        │
+│     └─ Team 실행 (pattern에 따라 agent 순차/선택/핸드오프)                │
+│                                                                             │
+│  3. Platform UI (Playground)                                                │
+│     └─ WebSocket으로 실시간 agent turn 수신                               │
+│     └─ AgentTurnCard로 각 agent 출력 표시                                 │
+│                                                                             │
+│  4. Auto-Claude CLI (24/7 mode, optional)                                  │
+│     ├─ AG/Auto-Claude CLI가 파이프라인 실행                               │
+│     │   Claude Agent SDK (query()) 기반                                    │
+│     │   Planner -> Coder -> QA Reviewer -> QA Fixer                       │
+│     ├─ Git Worktree 생성 (격리)                                           │
+│     ├─ 코드 작성 및 커밋                                                  │
+│     └─ QA 통과 시 완료                                                    │
+│                                                                             │
+│  5. 완료                                                                    │
+│     ├─ Platform UI Dashboard에서 통계 확인                                │
+│     ├─ run.py --review (리뷰)                                             │
+│     └─ run.py --merge (병합)                                              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 포트 맵
+
+| 서비스 | 포트 | 설명 |
+|--------|------|------|
+| AutoGen Studio | 8081 | Backend API Engine (필수) |
+| Platform UI (Vite) | 5173 | SaaS Frontend (필수) |
+| Auto-Claude (Electron) | - | Kanban + 24/7 Pipeline (선택) |
+| A2A Agents | 8003-8009, 8120 | 전문 에이전트들 (선택) |
+| SharedMemory | 8101 | AG-CLI state sync (선택, fallback) |
+
+---
+
+## Vite Proxy 설정
+
+### Platform UI
+```typescript
+// AG-frontend/vite.config.ts
+proxy: {
+  '/api': {
+    target: 'http://localhost:8081',
+    changeOrigin: true,
+  }
+}
+```
+
+Platform calls `/api/teams` → proxied to `http://localhost:8081/api/teams`.
+
+### Auto-Claude Electron
+```typescript
+// electron.vite.config.ts
+'/api/autogen': {
+  target: 'http://localhost:8081',
+  changeOrigin: true,
+  rewrite: (path) => path.replace(/^\/api\/autogen/, '/api'),
+}
+```
+
+---
+
+## 4-Layer Architecture (AG/Auto-Claude CLI)
+
+```
+Layer 1: Coordinator (coordinator/)
+  ├── Orchestrator      24/7 메인 루프, 태스크 디스패치
+  ├── TaskQueue          SQLite 우선순위 큐 (high/medium/low)
+  ├── AgentSelector      에이전트 스코어링 & 선택 알고리즘
+  └── PipelineBuilder    동적 파이프라인 구성
+
+Layer 2: Pipeline (pipeline/)
+  ├── SequentialPipeline  순차 실행 (stage output -> next stage context)
+  ├── ParallelPipeline    병렬 실행 (fan-out -> gather)
+  └── CriticLoopPipeline  생성-비평-수정 반복 (max 5 iterations)
+
+Layer 3: Adapters (adapters/)
+  ├── AutoClaudeAdapter     Claude Agent SDK + OAuth
+  ├── AGAutogenAdapter      HTTP REST
+  ├── AGA2AAdapter          JSON-RPC 2.0 (Google ADK)
+  ├── AGLawDomainAdapter    HTTP REST
+  └── AutogenStudioAdapter  AutoGen Studio 연동
+
+Layer 4: Registry (coordinator/)
+  ├── AgentRegistry     에이전트 상태, 헬스체크, 성공률 추적
+  └── SharedMemoryClient  AG/Auto-Claude 8101 동기화 (optional)
+```
+
+### Pipeline Templates (사전 정의)
+
+```
+auto_claude_full:
+  Planner (Sequential) -> Coder (Sequential) -> QA (Critic Loop, max 5)
+    QA Loop: Coder -> QA Reviewer -> QA Fixer -> (반복)
+
+research:
+  Research + Analyst (Parallel) -> Writer (Sequential)
+
+legal_validation:
+  Legal Researcher (Sequential) -> Case Analyzer + Compliance (Parallel) -> Risk Assessor
+
+qa_loop:
+  Coder (Critic Loop): Coder -> QA Reviewer -> QA Fixer -> (반복)
+```
+
+---
+
+## 에이전트 전체 목록 (24개)
+
+### Auto-Claude Pipeline (4)
+
+| Agent | AgentType | Role | Adapter |
+|-------|-----------|------|---------|
+| Planner | `auto_claude.planner` | 태스크 분해, 구현 계획 | Claude Agent SDK |
+| Coder | `auto_claude.coder` | 24/7 자율 코딩 | Claude Agent SDK |
+| QA Reviewer | `auto_claude.qa_reviewer` | E2E 테스트, 품질 검증 | Claude Agent SDK |
+| QA Fixer | `auto_claude.qa_fixer` | 이슈 수정, 디버깅 | Claude Agent SDK |
+
+### AG AutoGen (5)
+
+| Agent | AgentType | Role |
+|-------|-----------|------|
+| Research | `ag.research` | 정보 수집, 웹 검색 |
+| Analyst | `ag.analyst` | 데이터 분석, 패턴 탐지 |
+| Writer | `ag.writer` | 문서 작성 |
+| Reviewer | `ag.reviewer` | 피드백, 품질 평가 |
+| Coordinator | `ag.coordinator` | 작업 조율 |
+
+### AG Law Domain (5)
+
+| Agent | AgentType | Role | Neo4j |
+|-------|-----------|------|-------|
+| Case Analyzer | `ag.case_analyzer` | 판례 분석 | 판례 지식 그래프 |
+| Legal Researcher | `ag.legal_researcher` | 법률 조사 | 법령 DB |
+| Risk Assessor | `ag.risk_assessor` | 리스크 평가 | 리스크 패턴 |
+| Compliance | `ag.compliance_checker` | 컴플라이언스 검증 | 규정 DB |
+| Document Drafter | `ag.document_drafter` | 문서 초안 | 템플릿 |
+
+### AG A2A Protocol (10)
+
+| Agent | AgentType | Port | Protocol |
+|-------|-----------|------|----------|
+| Poetry | `ag.a2a.poetry_agent` | 8003 | JSON-RPC 2.0 |
+| Philosophy | `ag.a2a.philosophy_agent` | 8004 | JSON-RPC 2.0 |
+| History | `ag.a2a.history_agent` | 8005 | JSON-RPC 2.0 |
+| Calculator | `ag.a2a.calculator_agent` | 8006 | JSON-RPC 2.0 |
+| Math | `ag.a2a.math_agent` | 8007 | JSON-RPC 2.0 |
+| Graphics | `ag.a2a.graphics_agent` | 8008 | JSON-RPC 2.0 |
+| GPU | `ag.a2a.gpu_agent` | 8009 | JSON-RPC 2.0 |
+| History Helper | `ag.a2a.history_helper_agent` | 8001 | JSON-RPC 2.0 |
+| Prime Checker | `ag.a2a.prime_checker_agent` | 8002 | JSON-RPC 2.0 |
+| GUI Test | `ag.a2a.gui_test_agent` | 8120 | JSON-RPC 2.0 |
+
+---
+
+## Platform UI Frontend 아키텍처
+
+### Feature-Based 구조
+```
+AG-frontend/src/
+├── app/              # Shell: App.tsx, router.tsx, providers.tsx
+├── features/         # Domain modules (self-contained)
+│   ├── agents/       # AgentsPage
+│   ├── auth/         # auth.ts, authStore (Zustand)
+│   ├── dashboard/    # DashboardPage
+│   ├── history/      # HistoryPage
+│   ├── playground/   # PlaygroundPage, executionStore, useExecution
+│   ├── settings/     # SettingsPage
+│   └── teams/        # TeamsPage, teamStore, useTeams (TanStack Query)
+├── shared/           # Cross-cutting
+│   ├── api/          # client.ts (REST), ws.ts (WebSocket), index.ts
+│   ├── animations/   # Framer Motion presets
+│   ├── hooks/        # useUsage (health/version)
+│   ├── lib/          # utils (cn)
+│   ├── theme/        # 7 themes × 2 modes (14 configs)
+│   ├── types/        # datamodel.ts (AutoGen type system), index.ts
+│   └── ui/           # 7 components (Button, Badge, Card, Input, Avatar, Toggle, ProgressCircle)
+└── main.tsx
+```
+
+### API Client 흐름
+```
+Platform UI -> fetch('/api/teams') -> Vite Proxy -> http://localhost:8081/api/teams
+                                                             ↓
+                                                    AutoGen Studio Engine
+                                                             ↓
+                                              { status: true, data: [...teams] }
+```
+
+### WebSocket 실행 흐름
+```
+1. POST /api/sessions/ -> session.id
+2. POST /api/runs/ -> run.run_id
+3. WS ws://localhost:5173/api/ws/runs/{run_id}?token=...
+   -> Vite proxy -> ws://localhost:8081/api/ws/runs/{run_id}
+4. Send: { type: "start", task: "...", team_config: {...} }
+5. Receive: { type: "message", data: { source: "coder", content: "..." } }
+6. Receive: { type: "completion" }
+```
+
+---
+
+## Auto-Claude Frontend 상세 아키텍처 (Electron)
+
+### 이중 모드 (Electron vs Browser)
+
+```
+[Electron Mode]
+  Renderer -> a2a-api.ts (preload) -> IPC -> a2a-handlers.ts (main) -> HTTP to 8081
+
+[Browser Mode]
+  Renderer -> browser-mock.ts -> Vite Proxy (/api/autogen -> 8081)
+                               -> AG/Auto-Claude CLI (direct Python import)
+```
+
+### KanbanBoard.tsx 핵심 구조
+
+```
+State:
+  autogenTasks: Task[]           AutoGen에서 변환된 카드들
+  pipelineTasks: Task[]          AG/Auto-Claude 파이프라인 카드들
+  pipelineProjects: Project[]    활성 파이프라인 프로젝트
+
+Refs (24/7 안전장치):
+  processedSessionsRef: Set      이미 trigger한 세션 ID
+  triggerLogRef: Record          trigger 상태 (triggered/running/done/error)
+  triggerQueueRef: Array         trigger 대기 큐 (직렬 처리)
+  isProcessingQueueRef: boolean  큐 처리 중 mutex
+  initialLoadDoneRef: boolean    초기 로드 완료 (기존 세션 skip)
+```
+
+---
+
+## JSON_MODULES - n8n-Style Composable Components
+
+### $ref Resolver System
+
+```
+templates_compact/*.json  ->  ref_resolver.py  ->  resolved/*.json
+   ($ref + _defaults)          (resolve)            (full inline)
+                                                         |
+                                                    POST /api/teams/
+                                                    AutoGen Studio DB
+```
+
+### Component Hierarchy
+
+- 23 Agents (7 Auto-Claude + 5 Debate/Reflection + 11 Sequential/Selector/Handoff)
+- 10 A2A Agents (Google ADK, ports 8001-8120)
+- 7 Models (3 Claude + 4 Default)
+- 7 Team Templates (compact $ref format)
+- 98 total JSON files, 0 validation failures
+
+---
+
+## AutoGen Studio 데이터 저장
+
+```
+~/.autogenstudio/
+├── autogen04203.db          # SQLite (teams, sessions, messages, runs)
+├── .env                     # 환경 설정
+├── files/user/              # 업로드 파일
+└── configs/                 # JSON/YAML 팀 설정 import
+
+환경변수:
+  AUTOGENSTUDIO_APPDIR          -> 앱 루트 (default: ~/.autogenstudio)
+  AUTOGENSTUDIO_DATABASE_URI    -> DB 경로 (default: sqlite:///./autogen04203.db)
+  AUTOGENSTUDIO_DEFAULT_USER_ID -> 사용자 (default: guestuser@gmail.com)
+```
+
+---
+
+## 테스트
+
+| File | Description | Status |
+|------|-------------|--------|
+| `AG-frontend/e2e/*.spec.ts` | Platform Playwright E2E (navigation, theme, playground) | Configured |
+| `JSON_MODULES/e2e_playwright_test.py` | Playwright + WebSocket E2E (9 tests, 598s) | 9 PASS |
+| `JSON_MODULES/validate_json.py` | 98 JSON 파일 검증 | 98 PASS, 0 FAIL |
+| `cd platform && npm run build` | Platform 프로덕션 빌드 | OK (0 TS errors) |
 
 ---
 
 ## 변경 이력
 
-- 2025-01-21: 초기 아키텍처 설계 문서 작성
+| Date | Change |
+|------|--------|
+| 2026-02-08 | Platform UI (Vite + React 19) 추가, AG-ACE-BRIDGE 완전 제거, 아키텍처 전면 재작성 |
+| 2026-02-07 | AG-ACE-BRIDGE 삭제 반영, AG/Auto-Claude CLI로 전환 |
+| 2026-02-07 | JSON_MODULES $ref resolver 아키텍처 추가 |
+| 2026-02-07 | A2A agents 5 -> 10개 확장, 서비스 포트 정리 |
+| 2026-01-31 | ARCHITECTURE.md 전면 재작성 (현재 구현 기준) |

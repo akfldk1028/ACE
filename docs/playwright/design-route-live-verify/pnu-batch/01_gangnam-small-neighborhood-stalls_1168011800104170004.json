@@ -1,0 +1,5468 @@
+{
+  "pnu": "1168011800104170004",
+  "name": "gangnam-small-neighborhood-stalls",
+  "buildingType": "근린생활시설",
+  "requireParkingStalls": true,
+  "waitError": null,
+  "pngPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\zoom_01_gangnam-small-neighborhood-stalls_1168011800104170004.png",
+  "jsonPath": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\pnu-batch\\01_gangnam-small-neighborhood-stalls_1168011800104170004.json",
+  "zoomState": {
+    "zoomed": true,
+    "parkingLineCount": 6,
+    "parkingCoordinateCount": 15,
+    "center": {
+      "lng": 127.04506705200002,
+      "lat": 37.48504320333334
+    },
+    "bounds": {
+      "minLng": 127.04502761,
+      "maxLng": 127.04511911,
+      "minLat": 37.48500299,
+      "maxLat": 37.48508405
+    },
+    "beforeHeight": 66.24077967892279,
+    "afterHeight": 37.999999999441386,
+    "ids": [
+      "design-mass-parking-line-shadow-900000-0",
+      "design-mass-parking-space-outline-900000-0",
+      "design-mass-parking-line-shadow-900000-1",
+      "design-mass-parking-space-outline-900000-1",
+      "design-mass-parking-line-shadow-900000-2",
+      "design-mass-parking-space-outline-900000-2"
+    ]
+  },
+  "state": {
+    "hasDisabledText": false,
+    "hasFallback": false,
+    "hasComplete": true,
+    "hasDesignList": true,
+    "hasMassText": true,
+    "hasAuthorityReviewText": false,
+    "hasEvidenceNeededText": false,
+    "hasVworldCanvas": true,
+    "bodyHead": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\n대지면적\n264.13 m²\n용도지역\n제2종일반주거지역\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n법규 산정 근거\n수치지형도 소스\nngii_local_dem\n대지 샘플\n14개 / 16.90-17.35m\n도로 샘플\n3개 / 16.34-16.61m\n인접대지 샘플\n13개 / 17.04-17.59m\n검출 도로폭\n37.5m\n전면도로 후보\n1개\n인접대지 후보\n4개\n정북일조\n적용 / 기준면 17.23m\n채광사선 참고면\n미표시\n화면 기본 레이어\n정북면 / 도로 / 인접\n\nVWorld 기본 화면은 검토용 요약 레이어입니다. 전체 디버그는 URL에 ?layers=all, 도로 라벨 전체는 ?roadLabels=all 을 붙여 확인합니다.\n\nCONSTRAINTS\n건폐율 ≤ 60%\n≤ 60%\n용적률 ≤ 250%\n≤ 250%\n인접대지 이격 ≥ 0.5m\n≥ 0.5m\n조경면적 ≥ 15%\n≥ 15%\n지반 레벨 (§119 DATUM)\n정북일조 기준 H = 0\n17.23m\n정북일조 기준 H=0\n17.23 m\n대지 §119 기준면\n17.10 m\n전면도로 기준면\n16.48 m\n인접대지 기준면\n17.35 m\n§86 평균수평면\n17.23 m\n§119/§86 케이스\n정북인접 평균 (§86)\n산정 방법\n인접지 평균\n데이터 소스\nNGII 수치지형도 SHP→DEM (5m)\n\nenvelope walls/slanted_polygons 의 H는 이 datum 기준 상대값. Cesium 렌더 시 datum_m 위에 envelope 위치.\n\n정북일조 사선제한 단면 (§86①, 2023.9.12 개정)\n인접대지 경계선\n1.5m 이격\nH ≤ 10m: 직각\nH > 10m: slope 2:1 (H = 2x)\n건물 (H = 18m)\n0m\n10m\n20m\n0m\n1.5m\n5m\n10m\n15m\n20m\n법규 envelope\n인접대지 경계\n건물 단면\nOPTIMIZATION\nCOMPLETE\n100%\n세대\n40/50\n적합\n2254\n파레토\n18\n총평가\n2800\nPARETO FRONT\n0 evaluated\n18 pareto\nGen\n0 → 50\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nDESIGN LIST\n18\n#\n매스\n형태\n연면적\n외부공간\n주차\n1\n법규엔벨로프\n361\n61.0\n필로티\n2\n다단 일조스텝\n361\n61.0\n필로티\n3\n테라스\n359\n61.0\n필로티\n4\n포디움/타워\n316\n61.0\n필로티\n5\n사선지붕형\n308\n61.0\n필로티\n6\n포디움/타워\n307\n62.4\n필로티\n7\n테라스연결\n297\n61.0\n필로티\n8\n사선연결\n292\n61.0\n필로티\n9\n연속테라스 스텝백\n286\n61.0\n필로티\n10\n포디움/타워\n281\n61.0\n필로티\n11\n테이퍼\n243\n61.0\n필로티\n12\n사선연결 스텝\n243\n61.0\n필로티\n13\n사선연결\n237\n61.0\n필로티\n14\n코너/오픈코트\n206\n61.0\n필로티\n15\n핀치형\n183\n65.3\n외부지상\n16\n오버랩\n176\n66.7\n외부지상\n17\n분절/브릿지\n139\n73.8\n외부지상\n18\n중정형\n165\n68.8\n외부지상\nDESIGN\n#900000\nFEASIBLE\n연면적\n361.3\nm²\n외부공간\n61.0\n%\nPARKING\n필로티 주차\n법정 주차대수\n3대\n계획 제공대수\n3대\n상태\n배치 가능\n시설면적 361.28㎡ ÷ 134㎡/대 = 2.70 → 3대\nrule: seoul_parking_appendix2_row_03\n배치공식\ngrid_connected_90\n모듈\n단면 11m / 양면 16m\n연접\n연접 OK (2쌍 접촉)\n차로\n차로 OK (6m)\n진입\n진입 OK (3m x 8m)\n회전\n회전 예비 OK\n연면적\n361.3\n외부공간\n61.0\n▶\nPARAMETERS (0 genes)\nGen 50\nRank 0.5793\nPen 0.00\n⊞ 평면 생성\n브이월드\n\n연속지적도를 포함한 모든 주제도는 참고용으로만 사용하시기 바랍니다.\n\n38 m\n72\n나침반\n현재위치\n확대\n축소\n초기화면\n이동컨트롤 열기\n거리\n면적\n높이\n초기화\n좌로 이동\n우로 이동\n위로 이동\n아래로 이동\n닫기\nBUILDING MASS\n형태\nlegal_layered_max\n층그룹\n4G / +77.9%\n패킹\n4/4G / 5실\n높이\n17.5m\n층수\n5F\n건폐율\n39.0%\n용적률\n136.8%\n연면적\n361m²\n주차\n필로티\n법정/계획\n3 / 3\nAI 설계 협업\nMAAS Agent Workspace\n>\n상호소통 설계 수정\n대화형 수정 · MAAS 법규 후보\n안 900000\nAG-light React Flow\nJSON_MODULES 법규 · 주차 · 매스 · 최종검토 협업 그래프\nON · log 245\n현재 안 AG-light 검토 시작\nUser\nuser\nHuman user\ndesign_orchestrator\nSelector/Handoff\n법규-설계 협업 라우터\n법규\nlaw_graph_agent\n법규: 최종 evidence_loaded (hard 0 · missing 0 · issue 0)\n주차\nparking_agent\n주차: 3/3대 · piloti_ground (소규모 배치는 전면도로 이용 가능성을 별도 connector 없이 선형 주차면으로 검토)\n매스/기준면\nmaas_geometry_agent\n대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기준 분리 검토)\n최종검토\nreview_agent\n디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성, 외관 생성만 후속 검토)\nAgent 직접 명령\n법규/주차/매스/검토 agent별로 따로 지시\nlaw_graph_agent\nparking_agent\nmaas_geometry_agent\nreview_agent\n법규 · Verify and cite ARR law Graph DB parking rules.\nlaw_graph_agent\nparking_agent\nmaas_geometry_agent\nreview_agent\nlaw_graph_agent에게 보내기\n선택한 agent에게 직접 명령을 보내고 최근 bus에 반영합니다.\n최근 bus\ndesign_critic -> design_orchestrator · 디자인: FAR 111.1 · BCR 37.0 · H 8.4m (법규 매스 고정 후 형태, 주차 가독성,...\ndatum_agent -> design_orchestrator · 대지레벨: ngii_local_dem 기준면 17.10m (§119 가중평균 및 §86 인접대지 평균 기...\nsunlight_agent -> design_orchestrator · 정북일조: §86 envelope 적용 (기준면 17.10m 기반)\n북측 상부를 4단으로 자연스럽게 후퇴시켜줘. 용적률은 5% 이상 잃지 말고.\n도로 쪽 저층부를 포디움처럼 더 강하게 만들어줘.\n코어가 가운데라 답답해. 동측 외곽으로 붙일 수 있는지 봐줘.\n수정 후보 만들기MAAS 법규 후보 바로 만들기\n층+\n층-\n폭+\n폭-\nE1+\nE2+\nE3+\nE4+\n외관 이미지 생성\n법규 매스는 고정하고 재료, 창호 리듬, 분위기만 생성합니다.\nReference only\nGPT Image\nNano Banana\n매스 기반 외관 생성",
+    "entityCount": 84,
+    "designMassEntities": [
+      "design-mass-floor-group-900000-0",
+      "design-mass-floor-group-900000-1",
+      "design-mass-floor-group-900000-2",
+      "design-mass-floor-group-900000-3",
+      "design-mass-floor-900000-2",
+      "design-mass-floor-900000-3",
+      "design-mass-floor-900000-4",
+      "design-mass-footprint-900000",
+      "design-mass-parking-line-shadow-900000-0",
+      "design-mass-parking-space-outline-900000-0",
+      "design-mass-parking-visible-line-900000-0",
+      "design-mass-parking-stall-label-900000-0",
+      "design-mass-parking-line-shadow-900000-1",
+      "design-mass-parking-space-outline-900000-1",
+      "design-mass-parking-visible-line-900000-1",
+      "design-mass-parking-stall-label-900000-1",
+      "design-mass-parking-line-shadow-900000-2",
+      "design-mass-parking-space-outline-900000-2",
+      "design-mass-parking-visible-line-900000-2",
+      "design-mass-parking-stall-label-900000-2"
+    ],
+    "parkingEntities": [
+      "design-mass-parking-line-shadow-900000-0",
+      "design-mass-parking-space-outline-900000-0",
+      "design-mass-parking-visible-line-900000-0",
+      "design-mass-parking-stall-label-900000-0",
+      "design-mass-parking-line-shadow-900000-1",
+      "design-mass-parking-space-outline-900000-1",
+      "design-mass-parking-visible-line-900000-1",
+      "design-mass-parking-stall-label-900000-1",
+      "design-mass-parking-line-shadow-900000-2",
+      "design-mass-parking-space-outline-900000-2",
+      "design-mass-parking-visible-line-900000-2",
+      "design-mass-parking-stall-label-900000-2"
+    ],
+    "parkingStallEntities": [
+      "design-mass-parking-space-outline-900000-0",
+      "design-mass-parking-stall-label-900000-0",
+      "design-mass-parking-space-outline-900000-1",
+      "design-mass-parking-stall-label-900000-1",
+      "design-mass-parking-space-outline-900000-2",
+      "design-mass-parking-stall-label-900000-2"
+    ],
+    "pilotiEntities": [],
+    "parkingRequiredSpaces": 3,
+    "parkingProvidedSpaces": 3,
+    "selectedParkingPrecheck": {
+      "schema_version": "arr.maas.parking_strategy.v0",
+      "status": "has_layout_candidate",
+      "selected_strategy": "piloti_ground",
+      "strategy_candidates": [
+        "piloti_ground",
+        "ground_surface",
+        "mechanical",
+        "semi_basement",
+        "basement",
+        "mixed"
+      ],
+      "basis": {
+        "site_area_m2": 264.13,
+        "footprint_area_m2": 102.93,
+        "open_area_m2": 161.2,
+        "total_floor_area_m2": 361.28,
+        "num_floors": 5,
+        "building_type": "근린생활시설",
+        "small_lot": true,
+        "dense_footprint": false,
+        "residential_like": true
+      },
+      "mass_generation_constraints": {
+        "vehicle_access": "needs_driveway_and_aisle_check",
+        "pedestrian_access": "separate_from_vehicle_path_where_required",
+        "accessible_parking": "needs_accessible_stall_and_route_check",
+        "core_placement": "must_not_block_parking_access_or_primary_egress",
+        "ground_floor": "reserve_void_or_partial_void_for_parking",
+        "column_grid": "needs_usable_bay_width_check",
+        "lost_program_area": "deduct_or_reassign_1f_program"
+      },
+      "layout_precheck": {
+        "status": "heuristic_only",
+        "strategy": "piloti_ground",
+        "envelope_area_m2": 102.93,
+        "effective_area_m2": 63.82,
+        "oriented_rect": {
+          "long_side_m": 12.87,
+          "short_side_m": 8.01
+        },
+        "module_dimensions": {
+          "stall_width_m": 2.5,
+          "stall_length_m": 5,
+          "aisle_width_m": 6,
+          "double_loaded_depth_m": 16,
+          "single_loaded_depth_m": 11,
+          "accessible_width_m": 3.3,
+          "accessible_length_m": 5
+        },
+        "capacity_estimates": {
+          "single_loaded_spaces": 0,
+          "double_loaded_spaces": 0,
+          "area_limited_spaces": 1,
+          "estimated_capacity_spaces": 0
+        },
+        "limitations": [
+          "does_not_place_exact_stalls",
+          "does_not_model_columns_or_core_obstructions",
+          "does_not_check_ramp_slope_or_turning_swept_path",
+          "does_not_verify_accessible_route"
+        ]
+      },
+      "small_attached_parking_relief": {
+        "status": "needs_required_count",
+        "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+        "applies_to": "attached_self_parking_total_spaces_8_or_less",
+        "required_spaces": null,
+        "road_context": {
+          "road_width_m": 37.48059008167424,
+          "has_sidewalk_separation": null,
+          "is_dead_end_road": false
+        },
+        "road_as_aisle_options": [
+          {
+            "key": "undivided_road_under_12m",
+            "available": false,
+            "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+            "aisle_width_counting_road_m": 6,
+            "parallel_aisle_width_counting_road_m": 4,
+            "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+          },
+          {
+            "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+            "available": true,
+            "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+            "parking_angle": "perpendicular_only",
+            "needs_authority_review": true,
+            "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+          }
+        ],
+        "tandem_parking": {
+          "available": true,
+          "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+          "max_depth_from_aisle": 2
+        },
+        "entrance_width": {
+          "min_width_m": 3,
+          "dead_end_road_approval_min_width_m": null
+        },
+        "limitations": [
+          "does_not_replace_required_stall_count",
+          "needs_actual_road_geometry_and_centerline",
+          "needs_local_authority_no_traffic_obstruction_review"
+        ]
+      },
+      "required_count": {
+        "status": "computed",
+        "pnu": "1168011800104170004",
+        "jurisdiction_code": "11680",
+        "building_type": "근린생활시설",
+        "selected_rule_id": "seoul_parking_appendix2_row_03",
+        "base_rule_id": "parking_appendix1_row_03",
+        "metric": "facility_area_m2",
+        "metric_value": 361.28,
+        "required_spaces": 3,
+        "raw_spaces": 2.6961194029850746,
+        "rounding_rule": "ordinance_note_6_half_up_total_under_one_zero",
+        "formula_detail": null,
+        "unit_schedule": null,
+        "accessible": {
+          "status": "not_applicable_under_10",
+          "accessible_min": 0,
+          "accessible_max": 0
+        },
+        "source": {
+          "rule_kind": "local_override",
+          "source_appendix": "서울특별시 주차장 설치 및 관리 조례::별표2",
+          "source_ordinance": "seoul_parking_ordinance",
+          "source_parse_status": "official_law_go_kr_text_extracted_manual_review"
+        },
+        "reason": null
+      },
+      "repair_request_templates": [
+        {
+          "operation": "reserve_piloti_void",
+          "reason": "Ground floor must reserve enough covered parking envelope.",
+          "target_agent": "maas_geometry_agent"
+        },
+        {
+          "operation": "move_core",
+          "reason": "Core blocks parking aisle or accessible route.",
+          "target_agent": "maas_geometry_agent"
+        },
+        {
+          "operation": "reduce_or_split_footprint",
+          "reason": "Open area or parking aisle is insufficient.",
+          "target_agent": "maas_geometry_agent"
+        }
+      ],
+      "layout_candidate": {
+        "schema_version": "arr.maas.parking_layout_candidate.v0",
+        "status": "pass",
+        "strategy": "piloti_ground",
+        "placement_mode": "grid_connected_90",
+        "required_spaces": 3,
+        "required_accessible_spaces": 0,
+        "provided_spaces": 3,
+        "provided_accessible_spaces": 0,
+        "unmet_spaces": 0,
+        "unmet_accessible_spaces": 0,
+        "stalls": [
+          {
+            "stall_id": "P01",
+            "type": "standard",
+            "width_m": 2.5,
+            "length_m": 5,
+            "row": 2,
+            "mode": "grid_connected_90",
+            "orientation": "v",
+            "polygon": [
+              [
+                327156.6444,
+                4150478.9
+              ],
+              [
+                327157.856,
+                4150476.7132
+              ],
+              [
+                327162.2295,
+                4150479.1365
+              ],
+              [
+                327161.0179,
+                4150481.3233
+              ],
+              [
+                327156.6444,
+                4150478.9
+              ]
+            ],
+            "polygon_wgs84": [
+              [
+                127.04502761,
+                37.48506141
+              ],
+              [
+                127.04504182,
+                37.48504193
+              ],
+              [
+                127.04509069,
+                37.48506458
+              ],
+              [
+                127.04507648,
+                37.48508405
+              ],
+              [
+                127.04502761,
+                37.48506141
+              ]
+            ]
+          },
+          {
+            "stall_id": "P02",
+            "type": "standard",
+            "width_m": 2.5,
+            "length_m": 5,
+            "row": 2,
+            "mode": "grid_connected_90",
+            "orientation": "v",
+            "polygon": [
+              [
+                327157.856,
+                4150476.7132
+              ],
+              [
+                327159.0676,
+                4150474.5265
+              ],
+              [
+                327163.4412,
+                4150476.9497
+              ],
+              [
+                327162.2295,
+                4150479.1365
+              ],
+              [
+                327157.856,
+                4150476.7132
+              ]
+            ],
+            "polygon_wgs84": [
+              [
+                127.04504182,
+                37.48504193
+              ],
+              [
+                127.04505603,
+                37.48502246
+              ],
+              [
+                127.0451049,
+                37.48504511
+              ],
+              [
+                127.04509069,
+                37.48506458
+              ],
+              [
+                127.04504182,
+                37.48504193
+              ]
+            ]
+          },
+          {
+            "stall_id": "P03",
+            "type": "standard",
+            "width_m": 2.5,
+            "length_m": 5,
+            "row": 2,
+            "mode": "grid_connected_90",
+            "orientation": "v",
+            "polygon": [
+              [
+                327159.0676,
+                4150474.5265
+              ],
+              [
+                327160.2793,
+                4150472.3397
+              ],
+              [
+                327164.6528,
+                4150474.7629
+              ],
+              [
+                327163.4412,
+                4150476.9497
+              ],
+              [
+                327159.0676,
+                4150474.5265
+              ]
+            ],
+            "polygon_wgs84": [
+              [
+                127.04505603,
+                37.48502246
+              ],
+              [
+                127.04507024,
+                37.48500299
+              ],
+              [
+                127.04511911,
+                37.48502564
+              ],
+              [
+                127.0451049,
+                37.48504511
+              ],
+              [
+                127.04505603,
+                37.48502246
+              ]
+            ]
+          }
+        ],
+        "layout_formula": {
+          "schema_version": "arr.maas.parking_formula.v1",
+          "mode": "grid_connected_90",
+          "required_spaces": 3,
+          "stall": {
+            "standard_width_m": 2.5,
+            "standard_length_m": 5,
+            "parallel_width_m": 2,
+            "parallel_length_m": 6,
+            "residential_undivided_road_parallel_length_m": 5,
+            "accessible_width_m": 3.3,
+            "accessible_length_m": 5
+          },
+          "aisle": {
+            "two_way_90deg_width_m": 6,
+            "small_attached_parallel_width_m": 3
+          },
+          "module": {
+            "single_loaded_90_depth_m": 11,
+            "single_loaded_90_formula": "stall_length + aisle_width",
+            "double_loaded_90_depth_m": 16,
+            "double_loaded_90_formula": "stall_length + aisle_width + stall_length",
+            "parallel_stall_formula": "parallel_length 6.0m x parallel_width 2.0m"
+          },
+          "small_attached_parking": {
+            "max_spaces": 8,
+            "tandem_allowed_max_spaces": 5,
+            "entrance_width_m": 3
+          }
+        },
+        "adjacency": {
+          "status": "row_contiguous",
+          "touching_pairs": 2,
+          "row_touching_pairs": 2,
+          "gap_pairs": 0,
+          "min_gap_m": 0,
+          "max_gap_m": 0,
+          "row_groups": 1,
+          "connected_components": 1,
+          "row_contiguous_ok": true,
+          "cluster_contiguous_ok": true,
+          "contiguous_ok": true
+        },
+        "column_clearance": {
+          "status": "deferred_structural_review",
+          "method": "clear_bay_record_only",
+          "assumed_column_size_m": 0.45,
+          "required_clear_bay_width_m": 7.5,
+          "assumed_clear_bay_width_m": 8.1,
+          "required_clear_depth_m": 11,
+          "margin_each_side_m": 0.3,
+          "reason": "No explicit column/core polygons are supplied; structural column/core clearance is deferred."
+        },
+        "drive_aisle_clearance": {
+          "status": "pass",
+          "source": "generated_drive_cells",
+          "required_width_m": 6,
+          "provided_width_m": 6,
+          "drive_cell_count": 3
+        },
+        "turning_clearance": {
+          "required_aisle_width_m": 6,
+          "note": "This is a mass-stage v1 frontage/aisle/entrance check, not a vehicle swept-path simulation.",
+          "status": "v1_pass",
+          "method": "stall_frontage_and_entrance_connector_v1",
+          "frontage_checked": true,
+          "frontage_connected_stalls": 1,
+          "frontage_total_stalls": 3,
+          "frontage_checks": [
+            {
+              "stall_id": "P01",
+              "required_frontage_m": 2,
+              "provided_frontage_m": 1.001,
+              "connected": false
+            },
+            {
+              "stall_id": "P02",
+              "required_frontage_m": 2,
+              "provided_frontage_m": 2.5,
+              "connected": true
+            },
+            {
+              "stall_id": "P03",
+              "required_frontage_m": 2,
+              "provided_frontage_m": 0.676,
+              "connected": false
+            }
+          ],
+          "contiguous_row_frontage_relief": {
+            "available": true,
+            "basis": "contiguous grid row with one generated 6m drive cell per stall",
+            "row_groups": 1,
+            "touching_pairs": 2,
+            "connected_components": 1,
+            "cluster_contiguous_ok": true,
+            "small_attached_cluster_relief": true,
+            "drive_cell_count": 3
+          },
+          "small_attached_tandem_relief": {
+            "available": false,
+            "max_spaces": 5,
+            "reason": "Tandem relief is only applied to explicit road-as-aisle tandem layouts."
+          },
+          "entrance_connected": true,
+          "entrance_connection_type": "site_connector_v1"
+        },
+        "limitations": [
+          "grid_solver_first_feasible_not_global_mip_optimum",
+          "does_not_model_swept_path_columns_or_core_obstructions"
+        ],
+        "repair_requests": [],
+        "grid_solver": {
+          "schema_version": "arr.maas.parking_grid_solver.v0",
+          "cell_step_m": 0.5,
+          "candidate_stalls": 11,
+          "selected_stalls": 3,
+          "drive_components_connected": true,
+          "entrance_connected": true,
+          "entrance_verified": true,
+          "entrance_connection_method": "road_frontage_geometry",
+          "entrance_connection_type": "site_connector_v1",
+          "entrance_edge_count": 1,
+          "entrance_min_distance_m": 8,
+          "entrance_connector_length_m": 8,
+          "entrance_connector_width_m": 3,
+          "entrance_connector_polygon": [
+            [
+              327162.915,
+              4150484.0893
+            ],
+            [
+              327164.369,
+              4150481.4652
+            ],
+            [
+              327157.3714,
+              4150477.5879
+            ],
+            [
+              327155.9174,
+              4150480.212
+            ],
+            [
+              327162.915,
+              4150484.0893
+            ]
+          ],
+          "drive_cells": [
+            [
+              [
+                327151.3961,
+                4150475.9921
+              ],
+              [
+                327152.6078,
+                4150473.8053
+              ],
+              [
+                327157.856,
+                4150476.7132
+              ],
+              [
+                327156.6444,
+                4150478.9
+              ],
+              [
+                327151.3961,
+                4150475.9921
+              ]
+            ],
+            [
+              [
+                327152.6078,
+                4150473.8053
+              ],
+              [
+                327153.8194,
+                4150471.6185
+              ],
+              [
+                327159.0676,
+                4150474.5265
+              ],
+              [
+                327157.856,
+                4150476.7132
+              ],
+              [
+                327152.6078,
+                4150473.8053
+              ]
+            ],
+            [
+              [
+                327153.8194,
+                4150471.6185
+              ],
+              [
+                327155.031,
+                4150469.4318
+              ],
+              [
+                327160.2793,
+                4150472.3397
+              ],
+              [
+                327159.0676,
+                4150474.5265
+              ],
+              [
+                327153.8194,
+                4150471.6185
+              ]
+            ]
+          ],
+          "variable_mapping": {
+            "x": "selected stall candidates",
+            "y": "drive aisle cells adjacent to selected stalls",
+            "connectivity": "drive cells must touch into one component and connect to road/frontage or site access boundary"
+          },
+          "entrance_connector_polygon_wgs84": [
+            [
+              127.04509728,
+              37.48510933
+            ],
+            [
+              127.04511433,
+              37.48508596
+            ],
+            [
+              127.04503613,
+              37.48504972
+            ],
+            [
+              127.04501908,
+              37.48507309
+            ],
+            [
+              127.04509728,
+              37.48510933
+            ]
+          ]
+        },
+        "small_attached_parking_relief": {
+          "status": "evaluated",
+          "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+          "applies_to": "attached_self_parking_total_spaces_8_or_less",
+          "required_spaces": 3,
+          "road_context": {
+            "road_width_m": 37.48059008167424,
+            "has_sidewalk_separation": null,
+            "is_dead_end_road": false
+          },
+          "road_as_aisle_options": [
+            {
+              "key": "undivided_road_under_12m",
+              "available": false,
+              "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+              "aisle_width_counting_road_m": 6,
+              "parallel_aisle_width_counting_road_m": 4,
+              "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+            },
+            {
+              "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+              "available": true,
+              "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+              "parking_angle": "perpendicular_only",
+              "needs_authority_review": true,
+              "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+            }
+          ],
+          "tandem_parking": {
+            "available": true,
+            "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+            "max_depth_from_aisle": 2
+          },
+          "entrance_width": {
+            "min_width_m": 3,
+            "dead_end_road_approval_min_width_m": null
+          },
+          "limitations": [
+            "does_not_replace_required_stall_count",
+            "needs_actual_road_geometry_and_centerline",
+            "needs_local_authority_no_traffic_obstruction_review"
+          ]
+        }
+      },
+      "parking_envelope_wgs84": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              127.04507363785986,
+              37.485087948022205
+            ],
+            [
+              127.0451191604328,
+              37.485025569245174
+            ],
+            [
+              127.04499336728946,
+              37.48496736670566
+            ],
+            [
+              127.04495245255596,
+              37.485023418856045
+            ],
+            [
+              127.04494792345574,
+              37.485029623344715
+            ],
+            [
+              127.04507363785986,
+              37.485087948022205
+            ]
+          ]
+        ]
+      }
+    },
+    "selectedMassFeature": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              127.04507363785986,
+              37.485087948022205
+            ],
+            [
+              127.0451191604328,
+              37.485025569245174
+            ],
+            [
+              127.04499336728946,
+              37.48496736670565
+            ],
+            [
+              127.04495245255596,
+              37.48502341885605
+            ],
+            [
+              127.04494792345574,
+              37.485029623344715
+            ],
+            [
+              127.04507363785986,
+              37.485087948022205
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "algorithm": "maas_legal_envelope",
+        "mass_shape": "legal_layered_max",
+        "maas_concept": "법규엔벨로프",
+        "building_type": "근린생활시설",
+        "height": 17.5,
+        "num_floors": 5,
+        "floor_height": 3.5,
+        "footprint_area": 102.93,
+        "floor_area": 361.28,
+        "bcr": 38.97,
+        "far": 136.78,
+        "min_setback": 3,
+        "open_pct": 61.03,
+        "diversity_score": 0.555,
+        "source_iou": 0.445,
+        "shape_signature": {
+          "area": 102.931,
+          "perimeter": 41.732,
+          "compactness": 16.919
+        },
+        "notes": [
+          "층별 legal envelope로 각 floor plate를 직접 clip"
+        ],
+        "maas_model": {
+          "algorithm": "maas_legal_envelope",
+          "operator": "legal_layered_max",
+          "verb_sequence": [
+            {
+              "verb": "base",
+              "params": {
+                "proportion": "1/1"
+              }
+            },
+            {
+              "verb": "taper",
+              "params": {
+                "top_ratio": 0.72
+              }
+            }
+          ],
+          "volumes": [
+            {
+              "band": 0,
+              "bottom_height": 0,
+              "top_height": 7,
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ],
+                    [
+                      127.04495245255596,
+                      37.48502341885605
+                    ],
+                    [
+                      127.04494792345574,
+                      37.485029623344715
+                    ],
+                    [
+                      127.04507363785986,
+                      37.485087948022205
+                    ],
+                    [
+                      127.0451191604328,
+                      37.485025569245174
+                    ],
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ]
+                  ]
+                ]
+              },
+              "role": "morphology_volume"
+            },
+            {
+              "band": 1,
+              "bottom_height": 7,
+              "top_height": 17.5,
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ],
+                    [
+                      127.04498061352906,
+                      37.484984839045886
+                    ],
+                    [
+                      127.04510632231565,
+                      37.485043161102965
+                    ],
+                    [
+                      127.0451191604328,
+                      37.485025569245174
+                    ],
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ]
+                  ]
+                ]
+              },
+              "role": "morphology_volume"
+            }
+          ],
+          "floor_plates": [
+            {
+              "floor": 1,
+              "top_height": 3.5,
+              "area": 102.93,
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ],
+                    [
+                      127.04495245255596,
+                      37.48502341885605
+                    ],
+                    [
+                      127.04494792345574,
+                      37.485029623344715
+                    ],
+                    [
+                      127.04507363785986,
+                      37.485087948022205
+                    ],
+                    [
+                      127.0451191604328,
+                      37.485025569245174
+                    ],
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ]
+                  ]
+                ]
+              }
+            },
+            {
+              "floor": 2,
+              "top_height": 7,
+              "area": 102.93,
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ],
+                    [
+                      127.04495245255596,
+                      37.48502341885605
+                    ],
+                    [
+                      127.04494792345574,
+                      37.485029623344715
+                    ],
+                    [
+                      127.04507363785986,
+                      37.485087948022205
+                    ],
+                    [
+                      127.0451191604328,
+                      37.485025569245174
+                    ],
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ]
+                  ]
+                ]
+              }
+            },
+            {
+              "floor": 3,
+              "top_height": 10.5,
+              "area": 74.99,
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ],
+                    [
+                      127.04495991134718,
+                      37.485013200508256
+                    ],
+                    [
+                      127.04508634349804,
+                      37.48507053772351
+                    ],
+                    [
+                      127.0451191604328,
+                      37.485025569245174
+                    ],
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ]
+                  ]
+                ]
+              }
+            },
+            {
+              "floor": 4,
+              "top_height": 14,
+              "area": 51.47,
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ],
+                    [
+                      127.04497066442332,
+                      37.484998469070824
+                    ],
+                    [
+                      127.04509637487679,
+                      37.48505679190558
+                    ],
+                    [
+                      127.0451191604328,
+                      37.485025569245174
+                    ],
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ]
+                  ]
+                ]
+              }
+            },
+            {
+              "floor": 5,
+              "top_height": 17.5,
+              "area": 28.96,
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ],
+                    [
+                      127.04498061352906,
+                      37.484984839045886
+                    ],
+                    [
+                      127.04510632231565,
+                      37.485043161102965
+                    ],
+                    [
+                      127.0451191604328,
+                      37.485025569245174
+                    ],
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ]
+                  ]
+                ]
+              }
+            }
+          ],
+          "floor_groups": [
+            {
+              "group": 0,
+              "start_floor": 1,
+              "end_floor": 2,
+              "floor_count": 2,
+              "bottom_height": 0,
+              "top_height": 7,
+              "area": 205.86,
+              "far_contribution": 77.94,
+              "cumulative_far": 77.94,
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ],
+                    [
+                      127.04495245255596,
+                      37.48502341885605
+                    ],
+                    [
+                      127.04494792345574,
+                      37.485029623344715
+                    ],
+                    [
+                      127.04507363785986,
+                      37.485087948022205
+                    ],
+                    [
+                      127.0451191604328,
+                      37.485025569245174
+                    ],
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ]
+                  ]
+                ]
+              },
+              "source_floor_plates": [
+                1,
+                2
+              ],
+              "program_packing": {
+                "stage": "post_legal_floor_group_packing",
+                "algorithm": "circle_grid_packing",
+                "constraint_source": "maas_legal_envelope",
+                "typical_floor_area": 102.93,
+                "cell_size": 3,
+                "rooms": [
+                  {
+                    "name": "core",
+                    "area": 16,
+                    "adjacency": [
+                      "corridor"
+                    ]
+                  },
+                  {
+                    "name": "corridor",
+                    "area": 12,
+                    "adjacency": [
+                      "core",
+                      "unit_a",
+                      "unit_b"
+                    ]
+                  },
+                  {
+                    "name": "unit_a",
+                    "area": 24,
+                    "adjacency": [
+                      "corridor"
+                    ]
+                  },
+                  {
+                    "name": "unit_b",
+                    "area": 24,
+                    "adjacency": [
+                      "corridor"
+                    ]
+                  },
+                  {
+                    "name": "service",
+                    "area": 7,
+                    "adjacency": [
+                      "core"
+                    ]
+                  }
+                ],
+                "status": "ok",
+                "grid": {
+                  "rows": 5,
+                  "cols": 6,
+                  "cell_size": 3,
+                  "active_cells": 12
+                },
+                "best_metrics": {
+                  "adjacency_score": 0.8571428571428571,
+                  "area_error": 0.30120481927710846,
+                  "compactness": 0.5
+                },
+                "best_floor_plan": {
+                  "type": "FeatureCollection",
+                  "features": [
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 1,
+                        "room_name": "core",
+                        "color": "#f87171",
+                        "area_m2": 18
+                      },
+                      "geometry": {
+                        "type": "MultiPolygon",
+                        "coordinates": [
+                          [
+                            [
+                              [
+                                127.04501739298921,
+                                37.48496776441029
+                              ],
+                              [
+                                127.04498347913272,
+                                37.4849672030226
+                              ],
+                              [
+                                127.04498277464438,
+                                37.484994228309546
+                              ],
+                              [
+                                127.04501668851309,
+                                37.48499478969778
+                              ],
+                              [
+                                127.04501739298921,
+                                37.48496776441029
+                              ]
+                            ]
+                          ],
+                          [
+                            [
+                              [
+                                127.04501598403603,
+                                37.485021814985124
+                              ],
+                              [
+                                127.04504989791786,
+                                37.485022376364185
+                              ],
+                              [
+                                127.04505060238273,
+                                37.4849953510763
+                              ],
+                              [
+                                127.04501668851309,
+                                37.48499478969778
+                              ],
+                              [
+                                127.04501598403603,
+                                37.485021814985124
+                              ]
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 2,
+                        "room_name": "corridor",
+                        "color": "#fb923c",
+                        "area_m2": 18
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04501598403603,
+                              37.485021814985124
+                            ],
+                            [
+                              127.04501527955803,
+                              37.485048840272356
+                            ],
+                            [
+                              127.04504919345207,
+                              37.48504940165194
+                            ],
+                            [
+                              127.04508310734707,
+                              37.48504996302182
+                            ],
+                            [
+                              127.04508381180067,
+                              37.48502293773352
+                            ],
+                            [
+                              127.04504989791786,
+                              37.485022376364185
+                            ],
+                            [
+                              127.04501598403603,
+                              37.485021814985124
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 3,
+                        "room_name": "unit_a",
+                        "color": "#facc15",
+                        "area_m2": 36
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04494815627517,
+                              37.48502069219784
+                            ],
+                            [
+                              127.04494745177276,
+                              37.48504771748397
+                            ],
+                            [
+                              127.04498136566492,
+                              37.48504827888302
+                            ],
+                            [
+                              127.04501527955803,
+                              37.485048840272356
+                            ],
+                            [
+                              127.04501598403603,
+                              37.485021814985124
+                            ],
+                            [
+                              127.04501668851309,
+                              37.48499478969778
+                            ],
+                            [
+                              127.04498277464438,
+                              37.484994228309546
+                            ],
+                            [
+                              127.04494886077663,
+                              37.48499366691158
+                            ],
+                            [
+                              127.04494815627517,
+                              37.48502069219784
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 4,
+                        "room_name": "unit_b",
+                        "color": "#4ade80",
+                        "area_m2": 27
+                      },
+                      "geometry": {
+                        "type": "MultiPolygon",
+                        "coordinates": [
+                          [
+                            [
+                              [
+                                127.0450845162533,
+                                37.48499591244507
+                              ],
+                              [
+                                127.04505060238273,
+                                37.4849953510763
+                              ],
+                              [
+                                127.04504989791786,
+                                37.485022376364185
+                              ],
+                              [
+                                127.04508381180067,
+                                37.48502293773352
+                              ],
+                              [
+                                127.0450845162533,
+                                37.48499591244507
+                              ]
+                            ]
+                          ],
+                          [
+                            [
+                              [
+                                127.04511772568438,
+                                37.485023499093124
+                              ],
+                              [
+                                127.04508381180067,
+                                37.48502293773352
+                              ],
+                              [
+                                127.04508310734707,
+                                37.48504996302182
+                              ],
+                              [
+                                127.04511702124299,
+                                37.485050524381975
+                              ],
+                              [
+                                127.04511772568438,
+                                37.485023499093124
+                              ]
+                            ]
+                          ],
+                          [
+                            [
+                              [
+                                127.04504848898532,
+                                37.48507642693957
+                              ],
+                              [
+                                127.04508240289252,
+                                37.48507698830999
+                              ],
+                              [
+                                127.04508310734707,
+                                37.48504996302182
+                              ],
+                              [
+                                127.04504919345207,
+                                37.48504940165194
+                              ],
+                              [
+                                127.04504848898532,
+                                37.48507642693957
+                              ]
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 5,
+                        "room_name": "service",
+                        "color": "#60a5fa",
+                        "area_m2": 9
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04504919345207,
+                              37.48504940165194
+                            ],
+                            [
+                              127.04504848898532,
+                              37.48507642693957
+                            ],
+                            [
+                              127.04501457507908,
+                              37.48507586555943
+                            ],
+                            [
+                              127.04501527955803,
+                              37.485048840272356
+                            ],
+                            [
+                              127.04504919345207,
+                              37.48504940165194
+                            ]
+                          ]
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "preview_summary": {
+                  "room_count": 5,
+                  "room_names": [
+                    "core",
+                    "corridor",
+                    "unit_a",
+                    "unit_b",
+                    "service"
+                  ],
+                  "adjacency_score": 0.857,
+                  "area_error": 0.301,
+                  "compactness": 0.5
+                },
+                "result_count": 2
+              }
+            },
+            {
+              "group": 1,
+              "start_floor": 3,
+              "end_floor": 3,
+              "floor_count": 1,
+              "bottom_height": 7,
+              "top_height": 10.5,
+              "area": 74.99,
+              "far_contribution": 28.39,
+              "cumulative_far": 106.33,
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ],
+                    [
+                      127.04495991134718,
+                      37.485013200508256
+                    ],
+                    [
+                      127.04508634349804,
+                      37.48507053772351
+                    ],
+                    [
+                      127.0451191604328,
+                      37.485025569245174
+                    ],
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ]
+                  ]
+                ]
+              },
+              "source_floor_plates": [
+                3
+              ],
+              "program_packing": {
+                "stage": "post_legal_floor_group_packing",
+                "algorithm": "circle_grid_packing",
+                "constraint_source": "maas_legal_envelope",
+                "typical_floor_area": 74.99,
+                "cell_size": 3,
+                "rooms": [
+                  {
+                    "name": "core",
+                    "area": 11.85,
+                    "adjacency": [
+                      "corridor"
+                    ]
+                  },
+                  {
+                    "name": "corridor",
+                    "area": 8.89,
+                    "adjacency": [
+                      "core",
+                      "unit_a",
+                      "unit_b"
+                    ]
+                  },
+                  {
+                    "name": "unit_a",
+                    "area": 17.78,
+                    "adjacency": [
+                      "corridor"
+                    ]
+                  },
+                  {
+                    "name": "unit_b",
+                    "area": 17.78,
+                    "adjacency": [
+                      "corridor"
+                    ]
+                  },
+                  {
+                    "name": "service",
+                    "area": 5.19,
+                    "adjacency": [
+                      "core"
+                    ]
+                  }
+                ],
+                "status": "ok",
+                "grid": {
+                  "rows": 4,
+                  "cols": 5,
+                  "cell_size": 3,
+                  "active_cells": 9
+                },
+                "best_metrics": {
+                  "adjacency_score": 1,
+                  "area_error": 0.6028622540250446,
+                  "compactness": 0.7
+                },
+                "best_floor_plan": {
+                  "type": "FeatureCollection",
+                  "features": [
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 1,
+                        "room_name": "core",
+                        "color": "#f87171",
+                        "area_m2": 18
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04499362494725,
+                              37.48502144486811
+                            ],
+                            [
+                              127.04499292046118,
+                              37.48504847015497
+                            ],
+                            [
+                              127.04502683435462,
+                              37.48504903154099
+                            ],
+                            [
+                              127.04506074824897,
+                              37.48504959291727
+                            ],
+                            [
+                              127.04506145271061,
+                              37.48502256762932
+                            ],
+                            [
+                              127.04502753882848,
+                              37.48502200625359
+                            ],
+                            [
+                              127.04499362494725,
+                              37.48502144486811
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 2,
+                        "room_name": "corridor",
+                        "color": "#fb923c",
+                        "area_m2": 9
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04506215717133,
+                              37.484995542341245
+                            ],
+                            [
+                              127.04506145271061,
+                              37.48502256762932
+                            ],
+                            [
+                              127.04502753882848,
+                              37.48502200625359
+                            ],
+                            [
+                              127.04502824330136,
+                              37.48499498096605
+                            ],
+                            [
+                              127.04506215717133,
+                              37.484995542341245
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 3,
+                        "room_name": "unit_a",
+                        "color": "#facc15",
+                        "area_m2": 9
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04509607104222,
+                              37.48499610370672
+                            ],
+                            [
+                              127.04509536659371,
+                              37.48502312899534
+                            ],
+                            [
+                              127.04506145271061,
+                              37.48502256762932
+                            ],
+                            [
+                              127.04506215717133,
+                              37.484995542341245
+                            ],
+                            [
+                              127.04509607104222,
+                              37.48499610370672
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 4,
+                        "room_name": "unit_b",
+                        "color": "#4ade80",
+                        "area_m2": 27
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04502894777333,
+                              37.48496795567838
+                            ],
+                            [
+                              127.0449950339165,
+                              37.484967394293996
+                            ],
+                            [
+                              127.04499432943236,
+                              37.48499441958113
+                            ],
+                            [
+                              127.04496041556426,
+                              37.48499385818647
+                            ],
+                            [
+                              127.04495971106697,
+                              37.48502088347291
+                            ],
+                            [
+                              127.04499362494725,
+                              37.48502144486811
+                            ],
+                            [
+                              127.04502753882848,
+                              37.48502200625359
+                            ],
+                            [
+                              127.04502824330136,
+                              37.48499498096605
+                            ],
+                            [
+                              127.04502894777333,
+                              37.48496795567838
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 5,
+                        "room_name": "service",
+                        "color": "#60a5fa",
+                        "area_m2": 18
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04509536659371,
+                              37.48502312899534
+                            ],
+                            [
+                              127.04506145271061,
+                              37.48502256762932
+                            ],
+                            [
+                              127.04506074824897,
+                              37.48504959291727
+                            ],
+                            [
+                              127.04506004378638,
+                              37.48507661820508
+                            ],
+                            [
+                              127.04509395769392,
+                              37.485077179572194
+                            ],
+                            [
+                              127.04509466214428,
+                              37.485050154283826
+                            ],
+                            [
+                              127.04509536659371,
+                              37.48502312899534
+                            ]
+                          ]
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "preview_summary": {
+                  "room_count": 5,
+                  "room_names": [
+                    "core",
+                    "corridor",
+                    "unit_a",
+                    "unit_b",
+                    "service"
+                  ],
+                  "adjacency_score": 1,
+                  "area_error": 0.603,
+                  "compactness": 0.7
+                },
+                "result_count": 2
+              }
+            },
+            {
+              "group": 2,
+              "start_floor": 4,
+              "end_floor": 4,
+              "floor_count": 1,
+              "bottom_height": 10.5,
+              "top_height": 14,
+              "area": 51.47,
+              "far_contribution": 19.49,
+              "cumulative_far": 125.82,
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ],
+                    [
+                      127.04497066442332,
+                      37.484998469070824
+                    ],
+                    [
+                      127.04509637487679,
+                      37.48505679190558
+                    ],
+                    [
+                      127.0451191604328,
+                      37.485025569245174
+                    ],
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ]
+                  ]
+                ]
+              },
+              "source_floor_plates": [
+                4
+              ],
+              "program_packing": {
+                "stage": "post_legal_floor_group_packing",
+                "algorithm": "circle_grid_packing",
+                "constraint_source": "maas_legal_envelope",
+                "typical_floor_area": 51.47,
+                "cell_size": 3,
+                "rooms": [
+                  {
+                    "name": "core",
+                    "area": 8.14,
+                    "adjacency": [
+                      "corridor"
+                    ]
+                  },
+                  {
+                    "name": "corridor",
+                    "area": 6.1,
+                    "adjacency": [
+                      "core",
+                      "unit_a",
+                      "unit_b"
+                    ]
+                  },
+                  {
+                    "name": "unit_a",
+                    "area": 12.2,
+                    "adjacency": [
+                      "corridor"
+                    ]
+                  },
+                  {
+                    "name": "unit_b",
+                    "area": 12.2,
+                    "adjacency": [
+                      "corridor"
+                    ]
+                  },
+                  {
+                    "name": "service",
+                    "area": 3.56,
+                    "adjacency": [
+                      "core"
+                    ]
+                  }
+                ],
+                "status": "ok",
+                "grid": {
+                  "rows": 4,
+                  "cols": 5,
+                  "cell_size": 3,
+                  "active_cells": 6
+                },
+                "best_metrics": {
+                  "adjacency_score": 0.5714285714285714,
+                  "area_error": 0.6000000000000001,
+                  "compactness": 0.875
+                },
+                "best_floor_plan": {
+                  "type": "FeatureCollection",
+                  "features": [
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 1,
+                        "room_name": "core",
+                        "color": "#f87171",
+                        "area_m2": 9
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04510573118132,
+                              37.485023300555206
+                            ],
+                            [
+                              127.04510502673561,
+                              37.485050325843865
+                            ],
+                            [
+                              127.04507111284003,
+                              37.48504976448028
+                            ],
+                            [
+                              127.04507181729794,
+                              37.48502273919215
+                            ],
+                            [
+                              127.04510573118132,
+                              37.485023300555206
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 2,
+                        "room_name": "corridor",
+                        "color": "#fb923c",
+                        "area_m2": 9
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04507252175492,
+                              37.484995713903906
+                            ],
+                            [
+                              127.04507181729794,
+                              37.48502273919215
+                            ],
+                            [
+                              127.04503790341549,
+                              37.485022177819395
+                            ],
+                            [
+                              127.04503860788466,
+                              37.484995152531695
+                            ],
+                            [
+                              127.04507252175492,
+                              37.484995713903906
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 3,
+                        "room_name": "unit_a",
+                        "color": "#facc15",
+                        "area_m2": 27
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04497148463963,
+                              37.48496700447131
+                            ],
+                            [
+                              127.04497078014698,
+                              37.48499402975806
+                            ],
+                            [
+                              127.04500469401535,
+                              37.48499459114974
+                            ],
+                            [
+                              127.045003989534,
+                              37.4850216164369
+                            ],
+                            [
+                              127.04503790341549,
+                              37.485022177819395
+                            ],
+                            [
+                              127.04503860788466,
+                              37.484995152531695
+                            ],
+                            [
+                              127.0450393123529,
+                              37.48496812724386
+                            ],
+                            [
+                              127.0450053984958,
+                              37.48496756586245
+                            ],
+                            [
+                              127.04497148463963,
+                              37.48496700447131
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 4,
+                        "room_name": "unit_b",
+                        "color": "#4ade80",
+                        "area_m2": 9
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04507181729794,
+                              37.48502273919215
+                            ],
+                            [
+                              127.04507111284003,
+                              37.48504976448028
+                            ],
+                            [
+                              127.04503719894538,
+                              37.48504920310697
+                            ],
+                            [
+                              127.04503790341549,
+                              37.485022177819395
+                            ],
+                            [
+                              127.04507181729794,
+                              37.48502273919215
+                            ]
+                          ]
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "preview_summary": {
+                  "room_count": 4,
+                  "room_names": [
+                    "core",
+                    "corridor",
+                    "unit_a",
+                    "unit_b"
+                  ],
+                  "adjacency_score": 0.571,
+                  "area_error": 0.6,
+                  "compactness": 0.875
+                },
+                "result_count": 2
+              }
+            },
+            {
+              "group": 3,
+              "start_floor": 5,
+              "end_floor": 5,
+              "floor_count": 1,
+              "bottom_height": 14,
+              "top_height": 17.5,
+              "area": 28.96,
+              "far_contribution": 10.96,
+              "cumulative_far": 136.78,
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ],
+                    [
+                      127.04498061352906,
+                      37.484984839045886
+                    ],
+                    [
+                      127.04510632231565,
+                      37.485043161102965
+                    ],
+                    [
+                      127.0451191604328,
+                      37.485025569245174
+                    ],
+                    [
+                      127.04499336728946,
+                      37.48496736670565
+                    ]
+                  ]
+                ]
+              },
+              "source_floor_plates": [
+                5
+              ],
+              "program_packing": {
+                "stage": "post_legal_floor_group_packing",
+                "algorithm": "circle_grid_packing",
+                "constraint_source": "maas_legal_envelope",
+                "typical_floor_area": 28.96,
+                "cell_size": 3,
+                "rooms": [
+                  {
+                    "name": "core",
+                    "area": 4.58,
+                    "adjacency": [
+                      "corridor"
+                    ]
+                  },
+                  {
+                    "name": "corridor",
+                    "area": 3.43,
+                    "adjacency": [
+                      "core",
+                      "unit_a",
+                      "unit_b"
+                    ]
+                  },
+                  {
+                    "name": "unit_a",
+                    "area": 6.87,
+                    "adjacency": [
+                      "corridor"
+                    ]
+                  },
+                  {
+                    "name": "unit_b",
+                    "area": 6.87,
+                    "adjacency": [
+                      "corridor"
+                    ]
+                  },
+                  {
+                    "name": "service",
+                    "area": 2,
+                    "adjacency": [
+                      "core"
+                    ]
+                  }
+                ],
+                "status": "ok",
+                "grid": {
+                  "rows": 3,
+                  "cols": 5,
+                  "cell_size": 3,
+                  "active_cells": 3
+                },
+                "best_metrics": {
+                  "adjacency_score": 0,
+                  "area_error": 0.6909473684210526,
+                  "compactness": 1
+                },
+                "best_floor_plan": {
+                  "type": "FeatureCollection",
+                  "features": [
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 2,
+                        "room_name": "corridor",
+                        "color": "#fb923c",
+                        "area_m2": 9
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04508211141814,
+                              37.48499587263869
+                            ],
+                            [
+                              127.04508140696461,
+                              37.485022897927095
+                            ],
+                            [
+                              127.04504749308192,
+                              37.48502233655708
+                            ],
+                            [
+                              127.04504819754763,
+                              37.48499531126922
+                            ],
+                            [
+                              127.04508211141814,
+                              37.48499587263869
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 3,
+                        "room_name": "unit_a",
+                        "color": "#facc15",
+                        "area_m2": 9
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04501498815505,
+                              37.484967724602576
+                            ],
+                            [
+                              127.04501428367806,
+                              37.48499474989002
+                            ],
+                            [
+                              127.04498036980944,
+                              37.48499418850109
+                            ],
+                            [
+                              127.0449810742986,
+                              37.484967163214186
+                            ],
+                            [
+                              127.04501498815505,
+                              37.484967724602576
+                            ]
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Feature",
+                      "properties": {
+                        "room_code": 4,
+                        "room_name": "unit_b",
+                        "color": "#4ade80",
+                        "area_m2": 9
+                      },
+                      "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                          [
+                            [
+                              127.04511532084828,
+                              37.48502345928738
+                            ],
+                            [
+                              127.04511461640602,
+                              37.4850504845762
+                            ],
+                            [
+                              127.04508070251015,
+                              37.48504992321537
+                            ],
+                            [
+                              127.04508140696461,
+                              37.485022897927095
+                            ],
+                            [
+                              127.04511532084828,
+                              37.48502345928738
+                            ]
+                          ]
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "preview_summary": {
+                  "room_count": 3,
+                  "room_names": [
+                    "corridor",
+                    "unit_a",
+                    "unit_b"
+                  ],
+                  "adjacency_score": 0,
+                  "area_error": 0.691,
+                  "compactness": 1
+                },
+                "result_count": 2
+              }
+            }
+          ],
+          "legal_metrics": {
+            "far": 136.78,
+            "bcr": 38.97,
+            "height": 17.5,
+            "num_floors": 5,
+            "footprint_area": 102.93,
+            "floor_area": 361.28,
+            "min_setback": 3,
+            "open_pct": 61.03
+          },
+          "parking_strategy": "piloti_ground",
+          "parking_precheck": {
+            "schema_version": "arr.maas.parking_strategy.v0",
+            "status": "has_layout_candidate",
+            "selected_strategy": "piloti_ground",
+            "strategy_candidates": [
+              "piloti_ground",
+              "ground_surface",
+              "mechanical",
+              "semi_basement",
+              "basement",
+              "mixed"
+            ],
+            "basis": {
+              "site_area_m2": 264.13,
+              "footprint_area_m2": 102.93,
+              "open_area_m2": 161.2,
+              "total_floor_area_m2": 361.28,
+              "num_floors": 5,
+              "building_type": "근린생활시설",
+              "small_lot": true,
+              "dense_footprint": false,
+              "residential_like": true
+            },
+            "mass_generation_constraints": {
+              "vehicle_access": "needs_driveway_and_aisle_check",
+              "pedestrian_access": "separate_from_vehicle_path_where_required",
+              "accessible_parking": "needs_accessible_stall_and_route_check",
+              "core_placement": "must_not_block_parking_access_or_primary_egress",
+              "ground_floor": "reserve_void_or_partial_void_for_parking",
+              "column_grid": "needs_usable_bay_width_check",
+              "lost_program_area": "deduct_or_reassign_1f_program"
+            },
+            "layout_precheck": {
+              "status": "heuristic_only",
+              "strategy": "piloti_ground",
+              "envelope_area_m2": 102.93,
+              "effective_area_m2": 63.82,
+              "oriented_rect": {
+                "long_side_m": 12.87,
+                "short_side_m": 8.01
+              },
+              "module_dimensions": {
+                "stall_width_m": 2.5,
+                "stall_length_m": 5,
+                "aisle_width_m": 6,
+                "double_loaded_depth_m": 16,
+                "single_loaded_depth_m": 11,
+                "accessible_width_m": 3.3,
+                "accessible_length_m": 5
+              },
+              "capacity_estimates": {
+                "single_loaded_spaces": 0,
+                "double_loaded_spaces": 0,
+                "area_limited_spaces": 1,
+                "estimated_capacity_spaces": 0
+              },
+              "limitations": [
+                "does_not_place_exact_stalls",
+                "does_not_model_columns_or_core_obstructions",
+                "does_not_check_ramp_slope_or_turning_swept_path",
+                "does_not_verify_accessible_route"
+              ]
+            },
+            "small_attached_parking_relief": {
+              "status": "needs_required_count",
+              "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+              "applies_to": "attached_self_parking_total_spaces_8_or_less",
+              "required_spaces": null,
+              "road_context": {
+                "road_width_m": 37.48059008167424,
+                "has_sidewalk_separation": null,
+                "is_dead_end_road": false
+              },
+              "road_as_aisle_options": [
+                {
+                  "key": "undivided_road_under_12m",
+                  "available": false,
+                  "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+                  "aisle_width_counting_road_m": 6,
+                  "parallel_aisle_width_counting_road_m": 4,
+                  "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+                },
+                {
+                  "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+                  "available": true,
+                  "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+                  "parking_angle": "perpendicular_only",
+                  "needs_authority_review": true,
+                  "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+                }
+              ],
+              "tandem_parking": {
+                "available": true,
+                "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+                "max_depth_from_aisle": 2
+              },
+              "entrance_width": {
+                "min_width_m": 3,
+                "dead_end_road_approval_min_width_m": null
+              },
+              "limitations": [
+                "does_not_replace_required_stall_count",
+                "needs_actual_road_geometry_and_centerline",
+                "needs_local_authority_no_traffic_obstruction_review"
+              ]
+            },
+            "required_count": {
+              "status": "computed",
+              "pnu": "1168011800104170004",
+              "jurisdiction_code": "11680",
+              "building_type": "근린생활시설",
+              "selected_rule_id": "seoul_parking_appendix2_row_03",
+              "base_rule_id": "parking_appendix1_row_03",
+              "metric": "facility_area_m2",
+              "metric_value": 361.28,
+              "required_spaces": 3,
+              "raw_spaces": 2.6961194029850746,
+              "rounding_rule": "ordinance_note_6_half_up_total_under_one_zero",
+              "formula_detail": null,
+              "unit_schedule": null,
+              "accessible": {
+                "status": "not_applicable_under_10",
+                "accessible_min": 0,
+                "accessible_max": 0
+              },
+              "source": {
+                "rule_kind": "local_override",
+                "source_appendix": "서울특별시 주차장 설치 및 관리 조례::별표2",
+                "source_ordinance": "seoul_parking_ordinance",
+                "source_parse_status": "official_law_go_kr_text_extracted_manual_review"
+              },
+              "reason": null
+            },
+            "repair_request_templates": [
+              {
+                "operation": "reserve_piloti_void",
+                "reason": "Ground floor must reserve enough covered parking envelope.",
+                "target_agent": "maas_geometry_agent"
+              },
+              {
+                "operation": "move_core",
+                "reason": "Core blocks parking aisle or accessible route.",
+                "target_agent": "maas_geometry_agent"
+              },
+              {
+                "operation": "reduce_or_split_footprint",
+                "reason": "Open area or parking aisle is insufficient.",
+                "target_agent": "maas_geometry_agent"
+              }
+            ],
+            "layout_candidate": {
+              "schema_version": "arr.maas.parking_layout_candidate.v0",
+              "status": "pass",
+              "strategy": "piloti_ground",
+              "placement_mode": "grid_connected_90",
+              "required_spaces": 3,
+              "required_accessible_spaces": 0,
+              "provided_spaces": 3,
+              "provided_accessible_spaces": 0,
+              "unmet_spaces": 0,
+              "unmet_accessible_spaces": 0,
+              "stalls": [
+                {
+                  "stall_id": "P01",
+                  "type": "standard",
+                  "width_m": 2.5,
+                  "length_m": 5,
+                  "row": 2,
+                  "mode": "grid_connected_90",
+                  "orientation": "v",
+                  "polygon": [
+                    [
+                      327156.6444,
+                      4150478.9
+                    ],
+                    [
+                      327157.856,
+                      4150476.7132
+                    ],
+                    [
+                      327162.2295,
+                      4150479.1365
+                    ],
+                    [
+                      327161.0179,
+                      4150481.3233
+                    ],
+                    [
+                      327156.6444,
+                      4150478.9
+                    ]
+                  ],
+                  "polygon_wgs84": [
+                    [
+                      127.04502761,
+                      37.48506141
+                    ],
+                    [
+                      127.04504182,
+                      37.48504193
+                    ],
+                    [
+                      127.04509069,
+                      37.48506458
+                    ],
+                    [
+                      127.04507648,
+                      37.48508405
+                    ],
+                    [
+                      127.04502761,
+                      37.48506141
+                    ]
+                  ]
+                },
+                {
+                  "stall_id": "P02",
+                  "type": "standard",
+                  "width_m": 2.5,
+                  "length_m": 5,
+                  "row": 2,
+                  "mode": "grid_connected_90",
+                  "orientation": "v",
+                  "polygon": [
+                    [
+                      327157.856,
+                      4150476.7132
+                    ],
+                    [
+                      327159.0676,
+                      4150474.5265
+                    ],
+                    [
+                      327163.4412,
+                      4150476.9497
+                    ],
+                    [
+                      327162.2295,
+                      4150479.1365
+                    ],
+                    [
+                      327157.856,
+                      4150476.7132
+                    ]
+                  ],
+                  "polygon_wgs84": [
+                    [
+                      127.04504182,
+                      37.48504193
+                    ],
+                    [
+                      127.04505603,
+                      37.48502246
+                    ],
+                    [
+                      127.0451049,
+                      37.48504511
+                    ],
+                    [
+                      127.04509069,
+                      37.48506458
+                    ],
+                    [
+                      127.04504182,
+                      37.48504193
+                    ]
+                  ]
+                },
+                {
+                  "stall_id": "P03",
+                  "type": "standard",
+                  "width_m": 2.5,
+                  "length_m": 5,
+                  "row": 2,
+                  "mode": "grid_connected_90",
+                  "orientation": "v",
+                  "polygon": [
+                    [
+                      327159.0676,
+                      4150474.5265
+                    ],
+                    [
+                      327160.2793,
+                      4150472.3397
+                    ],
+                    [
+                      327164.6528,
+                      4150474.7629
+                    ],
+                    [
+                      327163.4412,
+                      4150476.9497
+                    ],
+                    [
+                      327159.0676,
+                      4150474.5265
+                    ]
+                  ],
+                  "polygon_wgs84": [
+                    [
+                      127.04505603,
+                      37.48502246
+                    ],
+                    [
+                      127.04507024,
+                      37.48500299
+                    ],
+                    [
+                      127.04511911,
+                      37.48502564
+                    ],
+                    [
+                      127.0451049,
+                      37.48504511
+                    ],
+                    [
+                      127.04505603,
+                      37.48502246
+                    ]
+                  ]
+                }
+              ],
+              "layout_formula": {
+                "schema_version": "arr.maas.parking_formula.v1",
+                "mode": "grid_connected_90",
+                "required_spaces": 3,
+                "stall": {
+                  "standard_width_m": 2.5,
+                  "standard_length_m": 5,
+                  "parallel_width_m": 2,
+                  "parallel_length_m": 6,
+                  "residential_undivided_road_parallel_length_m": 5,
+                  "accessible_width_m": 3.3,
+                  "accessible_length_m": 5
+                },
+                "aisle": {
+                  "two_way_90deg_width_m": 6,
+                  "small_attached_parallel_width_m": 3
+                },
+                "module": {
+                  "single_loaded_90_depth_m": 11,
+                  "single_loaded_90_formula": "stall_length + aisle_width",
+                  "double_loaded_90_depth_m": 16,
+                  "double_loaded_90_formula": "stall_length + aisle_width + stall_length",
+                  "parallel_stall_formula": "parallel_length 6.0m x parallel_width 2.0m"
+                },
+                "small_attached_parking": {
+                  "max_spaces": 8,
+                  "tandem_allowed_max_spaces": 5,
+                  "entrance_width_m": 3
+                }
+              },
+              "adjacency": {
+                "status": "row_contiguous",
+                "touching_pairs": 2,
+                "row_touching_pairs": 2,
+                "gap_pairs": 0,
+                "min_gap_m": 0,
+                "max_gap_m": 0,
+                "row_groups": 1,
+                "connected_components": 1,
+                "row_contiguous_ok": true,
+                "cluster_contiguous_ok": true,
+                "contiguous_ok": true
+              },
+              "column_clearance": {
+                "status": "deferred_structural_review",
+                "method": "clear_bay_record_only",
+                "assumed_column_size_m": 0.45,
+                "required_clear_bay_width_m": 7.5,
+                "assumed_clear_bay_width_m": 8.1,
+                "required_clear_depth_m": 11,
+                "margin_each_side_m": 0.3,
+                "reason": "No explicit column/core polygons are supplied; structural column/core clearance is deferred."
+              },
+              "drive_aisle_clearance": {
+                "status": "pass",
+                "source": "generated_drive_cells",
+                "required_width_m": 6,
+                "provided_width_m": 6,
+                "drive_cell_count": 3
+              },
+              "turning_clearance": {
+                "required_aisle_width_m": 6,
+                "note": "This is a mass-stage v1 frontage/aisle/entrance check, not a vehicle swept-path simulation.",
+                "status": "v1_pass",
+                "method": "stall_frontage_and_entrance_connector_v1",
+                "frontage_checked": true,
+                "frontage_connected_stalls": 1,
+                "frontage_total_stalls": 3,
+                "frontage_checks": [
+                  {
+                    "stall_id": "P01",
+                    "required_frontage_m": 2,
+                    "provided_frontage_m": 1.001,
+                    "connected": false
+                  },
+                  {
+                    "stall_id": "P02",
+                    "required_frontage_m": 2,
+                    "provided_frontage_m": 2.5,
+                    "connected": true
+                  },
+                  {
+                    "stall_id": "P03",
+                    "required_frontage_m": 2,
+                    "provided_frontage_m": 0.676,
+                    "connected": false
+                  }
+                ],
+                "contiguous_row_frontage_relief": {
+                  "available": true,
+                  "basis": "contiguous grid row with one generated 6m drive cell per stall",
+                  "row_groups": 1,
+                  "touching_pairs": 2,
+                  "connected_components": 1,
+                  "cluster_contiguous_ok": true,
+                  "small_attached_cluster_relief": true,
+                  "drive_cell_count": 3
+                },
+                "small_attached_tandem_relief": {
+                  "available": false,
+                  "max_spaces": 5,
+                  "reason": "Tandem relief is only applied to explicit road-as-aisle tandem layouts."
+                },
+                "entrance_connected": true,
+                "entrance_connection_type": "site_connector_v1"
+              },
+              "limitations": [
+                "grid_solver_first_feasible_not_global_mip_optimum",
+                "does_not_model_swept_path_columns_or_core_obstructions"
+              ],
+              "repair_requests": [],
+              "grid_solver": {
+                "schema_version": "arr.maas.parking_grid_solver.v0",
+                "cell_step_m": 0.5,
+                "candidate_stalls": 11,
+                "selected_stalls": 3,
+                "drive_components_connected": true,
+                "entrance_connected": true,
+                "entrance_verified": true,
+                "entrance_connection_method": "road_frontage_geometry",
+                "entrance_connection_type": "site_connector_v1",
+                "entrance_edge_count": 1,
+                "entrance_min_distance_m": 8,
+                "entrance_connector_length_m": 8,
+                "entrance_connector_width_m": 3,
+                "entrance_connector_polygon": [
+                  [
+                    327162.915,
+                    4150484.0893
+                  ],
+                  [
+                    327164.369,
+                    4150481.4652
+                  ],
+                  [
+                    327157.3714,
+                    4150477.5879
+                  ],
+                  [
+                    327155.9174,
+                    4150480.212
+                  ],
+                  [
+                    327162.915,
+                    4150484.0893
+                  ]
+                ],
+                "drive_cells": [
+                  [
+                    [
+                      327151.3961,
+                      4150475.9921
+                    ],
+                    [
+                      327152.6078,
+                      4150473.8053
+                    ],
+                    [
+                      327157.856,
+                      4150476.7132
+                    ],
+                    [
+                      327156.6444,
+                      4150478.9
+                    ],
+                    [
+                      327151.3961,
+                      4150475.9921
+                    ]
+                  ],
+                  [
+                    [
+                      327152.6078,
+                      4150473.8053
+                    ],
+                    [
+                      327153.8194,
+                      4150471.6185
+                    ],
+                    [
+                      327159.0676,
+                      4150474.5265
+                    ],
+                    [
+                      327157.856,
+                      4150476.7132
+                    ],
+                    [
+                      327152.6078,
+                      4150473.8053
+                    ]
+                  ],
+                  [
+                    [
+                      327153.8194,
+                      4150471.6185
+                    ],
+                    [
+                      327155.031,
+                      4150469.4318
+                    ],
+                    [
+                      327160.2793,
+                      4150472.3397
+                    ],
+                    [
+                      327159.0676,
+                      4150474.5265
+                    ],
+                    [
+                      327153.8194,
+                      4150471.6185
+                    ]
+                  ]
+                ],
+                "variable_mapping": {
+                  "x": "selected stall candidates",
+                  "y": "drive aisle cells adjacent to selected stalls",
+                  "connectivity": "drive cells must touch into one component and connect to road/frontage or site access boundary"
+                },
+                "entrance_connector_polygon_wgs84": [
+                  [
+                    127.04509728,
+                    37.48510933
+                  ],
+                  [
+                    127.04511433,
+                    37.48508596
+                  ],
+                  [
+                    127.04503613,
+                    37.48504972
+                  ],
+                  [
+                    127.04501908,
+                    37.48507309
+                  ],
+                  [
+                    127.04509728,
+                    37.48510933
+                  ]
+                ]
+              },
+              "small_attached_parking_relief": {
+                "status": "evaluated",
+                "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+                "applies_to": "attached_self_parking_total_spaces_8_or_less",
+                "required_spaces": 3,
+                "road_context": {
+                  "road_width_m": 37.48059008167424,
+                  "has_sidewalk_separation": null,
+                  "is_dead_end_road": false
+                },
+                "road_as_aisle_options": [
+                  {
+                    "key": "undivided_road_under_12m",
+                    "available": false,
+                    "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+                    "aisle_width_counting_road_m": 6,
+                    "parallel_aisle_width_counting_road_m": 4,
+                    "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+                  },
+                  {
+                    "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+                    "available": true,
+                    "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+                    "parking_angle": "perpendicular_only",
+                    "needs_authority_review": true,
+                    "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+                  }
+                ],
+                "tandem_parking": {
+                  "available": true,
+                  "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+                  "max_depth_from_aisle": 2
+                },
+                "entrance_width": {
+                  "min_width_m": 3,
+                  "dead_end_road_approval_min_width_m": null
+                },
+                "limitations": [
+                  "does_not_replace_required_stall_count",
+                  "needs_actual_road_geometry_and_centerline",
+                  "needs_local_authority_no_traffic_obstruction_review"
+                ]
+              }
+            },
+            "parking_envelope_wgs84": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04507363785986,
+                    37.485087948022205
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499336728946,
+                    37.48496736670566
+                  ],
+                  [
+                    127.04495245255596,
+                    37.485023418856045
+                  ],
+                  [
+                    127.04494792345574,
+                    37.485029623344715
+                  ],
+                  [
+                    127.04507363785986,
+                    37.485087948022205
+                  ]
+                ]
+              ]
+            }
+          },
+          "design_quality": {
+            "source": "arr.maas.design_quality.v1",
+            "score": 0.6311,
+            "components": {
+              "capacity": 0.586,
+              "diversity": 0.555,
+              "compactness": 0.9891,
+              "plate_profile": 0.7479,
+              "sequence_richness": 0.3375
+            },
+            "sequence_metrics": {
+              "source": "arr.maas.sequence_metrics.v1",
+              "parsimony": 1,
+              "unique_verb_count": 1,
+              "verb_set": [
+                "taper"
+              ],
+              "plan_verbs": [],
+              "section_verbs": [
+                "taper"
+              ],
+              "has_plan_operation": false,
+              "has_section_operation": true
+            },
+            "optimizer_backend": {
+              "name": "d4descent",
+              "source": "clone/d4descent",
+              "status": "import_failed",
+              "backend": {
+                "name": "d4descent",
+                "remote": "https://github.com/milmillin/d4descent.git",
+                "license": "CC BY-NC 4.0 per clone/d4descent README",
+                "mode": "external_clone_bridge",
+                "integration_rule": "Use the clone path directly; do not duplicate/vendor d4descent source inside ARR.",
+                "source_path": "/mnt/d/Data/25_ACE/clone/d4descent/src",
+                "exists": true,
+                "status": "import_failed",
+                "interfaces": {
+                  "optimizer": "d4descent.optimizer.optimize",
+                  "optimizer_args": "d4descent.optimizer.OptimizeArgs",
+                  "task_protocol": "d4descent.tasks._base.Task",
+                  "object_collection": "d4descent.object_collection.ObjectCollection"
+                },
+                "error": "ModuleNotFoundError: No module named 'yaml'"
+              },
+              "absorbed_pattern": {
+                "object": "candidate mass / floor-plate stack",
+                "task": "legal candidate ranking task",
+                "loss": "capacity + diversity + compactness + sequence richness",
+                "optimizer": "external d4descent bridge; ARR legal repair/evaluation remains deterministic",
+                "rewrite": "ARR grammar/morphology operators"
+              }
+            },
+            "legal_truth": "ARR repair/evaluation remains authoritative; this is ranking evidence only."
+          }
+        },
+        "floor_plates": [
+          {
+            "floor": 1,
+            "top_height": 3.5,
+            "area": 102.93,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ],
+                  [
+                    127.04495245255596,
+                    37.48502341885605
+                  ],
+                  [
+                    127.04494792345574,
+                    37.485029623344715
+                  ],
+                  [
+                    127.04507363785986,
+                    37.485087948022205
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "floor": 2,
+            "top_height": 7,
+            "area": 102.93,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ],
+                  [
+                    127.04495245255596,
+                    37.48502341885605
+                  ],
+                  [
+                    127.04494792345574,
+                    37.485029623344715
+                  ],
+                  [
+                    127.04507363785986,
+                    37.485087948022205
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "floor": 3,
+            "top_height": 10.5,
+            "area": 74.99,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ],
+                  [
+                    127.04495991134718,
+                    37.485013200508256
+                  ],
+                  [
+                    127.04508634349804,
+                    37.48507053772351
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "floor": 4,
+            "top_height": 14,
+            "area": 51.47,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ],
+                  [
+                    127.04497066442332,
+                    37.484998469070824
+                  ],
+                  [
+                    127.04509637487679,
+                    37.48505679190558
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "floor": 5,
+            "top_height": 17.5,
+            "area": 28.96,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ],
+                  [
+                    127.04498061352906,
+                    37.484984839045886
+                  ],
+                  [
+                    127.04510632231565,
+                    37.485043161102965
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "floor_groups": [
+          {
+            "group": 0,
+            "start_floor": 1,
+            "end_floor": 2,
+            "floor_count": 2,
+            "bottom_height": 0,
+            "top_height": 7,
+            "area": 205.86,
+            "far_contribution": 77.94,
+            "cumulative_far": 77.94,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ],
+                  [
+                    127.04495245255596,
+                    37.48502341885605
+                  ],
+                  [
+                    127.04494792345574,
+                    37.485029623344715
+                  ],
+                  [
+                    127.04507363785986,
+                    37.485087948022205
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ]
+                ]
+              ]
+            },
+            "source_floor_plates": [
+              1,
+              2
+            ],
+            "program_packing": {
+              "stage": "post_legal_floor_group_packing",
+              "algorithm": "circle_grid_packing",
+              "constraint_source": "maas_legal_envelope",
+              "typical_floor_area": 102.93,
+              "cell_size": 3,
+              "rooms": [
+                {
+                  "name": "core",
+                  "area": 16,
+                  "adjacency": [
+                    "corridor"
+                  ]
+                },
+                {
+                  "name": "corridor",
+                  "area": 12,
+                  "adjacency": [
+                    "core",
+                    "unit_a",
+                    "unit_b"
+                  ]
+                },
+                {
+                  "name": "unit_a",
+                  "area": 24,
+                  "adjacency": [
+                    "corridor"
+                  ]
+                },
+                {
+                  "name": "unit_b",
+                  "area": 24,
+                  "adjacency": [
+                    "corridor"
+                  ]
+                },
+                {
+                  "name": "service",
+                  "area": 7,
+                  "adjacency": [
+                    "core"
+                  ]
+                }
+              ],
+              "status": "ok",
+              "grid": {
+                "rows": 5,
+                "cols": 6,
+                "cell_size": 3,
+                "active_cells": 12
+              },
+              "best_metrics": {
+                "adjacency_score": 0.8571428571428571,
+                "area_error": 0.30120481927710846,
+                "compactness": 0.5
+              },
+              "best_floor_plan": {
+                "type": "FeatureCollection",
+                "features": [
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 1,
+                      "room_name": "core",
+                      "color": "#f87171",
+                      "area_m2": 18
+                    },
+                    "geometry": {
+                      "type": "MultiPolygon",
+                      "coordinates": [
+                        [
+                          [
+                            [
+                              127.04501739298921,
+                              37.48496776441029
+                            ],
+                            [
+                              127.04498347913272,
+                              37.4849672030226
+                            ],
+                            [
+                              127.04498277464438,
+                              37.484994228309546
+                            ],
+                            [
+                              127.04501668851309,
+                              37.48499478969778
+                            ],
+                            [
+                              127.04501739298921,
+                              37.48496776441029
+                            ]
+                          ]
+                        ],
+                        [
+                          [
+                            [
+                              127.04501598403603,
+                              37.485021814985124
+                            ],
+                            [
+                              127.04504989791786,
+                              37.485022376364185
+                            ],
+                            [
+                              127.04505060238273,
+                              37.4849953510763
+                            ],
+                            [
+                              127.04501668851309,
+                              37.48499478969778
+                            ],
+                            [
+                              127.04501598403603,
+                              37.485021814985124
+                            ]
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 2,
+                      "room_name": "corridor",
+                      "color": "#fb923c",
+                      "area_m2": 18
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04501598403603,
+                            37.485021814985124
+                          ],
+                          [
+                            127.04501527955803,
+                            37.485048840272356
+                          ],
+                          [
+                            127.04504919345207,
+                            37.48504940165194
+                          ],
+                          [
+                            127.04508310734707,
+                            37.48504996302182
+                          ],
+                          [
+                            127.04508381180067,
+                            37.48502293773352
+                          ],
+                          [
+                            127.04504989791786,
+                            37.485022376364185
+                          ],
+                          [
+                            127.04501598403603,
+                            37.485021814985124
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 3,
+                      "room_name": "unit_a",
+                      "color": "#facc15",
+                      "area_m2": 36
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04494815627517,
+                            37.48502069219784
+                          ],
+                          [
+                            127.04494745177276,
+                            37.48504771748397
+                          ],
+                          [
+                            127.04498136566492,
+                            37.48504827888302
+                          ],
+                          [
+                            127.04501527955803,
+                            37.485048840272356
+                          ],
+                          [
+                            127.04501598403603,
+                            37.485021814985124
+                          ],
+                          [
+                            127.04501668851309,
+                            37.48499478969778
+                          ],
+                          [
+                            127.04498277464438,
+                            37.484994228309546
+                          ],
+                          [
+                            127.04494886077663,
+                            37.48499366691158
+                          ],
+                          [
+                            127.04494815627517,
+                            37.48502069219784
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 4,
+                      "room_name": "unit_b",
+                      "color": "#4ade80",
+                      "area_m2": 27
+                    },
+                    "geometry": {
+                      "type": "MultiPolygon",
+                      "coordinates": [
+                        [
+                          [
+                            [
+                              127.0450845162533,
+                              37.48499591244507
+                            ],
+                            [
+                              127.04505060238273,
+                              37.4849953510763
+                            ],
+                            [
+                              127.04504989791786,
+                              37.485022376364185
+                            ],
+                            [
+                              127.04508381180067,
+                              37.48502293773352
+                            ],
+                            [
+                              127.0450845162533,
+                              37.48499591244507
+                            ]
+                          ]
+                        ],
+                        [
+                          [
+                            [
+                              127.04511772568438,
+                              37.485023499093124
+                            ],
+                            [
+                              127.04508381180067,
+                              37.48502293773352
+                            ],
+                            [
+                              127.04508310734707,
+                              37.48504996302182
+                            ],
+                            [
+                              127.04511702124299,
+                              37.485050524381975
+                            ],
+                            [
+                              127.04511772568438,
+                              37.485023499093124
+                            ]
+                          ]
+                        ],
+                        [
+                          [
+                            [
+                              127.04504848898532,
+                              37.48507642693957
+                            ],
+                            [
+                              127.04508240289252,
+                              37.48507698830999
+                            ],
+                            [
+                              127.04508310734707,
+                              37.48504996302182
+                            ],
+                            [
+                              127.04504919345207,
+                              37.48504940165194
+                            ],
+                            [
+                              127.04504848898532,
+                              37.48507642693957
+                            ]
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 5,
+                      "room_name": "service",
+                      "color": "#60a5fa",
+                      "area_m2": 9
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04504919345207,
+                            37.48504940165194
+                          ],
+                          [
+                            127.04504848898532,
+                            37.48507642693957
+                          ],
+                          [
+                            127.04501457507908,
+                            37.48507586555943
+                          ],
+                          [
+                            127.04501527955803,
+                            37.485048840272356
+                          ],
+                          [
+                            127.04504919345207,
+                            37.48504940165194
+                          ]
+                        ]
+                      ]
+                    }
+                  }
+                ]
+              },
+              "preview_summary": {
+                "room_count": 5,
+                "room_names": [
+                  "core",
+                  "corridor",
+                  "unit_a",
+                  "unit_b",
+                  "service"
+                ],
+                "adjacency_score": 0.857,
+                "area_error": 0.301,
+                "compactness": 0.5
+              },
+              "result_count": 2
+            }
+          },
+          {
+            "group": 1,
+            "start_floor": 3,
+            "end_floor": 3,
+            "floor_count": 1,
+            "bottom_height": 7,
+            "top_height": 10.5,
+            "area": 74.99,
+            "far_contribution": 28.39,
+            "cumulative_far": 106.33,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ],
+                  [
+                    127.04495991134718,
+                    37.485013200508256
+                  ],
+                  [
+                    127.04508634349804,
+                    37.48507053772351
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ]
+                ]
+              ]
+            },
+            "source_floor_plates": [
+              3
+            ],
+            "program_packing": {
+              "stage": "post_legal_floor_group_packing",
+              "algorithm": "circle_grid_packing",
+              "constraint_source": "maas_legal_envelope",
+              "typical_floor_area": 74.99,
+              "cell_size": 3,
+              "rooms": [
+                {
+                  "name": "core",
+                  "area": 11.85,
+                  "adjacency": [
+                    "corridor"
+                  ]
+                },
+                {
+                  "name": "corridor",
+                  "area": 8.89,
+                  "adjacency": [
+                    "core",
+                    "unit_a",
+                    "unit_b"
+                  ]
+                },
+                {
+                  "name": "unit_a",
+                  "area": 17.78,
+                  "adjacency": [
+                    "corridor"
+                  ]
+                },
+                {
+                  "name": "unit_b",
+                  "area": 17.78,
+                  "adjacency": [
+                    "corridor"
+                  ]
+                },
+                {
+                  "name": "service",
+                  "area": 5.19,
+                  "adjacency": [
+                    "core"
+                  ]
+                }
+              ],
+              "status": "ok",
+              "grid": {
+                "rows": 4,
+                "cols": 5,
+                "cell_size": 3,
+                "active_cells": 9
+              },
+              "best_metrics": {
+                "adjacency_score": 1,
+                "area_error": 0.6028622540250446,
+                "compactness": 0.7
+              },
+              "best_floor_plan": {
+                "type": "FeatureCollection",
+                "features": [
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 1,
+                      "room_name": "core",
+                      "color": "#f87171",
+                      "area_m2": 18
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04499362494725,
+                            37.48502144486811
+                          ],
+                          [
+                            127.04499292046118,
+                            37.48504847015497
+                          ],
+                          [
+                            127.04502683435462,
+                            37.48504903154099
+                          ],
+                          [
+                            127.04506074824897,
+                            37.48504959291727
+                          ],
+                          [
+                            127.04506145271061,
+                            37.48502256762932
+                          ],
+                          [
+                            127.04502753882848,
+                            37.48502200625359
+                          ],
+                          [
+                            127.04499362494725,
+                            37.48502144486811
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 2,
+                      "room_name": "corridor",
+                      "color": "#fb923c",
+                      "area_m2": 9
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04506215717133,
+                            37.484995542341245
+                          ],
+                          [
+                            127.04506145271061,
+                            37.48502256762932
+                          ],
+                          [
+                            127.04502753882848,
+                            37.48502200625359
+                          ],
+                          [
+                            127.04502824330136,
+                            37.48499498096605
+                          ],
+                          [
+                            127.04506215717133,
+                            37.484995542341245
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 3,
+                      "room_name": "unit_a",
+                      "color": "#facc15",
+                      "area_m2": 9
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04509607104222,
+                            37.48499610370672
+                          ],
+                          [
+                            127.04509536659371,
+                            37.48502312899534
+                          ],
+                          [
+                            127.04506145271061,
+                            37.48502256762932
+                          ],
+                          [
+                            127.04506215717133,
+                            37.484995542341245
+                          ],
+                          [
+                            127.04509607104222,
+                            37.48499610370672
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 4,
+                      "room_name": "unit_b",
+                      "color": "#4ade80",
+                      "area_m2": 27
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04502894777333,
+                            37.48496795567838
+                          ],
+                          [
+                            127.0449950339165,
+                            37.484967394293996
+                          ],
+                          [
+                            127.04499432943236,
+                            37.48499441958113
+                          ],
+                          [
+                            127.04496041556426,
+                            37.48499385818647
+                          ],
+                          [
+                            127.04495971106697,
+                            37.48502088347291
+                          ],
+                          [
+                            127.04499362494725,
+                            37.48502144486811
+                          ],
+                          [
+                            127.04502753882848,
+                            37.48502200625359
+                          ],
+                          [
+                            127.04502824330136,
+                            37.48499498096605
+                          ],
+                          [
+                            127.04502894777333,
+                            37.48496795567838
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 5,
+                      "room_name": "service",
+                      "color": "#60a5fa",
+                      "area_m2": 18
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04509536659371,
+                            37.48502312899534
+                          ],
+                          [
+                            127.04506145271061,
+                            37.48502256762932
+                          ],
+                          [
+                            127.04506074824897,
+                            37.48504959291727
+                          ],
+                          [
+                            127.04506004378638,
+                            37.48507661820508
+                          ],
+                          [
+                            127.04509395769392,
+                            37.485077179572194
+                          ],
+                          [
+                            127.04509466214428,
+                            37.485050154283826
+                          ],
+                          [
+                            127.04509536659371,
+                            37.48502312899534
+                          ]
+                        ]
+                      ]
+                    }
+                  }
+                ]
+              },
+              "preview_summary": {
+                "room_count": 5,
+                "room_names": [
+                  "core",
+                  "corridor",
+                  "unit_a",
+                  "unit_b",
+                  "service"
+                ],
+                "adjacency_score": 1,
+                "area_error": 0.603,
+                "compactness": 0.7
+              },
+              "result_count": 2
+            }
+          },
+          {
+            "group": 2,
+            "start_floor": 4,
+            "end_floor": 4,
+            "floor_count": 1,
+            "bottom_height": 10.5,
+            "top_height": 14,
+            "area": 51.47,
+            "far_contribution": 19.49,
+            "cumulative_far": 125.82,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ],
+                  [
+                    127.04497066442332,
+                    37.484998469070824
+                  ],
+                  [
+                    127.04509637487679,
+                    37.48505679190558
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ]
+                ]
+              ]
+            },
+            "source_floor_plates": [
+              4
+            ],
+            "program_packing": {
+              "stage": "post_legal_floor_group_packing",
+              "algorithm": "circle_grid_packing",
+              "constraint_source": "maas_legal_envelope",
+              "typical_floor_area": 51.47,
+              "cell_size": 3,
+              "rooms": [
+                {
+                  "name": "core",
+                  "area": 8.14,
+                  "adjacency": [
+                    "corridor"
+                  ]
+                },
+                {
+                  "name": "corridor",
+                  "area": 6.1,
+                  "adjacency": [
+                    "core",
+                    "unit_a",
+                    "unit_b"
+                  ]
+                },
+                {
+                  "name": "unit_a",
+                  "area": 12.2,
+                  "adjacency": [
+                    "corridor"
+                  ]
+                },
+                {
+                  "name": "unit_b",
+                  "area": 12.2,
+                  "adjacency": [
+                    "corridor"
+                  ]
+                },
+                {
+                  "name": "service",
+                  "area": 3.56,
+                  "adjacency": [
+                    "core"
+                  ]
+                }
+              ],
+              "status": "ok",
+              "grid": {
+                "rows": 4,
+                "cols": 5,
+                "cell_size": 3,
+                "active_cells": 6
+              },
+              "best_metrics": {
+                "adjacency_score": 0.5714285714285714,
+                "area_error": 0.6000000000000001,
+                "compactness": 0.875
+              },
+              "best_floor_plan": {
+                "type": "FeatureCollection",
+                "features": [
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 1,
+                      "room_name": "core",
+                      "color": "#f87171",
+                      "area_m2": 9
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04510573118132,
+                            37.485023300555206
+                          ],
+                          [
+                            127.04510502673561,
+                            37.485050325843865
+                          ],
+                          [
+                            127.04507111284003,
+                            37.48504976448028
+                          ],
+                          [
+                            127.04507181729794,
+                            37.48502273919215
+                          ],
+                          [
+                            127.04510573118132,
+                            37.485023300555206
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 2,
+                      "room_name": "corridor",
+                      "color": "#fb923c",
+                      "area_m2": 9
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04507252175492,
+                            37.484995713903906
+                          ],
+                          [
+                            127.04507181729794,
+                            37.48502273919215
+                          ],
+                          [
+                            127.04503790341549,
+                            37.485022177819395
+                          ],
+                          [
+                            127.04503860788466,
+                            37.484995152531695
+                          ],
+                          [
+                            127.04507252175492,
+                            37.484995713903906
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 3,
+                      "room_name": "unit_a",
+                      "color": "#facc15",
+                      "area_m2": 27
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04497148463963,
+                            37.48496700447131
+                          ],
+                          [
+                            127.04497078014698,
+                            37.48499402975806
+                          ],
+                          [
+                            127.04500469401535,
+                            37.48499459114974
+                          ],
+                          [
+                            127.045003989534,
+                            37.4850216164369
+                          ],
+                          [
+                            127.04503790341549,
+                            37.485022177819395
+                          ],
+                          [
+                            127.04503860788466,
+                            37.484995152531695
+                          ],
+                          [
+                            127.0450393123529,
+                            37.48496812724386
+                          ],
+                          [
+                            127.0450053984958,
+                            37.48496756586245
+                          ],
+                          [
+                            127.04497148463963,
+                            37.48496700447131
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 4,
+                      "room_name": "unit_b",
+                      "color": "#4ade80",
+                      "area_m2": 9
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04507181729794,
+                            37.48502273919215
+                          ],
+                          [
+                            127.04507111284003,
+                            37.48504976448028
+                          ],
+                          [
+                            127.04503719894538,
+                            37.48504920310697
+                          ],
+                          [
+                            127.04503790341549,
+                            37.485022177819395
+                          ],
+                          [
+                            127.04507181729794,
+                            37.48502273919215
+                          ]
+                        ]
+                      ]
+                    }
+                  }
+                ]
+              },
+              "preview_summary": {
+                "room_count": 4,
+                "room_names": [
+                  "core",
+                  "corridor",
+                  "unit_a",
+                  "unit_b"
+                ],
+                "adjacency_score": 0.571,
+                "area_error": 0.6,
+                "compactness": 0.875
+              },
+              "result_count": 2
+            }
+          },
+          {
+            "group": 3,
+            "start_floor": 5,
+            "end_floor": 5,
+            "floor_count": 1,
+            "bottom_height": 14,
+            "top_height": 17.5,
+            "area": 28.96,
+            "far_contribution": 10.96,
+            "cumulative_far": 136.78,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ],
+                  [
+                    127.04498061352906,
+                    37.484984839045886
+                  ],
+                  [
+                    127.04510632231565,
+                    37.485043161102965
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ]
+                ]
+              ]
+            },
+            "source_floor_plates": [
+              5
+            ],
+            "program_packing": {
+              "stage": "post_legal_floor_group_packing",
+              "algorithm": "circle_grid_packing",
+              "constraint_source": "maas_legal_envelope",
+              "typical_floor_area": 28.96,
+              "cell_size": 3,
+              "rooms": [
+                {
+                  "name": "core",
+                  "area": 4.58,
+                  "adjacency": [
+                    "corridor"
+                  ]
+                },
+                {
+                  "name": "corridor",
+                  "area": 3.43,
+                  "adjacency": [
+                    "core",
+                    "unit_a",
+                    "unit_b"
+                  ]
+                },
+                {
+                  "name": "unit_a",
+                  "area": 6.87,
+                  "adjacency": [
+                    "corridor"
+                  ]
+                },
+                {
+                  "name": "unit_b",
+                  "area": 6.87,
+                  "adjacency": [
+                    "corridor"
+                  ]
+                },
+                {
+                  "name": "service",
+                  "area": 2,
+                  "adjacency": [
+                    "core"
+                  ]
+                }
+              ],
+              "status": "ok",
+              "grid": {
+                "rows": 3,
+                "cols": 5,
+                "cell_size": 3,
+                "active_cells": 3
+              },
+              "best_metrics": {
+                "adjacency_score": 0,
+                "area_error": 0.6909473684210526,
+                "compactness": 1
+              },
+              "best_floor_plan": {
+                "type": "FeatureCollection",
+                "features": [
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 2,
+                      "room_name": "corridor",
+                      "color": "#fb923c",
+                      "area_m2": 9
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04508211141814,
+                            37.48499587263869
+                          ],
+                          [
+                            127.04508140696461,
+                            37.485022897927095
+                          ],
+                          [
+                            127.04504749308192,
+                            37.48502233655708
+                          ],
+                          [
+                            127.04504819754763,
+                            37.48499531126922
+                          ],
+                          [
+                            127.04508211141814,
+                            37.48499587263869
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 3,
+                      "room_name": "unit_a",
+                      "color": "#facc15",
+                      "area_m2": 9
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04501498815505,
+                            37.484967724602576
+                          ],
+                          [
+                            127.04501428367806,
+                            37.48499474989002
+                          ],
+                          [
+                            127.04498036980944,
+                            37.48499418850109
+                          ],
+                          [
+                            127.0449810742986,
+                            37.484967163214186
+                          ],
+                          [
+                            127.04501498815505,
+                            37.484967724602576
+                          ]
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Feature",
+                    "properties": {
+                      "room_code": 4,
+                      "room_name": "unit_b",
+                      "color": "#4ade80",
+                      "area_m2": 9
+                    },
+                    "geometry": {
+                      "type": "Polygon",
+                      "coordinates": [
+                        [
+                          [
+                            127.04511532084828,
+                            37.48502345928738
+                          ],
+                          [
+                            127.04511461640602,
+                            37.4850504845762
+                          ],
+                          [
+                            127.04508070251015,
+                            37.48504992321537
+                          ],
+                          [
+                            127.04508140696461,
+                            37.485022897927095
+                          ],
+                          [
+                            127.04511532084828,
+                            37.48502345928738
+                          ]
+                        ]
+                      ]
+                    }
+                  }
+                ]
+              },
+              "preview_summary": {
+                "room_count": 3,
+                "room_names": [
+                  "corridor",
+                  "unit_a",
+                  "unit_b"
+                ],
+                "adjacency_score": 0,
+                "area_error": 0.691,
+                "compactness": 1
+              },
+              "result_count": 2
+            }
+          }
+        ],
+        "mass_volumes": [
+          {
+            "band": 0,
+            "bottom_height": 0,
+            "top_height": 7,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ],
+                  [
+                    127.04495245255596,
+                    37.48502341885605
+                  ],
+                  [
+                    127.04494792345574,
+                    37.485029623344715
+                  ],
+                  [
+                    127.04507363785986,
+                    37.485087948022205
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ]
+                ]
+              ]
+            },
+            "role": "morphology_volume"
+          },
+          {
+            "band": 1,
+            "bottom_height": 7,
+            "top_height": 17.5,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ],
+                  [
+                    127.04498061352906,
+                    37.484984839045886
+                  ],
+                  [
+                    127.04510632231565,
+                    37.485043161102965
+                  ],
+                  [
+                    127.0451191604328,
+                    37.485025569245174
+                  ],
+                  [
+                    127.04499336728946,
+                    37.48496736670565
+                  ]
+                ]
+              ]
+            },
+            "role": "morphology_volume"
+          }
+        ],
+        "maas_verb_sequence": [
+          {
+            "verb": "base",
+            "params": {
+              "proportion": "1/1"
+            }
+          },
+          {
+            "verb": "taper",
+            "params": {
+              "top_ratio": 0.72
+            }
+          }
+        ],
+        "parking_strategy": "piloti_ground",
+        "parking_strategy_candidates": [
+          "piloti_ground",
+          "ground_surface",
+          "mechanical",
+          "semi_basement",
+          "basement",
+          "mixed"
+        ],
+        "parking_precheck": {
+          "schema_version": "arr.maas.parking_strategy.v0",
+          "status": "has_layout_candidate",
+          "selected_strategy": "piloti_ground",
+          "strategy_candidates": [
+            "piloti_ground",
+            "ground_surface",
+            "mechanical",
+            "semi_basement",
+            "basement",
+            "mixed"
+          ],
+          "basis": {
+            "site_area_m2": 264.13,
+            "footprint_area_m2": 102.93,
+            "open_area_m2": 161.2,
+            "total_floor_area_m2": 361.28,
+            "num_floors": 5,
+            "building_type": "근린생활시설",
+            "small_lot": true,
+            "dense_footprint": false,
+            "residential_like": true
+          },
+          "mass_generation_constraints": {
+            "vehicle_access": "needs_driveway_and_aisle_check",
+            "pedestrian_access": "separate_from_vehicle_path_where_required",
+            "accessible_parking": "needs_accessible_stall_and_route_check",
+            "core_placement": "must_not_block_parking_access_or_primary_egress",
+            "ground_floor": "reserve_void_or_partial_void_for_parking",
+            "column_grid": "needs_usable_bay_width_check",
+            "lost_program_area": "deduct_or_reassign_1f_program"
+          },
+          "layout_precheck": {
+            "status": "heuristic_only",
+            "strategy": "piloti_ground",
+            "envelope_area_m2": 102.93,
+            "effective_area_m2": 63.82,
+            "oriented_rect": {
+              "long_side_m": 12.87,
+              "short_side_m": 8.01
+            },
+            "module_dimensions": {
+              "stall_width_m": 2.5,
+              "stall_length_m": 5,
+              "aisle_width_m": 6,
+              "double_loaded_depth_m": 16,
+              "single_loaded_depth_m": 11,
+              "accessible_width_m": 3.3,
+              "accessible_length_m": 5
+            },
+            "capacity_estimates": {
+              "single_loaded_spaces": 0,
+              "double_loaded_spaces": 0,
+              "area_limited_spaces": 1,
+              "estimated_capacity_spaces": 0
+            },
+            "limitations": [
+              "does_not_place_exact_stalls",
+              "does_not_model_columns_or_core_obstructions",
+              "does_not_check_ramp_slope_or_turning_swept_path",
+              "does_not_verify_accessible_route"
+            ]
+          },
+          "small_attached_parking_relief": {
+            "status": "needs_required_count",
+            "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+            "applies_to": "attached_self_parking_total_spaces_8_or_less",
+            "required_spaces": null,
+            "road_context": {
+              "road_width_m": 37.48059008167424,
+              "has_sidewalk_separation": null,
+              "is_dead_end_road": false
+            },
+            "road_as_aisle_options": [
+              {
+                "key": "undivided_road_under_12m",
+                "available": false,
+                "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+                "aisle_width_counting_road_m": 6,
+                "parallel_aisle_width_counting_road_m": 4,
+                "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+              },
+              {
+                "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+                "available": true,
+                "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+                "parking_angle": "perpendicular_only",
+                "needs_authority_review": true,
+                "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+              }
+            ],
+            "tandem_parking": {
+              "available": true,
+              "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+              "max_depth_from_aisle": 2
+            },
+            "entrance_width": {
+              "min_width_m": 3,
+              "dead_end_road_approval_min_width_m": null
+            },
+            "limitations": [
+              "does_not_replace_required_stall_count",
+              "needs_actual_road_geometry_and_centerline",
+              "needs_local_authority_no_traffic_obstruction_review"
+            ]
+          },
+          "required_count": {
+            "status": "computed",
+            "pnu": "1168011800104170004",
+            "jurisdiction_code": "11680",
+            "building_type": "근린생활시설",
+            "selected_rule_id": "seoul_parking_appendix2_row_03",
+            "base_rule_id": "parking_appendix1_row_03",
+            "metric": "facility_area_m2",
+            "metric_value": 361.28,
+            "required_spaces": 3,
+            "raw_spaces": 2.6961194029850746,
+            "rounding_rule": "ordinance_note_6_half_up_total_under_one_zero",
+            "formula_detail": null,
+            "unit_schedule": null,
+            "accessible": {
+              "status": "not_applicable_under_10",
+              "accessible_min": 0,
+              "accessible_max": 0
+            },
+            "source": {
+              "rule_kind": "local_override",
+              "source_appendix": "서울특별시 주차장 설치 및 관리 조례::별표2",
+              "source_ordinance": "seoul_parking_ordinance",
+              "source_parse_status": "official_law_go_kr_text_extracted_manual_review"
+            },
+            "reason": null
+          },
+          "repair_request_templates": [
+            {
+              "operation": "reserve_piloti_void",
+              "reason": "Ground floor must reserve enough covered parking envelope.",
+              "target_agent": "maas_geometry_agent"
+            },
+            {
+              "operation": "move_core",
+              "reason": "Core blocks parking aisle or accessible route.",
+              "target_agent": "maas_geometry_agent"
+            },
+            {
+              "operation": "reduce_or_split_footprint",
+              "reason": "Open area or parking aisle is insufficient.",
+              "target_agent": "maas_geometry_agent"
+            }
+          ],
+          "layout_candidate": {
+            "schema_version": "arr.maas.parking_layout_candidate.v0",
+            "status": "pass",
+            "strategy": "piloti_ground",
+            "placement_mode": "grid_connected_90",
+            "required_spaces": 3,
+            "required_accessible_spaces": 0,
+            "provided_spaces": 3,
+            "provided_accessible_spaces": 0,
+            "unmet_spaces": 0,
+            "unmet_accessible_spaces": 0,
+            "stalls": [
+              {
+                "stall_id": "P01",
+                "type": "standard",
+                "width_m": 2.5,
+                "length_m": 5,
+                "row": 2,
+                "mode": "grid_connected_90",
+                "orientation": "v",
+                "polygon": [
+                  [
+                    327156.6444,
+                    4150478.9
+                  ],
+                  [
+                    327157.856,
+                    4150476.7132
+                  ],
+                  [
+                    327162.2295,
+                    4150479.1365
+                  ],
+                  [
+                    327161.0179,
+                    4150481.3233
+                  ],
+                  [
+                    327156.6444,
+                    4150478.9
+                  ]
+                ],
+                "polygon_wgs84": [
+                  [
+                    127.04502761,
+                    37.48506141
+                  ],
+                  [
+                    127.04504182,
+                    37.48504193
+                  ],
+                  [
+                    127.04509069,
+                    37.48506458
+                  ],
+                  [
+                    127.04507648,
+                    37.48508405
+                  ],
+                  [
+                    127.04502761,
+                    37.48506141
+                  ]
+                ]
+              },
+              {
+                "stall_id": "P02",
+                "type": "standard",
+                "width_m": 2.5,
+                "length_m": 5,
+                "row": 2,
+                "mode": "grid_connected_90",
+                "orientation": "v",
+                "polygon": [
+                  [
+                    327157.856,
+                    4150476.7132
+                  ],
+                  [
+                    327159.0676,
+                    4150474.5265
+                  ],
+                  [
+                    327163.4412,
+                    4150476.9497
+                  ],
+                  [
+                    327162.2295,
+                    4150479.1365
+                  ],
+                  [
+                    327157.856,
+                    4150476.7132
+                  ]
+                ],
+                "polygon_wgs84": [
+                  [
+                    127.04504182,
+                    37.48504193
+                  ],
+                  [
+                    127.04505603,
+                    37.48502246
+                  ],
+                  [
+                    127.0451049,
+                    37.48504511
+                  ],
+                  [
+                    127.04509069,
+                    37.48506458
+                  ],
+                  [
+                    127.04504182,
+                    37.48504193
+                  ]
+                ]
+              },
+              {
+                "stall_id": "P03",
+                "type": "standard",
+                "width_m": 2.5,
+                "length_m": 5,
+                "row": 2,
+                "mode": "grid_connected_90",
+                "orientation": "v",
+                "polygon": [
+                  [
+                    327159.0676,
+                    4150474.5265
+                  ],
+                  [
+                    327160.2793,
+                    4150472.3397
+                  ],
+                  [
+                    327164.6528,
+                    4150474.7629
+                  ],
+                  [
+                    327163.4412,
+                    4150476.9497
+                  ],
+                  [
+                    327159.0676,
+                    4150474.5265
+                  ]
+                ],
+                "polygon_wgs84": [
+                  [
+                    127.04505603,
+                    37.48502246
+                  ],
+                  [
+                    127.04507024,
+                    37.48500299
+                  ],
+                  [
+                    127.04511911,
+                    37.48502564
+                  ],
+                  [
+                    127.0451049,
+                    37.48504511
+                  ],
+                  [
+                    127.04505603,
+                    37.48502246
+                  ]
+                ]
+              }
+            ],
+            "layout_formula": {
+              "schema_version": "arr.maas.parking_formula.v1",
+              "mode": "grid_connected_90",
+              "required_spaces": 3,
+              "stall": {
+                "standard_width_m": 2.5,
+                "standard_length_m": 5,
+                "parallel_width_m": 2,
+                "parallel_length_m": 6,
+                "residential_undivided_road_parallel_length_m": 5,
+                "accessible_width_m": 3.3,
+                "accessible_length_m": 5
+              },
+              "aisle": {
+                "two_way_90deg_width_m": 6,
+                "small_attached_parallel_width_m": 3
+              },
+              "module": {
+                "single_loaded_90_depth_m": 11,
+                "single_loaded_90_formula": "stall_length + aisle_width",
+                "double_loaded_90_depth_m": 16,
+                "double_loaded_90_formula": "stall_length + aisle_width + stall_length",
+                "parallel_stall_formula": "parallel_length 6.0m x parallel_width 2.0m"
+              },
+              "small_attached_parking": {
+                "max_spaces": 8,
+                "tandem_allowed_max_spaces": 5,
+                "entrance_width_m": 3
+              }
+            },
+            "adjacency": {
+              "status": "row_contiguous",
+              "touching_pairs": 2,
+              "row_touching_pairs": 2,
+              "gap_pairs": 0,
+              "min_gap_m": 0,
+              "max_gap_m": 0,
+              "row_groups": 1,
+              "connected_components": 1,
+              "row_contiguous_ok": true,
+              "cluster_contiguous_ok": true,
+              "contiguous_ok": true
+            },
+            "column_clearance": {
+              "status": "deferred_structural_review",
+              "method": "clear_bay_record_only",
+              "assumed_column_size_m": 0.45,
+              "required_clear_bay_width_m": 7.5,
+              "assumed_clear_bay_width_m": 8.1,
+              "required_clear_depth_m": 11,
+              "margin_each_side_m": 0.3,
+              "reason": "No explicit column/core polygons are supplied; structural column/core clearance is deferred."
+            },
+            "drive_aisle_clearance": {
+              "status": "pass",
+              "source": "generated_drive_cells",
+              "required_width_m": 6,
+              "provided_width_m": 6,
+              "drive_cell_count": 3
+            },
+            "turning_clearance": {
+              "required_aisle_width_m": 6,
+              "note": "This is a mass-stage v1 frontage/aisle/entrance check, not a vehicle swept-path simulation.",
+              "status": "v1_pass",
+              "method": "stall_frontage_and_entrance_connector_v1",
+              "frontage_checked": true,
+              "frontage_connected_stalls": 1,
+              "frontage_total_stalls": 3,
+              "frontage_checks": [
+                {
+                  "stall_id": "P01",
+                  "required_frontage_m": 2,
+                  "provided_frontage_m": 1.001,
+                  "connected": false
+                },
+                {
+                  "stall_id": "P02",
+                  "required_frontage_m": 2,
+                  "provided_frontage_m": 2.5,
+                  "connected": true
+                },
+                {
+                  "stall_id": "P03",
+                  "required_frontage_m": 2,
+                  "provided_frontage_m": 0.676,
+                  "connected": false
+                }
+              ],
+              "contiguous_row_frontage_relief": {
+                "available": true,
+                "basis": "contiguous grid row with one generated 6m drive cell per stall",
+                "row_groups": 1,
+                "touching_pairs": 2,
+                "connected_components": 1,
+                "cluster_contiguous_ok": true,
+                "small_attached_cluster_relief": true,
+                "drive_cell_count": 3
+              },
+              "small_attached_tandem_relief": {
+                "available": false,
+                "max_spaces": 5,
+                "reason": "Tandem relief is only applied to explicit road-as-aisle tandem layouts."
+              },
+              "entrance_connected": true,
+              "entrance_connection_type": "site_connector_v1"
+            },
+            "limitations": [
+              "grid_solver_first_feasible_not_global_mip_optimum",
+              "does_not_model_swept_path_columns_or_core_obstructions"
+            ],
+            "repair_requests": [],
+            "grid_solver": {
+              "schema_version": "arr.maas.parking_grid_solver.v0",
+              "cell_step_m": 0.5,
+              "candidate_stalls": 11,
+              "selected_stalls": 3,
+              "drive_components_connected": true,
+              "entrance_connected": true,
+              "entrance_verified": true,
+              "entrance_connection_method": "road_frontage_geometry",
+              "entrance_connection_type": "site_connector_v1",
+              "entrance_edge_count": 1,
+              "entrance_min_distance_m": 8,
+              "entrance_connector_length_m": 8,
+              "entrance_connector_width_m": 3,
+              "entrance_connector_polygon": [
+                [
+                  327162.915,
+                  4150484.0893
+                ],
+                [
+                  327164.369,
+                  4150481.4652
+                ],
+                [
+                  327157.3714,
+                  4150477.5879
+                ],
+                [
+                  327155.9174,
+                  4150480.212
+                ],
+                [
+                  327162.915,
+                  4150484.0893
+                ]
+              ],
+              "drive_cells": [
+                [
+                  [
+                    327151.3961,
+                    4150475.9921
+                  ],
+                  [
+                    327152.6078,
+                    4150473.8053
+                  ],
+                  [
+                    327157.856,
+                    4150476.7132
+                  ],
+                  [
+                    327156.6444,
+                    4150478.9
+                  ],
+                  [
+                    327151.3961,
+                    4150475.9921
+                  ]
+                ],
+                [
+                  [
+                    327152.6078,
+                    4150473.8053
+                  ],
+                  [
+                    327153.8194,
+                    4150471.6185
+                  ],
+                  [
+                    327159.0676,
+                    4150474.5265
+                  ],
+                  [
+                    327157.856,
+                    4150476.7132
+                  ],
+                  [
+                    327152.6078,
+                    4150473.8053
+                  ]
+                ],
+                [
+                  [
+                    327153.8194,
+                    4150471.6185
+                  ],
+                  [
+                    327155.031,
+                    4150469.4318
+                  ],
+                  [
+                    327160.2793,
+                    4150472.3397
+                  ],
+                  [
+                    327159.0676,
+                    4150474.5265
+                  ],
+                  [
+                    327153.8194,
+                    4150471.6185
+                  ]
+                ]
+              ],
+              "variable_mapping": {
+                "x": "selected stall candidates",
+                "y": "drive aisle cells adjacent to selected stalls",
+                "connectivity": "drive cells must touch into one component and connect to road/frontage or site access boundary"
+              },
+              "entrance_connector_polygon_wgs84": [
+                [
+                  127.04509728,
+                  37.48510933
+                ],
+                [
+                  127.04511433,
+                  37.48508596
+                ],
+                [
+                  127.04503613,
+                  37.48504972
+                ],
+                [
+                  127.04501908,
+                  37.48507309
+                ],
+                [
+                  127.04509728,
+                  37.48510933
+                ]
+              ]
+            },
+            "small_attached_parking_relief": {
+              "status": "evaluated",
+              "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+              "applies_to": "attached_self_parking_total_spaces_8_or_less",
+              "required_spaces": 3,
+              "road_context": {
+                "road_width_m": 37.48059008167424,
+                "has_sidewalk_separation": null,
+                "is_dead_end_road": false
+              },
+              "road_as_aisle_options": [
+                {
+                  "key": "undivided_road_under_12m",
+                  "available": false,
+                  "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+                  "aisle_width_counting_road_m": 6,
+                  "parallel_aisle_width_counting_road_m": 4,
+                  "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+                },
+                {
+                  "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+                  "available": true,
+                  "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+                  "parking_angle": "perpendicular_only",
+                  "needs_authority_review": true,
+                  "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+                }
+              ],
+              "tandem_parking": {
+                "available": true,
+                "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+                "max_depth_from_aisle": 2
+              },
+              "entrance_width": {
+                "min_width_m": 3,
+                "dead_end_road_approval_min_width_m": null
+              },
+              "limitations": [
+                "does_not_replace_required_stall_count",
+                "needs_actual_road_geometry_and_centerline",
+                "needs_local_authority_no_traffic_obstruction_review"
+              ]
+            }
+          },
+          "parking_envelope_wgs84": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.04507363785986,
+                  37.485087948022205
+                ],
+                [
+                  127.0451191604328,
+                  37.485025569245174
+                ],
+                [
+                  127.04499336728946,
+                  37.48496736670566
+                ],
+                [
+                  127.04495245255596,
+                  37.485023418856045
+                ],
+                [
+                  127.04494792345574,
+                  37.485029623344715
+                ],
+                [
+                  127.04507363785986,
+                  37.485087948022205
+                ]
+              ]
+            ]
+          }
+        },
+        "shape_signature_3d": {
+          "height_m": 17.5,
+          "num_floors": 5,
+          "volume_count": 2,
+          "volume_profile": [
+            {
+              "bottom_height": 0,
+              "top_height": 7,
+              "area_m2": 102.9
+            },
+            {
+              "bottom_height": 7,
+              "top_height": 17.5,
+              "area_m2": 29
+            }
+          ],
+          "floor_plate_count": 5,
+          "floor_plate_area_profile": [
+            102.93,
+            102.93,
+            74.99,
+            51.47,
+            28.96
+          ]
+        },
+        "candidate_diversity": {
+          "class": "plan_diverse",
+          "footprint_diversity_score": 0.555,
+          "source_iou": 0.445,
+          "shape_signature_3d": {
+            "height_m": 17.5,
+            "num_floors": 5,
+            "volume_count": 2,
+            "volume_profile": [
+              {
+                "bottom_height": 0,
+                "top_height": 7,
+                "area_m2": 102.9
+              },
+              {
+                "bottom_height": 7,
+                "top_height": 17.5,
+                "area_m2": 29
+              }
+            ],
+            "floor_plate_count": 5,
+            "floor_plate_area_profile": [
+              102.93,
+              102.93,
+              74.99,
+              51.47,
+              28.96
+            ]
+          }
+        },
+        "far_utilization": 0.5471,
+        "bcr_utilization": 0.6495,
+        "maas_score": 0.5793,
+        "design_quality": {
+          "source": "arr.maas.design_quality.v1",
+          "score": 0.6311,
+          "components": {
+            "capacity": 0.586,
+            "diversity": 0.555,
+            "compactness": 0.9891,
+            "plate_profile": 0.7479,
+            "sequence_richness": 0.3375
+          },
+          "sequence_metrics": {
+            "source": "arr.maas.sequence_metrics.v1",
+            "parsimony": 1,
+            "unique_verb_count": 1,
+            "verb_set": [
+              "taper"
+            ],
+            "plan_verbs": [],
+            "section_verbs": [
+              "taper"
+            ],
+            "has_plan_operation": false,
+            "has_section_operation": true
+          },
+          "optimizer_backend": {
+            "name": "d4descent",
+            "source": "clone/d4descent",
+            "status": "import_failed",
+            "backend": {
+              "name": "d4descent",
+              "remote": "https://github.com/milmillin/d4descent.git",
+              "license": "CC BY-NC 4.0 per clone/d4descent README",
+              "mode": "external_clone_bridge",
+              "integration_rule": "Use the clone path directly; do not duplicate/vendor d4descent source inside ARR.",
+              "source_path": "/mnt/d/Data/25_ACE/clone/d4descent/src",
+              "exists": true,
+              "status": "import_failed",
+              "interfaces": {
+                "optimizer": "d4descent.optimizer.optimize",
+                "optimizer_args": "d4descent.optimizer.OptimizeArgs",
+                "task_protocol": "d4descent.tasks._base.Task",
+                "object_collection": "d4descent.object_collection.ObjectCollection"
+              },
+              "error": "ModuleNotFoundError: No module named 'yaml'"
+            },
+            "absorbed_pattern": {
+              "object": "candidate mass / floor-plate stack",
+              "task": "legal candidate ranking task",
+              "loss": "capacity + diversity + compactness + sequence richness",
+              "optimizer": "external d4descent bridge; ARR legal repair/evaluation remains deterministic",
+              "rewrite": "ARR grammar/morphology operators"
+            }
+          },
+          "legal_truth": "ARR repair/evaluation remains authoritative; this is ranking evidence only."
+        },
+        "design_quality_score": 0.6311,
+        "parking_required_count": {
+          "status": "computed",
+          "pnu": "1168011800104170004",
+          "jurisdiction_code": "11680",
+          "building_type": "근린생활시설",
+          "selected_rule_id": "seoul_parking_appendix2_row_03",
+          "base_rule_id": "parking_appendix1_row_03",
+          "metric": "facility_area_m2",
+          "metric_value": 361.28,
+          "required_spaces": 3,
+          "raw_spaces": 2.6961194029850746,
+          "rounding_rule": "ordinance_note_6_half_up_total_under_one_zero",
+          "formula_detail": null,
+          "unit_schedule": null,
+          "accessible": {
+            "status": "not_applicable_under_10",
+            "accessible_min": 0,
+            "accessible_max": 0
+          },
+          "source": {
+            "rule_kind": "local_override",
+            "source_appendix": "서울특별시 주차장 설치 및 관리 조례::별표2",
+            "source_ordinance": "seoul_parking_ordinance",
+            "source_parse_status": "official_law_go_kr_text_extracted_manual_review"
+          },
+          "reason": null
+        },
+        "required_parking_spaces": 3,
+        "required_accessible_parking_spaces": 0,
+        "variant_id": "maas_01",
+        "design_id": 900000,
+        "design_uid": "maas:maas_01",
+        "objectives": [
+          361.28,
+          61.03
+        ]
+      }
+    },
+    "siteContainment": {
+      "requestedPnu": "1168011800104170004",
+      "boundaryPnu": "1168011800104170004",
+      "siteAreaM2": 264.13,
+      "hasSiteRing": true,
+      "mass": {
+        "checked_points": 5,
+        "outside_points": 0,
+        "inside": true
+      },
+      "parking": {
+        "checked_points": 12,
+        "outside_points": 0,
+        "inside": true
+      }
+    },
+    "sunlightContainment": {
+      "applies": true,
+      "status": "needs_height_layer_check",
+      "baseHeightM": 10,
+      "datumElevationM": 17.2293387484479,
+      "datumCase": "neighbor_avg_86",
+      "baseSetbackM": 1.5,
+      "slope": 2,
+      "envelopeLayerCount": 4,
+      "maxMassTopM": 17.5,
+      "method": "base_ring_plus_pending_height_layer_check",
+      "checked_points": 9,
+      "outside_points": 0,
+      "inside": false,
+      "checks": [
+        {
+          "index": 0,
+          "top_height_m": 7,
+          "method": "base_1_5m_ring",
+          "checked_points": 5,
+          "outside_points": 0,
+          "inside": true
+        },
+        {
+          "index": 1,
+          "top_height_m": 17.5,
+          "method": "needs_height_layer_check",
+          "checked_points": 4,
+          "outside_points": 0,
+          "inside": true
+        }
+      ]
+    },
+    "parkingPrecheckSummaries": [
+      {
+        "designId": 900000,
+        "variantId": "maas_01",
+        "score": 0.5793,
+        "shape": "legal_layered_max",
+        "strategy": "piloti_ground",
+        "status": "pass",
+        "required": 3,
+        "provided": 3,
+        "adjacency": {
+          "status": "row_contiguous",
+          "touching_pairs": 2,
+          "row_touching_pairs": 2,
+          "gap_pairs": 0,
+          "min_gap_m": 0,
+          "max_gap_m": 0,
+          "row_groups": 1,
+          "connected_components": 1,
+          "row_contiguous_ok": true,
+          "cluster_contiguous_ok": true,
+          "contiguous_ok": true
+        }
+      }
+    ],
+    "massDebug": {
+      "featureCount": 1,
+      "selectedId": 900000,
+      "hasOverlayUrl": false,
+      "hasFacadeTextureUrl": false,
+      "hasTexturedGltfUrl": false,
+      "facadeTexturePanelViews": [],
+      "aestheticFacadeStyle": "",
+      "facadeAttempts": 0,
+      "facadeEligibleFeatures": 0,
+      "overlayAttempts": 0,
+      "gltfAttempts": 0,
+      "gltfStatus": "",
+      "pilotiFeatures": [
+        {
+          "designId": 900000,
+          "strategy": "piloti_ground",
+          "voidHeight": 3.5
+        }
+      ],
+      "parkingLayouts": [
+        {
+          "designId": 900000,
+          "strategy": "piloti_ground",
+          "status": "pass",
+          "provided": 3,
+          "stalls": 3,
+          "stallsWithWgs84": 3
+        }
+      ]
+    },
+    "canvases": [
+      {
+        "i": 0,
+        "width": 343,
+        "height": 380,
+        "rect": {
+          "width": 343,
+          "height": 380
+        },
+        "className": ""
+      },
+      {
+        "i": 1,
+        "width": 846,
+        "height": 976,
+        "rect": {
+          "width": 846,
+          "height": 976
+        },
+        "className": ""
+      },
+      {
+        "i": 2,
+        "width": 300,
+        "height": 150,
+        "rect": {
+          "width": 0,
+          "height": 0
+        },
+        "className": "tempCanvas"
+      },
+      {
+        "i": 3,
+        "width": 1024,
+        "height": 600,
+        "rect": {
+          "width": 592.1875,
+          "height": 585.59375
+        },
+        "className": "hudCanvas"
+      },
+      {
+        "i": 4,
+        "width": 1024,
+        "height": 15,
+        "rect": {
+          "width": 0,
+          "height": 0
+        },
+        "className": "mapStatusBarCanvas"
+      },
+      {
+        "i": 5,
+        "width": 50,
+        "height": 50,
+        "rect": {
+          "width": 0,
+          "height": 0
+        },
+        "className": "mapCompassCanvas"
+      },
+      {
+        "i": 6,
+        "width": 125,
+        "height": 30,
+        "rect": {
+          "width": 125,
+          "height": 30
+        },
+        "className": "distanceLegendCanvas"
+      }
+    ]
+  },
+  "errorCount": 0,
+  "consoleProblems": [],
+  "responseErrors": []
+}

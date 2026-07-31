@@ -1,0 +1,521 @@
+{
+  "schema_version": "arr.maas.pnu_mass_adaptation.v1",
+  "status": "pass",
+  "pnu": "1168011800104170004",
+  "boundary_source": "vworld_live_pnu",
+  "site_area_m2": 264.13,
+  "site_bounds_m": [
+    0.0,
+    0.0,
+    23.288,
+    21.388
+  ],
+  "far_limit_ratio": 2.5,
+  "site_access_context": {
+    "status": "vworld_neighbor_road",
+    "road_edges": [
+      "east"
+    ],
+    "primary_access_edge": "east",
+    "road_width_m": 37.48,
+    "frontages": [
+      {
+        "side": "east",
+        "shared_length_m": 14.01,
+        "road_width_m": 37.48
+      }
+    ]
+  },
+  "site_access_geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [
+        16.497347003547475,
+        21.38768199039623
+      ],
+      [
+        23.288389296620153,
+        9.131234777159989
+      ]
+    ]
+  },
+  "source_archive": "docs\\playwright\\design-route-live-verify\\maas-neighborhood-vlm-a2a-v58-pnu-1168011800104170004-access-step-replenish.json",
+  "compiled_count": 20,
+  "within_site_count": 20,
+  "capacity_target_count": 13,
+  "rows": [
+    {
+      "sequence": "llm_accepted_seed_llm_b3_courtyard_barrow_east_void_01_018__search_g0_0",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 0.8954,
+      "volume_count": 2,
+      "surface_count": 14,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 2,
+        "outside_area_m2": 0.0,
+        "maximum_piece_outside_area_m2": 0.0,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_creative_composed_terrace_field_2__search_g3_4",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 0.876,
+      "volume_count": 3,
+      "surface_count": 35,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 0.0,
+        "maximum_piece_outside_area_m2": 0.0,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_creative_composed_bend_field_2__search_g1_4__a2a_critic_revision",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 1.0,
+      "volume_count": 3,
+      "surface_count": 32,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 2.5686e-05,
+        "maximum_piece_outside_area_m2": 1.42e-05,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": {
+        "schema_version": "arr.maas.site_design_field.v1",
+        "field_type": "parcel_cross_section_ribbon",
+        "coordinate_frame": "minimum_rotated_long_axis",
+        "dominant_axis_world_degrees": 0.0,
+        "source": "mass_graph_parameters",
+        "coordinate_template": false,
+        "lane_count": 3,
+        "sample_count": 5,
+        "curvature": 0.14,
+        "phase": 0.0,
+        "width_ratio": 0.1,
+        "vertical_overlap": 0.22,
+        "vertical_band_height": 0.909,
+        "vertical_mode": "terraced",
+        "width_gradient": 0.4,
+        "authored_control_point_count": 0,
+        "parcel_area_m2": 264.13
+      }
+    },
+    {
+      "sequence": "llm_accepted_seed_program_neighborhood_stepback_corner__search_g0_1__a2a_critic_revision",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 0.8924,
+      "volume_count": 3,
+      "surface_count": 16,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 0.0,
+        "maximum_piece_outside_area_m2": 0.0,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_b01_array_courtyard_seam_001__search_g0_0__a2a_critic_revision__search_g0_0__search_g0_0__a2a_critic_revision",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 1.0,
+      "volume_count": 4,
+      "surface_count": 20,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 4,
+        "outside_area_m2": 0.0,
+        "maximum_piece_outside_area_m2": 0.0,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_b3_split_bridge_diagonal_civic_02_019__search_g0_0__a2a_critic_revision",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 1.0,
+      "volume_count": 3,
+      "surface_count": 15,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 0.00021498,
+        "maximum_piece_outside_area_m2": 0.000152927,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_b3_east_cross_interlock_06_022__search_g0_0__a2a_critic_revision",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 0.8043,
+      "volume_count": 2,
+      "surface_count": 12,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 2,
+        "outside_area_m2": 4.3268e-05,
+        "maximum_piece_outside_area_m2": 4.3268e-05,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_b1_terrace_ribbon_sloped_roof_walkup_009__search_g0_0__a2a_critic_revision",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 1.0,
+      "volume_count": 3,
+      "surface_count": 15,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 0.000349454,
+        "maximum_piece_outside_area_m2": 0.000349454,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_batch2_embedded_void_south_civic_court_04_012__search_g0_0__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 0.7245,
+      "volume_count": 3,
+      "surface_count": 16,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 0.000349454,
+        "maximum_piece_outside_area_m2": 0.000349454,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_b1_south_array_cluster_courtyard_field_001__search_g0_0__search_g0_0__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 1.0,
+      "volume_count": 4,
+      "surface_count": 22,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 4,
+        "outside_area_m2": 0.0,
+        "maximum_piece_outside_area_m2": 0.0,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_batch1_east_bar_notch_terrace_04_004__search_g0_0",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 1.0,
+      "volume_count": 3,
+      "surface_count": 25,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 0.0,
+        "maximum_piece_outside_area_m2": 0.0,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_b4_south_sloped_roof_folded_section_03_029__search_g0_0__search_g0_0",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 0.9312,
+      "volume_count": 2,
+      "surface_count": 20,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 2,
+        "outside_area_m2": 0.000324245,
+        "maximum_piece_outside_area_m2": 0.000324245,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_b04_south_diagonal_connector_courtyard_bar_026__search_g0_0__a2a_critic_revision__a2a_critic_revision__a2a_critic_revision",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 1.0,
+      "volume_count": 3,
+      "surface_count": 15,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 0.000349454,
+        "maximum_piece_outside_area_m2": 0.000349454,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_b1_slender_bar_bend_terrace_04_004__search_g0_0",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 0.8633,
+      "volume_count": 3,
+      "surface_count": 27,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 0.0,
+        "maximum_piece_outside_area_m2": 0.0,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": {
+        "schema_version": "arr.maas.site_design_field.v1",
+        "field_type": "parcel_cross_section_ribbon",
+        "coordinate_frame": "minimum_rotated_long_axis",
+        "dominant_axis_world_degrees": 0.0,
+        "source": "mass_graph_parameters",
+        "coordinate_template": false,
+        "lane_count": 3,
+        "sample_count": 5,
+        "curvature": 0.1263,
+        "phase": 0.0,
+        "width_ratio": 0.1,
+        "vertical_overlap": 0.22,
+        "vertical_band_height": 0.909,
+        "vertical_mode": "terraced",
+        "width_gradient": 0.4,
+        "authored_control_point_count": 0,
+        "parcel_area_m2": 192.26
+      }
+    },
+    {
+      "sequence": "llm_accepted_seed_creative_composed_terrace_field_2__search_g3_8__search_g2_9__search_g0_3__search_g0_8__search_g0_2__a2a_critic_revision__a2a_critic_revision",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 1.0,
+      "volume_count": 3,
+      "surface_count": 27,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 0.0,
+        "maximum_piece_outside_area_m2": 0.0,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_batch2_embedded_south_court_bar_012__search_g0_0__a2a_critic_revision__a2a_critic_revision",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 0.9493,
+      "volume_count": 2,
+      "surface_count": 14,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 2,
+        "outside_area_m2": 8.673e-06,
+        "maximum_piece_outside_area_m2": 8.673e-06,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_creative_composed_bend_field_2__search_g0_10",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 1.0,
+      "volume_count": 3,
+      "surface_count": 27,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 0.0,
+        "maximum_piece_outside_area_m2": 0.0,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": {
+        "schema_version": "arr.maas.site_design_field.v1",
+        "field_type": "parcel_cross_section_ribbon",
+        "coordinate_frame": "minimum_rotated_long_axis",
+        "dominant_axis_world_degrees": 0.0,
+        "source": "mass_graph_parameters",
+        "coordinate_template": false,
+        "lane_count": 3,
+        "sample_count": 5,
+        "curvature": 0.0351,
+        "phase": 0.0,
+        "width_ratio": 0.1,
+        "vertical_overlap": 0.22,
+        "vertical_band_height": 0.909,
+        "vertical_mode": "terraced",
+        "width_gradient": 0.4,
+        "authored_control_point_count": 0,
+        "parcel_area_m2": 264.13
+      }
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_b01_bend_ribbon_terrace_line_006__search_g0_0__a2a_critic_revision__a2a_critic_revision__search_g0_0__search_g0_0__search_g0_0__search_g0_0",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 0.8945,
+      "volume_count": 3,
+      "surface_count": 42,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 0.0,
+        "maximum_piece_outside_area_m2": 0.0,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": {
+        "schema_version": "arr.maas.site_design_field.v1",
+        "field_type": "parcel_cross_section_ribbon",
+        "coordinate_frame": "minimum_rotated_long_axis",
+        "dominant_axis_world_degrees": 0.0,
+        "source": "mass_graph_parameters",
+        "coordinate_template": false,
+        "lane_count": 3,
+        "sample_count": 5,
+        "curvature": 0.1263,
+        "phase": 0.0,
+        "width_ratio": 0.11,
+        "vertical_overlap": 0.22,
+        "vertical_band_height": 0.909,
+        "vertical_mode": "terraced",
+        "width_gradient": 0.4,
+        "authored_control_point_count": 0,
+        "parcel_area_m2": 238.99
+      }
+    },
+    {
+      "sequence": "llm_accepted_seed_llm_b3_east_courtyard_atrium_bar_01_017__search_g0_0",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 0.9738,
+      "volume_count": 2,
+      "surface_count": 10,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 2,
+        "outside_area_m2": 0.0,
+        "maximum_piece_outside_area_m2": 0.0,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    },
+    {
+      "sequence": "llm_accepted_seed_creative_composed_folded_field_3__search_g3_6__search_g1_6",
+      "status": "pass",
+      "within_site": true,
+      "normalized_far_utilization": 0.9377,
+      "volume_count": 3,
+      "surface_count": 15,
+      "site_containment": {
+        "schema_version": "arr.maas.site_containment.v1",
+        "hard_pass": true,
+        "failure_reasons": [],
+        "footprint_count": 3,
+        "outside_area_m2": 0.0,
+        "maximum_piece_outside_area_m2": 0.0,
+        "linear_tolerance_m": 0.002,
+        "area_tolerance_m2": 0.00132063,
+        "buffered_covers": true
+      },
+      "site_design_field": null
+    }
+  ],
+  "png": "D:\\Data\\25_ACE\\docs\\playwright\\design-route-live-verify\\maas-pnu-1168011800104170004-site-adaptation-latest.png"
+}

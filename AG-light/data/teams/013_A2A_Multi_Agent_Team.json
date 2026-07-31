@@ -1,0 +1,236 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "description": "Chains AI agents in a predefined, linear order. Each agent processes the output from the previous agent, creating a pipeline of specialized transformations.",
+  "label": "A2A Multi-Agent Team",
+  "config": {
+    "name": "RoundRobinGroupChat",
+    "description": "A team of agents.",
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "An agent that provides assistance with tool use.\nThe :meth:`on_messages` returns a :class:`~autogen_agentchat.base.Response`\nin which :attr:`~autogen_agentchat.base.Response.chat_message` is the final\nresponse message.",
+        "label": "AssistantAgent",
+        "config": {
+          "name": "researcher",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "description": "Chat completion client for OpenAI hosted models.",
+            "label": "OpenAIChatCompletionClient",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "workbench": [
+            {
+              "provider": "autogen_core.tools.StaticStreamWorkbench",
+              "component_type": "workbench",
+              "version": 1,
+              "component_version": 1,
+              "description": "A workbench that provides a static set of tools that do not change after\neach tool execution, and supports streaming results.",
+              "label": "StaticStreamWorkbench",
+              "config": {
+                "tools": [],
+                "tool_overrides": {}
+              }
+            }
+          ],
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context that keeps a view of the all the messages.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "리서치 담당 - 정보 수집 및 조사",
+          "system_message": "당신은 리서처입니다. 주어진 주제에 대해 조사하고 핵심 정보를 수집하세요.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "max_tool_iterations": 1,
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "description": "수학 문제 해결과 수학적 개념 설명을 전문으로 하는 에이전트입니다. 대수학, 정수론, 선형대수 등을 다룹니다.",
+        "label": "Math Agent",
+        "config": {
+          "name": "math_agent",
+          "a2a_server_url": "http://localhost:8007",
+          "description": "수학 문제 해결과 수학적 개념 설명을 전문으로 하는 에이전트입니다. 대수학, 정수론, 선형대수 등을 다룹니다.",
+          "timeout": 60,
+          "skills": []
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "description": "컴퓨터 그래픽스 이론과 렌더링 기술을 전문으로 하는 에이전트입니다. 색 공간, 셰이딩, 변환 행렬 등을 다룹니다.",
+        "label": "Graphics Agent",
+        "config": {
+          "name": "graphics_agent",
+          "a2a_server_url": "http://localhost:8008",
+          "description": "컴퓨터 그래픽스 이론과 렌더링 기술을 전문으로 하는 에이전트입니다. 색 공간, 셰이딩, 변환 행렬 등을 다룹니다.",
+          "timeout": 60,
+          "skills": []
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "description": "GPU 아키텍처와 병렬 컴퓨팅을 전문으로 하는 에이전트입니다. CUDA, 메모리 대역폭, 암달의 법칙 등을 다룹니다.",
+        "label": "Gpu Agent",
+        "config": {
+          "name": "gpu_agent",
+          "a2a_server_url": "http://localhost:8009",
+          "description": "GPU 아키텍처와 병렬 컴퓨팅을 전문으로 하는 에이전트입니다. CUDA, 메모리 대역폭, 암달의 법칙 등을 다룹니다.",
+          "timeout": 60,
+          "skills": []
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "description": "철학적 질문에 답하고, 동서양 사상가들의 지혜를 나누는 철학 전문 에이전트입니다.",
+        "label": "Philosophy Agent",
+        "config": {
+          "name": "philosophy_agent",
+          "a2a_server_url": "http://localhost:8004",
+          "description": "철학적 질문에 답하고, 동서양 사상가들의 지혜를 나누는 철학 전문 에이전트입니다.",
+          "timeout": 300,
+          "skills": [
+            {
+              "id": "philosophy_agent-quote",
+              "name": "get_philosopher_quote",
+              "description": "철학자 명언 조회",
+              "tags": [
+                "llm",
+                "tools"
+              ]
+            },
+            {
+              "id": "philosophy_agent-explore",
+              "name": "explore_philosophical_question",
+              "description": "철학적 주제 탐구",
+              "tags": [
+                "llm",
+                "tools"
+              ]
+            },
+            {
+              "id": "philosophy_agent-compare",
+              "name": "compare_eastern_western",
+              "description": "동서양 철학 비교",
+              "tags": [
+                "llm",
+                "tools"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 1,
+        "description": "역사적 사건, 인물, 시대를 흥미롭게 이야기해주는 역사 전문 에이전트입니다.",
+        "label": "History Agent",
+        "config": {
+          "name": "history_agent",
+          "a2a_server_url": "http://localhost:8005",
+          "description": "역사적 사건, 인물, 시대를 흥미롭게 이야기해주는 역사 전문 에이전트입니다.",
+          "timeout": 300,
+          "skills": [
+            {
+              "id": "history_agent-event",
+              "name": "get_historical_event",
+              "description": "역사적 사건 조회",
+              "tags": [
+                "llm",
+                "tools"
+              ]
+            },
+            {
+              "id": "history_agent-era",
+              "name": "compare_eras",
+              "description": "시대 비교",
+              "tags": [
+                "llm",
+                "tools"
+              ]
+            },
+            {
+              "id": "history_agent-figure",
+              "name": "get_historical_figure",
+              "description": "역사적 인물 조회",
+              "tags": [
+                "llm",
+                "tools"
+              ]
+            },
+            {
+              "id": "history_agent-today",
+              "name": "this_day_in_history",
+              "description": "오늘의 역사",
+              "tags": [
+                "llm",
+                "tools"
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "label": "OrTerminationCondition",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate the conversation if a specific text is mentioned.",
+            "label": "TextMentionTermination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "version": 1,
+            "component_version": 1,
+            "description": "Terminate the conversation after a maximum number of messages have been exchanged.",
+            "label": "MaxMessageTermination",
+            "config": {
+              "max_messages": 20,
+              "include_agent_event": false
+            }
+          }
+        ]
+      }
+    },
+    "emit_team_events": false
+  }
+}

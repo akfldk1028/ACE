@@ -1,0 +1,267 @@
+{
+  "schema_version": "arr.maas.executed_mass_vlm_audits.v1",
+  "run_id": "book-program-portfolios-r188-map-elites-compatibility-reserve",
+  "request_count": 3,
+  "records": [
+    {
+      "index": 1,
+      "variant_id": "maas_01",
+      "source_sequence": "program_neighborhood_court_terrace__universal_1_60_9f9b05611b__search_g0_1__book_operative_embed__search_v10",
+      "program_hash": "9aae786bcb96c9b7d0a2c93d16caed03deddef2f9417e268d317b7e9c39201db",
+      "geometry_hash": "21fddc17f3c32a78bba272a03fe12eda482833fb24af58fae8638a916a78a326",
+      "preview_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\executed-masses\\book-program-portfolios-r188-map-elites-compatibility-reserve\\mass-01-21fddc17f3c32a78.png",
+      "building_type": "neighborhood_living",
+      "model": "gpt-5.4-mini",
+      "response_id": "resp_0ccae7434c758fbb006a5f409268fc8198ba164fb064a1f751",
+      "hard_pass": false,
+      "program_fit_hard_pass": false,
+      "critic_score": 0.5525,
+      "critic_actions": [
+        "needs_clean_anchor",
+        "needs_carved_void",
+        "too_box_like",
+        "weak_form_continuity",
+        "too_fragmented",
+        "wrong_program_typology"
+      ],
+      "concept_scores": {
+        "gesture_clarity": 0.62,
+        "hierarchy": 0.58,
+        "non_stair_silhouette": 0.54,
+        "void_publicness": 0.33,
+        "repair_integrity": 0.78,
+        "precedent_resonance": 0.67,
+        "program_appropriateness": 0.49,
+        "section_program_fit": 0.41
+      },
+      "vlm_image_inputs": {
+        "schema_version": "arr.maas.vlm_image_inputs.v1",
+        "candidate": {
+          "input_id": "candidate:render",
+          "role": "candidate_mass",
+          "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\executed-masses\\book-program-portfolios-r188-map-elites-compatibility-reserve\\mass-01-21fddc17f3c32a78.png",
+          "sha256": "38d02e01936715e241b1d9bfd75681af7049370bbb5bd4ffaba55b618e07e0e6",
+          "input_order": 0,
+          "used_by_vlm": true
+        },
+        "references": [
+          {
+            "input_id": "reference:archdaily_1013628",
+            "role": "reference_image",
+            "source_id": "archdaily_1013628",
+            "title": "Gyodong Community Center / studiothewon",
+            "source": "archdaily_api",
+            "source_url": "https://www.archdaily.com/1013628/gyodong-community-center-studiothewon",
+            "image_url": "https://images.adsttc.com/media/images/65d6/6f0c/9501/b612/8d88/48fb/medium_jpg/gyodong-community-center-studiothewon_1.jpg?1708551965",
+            "preview_url": "/design/maas/reference-assets/archdaily/api/neighborhood_architecture/images/archdaily_1013628.jpg",
+            "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\api\\neighborhood_architecture\\images\\archdaily_1013628.jpg",
+            "sha256": "62321c096b591419142839b57fb03becd1303a74ab5f58205c870c5ef9372435",
+            "selection_role": "similar",
+            "matched_tags": [
+              "mountain",
+              "scale",
+              "terrace_ribbon"
+            ],
+            "program_id": "neighborhood_living",
+            "program_match_tier": "preferred_collection",
+            "reference_collection": "neighborhood_architecture",
+            "program_matched_terms": [
+              "community",
+              "neighborhood",
+              "terrace"
+            ],
+            "score": 16,
+            "program_relevance_score": 13,
+            "input_order": 1,
+            "used_by_vlm": true
+          }
+        ],
+        "reference_count": 1
+      },
+      "cache_hit": false
+    },
+    {
+      "index": 7,
+      "variant_id": "maas_07",
+      "source_sequence": "program_neighborhood_active_bar__universal_0_52_7920416f0c__search_g0_7__book_aggregation_pack_inflate__search_v10",
+      "program_hash": "61e069993dda4964d24a3883feb09f9def0159715f5da6c013167035066a8b5f",
+      "geometry_hash": "3e22c60eb3e028a91003c7d49fbaf16607dd19e0f5f750772decbf434ed8ca24",
+      "preview_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\executed-masses\\book-program-portfolios-r188-map-elites-compatibility-reserve\\mass-07-3e22c60eb3e028a9.png",
+      "building_type": "neighborhood_living",
+      "model": "gpt-5.4-mini",
+      "response_id": "resp_0989a33a1a0c0c87006a5f409b80f0819abf3ab50506127b52",
+      "hard_pass": false,
+      "program_fit_hard_pass": false,
+      "critic_score": 0.3675,
+      "critic_actions": [
+        "needs_clean_anchor",
+        "too_box_like",
+        "needs_carved_void",
+        "wrong_program_typology",
+        "weak_primary_mass",
+        "too_fragmented",
+        "weak_form_continuity"
+      ],
+      "concept_scores": {
+        "gesture_clarity": 0.38,
+        "hierarchy": 0.32,
+        "non_stair_silhouette": 0.29,
+        "void_publicness": 0.18,
+        "repair_integrity": 0.74,
+        "precedent_resonance": 0.61,
+        "program_appropriateness": 0.22,
+        "section_program_fit": 0.2
+      },
+      "vlm_image_inputs": {
+        "schema_version": "arr.maas.vlm_image_inputs.v1",
+        "candidate": {
+          "input_id": "candidate:render",
+          "role": "candidate_mass",
+          "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\executed-masses\\book-program-portfolios-r188-map-elites-compatibility-reserve\\mass-07-3e22c60eb3e028a9.png",
+          "sha256": "485f7b4384c5093acfc65762c376a00a5cdc5566ea353277d378088c9f362258",
+          "input_order": 0,
+          "used_by_vlm": true
+        },
+        "references": [
+          {
+            "input_id": "reference:archdaily_1013628",
+            "role": "reference_image",
+            "source_id": "archdaily_1013628",
+            "title": "Gyodong Community Center / studiothewon",
+            "source": "archdaily_api",
+            "source_url": "https://www.archdaily.com/1013628/gyodong-community-center-studiothewon",
+            "image_url": "https://images.adsttc.com/media/images/65d6/6f0c/9501/b612/8d88/48fb/medium_jpg/gyodong-community-center-studiothewon_1.jpg?1708551965",
+            "preview_url": "/design/maas/reference-assets/archdaily/api/neighborhood_architecture/images/archdaily_1013628.jpg",
+            "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\api\\neighborhood_architecture\\images\\archdaily_1013628.jpg",
+            "sha256": "62321c096b591419142839b57fb03becd1303a74ab5f58205c870c5ef9372435",
+            "selection_role": "similar",
+            "matched_tags": [
+              "mountain",
+              "scale",
+              "terrace_ribbon"
+            ],
+            "program_id": "neighborhood_living",
+            "program_match_tier": "preferred_collection",
+            "reference_collection": "neighborhood_architecture",
+            "program_matched_terms": [
+              "community",
+              "neighborhood",
+              "terrace"
+            ],
+            "score": 16,
+            "program_relevance_score": 13,
+            "input_order": 1,
+            "used_by_vlm": true
+          }
+        ],
+        "reference_count": 1
+      },
+      "cache_hit": false
+    },
+    {
+      "index": 10,
+      "variant_id": "maas_10",
+      "source_sequence": "program_neighborhood_active_bar__universal_0_54_e96763e9c2__search_g0_7__book_combination_03_split+split__search_v10",
+      "program_hash": "a025965765e22d7f6a3235b2f4e5e598422f3417fd169ba1024fe1f33d5b2a34",
+      "geometry_hash": "be04a2873bf2a71dd15f4a93b07cd02866ca028138e144191de778d575a3c636",
+      "preview_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\executed-masses\\book-program-portfolios-r188-map-elites-compatibility-reserve\\mass-10-be04a2873bf2a71d.png",
+      "building_type": "neighborhood_living",
+      "model": "gpt-5.4-mini",
+      "response_id": "resp_0dd0c7b57b42df04006a5f40a458d48199bbba83b48dd4b418",
+      "hard_pass": false,
+      "program_fit_hard_pass": false,
+      "critic_score": 0.6388,
+      "critic_actions": [
+        "needs_clean_anchor",
+        "needs_carved_void",
+        "too_box_like",
+        "preserve_dominant_gesture"
+      ],
+      "concept_scores": {
+        "gesture_clarity": 0.78,
+        "hierarchy": 0.74,
+        "non_stair_silhouette": 0.68,
+        "void_publicness": 0.42,
+        "repair_integrity": 0.81,
+        "precedent_resonance": 0.64,
+        "program_appropriateness": 0.58,
+        "section_program_fit": 0.46
+      },
+      "vlm_image_inputs": {
+        "schema_version": "arr.maas.vlm_image_inputs.v1",
+        "candidate": {
+          "input_id": "candidate:render",
+          "role": "candidate_mass",
+          "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\maas-service-cache\\executed-masses\\book-program-portfolios-r188-map-elites-compatibility-reserve\\mass-10-be04a2873bf2a71d.png",
+          "sha256": "1a1e34b47c2fb4aa859625a486adb7f84391dcdc6b64f82a630e80949525140b",
+          "input_order": 0,
+          "used_by_vlm": true
+        },
+        "references": [
+          {
+            "input_id": "reference:archdaily_1013628",
+            "role": "reference_image",
+            "source_id": "archdaily_1013628",
+            "title": "Gyodong Community Center / studiothewon",
+            "source": "archdaily_api",
+            "source_url": "https://www.archdaily.com/1013628/gyodong-community-center-studiothewon",
+            "image_url": "https://images.adsttc.com/media/images/65d6/6f0c/9501/b612/8d88/48fb/medium_jpg/gyodong-community-center-studiothewon_1.jpg?1708551965",
+            "preview_url": "/design/maas/reference-assets/archdaily/api/neighborhood_architecture/images/archdaily_1013628.jpg",
+            "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\api\\neighborhood_architecture\\images\\archdaily_1013628.jpg",
+            "sha256": "62321c096b591419142839b57fb03becd1303a74ab5f58205c870c5ef9372435",
+            "selection_role": "similar",
+            "matched_tags": [
+              "mountain",
+              "scale",
+              "terrace_ribbon"
+            ],
+            "program_id": "neighborhood_living",
+            "program_match_tier": "preferred_collection",
+            "reference_collection": "neighborhood_architecture",
+            "program_matched_terms": [
+              "community",
+              "neighborhood",
+              "terrace"
+            ],
+            "score": 16,
+            "program_relevance_score": 13,
+            "input_order": 1,
+            "used_by_vlm": true
+          },
+          {
+            "input_id": "reference:archdaily_0007",
+            "role": "reference_image",
+            "source_id": "archdaily_0007",
+            "title": "8 House / BIG",
+            "source": "archdaily",
+            "source_url": "https://www.archdaily.com/83307/8-house-big",
+            "image_url": "https://images.adsttc.com/media/images/6068/d1d7/f91c/813d/5b00/0004/large_jpg/IMG_8445.jpg?1617482169",
+            "preview_url": "/design/maas/reference-assets/archdaily/seeded/iconic_precedents/images/archdaily_0007.jpg",
+            "local_path": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\seeded\\iconic_precedents\\images\\archdaily_0007.jpg",
+            "sha256": "7ba725473e0eb4dc2b746b790bfe4d9fbfe277abfeb4617e6d90be1cccfb0d1c",
+            "selection_role": "counterfactual",
+            "matched_tags": [
+              "courtyard",
+              "ramp",
+              "sectional",
+              "terrace",
+              "terrace_ribbon"
+            ],
+            "program_id": "neighborhood_living",
+            "program_match_tier": "semantic_program_match",
+            "reference_collection": "",
+            "program_matched_terms": [
+              "neighborhood"
+            ],
+            "score": 5,
+            "program_relevance_score": 3,
+            "input_order": 2,
+            "used_by_vlm": true
+          }
+        ],
+        "reference_count": 2
+      },
+      "cache_hit": false
+    }
+  ]
+}

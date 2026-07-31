@@ -1,0 +1,115 @@
+{
+  "provider": "autogen_agentchat.teams.SelectorGroupChat",
+  "component_type": "team",
+  "version": 2,
+  "description": "토론 팀 - 찬성/반대/심판 구조. 서로 다른 관점의 에이전트가 구조화된 토론에 참여하여 적대적 협력으로 강건한 결론 도출.",
+  "label": "Debate Team (Template)",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "advocate",
+          "description": "제안을 지지하고 장점을 강조",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "system_message": "당신은 제안의 지지자입니다. 장점과 기회를 강조하고, 반대 의견에 논리적으로 반박하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "agent_config": {"profile": "text_only", "max_turns": 1}
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          }
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "critic",
+          "description": "비판적 분석과 리스크 지적",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "system_message": "당신은 비평가입니다. 약점, 리스크, 잠재적 문제를 지적하고, 지지자의 주장에 도전하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "agent_config": {"profile": "text_only", "max_turns": 1}
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          }
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "judge",
+          "description": "중립적 심판 및 최종 결정",
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "system_message": "당신은 중립적 심판입니다. 양측의 논증을 평가하고 균형 잡힌 최종 판단을 내리세요. 결론이 나면 TERMINATE라고 말하세요.",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "agent_config": {"profile": "text_only", "max_turns": 1}
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          }
+        }
+      }
+    ],
+    "model_client": {
+      "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+      "component_type": "model",
+      "config": {
+        "model": "claude-sonnet-4-5-20250929",
+              "agent_config": {"profile": "text_only", "max_turns": 1}
+      }
+    },
+    "selector_prompt": "당신은 토론 진행자입니다. 공정한 발언 기회를 보장해야 합니다.\n\n참가자: {roles}\n\n=== 1단계: 발언 횟수 카운팅 ===\n대화 기록을 분석하여 각 참가자의 발언 횟수를 세세요:\n{history}\n\n=== 2단계: 균형 체크 ===\n발언 횟수가 가장 적은 참가자를 찾으세요.\n최다 발언자와 최소 발언자의 차이가 2회 이상이면 최소 발언자 선택.\n\n=== 3단계: 선택 규칙 ===\n1. 직전 발언자와 다른 사람 선택\n2. 발언 횟수가 가장 적은 참가자 우선\n3. 아직 한번도 발언 안한 참가자 있으면 반드시 선택\n4. 모든 참가자가 2회 이상 발언했으면 judge 선택 가능\n\n다음 발언자 이름만 반환하세요:",
+    "allow_repeated_speaker": false,
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "config": {
+              "max_messages": 10
+            }
+          }
+        ]
+      }
+    }
+  }
+}

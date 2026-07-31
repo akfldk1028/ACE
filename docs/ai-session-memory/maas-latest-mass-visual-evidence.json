@@ -1,0 +1,109 @@
+{
+  "schema_version": "arr.maas.mass_visual_evidence_checkpoint.v1",
+  "captured_at": "2026-07-20T00:00:00+09:00",
+  "latest_completed_run": {
+    "run_id": "r160-single-program-relation-live-neighborhood",
+    "status": "fail",
+    "numeric_status": "fail",
+    "downstream_hard_gate_status": "pass",
+    "program_slug": "neighborhood",
+    "selected_count": 16,
+    "target_count": 20,
+    "book_operation_count": 13,
+    "visual_language_count": 13,
+    "base_volume_scope_count": 6,
+    "base_volume_scopes": ["1/1", "1/16", "1/2", "1/4", "1/8", "3/8"],
+    "capacity_alternative_status": "not_recorded_pre_contract_r160",
+    "board_png": "docs/playwright/design-route-live-verify/book-program-portfolios-r160-single-program-relation-live-neighborhood/maas-book-neighborhood-20.png",
+    "combined_board_png": "docs/playwright/design-route-live-verify/book-program-portfolios-r160-single-program-relation-live-neighborhood/maas-book-programs-60-summary.png",
+    "summary_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r160-single-program-relation-live-neighborhood/maas-book-programs-summary.json",
+    "board_width_px": 1920,
+    "board_height_px": 1360,
+    "board_bytes": 190860,
+    "board_sha256": "4e446663ee6358d1c2a92f60bd6e1e9e64ab596365f8020ae6db27e41b0d9898",
+    "failure_reasons": [
+      "portfolio_vlm_visual_diversity_hard_gate_failed",
+      "selected_count_below_20",
+      "repeated_roof_archetype_above_30_percent"
+    ],
+    "source_normalization": {
+      "authority": ["board PNG", "benchmark stdout", "top-level summary fields"],
+      "large_summary_bytes": 19108439,
+      "standard_json_parse": "fail",
+      "reason": "legacy summary contains unescaped line breaks inside nested strings; preserve the original and normalize only verified checkpoint facts"
+    },
+    "direct_png_review": {
+      "reviewed_at": "2026-07-20",
+      "review_resolution": "original 1920x1360",
+      "verdict": "fail",
+      "findings": [
+        "16 candidate cards are filled and four hard-pass slots are empty",
+        "compact block, courtyard and roof-cap relatives still dominate the board",
+        "skewed, curved, layered and cross-like alternatives exist but do not close portfolio-level diversity",
+        "this is diagnostic MASS visual evidence, not a competition-grade result"
+      ]
+    }
+  },
+  "latest_interrupted_run": {
+    "run_id": "r161-balanced-universal-clean-recursive-split-live-neighborhood",
+    "status": "interrupted_incomplete",
+    "candidate_preview_png_count": 356,
+    "program_board_count": 0,
+    "combined_board_count": 0,
+    "summary_count": 0,
+    "is_visual_result": false,
+    "resume_policy": "do not launch or resume paid live VLM without explicit user approval"
+  },
+  "latest_capacity_preflight_run": {
+    "run_id": "r167-capacity-four-alt-preflight-neighborhood",
+    "status": "fail",
+    "live_vlm_requested": false,
+    "program_slug": "neighborhood",
+    "selected_count": 20,
+    "target_count": 20,
+    "capacity_target_pass_selected_count": 20,
+    "capacity_alternative_count": 3,
+    "capacity_alternatives": ["spatial_reserve", "balanced_yield", "brief_target"],
+    "missing_capacity_alternative": "maximum_feasible",
+    "mean_capacity_target_utilization": 0.745,
+    "mean_capacity_achieved_utilization": 0.7475,
+    "mean_far_pct": 118.343,
+    "selection_capacity_measured_count": 353,
+    "selection_capacity_target_pass_count": 60,
+    "selection_capacity_target_rejected_count": 293,
+    "capacity_plan_fit_retry_attempted_count": 1601,
+    "capacity_plan_fit_retry_improved_count": 239,
+    "book_operation_count": 17,
+    "visual_language_count": 12,
+    "base_volume_scope_count": 6,
+    "board_png": "docs/playwright/design-route-live-verify/book-program-portfolios-r167-capacity-four-alt-preflight-neighborhood/maas-book-neighborhood-20.png",
+    "summary_json": "docs/playwright/design-route-live-verify/book-program-portfolios-r167-capacity-four-alt-preflight-neighborhood/maas-book-programs-summary.json",
+    "board_width_px": 1920,
+    "board_height_px": 1360,
+    "board_bytes": 242581,
+    "board_sha256": "1576947f7ff4cc2bfc569ead1bbbf575276fb25169f6e65966abefd04f95eca8",
+    "failure_reasons": [
+      "available_capacity_alternative_missing_from_portfolio",
+      "required_design_concept_controller_missing"
+    ],
+    "direct_png_review": {
+      "reviewed_at": "2026-07-20",
+      "review_resolution": "original 1920x1360",
+      "verdict": "fail",
+      "findings": [
+        "all twenty rendered cards meet their recorded capacity-alternative target",
+        "the board contains reserve, balanced and brief-target cards but no maximum-feasible card",
+        "terraced, bent, split and court variants improve breadth, but compact block relatives remain common",
+        "this preflight validates capacity gate behavior, not competition-grade visual diversity"
+      ]
+    }
+  },
+  "interpretation_contract": {
+    "latest_completed_means": "newest run with a final program board and summary evidence",
+    "png_role": "human and VLM visual observation",
+    "geometry_authority": "typed AST plus program hash plus geometry hash",
+    "frontend_activation_png_is_separate": true,
+    "r160_does_not_validate_capacity_alternatives": true,
+    "latest_capacity_preflight_is_not_a_live_vlm_acceptance": true
+  }
+}

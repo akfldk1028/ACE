@@ -1,0 +1,292 @@
+========================================================================
+PAPER STATISTICS REPORT
+Generated for: AG-Research (COLM 2026)
+Date: 2026-03-12
+========================================================================
+
+========================================================================
+1. EXP01: TOKEN USAGE BY PATTERN (total_tokens)
+========================================================================
+
+  refl2     : n=25, mean=5104.8, SD=5731.0, 95% CI=[2739.2, 7470.4]
+  rr3       : n=25, mean=14325.4, SD=12012.9, 95% CI=[9366.8, 19284.1]
+  sel3      : n=25, mean=3597.5, SD=1667.1, 95% CI=[2909.4, 4285.7]
+  solo      : n=25, mean=697.1, SD=106.9, 95% CI=[653.0, 741.2]
+  swm3      : n=25, mean=3203.0, SD=3276.1, 95% CI=[1850.7, 4555.4]
+
+--- Key comparisons ---
+  swm3 vs rr3 (Mann-Whitney U): U=95.0, p=0.000025
+  Effect size (rank-biserial r): 0.696
+  swm3 vs solo (Mann-Whitney U): U=596.0, p=0.000000
+  swm3/solo token ratio: 4.59x
+
+--- Pairwise comparisons (all patterns) ---
+  refl2    vs rr3     : U=  129.0, p=0.000384, ratio=0.36
+  refl2    vs sel3    : U=  300.0, p=0.815890, ratio=1.42
+  refl2    vs solo    : U=  625.0, p=0.000000, ratio=7.32
+  refl2    vs swm3    : U=  431.0, p=0.022048, ratio=1.59
+  rr3      vs sel3    : U=  526.0, p=0.000036, ratio=3.98
+  rr3      vs solo    : U=  625.0, p=0.000000, ratio=20.55
+  rr3      vs swm3    : U=  530.0, p=0.000025, ratio=4.47
+  sel3     vs solo    : U=  606.0, p=0.000000, ratio=5.16
+  sel3     vs swm3    : U=  382.0, p=0.180637, ratio=1.12
+  solo     vs swm3    : U=   29.0, p=0.000000, ratio=0.22
+
+========================================================================
+1b. EXP01: DURATION (sec) BY PATTERN
+========================================================================
+
+  refl2     : n=25, mean=37.4, SD=29.2, 95% CI=[25.4, 49.5]
+  rr3       : n=25, mean=74.8, SD=44.2, 95% CI=[56.5, 93.0]
+  sel3      : n=25, mean=36.3, SD=13.2, 95% CI=[30.9, 41.8]
+  solo      : n=25, mean=11.5, SD=2.1, 95% CI=[10.6, 12.3]
+  swm3      : n=25, mean=18.2, SD=7.1, 95% CI=[15.2, 21.1]
+
+========================================================================
+1c. EXP01: TURN COUNT BY PATTERN
+========================================================================
+
+  refl2     : n=25, mean=4.0, SD=1.6, 95% CI=[3.4, 4.7]
+  rr3       : n=25, mean=6.2, SD=2.4, 95% CI=[5.2, 7.1]
+  sel3      : n=25, mean=3.5, SD=0.7, 95% CI=[3.3, 3.8]
+  solo      : n=25, mean=2.0, SD=0.0, 95% CI=[nan, nan]
+  swm3      : n=25, mean=10.0, SD=6.9, 95% CI=[7.2, 12.9]
+
+========================================================================
+2. EXP07: QUALITY SCORES (overall) BY PATTERN x DIFFICULTY
+========================================================================
+
+  --- EASY ---
+      debate3   : n=15, mean=4.4, SD=0.6, 95% CI=[4.0, 4.8]
+      refl2     : n=15, mean=4.7, SD=0.5, 95% CI=[4.4, 4.9]
+      sel3      : n=15, mean=4.1, SD=0.9, 95% CI=[3.6, 4.6]
+      solo      : n=15, mean=4.7, SD=0.7, 95% CI=[4.3, 5.1]
+      swm3      : n=11, mean=3.8, SD=1.3, 95% CI=[3.0, 4.7]
+
+  --- MED ---
+      debate3   : n=15, mean=3.7, SD=0.7, 95% CI=[3.3, 4.1]
+      refl2     : n=15, mean=3.9, SD=0.6, 95% CI=[3.6, 4.3]
+      sel3      : n=15, mean=3.3, SD=0.5, 95% CI=[3.1, 3.6]
+      solo      : n=15, mean=3.3, SD=0.5, 95% CI=[3.0, 3.5]
+      swm3      : n=15, mean=3.8, SD=1.0, 95% CI=[3.2, 4.4]
+
+  --- HARD ---
+      debate3   : n=15, mean=2.9, SD=0.5, 95% CI=[2.7, 3.2]
+      refl2     : n=15, mean=3.5, SD=0.5, 95% CI=[3.2, 3.8]
+      sel3      : n=15, mean=3.5, SD=0.7, 95% CI=[3.1, 3.9]
+      solo      : n=15, mean=3.7, SD=1.0, 95% CI=[3.1, 4.2]
+      swm3      : n=14, mean=3.0, SD=0.9, 95% CI=[2.5, 3.5]
+
+  --- OVERALL (all difficulties) ---
+      debate3   : n=45, mean=3.7, SD=0.9, 95% CI=[3.4, 3.9]
+      refl2     : n=45, mean=4.0, SD=0.7, 95% CI=[3.8, 4.2]
+      sel3      : n=45, mean=3.6, SD=0.8, 95% CI=[3.4, 3.9]
+      solo      : n=45, mean=3.9, SD=1.0, 95% CI=[3.6, 4.2]
+      swm3      : n=40, mean=3.5, SD=1.1, 95% CI=[3.2, 3.9]
+
+  --- OVERALL (all patterns) ---
+      easy      : n=71, mean=4.4, SD=0.8, 95% CI=[4.2, 4.6]
+      med       : n=75, mean=3.6, SD=0.7, 95% CI=[3.4, 3.8]
+      hard      : n=74, mean=3.3, SD=0.8, 95% CI=[3.1, 3.5]
+
+========================================================================
+2b. EXP07: QUALITY SUB-DIMENSIONS BY PATTERN (all difficulties)
+========================================================================
+
+  --- accuracy ---
+      debate3   : n=45, mean=4.5, SD=0.5, 95% CI=[4.4, 4.7]
+      refl2     : n=45, mean=4.5, SD=0.5, 95% CI=[4.4, 4.7]
+      sel3      : n=45, mean=4.5, SD=0.5, 95% CI=[4.4, 4.7]
+      solo      : n=45, mean=4.4, SD=0.6, 95% CI=[4.2, 4.6]
+      swm3      : n=40, mean=4.2, SD=1.0, 95% CI=[3.9, 4.5]
+
+  --- completeness ---
+      debate3   : n=45, mean=3.0, SD=1.1, 95% CI=[2.7, 3.4]
+      refl2     : n=45, mean=3.2, SD=1.0, 95% CI=[2.9, 3.5]
+      sel3      : n=45, mean=3.0, SD=1.0, 95% CI=[2.7, 3.3]
+      solo      : n=45, mean=3.4, SD=1.0, 95% CI=[3.2, 3.7]
+      swm3      : n=40, mean=3.2, SD=1.2, 95% CI=[2.8, 3.6]
+
+  --- coherence ---
+      debate3   : n=45, mean=4.5, SD=0.6, 95% CI=[4.3, 4.7]
+      refl2     : n=45, mean=4.7, SD=0.5, 95% CI=[4.5, 4.8]
+      sel3      : n=45, mean=4.4, SD=0.6, 95% CI=[4.2, 4.6]
+      solo      : n=45, mean=4.5, SD=0.7, 95% CI=[4.3, 4.7]
+      swm3      : n=40, mean=4.2, SD=0.9, 95% CI=[3.9, 4.5]
+
+  --- usefulness ---
+      debate3   : n=45, mean=3.9, SD=1.0, 95% CI=[3.6, 4.2]
+      refl2     : n=45, mean=4.2, SD=0.7, 95% CI=[3.9, 4.4]
+      sel3      : n=45, mean=4.0, SD=0.8, 95% CI=[3.7, 4.2]
+      solo      : n=45, mean=4.2, SD=0.7, 95% CI=[4.0, 4.5]
+      swm3      : n=40, mean=3.7, SD=1.1, 95% CI=[3.4, 4.1]
+
+  --- overall ---
+      debate3   : n=45, mean=3.7, SD=0.9, 95% CI=[3.4, 3.9]
+      refl2     : n=45, mean=4.0, SD=0.7, 95% CI=[3.8, 4.2]
+      sel3      : n=45, mean=3.6, SD=0.8, 95% CI=[3.4, 3.9]
+      solo      : n=45, mean=3.9, SD=1.0, 95% CI=[3.6, 4.2]
+      swm3      : n=40, mean=3.5, SD=1.1, 95% CI=[3.2, 3.9]
+
+
+========================================================================
+3. EXP07: KRUSKAL-WALLIS RESULTS + EFFECT SIZES
+========================================================================
+
+  difficulty_main                    : H=  55.954, p=0.000000e+00
+  pattern_main                       : H=   8.238, p=8.324700e-02
+  pattern_within_easy                : H=  10.586, p=3.163400e-02
+  pattern_within_medium              : H=  11.756, p=1.925900e-02
+  pattern_within_hard                : H=  11.814, p=1.878500e-02
+  difficulty_within_solo             : H=  19.277, p=6.500000e-05
+  difficulty_within_swm3             : H=   6.267, p=4.357100e-02
+  difficulty_within_sel3             : H=   6.346, p=4.187300e-02
+  difficulty_within_refl2            : H=  21.095, p=2.600000e-05
+  difficulty_within_debate3          : H=  23.554, p=8.000000e-06
+
+  --- Effect sizes (eta-squared from H) ---
+  Formula: eta^2_H = (H - k + 1) / (N - k)
+
+  difficulty_main: eta^2_H = (55.954 - 3 + 1) / (220 - 3) = 0.2486
+  pattern_main:    eta^2_H = (8.238 - 5 + 1) / (220 - 5) = 0.0197
+
+  Interpretation: eta^2_H
+    0.01-0.06 = small, 0.06-0.14 = medium, >0.14 = large
+  difficulty_main: eta^2_H = 0.2486 -> large
+  pattern_main:    eta^2_H = 0.0197 -> small
+
+  --- Within-group effect sizes ---
+  pattern_within_easy                : eta^2_H = 0.0998 (N=71, k=5)
+  pattern_within_hard                : eta^2_H = 0.1132 (N=74, k=5)
+  difficulty_within_solo             : eta^2_H = 0.4114 (N=45, k=3)
+  difficulty_within_swm3             : eta^2_H = 0.1153 (N=40, k=3)
+  difficulty_within_sel3             : eta^2_H = 0.1035 (N=45, k=3)
+  difficulty_within_refl2            : eta^2_H = 0.4546 (N=45, k=3)
+  difficulty_within_debate3          : eta^2_H = 0.5132 (N=45, k=3)
+
+========================================================================
+4. EXP07: POST-HOC PAIRWISE COMPARISONS (Mann-Whitney U)
+========================================================================
+
+  --- EASY ---
+    debate3  vs refl2   : U=  87.5, p=0.2421, d=-0.472, means=4.40 vs 4.67
+    debate3  vs sel3    : U= 135.5, p=0.3149, d=+0.434, means=4.40 vs 4.07
+    debate3  vs solo    : U=  74.5, p=0.0613, d=-0.498, means=4.40 vs 4.73
+    debate3  vs swm3    : U= 104.0, p=0.2412, d=+0.619, means=4.40 vs 3.82
+    refl2    vs sel3    : U= 155.0, p=0.0540, d=+0.841, means=4.67 vs 4.07
+    refl2    vs solo    : U=  95.0, p=0.3395, d=-0.110, means=4.67 vs 4.73
+    refl2    vs swm3    : U= 117.5, p=0.0472, d=+0.954, means=4.67 vs 3.82
+    sel3     vs solo    : U=  64.0, p=0.0199, d=-0.835, means=4.07 vs 4.73
+    sel3     vs swm3    : U=  88.5, p=0.7630, d=+0.236, means=4.07 vs 3.82
+    solo     vs swm3    : U= 122.0, p=0.0165, d=+0.944, means=4.73 vs 3.82
+
+  --- MED ---
+    debate3  vs refl2   : U=  92.0, p=0.3326, d=-0.403, means=3.67 vs 3.93
+    debate3  vs sel3    : U= 147.5, p=0.1091, d=+0.540, means=3.67 vs 3.33
+    debate3  vs solo    : U= 154.0, p=0.0564, d=+0.661, means=3.67 vs 3.27
+    debate3  vs swm3    : U= 100.0, p=0.5909, d=-0.151, means=3.67 vs 3.80
+    refl2    vs sel3    : U= 170.0, p=0.0080, d=+1.104, means=3.93 vs 3.33
+    refl2    vs solo    : U= 176.5, p=0.0032, d=+1.258, means=3.93 vs 3.27
+    refl2    vs swm3    : U= 116.5, p=0.8736, d=+0.160, means=3.93 vs 3.80
+    sel3     vs solo    : U= 120.0, p=0.7147, d=+0.141, means=3.33 vs 3.27
+    sel3     vs swm3    : U=  75.0, p=0.0994, d=-0.586, means=3.33 vs 3.80
+    solo     vs swm3    : U=  70.5, p=0.0634, d=-0.678, means=3.27 vs 3.80
+
+  --- HARD ---
+    debate3  vs refl2   : U=  59.5, p=0.0085, d=-1.093, means=2.93 vs 3.47
+    debate3  vs sel3    : U=  60.5, p=0.0176, d=-0.864, means=2.93 vs 3.47
+    debate3  vs solo    : U=  59.0, p=0.0160, d=-0.962, means=2.93 vs 3.67
+    debate3  vs swm3    : U=  99.5, p=0.7711, d=-0.096, means=2.93 vs 3.00
+    refl2    vs sel3    : U= 105.5, p=0.7609, d=+0.000, means=3.47 vs 3.47
+    refl2    vs solo    : U=  95.0, p=0.4455, d=-0.256, means=3.47 vs 3.67
+    refl2    vs swm3    : U= 143.5, p=0.0540, d=+0.654, means=3.47 vs 3.00
+    sel3     vs solo    : U=  99.0, p=0.5595, d=-0.231, means=3.47 vs 3.67
+    sel3     vs swm3    : U= 143.5, p=0.0714, d=+0.576, means=3.47 vs 3.00
+    solo     vs swm3    : U= 146.5, p=0.0552, d=+0.717, means=3.67 vs 3.00
+
+========================================================================
+5. EXP07: TOKEN USAGE BY PATTERN x DIFFICULTY
+========================================================================
+
+  --- EASY ---
+      debate3   : n=15, mean=11200.4, SD=3586.3, 95% CI=[9214.4, 13186.4]
+      refl2     : n=15, mean=2005.9, SD=834.8, 95% CI=[1543.6, 2468.2]
+      sel3      : n=15, mean=3364.3, SD=2258.4, 95% CI=[2113.7, 4615.0]
+      solo      : n=15, mean=490.9, SD=161.4, 95% CI=[401.5, 580.2]
+      swm3      : n=15, mean=7803.9, SD=7619.7, 95% CI=[3584.3, 12023.6]
+
+  --- MED ---
+      debate3   : n=15, mean=15752.5, SD=5375.5, 95% CI=[12775.7, 18729.4]
+      refl2     : n=15, mean=4675.6, SD=2686.1, 95% CI=[3188.1, 6163.1]
+      sel3      : n=15, mean=7007.7, SD=2957.7, 95% CI=[5369.8, 8645.7]
+      solo      : n=15, mean=1032.1, SD=449.1, 95% CI=[783.4, 1280.8]
+      swm3      : n=15, mean=3555.5, SD=2226.3, 95% CI=[2322.6, 4788.4]
+
+  --- HARD ---
+      debate3   : n=15, mean=28876.5, SD=13285.4, 95% CI=[21519.3, 36233.7]
+      refl2     : n=15, mean=12651.8, SD=5898.6, 95% CI=[9385.2, 15918.4]
+      sel3      : n=15, mean=19965.1, SD=8482.0, 95% CI=[15267.9, 24662.2]
+      solo      : n=15, mean=5680.1, SD=4433.7, 95% CI=[3224.8, 8135.4]
+      swm3      : n=15, mean=10702.6, SD=8087.0, 95% CI=[6224.2, 15181.0]
+
+
+========================================================================
+6. KEY PAPER CLAIMS -- EVIDENCE SUMMARY
+========================================================================
+
+CLAIM: Inverted-U relationship between difficulty and multi-agent benefit
+
+  debate3:
+    easy  : delta(mean) = -0.333  (debate3=4.400 - solo=4.733)
+    med   : delta(mean) = +0.400  (debate3=3.667 - solo=3.267)
+    hard  : delta(mean) = -0.733  (debate3=2.933 - solo=3.667)
+
+  refl2:
+    easy  : delta(mean) = -0.067  (refl2=4.667 - solo=4.733)
+    med   : delta(mean) = +0.667  (refl2=3.933 - solo=3.267)
+    hard  : delta(mean) = -0.200  (refl2=3.467 - solo=3.667)
+
+  sel3:
+    easy  : delta(mean) = -0.667  (sel3=4.067 - solo=4.733)
+    med   : delta(mean) = +0.067  (sel3=3.333 - solo=3.267)
+    hard  : delta(mean) = -0.200  (sel3=3.467 - solo=3.667)
+
+  swm3:
+    easy  : delta(mean) = -0.915  (swm3=3.818 - solo=4.733)
+    med   : delta(mean) = +0.533  (swm3=3.800 - solo=3.267)
+    hard  : delta(mean) = -0.667  (swm3=3.000 - solo=3.667)
+
+CLAIM: Debate-3 shows largest quality degradation
+
+  debate3   : overall delta vs solo = -0.222
+  refl2     : overall delta vs solo = +0.133
+  sel3      : overall delta vs solo = -0.267
+  swm3      : overall delta vs solo = -0.364
+
+CLAIM: Solo dominates in cost-efficiency across all difficulties
+
+  --- EASY ---
+    debate3   : quality=4.40, tokens=11200, efficiency(q/ktok)=0.393
+    refl2     : quality=4.67, tokens=2006, efficiency(q/ktok)=2.327
+    sel3      : quality=4.07, tokens=3364, efficiency(q/ktok)=1.209
+    solo      : quality=4.73, tokens=491, efficiency(q/ktok)=9.643
+    swm3      : quality=3.82, tokens=7928, efficiency(q/ktok)=0.482
+
+  --- MED ---
+    debate3   : quality=3.67, tokens=15753, efficiency(q/ktok)=0.233
+    refl2     : quality=3.93, tokens=4676, efficiency(q/ktok)=0.841
+    sel3      : quality=3.33, tokens=7008, efficiency(q/ktok)=0.476
+    solo      : quality=3.27, tokens=1032, efficiency(q/ktok)=3.165
+    swm3      : quality=3.80, tokens=3556, efficiency(q/ktok)=1.069
+
+  --- HARD ---
+    debate3   : quality=2.93, tokens=28877, efficiency(q/ktok)=0.102
+    refl2     : quality=3.47, tokens=12652, efficiency(q/ktok)=0.274
+    sel3      : quality=3.47, tokens=19965, efficiency(q/ktok)=0.174
+    solo      : quality=3.67, tokens=5680, efficiency(q/ktok)=0.646
+    swm3      : quality=3.00, tokens=10330, efficiency(q/ktok)=0.290
+
+
+========================================================================
+END OF REPORT
+========================================================================

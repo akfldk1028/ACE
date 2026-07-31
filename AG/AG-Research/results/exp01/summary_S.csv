@@ -1,0 +1,2 @@
+experiment_id,task_id,pattern,repeat_index,pattern_category,agent_count,stop_reason,duration_sec,total_tokens_in,total_tokens_out,total_tokens,turn_count,agent_turn_count,terminated_by,error,quality_score,converged_at
+exp01,sci_01,solo,0,S,1,Text 'TERMINATE' mentioned,10.44,53,505,558,2,1,keyword,,,

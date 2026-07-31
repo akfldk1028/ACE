@@ -1,0 +1,916 @@
+# MAAS Research Direction
+
+Updated: 2026-06-08
+
+## Blunt Verdict
+
+The right direction is not "let an LLM/agent invent mass geometry."
+
+The robust path is:
+
+```text
+legal envelope / cadastral datum / setbacks
+-> procedural mass grammar
+-> constraint solver / repair
+-> evolutionary or multi-objective search for diversity/performance
+-> deterministic validators
+-> agent explanations and orchestration
+-> real-browser VWorld visual confirmation
+```
+
+Agents should coordinate, critique, explain, and select. They should not be the source of geometric truth.
+
+## Research Signals
+
+### Procedural Building Grammars
+
+Use shape grammars / procedural rules as the editable mass-generation language.
+
+Important source:
+
+- Mueller, Wonka, Haegler, Ulmer, Van Gool, "Procedural Modeling of Buildings", SIGGRAPH 2006.
+- Key idea to borrow: hierarchical/context-sensitive rules generate building mass/shell variations, while keeping geometry editable and reproducible.
+
+ARR implication:
+
+- MAAS `verb_sequence` should become a real grammar, not just labels.
+- Operators such as `base`, `taper`, `notch`, `split`, `court`, `terrace`, `podium`, `tower` should compile to explicit floor plates/volumes.
+
+### Constraints Inside Procedural Modeling
+
+Do not generate first and validate later only. Constraints must be part of the generation loop.
+
+Important source:
+
+- Whiting, Ochsendorf, Durand, "Procedural Modeling of Structurally-Sound Masonry Buildings", SIGGRAPH Asia 2009.
+- Key idea to borrow: procedural parameters are automatically adjusted by optimization so generated forms satisfy hard feasibility constraints.
+
+ARR implication:
+
+- The legal envelope and datum basis must constrain generation before ranking.
+- Repair is still needed, but a candidate that repeatedly needs severe repair should be penalized or rejected.
+
+### Layout / Program Synthesis
+
+Massing alone is not enough. A mass is weak if floor plates cannot host a plausible program/core/circulation.
+
+Important source:
+
+- Merrell, Schkufza, Koltun, "Computer-Generated Residential Building Layouts", SIGGRAPH Asia 2010.
+- Key idea to borrow: high-level architectural requirements become programs; stochastic optimization realizes them into floor plans.
+
+ARR implication:
+
+- Current `program_packing.status = ok` is only a first pass.
+- Need minimum core, corridor, egress, vertical shaft, and usable depth checks by building type.
+- A floor plate below program viability should be rejected, not merely hidden.
+
+### Diversity-Preserving Optimization
+
+Do not return 18 nearly identical legal boxes.
+
+Important source:
+
+- EvoMass / SSIEA building massing research.
+- Key idea to borrow: island-based / steady-state evolutionary search preserves diverse typologies while improving performance.
+
+ARR implication:
+
+- Keep `legal_layered_max` as capacity anchor.
+- Use legacy 10 algorithms and grammar operators as seed/diversity sources only.
+- Rank by legal validity first, then capacity, program viability, daylight/sunlight, and typological diversity.
+
+### Example-Based / Graph Grammar Generation
+
+For richer forms, learn/extract reusable graph grammar patterns from examples rather than hand-writing endless templates.
+
+Important source:
+
+- Merrell, "Example-Based Procedural Modeling Using Graph Grammars", SIGGRAPH 2023.
+
+ARR implication:
+
+- Later phase: collect good mass examples as graph primitives and extract reusable patterns.
+- Do not do this before legal envelope and validator gates are reliable.
+
+### Generative Design Workflow
+
+Architecture workflows need explicit objectives, constraints, and human review, not black-box generation.
+
+Important source:
+
+- Autodesk Project Discover, generative design for architectural space planning.
+
+ARR implication:
+
+- UI should expose objective tradeoffs and hard constraint status.
+- Each candidate must carry a review trail: legal basis, repair actions, rejected constraints, datum source, and visual verification state.
+
+### Multi-Agent Role
+
+Multi-agent systems are useful, but only around deterministic tools.
+
+Research signal:
+
+- Multi-agent architecture/search papers show that topology, roles, and verification matter, but they do not replace domain validators.
+
+ARR implication:
+
+Recommended agents:
+
+- Geometry Agent: checks polygon validity, floor plate stack, volume consistency.
+- Law Agent: checks BCR/FAR/height/setback/sunlight/daylight/datum basis.
+- Program Agent: checks core/corridor/room packing viability.
+- Optimization Agent: checks diversity and objective tradeoffs.
+- Visual QA Agent: compares API geometry, section PNG, and VWorld view.
+- Review Agent: rejects any candidate without complete evidence.
+
+## Current Repo Integration Status
+
+The project already has several agent / orchestration surfaces:
+
+- Root `AG/` / Auto-Claude documents AutoGen Studio, A2A agents, CLI orchestration, and SharedMemory.
+- `AG-light/` is a compact legal-agent platform: Cloudflare Worker, FastAPI MCP tools, MessageBus, SharedMemory, Claude agent definitions, team JSON, and pattern JSON.
+- ARR has an `agents` Django app with A2A-style agent cards, JSON-RPC chat endpoints, worker agents, and Neo4j integration.
+- ARR also has a `graph_db/` package with Neo4j provenance tracking for Decision/Evidence/Artifact relationships.
+- `cli/design-regulation-check/` is the current strongest deterministic verification harness for datum/envelope/section/VWorld-related gates.
+- Hermes gateway currently exposes ARR backend tools.
+
+But MAAS is not yet wired into that stack.
+
+Current MAAS `agents/` are deterministic local review contracts, not live AutoGen/Hermes/AG-light/A2A workers. They attach JSON review cards for geometry/law/optimization/review to the MAAS response, and emit A2UI messages for the frontend. This is a good interface seed, but it is not true multi-agent orchestration yet.
+
+2026-06-11 professor discussion update:
+
+- The intended product direction is explicitly AutoGen/A2A-like collaboration:
+  agents must talk to each other, challenge evidence, and request deterministic
+  repair/regeneration, not merely call one MCP tool.
+- Existing AutoGen/A2A assets should be reused where practical, especially
+  `AG/`, `AG-light/server/agents/`, MessageBus, SharedMemory, team/pattern JSON,
+  and AG-light MCP tools.
+- Do not move raw geometry truth into the agent layer. Live agents coordinate
+  around ARR deterministic tools and the MAAS evidence bundle.
+- Do not use Graph DB as a raw chat transcript store. Store durable review
+  summaries, decisions, evidence refs, rejected constraints, repair requests,
+  and candidate lineage. Raw debate logs can live in MessageBus/SharedMemory/log
+  artifacts and be referenced by hash/path if needed.
+- Parking is now a first-priority legal/design blocker. The Parking Lot Act,
+  Enforcement Decree/Table 1, Enforcement Rule, and relevant local ordinances
+  must be represented in the law Graph DB while ARR implements deterministic
+  parking requirement/layout validators.
+
+The missing bridge is an ARR/Hermes tool layer for massing:
+
+- `generate_maas_variants`: call `site-boundary -> auto-constraints -> jobs -> run -> results`.
+- `validate_mass_candidate`: validate one candidate against legal metrics, floor plates, program feasibility, and datum basis.
+- `render_mass_evidence`: produce API-derived section/plan artifacts.
+- `vworld_visual_check`: confirm real-browser Cesium/VWorld placement.
+- `maas_review`: run parallel reviewer agents over the same evidence bundle and return a final PASS/FAIL.
+- `parking_requirements`: compute required parking count with law/article refs.
+- `parking_layout_check`: validate stall/aisle/ramp/access feasibility for the
+  selected candidate.
+
+Do not let reviewer agents invent or mutate geometry directly. They may request deterministic repair/regeneration, but the source of truth remains the legal envelope generator, validators, and visual evidence.
+
+Graph DB should not become the geometry engine for massing. Keep exact mass geometry in Postgres JSON/PostGIS-style artifacts, GeoJSON, section images, and deterministic validator outputs. Use Neo4j for relationships and provenance:
+
+- PNU -> zoning/parcel/datum/legal-basis nodes.
+- MAAS job -> candidate -> floor plates / mass volumes / rendered evidence artifacts.
+- candidate -> applied constraints -> violated/repaired/rejected rules.
+- agent review -> evidence -> final decision.
+- candidate lineage from seed/operator/grammar step to final selected result.
+
+This lets agents ask "why did this mass pass/fail?" or "which law/evidence caused rejection?" without moving computational geometry into the graph database.
+
+## Implementation Priority
+
+1. Make legal envelope generation deterministic and testable for more PNU cases.
+2. Replace pragmatic floor-area threshold with building-type/program-aware minimum plate rules.
+3. Add Parking Lot Act graph ingestion/projection and deterministic parking
+   requirement/layout validators.
+4. Add mass-aware daylight: selected mass wall/window candidates -> perpendicular distance rays -> pass/fail section.
+5. Add true VWorld visual gate in a real browser environment, not headless WebGL.
+6. Promote `maas_verb_sequence` into a real grammar compiler with typed operators and inverse traceability.
+7. Add true AutoGen/A2A-style agent review only after the above validators
+   produce structured evidence.
+
+## Non-Negotiable Standard
+
+A MAAS candidate is not "correct" unless these all agree:
+
+- API legal metrics.
+- Datum source and basis.
+- Floor plate/volume geometry.
+- Program/core feasibility.
+- Parking requirement and layout feasibility.
+- Section PNG.
+- VWorld/Cesium placement in a real browser.
+- Summarized agent review trace with no unresolved hard failures.
+
+## 2026-06-26 MAAS 20-Alternative PNG Evidence
+
+Latest mass-diversity evidence for real PNU `1168011800104170004` was regenerated after restarting the ARR backend on `127.0.0.1:18000`.
+
+- Command/script: `node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- HTML: `docs/playwright/design-route-live-verify/maas-20-alt-latest.html`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- Result count: 20 alternatives.
+- Unique `mass_shape` names: 17.
+- Section-profile alternatives: 6.
+  - Rank 9: `diagonal_connect_step_x_layered` / `diagonal_connector`
+  - Rank 10: `terrace_link_north_layered` / `terrace_ribbon`
+  - Rank 11: `sloped_roof_mass_layered` / `sloped_roof`
+  - Rank 12: `grammar_diagonal_step_connector_layered` / `diagonal_connector`
+  - Rank 15: `grammar_sloped_roof_envelope_layered` / `sloped_roof`
+  - Rank 17: `grammar_terrace_ribbon_stepback_layered` / `terrace_ribbon`
+
+Interpretation:
+
+- The generator is no longer producing only identical legal boxes. The PNG now shows plan variation plus visible pink section overlays for sloped roof, diagonal connector, and terrace ribbon concepts.
+- It is still not final design quality. Several top and bottom candidates share similar high-FAR stepped envelopes, so the selector should add a stronger family-level diversity gate.
+- Parking remains the hard blocker for this PNU/building type. The latest 20-alt PNG has no green parking-pass candidates; high-FAR design variants mostly fail required/provided parking. Do not present these as approved masses.
+- Next loop should keep legal/section diversity while explicitly optimizing for parking-feasible candidates, not merely ranking high FAR/BCR outputs.
+
+## 2026-06-26 Late Loop: Design-Family Balance / Parking Floating Fix
+
+User correctly rejected the previous PNG as not competition/design quality:
+
+- Too many candidates were still legal stepback boxes.
+- Pink `diagonal_connector`, `terrace_ribbon`, and `sloped_roof` read as visual overlays, not true mass geometry.
+- Parking lines in the live Cesium view could read as floating because exact stall outlines had both ground-clamped lines and elevated duplicate visible lines.
+
+Changes made:
+
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - Added final design-balanced selection for the 20-card review set.
+  - The selector now keeps at most a compact parking signal, then reserves family representatives before backfill.
+  - For `max_variants >= 8`, the early K-medoid branch now preserves plan-diverse families: `interlock`, `overlap`, `split`, `branch`, `pinch`, `courtyard`, `void_notch`, and `slender_bar`.
+  - Duplicate `mass_shape` entries are avoided until there are no unique shapes left to fill the sheet.
+- `ARR/frontend/src/design/lib/cesium/mass-entities.ts`
+  - Removed elevated duplicate parking stall visible-lines from the default view.
+  - Parking guide lines are ground-clamped.
+  - Parking labels are lowered close to ground level.
+- `docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+  - Section profile drawing was toned down so it reads less like arbitrary pink markup: diagonal connector is a width-bearing connector face, terrace ribbons are tighter edge bands, and sloped roof is closer to the top mass.
+
+Latest regenerated evidence:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- Unique `mass_shape` count: 19
+- Section-profile candidates: 6
+- Parking pass count: 0
+- Generation time: about 138 seconds
+- Visible families now include `interlock_cross_diagonal`, `overlap_slabs_y`, `split_bridge_y`, `branch_y_wide`, `pinch_waist_x`, `courtyard_void`, `slender_bar_south`, and the section-design grammar candidates.
+
+Remaining hard truth:
+
+- This is better review evidence, but it is still not paper-grade architectural massing.
+- `sloped_roof`, `terrace_ribbon`, and `diagonal_connector` are still section/render evidence layered over conservative legal floor plates. They are not yet true non-orthogonal mesh solids in the source geometry.
+- The actual PNU/common-housing run still has `parkingPass=0`, so no candidate should be called permit-ready or final.
+- Next real improvement is not another overlay pass. It should create source geometry for sloped/diagonal/terrace solids and optimize against parking feasibility at generation time.
+
+## 2026-06-27 PNG Review Loop: Render Tricks Are Not Enough
+
+User asked to keep reviewing the PNG visually, not just quote metrics. Latest
+loop regenerated `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+after changing `render-maas-20-alt.cjs` so section-profile candidates materialize
+their rendered volume rings instead of only drawing pink overlays.
+
+Latest visual/stat result:
+
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- Unique `mass_shape`: 19
+- Section-profile candidates: 6
+- Parking pass: 0
+- Generation time: about 120 seconds
+
+Visual judgment:
+
+- Plan-family diversity is now visible: interlock, overlap, split, branch,
+  pinch, courtyard, slender bar, legal layered, and section grammar candidates
+  all appear in the sheet.
+- The section-profile rendering is still not good enough for competition-grade
+  architectural massing. `diagonal_connector` still reads partly like a marker
+  on a stepped box, and `sloped_roof` still reads like a roof plane placed on
+  top rather than a true source solid.
+- Do not spend more time trying to make this pass by PNG overlay/render tricks.
+  The next real fix belongs in backend geometry generation: create actual
+  source volumes/solids for sloped, diagonal, and terrace/ribbon forms, then
+  validate those against legal envelope and parking feasibility.
+
+## 2026-06-27 Backend Section Source Volumes
+
+User asked to do the backend geometry step, not just keep adjusting PNG. First
+backend implementation is now in `ARR/backend/design/maas/legal_mesh_optimizer.py`.
+
+What changed:
+
+- Section profile intent is materialized into `properties.mass_volumes` and
+  `properties.maas_model.volumes`.
+- Legal accounting still uses conservative `floor_plates`; generated section
+  volumes are clipped inside their legal floor-plate bands.
+- New metadata:
+  - `properties.section_profile_materialized.status =
+    materialized_inside_legal_floor_plates`
+  - volume roles include `section_source_sloped_roof`,
+    `section_source_terrace_ribbon`, `section_source_diagonal_connector`, and
+    `section_source_diagonal_connector_bridge`.
+- Diagonal connector variants now append a real bridge volume inside the union
+  of legal floor-plate bands instead of relying on a pink line overlay.
+- `render-maas-20-alt.cjs` no longer fabricates section geometry in the PNG.
+  It draws backend `mass_volumes`; connector bridge volumes get a darker orange
+  source-volume style so they are visible without a fake overlay.
+
+Latest PNU evidence:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- Unique `mass_shape`: 19
+- Section materialized candidates: 6
+- Diagonal bridge source-volume candidates: 2
+- Parking pass: 0
+- Generation time: about 116 seconds
+
+Visual judgment after opening the PNG:
+
+- This is a real backend source-volume improvement: the JSON now carries
+  materialized section volumes, not only `section_profile` labels.
+- It still does not reach competition-grade design quality. The output is a
+  conservative stepped/shifted solid approximation inside legal plates, not a
+  true freeform/non-orthogonal mesh optimizer.
+- Next required step is a proper 3D solid/mesh path for sloped faces and
+  connector surfaces, plus parking-feasible generation. Do not claim this is
+  final MAAS paper-quality massing.
+
+## 2026-06-28 Backend Section Source Surfaces
+
+Loop goal: keep reviewing the PNG and move from source volumes to explicit
+source surfaces so sloped/terrace/diagonal intent reads as geometry, not labels.
+
+Changes:
+
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - Adds `section_source_surfaces` to `properties` and `maas_model`.
+  - Surface records use `vertices_wgs84_h`, `role`, `kind`, and
+    `surface_type`.
+  - Generated roles:
+    - `section_surface_sloped_roof_plane`
+    - `section_surface_terrace_band_1..3`
+    - `section_surface_diagonal_connector_deck`
+- `docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+  - Draws backend-provided `section_source_surfaces`.
+  - No frontend-only section geometry fabrication is needed for the PNG.
+
+Latest real-PNU evidence:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- Unique `mass_shape`: 19
+- Section materialized candidates: 6
+- Surface candidates: 6
+- Surface count: 10
+- Parking pass: 0
+- Generation time: about 138 seconds
+
+Visual judgment after opening PNG:
+
+- This loop is a visible improvement. `sloped_roof`, `terrace_ribbon`, and
+  `diagonal_connector` now read as backend source surfaces in the PNG rather
+  than pink overlay strokes.
+- Still not final competition-grade design. The geometry remains conservative
+  and coarse, but the evidence path is now correctly backend-driven:
+  floor plates -> materialized source volumes -> source surfaces -> PNG.
+- Next loop should either improve the actual shape grammar operators for more
+  architectural massing quality or start parking-feasible generation; do not
+  regress back to display-only overlays.
+
+## 2026-06-29 Parking Mass-Stage Pass / PNG Stall Evidence
+
+Loop goal: keep the 20-alt PNG review honest. The previous run had candidates
+that placed enough stalls but still read as generic parking failure because
+`layout.status` mixed permit-grade drive/swept-path review with early mass-stage
+feasibility.
+
+Changes:
+
+- `ARR/backend/design/maas/parking_layout.py`
+  - Adds `layout_candidate.mass_stage_parking`.
+  - This is a separate early-stage signal. It can be `pass` when required
+    stalls, accessible stalls, contiguous row/cluster, 6m aisle module,
+    frontage/attached-parking relief, and entrance connection are plausible.
+  - It does not overwrite `layout.status`; final swept-path/authority review
+    still remains visible.
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - Parking priority now ranks `mass_stage_parking.status == pass` above plain
+    review/fail candidates, while still keeping real `layout.status == pass`
+    highest.
+- `docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+  - Green label now means permit-precheck pass or mass-stage pass, not hidden
+    final approval.
+  - Draws actual `layout_candidate.stalls[*].polygon_wgs84` as magenta stall
+    outlines and `P1..Pn` labels on every 20-alt card.
+  - Supports `REUSE_JSON=1` for fast PNG-only rerender from the latest JSON.
+- `ARR/frontend/src/design/components/DesignInspector.tsx`
+  - Displays `mass_stage_pass` as "매스단계 가능" when the final layout status
+    is still under drive/swept-path review.
+
+Latest real-PNU evidence:
+
+- Command: `node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+- Fast rerender: `REUSE_JSON=1 node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- Unique `mass_shape`: 19
+- Permit-precheck parking pass: 0
+- Mass-stage parking pass: 1
+- Parking fail: 18
+- Generation time: about 124 seconds
+
+Visual judgment after opening PNG:
+
+- `maas_01` is the useful parking signal: `P 5/5`, contiguous row/cluster,
+  `mass-stage pass`, but final `needs_drive_connectivity_review` remains.
+- `maas_19` places `P 6/6` but the stalls are separated; it correctly remains
+  mass-stage fail.
+- Most high-FAR architectural candidates still fail because required parking
+  count is not fully placed. Do not present them as parking-feasible.
+- Next loop should improve geometry generation so more design-quality variants
+  preserve parking, instead of only shrinking into one low-FAR parking repair.
+
+## 2026-06-29 Parking-Preserving Design Loop
+
+Loop goal: do not stop after finding one shrink-only parking candidate. Continue
+the PNG/JSON review loop and create multiple design variants that keep the
+verified parking ground footprint while changing the upper mass/section.
+
+Changes:
+
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - `_parking_repair_candidates()` now creates section-diverse parking
+    preserving candidates from the proven repaired parking footprint:
+    - `parking_repair_terrace_ribbon`
+    - `parking_repair_sloped_roof_mass`
+    - `parking_repair_diagonal_connector`
+  - `_final_design_balanced_selection()` now allows up to three
+    `mass_stage_parking.status == pass` candidates with different shapes,
+    instead of hiding all but one parking anchor.
+  - `_operator_family()` maps those parking-preserving operators back to the
+    canonical section families so `section_profile`, source volumes, and source
+    surfaces are generated.
+
+Latest real-PNU evidence:
+
+- Command: `node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- Unique `mass_shape`: 20
+- Permit-precheck parking pass: 0
+- Mass-stage parking pass: 3
+- Section materialized candidates: 9
+- Surface candidates: 9
+- Generation time: about 146 seconds
+
+Visual judgment after opening PNG:
+
+- The loop improved from one parking-feasible signal to three:
+  `parking_repair_terrace_ribbon`, `parking_repair_sloped_roof_mass`, and
+  `parking_repair_diagonal_connector`.
+- All three show actual magenta stall polygons and `P 5/5`; all remain final
+  `needs_drive_connectivity_review`, which is correct.
+- The result is still not competition-grade: the parking-feasible variants are
+  low-FAR, tower-like options. Next loop should increase design/capacity quality
+  while keeping `massStagePass >= 3`, rather than only producing skinny parking
+  towers.
+
+## 2026-06-29 Parking-Preserving FAR Improvement Loop
+
+Loop goal: continue after `massStagePass=3` and improve the capacity/design
+quality of the parking-feasible variants. The target was not only "more green
+cards", but higher FAR while keeping actual stall polygons visible in the PNG.
+
+Changes:
+
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - Parking-preserving section variants now expand their upper mass inside
+    `envelope.buildable_footprint` instead of being clipped to the original
+    source feature or left unconstrained to the whole site.
+  - Updated upper-scale factors:
+    - terrace ribbon: `1.55 x 1.08`
+    - sloped roof: `1.48 x 1.04`
+    - diagonal connector: `1.65 x 0.98`
+  - Tried an offset-search helper to maximize upper footprint area, but the
+    full API/PNG loop exceeded the Node fetch header timeout twice. That
+    expensive helper was removed. Do not reintroduce broad offset search without
+    moving it behind a bounded benchmark or async job.
+
+Latest accepted evidence:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`
+- Candidate count: 20
+- `massStagePass`: 3
+- top parking-feasible candidates:
+  - `parking_repair_terrace_ribbon`: FAR `106.24`, `P 5/5`
+  - `parking_repair_sloped_roof_mass`: FAR `92.93`, `P 5/5`
+  - `parking_repair_diagonal_connector`: FAR `92.67`, `P 5/5`
+- All three remain final `needs_drive_connectivity_review`, which is correct.
+- Latest successful full API generation took about 170 seconds. Cached PNG
+  rerender with `REUSE_JSON=1` took about 26 seconds.
+
+Visual judgment:
+
+- This is the best accepted loop so far: three parking-feasible design
+  variants, actual magenta stall lines, and materially higher FAR than the
+  first parking-preserving loop.
+- Still not final design quality. Next improvement should be either:
+  1. async/background MAAS generation so deeper search does not block Node
+     fetch, or
+  2. a bounded deterministic placement rule that moves the upper mass inward
+     once, not a broad offset search.
+
+## 2026-06-29 Strict Envelope Recheck / Mass Richness Gap
+
+User asked whether the diagonal/sloped/terrace candidates are actually inside
+the legal envelope, and noted that the massing still is not rich enough.
+
+Findings:
+
+- Latest pre-fix parking-feasible candidates had FAR/BCR and parking evidence,
+  but `min_setback` displayed as `0.48m` against the `0.5m` adjacent setback
+  constraint.
+- `failed_constraint_metrics()` has a `0.1m` tolerance for `Greater than`
+  constraints, so `0.48m` passed internally. For user-facing legal evidence,
+  that is too loose.
+
+Change:
+
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - Added `_strict_setback_footprint()` and `_strict_setback_limit_m()`.
+  - Parking repair footprints are clipped to `site_utm.buffer(-(setback +
+    0.02m))` before generating parking-preserving section variants.
+
+Latest strict-envelope evidence:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- Top parking-feasible candidates now show `min_setback=0.52m`, so the visible
+  setback check passes:
+  - `parking_repair_terrace_ribbon`: FAR `94.57`, `P 4/4`
+  - `parking_repair_sloped_roof_mass`: FAR `79.71`, `P 4/4`
+  - `parking_repair_diagonal_connector`: FAR `80.11`, `P 4/4`
+- All still remain final `needs_drive_connectivity_review`.
+
+Visual judgment:
+
+- Legal envelope safety improved, but mass richness got weaker. The top three
+  strict candidates are too simple and low-capacity.
+- Next loop should stop tuning scale factors manually and instead review the
+  MAAS/d4descent/reference code and paper-style shape grammar operators:
+  single mass, split mass, linked mass, diagonal connector, terrace ribbon,
+  courtyard/void, bridge, slab overlap, stepped/tapered tower, and hybrid
+  combinations. The generator needs richer morphology language, not just
+  parking repair shrink/scale.
+
+## 2026-06-29 MAAS Mass-Language Parking-Feasible Loop
+
+User asked whether we had already given the system many architectural massing
+languages. Yes: the local grammar/term files already include stepback,
+podium/tower, courtyard/void, split/bridge, bar/slab, corner open, taper,
+interlock/overlap, diagonal connector, terrace link, and sloped-roof mass.
+
+Code finding:
+
+- The language existed in `grammar/data/maas_terms.v0.json` and
+  `grammar/data/maas_sequences.v0.json`, but the strict parking-feasible
+  candidates were not carrying rich MAAS verb sequences.
+- `parking_repair_terrace_ribbon`, `parking_repair_sloped_roof_mass`, and
+  `parking_repair_diagonal_connector` were visually/family mapped, but their
+  sequence evidence collapsed to `base + parking_repair_*`.
+
+Change:
+
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - Added explicit parking-preserving language sequences:
+    - terrace: `base -> lift -> terrace_link -> shift`
+    - sloped: `base -> sloped_roof_mass -> taper`
+    - diagonal: `base -> lift -> diagonal_connect -> taper`
+    - tapered slab: `base -> lift -> taper`
+    - split bridge: `base -> split -> lift -> taper`
+    - single bar: `base -> compress -> taper`
+  - Added parking-preserving variants for `split_bridge`, `tapered_slab`, and
+    `single_bar`.
+  - Selection now surfaces up to six `mass-stage pass` parking candidates first
+    instead of hiding feasible candidates behind higher-FAR parking-fail masses.
+
+Latest verified PNG:
+
+- `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`, building type: `공동주택`.
+- Full Playwright/API render completed in about 71 seconds.
+- `massStagePass=6`, `uniqueShapes=20`, `sectionMaterialized=9`.
+- Top six candidates:
+  - `parking_repair_terrace_ribbon`: FAR `94.57`, `P 4/4`.
+  - `parking_repair_sloped_roof_mass`: FAR `79.71`, `P 4/4`.
+  - `parking_repair_diagonal_connector`: FAR `80.11`, `P 4/4`.
+  - `parking_repair_tapered_slab`: FAR `79.85`, `P 4/4`.
+  - `parking_repair_split_bridge`: FAR `84.88`, `P 4/4`.
+  - `parking_repair_single_bar`: FAR `63.53`, `P 4/4`.
+- All six remain final `needs_drive_connectivity_review`, which is correct:
+  this is mass-stage feasibility, not final permit approval.
+
+Visual judgment:
+
+- Better than the previous PNG because the review sheet now starts with six
+  parking-feasible design-language alternatives.
+- Still not finished. `split_bridge` and `single_bar` are too visually
+  conservative, and the parking-feasible set remains lower FAR than the
+  high-capacity legal envelope candidates. Next loop should improve actual
+  source geometry/materialized solids for split/bridge, diagonal connector, and
+  bar/slab forms rather than only changing labels or card order.
+
+## 2026-06-29 Hardcoding Rejected / Constraint Frontier
+
+User objected to numeric geometry tuning such as `cx - width * 0.34`. That
+objection is correct. It would only tune one PNG and would not be a defensible
+paper/product algorithm.
+
+Code correction:
+
+- Removed the direct materialization helper with hardcoded width/depth ratios.
+- Replaced the parking-preserving section tuple path with ARR's existing
+  data-backed grammar interpreter:
+  - `_parking_preserving_section_candidates()` now calls
+    `generate_grammar_variants(parking_footprint_utm)`.
+  - Upper masses for parking-preserving candidates come from
+    `grammar/data/maas_sequences.v0.json` interpreted by
+    `grammar/legal_interpreter.py`.
+  - Candidates are now named `parking_repair_grammar_*` and preserve the
+    JSON-backed `maas_verb_sequence`.
+
+Latest verified evidence:
+
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- PNU: `1168011800104170004`, building type: `공동주택`.
+- `massStagePass=5`, `uniqueShapes=20`, `sectionMaterialized=9`.
+- Parking-feasible frontier:
+  - `parking_repair_grammar_sloped_roof_envelope`: FAR `63.06`, `P 4/4`
+  - `parking_repair_grammar_diagonal_step_connector`: FAR `54.99`, `P 4/4`
+  - `parking_repair_grammar_overlap_shift_terrace`: FAR `54.20`, `P 4/4`
+  - `parking_repair_grammar_terrace_ribbon_stepback`: FAR `46.23`, `P 4/4`
+  - `parking_repair_shrink`: FAR `88.63`, `P 4/4`
+- High-FAR legal/design candidates around FAR `219~249` require `7~12` spaces
+  and fail with provided `0~4`.
+
+Judgment for next AI:
+
+- This is not impossible as a general architectural massing problem.
+- For this specific small parcel, `공동주택`, and surface/small attached
+  parking assumption, there is a hard frontier: parking-feasible masses are
+  low-FAR, while high-FAR legal envelope masses fail parking count/layout.
+- Do not keep tweaking hardcoded ratios to fake design quality.
+- Next meaningful branches:
+  1. add basement/mechanical parking strategy to unlock high-FAR massing,
+  2. run a different building use/program with lower parking demand,
+  3. expose the frontier in the UI as a design tradeoff, or
+  4. implement an async grammar optimizer that searches parking strategy and
+     massing together instead of only reshaping the upper mass.
+
+## 2026-06-29 Mechanical Parking Unlock / Latest PNG Loop
+
+User asked to keep looping with PNG evidence and not fake design quality with
+hardcoded ratios. The correct current state is a constraint-frontier branch,
+not final completion.
+
+Code changes:
+
+- `ARR/backend/design/maas/parking_layout.py`
+  - Added a `mechanical` layout candidate path.
+  - It does not place standard stall polygons.
+  - It returns `needs_mechanical_parking_review`, never final `pass`.
+  - It exposes conceptual capacity from module area / bay capacity and lists
+    external evidence needed: equipment type, pit/lift clearance, entry
+    queueing, manufacturer turning/safety clearance, local authority
+    acceptance.
+- `ARR/backend/design/maas/parking_strategy.py`
+  - Mechanical is scored below physical stall layouts. If a low-FAR candidate
+    can carry visible surface parking, it should stay surface/drive-review
+    instead of being replaced by conceptual mechanical parking.
+- `ARR/backend/design/maas/legal_mesh_optimizer.py`
+  - `needs_mechanical_parking_review` is counted as a mass-stage reviewable
+    parking status.
+  - Every candidate now exposes `operator_family` and `maas_sequence_verbs`
+    so agents/PNG/UI can explain the massing language.
+- `docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+  - The 20-alt PNG now prints concept/family/verb evidence per card.
+
+Latest verified evidence:
+
+- PNU: `1168011800104170004`
+- Building type: `공동주택`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- Render time: about `58.8s`
+- `count=20`
+- `massStagePass=17`
+- `mechanical=14`
+- layout statuses:
+  - `needs_mechanical_parking_review`: 14
+  - `needs_drive_connectivity_review`: 3
+  - `fail`: 3
+- families represented include:
+  - legal layered, terrace link, sloped roof, diagonal connector, interlock,
+    overlap, split, branch, pinch, courtyard, void/notch, slender bar,
+    stepback tower, grammar terrace, grammar overlap/shift/terrace.
+- Low-FAR visible-stall candidates survived:
+  - `parking_repair_grammar_diagonal_step_connector`: FAR `54.99`, `P 4/4`,
+    `needs_drive_connectivity_review`
+  - `parking_repair_grammar_terrace_ribbon_stepback`: FAR `46.23`, `P 4/4`,
+    `needs_drive_connectivity_review`
+  - `parking_repair_grammar_sloped_roof_envelope`: FAR `63.06`, `P 4/4`,
+    `needs_drive_connectivity_review`
+- High-FAR candidates now survive as conceptual mechanical-review candidates:
+  - examples around FAR `219~249`, typically `P 7/7` or `P 8/8`,
+    `mass_stage_parking.status=pass`, but
+    `layout.status=needs_mechanical_parking_review`.
+
+Architectural judgment:
+
+- The latest PNG is materially better than the earlier all-step/all-same
+  outputs: it includes step, terrace ribbon, sloped roof/envelope, diagonal
+  connector, interlock, overlap, split, branch, pinch, courtyard, open-court,
+  slender bar, and podium/tower alternatives.
+- It is still not a final competition-grade massing engine. The high-FAR path
+  is unlocked by mechanical parking review, so it needs authority/equipment
+  evidence before being called permit-ready.
+- Do not reintroduce fixed coordinate ratio hacks. Use the grammar sequence
+  library, diversity metrics, and explicit parking strategy branches.
+- Next useful work:
+  1. expose this same evidence in the live AG-light/React Flow reasoning panel,
+  2. add basement parking as another strategy branch,
+  3. improve grammar materialization for split/bridge and branch candidates,
+  4. keep generating 20-alt PNG evidence after each massing change.
+
+## 2026-06-29 Section-Synthesis Envelope Fix / PNG Loop
+
+User rejected outputs that looked like only legal stepbacks with colored
+overlays. The correct implementation direction is to keep legal accounting on
+the conservative `floor_plates`, but materialize explicit section/design
+surfaces for review candidates so diagonal, terrace, and sloped-roof massing
+reads as architectural intent.
+
+Implemented in `ARR/backend/design/maas/legal_mesh_optimizer.py`:
+
+- `_final_design_balanced_selection()` now keeps the 20-card evidence sheet
+  from being dominated by high-FAR mechanical/stepped variants.
+  - It keeps one `legal_layered_max` anchor.
+  - It then promotes visible-stall parking review candidates.
+  - It reserves slots for `diagonal_connector`, `terrace_ribbon`, and
+    `sloped_roof` synthesis candidates.
+- `section_profile_materialized` now marks synthesis candidates with:
+  - `design_synthesis=True`
+  - `basis=maas_section_synthesis_v1`
+  - `surface_count`
+- `section_source_surfaces` now includes actual polygon-derived surfaces:
+  - sloped roof plane generated from the actual upper polygon vertices,
+  - north/south eave faces,
+  - terrace ribbon skins between adjacent bands,
+  - diagonal connector fold/skin/deck surfaces.
+- Important correction: avoid bbox-corner surfaces on non-rectangular parcels.
+  Bbox corners leaked outside the mass union. The fixed implementation derives
+  face points from actual polygon exterior coordinates.
+
+Implemented in
+`docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`:
+
+- The PNG renderer now includes `section_source_surfaces` in bounds
+  calculation.
+- Synthesis candidates fade the conservative legal/source volumes and draw
+  synthesis surfaces strongly, so the design operation is legible instead of
+  looking like a plain stepback stack.
+- Cards print `synthesis:<kind>` metadata.
+
+Latest verified evidence:
+
+- Command: `node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+- PNU: `1168011800104170004`
+- Building type: `공동주택`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- `count=20`
+- synthesis candidates: `10`
+  - `terrace_ribbon`: `4`
+  - `sloped_roof`: `3`
+  - `diagonal_connector`: `3`
+- parking statuses:
+  - `needs_mechanical_parking_review`: `14`
+  - `needs_drive_connectivity_review`: `4`
+  - `fail`: `2`
+- Envelope sanity check:
+  - surface vertices tested against each candidate mass-volume union,
+  - `surface_vertex_violations=0`.
+- Regression tests added in `ARR/backend/design/test_maas_export.py`:
+  - `test_section_synthesis_surfaces_stay_inside_mass_volume_union`
+  - `test_generated_section_synthesis_surfaces_are_present`
+  - Verified together with mechanical/parking tests: 4 tests passed in about
+    `31.8s`.
+
+Architectural judgment:
+
+- The latest PNG is a materially better review artifact than the earlier
+  all-step outputs: diagonal folded skins, terrace ribbons, and sloped roof
+  synthesis are visible.
+- This still must not be presented as final permit-ready parking. Most
+  high-FAR options are mechanical-review mass-stage branches. The low-FAR
+  visible-stall candidates remain review candidates because driveway/swept path
+  is not final.
+- Next useful work is not more fixed ratios. It is:
+  1. expose these exact `section_profile_materialized` and
+     `section_source_surfaces` reasons in the AG-light/React Flow panel,
+  2. add basement parking as a distinct strategy branch,
+  3. expand grammar materialization for split/bridge/branch candidates using
+     the same polygon-derived surface rule.
+
+## 2026-06-29 Typology-First Correction / Bad Surface Output Rejected
+
+User rejected the surface-synthesis PNG again. The criticism was correct:
+even if generated surfaces were inside the legal volume union, the result read
+like colored decoration on top of boxes, not like credible architectural
+massing.
+
+Current correction:
+
+- `legal_mesh_optimizer.py` now treats the user-facing 20-card sheet as a
+  typology-first review artifact.
+- Conservative `floor_plates` and legal FAR/BCR/height checks remain the source
+  of truth.
+- Section surfaces are no longer allowed to dominate the PNG evidence. The
+  renderer shows actual `mass_volumes` as the primary shape.
+- `_should_use_floor_plate_stack()` now keeps plan typologies as their repaired
+  mass footprints instead of rebuilding every option into the same envelope
+  stack.
+- Tiny upper masses are rejected through `_upper_typology_is_viable()` before
+  they become tower/connector candidates.
+- The final selector now prioritizes one reviewable representative per
+  typology family:
+  `legal_layered`, `interlock`, `overlap`, `split`, `courtyard`, `void_notch`,
+  `branch`, `pinch`, `stepback_tower`, `terrace_link`, `diagonal_connect`,
+  `sloped_roof`, `taper`, `grade`, `inset`, `legal_buildable`.
+- Parking repair/sliver candidates and parking `fail` candidates are excluded
+  from the representative 20-card PNG. They remain diagnostic evidence, not
+  design options.
+- Thin tower-like candidates are gated by minimum plan dimension and
+  height/min-dimension ratio.
+
+Latest verified evidence:
+
+- Command: `node docs/playwright/design-route-live-verify/render-maas-20-alt.cjs`
+- Backend: ARR Django `127.0.0.1:18000 --noreload`, restarted after code edit.
+- PNU: `1168011800104170004`
+- Building type: `공동주택`
+- PNG: `docs/playwright/design-route-live-verify/maas-20-alt-latest.png`
+- JSON: `docs/playwright/design-route-live-verify/maas-20-alt-latest.json`
+- `count=20`
+- Families visible:
+  - `legal_layered`, `interlock`, `overlap`, `split`, `courtyard`,
+    `void_notch`, `pinch`, `terrace_link`, `sloped_roof`, `inset`,
+    `legal_buildable`, `grammar_cave_inset_puncture`,
+    `grammar_sloped_roof_envelope`.
+- Parking status in this representative sheet:
+  - `needs_mechanical_parking_review`: `20`
+  - `fail`: `0`
+  - `parking_repair_*`: `0`
+- Tests:
+  - `py_compile` passed for `legal_mesh_optimizer.py`.
+  - Focused MAAS tests passed:
+    `test_typology_first_generator_produces_architectural_families`,
+    `test_tiny_upper_mass_is_not_valid_typology`,
+    `test_mechanical_parking_unlocks_high_far_mass_stage_without_final_pass`,
+    `test_parking_strategy_attaches_layout_candidate_when_required_count_exists`.
+
+Architectural judgment:
+
+- This is better than the rejected surface-decoration sheet because the 20-card
+  evidence now shows actual mass typologies and removes red fail/parking-repair
+  artifacts.
+- It is still not competition-grade mass design. It is a legal-envelope-first
+  typology generator with review gates.
+- Next real step is not more fixed coordinate ratios. Implement typed grammar
+  operations that produce floor/program-aware source geometry, then optimize
+  typology, parking strategy, program/core feasibility, and legal envelope
+  together.

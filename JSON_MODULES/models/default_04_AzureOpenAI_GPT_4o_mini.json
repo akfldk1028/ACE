@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_ext.models.openai.AzureOpenAIChatCompletionClient",
+  "component_type": "model",
+  "version": 1,
+  "label": "AzureOpenAI GPT-4o-mini",
+  "description": "GPT-4o Mini Azure OpenAI model client.",
+  "config": {
+    "model": "gpt-4o-mini",
+    "azure_deployment": "gpt-4o-mini"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "state": {
+    "url": "http://127.0.0.1:5174/design?sectionProfileTs=1782454783136",
+    "bodyText": "건물 매스 최적화\n\nMAAS Legal Morphology Search\n\nPNU / ADDRESS\n조회\n대지면적\n264.13 m²\n용도지역\n제2종일반주거지역\nBUILDING USE TYPE\n공동주택 (아파트) (2.8m/층)\n근린생활시설 (3.5m/층)\n업무시설 (오피스) (3.8m/층)\n판매시설 (상가) (4m/층)\n숙박시설 (호텔) (3m/층)\n문화 및 집회시설 (4.5m/층)\n의료시설 (3.6m/층)\n교육연구시설 (3.5m/층)\n공장 (5m/층)\n창고시설 (6m/층)\nMASS SEARCH MODE\nMAAS 법규 탐색\nLegacy 10종 비교\nGENERATIONS\nPOPULATION\nOPTIMIZE\n법규 산정 근거\n수치지형도 소스\nngii_local_dem\n대지 샘플\n14개 / 16.90-17.35m\n도로 샘플\n3개 / 16.34-16.61m\n인접대지 샘플\n13개 / 17.04-17.59m\n검출 도로폭\n37.5m\n전면도로 후보\n1개\n인접대지 후보\n4개\n정북일조\n적용 / 기준면 17.23m\n채광사선 참고면\n17.10m / 매스 창면 검토 필요\n화면 기본 레이어\n정북면 / 채광옵션 / 도로 / 인접\n\nVWorld 기본 화면은 검토용 요약 레이어입니다. 전체 디버그는 URL에 ?layers=all, 도로 라벨 전체는 ?roadLabels=all 을 붙여 확인합니다.\n\nCONSTRAINTS\n건폐율 ≤ 60%\n≤ 60%\n용적률 ≤ 250%\n≤ 250%\n인접대지 이격 ≥ 0.5m\n≥ 0.5m\n조경면적 ≥ 15%\n≥ 15%\n지반 레벨 (§119 DATUM)\n정북일조 기준 H = 0\n17.23m\n정북일조 기준 H=0\n17.23 m\n대지 §119 기준면\n17.10 m\n전면도로 기준면\n16.48 m\n인접대지 기준면\n17.35 m\n§86 평균수평면\n17.23 m\n§119/§86 케이스\n정북인접 평균 (§86)\n산정 방법\n인접지 평균\n데이터 소스\nNGII 수치지형도 SHP→DEM (5m)\n\nenvelope walls/slanted_polygons 의 H는 이 datum 기준 상대값. Cesium 렌더 시 datum_m 위에 envelope 위치.\n\n정북일조 사선제한 단면 (§86①, 2023.9.12 개정)\n인접대지 경계선\n1.5m 이격\nH ≤ 10m: 직각\nH > 10m: slope 2:1 (H = 2x)\n건물 (H = 18m)\n0m\n10m\n20m\n0m\n1.5m\n5m\n10m\n15m\n20m\n법규 envelope\n인접대지 경계\n건물 단면\nOPTIMIZATION\nCOMPLETE\n100%\n세대\n50/50\n적합\n2280\n파레토\n18\n총평가\n18\nPARETO FRONT\n0 evaluated\n18 pareto\nGen\n0 → 50\n매스\n평면\nGA\n분할\nMCTS\n패킹\nGraph2Plan\n자동 ON\nDESIGN LIST\n18\n#\n매스\n형태\n연면적\n일조\n주차\n1\nparking_repair_shrink\n208\n86.9\n외부지상\n2\n핀치형\n275\n65.3\n외부지상\n3\n오버랩\n264\n66.7\n외부지상\n4\n인셋\n261\n67.0\n기계식\n5\n중정형\n247\n68.8\n외부지상\n6\n인터락\n236\n70.2\n외부지상\n7\n분절/브릿지\n208\n73.8\n외부지상\n8\n브랜치형\n162\n79.5\n외부지상\n9\n바형\n134\n83.2\n외부지상\n10\n코너/오픈코트\n309\n61.0\n필로티\n11\n포디움/타워\n429\n62.4\n필로티\n12\n법규엔벨로프\n463\n61.0\n필로티\n13\nparking_repair_ground_void\n549\n86.9\n필로티\n14\n다단 일조스텝\n463\n61.0\n필로티\n15\n테라스\n448\n61.0\n필로티\n16\n사선지붕형\n405\n61.0\n필로티\n17\n테라스연결\n396\n61.0\n필로티\n18\n사선연결\n392\n61.0\n필로티\nDESIGN\n#900000\nFEASIBLE\n연면적\n207.8\nm²\n일조점수\n86.9\n점\nPARKING\n외부 지상주차\n법정 주차대수\n3대\n계획 제공대수\n3대\n상태\n배치 가능\n공동주택 추정 6세대 / 면적비 2.08대 / 세대최소 3.00대 → 3대\nrule: seoul_parking_appendix2_row_05\n배치공식\nroad_as_aisle_tandem\n모듈\n단면 11m / 양면 16m\n연접\n연접 OK (2쌍 접촉)\n차로\n차로 검토\n회전\n회전 예비 OK\n관청검토\n증빙필요 2건\n연면적\n207.8\n일조점수\n86.9\n▶\nPARAMETERS (0 genes)\nGen 50\nRank 0.3827\nPen 0.00\n⊞ 평면 생성\n2D MASS PREVIEW\nWebGL fallback · legal MAAS geometry from mass_geojson\nWebGL을 사용할 수 없어 3D 지도를 비활성화했습니다.\n형태\nparking_repair_shrink\n높이\n16.8m\n층수\n6F\n건폐율\n13.1%\n용적률\n78.7%\nBUILDING MASS\n형태\nparking_repair_shrink\n높이\n16.8m\n층수\n6F\n건폐율\n13.1%\n용적률\n78.7%\n연면적\n208m²\n주차\n외부 지상\n법정/계획\n3 / 3\n관청검토\n증빙필요 2\nAI 설계 협업\nMAAS Agent Workspace\n>\n상호소통 설계 수정\n대화형 수정 · MAAS 법규 후보\n안 900000\nAG-light React Flow\nJSON_MODULES 법규 · 주차 · 매스 · 최종검토 협업 그래프\nCHECK\n1 법규\nlaw_graph_agent\nGraph DB 조항·제약·누락 evidence\n2 주차\nparking_agent\n법정대수·연접·전면도로/차로 검토\n3 매스/디자인\nmaas_geometry_agent\n법규를 만족하는 MAAS 형태·repair 근거\n4 최종검토\nreview_agent\n통과/보류/실패와 남은 리스크\n현재 안 AG-light 검토 시작\nPNU 1168011800104170004 대기 → 법규 → 주차 → 매스/기하 → 최종검토\nUser\nuser\nHuman user\ndesign_orchestrator\nSelector/Handoff\n법규-설계 협업 라우터\n법규\nlaw_graph_agent\nVerify and cite ARR law Graph DB parking rules.\n주차\nparking_agent\nCheck parking counts and ",
+    "entityCount": 0,
+    "massEntityCount": 0,
+    "sectionProfileIds": [],
+    "sectionProfileCount": 0,
+    "featuresWithSectionProfile": [],
+    "debug": null,
+    "canvasCount": 1
+  },
+  "logs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "info",
+      "text": "🌐 i18next is maintained with support from Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "type": "log",
+      "text": "[Design] boundary: geometry=Polygon, area=264.13"
+    },
+    {
+      "type": "info",
+      "text": "[Design][LegalQA] constraints {pnu: 1168011800104170004, zones: Array(1), datum: Object, sunlight: Object, daylight: Object}"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    }
+  ],
+  "errors": [],
+  "pngPath": "/mnt/d/Data/25_ACE/docs/playwright/design-route-live-verify/section-profile-cesium-check.png"
+}

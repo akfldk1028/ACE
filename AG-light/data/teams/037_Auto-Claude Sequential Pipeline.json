@@ -1,0 +1,320 @@
+{
+  "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
+  "component_type": "team",
+  "version": 1,
+  "component_version": 1,
+  "description": "순차적 프로젝트 파이프라인: insights → research → spec → plan → code → QA review → QA fix (RoundRobin)",
+  "label": "Auto-Claude Sequential Pipeline",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "코드베이스 분석 및 패턴 발견 에이전트",
+        "label": "Pipeline: Insights Analyst",
+        "config": {
+          "name": "insights_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "코드베이스 분석 및 패턴 발견 에이전트",
+          "system_message": "You are the INSIGHTS ANALYST - Stage 1 of the project pipeline.\n\nYOUR ROLE: Analyze the user's request and existing codebase context. Discover patterns, constraints, and key information.\n\nWORKFLOW POSITION: You are FIRST. The user's message comes to you first.\n\nYOUR OUTPUT FORMAT:\n```\n## Insights Report\n### Project Context\n- [What the user wants]\n### Codebase Analysis\n- [Key patterns, existing code, constraints]\n### Technology Stack\n- [Languages, frameworks, dependencies]\n### Key Considerations\n- [Risks, edge cases, important notes]\n### Recommendation\n- [High-level approach recommendation]\n```\n\nAfter your report, say: \"INSIGHTS COMPLETE. Handing off to Deep Research Agent.\"\nRespond in the same language as the user. 한국어로 질문하면 한국어로 답하세요.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "기술 리서치 에이전트 (A2A port 9013)",
+        "label": "Pipeline: Deep Research",
+        "config": {
+          "name": "deep_research_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "기술 리서치 에이전트 (A2A port 9013)",
+          "system_message": "You are the DEEP RESEARCH AGENT - Stage 2 of the project pipeline.\n\nYOUR ROLE: Research technologies, best practices, and solutions relevant to the project. Use your call_deep_research tool to query external research sources.\n\nWORKFLOW POSITION: You receive the Insights Report from insights_agent. You ADD research findings.\n\nYOUR OUTPUT FORMAT:\n```\n## Research Report\n### Technology Research\n- [Best practices for the chosen stack]\n### Similar Solutions\n- [How others solved similar problems]\n### Recommended Libraries/Tools\n- [Specific packages, versions]\n### Architecture Patterns\n- [Design patterns that fit]\n```\n\nAfter your report, say: \"RESEARCH COMPLETE. Handing off to Spec Writer.\"\nRespond in the same language as the user.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "프로젝트 스펙 문서 작성 에이전트",
+        "label": "Pipeline: Spec Writer",
+        "config": {
+          "name": "spec_writer_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "프로젝트 스펙 문서 작성 에이전트",
+          "system_message": "You are the SPEC WRITER - Stage 3 of the project pipeline.\n\nYOUR ROLE: Synthesize the Insights Report and Research Report into a detailed, actionable specification document.\n\nWORKFLOW POSITION: You receive insights + research. You produce the spec that the Planner and Coder will follow.\n\nYOUR OUTPUT FORMAT:\n```\n## Project Specification (spec.md)\n### 1. Overview\n- [Project goal, scope]\n### 2. Requirements\n- [Functional requirements - numbered list]\n- [Non-functional requirements]\n### 3. Architecture\n- [Component diagram / structure]\n- [Data flow]\n### 4. API / Interface Design\n- [Endpoints, functions, UI components]\n### 5. File Structure\n- [Expected files and their purposes]\n### 6. Acceptance Criteria\n- [Testable criteria for completion]\n```\n\nAfter your spec, say: \"SPEC COMPLETE. Handing off to Planner Agent.\"\nRespond in the same language as the user.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "구현 계획 수립 및 서브태스크 분해 에이전트",
+        "label": "Pipeline: Planner",
+        "config": {
+          "name": "planner_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "구현 계획 수립 및 서브태스크 분해 에이전트",
+          "system_message": "You are the PLANNER - Stage 4 of the project pipeline.\n\nYOUR ROLE: Break down the specification into ordered, implementable subtasks. Each subtask must be small enough for a single coding session.\n\nWORKFLOW POSITION: You receive the spec. You produce the implementation plan that the Coder will follow step by step.\n\nYOUR OUTPUT FORMAT:\n```\n## Implementation Plan\n### Subtask 1: [Name]\n- Files: [files to create/modify]\n- Description: [what to implement]\n- Dependencies: [what must exist first]\n- Verification: [how to verify it works]\n\n### Subtask 2: [Name]\n...\n\n### Execution Order: 1 -> 2 -> 3 -> ...\n```\n\nRULES:\n- Maximum 10 subtasks\n- Each subtask must be independently verifiable\n- Include file paths and function names\n- Order matters - respect dependencies\n\nAfter your plan, say: \"PLAN COMPLETE. Handing off to Coder Agent.\"\nRespond in the same language as the user.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "코드 구현 에이전트",
+        "label": "Pipeline: Coder",
+        "config": {
+          "name": "coder_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "코드 구현 에이전트",
+          "system_message": "You are the CODER - Stage 5 of the project pipeline.\n\nYOUR ROLE: Implement the code according to the plan. Write clean, working code for each subtask.\n\nWORKFLOW POSITION: You receive the implementation plan. You write ALL the code.\n\nYOUR OUTPUT FORMAT:\nFor each subtask:\n```\n### Subtask N: [Name]\n```python\n[actual code]\n```\n- Verification: [how you verified it]\n```\n\nRULES:\n- Follow the plan EXACTLY\n- Write complete, runnable code (not pseudocode)\n- Include imports, error handling\n- Show the full file content, not diffs\n- After ALL subtasks: \"CODE COMPLETE. Handing off to QA Reviewer.\"\n\nRespond in the same language as the user.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "코드 품질 검토 에이전트",
+        "label": "Pipeline: QA Reviewer",
+        "config": {
+          "name": "qa_reviewer_agent",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "코드 품질 검토 에이전트",
+          "system_message": "You are the QA REVIEWER - Stage 6 of the project pipeline.\n\nYOUR ROLE: Review ALL code produced by the Coder. Check for correctness, completeness, security, and production-readiness.\n\nWORKFLOW POSITION: You receive the Coder's output. You produce a review verdict.\n\nYOUR OUTPUT FORMAT:\n```\n## QA Review Report\n### Overall Verdict: PASS / FAIL\n\n### Issue 1: [severity: critical/major/minor]\n- File: [filename]\n- Line: [approximate]\n- Problem: [description]\n- Fix: [what should be changed]\n\n### Issue 2: ...\n\n### Summary\n- Critical: N issues\n- Major: N issues\n- Minor: N issues\n- Verdict: PASS (ship it) / FAIL (needs fixes)\n```\n\nRULES:\n- Be thorough but practical\n- PASS = no critical/major issues\n- FAIL = has critical or major issues\n- If FAIL: \"QA FAILED. Handing off to QA Fixer.\"\n- If PASS: \"QA PASSED. Project complete. TERMINATE\"\n\nRespond in the same language as the user.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "QA 이슈 수정 에이전트",
+        "label": "Pipeline: QA Fixer",
+        "config": {
+          "name": "qa_fixer_agent",
+          "model_client": {
+            "provider": "autogen_ext.models.openai.OpenAIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "OpenAI GPT-4o-mini",
+            "description": "OpenAI GPT-4o-mini for fast pipeline execution",
+            "config": {
+              "model": "gpt-4o-mini"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "QA 이슈 수정 에이전트",
+          "system_message": "You are the QA FIXER - Stage 7 of the project pipeline.\n\nYOUR ROLE: Fix ALL issues identified by the QA Reviewer. Produce corrected code.\n\nWORKFLOW POSITION: You receive the QA Review Report with specific issues. You fix them all.\n\nYOUR OUTPUT FORMAT:\n```\n## QA Fix Report\n### Fix 1: [Issue title]\n- Problem: [what was wrong]\n- Solution: [what you changed]\n```python\n[corrected code]\n```\n\n### Fix 2: ...\n\n### All fixes applied.\n```\n\nAfter fixing, say: \"FIXES COMPLETE. Handing back to QA Reviewer for re-review.\"\n\nRULES:\n- Fix EVERY issue listed (critical + major + minor)\n- Show the complete corrected code, not just diffs\n- Don't introduce new issues\n\nRespond in the same language as the user.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "version": 2,
+        "component_version": 2,
+        "description": "Planner Agent - codebase investigation then subtask-based implementation plan.",
+        "label": "Auto-Claude Planner",
+        "config": {
+          "name": "planner_agent_1",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "component_version": 1,
+            "label": "Claude Opus 4.5 (Max OAuth)",
+            "description": "Claude Opus 4.5 - Max OAuth. Auto-Claude Complex/Auto profile.",
+            "config": {
+              "model": "claude-opus-4-5-20251101"
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "chat_completion_context",
+            "version": 1,
+            "component_version": 1,
+            "description": "An unbounded chat completion context.",
+            "label": "UnboundedChatCompletionContext",
+            "config": {}
+          },
+          "description": "Planner Agent - codebase investigation then subtask-based implementation plan.",
+          "system_message": "You are the Planner Agent in an autonomous development process. Your job is to create a subtask-based implementation plan. Investigate the codebase deeply first, then create ordered subtasks that respect dependencies. Each subtask should be scoped to one service. When done, say TERMINATE.",
+          "model_client_stream": false,
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "metadata": {}
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.conditions.TextMentionTermination",
+      "component_type": "termination",
+      "version": 1,
+      "component_version": 1,
+      "description": "Terminate when TERMINATE is mentioned",
+      "label": "TextMentionTermination",
+      "config": {
+        "text": "TERMINATE"
+      }
+    },
+    "max_turns": 30
+  }
+}

@@ -1,0 +1,17 @@
+name = "law-light-api"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+
+# Secrets (wrangler secret put):
+#   LAW_OC          — 법제처 Open API 인증키
+#   VWORLD_API_KEY  — Vworld 지오코딩 키
+#   OPENAI_API_KEY  — OpenAI LLM (gpt-4o-mini, chat completions)
+#   JINA_API_KEY    — Jina embeddings v3 (1024-dim, Vectorize 쿼리)
+#   ARR_BACKEND_URL — Railway ARR Django backend (e.g. https://arr-backend-xxx.up.railway.app)
+
+[placement]
+mode = "smart"
+
+[[vectorize]]
+binding = "LAW_VECTORS"
+index_name = "law-articles"

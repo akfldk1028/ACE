@@ -1,0 +1,171 @@
+{
+  "provider": "autogen_agentchat.teams.Swarm",
+  "component_type": "team",
+  "version": 2,
+  "description": "핸드오프 팀 - 고객 서비스 라우팅. 에이전트가 작업 요구사항에 따라 다른 에이전트에게 동적으로 제어권을 이전.",
+  "label": "Handoff Team (Template)",
+  "config": {
+    "participants": [
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "triage_agent",
+          "system_message": "당신은 고객 문의 분류 담당입니다. 문의 유형을 파악하고 적절한 담당자에게 전달하세요.",
+          "handoffs": [
+            "support_agent",
+            "sales_agent",
+            "refund_agent"
+          ],
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "profile": "balanced",
+              "agent_config": {
+                "profile": "text_only",
+                "max_turns": 1
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          },
+          "description": "고객 문의 분류"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "support_agent",
+          "system_message": "당신은 기술 지원 담당입니다. 기술적인 문제를 해결하세요.",
+          "handoffs": [
+            "triage_agent"
+          ],
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "profile": "balanced",
+              "agent_config": {
+                "profile": "text_only",
+                "max_turns": 1
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          },
+          "description": "기술 지원"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "sales_agent",
+          "system_message": "당신은 영업 담당입니다. 제품 문의와 구매 관련 질문에 답하세요.",
+          "handoffs": [
+            "triage_agent"
+          ],
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "profile": "balanced",
+              "agent_config": {
+                "profile": "text_only",
+                "max_turns": 1
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          },
+          "description": "영업 담당"
+        }
+      },
+      {
+        "provider": "autogen_agentchat.agents.AssistantAgent",
+        "component_type": "agent",
+        "config": {
+          "name": "refund_agent",
+          "system_message": "당신은 환불 담당입니다. 환불 요청을 처리하세요.",
+          "handoffs": [
+            "triage_agent"
+          ],
+          "reflect_on_tool_use": false,
+          "tool_call_summary_format": "{result}",
+          "model_client": {
+            "provider": "AG_Cohub.model_factory.ClaudeCLIChatCompletionClient",
+            "component_type": "model",
+            "version": 1,
+            "label": "Claude Sonnet 4.5 (Max OAuth)",
+            "description": "Claude Sonnet 4.5 - Max OAuth. Auto-Claude Balanced profile.",
+            "config": {
+              "model": "claude-sonnet-4-5-20250929",
+              "profile": "balanced",
+              "agent_config": {
+                "profile": "text_only",
+                "max_turns": 1
+              }
+            }
+          },
+          "model_context": {
+            "provider": "autogen_core.model_context.UnboundedChatCompletionContext",
+            "component_type": "model",
+            "config": {}
+          },
+          "description": "환불 담당"
+        }
+      }
+    ],
+    "termination_condition": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "component_type": "termination",
+      "config": {
+        "conditions": [
+          {
+            "provider": "autogen_agentchat.conditions.TextMentionTermination",
+            "component_type": "termination",
+            "config": {
+              "text": "TERMINATE"
+            }
+          },
+          {
+            "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+            "component_type": "termination",
+            "config": {
+              "max_messages": 10
+            }
+          }
+        ]
+      }
+    }
+  }
+}

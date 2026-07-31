@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 2,
+  "label": "Auto-Claude QA Fixer",
+  "description": "이슈 수정 및 리팩토링 에이전트",
+  "config": {
+    "name": "qa_fixer_agent",
+    "system_message": "당신은 QA 수정 담당입니다. 리뷰어가 발견한 이슈를 수정하세요."
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "metadata": {
+    "checkpoint_status": "PRE-LEGAL / NOT EVALUATED",
+    "paid_author_request_count": 0,
+    "paid_vlm_request_count": 0
+  },
+  "name": "continuous_section_surface_shell",
+  "nodes": [
+    {
+      "id": "unitbox",
+      "inputs": [],
+      "kind": "primitive",
+      "operator": "box",
+      "parameters": {
+        "depth": 1.0,
+        "height": 1.0,
+        "width": 1.0
+      },
+      "provenance": {},
+      "semantic_role": "base_seed"
+    },
+    {
+      "id": "host",
+      "inputs": [
+        "unitbox"
+      ],
+      "kind": "transform",
+      "operator": "matrix4",
+      "parameters": {
+        "matrix4": [
+          [
+            20.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            12.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            8.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "provenance": {},
+      "semantic_role": "base_seed"
+    },
+    {
+      "id": "section",
+      "inputs": [
+        "host"
+      ],
+      "kind": "surface",
+      "operator": "section_surface",
+      "parameters": {
+        "section_controls": [
+          [
+            0.0,
+            0.12
+          ],
+          [
+            0.18,
+            0.12
+          ],
+          [
+            0.38,
+            0.82
+          ],
+          [
+            0.76,
+            0.82
+          ],
+          [
+            1.0,
+            0.28
+          ]
+        ],
+        "span_axis": "x"
+      },
+      "provenance": {},
+      "semantic_role": "envelope"
+    },
+    {
+      "id": "shell",
+      "inputs": [
+        "section"
+      ],
+      "kind": "conversion",
+      "operator": "shell_thicken",
+      "parameters": {
+        "close_edges": true,
+        "side": "center",
+        "thickness_ratio": 0.04
+      },
+      "provenance": {},
+      "semantic_role": "roof"
+    }
+  ],
+  "root_id": "shell",
+  "schema_version": "arr.maas.geometry_program.v1"
+}

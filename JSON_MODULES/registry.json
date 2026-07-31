@@ -1,0 +1,290 @@
+{
+  "_schema": "AG_Cohub Component Registry v1",
+  "_description": "ID-based reference system for all JSON module components. Maps logical IDs to file paths for DRY composition.",
+  "_meta": {
+    "resolver_version": "1.0",
+    "compact_dir": "templates_compact",
+    "resolved_dir": "resolved"
+  },
+  "agents": {
+    "auto_claude_planner": {
+      "file": "agents/auto_claude_01_Auto_Claude_Planner.json",
+      "name": "planner_agent",
+      "label": "Auto-Claude Planner"
+    },
+    "auto_claude_coder": {
+      "file": "agents/auto_claude_02_Auto_Claude_Coder.json",
+      "name": "coder_agent",
+      "label": "Auto-Claude Coder"
+    },
+    "auto_claude_qa_reviewer": {
+      "file": "agents/auto_claude_03_Auto_Claude_QA_Reviewer.json",
+      "name": "qa_reviewer_agent",
+      "label": "Auto-Claude QA Reviewer"
+    },
+    "auto_claude_qa_fixer": {
+      "file": "agents/auto_claude_04_Auto_Claude_QA_Fixer.json",
+      "name": "qa_fixer_agent",
+      "label": "Auto-Claude QA Fixer"
+    },
+    "auto_claude_insights": {
+      "file": "agents/auto_claude_05_Insights_Analyst.json",
+      "name": "insights_agent",
+      "label": "Insights Analyst"
+    },
+    "auto_claude_deep_research": {
+      "file": "agents/auto_claude_06_Deep_Research_Agent.json",
+      "name": "deep_research_agent",
+      "label": "Deep Research Agent"
+    },
+    "auto_claude_spec_writer": {
+      "file": "agents/auto_claude_07_Spec_Writer_Agent.json",
+      "name": "spec_writer_agent",
+      "label": "Spec Writer Agent"
+    },
+    "pattern_advocate": {
+      "file": "agents/pattern_01_Advocate_Debate.json",
+      "name": "advocate",
+      "label": "Advocate (Debate)"
+    },
+    "pattern_critic_debate": {
+      "file": "agents/pattern_02_Critic_Debate.json",
+      "name": "critic",
+      "label": "Critic (Debate)"
+    },
+    "pattern_judge": {
+      "file": "agents/pattern_03_Judge_Debate.json",
+      "name": "judge",
+      "label": "Judge (Debate)"
+    },
+    "pattern_generator": {
+      "file": "agents/pattern_04_Generator_Reflection.json",
+      "name": "generator",
+      "label": "Generator (Reflection)"
+    },
+    "pattern_critic_reflection": {
+      "file": "agents/pattern_05_Critic_Reflection.json",
+      "name": "critic",
+      "label": "Critic (Reflection)"
+    },
+    "pattern_researcher": {
+      "file": "agents/pattern_06_Researcher_Sequential.json",
+      "name": "researcher",
+      "label": "Researcher (Sequential)"
+    },
+    "pattern_writer": {
+      "file": "agents/pattern_07_Writer_Sequential.json",
+      "name": "writer",
+      "label": "Writer (Sequential)"
+    },
+    "pattern_reviewer": {
+      "file": "agents/pattern_08_Reviewer_Sequential.json",
+      "name": "reviewer",
+      "label": "Reviewer (Sequential)"
+    },
+    "pattern_coordinator": {
+      "file": "agents/pattern_09_Coordinator_Selector.json",
+      "name": "coordinator",
+      "label": "Coordinator (Selector)"
+    },
+    "pattern_history_expert": {
+      "file": "agents/pattern_10_History_Expert_Selector.json",
+      "name": "history_expert",
+      "label": "History Expert (Selector)"
+    },
+    "pattern_science_expert": {
+      "file": "agents/pattern_11_Science_Expert_Selector.json",
+      "name": "science_expert",
+      "label": "Science Expert (Selector)"
+    },
+    "pattern_math_expert": {
+      "file": "agents/pattern_12_Math_Expert_Selector.json",
+      "name": "math_expert",
+      "label": "Math Expert (Selector)"
+    },
+    "pattern_triage": {
+      "file": "agents/pattern_13_Triage_Handoff.json",
+      "name": "triage_agent",
+      "label": "Triage Agent (Handoff)"
+    },
+    "pattern_support": {
+      "file": "agents/pattern_14_Support_Handoff.json",
+      "name": "support_agent",
+      "label": "Support Agent (Handoff)"
+    },
+    "pattern_sales": {
+      "file": "agents/pattern_15_Sales_Handoff.json",
+      "name": "sales_agent",
+      "label": "Sales Agent (Handoff)"
+    },
+    "pattern_refund": {
+      "file": "agents/pattern_16_Refund_Handoff.json",
+      "name": "refund_agent",
+      "label": "Refund Agent (Handoff)"
+    }
+  },
+  "models": {
+    "claude_opus": {
+      "file": "models/claude_01_Claude_Opus_4.5_Max_OAuth.json",
+      "model": "claude-opus-4-5-20251101",
+      "label": "Claude Opus 4.5 (Max OAuth)"
+    },
+    "claude_sonnet": {
+      "file": "models/claude_02_Claude_Sonnet_4.5_Max_OAuth.json",
+      "model": "claude-sonnet-4-5-20250929",
+      "label": "Claude Sonnet 4.5 (Max OAuth)"
+    },
+    "claude_haiku": {
+      "file": "models/claude_03_Claude_Haiku_4.5_Max_OAuth.json",
+      "model": "claude-haiku-4-5-20251001",
+      "label": "Claude Haiku 4.5 (Max OAuth)"
+    },
+    "openai_gpt4o_mini": {
+      "file": "models/default_01_OpenAI_GPT_4o_Mini.json",
+      "model": "gpt-4o-mini",
+      "label": "OpenAI GPT-4o Mini"
+    },
+    "mistral_7b": {
+      "file": "models/default_02_Mistral_7B_Local.json",
+      "model": "mistral:7b-instruct",
+      "label": "Mistral-7B Local"
+    },
+    "anthropic_claude_3": {
+      "file": "models/default_03_Anthropic_Claude_3_7.json",
+      "model": "claude-3-5-sonnet-20241022",
+      "label": "Anthropic Claude-3-7"
+    },
+    "azure_gpt4o_mini": {
+      "file": "models/default_04_AzureOpenAI_GPT_4o_mini.json",
+      "model": "gpt-4o-mini",
+      "label": "AzureOpenAI GPT-4o-mini"
+    }
+  },
+  "terminations": {
+    "terminate_text": {
+      "provider": "autogen_agentchat.conditions.TextMentionTermination",
+      "config": { "text": "TERMINATE" }
+    },
+    "approved_text": {
+      "provider": "autogen_agentchat.conditions.TextMentionTermination",
+      "config": { "text": "APPROVED" }
+    },
+    "max_10": {
+      "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+      "config": { "max_messages": 10 }
+    },
+    "max_6": {
+      "provider": "autogen_agentchat.conditions.MaxMessageTermination",
+      "config": { "max_messages": 6 }
+    },
+    "default_or": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "conditions": ["terminate_text", "max_10"]
+    },
+    "reflection_or": {
+      "provider": "autogen_agentchat.base.OrTerminationCondition",
+      "conditions": ["approved_text", "max_6"]
+    }
+  },
+  "a2a_agents": {
+    "calculator": {
+      "file": "a2a_agents/calculator_agent.json",
+      "name": "calculator_agent",
+      "port": 8006,
+      "label": "Calculator Agent"
+    },
+    "poetry": {
+      "file": "a2a_agents/poetry_agent.json",
+      "name": "poetry_agent",
+      "port": 8003,
+      "label": "Poetry Agent"
+    },
+    "philosophy": {
+      "file": "a2a_agents/philosophy_agent.json",
+      "name": "philosophy_agent",
+      "port": 8004,
+      "label": "Philosophy Agent"
+    },
+    "history": {
+      "file": "a2a_agents/history_agent.json",
+      "name": "history_agent",
+      "port": 8005,
+      "label": "History Agent"
+    },
+    "math": {
+      "file": "a2a_agents/math_agent.json",
+      "name": "math_agent",
+      "port": 8007,
+      "label": "Math Agent"
+    },
+    "graphics": {
+      "file": "a2a_agents/graphics_agent.json",
+      "name": "graphics_agent",
+      "port": 8008,
+      "label": "Graphics Agent"
+    },
+    "gpu": {
+      "file": "a2a_agents/gpu_agent.json",
+      "name": "gpu_agent",
+      "port": 8009,
+      "label": "GPU Agent"
+    },
+    "gui_test": {
+      "file": "a2a_agents/gui_test_agent.json",
+      "name": "gui_test_agent",
+      "port": 8120,
+      "label": "GUI Test Agent"
+    },
+    "history_helper": {
+      "file": "a2a_agents/history_helper_agent.json",
+      "name": "history_helper_agent",
+      "port": 8001,
+      "label": "History Helper Agent"
+    },
+    "remote_prime_checker": {
+      "file": "a2a_agents/remote_prime_checker.json",
+      "name": "prime_checker_agent",
+      "port": 8002,
+      "label": "Remote Prime Checker"
+    }
+  },
+  "teams": {
+    "sequential": {
+      "file": "templates/sequential_team.json",
+      "gallery": "cohub_gallery.json#teams[0]",
+      "pattern": "patterns/01_sequential.json"
+    },
+    "selector": {
+      "file": "templates/selector_team.json",
+      "gallery": "cohub_gallery.json#teams[1]",
+      "pattern": "patterns/03_selector.json"
+    },
+    "handoff": {
+      "file": "templates/handoff_team.json",
+      "gallery": "cohub_gallery.json#teams[2]",
+      "pattern": "patterns/05_handoff.json"
+    },
+    "debate": {
+      "file": "templates/debate_team.json",
+      "gallery": "cohub_gallery.json#teams[3]",
+      "pattern": "patterns/07_debate.json"
+    },
+    "reflection": {
+      "file": "templates/reflection_team.json",
+      "gallery": "cohub_gallery.json#teams[4]",
+      "pattern": "patterns/08_reflection.json"
+    },
+    "auto_claude_dev": {
+      "file": "templates_compact/auto_claude_dev_team.json",
+      "label": "Auto-Claude Dev Team (4-Agent Pipeline)"
+    },
+    "hybrid_calculator": {
+      "file": "templates_compact/hybrid_calculator_team.json",
+      "label": "Hybrid Calculator Team"
+    },
+    "maas_legal_design": {
+      "file": "teams/041_MAAS_Legal_Design_Team.json",
+      "label": "MAAS Legal Design Team (법규-주차-매스 협업팀)"
+    }
+  }
+}

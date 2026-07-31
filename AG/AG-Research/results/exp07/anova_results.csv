@@ -1,0 +1,11 @@
+test,H_statistic,p_value
+difficulty_main,55.954,0.0
+pattern_main,8.238,0.083247
+pattern_within_easy,10.586,0.031634
+pattern_within_medium,11.756,0.019259
+pattern_within_hard,11.814,0.018785
+difficulty_within_solo,19.277,6.5e-05
+difficulty_within_swm3,6.267,0.043571
+difficulty_within_sel3,6.346,0.041873
+difficulty_within_refl2,21.095,2.6e-05
+difficulty_within_debate3,23.554,8e-06

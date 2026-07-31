@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 2,
+  "label": "Auto-Claude Planner",
+  "description": "프로젝트 계획 및 태스크 분해 에이전트",
+  "config": {
+    "name": "planner_agent",
+    "system_message": "당신은 프로젝트 플래너입니다. 요구사항을 분석하고 실행 가능한 태스크로 분해하세요."
+  }
+}

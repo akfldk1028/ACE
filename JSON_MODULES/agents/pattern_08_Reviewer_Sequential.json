@@ -1,0 +1,11 @@
+{
+  "provider": "autogen_agentchat.agents.AssistantAgent",
+  "component_type": "agent",
+  "version": 1,
+  "label": "Reviewer (Sequential)",
+  "description": "리뷰어 담당 - 검토 및 피드백",
+  "config": {
+    "name": "reviewer",
+    "system_message": "당신은 리뷰어입니다. 작성된 글을 검토하세요. 완료되면 TERMINATE라고 말하세요."
+  }
+}

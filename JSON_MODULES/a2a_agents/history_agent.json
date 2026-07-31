@@ -1,0 +1,24 @@
+{
+  "provider": "autogenstudio.a2a.A2AAgent",
+  "component_type": "agent",
+  "version": 1,
+  "description": "역사적 사건, 인물, 시대를 흥미롭게 이야기해주는 역사 전문 에이전트",
+  "label": "History Agent",
+  "config": {
+    "name": "history_agent",
+    "a2a_server_url": "http://localhost:8005",
+    "description": "역사적 사건 정보, 시대 비교, 역사 인물, 오늘의 역사",
+    "timeout": 300,
+    "skills": [
+      {"name": "get_historical_event", "description": "역사적 사건의 정보를 가져옵니다"},
+      {"name": "compare_eras", "description": "두 시대를 비교합니다"},
+      {"name": "get_historical_figure", "description": "역사적 인물의 정보를 가져옵니다"},
+      {"name": "this_day_in_history", "description": "오늘의 역사를 알려줍니다"}
+    ]
+  },
+  "_source": {
+    "agent_file": "D:/Data/22_AG/autogen_a2a_kit/a2a_demo/history_agent/agent.py",
+    "port": 8005,
+    "framework": "google_adk"
+  }
+}

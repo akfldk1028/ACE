@@ -1,0 +1,229 @@
+{
+  "schema_version": "arr.maas.portfolio_vlm_directive.v1",
+  "pnu": "1168011800104170004",
+  "status": "active",
+  "provider": "codex_session_vision",
+  "reviewed_at": "2026-07-16",
+  "reference_images": [
+    "docs/KakaoTalk_20260715_095428011.jpg",
+    "docs/KakaoTalk_20260715_095428011_02.jpg",
+    "docs/playwright/design-route-live-verify/book-program-portfolios/maas-book-gymnasium-20.png"
+  ],
+  "diagnosis": [
+    "The r12 portfolio still fails: 14/20 and roughly ten accepted cards collapse to one oblique wedge or pyramidal family despite six different graph labels.",
+    "The SongEun image is one cutting-language reference, not a target distribution; repeating its triangular silhouette is reference overfitting.",
+    "The Amorepacific image contributes carved-void and cantilever relations, not a cubic template. Curved, stepped, courtyard, split-wing, calm box, and oblique languages must coexist as actual geometry."
+  ],
+  "programs": {
+    "neighborhood": {
+      "live_geometry_vlm_revision": true,
+      "required_solid_phenotypes": [
+        "prismatic",
+        "curved",
+        "stepped",
+        "voided",
+        "winged",
+        "oblique"
+      ],
+      "max_wedge_like_count": 4,
+      "max_pyramidal_like_count": 2,
+      "max_solid_phenotype_count": 6,
+      "max_chassis_family_count": 8,
+      "geometry_program_mutations": [],
+      "geometry_synthesis_requests": [
+        {
+          "source_seed": "program_neighborhood_active_bar",
+          "base_seeds": ["bar", "slab", "block"],
+          "intent_tags": [
+            "calm_prismatic",
+            "long_span",
+            "continuous_curve",
+            "stepped_section",
+            "carved_void",
+            "lifted_ground",
+            "distributed_wings",
+            "oblique_section"
+          ],
+          "candidate_count": 24,
+          "maximum_operator_depth": 2,
+          "legal_fit_strengths": [0.0, 0.4, 0.8],
+          "rationale": "Explore an active street-edge role graph through normalized bases and bounded recursive operators; no parcel coordinates or completed form are supplied."
+        },
+        {
+          "source_seed": "program_neighborhood_court_terrace",
+          "base_seeds": ["slab", "bar", "profiled_prism"],
+          "intent_tags": [
+            "calm_prismatic",
+            "carved_void",
+            "stepped_section",
+            "continuous_curve",
+            "lifted_ground",
+            "distributed_wings",
+            "oblique_section"
+          ],
+          "candidate_count": 24,
+          "maximum_operator_depth": 2,
+          "legal_fit_strengths": [0.0, 0.4, 0.8],
+          "rationale": "Search a public-court lineage independently so street bar, court, terrace, curve and wing capabilities compete through measured gates."
+        }
+      ],
+      "typed_graph_mutations": []
+    },
+    "gymnasium": {
+      "live_geometry_vlm_revision": true,
+      "required_solid_phenotypes": [
+        "prismatic",
+        "curved",
+        "stepped",
+        "voided",
+        "winged",
+        "oblique"
+      ],
+      "max_wedge_like_count": 4,
+      "max_pyramidal_like_count": 2,
+      "max_solid_phenotype_count": 6,
+      "max_chassis_family_count": 8,
+      "geometry_program_mutations": [],
+      "geometry_synthesis_requests": [
+        {
+          "source_seed": "program_gym_folded_service_hall",
+          "base_seeds": ["slab", "bar", "block"],
+          "intent_tags": [
+            "calm_prismatic",
+            "long_span",
+            "continuous_curve",
+            "oblique_section",
+            "stepped_section",
+            "carved_void",
+            "lifted_ground",
+            "daylight_section"
+          ],
+          "candidate_count": 24,
+          "maximum_operator_depth": 2,
+          "legal_fit_strengths": [0.0, 0.4, 0.8],
+          "rationale": "Synthesize recursive solids from normalized bases and bounded operator stacks; do not select a named finished form."
+        },
+        {
+          "source_seed": "program_gym_hall_entry_bar",
+          "base_seeds": ["bar", "slab", "profiled_prism"],
+          "intent_tags": [
+            "calm_prismatic",
+            "long_span",
+            "continuous_curve",
+            "oblique_section",
+            "distributed_wings",
+            "carved_void"
+          ],
+          "candidate_count": 24,
+          "maximum_operator_depth": 2,
+          "legal_fit_strengths": [0.0, 0.4, 0.8],
+          "rationale": "Generate a second topology lineage on another program-role graph so one host chassis cannot dominate."
+        }
+      ],
+      "typed_graph_mutations": [
+        {
+          "source_seed": "program_gym_long_span_hall",
+          "operation": "replace_roof_operator",
+          "target_node_id": "roof",
+          "operator_value": "flat_roof",
+          "rationale": "Retain the long-span role graph but test a calm cubic hall instead of another gable."
+        },
+        {
+          "source_seed": "program_gym_long_span_hall",
+          "operation": "replace_roof_operator",
+          "target_node_id": "roof",
+          "operator_value": "shed_roof",
+          "rationale": "Create one-direction sectional lift comparable to the oblique monolithic reference without copying its coordinates."
+        },
+        {
+          "source_seed": "program_gym_hall_entry_bar",
+          "operation": "replace_roof_operator",
+          "target_node_id": "roof",
+          "operator_value": "barrel_roof",
+          "rationale": "Test a long-span curved section on an existing program-role chassis."
+        },
+        {
+          "source_seed": "program_gym_carved_entry_hall",
+          "operation": "replace_roof_operator",
+          "target_node_id": "roof",
+          "operator_value": "flat_roof",
+          "rationale": "Combine a flat monolithic box with the existing typed entry subtraction rather than a finished-form template."
+        },
+        {
+          "source_seed": "program_gym_folded_service_hall",
+          "operation": "replace_roof_operator",
+          "target_node_id": "roof",
+          "operator_value": "flat_roof",
+          "rationale": "Test the flat-box section on an offset service chassis instead of repeating one host geometry."
+        },
+        {
+          "source_seed": "program_gym_sawtooth_daylight_hall",
+          "operation": "replace_roof_operator",
+          "target_node_id": "roof",
+          "operator_value": "shed_roof",
+          "rationale": "Test a mono-pitch hall with the existing daylight and service relationships under bounded graph validation."
+        },
+        {
+          "source_seed": "program_gym_stepped_section_hall",
+          "operation": "replace_roof_operator",
+          "target_node_id": "roof",
+          "operator_value": "barrel_roof",
+          "rationale": "Cross a curved long-span section with the existing stepped program chassis; retain only if geometry gates pass."
+        }
+      ]
+    },
+    "cultural": {
+      "live_geometry_vlm_revision": true,
+      "required_solid_phenotypes": [
+        "prismatic",
+        "curved",
+        "stepped",
+        "voided",
+        "winged",
+        "oblique"
+      ],
+      "max_wedge_like_count": 4,
+      "max_pyramidal_like_count": 2,
+      "max_solid_phenotype_count": 6,
+      "max_chassis_family_count": 8,
+      "geometry_program_mutations": [],
+      "geometry_synthesis_requests": [
+        {
+          "source_seed": "program_cultural_court_bridge",
+          "base_seeds": ["slab", "block", "profiled_prism"],
+          "intent_tags": [
+            "calm_prismatic",
+            "carved_void",
+            "distributed_wings",
+            "lifted_ground",
+            "continuous_curve",
+            "stepped_section",
+            "oblique_section"
+          ],
+          "candidate_count": 24,
+          "maximum_operator_depth": 2,
+          "legal_fit_strengths": [0.0, 0.4, 0.8],
+          "rationale": "Explore civic court, bridge and carved-hall relations with normalized bases; the reference contributes operation language only."
+        },
+        {
+          "source_seed": "program_cultural_split_gallery_ramp",
+          "base_seeds": ["bar", "slab", "block"],
+          "intent_tags": [
+            "calm_prismatic",
+            "distributed_wings",
+            "carved_void",
+            "continuous_curve",
+            "stepped_section",
+            "lifted_ground",
+            "oblique_section"
+          ],
+          "candidate_count": 24,
+          "maximum_operator_depth": 2,
+          "legal_fit_strengths": [0.0, 0.4, 0.8],
+          "rationale": "Generate a second gallery lineage so court, split wing, ramp-like lift and calm hall alternatives are evaluated causally."
+        }
+      ],
+      "typed_graph_mutations": []
+    }
+  }
+}

@@ -5,11 +5,14 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from django.test import SimpleTestCase
+from shapely.affinity import rotate
+from shapely.geometry import box
 
 from design.maas.book_exploration_graph import build_book_exploration_graph
 from design.maas.geometry_language.affine_matrix import (
     compose_matrix4,
     identity_matrix4,
+    inverse_matrix4,
     matrix4_for_transform,
     transform_point3,
     validate_matrix4,
@@ -18,10 +21,129 @@ from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
 from design.maas.geometry_language.compiler import compile_geometry_program
 from design.maas.geometry_language.execution_passport import build_mass_execution_passport
 from design.maas.geometry_language.programs import architectural_shape_programs
+from design.maas.geometry_language.source_bridge import (
+    append_site_placement_matrix,
+    derive_host_fit_transform,
+)
 from design.maas.single_execution import execute_single_mass
 
 
+def _maximum_vertex_delta(
+    actual: tuple[tuple[float, float, float], ...],
+    expected: tuple[tuple[float, float, float], ...],
+) -> float:
+    """Return the largest corresponding-vertex delta."""
+
+    if len(actual) != len(expected):
+        return float("inf")
+    return max(
+        sum((left[index] - right[index]) ** 2 for index in range(3)) ** 0.5
+        for left, right in zip(actual, expected)
+    )
+
+
 class UnitBoxMatrixContractTest(SimpleTestCase):
+    def test_affine_inverse_round_trips_and_rejects_singular_matrices(self):
+        matrix = compose_matrix4(
+            matrix4_for_transform("scale", {"vector": [2.0, 3.0, 4.0]}),
+            matrix4_for_transform("rotate", {"angles": [11.0, -7.0, 23.0]}),
+            matrix4_for_transform("translate", {"vector": [5.0, 7.0, 11.0]}),
+        )
+        inverse = inverse_matrix4(matrix)
+
+        self.assertEqual(inverse[3], (0.0, 0.0, 0.0, 1.0))
+        self.assertEqual(
+            transform_point3(inverse, transform_point3(matrix, (1.0, 2.0, 3.0))),
+            (1.0, 2.0, 3.0),
+        )
+        tiny_scale = matrix4_for_transform(
+            "scale",
+            {"vector": [1e-5, 1e-5, 1e-5]},
+        )
+        self.assertEqual(
+            transform_point3(
+                inverse_matrix4(tiny_scale),
+                transform_point3(tiny_scale, (1.0, 2.0, 3.0)),
+            ),
+            (1.0, 2.0, 3.0),
+        )
+        with self.assertRaises(ValueError):
+            inverse_matrix4((
+                (1.0, 0.0, 0.0, 0.0),
+                (0.0, 1.0, 0.0, 0.0),
+                (0.0, 0.0, 0.0, 0.0),
+                (0.0, 0.0, 0.0, 1.0),
+            ))
+
+    def test_site_fit_matrix_recompiles_to_the_exact_fitted_vertices(self):
+        unit = GeometryNode(
+            "unit_box",
+            "primitive",
+            "box",
+            parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        slab = GeometryNode(
+            "slab",
+            "transform",
+            "matrix4",
+            inputs=(unit.id,),
+            parameters={
+                "matrix4": [
+                    [18.0, 0.0, 0.0, 0.0],
+                    [0.0, 7.0, 0.0, 0.0],
+                    [0.0, 0.0, 5.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ],
+            },
+        )
+        authored_rotation = GeometryNode(
+            "authored_rotation",
+            "transform",
+            "rotate",
+            inputs=(slab.id,),
+            parameters={"axis": "z", "angle_degrees": 17.0},
+        )
+        program = GeometryProgram(
+            (unit, slab, authored_rotation),
+            authored_rotation.id,
+            "rotated_unitbox_slab",
+        )
+        compilation = compile_geometry_program(program)
+        host = rotate(
+            box(40.0, 70.0, 86.0, 96.0),
+            31.0,
+            origin=(63.0, 83.0),
+        )
+
+        fit = derive_host_fit_transform(compilation, host)
+        placed = append_site_placement_matrix(program, fit)
+        recompiled = compile_geometry_program(placed)
+
+        self.assertEqual(compilation.status, "compiled", compilation.issues)
+        self.assertEqual(recompiled.status, "compiled", recompiled.issues)
+        self.assertEqual(fit.matrix4[3], (0.0, 0.0, 0.0, 1.0))
+        self.assertEqual(len(recompiled.vertices), len(fit.world_vertices))
+        self.assertLess(
+            _maximum_vertex_delta(recompiled.vertices, fit.world_vertices),
+            1e-7,
+        )
+        canonical_boxes = [
+            node for node in placed.nodes
+            if node.kind == "primitive" and node.operator == "box"
+        ]
+        self.assertEqual(len(canonical_boxes), 1)
+        self.assertEqual(
+            canonical_boxes[0].parameters,
+            {"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        self.assertEqual(placed.root_id, "site_placement_matrix4")
+        self.assertEqual(placed.nodes[-1].operator, "matrix4")
+        self.assertEqual(placed.nodes[-1].inputs, (program.root_id,))
+        self.assertEqual(
+            placed.metadata["site_placement"]["upstream_program_hash"],
+            program.program_hash(),
+        )
+
     def test_multiple_authored_boxes_share_one_unitbox_authority(self):
         first = GeometryNode(
             "first_box",

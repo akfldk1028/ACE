@@ -10,12 +10,14 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from copy import deepcopy
-from dataclasses import replace
+from dataclasses import dataclass, replace
+import hashlib
+import json
 from math import atan2, cos, degrees, hypot, isfinite, pi, sin
 from typing import Any
 
 from shapely import make_valid, set_precision
-from shapely.affinity import affine_transform, translate
+from shapely.affinity import affine_transform, rotate, translate
 from shapely.errors import GEOSException
 from shapely.geometry import LineString, MultiPoint, Point, Polygon
 from shapely.geometry.polygon import orient
@@ -25,21 +27,105 @@ from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolu
 from design.maas.source_geometry.coherence import evaluate_source_volume_coherence
 from design.maas.source_geometry.polygon_quality import repair_source_polygon
 
-from .ast import GeometryNode, GeometryProgram
+from .ast import (
+    FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT,
+    GeometryNode,
+    GeometryProgram,
+)
 from .affine_matrix import (
+    Matrix4,
     compose_matrix4,
+    inverse_matrix4,
     matrix4_to_lists,
     rotation_matrix4,
     scale_matrix4,
+    transform_point3,
     translation_matrix4,
 )
 from .base_seeds import BASE_SEED_SPECS
 from .compiler import CompilationResult, compile_geometry_program
 from .gate import GeometryGatePolicy, compilation_gate
+from .replay_ring_transport import (
+    replay_polygon_origin,
+    replay_polygon_point_payload,
+)
 
 
 _COMPILATION_CACHE: "OrderedDict[str, CompilationResult]" = OrderedDict()
 _COMPILATION_CACHE_LIMIT = 512
+
+
+Point3 = tuple[float, float, float]
+
+
+@dataclass(frozen=True)
+class HostFitTransform:
+    matrix4: Matrix4
+    inverse_matrix4: Matrix4
+    world_vertices: tuple[Point3, ...]
+    achieved_plan_area_m2: float
+
+
+def derive_host_fit_transform(
+    compilation: CompilationResult,
+    host: Polygon,
+    *,
+    target_plan_area: float | None = None,
+    minimum_plan_area: float | None = None,
+) -> HostFitTransform | None:
+    """Derive one explicit affine placement for a compiled authored solid."""
+
+    repaired_host = repair_source_polygon(host, minimum_area=1.0)
+    if repaired_host is None:
+        return None
+    return _fit_vertices_to_host(
+        compilation,
+        repaired_host,
+        target_plan_area=target_plan_area,
+        minimum_plan_area=minimum_plan_area,
+    )
+
+
+def append_site_placement_matrix(
+    program: GeometryProgram,
+    fit: HostFitTransform,
+) -> GeometryProgram:
+    """Append one root Matrix4 while retaining the authored graph unchanged."""
+
+    upstream_program_hash = program.program_hash()
+    existing_ids = {node.id for node in program.nodes}
+    node_id = "site_placement_matrix4"
+    suffix = 2
+    while node_id in existing_ids:
+        node_id = f"site_placement_matrix4_{suffix}"
+        suffix += 1
+    placement = GeometryNode(
+        id=node_id,
+        kind="transform",
+        operator="matrix4",
+        inputs=(program.root_id,),
+        parameters={"matrix4": matrix4_to_lists(fit.matrix4)},
+        semantic_role="site_placement",
+        provenance={
+            "source": "principal_frame_host_fit",
+            "upstream_program_hash": upstream_program_hash,
+        },
+    )
+    metadata = deepcopy(program.metadata)
+    metadata["site_placement"] = {
+        "schema_version": "arr.maas.site_placement.v1",
+        "matrix_node_id": node_id,
+        "upstream_program_hash": upstream_program_hash,
+        "matrix4": matrix4_to_lists(fit.matrix4),
+        "inverse_matrix4": matrix4_to_lists(fit.inverse_matrix4),
+        "achieved_plan_area_m2": round(fit.achieved_plan_area_m2, 8),
+    }
+    return replace(
+        program,
+        nodes=tuple(deepcopy(program.nodes)) + (placement,),
+        root_id=node_id,
+        metadata=metadata,
+    )
 
 
 def _allocate_profiled_floor_targets(
@@ -47,6 +133,7 @@ def _allocate_profiled_floor_targets(
     planned_floor_areas_m2: tuple[float, ...],
     legal_floor_caps_m2: tuple[float, ...],
     authored_profile_ratios: tuple[float, ...],
+    ground_design_cap_m2: float | None = None,
 ) -> tuple[float, ...]:
     """Distribute one GFA budget without erasing the authored section profile.
 
@@ -67,11 +154,23 @@ def _allocate_profiled_floor_targets(
         max(0.0, float(value))
         for value in planned_floor_areas_m2[:count]
     )
-    caps = tuple(
+    caps = [
         max(0.0, float(value))
         for value in legal_floor_caps_m2[:count]
-    )
-    desired_total = min(sum(planned), sum(caps))
+    ]
+    if ground_design_cap_m2 is None:
+        desired_total = min(sum(planned), sum(caps))
+    else:
+        try:
+            ground_design_cap = float(ground_design_cap_m2)
+        except (TypeError, ValueError):
+            return ()
+        if not isfinite(ground_design_cap) or ground_design_cap < 0.0:
+            return ()
+        caps[0] = min(caps[0], ground_design_cap)
+        desired_total = sum(planned)
+        if sum(caps) + 1e-7 < desired_total:
+            return ()
     if desired_total <= 1e-9:
         return (0.0,) * count
 
@@ -110,6 +209,11 @@ def _allocate_profiled_floor_targets(
         active.difference_update(saturated)
         if progress <= 1e-9:
             break
+    if (
+        ground_design_cap_m2 is not None
+        and abs(sum(allocated) - desired_total) > 1e-6
+    ):
+        return ()
     return tuple(allocated)
 
 
@@ -118,6 +222,7 @@ def _requested_plan_axis_scales(
     host: Polygon,
     *,
     target_area: float,
+    target_angle_offset_degrees: float = 0.0,
 ) -> tuple[float, float] | None:
     """Return the least-anisotropic affine scales that can reach one target."""
 
@@ -130,8 +235,18 @@ def _requested_plan_axis_scales(
     source_frame = source_union.convex_hull
     if not isinstance(source_frame, Polygon):
         return None
-    _source_angle, source_width, source_depth = _principal_frame(source_frame)
-    _host_angle, host_width, host_depth = _principal_frame(host)
+    source_angle, _source_width, _source_depth = _principal_frame(
+        source_frame
+    )
+    target_angle = source_angle + float(target_angle_offset_degrees)
+    source_width, source_depth = _frame_dimensions_at_angle(
+        source_frame,
+        source_angle,
+    )
+    host_width, host_depth = _frame_dimensions_at_angle(
+        host,
+        target_angle,
+    )
     if min(source_width, source_depth, host_width, host_depth) <= 1e-9:
         return None
     requested_product = max(0.2, float(target_area)) / max(
@@ -152,6 +267,22 @@ def _requested_plan_axis_scales(
     if min(x_scale, y_scale) <= 1e-9:
         return None
     return x_scale, y_scale
+
+
+def _frame_dimensions_at_angle(
+    polygon: Polygon,
+    angle_degrees: float,
+) -> tuple[float, float]:
+    """Measure x/y extents in one explicit architectural frame."""
+
+    aligned = rotate(
+        polygon,
+        -float(angle_degrees),
+        origin=polygon.centroid,
+        use_radians=False,
+    )
+    min_x, min_y, max_x, max_y = aligned.bounds
+    return float(max_x - min_x), float(max_y - min_y)
 
 
 def _exact_authored_mesh_section(
@@ -210,6 +341,32 @@ def _exact_authored_mesh_section(
     return section
 
 
+def _floor_target_fit_is_legal(
+    *,
+    achieved_area_m2: float,
+    target_area_m2: float,
+) -> bool:
+    achieved = float(achieved_area_m2)
+    target = float(target_area_m2)
+    return (
+        isfinite(achieved)
+        and isfinite(target)
+        and achieved > 1e-9
+        and achieved <= target + 1e-6
+    )
+
+
+def _floor_visual_section_matches_occupied(
+    *,
+    measured_area_m2: float,
+    occupied_area_m2: float,
+) -> bool:
+    return abs(
+        round(float(measured_area_m2), 6)
+        - round(float(occupied_area_m2), 6)
+    ) <= 1e-4
+
+
 def materialize_floorwise_legal_source(
     source: SourceMass,
     *,
@@ -255,30 +412,47 @@ def materialize_floorwise_legal_source(
             if float(volume.bottom_fraction) <= fraction < float(volume.top_fraction)
         ]
         active_by_floor.append(unary_union(active) if active else None)
-    ground_source = next(
-        (
-            geometry
-            for geometry in active_by_floor
-            if geometry is not None and not geometry.is_empty
-        ),
-        None,
+    viable_source_sections = tuple(
+        geometry
+        for geometry in active_by_floor
+        if geometry is not None
+        and not geometry.is_empty
+        and float(geometry.area) > 1e-9
+    )
+    ground_source = (
+        max(
+            viable_source_sections,
+            key=lambda geometry: float(geometry.area),
+        )
+        if viable_source_sections
+        else None
     )
     if ground_source is None or float(ground_source.area) <= 1e-9:
         return None
     ground_source_area = float(ground_source.area)
+    visual_fit_parts = _polygon_parts(source.footprint)
+    visual_fit_source = (
+        unary_union(visual_fit_parts)
+        if visual_fit_parts
+        else None
+    )
+    if (
+        visual_fit_source is None
+        or visual_fit_source.is_empty
+        or float(visual_fit_source.area) <= 1e-9
+    ):
+        return None
     ground_legal = repair_source_polygon(legal_sections[0], minimum_area=1.0)
     if ground_legal is None or ground_legal.is_empty:
         return None
     source_reference_angle, _source_width, _source_depth = _principal_frame(
-        ground_source.convex_hull
+        visual_fit_source.convex_hull
     )
     target_reference_angle, _target_width, _target_depth = _principal_frame(
         ground_legal
     )
     pose_rotation_degrees = target_reference_angle - source_reference_angle
-    source_reference_center = ground_source.centroid
-    target_reference_center = ground_legal.centroid
-
+    source_reference_center = visual_fit_source.centroid
     prepared_floors: list[tuple[Any, Polygon, float, float]] = []
     for floor_index, (raw_source, raw_legal) in enumerate(zip(
         active_by_floor,
@@ -316,26 +490,43 @@ def materialize_floorwise_legal_source(
             ),
         ))
 
-    allocated_floor_targets = _allocate_profiled_floor_targets(
-        planned_floor_areas_m2=tuple(
-            planned_area
-            for _source_plan, _legal, _profile_ratio, planned_area
-            in prepared_floors
-        ),
-        legal_floor_caps_m2=tuple(
+    planned_floor_targets = tuple(
+        planned_area
+        for _source_plan, _legal, _profile_ratio, planned_area
+        in prepared_floors
+    )
+    legal_floor_caps = tuple(
             # The caller's planned target already carries its utilization
             # band. Retry targets may use the remaining legal plate; exact
             # polygon containment below remains the geometric authority.
             float(legal.area)
             for _source_plan, legal, _profile_ratio, _planned_area
             in prepared_floors
+    )
+    ground_design_cap = min(
+        legal_floor_caps[0],
+        max(
+            planned_floor_targets[0],
+            legal_floor_caps[0] * coverage,
         ),
+    )
+    allocated_floor_targets = _allocate_profiled_floor_targets(
+        planned_floor_areas_m2=planned_floor_targets,
+        legal_floor_caps_m2=legal_floor_caps,
         authored_profile_ratios=tuple(
             profile_ratio
             for _source_plan, _legal, profile_ratio, _planned_area
             in prepared_floors
         ),
+        ground_design_cap_m2=ground_design_cap,
     )
+    if (
+        not allocated_floor_targets
+        or abs(
+            sum(allocated_floor_targets) - sum(planned_floor_targets)
+        ) > 1e-6
+    ):
+        return None
     global_axis_scales = _requested_plan_axis_scales(
         ground_source,
         ground_legal,
@@ -344,6 +535,7 @@ def materialize_floorwise_legal_source(
             if allocated_floor_targets
             else float(ground_legal.area) * coverage
         ),
+        target_angle_offset_degrees=pose_rotation_degrees,
     )
     if global_axis_scales is None:
         return None
@@ -353,6 +545,7 @@ def materialize_floorwise_legal_source(
     fitted_floor_results: list[
         tuple[Any, tuple[tuple[float, float, float, float], ...]] | None
     ] = []
+    floor_anisotropy_ratios: list[float] = []
     for floor_index, (
         source_plan,
         legal,
@@ -360,34 +553,36 @@ def materialize_floorwise_legal_source(
         _planned_floor_area,
     ) in enumerate(prepared_floors):
         target_area = allocated_floor_targets[floor_index]
-        source_dx = (
-            float(source_plan.centroid.x) - float(source_reference_center.x)
+        floor_axis_scales = _requested_plan_axis_scales(
+            source_plan,
+            legal,
+            target_area=target_area,
+            target_angle_offset_degrees=pose_rotation_degrees,
         )
-        source_dy = (
-            float(source_plan.centroid.y) - float(source_reference_center.y)
-        )
-        source_theta = source_reference_angle * pi / 180.0
-        target_theta = target_reference_angle * pi / 180.0
-        local_u = source_dx * cos(source_theta) + source_dy * sin(source_theta)
-        local_v = -source_dx * sin(source_theta) + source_dy * cos(source_theta)
-        fitted_offset_x = (
-            local_u * global_x_scale * cos(target_theta)
-            - local_v * global_y_scale * sin(target_theta)
-        )
-        fitted_offset_y = (
-            local_u * global_x_scale * sin(target_theta)
-            + local_v * global_y_scale * cos(target_theta)
+        if floor_axis_scales is None:
+            return None
+        floor_x_scale, floor_y_scale = floor_axis_scales
+        floor_anisotropy_ratios.append(
+            floor_x_scale / max(floor_y_scale, 1e-9)
         )
         fitted_floor_results.append(_matrix_fit_polygon_to_host(
             source_plan,
             legal,
             target_area=target_area,
             target_center=(
-                float(target_reference_center.x) + fitted_offset_x,
-                float(target_reference_center.y) + fitted_offset_y,
+                float(legal.centroid.x),
+                float(legal.centroid.y),
             ),
             target_angle_offset_degrees=pose_rotation_degrees,
-            anisotropy_ratio=global_anisotropy_ratio,
+            # Every legal floor section may have a different principal-frame
+            # aspect ratio.  Reusing the ground-floor x:y ratio on a shrinking
+            # upper field forces an otherwise valid UnitBox/BOOK section to
+            # underfill.  The floorwise Matrix4 contract explicitly carries
+            # these independent axis scales.
+            anisotropy_ratio=(
+                floor_anisotropy_ratios[-1]
+            ),
+            allow_legal_csg_projection=True,
         ))
 
     requested_total = sum(allocated_floor_targets)
@@ -397,7 +592,7 @@ def materialize_floorwise_legal_source(
         if fitted is not None
     )
     pose_fit_mode = (
-        "single_global_rotation_translation_with_floor_relative_pose_preserved"
+        "single_global_rotation_with_floorwise_legal_axis_fit"
     )
     pose_fallback_used = False
     if any(fitted is None for fitted in fitted_floor_results):
@@ -420,7 +615,20 @@ def materialize_floorwise_legal_source(
         fitted = fitted_floor_results[floor_index]
         if fitted is None:
             return None
-        occupied, matrix = fitted
+        visual_fit, matrix = fitted
+        # The floor Matrix4 result is the only geometry/GFA authority.  The
+        # former path discarded this authored fit and manufactured a separate
+        # uniformly scaled legal plate, so FAR passed on one polygon while the
+        # renderer-visible mesh remained smaller.  Reject an infeasible pose
+        # here and transport the exact contained visual section as the volume.
+        if not _floor_target_fit_is_legal(
+            achieved_area_m2=float(visual_fit.area),
+            target_area_m2=float(target_area),
+        ):
+            return None
+        occupied = visual_fit
+        if not legal.buffer(1e-7).covers(occupied):
+            return None
         occupied_parts = _polygon_parts(occupied)
         if not occupied_parts:
             return None
@@ -439,6 +647,17 @@ def materialize_floorwise_legal_source(
             ))
         floor_union = unary_union(occupied_parts)
         floor_unions.append(floor_union)
+        matrix_plan_determinant = abs(
+            float(matrix[0][0]) * float(matrix[1][1])
+            - float(matrix[0][1]) * float(matrix[1][0])
+        )
+        pre_csg_area = (
+            float(source_plan.area) * matrix_plan_determinant
+        )
+        legal_csg_clip_area = max(
+            0.0,
+            pre_csg_area - float(floor_union.area),
+        )
         floor_evidence.append({
             "floor": floor_index + 1,
             "matrix4": matrix4_to_lists(matrix),
@@ -449,10 +668,17 @@ def materialize_floorwise_legal_source(
             "achieved_plan_area_m2": round(float(floor_union.area), 4),
             "target_plan_coverage": round(coverage, 4),
             "vertical_profile_ratio": round(vertical_profile_ratio, 4),
+            "plan_anisotropy_ratio": round(
+                floor_anisotropy_ratios[floor_index],
+                6,
+            ),
             "floor_capacity_plan_hash": str(floor_capacity_plan_hash or ""),
             "legal_csg_clip_area_m2": round(
-                max(0.0, float(floor_union.difference(legal).area)),
+                legal_csg_clip_area,
                 6,
+            ),
+            "legal_csg_projection_used": bool(
+                legal_csg_clip_area > 1e-7
             ),
         })
 
@@ -463,7 +689,13 @@ def materialize_floorwise_legal_source(
     # Law-derived floor plates remain the sole GFA authority.  A complete
     # authored triangle skin is carried separately through the same Matrix4
     # evidence so renderer/VLM diversity survives capacity materialization.
-    from .floorwise_visual_projection import project_floorwise_visual_mesh
+    from .floorwise_visual_projection import (
+        FloorwiseVisualProjection,
+        FloorwiseVisualProjectionCertificate,
+        _exact_surface_payload_hash,
+        _stable_visual_hash,
+        project_floorwise_visual_mesh,
+    )
 
     visual_projection = project_floorwise_visual_mesh(
         source,
@@ -479,11 +711,291 @@ def materialize_floorwise_legal_source(
             float(ground.centroid.y),
         ),
     )
+    if (
+        not visual_projection.certificate.hard_pass
+        and visual_projection.certificate.failure_reasons
+        == ("projected_visual_mesh_outside_legal_section",)
+    ):
+        from .floorwise_profiled_legal_clip import (
+            clip_profiled_mesh_to_floorwise_legal_solids,
+        )
+
+        profiled_clip_source = replace(
+            source,
+            metadata={
+                **deepcopy(source.metadata),
+                "floorwise_legal_matrix_stack": {
+                    "status": "materialized",
+                    "matrix_convention": "row_major_column_vector",
+                    "floor_capacity_plan_hash": str(
+                        floor_capacity_plan_hash or ""
+                    ),
+                    "floors": floor_evidence,
+                },
+            },
+        )
+        visual_projection = clip_profiled_mesh_to_floorwise_legal_solids(
+            profiled_clip_source,
+            occupied_sections=tuple(floor_unions),
+            legal_sections=legal_sections,
+            floor_matrices=tuple(
+                fitted[1]
+                for fitted in fitted_floor_results
+                if fitted is not None
+            ),
+            capacity_plates=tuple(volumes),
+            output_origin=(
+                float(ground.centroid.x),
+                float(ground.centroid.y),
+            ),
+        )
+    if not visual_projection.certificate.hard_pass:
+        from .floorwise_section_loft import (
+            floorwise_authority_component_hashes,
+            loft_floorwise_legal_sections,
+        )
+
+        loft_source = replace(
+            source,
+            metadata={
+                **deepcopy(source.metadata),
+                "floorwise_legal_matrix_stack": {
+                    "status": "materialized",
+                    "matrix_convention": "row_major_column_vector",
+                    "floor_capacity_plan_hash": str(
+                        floor_capacity_plan_hash or ""
+                    ),
+                    "floors": floor_evidence,
+                },
+            },
+        )
+        visual_projection = loft_floorwise_legal_sections(
+            loft_source,
+            tuple(floor_unions),
+            legal_sections,
+            tuple(volumes),
+            (
+                float(ground.centroid.x),
+                float(ground.centroid.y),
+            ),
+        )
+    if not visual_projection.certificate.hard_pass:
+        # A continuous interpolation between two individually legal affine
+        # sections can cross outside a concave sunlight/legal field.  Preserve
+        # the exact authored floor sections and their Matrix4 evidence as
+        # vertically stacked legal prisms instead of shrinking them or
+        # inventing a separate capacity plate.
+        replay_source = replace(
+            source,
+            footprint=ground,
+            upper_footprint=upper,
+            volumes=tuple(volumes),
+            metadata={
+                **deepcopy(source.metadata),
+                # The replay compiler emits a new complete triangle payload;
+                # do not validate it against the upstream authored mesh count.
+                # Candidate materialization writes the new exact count/hash
+                # after this temporary legal certification succeeds.
+                "geometry_program_bridge_evidence": {},
+                "floorwise_legal_matrix_stack": {
+                    "status": "materialized",
+                    "matrix_convention": "row_major_column_vector",
+                    "floor_capacity_plan_hash": str(
+                        floor_capacity_plan_hash or ""
+                    ),
+                    "target_floor_areas_m2": [
+                        round(float(value), 6)
+                        for value in allocated_floor_targets
+                    ],
+                },
+            },
+        )
+        try:
+            replay_program = floorwise_source_to_geometry_program(
+                replay_source,
+                height_m=1.0,
+                name=f"{source.name}__visible_floorwise_prism_replay",
+            )
+        except ValueError:
+            return None
+        replay_compilation = compile_geometry_program(replay_program)
+        if (
+            replay_compilation.status != "compiled"
+            or compilation_gate(
+                replay_compilation,
+                GeometryGatePolicy(maximum_components=1),
+            )
+        ):
+            return None
+        replay_surfaces = _mesh_surfaces(
+            tuple(replay_compilation.vertices),
+            replay_compilation,
+            volume_role=primary_role,
+            max_raw_surfaces=None,
+        )
+        replay_source = replace(
+            replay_source,
+            surfaces=replay_surfaces,
+        )
+        fallback_components, _fallback_component_failure = (
+            floorwise_authority_component_hashes(
+                tuple(floor_unions),
+                tuple(volumes),
+                floor_capacity_plan_hash=str(
+                    floor_capacity_plan_hash or ""
+                ),
+                floor_evidence=floor_evidence,
+            )
+        )
+        if fallback_components is None:
+            return None
+        fallback_exact_hash = _exact_surface_payload_hash(replay_surfaces)
+        from .floorwise_visual_projection import (
+            floorwise_authority_binding_hash,
+        )
+        fallback_binding_hash = floorwise_authority_binding_hash(
+            **fallback_components,
+            exact_surface_payload_hash=fallback_exact_hash,
+            certification_mode=(
+                "floorwise_matrix_prism_exact_containment"
+            ),
+            visible_geometry_operation=(
+                "floorwise_matrix_prism_recomposition"
+            ),
+            visible_step_fallback=True,
+        )
+        # Per-band containment was already measured on the exact footprints
+        # used to compile this replay, and the replay itself passed the closed
+        # manifold gate above.  The generic continuous-skin validator is not
+        # applicable here because a legal setback terrace at a floor boundary
+        # belongs to the lower band and need not fit the smaller upper section.
+        visual_projection = FloorwiseVisualProjection(
+            surfaces=replay_surfaces,
+            certificate=FloorwiseVisualProjectionCertificate(
+                status="certified",
+                hard_pass=True,
+                visual_hash=_stable_visual_hash(replay_surfaces),
+                source_surface_count=len(replay_surfaces),
+                projected_surface_count=len(replay_surfaces),
+                legal_sample_count=len(volumes),
+                capacity_gfa_m2=sum(
+                    float(volume.footprint.area)
+                    for volume in volumes
+                ),
+                floor_count=floor_count,
+                certification_mode=(
+                    "floorwise_matrix_prism_exact_containment"
+                ),
+                visible_geometry_operation=(
+                    "floorwise_matrix_prism_recomposition"
+                ),
+                exact_surface_payload_hash=(
+                    fallback_exact_hash
+                ),
+                capacity_authority=(
+                    "same_floorwise_matrix_prism_geometry"
+                ),
+                visible_step_fallback=True,
+                section_profile_hash=(
+                    fallback_components["section_profile_hash"]
+                ),
+                capacity_volume_hash=(
+                    fallback_components["capacity_volume_hash"]
+                ),
+                floor_capacity_plan_hash=(
+                    fallback_components["floor_capacity_plan_hash"]
+                ),
+                matrix4_stack_hash=(
+                    fallback_components["matrix4_stack_hash"]
+                ),
+                authority_binding_hash=fallback_binding_hash,
+            ),
+        )
     if not visual_projection.certificate.hard_pass:
         return None
+    measured_visual_source = replace(
+        source,
+        footprint=ground,
+        upper_footprint=upper,
+        volumes=tuple(volumes),
+        surfaces=visual_projection.surfaces,
+    )
+    profiled_exact_mode = (
+        visual_projection.certificate.hard_pass
+        and visual_projection.certificate.status == "certified"
+        and
+        visual_projection.certificate.certification_mode
+        == "floorwise_profiled_legal_clip"
+    )
+    for floor_index, occupied_floor in enumerate(floor_unions):
+        height_fraction = (floor_index + 0.5) / floor_count
+        if profiled_exact_mode:
+            from .profiled_mesh_numeric_repair import (
+                profiled_surface_section_polygon,
+            )
+
+            measured_section = profiled_surface_section_polygon(
+                measured_visual_source.surfaces,
+                origin_xy=(
+                    float(ground.centroid.x),
+                    float(ground.centroid.y),
+                ),
+                z=height_fraction,
+            )
+        else:
+            measured_section = _exact_authored_mesh_section(
+                measured_visual_source,
+                height_fraction=height_fraction,
+            )
+        if measured_section is None and not measured_visual_source.surfaces:
+            active_volume_sections = tuple(
+                volume.footprint
+                for volume in measured_visual_source.volumes
+                if (
+                    float(volume.bottom_fraction)
+                    <= height_fraction
+                    < float(volume.top_fraction)
+                )
+            )
+            if active_volume_sections:
+                measured_section = unary_union(active_volume_sections)
+        if (
+            measured_section is None
+            or not _floor_visual_section_matches_occupied(
+                measured_area_m2=float(measured_section.area),
+                occupied_area_m2=float(occupied_floor.area),
+            )
+        ):
+            return None
     metadata = deepcopy(source.metadata)
     bridge = metadata.get("geometry_program_bridge_evidence")
     bridge = bridge if isinstance(bridge, dict) else {}
+    authored_program_payload = metadata.get("authored_geometry_program")
+    if not isinstance(authored_program_payload, dict):
+        authored_program_payload = metadata.get("geometry_program")
+    if isinstance(authored_program_payload, dict):
+        try:
+            authored_program = GeometryProgram.from_dict(
+                authored_program_payload
+            )
+            authored_program_hash = authored_program.program_hash()
+        except (TypeError, ValueError):
+            authored_program = None
+            authored_program_hash = ""
+        if (
+            authored_program is not None
+            and not authored_program.validate()
+            and str(bridge.get("program_hash") or "")
+            == authored_program_hash
+        ):
+            metadata["authored_geometry_program"] = (
+                authored_program.to_dict()
+            )
+            bridge = deepcopy(bridge)
+            bridge["upstream_authored_program_hash"] = (
+                authored_program_hash
+            )
+            metadata["geometry_program_bridge_evidence"] = bridge
     metadata["floorwise_legal_matrix_stack"] = {
         "schema_version": "arr.maas.floorwise_legal_matrix_stack.v1",
         "status": "materialized",
@@ -561,6 +1073,7 @@ def floorwise_source_to_geometry_program(
     *,
     height_m: float,
     name: str | None = None,
+    allow_tiny_footprint: bool = False,
 ) -> GeometryProgram:
     """Serialize the final legal floor plates as the exact replay program.
 
@@ -579,7 +1092,7 @@ def floorwise_source_to_geometry_program(
     if not isinstance(stack, dict) or stack.get("status") != "materialized":
         raise ValueError("source has no materialized floorwise legal matrix stack")
 
-    origin = source.footprint.centroid
+    origin = Point(*replay_polygon_origin(source.footprint))
     nodes: list[GeometryNode] = []
     solid_ids: list[str] = []
     bands: set[tuple[float, float]] = set()
@@ -593,19 +1106,36 @@ def floorwise_source_to_geometry_program(
             round(float(volume.footprint.centroid.y), 8),
         ),
     )
+    minimum_replay_footprint_area = 0.0 if allow_tiny_footprint else 0.01
+
     for index, volume in enumerate(ordered_volumes, start=1):
         bottom = float(volume.bottom_fraction)
         top = float(volume.top_fraction)
-        band_height = (top - bottom) * total_height
+        bottom_z = round(bottom * total_height, 8)
+        top_z = round(top * total_height, 8)
+        # Derive every extrusion from the same serialized z boundaries.
+        # Rounding each 1/N height independently made a 1e-8 m gap between
+        # the second and third bands of a three-floor stack.
+        band_height = top_z - bottom_z
         if band_height <= 1e-8:
             raise ValueError("floorwise volume has a non-positive height band")
-        footprint = repair_source_polygon(volume.footprint, minimum_area=0.01)
+        footprint = repair_source_polygon(
+            volume.footprint,
+            minimum_area=minimum_replay_footprint_area,
+        )
         if footprint is None:
             raise ValueError("floorwise volume has no replayable footprint")
         # Manifold CrossSection uses winding to distinguish material from
         # void. Live PNU/GEOS operations may return either exterior winding;
         # normalize the transport contract before serializing the AST.
         footprint = orient(footprint, sign=1.0)
+        replay_points, replay_holes, replay_precision = (
+            replay_polygon_point_payload(
+                footprint,
+                xoff=origin.x,
+                yoff=origin.y,
+            )
+        )
         bands.add((round(bottom, 8), round(top, 8)))
         primitive_id = f"floor_plate_{index:02d}"
         translated_id = f"floor_position_{index:02d}"
@@ -614,20 +1144,9 @@ def floorwise_source_to_geometry_program(
             kind="primitive",
             operator="extruded_polygon",
             parameters={
-                "points": _local_ring_points(
-                    footprint.exterior.coords,
-                    xoff=origin.x,
-                    yoff=origin.y,
-                ),
-                "holes": [
-                    _local_ring_points(
-                        interior.coords,
-                        xoff=origin.x,
-                        yoff=origin.y,
-                    )
-                    for interior in footprint.interiors
-                ],
-                "height": round(band_height, 8),
+                "points": replay_points,
+                "holes": replay_holes,
+                "height": band_height,
             },
             semantic_role=volume.role or "floor_plate",
             provenance={
@@ -636,6 +1155,7 @@ def floorwise_source_to_geometry_program(
                 "verb": volume.verb,
                 "bottom_fraction": round(bottom, 8),
                 "top_fraction": round(top, 8),
+                "ring_transport_precision": replay_precision,
             },
         ))
         nodes.append(GeometryNode(
@@ -643,7 +1163,7 @@ def floorwise_source_to_geometry_program(
             kind="transform",
             operator="translate",
             inputs=(primitive_id,),
-            parameters={"vector": [0.0, 0.0, round(bottom * total_height, 8)]},
+            parameters={"vector": [0.0, 0.0, bottom_z]},
             semantic_role=volume.role or "floor_plate",
             provenance={
                 "source": "floorwise_legal_matrix_stack",
@@ -675,6 +1195,15 @@ def floorwise_source_to_geometry_program(
     capacity_alternative = source.metadata.get("capacity_alternative_projection")
     capacity_alternative = (
         capacity_alternative if isinstance(capacity_alternative, dict) else {}
+    )
+    # Every floorwise replay serializes the same certified occupied polygons
+    # into an executable AST. GEOS/manifold triangulation can introduce only
+    # sub-1e-8 m duplicate edges regardless of which certified visual mode
+    # supplied those polygons. Enable the proof-bounded transport for every
+    # materialized stack: it runs only when ``tiny_edge`` is the sole failure
+    # and rejects unless every repaired floor-center section is equivalent.
+    replay_execution_contract = deepcopy(
+        FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT
     )
     return GeometryProgram(
         nodes=tuple(nodes),
@@ -739,28 +1268,8 @@ def floorwise_source_to_geometry_program(
                 "parcel_coordinates_are_execution_only": True,
             },
         },
+        execution_contract=replay_execution_contract,
     )
-
-
-def _local_ring_points(
-    coordinates: Any,
-    *,
-    xoff: float,
-    yoff: float,
-) -> list[list[float]]:
-    values = list(coordinates)
-    if len(values) >= 2 and values[0][:2] == values[-1][:2]:
-        values = values[:-1]
-    return [
-        [
-            # One-micrometre transport precision is far below architectural
-            # tolerances while avoiding sub-1e-10 m² triangulation slivers in
-            # the independent single-execution geometry gate.
-            round(float(point[0]) - float(xoff), 6),
-            round(float(point[1]) - float(yoff), 6),
-        ]
-        for point in values
-    ]
 
 
 def _matrix_fit_polygon_to_host(
@@ -771,6 +1280,8 @@ def _matrix_fit_polygon_to_host(
     target_center: tuple[float, float] | None = None,
     target_angle_offset_degrees: float = 0.0,
     anisotropy_ratio: float = 1.0,
+    allow_legal_csg_projection: bool = False,
+    minimum_contained_area_ratio: float = 0.78,
 ) -> tuple[Any, tuple[tuple[float, float, float, float], ...]] | None:
     """Return the largest fixed-pose affine fit that stays inside ``host``.
 
@@ -858,7 +1369,67 @@ def _matrix_fit_polygon_to_host(
             candidate = (fitted, matrix)
         else:
             upper = probe
-    return candidate
+    if (
+        not allow_legal_csg_projection
+        or candidate is None
+        or float(candidate[0].area)
+        + 1e-9
+        < float(target_area) * max(
+            0.0,
+            min(1.0, float(minimum_contained_area_ratio)),
+        )
+    ):
+        return candidate
+
+    # The legal placement contract is Matrix4 + typed CSG.  A near-fit
+    # authored body may therefore grow in its fixed pose and be intersected
+    # with the legal floor plate.  This closes a small irregular-boundary
+    # shortfall without replacing the authored pose or accepting a low-
+    # retention form.  The returned matrix remains the pre-CSG transform;
+    # callers persist the clipped area as separate legal-projection evidence.
+    def projected_fit(
+        uniform_factor: float,
+    ) -> tuple[Any, tuple[tuple[float, float, float, float], ...]] | None:
+        raw, projected_matrix = fit(
+            ratio,
+            target_angle,
+            uniform_factor,
+        )
+        projected_parts = _polygon_parts(
+            raw.intersection(host)
+        )
+        if not projected_parts:
+            return None
+        return unary_union(projected_parts), projected_matrix
+
+    projection_lower = 1.0
+    projection_upper = 1.0
+    projected = projected_fit(projection_upper)
+    while (
+        projected is not None
+        and float(projected[0].area) + 1e-9 < float(target_area)
+        and projection_upper < 8.0
+    ):
+        projection_lower = projection_upper
+        projection_upper *= 1.25
+        projected = projected_fit(projection_upper)
+    if (
+        projected is None
+        or float(projected[0].area) + 1e-9 < float(target_area)
+    ):
+        return candidate
+    for _iteration in range(56):
+        probe = (projection_lower + projection_upper) / 2.0
+        probe_projection = projected_fit(probe)
+        if probe_projection is None:
+            projection_lower = probe
+            continue
+        if float(probe_projection[0].area) >= float(target_area):
+            projection_upper = probe
+            projected = probe_projection
+        else:
+            projection_lower = probe
+    return projected
 
 
 def compile_geometry_program_to_source_mass(
@@ -872,7 +1443,7 @@ def compile_geometry_program_to_source_mass(
     name: str | None = None,
     volume_role: str = "recursive_solid_primary",
     max_volume_bands: int = 3,
-    max_raw_surfaces: int = 2048,
+    max_raw_surfaces: int | None = None,
     gate_policy: GeometryGatePolicy | None = None,
 ) -> SourceMass | None:
     """Fit one compiled solid into a normalized host and preserve its mesh.
@@ -881,10 +1452,43 @@ def compile_geometry_program_to_source_mass(
     performed here; callers should supply the legal generation host and send
     the returned source through the unchanged downstream hard gates.
     """
+
+    return _compile_geometry_program_to_source_mass(
+        program,
+        host,
+        upper_host=upper_host,
+        upper_fit_strength=upper_fit_strength,
+        target_plan_area=target_plan_area,
+        minimum_plan_area=minimum_plan_area,
+        name=name,
+        volume_role=volume_role,
+        max_volume_bands=max_volume_bands,
+        max_raw_surfaces=max_raw_surfaces,
+        gate_policy=gate_policy,
+    )
+
+
+def _compile_geometry_program_to_source_mass(
+    program: GeometryProgram,
+    host: Polygon,
+    *,
+    upper_host: Polygon | None = None,
+    upper_fit_strength: float = 0.0,
+    target_plan_area: float | None = None,
+    minimum_plan_area: float | None = None,
+    name: str | None = None,
+    volume_role: str = "recursive_solid_primary",
+    max_volume_bands: int = 3,
+    max_raw_surfaces: int | None = None,
+    gate_policy: GeometryGatePolicy | None = None,
+    _site_bound_compilation: CompilationResult | None = None,
+) -> SourceMass | None:
+    """Materialize either a host-fitted or already site-bound compilation."""
     host = repair_source_polygon(host, minimum_area=1.0)
     if host is None:
         return None
-    compilation = _compile_geometry_program_cached(program)
+    site_bound_export = _site_bound_compilation is not None
+    compilation = _site_bound_compilation or _compile_geometry_program_cached(program)
     # Compiler probes may study a bounded multi-solid relation, but an object
     # promoted into the program/legal/VLM lane must already be one connected
     # architectural body.  This prevents tiny detached pieces from surviving
@@ -893,44 +1497,60 @@ def compile_geometry_program_to_source_mass(
     if compilation.status != "compiled" or compilation_gate(compilation, source_gate_policy):
         return None
     base_seed_plan_fraction = _base_seed_plan_occupancy_fraction(program)
-    effective_target_plan_area = target_plan_area
-    if base_seed_plan_fraction is not None and target_plan_area is None:
-        base_seed_area_cap = float(host.area) * base_seed_plan_fraction
-        effective_target_plan_area = base_seed_area_cap
-    transformed = _fit_vertices_to_host(
-        compilation,
-        host,
-        target_plan_area=effective_target_plan_area,
-        minimum_plan_area=minimum_plan_area,
-    )
-    if transformed is None:
-        return None
-    world_vertices, _host_local_vertices = transformed
-    legal_fit_mode = "principal_frame_bounded"
-    fit_strength = max(0.0, min(1.0, float(upper_fit_strength)))
-    if upper_host is not None and fit_strength > 1e-6:
-        repaired_upper_host = repair_source_polygon(upper_host, minimum_area=1.0)
-        upper_transformed = (
-            _fit_vertices_to_host(
-                compilation,
-                repaired_upper_host,
-                target_plan_area=effective_target_plan_area,
-                minimum_plan_area=minimum_plan_area,
-            )
-            if repaired_upper_host is not None
-            else None
+    if site_bound_export:
+        effective_target_plan_area = None
+        world_vertices = compilation.vertices
+        host_fit_matrix4 = (
+            (1.0, 0.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
         )
-        if upper_transformed is not None:
-            upper_vertices, _upper_local = upper_transformed
-            world_vertices = tuple(
-                (
-                    lower[0] + (upper[0] - lower[0]) * lower[2] * fit_strength,
-                    lower[1] + (upper[1] - lower[1]) * lower[2] * fit_strength,
-                    lower[2],
+        host_fit_matrix4_exact = True
+        legal_fit_mode = "site_bound_matrix4"
+        fit_strength = 0.0
+    else:
+        effective_target_plan_area = target_plan_area
+        if base_seed_plan_fraction is not None and target_plan_area is None:
+            base_seed_area_cap = float(host.area) * base_seed_plan_fraction
+            effective_target_plan_area = base_seed_area_cap
+        transformed = _fit_vertices_to_host(
+            compilation,
+            host,
+            target_plan_area=effective_target_plan_area,
+            minimum_plan_area=minimum_plan_area,
+        )
+        if transformed is None:
+            return None
+        world_vertices = transformed.world_vertices
+        host_fit_matrix4 = transformed.matrix4
+        host_fit_matrix4_exact = True
+        legal_fit_mode = "principal_frame_bounded"
+        fit_strength = max(0.0, min(1.0, float(upper_fit_strength)))
+        if upper_host is not None and fit_strength > 1e-6:
+            repaired_upper_host = repair_source_polygon(upper_host, minimum_area=1.0)
+            upper_transformed = (
+                _fit_vertices_to_host(
+                    compilation,
+                    repaired_upper_host,
+                    target_plan_area=effective_target_plan_area,
+                    minimum_plan_area=minimum_plan_area,
                 )
-                for lower, upper in zip(world_vertices, upper_vertices)
+                if repaired_upper_host is not None
+                else None
             )
-            legal_fit_mode = "height_interpolated_lower_upper_principal_frames"
+            if upper_transformed is not None:
+                upper_vertices = upper_transformed.world_vertices
+                world_vertices = tuple(
+                    (
+                        lower[0] + (upper[0] - lower[0]) * lower[2] * fit_strength,
+                        lower[1] + (upper[1] - lower[1]) * lower[2] * fit_strength,
+                        lower[2],
+                    )
+                    for lower, upper in zip(world_vertices, upper_vertices)
+                )
+                legal_fit_mode = "height_interpolated_lower_upper_principal_frames"
+                host_fit_matrix4_exact = False
     achieved_plan_area = _mesh_plan_projection_area(
         world_vertices,
         compilation.triangles,
@@ -950,29 +1570,93 @@ def compile_geometry_program_to_source_mass(
         if minimum_plan_area_target is not None
         else None
     )
-    band_count = max(1, min(3, int(max_volume_bands)))
+    floorwise_projection = (
+        program.metadata.get("floorwise_legal_projection")
+        if isinstance(
+            program.metadata.get("floorwise_legal_projection"),
+            dict,
+        )
+        else {}
+    )
+    preserve_site_bound_bands = bool(site_bound_export)
+    try:
+        requested_band_count = int(max_volume_bands)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if preserve_site_bound_bands:
+        if requested_band_count < 1:
+            return None
+        band_count = requested_band_count
+    else:
+        band_count = max(1, min(64, requested_band_count))
     band_boundaries = tuple(index / band_count for index in range(band_count + 1))
     volume_records: list[SourceVolume] = []
+    proxy_band_part_counts: list[int] = []
+    site_bound_legal = host.buffer(1e-7) if preserve_site_bound_bands else None
     for band_index, (bottom, top) in enumerate(zip(band_boundaries, band_boundaries[1:])):
         # A single mid-height slice under-reports an undercut, setback or
         # lifted body.  The proxy is the conservative vertical occupancy of
         # each band: union of lower/middle/upper measured mesh sections.
         epsilon = max(1e-5, (top - bottom) * 0.03)
         sections = tuple(
-            section
-            for sample in (bottom + epsilon, (bottom + top) / 2.0, top - epsilon)
-            for section in (
-                _mesh_section_polygon(world_vertices, compilation.triangles, sample),
+            _mesh_section_polygon(
+                world_vertices,
+                compilation.triangles,
+                sample,
             )
+            for sample in (
+                bottom + epsilon,
+                (bottom + top) / 2.0,
+                top - epsilon,
+            )
+        )
+        if preserve_site_bound_bands and any(
+            section is not None
+            and not _valid_positive_polygon_payload(section)
+            for section in sections
+        ):
+            return None
+        sections = tuple(
+            section
+            for section in sections
             if section is not None
         )
+        if preserve_site_bound_bands and not sections:
+            return None
         section = unary_union(sections) if sections else None
         if section is None:
+            if preserve_site_bound_bands:
+                return None
             continue
         parts = _polygon_parts(section)
-        for part_index, part in enumerate(parts[: max(1, 4 - len(volume_records))]):
-            clipped = repair_source_polygon(part.intersection(host), minimum_area=max(0.2, host.area * 0.002))
+        if preserve_site_bound_bands and (
+            not parts
+            or any(
+                not _valid_positive_polygon_payload(part)
+                or site_bound_legal is None
+                or not site_bound_legal.covers(part)
+                for part in parts
+            )
+        ):
+            return None
+        retained_parts = (
+            parts
+            if preserve_site_bound_bands
+            else parts[: max(1, 4 - len(volume_records))]
+        )
+        band_part_count = 0
+        for part_index, part in enumerate(retained_parts):
+            clipped = (
+                part
+                if preserve_site_bound_bands
+                else repair_source_polygon(
+                    part.intersection(host),
+                    minimum_area=max(0.2, host.area * 0.002),
+                )
+            )
             if clipped is None:
+                if preserve_site_bound_bands:
+                    return None
                 continue
             volume_records.append(SourceVolume(
                 # Height bands are legal proxies of one typed component, not
@@ -984,8 +1668,24 @@ def compile_geometry_program_to_source_mass(
                 top_fraction=top,
                 verb="geometry_program",
             ))
-    volumes = _merge_equal_band_footprints(tuple(volume_records))
+            band_part_count += 1
+        if preserve_site_bound_bands:
+            if band_part_count != len(parts) or band_part_count < 1:
+                return None
+            proxy_band_part_counts.append(band_part_count)
+    if (
+        preserve_site_bound_bands
+        and len(proxy_band_part_counts) != band_count
+    ):
+        return None
+    volumes = (
+        tuple(volume_records)
+        if preserve_site_bound_bands
+        else _merge_equal_band_footprints(tuple(volume_records))
+    )
     if not volumes:
+        if preserve_site_bound_bands:
+            return None
         plan = repair_source_polygon(MultiPoint([(x, y) for x, y, _z in world_vertices]).convex_hull, minimum_area=0.2)
         if plan is None:
             return None
@@ -993,7 +1693,10 @@ def compile_geometry_program_to_source_mass(
         if clipped_plan is None:
             return None
         volumes = (SourceVolume(volume_role, clipped_plan, 0.0, 1.0, "geometry_program"),)
-    if len(volumes) > max(1, min(5, int(max_volume_bands))):
+    if (
+        not preserve_site_bound_bands
+        and len(volumes) > max(1, min(64, int(max_volume_bands)))
+    ):
         volumes = tuple(sorted(volumes, key=lambda value: value.footprint.area, reverse=True)[:max_volume_bands])
     footprint_union = unary_union([volume.footprint for volume in volumes if volume.bottom_fraction <= 1e-6])
     footprint = repair_source_polygon(footprint_union, minimum_area=0.2)
@@ -1016,6 +1719,29 @@ def compile_geometry_program_to_source_mass(
         volume_role=volume_role,
         max_raw_surfaces=max_raw_surfaces,
     )
+    surface_export_complete = bool(
+        surfaces
+        and len(surfaces) == len(compilation.triangles)
+    )
+    if not surface_export_complete:
+        return None
+    surface_payload_hash = source_surface_payload_hash(surfaces)
+    try:
+        proxy_volume_payload_hash = source_volume_payload_hash(volumes)
+    except (TypeError, ValueError):
+        return None
+    exported_proxy_band_count = len({
+        (
+            float(volume.bottom_fraction),
+            float(volume.top_fraction),
+        )
+        for volume in volumes
+    })
+    if preserve_site_bound_bands and (
+        exported_proxy_band_count != band_count
+        or len(volumes) != sum(proxy_band_part_counts)
+    ):
+        return None
     upper_candidates = [volume.footprint for volume in volumes if volume.top_fraction >= 1.0 - 1e-6]
     upper = repair_source_polygon(unary_union(upper_candidates), minimum_area=0.2) if upper_candidates else None
     operator_path = [node.operator for node in program.topological_nodes()]
@@ -1044,11 +1770,20 @@ def compile_geometry_program_to_source_mass(
             "program_hash": program.program_hash(),
             "operator_path": operator_path,
             "proxy_volume_count": len(volumes),
+            "requested_proxy_band_count": band_count,
+            "exported_proxy_band_count": exported_proxy_band_count,
+            "exported_proxy_part_count": len(volumes),
+            "proxy_band_part_counts": list(proxy_band_part_counts),
+            "proxy_volume_payload_hash": proxy_volume_payload_hash,
             "raw_mesh_triangle_count": len(compilation.triangles),
             "exported_surface_count": len(surfaces),
+            "surface_export_complete": surface_export_complete,
+            "surface_payload_hash": surface_payload_hash,
             "surface_coordinate_frame": "source_footprint_centroid_local",
+            "host_fit_matrix4": matrix4_to_lists(host_fit_matrix4),
+            "host_fit_matrix4_exact": host_fit_matrix4_exact,
             "host_contains_all_proxy_volumes": all(host.covers(volume.footprint) for volume in volumes),
-            "parcel_coordinates_in_program": False,
+            "parcel_coordinates_in_program": site_bound_export,
             "legal_fit_mode": legal_fit_mode,
             "legal_fit_strength": round(fit_strength, 4),
             "base_seed_plan_occupancy_fraction": (
@@ -1098,11 +1833,159 @@ def compile_geometry_program_to_source_mass(
         surfaces=surfaces,
         notes=(
             "source=recursive_geometry_program",
-            "site_fit=principal_frame_bounded",
+            (
+                "site_fit=site_bound_matrix4"
+                if site_bound_export
+                else "site_fit=principal_frame_bounded"
+            ),
             f"legal_fit={legal_fit_mode}",
             "legal_proxy=measured_mesh_sections",
         ),
         metadata=metadata,
+    )
+
+
+def compile_site_bound_geometry_program_to_source_mass(
+    program: GeometryProgram,
+    legal_host: Polygon,
+    *,
+    name: str | None = None,
+    volume_role: str = "recursive_solid_primary",
+) -> SourceMass | None:
+    """Export an already placed program from its exact compiled world mesh."""
+
+    if not _has_single_canonical_unitbox_authority(program):
+        return None
+    repaired_host = repair_source_polygon(legal_host, minimum_area=1.0)
+    if repaired_host is None:
+        return None
+    compilation = _compile_geometry_program_cached(program)
+    floorwise_projection = (
+        program.metadata.get("floorwise_legal_projection")
+        if isinstance(
+            program.metadata.get("floorwise_legal_projection"),
+            dict,
+        )
+        else {}
+    )
+    floor_count = int(floorwise_projection.get("floor_count") or 0)
+    source_gate_policy = GeometryGatePolicy(maximum_components=1)
+    if (
+        compilation.status != "compiled"
+        or compilation_gate(compilation, source_gate_policy)
+        or (
+            floorwise_projection
+            and (
+                floorwise_projection.get("hard_pass") is not True
+                or str(
+                    floorwise_projection.get("final_program_hash") or ""
+                )
+                != program.program_hash()
+                or str(
+                    floorwise_projection.get("final_geometry_hash") or ""
+                )
+                != compilation.geometry_hash
+            )
+        )
+        or not _mesh_plan_projection_inside_host(
+            compilation.vertices,
+            compilation.triangles,
+            repaired_host,
+        )
+    ):
+        return None
+    source = _compile_geometry_program_to_source_mass(
+        program,
+        repaired_host,
+        name=name,
+        volume_role=volume_role,
+        max_volume_bands=max(1, floor_count or 3),
+        _site_bound_compilation=compilation,
+    )
+    if source is None:
+        return None
+    metadata = deepcopy(source.metadata)
+    bridge = deepcopy(metadata.get("geometry_program_bridge_evidence") or {})
+    actual_surface_hash = source_surface_payload_hash(tuple(source.surfaces or ()))
+    try:
+        actual_volume_hash = source_volume_payload_hash(
+            tuple(source.volumes or ())
+        )
+    except (TypeError, ValueError):
+        return None
+    try:
+        requested_proxy_band_count = int(
+            bridge.get("requested_proxy_band_count") or 0
+        )
+        exported_proxy_band_count = int(
+            bridge.get("exported_proxy_band_count") or 0
+        )
+        exported_proxy_part_count = int(
+            bridge.get("exported_proxy_part_count") or 0
+        )
+        proxy_volume_count = int(bridge.get("proxy_volume_count") or 0)
+        proxy_band_part_counts = tuple(
+            int(value)
+            for value in (bridge.get("proxy_band_part_counts") or ())
+        )
+    except (TypeError, ValueError):
+        return None
+    if (
+        not source.volumes
+        or requested_proxy_band_count < 1
+        or exported_proxy_band_count != requested_proxy_band_count
+        or exported_proxy_part_count != len(source.volumes)
+        or proxy_volume_count != len(source.volumes)
+        or len(proxy_band_part_counts) != requested_proxy_band_count
+        or any(value < 1 for value in proxy_band_part_counts)
+        or sum(proxy_band_part_counts) != len(source.volumes)
+        or str(bridge.get("proxy_volume_payload_hash") or "")
+        != actual_volume_hash
+    ):
+        return None
+    if (
+        floorwise_projection
+        and (
+            not source.surfaces
+            or bridge.get("surface_export_complete") is not True
+            or int(bridge.get("raw_mesh_triangle_count") or 0)
+            != len(source.surfaces)
+            or int(bridge.get("exported_surface_count") or 0)
+            != len(source.surfaces)
+            or str(bridge.get("surface_payload_hash") or "")
+            != actual_surface_hash
+        )
+    ):
+        return None
+    bridge["geometry_authority"] = (
+        "final_floorwise_legal_geometry_program"
+        if floorwise_projection
+        else "site_bound_geometry_program"
+    )
+    metadata["geometry_program_bridge_evidence"] = bridge
+    if floorwise_projection:
+        metadata.update({
+            "geometry_authority": "final_floorwise_legal_geometry_program",
+            "final_program_hash": program.program_hash(),
+            "final_geometry_hash": compilation.geometry_hash,
+            "final_surface_payload_hash": actual_surface_hash,
+            "final_proxy_volume_payload_hash": actual_volume_hash,
+            "floorwise_legal_projection": deepcopy(floorwise_projection),
+        })
+    return replace(source, metadata=metadata)
+
+
+def _has_single_canonical_unitbox_authority(program: GeometryProgram) -> bool:
+    primitives = tuple(
+        node
+        for node in program.nodes
+        if node.kind == "primitive"
+    )
+    return (
+        len(primitives) == 1
+        and primitives[0].operator == "box"
+        and primitives[0].parameters
+        == {"width": 1.0, "depth": 1.0, "height": 1.0}
     )
 
 
@@ -1359,7 +2242,7 @@ def _fit_vertices_to_host(
     *,
     target_plan_area: float | None = None,
     minimum_plan_area: float | None = None,
-) -> tuple[tuple[tuple[float, float, float], ...], tuple[tuple[float, float, float], ...]] | None:
+) -> HostFitTransform | None:
     vertices = compilation.vertices
     if not vertices:
         return None
@@ -1370,8 +2253,6 @@ def _fit_vertices_to_host(
     target_angle, target_width, target_depth = _principal_frame(host)
     if min(source_width, source_depth, target_width, target_depth) <= 1e-9:
         return None
-    source_theta = source_angle * 3.141592653589793 / 180.0
-    target_theta = target_angle * 3.141592653589793 / 180.0
     source_center = plan.centroid
     target_center = host.centroid
     requested_long_scale = target_width / source_width * 0.95
@@ -1399,23 +2280,24 @@ def _fit_vertices_to_host(
     z_span = max(max_z - min_z, 1e-9)
     source_projection_area = _mesh_plan_projection_area(vertices, compilation.triangles)
     for factor in (1.0, 0.94, 0.88, 0.82, 0.76, 0.68, 0.58, 0.48):
-        world: list[tuple[float, float, float]] = []
-        for x, y, z in vertices:
-            dx, dy = x - source_center.x, y - source_center.y
-            # Source principal coordinates -> bounded axis scaling -> target
-            # principal frame.  This is still normalized and coordinate-free.
-            local_long = dx * cos(source_theta) + dy * sin(source_theta)
-            local_short = -dx * sin(source_theta) + dy * cos(source_theta)
-            fitted_long = local_long * long_scale * factor
-            fitted_short = local_short * short_scale * factor
-            rx = fitted_long * cos(target_theta) - fitted_short * sin(target_theta) + target_center.x
-            ry = fitted_long * sin(target_theta) + fitted_short * cos(target_theta) + target_center.y
-            world.append((rx, ry, (z - min_z) / z_span))
+        matrix = compose_matrix4(
+            translation_matrix4((-source_center.x, -source_center.y, -min_z)),
+            rotation_matrix4((0.0, 0.0, -source_angle)),
+            scale_matrix4((
+                long_scale * factor,
+                short_scale * factor,
+                1.0 / z_span,
+            )),
+            rotation_matrix4((0.0, 0.0, target_angle)),
+            translation_matrix4((target_center.x, target_center.y, 0.0)),
+        )
+        world = tuple(transform_point3(matrix, vertex) for vertex in vertices)
         if _mesh_plan_projection_inside_host(
-            tuple(world),
+            world,
             compilation.triangles,
             host,
         ):
+            area_factor = 1.0
             if target_plan_area is not None and source_projection_area > 1e-9:
                 fitted_projection_area = (
                     source_projection_area * long_scale * short_scale * factor * factor
@@ -1425,14 +2307,16 @@ def _fit_vertices_to_host(
                     (max(0.2, float(target_plan_area)) / max(fitted_projection_area, 1e-9)) ** 0.5,
                 )
                 if area_factor < 1.0 - 1e-9:
-                    world = [
-                        (
-                            target_center.x + (x - target_center.x) * area_factor,
-                            target_center.y + (y - target_center.y) * area_factor,
-                            z,
-                        )
-                        for x, y, z in world
-                    ]
+                    target_area_matrix = compose_matrix4(
+                        translation_matrix4((-target_center.x, -target_center.y, 0.0)),
+                        scale_matrix4((area_factor, area_factor, 1.0)),
+                        translation_matrix4((target_center.x, target_center.y, 0.0)),
+                    )
+                    matrix = compose_matrix4(matrix, target_area_matrix)
+                    world = tuple(
+                        transform_point3(matrix, vertex)
+                        for vertex in vertices
+                    )
             # ``minimum_plan_area`` is an authoring target supplied by the
             # feasible-capacity contract. ``target_plan_area`` retains its older
             # independent meaning as a shrink target for direct bridge callers.
@@ -1455,14 +2339,20 @@ def _fit_vertices_to_host(
                     1e-9,
                 )
                 short_growth = min(required_short_growth, available_short_growth)
-                widened = _widen_vertices_in_frame(
-                    world,
+                widening_matrix = _short_axis_widening_matrix(
                     center=target_center,
-                    theta=target_theta,
+                    target_angle=target_angle,
                     growth=short_growth,
                 )
+                widened = tuple(
+                    transform_point3(
+                        compose_matrix4(matrix, widening_matrix),
+                        vertex,
+                    )
+                    for vertex in vertices
+                )
                 if not _mesh_plan_projection_inside_host(
-                    tuple(widened),
+                    widened,
                     compilation.triangles,
                     host,
                 ):
@@ -1472,14 +2362,20 @@ def _fit_vertices_to_host(
                     lower_growth, upper_growth = 1.0, short_growth
                     for _iteration in range(10):
                         probe_growth = (lower_growth + upper_growth) / 2.0
-                        probe = _widen_vertices_in_frame(
-                            world,
+                        probe_matrix = _short_axis_widening_matrix(
                             center=target_center,
-                            theta=target_theta,
+                            target_angle=target_angle,
                             growth=probe_growth,
                         )
+                        probe = tuple(
+                            transform_point3(
+                                compose_matrix4(matrix, probe_matrix),
+                                vertex,
+                            )
+                            for vertex in vertices
+                        )
                         if _mesh_plan_projection_inside_host(
-                            tuple(probe),
+                            probe,
                             compilation.triangles,
                             host,
                         ):
@@ -1487,31 +2383,44 @@ def _fit_vertices_to_host(
                             widened = probe
                         else:
                             upper_growth = probe_growth
-                world = list(widened)
-            local = tuple((x - target_center.x, y - target_center.y, z) for x, y, z in world)
-            return tuple(world), local
+                    short_growth = lower_growth
+                    widening_matrix = _short_axis_widening_matrix(
+                        center=target_center,
+                        target_angle=target_angle,
+                        growth=short_growth,
+                    )
+                matrix = compose_matrix4(matrix, widening_matrix)
+                world = tuple(
+                    transform_point3(matrix, vertex)
+                    for vertex in vertices
+                )
+            return HostFitTransform(
+                matrix4=matrix,
+                inverse_matrix4=inverse_matrix4(matrix),
+                world_vertices=world,
+                achieved_plan_area_m2=_mesh_plan_projection_area(
+                    world,
+                    compilation.triangles,
+                ),
+            )
     return None
 
 
-def _widen_vertices_in_frame(
-    vertices: list[tuple[float, float, float]],
+def _short_axis_widening_matrix(
     *,
     center,
-    theta: float,
+    target_angle: float,
     growth: float,
-) -> list[tuple[float, float, float]]:
-    """Widen a fitted solid across its host-short axis without changing length."""
-    widened: list[tuple[float, float, float]] = []
-    for x, y, z in vertices:
-        dx, dy = x - center.x, y - center.y
-        fitted_long = dx * cos(theta) + dy * sin(theta)
-        fitted_short = (-dx * sin(theta) + dy * cos(theta)) * growth
-        widened.append((
-            fitted_long * cos(theta) - fitted_short * sin(theta) + center.x,
-            fitted_long * sin(theta) + fitted_short * cos(theta) + center.y,
-            z,
-        ))
-    return widened
+) -> Matrix4:
+    """Scale only the host-short axis around the host principal-frame centre."""
+
+    return compose_matrix4(
+        translation_matrix4((-center.x, -center.y, 0.0)),
+        rotation_matrix4((0.0, 0.0, -target_angle)),
+        scale_matrix4((1.0, growth, 1.0)),
+        rotation_matrix4((0.0, 0.0, target_angle)),
+        translation_matrix4((center.x, center.y, 0.0)),
+    )
 
 
 def _mesh_plan_projection_area(
@@ -1817,7 +2726,7 @@ def _mesh_surfaces(
     compilation: CompilationResult,
     *,
     volume_role: str,
-    max_raw_surfaces: int,
+    max_raw_surfaces: int | None,
 ) -> tuple[SourceSurface, ...]:
     records: list[tuple[float, tuple[int, int, int], tuple[int, int, int]]] = []
     for triangle in compilation.triangles:
@@ -1840,7 +2749,11 @@ def _mesh_surfaces(
     # compiler's authoritative mesh was watertight. Kernel triangles are a
     # transport detail; clean-mass complexity is measured by semantic normal
     # patches (``effective_surface_count``), not triangulation count.
-    limit = max(8, min(4096, int(max_raw_surfaces)))
+    limit = (
+        len(records)
+        if max_raw_surfaces is None
+        else max(8, min(4096, int(max_raw_surfaces)))
+    )
     root_operator = compilation.program.node_map[compilation.program.root_id].operator
     return tuple(
         SourceSurface(
@@ -1853,6 +2766,133 @@ def _mesh_surfaces(
             semantic_patch_id=f"{volume_role}:recursive_normal:{bucket[0]}:{bucket[1]}:{bucket[2]}",
         )
         for index, (_area, triangle, bucket) in enumerate(records[:limit])
+    )
+
+
+def source_surface_payload_hash(
+    surfaces: tuple[SourceSurface, ...],
+) -> str:
+    """Hash the complete, exact SourceSurface payload independent of ordering."""
+
+    records = tuple(
+        json.dumps(
+            {
+                "operator": surface.operator,
+                "role": surface.role,
+                "semantic_patch_id": surface.semantic_patch_id,
+                "surface_type": surface.surface_type,
+                "verb": surface.verb,
+                "vertices_m": [
+                    [float(x), float(y), float(z)]
+                    for x, y, z in surface.vertices_m
+                ],
+                "volume_role": surface.volume_role,
+            },
+            allow_nan=False,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        for surface in surfaces
+    )
+    payload = f"[{','.join(sorted(records))}]".encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def source_volume_payload_hash(
+    volumes: tuple[SourceVolume, ...],
+) -> str:
+    """Hash every exact proxy-volume field and every polygon ring."""
+
+    records = tuple(
+        json.dumps(
+            {
+                "bottom_fraction": float(volume.bottom_fraction),
+                "footprint": _canonical_polygon_payload(volume.footprint),
+                "role": volume.role,
+                "top_fraction": float(volume.top_fraction),
+                "verb": volume.verb,
+            },
+            allow_nan=False,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        for volume in volumes
+    )
+    payload = f"[{','.join(sorted(records))}]".encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _canonical_polygon_payload(geometry: Any) -> dict[str, Any]:
+    if not _valid_positive_polygon_payload(geometry):
+        raise ValueError("invalid_source_volume_polygon")
+    polygons = tuple(
+        {
+            "exterior": _canonical_ring_payload(polygon.exterior.coords),
+            "interiors": sorted(
+                _canonical_ring_payload(interior.coords)
+                for interior in polygon.interiors
+            ),
+        }
+        for polygon in _polygon_parts(geometry)
+    )
+    if not polygons:
+        raise ValueError("missing_source_volume_polygon")
+    return {
+        "polygons": sorted(
+            polygons,
+            key=lambda value: json.dumps(
+                value,
+                allow_nan=False,
+                ensure_ascii=True,
+                separators=(",", ":"),
+                sort_keys=True,
+            ),
+        ),
+    }
+
+
+def _canonical_ring_payload(
+    coordinates: Any,
+) -> list[list[float]]:
+    points = [
+        (float(coordinate[0]), float(coordinate[1]))
+        for coordinate in coordinates
+    ]
+    if len(points) > 1 and points[0] == points[-1]:
+        points.pop()
+    if len(points) < 3 or any(
+        not isfinite(value)
+        for point in points
+        for value in point
+    ):
+        raise ValueError("invalid_source_volume_ring")
+    forward = tuple(points)
+    reverse = tuple(reversed(points))
+    canonical = min(
+        tuple(sequence[index:] + sequence[:index])
+        for sequence in (forward, reverse)
+        for index in range(len(sequence))
+    )
+    closed = (*canonical, canonical[0])
+    return [[float(x), float(y)] for x, y in closed]
+
+
+def _valid_positive_polygon_payload(geometry: Any) -> bool:
+    if (
+        geometry is None
+        or getattr(geometry, "is_empty", True)
+        or getattr(geometry, "is_valid", False) is not True
+    ):
+        return False
+    parts = _polygon_parts(geometry)
+    return bool(parts) and all(
+        part.is_valid
+        and not part.is_empty
+        and isfinite(float(part.area))
+        and float(part.area) > 0.0
+        for part in parts
     )
 
 
@@ -1901,7 +2941,11 @@ def _principal_frame(poly: Polygon) -> tuple[float, float, float]:
 
 
 __all__ = [
+    "HostFitTransform",
+    "append_site_placement_matrix",
     "compile_geometry_program_to_source_mass",
+    "compile_site_bound_geometry_program_to_source_mass",
+    "derive_host_fit_transform",
     "floorwise_source_to_geometry_program",
     "materialize_floorwise_legal_source",
     "replace_source_dominant_with_geometry_program",

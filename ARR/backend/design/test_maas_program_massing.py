@@ -488,6 +488,160 @@ class MaasProgramMassingTest(SimpleTestCase):
         self.assertIn("architectural_score", spatial)
         self.assertIn("creative_score", creative)
 
+    def test_final_floorwise_site_coverage_uses_lowest_occupied_band(self):
+        ground_band = box(0.0, 0.0, 10.0, 8.0)
+        shifted_upper_band = box(6.25, 0.0, 31.25, 10.0)
+        feature = {
+            "type": "Feature",
+            "geometry": mapping(ground_band),
+            "properties": {
+                "benchmark_site_area_m2": 200.0,
+                "candidate_floor_context": {
+                    "legal_floor_section_areas_m2": [100.0, 100.0],
+                },
+                "mass_volumes": [
+                    {
+                        "role": "primary_mass",
+                        "geometry": mapping(ground_band),
+                        "bottom_height": 0.0,
+                        "top_height": 3.0,
+                    },
+                    {
+                        "role": "primary_mass",
+                        "geometry": mapping(shifted_upper_band),
+                        "bottom_height": 3.0,
+                        "top_height": 6.0,
+                    },
+                ],
+                "source_signature": {
+                    "geometry_authority": (
+                        "final_floorwise_legal_geometry_program"
+                    ),
+                    "coherence_evidence": {
+                        "score": 0.8,
+                        "hard_pass": True,
+                    },
+                },
+            },
+        }
+
+        spatial = attach_program_spatial_evidence(
+            feature,
+            building_type="neighborhood living",
+        )
+
+        self.assertEqual(spatial["site_coverage_ratio"], 0.8)
+        self.assertEqual(
+            spatial["all_height_projected_plan_union_ratio"],
+            3.0,
+        )
+        self.assertEqual(spatial["coverage_numerator_m2"], 80.0)
+        self.assertEqual(spatial["coverage_denominator_m2"], 100.0)
+        self.assertEqual(
+            spatial["coverage_measurement_mode"],
+            "lowest_occupied_floor_band",
+        )
+
+    def test_final_floorwise_site_coverage_falls_back_to_benchmark_area(self):
+        ground_band = box(0.0, 0.0, 10.0, 8.0)
+        shifted_upper_band = box(6.25, 0.0, 31.25, 10.0)
+        feature = {
+            "type": "Feature",
+            "geometry": mapping(ground_band),
+            "properties": {
+                "benchmark_site_area_m2": 200.0,
+                "candidate_floor_context": {},
+                "mass_volumes": [
+                    {
+                        "role": "primary_mass",
+                        "geometry": mapping(ground_band),
+                        "bottom_height": 0.0,
+                        "top_height": 3.0,
+                    },
+                    {
+                        "role": "primary_mass",
+                        "geometry": mapping(shifted_upper_band),
+                        "bottom_height": 3.0,
+                        "top_height": 6.0,
+                    },
+                ],
+                "source_signature": {
+                    "geometry_authority": (
+                        "final_floorwise_legal_geometry_program"
+                    ),
+                    "coherence_evidence": {
+                        "score": 0.8,
+                        "hard_pass": True,
+                    },
+                },
+            },
+        }
+
+        spatial = attach_program_spatial_evidence(
+            feature,
+            building_type="neighborhood living",
+        )
+
+        self.assertEqual(spatial["site_coverage_ratio"], 0.4)
+        self.assertEqual(
+            spatial["all_height_projected_plan_union_ratio"],
+            1.5,
+        )
+        self.assertEqual(spatial["coverage_numerator_m2"], 80.0)
+        self.assertEqual(spatial["coverage_denominator_m2"], 200.0)
+        self.assertEqual(
+            spatial["coverage_measurement_mode"],
+            "lowest_occupied_floor_band",
+        )
+
+    def test_ordinary_site_coverage_keeps_all_volume_plan_union(self):
+        ground_band = box(0.0, 0.0, 10.0, 8.0)
+        shifted_upper_band = box(2.5, 0.0, 12.5, 8.0)
+        feature = {
+            "type": "Feature",
+            "geometry": mapping(ground_band),
+            "properties": {
+                "benchmark_site_area_m2": 100.0,
+                "mass_volumes": [
+                    {
+                        "role": "primary_mass",
+                        "geometry": mapping(ground_band),
+                        "bottom_height": 0.0,
+                        "top_height": 3.0,
+                    },
+                    {
+                        "role": "primary_mass",
+                        "geometry": mapping(shifted_upper_band),
+                        "bottom_height": 3.0,
+                        "top_height": 6.0,
+                    },
+                ],
+                "source_signature": {
+                    "coherence_evidence": {
+                        "score": 0.8,
+                        "hard_pass": True,
+                    },
+                },
+            },
+        }
+
+        spatial = attach_program_spatial_evidence(
+            feature,
+            building_type="neighborhood living",
+        )
+
+        self.assertEqual(spatial["site_coverage_ratio"], 1.0)
+        self.assertEqual(
+            spatial["all_height_projected_plan_union_ratio"],
+            1.0,
+        )
+        self.assertEqual(spatial["coverage_numerator_m2"], 100.0)
+        self.assertEqual(spatial["coverage_denominator_m2"], 100.0)
+        self.assertEqual(
+            spatial["coverage_measurement_mode"],
+            "all_volume_plan_union",
+        )
+
     def test_invalid_source_polygon_does_not_abort_morphology_archive(self):
         bowtie = Polygon(((0, 0), (10, 10), (0, 10), (10, 0), (0, 0)))
         invalid = SourceMass(
@@ -1287,6 +1441,55 @@ class MaasProgramMassingTest(SimpleTestCase):
                 **child_params,
                 "top_height_controls": [[0.0, 0.6], [0.3, 0.8], [0.7, 0.9], [1.0, 0.7]],
             })
+
+    def test_language_group_maps_oblique_polygon_and_tower_variants(self):
+        polygon_oblique_source = SourceMass(
+            "polygon_oblique_source",
+            box(0.0, 0.0, 10.0, 10.0),
+            volumes=(SourceVolume("body", box(0.0, 0.0, 10.0, 10.0), 0.0, 1.0, "oblique"),),
+            metadata={"continuous_surface_evidence": {"representation": "agent_oblique_polygon_envelope"}},
+        )
+        polygon_oblique_sequence = VerbSequence(
+            "oblique_polygon",
+            "oblique polygon",
+            (VerbCall("base", {}), VerbCall("taper", {})),
+        )
+        self.assertEqual(
+            _language_group(ProgramElite(polygon_oblique_sequence, polygon_oblique_source, {"properties": {}}, 0.75, 0)),
+            "oblique_envelope",
+        )
+
+        slender_source = SourceMass(
+            "slender_source",
+            box(0.0, 0.0, 10.0, 10.0),
+            volumes=(SourceVolume("body", box(0.0, 0.0, 10.0, 10.0), 0.0, 1.0, "bar"),),
+            metadata={"formal_principle": "slender_podium_tower"},
+        )
+        slender_sequence = VerbSequence(
+            "slender_tower",
+            "slender tower",
+            (VerbCall("base", {}), VerbCall("extrude", {})),
+        )
+        self.assertEqual(
+            _language_group(ProgramElite(slender_sequence, slender_source, {"properties": {}}, 0.75, 0)),
+            "oblique_envelope",
+        )
+
+        torqued_source = SourceMass(
+            "torqued_source",
+            box(0.0, 0.0, 10.0, 10.0),
+            volumes=(SourceVolume("body", box(0.0, 0.0, 10.0, 10.0), 0.0, 1.0, "bar"),),
+            metadata={"formal_principle": "torqued_stack"},
+        )
+        torqued_sequence = VerbSequence(
+            "torqued_stack",
+            "torqued stack",
+            (VerbCall("base", {}), VerbCall("interlock", {})),
+        )
+        self.assertEqual(
+            _language_group(ProgramElite(torqued_sequence, torqued_source, {"properties": {}}, 0.75, 0)),
+            "folded_section",
+        )
 
     def test_capacity_projection_preserves_authored_curve_and_changes_only_occupiable_section(self):
         controls = [[0.04, 0.25], [0.32, 0.62], [0.68, 0.38], [0.96, 0.72]]

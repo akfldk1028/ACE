@@ -1,8 +1,35 @@
 import type {
+  CreativeMassCard,
   ExecutedMassManifest,
   ExecutedMassRecord,
   MassExecutionPassport,
 } from '../../lib/language-system-types';
+
+export function CreativeMassEvidence({ mass }: { mass: CreativeMassCard }) {
+  return (
+    <aside className="book-evidence book-evidence--creative" aria-label="Pre-legal creative MASS evidence">
+      <header>
+        <span>PRE-LEGAL CREATIVE MASS</span>
+        <strong>{mass.candidateId}</strong>
+      </header>
+      <img src={mass.renderUrl} alt={`${mass.candidateId} creative MASS`} />
+      <dl className="book-evidence__attributes">
+        <div><dt>FAMILY</dt><dd>{mass.family}</dd></div>
+        <div><dt>FORM CLASS</dt><dd>{mass.formClass}</dd></div>
+        <div><dt>CAPACITY BAND</dt><dd>{mass.capacityBand}</dd></div>
+        <div><dt>STOREYS</dt><dd>{mass.storeys}</dd></div>
+        <div><dt>LEGAL STATUS</dt><dd>{mass.legalStatus.replaceAll('_', ' ').toUpperCase()}</dd></div>
+        <div><dt>MORPHOLOGY DISTANCE</dt><dd>{mass.morphologyDistance.toFixed(6)}</dd></div>
+        <div><dt>PROGRAM HASH</dt><dd>{mass.programHash.slice(0, 18)}</dd></div>
+        <div><dt>GEOMETRY HASH</dt><dd>{mass.geometryHash.slice(0, 18)}</dd></div>
+      </dl>
+      <p>
+        This choice-pool card is pre-legal. Execute, paid VLM, law, parking,
+        elevation, and certified passport actions remain unavailable.
+      </p>
+    </aside>
+  )
+}
 import { ArchitecturalRenderEvidence } from './ArchitecturalRenderEvidence';
 import { MultiViewElevationEvidence } from './MultiViewElevationEvidence';
 import { extractElevationProposal } from './elevation-proposal';
@@ -117,11 +144,25 @@ export function ExecutedMassEvidence({
     executionId,
     programHash: mass.program_hash,
     geometryHash: mass.geometry_hash,
+    finalGeometryHash: (
+      mass.final_geometry_hash ?? mass.final_legal_geometry_hash ?? ''
+    ),
+    visualHash: mass.visual_hash ?? '',
+    floorCapacityPlanHash: mass.floor_capacity_plan_hash ?? '',
+    legalFloorFieldHash: mass.legal_floor_field_hash ?? '',
+    actualGfaStopHash: mass.candidate_actual_gfa_stop_hash ?? '',
   });
   const multiViewProposal = extractMultiViewElevation(passport, {
     executionId,
     programHash: mass.program_hash,
     geometryHash: mass.geometry_hash,
+    finalGeometryHash: (
+      mass.final_geometry_hash ?? mass.final_legal_geometry_hash ?? ''
+    ),
+    visualHash: mass.visual_hash ?? '',
+    floorCapacityPlanHash: mass.floor_capacity_plan_hash ?? '',
+    legalFloorFieldHash: mass.legal_floor_field_hash ?? '',
+    actualGfaStopHash: mass.candidate_actual_gfa_stop_hash ?? '',
   });
   const replayCopy = executionActionCopy();
 

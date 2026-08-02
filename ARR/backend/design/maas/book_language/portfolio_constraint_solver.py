@@ -12,12 +12,27 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 
+from .competition_portfolio_contract import CompetitionPortfolioContract
+
 
 @dataclass(frozen=True)
 class ConstraintCandidateFacts:
     score: float
     cap_keys: tuple[str, ...]
     coverage_tags: tuple[str, ...] = ()
+    visible_stepped: bool = False
+    body_phenotype: str = ""
+    roof_archetype: str = ""
+    chassis_family: str = ""
+    plan_family: str = ""
+    base_scope: str = ""
+    capacity_band: str = ""
+    body_roof_signature: str = ""
+    # Transitional aliases retained for callers that predate the unified
+    # measured-field contract.
+    scope: str = ""
+    stepped: bool = False
+    solid_phenotype: str = ""
 
 
 def solve_maximum_compatible_subset(
@@ -193,85 +208,442 @@ def solve_milp_compatible_subset(
     target_count: int,
     maximum_key_counts: dict[str, int],
     required_coverage_tags: tuple[str, ...] = (),
+    required_scopes: tuple[str, ...] = (),
+    capacity_band_minimum_counts: dict[str, int] | None = None,
+    capacity_band_maximum_counts: dict[str, int] | None = None,
+    required_classified_capacity_count: int | None = None,
+    minimum_stepped_count: int = 0,
+    maximum_stepped_count: int | None = None,
+    upper_band_stepped_bands: tuple[str, ...] = (),
+    minimum_upper_band_stepped_count: int = 0,
+    maximum_roof_archetype_count: int | None = None,
+    maximum_solid_phenotype_count: int | None = None,
+    portfolio_contract: CompetitionPortfolioContract | None = None,
+    infeasibility_certificate: dict[str, object] | None = None,
     time_limit_seconds: float = 45.0,
 ) -> tuple[int, ...]:
-    """Solve the large final portfolio as a binary linear program.
+    """Solve every supplied final-portfolio requirement in one MILP.
 
     Each candidate is one binary variable. Incompatible silhouettes become
-    pair constraints, typed diversity limits become cardinality constraints,
-    and required scopes/capacity/program tags become coverage constraints.
-    This reports the actual best feasible cardinality instead of presenting a
-    narrow beam approximation as if it were a maximum set.
+    pair constraints; scopes, achieved-capacity bands, stepped morphology and
+    repetition caps are rows in the same model. A completed result always has
+    exactly ``target_count`` members. Infeasibility returns an empty tuple and
+    populates ``infeasibility_certificate``; it never substitutes a
+    cardinality-only portfolio.
     """
 
+    if infeasibility_certificate is not None:
+        infeasibility_certificate.clear()
     count = len(facts)
     if count == 0 or target_count <= 0 or len(compatibility) != count:
+        if infeasibility_certificate is not None:
+            infeasibility_certificate.update({
+                "status": "infeasible",
+                "maximum_achievable_cardinality": 0,
+                "unsatisfied_constraints": [
+                    f"selection_count:exact_{max(0, int(target_count))}",
+                ],
+            })
         return ()
     if any(len(row) != count for row in compatibility):
+        if infeasibility_certificate is not None:
+            infeasibility_certificate.update({
+                "status": "invalid_compatibility_matrix",
+                "maximum_achievable_cardinality": 0,
+                "unsatisfied_constraints": ["compatibility_matrix:square"],
+            })
         return ()
     try:
         import numpy as np
         from scipy.optimize import Bounds, LinearConstraint, milp
         from scipy.sparse import lil_matrix
     except ImportError:
+        if infeasibility_certificate is not None:
+            infeasibility_certificate.update({
+                "status": "solver_unavailable",
+                "maximum_achievable_cardinality": 0,
+                "unsatisfied_constraints": ["scipy_milp:available"],
+            })
         return ()
 
-    rows: list[tuple[dict[int, float], float, float]] = []
+    capacity_band_exact_counts: dict[str, int] = {}
+    base_scope_minimum_each = 0
+    base_scope_maximum_each: int | None = None
+    body_phenotype_minimum_distinct = 0
+    roof_archetype_minimum_distinct = 0
+    chassis_family_minimum_distinct = 0
+    plan_family_minimum_distinct = 0
+    body_roof_signature_minimum_distinct = 0
+    maximum_chassis_family_count: int | None = None
+    maximum_plan_family_count: int | None = None
+    maximum_body_roof_signature_count: int | None = None
+    if portfolio_contract is not None:
+        if int(portfolio_contract.target_count) != int(target_count):
+            if infeasibility_certificate is not None:
+                infeasibility_certificate.update({
+                    "status": "invalid_contract_target",
+                    "target_count": int(target_count),
+                    "unsatisfied_constraints": [
+                        "portfolio_contract:target_count_match",
+                    ],
+                })
+            return ()
+        capacity_band_exact_counts = dict(
+            portfolio_contract.capacity_band_exact_counts
+        )
+        capacity_band_minimum_counts = dict(
+            portfolio_contract.capacity_band_minimum_counts
+        )
+        capacity_band_maximum_counts = dict(
+            portfolio_contract.capacity_band_maximum_counts
+        )
+        if (
+            capacity_band_exact_counts
+            or capacity_band_minimum_counts
+            or capacity_band_maximum_counts
+        ):
+            required_classified_capacity_count = int(target_count)
+        required_scopes = portfolio_contract.base_scopes
+        base_scope_minimum_each = (
+            portfolio_contract.base_scope_minimum_each
+        )
+        base_scope_maximum_each = (
+            portfolio_contract.base_scope_maximum_each
+        )
+        minimum_stepped_count = (
+            portfolio_contract.visible_stepped_minimum
+        )
+        maximum_stepped_count = (
+            portfolio_contract.visible_stepped_maximum
+        )
+        upper_band_stepped_bands = (
+            portfolio_contract.upper_band_stepped_bands
+        )
+        minimum_upper_band_stepped_count = (
+            portfolio_contract.upper_band_stepped_minimum
+        )
+        body_phenotype_minimum_distinct = (
+            portfolio_contract.body_phenotype_minimum_distinct
+        )
+        maximum_solid_phenotype_count = (
+            portfolio_contract.body_phenotype_maximum_each
+        )
+        roof_archetype_minimum_distinct = (
+            portfolio_contract.roof_archetype_minimum_distinct
+        )
+        maximum_roof_archetype_count = (
+            portfolio_contract.roof_archetype_maximum_each
+        )
+        chassis_family_minimum_distinct = (
+            portfolio_contract.chassis_family_minimum_distinct
+        )
+        maximum_chassis_family_count = (
+            portfolio_contract.chassis_family_maximum_each
+        )
+        plan_family_minimum_distinct = (
+            portfolio_contract.plan_family_minimum_distinct
+        )
+        maximum_plan_family_count = (
+            portfolio_contract.plan_family_maximum_each
+        )
+        body_roof_signature_minimum_distinct = (
+            portfolio_contract.body_roof_signature_minimum_distinct
+        )
+        maximum_body_roof_signature_count = (
+            portfolio_contract.body_roof_signature_maximum_each
+        )
+
+    # name, coefficients, lower, upper. Names are stable evidence keys used by
+    # the selector and benchmark when no completed board exists.
+    rows: list[tuple[str, dict[int, float], float, float]] = []
+    variable_count = count
+    exact_count_name = f"selection_count:exact_{int(target_count)}"
     rows.append((
+        exact_count_name,
         {index: 1.0 for index in range(count)},
-        0.0,
+        float(target_count),
         float(target_count),
     ))
     for left in range(count):
         for right in range(left + 1, count):
             if not compatibility[left][right]:
-                rows.append(({left: 1.0, right: 1.0}, 0.0, 1.0))
+                rows.append((
+                    f"silhouette_incompatibility:{left}:{right}",
+                    {left: 1.0, right: 1.0},
+                    0.0,
+                    1.0,
+                ))
     candidates_by_key: dict[str, list[int]] = {}
     for index, fact in enumerate(facts):
         for key in fact.cap_keys:
             candidates_by_key.setdefault(key, []).append(index)
     for key, indices in sorted(candidates_by_key.items()):
         rows.append((
+            f"typed_cap:{key}:max_{max(0, int(maximum_key_counts.get(key, target_count)))}",
             {index: 1.0 for index in indices},
             0.0,
             float(max(0, int(maximum_key_counts.get(key, target_count)))),
         ))
-    base_rows = list(rows)
-    coverage_rows: list[tuple[dict[int, float], float, float]] = []
-    coverage_supply_complete = True
+
     for tag in dict.fromkeys(required_coverage_tags):
         indices = [
             index for index, fact in enumerate(facts)
             if tag in fact.coverage_tags
         ]
-        if not indices:
-            coverage_supply_complete = False
-            continue
-        coverage_rows.append((
+        rows.append((
+            f"coverage:{tag}:min_1",
             {index: 1.0 for index in indices},
             1.0,
             np.inf,
         ))
+    for scope in dict.fromkeys(required_scopes):
+        indices = [
+            index for index, fact in enumerate(facts)
+            if (fact.base_scope or fact.scope) == scope
+        ]
+        minimum = max(1, int(base_scope_minimum_each))
+        rows.append((
+            f"scope:{scope}:min_{minimum}",
+            {index: 1.0 for index in indices},
+            float(minimum),
+            np.inf,
+        ))
+        if base_scope_maximum_each is not None:
+            maximum = max(0, int(base_scope_maximum_each))
+            rows.append((
+                f"scope:{scope}:max_{maximum}",
+                {index: 1.0 for index in indices},
+                0.0,
+                float(maximum),
+            ))
+
+    minimum_band_counts = capacity_band_minimum_counts or {}
+    maximum_band_counts = capacity_band_maximum_counts or {}
+    exact_band_counts = capacity_band_exact_counts
+    for band in sorted(
+        set(exact_band_counts)
+        | set(minimum_band_counts)
+        | set(maximum_band_counts)
+    ):
+        indices = [
+            index for index, fact in enumerate(facts)
+            if fact.capacity_band == band
+        ]
+        if band in exact_band_counts:
+            exact = max(0, int(exact_band_counts[band]))
+            rows.append((
+                f"capacity_band:{band}:exact_{exact}",
+                {index: 1.0 for index in indices},
+                float(exact),
+                float(exact),
+            ))
+        if band in minimum_band_counts:
+            minimum = max(0, int(minimum_band_counts[band]))
+            rows.append((
+                f"capacity_band:{band}:min_{minimum}",
+                {index: 1.0 for index in indices},
+                float(minimum),
+                np.inf,
+            ))
+        if band in maximum_band_counts:
+            maximum = max(0, int(maximum_band_counts[band]))
+            rows.append((
+                f"capacity_band:{band}:max_{maximum}",
+                {index: 1.0 for index in indices},
+                0.0,
+                float(maximum),
+            ))
+    if required_classified_capacity_count is not None:
+        required_classified = max(
+            0,
+            int(required_classified_capacity_count),
+        )
+        classified_bands = (
+            set(exact_band_counts)
+            | set(minimum_band_counts)
+            | set(maximum_band_counts)
+        )
+        classified_indices = [
+            index for index, fact in enumerate(facts)
+            if fact.capacity_band in classified_bands
+        ]
+        rows.append((
+            f"capacity_band:classified_exact_{required_classified}",
+            {index: 1.0 for index in classified_indices},
+            float(required_classified),
+            float(required_classified),
+        ))
+
+    stepped_indices = [
+        index
+        for index, fact in enumerate(facts)
+        if fact.visible_stepped or fact.stepped
+    ]
+    stepped_row_name = (
+        "visible_stepped"
+        if portfolio_contract is not None
+        else "stepped"
+    )
+    if minimum_stepped_count > 0:
+        minimum = max(0, int(minimum_stepped_count))
+        rows.append((
+            f"{stepped_row_name}:min_{minimum}",
+            {index: 1.0 for index in stepped_indices},
+            float(minimum),
+            np.inf,
+        ))
+    if maximum_stepped_count is not None:
+        maximum = max(0, int(maximum_stepped_count))
+        rows.append((
+            f"{stepped_row_name}:max_{maximum}",
+            {index: 1.0 for index in stepped_indices},
+            0.0,
+            float(maximum),
+        ))
+
+    if minimum_upper_band_stepped_count > 0:
+        upper_bands = set(upper_band_stepped_bands)
+        upper_stepped_indices = [
+            index for index, fact in enumerate(facts)
+            if (
+                fact.visible_stepped or fact.stepped
+            ) and fact.capacity_band in upper_bands
+        ]
+        minimum = max(0, int(minimum_upper_band_stepped_count))
+        rows.append((
+            f"upper_band_stepped:min_{minimum}",
+            {index: 1.0 for index in upper_stepped_indices},
+            float(minimum),
+            np.inf,
+        ))
+
+    def add_distinct_category_rows(
+        name: str,
+        values: list[str],
+        *,
+        minimum_distinct: int,
+        maximum_each: int | None,
+    ) -> None:
+        nonlocal variable_count
+        categories = sorted({value for value in values if value})
+        if maximum_each is not None:
+            maximum = max(0, int(maximum_each))
+            for category in categories:
+                indices = [
+                    index for index, value in enumerate(values)
+                    if value == category
+                ]
+                rows.append((
+                    f"{name}:{category}:max_{maximum}",
+                    {index: 1.0 for index in indices},
+                    0.0,
+                    float(maximum),
+                ))
+        minimum = max(0, int(minimum_distinct))
+        if minimum == 0:
+            return
+        indicator_indices: list[int] = []
+        for category in categories:
+            indices = [
+                index for index, value in enumerate(values)
+                if value == category
+            ]
+            indicator = variable_count
+            variable_count += 1
+            indicator_indices.append(indicator)
+            rows.append((
+                f"{name}:{category}:indicator_upper",
+                {
+                    **{index: 1.0 for index in indices},
+                    indicator: -float(len(indices)),
+                },
+                -np.inf,
+                0.0,
+            ))
+            rows.append((
+                f"{name}:{category}:indicator_lower",
+                {
+                    indicator: 1.0,
+                    **{index: -1.0 for index in indices},
+                },
+                -np.inf,
+                0.0,
+            ))
+        rows.append((
+            f"{name}:distinct_min_{minimum}",
+            {index: 1.0 for index in indicator_indices},
+            float(minimum),
+            np.inf,
+        ))
+
+    add_distinct_category_rows(
+        (
+            "body_phenotype"
+            if portfolio_contract is not None
+            else "solid_phenotype"
+        ),
+        [fact.body_phenotype or fact.solid_phenotype for fact in facts],
+        minimum_distinct=body_phenotype_minimum_distinct,
+        maximum_each=maximum_solid_phenotype_count,
+    )
+    add_distinct_category_rows(
+        (
+            "roof_archetype"
+            if portfolio_contract is not None
+            else "roof"
+        ),
+        [fact.roof_archetype for fact in facts],
+        minimum_distinct=roof_archetype_minimum_distinct,
+        maximum_each=maximum_roof_archetype_count,
+    )
+    add_distinct_category_rows(
+        "chassis_family",
+        [fact.chassis_family for fact in facts],
+        minimum_distinct=chassis_family_minimum_distinct,
+        maximum_each=maximum_chassis_family_count,
+    )
+    add_distinct_category_rows(
+        "plan_family",
+        [fact.plan_family for fact in facts],
+        minimum_distinct=plan_family_minimum_distinct,
+        maximum_each=maximum_plan_family_count,
+    )
+    add_distinct_category_rows(
+        "body_roof_signature",
+        [fact.body_roof_signature for fact in facts],
+        minimum_distinct=body_roof_signature_minimum_distinct,
+        maximum_each=maximum_body_roof_signature_count,
+    )
+
     scores = np.asarray([float(fact.score) for fact in facts], dtype=float)
     if scores.size and float(np.max(scores) - np.min(scores)) > 1e-12:
         scores = (scores - np.min(scores)) / (np.max(scores) - np.min(scores))
-    objective = -(np.ones(count, dtype=float) + scores * 1e-4)
+    objective = np.zeros(variable_count, dtype=float)
+    objective[:count] = -(
+        np.ones(count, dtype=float) + scores * 1e-4
+    )
 
     def run_solver(
-        active_rows: list[tuple[dict[int, float], float, float]],
+        active_rows: list[tuple[str, dict[int, float], float, float]],
     ):
-        matrix = lil_matrix((len(active_rows), count), dtype=float)
+        matrix = lil_matrix(
+            (len(active_rows), variable_count),
+            dtype=float,
+        )
         lower = np.empty(len(active_rows), dtype=float)
         upper = np.empty(len(active_rows), dtype=float)
-        for row_index, (coefficients, low, high) in enumerate(active_rows):
+        for row_index, (_name, coefficients, low, high) in enumerate(active_rows):
             for candidate_index, value in coefficients.items():
                 matrix[row_index, candidate_index] = value
             lower[row_index] = low
             upper[row_index] = high
         return milp(
             c=objective,
-            integrality=np.ones(count, dtype=int),
-            bounds=Bounds(np.zeros(count), np.ones(count)),
+            integrality=np.ones(variable_count, dtype=int),
+            bounds=Bounds(
+                np.zeros(variable_count),
+                np.ones(variable_count),
+            ),
             constraints=LinearConstraint(matrix.tocsr(), lower, upper),
             options={
                 "time_limit": max(1.0, float(time_limit_seconds)),
@@ -279,49 +651,137 @@ def solve_milp_compatible_subset(
             },
         )
 
-    # Cardinality is the primary contract. Solve it without optional coverage
-    # first, then ask whether all coverage tags can be met at that same proven
-    # cardinality. An infeasible scope combination must never collapse a valid
-    # ten-card MASS set to zero.
-    cardinality_result = run_solver(base_rows)
-    if cardinality_result.x is None:
+    def solver_status_name(result: object) -> str:
+        return {
+            0: "optimal",
+            1: "limit_reached",
+            2: "infeasible",
+            3: "unbounded",
+            4: "solver_error",
+        }.get(int(getattr(result, "status", -1)), "unknown")
+
+    def selected_indices(result: object) -> tuple[int, ...]:
+        values = getattr(result, "x", None)
+        if values is None:
+            return ()
+        return tuple(
+            index
+            for index, value in enumerate(values[:count])
+            if value >= 0.5
+        )
+
+    def satisfies(
+        result: object,
+        active_rows: list[
+            tuple[str, dict[int, float], float, float]
+        ],
+    ) -> bool:
+        values = getattr(result, "x", None)
+        if values is None:
+            return False
+        return all(
+            low - 1e-7
+            <= sum(
+                coefficient * float(values[index])
+                for index, coefficient in coefficients.items()
+            )
+            <= high + 1e-7
+            for _name, coefficients, low, high in active_rows
+        )
+
+    result = run_solver(rows)
+    selected = selected_indices(result)
+    # A time-limited incumbent that satisfies every row is already a valid
+    # completed board; optimal score proof is not required for feasibility.
+    if len(selected) == target_count and satisfies(result, rows):
+        return selected
+    exact_status = solver_status_name(result)
+    if exact_status != "infeasible":
+        if infeasibility_certificate is not None:
+            infeasibility_certificate.update({
+                "schema_version": (
+                    "arr.maas.portfolio_infeasibility.v1"
+                ),
+                "status": "solver_not_proven",
+                "target_count": int(target_count),
+                "solver_status": exact_status,
+                "solver_message": str(
+                    getattr(result, "message", "")
+                ),
+            })
         return ()
-    cardinality_selected = tuple(
-        index
-        for index, value in enumerate(cardinality_result.x)
-        if value >= 0.5
-    )
-    # Reaching the caller's target proves cardinality optimal even if HiGHS
-    # stops before closing a tiny score tie. Below target, accept only a solver
-    # result explicitly reported as optimal; a time-limited incumbent is not a
-    # proof of candidate-supply failure.
-    if (
-        len(cardinality_selected) < target_count
-        and not bool(cardinality_result.success)
-    ):
-        return ()
-    if not coverage_rows or not coverage_supply_complete:
-        return cardinality_selected
-    cardinality_floor = len(cardinality_selected)
-    coverage_result = run_solver([
-        *base_rows,
-        *coverage_rows,
-        (
-            {index: 1.0 for index in range(count)},
-            float(cardinality_floor),
-            float(target_count),
-        ),
-    ])
-    if coverage_result.x is None:
-        return cardinality_selected
-    coverage_selected = tuple(
-        index
-        for index, value in enumerate(coverage_result.x)
-        if value >= 0.5
-    )
-    if len(coverage_selected) == cardinality_floor:
-        return coverage_selected
-    return cardinality_selected
+
+    # Diagnose, but do not complete, an infeasible portfolio. Keep all hard
+    # upper bounds and incompatibility edges, relax exact/lower bounds, and
+    # maximize cardinality to state how close the candidate universe can get.
+    diagnostic_rows = [
+        row for row in rows
+        if (
+            row[0] != exact_count_name
+            and row[2] <= 0.0
+        )
+    ]
+    diagnostic_rows.append((
+        f"selection_count:max_{int(target_count)}",
+        {index: 1.0 for index in range(count)},
+        0.0,
+        float(target_count),
+    ))
+    diagnostic_result = run_solver(diagnostic_rows)
+    diagnostic_selected = selected_indices(diagnostic_result)
+    diagnostic_status = solver_status_name(diagnostic_result)
+    unsatisfied: list[str] = []
+    diagnostic_values = getattr(diagnostic_result, "x", None)
+    for name, coefficients, low, high in rows:
+        value = sum(
+            coefficient * (
+                float(diagnostic_values[index])
+                if diagnostic_values is not None
+                else 0.0
+            )
+            for index, coefficient in coefficients.items()
+        )
+        if value + 1e-7 < low or value - 1e-7 > high:
+            unsatisfied.append(name)
+            continue
+        # If an upper row excludes supplied candidates and prevents reaching
+        # exact cardinality, retain its name in the diagnosis even though the
+        # relaxed incumbent necessarily obeys it.
+        if (
+            len(diagnostic_selected) < target_count
+            and high < np.inf
+            and sum(coefficients.values()) > high + 1e-7
+            and name != exact_count_name
+        ):
+            unsatisfied.append(name)
+    if exact_count_name not in unsatisfied:
+        unsatisfied.insert(0, exact_count_name)
+    if infeasibility_certificate is not None:
+        certificate: dict[str, object] = {
+            "schema_version": "arr.maas.portfolio_infeasibility.v1",
+            "status": "infeasible",
+            "target_count": int(target_count),
+            "unsatisfied_constraints": list(dict.fromkeys(unsatisfied)),
+            "diagnostic_solver_status": diagnostic_status,
+            "solver_message": str(
+                getattr(result, "message", "joint MILP infeasible")
+            ),
+        }
+        if (
+            diagnostic_status == "optimal"
+            and bool(getattr(diagnostic_result, "success", False))
+        ):
+            certificate["maximum_achievable_cardinality"] = len(
+                diagnostic_selected
+            )
+            certificate["maximum_cardinality_proven"] = True
+        else:
+            certificate["diagnostic_incumbent_cardinality"] = len(
+                diagnostic_selected
+            )
+            certificate["maximum_cardinality_proven"] = False
+        infeasibility_certificate.update(certificate)
+    return ()
 
 
 __all__ = [

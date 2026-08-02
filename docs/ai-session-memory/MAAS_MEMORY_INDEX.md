@@ -1,5 +1,31 @@
 # MAAS Memory Index
 
+## Active lawful-diverse LLM pilot - 2026-07-30
+
+Read `MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md` first. It records the user's
+corrected production intent: no named-family quotas or recipe selection;
+triangular, disc, long-span, stepped, and other forms are possible solutions
+only; stepped-only collapse is failure; material diversity and real-PNU
+law/parking compliance are mandatory; and final acceptance requires actual
+image-backed VLM review. The current payload-authored pre-legal result has zero
+live LLM/VLM calls and is not product completion.
+
+## Active recovery checkpoint — 2026-07-28
+
+Read `MAAS_R293_V6_SOLID_ELEVATION_DELTA_20260728.md` first, including its
+append-only r9 sections at the bottom, then the v5 checkpoint below. The same
+file now owns the active Task-5 recovery: authored-solid authority, UnitBox
+breadth supply, frozen-PNU RED results, spatial/capacity audit separation and
+whole-legal-field Matrix4 placement work. Do not restart from the older v6
+triangle-wireframe correction. No live r9 PNG/PNU acceptance exists yet.
+
+Read `MAAS_R293_V5_AUTHORED_LEGAL_ELEVATION_CHECKPOINT_20260728.md` first.
+It records the recovered 10 authored polygon MASSes, exact r293→v5 replay,
+14 m same-mesh elevation, three-hash identity guard, Neo4j/law-agent evidence,
+frontend proof, tests and the unresolved parking 1-versus-2 and diversity
+limits. Do not claim final acceptance: VLM is not evaluated and the portfolio
+still misses one Base Volume scope.
+
 ## Canonical modular MASS-flow memory
 
 Start every new MASS-generation session here:

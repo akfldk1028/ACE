@@ -92,6 +92,11 @@ def universal_form_bank_contract() -> dict[str, Any]:
             "triangular_profiled_prism",
             "trapezoidal_profiled_prism",
             "chamfered_profiled_prism",
+            "kite_profiled_prism",
+            "oval_profiled_prism",
+            "stadium_profiled_prism",
+            "concave_l_profiled_prism",
+            "hexagon_profiled_prism",
             "host_face_attachment",
         ),
     }
@@ -120,21 +125,88 @@ def universal_form_programs(variation_page: int = 0) -> tuple[GeometryProgram, .
         "balanced_operator_sampling": True,
         "variation_offset": page * 64,
     }
-    synthesis_programs = synthesize_architectural_programs(
-        request,
-        building_type="unconditioned_form_bank",
+    canonical_supply: list[GeometryProgram] = []
+    synthesis_hashes: set[str] = set()
+    # PROFILED PRISM is a valid authoring-language seed, but the executable
+    # MASS control lane has the stricter one-UnitBox authority required by the
+    # downstream legal compiler.  Pull deterministic reserve lattice batches
+    # until the public 64-record page is full instead of wasting diagnostic
+    # evaluations on programs that the authority bridge must reject.
+    reserve_offsets = (
+        page * 64,
+        512 + page * 128,
+        576 + page * 128,
     )
-    lanes = (
-        *((program, "bounded_synthesis") for program in synthesis_programs),
-        *(
-            tuple(
-                (program, "executable_core_language")
-                for program in architectural_shape_programs()
+    for variation_offset in reserve_offsets:
+        batch = synthesize_architectural_programs(
+            {
+                **request,
+                "variation_offset": variation_offset,
+            },
+            building_type="unconditioned_form_bank",
+        )
+        for program in batch:
+            primitives = tuple(
+                node for node in program.nodes
+                if node.kind == "primitive"
             )
-            if page == 0
-            else ()
-        ),
+            if (
+                len(primitives) != 1
+                or primitives[0].operator != "box"
+                or primitives[0].parameters
+                != {"width": 1.0, "depth": 1.0, "height": 1.0}
+            ):
+                continue
+            program_hash = program.program_hash()
+            if program_hash in synthesis_hashes:
+                continue
+            synthesis_hashes.add(program_hash)
+            canonical_supply.append(program)
+    # Filtering the noncanonical seed must not collapse the advertised
+    # balanced family distribution.  Preserve the public first three, then
+    # take the deterministic reserve stream with the existing five-per-family
+    # ceiling.
+    synthesis_programs = list(canonical_supply[:3])
+    family_counts: dict[str, int] = {}
+    for program in synthesis_programs:
+        family = str(program.metadata.get("family") or "")
+        family_counts[family] = family_counts.get(family, 0) + 1
+    for program in canonical_supply[3:]:
+        family = str(program.metadata.get("family") or "")
+        family_cap = (
+            2 if family == "agent_profiled_hall"
+            else 3 if family == "agent_split_wing"
+            else 5
+        )
+        if family_counts.get(family, 0) >= family_cap:
+            continue
+        synthesis_programs.append(program)
+        family_counts[family] = family_counts.get(family, 0) + 1
+        if len(synthesis_programs) >= 64:
+            break
+    if len(synthesis_programs) != 64:
+        raise RuntimeError(
+            "universal form bank could not fill one canonical UnitBox page"
+        )
+    synthesis_lane = tuple(
+        (program, "bounded_synthesis")
+        for program in synthesis_programs
     )
+    if page == 0:
+        core_lane = tuple(
+            (program, "executable_core_language")
+            for program in architectural_shape_programs()
+        )
+        interleaved: list[tuple[GeometryProgram, str]] = []
+        synthesis_tail = synthesis_lane[3:]
+        for index in range(max(len(synthesis_tail), len(core_lane))):
+            if index < len(synthesis_tail):
+                interleaved.append(synthesis_tail[index])
+            if index < len(core_lane):
+                interleaved.append(core_lane[index])
+        lanes = (*synthesis_lane[:3], *interleaved)
+    else:
+        lanes = synthesis_lane
     records: list[GeometryProgram] = []
     seen_hashes: set[str] = set()
     for program, lane in lanes:

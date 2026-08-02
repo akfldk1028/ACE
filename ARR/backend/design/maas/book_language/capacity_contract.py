@@ -7,12 +7,15 @@ only passes the resulting immutable dictionaries between stages.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any
 
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 from design.maas.source_geometry.ir import SourceMass
+
+from .legal_floor_field import validate_legal_floor_field
 
 
 def build_feasible_capacity_contract(
@@ -38,6 +41,23 @@ def build_feasible_capacity_contract(
         and floor_capacity_plan.get("status") in {"materialized", "target_unreachable"}
         else None
     )
+    if plan is not None:
+        embedded_legal_field = plan.get("legal_floor_field")
+        authoritative_legal_hash = str(
+            plan.get("legal_floor_field_hash") or ""
+        )
+        embedded_hash = str(
+            (embedded_legal_field or {}).get(
+                "legal_floor_field_hash"
+            )
+            or ""
+        )
+        if (
+            not authoritative_legal_hash
+            or not validate_legal_floor_field(embedded_legal_field)
+            or embedded_hash != authoritative_legal_hash
+        ):
+            raise ValueError("legal_floor_field_authority_mismatch")
     floor_count = max(
         1,
         int(
@@ -111,6 +131,28 @@ def build_feasible_capacity_contract(
         if len(plan_floor_targets) == floor_count and plan_floor_targets
         else ground_capacity * legal_field_yield_ratio
     )
+    legal_floor_field = (
+        deepcopy(dict(plan.get("legal_floor_field") or {}))
+        if plan is not None
+        and isinstance(plan.get("legal_floor_field"), dict)
+        else {}
+    )
+    candidate_legal_floor_sections = (
+        deepcopy(list(plan.get("legal_floor_sections") or ()))[:floor_count]
+        if plan is not None
+        else []
+    )
+    candidate_floor_top_heights = (
+        [
+            float(value)
+            for value in (plan.get("floor_top_heights_m") or ())
+        ][:floor_count]
+        if plan is not None
+        else [
+            floor_step * (index + 1)
+            for index in range(floor_count)
+        ]
+    )
     return {
         "schema_version": "arr.maas.feasible_base_capacity.v1",
         "status": "materialized" if feasible_maximum > 0.0 else "infeasible",
@@ -119,6 +161,18 @@ def build_feasible_capacity_contract(
         "generation_site_area_m2": round(generation_area, 3),
         "requested_height_m": round(effective_height, 3),
         "requested_floors": floor_count,
+        "floor_planning_mode": str(
+            (plan or {}).get("planning_mode") or "legacy"
+        ),
+        "candidate_floor_count_authority": (
+            "explicit_clear_span_dimensional_invariant"
+            if (plan or {}).get("planning_mode") == "clear_span"
+            else "legacy_floor_capacity_plan_compatibility"
+        ),
+        "candidate_legal_floor_sections": candidate_legal_floor_sections,
+        "candidate_floor_top_heights_m": [
+            round(value, 3) for value in candidate_floor_top_heights
+        ],
         "legal_floor_section_areas_m2": [round(value, 3) for value in legal_floor_areas],
         "bcr_adjusted_floor_areas_m2": [round(value, 3) for value in bcr_adjusted_areas],
         "bcr_limit_pct": round(bcr_limit, 3),
@@ -143,6 +197,14 @@ def build_feasible_capacity_contract(
         "parking_rechecked_downstream": True,
         "floor_capacity_plan_hash": str(
             (plan or {}).get("floor_capacity_plan_hash") or ""
+        ),
+        "legal_floor_field_hash": str(
+            (plan or {}).get("legal_floor_field_hash")
+            or ""
+        ),
+        "legal_floor_field": legal_floor_field,
+        "available_legal_floor_count": int(
+            legal_floor_field.get("measured_usable_floor_count") or 0
         ),
         "floor_capacity_plan_status": str((plan or {}).get("status") or ""),
     }
@@ -183,6 +245,10 @@ def measure_source_capacity(
     feasible = max(float(contract.get("feasible_maximum_floor_area_m2") or 0.0), 1e-9)
     utilization = floor_area / feasible
     minimum = float(contract.get("minimum_utilization") or 0.0)
+    minimum_floor_area = float(
+        contract.get("minimum_floor_area_m2")
+        or feasible * minimum
+    )
     return {
         "schema_version": "arr.maas.source_capacity_measurement.v1",
         "floor_area_m2": round(floor_area, 3),
@@ -192,7 +258,7 @@ def measure_source_capacity(
         "minimum_utilization": round(minimum, 4),
         "floor_contract_hash": str((shared or {}).get("floor_contract_hash") or ""),
         "hard_pass": bool(
-            utilization + 1e-9 >= minimum
+            floor_area + 1e-9 >= minimum_floor_area
             and (shared is None or shared.get("hard_pass") is True)
         ),
     }
@@ -214,10 +280,18 @@ def recursive_plan_coverage_floor(
     del building_type
     capacity = contract or {}
     target_area = float(capacity.get("target_base_plan_area_m2") or 0.0)
+    declared_coverage = float(
+        capacity.get("target_base_plan_coverage") or 0.0
+    )
     if host_area_m2 and float(host_area_m2) > 0.0 and target_area > 0.0:
         capacity_floor = target_area / float(host_area_m2)
+        if declared_coverage > 0.0:
+            # Serialized plan areas are rounded to millimetre-square
+            # precision. Never let that rounding expand a declared legal
+            # coverage (for example 92.638 / 102.930960... > 0.900000).
+            capacity_floor = min(capacity_floor, declared_coverage)
     else:
-        capacity_floor = float(capacity.get("target_base_plan_coverage") or 0.0)
+        capacity_floor = declared_coverage
     return max(0.0, min(0.95, capacity_floor))
 
 

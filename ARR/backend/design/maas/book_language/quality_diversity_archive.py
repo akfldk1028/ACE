@@ -16,16 +16,18 @@ from .candidate_analysis import (
     _capacity_alternative_key,
     _capacity_minimum_gate,
     _capacity_target_gate,
+    _chassis_family,
     _fingerprint,
     _geometry_program_family,
     _plan_family,
+    _roof_archetype,
     _scope_key,
     _solid_morphology_metrics,
 )
 
 
 QD_SCHEMA = "arr.maas.map_elites_archive.v1"
-QD_AXES = ("base_scope", "solid_phenotype", "capacity_alternative")
+QD_AXES = ("base_scope", "solid_phenotype", "achieved_capacity_band")
 
 
 def _configured_integer(name: str, default: int, minimum: int, maximum: int) -> int:
@@ -48,6 +50,9 @@ def qd_archive_policy() -> dict[str, Any]:
         "max_archive_size": _configured_integer("MAAS_QD_ARCHIVE_MAX_SIZE", 192, 32, 512),
         "protect_plan_family_anchors": True,
         "protect_geometry_genotype_anchors": True,
+        "protect_body_family_anchors": True,
+        "protect_roof_family_anchors": True,
+        "protect_chassis_family_anchors": True,
     }
 
 
@@ -131,12 +136,26 @@ def map_elites_archive(pool: list[_Candidate]) -> list[_Candidate]:
     seen_principles: set[str] = set()
     seen_plan_families: set[str] = set()
     seen_genotypes: set[str] = set()
+    seen_body_families: set[str] = set()
+    seen_roof_families: set[str] = set()
+    seen_chassis_families: set[str] = set()
     for candidate in ordered:
         capacity_alternative = _capacity_alternative_key(candidate)
         principle_id = str(candidate.principle_id)
         plan_family = _plan_family(candidate)
         genotype = _geometry_program_family(candidate) or ""
-        if capacity_alternative not in seen_capacity_alternatives:
+        morphology = _solid_morphology_metrics(candidate)
+        body_family = str(
+            morphology.get("body_phenotype")
+            or morphology.get("phenotype")
+            or ""
+        )
+        roof_family = _roof_archetype(candidate)
+        chassis_family = _chassis_family(candidate)
+        if (
+            capacity_alternative
+            and capacity_alternative not in seen_capacity_alternatives
+        ):
             protected.append(candidate)
             seen_capacity_alternatives.add(capacity_alternative)
         if principle_id not in seen_principles:
@@ -148,6 +167,15 @@ def map_elites_archive(pool: list[_Candidate]) -> list[_Candidate]:
         if genotype and genotype not in seen_genotypes:
             protected.append(candidate)
             seen_genotypes.add(genotype)
+        if body_family and body_family not in seen_body_families:
+            protected.append(candidate)
+            seen_body_families.add(body_family)
+        if roof_family and roof_family not in seen_roof_families:
+            protected.append(candidate)
+            seen_roof_families.add(roof_family)
+        if chassis_family and chassis_family not in seen_chassis_families:
+            protected.append(candidate)
+            seen_chassis_families.add(chassis_family)
 
     retained: list[_Candidate] = []
     fingerprints: set[tuple[Any, ...]] = set()
@@ -171,11 +199,57 @@ def map_elites_archive(pool: list[_Candidate]) -> list[_Candidate]:
 
 def qd_archive_evidence(pool: list[_Candidate]) -> dict[str, Any]:
     descriptors = {behavior_descriptor(candidate) for candidate in pool}
+    achieved_capacity_bands = {
+        _capacity_alternative_key(candidate)
+        for candidate in pool
+        if _capacity_alternative_key(candidate)
+    }
+    requested_capacity_alternatives = {
+        str(
+            (
+                candidate.source.metadata.get(
+                    "capacity_alternative_projection"
+                )
+                or {}
+            ).get("requested_capacity_alternative_id")
+            or (
+                candidate.source.metadata.get(
+                    "capacity_alternative_projection"
+                )
+                or {}
+            ).get("alternative_id")
+            or ""
+        )
+        for candidate in pool
+    }
+    requested_capacity_alternatives.discard("")
     return {
         **qd_archive_policy(),
         "retained_candidate_count": len(pool),
         "occupied_cell_count": len(descriptors),
+        "achieved_capacity_bands": sorted(achieved_capacity_bands),
+        "achieved_capacity_band_count": len(achieved_capacity_bands),
+        "requested_capacity_alternatives": sorted(
+            requested_capacity_alternatives
+        ),
+        "requested_capacity_alternative_count": len(
+            requested_capacity_alternatives
+        ),
         "plan_family_count": len({_plan_family(candidate) for candidate in pool}),
+        "body_family_count": len({
+            str(
+                _solid_morphology_metrics(candidate).get("body_phenotype")
+                or _solid_morphology_metrics(candidate).get("phenotype")
+                or ""
+            )
+            for candidate in pool
+        }),
+        "roof_family_count": len({
+            _roof_archetype(candidate) for candidate in pool
+        }),
+        "chassis_family_count": len({
+            _chassis_family(candidate) for candidate in pool
+        }),
         "book_principle_count": len({str(candidate.principle_id) for candidate in pool}),
         "geometry_genotype_count": len({
             _geometry_program_family(candidate)

@@ -5,8 +5,10 @@ from __future__ import annotations
 from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
-from math import atan2, cos, degrees, hypot, pi, sin, sqrt
+from math import atan2, cos, degrees, hypot, isfinite, pi, sin, sqrt
 from typing import Any
+
+from .mass_passport_bridge import resolve_capacity_band_evidence
 
 from design.maas.geometry_language.program_controller_contract import (
     is_materialized_program_controller,
@@ -22,8 +24,11 @@ from design.maas.program_massing import resolve_program_profile
 from design.maas.program_massing.assembly import program_component_chassis
 from design.maas.program_massing.morphology import (
     intrinsic_section_profile_distance,
-    intrinsic_shape_distance,
     intrinsic_silhouette_distance,
+)
+from design.maas.program_massing.competition_gestalt import (
+    competition_gestalt_distance,
+    competition_gestalt_key,
 )
 
 @dataclass(frozen=True)
@@ -38,8 +43,7 @@ class _Candidate:
 
 
 def _distance(left: _Candidate, right: _Candidate) -> float:
-    volume, plan = intrinsic_shape_distance(left.source, right.source)
-    return min(1.0, float(volume) * 0.72 + float(plan) * 0.28)
+    return competition_gestalt_distance(left.source, right.source)
 
 
 def _silhouette_distance(left: _Candidate, right: _Candidate) -> float:
@@ -68,6 +72,13 @@ def _scope_key(candidate: _Candidate) -> str:
 
 
 def _capacity_alternative_key(candidate: _Candidate) -> str:
+    """Return only the highest achieved selectable capacity band.
+
+    Requested alternatives remain useful diagnostic evidence, but a request
+    that the compiled solid did not achieve cannot describe archive or
+    portfolio coverage.
+    """
+
     source = getattr(candidate, "source", None)
     metadata = getattr(source, "metadata", {}) if source is not None else {}
     evidence = (
@@ -76,11 +87,44 @@ def _capacity_alternative_key(candidate: _Candidate) -> str:
         else {}
     ) or {}
     if not isinstance(evidence, dict):
-        return "unclassified"
+        return ""
+    # Requiring the selectable measurement marker prevents the canonical
+    # resolver's legacy requested-label branch from becoming portfolio
+    # authority.
+    if "selectable_capacity_hard_pass" not in evidence:
+        return ""
+    measurement = (
+        metadata.get("source_capacity_measurement")
+        if isinstance(metadata, dict)
+        else {}
+    ) or {}
+    resolution = resolve_capacity_band_evidence(
+        evidence,
+        capacity_measurement=(
+            measurement if isinstance(measurement, dict) else {}
+        ),
+    )
+    if resolution["resolved_capacity_hard_pass"] is not True:
+        return ""
+    return str(resolution["resolved_capacity_alternative_id"] or "")
+
+
+def _requested_capacity_alternative_key(candidate: _Candidate) -> str:
+    """Return requested capacity intent for diagnostics only."""
+
+    source = getattr(candidate, "source", None)
+    metadata = getattr(source, "metadata", {}) if source is not None else {}
+    evidence = (
+        metadata.get("capacity_alternative_projection")
+        if isinstance(metadata, dict)
+        else {}
+    ) or {}
+    if not isinstance(evidence, dict):
+        return ""
     return str(
-        evidence.get("selectable_capacity_alternative_id")
+        evidence.get("requested_capacity_alternative_id")
         or evidence.get("alternative_id")
-        or "unclassified"
+        or ""
     )
 
 
@@ -179,7 +223,7 @@ def _chassis_family(candidate: _Candidate) -> str:
     """Return the normalized program-plan chassis independently of its roof."""
     geometry_family = _geometry_program_family(candidate)
     if geometry_family:
-        program = candidate.source.metadata.get("geometry_program") or {}
+        program = _candidate_geometry_program_payload(candidate)
         metadata = program.get("metadata") if isinstance(program, dict) else {}
         nodes = program.get("nodes") if isinstance(program, dict) else ()
         source_operators = {
@@ -202,7 +246,7 @@ def _geometry_program_family(candidate: _Candidate) -> str:
     evidence = candidate.source.metadata.get("geometry_program_bridge_evidence") or {}
     if not isinstance(evidence, dict) or evidence.get("status") != "materialized":
         return ""
-    program = candidate.source.metadata.get("geometry_program") or {}
+    program = _candidate_geometry_program_payload(candidate)
     metadata = program.get("metadata") if isinstance(program, dict) else {}
     return str(
         (metadata or {}).get("family")
@@ -212,9 +256,29 @@ def _geometry_program_family(candidate: _Candidate) -> str:
 
 
 def _geometry_program_metadata(candidate: _Candidate) -> dict[str, Any]:
-    program = candidate.source.metadata.get("geometry_program") or {}
+    program = _candidate_geometry_program_payload(candidate)
     metadata = program.get("metadata") if isinstance(program, dict) else {}
     return metadata if isinstance(metadata, dict) else {}
+
+
+def _candidate_geometry_program_payload(
+    candidate: _Candidate,
+    *,
+    prefer_authored: bool = True,
+) -> dict[str, Any]:
+    source = candidate.source if hasattr(candidate, "source") else candidate
+    metadata = getattr(source, "metadata", {})
+    if not isinstance(metadata, dict):
+        return {}
+    authored_payload = metadata.get("authored_geometry_program")
+    geometry_payload = metadata.get("geometry_program")
+    if prefer_authored and isinstance(authored_payload, dict):
+        return deepcopy(authored_payload)
+    if isinstance(geometry_payload, dict):
+        return deepcopy(geometry_payload)
+    if isinstance(authored_payload, dict):
+        return deepcopy(authored_payload)
+    return {}
 
 
 def _plan_family(candidate: Any) -> str:
@@ -281,17 +345,242 @@ def _seed_is_llm_authored(seed: VerbSequence) -> bool:
     )
 
 
+def _verified_exact_profiled_sloped_mesh(source: Any) -> bool:
+    """Verify a physical sloped subset on the current exact visible mesh."""
+
+    metadata = source.metadata if isinstance(source.metadata, dict) else {}
+    certificate = metadata.get("floorwise_visual_projection")
+    bridge = metadata.get("geometry_program_bridge_evidence")
+    payload = metadata.get("authored_geometry_program")
+    if (
+        not isinstance(certificate, dict)
+        or certificate.get("schema_version")
+        != "arr.maas.floorwise_visual_projection.v1"
+        or certificate.get("hard_pass") is not True
+        or certificate.get("status") != "certified"
+        or certificate.get("certification_mode")
+        != "floorwise_profiled_legal_clip"
+        or certificate.get("visible_geometry_operation")
+        != "authored_profiled_mesh_legal_solid_intersection"
+        or certificate.get("visible_step_fallback") is not False
+        or not isinstance(bridge, dict)
+        or not isinstance(payload, dict)
+    ):
+        return False
+    try:
+        effective_height_m = float(
+            certificate.get("effective_height_m") or 0.0
+        )
+    except (TypeError, ValueError):
+        return False
+    sloped_hash = str(
+        certificate.get("verified_profiled_sloped_surface_hash") or ""
+    )
+    authored_hash = str(certificate.get("authored_program_hash") or "")
+    if (
+        not isfinite(effective_height_m)
+        or effective_height_m <= 0.0
+        or not sloped_hash
+        or not authored_hash
+    ):
+        return False
+    current_height = 0.0
+    for context in (
+        metadata.get("program_dimensional_context"),
+        metadata.get("candidate_floor_context"),
+        metadata.get("legal_generation_context_evidence"),
+    ):
+        if not isinstance(context, dict):
+            continue
+        for field in (
+            "effective_height_m",
+            "height_m",
+            "requested_program_height_m",
+        ):
+            try:
+                current_height = float(context.get(field) or 0.0)
+            except (TypeError, ValueError):
+                continue
+            if isfinite(current_height) and current_height > 0.0:
+                break
+        if current_height > 0.0:
+            break
+    if (
+        not isfinite(current_height)
+        or abs(current_height - effective_height_m) > 1e-8
+    ):
+        return False
+    try:
+        authored = GeometryProgram.from_dict(payload)
+    except (TypeError, ValueError):
+        return False
+    if (
+        authored.validate()
+        or authored.program_hash() != authored_hash
+        or str(bridge.get("upstream_authored_program_hash") or "")
+        != authored_hash
+    ):
+        return False
+
+    from design.maas.geometry_language.floorwise_visual_projection import (
+        _exact_surface_payload_hash,
+        floorwise_authority_binding_hash,
+        profiled_sloped_mesh_evidence,
+    )
+
+    exact_surface_hash = _exact_surface_payload_hash(
+        tuple(source.surfaces)
+    )
+    if (
+        exact_surface_hash
+        != str(certificate.get("exact_surface_payload_hash") or "")
+    ):
+        return False
+    evidence = profiled_sloped_mesh_evidence(
+        tuple(source.surfaces),
+        effective_height_m=effective_height_m,
+    )
+    if (
+        evidence["sloped_surface_hash"] != sloped_hash
+        or round(float(evidence["sloped_surface_area"]), 8)
+        != round(float(
+            certificate.get("verified_profiled_sloped_surface_area")
+            or 0.0
+        ), 8)
+        or round(float(evidence["sloped_surface_ratio"]), 8)
+        != round(float(
+            certificate.get("verified_profiled_sloped_surface_ratio")
+            or 0.0
+        ), 8)
+    ):
+        return False
+    required = (
+        "section_profile_hash",
+        "capacity_volume_hash",
+        "floor_capacity_plan_hash",
+        "matrix4_stack_hash",
+    )
+    if any(not str(certificate.get(field) or "") for field in required):
+        return False
+    try:
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            valid_floor_center_numeric_equivalence,
+        )
+        if not valid_floor_center_numeric_equivalence(certificate):
+            return False
+        rebound = floorwise_authority_binding_hash(
+            section_profile_hash=str(certificate["section_profile_hash"]),
+            capacity_volume_hash=str(certificate["capacity_volume_hash"]),
+            floor_capacity_plan_hash=str(
+                certificate["floor_capacity_plan_hash"]
+            ),
+            matrix4_stack_hash=str(certificate["matrix4_stack_hash"]),
+            exact_surface_payload_hash=exact_surface_hash,
+            certification_mode=str(certificate["certification_mode"]),
+            visible_geometry_operation=str(
+                certificate["visible_geometry_operation"]
+            ),
+            visible_step_fallback=False,
+            authored_program_hash=authored_hash,
+            effective_height_m=effective_height_m,
+            verified_profiled_sloped_surface_area=float(
+                evidence["sloped_surface_area"]
+            ),
+            verified_profiled_sloped_surface_ratio=float(
+                evidence["sloped_surface_ratio"]
+            ),
+            verified_profiled_sloped_surface_hash=sloped_hash,
+            section_numeric_epsilon_m=float(
+                certificate.get("section_numeric_epsilon_m") or 0.0
+            ),
+            floor_center_numeric_equivalence_schema=str(
+                certificate.get(
+                    "floor_center_numeric_equivalence_schema"
+                ) or ""
+            ),
+            max_section_area_delta_m2=float(
+                certificate.get("max_section_area_delta_m2") or 0.0
+            ),
+            max_section_symdiff_m2=float(
+                certificate.get("max_section_symdiff_m2") or 0.0
+            ),
+            max_section_hausdorff_m=float(
+                certificate.get("max_section_hausdorff_m") or 0.0
+            ),
+            max_section_area_bound_m2=float(
+                certificate.get("max_section_area_bound_m2") or 0.0
+            ),
+            mesh_numeric_repair_schema=str(
+                certificate.get("mesh_numeric_repair_schema") or ""
+            ),
+            mesh_cleanup_collapse_threshold_m=float(
+                certificate.get(
+                    "mesh_cleanup_collapse_threshold_m"
+                ) or 0.0
+            ),
+            mesh_cleanup_max_physical_displacement_m=float(
+                certificate.get(
+                    "mesh_cleanup_max_physical_displacement_m"
+                ) or 0.0
+            ),
+            mesh_cleanup_raw_indexed_mesh_hash=str(
+                certificate.get(
+                    "mesh_cleanup_raw_indexed_mesh_hash"
+                ) or ""
+            ),
+            mesh_cleanup_raw_gate_failure_codes=tuple(
+                certificate.get(
+                    "mesh_cleanup_raw_gate_failure_codes"
+                ) or ()
+            ),
+            mesh_cleanup_clean_indexed_mesh_hash=str(
+                certificate.get(
+                    "mesh_cleanup_clean_indexed_mesh_hash"
+                ) or ""
+            ),
+            mesh_cleanup_clean_gate_hard_pass=bool(
+                certificate.get("mesh_cleanup_clean_gate_hard_pass")
+            ),
+        )
+    except (TypeError, ValueError):
+        return False
+    if rebound != str(certificate.get("authority_binding_hash") or ""):
+        return False
+    return True
+
+
 def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
     """Measure the rendered recursive mesh, not its family label."""
     source = candidate.source if hasattr(candidate, "source") else candidate
     cached = source.metadata.get("measured_solid_morphology")
     if isinstance(cached, dict):
-        return cached
+        required_step_fields = {
+            "visible_stepped",
+            "authored_stepped",
+            "legal_seam_stepped",
+        }
+        if required_step_fields <= set(cached):
+            return cached
+        origins = _step_origin_evidence(
+            source,
+            fallback_visible=(
+                cached.get("body_phenotype") == "stepped"
+                or cached.get("section_phenotype") == "stepped"
+                or cached.get("phenotype") == "stepped"
+            ),
+        )
+        enriched = {**cached, **origins}
+        source.metadata["measured_solid_morphology"] = enriched
+        return enriched
     total_area = horizontal_area = vertical_area = sloped_area = 0.0
     dimensional_context = source.metadata.get("program_dimensional_context") or {}
+    candidate_floor_context = (
+        source.metadata.get("candidate_floor_context") or {}
+    )
     legal_context = source.metadata.get("legal_generation_context_evidence") or {}
     height_scale = float(
         dimensional_context.get("effective_height_m")
+        or candidate_floor_context.get("height_m")
         or legal_context.get("requested_program_height_m")
         or 1.0
     )
@@ -334,6 +623,9 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
         for node in (nodes or ())
         if isinstance(node, dict)
     }
+    verified_profiled_sloped_mesh = (
+        _verified_exact_profiled_sloped_mesh(source)
+    )
     curved_intent = bool(operators & {"bend", "bent_bar", "sweep", "inflate", "twist"})
     oblique_intent = bool(operators & {"slice", "clip"})
     stepped_intent = bool(operators & {"setback", "stepped_mass", "terrace", "book_grade", "stack"})
@@ -449,6 +741,11 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
         (not measured_profiled_hall and horizontal_level_count >= 4)
         or (stepped_intent and horizontal_level_count >= 3 and normal_bin_count >= 8)
     )
+    step_origins = _step_origin_evidence(
+        source,
+        fallback_visible=measured_step,
+    )
+    measured_step = bool(step_origins["visible_stepped"])
     measured_prism = (
         genus == 0
         and component_count == 1
@@ -458,10 +755,17 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
         and plan_convexity >= 0.88
     )
     measured_oblique = (
-        oblique_intent
-        and sloped_ratio >= 0.055
-        and normal_bin_count <= 10
-        and component_count == 1
+        (
+            oblique_intent
+            and sloped_ratio >= 0.055
+            and normal_bin_count <= 10
+            and component_count == 1
+        )
+        or (
+            verified_profiled_sloped_mesh
+            and sloped_ratio >= 0.055
+            and component_count == 1
+        )
     )
     section_graph_evidence = source.metadata.get("program_section_graph_evidence") or {}
     section_graph_operators = set(
@@ -488,12 +792,15 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
         phenotype = "voided"
     elif measured_wing:
         phenotype = "winged"
+    elif measured_step:
+        # A certified visible setback is a body-level fact. Sloped faces may
+        # coexist with that step, but must not erase it into the broader
+        # oblique class or the final portfolio loses the actual stepped mass.
+        phenotype = "stepped"
     elif measured_oblique:
         phenotype = "oblique"
     elif measured_curve:
         phenotype = "curved"
-    elif measured_step:
-        phenotype = "stepped"
     elif triangle_count == 0 and section_graph_phenotype:
         # Legacy/program-role solids do not carry recursive-mesh surface tags,
         # but their executable typed section graph still changes the rendered
@@ -532,6 +839,10 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
         "oriented_plan_aspect_ratio": round(oriented_plan_aspect, 4),
         "profiled_section_family": profiled_section_family,
         "measured_profiled_hall": measured_profiled_hall,
+        "verified_exact_profiled_sloped_mesh": (
+            verified_profiled_sloped_mesh
+        ),
+        **step_origins,
         "recursive_triangle_count": triangle_count,
         "solid_height_m": round(max(z_values) - min(z_values), 4) if z_values else 0.0,
         "measurement_authority": (
@@ -542,6 +853,67 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
     }
     source.metadata["measured_solid_morphology"] = result
     return result
+
+
+def _step_origin_evidence(
+    source: Any,
+    *,
+    fallback_visible: bool,
+) -> dict[str, Any]:
+    """Separate visible, authored, and legal-seam sources of stepping."""
+
+    metadata = getattr(source, "metadata", {})
+    metadata = metadata if isinstance(metadata, dict) else {}
+    program = metadata.get("geometry_program") or {}
+    nodes = program.get("nodes") if isinstance(program, dict) else ()
+    authored = any(
+        str(node.get("operator") or "") in {
+            "setback",
+            "stepped_mass",
+            "terrace",
+            "stepped_section",
+            "book_grade",
+        }
+        or (
+            str(node.get("operator") or "") == "profiled_hall"
+            and str((node.get("parameters") or {}).get("section_family") or "")
+            == "stepped"
+        )
+        for node in (nodes or ())
+        if isinstance(node, dict)
+    )
+    projection_mode = next((
+        str(evidence.get("projection_mode") or "")
+        for key in (
+            "legal_field_affine_placement",
+            "floorwise_legal_projection",
+            "authored_legal_preservation",
+            "floorwise_legal_matrix_stack",
+        )
+        for evidence in (metadata.get(key),)
+        if isinstance(evidence, dict) and evidence.get("projection_mode")
+    ), "")
+    legal_seam = projection_mode == "intentional_floorwise_stepped"
+    competition_evidence: dict[str, Any] = {}
+    visible = bool(fallback_visible)
+    if (
+        getattr(source, "volumes", ())
+        and getattr(source, "surfaces", ())
+    ):
+        gestalt = competition_gestalt_key(source)
+        visible = gestalt.visible_stepped
+        authored = gestalt.authored_stepped
+        legal_seam = gestalt.legal_seam_stepped
+        projection_mode = gestalt.projection_mode
+        competition_evidence = gestalt.evidence()
+        metadata["competition_gestalt"] = competition_evidence
+    return {
+        "visible_stepped": visible,
+        "authored_stepped": authored,
+        "legal_seam_stepped": legal_seam,
+        "step_projection_mode": projection_mode,
+        "competition_gestalt": competition_evidence,
+    }
 
 
 def _section_silhouette_flags(
@@ -879,20 +1251,24 @@ def _architectural_articulation_metrics(source: Any) -> dict[str, Any]:
 
 
 def _design_concept_descriptor(candidate: Any) -> dict[str, Any]:
-    """Describe the architectural causal chain encoded by the final AST.
+    """Describe the architectural causal chain encoded by the geometry AST.
 
     Low-level silhouette and operator counts cannot tell whether a courtyard
     actually opens to the verified access edge, or whether it is merely a
-    centered hole.  This descriptor is intentionally derived from the final,
-    BOOK-projected geometry program rather than from seed names or VLM prose.
+    centered hole.  This descriptor uses a preserved authored AST payload
+    when available, and falls back to final program data otherwise.
     """
     source = candidate.source if hasattr(candidate, "source") else candidate
-    payload = source.metadata.get("geometry_program") or {}
+    payload = _candidate_geometry_program_payload(candidate)
     nodes = payload.get("nodes") if isinstance(payload, dict) else ()
     metadata = payload.get("metadata") if isinstance(payload, dict) else {}
     context = source.metadata.get("program_context") or {}
     target_side = str(context.get("site_access_side_in_program_frame") or "closed")
-    graph = source.metadata.get("geometry_graph_snapshot") or {}
+    graph = (
+        source.metadata.get("authored_geometry_graph_snapshot")
+        or source.metadata.get("geometry_graph_snapshot")
+        or {}
+    )
     design_graph = graph.get("design_concept_graph") if isinstance(graph, dict) else {}
     concept_nodes = design_graph.get("concept_nodes") if isinstance(design_graph, dict) else ()
     threshold_concept = next((
@@ -1314,4 +1690,4 @@ def _site_access_side_in_principal_frame(
 
 
 
-__all__ = ["_Candidate","_distance","_silhouette_distance","_scope_key","_capacity_alternative_key","_capacity_target_gate","_capacity_minimum_gate","_seed_family","_section_family","_roof_archetype","_chassis_family","_geometry_program_family","_geometry_program_metadata","_plan_family","_vlm_reviewed_program_candidate","_llm_authored_candidate","_seed_is_llm_authored","_solid_morphology_metrics","_section_silhouette_flags","_program_form_gate","_architectural_articulation_metrics","_design_concept_descriptor","_program_section_phenotype","_oriented_aspect","_oriented_plan_dimensions","_program_dimensional_context","_fingerprint","_inside_site","_clean_mass_gate","_site_access_side_in_principal_frame"]
+__all__ = ["_Candidate","_distance","_silhouette_distance","_scope_key","_capacity_alternative_key","_requested_capacity_alternative_key","_capacity_target_gate","_capacity_minimum_gate","_seed_family","_section_family","_roof_archetype","_chassis_family","_geometry_program_family","_geometry_program_metadata","_plan_family","_vlm_reviewed_program_candidate","_llm_authored_candidate","_seed_is_llm_authored","_solid_morphology_metrics","_section_silhouette_flags","_program_form_gate","_architectural_articulation_metrics","_design_concept_descriptor","_program_section_phenotype","_oriented_aspect","_oriented_plan_dimensions","_program_dimensional_context","_fingerprint","_inside_site","_clean_mass_gate","_site_access_side_in_principal_frame","competition_gestalt_distance","competition_gestalt_key"]

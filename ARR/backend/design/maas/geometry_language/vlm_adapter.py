@@ -592,6 +592,8 @@ def score_geometry_program_with_openai_vlm(
             reference_matches=reference_matches or [],
             model=model,
             max_retries=max_retries,
+            program_hash=program.program_hash(),
+            geometry_hash=str(compilation.geometry_hash or ""),
         )
         result = {
             **result,
@@ -610,6 +612,29 @@ def score_geometry_program_with_openai_vlm(
             # A cache failure must not turn a valid live critic result into a
             # fabricated geometry failure.
             pass
+    image_inputs = result.get("vlm_image_inputs")
+    if isinstance(image_inputs, dict):
+        from design.maas.preference.vlm_scorer import (
+            _bind_submitted_reference_identity,
+        )
+
+        response_id = str(result.get("response_id") or "")
+        image_inputs["references"] = _bind_submitted_reference_identity(
+            [
+                item for item in image_inputs.get("references") or ()
+                if isinstance(item, dict)
+            ],
+            response_id=response_id,
+            program_hash=program.program_hash(),
+            geometry_hash=str(compilation.geometry_hash or ""),
+        )
+        candidate_input = image_inputs.get("candidate")
+        if isinstance(candidate_input, dict):
+            candidate_input.update({
+                "response_id": response_id,
+                "program_hash": program.program_hash(),
+                "geometry_hash": str(compilation.geometry_hash or ""),
+            })
     result["maas_causal_context"] = {
         "schema_version": "arr.maas.vlm_geometry_causal_context.v1",
         "reference_matches": [

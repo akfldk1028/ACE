@@ -55,6 +55,23 @@ class MaasPolygonQualityTest(SimpleTestCase):
             self.assertTrue(evidence["structured_outline"])
             self.assertGreater(evidence["compactness"], 2.0)
 
+    def test_oblique_cut_corner_open_court_is_structured_not_starburst(self):
+        # An affine legal fit can make the two clean arms of an open court
+        # oblique and increase perimeter/hull ratio above the orthogonal U
+        # example.  It still has only two broad re-entrant corners, unlike the
+        # alternating spikes of a starburst.
+        oblique_open_court = Polygon([
+            (-7.14, -0.39), (-6.44, -1.65), (0.72, 2.33), (2.50, -0.88),
+            (-4.49, -4.75), (-1.77, -4.89), (5.22, -1.02), (2.05, 4.71),
+        ])
+
+        evidence = evaluate_polygon_quality(oblique_open_court)
+
+        self.assertEqual(evidence["reflex_vertex_count"], 2)
+        self.assertGreater(evidence["perimeter_excess_ratio"], 1.45)
+        self.assertTrue(evidence["structured_outline"], evidence)
+        self.assertTrue(evidence["hard_pass"], evidence)
+
     def test_hairline_sliver_is_a_hard_failure(self):
         sliver = box(0, 0, 100, 0.05)
         evidence = evaluate_polygon_quality(sliver)
@@ -189,6 +206,44 @@ class MaasPolygonQualityTest(SimpleTestCase):
         self.assertTrue(coherence["polygon_quality_hard_pass"], coherence)
         self.assertTrue(coherence["hard_pass"], coherence)
         self.assertEqual(coherence["floorwise_quality_plate_count"], 6)
+
+    def test_floorwise_numeric_transport_vertices_do_not_make_open_court_tortuous(self):
+        # The certified numeric transport may retain pairs of nearly
+        # collinear section vertices.  Coherence measures a simplified clone,
+        # while the exact legal footprint remains untouched downstream.
+        transported_open_court = Polygon([
+            (-7.141548128083787, -0.38646039916845787),
+            (-7.054369914229098, -0.5437993057225938),
+            (-6.444122427719341, -1.645171652640851),
+            (-5.547987749872059, -1.1486420780284163),
+            (0.7249549709948866, 2.3270649146604168),
+            (0.9468631437212132, 1.9265658757037798),
+            (2.5002203978156494, -0.8769273653158969),
+            (1.6270635350579372, -1.360725401394598),
+            (-4.485034500008737, -4.747311707945432),
+            (-4.14510034415267, -4.764603810919451),
+            (-1.7655613159986263, -4.88564853797337),
+            (-0.8924044637139872, -4.401850502933964),
+            (5.219693571352689, -1.0152641963831304),
+            (2.445841332726374, 3.9909737282605597),
+            (2.049576732290671, 4.70615058032547),
+            (-5.992657519747494, 0.2501159688115937),
+        ])
+        volume = SourceVolume(
+            "recursive_primary",
+            transported_open_court,
+            0.0,
+            0.25,
+            "floorwise_legal_matrix4",
+        )
+
+        coherence = evaluate_source_volume_coherence((volume,))
+
+        normalization = coherence["polygon_quality"][0]["proxy_tessellation_normalization"]
+        self.assertTrue(normalization["applied"], coherence)
+        self.assertEqual(normalization["source_vertex_count"], 16)
+        self.assertEqual(normalization["evaluated_vertex_count"], 8)
+        self.assertTrue(coherence["hard_pass"], coherence)
 
     def test_folded_graph_materializes_non_flat_formal_surfaces(self):
         sequence = VerbSequence(

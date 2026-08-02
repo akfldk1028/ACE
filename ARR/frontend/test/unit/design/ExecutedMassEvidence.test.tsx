@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { ExecutedMassEvidence } from '../../../src/design/components/book-language-flow/ExecutedMassEvidence'
+import {
+  CreativeMassEvidence,
+  ExecutedMassEvidence,
+} from '../../../src/design/components/book-language-flow/ExecutedMassEvidence'
 import type {
   ExecutedMassManifest,
   ExecutedMassRecord,
@@ -59,6 +62,33 @@ const archive = {
 } as ExecutedMassManifest
 
 describe('ExecutedMassEvidence', () => {
+  it('shows pre-legal creative identity without execute, paid VLM, or certification actions', () => {
+    render(
+      <CreativeMassEvidence
+        mass={{
+          selectionKey: 'run/candidate/program/geometry',
+          portfolioRunId: 'run',
+          candidateId: 'creative-001',
+          programHash: 'program',
+          geometryHash: 'geometry',
+          renderUrl: '/render.png',
+          family: 'interlocking_tilted_discs',
+          formClass: 'disc',
+          capacityBand: 'maximum_target',
+          storeys: 5,
+          legalStatus: 'not_evaluated',
+          morphologyDistance: 0.1,
+        }}
+      />,
+    )
+
+    expect(screen.getByText('PRE-LEGAL CREATIVE MASS')).toBeInTheDocument()
+    expect(screen.getByText(/not evaluated/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /execute/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /vlm/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /certified passport/i })).not.toBeInTheDocument()
+  })
+
   it('offers one explicit exact-AST replay action in the existing sidebar', () => {
     const onExecute = vi.fn()
     const onVlmReview = vi.fn()

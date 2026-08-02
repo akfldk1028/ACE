@@ -10,23 +10,41 @@ same projected footprint.
 from __future__ import annotations
 
 from collections import Counter
+from time import perf_counter
 from dataclasses import dataclass, replace
+from math import isfinite
 from typing import Any, Iterable
 
 from shapely.affinity import scale, translate
-from shapely.geometry import Point, Polygon, shape
+from shapely.geometry import Point, Polygon
 from shapely.ops import unary_union
 
 from design.maas.legal_envelope import build_legal_envelope
 from design.maas.geometry_language.execution_passport import enrich_mass_execution_passport
+from design.maas.geometry_language.floorwise_visual_projection import (
+    certify_authored_visual_mesh,
+)
+from design.maas.geometry_language.source_bridge import (
+    source_surface_payload_hash,
+    source_volume_payload_hash,
+)
 from design.maas.parking_requirements import (
     load_parking_requirement_rules,
     resolve_candidate_parking_requirement,
 )
 from design.maas.parking_strategy import infer_parking_strategy
+from design.maas.program_massing.semantic_carriers import (
+    audit_source_semantic_projection,
+    semantic_capacity_measurement_hash,
+    semantic_site_context_hash,
+)
 from design.maas.source_geometry.ir import SourceMass, SourceVolume
 from design.maas.source_geometry.polygon_quality import repair_source_polygon
 from design.services.site_geometry import wgs84_to_utm
+from .mass_passport_bridge import (
+    resolve_capacity_band_evidence,
+    resolve_shared_floor_contract_hard_gate,
+)
 
 
 @dataclass(frozen=True)
@@ -37,6 +55,29 @@ class LegalGenerationContext:
     generation_site: Polygon
     sunlight_ring: tuple[tuple[float, float, float], ...]
     evidence: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class CandidateDownstreamDimensions:
+    height_m: float
+    floors: int
+    authority: str
+    publishable: bool
+
+
+class CandidateDownstreamFloorContextError(ValueError):
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
+        self.evidence = {
+            "schema_version": (
+                "arr.maas.candidate_downstream_floor_context.v1"
+            ),
+            "status": "rejected",
+            "hard_pass": False,
+            "failure_code": code,
+            "publishable": False,
+        }
 
 
 def generation_site_at_height(
@@ -265,6 +306,7 @@ def evaluate_accepted_sources_downstream(
     sunlight_envelope: dict[str, Any] | None,
     parking_options: dict[str, Any] | None = None,
     generation_context: LegalGenerationContext | None = None,
+    allow_legacy_floor_fallback: bool = False,
 ) -> dict[str, Any]:
     items = tuple(candidates)
     context = generation_context or build_legal_generation_context(
@@ -280,18 +322,51 @@ def evaluate_accepted_sources_downstream(
     sunlight_ring = list(context.sunlight_ring)
     rows = []
     for candidate in items:
-        rows.append(_evaluate_candidate(
+        candidate_dimensions = (
+            _candidate_downstream_dimensions(
+                candidate,
+                fallback_height_m=height_m,
+                fallback_floors=floors,
+                allow_legacy_fallback=allow_legacy_floor_fallback,
+            )
+        )
+        row = _evaluate_candidate(
             candidate,
             site_local_utm=site_local_utm,
+            semantic_site_utm=context.generation_site,
             envelope=envelope,
             sunlight_ring=sunlight_ring,
             pnu=pnu,
             building_type=building_type,
-            height_m=height_m,
-            floors=floors,
+            height_m=candidate_dimensions.height_m,
+            floors=candidate_dimensions.floors,
             rules=rules,
+            parking_rules_provenance={
+                "source": parking_rules.get("source"),
+                "graph_status": parking_rules.get("graph_status"),
+            },
             parking_options=parking_options,
-        ))
+        )
+        row["candidate_floor_context_evidence"] = {
+            "schema_version": (
+                "arr.maas.candidate_downstream_floor_context.v1"
+            ),
+            "status": "materialized",
+            "hard_pass": candidate_dimensions.publishable,
+            "authority": candidate_dimensions.authority,
+            "candidate_height_m": candidate_dimensions.height_m,
+            "candidate_floor_count": candidate_dimensions.floors,
+            "publishable": candidate_dimensions.publishable,
+        }
+        if not candidate_dimensions.publishable:
+            legal = row.get("legal_projection")
+            if isinstance(legal, dict):
+                failures = list(legal.get("failure_reasons") or ())
+                failures.append("legacy_floor_context_non_publishable")
+                legal["failure_reasons"] = list(dict.fromkeys(failures))
+                legal["hard_pass"] = False
+            row["combined_hard_pass"] = False
+        rows.append(row)
     legal_failures = Counter(
         reason
         for row in rows
@@ -306,6 +381,14 @@ def evaluate_accepted_sources_downstream(
         reason
         for row in rows
         for reason in row["legal_projection"]["geometry_failure_reasons"]
+    )
+    semantic_failures = Counter(
+        reason
+        for row in rows
+        for reason in (
+            row.get("semantic_projection_hard_gate", {}).get("failures")
+            or ()
+        )
     )
     retentions = [float(row["legal_projection"]["volume_retention"]) for row in rows]
     return {
@@ -323,6 +406,9 @@ def evaluate_accepted_sources_downstream(
         "legal_failure_reason_counts": dict(sorted(legal_failures.items())),
         "geometry_failure_reason_counts": dict(sorted(geometry_failures.items())),
         "parking_failure_reason_counts": dict(sorted(parking_failures.items())),
+        "semantic_failure_reason_counts": dict(
+            sorted(semantic_failures.items())
+        ),
         "legal_context": {
             "constraint_source": "live_pnu_zone_regulation_calculator",
             "constraints": constraints,
@@ -343,6 +429,53 @@ def evaluate_accepted_sources_downstream(
     }
 
 
+def _candidate_downstream_dimensions(
+    candidate: Any,
+    *,
+    fallback_height_m: float,
+    fallback_floors: int,
+    allow_legacy_fallback: bool = False,
+) -> CandidateDownstreamDimensions:
+    """Use candidate-local N/height when B1 authority is present."""
+
+    source = getattr(candidate, "source", None)
+    metadata = getattr(source, "metadata", None)
+    metadata = metadata if isinstance(metadata, dict) else {}
+    context = metadata.get("candidate_floor_context")
+    if context is None:
+        if not allow_legacy_fallback:
+            raise CandidateDownstreamFloorContextError(
+                "missing_candidate_floor_context"
+            )
+        return CandidateDownstreamDimensions(
+            height_m=float(fallback_height_m),
+            floors=int(fallback_floors),
+            authority="legacy_global_floor_fallback",
+            publishable=False,
+        )
+    if (
+        type(context) is not dict
+        or context.get("status") != "materialized"
+        or context.get("hard_pass") is not True
+        or type(context.get("height_m")) not in (int, float)
+        or not isfinite(float(context["height_m"]))
+        or float(context["height_m"]) <= 0.0
+        or type(context.get("floors")) is not int
+        or context["floors"] <= 0
+        or type(context.get("legal_floor_field_hash")) is not str
+        or len(context["legal_floor_field_hash"]) != 64
+    ):
+        raise CandidateDownstreamFloorContextError(
+            "invalid_candidate_downstream_floor_context"
+        )
+    return CandidateDownstreamDimensions(
+        height_m=float(context["height_m"]),
+        floors=int(context["floors"]),
+        authority="candidate_floor_context",
+        publishable=True,
+    )
+
+
 def _evaluate_candidate(
     candidate: Any,
     *,
@@ -355,8 +488,93 @@ def _evaluate_candidate(
     floors: int,
     rules: dict[str, Any] | None,
     parking_options: dict[str, Any] | None,
+    parking_rules_provenance: dict[str, Any] | None = None,
+    semantic_site_utm: Polygon | None = None,
 ) -> dict[str, Any]:
+    legal_phase_started = perf_counter()
     source = candidate.source
+    (
+        final_geometry_hash,
+        final_authority_failures,
+        render_geometry_hash,
+        actual_surface_payload_hash,
+        surface_payload_matches,
+    ) = _final_source_geometry_identity(source)
+    authored_visual_failures: list[str] = list(final_authority_failures)
+    if (
+        source.metadata.get("geometry_authority")
+        != "final_floorwise_legal_geometry_program"
+        and any(
+            str(getattr(surface, "surface_type", "") or "").startswith(
+                "profiled_"
+            )
+            for surface in tuple(source.surfaces or ())
+        )
+    ):
+        legal_sections: list[Polygon] = []
+        for floor_number in range(1, max(1, floors) + 1):
+            allowed = envelope.buildable_footprint
+            if allowed is not None and sunlight_ring:
+                sunlight_allowed = _clip_ring_by_min_height(
+                    sunlight_ring,
+                    height_m * floor_number / max(1, floors),
+                )
+                allowed = (
+                    allowed.intersection(sunlight_allowed)
+                    if sunlight_allowed is not None
+                    else None
+                )
+            section = (
+                repair_source_polygon(allowed, minimum_area=1e-9)
+                if allowed is not None
+                else None
+            )
+            if section is None:
+                authored_visual_failures.append(
+                    "authored_visual_legal_sections_missing"
+                )
+                legal_sections = []
+                break
+            legal_sections.append(section)
+        if legal_sections:
+            validated_visual = certify_authored_visual_mesh(
+                source,
+                tuple(legal_sections),
+            )
+            if not validated_visual.certificate.hard_pass:
+                authored_visual_failures.extend(
+                    validated_visual.certificate.failure_reasons
+                    or ("authored_visual_certification_failed",)
+                )
+            stored_certificate = source.metadata.get(
+                "floorwise_visual_projection"
+            )
+            stored_certificate = (
+                stored_certificate
+                if isinstance(stored_certificate, dict)
+                else {}
+            )
+            if (
+                validated_visual.certificate.hard_pass
+                and (
+                    stored_certificate.get("status") != "certified"
+                    or stored_certificate.get("hard_pass") is not True
+                    or stored_certificate.get("certification_mode")
+                    != "authored_visual_legal_validation"
+                    or str(stored_certificate.get("visual_hash") or "")
+                    != validated_visual.certificate.visual_hash
+                    or str(
+                        stored_certificate.get(
+                            "exact_surface_payload_hash"
+                        )
+                        or ""
+                    )
+                    != validated_visual.certificate.exact_surface_payload_hash
+                )
+            ):
+                authored_visual_failures.append(
+                    "authored_visual_certificate_missing_or_invalid"
+                )
     projected: list[SourceVolume] = []
     source_volume_total = projected_volume_total = 0.0
     weighted_intersection = weighted_union = 0.0
@@ -427,6 +645,7 @@ def _evaluate_candidate(
         height_m=height_m,
         floors=floors,
         shared_floor_contract=shared_floor_contract,
+        geometry_hash=final_geometry_hash,
     )
     projected_metrics = _metrics(
         tuple(projected),
@@ -434,56 +653,52 @@ def _evaluate_candidate(
         height_m=height_m,
         floors=floors,
         shared_floor_contract=shared_floor_contract,
+        geometry_hash=final_geometry_hash,
     )
     retention = projected_volume_total / source_volume_total if source_volume_total > 0 else 0.0
     weighted_iou = weighted_intersection / weighted_union if weighted_union > 0 else 0.0
-    legal_failures = []
+    legal_failures = list(dict.fromkeys(authored_visual_failures))
     if not projected:
         legal_failures.append("empty_after_legal_projection")
-    if (
-        shared_floor_contract is not None
-        and shared_floor_contract.get("hard_pass") is not True
-    ):
-        legal_failures.append("shared_floor_contract_failed")
     if clipped_volume_count:
         legal_failures.append("authored_mass_outside_legal_envelope")
-    if projected_metrics["bcr_pct"] > envelope.bcr_limit + 0.1:
+    if original_metrics["bcr_pct"] > envelope.bcr_limit + 0.1:
         legal_failures.append("bcr_limit_exceeded")
-    if projected_metrics["far_pct"] > envelope.far_limit + 0.1:
+    if original_metrics["far_pct"] > envelope.far_limit + 0.1:
         legal_failures.append("far_limit_exceeded")
-    if projected_metrics["height_m"] > envelope.height_limit + 0.1:
+    if original_metrics["height_m"] > envelope.height_limit + 0.1:
         legal_failures.append("height_limit_exceeded")
     landscaping_limit = _constraint_limit(envelope.outputs_def, "landscaping_pct")
-    if landscaping_limit is not None and projected_metrics["open_pct"] < landscaping_limit - 0.1:
+    if landscaping_limit is not None and original_metrics["open_pct"] < landscaping_limit - 0.1:
         legal_failures.append("landscaping_minimum_not_met")
-    geometry_retention_pass = retention >= 0.80 and weighted_iou >= 0.75
-    geometry_failures = []
+    geometry_retention_pass = bool(
+        not final_authority_failures
+        and retention >= 0.80
+        and weighted_iou >= 0.75
+    )
+    geometry_failures = list(final_authority_failures)
     if retention < 0.80:
         geometry_failures.append("source_volume_retention_below_80_percent")
     if weighted_iou < 0.75:
         geometry_failures.append("weighted_plan_iou_below_75_percent")
 
+    legal_pre_parking_duration = perf_counter() - legal_phase_started
+    parking_phase_started = perf_counter()
     ground = _ground_footprint(tuple(projected))
     requirement = resolve_candidate_parking_requirement(
         pnu=pnu,
         building_type=building_type,
-        facility_area_m2=projected_metrics["floor_area_m2"],
+        facility_area_m2=original_metrics["floor_area_m2"],
         options=parking_options,
         rules=rules,
+        rules_provenance=parking_rules_provenance,
     )
     parking_props = {
-        "footprint_area": projected_metrics["footprint_area_m2"],
-        "floor_area": projected_metrics["floor_area_m2"],
-        "num_floors": int(
-            (
-                (shared_floor_contract or {}).get("totals")
-                if isinstance((shared_floor_contract or {}).get("totals"), dict)
-                else {}
-            ).get("requested_floors")
-            or floors
-        ),
+        "footprint_area": original_metrics["footprint_area_m2"],
+        "floor_area": original_metrics["floor_area_m2"],
+        "num_floors": int(floors),
         "height": height_m,
-        "bcr": projected_metrics["bcr_pct"],
+        "bcr": original_metrics["bcr_pct"],
         "required_parking_spaces": requirement.get("required_spaces"),
         "required_accessible_parking_spaces": (requirement.get("accessible") or {}).get("accessible_min") or 0,
     }
@@ -499,6 +714,7 @@ def _evaluate_candidate(
     required = requirement.get("required_spaces")
     provided = int(layout.get("provided_spaces") or 0)
     parking_failures = []
+    parking_failures.extend(final_authority_failures)
     if str(requirement.get("status") or "") not in {"computed", "computed_estimate"} or not isinstance(required, int):
         parking_failures.append("parking_requirement_unresolved")
     if isinstance(required, int) and required > 0:
@@ -506,9 +722,73 @@ def _evaluate_candidate(
             parking_failures.append(f"parking_layout_{layout.get('status') or 'missing'}")
         if provided < required:
             parking_failures.append("parking_spaces_below_required")
+    parking_duration = perf_counter() - parking_phase_started
+    legal_post_parking_started = perf_counter()
 
     legal_hard_pass = not legal_failures
     parking_hard_pass = not parking_failures
+    capacity_projection = dict(
+        source.metadata.get("capacity_alternative_projection") or {}
+    )
+    capacity_measurement = dict(
+        source.metadata.get("source_capacity_measurement") or {}
+    )
+    capacity_resolution = resolve_capacity_band_evidence(
+        capacity_projection,
+        capacity_measurement=capacity_measurement,
+    )
+    shared_floor_gate = resolve_shared_floor_contract_hard_gate(
+        shared_floor_contract
+    )
+    legal_failures.extend(shared_floor_gate["failure_reasons"])
+    legal_hard_pass = not legal_failures
+    semantic_projection_hard_gate = audit_source_semantic_projection(
+        source,
+        building_type=building_type,
+        expected_context={
+            "floor_capacity_plan_hash": str(
+                (shared_floor_contract or {}).get(
+                    "floor_capacity_plan_hash"
+                )
+                or ""
+            ),
+            "pnu": pnu,
+            "site_context_hash": semantic_site_context_hash(
+                pnu=pnu,
+                building_type=building_type,
+                site=(
+                    semantic_site_utm
+                    if semantic_site_utm is not None
+                    else site_local_utm
+                ),
+            ),
+            "capacity_alternative_id": str(
+                capacity_resolution.get(
+                    "requested_capacity_alternative_id"
+                )
+                or ""
+            ),
+            "achieved_capacity_band": str(
+                capacity_resolution.get(
+                    "resolved_capacity_alternative_id"
+                )
+                or ""
+            ),
+            "capacity_measurement_hash": (
+                semantic_capacity_measurement_hash(
+                    capacity_measurement,
+                    capacity_projection,
+                )
+            ),
+        },
+    )
+    semantic_hard_pass = bool(
+        semantic_projection_hard_gate.get("hard_pass")
+    )
+    legal_duration = (
+        legal_pre_parking_duration
+        + perf_counter() - legal_post_parking_started
+    )
     legal_projection = {
         "evaluated": True,
         "hard_pass": legal_hard_pass,
@@ -524,13 +804,12 @@ def _evaluate_candidate(
             (shared_floor_contract or {}).get("floor_contract_hash") or ""
         ),
         "shared_floor_contract_hard_pass": (
-            shared_floor_contract.get("hard_pass")
-            if shared_floor_contract is not None
-            else None
+            shared_floor_gate["hard_pass"]
         ),
         "shared_floor_failure_reasons": list(
-            (shared_floor_contract or {}).get("failure_reasons") or ()
+            shared_floor_gate["failure_reasons"]
         ),
+        "geometry_hash": final_geometry_hash,
     }
     parking_hard_gate = {
         "evaluated": True,
@@ -541,6 +820,31 @@ def _evaluate_candidate(
         "layout_status": layout.get("status"),
         "required_spaces": required,
         "provided_spaces": provided,
+        "mass_stage_parking": dict(
+            layout.get("mass_stage_parking") or {}
+        ),
+        "authority_review_check": dict(
+            layout.get("authority_review_check") or {}
+        ),
+        "rule_repository_source": requirement.get(
+            "rule_repository_source"
+        ),
+        "graph_status": requirement.get("graph_status"),
+        "geometry_hash": final_geometry_hash,
+    }
+    render_evidence = {
+        "schema_version": "arr.maas.final_geometry_render_evidence.v1",
+        "geometry_authority": str(
+            source.metadata.get("geometry_authority") or ""
+        ),
+        "geometry_hash": render_geometry_hash or final_geometry_hash,
+        "surface_count": len(tuple(source.surfaces or ())),
+        "surface_payload_hash": actual_surface_payload_hash,
+        "surface_payload_matches": surface_payload_matches,
+        "hash_matches_measurement": bool(
+            final_geometry_hash
+            and render_geometry_hash == final_geometry_hash
+        ),
     }
     initial_passport = source.metadata.get("mass_execution_passport") or (
         source.metadata.get("geometry_program_compilation") or {}
@@ -588,8 +892,19 @@ def _evaluate_candidate(
         "projected_metrics": projected_metrics,
         "legal_projection": legal_projection,
         "parking_hard_gate": parking_hard_gate,
+        "semantic_projection_hard_gate": semantic_projection_hard_gate,
+        "render_evidence": render_evidence,
         "mass_execution_passport": mass_execution_passport,
-        "combined_hard_pass": bool(legal_hard_pass and geometry_retention_pass and parking_hard_pass),
+        "combined_hard_pass": bool(
+            legal_hard_pass
+            and geometry_retention_pass
+            and parking_hard_pass
+            and semantic_hard_pass
+        ),
+        "phase_durations_seconds": {
+            "law": max(legal_duration, 1e-9),
+            "parking": max(parking_duration, 1e-9),
+        },
     }
 
 
@@ -600,49 +915,35 @@ def _metrics(
     height_m: float,
     floors: int,
     shared_floor_contract: dict[str, Any] | None = None,
+    geometry_hash: str = "",
 ) -> dict[str, float | str]:
     shared = (
         shared_floor_contract
         if isinstance(shared_floor_contract, dict)
-        and shared_floor_contract.get("schema_version") == "arr.maas.shared_floor_contract.v1"
+        and shared_floor_contract.get("schema_version")
+        == "arr.maas.shared_floor_contract.v1"
         else None
     )
-    if shared is not None:
-        plates = shared.get("plates") if isinstance(shared.get("plates"), list) else []
-        first_geometry = (
-            plates[0].get("occupied_geometry_utm")
-            if plates and isinstance(plates[0], dict)
-            else None
-        )
-        ground = shape(first_geometry) if isinstance(first_geometry, dict) else None
-        footprint_area = float(ground.area) if ground is not None and not ground.is_empty else 0.0
-        totals = shared.get("totals") if isinstance(shared.get("totals"), dict) else {}
-        floor_area = float(totals.get("total_floor_area_m2") or 0.0)
-        maximum_height = max(
-            (
-                float(plate.get("top_height_m") or 0.0)
-                for plate in plates
-                if isinstance(plate, dict) and plate.get("hard_pass")
-            ),
-            default=0.0,
-        )
-    else:
-        ground = _ground_footprint(volumes)
-        footprint_area = float(ground.area) if ground is not None else 0.0
-        floor_area = 0.0
-        for floor in range(max(1, floors)):
-            fraction = (floor + 0.5) / max(1, floors)
-            active = [
-                volume.footprint
-                for volume in volumes
-                if float(volume.bottom_fraction) <= fraction < float(volume.top_fraction)
-            ]
-            if active:
-                floor_area += float(unary_union(active).area)
-        maximum_height = max(
-            (height_m * float(volume.top_fraction) for volume in volumes),
-            default=0.0,
-        )
+    ground = _ground_footprint(volumes)
+    footprint_area = float(ground.area) if ground is not None else 0.0
+    floor_area = 0.0
+    for floor in range(max(1, floors)):
+        fraction = (floor + 0.5) / max(1, floors)
+        active = [
+            volume.footprint
+            for volume in volumes
+            if (
+                float(volume.bottom_fraction)
+                <= fraction
+                < float(volume.top_fraction)
+            )
+        ]
+        if active:
+            floor_area += float(unary_union(active).area)
+    maximum_height = max(
+        (height_m * float(volume.top_fraction) for volume in volumes),
+        default=0.0,
+    )
     site_area = max(float(site.area), 1e-9)
     return {
         "footprint_area_m2": round(footprint_area, 3),
@@ -652,7 +953,192 @@ def _metrics(
         "height_m": round(maximum_height, 3),
         "open_pct": round(max(0.0, site_area - footprint_area) / site_area * 100.0, 3),
         "floor_contract_hash": str((shared or {}).get("floor_contract_hash") or ""),
+        "metric_authority": "visible_authored_source_volume_horizontal_slices",
+        "geometry_hash": geometry_hash,
     }
+
+
+def _final_source_geometry_identity(
+    source: SourceMass,
+) -> tuple[str, list[str], str, str, bool]:
+    metadata = source.metadata if isinstance(source.metadata, dict) else {}
+    if (
+        metadata.get("geometry_authority")
+        != "final_floorwise_legal_geometry_program"
+    ):
+        return "", [], "", "", True
+    bridge = (
+        metadata.get("geometry_program_bridge_evidence")
+        if isinstance(metadata.get("geometry_program_bridge_evidence"), dict)
+        else {}
+    )
+    compilation = (
+        metadata.get("geometry_program_compilation")
+        if isinstance(metadata.get("geometry_program_compilation"), dict)
+        else {}
+    )
+    projection = (
+        metadata.get("floorwise_legal_projection")
+        if isinstance(metadata.get("floorwise_legal_projection"), dict)
+        else {}
+    )
+    final_geometry_hash = str(metadata.get("final_geometry_hash") or "")
+    final_program_hash = str(metadata.get("final_program_hash") or "")
+    render_geometry_hash = str(compilation.get("geometry_hash") or "")
+    geometry_hashes = (
+        final_geometry_hash,
+        str(bridge.get("geometry_hash") or ""),
+        str(projection.get("final_geometry_hash") or ""),
+        render_geometry_hash,
+    )
+    program_hashes = (
+        final_program_hash,
+        str(bridge.get("program_hash") or ""),
+        str(projection.get("final_program_hash") or ""),
+    )
+    shared_floor_contract = (
+        metadata.get("shared_floor_contract")
+        if isinstance(metadata.get("shared_floor_contract"), dict)
+        else {}
+    )
+    floor_identity = (
+        shared_floor_contract.get("identity")
+        if isinstance(shared_floor_contract.get("identity"), dict)
+        else {}
+    )
+    measured_geometry_hash = str(floor_identity.get("geometry_hash") or "")
+    if (
+        measured_geometry_hash
+        and measured_geometry_hash != "GEOMETRY_HASH_UNRESOLVED"
+    ):
+        geometry_hashes = (*geometry_hashes, measured_geometry_hash)
+    failures: list[str] = []
+    if (
+        projection.get("hard_pass") is not True
+        or not final_geometry_hash
+        or any(value != final_geometry_hash for value in geometry_hashes)
+        or not final_program_hash
+        or any(value != final_program_hash for value in program_hashes)
+    ):
+        failures.append("final_source_hash_mismatch")
+    surfaces = tuple(source.surfaces or ())
+    try:
+        actual_surface_payload_hash = source_surface_payload_hash(surfaces)
+    except (TypeError, ValueError):
+        actual_surface_payload_hash = ""
+    try:
+        raw_surface_count = int(bridge.get("raw_mesh_triangle_count") or 0)
+        exported_surface_count = int(
+            bridge.get("exported_surface_count") or 0
+        )
+    except (TypeError, ValueError):
+        raw_surface_count = exported_surface_count = 0
+    surface_payload_complete = bool(
+        surfaces
+        and bridge.get("surface_export_complete") is True
+        and raw_surface_count == len(surfaces)
+        and exported_surface_count == len(surfaces)
+        and actual_surface_payload_hash
+    )
+    if not surface_payload_complete:
+        failures.append("final_source_surface_payload_incomplete")
+    stored_surface_hashes = (
+        str(bridge.get("surface_payload_hash") or ""),
+        str(metadata.get("final_surface_payload_hash") or ""),
+    )
+    surface_payload_matches = bool(
+        surface_payload_complete
+        and all(
+            value == actual_surface_payload_hash
+            for value in stored_surface_hashes
+        )
+    )
+    if surface_payload_complete and not surface_payload_matches:
+        failures.append("final_source_surface_payload_mismatch")
+    volumes = tuple(source.volumes or ())
+    try:
+        actual_proxy_volume_payload_hash = source_volume_payload_hash(volumes)
+    except (TypeError, ValueError):
+        actual_proxy_volume_payload_hash = ""
+    try:
+        requested_proxy_band_count = int(
+            bridge.get("requested_proxy_band_count") or 0
+        )
+        exported_proxy_band_count = int(
+            bridge.get("exported_proxy_band_count") or 0
+        )
+        exported_proxy_part_count = int(
+            bridge.get("exported_proxy_part_count") or 0
+        )
+        proxy_volume_count = int(bridge.get("proxy_volume_count") or 0)
+        proxy_band_part_counts = tuple(
+            int(value)
+            for value in (bridge.get("proxy_band_part_counts") or ())
+        )
+    except (TypeError, ValueError):
+        requested_proxy_band_count = 0
+        exported_proxy_band_count = 0
+        exported_proxy_part_count = 0
+        proxy_volume_count = 0
+        proxy_band_part_counts = ()
+    actual_proxy_band_counts = Counter(
+        (
+            float(volume.bottom_fraction),
+            float(volume.top_fraction),
+        )
+        for volume in volumes
+    )
+    actual_proxy_band_part_counts = tuple(
+        actual_proxy_band_counts[band]
+        for band in sorted(actual_proxy_band_counts)
+    )
+    actual_proxy_band_count = len(actual_proxy_band_part_counts)
+    bridge_proxy_volume_hash = str(
+        bridge.get("proxy_volume_payload_hash") or ""
+    )
+    final_proxy_volume_hash = str(
+        metadata.get("final_proxy_volume_payload_hash") or ""
+    )
+
+    def valid_sha256(value: str) -> bool:
+        return (
+            len(value) == 64
+            and all(character in "0123456789abcdef" for character in value)
+        )
+
+    proxy_volume_payload_complete = bool(
+        volumes
+        and actual_proxy_volume_payload_hash
+        and actual_proxy_band_count >= 1
+        and requested_proxy_band_count == actual_proxy_band_count
+        and exported_proxy_band_count == actual_proxy_band_count
+        and exported_proxy_part_count == len(volumes)
+        and proxy_volume_count == len(volumes)
+        and proxy_band_part_counts == actual_proxy_band_part_counts
+        and valid_sha256(bridge_proxy_volume_hash)
+        and valid_sha256(final_proxy_volume_hash)
+    )
+    if not proxy_volume_payload_complete:
+        failures.append("final_source_proxy_volume_payload_incomplete")
+    proxy_volume_payload_matches = bool(
+        proxy_volume_payload_complete
+        and bridge_proxy_volume_hash
+        == actual_proxy_volume_payload_hash
+        and final_proxy_volume_hash
+        == actual_proxy_volume_payload_hash
+        )
+    if (
+        proxy_volume_payload_complete
+        and not proxy_volume_payload_matches
+    ):
+        failures.append("final_source_proxy_volume_payload_mismatch")
+    return (
+        final_geometry_hash,
+        failures,
+        render_geometry_hash,
+        actual_surface_payload_hash,
+        surface_payload_matches,
+    )
 
 
 def _ground_footprint(volumes: tuple[SourceVolume, ...]) -> Polygon | None:

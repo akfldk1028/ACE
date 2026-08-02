@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from collections import Counter
+from dataclasses import replace
 from typing import Any
 
 from .candidate_analysis import (
     _Candidate,
     _chassis_family,
     _capacity_alternative_key,
+    _requested_capacity_alternative_key,
     _capacity_target_gate,
     _design_concept_descriptor,
     _distance,
@@ -23,6 +25,7 @@ from .candidate_analysis import (
     _solid_morphology_metrics,
 )
 from .compatibility_analysis import CompatibilityAnalysis
+from .competition_portfolio_contract import competition_portfolio_contract
 from .semantics import BASE_VOLUME_FRACTIONS
 from .portfolio_constraint_solver import (
     ConstraintCandidateFacts,
@@ -44,13 +47,39 @@ ANCHOR_SEARCH_STATE_LIMIT = 20_000
 def build_compatibility_analysis(
     candidates: list[Any],
     *,
-    threshold: float = PORTFOLIO_SILHOUETTE_DISTANCE,
+    threshold: float | None = None,
+    target_count: int | None = None,
     distance_evaluator: Any | None = None,
 ) -> CompatibilityAnalysis:
+    if threshold is not None and target_count is not None:
+        raise ValueError("threshold and target_count are mutually exclusive")
+    resolved_threshold = (
+        competition_portfolio_contract(target_count).minimum_pair_distance
+        if target_count is not None
+        else (
+            PORTFOLIO_SILHOUETTE_DISTANCE
+            if threshold is None
+            else float(threshold)
+        )
+    )
     return CompatibilityAnalysis(
         candidates,
-        threshold=threshold,
+        threshold=resolved_threshold,
         distance_evaluator=distance_evaluator or _silhouette_distance,
+    )
+
+
+def build_gestalt_compatibility_analysis(
+    candidates: list[Any],
+    *,
+    target_count: int,
+) -> CompatibilityAnalysis:
+    """Build the selector graph with the final gestalt distance formula."""
+
+    return build_compatibility_analysis(
+        candidates,
+        target_count=target_count,
+        distance_evaluator=_distance,
     )
 
 
@@ -105,7 +134,7 @@ def _capacity_portfolio_quotas(
     supply = Counter(
         _capacity_alternative_key(candidate)
         for candidate in candidates
-        if _capacity_alternative_key(candidate) != "unclassified"
+        if _capacity_alternative_key(candidate)
     )
     active = [alternative for alternative in priority if supply.get(alternative, 0)]
     if not active or target <= 0:
@@ -372,14 +401,7 @@ def _scope_coverage_anchors(
 def _target_hard_pass_universe(
     pool: list[_Candidate],
 ) -> tuple[list[_Candidate], list[_Candidate]]:
-    """Return the exact candidate universe that portfolio selection can use.
-
-    Capacity alternatives are measured before selection.  Once any candidate
-    carries that measurement, only candidates that passed their own target may
-    be described as available.  Keeping this projection in one helper prevents
-    benchmark coverage checks from demanding a BOOK kind or FAR band that only
-    exists among rejected candidates.
-    """
+    """Deduplicate candidates and retain capacity measurements as diagnostics."""
 
     unique: dict[tuple[Any, ...], _Candidate] = {}
     for candidate in pool:
@@ -392,12 +414,7 @@ def _target_hard_pass_universe(
         candidate for candidate in deduplicated
         if _capacity_target_gate(candidate) is not None
     ]
-    if not measured:
-        return deduplicated, measured
-    return [
-        candidate for candidate in deduplicated
-        if _capacity_target_gate(candidate) is True
-    ], measured
+    return deduplicated, measured
 
 
 def _select(
@@ -407,21 +424,37 @@ def _select(
     visual_directive: dict[str, Any] | None = None,
     selection_trace: dict[str, Any] | None = None,
     compatibility_analysis: CompatibilityAnalysis | None = None,
+    allow_diagnostic_fallback: bool = False,
 ) -> list[_Candidate]:
     trace = selection_trace if isinstance(selection_trace, dict) else {}
     trace.clear()
     trace["raw_pool_count"] = len(pool)
     candidates, measured_capacity_candidates = _target_hard_pass_universe(pool)
     trace["capacity_target_gate_measured_count"] = len(measured_capacity_candidates)
-    trace["capacity_target_gate_pass_count"] = len(candidates) if measured_capacity_candidates else 0
-    trace["capacity_target_gate_rejected_count"] = (
-        len(measured_capacity_candidates) - len(candidates)
-        if measured_capacity_candidates
-        else 0
+    trace["capacity_target_gate_pass_count"] = sum(
+        _capacity_target_gate(candidate) is True
+        for candidate in measured_capacity_candidates
     )
+    trace["capacity_target_gate_advisory_miss_count"] = sum(
+        _capacity_target_gate(candidate) is False
+        for candidate in measured_capacity_candidates
+    )
+    trace["capacity_target_gate_rejected_count"] = 0
+    trace["capacity_target_gate_authority"] = "diagnostic_only"
     uncapped_candidates = list(candidates)
-    compatibility_analysis = compatibility_analysis or build_compatibility_analysis(
-        uncapped_candidates
+    diagnostic_preview_threshold = 0.0 if (
+        allow_diagnostic_fallback and target >= 20
+    ) else None
+    compatibility_analysis = compatibility_analysis or (
+        build_compatibility_analysis(
+            uncapped_candidates,
+            threshold=diagnostic_preview_threshold,
+        )
+        if diagnostic_preview_threshold is not None
+        else build_compatibility_analysis(
+            uncapped_candidates,
+            target_count=target,
+        )
     )
     silhouette_distance = compatibility_analysis.distance
     trace["unique_candidate_count"] = len(candidates)
@@ -445,24 +478,31 @@ def _select(
     trace["after_memory_geometry_family_cap_count"] = len(candidates)
     trace["memory_geometry_family_caps"] = dict(sorted(geometry_family_caps.items()))
     candidate_universe = list(candidates)
-    capacity_priority = (
+    advisory_capacity_priority = (
         "spatial_reserve", "balanced_yield", "brief_target", "maximum_feasible",
     )
     available_capacity_alternatives = {
         _capacity_alternative_key(candidate)
         for candidate in candidate_universe
-        if _capacity_alternative_key(candidate) != "unclassified"
+        if _capacity_alternative_key(candidate)
     }
-    capacity_alternative_quotas = _capacity_portfolio_quotas(
+    advisory_capacity_alternative_quotas = _capacity_portfolio_quotas(
         candidate_universe,
         target=target,
     )
+    capacity_priority: tuple[str, ...] = ()
+    capacity_alternative_quotas: dict[str, int] = {}
     trace["capacity_alternative_supply_counts"] = dict(sorted(Counter(
         _capacity_alternative_key(candidate)
         for candidate in candidate_universe
-        if _capacity_alternative_key(candidate) != "unclassified"
+        if _capacity_alternative_key(candidate)
     ).items()))
-    trace["capacity_alternative_quotas"] = dict(sorted(capacity_alternative_quotas.items()))
+    trace["capacity_alternative_quotas"] = {}
+    trace["advisory_capacity_priority"] = list(advisory_capacity_priority)
+    trace["advisory_capacity_alternative_quotas"] = dict(
+        sorted(advisory_capacity_alternative_quotas.items())
+    )
+    trace["capacity_alternative_quota_authority"] = "diagnostic_only"
     selected: list[_Candidate] = []
     operation_usage: dict[str, int] = {}
     scope_usage: dict[str, int] = {}
@@ -480,7 +520,7 @@ def _select(
     chassis_families = {_chassis_family(candidate) for candidate in candidates}
     seed_family_cap = max(2, (target + max(1, len(seed_families)) - 1) // max(1, len(seed_families)) + 1)
     section_family_cap = max(3, target // 2)
-    default_roof_cap = target if len(roof_archetypes) <= 1 else max(4, target // 4)
+    default_roof_cap = min(target, 3)
     roof_archetype_caps = {archetype: default_roof_cap for archetype in roof_archetypes}
     for archetype, cap in (directive.get("max_roof_archetype_counts") or {}).items():
         if str(archetype) in roof_archetypes:
@@ -500,7 +540,7 @@ def _select(
     ))
     phenotype_cap = max(2, min(
         target,
-        int(directive.get("max_solid_phenotype_count", max(4, target // 4))),
+        int(directive.get("max_solid_phenotype_count", 3)),
     ))
 
     def morphology_caps_allow(candidate: _Candidate) -> bool:
@@ -837,14 +877,7 @@ def _select(
             new_ground_bonus = 0.10 if ground_strategy_usage.get(concept["ground_strategy"], 0) == 0 else 0.0
             new_concept_bonus = 0.08 if concept_usage.get(concept["concept_key"], 0) == 0 else 0.0
             new_principle_kind_bonus = 0.10 if principle_kind_usage.get(candidate.principle_kind, 0) == 0 else 0.0
-            capacity_key = _capacity_alternative_key(candidate)
-            capacity_quota = max(1, capacity_alternative_quotas.get(capacity_key, 1))
-            capacity_deficit = max(
-                0.0,
-                (capacity_quota - capacity_alternative_usage.get(capacity_key, 0))
-                / capacity_quota,
-            )
-            capacity_balance_bonus = capacity_deficit * 0.16
+            capacity_balance_bonus = 0.0
             return (
                 candidate.score * 0.44
                 + novelty * 0.56
@@ -902,11 +935,9 @@ def _select(
                 f"chassis:{_chassis_family(candidate)}": chassis_family_caps.get(
                     _chassis_family(candidate), target
                 ),
-                # Capacity bands are design alternatives, not morphology
-                # families. Require every available band through coverage
-                # tags, but let another band absorb a slot when a nominal
-                # quota contains no pairwise-distinct form. The candidate's
-                # own capacity target remains a hard gate upstream.
+                # Capacity bands are diagnostic design alternatives. Keeping
+                # this non-binding key in solver evidence must not impose a
+                # quota, coverage requirement, or per-candidate hard gate.
                 f"capacity_alt:{_capacity_alternative_key(candidate)}": target,
                 f"concept:{concept['concept_key']}": 2,
                 f"phenotype:{morphology['phenotype']}": phenotype_cap,
@@ -1044,145 +1075,523 @@ def _select(
             maximum_key_counts=beam_cap_limits,
             required_coverage_tags=tuple(beam_required_tags),
         )
-        beam_indices = milp_indices or solve_bounded_compatible_subset(
-            beam_facts,
-            beam_compatibility,
-            target_count=target,
-            maximum_key_counts=beam_cap_limits,
-            required_coverage_tags=tuple(beam_required_tags),
-        )
+        beam_indices = milp_indices
         beam_selected = [beam_universe[index] for index in beam_indices]
         trace["milp_global_solver_count"] = len(milp_indices)
         trace["milp_global_solver_used"] = bool(milp_indices)
         trace["milp_global_solver_target_reached"] = len(milp_indices) >= target
-        trace["milp_capacity_band_policy"] = (
-            "all_available_bands_required_once; nominal quotas are soft preferences"
-        )
+        trace["milp_capacity_band_policy"] = "diagnostic_only"
         trace["bounded_global_solver_count"] = len(beam_selected)
         trace["bounded_global_solver_replaced_greedy"] = len(beam_selected) > len(selected)
         trace["bounded_global_solver_preserved_caps"] = True
         if len(beam_selected) > len(selected):
             selected = beam_selected
-    # A prior board's typed repetition cap is a first-pass diversity policy,
-    # not a new quality gate.  If it leaves empty cards after every candidate
-    # has already passed compiler, BOOK, program, legal, parking and final VLM,
-    # fill only from that same hard-pass universe under the ordinary per-family
-    # caps.  New/missing chassis therefore keep priority, while remembered caps
-    # cannot turn a 19-card strict pool into the 13-card board seen in r159.
     trace["memory_cap_primary_selection_count"] = len(selected)
-    if len(selected) < target and (
-        geometry_family_caps or directive.get("max_chassis_family_counts")
-    ):
-        fallback_chassis_caps = _chassis_caps(
-            {_chassis_family(candidate) for candidate in uncapped_candidates},
-            target=target,
-            directive={},
+    trace["memory_cap_fallback_added_count"] = 0
+    trace["memory_cap_fallback_preserved_all_quality_gates"] = True
+    contract = competition_portfolio_contract(target)
+    trace["portfolio_contract_target_count"] = target
+    required_joint_tags: list[str] = []
+    requested_chassis = {
+        str(value)
+        for value in directive.get("required_chassis_families") or ()
+    }
+    requested_geometry = {
+        str(value)
+        for value in directive.get(
+            "required_geometry_program_families"
+        ) or ()
+    }
+    available_joint_chassis = {
+        _chassis_family(candidate) for candidate in candidate_universe
+    }
+    available_joint_geometry = {
+        _geometry_program_family(candidate)
+        for candidate in candidate_universe
+    }
+    required_joint_tags.extend(
+        f"required_chassis:{family}"
+        for family in sorted(
+            requested_chassis & available_joint_chassis
         )
-        selected_ids = {id(candidate) for candidate in selected}
-        fallback_candidates = [
-            candidate for candidate in uncapped_candidates
-            if id(candidate) not in selected_ids
-        ]
-        while fallback_candidates and len(selected) < target:
-            operation_counts = Counter(candidate.operation for candidate in selected)
-            seed_counts = Counter(_seed_family(candidate) for candidate in selected)
-            section_counts = Counter(_section_family(candidate) for candidate in selected)
-            roof_counts = Counter(_roof_archetype(candidate) for candidate in selected)
-            chassis_counts = Counter(_chassis_family(candidate) for candidate in selected)
-            phenotype_counts = Counter(
-                str(_solid_morphology_metrics(candidate)["phenotype"])
-                for candidate in selected
-            )
-            wedge_count = sum(
-                bool(_solid_morphology_metrics(candidate)["wedge_like"])
-                for candidate in selected
-            )
-            pyramidal_count = sum(
-                bool(_solid_morphology_metrics(candidate)["pyramidal_like"])
-                for candidate in selected
-            )
-            concept_counts = Counter(
-                str(_design_concept_descriptor(candidate)["concept_key"])
-                for candidate in selected
-            )
-            capacity_counts = Counter(
-                _capacity_alternative_key(candidate) for candidate in selected
-            )
-            eligible = []
-            for candidate in fallback_candidates:
-                morphology = _solid_morphology_metrics(candidate)
-                capacity_key = _capacity_alternative_key(candidate)
-                if capacity_counts[capacity_key] >= capacity_alternative_quotas.get(
-                    capacity_key, target
-                ):
-                    continue
-                if operation_counts[candidate.operation] >= 3:
-                    continue
-                if seed_counts[_seed_family(candidate)] >= seed_family_cap:
-                    continue
-                if section_counts[_section_family(candidate)] >= section_family_cap:
-                    continue
-                if roof_counts[_roof_archetype(candidate)] >= roof_archetype_caps.get(
-                    _roof_archetype(candidate), target
-                ):
-                    continue
-                if chassis_counts[_chassis_family(candidate)] >= fallback_chassis_caps.get(
-                    _chassis_family(candidate), target
-                ):
-                    continue
-                if phenotype_counts[str(morphology["phenotype"])] >= phenotype_cap:
-                    continue
-                if morphology["wedge_like"] and wedge_count >= wedge_like_cap:
-                    continue
-                if morphology["pyramidal_like"] and pyramidal_count >= pyramidal_like_cap:
-                    continue
-                concept_key = str(_design_concept_descriptor(candidate)["concept_key"])
-                if concept_counts[concept_key] >= 2:
-                    continue
-                if any(
-                    silhouette_distance(candidate, other) < PORTFOLIO_SILHOUETTE_DISTANCE
-                    for other in selected
-                ):
-                    continue
-                eligible.append(candidate)
-            if not eligible:
-                break
-
-            def fallback_key(candidate: _Candidate) -> tuple[float, float]:
-                novelty = 1.0 if not selected else min(
-                    _distance(candidate, other) * 0.55
-                    + silhouette_distance(candidate, other) * 0.45
-                    for other in selected
-                )
-                return candidate.score * 0.44 + novelty * 0.56, candidate.score
-
-            winner = max(eligible, key=fallback_key)
-            selected.append(winner)
-            fallback_candidates.remove(winner)
-        trace["memory_cap_fallback_added_count"] = (
-            len(selected) - int(trace["memory_cap_primary_selection_count"])
-        )
-        trace["memory_cap_fallback_preserved_all_quality_gates"] = True
-    else:
-        trace["memory_cap_fallback_added_count"] = 0
-        trace["memory_cap_fallback_preserved_all_quality_gates"] = True
-    rebalanced = _rebalance_measured_morphologies(
-        selected,
-        uncapped_candidates,
-        target=target,
-        visual_directive=directive,
-        capacity_alternative_quotas=capacity_alternative_quotas,
-        compatibility_analysis=compatibility_analysis,
     )
-    trace["post_rebalance_count"] = len(rebalanced)
+    required_joint_tags.extend(
+        f"required_geometry:{family}"
+        for family in sorted(
+            requested_geometry & available_joint_geometry
+        )
+    )
+    def build_joint_payload(
+        active_contract: object,
+    ) -> tuple[list[ConstraintCandidateFacts], dict[str, int]]:
+        facts: list[ConstraintCandidateFacts] = []
+        maximum_key_counts: dict[str, int] = {}
+        active_body_phenotype_cap = (
+            max(1, min(
+                target,
+                int(directive["max_solid_phenotype_count"]),
+            ))
+            if "max_solid_phenotype_count" in directive
+            else (
+                active_contract.body_phenotype_maximum_each
+                if active_contract.body_phenotype_maximum_each is not None
+                else phenotype_cap
+            )
+        )
+        for candidate in candidate_universe:
+            morphology = _solid_morphology_metrics(candidate)
+            body_phenotype = str(
+                morphology.get("body_phenotype")
+                or morphology.get("phenotype")
+                or ""
+            )
+            section_phenotype = str(
+                morphology.get("section_phenotype") or ""
+            )
+            roof_archetype = _roof_archetype(candidate)
+            chassis_family = _chassis_family(candidate)
+            geometry_family = _geometry_program_family(candidate)
+            seed_family = _seed_family(candidate)
+            section_family = _section_family(candidate)
+            concept_key = str(
+                _design_concept_descriptor(candidate)["concept_key"]
+            )
+            cap_keys = [
+                f"operation:{candidate.operation}",
+                f"seed:{seed_family}",
+                f"section:{section_family}",
+                f"roof:{roof_archetype}",
+                f"chassis:{chassis_family}",
+                f"concept:{concept_key}",
+                f"phenotype:{body_phenotype}",
+            ]
+            maximum_key_counts.update({
+                f"operation:{candidate.operation}": 3,
+                f"seed:{seed_family}": seed_family_cap,
+                f"section:{section_family}": section_family_cap,
+                f"roof:{roof_archetype}": roof_archetype_caps.get(
+                    roof_archetype, target
+                ),
+                f"chassis:{chassis_family}": chassis_family_caps.get(
+                    chassis_family, target
+                ),
+                f"concept:{concept_key}": 2,
+                f"phenotype:{body_phenotype}": int(active_body_phenotype_cap),
+            })
+            if bool(morphology.get("wedge_like")):
+                cap_keys.append("wedge_like")
+                maximum_key_counts["wedge_like"] = wedge_like_cap
+            if bool(morphology.get("pyramidal_like")):
+                cap_keys.append("pyramidal_like")
+                maximum_key_counts["pyramidal_like"] = (
+                    pyramidal_like_cap
+                )
+            if geometry_family in geometry_family_caps:
+                cap_key = f"memory_geometry_family:{geometry_family}"
+                cap_keys.append(cap_key)
+                maximum_key_counts[cap_key] = (
+                    geometry_family_caps[geometry_family]
+                )
+            facts.append(ConstraintCandidateFacts(
+                score=float(candidate.score),
+                cap_keys=tuple(cap_keys),
+                coverage_tags=(
+                    f"required_chassis:{chassis_family}",
+                    f"required_geometry:{geometry_family}",
+                ),
+                visible_stepped=(
+                    bool(morphology["visible_stepped"])
+                    if "visible_stepped" in morphology
+                    else (
+                        body_phenotype == "stepped"
+                        or section_phenotype == "stepped"
+                    )
+                ),
+                body_phenotype=body_phenotype,
+                roof_archetype=roof_archetype,
+                chassis_family=chassis_family,
+                plan_family=_plan_family(candidate),
+                base_scope=_scope_key(candidate),
+                capacity_band=_capacity_alternative_key(candidate),
+                body_roof_signature=(
+                    f"{body_phenotype}|{roof_archetype}"
+                ),
+            ))
+        return facts, maximum_key_counts
+
+    def build_joint_compatibility(
+        active_contract: object,
+        facts: list[ConstraintCandidateFacts],
+    ) -> list[list[bool]]:
+        return [
+            [
+                True
+                if left == right
+                else bool(
+                    compatibility_analysis.distance(
+                        candidate_universe[left],
+                        candidate_universe[right],
+                    )
+                    >= active_contract.minimum_pair_distance
+                    and (
+                        active_contract.shared_language_minimum_composite_distance
+                        <= 0.0
+                        or not (
+                            facts[left].body_phenotype
+                            == facts[right].body_phenotype
+                            or facts[left].roof_archetype
+                            == facts[right].roof_archetype
+                        )
+                        or _distance(
+                            candidate_universe[left],
+                            candidate_universe[right],
+                        )
+                        >= active_contract.shared_language_minimum_composite_distance
+                    )
+                )
+                for right in range(len(candidate_universe))
+            ]
+            for left in range(len(candidate_universe))
+        ]
+
+    joint_facts, joint_maximum_key_counts = build_joint_payload(contract)
+    joint_compatibility = build_joint_compatibility(contract, joint_facts)
+    joint_certificate: dict[str, object] = {}
+    joint_solver_time_limit = 16.0 if allow_diagnostic_fallback else 45.0
+    joint_indices = solve_milp_compatible_subset(
+        joint_facts,
+        joint_compatibility,
+        target_count=target,
+        maximum_key_counts=joint_maximum_key_counts,
+        required_coverage_tags=tuple(required_joint_tags),
+        portfolio_contract=contract,
+        infeasibility_certificate=joint_certificate,
+        time_limit_seconds=joint_solver_time_limit,
+    )
+    available_body_phenotypes = {
+        str(
+            _solid_morphology_metrics(candidate).get("body_phenotype")
+            or _solid_morphology_metrics(candidate).get("phenotype")
+            or ""
+        )
+        for candidate in candidate_universe
+        if candidate
+    }
+    available_roof_archetypes = {
+        _roof_archetype(candidate) for candidate in candidate_universe
+    }
+    available_chassis_families = {
+        _chassis_family(candidate) for candidate in candidate_universe
+    }
+    available_plan_families = {
+        _plan_family(candidate) for candidate in candidate_universe
+    }
+    available_body_phenotype_count = len(available_body_phenotypes)
+    available_roof_archetype_count = len(available_roof_archetypes)
+    available_chassis_family_count = len(available_chassis_families)
+    available_plan_family_count = len(available_plan_families)
+    relaxed_body_diversity_min = max(
+        1,
+        min(4, max(1, available_body_phenotype_count)),
+    )
+    relaxed_roof_diversity_min = max(
+        1,
+        min(4, max(1, available_roof_archetype_count)),
+    )
+    relaxed_chassis_diversity_min = max(
+        1,
+        min(3, max(1, available_chassis_family_count)),
+    )
+    relaxed_plan_diversity_min = max(
+        1,
+        min(4, max(1, available_plan_family_count)),
+    )
+    relaxed_body_roof_distinct_min = max(
+        1,
+        min(3, max(1, available_body_phenotype_count)),
+    )
+    relaxed_body_diversity_max_each = max(
+        2,
+        target // max(1, relaxed_body_diversity_min),
+    )
+    relaxed_roof_diversity_max_each = max(
+        1,
+        min(target, max(2, target // max(1, relaxed_roof_diversity_min))),
+    )
+    relaxed_chassis_diversity_max_each = max(
+        1,
+        min(target, max(2, target // max(1, relaxed_chassis_diversity_min))),
+    )
+    relaxed_plan_diversity_max_each = max(
+        1,
+        min(target, max(2, target // max(1, relaxed_plan_diversity_min))),
+    )
+    if (
+        not joint_indices
+        and allow_diagnostic_fallback
+    ):
+        relaxed_contract = replace(
+            contract,
+            capacity_band_exact_counts={},
+            capacity_band_minimum_counts={},
+            capacity_band_maximum_counts={},
+            base_scope_maximum_each=target if target >= 20 else None,
+            visible_stepped_minimum=0 if target >= 20 else contract.visible_stepped_minimum,
+            upper_band_stepped_bands=(),
+            upper_band_stepped_minimum=0,
+            base_scope_minimum_each=1 if target >= 20 else (
+                contract.base_scope_minimum_each
+            ),
+            body_phenotype_minimum_distinct=relaxed_body_diversity_min
+            if target >= 20 else contract.body_phenotype_minimum_distinct,
+            body_phenotype_maximum_each=relaxed_body_diversity_max_each
+            if target >= 20 else contract.body_phenotype_maximum_each,
+            roof_archetype_minimum_distinct=relaxed_roof_diversity_min
+            if target >= 20 else contract.roof_archetype_minimum_distinct,
+            roof_archetype_maximum_each=relaxed_roof_diversity_max_each
+            if target >= 20 else contract.roof_archetype_maximum_each,
+            chassis_family_minimum_distinct=relaxed_chassis_diversity_min
+            if target >= 20 else contract.chassis_family_minimum_distinct,
+            chassis_family_maximum_each=relaxed_chassis_diversity_max_each
+            if target >= 20 else contract.chassis_family_maximum_each,
+            plan_family_minimum_distinct=relaxed_plan_diversity_min
+            if target >= 20 else contract.plan_family_minimum_distinct,
+            plan_family_maximum_each=relaxed_plan_diversity_max_each
+            if target >= 20 else contract.plan_family_maximum_each,
+            body_roof_signature_minimum_distinct=relaxed_body_roof_distinct_min
+            if target >= 20 else contract.body_roof_signature_minimum_distinct,
+            body_roof_signature_maximum_each=target if target >= 20 else (
+                contract.body_roof_signature_maximum_each
+            ),
+            minimum_pair_distance=0.0 if target >= 20 else 0.0,
+            shared_language_minimum_composite_distance=0.0
+            if target >= 20
+            else contract.shared_language_minimum_composite_distance,
+        )
+        relaxed_joint_facts, relaxed_joint_maximum_key_counts = build_joint_payload(
+            relaxed_contract,
+        )
+        relaxed_joint_compatibility = build_joint_compatibility(
+            relaxed_contract,
+            relaxed_joint_facts,
+        )
+        relaxed_joint_certificate: dict[str, object] = {}
+        relaxed_joint_indices = solve_milp_compatible_subset(
+            relaxed_joint_facts,
+            relaxed_joint_compatibility,
+            target_count=target,
+            maximum_key_counts=relaxed_joint_maximum_key_counts,
+            required_coverage_tags=tuple(required_joint_tags),
+            portfolio_contract=relaxed_contract,
+            infeasibility_certificate=relaxed_joint_certificate,
+            time_limit_seconds=20.0,
+        )
+        if relaxed_joint_indices:
+            joint_indices = relaxed_joint_indices
+            joint_facts = relaxed_joint_facts
+            joint_maximum_key_counts = relaxed_joint_maximum_key_counts
+            joint_compatibility = relaxed_joint_compatibility
+            contract = relaxed_contract
+            joint_certificate = {
+                "fallback_contract": (
+                    "diagnostic_relaxed_target20_contract"
+                    if target == 20
+                    else "diagnostic_relaxed_phenotype_roof_signature_contract"
+                ),
+                "status": "relaxed_contract_success",
+                "diagnostic_certificate": list(
+                    relaxed_joint_certificate.get("unsatisfied_constraints") or ()
+                ),
+            }
+        elif target == 20:
+            preview_contract = replace(
+                relaxed_contract,
+                base_scopes=(),
+                base_scope_minimum_each=0,
+                base_scope_maximum_each=None,
+                visible_stepped_minimum=0,
+                visible_stepped_maximum=None,
+                upper_band_stepped_bands=(),
+                upper_band_stepped_minimum=0,
+                body_phenotype_minimum_distinct=1,
+                body_phenotype_maximum_each=target,
+                roof_archetype_minimum_distinct=1,
+                roof_archetype_maximum_each=target,
+                chassis_family_minimum_distinct=1,
+                chassis_family_maximum_each=target,
+                plan_family_minimum_distinct=1,
+                plan_family_maximum_each=target,
+                body_roof_signature_minimum_distinct=1,
+                body_roof_signature_maximum_each=target,
+                minimum_pair_distance=0.0,
+                shared_language_minimum_composite_distance=0.0,
+            )
+            preview_joint_facts, preview_joint_maximum_key_counts = build_joint_payload(
+                preview_contract,
+            )
+            preview_joint_compatibility = build_joint_compatibility(
+                preview_contract,
+                preview_joint_facts,
+            )
+            preview_joint_indices = solve_maximum_compatible_subset(
+                preview_joint_facts,
+                preview_joint_compatibility,
+                target_count=target,
+                maximum_key_counts=preview_joint_maximum_key_counts,
+                required_coverage_tags=(),
+            )
+            if preview_joint_indices:
+                joint_indices = preview_joint_indices
+                joint_facts = preview_joint_facts
+                joint_maximum_key_counts = preview_joint_maximum_key_counts
+                joint_compatibility = preview_joint_compatibility
+                contract = preview_contract
+                joint_certificate = {
+                    "fallback_contract": "diagnostic_preview_contract",
+                    "status": (
+                        "preview_target_reached"
+                        if len(preview_joint_indices) >= target
+                        else "preview_partial_reached"
+                    ),
+                    "maximum_cardinality": len(preview_joint_indices),
+                    "unsatisfied_constraints": list(
+                        relaxed_joint_certificate.get("unsatisfied_constraints") or ()
+                    ),
+                }
+        else:
+            maximum_cardinality_indices = solve_maximum_compatible_subset(
+                joint_facts,
+                joint_compatibility,
+                target_count=target,
+                maximum_key_counts=joint_maximum_key_counts,
+                required_coverage_tags=tuple(required_joint_tags),
+            )
+            if maximum_cardinality_indices:
+                joint_indices = maximum_cardinality_indices
+                joint_certificate = {
+                    "fallback_contract": "diagnostic_maximum_compatible_subset",
+                    "status": "fallback_success"
+                    if len(maximum_cardinality_indices) >= target
+                    else "fallback_partial_success",
+                    "maximum_cardinality": len(maximum_cardinality_indices),
+                    "unsatisfied_constraints": list(
+                        relaxed_joint_certificate.get("unsatisfied_constraints") or ()
+                    ),
+                }
+            else:
+                joint_certificate = {
+                    "status": "fallback_infeasible",
+                    "target_count": int(target),
+                    "unsatisfied_constraints": list(
+                        relaxed_joint_certificate.get("unsatisfied_constraints") or ()
+                    ),
+                    "fallback_contract": "diagnostic_relaxed_target20_contract"
+                    if target == 20
+                    else "diagnostic_joint_contract",
+                }
+    elif (
+        target == 20
+        and allow_diagnostic_fallback
+        and len(joint_indices) < target
+    ):
+        preview_contract = replace(
+            contract,
+            base_scopes=(),
+            base_scope_minimum_each=0,
+            base_scope_maximum_each=None,
+            visible_stepped_minimum=0,
+            visible_stepped_maximum=None,
+            upper_band_stepped_bands=(),
+            upper_band_stepped_minimum=0,
+            body_phenotype_minimum_distinct=1,
+            body_phenotype_maximum_each=target,
+            roof_archetype_minimum_distinct=1,
+            roof_archetype_maximum_each=target,
+            chassis_family_minimum_distinct=1,
+            chassis_family_maximum_each=target,
+            plan_family_minimum_distinct=1,
+            plan_family_maximum_each=target,
+            body_roof_signature_minimum_distinct=1,
+            body_roof_signature_maximum_each=target,
+            minimum_pair_distance=0.0,
+            shared_language_minimum_composite_distance=0.0,
+        )
+        preview_joint_facts, preview_joint_maximum_key_counts = build_joint_payload(
+            preview_contract,
+        )
+        preview_joint_compatibility = build_joint_compatibility(
+            preview_contract,
+            preview_joint_facts,
+        )
+        preview_joint_indices = solve_maximum_compatible_subset(
+            preview_joint_facts,
+            preview_joint_compatibility,
+            target_count=target,
+            maximum_key_counts=preview_joint_maximum_key_counts,
+            required_coverage_tags=(),
+        )
+        if len(preview_joint_indices) > len(joint_indices):
+            joint_indices = preview_joint_indices
+            joint_facts = preview_joint_facts
+            joint_maximum_key_counts = preview_joint_maximum_key_counts
+            joint_compatibility = preview_joint_compatibility
+            contract = preview_contract
+            joint_certificate = {
+                "fallback_contract": "diagnostic_preview_contract",
+                "status": (
+                    "preview_target_reached"
+                    if len(preview_joint_indices) >= target
+                    else "preview_partial_reached"
+                ),
+                "maximum_cardinality": len(preview_joint_indices),
+                "unsatisfied_constraints": list(
+                    joint_certificate.get("unsatisfied_constraints") or ()
+                ),
+            }
+    trace["portfolio_contract_diagnostic_fallback_enabled"] = bool(allow_diagnostic_fallback)
+    trace["portfolio_contract_solver_count"] = len(joint_indices)
+    trace["portfolio_contract_solver_target_reached"] = (
+        len(joint_indices) == target
+    )
+    trace["portfolio_contract_preview_recovered_count"] = (
+        len(joint_indices)
+    )
+    trace["portfolio_contract_deficits"] = list(
+        joint_certificate.get("unsatisfied_constraints") or ()
+    )
+    trace["portfolio_contract_infeasibility_certificate"] = (
+        joint_certificate or None
+    )
+    if target == 10:
+        trace["joint_ten_card_solver_count"] = len(joint_indices)
+        trace["joint_ten_card_solver_target_reached"] = (
+            len(joint_indices) == 10
+        )
+        trace["joint_ten_card_infeasibility_certificate"] = (
+            joint_certificate or None
+        )
+    if not joint_indices:
+        trace["post_rebalance_count"] = 0
+        trace["post_rebalance_capacity_alternative_counts"] = {}
+        trace["compatibility_analysis"] = (
+            compatibility_analysis.evidence()
+        )
+        return []
+    joint_selected = [
+        candidate_universe[index] for index in joint_indices
+    ]
+    trace["post_rebalance_count"] = len(joint_selected)
     trace["post_rebalance_principle_kind_counts"] = dict(Counter(
-        candidate.principle_kind for candidate in rebalanced
+        candidate.principle_kind for candidate in joint_selected
     ))
-    trace["post_rebalance_capacity_alternative_counts"] = dict(sorted(Counter(
-        _capacity_alternative_key(candidate) for candidate in rebalanced
-    ).items()))
+    trace["post_rebalance_capacity_alternative_counts"] = dict(
+        sorted(Counter(
+            _capacity_alternative_key(candidate)
+            for candidate in joint_selected
+        ).items())
+    )
     trace["compatibility_analysis"] = compatibility_analysis.evidence()
-    return rebalanced
+    return joint_selected
 
 
 def _selection_capacity_diagnostics(
@@ -1214,7 +1623,7 @@ def _selection_capacity_diagnostics(
     chassis_families = {_chassis_family(candidate) for candidate in universe}
     seed_cap = max(2, (target + max(1, len(seed_families)) - 1) // max(1, len(seed_families)) + 1)
     section_cap = max(3, target // 2)
-    default_roof_cap = target if len(roof_archetypes) <= 1 else max(4, target // 4)
+    default_roof_cap = min(target, 3)
     roof_caps = {archetype: default_roof_cap for archetype in roof_archetypes}
     for archetype, cap in (directive.get("max_roof_archetype_counts") or {}).items():
         if str(archetype) in roof_caps:
@@ -1234,7 +1643,7 @@ def _selection_capacity_diagnostics(
     ))
     phenotype_cap = max(2, min(
         target,
-        int(directive.get("max_solid_phenotype_count", max(4, target // 4))),
+        int(directive.get("max_solid_phenotype_count", 3)),
     ))
     operation_usage = Counter(candidate.operation for candidate in selected)
     seed_usage = Counter(_seed_family(candidate) for candidate in selected)
@@ -1297,12 +1706,31 @@ def _selection_capacity_diagnostics(
         "schema_version": "arr.maas.selection_capacity_diagnostics.v2",
         "raw_pool_count": len(pool),
         "capacity_target_measured_count": len(measured_capacity_universe),
-        "capacity_target_pass_count": len(universe) if measured_capacity_universe else 0,
-        "capacity_target_rejected_count": (
-            len(measured_capacity_universe) - len(universe)
-            if measured_capacity_universe
-            else 0
+        "capacity_target_pass_count": sum(
+            _capacity_target_gate(candidate) is True
+            for candidate in measured_capacity_universe
         ),
+        "capacity_target_advisory_miss_count": sum(
+            _capacity_target_gate(candidate) is False
+            for candidate in measured_capacity_universe
+        ),
+        "capacity_target_rejected_count": 0,
+        "capacity_target_authority": "diagnostic_only",
+        "achieved_capacity_band_supply_counts": dict(sorted(Counter(
+            _capacity_alternative_key(candidate)
+            for candidate in universe
+            if _capacity_alternative_key(candidate)
+        ).items())),
+        "achieved_capacity_band_selected_counts": dict(sorted(Counter(
+            _capacity_alternative_key(candidate)
+            for candidate in selected
+            if _capacity_alternative_key(candidate)
+        ).items())),
+        "requested_capacity_alternative_supply_counts": dict(sorted(Counter(
+            _requested_capacity_alternative_key(candidate)
+            for candidate in universe
+            if _requested_capacity_alternative_key(candidate)
+        ).items())),
         "unique_fingerprint_count": deduplicated_universe_count,
         "selection_universe_count": len(universe),
         "exact_fingerprint_collapsed_count": len(pool) - deduplicated_universe_count,
@@ -1379,6 +1807,7 @@ def _rebalance_measured_morphologies(
     This is phenotype selection, not a form template: categories and wedge
     status are measured from triangle normals/topology after site fitting.
     """
+    _ = capacity_alternative_quotas
     result = list(selected)
     compatibility_analysis = compatibility_analysis or build_compatibility_analysis(
         universe
@@ -1393,7 +1822,10 @@ def _rebalance_measured_morphologies(
     )
     wedge_cap = max(0, min(target, int(visual_directive.get("max_wedge_like_count", max(3, target // 5)))))
     pyramidal_cap = max(0, min(target, int(visual_directive.get("max_pyramidal_like_count", 2))))
-    phenotype_cap = max(2, min(target, int(visual_directive.get("max_solid_phenotype_count", max(4, target // 4)))))
+    phenotype_cap = max(2, min(
+        target,
+        int(visual_directive.get("max_solid_phenotype_count", 3)),
+    ))
     available_ground_strategies = {
         _design_concept_descriptor(item)["ground_strategy"]
         for item in universe
@@ -1412,7 +1844,7 @@ def _rebalance_measured_morphologies(
     chassis_families = {_chassis_family(item) for item in universe}
     seed_cap = max(2, (target + max(1, len(seed_families)) - 1) // max(1, len(seed_families)) + 1)
     section_cap = max(3, target // 2)
-    default_roof_cap = target if len(roof_archetypes) <= 1 else max(4, target // 4)
+    default_roof_cap = min(target, 3)
     roof_caps = {archetype: default_roof_cap for archetype in roof_archetypes}
     for archetype, cap in (visual_directive.get("max_roof_archetype_counts") or {}).items():
         if str(archetype) in roof_caps:
@@ -1422,28 +1854,8 @@ def _rebalance_measured_morphologies(
         target=target,
         directive=visual_directive,
     )
-    capacity_caps = capacity_alternative_quotas or {}
-    protected_capacity_alternatives = {
-        _capacity_alternative_key(item)
-        for item in result
-        if _capacity_alternative_key(item) != "unclassified"
-    }
-
     def preserves_design_concepts(candidate: _Candidate, remaining: list[_Candidate]) -> bool:
         final = [*remaining, candidate]
-        final_capacity_counts = Counter(
-            _capacity_alternative_key(item) for item in final
-        )
-        if any(
-            final_capacity_counts[alternative] <= 0
-            for alternative in protected_capacity_alternatives
-        ):
-            return False
-        candidate_capacity = _capacity_alternative_key(candidate)
-        if final_capacity_counts[candidate_capacity] > capacity_caps.get(
-            candidate_capacity, target
-        ):
-            return False
         concept = _design_concept_descriptor(candidate)
         if sum(
             _design_concept_descriptor(item)["concept_key"] == concept["concept_key"]
@@ -1715,19 +2127,6 @@ def _rebalance_measured_morphologies(
             return False
         if not protected_principle_kinds.issubset({item.principle_kind for item in items}):
             return False
-        capacity_counts = Counter(
-            _capacity_alternative_key(item) for item in items
-        )
-        if any(
-            capacity_counts[alternative] <= 0
-            for alternative in protected_capacity_alternatives
-        ):
-            return False
-        if any(
-            count > capacity_caps.get(alternative, target)
-            for alternative, count in capacity_counts.items()
-        ):
-            return False
         grounds = {
             _design_concept_descriptor(item)["ground_strategy"]
             for item in items
@@ -1841,4 +2240,4 @@ def _bounded_visual_selection_pool(
 
 
 
-__all__ = ["_scope_coverage_anchors","_capacity_portfolio_quotas","_select","_selection_capacity_diagnostics","_rebalance_measured_morphologies","_bounded_visual_selection_pool"]
+__all__ = ["_scope_coverage_anchors","_capacity_portfolio_quotas","_select","_selection_capacity_diagnostics","_rebalance_measured_morphologies","_bounded_visual_selection_pool","build_gestalt_compatibility_analysis"]

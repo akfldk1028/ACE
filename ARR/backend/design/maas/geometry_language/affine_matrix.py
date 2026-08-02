@@ -54,6 +54,60 @@ def compose_matrix4(*matrices: Sequence[Sequence[float]]) -> Matrix4:
     return result
 
 
+def inverse_matrix4(matrix: Sequence[Sequence[float]]) -> Matrix4:
+    """Return the inverse of a general affine matrix.
+
+    The affine last row is validated up front.  The inverse is formed from
+    the upper-left 3x3 linear block and translated by ``-A^-1 t``.
+    """
+
+    value = validate_matrix4(matrix)
+    a, b, c = value[0][:3]
+    d, e, f = value[1][:3]
+    g, h, i = value[2][:3]
+    determinant = (
+        a * (e * i - f * h)
+        - b * (d * i - f * g)
+        + c * (d * h - e * g)
+    )
+    determinant_scale = (
+        max(abs(a), abs(b), abs(c))
+        * max(abs(d), abs(e), abs(f))
+        * max(abs(g), abs(h), abs(i))
+    )
+    if abs(determinant) <= 1e-12 * determinant_scale:
+        raise ValueError("matrix4 is singular and cannot be inverted")
+    inverse_determinant = 1.0 / determinant
+    linear_inverse = (
+        (
+            (e * i - f * h) * inverse_determinant,
+            (c * h - b * i) * inverse_determinant,
+            (b * f - c * e) * inverse_determinant,
+        ),
+        (
+            (f * g - d * i) * inverse_determinant,
+            (a * i - c * g) * inverse_determinant,
+            (c * d - a * f) * inverse_determinant,
+        ),
+        (
+            (d * h - e * g) * inverse_determinant,
+            (b * g - a * h) * inverse_determinant,
+            (a * e - b * d) * inverse_determinant,
+        ),
+    )
+    translation = (value[0][3], value[1][3], value[2][3])
+    inverse_translation = tuple(
+        -sum(linear_inverse[row][column] * translation[column] for column in range(3))
+        for row in range(3)
+    )
+    return validate_matrix4((
+        (*linear_inverse[0], inverse_translation[0]),
+        (*linear_inverse[1], inverse_translation[1]),
+        (*linear_inverse[2], inverse_translation[2]),
+        (0.0, 0.0, 0.0, 1.0),
+    ))
+
+
 def translation_matrix4(vector: Sequence[float]) -> Matrix4:
     x, y, z = _vector3(vector, "translation vector")
     return (
@@ -198,7 +252,8 @@ def _vector3(value: Iterable[float], label: str) -> tuple[float, float, float]:
 
 
 __all__ = [
-    "Matrix4", "compose_matrix4", "identity_matrix4", "kernel_matrix3x4",
+    "Matrix4", "compose_matrix4", "identity_matrix4", "inverse_matrix4",
+    "kernel_matrix3x4",
     "matrix4_for_transform", "matrix4_to_lists", "mirror_matrix4",
     "rotation_matrix4", "scale_matrix4", "shear_matrix4",
     "transform_point3", "translation_matrix4", "validate_matrix4",

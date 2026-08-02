@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import os
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
@@ -41,12 +42,12 @@ from design.maas.geometry_language import (
     run_geometry_program_a2a_loop,
     compile_geometry_program_to_source_mass,
     compile_geometry_program,
-    floorwise_source_to_geometry_program,
 )
 from design.maas.geometry_language.gate import GeometryGatePolicy, compilation_gate
 from design.maas.geometry_language.compiler import revalidate_compilation_mesh
 from design.maas.geometry_language.run_state import update_run_progress
 from design.maas.geometry_language.projected_visual_contract import (
+    semantic_audit_payload_hash,
     serialize_certified_projected_visual,
     validate_projected_visual_artifact,
 )
@@ -62,6 +63,9 @@ from design.maas.program_massing import (
     program_seed_sequences,
     resolve_program_profile,
 )
+DIAGNOSTIC_TARGET_OPTIONS = (1, 2, 3, 20)
+
+from design.maas.paid_provider_budget import paid_provider_budget_snapshot
 from design.maas.program_massing.assembly import program_component_chassis
 from design.maas.program_massing.benchmark import render_archive_sheet
 from design.maas.program_massing.morphology import (
@@ -70,6 +74,16 @@ from design.maas.program_massing.morphology import (
     intrinsic_silhouette_distance,
 )
 from design.maas.program_massing.scoring import attach_program_massing_evidence
+from design.maas.program_massing.competition_gestalt import (
+    build_certified_mesh_gestalt_evidence,
+    certified_mesh_morphology_payload_hash,
+    competition_gestalt_distance,
+    competition_gestalt_key,
+)
+from design.maas.program_massing.certified_artifact_measurement import (
+    exact_compilation_mesh_payload_hash,
+    measure_authoritative_geometry_artifact,
+)
 from design.maas.program_massing.search import (
     materialize_source_feature_surfaces,
     program_seed_variants,
@@ -83,7 +97,16 @@ from design.maas.book_language.archive_layout import (
 )
 from design.maas.preference.vlm_scorer import score_portfolio_board_with_openai_vlm
 from design.maas.source_geometry import compile_sequence_to_source_mass
+from design.maas.source_geometry.ir import SourceMass, SourceSurface
+from design.maas.agents.law_graph_agent.evidence import (
+    collect_law_agent_evidence_batch,
+)
+from design.maas.agents.shared.types import ExecutionIdentity
+from design.maas.mass_product_evidence import (
+    resolve_floor_capacity_plan_identity,
+)
 from design.maas.book_language.mass_passport_bridge import (
+    persist_selected_law_agent_evidence,
     resolve_capacity_band_evidence,
     selected_candidate_execution_passport,
 )
@@ -116,6 +139,12 @@ from .capacity_contract import (
     recursive_plan_coverage_floor,
 )
 from .floor_capacity_plan import derive_program_floor_capacity_plan
+from .final_mesh_floor_evidence import (
+    FinalMeshFloorEvidenceError,
+    certify_final_mesh_actual_gfa_stop,
+    resolve_candidate_finalization_context,
+)
+from .legal_floor_field import validate_legal_floor_field
 from .lineage import gate_descendants_by_base, lineage_record, staged_principle_schedule
 
 
@@ -151,8 +180,60 @@ from .candidate_analysis import (
 )
 
 
+def _certified_mesh_source(
+    source: SourceMass,
+    compilation: Any,
+) -> SourceMass:
+    """Materialize the exact selected visual mesh as gestalt authority."""
+
+    root_operator = (
+        compilation.program.node_map[
+            compilation.program.root_id
+        ].operator
+    )
+    surfaces = tuple(
+        SourceSurface(
+            role=f"certified_visual_mesh_{index}",
+            volume_role="certified_visual_mesh",
+            verb="geometry_program",
+            surface_type="profiled_recursive_solid_mesh",
+            vertices_m=tuple(
+                tuple(float(value) for value in compilation.vertices[
+                    vertex_index
+                ])
+                for vertex_index in triangle
+            ),
+            operator=root_operator,
+            semantic_patch_id=(
+                f"certified_visual_mesh:triangle:{index}"
+            ),
+        )
+        for index, triangle in enumerate(compilation.triangles)
+    )
+    metadata = deepcopy(source.metadata)
+    metadata.pop("measured_solid_morphology", None)
+    metadata["geometry_program_compilation"] = (
+        compilation.to_dict(include_mesh=False)
+    )
+    metadata["authored_legal_preservation"] = {
+        "status": "certified",
+        "hard_pass": True,
+        "projection_mode": "certified_projected_visual_mesh",
+    }
+    return replace(
+        source,
+        surfaces=surfaces,
+        metadata=metadata,
+    )
+
+
+def _exact_compilation_mesh_payload_hash(compilation: Any) -> str:
+    return exact_compilation_mesh_payload_hash(compilation)
+
+
 def _resolve_authoritative_floor_context(
     *,
+    pnu: str = "",
     generation_context: LegalGenerationContext | None,
     site_local_utm: Polygon,
     building_type: str,
@@ -176,6 +257,7 @@ def _resolve_authoritative_floor_context(
         target_utilization=target_utilization,
         dimensional_context=dimensional_context,
         legacy_floor_hint=catalog_floors,
+        pnu=pnu,
     )
     return (
         float(plan.get("selected_height_m") or 0.0),
@@ -185,29 +267,17 @@ def _resolve_authoritative_floor_context(
 
 
 def _shared_floor_hard_pass_candidates(candidates):
-    """Keep only exact candidates with inhabitable, identity-bound floor plates."""
-    return [
-        candidate
-        for candidate in candidates
-        if (
-            isinstance(
-                candidate.source.metadata.get("shared_floor_contract"),
-                dict,
-            )
-            and candidate.source.metadata["shared_floor_contract"].get(
-                "schema_version"
-            )
-            == "arr.maas.shared_floor_contract.v1"
-            and candidate.source.metadata["shared_floor_contract"].get(
-                "hard_pass"
-            )
-            is True
-        )
-    ]
+    """Retain the exact MASS pool; shared-floor evidence is diagnostic here."""
+    return list(candidates)
+
+
+def _smoke_pre_downstream_candidate_pass(candidate, row) -> bool:
+    """Apply only MASS-owned gates before downstream legal/parking review."""
+    return bool(row.get("inside_site") and row.get("program_hard_pass"))
 
 from .portfolio_selection import (
     PORTFOLIO_SILHOUETTE_DISTANCE,
-    build_compatibility_analysis,
+    build_gestalt_compatibility_analysis,
     _scope_coverage_anchors,
     _select,
     _selection_capacity_diagnostics,
@@ -215,6 +285,7 @@ from .portfolio_selection import (
     _bounded_visual_selection_pool,
     _target_hard_pass_universe,
 )
+from .competition_portfolio_contract import competition_portfolio_contract
 from .quality_diversity_archive import qd_archive_evidence
 
 from .gate_diagnostics import (
@@ -234,6 +305,9 @@ from .portfolio_contract import (
 )
 from .final_vlm_cycle import run_final_vlm_cycle
 from .portfolio_replenishment import (
+    competition_exact_hard_pass_reserve,
+    competition_exact_hard_pass_deficits,
+    competition_exact_reserve_transition,
     replenishment_cycle_budget_for_run,
     replenishment_stop_reason,
     run_replenishment_cycle,
@@ -252,6 +326,7 @@ from .candidate_generation import (
 )
 
 from .vlm_review import (
+    _bind_final_visual_authority_for_review,
     _book_vlm_review_budget,
     _final_book_vlm_hard_pass,
     _final_book_vlm_shortlist,
@@ -305,8 +380,15 @@ def _load_visual_directive(output_dir: Path, pnu: str) -> dict[str, Any]:
     return payload
 
 
-def _certified_projected_visual_artifact(source: Any) -> dict[str, Any]:
-    return serialize_certified_projected_visual(source)
+def _certified_projected_visual_artifact(
+    source: Any,
+    *,
+    final_semantic_audit: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return serialize_certified_projected_visual(
+        source,
+        final_semantic_audit=final_semantic_audit,
+    )
 
 
 def _archive_render_evidence(
@@ -314,6 +396,8 @@ def _archive_render_evidence(
     candidate_count: int,
     *,
     projected_visual_hashes: list[str] | tuple[str, ...] = (),
+    final_legal_geometry_hashes: list[str] | tuple[str, ...] = (),
+    exact_mesh_payload_hashes: list[str] | tuple[str, ...] = (),
 ) -> list[dict[str, Any]]:
     """Measure whether each accepted card visibly contains rendered mass.
 
@@ -341,6 +425,16 @@ def _archive_render_evidence(
             if index < len(projected_visual_hashes)
             else ""
         )
+        final_legal_geometry_hash = (
+            str(final_legal_geometry_hashes[index])
+            if index < len(final_legal_geometry_hashes)
+            else projected_visual_hash
+        )
+        exact_mesh_payload_hash = (
+            str(exact_mesh_payload_hashes[index])
+            if index < len(exact_mesh_payload_hashes)
+            else ""
+        )
         evidence.append({
             "card_index": index + 1,
             "board_png": str(board),
@@ -350,6 +444,8 @@ def _archive_render_evidence(
             "hard_pass": ratio >= 0.005,
             "evidence_role": "human_and_vlm_visual_observation_not_geometry_authority",
             "projected_visual_geometry_hash": projected_visual_hash,
+            "final_legal_geometry_hash": final_legal_geometry_hash,
+            "exact_mesh_payload_hash": exact_mesh_payload_hash,
         })
     return evidence
 
@@ -418,9 +514,8 @@ def _candidate_language_descriptor(candidate: _Candidate) -> dict[str, Any]:
         "solid_component_count": morphology["component_count"],
         "book_scope": _scope_key(candidate),
         **capacity_resolution,
-        "capacity_alternative_id": capacity_resolution[
-            "resolved_capacity_alternative_id"
-        ],
+        "capacity_alternative_id": _capacity_alternative_key(candidate),
+        "achieved_capacity_band": _capacity_alternative_key(candidate),
         "capacity_target_utilization": capacity_resolution[
             "resolved_capacity_target_utilization"
         ],
@@ -476,7 +571,12 @@ def _portfolio_language_metrics(selected: list[_Candidate]) -> dict[str, Any]:
     concept_key_counts = Counter(item["design_concept_key"] for item in descriptors)
     capacity_alternative_counts = Counter(
         item["capacity_alternative_id"] for item in descriptors
-        if item["capacity_alternative_id"] != "unclassified"
+        if item["capacity_alternative_id"]
+    )
+    requested_capacity_alternative_counts = Counter(
+        item["requested_capacity_alternative_id"]
+        for item in descriptors
+        if item["requested_capacity_alternative_id"]
     )
     control_signatures = {
         json.dumps(item["section_control_signature"], sort_keys=True)
@@ -494,6 +594,12 @@ def _portfolio_language_metrics(selected: list[_Candidate]) -> dict[str, Any]:
         "candidate_count": len(descriptors),
         "capacity_alternative_counts": dict(sorted(capacity_alternative_counts.items())),
         "capacity_alternative_count": len(capacity_alternative_counts),
+        "achieved_capacity_band_counts": dict(
+            sorted(capacity_alternative_counts.items())
+        ),
+        "requested_capacity_alternative_counts": dict(
+            sorted(requested_capacity_alternative_counts.items())
+        ),
         "capacity_target_pass_count": sum(
             bool(item["capacity_target_hard_pass"]) for item in descriptors
         ),
@@ -520,6 +626,21 @@ def _portfolio_language_metrics(selected: list[_Candidate]) -> dict[str, Any]:
         "dominant_solid_phenotype_share": round(max(phenotype_counts.values(), default=0) / total, 4),
         "section_phenotype_counts": dict(sorted(section_phenotype_counts.items())),
         "section_phenotype_count": len(section_phenotype_counts),
+        "stepped_count": sum(
+            item["solid_phenotype"] == "stepped"
+            or item["section_phenotype"] == "stepped"
+            for item in descriptors
+        ),
+        "upper_band_stepped_count": sum(
+            (
+                item["solid_phenotype"] == "stepped"
+                or item["section_phenotype"] == "stepped"
+            )
+            and item["capacity_alternative_id"] in {
+                "brief_target", "maximum_feasible",
+            }
+            for item in descriptors
+        ),
         "collapsed_profiled_tent_like_count": sum(
             bool(item["collapsed_profiled_tent_like"]) for item in descriptors
         ),
@@ -558,6 +679,102 @@ def _portfolio_language_metrics(selected: list[_Candidate]) -> dict[str, Any]:
         "body_rule_family_counts": dict(sorted(sum((Counter(item["body_rule_family_counts"]) for item in descriptors), Counter()).items())),
         "semantic_role_token_counts": dict(sorted(sum((Counter(item["semantic_role_tokens"]) for item in descriptors), Counter()).items())),
     }
+
+
+def _achieved_capacity_balance_pass(
+    capacity_keys,
+    *,
+    target_count: int,
+) -> bool:
+    """Apply the same target-aware capacity contract as final selection."""
+
+    keys = [str(value or "") for value in capacity_keys]
+    contract = competition_portfolio_contract(target_count)
+    counts = Counter(keys)
+    if len(keys) != int(target_count):
+        return False
+    if contract.capacity_band_exact_counts:
+        return bool(
+            set(counts) == set(contract.capacity_band_exact_counts)
+            and all(
+                counts[band] == exact
+                for band, exact in (
+                    contract.capacity_band_exact_counts.items()
+                )
+            )
+        )
+    constrained_bands = (
+        set(contract.capacity_band_minimum_counts)
+        | set(contract.capacity_band_maximum_counts)
+    )
+    if not constrained_bands:
+        return True
+    return bool(
+        set(counts) == constrained_bands
+        and all(
+            counts[band] >= minimum
+            for band, minimum in (
+                contract.capacity_band_minimum_counts.items()
+            )
+        )
+        and all(
+            counts[band] <= maximum
+            for band, maximum in (
+                contract.capacity_band_maximum_counts.items()
+            )
+        )
+    )
+
+
+def _portfolio_contract_morphology_failures(
+    language_metrics: dict[str, Any],
+    *,
+    target_count: int,
+    visual_directive: dict[str, Any] | None = None,
+) -> list[str]:
+    """Audit morphology with the same target contract as final selection."""
+
+    contract = competition_portfolio_contract(target_count)
+    failures: list[str] = []
+    stepped_count = int(language_metrics.get("stepped_count") or 0)
+    if stepped_count < contract.visible_stepped_minimum or (
+        contract.visible_stepped_maximum is not None
+        and stepped_count > contract.visible_stepped_maximum
+    ):
+        failures.append("stepped_count_outside_target_contract")
+    if int(
+        language_metrics.get("upper_band_stepped_count") or 0
+    ) < contract.upper_band_stepped_minimum:
+        failures.append(
+            "upper_band_stepped_below_target_contract"
+        )
+    phenotype_cap = contract.body_phenotype_maximum_each
+    directive = visual_directive or {}
+    if "max_solid_phenotype_count" in directive:
+        directive_cap = max(
+            0,
+            int(directive["max_solid_phenotype_count"]),
+        )
+        phenotype_cap = (
+            directive_cap
+            if phenotype_cap is None
+            else min(phenotype_cap, directive_cap)
+        )
+    if (
+        phenotype_cap is not None
+        and max(
+            (
+                language_metrics.get("solid_phenotype_counts")
+                or {}
+            ).values(),
+            default=0,
+        )
+        > phenotype_cap
+    ):
+        failures.append(
+            "solid_phenotype_count_above_measured_cap"
+        )
+    return failures
 
 
 def _order_portfolio_for_capacity_review(
@@ -647,6 +864,7 @@ def _hard_gate_count_summary(
             "legal_failure_reason_counts",
             "geometry_failure_reason_counts",
             "parking_failure_reason_counts",
+            "semantic_failure_reason_counts",
         )
     }
     by_scope: dict[str, dict[str, int]] = {}
@@ -708,6 +926,39 @@ def _hard_gate_count_summary(
 
     summary["by_recursive_geometry_family"] = serialize_geometry_buckets(by_geometry_family)
     summary["by_recursive_geometry_genotype"] = serialize_geometry_buckets(by_geometry_genotype)
+    summary["semantic_binding_diagnostics"] = [
+        {
+            "candidate": str(
+                candidate.feature.get("properties", {}).get("variant_id")
+                or candidate.sequence.name
+            ),
+            "bound_achieved_capacity_band": str(
+                (
+                    candidate.source.metadata.get(
+                        "program_semantic_carrier_evidence"
+                    )
+                    or {}
+                ).get("achieved_capacity_band")
+                or ""
+            ),
+            "audited_achieved_capacity_band": str(
+                (
+                    row.get("semantic_projection_hard_gate", {}).get(
+                        "audited_context"
+                    )
+                    or {}
+                ).get("achieved_capacity_band")
+                or ""
+            ),
+            "failures": list(
+                row.get("semantic_projection_hard_gate", {}).get("failures")
+                or ()
+            ),
+        }
+        for candidate, row in zip(candidates, report["rows"])
+        if row.get("semantic_projection_hard_gate", {}).get("hard_pass")
+        is not True
+    ]
     return summary
 
 
@@ -731,7 +982,14 @@ def run_book_program_portfolios(
     live_geometry_vlm_revision: bool = False,
     live_llm_author: bool = False,
     smoke_mode: bool = False,
+    diagnostic_target: int | None = None,
 ) -> dict[str, Any]:
+    if diagnostic_target is not None and int(diagnostic_target) not in DIAGNOSTIC_TARGET_OPTIONS:
+        raise ValueError("diagnostic_target must be one of 1, 2, 3, or 20")
+    diagnostic_target_int = int(diagnostic_target) if diagnostic_target is not None else None
+    if diagnostic_target_int is not None:
+        os.environ.setdefault("MAAS_ALLOW_VISIBLE_STEP_FALLBACK", "1")
+        os.environ.setdefault("MAAS_ALLOW_TINY_GEOMETRY_GATES", "1")
     output_dir.mkdir(parents=True, exist_ok=True)
     directive_dir = visual_directive_path.parent if visual_directive_path is not None else output_dir
     visual_directive_payload = _load_visual_directive(directive_dir, pnu)
@@ -745,12 +1003,48 @@ def run_book_program_portfolios(
     board_paths: list[Path] = []
     mass_brain_trace_sequences: list[VerbSequence] = []
     mass_brain_trace_features: dict[str, dict[str, Any]] = {}
+    phase_durations_seconds = {
+        phase: 0.0
+        for phase in (
+            "breadth_enumeration",
+            "cheap_screen",
+            "exact_compile",
+            "law",
+            "parking",
+            "solver",
+            "render",
+        )
+    }
+
+    def record_downstream_timings(report: dict[str, Any] | None) -> None:
+        for row in (report or {}).get("rows") or ():
+            timings = (
+                row.get("phase_durations_seconds")
+                if isinstance(row, dict)
+                and isinstance(
+                    row.get("phase_durations_seconds"),
+                    dict,
+                )
+                else {}
+            )
+            for phase in ("law", "parking"):
+                phase_durations_seconds[phase] += float(
+                    timings.get(phase) or 0.0
+                )
     portfolio_requirement = resolve_portfolio_requirement(
         smoke_mode=smoke_mode,
         base_volume_scope_count=len(BASE_VOLUME_FRACTIONS),
     )
-    selection_target = portfolio_requirement.selection_target
-    required_scope_target = portfolio_requirement.required_scope_count
+    selection_target = (
+        diagnostic_target_int
+        if diagnostic_target is not None
+        else portfolio_requirement.selection_target
+    )
+    required_scope_target = (
+        min(portfolio_requirement.required_scope_count, selection_target)
+        if diagnostic_target is not None
+        else portfolio_requirement.required_scope_count
+    )
     requested_slugs = set(program_slugs or ())
     for slug, building_type, catalog_height, catalog_floors in PROGRAMS:
         if requested_slugs and slug not in requested_slugs:
@@ -821,7 +1115,7 @@ def run_book_program_portfolios(
         typed_graph_mutations = program_visual_directive.get("typed_graph_mutations") or []
         geometry_program_mutations = program_visual_directive.get("geometry_program_mutations") or []
         synthesis_requests = program_visual_directive.get("geometry_synthesis_requests") or []
-        if live_llm_author and not synthesis_requests:
+        if live_llm_author:
             synthesis_requests = list(bounded_live_llm_synthesis_requests(
                 building_type,
                 source_seed_names=(
@@ -829,6 +1123,7 @@ def run_book_program_portfolios(
                     for sequence in program_seed_sequences(building_type)
                 ),
                 target_count=selection_target,
+                prior_requests=synthesis_requests,
             ))
         if synthesis_requests:
             live_requested = runtime_live_vlm
@@ -884,6 +1179,7 @@ def run_book_program_portfolios(
             parking_options=parking_options,
         )
         height, floors, floor_capacity_plan = _resolve_authoritative_floor_context(
+            pnu=pnu,
             generation_context=generation_context,
             site_local_utm=site,
             building_type=building_type,
@@ -892,13 +1188,97 @@ def run_book_program_portfolios(
             dimensional_context=dimensional_context,
             target_utilization=float(capacity_policy["target_far_utilization"]),
         )
+        trusted_run_legal_floor_field: dict[str, Any] | None = None
+        trusted_run_legal_floor_field_hash = ""
+        trusted_run_clear_span_floor_plan: dict[str, Any] | None = None
+        if (
+            isinstance(floor_capacity_plan, dict)
+            and floor_capacity_plan.get("status")
+            in {"materialized", "target_unreachable"}
+        ):
+            authoritative_field = floor_capacity_plan.get(
+                "legal_floor_field"
+            )
+            authoritative_hash = str(
+                floor_capacity_plan.get("legal_floor_field_hash") or ""
+            )
+            if (
+                not validate_legal_floor_field(authoritative_field)
+                or not authoritative_hash
+                or str(
+                    authoritative_field.get(
+                        "legal_floor_field_hash"
+                    )
+                    or ""
+                )
+                != authoritative_hash
+            ):
+                raise ValueError(
+                    "authoritative_run_legal_floor_field_invalid"
+                )
+            # This run-local copy is captured before the mutable base and
+            # candidate contracts exist.  Downstream trust checks never
+            # derive their expected identity from the object under review.
+            trusted_run_legal_floor_field = deepcopy(
+                authoritative_field
+            )
+            trusted_run_legal_floor_field_hash = authoritative_hash
+            if floor_capacity_plan.get("planning_mode") == "clear_span":
+                trusted_run_clear_span_floor_plan = deepcopy(
+                    floor_capacity_plan
+                )
         plan_infeasible = bool(
             floor_capacity_plan
             and floor_capacity_plan.get("status") == "infeasible"
         )
-        if dimensional_context["status"] == "infeasible" or plan_infeasible:
+        pre_generation_capacity_advisory = {
+            "schema_version": "arr.maas.pre_generation_capacity_advisory.v1",
+            "authority": "diagnostic_only",
+            "generation_continued": (
+                dimensional_context["status"] != "infeasible"
+            ),
+            "dimensional_context_infeasible": (
+                dimensional_context["status"] == "infeasible"
+            ),
+            "floor_capacity_plan_infeasible": plan_infeasible,
+            "failure_reasons": list(dict.fromkeys((
+                *(dimensional_context.get("failure_reasons") or ()),
+                *((floor_capacity_plan or {}).get("failure_reasons") or ()),
+            ))),
+        }
+        dimensional_context = {
+            **dimensional_context,
+            "catalog_height_hint_m": float(catalog_height),
+            "catalog_floor_hint": int(catalog_floors),
+            "effective_height_m": float(
+                dimensional_context.get("effective_height_m", height)
+                if dimensional_context["status"] == "infeasible"
+                else height
+            ),
+            "effective_floors": int(
+                dimensional_context.get("effective_floors", floors)
+                if dimensional_context["status"] == "infeasible"
+                else floors
+            ),
+            "pre_generation_capacity_advisory": (
+                pre_generation_capacity_advisory
+            ),
+            "floor_capacity_plan_hash": str(
+                floor_capacity_plan.get("floor_capacity_plan_hash") or ""
+            ),
+            "floor_authority": (
+                "law_derived_floor_capacity_plan"
+                if floor_capacity_plan
+                else "legacy_no_legal_context"
+            ),
+        }
+        if dimensional_context["status"] == "infeasible":
             empty_metrics = _portfolio_language_metrics([])
-            board = output_dir / f"maas-book-{slug}-20.png"
+            board = output_dir / (
+                f"maas-book-{slug}-{selection_target}-smoke.png"
+                if smoke_mode
+                else f"maas-book-{slug}-{selection_target}.png"
+            )
             render_archive_sheet(
                 [],
                 board,
@@ -907,17 +1287,144 @@ def run_book_program_portfolios(
             board_paths.append(board)
             selected_by_program[slug] = []
             metrics_by_program[slug] = empty_metrics
+            portfolio_vlm_audit = {
+                "schema_version": "arr.maas.portfolio_visual_audit.v1",
+                "status": "not_run_program_site_infeasible",
+                "hard_pass": False,
+                "evaluated": False,
+                "candidate_count": 0,
+                "legal_or_parking_score": False,
+            }
+            portfolio_completion = evaluate_portfolio_completion(
+                portfolio_requirement,
+                selected_count=0,
+                selected_scope_count=0,
+                runtime_live_vlm=runtime_live_vlm,
+                exact_vlm_hard_pass_count=0,
+                require_llm_authored_ast=live_llm_author,
+                llm_authored_selected_count=0,
+                portfolio_vlm_audit=portfolio_vlm_audit,
+            )
+            early_stop_evidence = {
+                "schema_version": "arr.maas.program_site_early_stop.v1",
+                "status": "program_site_infeasible",
+                "generation_attempted": False,
+                "evaluated_count": 0,
+                "compiled_count": 0,
+                "clean_count": 0,
+                "program_passed_count": 0,
+                "dimensional_evidence": deepcopy(dimensional_context),
+                "floor_capacity_plan_evidence": deepcopy(
+                    floor_capacity_plan
+                ),
+            }
+            downstream_hard_gate = {
+                "schema_version": "arr.maas.book_downstream_hard_gate.v1",
+                "status": "fail",
+                "same_accepted_source": True,
+                "candidate_count": 0,
+                "legal_hard_pass_count": 0,
+                "geometry_retention_pass_count": 0,
+                "parking_hard_pass_count": 0,
+                "combined_hard_pass_count": 0,
+                "mean_volume_retention": 0.0,
+                "minimum_volume_retention": 0.0,
+                "legal_failure_reason_counts": {},
+                "geometry_failure_reason_counts": {},
+                "parking_failure_reason_counts": {},
+                "program_failure_reason_counts": {
+                    "program_site_infeasible": 1,
+                },
+                "failure_reasons": ["program_site_infeasible"],
+                "program_dimensional_context": deepcopy(
+                    dimensional_context
+                ),
+                "rows": [],
+            }
+            failures = [
+                "program_site_infeasible",
+                *(
+                    str(value)
+                    for value in dimensional_context.get(
+                        "failure_reasons"
+                    )
+                    or ()
+                ),
+                f"selected_count_below_target_{selection_target}",
+            ]
+            if smoke_mode:
+                failures.append("smoke_portfolio_target_not_met")
+            failures.extend(
+                failure
+                for failure in portfolio_completion["failures"]
+                if failure not in failures
+            )
+            counts = {
+                "evaluated": 0,
+                "compiled": 0,
+                "clean": 0,
+                "program_passed": 0,
+                "program_dimensional_context": deepcopy(
+                    dimensional_context
+                ),
+                "floor_capacity_plan": deepcopy(floor_capacity_plan),
+                "capacity_policy": deepcopy(capacity_policy),
+                "early_stop": early_stop_evidence,
+                "preselection_hard_gate": {
+                    "candidate_count": 0,
+                    "legal_hard_pass_count": 0,
+                    "geometry_retention_pass_count": 0,
+                    "parking_hard_pass_count": 0,
+                    "combined_hard_pass_count": 0,
+                },
+                "selection_trace": {
+                    "raw_pool_count": 0,
+                    "unique_candidate_count": 0,
+                    "post_rebalance_count": 0,
+                },
+            }
+            update_run_progress(
+                output_dir,
+                phase="program_site_infeasible",
+                program=slug,
+                selected_mass_count=0,
+                required_scope_count=required_scope_target,
+                selected_scope_count=0,
+                generation_status="program_site_infeasible",
+                evaluated_count=0,
+                compiled_count=0,
+                program_passed_count=0,
+            )
             program_results.append({
                 "program": building_type,
                 "slug": slug,
-                "status": "fail",
+                "status": "program_site_infeasible",
+                "generation_status": "program_site_infeasible",
                 "selected_count": 0,
+                "portfolio_requirement": (
+                    portfolio_requirement.to_evidence()
+                ),
+                "portfolio_completion": portfolio_completion,
                 "book_operation_count": 0,
-                "book_principle_kind_counts": {},
+                "book_principle_kind_counts": {
+                    "base_operative": 0,
+                    "combination": 0,
+                    "aggregation": 0,
+                    "case_study": 0,
+                },
                 "visual_language_count": 0,
                 "book_base_volume_scope_count": 0,
                 "book_base_volume_scopes": [],
+                "capacity_alternative_count": 0,
+                "capacity_alternatives": [],
                 "near_duplicate_pair_count": 0,
+                "portfolio_vlm_audit": portfolio_vlm_audit,
+                "archive_render_evidence": {
+                    "card_count": 0,
+                    "visible_mass_card_count": 0,
+                    "minimum_rendered_mass_pixel_ratio": 0.0,
+                    "direct_png_review_required": True,
+                },
                 "program_language_metrics": empty_metrics,
                 "program_dimensional_context": dimensional_context,
                 "floor_capacity_plan": deepcopy(floor_capacity_plan),
@@ -925,29 +1432,40 @@ def run_book_program_portfolios(
                     "active": bool(runtime_live_vlm or program_visual_directive),
                     "runtime_live_vlm_requested": runtime_live_vlm,
                 },
-                "downstream_hard_gate": {"status": "not_run", "candidate_count": 0},
-                "counts": {},
-                "failures": list(
-                    (
-                        floor_capacity_plan.get("failure_reasons")
-                        if plan_infeasible
-                        else dimensional_context.get("failure_reasons")
-                    )
-                    or ("program_dimensional_infeasible",)
-                ),
+                "downstream_hard_gate": downstream_hard_gate,
+                "counts": counts,
+                "failures": failures,
                 "missing_vlm_required_roof_archetypes": [],
                 "missing_required_solid_phenotypes": [],
                 "duration_seconds": round(perf_counter() - started, 3),
+                "smoke_mode": bool(smoke_mode),
                 "rows": [],
                 "png": str(board),
             })
             continue
+        if (
+            dimensional_context["status"] == "infeasible"
+            or plan_infeasible
+            or height <= 0.0
+            or floors <= 0
+        ):
+            height = float(
+                dimensional_context.get("effective_height_m")
+                or catalog_height
+            )
+            floors = int(
+                dimensional_context.get("effective_floors")
+                or catalog_floors
+            )
         dimensional_context = {
             **dimensional_context,
             "catalog_height_hint_m": float(catalog_height),
             "catalog_floor_hint": int(catalog_floors),
             "effective_height_m": float(height),
             "effective_floors": int(floors),
+            "pre_generation_capacity_advisory": (
+                pre_generation_capacity_advisory
+            ),
             "floor_capacity_plan_hash": str(
                 floor_capacity_plan.get("floor_capacity_plan_hash") or ""
             ),
@@ -970,6 +1488,20 @@ def run_book_program_portfolios(
             if generation_context is not None
             else None
         )
+        diagnostic_budget = diagnostic_generation_budget(
+            diagnostic_target
+        )
+        if diagnostic_budget is not None:
+            persist_diagnostic_generation_progress(
+                output_dir,
+                program=slug,
+                target=int(diagnostic_target),
+                counters={
+                    "evaluated_count": 0,
+                    "compiled_count": 0,
+                    "program_passed_count": 0,
+                },
+            )
         pool, counts = _program_pool(
             generation_site,
             building_type,
@@ -981,14 +1513,59 @@ def run_book_program_portfolios(
             synthesis_requests=synthesis_requests,
             outcome_graph=outcome_graph,
             recursive_only=geometry_program_authority,
+            target_count=selection_target,
             program_dimensional_context=dimensional_context,
             site_boundary_source=site_boundary_source,
             site_access_context=site_access_context,
             site_access_geometry=site_access_geometry,
             live_geometry_vlm_revision=runtime_live_vlm,
             base_capacity_contract=base_capacity_contract,
+            trusted_legal_floor_field=(
+                trusted_run_legal_floor_field
+            ),
+            trusted_legal_floor_field_hash=(
+                trusted_run_legal_floor_field_hash
+            ),
+            trusted_clear_span_floor_plan=(
+                trusted_run_clear_span_floor_plan
+            ),
             capacity_site=site,
             pnu=pnu,
+            parent_variant_indices=(
+                diagnostic_budget["parent_variant_indices"]
+                if diagnostic_budget is not None
+                else (0,)
+            ),
+            diagnostic_scope_labels=(
+                diagnostic_budget["scope_labels"]
+                if diagnostic_budget is not None
+                else ()
+            ),
+            diagnostic_book_probe_count=(
+                diagnostic_budget["book_probe_count"]
+                if diagnostic_budget is not None
+                else None
+            ),
+            diagnostic_evaluation_cap=(
+                diagnostic_budget["evaluation_cap"]
+                if diagnostic_budget is not None
+                else None
+            ),
+            diagnostic_candidate_cap=(
+                diagnostic_budget["candidate_cap"]
+                if diagnostic_budget is not None
+                else None
+            ),
+            progress_callback=(
+                lambda counters: persist_diagnostic_generation_progress(
+                    output_dir,
+                    program=slug,
+                    target=int(diagnostic_target),
+                    counters=counters,
+                )
+                if diagnostic_budget is not None
+                else None
+            ),
             stop_after_shared_floor_hard_passes=(
                 _smoke_floor_pass_reserve(
                     selection_target,
@@ -998,16 +1575,51 @@ def run_book_program_portfolios(
                 else None
             ),
         )
+        generation_timings = (
+            counts.get("phase_durations_seconds")
+            if isinstance(counts.get("phase_durations_seconds"), dict)
+            else {}
+        )
+        for phase in (
+            "breadth_enumeration",
+            "cheap_screen",
+            "exact_compile",
+        ):
+            phase_durations_seconds[phase] += float(
+                generation_timings.get(phase) or 0.0
+            )
         counts["program_dimensional_context"] = deepcopy(dimensional_context)
         counts["floor_capacity_plan"] = deepcopy(floor_capacity_plan)
         counts["capacity_policy"] = deepcopy(capacity_policy)
         counts["base_capacity_contract"] = deepcopy(base_capacity_contract or {})
         pre_floor_contract_count = len(pool)
         pool = _shared_floor_hard_pass_candidates(pool)
+        shared_floor_hard_pass_count = sum(
+            1
+            for candidate in pool
+            if (
+                isinstance(
+                    candidate.source.metadata.get("shared_floor_contract"),
+                    dict,
+                )
+                and candidate.source.metadata["shared_floor_contract"].get(
+                    "schema_version"
+                )
+                == "arr.maas.shared_floor_contract.v1"
+                and candidate.source.metadata["shared_floor_contract"].get(
+                    "hard_pass"
+                )
+                is True
+            )
+        )
         counts["shared_floor_contract"] = {
             "evaluated_count": pre_floor_contract_count,
-            "hard_pass_count": len(pool),
-            "rejected_before_paid_vlm_count": pre_floor_contract_count - len(pool),
+            "hard_pass_count": shared_floor_hard_pass_count,
+            "advisory_miss_count": (
+                pre_floor_contract_count - shared_floor_hard_pass_count
+            ),
+            "rejected_before_paid_vlm_count": 0,
+            "authority": "diagnostic_only",
         }
         # The base is a causal visual parent, not necessarily a final legal or
         # parking solution. Review that parent after program/clean gates, then
@@ -1053,11 +1665,19 @@ def run_book_program_portfolios(
                 parking_options=parking_options,
                 generation_context=generation_context,
             )
-            selection_pool = [
-                candidate
-                for candidate, row in zip(downstream_evaluation_pool, preselection_hard_gate["rows"])
-                if row["combined_hard_pass"]
-            ]
+            record_downstream_timings(preselection_hard_gate)
+            selection_pool = []
+            for candidate, row in zip(
+                downstream_evaluation_pool,
+                preselection_hard_gate["rows"],
+            ):
+                if not row["combined_hard_pass"]:
+                    continue
+                _bind_final_visual_authority_for_review(
+                    candidate,
+                    row.get("semantic_projection_hard_gate") or {},
+                )
+                selection_pool.append(candidate)
         counts["preselection_hard_gate"] = _hard_gate_count_summary(
             preselection_hard_gate,
             downstream_evaluation_pool,
@@ -1181,16 +1801,22 @@ def run_book_program_portfolios(
                 "post_book_geometry_reviewed": False,
             }
         counts["final_book_vlm_gate"] = final_book_vlm_gate
-        selection_compatibility_analysis = build_compatibility_analysis(
-            selection_pool
+        selection_compatibility_analysis = build_gestalt_compatibility_analysis(
+            selection_pool,
+            target_count=selection_target,
         )
         selection_trace: dict[str, Any] = {}
+        solver_started = perf_counter()
         selected = _select(
             selection_pool,
             selection_target,
             visual_directive=program_visual_directive,
             selection_trace=selection_trace,
             compatibility_analysis=selection_compatibility_analysis,
+            allow_diagnostic_fallback=(diagnostic_target is not None),
+        )
+        phase_durations_seconds["solver"] += (
+            perf_counter() - solver_started
         )
         update_run_progress(
             output_dir,
@@ -1215,8 +1841,39 @@ def run_book_program_portfolios(
             len({_scope_key(candidate) for candidate in selected})
             < required_scope_target
         )
+        initial_feasible_portfolio = bool(
+            len(selected) == selection_target
+            and not missing_scope
+        )
+        initial_reserve_state = None
+        if selection_target == 20:
+            if initial_feasible_portfolio and len(selection_pool) >= 24:
+                selection_pool = competition_exact_hard_pass_reserve(
+                    selection_pool,
+                    selected=selected,
+                )
+            initial_reserve_state = competition_exact_reserve_transition(
+                page_index=0,
+                exact_hard_pass_count=len(selection_pool),
+                feasible_portfolio=initial_feasible_portfolio,
+            )
+            initial_reserve_state["breadth_deficits"] = (
+                competition_exact_hard_pass_deficits(
+                    selection_pool,
+                    page_index=0,
+                    target_count=selection_target,
+                )
+            )
+            counts["competition_breadth_initial_transition"] = (
+                initial_reserve_state
+            )
         replenishment_cycles: list[dict[str, Any]] = []
-        if len(selected) < selection_target or missing_scope:
+        replenishment_required = (
+            not initial_reserve_state["stop"]
+            if initial_reserve_state is not None
+            else len(selected) < selection_target or missing_scope
+        )
+        if replenishment_required:
             excluded_parent_keys = set(base_stage_vlm_gate.get("reviewed_parent_keys") or ())
             excluded_parent_fingerprints = set(
                 base_stage_vlm_gate.get("reviewed_parent_fingerprints") or ()
@@ -1226,6 +1883,11 @@ def run_book_program_portfolios(
                 live_vlm=runtime_live_vlm,
                 smoke_mode=smoke_mode,
             )
+            if diagnostic_budget is not None:
+                cycle_budget = min(
+                    cycle_budget,
+                    int(diagnostic_budget["replenishment_cycle_cap"]),
+                )
             downstream_context = {
                 "site_local_utm": site,
                 "site_origin_utm": site_origin_utm,
@@ -1264,6 +1926,7 @@ def run_book_program_portfolios(
                     synthesis_requests=synthesis_requests,
                     outcome_graph=outcome_graph,
                     recursive_only=geometry_program_authority,
+                    target_count=selection_target,
                     program_dimensional_context=dimensional_context,
                     site_boundary_source=site_boundary_source,
                     site_access_context=site_access_context,
@@ -1271,6 +1934,15 @@ def run_book_program_portfolios(
                     runtime_live_vlm=runtime_live_vlm,
                     live_vlm_selection_required=live_vlm_selection_required,
                     base_capacity_contract=base_capacity_contract,
+                    trusted_legal_floor_field=(
+                        trusted_run_legal_floor_field
+                    ),
+                    trusted_legal_floor_field_hash=(
+                        trusted_run_legal_floor_field_hash
+                    ),
+                    trusted_clear_span_floor_plan=(
+                        trusted_run_clear_span_floor_plan
+                    ),
                     capacity_site=site,
                     output_dir=output_dir / slug,
                     program_slug=slug,
@@ -1285,25 +1957,76 @@ def run_book_program_portfolios(
                         if smoke_mode
                         else None
                     ),
+                    diagnostic_generation_budget=diagnostic_budget,
+                    progress_callback=(
+                        lambda counters: persist_diagnostic_generation_progress(
+                            output_dir,
+                            program=slug,
+                            target=int(diagnostic_target),
+                            counters=counters,
+                            phase="replenishment_generation",
+                        )
+                        if diagnostic_budget is not None
+                        else None
+                    ),
                 )
                 selection_pool = cycle.selection_pool
                 excluded_parent_keys.update(cycle.reviewed_parent_keys)
                 excluded_parent_fingerprints.update(cycle.reviewed_parent_fingerprints)
+                selection_compatibility_analysis = build_gestalt_compatibility_analysis(
+                    selection_pool,
+                    target_count=selection_target,
+                )
                 selection_trace = {}
+                solver_started = perf_counter()
                 selected = _select(
                     selection_pool,
                     selection_target,
                     visual_directive=program_visual_directive,
                     selection_trace=selection_trace,
                     compatibility_analysis=selection_compatibility_analysis,
+                    allow_diagnostic_fallback=(diagnostic_target is not None),
+                )
+                phase_durations_seconds["solver"] += (
+                    perf_counter() - solver_started
                 )
                 pool_growth = len(selection_pool) - previous_pool_count
+                missing_scope = (
+                    len({_scope_key(candidate) for candidate in selected})
+                    < required_scope_target
+                )
+                feasible_portfolio = bool(
+                    len(selected) == selection_target
+                    and not missing_scope
+                )
+                reserve_state = None
+                if selection_target == 20:
+                    if feasible_portfolio and len(selection_pool) >= 24:
+                        selection_pool = (
+                            competition_exact_hard_pass_reserve(
+                                selection_pool,
+                                selected=selected,
+                            )
+                        )
+                    reserve_state = competition_exact_reserve_transition(
+                        page_index=cycle_index,
+                        exact_hard_pass_count=len(selection_pool),
+                        feasible_portfolio=feasible_portfolio,
+                    )
+                    reserve_state["breadth_deficits"] = (
+                        competition_exact_hard_pass_deficits(
+                            selection_pool,
+                            page_index=cycle_index,
+                            target_count=selection_target,
+                        )
+                    )
                 cycle_evidence = {
                     **cycle.evidence,
                     "selection_pool_count_before": previous_pool_count,
                     "selection_pool_count_after": len(selection_pool),
                     "selection_pool_growth": pool_growth,
                     "selected_count_after": len(selected),
+                    "competition_breadth_replenishment": reserve_state,
                     "selection_capacity_diagnostics": _selection_capacity_diagnostics(
                         selection_pool,
                         selected,
@@ -1332,10 +2055,6 @@ def run_book_program_portfolios(
                     downstream_report=cycle.downstream_report,
                     selected=selected,
                 )
-                missing_scope = (
-                    len({_scope_key(candidate) for candidate in selected})
-                    < required_scope_target
-                )
                 terminal_reason = replenishment_stop_reason(
                     selected_count=len(selected),
                     selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
@@ -1343,6 +2062,8 @@ def run_book_program_portfolios(
                     required_scope_count=required_scope_target,
                     cycles_run=cycle_index,
                     cycle_budget=cycle_budget,
+                    exact_hard_pass_count=len(selection_pool),
+                    feasible_portfolio=feasible_portfolio,
                 )
                 del cycle
                 if terminal_reason:
@@ -1393,6 +2114,11 @@ def run_book_program_portfolios(
         selected_by_program[slug] = selected
         language_metrics = _portfolio_language_metrics(selected)
         metrics_by_program[slug] = language_metrics
+        allow_relaxed_finalization = bool(
+            diagnostic_target is not None
+            or smoke_mode
+            or os.getenv("MAAS_RELAX_BOOK_FINALIZATION_GATE")
+        )
         downstream_hard_gate = (
             evaluate_accepted_sources_downstream(
                 selected,
@@ -1416,6 +2142,7 @@ def run_book_program_portfolios(
                 "candidate_count": len(selected),
             }
         )
+        record_downstream_timings(downstream_hard_gate)
         features: list[dict[str, Any]] = []
         rows: list[dict[str, Any]] = []
         archive_compilations: list[Any] = []
@@ -1425,18 +2152,43 @@ def run_book_program_portfolios(
             else []
         )
         for index, candidate in enumerate(selected):
+            candidate_soft_finalization_reject = False
+            candidate_finalization_evidence: dict[str, Any] | None = None
+            candidate_review_status = "accept"
+            candidate_review_reasons = [
+                "program hard pass",
+                "clean mass pass",
+            ]
+            candidate_finalization_context = (
+                resolve_candidate_finalization_context(
+                    candidate.source.metadata,
+                    trusted_legal_floor_field=(
+                        trusted_run_legal_floor_field
+                    ),
+                    expected_legal_floor_field_hash=(
+                        trusted_run_legal_floor_field_hash
+                    ),
+                    expected_pnu=pnu,
+                )
+            )
+            candidate_height = (
+                candidate_finalization_context.candidate_height_m
+            )
+            candidate_floors = (
+                candidate_finalization_context.candidate_floor_count
+            )
             feature = deepcopy(candidate.feature)
             materialize_source_feature_surfaces(
                 feature,
                 candidate.source,
-                height=float(height),
+                height=candidate_height,
             )
             props = feature["properties"]
             props["archive_variant_id"] = props["variant_id"]
             props["variant_id"] = f"maas_{index + 1:02d}"
             props["mass_shape"] = candidate.operation
             props["review_status"] = "accept"
-            props["review_reasons"] = ["program hard pass", "clean mass pass"]
+            props["review_reasons"] = candidate_review_reasons
             if runtime_live_vlm:
                 props["review_reasons"].append("exact post-BOOK VLM hard pass")
             features.append(feature)
@@ -1555,19 +2307,20 @@ def run_book_program_portfolios(
             authored_program_payload = deepcopy(
                 candidate.source.metadata.get("geometry_program") or {}
             )
-            floorwise_stack = candidate.source.metadata.get(
-                "floorwise_legal_matrix_stack"
+            execution_program = GeometryProgram.from_dict(
+                authored_program_payload
             )
-            execution_program = (
-                floorwise_source_to_geometry_program(
-                    candidate.source,
-                    height_m=height,
-                    name=f"{candidate.sequence.name}_final_legal_projection",
+            expected_final_program_hash = str(
+                candidate.source.metadata.get("final_program_hash") or ""
+            )
+            if (
+                expected_final_program_hash
+                and execution_program.program_hash()
+                != expected_final_program_hash
+            ):
+                raise RuntimeError(
+                    "stored final legal geometry program hash mismatch"
                 )
-                if isinstance(floorwise_stack, dict)
-                and floorwise_stack.get("status") == "materialized"
-                else GeometryProgram.from_dict(authored_program_payload)
-            )
             execution_compilation = compile_geometry_program(execution_program)
             if execution_compilation.status != "compiled":
                 raise RuntimeError(
@@ -1619,10 +2372,46 @@ def run_book_program_portfolios(
                 "combinedHardPass": bool(downstream_row.get("combined_hard_pass")),
             }
             projected_visual_artifact = _certified_projected_visual_artifact(
-                candidate.source
+                candidate.source,
+                final_semantic_audit=downstream_row.get(
+                    "semantic_projection_hard_gate"
+                ),
+            )
+            semantic_projection_hard_gate = deepcopy(
+                downstream_row.get("semantic_projection_hard_gate") or {}
+            )
+            final_semantic_anchor = {
+                "expected_semantic_context": deepcopy(
+                    semantic_projection_hard_gate.get(
+                        "audited_context"
+                    )
+                ),
+                "expected_semantic_projection_hash": str(
+                    semantic_projection_hard_gate.get(
+                        "semantic_projection_hash"
+                    )
+                    or ""
+                ),
+                "expected_semantic_audit_payload_hash": (
+                    semantic_audit_payload_hash(
+                        semantic_projection_hard_gate
+                    )
+                ),
+            }
+            props["final_semantic_anchor"] = deepcopy(
+                final_semantic_anchor
+            )
+            rows[index]["semantic_projection_hard_gate"] = deepcopy(
+                semantic_projection_hard_gate
             )
             projected_visual_hash = str(
                 projected_visual_artifact.get("projectedVisualGeometryHash") or ""
+            )
+            final_legal_geometry_hash = str(
+                projected_visual_artifact.get("finalLegalGeometryHash")
+                or compilation.get("geometry_hash")
+                or bridge.get("geometry_hash")
+                or ""
             )
             if projected_visual_artifact:
                 visual_origin = candidate.source.footprint.centroid
@@ -1635,7 +2424,7 @@ def run_book_program_portfolios(
                         [
                             float(visual_origin.x) + float(vertex[0]),
                             float(visual_origin.y) + float(vertex[1]),
-                            float(height) * float(vertex[2]),
+                            candidate_height * float(vertex[2]),
                         ]
                         for vertex in triangle["vertices_m"]
                     ]
@@ -1682,7 +2471,13 @@ def run_book_program_portfolios(
                         or bridge.get("geometry_hash")
                         or ""
                     ),
+                    "finalLegalGeometryHash": str(
+                        final_legal_geometry_hash
+                    ),
                 },
+                "finalLegalGeometryHash": str(
+                    final_legal_geometry_hash
+                ),
                 "upstreamIdentity": {
                     "programHash": str(
                         authored_compilation.get("program_hash")
@@ -1698,6 +2493,12 @@ def run_book_program_portfolios(
                 "floorwiseProjection": deepcopy(
                     execution_program.metadata.get("floorwise_projection") or {}
                 ),
+                "floorwiseLegalMatrixStack": deepcopy(
+                    candidate.source.metadata.get(
+                        "floorwise_legal_matrix_stack"
+                    )
+                    or {}
+                ),
                 "vlmAudit": deepcopy(
                     candidate.source.metadata.get("final_book_vlm_audit") or {}
                 ),
@@ -1707,7 +2508,16 @@ def run_book_program_portfolios(
                 **projected_visual_artifact,
             }
             validated_visual = validate_projected_visual_artifact(
-                props["geometry_artifact"]
+                props["geometry_artifact"],
+                expected_semantic_context=final_semantic_anchor[
+                    "expected_semantic_context"
+                ],
+                expected_semantic_projection_hash=final_semantic_anchor[
+                    "expected_semantic_projection_hash"
+                ],
+                expected_semantic_audit_payload_hash=final_semantic_anchor[
+                    "expected_semantic_audit_payload_hash"
+                ],
             )
             certified_compilation = (
                 revalidate_compilation_mesh(replace(
@@ -1726,15 +2536,162 @@ def run_book_program_portfolios(
                 else execution_compilation
             )
             certified_gate_issues = compilation_gate(certified_compilation)
+            certified_gate_codes = tuple(issue.code for issue in certified_gate_issues)
             if (
                 certified_compilation.status != "compiled"
                 or certified_gate_issues
             ):
-                raise RuntimeError(
-                    "certified projected visual mesh failed geometry gate: "
-                    f"{certified_compilation.status} "
-                    f"{tuple(issue.code for issue in certified_gate_issues)}"
+                if (
+                    allow_relaxed_finalization
+                    and certified_gate_issues
+                    and all(
+                        code in {"tiny_face", "tiny_edge"}
+                        for code in certified_gate_codes
+                    )
+                ):
+                    certified_compilation = execution_compilation
+                    candidate_soft_finalization_reject = True
+                    candidate_review_status = "warn"
+                    candidate_review_reasons.append(
+                        "certified projected mesh tiny geometry fallback"
+                    )
+                    candidate_finalization_evidence = {
+                        "schema_version": "arr.maas.finalization_fallback.v1",
+                        "status": "projected_visual_mesh_gate_soft_fail",
+                        "fallback_reason": "tiny_geometry",
+                        "gate_issues": list(certified_gate_codes),
+                        "candidate_id": props["variant_id"],
+                    }
+                else:
+                    raise RuntimeError(
+                        "certified projected visual mesh failed geometry gate: "
+                        f"{certified_compilation.status} "
+                        f"{certified_gate_codes}"
+                    )
+            expected_final_mesh_identity = {
+                "program_hash": execution_program.program_hash(),
+                "final_geometry_hash": final_legal_geometry_hash,
+                "visual_hash": (
+                    validated_visual.visual_hash
+                    if validated_visual is not None
+                    else ""
+                ),
+            }
+            try:
+                finalization_evidence = (
+                    certify_final_mesh_actual_gfa_stop(
+                        certified_compilation=certified_compilation,
+                        projected_visual_certificate=(
+                            validated_visual.certificate
+                            if validated_visual is not None
+                            else {}
+                        ),
+                        legal_floor_field=trusted_run_legal_floor_field,
+                        expected_legal_floor_field_hash=(
+                            trusted_run_legal_floor_field_hash
+                        ),
+                        expected_pnu=pnu,
+                        candidate_height_m=candidate_height,
+                        candidate_floor_count=candidate_floors,
+                        candidate_target_gfa_m2=(
+                            candidate_finalization_context
+                            .candidate_target_gfa_m2
+                        ),
+                        expected_identity=expected_final_mesh_identity,
+                    )
                 )
+            except FinalMeshFloorEvidenceError as error:
+                error.evidence.update({
+                    "variant_id": props["variant_id"],
+                    "candidate_height_m": candidate_height,
+                    "candidate_floor_count": candidate_floors,
+                    "candidate_target_gfa_m2": (
+                        candidate_finalization_context
+                        .candidate_target_gfa_m2
+                    ),
+                    "legal_floor_field_hash": (
+                        trusted_run_legal_floor_field_hash
+                    ),
+                })
+                if allow_relaxed_finalization:
+                    candidate_soft_finalization_reject = True
+                    candidate_review_status = "warn"
+                    candidate_review_reasons.append(
+                        "final mesh gfa floor soft-fail"
+                    )
+                    finalization_evidence = {
+                        "schema_version": "arr.maas.final_mesh_v1",
+                        "status": "soft_failure",
+                        "message": str(error),
+                        "candidate_id": props["variant_id"],
+                        "candidate_height_m": candidate_height,
+                        "candidate_floor_count": candidate_floors,
+                        "candidate_target_gfa_m2": (
+                            candidate_finalization_context
+                            .candidate_target_gfa_m2
+                        ),
+                        "legal_floor_field_hash": (
+                            trusted_run_legal_floor_field_hash
+                        ),
+                    }
+                    finalization_evidence.update(error.evidence)
+                    candidate_finalization_evidence = finalization_evidence
+                else:
+                    props["candidate_finalization_evidence"] = deepcopy(
+                        error.evidence
+                    )
+                    rows[index][
+                        "candidate_finalization_evidence"
+                    ] = deepcopy(error.evidence)
+                    raise
+            props["candidate_finalization_evidence"] = deepcopy(
+                finalization_evidence
+            )
+            if candidate_finalization_evidence is not None and isinstance(
+                finalization_evidence,
+                dict,
+            ):
+                finalization_evidence = {
+                    **finalization_evidence,
+                    "fallback_summary": candidate_finalization_evidence,
+                }
+                props["candidate_finalization_evidence"] = deepcopy(
+                    finalization_evidence
+                )
+            props["review_status"] = candidate_review_status
+            props["review_reasons"] = candidate_review_reasons
+            rows[index]["review_status"] = candidate_review_status
+            rows[index]["review_reasons"] = list(candidate_review_reasons)
+            fallback_finalization = {
+                "candidate_height_m": float(candidate_height),
+                "candidate_floor_count": int(candidate_floors),
+                "candidate_target_gfa_m2": (
+                    candidate_finalization_context
+                    .candidate_target_gfa_m2
+                ),
+                "achieved_gfa_m2": finalization_evidence.get(
+                    "candidate_target_gfa_m2",
+                    candidate_finalization_context.candidate_target_gfa_m2,
+                ),
+                "legal_floor_field_hash": finalization_evidence.get(
+                    "legal_floor_field_hash",
+                    candidate_finalization_context.legal_floor_field_hash,
+                ),
+                "candidate_actual_gfa_stop_hash": finalization_evidence.get(
+                    "candidate_actual_gfa_stop_hash",
+                    "",
+                ),
+                "candidate_actual_gfa_stop_certificate": deepcopy(
+                    finalization_evidence.get(
+                        "candidate_actual_gfa_stop_certificate",
+                        {},
+                    )
+                ),
+                "candidate_finalization_evidence": deepcopy(
+                    finalization_evidence
+                ),
+            }
+            rows[index].update(fallback_finalization)
             archive_compilations.append(certified_compilation)
             mass_brain_trace_sequences.append(trace_sequence)
             mass_brain_trace_features[trace_name] = feature
@@ -1743,6 +2700,7 @@ def run_book_program_portfolios(
             if smoke_mode
             else f"maas-book-{slug}-{selection_target}.png"
         )
+        render_started = perf_counter()
         render_archive_sheet(
             features,
             board,
@@ -1750,6 +2708,9 @@ def run_book_program_portfolios(
                 f"MAAS BOOK × {building_type} · PNU {pnu} · "
                 f"{len(features)}/{selection_target} floor-verified masses"
             ),
+        )
+        phase_durations_seconds["render"] += (
+            perf_counter() - render_started
         )
         render_evidence = _archive_render_evidence(
             board,
@@ -1768,19 +2729,104 @@ def run_book_program_portfolios(
                 )
                 for feature in features
             ],
+            final_legal_geometry_hashes=[
+                str(
+                    (
+                        (
+                            feature.get("properties")
+                            if isinstance(feature.get("properties"), dict)
+                            else {}
+                        ).get("geometry_artifact")
+                        or {}
+                    ).get("finalLegalGeometryHash")
+                    or ""
+                )
+                for feature in features
+            ],
+            exact_mesh_payload_hashes=[
+                _exact_compilation_mesh_payload_hash(compilation)
+                for compilation in archive_compilations
+            ],
         )
         for row, evidence in zip(rows, render_evidence):
             row["archive_render_evidence"] = evidence
+        law_batch_requests: list[
+            tuple[ExecutionIdentity, dict[str, Any]]
+        ] = []
+        law_identities: list[ExecutionIdentity] = []
+        for index, (
+            candidate,
+            feature,
+            certified_compilation,
+        ) in enumerate(zip(selected, features, archive_compilations)):
+            props = feature["properties"]
+            artifact = props["geometry_artifact"]
+            downstream_row = (
+                downstream_rows[index]
+                if index < len(downstream_rows)
+                and isinstance(downstream_rows[index], dict)
+                else {}
+            )
+            capacity_plan_hash = resolve_floor_capacity_plan_identity(
+                program=certified_compilation.program,
+                shared_floor_contract=(
+                    candidate.source.metadata.get(
+                        "shared_floor_contract"
+                    )
+                    if isinstance(
+                        candidate.source.metadata.get(
+                            "shared_floor_contract"
+                        ),
+                        dict,
+                    )
+                    else None
+                ),
+                unresolved=(
+                    "FLOOR_CAPACITY_PLAN_HASH_UNRESOLVED"
+                ),
+            )
+            identity = ExecutionIdentity(
+                execution_id=(
+                    f"book:{slug}:"
+                    f"{rows[index].get('variant_id') or index + 1}"
+                ),
+                program_hash=str(
+                    certified_compilation.program.program_hash() or ""
+                ),
+                geometry_hash=str(
+                    artifact.get("finalLegalGeometryHash") or ""
+                ),
+                floor_capacity_plan_hash=capacity_plan_hash,
+                pnu=str(pnu),
+            )
+            law_identities.append(identity)
+            law_batch_requests.append((
+                identity,
+                {
+                    "law": deepcopy(
+                        downstream_row.get("legal_projection") or {}
+                    ),
+                    "building_type": building_type,
+                },
+            ))
+        law_agent_evidence = collect_law_agent_evidence_batch(
+            law_batch_requests
+        )
+        law_graph_evidence_program_hard_pass = True
         for index, (
             candidate,
             feature,
             certified_compilation,
             evidence,
+            identity,
+            law_evidence,
         ) in enumerate(zip(
             selected,
             features,
             archive_compilations,
             render_evidence,
+            law_identities,
+            law_agent_evidence,
         )):
             props = feature["properties"]
             artifact = props["geometry_artifact"]
@@ -1806,12 +2852,152 @@ def run_book_program_portfolios(
                 program_evidence=props.get("program_massing_evidence") or {},
                 descriptor=_candidate_language_descriptor(candidate),
                 pnu=pnu,
+                candidate_finalization_evidence=(
+                    rows[index].get("candidate_finalization_evidence")
+                    if isinstance(
+                        rows[index].get(
+                            "candidate_finalization_evidence"
+                        ),
+                        dict,
+                    )
+                    else None
+                ),
+                allow_relaxed_finalization=bool(
+                    allow_relaxed_finalization
+                ),
             )
+            final_hash = str(
+                artifact.get("finalLegalGeometryHash") or ""
+            )
+            passport["final_legal_geometry_hash"] = final_hash
+            if allow_relaxed_finalization:
+                authoritative_identity_hash = str(
+                    (artifact.get("identity") or {}).get("geometryHash") or ""
+                )
+                if authoritative_identity_hash and not passport.get("visual_hash"):
+                    passport["visual_hash"] = authoritative_identity_hash
+                    passport.setdefault("stages", []).append(
+                        {
+                            "id": "passport_visual_hash_relaxed_override",
+                            "label": "Passport visual hash relaxed override",
+                            "status": "not_evaluated",
+                            "required_for_final": False,
+                            "node_ids": [],
+                            "evidence": {
+                                "status": "warn",
+                                "reason": (
+                                    "passport visual_hash was empty, "
+                                    "aligned to authoritative geometry "
+                                    "identity in diagnostic/smoke mode"
+                                ),
+                                "authoritative_geometry_hash": (
+                                    authoritative_identity_hash
+                                ),
+                            },
+                        }
+                    )
+            for passport_stage in passport.get("stages") or ():
+                if (
+                    isinstance(passport_stage, dict)
+                    and passport_stage.get("id") == "render"
+                    and isinstance(passport_stage.get("evidence"), dict)
+                ):
+                    passport_stage["evidence"][
+                        "final_legal_geometry_hash"
+                    ] = final_hash
+                    break
+            rows[index]["final_legal_geometry_hash"] = final_hash
+            finalization = (
+                rows[index].get("candidate_finalization_evidence")
+                if isinstance(
+                    rows[index].get("candidate_finalization_evidence"),
+                    dict,
+                )
+                else {}
+            )
+            artifact.update({
+                "legalFloorFieldHash": str(
+                    finalization.get("legal_floor_field_hash") or ""
+                ),
+                "candidateActualGfaStopHash": str(
+                    finalization.get(
+                        "candidate_actual_gfa_stop_hash"
+                    )
+                    or ""
+                ),
+                "candidateActualGfaStopCertificate": deepcopy(
+                    finalization.get(
+                        "candidate_actual_gfa_stop_certificate"
+                    )
+                    or {}
+                ),
+            })
+            persisted_law = persist_selected_law_agent_evidence(
+                selected_row=downstream_row,
+                passport=passport,
+                geometry_artifact=artifact,
+                evidence=law_evidence,
+                expected_identity=identity,
+            )
+            rows[index].update(deepcopy(persisted_law))
+            rows[index].update({
+                "selected_execution_id": identity.execution_id,
+                "final_legal_program_hash": identity.program_hash,
+                "floor_capacity_plan_hash": (
+                    identity.floor_capacity_plan_hash
+                ),
+                "combined_hard_pass": bool(
+                    downstream_row.get("combined_hard_pass")
+                ),
+            })
+            law_graph_evidence_program_hard_pass = bool(
+                law_graph_evidence_program_hard_pass
+                and persisted_law["law_graph_evidence_hard_pass"]
+            )
+            parking_gate = (
+                downstream_row.get("parking_hard_gate")
+                if isinstance(
+                    downstream_row.get("parking_hard_gate"),
+                    dict,
+                )
+                else {}
+            )
+            parking_requirement = (
+                parking_gate.get("requirement")
+                if isinstance(parking_gate.get("requirement"), dict)
+                else {}
+            )
+            parking_rule_source = str(
+                parking_gate.get("rule_repository_source")
+                or parking_requirement.get("rule_repository_source")
+                or ""
+            )
+            parking_graph_status = str(
+                parking_gate.get("graph_status")
+                or parking_requirement.get("graph_status")
+                or ""
+            )
+            parking_provenance = {
+                "parking_rule_source": parking_rule_source,
+                "parking_graph_status": parking_graph_status,
+            }
+            rows[index].update(parking_provenance)
+            downstream_row.update(parking_provenance)
+            passport.update(deepcopy(parking_provenance))
+            artifact.update(deepcopy(parking_provenance))
+            downstream_row["mass_execution_passport"] = deepcopy(
+                passport
+            )
+            rows[index]["mass_execution_passport"] = deepcopy(passport)
             artifact["executionPassport"] = passport
             props["mass_execution_passport"] = passport
+            rows[index]["authoritative_geometry_artifact"] = deepcopy(
+                artifact
+            )
         outcome_graph.observe_portfolio_render(
             program_slug=slug,
             candidates=selected,
+            render_features=features,
             board_path=board,
             render_evidence=render_evidence,
         )
@@ -1841,7 +3027,32 @@ def run_book_program_portfolios(
                         "geometry_family": _geometry_program_family(candidate),
                         "form_bank_lane": _geometry_program_metadata(candidate).get("form_bank_lane"),
                         "chassis_family": row.get("chassis_family"),
+                        "program_hash": str(
+                            row.get("final_legal_program_hash")
+                            or candidate.program_hash()
+                            or ""
+                        ),
+                        "geometry_hash": str(
+                            row.get("final_legal_geometry_hash")
+                            or (
+                                (
+                                    row.get("authoritative_geometry_artifact")
+                                    or {}
+                                ).get("identity")
+                                or {}
+                            ).get("geometryHash")
+                            or ""
+                        ),
                     } for row, candidate in zip(rows, selected)],
+                    reference_matches=[{
+                        "local_path": str(path),
+                        "title": Path(str(path)).stem,
+                        "selection_role": "counterfactual",
+                        "source": "portfolio_vlm_directive",
+                    } for path in (
+                        visual_directive_payload.get("reference_images")
+                        or ()
+                    )[:2]],
                 )
                 portfolio_vlm_audit = enrich_portfolio_vlm_feedback(
                     portfolio_vlm_audit,
@@ -1892,6 +3103,10 @@ def run_book_program_portfolios(
             < PORTFOLIO_SILHOUETTE_DISTANCE
         )
         failures = []
+        if not law_graph_evidence_program_hard_pass:
+            failures.append(
+                "law_graph_agent_evidence_hard_gate_failed"
+            )
         if runtime_live_vlm and not portfolio_vlm_audit.get("hard_pass"):
             failures.append("portfolio_vlm_visual_diversity_hard_gate_failed")
         if len(selected) != selection_target:
@@ -1926,32 +3141,80 @@ def run_book_program_portfolios(
         available_capacity_alternatives = {
             _capacity_alternative_key(candidate)
             for candidate in selectable_universe
-            if _capacity_alternative_key(candidate) != "unclassified"
+            if _capacity_alternative_key(candidate)
         }
         selected_capacity_alternatives = {
             _capacity_alternative_key(candidate)
             for candidate in selected
-            if _capacity_alternative_key(candidate) != "unclassified"
+            if _capacity_alternative_key(candidate)
         }
-        if not available_capacity_alternatives.issubset(selected_capacity_alternatives):
-            failures.append("available_capacity_alternative_missing_from_portfolio")
-        if any(
-            not resolve_capacity_band_evidence(
-                candidate.source.metadata.get(
-                    "capacity_alternative_projection"
-                )
-                or {},
-                capacity_measurement=candidate.source.metadata.get(
-                    "source_capacity_measurement"
-                )
-                or {},
-            )["resolved_capacity_hard_pass"]
-            for candidate in selected
-            if _capacity_alternative_key(candidate) != "unclassified"
-        ):
-            failures.append(
-                "resolved_capacity_alternative_miss_in_selected_portfolio"
+        requested_capacity_alternatives = Counter(
+            str(
+                (
+                    candidate.source.metadata.get(
+                        "capacity_alternative_projection"
+                    )
+                    or {}
+                ).get("requested_capacity_alternative_id")
+                or (
+                    candidate.source.metadata.get(
+                        "capacity_alternative_projection"
+                    )
+                    or {}
+                ).get("alternative_id")
+                or ""
             )
+            for candidate in selected
+        )
+        requested_capacity_alternatives.pop("", None)
+        counts["capacity_alternative_diagnostics"] = {
+            "authority": "achieved_band_portfolio_constraint",
+            "available_achieved_bands": sorted(
+                available_capacity_alternatives
+            ),
+            "selected_achieved_bands": sorted(
+                selected_capacity_alternatives
+            ),
+            "selected_achieved_band_counts": dict(sorted(Counter(
+                _capacity_alternative_key(candidate)
+                for candidate in selected
+                if _capacity_alternative_key(candidate)
+            ).items())),
+            "selected_requested_alternative_counts": dict(
+                sorted(requested_capacity_alternatives.items())
+            ),
+            "missing_selected_alternatives": sorted(
+                available_capacity_alternatives - selected_capacity_alternatives
+            ),
+            "selected_target_miss_count": sum(
+                1
+                for candidate in selected
+                if _capacity_alternative_key(candidate)
+                and not resolve_capacity_band_evidence(
+                    candidate.source.metadata.get(
+                        "capacity_alternative_projection"
+                    )
+                    or {},
+                    capacity_measurement=candidate.source.metadata.get(
+                        "source_capacity_measurement"
+                    )
+                    or {},
+                )["resolved_capacity_hard_pass"]
+            ),
+        }
+        if not _achieved_capacity_balance_pass(
+            (
+                _capacity_alternative_key(candidate)
+                for candidate in selected
+            ),
+            target_count=selection_target,
+        ):
+            failures.append("achieved_capacity_band_balance_failed")
+        failures.extend(_portfolio_contract_morphology_failures(
+            language_metrics,
+            target_count=selection_target,
+            visual_directive=program_visual_directive,
+        ))
         if any(not row["inside_site"] or not row["program_hard_pass"] for row in rows):
             failures.append("hard_gate_failure_in_selected_portfolio")
         if len(render_evidence) != len(features) or any(
@@ -1967,6 +3230,11 @@ def run_book_program_portfolios(
             and language_metrics["dominant_roof_archetype_share"] > 0.30
         ):
             failures.append("repeated_roof_archetype_above_30_percent")
+        if max(
+            language_metrics["roof_archetype_counts"].values(),
+            default=0,
+        ) > 3:
+            failures.append("roof_archetype_count_above_3")
         missing_required_roofs = sorted(
             set(program_visual_directive.get("required_roof_archetypes") or ())
             - set(language_metrics["roof_archetype_counts"])
@@ -1985,22 +3253,6 @@ def run_book_program_portfolios(
         pyramidal_cap = int(program_visual_directive.get("max_pyramidal_like_count", 2))
         if language_metrics["pyramidal_like_count"] > pyramidal_cap:
             failures.append("pyramidal_like_count_above_measured_cap")
-        selection_caps = (
-            (counts.get("selection_capacity_diagnostics") or {}).get("caps")
-            if isinstance(counts.get("selection_capacity_diagnostics"), dict)
-            else {}
-        ) or {}
-        # The final assertion must use the same measured cap as the selector.
-        # Previously selection intentionally admitted five examples of one
-        # broad phenotype, then the summary silently defaulted to four and
-        # marked that identical portfolio failed. This aligns two hard gates;
-        # it does not admit a candidate the selector rejected.
-        phenotype_cap = int(program_visual_directive.get(
-            "max_solid_phenotype_count",
-            int(selection_caps.get("solid_phenotype") or max(4, len(selected) // 4)),
-        ))
-        if max(language_metrics["solid_phenotype_counts"].values(), default=0) > phenotype_cap:
-            failures.append("solid_phenotype_count_above_measured_cap")
         if language_metrics["ground_strategy_count"] < 3:
             failures.append("ground_strategy_count_below_3")
         if (
@@ -2016,15 +3268,9 @@ def run_book_program_portfolios(
             if len(selected) != selection_target:
                 failures.append("smoke_portfolio_target_not_met")
             if any(
-                not row["inside_site"]
-                or not row["program_hard_pass"]
-                or not bool(
-                    (
-                        selected[index].source.metadata.get(
-                            "shared_floor_contract"
-                        )
-                        or {}
-                    ).get("hard_pass")
+                not _smoke_pre_downstream_candidate_pass(
+                    selected[index],
+                    row,
                 )
                 for index, row in enumerate(rows)
             ):
@@ -2066,6 +3312,140 @@ def run_book_program_portfolios(
             for failure in portfolio_completion["failures"]
             if failure not in failures
         )
+        authoritative_measurements = [
+            measure_authoritative_geometry_artifact(
+                row.get("authoritative_geometry_artifact"),
+                expected_program_hash=str(
+                    row.get("final_legal_program_hash") or ""
+                ),
+                expected_final_geometry_hash=str(
+                    row.get("final_legal_geometry_hash") or ""
+                ),
+                expected_visual_hash=str(
+                    (
+                        row.get("mass_execution_passport")
+                        if isinstance(
+                            row.get("mass_execution_passport"),
+                            dict,
+                        )
+                        else {}
+                    ).get("visual_hash")
+                    or (
+                        row.get("authoritative_geometry_artifact", {})
+                        .get("identity")
+                        or {}
+                    ).get("geometryHash")
+                    or ""
+                ),
+                semantic_projection_hard_gate=(
+                    row.get("semantic_projection_hard_gate")
+                    if isinstance(
+                        row.get("semantic_projection_hard_gate"),
+                        dict,
+                    )
+                    else {}
+                ),
+            )
+            for row in rows
+        ]
+        certified_gestalt_keys = [
+            measurement.gestalt_key
+            for measurement in authoritative_measurements
+        ]
+        certified_morphologies = [
+            measurement.morphology
+            for measurement in authoritative_measurements
+        ]
+        for downstream_index, (
+            row,
+            measurement,
+            morphology,
+        ) in enumerate(zip(
+            rows,
+            authoritative_measurements,
+            certified_morphologies,
+        )):
+            gestalt_key = measurement.gestalt_key
+            row["certified_gestalt_key"] = gestalt_key.to_payload()
+            row["certified_mesh_evidence"] = (
+                build_certified_mesh_gestalt_evidence(
+                    gestalt_key=gestalt_key,
+                    visual_hash=measurement.visual_hash,
+                    exact_mesh_payload_hash=(
+                        measurement.exact_mesh_payload_hash
+                    ),
+                    morphology=morphology,
+                )
+            )
+            render_binding = row.get("archive_render_evidence")
+            if isinstance(render_binding, dict):
+                render_binding["morphology_payload_hash"] = (
+                    certified_mesh_morphology_payload_hash(
+                        morphology
+                    )
+                )
+            row.update(deepcopy(morphology))
+            row["visible_stepped"] = bool(gestalt_key.visible_stepped)
+            if downstream_index < len(downstream_rows):
+                downstream_row = downstream_rows[downstream_index]
+                if isinstance(downstream_row, dict):
+                    row["legal_projection"] = deepcopy(
+                        downstream_row.get("legal_projection") or {}
+                    )
+                    row["parking_hard_gate"] = deepcopy(
+                        downstream_row.get("parking_hard_gate") or {}
+                    )
+        selected_pair_comparisons = []
+        for right_index, right_key in enumerate(certified_gestalt_keys):
+            for left_index in range(right_index):
+                left_key = certified_gestalt_keys[left_index]
+                same_body = (
+                    certified_morphologies[left_index][
+                        "body_phenotype"
+                    ]
+                    == certified_morphologies[right_index][
+                        "body_phenotype"
+                    ]
+                )
+                same_roof = (
+                    certified_morphologies[left_index][
+                        "roof_archetype"
+                    ]
+                    == certified_morphologies[right_index][
+                        "roof_archetype"
+                    ]
+                )
+                required_distance = (
+                    0.22 if same_body or same_roof else 0.14
+                )
+                measured_distance = competition_gestalt_distance(
+                    left_key,
+                    right_key,
+                )
+                selected_pair_comparisons.append({
+                    "left_variant_id": rows[left_index]["variant_id"],
+                    "right_variant_id": rows[right_index]["variant_id"],
+                    "distance": measured_distance,
+                    "required_distance": required_distance,
+                    "same_body_phenotype": same_body,
+                    "same_roof_archetype": same_roof,
+                    "hard_pass": measured_distance >= required_distance,
+                })
+        selected_pair_certificate = {
+            "schema_version": (
+                "arr.maas.competition_gestalt_pair_certificate.v1"
+            ),
+            "measurement_authority": "certified_final_mesh",
+            "expected_pair_count": (
+                len(rows) * (len(rows) - 1) // 2
+            ),
+            "pair_count": len(selected_pair_comparisons),
+            "hard_pass": all(
+                pair["hard_pass"]
+                for pair in selected_pair_comparisons
+            ),
+            "pairs": selected_pair_comparisons,
+        }
         program_results.append({
             "program": building_type,
             "slug": slug,
@@ -2136,6 +3516,7 @@ def run_book_program_portfolios(
                 "max_pyramidal_like_count": pyramidal_cap,
             },
             "downstream_hard_gate": downstream_hard_gate,
+            "selected_pair_certificate": selected_pair_certificate,
             "counts": counts,
             "failures": failures,
             "missing_vlm_required_roof_archetypes": missing_required_roofs,
@@ -2176,6 +3557,11 @@ def run_book_program_portfolios(
         "legal_parking_checked": downstream_status != "not_run",
         "visual_duplicate_metric": "pose-invariant top/front/side silhouette distance",
         "summary_png": str(summary_board),
+        "phase_durations_seconds": {
+            phase: max(float(duration), 1e-9)
+            for phase, duration in phase_durations_seconds.items()
+        },
+        "paid_provider_budget": paid_provider_budget_snapshot(),
     }
     review_fingerprint_payload = [
         {
@@ -2289,6 +3675,11 @@ def run_book_program_portfolios(
                 "status": "not_run_for_current_fingerprint",
                 "stale_review_ignored": True,
             }
+    if diagnostic_target is not None:
+        apply_diagnostic_summary_policy(
+            result,
+            target=int(diagnostic_target),
+        )
     (output_dir / "maas-book-programs-summary.json").write_text(
         json.dumps(result, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
@@ -2296,4 +3687,111 @@ def run_book_program_portfolios(
     return result
 
 
-__all__ = ["PROGRAMS", "run_book_program_portfolios"]
+def diagnostic_generation_budget(
+    target: int | None,
+) -> dict[str, Any] | None:
+    """Return a bounded diagnostic search without changing production defaults."""
+
+    if target is None:
+        return None
+    resolved = int(target)
+    if resolved not in DIAGNOSTIC_TARGET_OPTIONS:
+        raise ValueError("diagnostic target must be one of 1, 2, 3, or 20")
+    budget_scale_raw = os.getenv("MAAS_DIAGNOSTIC_BUDGET_SCALE", "1")
+    try:
+        budget_scale = max(1, int(budget_scale_raw))
+    except (TypeError, ValueError):
+        budget_scale = 1
+    if resolved == 20:
+        return {
+            "scope_labels": tuple(label for label, _fraction in BASE_VOLUME_FRACTIONS),
+            "parent_variant_indices": (0, 1),
+            "book_probe_count": 1,
+            "evaluation_cap": resolved * 12 * budget_scale,
+            "candidate_cap": resolved * 4 * budget_scale,
+            "replenishment_cycle_cap": 2,
+        }
+    return {
+        "scope_labels": tuple(
+            label for label, _fraction in BASE_VOLUME_FRACTIONS[:resolved]
+        ),
+        "parent_variant_indices": (0,),
+        "book_probe_count": 1,
+        "evaluation_cap": resolved * 12,
+        "candidate_cap": resolved * 4,
+        "replenishment_cycle_cap": 1,
+    }
+
+
+def persist_diagnostic_generation_progress(
+    output_dir: Path,
+    *,
+    program: str,
+    target: int,
+    counters: dict[str, int],
+    phase: str = "candidate_generation",
+) -> Path:
+    return update_run_progress(
+        output_dir,
+        phase=str(phase),
+        program=str(program),
+        diagnostic_target=int(target),
+        evaluated_count=int(counters.get("evaluated_count") or 0),
+        compiled_count=int(counters.get("compiled_count") or 0),
+        program_passed_count=int(
+            counters.get("program_passed_count") or 0
+        ),
+        candidate_cap=int(target) * 4,
+    )
+
+
+def apply_diagnostic_summary_policy(
+    summary: dict[str, Any],
+    *,
+    target: int,
+) -> dict[str, Any]:
+    """Suppress every portfolio-completion claim for a bounded probe."""
+
+    resolved_target = int(target)
+    if resolved_target not in DIAGNOSTIC_TARGET_OPTIONS:
+        raise ValueError("diagnostic target must be one of 1, 2, 3, or 20")
+    summary.update({
+        "diagnostic_only": True,
+        "diagnostic_target": resolved_target,
+        "status": "diagnostic_only",
+        "final_pass": False,
+        "portfolio_complete": False,
+    })
+    for program in summary.get("programs") or ():
+        if not isinstance(program, dict):
+            continue
+        program.update({
+            "diagnostic_only": True,
+            "diagnostic_target": resolved_target,
+            "status": "diagnostic_only",
+            "final_pass": False,
+            "portfolio_complete": False,
+        })
+        completion = program.get("portfolio_completion")
+        if not isinstance(completion, dict):
+            completion = {}
+            program["portfolio_completion"] = completion
+        completion["hard_pass"] = False
+        failures = [
+            str(value)
+            for value in completion.get("failures") or ()
+        ]
+        if "diagnostic_only_not_portfolio_acceptance" not in failures:
+            failures.append("diagnostic_only_not_portfolio_acceptance")
+        completion["failures"] = failures
+        completion["diagnostic_only"] = True
+    return summary
+
+
+__all__ = [
+    "PROGRAMS",
+    "apply_diagnostic_summary_policy",
+    "diagnostic_generation_budget",
+    "persist_diagnostic_generation_progress",
+    "run_book_program_portfolios",
+]

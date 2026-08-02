@@ -1,5 +1,29 @@
 # agents
 
+그리고 프론트엔드에보면 combination 30 
+하고 varation field 노드는 참조하지않는 데 이것들도 다  풍부하게 해야 결과도 다양하게 나오는거아님?
+지금 book operative 만한거같은데 
+
+
+http://127.0.0.1:5175/design/language
+그리고 여기보면 뭐 굳이 업어도되는 노느나 이용안하는 노드많아서 
+길게 너무 형식이 많아지는데 
+이런거 MEMORY GEOMETRY
+01
+
+01
+book:aggregation:reflect+pack:skew
+MEMORY RENDER
+01
+
+01
+neighborhood
+MEMORY OUTCOME
+
+
+
+
+
 This is the global Django A2A/worker-agent app. It is required alongside the
 MAAS domain-agent folder, but it owns a different layer.
 

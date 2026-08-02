@@ -28,6 +28,7 @@ def resolve_candidate_parking_requirement(
     facility_area_m2: float | None,
     options: dict[str, Any] | None = None,
     rules: dict[str, Any] | None = None,
+    rules_provenance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Resolve required parking count for a candidate from Graph DB rules.
 
@@ -54,11 +55,16 @@ def resolve_candidate_parking_requirement(
     if metric_value is None:
         metric_value = facility_area_m2
 
+    resolved_rules_provenance = dict(rules_provenance or {})
     if rules is None:
         loaded = load_parking_requirement_rules(options=opts)
         if loaded.get("status") != "loaded":
             return _unresolved(loaded.get("status") or "graph_unavailable", loaded.get("reason") or "Parking law graph is unavailable.")
         rules = loaded["rules"]
+        resolved_rules_provenance = {
+            "source": loaded.get("source"),
+            "graph_status": loaded.get("graph_status"),
+        }
 
     rule = _select_rule(rules, pnu, rule_id)
 
@@ -89,6 +95,14 @@ def resolve_candidate_parking_requirement(
         "formula_detail": calc.get("formula_detail"),
         "unit_schedule": calc.get("unit_schedule"),
         "accessible": accessible,
+        "rule_repository_source": str(
+            resolved_rules_provenance.get("source")
+            or "provided_rules"
+        ),
+        "graph_status": str(
+            resolved_rules_provenance.get("graph_status")
+            or "not_requested"
+        ),
         "source": {
             "rule_kind": "local_override" if rule.get("base_rule_id") else "national",
             "source_appendix": rule.get("source_appendix"),
@@ -210,7 +224,12 @@ def load_parking_requirement_rules(*, options: dict[str, Any] | None = None) -> 
     try:
         driver = GraphDatabase.driver(uri, auth=(user, password), connection_timeout=2.0)
         with driver.session() as session:
-            return {"status": "loaded", "rules": _load_rules(session)}
+            return {
+                "status": "loaded",
+                "rules": _load_rules(session),
+                "source": "neo4j",
+                "graph_status": "available",
+            }
     except Exception as exc:
         fallback = _load_structured_seed_rules()
         if fallback:

@@ -23,6 +23,7 @@ from design.maas.floor_viability import (
 from design.maas.program_massing.profiles import resolve_program_profile
 
 from .downstream_hard_gate import LegalGenerationContext, generation_site_at_height
+from .legal_floor_field import materialize_legal_floor_field
 
 
 SCHEMA_VERSION = "arr.maas.floor_capacity_plan.v1"
@@ -37,6 +38,7 @@ def derive_program_floor_capacity_plan(
     brief_height_cap_m: float | None = None,
     dimensional_context: Mapping[str, Any] | None = None,
     legacy_floor_hint: int | None = None,
+    pnu: str = "",
 ) -> dict[str, Any]:
     """Derive occupiable floors and per-floor GFA targets from the live law field."""
 
@@ -46,6 +48,11 @@ def derive_program_floor_capacity_plan(
     profile_min = max(1, int(raw_range[0]))
     profile_max = max(profile_min, int(raw_range[-1]))
     envelope = context.envelope
+    legal_floor_field = materialize_legal_floor_field(
+        context,
+        site_local_utm=site_local_utm,
+        pnu=pnu,
+    )
     typical_floor_height = max(0.1, float(envelope.floor_height))
     legal_height_cap = max(0.0, float(envelope.height_limit))
     if brief_height_cap_m is not None:
@@ -85,8 +92,15 @@ def derive_program_floor_capacity_plan(
         planning_mode = "clear_span"
     else:
         legal_max = int(legal_height_cap / typical_floor_height)
-        allowed_max = min(profile_max, legal_max)
-        if allowed_max < profile_min:
+        # A program profile's upper floor range is a design/retrieval hint,
+        # not legal or capacity authority.  Capping the measured legal stack
+        # here made neighborhood_living's historical [2, 8] range silently
+        # declare an eight-storey "feasible maximum" even when live height,
+        # floor sections and FAR required more floors.  Ordinary occupiable
+        # floors must therefore enumerate the complete lawful height field.
+        # Explicit clear-span dimensional programs remain handled above.
+        allowed_max = legal_max
+        if allowed_max < 1:
             return _infeasible_plan(
                 program_id=program_id,
                 planning_mode="occupiable_floors",
@@ -94,9 +108,9 @@ def derive_program_floor_capacity_plan(
                 legal_height_cap=legal_height_cap,
                 profile_range=(profile_min, profile_max),
                 legacy_floor_hint=legacy_floor_hint,
-                reasons=("legal_height_below_program_minimum_floors",),
+                reasons=("legal_height_below_one_occupiable_floor",),
             )
-        allowed_range = (profile_min, allowed_max)
+        allowed_range = (1, allowed_max)
         floor_tops = tuple(
             typical_floor_height * floor_number
             for floor_number in range(1, allowed_max + 1)
@@ -187,8 +201,8 @@ def derive_program_floor_capacity_plan(
         "schema_version": SCHEMA_VERSION,
         "status": "materialized" if reachable else "target_unreachable",
         "derivation": (
-            "program_floor_range_x_legal_height_x_live_floor_sections_"
-            "capped_by_bcr_far"
+            "pnu_legal_height_x_live_floor_sections_capped_by_bcr_far_"
+            "with_program_range_as_advisory"
         ),
         "program_id": program_id,
         "building_type": str(building_type or ""),
@@ -196,6 +210,7 @@ def derive_program_floor_capacity_plan(
         "typical_floor_height_m": _round(typical_floor_height),
         "legal_height_cap_m": _round(legal_height_cap),
         "program_floor_range": [profile_min, profile_max],
+        "ordinary_program_floor_range_is_authority": False,
         "allowed_floor_range": list(allowed_range),
         "selected_floor_count": selected_count,
         "measured_usable_floor_count": len(sections),
@@ -238,6 +253,10 @@ def derive_program_floor_capacity_plan(
             int(legacy_floor_hint) if legacy_floor_hint is not None else None
         ),
         "legacy_hint_is_authority": False,
+        "legal_floor_field_hash": str(
+            legal_floor_field.get("legal_floor_field_hash") or ""
+        ),
+        "legal_floor_field": legal_floor_field,
         "clear_span_dimensional_context": dimensional if clear_span_mode else {},
     }
     payload["floor_capacity_plan_hash"] = _plan_hash(payload)

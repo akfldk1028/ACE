@@ -14,7 +14,7 @@ from typing import Any
 from shapely.geometry import MultiPolygon, Polygon
 
 
-POLYGON_QUALITY_SCHEMA_VERSION = "arr.maas.polygon_quality.v2_structured_outline"
+POLYGON_QUALITY_SCHEMA_VERSION = "arr.maas.polygon_quality.v3_low_frequency_concavity"
 SITE_CONTAINMENT_SCHEMA_VERSION = "arr.maas.site_containment.v1"
 
 
@@ -44,6 +44,23 @@ def _minimum_rotated_width(polygon: Polygon) -> float:
     rectangle = polygon.minimum_rotated_rectangle
     edges = _edge_lengths(rectangle)
     return min(edges) if edges else 0.0
+
+
+def _exterior_reflex_vertex_count(polygon: Polygon) -> int:
+    coordinates = list(polygon.exterior.coords)
+    if len(coordinates) < 4:
+        return 0
+    ring = coordinates[:-1]
+    signed_turns = []
+    for index, current in enumerate(ring):
+        previous = ring[index - 1]
+        following = ring[(index + 1) % len(ring)]
+        signed_turns.append(
+            (current[0] - previous[0]) * (following[1] - current[1])
+            - (current[1] - previous[1]) * (following[0] - current[0])
+        )
+    orientation = 1.0 if polygon.exterior.is_ccw else -1.0
+    return sum(1 for turn in signed_turns if turn * orientation < -1e-9)
 
 
 def repair_source_polygon(geometry, *, minimum_area: float = 0.0) -> Polygon | None:
@@ -93,6 +110,7 @@ def evaluate_polygon_quality(polygon: Polygon | None, *, linear_field: bool = Fa
     # mass look artificially fragmented.
     compactness = float(polygon.exterior.length) ** 2 / max(4.0 * pi * area, 1e-9)
     vertex_count = max(0, len(polygon.exterior.coords) - 1)
+    reflex_vertex_count = _exterior_reflex_vertex_count(polygon)
     convex_hull = polygon.convex_hull
     hull_area = max(float(convex_hull.area), 1e-9)
     hull_perimeter = max(float(convex_hull.exterior.length), 1e-9)
@@ -115,12 +133,21 @@ def evaluate_polygon_quality(polygon: Polygon | None, *, linear_field: bool = Fa
     # interlock debris repeatedly leaves and re-enters it.  Width, short-edge,
     # component and fragment gates remain independent, so this exception does
     # not admit hairlines or disconnected LEGO pieces.
-    structured_outline = (
+    broad_hull_outline = (
         perimeter_excess_ratio <= 1.45
         and vertex_count <= 48
         and short_edge_count <= 2
         and width_ratio >= 0.055
     )
+    low_frequency_concavity = (
+        perimeter_excess_ratio <= 1.65
+        and solidity >= 0.54
+        and vertex_count <= 24
+        and reflex_vertex_count <= 2
+        and short_edge_count <= 2
+        and width_ratio >= 0.055
+    )
+    structured_outline = broad_hull_outline or low_frequency_concavity
     tortuosity_limit = 7.5 if linear_field and vertex_count <= 24 and short_edge_count <= 2 else 2.65
     if compactness > tortuosity_limit and not structured_outline:
         failure_reasons.append("over_tortuous_mass_outline")
@@ -134,6 +161,7 @@ def evaluate_polygon_quality(polygon: Polygon | None, *, linear_field: bool = Fa
         "valid": bool(polygon.is_valid),
         "area_m2": round(area, 3),
         "vertex_count": vertex_count,
+        "reflex_vertex_count": reflex_vertex_count,
         "hole_count": len(polygon.interiors),
         "minimum_edge_ratio": round(min_edge_ratio, 5),
         "short_edge_count": short_edge_count,
@@ -142,6 +170,8 @@ def evaluate_polygon_quality(polygon: Polygon | None, *, linear_field: bool = Fa
         "solidity": round(solidity, 4),
         "perimeter_excess_ratio": round(perimeter_excess_ratio, 4),
         "structured_outline": structured_outline,
+        "broad_hull_outline": broad_hull_outline,
+        "low_frequency_concavity": low_frequency_concavity,
         "linear_field": bool(linear_field),
         "tortuosity_limit": tortuosity_limit,
     }

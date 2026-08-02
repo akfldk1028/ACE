@@ -1,6 +1,33 @@
 # MAAS Legal Envelope Handoff
 
-Updated: 2026-06-25
+Updated: 2026-07-31
+
+## 2026-07-31 MASS form-bank update: non-rectangular profiled prism families
+
+- `geometry_language/base_seeds.py` now has 4 additional `PROFILED_PRISM_FAMILIES`
+  (elliptic/stadium/concave-L/hexagon) in addition to existing triangular,
+  trapezoidal, chamfered, kite and faceted variants.
+- `synthesize_architectural_programs` default `base_seeds` now includes
+  `profiled_prism`, so non-rectangular base-seed candidates are not silently
+  filtered out when callers omit base seed lists.
+- `_base_seed_for_operator` relational pairing for `cross_mass / split_wing / grid_mass / bent_bar`
+  now keeps `profiled_prism` in the rotation cycle and includes `block` as an
+  additional chassis option for relational variation.
+- No law/contract edits were made; this is a pure form-bank diversity move.
+- Next: run a bounded 20-candidate render batch and select by silhouette family
+  distance to verify the added families are not collapsing back into one stepped/stacked family.
+
+## 2026-07-31 MASS form-bank hardening: `stadium` polygon repair
+
+- Found issue: `profiled_prism` `variation_index=6` (`stadium`) built an
+  invalid `extruded_polygon` and compiled as `empty_operator_result`.
+- Fix: replaced `stadium` points with a simple convex capsule-like octagon
+  (`0.1/1.5/0.2/1.0/1.2` envelope) that remains non-rectangular but reliably
+  compiles through `manifold3d.CrossSection.extrude`.
+- Verification:
+  - `python -m py_compile ARR/backend/design/maas/geometry_language/base_seeds.py`
+  - `compile_geometry_program` over all `PROFILED_PRISM_FAMILIES` now returns
+    `compiled` for indices 0..8 (including `stadium`).
 
 ## 2026-06-25 MAAS Paper-Style Diversity / Section Profile Verification
 

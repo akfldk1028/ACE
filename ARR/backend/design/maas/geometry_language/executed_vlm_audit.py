@@ -10,6 +10,9 @@ from typing import Any, Iterable
 
 from design.maas.program_massing.profiles import program_reference_contract
 from design.maas.preference.reference_paths import reference_image_preview_url
+from design.maas.design_memory.reference_events import (
+    build_reference_review_events,
+)
 
 from .executed_archive import archived_compilation, materialize_executed_mass_preview
 from .outcome_graph import GeometryOutcomeGraph
@@ -150,6 +153,17 @@ def _persist_audits(
             preview_path=str(item.get("preview_path") or ""),
             audit=item["audit"],
         )
+        image_inputs = item["audit"].get("vlm_image_inputs")
+        image_inputs = image_inputs if isinstance(image_inputs, dict) else {}
+        retrieved = image_inputs.get("retrieved_references")
+        if not isinstance(retrieved, list):
+            retrieved = list(image_inputs.get("references") or ())
+        graph.observe_design_memory_events(build_reference_review_events(
+            retrieved_references=retrieved,
+            vlm_result=item["audit"],
+            program_hash=str(item.get("program_hash") or ""),
+            geometry_hash=str(item.get("geometry_hash") or ""),
+        ))
     graph_payload = graph.save()
     graph_summary = summary.get("geometry_mutation_outcome_graph")
     if isinstance(graph_summary, dict):

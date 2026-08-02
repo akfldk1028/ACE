@@ -230,7 +230,12 @@ class MaasExtendedCsgContractTest(SimpleTestCase):
         enriched = enrich_mass_execution_passport(
             initial,
             downstream_evidence={
-                "law": {"evaluated": True, "hard_pass": True, "far_pct": 199.5},
+                "law": {
+                    "evaluated": True,
+                    "hard_pass": True,
+                    "status": "pass",
+                    "far_pct": 199.5,
+                },
                 "parking": {"evaluated": True, "hard_pass": False, "required_spaces": 12, "provided_spaces": 9},
             },
             vlm_result={

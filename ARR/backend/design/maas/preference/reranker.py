@@ -100,4 +100,3 @@ def _repair_integrity(feature: dict[str, Any]) -> float:
 
 
 __all__ = ["RERANK_SCHEMA_VERSION", "rerank_candidates"]
-

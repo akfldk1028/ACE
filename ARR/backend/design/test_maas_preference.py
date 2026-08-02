@@ -2,6 +2,7 @@
 
 import json
 import tempfile
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -31,7 +32,10 @@ from design.maas.preference.loop import (
 )
 from design.maas.program_massing.language_quality import assess_language_geometry
 from design.maas.program_massing.scoring import attach_program_massing_evidence
-from design.maas.program_massing.search import _feature as _program_feature
+from design.maas.program_massing.search import (
+    _feature as _program_feature,
+    materialize_source_feature_surfaces,
+)
 from design.maas.program_massing.vlm_a2a import _sequence_from_record, _sequence_record, _vlm_cache_key
 from design.maas.selection.preference_guards import (
     PreferenceGuardCallbacks,
@@ -140,6 +144,65 @@ class MaasPreferenceDistillationTest(TestCase):
 
             self.assertTrue(output.exists())
             self.assertGreater(output.stat().st_size, 0)
+
+    def test_surface_materialization_preserves_certified_floorwise_projection(self):
+        feature = self._profiled_preview_feature()
+        certified_surfaces = list(feature["properties"]["source_surfaces"])
+        feature["properties"]["floorwise_visual_projection"] = {
+            "schema_version": "arr.maas.floorwise_visual_projection.v1",
+            "status": "certified",
+            "hard_pass": True,
+            "visual_hash": "certified-visual",
+            "projected_surface_count": len(certified_surfaces),
+        }
+        source = compile_sequence_to_source_mass(
+            box(0, 0, 30, 18),
+            VerbSequence(
+                "source",
+                "source",
+                (VerbCall("base", {}), VerbCall("bar", {"axis": "x", "factor": 0.62})),
+            ),
+        )
+
+        materialize_source_feature_surfaces(feature, source, height=6.0)
+
+        self.assertEqual(
+            feature["properties"]["source_surfaces"],
+            certified_surfaces,
+        )
+
+    def test_surface_materialization_propagates_source_projection_certificate(self):
+        feature = self._profiled_preview_feature()
+        feature["properties"].pop("floorwise_visual_projection", None)
+        source = compile_sequence_to_source_mass(
+            box(0, 0, 30, 18),
+            VerbSequence(
+                "source",
+                "source",
+                (VerbCall("base", {}), VerbCall("bar", {"axis": "x", "factor": 0.62})),
+            ),
+        )
+        certificate = {
+            "schema_version": "arr.maas.floorwise_visual_projection.v1",
+            "status": "certified",
+            "hard_pass": True,
+            "visual_hash": "source-bound",
+            "projected_surface_count": len(source.surfaces),
+        }
+        source = replace(
+            source,
+            metadata={
+                **source.metadata,
+                "floorwise_visual_projection": certificate,
+            },
+        )
+
+        materialize_source_feature_surfaces(feature, source, height=6.0)
+
+        self.assertEqual(
+            feature["properties"]["floorwise_visual_projection"],
+            certificate,
+        )
 
     def test_profiled_program_and_recursive_surfaces_share_opaque_preview_material(self):
         gable_roof = [[0.0, 0.0, 0.5], [5.0, 0.0, 1.0], [5.0, 8.0, 1.0], [0.0, 8.0, 0.5]]

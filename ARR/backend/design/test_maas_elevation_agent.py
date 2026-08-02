@@ -52,7 +52,11 @@ try:
     )
 except ImportError:
     generate_multi_view_elevation_proposal = None
+from design.maas.agents.elevation_agent.multi_view_contract import proposal_identity
 from design.maas.geometry_language import GeometryProgramBuilder, compile_geometry_program
+from design.maas.geometry_language.elevation_handoff import (
+    resolve_elevation_handoff_identity,
+)
 from design.maas.single_execution import execute_single_mass
 try:
     from design.maas.elevation_proposal_batch import (
@@ -182,6 +186,301 @@ class _RecordingMultiViewCritic:
 
 
 class MaasElevationAgentTest(SimpleTestCase):
+    def test_elevation_handoff_identity_requires_archive_stop_chain_continuity(self):
+        certificate = {
+            "status": "certified",
+            "hard_pass": True,
+            "program_hash": "a" * 64,
+            "final_geometry_hash": "b" * 64,
+            "visual_hash": "c" * 64,
+            "legal_floor_field_hash": "e" * 64,
+            "candidate_actual_gfa_stop_hash": "f" * 64,
+        }
+        passport = {
+            "program_hash": "a" * 64,
+            "geometry_hash": "c" * 64,
+            "final_legal_geometry_hash": "b" * 64,
+            "visual_hash": "c" * 64,
+            "floor_capacity_plan_hash": "d" * 64,
+            "legal_floor_field_hash": "e" * 64,
+            "candidate_actual_gfa_stop_hash": "f" * 64,
+            "candidate_actual_gfa_stop_certificate": certificate,
+        }
+        artifact = {
+            "identity": {
+                "programHash": "a" * 64,
+                "geometryHash": "c" * 64,
+                "finalLegalGeometryHash": "b" * 64,
+            },
+            "projectedVisualGeometryHash": "c" * 64,
+            "finalLegalGeometryHash": "b" * 64,
+            "floorCapacityPlanHash": "d" * 64,
+            "legalFloorFieldHash": "e" * 64,
+            "candidateActualGfaStopHash": "f" * 64,
+            "candidateActualGfaStopCertificate": certificate,
+        }
+        row = {
+            "program_hash": "a" * 64,
+            "geometry_hash": "c" * 64,
+            "final_legal_geometry_hash": "b" * 64,
+            "visual_hash": "c" * 64,
+            "floor_capacity_plan_hash": "d" * 64,
+            "legal_floor_field_hash": "e" * 64,
+            "candidate_actual_gfa_stop_hash": "f" * 64,
+            "candidate_actual_gfa_stop_certificate": certificate,
+        }
+
+        identity, approved = resolve_elevation_handoff_identity(
+            program_hash="a" * 64,
+            geometry_hash="c" * 64,
+            artifact=artifact,
+            passport=passport,
+            row=row,
+            manifest={"legal_floor_field_hash": "e" * 64},
+        )
+        self.assertTrue(approved)
+        self.assertEqual(identity["final_geometry_hash"], "b" * 64)
+        self.assertEqual(identity["visual_hash"], "c" * 64)
+        self.assertEqual(
+            identity["candidate_actual_gfa_stop_hash"],
+            "f" * 64,
+        )
+
+        stale_artifact = {
+            **artifact,
+            "legalFloorFieldHash": "0" * 64,
+        }
+        _identity, approved = resolve_elevation_handoff_identity(
+            program_hash="a" * 64,
+            geometry_hash="c" * 64,
+            artifact=stale_artifact,
+            passport=passport,
+            row=row,
+            manifest={"legal_floor_field_hash": "e" * 64},
+        )
+        self.assertFalse(approved)
+
+    @staticmethod
+    def _certified_floor_identity(compilation, *, floors=1):
+        legal_floor_field_hash = "c" * 64
+        candidate_actual_gfa_stop_hash = "d" * 64
+        final_geometry_hash = "e" * 64
+        visual_hash = str(compilation.geometry_hash)
+        program_hash = compilation.program.program_hash()
+        certificate = {
+            "schema_version": "arr.maas.candidate_actual_gfa_stop.v1",
+            "status": "certified",
+            "hard_pass": True,
+            "candidate_actual_gfa_stop_hash": (
+                candidate_actual_gfa_stop_hash
+            ),
+            "legal_floor_field_hash": legal_floor_field_hash,
+            "program_hash": program_hash,
+            "final_geometry_hash": final_geometry_hash,
+            "visual_hash": visual_hash,
+            "selected_floor_count": floors,
+            "terminal_floor_number": floors,
+            "geometry_was_mutated": False,
+            "identity": {
+                "program_hash": program_hash,
+                "final_geometry_hash": final_geometry_hash,
+                "visual_hash": visual_hash,
+                "pnu": "1168011800104170004",
+            },
+        }
+        contract = {
+            "schema_version": "arr.maas.shared_floor_contract.v1",
+            "floor_capacity_plan_hash": "b" * 64,
+            "legal_floor_field_hash": legal_floor_field_hash,
+            "candidate_actual_gfa_stop_hash": (
+                candidate_actual_gfa_stop_hash
+            ),
+            "candidate_actual_gfa_stop_hard_pass": True,
+            "hard_pass": True,
+            "plates": [
+                {
+                    "hard_pass": True,
+                    "bottom_height_m": float(index * 3),
+                    "top_height_m": float((index + 1) * 3),
+                }
+                for index in range(floors)
+            ],
+        }
+        return {
+            "shared_floor_contract": contract,
+            "floor_capacity_plan_hash": contract[
+                "floor_capacity_plan_hash"
+            ],
+            "final_legal_geometry_hash": final_geometry_hash,
+            "visual_hash": visual_hash,
+            "legal_floor_field_hash": legal_floor_field_hash,
+            "candidate_actual_gfa_stop_hash": (
+                candidate_actual_gfa_stop_hash
+            ),
+            "candidate_actual_gfa_stop_certificate": certificate,
+        }
+
+    def test_bundle_preserves_certified_floor_stop_identity_and_selected_n_guides(self):
+        compilation = compile_geometry_program(self._program())
+        certified = self._certified_floor_identity(compilation, floors=3)
+
+        with TemporaryDirectory() as directory:
+            bundle = generate_elevation_bundle(
+                compilation,
+                Path(directory) / "elevation",
+                execution_id="certified-three-floor",
+                **certified,
+            )
+
+        expected_identity = {
+            "execution_id": "certified-three-floor",
+            "program_hash": compilation.program.program_hash(),
+            "geometry_hash": compilation.geometry_hash,
+            "final_geometry_hash": "e" * 64,
+            "final_legal_geometry_hash": "e" * 64,
+            "visual_hash": compilation.geometry_hash,
+            "floor_capacity_plan_hash": "b" * 64,
+            "legal_floor_field_hash": "c" * 64,
+            "candidate_actual_gfa_stop_hash": "d" * 64,
+        }
+        self.assertEqual(bundle["identity"], expected_identity)
+        self.assertEqual(
+            bundle["condition_pack"]["identity"],
+            expected_identity,
+        )
+        self.assertEqual(
+            bundle["condition_pack"]["floor_guides_m"],
+            [0.0, 3.0, 6.0, 9.0],
+        )
+        self.assertEqual(
+            bundle["condition_pack"][
+                "candidate_actual_gfa_stop_certificate"
+            ],
+            certified["candidate_actual_gfa_stop_certificate"],
+        )
+        self.assertEqual(len(bundle["views"]), 6)
+        self.assertTrue(all(
+            row["identity"] == expected_identity
+            for row in bundle["views"]
+        ))
+
+    def test_bundle_rejects_stale_candidate_stop_hash(self):
+        compilation = compile_geometry_program(self._program())
+        certified = self._certified_floor_identity(compilation)
+        certified["candidate_actual_gfa_stop_hash"] = "f" * 64
+
+        with TemporaryDirectory() as directory, self.assertRaisesRegex(
+            ValueError,
+            "actual GFA stop identity mismatch",
+        ):
+            generate_elevation_bundle(
+                compilation,
+                Path(directory) / "elevation",
+                execution_id="stale-stop",
+                **certified,
+            )
+
+    def test_bundle_rejects_floor_guide_count_not_matching_certified_n(self):
+        compilation = compile_geometry_program(self._program())
+        certified = self._certified_floor_identity(compilation, floors=3)
+        certified["candidate_actual_gfa_stop_certificate"][
+            "selected_floor_count"
+        ] = 2
+        certified["candidate_actual_gfa_stop_certificate"][
+            "terminal_floor_number"
+        ] = 2
+
+        with TemporaryDirectory() as directory, self.assertRaisesRegex(
+            ValueError,
+            "selected floor count mismatch",
+        ):
+            generate_elevation_bundle(
+                compilation,
+                Path(directory) / "elevation",
+                execution_id="stale-floor-guides",
+                **certified,
+            )
+
+    def test_bundle_rejects_stale_terminal_floor_number(self):
+        compilation = compile_geometry_program(self._program())
+        certified = self._certified_floor_identity(compilation, floors=3)
+        certified["candidate_actual_gfa_stop_certificate"][
+            "terminal_floor_number"
+        ] = 2
+
+        with TemporaryDirectory() as directory, self.assertRaisesRegex(
+            ValueError,
+            "terminal floor number mismatch",
+        ):
+            generate_elevation_bundle(
+                compilation,
+                Path(directory) / "elevation",
+                execution_id="stale-terminal-floor-number",
+                **certified,
+            )
+
+    def test_multi_view_identity_requires_floor_capacity_plan_hash(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            "complete execution identity",
+        ):
+            proposal_identity({
+                "execution_id": "missing-plan",
+                "program_hash": "program",
+                "geometry_hash": "geometry",
+            })
+
+    def test_multi_view_identity_rejects_conflicting_floor_capacity_plan_hashes(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            "floor capacity plan identity mismatch",
+        ):
+            proposal_identity({
+                "execution_id": "conflicting-plan",
+                "program_hash": "program",
+                "geometry_hash": "geometry",
+                "floor_capacity_plan_hash": "bundle-plan",
+                "condition_pack": {
+                    "floor_capacity_plan_hash": "condition-plan",
+                },
+            })
+
+    def test_multi_view_identity_preserves_legal_field_and_actual_stop_hashes(self):
+        compilation = compile_geometry_program(self._program())
+        certified = self._certified_floor_identity(compilation)
+        with TemporaryDirectory() as directory:
+            bundle = generate_elevation_bundle(
+                compilation,
+                Path(directory) / "elevation",
+                execution_id="multi-view-certified-identity",
+                **certified,
+            )
+
+        self.assertEqual(
+            proposal_identity(bundle),
+            bundle["identity"],
+        )
+
+    def test_multi_view_identity_rejects_stale_legal_floor_field_hash(self):
+        compilation = compile_geometry_program(self._program())
+        certified = self._certified_floor_identity(compilation)
+        with TemporaryDirectory() as directory:
+            bundle = generate_elevation_bundle(
+                compilation,
+                Path(directory) / "elevation",
+                execution_id="multi-view-stale-legal-field",
+                **certified,
+            )
+        bundle["condition_pack"]["identity"][
+            "legal_floor_field_hash"
+        ] = "f" * 64
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "legal floor field identity mismatch",
+        ):
+            proposal_identity(bundle)
+
     @staticmethod
     def _program():
         builder = GeometryProgramBuilder("elevation_box")
@@ -200,6 +499,47 @@ class MaasElevationAgentTest(SimpleTestCase):
         )
         return builder.build(mass)
 
+    @classmethod
+    def _floor_contract(cls):
+        compilation = compile_geometry_program(cls._program())
+        certified = cls._certified_floor_identity(compilation)
+        return {
+            **certified["shared_floor_contract"],
+            "final_legal_geometry_hash": certified[
+                "final_legal_geometry_hash"
+            ],
+            "visual_hash": certified["visual_hash"],
+            "candidate_actual_gfa_stop_certificate": certified[
+                "candidate_actual_gfa_stop_certificate"
+            ],
+        }
+
+    @classmethod
+    def _floor_downstream(cls):
+        result = {
+            stage_id: {
+                "status": "passed",
+                "evaluated": True,
+                "hard_pass": True,
+                "selected": stage_id == "selector",
+            }
+            for stage_id in (
+                "site",
+                "capacity",
+                "law",
+                "parking",
+                "program_fit",
+                "selector",
+            )
+        }
+        contract = cls._floor_contract()
+        result["capacity"]["floor_capacity_plan_hash"] = (
+            contract["floor_capacity_plan_hash"]
+        )
+        result["capacity"]["shared_floor_contract"] = contract
+        result["shared_floor_contract"] = contract
+        return result
+
     def test_compiled_mesh_generates_six_hash_bound_elevation_views(self):
         compilation = compile_geometry_program(self._program())
 
@@ -208,6 +548,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 compilation,
                 Path(directory),
                 execution_id="elevation-test",
+                **self._certified_floor_identity(compilation),
             )
             views = {row["view"]: row for row in bundle["views"]}
 
@@ -218,6 +559,16 @@ class MaasElevationAgentTest(SimpleTestCase):
             )
             self.assertEqual(bundle["program_hash"], compilation.program.program_hash())
             self.assertEqual(bundle["geometry_hash"], compilation.geometry_hash)
+            self.assertEqual(
+                bundle["final_legal_geometry_hash"],
+                "e" * 64,
+            )
+            self.assertEqual(
+                bundle["condition_pack"]["identity"][
+                    "final_legal_geometry_hash"
+                ],
+                "e" * 64,
+            )
             self.assertTrue(Path(bundle["manifest_path"]).is_file())
             self.assertTrue(Path(bundle["condition_pack_path"]).is_file())
             for row in views.values():
@@ -249,6 +600,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 compilation,
                 root / "elevation",
                 execution_id="multi-view-missing-left",
+                **self._certified_floor_identity(compilation),
             )
             artifacts = self._copy_facade_artifacts(
                 bundle,
@@ -274,6 +626,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 compilation,
                 root / "elevation",
                 execution_id="multi-view-outside-change",
+                **self._certified_floor_identity(compilation),
             )
             artifacts = self._copy_facade_artifacts(
                 bundle,
@@ -307,6 +660,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 compilation,
                 root / "elevation",
                 execution_id="multi-view-bright-material",
+                **self._certified_floor_identity(compilation),
             )
             artifacts = self._copy_facade_artifacts(
                 bundle,
@@ -341,6 +695,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 compilation,
                 root / "elevation",
                 execution_id="multi-view-initial-pass",
+                **self._certified_floor_identity(compilation),
             )
             adapter = _MultiViewImageAdapter(root / "provider")
             critic = _RecordingMultiViewCritic()
@@ -358,6 +713,15 @@ class MaasElevationAgentTest(SimpleTestCase):
         self.assertEqual(len(critic.calls), 1)
         self.assertEqual(proposal["paid_request_attempt_count"], 5)
         self.assertEqual(proposal["status"], "accepted")
+        self.assertEqual(
+            proposal["identity"]["floor_capacity_plan_hash"],
+            "b" * 64,
+        )
+        self.assertTrue(all(
+            row["identity"]["floor_capacity_plan_hash"]
+            == "b" * 64
+            for row in proposal["artifacts"].values()
+        ))
 
     def test_single_storey_multi_view_prompt_forbids_intermediate_floor_bands(self):
         self.assertIsNotNone(generate_multi_view_elevation_proposal)
@@ -371,6 +735,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 compilation,
                 root / "elevation",
                 execution_id="multi-view-single-storey-prompt",
+                **self._certified_floor_identity(compilation),
             )
             adapter = _MultiViewImageAdapter(root / "provider")
             generate_multi_view_elevation_proposal(
@@ -395,6 +760,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 compilation,
                 root / "elevation",
                 execution_id="multi-view-repair-right",
+                **self._certified_floor_identity(compilation),
             )
             adapter = _MultiViewImageAdapter(root / "provider")
             critic = _RecordingMultiViewCritic([
@@ -427,6 +793,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 compilation,
                 root / "elevation",
                 execution_id="multi-view-reuse",
+                **self._certified_floor_identity(compilation),
             )
             adapter = _MultiViewImageAdapter(root / "provider")
             critic = _RecordingMultiViewCritic()
@@ -460,6 +827,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 compilation,
                 root / "elevation",
                 execution_id="multi-view-pipeline-upgrade",
+                **self._certified_floor_identity(compilation),
             )
             adapter = _MultiViewImageAdapter(root / "provider")
             critic = _RecordingMultiViewCritic([
@@ -504,6 +872,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 self._program(),
                 output_root=root,
                 execution_id="multi-view-passport",
+                downstream_evidence=self._floor_downstream(),
             )
             graph_id = execution.passport["activation_graph"]["graph_id"]
             adapter = _MultiViewImageAdapter(root / "provider")
@@ -543,6 +912,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                     self._program(),
                     output_root=root,
                     execution_id="multi-view-http",
+                    downstream_evidence=self._floor_downstream(),
                 )
                 generate_execution_multi_view_elevation_proposal(
                     root,
@@ -601,6 +971,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                     self._program(),
                     output_root=root,
                     execution_id="multi-view-evidence-http",
+                    downstream_evidence=self._floor_downstream(),
                 )
                 generate_execution_multi_view_elevation_proposal(
                     root,
@@ -629,11 +1000,7 @@ class MaasElevationAgentTest(SimpleTestCase):
         views=("front", "right", "back", "left"),
     ):
         output_directory.mkdir(parents=True, exist_ok=True)
-        identity = {
-            "execution_id": bundle["execution_id"],
-            "program_hash": bundle["program_hash"],
-            "geometry_hash": bundle["geometry_hash"],
-        }
+        identity = dict(bundle["identity"])
         source_views = {
             row["view"]: row
             for row in bundle["views"]
@@ -665,6 +1032,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 self._program(),
                 output_root=directory,
                 execution_id="elevation-integrated",
+                downstream_evidence=self._floor_downstream(),
             )
 
             elevation_manifest = result.output_directory / "elevation" / "manifest.json"
@@ -693,6 +1061,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                     self._program(),
                     output_root=directory,
                     execution_id="elevation-http",
+                    downstream_evidence=self._floor_downstream(),
                 )
                 response = self.client.get(
                     "/design/maas/single-executions/elevation-http/elevation/front/",
@@ -757,6 +1126,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 compilation,
                 root / "elevation",
                 execution_id="elevation-proposal-test",
+                **self._certified_floor_identity(compilation),
             )
             adapter = _RecordingImageAdapter(root / "provider")
             strategy = select_facade_strategy(self._program(), compilation)
@@ -774,6 +1144,10 @@ class MaasElevationAgentTest(SimpleTestCase):
             self.assertEqual(identity["execution_id"], "elevation-proposal-test")
             self.assertEqual(identity["program_hash"], compilation.program.program_hash())
             self.assertEqual(identity["geometry_hash"], compilation.geometry_hash)
+            self.assertEqual(
+                identity["floor_capacity_plan_hash"],
+                "b" * 64,
+            )
             self.assertEqual(reference.uri, str(mass_preview.resolve()))
             self.assertEqual(
                 reference.metadata["identity"],
@@ -800,6 +1174,61 @@ class MaasElevationAgentTest(SimpleTestCase):
             )
             self.assertTrue(Path(proposal["artifact"]["path"]).is_file())
             self.assertTrue(Path(proposal["manifest_path"]).is_file())
+
+    def test_image_proposal_requires_floor_capacity_plan_hash(self):
+        compilation = compile_geometry_program(self._program())
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            mass_preview = root / "mass.png"
+            Image.new("RGB", (4, 4), "white").save(mass_preview)
+            bundle = generate_elevation_bundle(
+                compilation,
+                root / "elevation",
+                execution_id="missing-plan-image-proposal",
+                **self._certified_floor_identity(compilation),
+            )
+            bundle["floor_capacity_plan_hash"] = ""
+            bundle["identity"]["floor_capacity_plan_hash"] = ""
+            bundle["condition_pack"]["floor_capacity_plan_hash"] = ""
+            bundle["condition_pack"]["identity"][
+                "floor_capacity_plan_hash"
+            ] = ""
+
+            with self.assertRaisesRegex(
+                ValueError,
+                "complete execution identity",
+            ):
+                generate_elevation_image_proposal(
+                    bundle,
+                    mass_preview,
+                    adapter=_RecordingImageAdapter(root / "provider"),
+                    strategy=select_facade_strategy(self._program(), compilation),
+                )
+
+    def test_image_proposal_rejects_conflicting_floor_capacity_plan_hashes(self):
+        compilation = compile_geometry_program(self._program())
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            mass_preview = root / "mass.png"
+            Image.new("RGB", (4, 4), "white").save(mass_preview)
+            bundle = generate_elevation_bundle(
+                compilation,
+                root / "elevation",
+                execution_id="conflicting-plan-image-proposal",
+                **self._certified_floor_identity(compilation),
+            )
+            bundle["floor_capacity_plan_hash"] = "bundle-plan"
+
+            with self.assertRaisesRegex(
+                ValueError,
+                "floor capacity plan identity mismatch",
+            ):
+                generate_elevation_image_proposal(
+                    bundle,
+                    mass_preview,
+                    adapter=_RecordingImageAdapter(root / "provider"),
+                    strategy=select_facade_strategy(self._program(), compilation),
+                )
 
     def test_openai_adapter_records_non_fabricated_request_and_hash_evidence(self):
         png = (
@@ -1126,6 +1555,7 @@ class MaasElevationAgentTest(SimpleTestCase):
                 compilation,
                 root / "elevation",
                 execution_id="elevation-roof-review",
+                **self._certified_floor_identity(compilation),
             )
             adapter = _NeedsReviewImageAdapter(root / "provider")
 

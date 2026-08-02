@@ -12,7 +12,13 @@ import type {
   MaasLegalVariantsResult,
   SiteBoundaryResult,
 } from './types';
-import type { ExecutedMassManifest, MaasLanguageSystemManifest, OutcomeGraphSlice, SingleMassExecutionResponse } from './language-system-types';
+import type {
+  CreativePortfolioManifest,
+  ExecutedMassManifest,
+  MaasLanguageSystemManifest,
+  OutcomeGraphSlice,
+  SingleMassExecutionResponse,
+} from './language-system-types';
 
 const BASE = '/design';
 const AG_LIGHT_BASE = (((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.VITE_AG_LIGHT_URL)
@@ -141,6 +147,22 @@ export async function getExecutedMassManifest(
   const query = runId ? `?${new URLSearchParams({ run_id: runId })}` : '';
   const res = await fetch(`${BASE}/maas/executed-masses/${query}`, { signal });
   if (!res.ok) throw new Error('실제 실행 MASS 아카이브를 불러오지 못했습니다.');
+  return res.json();
+}
+
+export async function getCreativeMassPortfolio(
+  runId?: string,
+  signal?: AbortSignal,
+): Promise<CreativePortfolioManifest> {
+  const query = runId
+    ? `?${new URLSearchParams({ run_id: runId })}`
+    : '';
+  const res = await fetch(`${BASE}/maas/creative-portfolios/${query}`, {
+    signal,
+  });
+  if (!res.ok) {
+    throw new Error('Creative MASS portfolio fetch failed');
+  }
   return res.json();
 }
 

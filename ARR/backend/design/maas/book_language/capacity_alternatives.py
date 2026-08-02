@@ -8,10 +8,13 @@ to fit the same typed form language to the corresponding plan-area target.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
+from math import isfinite
 from typing import Any
 
 from .floor_capacity_plan import allocate_floor_targets
+from .legal_floor_field import validate_legal_floor_field
 
 
 CAPACITY_ALTERNATIVE_SCHEMA = "arr.maas.capacity_alternative.v1"
@@ -188,6 +191,9 @@ def build_capacity_alternative(
         "target_base_plan_coverage": round(target_plan_coverage, 4),
         "projection_mode": "typed_form_plan_fit",
         "hard_gates_remain_downstream": True,
+        "legal_floor_field_hash": str(
+            contract.get("legal_floor_field_hash") or ""
+        ),
     }
 
 
@@ -197,20 +203,186 @@ def capacity_contract_for_alternative(
 ) -> dict[str, Any]:
     """Return a projected copy consumable by the existing source bridge."""
 
-    projected = dict(base_contract or {})
+    projected = deepcopy(base_contract or {})
+    _apply_candidate_floor_prefix(
+        projected,
+        target=float(alternative.get("target_floor_area_m2") or 0.0),
+        preserve_full_lawful_stack=(
+            str(alternative.get("alternative_id") or "")
+            == "spatial_reserve"
+        ),
+    )
     target_floor_areas = _alternative_floor_targets(
         projected,
         target=float(alternative.get("target_floor_area_m2") or 0.0),
+    )
+    preserves_design_reserve_stack = bool(
+        projected.get("candidate_floor_count_authority")
+        == "full_lawful_design_reserve_stack_for_spatial_reserve"
     )
     projected.update({
         "target_utilization": alternative.get("target_utilization", 0.0),
         "target_floor_area_m2": alternative.get("target_floor_area_m2", 0.0),
         "target_floor_areas_m2": target_floor_areas,
-        "target_base_plan_area_m2": alternative.get("target_base_plan_area_m2", 0.0),
-        "target_base_plan_coverage": alternative.get("target_base_plan_coverage", 0.0),
+        "target_base_plan_area_m2": (
+            (base_contract or {}).get("target_base_plan_area_m2", 0.0)
+            if preserves_design_reserve_stack
+            else alternative.get("target_base_plan_area_m2", 0.0)
+        ),
+        "target_base_plan_coverage": (
+            (base_contract or {}).get("target_base_plan_coverage", 0.0)
+            if preserves_design_reserve_stack
+            else alternative.get("target_base_plan_coverage", 0.0)
+        ),
         "capacity_alternative_id": alternative.get("alternative_id", ""),
+        "floor_target_distribution": (
+            "proportional_across_candidate_prefix_for_authored_fit"
+        ),
     })
     return projected
+
+
+def _apply_candidate_floor_prefix(
+    contract: dict[str, Any],
+    *,
+    target: float,
+    preserve_full_lawful_stack: bool = False,
+) -> None:
+    """Select the minimum lawful prefix that can carry one candidate target."""
+
+    requested = float(target)
+    original_requested_floors = contract.get("requested_floors")
+    if not isfinite(requested) or requested <= 0.0:
+        contract["candidate_floor_count_authority"] = (
+            "invalid_candidate_target"
+        )
+        contract["candidate_target_reachable"] = False
+        contract["candidate_target_gfa_m2"] = requested
+        return
+
+    if contract.get("floor_planning_mode") == "clear_span":
+        capacities = [
+            max(0.0, float(value))
+            for value in (
+                contract.get("bcr_adjusted_floor_areas_m2") or ()
+            )
+        ]
+        legal_hash = str(
+            contract.get("legal_floor_field_hash") or ""
+        )
+        contract["candidate_floor_count_authority"] = (
+            "explicit_clear_span_dimensional_invariant"
+        )
+        contract["candidate_target_reachable"] = bool(
+            sum(capacities)
+            + 1e-9
+            >= requested
+        )
+        contract["candidate_target_gfa_m2"] = round(requested, 3)
+        contract["candidate_prefix_capacity_m2"] = round(
+            sum(capacities),
+            3,
+        )
+        contract["candidate_legal_floor_field_hash"] = legal_hash
+        return
+
+    legal_field = contract.get("legal_floor_field")
+    if not validate_legal_floor_field(legal_field):
+        contract["candidate_floor_count_authority"] = (
+            "legacy_contract_without_validated_legal_floor_field"
+        )
+        return
+    legal_hash = str(legal_field.get("legal_floor_field_hash") or "")
+    if (
+        not legal_hash
+        or str(contract.get("legal_floor_field_hash") or "") != legal_hash
+    ):
+        contract["candidate_floor_count_authority"] = (
+            "invalid_legal_floor_field_identity"
+        )
+        contract["candidate_target_reachable"] = False
+        return
+
+    capacities = [
+        max(0.0, float(value))
+        for value in (
+            legal_field.get("bcr_adjusted_floor_capacities_m2") or ()
+        )
+    ]
+    sections = list(legal_field.get("legal_floor_sections") or ())
+    areas = [
+        max(0.0, float(value))
+        for value in (
+            legal_field.get("legal_floor_section_areas_m2") or ()
+        )
+    ]
+    tops = [
+        max(0.0, float(value))
+        for value in (
+            legal_field.get("legal_floor_top_heights_m") or ()
+        )
+    ]
+    count = len(capacities)
+    if (
+        count <= 0
+        or len(sections) != count
+        or len(areas) != count
+        or len(tops) != count
+    ):
+        contract["candidate_floor_count_authority"] = (
+            "invalid_legal_floor_field_vectors"
+        )
+        contract["candidate_target_reachable"] = False
+        return
+
+    preserve_design_reserve = bool(
+        preserve_full_lawful_stack
+        and type(original_requested_floors) is int
+        and original_requested_floors == count
+    )
+    cumulative = 0.0
+    selected_count = count if preserve_design_reserve else 0
+    if not preserve_design_reserve:
+        for index, capacity in enumerate(capacities):
+            cumulative += capacity
+            if cumulative + 1e-9 >= requested:
+                selected_count = index + 1
+                break
+    reachable = bool(
+        selected_count > 0
+        and sum(capacities[:selected_count]) + 1e-9 >= requested
+    )
+    if not reachable:
+        selected_count = count
+
+    contract.update({
+        "requested_floors": selected_count,
+        "requested_height_m": round(tops[selected_count - 1], 3),
+        "legal_floor_section_areas_m2": [
+            round(value, 3) for value in areas[:selected_count]
+        ],
+        "bcr_adjusted_floor_areas_m2": [
+            round(value, 3) for value in capacities[:selected_count]
+        ],
+        "candidate_legal_floor_sections": deepcopy(
+            sections[:selected_count]
+        ),
+        "candidate_floor_top_heights_m": [
+            round(value, 3) for value in tops[:selected_count]
+        ],
+        "candidate_floor_count_authority": (
+            "full_lawful_design_reserve_stack_for_spatial_reserve"
+            if preserve_design_reserve
+            else "minimum_legal_capacity_prefix_for_candidate_target"
+        ),
+        "candidate_target_reachable": reachable,
+        "candidate_target_gfa_m2": round(requested, 3),
+        "candidate_prefix_capacity_m2": round(
+            sum(capacities[:selected_count]),
+            3,
+        ),
+        "candidate_legal_floor_field_hash": legal_hash,
+    })
 
 
 def _alternative_floor_targets(

@@ -37,8 +37,15 @@ from design.maas.geometry_language.execution_persistence import (
     write_mass_execution_passport,
 )
 from design.maas.geometry_language.gate import compilation_gate
+from design.maas.geometry_language.projected_visual_contract import (
+    AUTHORED_COORDINATE_SPACE,
+    COORDINATE_SPACE,
+)
 from design.maas.geometry_language.render import render_compilation_preview
 from design.maas.geometry_language.unitbox_normalization import normalize_unitbox_program
+from design.maas.mass_product_evidence import (
+    resolve_floor_capacity_plan_identity,
+)
 
 from .contracts import SingleMassExecutionResult
 from .catalog import (
@@ -96,6 +103,12 @@ def execute_single_mass(
     passport_path = passport_path_for_preview(preview_path)
     manifest_path = directory / "execution.json"
 
+    normalized_downstream = dict(downstream_evidence or {})
+    shared_floor_contract = (
+        normalized_downstream.get("shared_floor_contract")
+        if isinstance(normalized_downstream.get("shared_floor_contract"), Mapping)
+        else None
+    )
     stage_started = perf_counter()
     if validated_compilation is not None:
         compilation = _physical_visual_compilation(
@@ -103,16 +116,40 @@ def execute_single_mass(
                 validated_compilation,
                 resolved_program,
             ),
+            physical_z_bounds=_shared_floor_vertical_bounds(
+                shared_floor_contract,
+            ),
         )
     else:
         compilation = compile_geometry_program(resolved_program)
     timings["compile"] = _elapsed_ms(stage_started)
+    final_legal_geometry_hash = str(compilation.geometry_hash or "")
 
     stage_started = perf_counter()
     gate_issues = tuple(compilation_gate(compilation))
     timings["geometry_gate"] = _elapsed_ms(stage_started)
     geometry_ready = compilation.status == "compiled" and not gate_issues
-    normalized_downstream = dict(downstream_evidence or {})
+    capacity_evidence = normalized_downstream.get("capacity")
+    capacity_evidence = (
+        capacity_evidence if isinstance(capacity_evidence, Mapping) else {}
+    )
+    floor_capacity_plan_hash = resolve_floor_capacity_plan_identity(
+        program=resolved_program,
+        capacity=capacity_evidence,
+        shared_floor_contract=(
+            normalized_downstream.get("shared_floor_contract")
+            if isinstance(
+                normalized_downstream.get("shared_floor_contract"),
+                Mapping,
+            )
+            else None
+        ),
+        require_shared_contract=(
+            str(execution_mode or "") == "exact_replay"
+            and bool(str(source_run_id or "").strip())
+        ),
+        unresolved="FLOOR_CAPACITY_PLAN_HASH_UNRESOLVED",
+    )
 
     stage_started = perf_counter()
     if geometry_ready:
@@ -125,11 +162,6 @@ def execute_single_mass(
 
     stage_started = perf_counter()
     elevation_evidence: dict[str, Any] = {}
-    shared_floor_contract = (
-        normalized_downstream.get("shared_floor_contract")
-        if isinstance(normalized_downstream.get("shared_floor_contract"), Mapping)
-        else None
-    )
     elevation_handoff_accepted = (
         shared_floor_contract is None
         or _accepted_elevation_handoff(normalized_downstream)
@@ -145,6 +177,7 @@ def execute_single_mass(
                     if shared_floor_contract is not None
                     else None
                 ),
+                floor_capacity_plan_hash=floor_capacity_plan_hash,
             )
         except Exception as exc:
             elevation_evidence = {
@@ -153,6 +186,7 @@ def execute_single_mass(
                 "execution_id": resolved_id,
                 "program_hash": program_hash,
                 "geometry_hash": str(compilation.geometry_hash or ""),
+                "final_legal_geometry_hash": final_legal_geometry_hash,
                 "error": f"{type(exc).__name__}: {exc}",
                 "views": [],
             }
@@ -163,11 +197,9 @@ def execute_single_mass(
                 "execution_id": resolved_id,
                 "program_hash": program_hash,
                 "geometry_hash": str(compilation.geometry_hash or ""),
+                "final_legal_geometry_hash": final_legal_geometry_hash,
                 "floor_capacity_plan_hash": str(
-                    (shared_floor_contract or {}).get(
-                        "floor_capacity_plan_hash"
-                    )
-                    or ""
+                    floor_capacity_plan_hash
                 ),
             }
             if elevation_image_adapter is not None:
@@ -218,14 +250,12 @@ def execute_single_mass(
             "execution_id": resolved_id,
             "program_hash": program_hash,
             "geometry_hash": str(compilation.geometry_hash or ""),
+            "final_legal_geometry_hash": final_legal_geometry_hash,
             "floor_contract_hash": str(
                 (shared_floor_contract or {}).get("floor_contract_hash") or ""
             ),
             "floor_capacity_plan_hash": str(
-                (shared_floor_contract or {}).get(
-                    "floor_capacity_plan_hash"
-                )
-                or ""
+                floor_capacity_plan_hash
             ),
             "reason": "accepted_mass_handoff_required",
             "views": [],
@@ -237,6 +267,7 @@ def execute_single_mass(
         execution_id=resolved_id,
         program_hash=program_hash or "PROGRAM_HASH_UNRESOLVED",
         geometry_hash=str(compilation.geometry_hash or "GEOMETRY_HASH_UNRESOLVED"),
+        floor_capacity_plan_hash=floor_capacity_plan_hash,
         pnu=_resolve_pnu(resolved_program.metadata or {}, normalized_downstream),
     )
     executors = dict(collaboration_executors or build_default_execution_executors(
@@ -259,6 +290,18 @@ def execute_single_mass(
         elevation_evidence=elevation_evidence,
     )
     passport = json.loads(passport_path.read_text(encoding="utf-8"))
+    passport["final_legal_geometry_hash"] = final_legal_geometry_hash
+    for passport_stage in passport.get("stages") or ():
+        if (
+            isinstance(passport_stage, dict)
+            and passport_stage.get("id") == "render"
+            and isinstance(passport_stage.get("evidence"), dict)
+        ):
+            passport_stage["evidence"][
+                "final_legal_geometry_hash"
+            ] = final_legal_geometry_hash
+            break
+    write_json_atomic(passport_path, passport)
     timings["passport"] = _elapsed_ms(stage_started)
 
     stage_started = perf_counter()
@@ -284,6 +327,7 @@ def execute_single_mass(
         full_flow_status=str(passport.get("status") or "in_progress"),
         program_hash=program_hash,
         geometry_hash=str(compilation.geometry_hash or ""),
+        floor_capacity_plan_hash=floor_capacity_plan_hash,
         timings_ms={key: round(value, 3) for key, value in timings.items()},
         gate_issues=tuple(issue.to_dict() for issue in gate_issues),
         output_directory=directory,
@@ -293,7 +337,9 @@ def execute_single_mass(
         manifest_path=manifest_path,
         passport=passport,
     )
-    write_json_atomic(manifest_path, result.to_dict())
+    manifest = result.to_dict()
+    manifest["final_legal_geometry_hash"] = final_legal_geometry_hash
+    write_json_atomic(manifest_path, manifest)
     return result
 
 
@@ -330,18 +376,24 @@ def _accepted_elevation_handoff(downstream: Mapping[str, Any]) -> bool:
     site = downstream.get("site")
     if not isinstance(site, Mapping) or str(site.get("status") or "") != "passed":
         return False
-    for stage_name in ("capacity", "law", "parking", "program_fit", "selector"):
+    for stage_name in ("law", "parking", "program_fit", "selector"):
         stage = downstream.get(stage_name)
         if not isinstance(stage, Mapping) or stage.get("hard_pass") is not True:
             return False
     capacity = downstream.get("capacity")
-    expected_plan_hash = str(
-        (
-            capacity.get("floor_capacity_plan_hash")
-            or ""
+    if not isinstance(capacity, Mapping):
+        return False
+    if not (
+        capacity.get("hard_pass") is True
+        or (
+            capacity.get("evaluated") is True
+            and capacity.get("hard_gates_remain_downstream") is True
         )
-        if isinstance(capacity, Mapping)
-        else ""
+    ):
+        return False
+    expected_plan_hash = str(
+        capacity.get("floor_capacity_plan_hash")
+        or ""
     )
     actual_plan_hash = str(
         floor_contract.get("floor_capacity_plan_hash")
@@ -371,7 +423,7 @@ def _validated_replay_compilation(
         or not compilation.triangles
         or metrics.get("geometry_authority") != "certified_projected_visual_mesh"
         or metrics.get("coordinate_space")
-        != "capacity_source_centroid_local_xy_normalized_z"
+        not in {COORDINATE_SPACE, AUTHORED_COORDINATE_SPACE}
         or not re.fullmatch(r"[0-9a-f]{64}", str(compilation.geometry_hash or ""))
         or not re.fullmatch(r"[0-9a-f]{64}", str(metrics.get("exact_payload_hash") or ""))
     ):
@@ -389,6 +441,8 @@ def _validated_replay_compilation(
 
 def _physical_visual_compilation(
     compilation: CompilationResult,
+    *,
+    physical_z_bounds: tuple[float, float] | None = None,
 ) -> CompilationResult:
     metrics = dict(compilation.metrics or {})
     capacity_metrics = metrics.get("capacity_replay_metrics")
@@ -404,8 +458,11 @@ def _physical_visual_compilation(
         or not all(isinstance(row, list) and len(row) == 3 for row in bounds)
     ):
         raise ValueError("certified visual replay requires trusted capacity bounds")
-    minimum_z = float(bounds[0][2])
-    maximum_z = float(bounds[1][2])
+    if physical_z_bounds is None:
+        minimum_z = float(bounds[0][2])
+        maximum_z = float(bounds[1][2])
+    else:
+        minimum_z, maximum_z = physical_z_bounds
     height = maximum_z - minimum_z
     if height <= 0.0:
         raise ValueError("certified visual replay requires positive physical height")
@@ -428,21 +485,55 @@ def _physical_visual_compilation(
         [min(vertex[axis] for vertex in vertices) for axis in range(3)],
         [max(vertex[axis] for vertex in vertices) for axis in range(3)],
     ]
+    identity_coordinate_space = str(metrics.get("coordinate_space") or "")
+    physical_coordinate_space = {
+        COORDINATE_SPACE: "capacity_source_centroid_local_xy_physical_z_m",
+        AUTHORED_COORDINATE_SPACE: (
+            "source_footprint_centroid_local_xy_physical_z_m"
+        ),
+    }.get(identity_coordinate_space)
+    if not physical_coordinate_space:
+        raise ValueError("certified visual replay coordinate space is unsupported")
     return replace(
         compilation,
         vertices=vertices,
         metrics={
             **metrics,
             "bounds": physical_bounds,
-            "coordinate_space": "capacity_source_centroid_local_xy_physical_z_m",
-            "identity_coordinate_space": (
-                "capacity_source_centroid_local_xy_normalized_z"
-            ),
+            "coordinate_space": physical_coordinate_space,
+            "identity_coordinate_space": identity_coordinate_space,
             "certified_visual_geometry_hash": compilation.geometry_hash,
             "physical_z_scale_m": height,
             "physical_z_origin_m": minimum_z,
         },
     )
+
+
+def _shared_floor_vertical_bounds(
+    contract: Mapping[str, Any] | None,
+) -> tuple[float, float] | None:
+    if contract is None:
+        return None
+    plates = contract.get("plates")
+    accepted = [
+        plate
+        for plate in (plates if isinstance(plates, list) else ())
+        if isinstance(plate, Mapping) and plate.get("hard_pass") is True
+    ]
+    if not accepted:
+        return None
+    try:
+        minimum_z = min(float(plate["bottom_height_m"]) for plate in accepted)
+        maximum_z = max(float(plate["top_height_m"]) for plate in accepted)
+    except (KeyError, TypeError, ValueError):
+        raise ValueError(
+            "certified visual replay requires trusted shared-floor heights"
+        ) from None
+    if maximum_z <= minimum_z:
+        raise ValueError(
+            "certified visual replay requires positive shared-floor height"
+        )
+    return minimum_z, maximum_z
 
 
 def resolve_single_execution_replay(
@@ -463,6 +554,7 @@ def resolve_single_execution_replay(
     requested_passport: dict[str, Any] | None = None
     requested_program_hash = ""
     requested_geometry_hash = ""
+    requested_floor_capacity_plan_hash = ""
     for _depth in range(32):
         if current_run_id in visited:
             raise ValueError("single execution replay provenance cycle")
@@ -476,6 +568,12 @@ def resolve_single_execution_replay(
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         program_hash = program.program_hash()
         geometry_hash = str(passport.get("geometry_hash") or "")
+        passport_floor_capacity_plan_hash = str(
+            passport.get("floor_capacity_plan_hash") or ""
+        )
+        manifest_floor_capacity_plan_hash = str(
+            manifest.get("floor_capacity_plan_hash") or ""
+        )
         if (
             str(manifest.get("execution_id") or "") != execution_id
             or str(manifest.get("program_hash") or "") != program_hash
@@ -487,14 +585,27 @@ def resolve_single_execution_replay(
             or str(manifest.get("geometry_hash") or "") != geometry_hash
         ):
             raise ValueError("single execution replay geometry identity mismatch")
+        if (
+            not passport_floor_capacity_plan_hash
+            or manifest_floor_capacity_plan_hash
+            != passport_floor_capacity_plan_hash
+        ):
+            raise ValueError(
+                "single execution replay floor capacity plan identity mismatch"
+            )
         if requested_program is None:
             requested_program = program
             requested_passport = passport
             requested_program_hash = program_hash
             requested_geometry_hash = geometry_hash
+            requested_floor_capacity_plan_hash = (
+                passport_floor_capacity_plan_hash
+            )
         elif (
             program_hash != requested_program_hash
             or geometry_hash != requested_geometry_hash
+            or passport_floor_capacity_plan_hash
+            != requested_floor_capacity_plan_hash
         ):
             raise ValueError("single execution replay intermediate identity mismatch")
 
@@ -520,7 +631,7 @@ def resolve_single_execution_replay(
                 )
             current_run_id = origin_run_id
             continue
-        compilation, _, _, _ = compile_archive(
+        compilation, source_artifact, source_row, _ = compile_archive(
             origin_mass_index,
             origin_run_id,
         )
@@ -529,6 +640,47 @@ def resolve_single_execution_replay(
             or compilation.geometry_hash != requested_geometry_hash
         ):
             raise ValueError("single execution certified compilation identity mismatch")
+        artifact_identity = (
+            source_artifact.get("identity")
+            if isinstance(source_artifact, Mapping)
+            and isinstance(source_artifact.get("identity"), Mapping)
+            else {}
+        )
+        artifact_passport = (
+            source_artifact.get("executionPassport")
+            if isinstance(source_artifact, Mapping)
+            and isinstance(source_artifact.get("executionPassport"), Mapping)
+            else {}
+        )
+        source_floor_capacity_plan_hash = resolve_floor_capacity_plan_identity(
+            program=compilation.program,
+            additional_hashes=(
+                artifact_identity.get("floorCapacityPlanHash"),
+                artifact_identity.get("floor_capacity_plan_hash"),
+                artifact_passport.get("floor_capacity_plan_hash"),
+                (
+                    source_artifact.get("floor_capacity_plan_hash")
+                    if isinstance(source_artifact, Mapping)
+                    else ""
+                ),
+                (
+                    source_row.get("floor_capacity_plan_hash")
+                    if isinstance(source_row, Mapping)
+                    else ""
+                ),
+            ),
+        )
+        if not source_floor_capacity_plan_hash:
+            raise ValueError(
+                "single execution certified floor capacity plan identity is unavailable"
+            )
+        if (
+            source_floor_capacity_plan_hash
+            != requested_floor_capacity_plan_hash
+        ):
+            raise ValueError(
+                "single execution certified floor capacity plan identity mismatch"
+            )
         return requested_program, requested_passport, compilation
     raise ValueError("single execution replay provenance depth exceeded")
 

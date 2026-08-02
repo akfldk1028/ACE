@@ -2,6 +2,11 @@ export interface SelectedMassIdentity {
   executionId: string;
   programHash: string;
   geometryHash: string;
+  finalGeometryHash: string;
+  visualHash: string;
+  floorCapacityPlanHash: string;
+  legalFloorFieldHash: string;
+  actualGfaStopHash: string;
 }
 
 export interface ElevationProposalEvidence {
@@ -43,11 +48,31 @@ export function extractElevationProposal(
   const roofGuard = record(providerMetadata?.roof_semantic_guard);
   if (!proposal || !identity || !artifact || !strategy) return null;
   if (
-    passportRecord?.program_hash !== selected.programHash
+    !selected.floorCapacityPlanHash
+    || !selected.finalGeometryHash
+    || !selected.visualHash
+    || !selected.legalFloorFieldHash
+    || !selected.actualGfaStopHash
+    || passportRecord?.program_hash !== selected.programHash
     || passportRecord?.geometry_hash !== selected.geometryHash
+    || passportRecord?.final_legal_geometry_hash
+      !== selected.finalGeometryHash
+    || passportRecord?.visual_hash !== selected.visualHash
+    || passportRecord?.floor_capacity_plan_hash !== selected.floorCapacityPlanHash
+    || passportRecord?.legal_floor_field_hash
+      !== selected.legalFloorFieldHash
+    || passportRecord?.candidate_actual_gfa_stop_hash
+      !== selected.actualGfaStopHash
     || identity.execution_id !== selected.executionId
     || identity.program_hash !== selected.programHash
     || identity.geometry_hash !== selected.geometryHash
+    || identity.final_geometry_hash !== selected.finalGeometryHash
+    || identity.final_legal_geometry_hash !== selected.finalGeometryHash
+    || identity.visual_hash !== selected.visualHash
+    || identity.floor_capacity_plan_hash !== selected.floorCapacityPlanHash
+    || identity.legal_floor_field_hash !== selected.legalFloorFieldHash
+    || identity.candidate_actual_gfa_stop_hash
+      !== selected.actualGfaStopHash
   ) {
     return null;
   }

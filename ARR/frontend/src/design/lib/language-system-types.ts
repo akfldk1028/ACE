@@ -98,6 +98,12 @@ export interface MassExecutionPassport {
   program_hash: string;
   structural_hash: string;
   geometry_hash: string;
+  visual_hash: string;
+  floor_capacity_plan_hash: string;
+  final_legal_geometry_hash?: string;
+  legal_floor_field_hash?: string;
+  candidate_actual_gfa_stop_hash?: string;
+  candidate_actual_gfa_stop_certificate?: CandidateActualGfaStopCertificate;
   status: string;
   full_flow_complete: boolean;
   truth_policy: {
@@ -176,6 +182,21 @@ export interface MassExecutionPassport {
   };
 }
 
+export interface CandidateActualGfaStopCertificate {
+  schema_version?: string;
+  status: string;
+  hard_pass: boolean;
+  program_hash: string;
+  final_geometry_hash: string;
+  visual_hash: string;
+  legal_floor_field_hash: string;
+  candidate_actual_gfa_stop_hash: string;
+  selected_floor_count: number;
+  achieved_gfa_m2?: number;
+  target_gfa_m2?: number;
+  [key: string]: unknown;
+}
+
 export interface ExecutedMassRecord {
   archive_key: string;
   index: number;
@@ -191,6 +212,15 @@ export interface ExecutedMassRecord {
   program_label: string;
   program_hash: string;
   geometry_hash: string;
+  visual_hash: string;
+  final_geometry_hash?: string;
+  final_legal_geometry_hash?: string;
+  legal_floor_field_hash?: string;
+  candidate_actual_gfa_stop_hash?: string;
+  candidate_actual_gfa_stop_certificate?: CandidateActualGfaStopCertificate;
+  candidate_floor_count?: number;
+  candidate_target_gfa_m2?: number;
+  achieved_gfa_m2?: number;
   dsl: string;
   node_count: number;
   operator_path: string[];
@@ -253,7 +283,9 @@ export interface SingleMassExecutionResponse {
   status: string;
   geometry_ready: boolean;
   full_flow_status: string;
+  program_hash: string;
   geometry_hash: string;
+  floor_capacity_plan_hash: string;
   timings_ms: Record<string, number>;
   preview_url: string;
   passport_url: string;
@@ -294,6 +326,18 @@ export interface ExecutedMassManifest {
   selected_run_id: string;
   run_count: number;
   archive_revision: string;
+  publishable_20?: boolean;
+  publishable_target_count?: number;
+  publishable_20_manifest?: {
+    status?: string;
+    target_count?: number;
+    typed_failure_deficits?: Array<Record<string, unknown>>;
+    shared_legal_floor_field_hash?: string;
+    shared_legal_floor_field_hash_count?: number;
+    candidate_actual_gfa_stop_valid_count?: number;
+    candidate_actual_gfa_stop_hashes?: string[];
+    candidate_floor_count_distribution?: Record<string, number>;
+  };
   runs: ExecutedMassRun[];
   book_images_included: false;
   image_authority: string;
@@ -309,6 +353,89 @@ export interface ExecutedMassManifest {
     cache_hit?: boolean;
   };
   masses: ExecutedMassRecord[];
+}
+
+export interface CreativeMassCandidate {
+  run_id: string;
+  candidate_id: string;
+  program_hash: string;
+  geometry_hash: string;
+  render_png: string;
+  candidate_json: string;
+  render_url: string;
+  family: string;
+  form_class: string;
+  capacity_band: string;
+  storeys: number;
+  legal_status: 'not_evaluated';
+  morphology_distance: number;
+}
+
+export interface CreativeMassCard {
+  selectionKey: string;
+  portfolioRunId: string;
+  candidateId: string;
+  programHash: string;
+  geometryHash: string;
+  renderUrl: string;
+  family: string;
+  formClass: string;
+  capacityBand: string;
+  storeys: number;
+  legalStatus: 'not_evaluated';
+  morphologyDistance: number;
+}
+
+export interface CreativePortfolioGraph {
+  schema_version: string;
+  root_node_ids: string[];
+  nodes: Array<{
+    id: string;
+    kind: string;
+    identity: string;
+    attributes: Record<string, unknown>;
+  }>;
+  edges: Array<{
+    id: string;
+    source: string;
+    target: string;
+    kind: string;
+  }>;
+}
+
+export interface CreativePortfolioManifest {
+  schema_version: string;
+  run_type: 'creative_portfolio';
+  run_id: string;
+  pnu: string;
+  created_at: string;
+  status: string;
+  choice_pool: true;
+  candidate_count: number;
+  legal_review_status: 'not_evaluated';
+  paid_vlm_request_count: number;
+  board: Record<string, unknown>;
+  board_png: string;
+  filter_facets: Record<string, Array<{ value: string; count: number }>>;
+  morphology_evidence: Record<string, unknown>;
+  candidates: CreativeMassCandidate[];
+  graph: CreativePortfolioGraph;
+  runs: Array<{
+    run_id: string;
+    run_type: 'creative_portfolio';
+    created_at: string;
+    candidate_count: number;
+    pnu: string;
+    legal_review_status: 'not_evaluated';
+  }>;
+  contracts: {
+    executed_mass_manifest_coercion: false;
+    law_evidence_fabricated: false;
+    parking_evidence_fabricated: false;
+    elevation_evidence_fabricated: false;
+    certified_capacity_fabricated: false;
+    asset_root: string;
+  };
 }
 
 export interface MaasLanguageSystemManifest {

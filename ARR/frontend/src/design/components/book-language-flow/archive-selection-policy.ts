@@ -1,4 +1,7 @@
-import type { ExecutedMassManifest } from '../../lib/language-system-types'
+import type {
+  CreativeMassCard,
+  ExecutedMassManifest,
+} from '../../lib/language-system-types'
 
 export interface RecentMassCard {
   key: string
@@ -170,4 +173,10 @@ export function buildRecentMassCards(
     previewUrl: mass.preview_url,
     selected: mass.run_id === archive.selected_run_id && mass.index === selectedMassIndex,
   }))
+}
+
+export function selectCreativePortfolioMembers(
+  cards: readonly CreativeMassCard[],
+): CreativeMassCard[] {
+  return [...cards]
 }

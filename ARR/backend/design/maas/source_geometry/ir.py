@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import hashlib
+import json
 from typing import Any
 
 from shapely.geometry import Polygon, mapping
@@ -147,6 +149,16 @@ class SourceMass:
         program_role_integration_evidence = self.metadata.get("program_role_integration_evidence")
         if not isinstance(program_role_integration_evidence, dict):
             program_role_integration_evidence = {}
+        program_semantic_carrier_evidence = self.metadata.get(
+            "program_semantic_carrier_evidence"
+        )
+        if not isinstance(program_semantic_carrier_evidence, dict):
+            program_semantic_carrier_evidence = {}
+        final_semantic_projection_context = self.metadata.get(
+            "final_semantic_projection_context"
+        )
+        if not isinstance(final_semantic_projection_context, dict):
+            final_semantic_projection_context = {}
         program_section_graph_evidence = self.metadata.get("program_section_graph_evidence")
         if not isinstance(program_section_graph_evidence, dict):
             program_section_graph_evidence = {}
@@ -251,8 +263,16 @@ class SourceMass:
             "geometry_program": geometry_program,
             "geometry_graph_snapshot": geometry_graph_snapshot,
             "geometry_program_bridge_evidence": geometry_program_bridge_evidence,
+            "geometry_authority": str(
+                self.metadata.get("geometry_authority") or ""
+            ),
             "program_space_zones": program_space_zones,
             "program_role_integration_evidence": program_role_integration_evidence,
+            "program_semantic_carrier_evidence": program_semantic_carrier_evidence,
+            "final_semantic_projection_context": final_semantic_projection_context,
+            "actual_surface_payload_hash": _source_surface_payload_hash(
+                self.surfaces
+            ),
             "program_section_graph_evidence": program_section_graph_evidence,
             "site_frame_evidence": site_frame_evidence,
             "architectural_ambition_evidence": ambition_evidence,
@@ -290,3 +310,31 @@ class SourceMass:
 
     def source_surface_signatures(self) -> tuple[dict[str, Any], ...]:
         return tuple(surface.signature() for surface in self.surfaces)
+
+
+def _source_surface_payload_hash(
+    surfaces: tuple[SourceSurface, ...],
+) -> str:
+    records = tuple(
+        json.dumps(
+            {
+                "operator": surface.operator,
+                "role": surface.role,
+                "semantic_patch_id": surface.semantic_patch_id,
+                "surface_type": surface.surface_type,
+                "verb": surface.verb,
+                "vertices_m": [
+                    [float(x), float(y), float(z)]
+                    for x, y, z in surface.vertices_m
+                ],
+                "volume_role": surface.volume_role,
+            },
+            allow_nan=False,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        for surface in surfaces
+    )
+    payload = f"[{','.join(sorted(records))}]".encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()

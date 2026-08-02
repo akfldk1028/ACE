@@ -31,6 +31,41 @@ class FloorwiseVisualProjectionCertificate:
     projected_surface_count: int = 0
     legal_sample_count: int = 0
     capacity_gfa_m2: float = 0.0
+    floor_count: int = 0
+    certification_mode: str = "floorwise_capacity_projection"
+    source_surface_coordinate_frame: str = (
+        "source_footprint_centroid_local_xy_normalized_z"
+    )
+    projected_surface_coordinate_frame: str = (
+        "capacity_source_centroid_local_xy_normalized_z"
+    )
+    visible_geometry_operation: str = "floorwise_matrix_projection"
+    exact_surface_payload_hash: str = ""
+    capacity_authority: str = "floorwise_legal_volumes"
+    visible_step_fallback: bool = False
+    section_profile_hash: str = ""
+    capacity_volume_hash: str = ""
+    floor_capacity_plan_hash: str = ""
+    matrix4_stack_hash: str = ""
+    authored_program_hash: str = ""
+    effective_height_m: float = 0.0
+    verified_profiled_sloped_surface_area: float = 0.0
+    verified_profiled_sloped_surface_ratio: float = 0.0
+    verified_profiled_sloped_surface_hash: str = ""
+    section_numeric_epsilon_m: float = 0.0
+    floor_center_numeric_equivalence_schema: str = ""
+    max_section_area_delta_m2: float = 0.0
+    max_section_symdiff_m2: float = 0.0
+    max_section_hausdorff_m: float = 0.0
+    max_section_area_bound_m2: float = 0.0
+    mesh_numeric_repair_schema: str = ""
+    mesh_cleanup_collapse_threshold_m: float = 0.0
+    mesh_cleanup_max_physical_displacement_m: float = 0.0
+    mesh_cleanup_raw_indexed_mesh_hash: str = ""
+    mesh_cleanup_raw_gate_failure_codes: tuple[str, ...] = ()
+    mesh_cleanup_clean_indexed_mesh_hash: str = ""
+    mesh_cleanup_clean_gate_hard_pass: bool = False
+    authority_binding_hash: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -43,14 +78,81 @@ class FloorwiseVisualProjectionCertificate:
             "projected_surface_count": self.projected_surface_count,
             "legal_sample_count": self.legal_sample_count,
             "capacity_gfa_m2": round(self.capacity_gfa_m2, 4),
-            "capacity_authority": "floorwise_legal_volumes",
+            "floor_count": int(self.floor_count),
+            "capacity_authority": self.capacity_authority,
+            "certification_mode": self.certification_mode,
             "source_surface_coordinate_frame": (
-                "source_footprint_centroid_local_xy_normalized_z"
+                self.source_surface_coordinate_frame
             ),
             "projected_surface_coordinate_frame": (
-                "capacity_source_centroid_local_xy_normalized_z"
+                self.projected_surface_coordinate_frame
             ),
             "matrix_convention": "row_major_column_vector",
+            "visible_geometry_operation": self.visible_geometry_operation,
+            "exact_surface_payload_hash": self.exact_surface_payload_hash,
+            "visible_step_fallback": self.visible_step_fallback,
+            "section_profile_hash": self.section_profile_hash,
+            "capacity_volume_hash": self.capacity_volume_hash,
+            "floor_capacity_plan_hash": self.floor_capacity_plan_hash,
+            "matrix4_stack_hash": self.matrix4_stack_hash,
+            "authored_program_hash": self.authored_program_hash,
+            "effective_height_m": round(self.effective_height_m, 8),
+            "verified_profiled_sloped_surface_area": round(
+                self.verified_profiled_sloped_surface_area,
+                8,
+            ),
+            "verified_profiled_sloped_surface_ratio": round(
+                self.verified_profiled_sloped_surface_ratio,
+                8,
+            ),
+            "verified_profiled_sloped_surface_hash": (
+                self.verified_profiled_sloped_surface_hash
+            ),
+            "section_numeric_epsilon_m": round(
+                self.section_numeric_epsilon_m,
+                10,
+            ),
+            "floor_center_numeric_equivalence_schema": (
+                self.floor_center_numeric_equivalence_schema
+            ),
+            "max_section_area_delta_m2": round(
+                self.max_section_area_delta_m2,
+                10,
+            ),
+            "max_section_symdiff_m2": round(
+                self.max_section_symdiff_m2,
+                10,
+            ),
+            "max_section_hausdorff_m": round(
+                self.max_section_hausdorff_m,
+                10,
+            ),
+            "max_section_area_bound_m2": round(
+                self.max_section_area_bound_m2,
+                10,
+            ),
+            "mesh_numeric_repair_schema": self.mesh_numeric_repair_schema,
+            "mesh_cleanup_collapse_threshold_m": round(
+                self.mesh_cleanup_collapse_threshold_m,
+                12,
+            ),
+            "mesh_cleanup_max_physical_displacement_m": round(
+                self.mesh_cleanup_max_physical_displacement_m,
+                12,
+            ),
+            "mesh_cleanup_raw_indexed_mesh_hash": (
+                self.mesh_cleanup_raw_indexed_mesh_hash
+            ),
+            "mesh_cleanup_raw_gate_failure_codes": list(
+                self.mesh_cleanup_raw_gate_failure_codes
+            ),
+            "mesh_cleanup_clean_indexed_mesh_hash": (
+                self.mesh_cleanup_clean_indexed_mesh_hash
+            ),
+            "mesh_cleanup_clean_gate_hard_pass": (
+                self.mesh_cleanup_clean_gate_hard_pass
+            ),
+            "authority_binding_hash": self.authority_binding_hash,
         }
 
 
@@ -58,6 +160,419 @@ class FloorwiseVisualProjectionCertificate:
 class FloorwiseVisualProjection:
     surfaces: tuple[SourceSurface, ...]
     certificate: FloorwiseVisualProjectionCertificate
+
+
+FLOORWISE_EXACT_AUTHORITY_CONTRACTS = {
+    "floorwise_profiled_legal_clip": (
+        "authored_profiled_mesh_legal_solid_intersection",
+        False,
+    ),
+    "floorwise_csg_section_loft": (
+        "exact_legal_section_profile_loft",
+        False,
+    ),
+    "floorwise_matrix_prism_exact_containment": (
+        "floorwise_matrix_prism_recomposition",
+        True,
+    ),
+}
+FLOORWISE_EXACT_AUTHORITY_MODES = frozenset(
+    FLOORWISE_EXACT_AUTHORITY_CONTRACTS
+)
+FLOOR_CENTER_NUMERIC_EQUIVALENCE_SCHEMA = (
+    "arr.maas.floor_center_numeric_equivalence.v1"
+)
+
+
+def valid_floor_center_numeric_equivalence(
+    certificate: dict[str, Any],
+) -> bool:
+    """Fail closed on tampered profiled-clip reconstruction metrics."""
+
+    if certificate.get("certification_mode") != "floorwise_profiled_legal_clip":
+        return True
+    try:
+        epsilon = float(certificate["section_numeric_epsilon_m"])
+        area_delta = float(certificate["max_section_area_delta_m2"])
+        symdiff = float(certificate["max_section_symdiff_m2"])
+        hausdorff = float(certificate["max_section_hausdorff_m"])
+        area_bound = float(certificate["max_section_area_bound_m2"])
+    except (KeyError, TypeError, ValueError):
+        return False
+    try:
+        collapse_threshold = float(
+            certificate.get("mesh_cleanup_collapse_threshold_m") or 0.0
+        )
+        cleanup_displacement = float(
+            certificate.get(
+                "mesh_cleanup_max_physical_displacement_m"
+            ) or 0.0
+        )
+    except (TypeError, ValueError):
+        return False
+    repaired = bool(cleanup_displacement)
+    expected_schema = (
+        "arr.maas.floor_center_numeric_equivalence.v2"
+        if repaired
+        else FLOOR_CENTER_NUMERIC_EQUIVALENCE_SCHEMA
+    )
+    expected_epsilon = round((
+        1e-6 + cleanup_displacement + 2e-8
+        if repaired
+        else 1e-6
+    ), 10)
+    repair_evidence_valid = (
+        not repaired
+        or (
+            0.0 < cleanup_displacement <= 5e-7
+            and collapse_threshold in (1e-8, 3e-8, 1e-7, 3e-7, 5e-7)
+            and cleanup_displacement <= collapse_threshold
+            and certificate.get("mesh_numeric_repair_schema")
+            == "arr.maas.profiled_mesh_numeric_repair.v1"
+            and certificate.get("mesh_cleanup_raw_gate_failure_codes")
+            == ["tiny_edge"]
+            and bool(certificate.get("mesh_cleanup_raw_indexed_mesh_hash"))
+            and bool(certificate.get("mesh_cleanup_clean_indexed_mesh_hash"))
+            and certificate.get("mesh_cleanup_clean_gate_hard_pass") is True
+        )
+    )
+    return bool(
+        certificate.get("floor_center_numeric_equivalence_schema")
+        == expected_schema
+        and epsilon == expected_epsilon
+        and repair_evidence_valid
+        and all(isfinite(value) and value >= 0.0 for value in (
+            area_delta,
+            symdiff,
+            hausdorff,
+            area_bound,
+        ))
+        and hausdorff <= epsilon
+        and area_delta <= area_bound
+        and symdiff <= area_bound
+    )
+
+
+def floorwise_authority_binding_hash(
+    *,
+    section_profile_hash: str,
+    capacity_volume_hash: str,
+    floor_capacity_plan_hash: str,
+    matrix4_stack_hash: str,
+    exact_surface_payload_hash: str,
+    certification_mode: str,
+    visible_geometry_operation: str,
+    visible_step_fallback: bool,
+    authored_program_hash: str = "",
+    effective_height_m: float = 0.0,
+    verified_profiled_sloped_surface_area: float = 0.0,
+    verified_profiled_sloped_surface_ratio: float = 0.0,
+    verified_profiled_sloped_surface_hash: str = "",
+    section_numeric_epsilon_m: float = 0.0,
+    floor_center_numeric_equivalence_schema: str = "",
+    max_section_area_delta_m2: float = 0.0,
+    max_section_symdiff_m2: float = 0.0,
+    max_section_hausdorff_m: float = 0.0,
+    max_section_area_bound_m2: float = 0.0,
+    mesh_numeric_repair_schema: str = "",
+    mesh_cleanup_collapse_threshold_m: float = 0.0,
+    mesh_cleanup_max_physical_displacement_m: float = 0.0,
+    mesh_cleanup_raw_indexed_mesh_hash: str = "",
+    mesh_cleanup_raw_gate_failure_codes: Sequence[str] = (),
+    mesh_cleanup_clean_indexed_mesh_hash: str = "",
+    mesh_cleanup_clean_gate_hard_pass: bool = False,
+) -> str:
+    """Bind the exact visible payload to its legal/capacity authorities."""
+
+    payload = {
+        "section_profile_hash": str(section_profile_hash or ""),
+        "capacity_volume_hash": str(capacity_volume_hash or ""),
+        "floor_capacity_plan_hash": str(floor_capacity_plan_hash or ""),
+        "matrix4_stack_hash": str(matrix4_stack_hash or ""),
+        "exact_surface_payload_hash": str(exact_surface_payload_hash or ""),
+        "certification_mode": str(certification_mode or ""),
+        "visible_geometry_operation": str(
+            visible_geometry_operation or ""
+        ),
+        "visible_step_fallback": bool(visible_step_fallback),
+    }
+    if (
+        authored_program_hash
+        or effective_height_m
+        or verified_profiled_sloped_surface_area
+        or verified_profiled_sloped_surface_ratio
+        or verified_profiled_sloped_surface_hash
+        or section_numeric_epsilon_m
+        or floor_center_numeric_equivalence_schema
+        or max_section_area_delta_m2
+        or max_section_symdiff_m2
+        or max_section_hausdorff_m
+        or max_section_area_bound_m2
+        or mesh_numeric_repair_schema
+        or mesh_cleanup_collapse_threshold_m
+        or mesh_cleanup_max_physical_displacement_m
+        or mesh_cleanup_raw_indexed_mesh_hash
+        or mesh_cleanup_raw_gate_failure_codes
+        or mesh_cleanup_clean_indexed_mesh_hash
+        or mesh_cleanup_clean_gate_hard_pass
+    ):
+        payload.update({
+            "authored_program_hash": str(authored_program_hash or ""),
+            "effective_height_m": round(float(effective_height_m or 0.0), 8),
+            "verified_profiled_sloped_surface_area": round(
+                float(verified_profiled_sloped_surface_area or 0.0),
+                8,
+            ),
+            "verified_profiled_sloped_surface_ratio": round(
+                float(verified_profiled_sloped_surface_ratio or 0.0),
+                8,
+            ),
+            "verified_profiled_sloped_surface_hash": str(
+                verified_profiled_sloped_surface_hash or ""
+            ),
+            "section_numeric_epsilon_m": round(
+                float(section_numeric_epsilon_m or 0.0),
+                10,
+            ),
+            "floor_center_numeric_equivalence_schema": str(
+                floor_center_numeric_equivalence_schema or ""
+            ),
+            "max_section_area_delta_m2": round(
+                float(max_section_area_delta_m2 or 0.0),
+                10,
+            ),
+            "max_section_symdiff_m2": round(
+                float(max_section_symdiff_m2 or 0.0),
+                10,
+            ),
+            "max_section_hausdorff_m": round(
+                float(max_section_hausdorff_m or 0.0),
+                10,
+            ),
+            "max_section_area_bound_m2": round(
+                float(max_section_area_bound_m2 or 0.0),
+                10,
+            ),
+            "mesh_numeric_repair_schema": str(
+                mesh_numeric_repair_schema or ""
+            ),
+            "mesh_cleanup_collapse_threshold_m": round(
+                float(mesh_cleanup_collapse_threshold_m or 0.0),
+                12,
+            ),
+            "mesh_cleanup_max_physical_displacement_m": round(
+                float(mesh_cleanup_max_physical_displacement_m or 0.0),
+                12,
+            ),
+            "mesh_cleanup_raw_indexed_mesh_hash": str(
+                mesh_cleanup_raw_indexed_mesh_hash or ""
+            ),
+            "mesh_cleanup_raw_gate_failure_codes": [
+                str(code) for code in mesh_cleanup_raw_gate_failure_codes
+            ],
+            "mesh_cleanup_clean_indexed_mesh_hash": str(
+                mesh_cleanup_clean_indexed_mesh_hash or ""
+            ),
+            "mesh_cleanup_clean_gate_hard_pass": bool(
+                mesh_cleanup_clean_gate_hard_pass
+            ),
+        })
+    return sha256(json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+        allow_nan=False,
+    ).encode("utf-8")).hexdigest()
+
+
+class _BufferedLegalSections:
+    """Lazily reuse the exact numerical-tolerance buffer within one certificate."""
+
+    def __init__(self, legal_sections: Sequence[Any]) -> None:
+        self._sections = tuple(legal_sections)
+        self._buffered: dict[int, Any] = {}
+
+    def __len__(self) -> int:
+        return len(self._sections)
+
+    def __getitem__(self, index: int) -> Any:
+        normalized = index if index >= 0 else len(self._sections) + index
+        if normalized not in self._buffered:
+            self._buffered[normalized] = self._sections[normalized].buffer(1e-7)
+        return self._buffered[normalized]
+
+
+def certify_authored_visual_mesh(
+    source: SourceMass,
+    legal_sections: Sequence[Any],
+) -> FloorwiseVisualProjection:
+    """Validate one exact authored triangle skin without projecting it."""
+
+    profiled = tuple(
+        surface
+        for surface in source.surfaces
+        if isinstance(surface, SourceSurface)
+        and surface.surface_type.startswith("profiled_")
+    )
+    if not profiled:
+        return _failed(
+            "missing_authored_visual_mesh",
+            capacity_gfa=0.0,
+            source_surface_count=0,
+        )
+    completeness_failure = _profiled_export_completeness_failure(
+        source,
+        profiled,
+    )
+    if completeness_failure:
+        return _failed(
+            completeness_failure,
+            capacity_gfa=0.0,
+            source_surface_count=len(profiled),
+        )
+    if (
+        not legal_sections
+        or any(
+            not isinstance(section, Polygon)
+            or section.is_empty
+            or not section.is_valid
+            or float(section.area) <= 1e-9
+            for section in legal_sections
+        )
+    ):
+        return _failed(
+            "incomplete_authored_visual_legal_sections",
+            capacity_gfa=0.0,
+            source_surface_count=len(profiled),
+        )
+    buffered_legal_sections = _BufferedLegalSections(legal_sections)
+    source_origin = source.footprint.centroid
+    if not (
+        isfinite(float(source_origin.x))
+        and isfinite(float(source_origin.y))
+    ):
+        return _failed(
+            "invalid_authored_visual_source_centroid",
+            capacity_gfa=0.0,
+            source_surface_count=len(profiled),
+        )
+
+    section_count = len(legal_sections)
+    section_breakpoints = tuple(
+        index / section_count
+        for index in range(1, section_count)
+    )
+    legal_sample_count = 0
+    for surface in profiled:
+        try:
+            local_triangle = tuple(
+                (float(x), float(y), float(z))
+                for x, y, z in surface.vertices_m
+            )
+        except (TypeError, ValueError):
+            return _failed(
+                "invalid_authored_visual_triangle",
+                capacity_gfa=0.0,
+                source_surface_count=len(profiled),
+            )
+        if not _finite_triangle(local_triangle):
+            return _failed(
+                "invalid_authored_visual_triangle",
+                capacity_gfa=0.0,
+                source_surface_count=len(profiled),
+            )
+        if any(z < 0.0 or z > 1.0 for _x, _y, z in local_triangle):
+            return _failed(
+                "authored_visual_normalized_z_out_of_range",
+                capacity_gfa=0.0,
+                source_surface_count=len(profiled),
+            )
+        world_triangle = tuple(
+            (
+                float(source_origin.x) + x,
+                float(source_origin.y) + y,
+                z,
+            )
+            for x, y, z in local_triangle
+        )
+        sample_points = _section_evidence_points(
+            world_triangle,
+            floor_count=section_count,
+        )
+        for point in sample_points:
+            if not _legal_sections_cover_point(
+                point,
+                legal_sections=buffered_legal_sections,
+            ):
+                return _failed(
+                    "authored_visual_surface_outside_legal_envelope",
+                    capacity_gfa=0.0,
+                    source_surface_count=len(profiled),
+                    legal_sample_count=legal_sample_count + 1,
+                )
+            legal_sample_count += 1
+        pieces = _split_triangle_at_z_breakpoints(
+            world_triangle,
+            breakpoints=section_breakpoints,
+        )
+        if not pieces:
+            return _failed(
+                "invalid_authored_visual_triangle",
+                capacity_gfa=0.0,
+                source_surface_count=len(profiled),
+                legal_sample_count=legal_sample_count,
+            )
+        for piece in pieces:
+            indices = _legal_section_indices_for_triangle(
+                piece,
+                section_count=section_count,
+            )
+            if not _legal_sections_cover_triangle(
+                piece,
+                legal_sections=buffered_legal_sections,
+                legal_indices=indices,
+            ):
+                return _failed(
+                    "authored_visual_surface_outside_legal_envelope",
+                    capacity_gfa=0.0,
+                    source_surface_count=len(profiled),
+                    legal_sample_count=legal_sample_count + len(indices),
+                )
+            legal_sample_count += len(indices)
+        boundary_sample_count = _boundary_intersection_sample_count(
+            world_triangle,
+            legal_sections=buffered_legal_sections,
+        )
+        if boundary_sample_count is None:
+            return _failed(
+                "authored_visual_surface_outside_legal_envelope",
+                capacity_gfa=0.0,
+                source_surface_count=len(profiled),
+                legal_sample_count=legal_sample_count + 1,
+            )
+        legal_sample_count += boundary_sample_count
+
+    visual_hash = _stable_visual_hash(profiled)
+    return FloorwiseVisualProjection(
+        surfaces=profiled,
+        certificate=FloorwiseVisualProjectionCertificate(
+            status="certified",
+            hard_pass=True,
+            visual_hash=visual_hash,
+            source_surface_count=len(profiled),
+            projected_surface_count=len(profiled),
+            legal_sample_count=legal_sample_count,
+            floor_count=len(legal_sections),
+            certification_mode="authored_visual_legal_validation",
+            projected_surface_coordinate_frame=(
+                "source_footprint_centroid_local_xy_normalized_z"
+            ),
+            visible_geometry_operation="validated_without_projection",
+            exact_surface_payload_hash=_exact_surface_payload_hash(profiled),
+            capacity_authority="separate_not_visual_authority",
+        ),
+    )
 
 
 def project_floorwise_visual_mesh(
@@ -113,6 +628,7 @@ def project_floorwise_visual_mesh(
             capacity_gfa=capacity_gfa,
             source_surface_count=len(profiled),
         )
+    buffered_legal_sections = _BufferedLegalSections(legal_sections)
 
     capacity_origin = (
         _validated_output_origin(output_origin)
@@ -174,7 +690,7 @@ def project_floorwise_visual_mesh(
             )
             if not _legal_sections_cover_point(
                 transformed,
-                legal_sections=legal_sections,
+                legal_sections=buffered_legal_sections,
             ):
                 return _failed(
                     "projected_visual_mesh_outside_legal_section",
@@ -210,7 +726,7 @@ def project_floorwise_visual_mesh(
             )
             if not _legal_sections_cover_triangle(
                 transformed,
-                legal_sections=legal_sections,
+                legal_sections=buffered_legal_sections,
                 legal_indices=legal_indices,
             ):
                 return _failed(
@@ -222,7 +738,7 @@ def project_floorwise_visual_mesh(
             legal_sample_count += len(legal_indices)
             boundary_sample_count = _boundary_intersection_sample_count(
                 transformed,
-                legal_sections=legal_sections,
+                legal_sections=buffered_legal_sections,
             )
             if boundary_sample_count is None:
                 return _failed(
@@ -266,6 +782,7 @@ def project_floorwise_visual_mesh(
             projected_surface_count=len(surfaces),
             legal_sample_count=legal_sample_count,
             capacity_gfa_m2=capacity_gfa,
+            floor_count=len(matrices),
         ),
     )
 
@@ -328,11 +845,8 @@ def _profiled_export_completeness_failure(
     ):
         return "incomplete_authored_mesh_export"
     if raw_count or exported_count:
-        return (
-            ""
-            if raw_count == exported_count == len(surfaces)
-            else "incomplete_authored_mesh_export"
-        )
+        if raw_count != exported_count or raw_count != len(surfaces):
+            return "incomplete_authored_mesh_export"
     return (
         ""
         if _has_closed_directed_edge_topology(surfaces)
@@ -348,10 +862,13 @@ def _has_closed_directed_edge_topology(
         int,
     ] = {}
     for surface in surfaces:
-        vertices = tuple(
-            (round(float(x), 8), round(float(y), 8), round(float(z), 8))
-            for x, y, z in surface.vertices_m
-        )
+        try:
+            vertices = tuple(
+                (round(float(x), 8), round(float(y), 8), round(float(z), 8))
+                for x, y, z in surface.vertices_m
+            )
+        except (TypeError, ValueError, OverflowError):
+            return False
         for left, right in zip(vertices, (*vertices[1:], vertices[0])):
             directed_counts[(left, right)] = (
                 directed_counts.get((left, right), 0) + 1
@@ -407,14 +924,22 @@ def _matrix_at_z(
         return matrices[0]
     if z >= breakpoints[-1]:
         return matrices[-1]
-    for index, (lower, upper) in enumerate(zip(breakpoints, breakpoints[1:])):
-        if lower <= z <= upper:
-            amount = (z - lower) / max(upper - lower, 1e-12)
+    floor_count = len(matrices)
+    for index, lower_center in enumerate(breakpoints[:-1]):
+        floor_boundary = (index + 1) / floor_count
+        upper_center = breakpoints[index + 1]
+        if lower_center <= z <= floor_boundary:
+            amount = (
+                (z - lower_center)
+                / max(floor_boundary - lower_center, 1e-12)
+            )
             return tuple(tuple(
                 matrices[index][row][column] * (1.0 - amount)
                 + matrices[index + 1][row][column] * amount
                 for column in range(4)
             ) for row in range(4))
+        if floor_boundary <= z <= upper_center:
+            return matrices[index + 1]
     return matrices[-1]
 
 
@@ -449,7 +974,7 @@ def _legal_sections_cover_point(
             indices = (boundary - 1, boundary)
         else:
             indices = (min(count - 1, int(scaled)),)
-    return all(legal_sections[index].buffer(1e-7).covers(probe) for index in indices)
+    return all(legal_sections[index].covers(probe) for index in indices)
 
 
 def _legal_section_indices_for_triangle(
@@ -480,7 +1005,7 @@ def _legal_sections_cover_triangle(
     if projected.is_empty:
         return False
     return all(
-        legal_sections[index].buffer(1e-7).covers(projected)
+        legal_sections[index].covers(projected)
         for index in legal_indices
     )
 
@@ -510,7 +1035,7 @@ def _boundary_intersection_sample_count(
             else MultiPoint(unique).convex_hull
         )
         if not all(
-            legal_sections[index].buffer(1e-7).covers(intersection)
+            legal_sections[index].covers(intersection)
             for index in (boundary - 1, boundary)
         ):
             return None
@@ -687,6 +1212,125 @@ def projected_surface_visual_hash(
     return _stable_visual_hash(tuple(surfaces))
 
 
+def profiled_sloped_mesh_evidence(
+    surfaces: Sequence[SourceSurface],
+    *,
+    effective_height_m: float,
+) -> dict[str, Any]:
+    """Measure the current exact mesh's physical non-axis sloped subset."""
+
+    height = float(effective_height_m)
+    if not isfinite(height) or height <= 0.0:
+        return {
+            "effective_height_m": 0.0,
+            "sloped_surface_area": 0.0,
+            "sloped_surface_ratio": 0.0,
+            "sloped_surface_hash": "",
+        }
+    total_area = 0.0
+    sloped_area = 0.0
+    records: list[dict[str, Any]] = []
+    for surface in surfaces:
+        if (
+            not isinstance(surface, SourceSurface)
+            or surface.surface_type
+            != "profiled_recursive_solid_mesh"
+            or len(surface.vertices_m) != 3
+        ):
+            return {
+                "effective_height_m": 0.0,
+                "sloped_surface_area": 0.0,
+                "sloped_surface_ratio": 0.0,
+                "sloped_surface_hash": "",
+            }
+        triangle = tuple(
+            (float(x), float(y), float(z) * height)
+            for x, y, z in surface.vertices_m
+        )
+        left = tuple(
+            triangle[1][axis] - triangle[0][axis]
+            for axis in range(3)
+        )
+        right = tuple(
+            triangle[2][axis] - triangle[0][axis]
+            for axis in range(3)
+        )
+        normal = (
+            left[1] * right[2] - left[2] * right[1],
+            left[2] * right[0] - left[0] * right[2],
+            left[0] * right[1] - left[1] * right[0],
+        )
+        magnitude = sqrt(sum(value * value for value in normal))
+        if not isfinite(magnitude) or magnitude <= 1e-12:
+            continue
+        area = magnitude / 2.0
+        total_area += area
+        absolute_z = abs(normal[2]) / magnitude
+        if 0.12 < absolute_z < 0.90:
+            sloped_area += area
+            records.append({
+                "vertices_m": sorted([
+                    [
+                        round(float(x), 8),
+                        round(float(y), 8),
+                        round(float(z), 8),
+                    ]
+                    for x, y, z in surface.vertices_m
+                ]),
+            })
+    ratio = sloped_area / max(total_area, 1e-12)
+    if sloped_area <= 1e-8 or not records:
+        return {
+            "effective_height_m": height,
+            "sloped_surface_area": 0.0,
+            "sloped_surface_ratio": 0.0,
+            "sloped_surface_hash": "",
+        }
+    payload = {
+        "effective_height_m": round(height, 8),
+        "triangles": sorted(records, key=lambda item: item["vertices_m"]),
+    }
+    return {
+        "effective_height_m": height,
+        "sloped_surface_area": sloped_area,
+        "sloped_surface_ratio": ratio,
+        "sloped_surface_hash": sha256(json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+            allow_nan=False,
+        ).encode("utf-8")).hexdigest(),
+    }
+
+
+def _exact_surface_payload_hash(
+    surfaces: tuple[SourceSurface, ...],
+) -> str:
+    payload = [
+        {
+            "role": surface.role,
+            "volume_role": surface.volume_role,
+            "verb": surface.verb,
+            "surface_type": surface.surface_type,
+            "vertices_m": [
+                [float(x), float(y), float(z)]
+                for x, y, z in surface.vertices_m
+            ],
+            "operator": surface.operator,
+            "semantic_patch_id": surface.semantic_patch_id,
+        }
+        for surface in surfaces
+    ]
+    return sha256(json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+        allow_nan=False,
+    ).encode("utf-8")).hexdigest()
+
+
 def clip_and_certify_projected_piloti_visual(
     surfaces: Sequence[SourceSurface],
     certificate: dict[str, Any],
@@ -710,6 +1354,19 @@ def clip_and_certify_projected_piloti_visual(
         != _stable_visual_hash(source_surfaces)
     ):
         return None
+    floor_count = int(certificate.get("floor_count") or 0)
+    if (
+        str(certificate.get("certification_mode") or "")
+        in FLOORWISE_EXACT_AUTHORITY_MODES
+        and (
+            floor_count <= 0
+            or minimum_z >= 0.5 / floor_count - 1e-10
+        )
+    ):
+        # Exact visual authority is bound to the capacity section at every
+        # floor center. A piloti cut reaching the first sample would erase
+        # that bound section while leaving its capacity hash unchanged.
+        return None
     existing_fraction = certificate.get("piloti_void_height_fraction")
     if existing_fraction is not None:
         if (
@@ -727,10 +1384,28 @@ def clip_and_certify_projected_piloti_visual(
     except ValueError:
         return None
     output = clipped.surfaces
+    output_exact_hash = _exact_surface_payload_hash(output)
+    sloped_evidence = profiled_sloped_mesh_evidence(
+        output,
+        effective_height_m=float(
+            certificate.get("effective_height_m") or 0.0
+        ),
+    )
     rebound_certificate = dict(certificate)
     rebound_certificate.update({
         "visual_hash": _stable_visual_hash(output),
         "projected_surface_count": len(output),
+        "exact_surface_payload_hash": output_exact_hash,
+        "effective_height_m": sloped_evidence["effective_height_m"],
+        "verified_profiled_sloped_surface_area": (
+            sloped_evidence["sloped_surface_area"]
+        ),
+        "verified_profiled_sloped_surface_ratio": (
+            sloped_evidence["sloped_surface_ratio"]
+        ),
+        "verified_profiled_sloped_surface_hash": (
+            sloped_evidence["sloped_surface_hash"]
+        ),
         "piloti_void_height_fraction": round(minimum_z, 8),
         "piloti_visual_projection_status": "clipped_and_capped",
         "piloti_visual_closed_mesh_hard_pass": (
@@ -744,13 +1419,140 @@ def clip_and_certify_projected_piloti_visual(
             clipped.removed_duplicate_count
         ),
     })
+    binding_fields = (
+        "section_profile_hash",
+        "capacity_volume_hash",
+        "floor_capacity_plan_hash",
+        "matrix4_stack_hash",
+        "certification_mode",
+        "visible_geometry_operation",
+    )
+    if all(str(rebound_certificate.get(key) or "") for key in binding_fields):
+        rebound_certificate["authority_binding_hash"] = (
+            floorwise_authority_binding_hash(
+                section_profile_hash=str(
+                    rebound_certificate["section_profile_hash"]
+                ),
+                capacity_volume_hash=str(
+                    rebound_certificate["capacity_volume_hash"]
+                ),
+                floor_capacity_plan_hash=str(
+                    rebound_certificate["floor_capacity_plan_hash"]
+                ),
+                matrix4_stack_hash=str(
+                    rebound_certificate["matrix4_stack_hash"]
+                ),
+                exact_surface_payload_hash=output_exact_hash,
+                certification_mode=str(
+                    rebound_certificate["certification_mode"]
+                ),
+                visible_geometry_operation=str(
+                    rebound_certificate["visible_geometry_operation"]
+                ),
+                visible_step_fallback=bool(
+                    rebound_certificate.get("visible_step_fallback")
+                ),
+                authored_program_hash=str(
+                    rebound_certificate.get("authored_program_hash") or ""
+                ),
+                effective_height_m=float(
+                    rebound_certificate.get("effective_height_m") or 0.0
+                ),
+                verified_profiled_sloped_surface_area=float(
+                    rebound_certificate.get(
+                        "verified_profiled_sloped_surface_area"
+                    ) or 0.0
+                ),
+                verified_profiled_sloped_surface_ratio=float(
+                    rebound_certificate.get(
+                        "verified_profiled_sloped_surface_ratio"
+                    ) or 0.0
+                ),
+                verified_profiled_sloped_surface_hash=str(
+                    rebound_certificate.get(
+                        "verified_profiled_sloped_surface_hash"
+                    ) or ""
+                ),
+                section_numeric_epsilon_m=float(
+                    rebound_certificate.get(
+                        "section_numeric_epsilon_m"
+                    ) or 0.0
+                ),
+                floor_center_numeric_equivalence_schema=str(
+                    rebound_certificate.get(
+                        "floor_center_numeric_equivalence_schema"
+                    ) or ""
+                ),
+                max_section_area_delta_m2=float(
+                    rebound_certificate.get(
+                        "max_section_area_delta_m2"
+                    ) or 0.0
+                ),
+                max_section_symdiff_m2=float(
+                    rebound_certificate.get(
+                        "max_section_symdiff_m2"
+                    ) or 0.0
+                ),
+                max_section_hausdorff_m=float(
+                    rebound_certificate.get(
+                        "max_section_hausdorff_m"
+                    ) or 0.0
+                ),
+                max_section_area_bound_m2=float(
+                    rebound_certificate.get(
+                        "max_section_area_bound_m2"
+                    ) or 0.0
+                ),
+                mesh_numeric_repair_schema=str(
+                    rebound_certificate.get(
+                        "mesh_numeric_repair_schema"
+                    ) or ""
+                ),
+                mesh_cleanup_collapse_threshold_m=float(
+                    rebound_certificate.get(
+                        "mesh_cleanup_collapse_threshold_m"
+                    ) or 0.0
+                ),
+                mesh_cleanup_max_physical_displacement_m=float(
+                    rebound_certificate.get(
+                        "mesh_cleanup_max_physical_displacement_m"
+                    ) or 0.0
+                ),
+                mesh_cleanup_raw_indexed_mesh_hash=str(
+                    rebound_certificate.get(
+                        "mesh_cleanup_raw_indexed_mesh_hash"
+                    ) or ""
+                ),
+                mesh_cleanup_raw_gate_failure_codes=tuple(
+                    rebound_certificate.get(
+                        "mesh_cleanup_raw_gate_failure_codes"
+                    ) or ()
+                ),
+                mesh_cleanup_clean_indexed_mesh_hash=str(
+                    rebound_certificate.get(
+                        "mesh_cleanup_clean_indexed_mesh_hash"
+                    ) or ""
+                ),
+                mesh_cleanup_clean_gate_hard_pass=bool(
+                    rebound_certificate.get(
+                        "mesh_cleanup_clean_gate_hard_pass"
+                    )
+                ),
+            )
+        )
     return output, rebound_certificate
 
 
 __all__ = [
+    "FLOORWISE_EXACT_AUTHORITY_CONTRACTS",
+    "FLOORWISE_EXACT_AUTHORITY_MODES",
     "FloorwiseVisualProjection",
     "FloorwiseVisualProjectionCertificate",
+    "certify_authored_visual_mesh",
     "clip_and_certify_projected_piloti_visual",
+    "floorwise_authority_binding_hash",
+    "valid_floor_center_numeric_equivalence",
     "project_floorwise_visual_mesh",
     "projected_surface_visual_hash",
+    "profiled_sloped_mesh_evidence",
 ]

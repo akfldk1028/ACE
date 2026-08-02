@@ -23,6 +23,10 @@ from .mutation import (
     STRING_PARAMETER_VALUES,
     VECTOR_LENGTHS,
 )
+from ..paid_provider_budget import (
+    PaidProviderBudgetError,
+    reserve_paid_provider_request,
+)
 
 
 DEFAULT_GEOMETRY_AUTHOR_MODEL = "gpt-5.4-mini"
@@ -62,13 +66,22 @@ def author_geometry_programs_with_openai(
     timeout: float = 150.0,
 ) -> tuple[GeometryProgram, ...]:
     """Generate explicit DSL programs; never accept prose or uncompiled labels."""
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise GeometryAuthorError("OPENAI_API_KEY is not set")
     count = max(1, min(20, int(target_count)))
     author_program_context = _author_validation_context(context)
     selected_model = model or os.getenv("MAAS_GEOMETRY_AUTHOR_MODEL") or DEFAULT_GEOMETRY_AUTHOR_MODEL
-    cache_path = _author_cache_path(context=context, count=count, model=selected_model)
+    explicit_replay_path = os.getenv(
+        "MAAS_GEOMETRY_AUTHOR_REPLAY_CACHE_PATH",
+        "",
+    ).strip()
+    cache_path = (
+        Path(explicit_replay_path).resolve()
+        if explicit_replay_path
+        else _author_cache_path(
+            context=context,
+            count=count,
+            model=selected_model,
+        )
+    )
     cached = _load_author_cache(cache_path)
     if cached is not None:
         if isinstance(cached.get("compiled_programs"), list):
@@ -81,12 +94,59 @@ def author_geometry_programs_with_openai(
             programs = geometry_programs_from_author_payload(
                 cached["payload"], expected_count=1,
             )
+        replay_program_name = os.getenv(
+            "MAAS_GEOMETRY_AUTHOR_REPLAY_PROGRAM_NAME",
+            "",
+        ).strip()
+        if replay_program_name:
+            programs = tuple(
+                program
+                for program in programs
+                if program.name == replay_program_name
+            )
+            if not programs:
+                raise GeometryAuthorError(
+                    "named geometry author replay program was not found: "
+                    f"{replay_program_name}"
+                )
         return _decorate_author_programs(
             programs,
             model=str(cached.get("model") or selected_model),
             response_id=str(cached.get("response_id") or ""),
             cache_hit=True,
         )
+    rejected_cache = _load_revalidatable_kernel_rejection(
+        cache_path.with_suffix(".rejected.json")
+    )
+    if rejected_cache is not None:
+        try:
+            programs = geometry_programs_from_author_payload(
+                rejected_cache["payload"],
+                expected_count=1,
+                program_context=author_program_context,
+            )
+        except GeometryAuthorError:
+            programs = ()
+        if programs:
+            decorated = _decorate_author_programs(
+                programs,
+                model=str(rejected_cache.get("model") or selected_model),
+                response_id=str(rejected_cache.get("response_id") or ""),
+                cache_hit=True,
+            )
+            _save_author_cache(cache_path, {
+                "cache_schema_version": "arr.maas.geometry_llm_author_cache.v3",
+                "validation_status": "accepted",
+                "model": str(rejected_cache.get("model") or selected_model),
+                "response_id": str(rejected_cache.get("response_id") or ""),
+                "payload": rejected_cache["payload"],
+                "compiled_programs": [program.to_dict() for program in decorated],
+                "revalidated_from": "kernel_unavailable_rejection",
+            })
+            return decorated
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise GeometryAuthorError("OPENAI_API_KEY is not set")
     body = {
         "model": selected_model,
         "input": [
@@ -126,6 +186,7 @@ def author_geometry_programs_with_openai(
         method="POST",
     )
     try:
+        reserve_paid_provider_request("geometry_author")
         with urllib.request.urlopen(request, timeout=timeout) as response:
             response_data = json.loads(response.read().decode("utf-8"))
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
@@ -189,7 +250,7 @@ def author_geometry_programs_with_openai(
                 model=selected_model,
                 timeout=timeout,
             )
-        except GeometryAuthorError:
+        except (GeometryAuthorError, PaidProviderBudgetError):
             repaired = ()
         seen_hashes = {program.program_hash() for program in programs}
         for program in repaired:
@@ -1312,6 +1373,29 @@ def _load_author_cache(path: Path) -> dict[str, Any] | None:
     ):
         return payload
     return None
+
+
+def _load_revalidatable_kernel_rejection(path: Path) -> dict[str, Any] | None:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return None
+    feedback = payload.get("compiler_repair_feedback")
+    if not (
+        isinstance(payload, dict)
+        and payload.get("cache_schema_version")
+        == "arr.maas.geometry_llm_author_cache.v3"
+        and payload.get("validation_status") == "rejected"
+        and isinstance(payload.get("payload"), dict)
+        and isinstance(feedback, list)
+        and any(
+            isinstance(item, dict)
+            and item.get("compile_status") == "kernel_unavailable"
+            for item in feedback
+        )
+    ):
+        return None
+    return payload
 
 
 def _save_author_cache(path: Path, payload: dict[str, Any]) -> None:

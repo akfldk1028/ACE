@@ -10,9 +10,16 @@ from unittest.mock import patch
 
 from shapely.errors import GEOSException
 from django.test import SimpleTestCase
+from shapely.affinity import rotate
 from shapely.geometry import Polygon, box
 
 from design.maas.geometry_language import source_bridge as source_bridge_module
+from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
+from design.maas.geometry_language.source_bridge import (
+    append_site_placement_matrix,
+    compile_site_bound_geometry_program_to_source_mass,
+    derive_host_fit_transform,
+)
 
 from design.maas.geometry_language import (
     BOOK_KERNEL_PARAMETER_PROJECTIONS,
@@ -95,6 +102,294 @@ from design.maas.source_geometry.compiler import compile_sequence_to_source_mass
 
 
 class MaasGeometryLanguageTest(SimpleTestCase):
+    def test_export_mesh_canonicalization_welds_only_exact_zero_degeneracy(self):
+        from design.maas.geometry_language.compiler import (
+            _canonicalize_export_mesh,
+        )
+
+        vertices = (
+            (0.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0),
+            (2.0, 0.0, 0.0),
+        )
+        triangles = (
+            (0, 1, 2),
+            (3, 0, 1),
+            (0, 1, 4),
+        )
+
+        canonical_vertices, canonical_triangles = (
+            _canonicalize_export_mesh(vertices, triangles)
+        )
+
+        self.assertEqual(canonical_vertices, vertices[:3])
+        self.assertEqual(canonical_triangles, ((0, 1, 2),))
+
+    def test_export_mesh_canonicalization_keeps_nonzero_tiny_edge_for_gate(self):
+        from design.maas.geometry_language.compiler import (
+            _canonicalize_export_mesh,
+        )
+        from design.maas.geometry_language.gate import (
+            GeometryGatePolicy,
+            compilation_gate,
+        )
+
+        vertices = (
+            (0.0, 0.0, 0.0),
+            (0.000001, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+        )
+        triangles = ((0, 1, 2),)
+        canonical_vertices, canonical_triangles = (
+            _canonicalize_export_mesh(vertices, triangles)
+        )
+        self.assertEqual(canonical_vertices, vertices)
+        self.assertEqual(canonical_triangles, triangles)
+
+        block = next(
+            program for program in base_seed_programs()
+            if (program.metadata.get("base_seed") or {}).get("seed_id")
+            == "block"
+        )
+        compilation = compile_geometry_program(block)
+        transported = replace(
+            compilation,
+            vertices=canonical_vertices,
+            triangles=canonical_triangles,
+            metrics={
+                **compilation.metrics,
+                "vertex_count": 3,
+                "triangle_count": 1,
+            },
+        )
+        issues = compilation_gate(
+            transported,
+            GeometryGatePolicy(maximum_components=1),
+        )
+        self.assertIn("tiny_edge", {issue.code for issue in issues})
+
+    def test_normal_unitbox_export_hash_and_payload_remain_stable(self):
+        from design.maas.geometry_language.compiler import (
+            _canonicalize_export_mesh,
+        )
+
+        block = next(
+            program for program in base_seed_programs()
+            if (program.metadata.get("base_seed") or {}).get("seed_id")
+            == "block"
+        )
+        compilation = compile_geometry_program(block)
+        self.assertEqual(
+            _canonicalize_export_mesh(
+                compilation.vertices,
+                compilation.triangles,
+            ),
+            (compilation.vertices, compilation.triangles),
+        )
+        self.assertEqual(len(compilation.vertices), 8)
+        self.assertEqual(len(compilation.triangles), 12)
+        self.assertEqual(
+            compilation.geometry_hash,
+            "df8e75b678cdcef6f8ddba003ed84ee3cd431d85605ef12375eb87996ac1ab44",
+        )
+
+    def test_site_bound_source_export_uses_the_placed_program_without_refitting(self):
+        unit = GeometryNode(
+            "unit_box",
+            "primitive",
+            "box",
+            parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        slab = GeometryNode(
+            "slab",
+            "transform",
+            "matrix4",
+            inputs=(unit.id,),
+            parameters={
+                "matrix4": [
+                    [14.0, 0.0, 0.0, 0.0],
+                    [0.0, 7.0, 0.0, 0.0],
+                    [0.0, 0.0, 5.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ],
+            },
+        )
+        authored_rotation = GeometryNode(
+            "authored_rotation",
+            "transform",
+            "rotate",
+            inputs=(slab.id,),
+            parameters={"axis": "z", "angle_degrees": 19.0},
+        )
+        program = GeometryProgram(
+            (unit, slab, authored_rotation),
+            authored_rotation.id,
+            "site_bound_export",
+            metadata={"base_seed": "slab"},
+        )
+        compilation = compile_geometry_program(program)
+        legal_host = rotate(
+            box(50.0, 80.0, 90.0, 108.0),
+            27.0,
+            origin=(70.0, 94.0),
+        )
+        fit = derive_host_fit_transform(compilation, legal_host)
+        placed = append_site_placement_matrix(program, fit)
+
+        with patch.object(
+            source_bridge_module,
+            "_fit_vertices_to_host",
+            side_effect=AssertionError("site-bound export must not refit"),
+        ):
+            source = compile_site_bound_geometry_program_to_source_mass(
+                placed,
+                legal_host,
+            )
+            outside = compile_site_bound_geometry_program_to_source_mass(
+                placed,
+                rotate(
+                    box(-90.0, -80.0, -50.0, -52.0),
+                    27.0,
+                    origin=(-70.0, -66.0),
+                ),
+            )
+
+        self.assertIsNotNone(source)
+        self.assertIsNone(outside)
+        bridge = source.metadata["geometry_program_bridge_evidence"]
+        self.assertEqual(bridge["legal_fit_mode"], "site_bound_matrix4")
+        self.assertEqual(
+            bridge["program_hash"],
+            placed.program_hash(),
+        )
+        self.assertTrue(bridge["host_contains_all_proxy_volumes"])
+
+    def test_site_bound_source_export_rejects_noncanonical_box_authority_only(self):
+        dimensional_box = GeometryNode(
+            "dimensional_box",
+            "primitive",
+            "box",
+            parameters={"width": 14.0, "depth": 7.0, "height": 5.0},
+        )
+        authored_rotation = GeometryNode(
+            "authored_rotation",
+            "transform",
+            "rotate",
+            inputs=(dimensional_box.id,),
+            parameters={"axis": "z", "angle_degrees": 19.0},
+        )
+        program = GeometryProgram(
+            (dimensional_box, authored_rotation),
+            authored_rotation.id,
+            "noncanonical_site_bound_export",
+        )
+        compilation = compile_geometry_program(program)
+        legal_host = rotate(
+            box(50.0, 80.0, 90.0, 108.0),
+            27.0,
+            origin=(70.0, 94.0),
+        )
+        fit = derive_host_fit_transform(compilation, legal_host)
+        placed = append_site_placement_matrix(program, fit)
+
+        self.assertIsNone(
+            compile_site_bound_geometry_program_to_source_mass(
+                placed,
+                legal_host,
+            )
+        )
+        self.assertIsNotNone(
+            compile_geometry_program_to_source_mass(program, legal_host)
+        )
+
+    def test_site_bound_source_export_rejects_any_second_primitive_only(self):
+        unit = GeometryNode(
+            "unit_box",
+            "primitive",
+            "box",
+            parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        slab = GeometryNode(
+            "slab",
+            "transform",
+            "matrix4",
+            inputs=(unit.id,),
+            parameters={
+                "matrix4": [
+                    [14.0, 0.0, 0.0, 0.0],
+                    [0.0, 7.0, 0.0, 0.0],
+                    [0.0, 0.0, 5.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ],
+            },
+        )
+        extra_cylinder = GeometryNode(
+            "extra_cylinder",
+            "primitive",
+            "cylinder",
+            parameters={"height": 5.0, "radius": 1.0, "segments": 16},
+        )
+        positioned_cylinder = GeometryNode(
+            "positioned_cylinder",
+            "transform",
+            "matrix4",
+            inputs=(extra_cylinder.id,),
+            parameters={
+                "matrix4": [
+                    [1.0, 0.0, 0.0, 7.0],
+                    [0.0, 1.0, 0.0, 3.5],
+                    [0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ],
+            },
+        )
+        combined = GeometryNode(
+            "combined",
+            "boolean",
+            "union",
+            inputs=(slab.id, positioned_cylinder.id),
+        )
+        authored_rotation = GeometryNode(
+            "authored_rotation",
+            "transform",
+            "rotate",
+            inputs=(combined.id,),
+            parameters={"axis": "z", "angle_degrees": 19.0},
+        )
+        program = GeometryProgram(
+            (
+                unit,
+                slab,
+                extra_cylinder,
+                positioned_cylinder,
+                combined,
+                authored_rotation,
+            ),
+            authored_rotation.id,
+            "mixed_primitive_site_bound_export",
+        )
+        compilation = compile_geometry_program(program)
+        legal_host = rotate(
+            box(50.0, 80.0, 90.0, 108.0),
+            27.0,
+            origin=(70.0, 94.0),
+        )
+        fit = derive_host_fit_transform(compilation, legal_host)
+        placed = append_site_placement_matrix(program, fit)
+
+        self.assertEqual(compilation.status, "compiled", compilation.issues)
+        self.assertIsNone(
+            compile_site_bound_geometry_program_to_source_mass(
+                placed,
+                legal_host,
+            )
+        )
+        self.assertIsNotNone(
+            compile_geometry_program_to_source_mass(program, legal_host)
+        )
+
     def test_book_stack_upper_ratio_controls_executable_setback_geometry(self):
         base = base_seed_programs()[2]
         seed = program_seed_sequences("neighborhood_living")[0]
@@ -280,7 +575,7 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                 "oriented_p3_cell_volume_weighted_center",
             )
 
-    def test_book_vlm_capacity_floor_is_stage_aware(self):
+    def test_book_vlm_capacity_floor_is_advisory_at_every_stage(self):
         from design.maas.book_language.vlm_review import _final_book_vlm_hard_pass
 
         result = {
@@ -306,8 +601,11 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         )
 
         self.assertTrue(base_pass)
-        self.assertFalse(final_pass)
-        self.assertIn("book_stage_feasible_capacity_below_competition_floor", failures)
+        self.assertTrue(final_pass)
+        self.assertNotIn(
+            "book_stage_feasible_capacity_below_competition_floor",
+            failures,
+        )
 
     def test_book_vlm_review_budgets_are_cost_bounded_by_default_and_ceiling(self):
         from design.maas.book_language.vlm_review import _book_vlm_review_budget
@@ -328,6 +626,109 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             self.assertEqual(_book_vlm_review_budget("final_book"), 1)
         with patch.dict(os.environ, {"MAAS_FINAL_BOOK_VLM_TOP_K": "999"}):
             self.assertEqual(_book_vlm_review_budget("final_book"), 48)
+
+    def test_final_book_vlm_recovery_can_be_disabled_to_prevent_repeat_spend(self):
+        from design.maas.book_language.vlm_review import (
+            _final_book_vlm_recovery_workers,
+        )
+
+        with patch.dict(
+            os.environ,
+            {"MAAS_FINAL_BOOK_VLM_RECOVERY_WORKERS": "0"},
+        ):
+            self.assertEqual(_final_book_vlm_recovery_workers(), 0)
+        with patch.dict(
+            os.environ,
+            {"MAAS_FINAL_BOOK_VLM_RECOVERY_WORKERS": "9"},
+        ):
+            self.assertEqual(_final_book_vlm_recovery_workers(), 2)
+
+    def test_final_vlm_review_binds_preselection_semantic_authority(self):
+        from design.maas.book_language.vlm_review import (
+            _bind_final_visual_authority_for_review,
+        )
+
+        candidate = SimpleNamespace(
+            source=object(),
+            feature={"properties": {}},
+        )
+        audit = {
+            "audited_context": {"program_id": "neighborhood_living"},
+            "semantic_projection_hash": "semantic-hash",
+            "hard_pass": True,
+        }
+        artifact = {
+            "projectedVisualGeometryHash": "visual-hash",
+            "projectedVisualCertificate": {
+                "schema_version": "arr.maas.floorwise_visual_projection.v1",
+                "status": "certified",
+                "hard_pass": True,
+                "visual_hash": "visual-hash",
+                "projected_surface_count": 1,
+            },
+            "projectedVisualMesh": {
+                "triangles": [
+                    {
+                        "vertices_m": [
+                            [0.0, 0.0, 0.0],
+                            [1.0, 0.0, 0.0],
+                            [0.0, 1.0, 0.0],
+                        ]
+                    }
+                ]
+            },
+        }
+        with patch(
+            "design.maas.book_language.vlm_review."
+            "serialize_certified_projected_visual",
+            return_value=artifact,
+        ):
+            _bind_final_visual_authority_for_review(candidate, audit)
+
+        props = candidate.feature["properties"]
+        self.assertEqual(props["geometry_artifact"], artifact)
+        self.assertEqual(
+            props["source_surfaces"],
+            artifact["projectedVisualMesh"]["triangles"],
+        )
+        self.assertEqual(
+            props["final_semantic_anchor"]["expected_semantic_context"],
+            audit["audited_context"],
+        )
+        self.assertEqual(
+            props["final_semantic_anchor"][
+                "expected_semantic_projection_hash"
+            ],
+            "semantic-hash",
+        )
+
+    def test_vlm_identity_resolves_certified_final_visual_artifact_hashes(self):
+        from design.maas.preference.vlm_scorer import _review_identity_hashes
+
+        feature = {
+            "properties": {
+                "geometry_artifact": {
+                    "identity": {
+                        "programHash": "final-program-hash",
+                        "geometryHash": "final-visual-geometry-hash",
+                        "finalLegalGeometryHash": "final-legal-geometry-hash",
+                    },
+                    "projectedVisualCertificate": {
+                        "final_program_hash": "certificate-program-hash",
+                        "final_geometry_hash": "certificate-geometry-hash",
+                    },
+                }
+            }
+        }
+
+        self.assertEqual(
+            _review_identity_hashes(
+                feature,
+                program_hash="",
+                geometry_hash="",
+            ),
+            ("final-program-hash", "final-visual-geometry-hash"),
+        )
 
     def test_one_shot_final_vlm_reviews_selector_winner_not_alphabetic_family(self):
         from design.maas.book_language.vlm_review import _final_book_vlm_shortlist
@@ -1244,6 +1645,17 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                 host_area_m2=200.0,
             ),
             0.6,
+        )
+        self.assertEqual(
+            recursive_plan_coverage_floor(
+                "neighborhood_living",
+                {
+                    "target_base_plan_area_m2": 92.638,
+                    "target_base_plan_coverage": 0.9,
+                },
+                host_area_m2=102.93096089488186,
+            ),
+            0.9,
         )
 
         host = Polygon(((0, 0), (30, 0), (30, 20), (0, 20)))
@@ -3421,6 +3833,32 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         )
         self.assertNotIn("section_controls", str(requests))
 
+    def test_profile_required_macro_operators_any_are_enforced_in_synthesis(self):
+        requests = synthesis_requests_from_program_profile(
+            "neighborhood living",
+            source_seeds=("lineage-a", "lineage-b"),
+            candidates_per_lineage=24,
+        )
+        self.assertEqual(len(requests), 2)
+        required_macro_operators_any = set(
+            requests[0]["required_macro_operators_any"]
+        )
+        self.assertTrue(required_macro_operators_any)
+        for request in requests:
+            request["candidate_count"] = 18
+            request["maximum_operator_depth"] = 3
+            programs = synthesize_architectural_programs(
+                request,
+                building_type="neighborhood living",
+            )
+            self.assertEqual(len(programs), 18)
+            self.assertTrue(all(
+                required_macro_operators_any.intersection(
+                    set(program.metadata["operator_path"]),
+                )
+                for program in programs
+            ))
+
     def test_frontend_early_typologies_are_typed_executable_chassis_priors(self):
         self.assertEqual([prior.typology_id for prior in TYPOLOGY_PRIORS], [
             "additive", "subtractive", "grid", "lshape", "ushape", "cross",
@@ -3754,6 +4192,14 @@ class MaasGeometryLanguageTest(SimpleTestCase):
 
         self.assertEqual(len(baseline), 82)
         self.assertEqual(len(replenishment), 64)
+        for program in (*baseline, *replenishment):
+            primitives = [node for node in program.nodes if node.kind == "primitive"]
+            self.assertEqual(len(primitives), 1)
+            self.assertEqual(primitives[0].operator, "box")
+            self.assertEqual(
+                primitives[0].parameters,
+                {"width": 1.0, "depth": 1.0, "height": 1.0},
+            )
         self.assertTrue(all(
             program.metadata.get("form_bank_variation_page") == 1
             for program in replenishment
@@ -3762,6 +4208,144 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         # parameter tuple; the page must still contribute a genuinely new
         # population rather than replaying all 82 baseline payloads.
         self.assertGreaterEqual(len(replenishment_hashes - baseline_hashes), 63)
+
+    def test_page_zero_round_robins_bounded_and_core_lanes_after_public_slots(self):
+        from design.maas.geometry_language.universal_form_bank import (
+            universal_form_programs,
+        )
+
+        programs = universal_form_programs(0)
+        first_three = programs[:3]
+        self.assertEqual(
+            [
+                (
+                    str(program.metadata.get("form_bank_lane") or ""),
+                    str(program.metadata.get("family") or ""),
+                )
+                for program in first_three
+            ],
+            [
+                ("bounded_synthesis", "agent_inflate"),
+                ("bounded_synthesis", "agent_carve_void"),
+                ("bounded_synthesis", "agent_grid_mass"),
+            ],
+        )
+        self.assertEqual(len(programs), 82)
+        self.assertEqual(len({program.program_hash() for program in programs}), 82)
+        self.assertEqual(
+            [
+                str(program.metadata.get("form_bank_lane") or "")
+                for program in programs[3:9]
+            ],
+            [
+                "bounded_synthesis",
+                "executable_core_language",
+                "bounded_synthesis",
+                "executable_core_language",
+                "bounded_synthesis",
+                "executable_core_language",
+            ],
+        )
+
+        diagnostic_window = programs[:36]
+        self.assertIn(
+            "executable_core_language",
+            {
+                str(program.metadata.get("form_bank_lane") or "")
+                for program in diagnostic_window[:12]
+            },
+        )
+        families = {
+            str(program.metadata.get("family") or "")
+            for program in diagnostic_window
+        }
+        chassis = {
+            str(program.metadata.get("chassis") or "")
+            for program in diagnostic_window
+        }
+        self.assertTrue(
+            {
+                "bent_linear_mass",
+                "radial_fan",
+                "courtyard",
+                "agent_split_wing",
+            }.issubset(families),
+            families,
+        )
+        self.assertTrue(
+            {
+                "bent_bar",
+                "radial_wings",
+                "courtyard",
+                "split_wing",
+                "leaning_tower",
+            }.issubset(chassis),
+            chassis,
+        )
+        for program in diagnostic_window:
+            primitives = [node for node in program.nodes if node.kind == "primitive"]
+            self.assertEqual(len(primitives), 1)
+            self.assertEqual(primitives[0].operator, "box")
+            self.assertEqual(
+                primitives[0].parameters,
+                {"width": 1.0, "depth": 1.0, "height": 1.0},
+            )
+            self.assertTrue(any(
+                node.kind in {"transform", "modifier", "macro", "boolean"}
+                for node in program.nodes[1:]
+            ))
+
+    def test_replenishment_page_rotates_early_typology_priors_before_diagnostic_cap(self):
+        from design.maas.geometry_language.universal_form_bank import (
+            universal_form_programs,
+        )
+
+        baseline = universal_form_programs(0)[:3]
+        replenishment = universal_form_programs(1)[:3]
+
+        self.assertEqual(
+            [
+                (
+                    str(program.metadata.get("family") or ""),
+                    str(program.metadata.get("chassis") or ""),
+                )
+                for program in baseline
+            ],
+            [
+                ("agent_inflate", "primitive_block"),
+                ("agent_carve_void", "carved_monolith"),
+                ("agent_grid_mass", "primitive_bar"),
+            ],
+        )
+        self.assertEqual(
+            [
+                (
+                    str(program.metadata.get("family") or ""),
+                    str(program.metadata.get("chassis") or ""),
+                )
+                for program in replenishment
+            ],
+            [
+                ("agent_radial_array", "radial_wings"),
+                ("agent_bend", "bent_bar"),
+                ("agent_inflate", "primitive_block"),
+            ],
+        )
+        for program in (*baseline, *replenishment):
+            primitives = [
+                node for node in program.nodes
+                if node.kind == "primitive"
+            ]
+            self.assertEqual(len(primitives), 1)
+            self.assertEqual(primitives[0].operator, "box")
+            self.assertEqual(
+                primitives[0].parameters,
+                {"width": 1.0, "depth": 1.0, "height": 1.0},
+            )
+            self.assertTrue(any(
+                node.kind in {"transform", "macro", "boolean"}
+                for node in program.nodes[1:]
+            ))
 
     def test_universal_relational_families_rotate_beyond_thin_bar_chassis(self):
         from design.maas.geometry_language.universal_form_bank import universal_form_programs
@@ -3772,10 +4356,16 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             & {"bent_bar", "split_wing", "cross_mass", "grid_mass"}
         ]
         seeds = {str(program.metadata.get("base_seed") or "") for program in relational}
+        all_seeds = {
+            str(program.metadata.get("base_seed") or "")
+            for program in universal_form_programs()
+            if program.metadata.get("form_bank_lane") == "bounded_synthesis"
+        }
 
         self.assertIn("bar", seeds)
         self.assertIn("slab", seeds)
-        self.assertIn("profiled_prism", seeds)
+        self.assertEqual(all_seeds, {"block", "tower", "bar", "slab"})
+        self.assertNotIn("profiled_prism", all_seeds)
 
     def test_default_dominant_form_supply_is_identical_before_program_projection(self):
         from design.maas.book_language.candidate_generation import _agent_mutated_seeds
@@ -5125,6 +5715,311 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             "geometry_program_vlm_status=deferred_to_exact_post_book_final_solid",
             active[0].notes,
         )
+
+    def test_live_llm_authorship_collapses_prior_directives_to_one_paid_request(self):
+        from design.maas.book_language.authorship_policy import (
+            bounded_live_llm_synthesis_requests,
+        )
+
+        requests = bounded_live_llm_synthesis_requests(
+            "근린생활시설",
+            source_seed_names=("program_neighborhood_active_bar",),
+            target_count=2,
+            prior_requests=(
+                {"intent_tags": ["public_threshold", "courtyard"]},
+                {"intent_tags": ["non_stepped", "connected_mass"]},
+            ),
+        )
+
+        self.assertEqual(len(requests), 1)
+        self.assertTrue(requests[0]["live_llm_author"])
+        self.assertTrue(requests[0]["llm_author_only"])
+        self.assertEqual(requests[0]["llm_author_count"], 2)
+        self.assertEqual(
+            requests[0]["intent_tags"],
+            [
+                "public_threshold",
+                "courtyard",
+                "non_stepped",
+                "connected_mass",
+            ],
+        )
+
+    def test_llm_authored_body_is_not_overwritten_by_book_recipe(self):
+        from design.maas.book_language.candidate_generation import (
+            _body_program_for_book_projection,
+        )
+
+        authored = replace(
+            base_seed_programs()[1],
+            metadata={
+                **base_seed_programs()[1].metadata,
+                "author_provider": "openai_llm_geometry_author",
+                "llm_geometry_author_active": True,
+            },
+        )
+        sequence = program_seed_sequences("gymnasium")[0]
+        with patch(
+            "design.maas.book_language.candidate_generation."
+            "apply_book_projection_to_geometry_program",
+        ) as recipe_projection:
+            result = _body_program_for_book_projection(
+                authored,
+                sequence,
+            )
+
+        self.assertIs(result, authored)
+        recipe_projection.assert_not_called()
+
+    def test_llm_author_cache_replay_does_not_require_live_api_key(self):
+        authored = base_seed_programs()[1]
+        with TemporaryDirectory() as temporary_dir:
+            cache_path = Path(temporary_dir) / "author-cache.json"
+            cache_path.write_text(json.dumps({
+                "cache_schema_version": (
+                    "arr.maas.geometry_llm_author_cache.v3"
+                ),
+                "validation_status": "accepted",
+                "model": "cached-test-model",
+                "response_id": "resp-cached-author",
+                "compiled_programs": [authored.to_dict()],
+            }), encoding="utf-8")
+            with patch.dict(
+                os.environ,
+                {
+                    "MAAS_GEOMETRY_AUTHOR_REPLAY_CACHE_PATH": str(
+                        cache_path
+                    ),
+                },
+                clear=True,
+            ):
+                programs = (
+                    geometry_llm_adapter.author_geometry_programs_with_openai(
+                        {"program_id": "neighborhood_living"},
+                        target_count=1,
+                        model="cached-test-model",
+                    )
+                )
+
+        self.assertEqual(len(programs), 1)
+        self.assertTrue(programs[0].metadata["author_cache_hit"])
+        self.assertEqual(
+            programs[0].metadata["author_response_id"],
+            "resp-cached-author",
+        )
+
+    def test_llm_author_cache_replay_can_select_one_named_paid_result(self):
+        first, second = base_seed_programs()[:2]
+        with TemporaryDirectory() as temporary_dir:
+            cache_path = Path(temporary_dir) / "author-cache.json"
+            cache_path.write_text(json.dumps({
+                "cache_schema_version": (
+                    "arr.maas.geometry_llm_author_cache.v3"
+                ),
+                "validation_status": "accepted",
+                "model": "cached-test-model",
+                "response_id": "resp-cached-author",
+                "compiled_programs": [
+                    first.to_dict(),
+                    second.to_dict(),
+                ],
+            }), encoding="utf-8")
+            with patch.dict(
+                os.environ,
+                {
+                    "MAAS_GEOMETRY_AUTHOR_REPLAY_CACHE_PATH": str(
+                        cache_path
+                    ),
+                    "MAAS_GEOMETRY_AUTHOR_REPLAY_PROGRAM_NAME": second.name,
+                },
+                clear=True,
+            ):
+                programs = (
+                    geometry_llm_adapter.author_geometry_programs_with_openai(
+                        {"program_id": "neighborhood_living"},
+                        target_count=1,
+                        model="cached-test-model",
+                    )
+                )
+
+        self.assertEqual([program.name for program in programs], [second.name])
+        self.assertTrue(programs[0].metadata["author_cache_hit"])
+
+    def test_llm_authored_body_has_direct_projection_evidence_without_book_recipe(self):
+        from design.maas.book_language.candidate_generation import (
+            _program_projection_evidence,
+        )
+
+        authored = replace(
+            base_seed_programs()[1],
+            metadata={
+                **base_seed_programs()[1].metadata,
+                "author_provider": "openai_llm_geometry_author",
+                "author_response_id": "resp-test-author",
+                "llm_geometry_author_active": True,
+            },
+        )
+        bridge = {
+            "status": "materialized",
+            "program_hash": authored.program_hash(),
+            "geometry_hash": "final-legal-geometry",
+        }
+
+        evidence = _program_projection_evidence(authored, bridge)
+
+        self.assertEqual(evidence["status"], "materialized")
+        self.assertEqual(evidence["projection_kind"], "direct_llm_authored_ast")
+        self.assertEqual(evidence["operations"], [])
+        self.assertEqual(
+            evidence["authoritative_geometry_hash"],
+            "final-legal-geometry",
+        )
+
+    def test_authored_projection_identity_rejects_unrequested_step_collapse(self):
+        from design.maas.book_language import candidate_generation
+
+        authored = SimpleNamespace(metadata={
+            "geometry_program": {
+                "nodes": [
+                    {"operator": "box"},
+                    {"operator": "bend"},
+                    {"operator": "lift"},
+                ]
+            }
+        })
+        projected = SimpleNamespace(metadata={
+            "floorwise_visual_projection": {
+                "visible_step_fallback": False,
+            }
+        })
+        authored_metrics = {
+            "phenotype": "curved",
+            "visible_stepped": False,
+            "pyramidal_like": False,
+        }
+        projected_metrics = {
+            "phenotype": "stepped",
+            "visible_stepped": True,
+            "pyramidal_like": True,
+        }
+
+        with (
+            patch.object(
+                candidate_generation,
+                "_solid_morphology_metrics",
+                side_effect=(authored_metrics, projected_metrics),
+            ),
+            patch.object(
+                candidate_generation,
+                "intrinsic_silhouette_distance",
+                return_value=0.41,
+            ),
+        ):
+            evidence = (
+                candidate_generation._authored_projection_identity_evidence(
+                    authored,
+                    projected,
+                )
+            )
+
+        self.assertFalse(evidence["hard_pass"])
+        self.assertIn(
+            "unrequested_legal_step_collapse",
+            evidence["failure_reasons"],
+        )
+        self.assertIn(
+            "authored_projection_silhouette_distance_exceeded",
+            evidence["failure_reasons"],
+        )
+
+    def test_authored_step_may_remain_a_step_after_legal_projection(self):
+        from design.maas.book_language import candidate_generation
+
+        authored = SimpleNamespace(metadata={
+            "geometry_program": {
+                "nodes": [
+                    {"operator": "box"},
+                    {"operator": "terrace"},
+                ]
+            }
+        })
+        projected = SimpleNamespace(metadata={
+            "floorwise_visual_projection": {
+                "visible_step_fallback": False,
+            }
+        })
+        stepped_metrics = {
+            "phenotype": "stepped",
+            "visible_stepped": True,
+            "pyramidal_like": False,
+        }
+
+        with (
+            patch.object(
+                candidate_generation,
+                "_solid_morphology_metrics",
+                side_effect=(stepped_metrics, stepped_metrics),
+            ),
+            patch.object(
+                candidate_generation,
+                "intrinsic_silhouette_distance",
+                return_value=0.08,
+            ),
+        ):
+            evidence = (
+                candidate_generation._authored_projection_identity_evidence(
+                    authored,
+                    projected,
+                )
+            )
+
+        self.assertTrue(evidence["hard_pass"])
+        self.assertEqual(evidence["failure_reasons"], [])
+
+    def test_authored_void_may_keep_moderate_affine_fit_without_type_change(self):
+        from design.maas.book_language import candidate_generation
+
+        authored = SimpleNamespace(metadata={
+            "geometry_program": {
+                "nodes": [
+                    {"operator": "box"},
+                    {"operator": "cut_corner"},
+                    {"operator": "courtyard"},
+                ]
+            }
+        })
+        projected = SimpleNamespace(metadata={
+            "floorwise_visual_projection": {
+                "visible_step_fallback": False,
+            }
+        })
+        voided_metrics = {
+            "phenotype": "voided",
+            "visible_stepped": False,
+            "pyramidal_like": False,
+        }
+
+        with (
+            patch.object(
+                candidate_generation,
+                "_solid_morphology_metrics",
+                side_effect=(voided_metrics, voided_metrics),
+            ),
+            patch.object(
+                candidate_generation,
+                "intrinsic_silhouette_distance",
+                return_value=0.3577,
+            ),
+        ):
+            evidence = (
+                candidate_generation._authored_projection_identity_evidence(
+                    authored,
+                    projected,
+                )
+            )
+
+        self.assertTrue(evidence["hard_pass"])
+        self.assertEqual(evidence["projected_phenotype"], "voided")
 
     def test_prebook_vlm_rejection_quarantines_connected_llm_parent_without_selection_authority(self):
         from design.maas.book_language.candidate_generation import (

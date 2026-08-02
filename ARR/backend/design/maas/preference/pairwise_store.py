@@ -19,6 +19,8 @@ class PairwisePreference:
     reviewer_id: str = "user"
     session_id: str = "default"
     reason: str = ""
+    preferred_geometry_hash: str = ""
+    rejected_geometry_hash: str = ""
     created_at: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
@@ -29,7 +31,20 @@ class PairwisePreference:
             "reviewer_id": self.reviewer_id,
             "session_id": self.session_id,
             "reason": self.reason,
+            "preferred_geometry_hash": self.preferred_geometry_hash,
+            "rejected_geometry_hash": self.rejected_geometry_hash,
             "created_at": self.created_at or time.time(),
+        }
+
+    def to_event_fields(self) -> dict[str, str]:
+        return {
+            "preferred_candidate_id": self.preferred_candidate_id,
+            "rejected_candidate_id": self.rejected_candidate_id,
+            "reviewer_id": self.reviewer_id,
+            "session_id": self.session_id,
+            "reason": self.reason,
+            "preferred_geometry_hash": self.preferred_geometry_hash,
+            "rejected_geometry_hash": self.rejected_geometry_hash,
         }
 
 
@@ -70,4 +85,3 @@ __all__ = [
     "load_pairwise_labels",
     "pairwise_win_counts",
 ]
-

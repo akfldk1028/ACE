@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 
 from design.maas.geometry_language import synthesis_requests_from_program_profile
 
@@ -15,6 +15,7 @@ def bounded_live_llm_synthesis_requests(
     *,
     source_seed_names: Iterable[str],
     target_count: int,
+    prior_requests: Iterable[Mapping[str, Any]] = (),
 ) -> tuple[dict[str, Any], ...]:
     """Create one paid LLM request; exact-solid VLM remains a later stage."""
 
@@ -33,14 +34,30 @@ def bounded_live_llm_synthesis_requests(
         source_seeds=(source_seed,),
         candidates_per_lineage=authored_count,
     )
-    return tuple({
-        **dict(request),
+    if not profile_requests:
+        return ()
+    prior = tuple(
+        dict(request)
+        for request in prior_requests
+        if isinstance(request, Mapping)
+    )
+    intent_tags = list(dict.fromkeys(
+        str(tag)
+        for request in prior
+        for tag in (request.get("intent_tags") or ())
+        if str(tag)
+    ))
+    request = dict(profile_requests[0])
+    if intent_tags:
+        request["intent_tags"] = intent_tags
+    return ({
+        **request,
         "live_llm_author": True,
         "llm_author_only": True,
         "llm_author_count": authored_count,
         "live_vlm_revision": False,
         "synthesis_request_source": "bounded_live_llm_portfolio_author",
-    } for request in profile_requests)
+    },)
 
 
 __all__ = [

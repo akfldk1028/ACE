@@ -2,6 +2,17 @@
 
 Read this folder before touching the legal-design visualization work.
 
+## Active authored MASS recovery — 2026-07-28
+
+Read `MAAS_R293_V6_SOLID_ELEVATION_DELTA_20260728.md` first, especially the
+latest append-only r9 sections at its bottom, and then read the full v5
+checkpoint. V6 is also the active Task-5 recovery ledger; do not infer that
+the work stopped at its original solid-face elevation section. Current r9 is
+still frozen/offline and has no accepted PNG.
+
+Read `MAAS_R293_V5_AUTHORED_LEGAL_ELEVATION_CHECKPOINT_20260728.md` first.
+It is the current r293/v5 handoff and supersedes older “only two MASSes” state.
+
 ## Single causal MASS graph checkpoint - 2026-07-20
 
 Read `MAAS_SINGLE_CAUSAL_GRAPH_HANDOFF_20260720.md` first. The language route is

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 from typing import Any, Iterable
 
@@ -122,7 +123,7 @@ def synthesize_architectural_programs(
     if not isinstance(request, dict):
         return ()
     known_seeds = {item.seed_id for item in BASE_SEED_SPECS}
-    raw_seeds = request.get("base_seeds") or ("slab", "bar", "block")
+    raw_seeds = request.get("base_seeds") or ("slab", "bar", "block", "profiled_prism")
     base_seeds = tuple(dict.fromkeys(
         str(value) for value in raw_seeds if str(value) in known_seeds
     ))
@@ -175,6 +176,11 @@ def synthesize_architectural_programs(
     required_macro_operators_all = tuple(dict.fromkeys(
         str(value).strip().lower()
         for value in request.get("required_macro_operators_all") or ()
+        if str(value).strip()
+    ))
+    required_macro_operators_any = tuple(dict.fromkeys(
+        str(value).strip().lower()
+        for value in request.get("required_macro_operators_any") or ()
         if str(value).strip()
     ))
     if required_terminal_operator:
@@ -251,7 +257,9 @@ def synthesize_architectural_programs(
         # divisor with the runtime palette length and accidentally collapse a
         # 14-operator language to only bend/setback.
         active_typology_prior = (
-            requested_typology_priors[attempts]
+            requested_typology_priors[
+                (variation_offset + attempts) % len(requested_typology_priors)
+            ]
             if attempts < len(requested_typology_priors)
             else None
         )
@@ -294,6 +302,20 @@ def synthesize_architectural_programs(
         for required_operator in required_macro_operators_all:
             if required_operator not in operators:
                 operators.append(required_operator)
+                operator_variant_indices.append(cursor)
+        if required_macro_operators_any:
+            required_set = set(required_macro_operators_any)
+            if not any(operator in required_set for operator in operators):
+                any_operator = None
+                for required_operator in required_macro_operators_any:
+                    if all(_compatible_stack(existing, required_operator) for existing in operators):
+                        any_operator = required_operator
+                        break
+                if any_operator is None:
+                    cursor += 1
+                    attempts += 1
+                    continue
+                operators.append(any_operator)
                 operator_variant_indices.append(cursor)
         if required_access_bound_relation and not any(
             operator in {"courtyard", "carve_void", "notch", "lift", "split_wing"}
@@ -371,6 +393,11 @@ def synthesis_requests_from_program_profile(
         for value in geometry_language_contract.get("required_macro_operators_all") or ()
         if str(value)
     ]
+    required_macro_operators_any = [
+        str(value)
+        for value in geometry_language_contract.get("required_macro_operators_any") or ()
+        if str(value)
+    ]
     preferred = tuple(str(value) for value in profile.get("preferred_families") or ())
     intents = tuple(dict.fromkeys(
         intent
@@ -428,6 +455,7 @@ def synthesis_requests_from_program_profile(
         "downstream_body_rule_reserve": 1,
         "allowed_macro_operators": allowed_macro_operators,
         "required_macro_operators_all": required_macro_operators_all,
+        "required_macro_operators_any": required_macro_operators_any,
         "required_terminal_operator": (
             "profiled_hall" if "profiled_hall" in required_macro_operators_all else ""
         ),
@@ -670,7 +698,7 @@ def _base_seed_for_operator(
     choices = base_seeds
     if operator in {"cross_mass", "grid_mass", "split_wing", "bent_bar"}:
         relational = tuple(
-            seed for seed in ("bar", "slab", "profiled_prism")
+            seed for seed in ("bar", "slab", "profiled_prism", "block")
             if seed in base_seeds
         )
         if relational:
@@ -687,16 +715,23 @@ def _base_seed_for_operator(
             # Re-visiting one relation must advance through its compatible
             # chassis.  The former unconditional BAR return contradicted the
             # comment above and turned every split/cross/bent family into the
-            # same thin ribbon.  A palette cycle is coordinate-free and gives
-            # the same relation a bar, broad slab and profiled plate host.
-            relation_cycle = max(0, int(cursor)) // max(1, int(palette_size))
-            return choices[relation_cycle % len(choices)]
+            # same thin ribbon.
+            return choices[_cyclic_seed_index(cursor, len(choices))]
     if operator == "slice" and "long_span" in intent_tags:
         long_span = tuple(seed for seed in ("bar", "slab") if seed in base_seeds)
         if long_span:
             choices = long_span
-    cycle = cursor // max(1, palette_size)
-    return choices[(cursor + cycle) % len(choices)]
+    return choices[_cyclic_seed_index(cursor, len(choices))]
+
+
+def _cyclic_seed_index(cursor: int, choices: int) -> int:
+    """Return a low-collision seed index that reaches all choices deterministically."""
+    if choices <= 1:
+        return 0
+    step = 1
+    while math.gcd(step, choices) != 1:
+        step += 1
+    return (cursor * step) % choices
 
 
 def _bounded_parameters(

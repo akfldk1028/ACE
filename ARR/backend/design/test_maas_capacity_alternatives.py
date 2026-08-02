@@ -23,6 +23,7 @@ class MaasCapacityAlternativeTest(SimpleTestCase):
             "height_field_capacity_m2": 1000.0,
             "generation_site_area_m2": 250.0,
             "requested_floors": 5,
+            "legal_floor_field_hash": "a" * 64,
         }
 
     def test_four_alternatives_are_monotonic_and_site_derived(self):
@@ -49,6 +50,10 @@ class MaasCapacityAlternativeTest(SimpleTestCase):
             "midpoint_of_program_target_and_feasible_ceiling",
         )
         self.assertTrue(all(item["hard_gates_remain_downstream"] for item in alternatives))
+        self.assertTrue(all(
+            item["legal_floor_field_hash"] == "a" * 64
+            for item in alternatives
+        ))
 
     def test_projection_copy_changes_target_without_mutating_base_contract(self):
         contract = {
@@ -62,6 +67,7 @@ class MaasCapacityAlternativeTest(SimpleTestCase):
         self.assertEqual(self.contract["target_utilization"], 0.90)
         self.assertEqual(projected["target_utilization"], 0.95)
         self.assertEqual(projected["capacity_alternative_id"], "maximum_feasible")
+        self.assertEqual(projected["legal_floor_field_hash"], "a" * 64)
         self.assertEqual(projected["target_floor_areas_m2"], [190.0] * 5)
         self.assertEqual(
             sum(projected["target_floor_areas_m2"]),

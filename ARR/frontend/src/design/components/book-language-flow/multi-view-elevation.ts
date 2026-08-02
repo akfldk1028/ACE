@@ -67,11 +67,31 @@ export function extractMultiViewElevation(
     return null;
   }
   if (
-    passportRecord.program_hash !== selected.programHash
+    !selected.floorCapacityPlanHash
+    || !selected.finalGeometryHash
+    || !selected.visualHash
+    || !selected.legalFloorFieldHash
+    || !selected.actualGfaStopHash
+    || passportRecord.program_hash !== selected.programHash
     || passportRecord.geometry_hash !== selected.geometryHash
+    || passportRecord.final_legal_geometry_hash
+      !== selected.finalGeometryHash
+    || passportRecord.visual_hash !== selected.visualHash
+    || passportRecord.floor_capacity_plan_hash !== selected.floorCapacityPlanHash
+    || passportRecord.legal_floor_field_hash
+      !== selected.legalFloorFieldHash
+    || passportRecord.candidate_actual_gfa_stop_hash
+      !== selected.actualGfaStopHash
     || identity.execution_id !== selected.executionId
     || identity.program_hash !== selected.programHash
     || identity.geometry_hash !== selected.geometryHash
+    || identity.final_geometry_hash !== selected.finalGeometryHash
+    || identity.final_legal_geometry_hash !== selected.finalGeometryHash
+    || identity.visual_hash !== selected.visualHash
+    || identity.floor_capacity_plan_hash !== selected.floorCapacityPlanHash
+    || identity.legal_floor_field_hash !== selected.legalFloorFieldHash
+    || identity.candidate_actual_gfa_stop_hash
+      !== selected.actualGfaStopHash
   ) {
     return null;
   }
@@ -89,6 +109,16 @@ export function extractMultiViewElevation(
       || viewIdentity.execution_id !== selected.executionId
       || viewIdentity.program_hash !== selected.programHash
       || viewIdentity.geometry_hash !== selected.geometryHash
+      || viewIdentity.final_geometry_hash !== selected.finalGeometryHash
+      || viewIdentity.final_legal_geometry_hash
+        !== selected.finalGeometryHash
+      || viewIdentity.visual_hash !== selected.visualHash
+      || viewIdentity.floor_capacity_plan_hash
+        !== selected.floorCapacityPlanHash
+      || viewIdentity.legal_floor_field_hash
+        !== selected.legalFloorFieldHash
+      || viewIdentity.candidate_actual_gfa_stop_hash
+        !== selected.actualGfaStopHash
       || viewIdentity.view !== view
     ) {
       return [];

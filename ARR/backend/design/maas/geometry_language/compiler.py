@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 import hashlib
 import json
-from math import atan2, ceil, cos, degrees, hypot, pi, radians, sin
+from math import atan2, ceil, cos, degrees, hypot, isfinite, pi, radians, sin
 from typing import Any, Callable
 
 import numpy as np
@@ -15,6 +15,7 @@ from design.maas.book_language.base_volume_contract import oriented_book_base_vo
 from .ast import GeometryIssue, GeometryNode, GeometryProgram
 from .affine_matrix import kernel_matrix3x4, matrix4_for_transform, matrix4_to_lists
 from .book_parameter_projection import BOOK_KERNEL_PARAMETER_PROJECTIONS
+from .gate import GeometryGatePolicy, compilation_gate
 from .host_face_relations import resolve_face_attachment
 from .section_profiles import section_profile_controls
 from .unitbox_normalization import normalize_unitbox_program
@@ -77,6 +78,106 @@ class GeometryCompileError(RuntimeError):
         self.issue = GeometryIssue(code, message, node_id)
 
 
+def _canonicalize_export_mesh(
+    raw_vertices: Any,
+    raw_triangles: Any,
+) -> tuple[
+    tuple[tuple[float, float, float], ...],
+    tuple[tuple[int, int, int], ...],
+]:
+    """Weld only exact 8-decimal export duplicates and zero-area faces."""
+
+    vertices: list[tuple[float, float, float]] = []
+    canonical_index: dict[tuple[float, float, float], int] = {}
+    old_to_welded: list[int] = []
+    for raw_vertex in raw_vertices:
+        try:
+            if len(raw_vertex) < 3:
+                raise ValueError
+            vertex = tuple(
+                round(float(raw_vertex[axis]), 8)
+                for axis in range(3)
+            )
+        except (TypeError, ValueError, IndexError) as exc:
+            raise GeometryCompileError(
+                "invalid_mesh_export_vertex",
+                "export mesh vertex must contain three finite coordinates",
+            ) from exc
+        if not all(isfinite(value) for value in vertex):
+            raise GeometryCompileError(
+                "invalid_mesh_export_vertex",
+                "export mesh vertex must contain three finite coordinates",
+            )
+        welded_index = canonical_index.get(vertex)
+        if welded_index is None:
+            welded_index = len(vertices)
+            canonical_index[vertex] = welded_index
+            vertices.append(vertex)
+        old_to_welded.append(welded_index)
+
+    triangles: list[tuple[int, int, int]] = []
+    for raw_triangle in raw_triangles:
+        try:
+            if len(raw_triangle) != 3:
+                raise ValueError
+            source_indices = tuple(int(value) for value in raw_triangle)
+        except (TypeError, ValueError) as exc:
+            raise GeometryCompileError(
+                "invalid_mesh_export_triangle",
+                "export mesh triangle must contain three indices",
+            ) from exc
+        if any(
+            index < 0 or index >= len(old_to_welded)
+            for index in source_indices
+        ):
+            raise GeometryCompileError(
+                "invalid_mesh_export_index",
+                "export mesh triangle references an invalid vertex",
+            )
+        triangle = tuple(old_to_welded[index] for index in source_indices)
+        if len(set(triangle)) < 3:
+            continue
+        a, b, c = (vertices[index] for index in triangle)
+        ab = tuple(b[axis] - a[axis] for axis in range(3))
+        ac = tuple(c[axis] - a[axis] for axis in range(3))
+        cross = (
+            ab[1] * ac[2] - ab[2] * ac[1],
+            ab[2] * ac[0] - ab[0] * ac[2],
+            ab[0] * ac[1] - ab[1] * ac[0],
+        )
+        if cross == (0.0, 0.0, 0.0):
+            continue
+        triangles.append(triangle)
+    if not triangles:
+        raise GeometryCompileError(
+            "empty_mesh_export",
+            "export mesh contains no non-degenerate triangles",
+        )
+
+    used = {
+        vertex_index
+        for triangle in triangles
+        for vertex_index in triangle
+    }
+    compact_index = {
+        old_index: new_index
+        for new_index, old_index in enumerate(
+            index for index in range(len(vertices))
+            if index in used
+        )
+    }
+    compact_vertices = tuple(
+        vertex
+        for index, vertex in enumerate(vertices)
+        if index in used
+    )
+    compact_triangles = tuple(
+        tuple(compact_index[index] for index in triangle)
+        for triangle in triangles
+    )
+    return compact_vertices, compact_triangles
+
+
 def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
     program = normalize_unitbox_program(program)
     issues = tuple(issue for issue in program.validate() if issue.severity == "error")
@@ -98,7 +199,11 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
         node = node_map[node_id]
         inputs = [evaluate(input_id) for input_id in node.inputs]
         try:
-            solid, expansion = _evaluate_node(node, inputs)
+            solid, expansion = _evaluate_node(
+                node,
+                inputs,
+                node_map=node_map,
+            )
         except GeometryCompileError:
             raise
         except Exception as exc:
@@ -120,6 +225,29 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
         }
         if node.kind == "transform" and inputs:
             trace_row["matrix4"] = matrix4_to_lists(_transform_matrix4(node, inputs[0]))
+        if node.kind == "pattern" and node.operator == "matrix_array":
+            trace_row["matrix_entries"] = [
+                {
+                    "matrix_index": index,
+                    "matrix4": matrix4_to_lists(matrix),
+                }
+                for index, matrix in enumerate(node.parameters.get("matrices") or ())
+            ]
+        if node.kind == "modifier" and node.operator == "profile_sweep_3d":
+            path = [
+                tuple(float(value) for value in point)
+                for point in node.parameters.get("path") or ()
+            ]
+            trace_row["operator_metrics"] = {
+                "path_length": round(sum(
+                    float(np.linalg.norm(
+                        np.asarray(end, dtype=float)
+                        - np.asarray(start, dtype=float)
+                    ))
+                    for start, end in zip(path, path[1:])
+                ), 6),
+                "frame_count": len(path),
+            }
         macro_matrix = _macro_affine_matrix4(node)
         if macro_matrix is not None:
             trace_row["matrix4"] = matrix4_to_lists(macro_matrix)
@@ -144,13 +272,116 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
         mesh = solid.to_mesh64()
         raw_vertices = np.asarray(mesh.vert_properties, dtype=float)[:, :3]
         raw_triangles = np.asarray(mesh.tri_verts, dtype=np.int64)
-        vertices = tuple(tuple(round(float(value), 8) for value in row) for row in raw_vertices)
-        triangles = tuple(tuple(int(value) for value in row) for row in raw_triangles)
+        vertices, triangles = _canonicalize_export_mesh(
+            raw_vertices,
+            raw_triangles,
+        )
+        payload_vertices = np.asarray(vertices, dtype=float)
+        payload_triangles = np.asarray(triangles, dtype=np.int64)
         metrics = _measured_solid_metrics(
             solid,
-            raw_vertices=raw_vertices,
-            raw_triangles=raw_triangles,
+            raw_vertices=payload_vertices,
+            raw_triangles=payload_triangles,
         )
+        geometry_hash = _mesh_hash(vertices, triangles)
+        transport_contract = (
+            program.execution_contract.get(
+                "capacity_replay_numeric_transport"
+            )
+            if program.execution_contract
+            else None
+        )
+        if isinstance(transport_contract, dict):
+            raw_result = CompilationResult(
+                program=program,
+                status="compiled",
+                vertices=vertices,
+                triangles=triangles,
+                metrics=metrics,
+                trace=tuple(trace),
+                geometry_hash=geometry_hash,
+                _solid=solid,
+            )
+            raw_issue_codes = [
+                issue.code
+                for issue in compilation_gate(
+                    raw_result,
+                    GeometryGatePolicy(maximum_components=1),
+                )
+            ]
+            transport_evidence: dict[str, Any] = {
+                "schema_version": (
+                    "arr.maas.capacity_replay_numeric_transport.v1"
+                ),
+                "contract_hash_bound": True,
+                "raw_gate_failure_codes": raw_issue_codes,
+                "repair_attempted": False,
+                "clean_gate_failure_codes": [],
+                "clean_gate_hard_pass": False,
+            }
+            if raw_issue_codes == ["tiny_edge"]:
+                from .capacity_replay_numeric_transport import (
+                    repair_capacity_replay_mesh,
+                )
+
+                repair = repair_capacity_replay_mesh(
+                    program,
+                    vertices,
+                    triangles,
+                )
+                transport_evidence["repair_attempted"] = True
+                if repair is not None:
+                    clean_vertices = repair.vertices
+                    clean_triangles = repair.triangles
+                    clean_metrics = _measured_solid_metrics(
+                        solid,
+                        raw_vertices=np.asarray(
+                            clean_vertices,
+                            dtype=float,
+                        ),
+                        raw_triangles=np.asarray(
+                            clean_triangles,
+                            dtype=np.int64,
+                        ),
+                    )
+                    clean_hash = _mesh_hash(
+                        clean_vertices,
+                        clean_triangles,
+                    )
+                    clean_result = CompilationResult(
+                        program=program,
+                        status="compiled",
+                        vertices=clean_vertices,
+                        triangles=clean_triangles,
+                        metrics=clean_metrics,
+                        trace=tuple(trace),
+                        geometry_hash=clean_hash,
+                        _solid=solid,
+                    )
+                    clean_issue_codes = [
+                        issue.code
+                        for issue in compilation_gate(
+                            clean_result,
+                            GeometryGatePolicy(maximum_components=1),
+                        )
+                    ]
+                    transport_evidence.update(repair.evidence)
+                    transport_evidence.update({
+                        "raw_gate_failure_codes": raw_issue_codes,
+                        "clean_gate_failure_codes": clean_issue_codes,
+                        "clean_gate_hard_pass": not clean_issue_codes,
+                    })
+                    if not clean_issue_codes:
+                        vertices = clean_vertices
+                        triangles = clean_triangles
+                        metrics = clean_metrics
+                        geometry_hash = clean_hash
+            metrics = {
+                **metrics,
+                "capacity_replay_numeric_transport": (
+                    transport_evidence
+                ),
+            }
         return CompilationResult(
             program=program,
             status="compiled",
@@ -158,7 +389,7 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
             triangles=triangles,
             metrics=metrics,
             trace=tuple(trace),
-            geometry_hash=_mesh_hash(vertices, triangles),
+            geometry_hash=geometry_hash,
             _solid=solid,
         )
     except GeometryCompileError as exc:
@@ -178,6 +409,7 @@ def revalidate_compilation_mesh(
             "capacity_geometry_hash",
             "capacity_replay_metrics",
             "capacity_replay_identity",
+            "capacity_replay_numeric_transport",
             "coordinate_space",
         )
         if key in (compilation.metrics or {})
@@ -307,8 +539,8 @@ def _measured_solid_metrics(
         "signed_mesh_volume": round(signed_mesh_volume, 6),
         "volume": round(float(solid.volume()), 6),
         "surface_area": round(float(solid.surface_area()), 6),
-        "vertex_count": int(solid.num_vert()),
-        "triangle_count": int(solid.num_tri()),
+        "vertex_count": int(len(raw_vertices)),
+        "triangle_count": int(len(raw_triangles)),
         "component_count": len(components),
         "component_volume_ratios": list(component_volume_ratios),
         "minimum_component_volume_ratio": min(
@@ -323,15 +555,35 @@ def _measured_solid_metrics(
     }
 
 
-def _evaluate_node(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str]]:
+def _evaluate_node(
+    node: GeometryNode,
+    inputs: list[Any],
+    *,
+    node_map: dict[str, GeometryNode],
+) -> tuple[Any, list[str]]:
     if node.kind == "primitive":
         return _primitive(node), []
     if node.kind == "transform":
         return _transform(node, inputs[0]), []
     if node.kind == "modifier":
+        if node.operator == "circularize":
+            return _circularize(inputs[0], node.parameters, node.id), [
+                "live_bounds",
+                "bounded_circular_section",
+                "extrude",
+                "unitbox_consumed",
+            ]
+        if node.operator == "profile_sweep_3d":
+            return _profile_sweep_3d(inputs[0], node.parameters, node.id), [
+                "live_bounds",
+                "parallel_transport_frames",
+                "section_hulls",
+                "union",
+                "unitbox_consumed",
+            ]
         return _modifier(node, inputs[0]), []
     if node.kind == "boolean":
-        return _boolean(node, inputs), []
+        return _boolean(node, inputs, node_map=node_map), []
     if node.kind == "pattern":
         return _pattern(node, inputs[0]), []
     if node.kind == "composition":
@@ -448,10 +700,103 @@ def _modifier(node: GeometryNode, solid):
         return _book_base_volume(solid, p, node.id)
     if node.operator == "cut_corner":
         return _cut_corner(solid, p, node.id)
+    if node.operator == "legal_section_clip":
+        exterior = _points(
+            p.get("exterior"),
+            dimensions=2,
+            minimum=3,
+            node_id=node.id,
+        )
+        holes = [
+            _points(
+                hole,
+                dimensions=2,
+                minimum=3,
+                node_id=node.id,
+            )
+            for hole in p.get("holes") or ()
+        ]
+        try:
+            lower_z = float(p.get("lower_z"))
+            upper_z = float(p.get("upper_z"))
+        except (TypeError, ValueError) as exc:
+            raise GeometryCompileError(
+                "invalid_legal_section_band",
+                "legal section clip z bounds must be finite numbers",
+                node.id,
+            ) from exc
+        if not np.isfinite((lower_z, upper_z)).all():
+            raise GeometryCompileError(
+                "invalid_legal_section_band",
+                "legal section clip z bounds must be finite numbers",
+                node.id,
+            )
+        if upper_z - lower_z <= 1e-9:
+            raise GeometryCompileError(
+                "invalid_legal_section_band",
+                "legal section clip upper_z must exceed lower_z",
+                node.id,
+            )
+        legal_solid = (
+            m3d.CrossSection([exterior, *holes])
+            .extrude(upper_z - lower_z)
+            .translate((0.0, 0.0, lower_z))
+        )
+        return m3d.Manifold.batch_boolean(
+            [solid, legal_solid],
+            m3d.OpType.Intersect,
+        )
     raise GeometryCompileError("unsupported_modifier", node.operator, node.id)
 
 
-def _boolean(node: GeometryNode, inputs: list[Any]):
+def _circularize(solid, params: dict[str, Any], node_id: str):
+    minx, miny, minz, maxx, maxy, maxz = _bounds(solid)
+    radius_x = (maxx - minx) / 2.0
+    radius_y = (maxy - miny) / 2.0
+    height = maxz - minz
+    if min(radius_x, radius_y, height) <= 1e-9:
+        raise GeometryCompileError(
+            "degenerate_circularize_bounds",
+            "circularize requires positive live input bounds",
+            node_id,
+        )
+    try:
+        segments = max(8, min(96, int(params.get("segments", 24))))
+    except (TypeError, ValueError) as exc:
+        raise GeometryCompileError(
+            "invalid_circularize_segments",
+            "circularize segments must be an integer",
+            node_id,
+        ) from exc
+    center_x = (minx + maxx) / 2.0
+    center_y = (miny + maxy) / 2.0
+    return (
+        m3d.Manifold.cylinder(
+            height,
+            1.0,
+            circular_segments=segments,
+        )
+        .scale((radius_x, radius_y, 1.0))
+        .translate((center_x, center_y, minz))
+    )
+
+
+def _boolean(
+    node: GeometryNode,
+    inputs: list[Any],
+    *,
+    node_map: dict[str, GeometryNode],
+):
+    if (
+        node.operator == "union"
+        and str((node.provenance or {}).get("set_identity") or "")
+        == "host_union_subsets_equals_host"
+        and _valid_host_subset_union(node, node_map)
+    ):
+        # Every remaining input is an intersection with the first input, so
+        # P union (P intersection F1) ... is exactly P. The evidence inputs
+        # are still compiled and traced before this typed CSG normalization.
+        return inputs[0]
     op = {
         "union": m3d.OpType.Add,
         "difference": m3d.OpType.Subtract,
@@ -485,8 +830,71 @@ def _boolean(node: GeometryNode, inputs: list[Any]):
     return result
 
 
+def _valid_host_subset_union(
+    node: GeometryNode,
+    node_map: dict[str, GeometryNode],
+) -> bool:
+    if len(node.inputs) < 2:
+        return False
+    host_id = node.inputs[0]
+    for subset_id in node.inputs[1:]:
+        subset = node_map.get(subset_id)
+        if (
+            subset is None
+            or subset.kind != "boolean"
+            or subset.operator != "intersection"
+            or host_id not in subset.inputs
+        ):
+            return False
+    return True
+
+
 def _pattern(node: GeometryNode, solid):
     p = node.parameters
+    if node.operator == "matrix_array":
+        matrices = p.get("matrices")
+        if not isinstance(matrices, list) or not 2 <= len(matrices) <= 24:
+            raise GeometryCompileError(
+                "matrix_array_count_out_of_bounds",
+                "matrix_array requires 2..24 explicit matrices",
+                node.id,
+            )
+        copies: list[Any] = []
+        for matrix in matrices:
+            try:
+                transformed = solid.transform(kernel_matrix3x4(matrix))
+            except (TypeError, ValueError) as exc:
+                raise GeometryCompileError(
+                    "invalid_matrix_array_matrix",
+                    str(exc),
+                    node.id,
+                ) from exc
+            if transformed.is_empty():
+                raise GeometryCompileError(
+                    "empty_matrix_array",
+                    "matrix_array transform returned an empty solid",
+                    node.id,
+                )
+            copies.append(transformed)
+        result = copies[0]
+        for copy in copies[1:]:
+            result = m3d.Manifold.batch_boolean(
+                [result, copy],
+                m3d.OpType.Add,
+            )
+        if result.is_empty():
+            raise GeometryCompileError(
+                "empty_matrix_array",
+                "matrix_array union returned an empty solid",
+                node.id,
+            )
+        if bool(p.get("require_connected", False)) and len(result.decompose()) != 1:
+            raise GeometryCompileError(
+                "disconnected_matrix_array",
+                "matrix_array must produce one connected component",
+                node.id,
+            )
+        return result
     count = max(1, min(24, int(p.get("count", 2))))
     copies: list[Any] = []
     if node.operator in {"duplicate", "linear_array"}:
@@ -2573,6 +2981,150 @@ def _sweep_path(path: list[tuple[float, float, float]], *, width: float, height:
     if not solids:
         raise GeometryCompileError("degenerate_sweep_path", "sweep path has no measurable segments")
     return m3d.Manifold.batch_boolean(solids, m3d.OpType.Add)
+
+
+def _profile_sweep_3d(solid, params: dict[str, Any], node_id: str):
+    path = _points(
+        params.get("path"),
+        dimensions=3,
+        minimum=2,
+        node_id=node_id,
+    )
+    points = [np.asarray(point, dtype=float) for point in path]
+    if not all(np.isfinite(point).all() for point in points):
+        raise GeometryCompileError(
+            "invalid_profile_sweep_path",
+            "profile_sweep_3d path points must contain finite coordinates",
+            node_id,
+        )
+    segments = [
+        end - start
+        for start, end in zip(points, points[1:])
+    ]
+    lengths = [float(np.linalg.norm(segment)) for segment in segments]
+    if any(length <= 1e-9 for length in lengths):
+        raise GeometryCompileError(
+            "zero_length_profile_sweep_path",
+            "profile_sweep_3d path contains a zero-length segment",
+            node_id,
+        )
+    if any(
+        float(np.linalg.norm(right - left)) <= 1e-9
+        for index, left in enumerate(points)
+        for right in points[index + 1:]
+    ):
+        raise GeometryCompileError(
+            "repeated_profile_sweep_point",
+            "profile_sweep_3d path points must be unique",
+            node_id,
+        )
+
+    segment_tangents = [
+        segment / length
+        for segment, length in zip(segments, lengths)
+    ]
+    point_tangents = [segment_tangents[0]]
+    for previous, following in zip(segment_tangents, segment_tangents[1:]):
+        blended = previous + following
+        norm = float(np.linalg.norm(blended))
+        point_tangents.append(
+            following if norm <= 1e-9 else blended / norm
+        )
+    point_tangents.append(segment_tangents[-1])
+
+    frames: list[tuple[np.ndarray, np.ndarray]] = []
+    tangent = point_tangents[0]
+    axes = (
+        np.asarray((1.0, 0.0, 0.0), dtype=float),
+        np.asarray((0.0, 1.0, 0.0), dtype=float),
+        np.asarray((0.0, 0.0, 1.0), dtype=float),
+    )
+    reference = min(axes, key=lambda axis: abs(float(np.dot(axis, tangent))))
+    frame_u = reference - float(np.dot(reference, tangent)) * tangent
+    frame_u /= float(np.linalg.norm(frame_u))
+    frame_v = np.cross(tangent, frame_u)
+    frame_v /= float(np.linalg.norm(frame_v))
+    frames.append((frame_u, frame_v))
+
+    for tangent in point_tangents[1:]:
+        transported = frame_u - float(np.dot(frame_u, tangent)) * tangent
+        norm = float(np.linalg.norm(transported))
+        if norm <= 1e-9:
+            reference = min(
+                axes,
+                key=lambda axis: abs(float(np.dot(axis, tangent))),
+            )
+            transported = (
+                reference
+                - float(np.dot(reference, tangent)) * tangent
+            )
+            norm = float(np.linalg.norm(transported))
+        frame_u = transported / norm
+        if float(np.dot(frame_u, frames[-1][0])) < 0.0:
+            frame_u = -frame_u
+        frame_v = np.cross(tangent, frame_u)
+        frame_v /= float(np.linalg.norm(frame_v))
+        frames.append((frame_u, frame_v))
+
+    minx, miny, minz, maxx, maxy, maxz = _bounds(solid)
+    half_extents = np.asarray((
+        (maxx - minx) / 2.0,
+        (maxy - miny) / 2.0,
+        (maxz - minz) / 2.0,
+    ))
+    if float(np.min(half_extents)) <= 1e-9:
+        raise GeometryCompileError(
+            "degenerate_profile_sweep_bounds",
+            "profile_sweep_3d requires positive live input bounds",
+            node_id,
+        )
+    profile_u = float(np.dot(np.abs(frames[0][0]), half_extents))
+    profile_v = float(np.dot(np.abs(frames[0][1]), half_extents))
+
+    sections: list[list[tuple[float, float, float]]] = []
+    for point, (frame_u, frame_v) in zip(points, frames):
+        sections.append([
+            tuple(float(value) for value in (
+                point + sign_u * profile_u * frame_u
+                + sign_v * profile_v * frame_v
+            ))
+            for sign_u, sign_v in (
+                (-1.0, -1.0),
+                (1.0, -1.0),
+                (1.0, 1.0),
+                (-1.0, 1.0),
+            )
+        ])
+
+    swept_segments = [
+        m3d.Manifold.hull_points([*start, *end])
+        for start, end in zip(sections, sections[1:])
+    ]
+    if not swept_segments or any(segment.is_empty() for segment in swept_segments):
+        raise GeometryCompileError(
+            "empty_profile_sweep_3d",
+            "profile_sweep_3d produced a degenerate section hull",
+            node_id,
+        )
+    result = swept_segments[0]
+    for segment in swept_segments[1:]:
+        result = m3d.Manifold.batch_boolean(
+            [result, segment],
+            m3d.OpType.Add,
+        )
+    if result.is_empty():
+        raise GeometryCompileError(
+            "empty_profile_sweep_3d",
+            "profile_sweep_3d produced an empty solid",
+            node_id,
+        )
+    if bool(params.get("require_connected", True)) and len(result.decompose()) != 1:
+        raise GeometryCompileError(
+            "disconnected_profile_sweep_3d",
+            "profile_sweep_3d must produce one connected component",
+            node_id,
+        )
+    return result
 
 
 def _beam_between(start, end, *, width: float, height: float, node_id: str):

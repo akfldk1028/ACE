@@ -147,7 +147,7 @@ def audit_page(*, page: int, confirm_live: bool = False, model: str | None = Non
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
         method="POST",
     )
-    _consume_live_vlm_request_budget()
+    _consume_live_vlm_request_budget(kind="book_scan_vlm")
     try:
         with urllib.request.urlopen(request, timeout=150) as response:
             response_payload = json.loads(response.read().decode("utf-8"))

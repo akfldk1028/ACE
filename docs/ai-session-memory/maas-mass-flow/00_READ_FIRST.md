@@ -15,6 +15,14 @@ Current truth:
 - The final publishable solver selected `0/20`; the official board is empty
   and the run status is `failed`. The 22 observations are not selected,
   publishable, or replay-time law-recertified candidates.
+- The 22-card render at
+  `r183-outcome-hardpass-22.png` is the **floorwise legal replay board**:
+  each legal floor is serialized as translated extrusion plates and then
+  unioned, so the output visually reads as stepped masses.
+- As of 2026-07-31 16:20 KST, this stepped replay shape is now gated: non-stepped
+  candidates no longer fall back into this unioned floorwise form. If the initial
+  exact legal placement fails and the authored program has no intentional stepped
+  operators, it is rejected for repair or replacement.
 - The former fatal floorwise replay error was reproduced four times and safely
   rejected per candidate. The focused regression tests pass 2/2.
 - Restoring the compact AST's fixed numeric transport contract gives 22/22

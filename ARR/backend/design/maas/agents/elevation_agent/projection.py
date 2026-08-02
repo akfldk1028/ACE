@@ -109,7 +109,9 @@ def _render_view(
         ) / 3.0,
     )
     light = _unit((0.35, -0.45, 1.0))
-    feature_edges = set(_visible_feature_edges(triangles, normals, depth_axis))
+    feature_edges = set(
+        _visible_feature_edges(vertices, triangles, normals, depth_axis)
+    )
     for triangle_index in ordered_indices:
         triangle = triangles[triangle_index]
         illumination = abs(_dot(normals[triangle_index], light))
@@ -118,14 +120,14 @@ def _render_view(
             [pixel(int(index)) for index in triangle],
             fill=(shade, shade, max(0, shade - 3)),
         )
-        for edge in (
-            tuple(sorted((int(triangle[0]), int(triangle[1])))),
-            tuple(sorted((int(triangle[1]), int(triangle[2])))),
-            tuple(sorted((int(triangle[2]), int(triangle[0])))),
+        for start, end in (
+            (int(triangle[0]), int(triangle[1])),
+            (int(triangle[1]), int(triangle[2])),
+            (int(triangle[2]), int(triangle[0])),
         ):
-            if edge in feature_edges:
+            if _geometry_edge_key(vertices, start, end) in feature_edges:
                 draw.line(
-                    (pixel(edge[0]), pixel(edge[1])),
+                    (pixel(start), pixel(end)),
                     fill=(43, 43, 41),
                     width=2,
                 )
@@ -196,22 +198,40 @@ def _triangle_normal(
 
 
 def _visible_feature_edges(
+    vertices: Sequence[Sequence[float]],
     triangles: Sequence[Sequence[int]],
     normals: Sequence[Sequence[float]],
     camera_depth: Sequence[float],
     *,
     crease_degrees: float = 28.0,
-) -> list[tuple[int, int]]:
-    adjacency: dict[tuple[int, int], list[int]] = {}
+) -> list[
+    tuple[
+        tuple[float, float, float],
+        tuple[float, float, float],
+    ]
+]:
+    adjacency: dict[
+        tuple[
+            tuple[float, float, float],
+            tuple[float, float, float],
+        ],
+        list[int],
+    ] = {}
     for triangle_index, triangle in enumerate(triangles):
         for start, end in (
             (int(triangle[0]), int(triangle[1])),
             (int(triangle[1]), int(triangle[2])),
             (int(triangle[2]), int(triangle[0])),
         ):
-            adjacency.setdefault(tuple(sorted((start, end))), []).append(triangle_index)
+            edge = _geometry_edge_key(vertices, start, end)
+            adjacency.setdefault(edge, []).append(triangle_index)
     threshold = cos(radians(crease_degrees))
-    result: list[tuple[int, int]] = []
+    result: list[
+        tuple[
+            tuple[float, float, float],
+            tuple[float, float, float],
+        ]
+    ] = []
     for edge, adjacent in adjacency.items():
         facing = [_dot(normals[index], camera_depth) for index in adjacent]
         if len(adjacent) == 1:
@@ -224,6 +244,21 @@ def _visible_feature_edges(
         if (silhouette or crease) and max(facing) >= 0.0:
             result.append(edge)
     return result
+
+
+def _geometry_edge_key(
+    vertices: Sequence[Sequence[float]],
+    start: int,
+    end: int,
+) -> tuple[
+    tuple[float, float, float],
+    tuple[float, float, float],
+]:
+    points = tuple(
+        tuple(round(float(value), 8) for value in vertices[index])
+        for index in (start, end)
+    )
+    return tuple(sorted(points))  # type: ignore[return-value]
 
 
 def _unit(vector: Iterable[float]) -> tuple[float, float, float]:

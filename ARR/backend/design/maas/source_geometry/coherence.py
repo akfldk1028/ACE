@@ -274,10 +274,14 @@ def _coherence_quality_polygon(volume: SourceVolume) -> tuple[Any, dict[str, Any
     """
     polygon = volume.footprint
     source_vertex_count = max(0, len(polygon.exterior.coords) - 1)
-    if str(volume.verb) != "geometry_program" or source_vertex_count <= 12:
+    quality_proxy_verb = str(volume.verb) in {
+        "geometry_program",
+        "floorwise_legal_matrix4",
+    }
+    if not quality_proxy_verb or source_vertex_count <= 12:
         return polygon, {
             "applied": False,
-            "reason": "not_recursive_mesh_proxy_or_already_compact",
+            "reason": "not_numeric_mesh_proxy_or_already_compact",
             "source_vertex_count": source_vertex_count,
             "evaluated_vertex_count": source_vertex_count,
             "source_geometry_unchanged": True,
@@ -305,7 +309,7 @@ def _coherence_quality_polygon(volume: SourceVolume) -> tuple[Any, dict[str, Any
     evaluated_vertex_count = max(0, len(simplified.exterior.coords) - 1)
     return simplified, {
         "applied": evaluated_vertex_count < source_vertex_count,
-        "reason": "recursive_mesh_section_subdivision_removed",
+        "reason": "numeric_mesh_section_subdivision_removed",
         "source_vertex_count": source_vertex_count,
         "evaluated_vertex_count": evaluated_vertex_count,
         "area_ratio": round(area_ratio, 6),

@@ -113,6 +113,11 @@ def single_execution_archive_manifest(
         "program_label": str(projection.get("program_label") or projection.get("program_id") or "NOT EVALUATED"),
         "program_hash": str(manifest.get("program_hash") or passport.get("program_hash") or ""),
         "geometry_hash": str(manifest.get("geometry_hash") or passport.get("geometry_hash") or ""),
+        "visual_hash": str(
+            manifest.get("visual_hash")
+            or passport.get("visual_hash")
+            or ""
+        ),
         "dsl": program_to_dsl(program),
         "node_count": len(program.nodes),
         "operator_path": [node.operator for node in program.topological_nodes()],

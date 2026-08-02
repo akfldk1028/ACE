@@ -12,9 +12,13 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 from design.maas.grammar.vocab import SUPPORTED_VERBS
+from design.maas.paid_provider_budget import (
+    PaidProviderBudgetError,
+    reserve_paid_provider_request,
+)
 
 from .reference_paths import reference_image_preview_url, resolve_reference_image_path, workspace_root
 
@@ -54,7 +58,7 @@ class VlmScoringError(RuntimeError):
     pass
 
 
-def _consume_live_vlm_request_budget() -> int:
+def _consume_live_vlm_request_budget(*, kind: str = "vlm") -> int:
     """Reserve one real HTTP request under a process-wide cost ceiling."""
 
     global _LIVE_VLM_REQUEST_COUNT
@@ -67,6 +71,10 @@ def _consume_live_vlm_request_budget() -> int:
             raise VlmScoringError(
                 f"live_vlm_request_budget_exhausted:{_LIVE_VLM_REQUEST_COUNT}/{limit}"
             )
+        try:
+            reserve_paid_provider_request(kind)
+        except PaidProviderBudgetError as exc:
+            raise VlmScoringError(str(exc)) from exc
         _LIVE_VLM_REQUEST_COUNT += 1
         return _LIVE_VLM_REQUEST_COUNT
 
@@ -76,8 +84,11 @@ def score_portfolio_board_with_openai_vlm(
     image_path: str | Path,
     program_context: dict[str, Any],
     candidate_summaries: list[dict[str, Any]],
+    reference_matches: list[dict[str, Any]] | None = None,
     model: str | None = None,
     timeout: float = 150.0,
+    image_detail: str = "high",
+    expected_candidate_count: int = 20,
 ) -> dict[str, Any]:
     """Judge sibling repetition on the final board, never law or parking.
 
@@ -92,6 +103,10 @@ def score_portfolio_board_with_openai_vlm(
         raise VlmScoringError("OPENAI_API_KEY is not set")
     selected_model = model or os.getenv("MAAS_PREFERENCE_VLM_MODEL") or DEFAULT_VLM_MODEL
     image_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+    resolved_expected_count = max(1, min(20, int(expected_candidate_count)))
+    selected_image_detail = str(image_detail or "high").lower()
+    if selected_image_detail not in {"low", "high", "auto"}:
+        raise ValueError("image_detail must be low, high, or auto")
     compact_candidates = [
         {
             key: item.get(key)
@@ -99,10 +114,24 @@ def score_portfolio_board_with_openai_vlm(
                 "candidate_id", "book_scope", "base_seed", "body_phenotype",
                 "roof_archetype", "ground_strategy", "design_concept_key",
                 "geometry_family", "form_bank_lane", "chassis_family",
+                "program_hash", "geometry_hash",
             )
         }
         for item in candidate_summaries
         if isinstance(item, dict)
+    ]
+    reference_content, reference_input_records = _reference_image_inputs(
+        reference_matches or [],
+    )
+    compact_reference_identities = [
+        {
+            key: item.get(key)
+            for key in (
+                "source_id", "source", "local_path", "sha256",
+                "selection_role", "input_order",
+            )
+        }
+        for item in reference_input_records
     ]
     configured_cache = os.getenv("MAAS_PORTFOLIO_VLM_CACHE_DIR", "").strip()
     cache_root = (
@@ -121,6 +150,8 @@ def score_portfolio_board_with_openai_vlm(
         "image_hash": image_hash,
         "program_context": program_context,
         "candidates": compact_candidates,
+        "references": compact_reference_identities,
+        "expected_candidate_count": resolved_expected_count,
     }, ensure_ascii=True, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
     cache_path = cache_root / f"{cache_key}.json"
     try:
@@ -183,13 +214,21 @@ def score_portfolio_board_with_openai_vlm(
             "rationale": {"type": "string"},
         },
     }
+    card_count_phrase = (
+        "three separate candidate cards"
+        if len(compact_candidates) == 3
+        else f"{len(compact_candidates)} separate candidate cards"
+    )
     prompt = (
         "Inspect the final architecture massing contact sheet as one portfolio, not as isolated cards. "
+        f"The first image is one contact sheet containing {card_count_phrase}. "
+        "Return one candidate action for every visible candidate ID. "
         "The card IDs correspond to candidate_summaries. Judge visible three-dimensional spatial language only; "
         "do not judge zoning, FAR, parking, facade materials, or render polish. A portfolio fails when the same "
         "footprint, roof, box/bar chassis, pyramidal tier, or Lego-fragment family repeats despite different labels. "
-        "For a passing 20-option portfolio require at least ten materially legible form/spatial families, no dominant "
-        "family above 30%, and a clearly program-specific mass/section/threshold language. Mark replacement candidates "
+        f"For this {resolved_expected_count}-candidate audit require every card to have a materially legible "
+        "form/spatial identity, no repeated dominant family, and a clearly program-specific "
+        "mass/section/threshold language. Mark replacement candidates "
         "and describe transferable relations for the next typed graph author; never request a copied famous form. "
         "Also choose required_geometry_families only from the typed catalog in the response schema. Select families "
         "that are materially missing from this board; these are next-run review anchors, never automatic approvals. "
@@ -208,7 +247,12 @@ def score_portfolio_board_with_openai_vlm(
             "role": "user",
             "content": [
                 {"type": "input_text", "text": prompt},
-                {"type": "input_image", "image_url": _image_data_url(path)},
+                {
+                    "type": "input_image",
+                    "image_url": _image_data_url(path),
+                    "detail": selected_image_detail,
+                },
+                *reference_content,
             ],
         }],
         "text": {"format": {
@@ -223,7 +267,7 @@ def score_portfolio_board_with_openai_vlm(
         method="POST",
     )
     try:
-        _consume_live_vlm_request_budget()
+        _consume_live_vlm_request_budget(kind="portfolio_vlm")
         with urllib.request.urlopen(request, timeout=timeout) as response:
             response_data = json.loads(response.read().decode("utf-8"))
     except Exception as exc:
@@ -237,22 +281,34 @@ def score_portfolio_board_with_openai_vlm(
         raise VlmScoringError("OpenAI portfolio VLM response was not valid JSON") from exc
     visible_family_count = max(0, min(20, int(parsed.get("visible_family_count") or 0)))
     dominant_family_share = max(0.0, min(1.0, float(parsed.get("dominant_family_share") or 0.0)))
-    enough_candidates = len(compact_candidates) == 20
+    enough_candidates = len(compact_candidates) == resolved_expected_count
+    minimum_visible_families = min(10, resolved_expected_count)
+    maximum_dominant_share = max(
+        0.30,
+        round((1.0 / resolved_expected_count) + 0.01, 3),
+    )
     hard_pass = bool(
         parsed.get("portfolio_hard_pass")
         and enough_candidates
-        and visible_family_count >= 10
-        and dominant_family_share <= 0.30
+        and visible_family_count >= minimum_visible_families
+        and dominant_family_share <= maximum_dominant_share
     )
     failures = [str(item) for item in parsed.get("failure_reasons") or () if item in failure_values]
     if not enough_candidates and "too_few_candidates" not in failures:
         failures.append("too_few_candidates")
+    submitted_references = _bind_submitted_reference_identity(
+        reference_input_records,
+        response_id=str(response_data.get("id") or ""),
+        program_hash="",
+        geometry_hash="",
+    )
     result = {
         "schema_version": PORTFOLIO_VLM_SCHEMA_VERSION,
         "prompt_contract_version": PORTFOLIO_VLM_PROMPT_VERSION,
         "status": "pass" if hard_pass else "fail",
         "hard_pass": hard_pass,
         "candidate_count": len(compact_candidates),
+        "expected_candidate_count": resolved_expected_count,
         "visible_family_count": visible_family_count,
         "dominant_family_share": round(dominant_family_share, 3),
         "failure_reasons": failures,
@@ -269,6 +325,30 @@ def score_portfolio_board_with_openai_vlm(
         "image_hash": image_hash,
         "cache_hit": False,
         "legal_or_parking_score": False,
+        "api_usage": dict(response_data.get("usage") or {}),
+        "vlm_image_inputs": {
+            "schema_version": "arr.maas.portfolio_vlm_image_inputs.v1",
+            "board": {
+                "input_id": "portfolio:board",
+                "role": "candidate_portfolio_board",
+                "local_path": str(path),
+                "sha256": image_hash,
+                "input_order": 0,
+                "used_by_vlm": True,
+                "response_id": str(response_data.get("id") or ""),
+                "image_detail": selected_image_detail,
+            },
+            "references": submitted_references,
+            "reference_count": len(submitted_references),
+            "candidate_program_hashes": [
+                str(item.get("program_hash") or "")
+                for item in compact_candidates
+            ],
+            "candidate_geometry_hashes": [
+                str(item.get("geometry_hash") or "")
+                for item in compact_candidates
+            ],
+        },
     }
     try:
         cache_path.parent.mkdir(parents=True, exist_ok=True)
@@ -425,7 +505,7 @@ def audit_reference_image_for_massing(
             else max(0, int(os.getenv("MAAS_PREFERENCE_VLM_RETRIES", "1")))
         )
         for attempt in range(retry_count + 1):
-            _consume_live_vlm_request_budget()
+            _consume_live_vlm_request_budget(kind="reference_audit_vlm")
             try:
                 with urllib.request.urlopen(request, timeout=timeout) as response:
                     data = json.loads(response.read().decode("utf-8"))
@@ -493,6 +573,9 @@ def score_candidate_with_openai_vlm(
     model: str | None = None,
     timeout: float = 120.0,
     max_retries: int | None = None,
+    image_detail: str = "high",
+    program_hash: str = "",
+    geometry_hash: str = "",
 ) -> dict[str, Any]:
     """Score a candidate PNG with OpenAI's Responses API.
 
@@ -504,6 +587,14 @@ def score_candidate_with_openai_vlm(
         raise VlmScoringError("OPENAI_API_KEY is not set")
     image_data_url = _image_data_url(Path(image_path))
     selected_model = model or os.getenv("MAAS_PREFERENCE_VLM_MODEL") or DEFAULT_VLM_MODEL
+    program_hash, geometry_hash = _review_identity_hashes(
+        feature,
+        program_hash=program_hash,
+        geometry_hash=geometry_hash,
+    )
+    selected_image_detail = str(image_detail or "high").lower()
+    if selected_image_detail not in {"low", "high", "auto"}:
+        raise ValueError("image_detail must be low, high, or auto")
     user_content: list[dict[str, Any]] = [
         {
             "type": "input_text",
@@ -512,7 +603,7 @@ def score_candidate_with_openai_vlm(
         {
             "type": "input_image",
             "image_url": image_data_url,
-            "detail": "high",
+            "detail": selected_image_detail,
         },
     ]
     reference_content, reference_input_records = _reference_image_inputs(reference_matches or [])
@@ -563,7 +654,7 @@ def score_candidate_with_openai_vlm(
     data: dict[str, Any] | None = None
     last_error: Exception | None = None
     for attempt in range(retry_count + 1):
-        _consume_live_vlm_request_budget()
+        _consume_live_vlm_request_budget(kind="candidate_vlm")
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 data = json.loads(response.read().decode("utf-8"))
@@ -597,6 +688,20 @@ def score_candidate_with_openai_vlm(
     )
     normalized["api_usage"] = dict(data.get("usage") or {})
     candidate_path = Path(image_path).resolve()
+    submitted_references = _bind_submitted_reference_identity(
+        reference_input_records,
+        response_id=str(data.get("id") or ""),
+        program_hash=program_hash,
+        geometry_hash=geometry_hash,
+    )
+    _unused_content, retrieved_reference_records = _reference_image_inputs(
+        reference_matches or [],
+        limit=5,
+    )
+    submitted_ids = {
+        str(item.get("input_id") or item.get("source_id") or "")
+        for item in submitted_references
+    }
     normalized["vlm_image_inputs"] = {
         "schema_version": "arr.maas.vlm_image_inputs.v1",
         "candidate": {
@@ -606,9 +711,23 @@ def score_candidate_with_openai_vlm(
             "sha256": hashlib.sha256(candidate_path.read_bytes()).hexdigest(),
             "input_order": 0,
             "used_by_vlm": True,
+            "response_id": str(data.get("id") or ""),
+            "program_hash": str(program_hash),
+            "geometry_hash": str(geometry_hash),
         },
-        "references": reference_input_records,
-        "reference_count": len(reference_input_records),
+        "references": submitted_references,
+        "reference_count": len(submitted_references),
+        "retrieved_references": [
+            {
+                **item,
+                "used_by_vlm": str(
+                    item.get("input_id") or item.get("source_id") or ""
+                ) in submitted_ids,
+            }
+            for item in retrieved_reference_records
+        ],
+        "retrieved_reference_count": len(retrieved_reference_records),
+        "candidate_image_detail": selected_image_detail,
     }
     return normalized
 
@@ -919,7 +1038,11 @@ def _reference_image_inputs(
             "image_url": str(match.get("image_url") or ""),
             "preview_url": _reference_preview_url(match, local_path),
             "local_path": str(local_path) if local_path is not None else "",
-            "sha256": hashlib.sha256(local_path.read_bytes()).hexdigest() if local_path is not None else "",
+            "sha256": (
+                hashlib.sha256(local_path.read_bytes()).hexdigest()
+                if local_path is not None
+                else str(match.get("sha256") or "")
+            ),
             "selection_role": str(match.get("selection_role") or "similar"),
             "matched_tags": list(match.get("matched_tags") or ()),
             "program_id": str(match.get("program_id") or ""),
@@ -932,6 +1055,67 @@ def _reference_image_inputs(
             "used_by_vlm": True,
         })
     return content, records
+
+
+def _bind_submitted_reference_identity(
+    records: list[dict[str, Any]],
+    *,
+    response_id: str,
+    program_hash: str,
+    geometry_hash: str,
+) -> list[dict[str, Any]]:
+    """Attach the immutable critic and geometry identity to exact inputs."""
+
+    return [
+        {
+            **dict(record),
+            "response_id": str(response_id),
+            "program_hash": str(program_hash),
+            "geometry_hash": str(geometry_hash),
+            "used_by_vlm": True,
+        }
+        for record in records
+    ]
+
+
+def _review_identity_hashes(
+    feature: Mapping[str, Any],
+    *,
+    program_hash: str,
+    geometry_hash: str,
+) -> tuple[str, str]:
+    properties = feature.get("properties")
+    properties = properties if isinstance(properties, Mapping) else {}
+    compilation = properties.get("geometry_program_compilation")
+    compilation = compilation if isinstance(compilation, Mapping) else {}
+    artifact = properties.get("geometry_artifact")
+    artifact = artifact if isinstance(artifact, Mapping) else {}
+    artifact_identity = artifact.get("identity")
+    artifact_identity = (
+        artifact_identity if isinstance(artifact_identity, Mapping) else {}
+    )
+    certificate = artifact.get("projectedVisualCertificate")
+    certificate = certificate if isinstance(certificate, Mapping) else {}
+    return (
+        str(
+            program_hash
+            or properties.get("program_hash")
+            or compilation.get("program_hash")
+            or artifact_identity.get("programHash")
+            or certificate.get("final_program_hash")
+            or ""
+        ),
+        str(
+            geometry_hash
+            or properties.get("geometry_hash")
+            or compilation.get("geometry_hash")
+            or artifact_identity.get("geometryHash")
+            or artifact.get("projectedVisualGeometryHash")
+            or artifact_identity.get("finalLegalGeometryHash")
+            or certificate.get("final_geometry_hash")
+            or ""
+        ),
+    )
 
 
 def _reference_image_url(match: dict[str, Any]) -> str:

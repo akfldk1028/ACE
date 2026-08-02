@@ -74,6 +74,10 @@ from design.maas.single_execution import (
 )
 from design.maas.single_execution.replay import downstream_evidence_from_passport
 from design.maas.single_execution.pipeline import resolve_single_execution_replay
+from design.maas.creative_portfolio_catalog import (
+    creative_portfolio_manifest,
+    creative_portfolio_render,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +94,54 @@ def _single_execution_root() -> Path:
         Path(settings.BASE_DIR).resolve().parents[1]
         / "docs" / "ai-session-memory" / "maas-service-cache" / "single-executions"
     ).resolve()
+
+
+def _creative_portfolio_root() -> Path:
+    configured = getattr(settings, "MAAS_CREATIVE_PORTFOLIO_ROOT", "")
+    if configured:
+        return Path(configured).resolve()
+    return (
+        Path(settings.BASE_DIR).resolve().parents[1] / "docs" / "mass"
+    ).resolve()
+
+
+@require_http_methods(["GET"])
+def maas_creative_portfolios(request):
+    """Return a validated pre-legal creative archive without type coercion."""
+
+    run_id = str(request.GET.get("run_id") or "").strip()
+    try:
+        return JsonResponse(creative_portfolio_manifest(
+            _creative_portfolio_root(),
+            run_id or None,
+        ))
+    except FileNotFoundError as exc:
+        raise Http404("creative portfolio not found") from exc
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        logger.warning("Invalid creative portfolio request: %s", exc)
+        return JsonResponse({"error": "invalid creative portfolio"}, status=400)
+
+
+@require_http_methods(["GET"])
+def maas_creative_portfolio_render(
+    request,
+    run_id,
+    candidate_id,
+):
+    """Serve only the validated candidate PNG bound by the catalog."""
+
+    try:
+        output = creative_portfolio_render(
+            _creative_portfolio_root(),
+            str(run_id),
+            str(candidate_id),
+        )
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise Http404("creative candidate render not found") from exc
+    response = FileResponse(output.open("rb"), content_type="image/png")
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @require_http_methods(["GET"])

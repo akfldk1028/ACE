@@ -1,5 +1,22 @@
 # GeometryProgram MASS to Elevation Agent Handoff
 
+## Pre-legal creative research bundle — 2026-07-30
+
+Before legal selection, every creative MASS archive carries a portable
+research bundle under `masses/<candidate-id>/`. It includes the exact typed
+program, all Matrix4 nodes, indexed mesh JSON, vertices/triangles CSV, OBJ,
+front/right/back/left/top/axon views, view matrices, metric projected bounds,
+depth ranges, stable face IDs, triangle normals, actual floor guides and
+compiled-bounds facade planes.
+
+This packet is for independent elevation/section/material research and has
+status `prelegal_research_ready`. It is bound to
+`run_id + candidate_id + program_hash + geometry_hash + PNU`, sets
+`geometry_mutation_allowed=false`, and records that certified legal, parking
+and floor authority are still missing. It does not replace the certified
+single-execution handoff described below and cannot activate accepted
+elevation evidence.
+
 The elevation agent may consume only an exact executed MASS packet produced by
 `design.maas.geometry_language.elevation_handoff`. Identity is the tuple
 `run_id + mass_index + program_hash + geometry_hash`; the geometry hash must

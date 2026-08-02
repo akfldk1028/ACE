@@ -33,6 +33,14 @@ class CompatibilityAnalysis:
     ) -> None:
         self.threshold = float(threshold)
         self.distance_evaluator = distance_evaluator
+        self.distance_evaluator_label = ".".join(filter(None, (
+            str(getattr(distance_evaluator, "__module__", "")),
+            str(getattr(
+                distance_evaluator,
+                "__qualname__",
+                getattr(distance_evaluator, "__name__", ""),
+            )),
+        )))
         self.maximum_pairs = max(1, int(maximum_pairs))
         self._pairs: OrderedDict[tuple[int, int], _PairMeasurement] = (
             OrderedDict()
@@ -151,6 +159,7 @@ class CompatibilityAnalysis:
             return {
                 "schema_version": "arr.maas.compatibility_analysis.v1",
                 "compatibility_threshold": self.threshold,
+                "distance_evaluator": self.distance_evaluator_label,
                 "candidate_identity_count": len(self._candidate_ids),
                 "cached_pair_count": len(self._pairs),
                 "exact_pair_evaluation_count": self._exact_pair_evaluation_count,

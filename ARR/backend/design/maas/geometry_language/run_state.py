@@ -63,6 +63,8 @@ def update_run_progress(output_dir: Path, **progress: Any) -> Path:
             "phase", "program", "cycle_index", "cycle_budget",
             "selection_pool_count", "selected_mass_count",
             "required_scope_count", "selected_scope_count", "stop_reason",
+            "diagnostic_target", "evaluated_count", "compiled_count",
+            "program_passed_count", "candidate_cap",
         }
     }
     return write_run_state(directory, {
@@ -110,6 +112,18 @@ def tracked_mass_command(function: Callable[..., _T]) -> Callable[..., _T]:
             command_result = function(command, *args, **options)
         except BaseException as exc:
             current = _read_run_state(output_dir)
+            raw_error_evidence = getattr(exc, "evidence", None)
+            error_evidence = None
+            if isinstance(raw_error_evidence, dict):
+                try:
+                    serialized_evidence = json.dumps(
+                        raw_error_evidence,
+                        ensure_ascii=False,
+                    )
+                    if len(serialized_evidence) <= 16_000:
+                        error_evidence = json.loads(serialized_evidence)
+                except (TypeError, ValueError):
+                    error_evidence = None
             write_run_state(output_dir, {
                 **base,
                 **current,
@@ -118,6 +132,11 @@ def tracked_mass_command(function: Callable[..., _T]) -> Callable[..., _T]:
                 "selected_mass_count": int(current.get("selected_mass_count") or 0),
                 "error_type": type(exc).__name__,
                 "error": str(exc)[:1000],
+                **(
+                    {"error_evidence": error_evidence}
+                    if error_evidence is not None
+                    else {}
+                ),
             })
             raise
         evidence_result = command_result

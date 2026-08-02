@@ -6,6 +6,12 @@ const identity = {
   execution_id: 'mass-one',
   program_hash: 'program-one',
   geometry_hash: 'geometry-one',
+  final_geometry_hash: 'final-one',
+  final_legal_geometry_hash: 'final-one',
+  visual_hash: 'visual-one',
+  floor_capacity_plan_hash: 'floor-plan-one',
+  legal_floor_field_hash: 'legal-field-one',
+  candidate_actual_gfa_stop_hash: 'actual-stop-one',
 };
 
 function proposal() {
@@ -52,11 +58,21 @@ describe('extractMultiViewElevation', () => {
     const result = extractMultiViewElevation({
       program_hash: 'program-one',
       geometry_hash: 'geometry-one',
+      final_legal_geometry_hash: 'final-one',
+      visual_hash: 'visual-one',
+      floor_capacity_plan_hash: 'floor-plan-one',
+      legal_floor_field_hash: 'legal-field-one',
+      candidate_actual_gfa_stop_hash: 'actual-stop-one',
       elevation_evidence: { multi_view_proposal: proposal() },
     }, {
       executionId: 'mass-one',
       programHash: 'program-one',
       geometryHash: 'geometry-one',
+      finalGeometryHash: 'final-one',
+      visualHash: 'visual-one',
+      floorCapacityPlanHash: 'floor-plan-one',
+      legalFloorFieldHash: 'legal-field-one',
+      actualGfaStopHash: 'actual-stop-one',
     });
 
     expect(result?.status).toBe('accepted');
@@ -70,11 +86,72 @@ describe('extractMultiViewElevation', () => {
     expect(extractMultiViewElevation({
       program_hash: 'program-one',
       geometry_hash: 'geometry-one',
+      final_legal_geometry_hash: 'final-one',
+      visual_hash: 'visual-one',
+      floor_capacity_plan_hash: 'floor-plan-one',
+      legal_floor_field_hash: 'legal-field-one',
+      candidate_actual_gfa_stop_hash: 'actual-stop-one',
       elevation_evidence: { multi_view_proposal: proposal() },
     }, {
       executionId: 'mass-one',
       programHash: 'program-one',
       geometryHash: 'geometry-two',
+      finalGeometryHash: 'final-one',
+      visualHash: 'visual-one',
+      floorCapacityPlanHash: 'floor-plan-one',
+      legalFloorFieldHash: 'legal-field-one',
+      actualGfaStopHash: 'actual-stop-one',
+    })).toBeNull();
+  });
+
+  it('rejects a view copied from a different floor capacity plan', () => {
+    const stale = proposal();
+    stale.artifacts.right.identity.floor_capacity_plan_hash = 'floor-plan-two';
+
+    expect(extractMultiViewElevation({
+      program_hash: 'program-one',
+      geometry_hash: 'geometry-one',
+      final_legal_geometry_hash: 'final-one',
+      visual_hash: 'visual-one',
+      floor_capacity_plan_hash: 'floor-plan-one',
+      legal_floor_field_hash: 'legal-field-one',
+      candidate_actual_gfa_stop_hash: 'actual-stop-one',
+      elevation_evidence: { multi_view_proposal: stale },
+    }, {
+      executionId: 'mass-one',
+      programHash: 'program-one',
+      geometryHash: 'geometry-one',
+      finalGeometryHash: 'final-one',
+      visualHash: 'visual-one',
+      floorCapacityPlanHash: 'floor-plan-one',
+      legalFloorFieldHash: 'legal-field-one',
+      actualGfaStopHash: 'actual-stop-one',
+    })).toBeNull();
+  });
+
+  it('rejects one view copied from another actual GFA stop', () => {
+    const stale = proposal();
+    stale.artifacts.left.identity.candidate_actual_gfa_stop_hash =
+      'actual-stop-stale';
+
+    expect(extractMultiViewElevation({
+      program_hash: 'program-one',
+      geometry_hash: 'geometry-one',
+      final_legal_geometry_hash: 'final-one',
+      visual_hash: 'visual-one',
+      floor_capacity_plan_hash: 'floor-plan-one',
+      legal_floor_field_hash: 'legal-field-one',
+      candidate_actual_gfa_stop_hash: 'actual-stop-one',
+      elevation_evidence: { multi_view_proposal: stale },
+    }, {
+      executionId: 'mass-one',
+      programHash: 'program-one',
+      geometryHash: 'geometry-one',
+      finalGeometryHash: 'final-one',
+      visualHash: 'visual-one',
+      floorCapacityPlanHash: 'floor-plan-one',
+      legalFloorFieldHash: 'legal-field-one',
+      actualGfaStopHash: 'actual-stop-one',
     })).toBeNull();
   });
 });

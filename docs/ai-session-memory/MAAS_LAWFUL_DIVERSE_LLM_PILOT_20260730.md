@@ -2,6 +2,93 @@
 
 Updated: 2026-07-30 19:45 KST
 
+## 2026-08-01 subagent continuation checkpoint (required_macro_operators_any)
+
+- Root cause confirmed in code: `synthesis_requests_from_program_profile()` was
+  forwarding only `required_macro_operators_all` from geometry contract, so
+  contracts using `required_macro_operators_any` were never enforced during
+  recursive program synthesis.
+- Fix applied:
+  - `ARR/backend/design/maas/geometry_language/synthesis.py`
+    now reads `required_macro_operators_any` from request/profile contracts.
+  - Candidate synthesis enforces “at least one of required_any” by injecting a
+    compatible required operator when missing.
+  - `synthesis_requests_from_program_profile("neighborhood living"/"cultural")`
+    now carries that required_any list forward.
+  - Added regression test:
+    `test_profile_required_macro_operators_any_are_enforced_in_synthesis`
+    in `ARR/backend/design/test_maas_geometry_language.py`.
+- Quick validation run:
+  - `python backend/manage.py test design.test_maas_geometry_language.MaasGeometryLanguageTest.test_profile_required_macro_operators_any_are_enforced_in_synthesis`
+  - `python backend/manage.py test design.test_maas_geometry_language.MaasGeometryLanguageTest.test_program_profile_infers_capabilities_without_section_templates design.test_maas_geometry_language.MaasGeometryLanguageTest.test_frontend_early_typologies_are_typed_executable_chassis_priors`
+  both passed in this session.
+
+## 2026-07-31 MASS target-20 smoke continuity checkpoint (r19xx)
+
+Direct user-requested execution was re-run with diagnostic target 20 on real
+PNU (neighborhood, recursive-only):
+
+```bash
+cd ARR\\backend
+$env:MAAS_ALLOW_TINY_GEOMETRY_GATES='true'
+python manage.py benchmark_maas_book_program_portfolios --diagnostic-target 20 --smoke --program neighborhood --recursive-only --output-dir tmp_mass_check/subagent-run-20smoke
+```
+
+Observed result:
+
+- Runtime: ~27 minutes
+- Status: `completed_with_failed_gate` (non-fatal; diagnostic-only path)
+- `selected_mass_count`: 5
+- `program_passed_count`: 37
+- `selection_target`: 10 (smoke)
+- `minimum_count` requirement: 10
+- `selected_scope_count`: 3 / `required_scope_count`: 6
+- Failure reasons persisted in `maas-book-programs-summary.json`:
+  - `selected_count_below_minimum_10`
+  - `base_volume_scope_count_below_6`
+  - `diagnostic_only_not_portfolio_acceptance`
+- Evidence outputs present:
+  - `tmp_mass_check/subagent-run-20smoke/maas-book-neighborhood-20-smoke.png`
+  - `tmp_mass_check/subagent-run-20smoke/maas-book-programs-summary.json`
+  - `tmp_mass_check/subagent-run-20smoke/maas-run-state.json`
+  - `tmp_mass_check/subagent-run-20smoke/maas-geometry-mutation-outcome-graph.json`
+
+Speed decomposition from this run:
+
+- Candidate-generation and replenishment are the bottleneck; `final_gate` appeared only
+  after the multi-minute generation loop.
+- Throughput in the run hovered around ~15–20 evaluated candidates/min initially,
+  then flattened under tighter compile/geometry gate pressure as compile count
+  saturated before final selection.
+- The failure is not random runtime flake; run-state shows repeated progress to
+  128 evaluated candidates (first run), then completion with low final scope coverage.
+- Most wall-clock is deterministic geometry/legal projection and hard-gate filtering,
+  not startup / I/O.
+
+A second attempt with explicit budget scaling was started to test whether widening
+diagnostic budget helps selection feasibility:
+
+```bash
+$env:MAAS_DIAGNOSTIC_BUDGET_SCALE='3'
+```
+
+That attempt reached >20 minutes in `phase=candidate_generation` with
+`selected_mass_count=0`, `evaluated_count=~552`, `compiled_count=227`,
+`program_passed_count=173`, then was terminated to avoid unbounded wall-clock.
+
+This confirms that budget scaling alone does not solve the 6-scope minimum bottleneck
+in the current diagnostic target-20 path.
+
+Immediate non-breaking next step:
+
+- In diagnostic-only mode, compute required scope minima from available scope supply
+  (`min(6, available_scope_count)`) or temporarily set scope minima to 0 when raw
+  scope coverage is insufficient for a witness board.
+- Keep all law/capacity/parking and authored-identity hard gates untouched; adjust
+  only witness/selection policy and rendering policy in diagnostic mode.
+- Add a dedicated diagnostic witness board (including reject tags) for non-contract
+  states so visual review can run while contract remains strict.
+
 ## Read this first
 
 This is the active recovery authority for the interrupted creative MASS
@@ -25,6 +112,22 @@ failure.
 Each candidate must resolve to one connected, watertight, manifold MASS.
 Across the portfolio, candidates must be materially different in morphology,
 space, silhouette, and architectural organization.
+
+## MASS preview continuity note - 2026-07-31
+
+- `run_book_program_portfolios()` diagnostic probe now accepts
+  `diagnostic_target=20` (in addition to `1/2/3`) so a full 20-item preview
+  run can be requested for diversity checks without changing the core production
+  target contract.
+- CLI and verify paths were aligned to that same target set:
+  - `benchmark_maas_book_program_portfolios --diagnostic-target` now allows `1,2,3,20`.
+  - `verify_single_authority_mass_pnus` allows `1,2,3,20` for command parsing,
+    command construction, and result validation.
+- In diagnostic mode, portfolio fallback now keeps the best available compatible
+  set (including partial cardinality) instead of returning an empty pool when
+  exact target cardinality is impossible.
+- Quick continuity check used:
+  `cd ARR\\backend && python manage.py test design.test_maas_mass_product_evidence.MaasMassProductEvidenceTest.test_diagnostic_target_is_strictly_bounded_and_never_completes_portfolio --verbosity 1`
 
 ## Production authoring authority
 
@@ -65,6 +168,23 @@ A non-stepped authored solution may not be silently rewritten into generic
 stepped floor prisms during legal projection. Preservation failure must reject
 the candidate or request a typed repair.
 
+### Latest floorwise projection correction - 2026-07-31 16:20 KST
+
+Applied in the massing pipeline:
+
+- The legal projection branch now treats `floorwise_source_to_geometry_program`
+  as **intentional-step-only**.
+- For non-stepped authored `GeometryProgram`s, if
+  `select_legal_field_affine_projection` fails, the candidate is rejected
+  immediately instead of being re-synthesized as floorwise unioned slabs.
+- This is to prevent the visible stair-step collapse that was seen in
+  `r183-outcome-hardpass-22.png`, while preserving an explicit stepped path for
+  programs that include intentional operators (`setback`, `stepped_mass`, or
+  `terrace`).
+- The same principle is now encoded as acceptance logic; a candidate can still
+  pass only when it preserves authored mass identity through exact legal projection,
+  or gets rejected and repaired.
+
 ## VLM and cost contract
 
 - VLM review is mandatory for any final accepted claim.
@@ -92,6 +212,54 @@ the candidate or request a typed repair.
 - The current creative-100 command is explicitly pre-legal and records
   `legal_review=not_evaluated`; it cannot by itself satisfy this pilot.
 - No live, lawful, VLM-reviewed diverse-20 result exists yet.
+
+### 2026-07-31 selection continuity checkpoint
+
+- The 20-candidate diagnostic selection path had a hard block: fallback logic
+  relaxed contract fields (distinct/copy caps) but still reused the compatibility
+  matrix and key caps built from the strict contract, so `target=20` frequently
+  stayed at 0/low cardinality.
+- Patch applied in `portfolio_selection._select`:
+  - `build_compatibility_analysis` now uses target-aware silhouette distance.
+  - Joint payload and compatibility matrix are now built through helpers that
+    accept an explicit active contract.
+  - In `allow_diagnostic_fallback`, the second solve pass rebuilds payload,
+    compatibility, and key caps from a relaxed contract (target 20 specific):
+    exact/minimum capacity-band quotas disabled, diversity minimums reduced, and
+    pair-distance loosened.
+  - This keeps strict 20-card production contract unchanged, while the diagnostic
+    fallback can still return a usable wide set when strict contract is
+    over-constrained.
+
+### 2026-07-31 subagent handoff: diagnostic preview contract hardening
+
+- Confirmed and fixed `portfolio_selection._select` NameError risk:
+  `portfolio_contract_preview_recovered_count` referenced `joint_selected`
+  before assignment. It now uses `len(joint_indices)` consistently.
+- The target-20 diagnostic fallback path now has a third preview branch when
+  both strict and relaxed exact contracts return empty:
+  - `diagnostic_preview_contract` is built from the relaxed contract.
+  - strict scope/copy/pair constraints are removed for witness recovery.
+  - `solve_maximum_compatible_subset(..., required_coverage_tags=())` can return
+    a partial or full 20-card witness without changing the strict production
+    contract.
+- Added regression test:
+  `test_target_20_diagnostic_preview_contract_retrieves_maximum_cardinality`
+  in `ARR/backend/design/test_maas_book_language.py`.
+- Verification command run:
+  `cd ARR/backend && python manage.py test design.test_maas_book_language.MaasBookLanguageRegistryTest.test_target_20_diagnostic_preview_contract_retrieves_maximum_cardinality`
+  passed with status OK.
+
+### 2026-07-31 smoke-mode continuity checkpoint
+
+- Fixed a behavior where `--diagnostic-target` implicitly turned on `--smoke` in
+  `benchmark_maas_book_program_portfolios`.
+- `smoke_mode` now depends only on explicit `--smoke`; setting
+  `--diagnostic-target 20` can now run with full 20-candidate diagnostic
+  behavior.
+- `verify_single_authority_mass_pnus` continues to build benchmark commands with
+  explicit diagnostic target and leaves smoke off unless no target is provided.
+
 
 Do not describe the current state as product completion. The active work is to
 join the already-existing law/parking execution authority to recipe-independent
@@ -676,6 +844,19 @@ outcome-hardpass-floorwise-renders/
 - Source-run selection status: not selected
 - Legal and parking recertification during replay: not performed
 
+Why this board looks stepped:
+
+- In this run the exact replay artifact is a **floorwise transport artifact** (`execution_contract_restored_from: design.maas.geometry_language.ast.FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT`).
+- `candidate_generation.py` follows the legacy fallback branch because `legal_field_selection` is `None`, so `materialize_floorwise_legal_source()` then `floorwise_source_to_geometry_program()` is used.
+- `floorwise_source_to_geometry_program()` serializes each legalized floor band as:
+  `extruded_polygon -> translate(bottom_fraction * height) -> union`.
+- Therefore the final mesh is intentionally a stepped union of flat floor plates, not a single continuous authored volume.
+- This is consistent with current code and is not automatically a crash; it should be treated as a **lawful-but-not-desirable visual form** for this board unless the upstream program is proven to preserve non-stepped authored identity.
+
+Hard rule for next recovery:
+
+- If a candidate cannot be preserved as a continuous authored legal solid, it should be rejected (or explicitly resubmitted for repair), not silently accepted as a stepped fallback for final selection.
+
 A three-card visual shortlist was submitted to `gpt-5.4-mini` once at low
 detail with the actual Qatar National Library and Seattle Central Library
 ArchDaily image files. The paid-provider guard recorded exactly one
@@ -734,3 +915,75 @@ compatible candidates can be certified without loosening law or disguising
 bar/step repetition. Keep ordinary BaseVolume outcomes, but make plate, slab,
 wall, void, bridge, courtyard and intersection relations survive legal
 projection as genuinely different occupied architectures.
+
+## 2026-07-31 target-20 diagnostic continuity checkpoint (r318)
+
+- Command family:
+  - `python manage.py benchmark_maas_book_program_portfolios --pnu 1168011800104170004 --program neighborhood --output-dir .../book-program-portfolios-r318-neighborhood-target20-smoke-fix --diagnostic-target 20 --smoke`
+  - same command without `--smoke` in `.../r318-neighborhood-target20`
+- Environment for both runs:  
+  `MAAS_BOOK_SMOKE_REPLENISHMENT_CYCLES=2`, `MAAS_BOOK_REPLENISHMENT_CYCLES=2`,
+  `MAAS_BOOK_NONLIVE_REPLENISHMENT_CYCLES=2`,
+  `MAAS_ALLOW_VISIBLE_STEP_FALLBACK=1`,
+  `MAAS_ALLOW_TINY_GEOMETRY_GATES=1`,
+  `MAAS_RELAX_BOOK_FINALIZATION_GATE=1`.
+
+Observed completion states:
+
+- both runs: `selected_count=5`
+- smoke run: `selection_target=10` and `portfolio_requirement.minimum_count=10`
+- non-smoke run: `selection_target=20` and `minimum_count=10`
+- both: `selected_scope_count=4` vs `required_scope_count=6`
+- both: `status=completed_with_failed_gate`
+- both: portfolio failures include `selected_count_below_minimum_10`,
+  `base_volume_scope_count_below_6`, `diagnostic_only_not_portfolio_acceptance`.
+
+Evidence files:
+
+- `.../book-program-portfolios-r318-neighborhood-target20-smoke-fix/maas-run-state.json`
+- `.../book-program-portfolios-r318-neighborhood-target20/maas-run-state.json`
+- `.../r318-neighborhood-target20-smoke-fix/maas-book-neighborhood-20-smoke.png`
+
+Root-cause hypothesis for repeated “4-scope only”:
+
+1. `resolve_portfolio_requirement` still enforces `required_scope_count=6` for
+   the real base scopes, and diagnostic completion checks keep this minimum in both
+   smoke and non-smoke 20-target runs.
+2. `_select` diagnostic fallback for `target>=20` still sets
+   `base_scope_minimum_each=1`, so the solver still requires at least one candidate
+   in every configured base scope before a 20-card contract can be satisfied.
+3. Selection supply after gates reached `selection_pool_count=95` with `evaluated_count=128`,
+   so this is not generator starvation; it is selection-policy feasibility.
+
+Recommended next step (non-breaking, diagnostic-only):
+
+- In diagnostic/fallback path, compute required scope minima from available scope
+  supply (`min(6, available_scope_count)`) or set scope minima to 0 for target20
+  diagnostic when insufficient raw scope coverage exists.
+- Keep law/capacity/parking hard gates untouched; only adjust selection/diagnostic
+  witness policy.
+- Consider adding an explicit “diagnostic witness board” path that renders top-20
+  non-rejected candidates with reject reasons when strict portfolio gate is not met,
+  so visual review can continue while preserving strict contract boundaries.
+
+### 2026-07-31 2차 조치 - staircase fallback 하드 스탑 적용
+
+- 적용 파일: `ARR/backend/design/maas/book_language/candidate_generation.py`
+- 변경 핵심:
+  - `legal_field_selection is None` fallback 경로에서
+    `_authored_projection_identity_evidence(..., enforce_morphology_preservation=...)`
+    를 고정 `False`에서 `not _allow_visible_step_fallback()`로 변경.
+  - 기본은 `False`(fallback 허용 아님)로 동작하여 비의도적 계단형 재구성을 차단.
+  - 사용자가 명시적으로 `MAAS_ALLOW_VISIBLE_STEP_FALLBACK=1/true/yes/on`을
+    주지 않는 한, 비계단형 저자 형상을 계단형으로 변형해 통과시키지 않음.
+- 검증:
+  - `python -m py_compile backend/design/maas/book_language/candidate_generation.py`
+    통과.
+  - 해당 모듈만의 단독 pytest는 현재 세션에서 Django 설정 미설정으로 불가
+    (`DJANGO_SETTINGS_MODULE` 필요).
+- 즉시 후속 확인:
+  - 동일 조건 재생성에서 `r183-outcome-hardpass-22`와 같은 렌더가 계단형이면,
+    해당 후보의 `authored_projection_identity`에서 `status`, `failure_reasons`,
+    `visual_certificate.visible_step_fallback`를 우선 점검.
+  - `visible_step_fallback=true`이며 authored가 비계단형이면 현재 설정 오차 또는
+    이전 코드 경로 잔존 가능성이므로 즉시 폴백 경로 단일 추적이 필요.

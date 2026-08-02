@@ -12,12 +12,15 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 import hashlib
 import json
-import os
 from pathlib import Path
 from typing import Any, Iterable
 
 from .chassis_taxonomy import core_chassis_families
 from .floorwise_visual_projection import projected_surface_visual_hash
+from .projected_visual_contract import (
+    FINAL_AUTHORITY_CERTIFICATION_MODE,
+    validate_projected_visual_artifact,
+)
 
 
 SCHEMA_VERSION = "arr.maas.geometry_mutation_outcome_graph.v1"
@@ -80,6 +83,61 @@ def _compact_reference_author_evidence(metadata: dict[str, Any]) -> dict[str, An
             ],
         },
     }
+
+
+def _source_program_identities(
+    source: Any,
+) -> tuple[
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+    str,
+    str,
+    str,
+]:
+    """Resolve authored genotype separately from final projected execution."""
+
+    source_metadata = (
+        source.metadata
+        if isinstance(getattr(source, "metadata", None), dict)
+        else {}
+    )
+    projected = source_metadata.get("geometry_program")
+    projected = projected if isinstance(projected, dict) else {}
+    authored = source_metadata.get("authored_geometry_program")
+    authored = authored if isinstance(authored, dict) else projected
+    bridge = source_metadata.get("geometry_program_bridge_evidence")
+    bridge = bridge if isinstance(bridge, dict) else {}
+    authored_metadata = (
+        authored.get("metadata")
+        if isinstance(authored.get("metadata"), dict)
+        else {}
+    )
+    projected_metadata = (
+        projected.get("metadata")
+        if isinstance(projected.get("metadata"), dict)
+        else {}
+    )
+    projected_hash = str(bridge.get("program_hash") or "")
+    authored_book_hash = str(
+        bridge.get("upstream_authored_program_hash")
+        or projected_hash
+    )
+    reusable_hash = str(
+        authored_metadata.get("pre_book_program_hash")
+        or projected_metadata.get("pre_book_program_hash")
+        or authored_book_hash
+    )
+    return (
+        authored,
+        projected,
+        authored_metadata,
+        projected_metadata,
+        reusable_hash,
+        authored_book_hash,
+        projected_hash,
+    )
 
 
 @dataclass
@@ -181,17 +239,27 @@ class GeometryOutcomeGraph:
         wing genotype that failed coverage/coherence.  This observation closes
         that causal gap without requiring Neo4j.
         """
-        program = source.metadata.get("geometry_program") or {}
+        (
+            authored_program,
+            program,
+            authored_metadata,
+            metadata,
+            program_hash,
+            authored_book_program_hash,
+            projected_program_hash,
+        ) = _source_program_identities(source)
         bridge = source.metadata.get("geometry_program_bridge_evidence") or {}
-        if not isinstance(program, dict) or not isinstance(bridge, dict) or not bridge.get("program_hash"):
+        if (
+            not authored_program
+            or not isinstance(bridge, dict)
+            or not program_hash
+            or not projected_program_hash
+        ):
             return
-        metadata = program.get("metadata") if isinstance(program.get("metadata"), dict) else {}
-        projected_program_hash = str(bridge.get("program_hash") or "")
         # Learning identity is the reusable agent-authored genotype. BOOK
         # principle/scope is a downstream mutation context and intentionally
         # has its own nodes; otherwise every principle becomes an unrelated
         # program and graph feedback can never inform the next run.
-        program_hash = str(metadata.get("pre_book_program_hash") or projected_program_hash)
         geometry_hash = str(bridge.get("geometry_hash") or "")
         seed_family = str(bridge.get("source_seed") or str(sequence_name).split("__book_", 1)[0])
         strength = round(float(bridge.get("legal_fit_strength") or 0.0), 4)
@@ -218,9 +286,16 @@ class GeometryOutcomeGraph:
             "program_slug": str(program_slug),
             "source_seed": seed_family,
             "program_hash": program_hash,
+            "authored_program_hash": authored_book_program_hash,
+            "authored_book_program_hash": authored_book_program_hash,
             "projected_program_hash": projected_program_hash,
             "geometry_hash": geometry_hash,
-            "geometry_family": str(metadata.get("family") or source.metadata.get("family") or "recursive_solid"),
+            "geometry_family": str(
+                authored_metadata.get("family")
+                or metadata.get("family")
+                or source.metadata.get("family")
+                or "recursive_solid"
+            ),
             "legal_fit_strength": strength,
             "book_principle_id": str(principle_id),
             "book_scope": scope_label,
@@ -242,20 +317,40 @@ class GeometryOutcomeGraph:
                 )
             },
             "selected": False,
-            "vlm_critic_score": metadata.get("vlm_critic_score"),
-            "vlm_revision_generation": metadata.get("vlm_revision_generation"),
-            "vlm_geometry_critic_active": bool(metadata.get("vlm_geometry_critic_active")),
+            "vlm_critic_score": authored_metadata.get("vlm_critic_score"),
+            "vlm_revision_generation": authored_metadata.get("vlm_revision_generation"),
+            "vlm_geometry_critic_active": bool(authored_metadata.get("vlm_geometry_critic_active")),
         }
         self._upsert_observation(observation)
 
         program_node = self._upsert_node("geometry_program", program_hash, {
             "family": observation["geometry_family"],
-            "name": str(program.get("name") or ""),
-            "base_seed": str(metadata.get("base_seed") or ""),
-            "operator_path": list(metadata.get("operator_path") or bridge.get("operator_path") or ()),
-            "intent_tags": list(metadata.get("intent_tags") or ()),
-            **_compact_reference_author_evidence(metadata),
+            "name": str(authored_program.get("name") or ""),
+            "base_seed": str(authored_metadata.get("base_seed") or ""),
+            "operator_path": list(authored_metadata.get("operator_path") or bridge.get("operator_path") or ()),
+            "intent_tags": list(authored_metadata.get("intent_tags") or ()),
+            **_compact_reference_author_evidence(authored_metadata),
         })
+        authored_node = self._upsert_node(
+            "authored_geometry_program",
+            authored_book_program_hash,
+            {
+                "typed_ast": _compact_typed_program_ast(
+                    authored_program
+                ),
+                "pre_book_program_hash": program_hash,
+                "typed_ast_is_authored_post_book_program": True,
+            },
+        )
+        projected_node = self._upsert_node(
+            "projected_geometry_program",
+            projected_program_hash,
+            {
+                "geometry_hash": geometry_hash,
+                "typed_ast": _compact_typed_program_ast(program),
+                "typed_ast_is_final_projected_program": True,
+            },
+        )
         seed_node = self._upsert_node("program_seed", seed_family, {"program_slug": str(program_slug)})
         genotype_node = self._upsert_node(
             "geometry_genotype",
@@ -267,6 +362,8 @@ class GeometryOutcomeGraph:
         scope_node = self._upsert_node("book_scope", scope_label, {})
         self._upsert_edge(seed_node, genotype_node, "mutates_with")
         self._upsert_edge(program_node, genotype_node, "parameterizes")
+        self._upsert_edge(program_node, authored_node, "book_projected_to")
+        self._upsert_edge(authored_node, projected_node, "legal_projected_to")
         self._upsert_edge(genotype_node, outcome_node, "yielded")
         self._upsert_edge(book_node, outcome_node, "applied_to")
         self._upsert_edge(scope_node, outcome_node, "scoped")
@@ -291,30 +388,42 @@ class GeometryOutcomeGraph:
         This record contains only typed-program identity and measured gate
         evidence; it never stores parcel coordinates or a completed mesh.
         """
-        program_payload = (
-            source.metadata.get("geometry_program")
-            if source is not None and isinstance(getattr(source, "metadata", None), dict)
-            else None
-        )
-        if not isinstance(program_payload, dict):
-            program_payload = program.to_dict() if hasattr(program, "to_dict") else {}
-        metadata = (
-            program_payload.get("metadata")
-            if isinstance(program_payload.get("metadata"), dict)
-            else {}
-        )
+        if source is not None:
+            (
+                program_payload,
+                projected_payload,
+                metadata,
+                _projected_metadata,
+                program_hash,
+                authored_book_program_hash,
+                projected_program_hash,
+            ) = _source_program_identities(source)
+        else:
+            program_payload = (
+                program.to_dict() if hasattr(program, "to_dict") else {}
+            )
+            projected_payload = program_payload
+            metadata = (
+                program_payload.get("metadata")
+                if isinstance(program_payload.get("metadata"), dict)
+                else {}
+            )
+            program_hash = str(
+                metadata.get("pre_book_program_hash")
+                or (
+                    program.program_hash()
+                    if hasattr(program, "program_hash")
+                    else ""
+                )
+            )
+            authored_book_program_hash = program_hash
+            projected_program_hash = ""
         bridge = (
             source.metadata.get("geometry_program_bridge_evidence")
             if source is not None and isinstance(getattr(source, "metadata", None), dict)
             else {}
         )
         bridge = bridge if isinstance(bridge, dict) else {}
-        projected_program_hash = str(bridge.get("program_hash") or "")
-        program_hash = str(
-            metadata.get("pre_book_program_hash")
-            or (program.program_hash() if hasattr(program, "program_hash") else "")
-            or projected_program_hash
-        )
         if not program_hash:
             return
         failures = sorted({str(value) for value in failure_reasons if str(value)})
@@ -332,6 +441,8 @@ class GeometryOutcomeGraph:
             "program_slug": str(program_slug),
             "source_seed": str(source_seed),
             "program_hash": program_hash,
+            "authored_program_hash": authored_book_program_hash,
+            "authored_book_program_hash": authored_book_program_hash,
             "projected_program_hash": projected_program_hash,
             "geometry_hash": str(bridge.get("geometry_hash") or ""),
             "geometry_family": str(metadata.get("family") or "recursive_solid"),
@@ -366,17 +477,32 @@ class GeometryOutcomeGraph:
         selected: bool,
     ) -> None:
         source = candidate.source
-        program = source.metadata.get("geometry_program") or {}
+        (
+            authored_program,
+            program,
+            authored_metadata,
+            metadata,
+            program_hash,
+            authored_book_program_hash,
+            projected_program_hash,
+        ) = _source_program_identities(source)
         bridge = source.metadata.get("geometry_program_bridge_evidence") or {}
-        if not isinstance(program, dict) or not isinstance(bridge, dict) or not bridge.get("program_hash"):
+        if (
+            not authored_program
+            or not isinstance(bridge, dict)
+            or not program_hash
+            or not projected_program_hash
+        ):
             return
-        metadata = program.get("metadata") if isinstance(program.get("metadata"), dict) else {}
-        projected_program_hash = str(bridge.get("program_hash") or "")
-        program_hash = str(metadata.get("pre_book_program_hash") or projected_program_hash)
         geometry_hash = str(bridge.get("geometry_hash") or "")
         seed_family = str(bridge.get("source_seed") or _seed_family(candidate))
         strength = round(float(bridge.get("legal_fit_strength") or 0.0), 4)
-        family = str(metadata.get("family") or source.metadata.get("family") or "recursive_solid")
+        family = str(
+            authored_metadata.get("family")
+            or metadata.get("family")
+            or source.metadata.get("family")
+            or "recursive_solid"
+        )
         scope = source.metadata.get("program_book_projection_evidence") or {}
         scope = scope.get("scope") if isinstance(scope, dict) else {}
         scope_label = str((scope or {}).get("base_volume_label") or "1/1")
@@ -398,6 +524,8 @@ class GeometryOutcomeGraph:
             "program_slug": str(program_slug),
             "source_seed": seed_family,
             "program_hash": program_hash,
+            "authored_program_hash": authored_book_program_hash,
+            "authored_book_program_hash": authored_book_program_hash,
             "projected_program_hash": projected_program_hash,
             "geometry_hash": geometry_hash,
             "geometry_family": family,
@@ -412,9 +540,9 @@ class GeometryOutcomeGraph:
             "combined_hard_pass": bool(downstream_row.get("combined_hard_pass")),
             "selected": bool(selected),
             "geometry_failure_reasons": sorted(str(value) for value in legal.get("geometry_failure_reasons") or ()),
-            "vlm_critic_score": metadata.get("vlm_critic_score"),
-            "vlm_revision_generation": metadata.get("vlm_revision_generation"),
-            "vlm_geometry_critic_active": bool(metadata.get("vlm_geometry_critic_active")),
+            "vlm_critic_score": authored_metadata.get("vlm_critic_score"),
+            "vlm_revision_generation": authored_metadata.get("vlm_revision_generation"),
+            "vlm_geometry_critic_active": bool(authored_metadata.get("vlm_geometry_critic_active")),
             "final_book_vlm_hard_pass": bool(
                 (source.metadata.get("final_book_vlm_audit") or {}).get("hard_pass")
             ),
@@ -429,12 +557,32 @@ class GeometryOutcomeGraph:
 
         program_node = self._upsert_node("geometry_program", program_hash, {
             "family": family,
-            "name": str(program.get("name") or ""),
-            "base_seed": str(metadata.get("base_seed") or ""),
-            "operator_path": list(metadata.get("operator_path") or bridge.get("operator_path") or ()),
-            "intent_tags": list(metadata.get("intent_tags") or ()),
-            **_compact_reference_author_evidence(metadata),
+            "name": str(authored_program.get("name") or ""),
+            "base_seed": str(authored_metadata.get("base_seed") or ""),
+            "operator_path": list(authored_metadata.get("operator_path") or bridge.get("operator_path") or ()),
+            "intent_tags": list(authored_metadata.get("intent_tags") or ()),
+            **_compact_reference_author_evidence(authored_metadata),
         })
+        authored_node = self._upsert_node(
+            "authored_geometry_program",
+            authored_book_program_hash,
+            {
+                "typed_ast": _compact_typed_program_ast(
+                    authored_program
+                ),
+                "pre_book_program_hash": program_hash,
+                "typed_ast_is_authored_post_book_program": True,
+            },
+        )
+        projected_node = self._upsert_node(
+            "projected_geometry_program",
+            projected_program_hash,
+            {
+                "geometry_hash": geometry_hash,
+                "typed_ast": _compact_typed_program_ast(program),
+                "typed_ast_is_final_projected_program": True,
+            },
+        )
         seed_node = self._upsert_node("program_seed", seed_family, {"program_slug": str(program_slug)})
         genotype_node = self._upsert_node(
             "geometry_genotype",
@@ -446,6 +594,8 @@ class GeometryOutcomeGraph:
         scope_node = self._upsert_node("book_scope", scope_label, {})
         self._upsert_edge(seed_node, genotype_node, "mutates_with")
         self._upsert_edge(program_node, genotype_node, "parameterizes")
+        self._upsert_edge(program_node, authored_node, "book_projected_to")
+        self._upsert_edge(authored_node, projected_node, "legal_projected_to")
         self._upsert_edge(genotype_node, outcome_node, "yielded")
         self._upsert_edge(book_node, outcome_node, "applied_to")
         self._upsert_edge(scope_node, outcome_node, "scoped")
@@ -463,13 +613,23 @@ class GeometryOutcomeGraph:
         compiles a distinct child program and proves a valid geometry delta.
         """
         source = candidate.source
-        program = source.metadata.get("geometry_program") or {}
+        (
+            authored_program,
+            program,
+            authored_metadata,
+            metadata,
+            program_hash,
+            authored_book_program_hash,
+            projected_program_hash,
+        ) = _source_program_identities(source)
         bridge = source.metadata.get("geometry_program_bridge_evidence") or {}
-        if not isinstance(program, dict) or not isinstance(bridge, dict) or not bridge.get("program_hash"):
+        if (
+            not authored_program
+            or not isinstance(bridge, dict)
+            or not program_hash
+            or not projected_program_hash
+        ):
             return
-        metadata = program.get("metadata") if isinstance(program.get("metadata"), dict) else {}
-        projected_program_hash = str(bridge.get("program_hash") or "")
-        program_hash = str(metadata.get("pre_book_program_hash") or projected_program_hash)
         geometry_hash = str(bridge.get("geometry_hash") or "")
         source_seed = str(bridge.get("source_seed") or _seed_family(candidate))
         scope = source.metadata.get("program_book_projection_evidence") or {}
@@ -488,9 +648,16 @@ class GeometryOutcomeGraph:
             "program_slug": str(program_slug),
             "source_seed": source_seed,
             "program_hash": program_hash,
+            "authored_program_hash": authored_book_program_hash,
+            "authored_book_program_hash": authored_book_program_hash,
             "projected_program_hash": projected_program_hash,
             "geometry_hash": geometry_hash,
-            "geometry_family": str(metadata.get("family") or source.metadata.get("family") or "recursive_solid"),
+            "geometry_family": str(
+                authored_metadata.get("family")
+                or metadata.get("family")
+                or source.metadata.get("family")
+                or "recursive_solid"
+            ),
             "book_principle_id": str(candidate.principle_id),
             "book_scope": scope_label,
             "critic_model": str(audit.get("model") or ""),
@@ -508,10 +675,21 @@ class GeometryOutcomeGraph:
         self._upsert_observation(observation)
         program_node = self._upsert_node("geometry_program", program_hash, {
             "family": observation["geometry_family"],
-            "name": str(program.get("name") or ""),
-            "operator_path": list(metadata.get("operator_path") or bridge.get("operator_path") or ()),
-            **_compact_reference_author_evidence(metadata),
+            "name": str(authored_program.get("name") or ""),
+            "operator_path": list(authored_metadata.get("operator_path") or bridge.get("operator_path") or ()),
+            **_compact_reference_author_evidence(authored_metadata),
         })
+        authored_node = self._upsert_node(
+            "authored_geometry_program",
+            authored_book_program_hash,
+            {
+                "typed_ast": _compact_typed_program_ast(
+                    authored_program
+                ),
+                "pre_book_program_hash": program_hash,
+                "typed_ast_is_authored_post_book_program": True,
+            },
+        )
         projected_node = self._upsert_node("projected_geometry_program", projected_program_hash, {
             "geometry_hash": geometry_hash,
             "book_principle_id": str(candidate.principle_id),
@@ -534,7 +712,8 @@ class GeometryOutcomeGraph:
         outcome_node = self._upsert_node("outcome", observation_id, observation)
         book_node = self._upsert_node("book_principle", str(candidate.principle_id), {})
         scope_node = self._upsert_node("book_scope", scope_label, {})
-        self._upsert_edge(program_node, projected_node, "book_projected_to")
+        self._upsert_edge(program_node, authored_node, "book_projected_to")
+        self._upsert_edge(authored_node, projected_node, "legal_projected_to")
         self._upsert_edge(book_node, projected_node, "applied_to")
         self._upsert_edge(scope_node, projected_node, "scoped")
         self._upsert_edge(projected_node, critic_node, "reviewed_by")
@@ -581,6 +760,7 @@ class GeometryOutcomeGraph:
         candidates: Iterable[Any],
         board_path: str | Path,
         render_evidence: Iterable[dict[str, Any]],
+        render_features: Iterable[dict[str, Any]] | None = None,
     ) -> None:
         """Bind exact selected geometry identities to their MASS PNG cards.
 
@@ -589,48 +769,182 @@ class GeometryOutcomeGraph:
         """
 
         board = str(Path(board_path))
-        for candidate, raw_evidence in zip(candidates, render_evidence):
+        candidate_records = tuple(candidates)
+        evidence_records = tuple(render_evidence)
+        if len(candidate_records) != len(evidence_records):
+            raise ValueError("render observation cardinality mismatch")
+        explicit_render_features = render_features is not None
+        if explicit_render_features:
+            feature_records = tuple(render_features or ())
+            if len(candidate_records) != len(feature_records):
+                raise ValueError("render observation cardinality mismatch")
+            if any(
+                not isinstance(feature, dict)
+                for feature in feature_records
+            ):
+                raise ValueError("invalid rendered feature")
+            render_records = zip(
+                candidate_records,
+                evidence_records,
+                feature_records,
+            )
+        else:
+            render_records = zip(
+                candidate_records,
+                evidence_records,
+                (None,) * len(candidate_records),
+            )
+        for candidate, raw_evidence, rendered_feature in render_records:
             evidence = raw_evidence if isinstance(raw_evidence, dict) else {}
             source = candidate.source
-            program = source.metadata.get("geometry_program") or {}
+            (
+                authored_program,
+                program,
+                authored_metadata,
+                metadata,
+                program_hash,
+                authored_book_program_hash,
+                projected_program_hash,
+            ) = _source_program_identities(source)
             bridge = source.metadata.get("geometry_program_bridge_evidence") or {}
-            if not isinstance(program, dict) or not isinstance(bridge, dict):
+            if (
+                not authored_program
+                or not program
+                or not isinstance(bridge, dict)
+            ):
                 continue
-            metadata = program.get("metadata") if isinstance(program.get("metadata"), dict) else {}
-            projected_program_hash = str(bridge.get("program_hash") or "")
-            program_hash = str(metadata.get("pre_book_program_hash") or projected_program_hash)
             capacity_geometry_hash = str(bridge.get("geometry_hash") or "")
             certificate = source.metadata.get("floorwise_visual_projection") or {}
             if not isinstance(certificate, dict):
                 certificate = {}
-            certified_visual_hash = str(certificate.get("visual_hash") or "")
+            feature = (
+                rendered_feature
+                if explicit_render_features
+                else candidate.feature
+                if isinstance(
+                    getattr(candidate, "feature", None),
+                    dict,
+                )
+                else {}
+            )
+            feature_props = (
+                feature.get("properties")
+                if isinstance(feature.get("properties"), dict)
+                else {}
+            )
+            geometry_artifact = (
+                feature_props.get("geometry_artifact")
+                if isinstance(
+                    feature_props.get("geometry_artifact"),
+                    dict,
+                )
+                else {}
+            )
+            artifact_certificate = (
+                geometry_artifact.get("projectedVisualCertificate")
+                if isinstance(
+                    geometry_artifact.get("projectedVisualCertificate"),
+                    dict,
+                )
+                else {}
+            )
+            final_visual_authority = (
+                artifact_certificate.get("certification_mode")
+                == FINAL_AUTHORITY_CERTIFICATION_MODE
+            )
             rendered_visual_hash = str(
                 evidence.get("projected_visual_geometry_hash") or ""
             )
-            if (
-                certificate.get("schema_version")
-                != "arr.maas.floorwise_visual_projection.v1"
-                or certificate.get("status") != "certified"
-                or certificate.get("hard_pass") is not True
-                or not certified_visual_hash
-                or rendered_visual_hash != certified_visual_hash
-            ):
-                raise ValueError(
-                    "projected visual render hash mismatch: "
-                    f"certified={certified_visual_hash or 'missing'} "
-                    f"rendered={rendered_visual_hash or 'missing'}"
+            if final_visual_authority:
+                semantic_anchor = (
+                    feature_props.get("final_semantic_anchor")
+                    if isinstance(
+                        feature_props.get("final_semantic_anchor"),
+                        dict,
+                    )
+                    else {}
                 )
-            surfaces = tuple(source.surfaces or ())
-            if (
-                not surfaces
-                or int(certificate.get("projected_surface_count") or 0)
-                != len(surfaces)
-                or projected_surface_visual_hash(surfaces)
-                != certified_visual_hash
-            ):
-                raise ValueError(
-                    "certified projected visual mesh is missing or invalid"
+                validated_visual = validate_projected_visual_artifact(
+                    geometry_artifact,
+                    expected_semantic_context=semantic_anchor.get(
+                        "expected_semantic_context"
+                    ),
+                    expected_semantic_projection_hash=str(
+                        semantic_anchor.get(
+                            "expected_semantic_projection_hash"
+                        )
+                        or ""
+                    ),
+                    expected_semantic_audit_payload_hash=str(
+                        semantic_anchor.get(
+                            "expected_semantic_audit_payload_hash"
+                        )
+                        or ""
+                    ),
                 )
+                certified_visual_hash = str(
+                    validated_visual.visual_hash
+                    if validated_visual is not None
+                    else ""
+                )
+                final_legal_geometry_hash = str(
+                    geometry_artifact.get("finalLegalGeometryHash") or ""
+                )
+                rendered_final_legal_hash = str(
+                    evidence.get("final_legal_geometry_hash") or ""
+                )
+                if (
+                    not certified_visual_hash
+                    or rendered_visual_hash != certified_visual_hash
+                ):
+                    raise ValueError(
+                        "projected visual render hash mismatch: "
+                        f"certified={certified_visual_hash or 'missing'} "
+                        f"rendered={rendered_visual_hash or 'missing'}"
+                    )
+                if (
+                    not final_legal_geometry_hash
+                    or rendered_final_legal_hash
+                    != final_legal_geometry_hash
+                    or capacity_geometry_hash != final_legal_geometry_hash
+                ):
+                    raise ValueError(
+                        "final legal render hash mismatch: "
+                        f"certified={final_legal_geometry_hash or 'missing'} "
+                        f"rendered={rendered_final_legal_hash or 'missing'} "
+                        f"source={capacity_geometry_hash or 'missing'}"
+                    )
+            else:
+                certified_visual_hash = str(
+                    certificate.get("visual_hash") or ""
+                )
+                final_legal_geometry_hash = ""
+                if (
+                    certificate.get("schema_version")
+                    != "arr.maas.floorwise_visual_projection.v1"
+                    or certificate.get("status") != "certified"
+                    or certificate.get("hard_pass") is not True
+                    or not certified_visual_hash
+                    or rendered_visual_hash != certified_visual_hash
+                ):
+                    raise ValueError(
+                        "projected visual render hash mismatch: "
+                        f"certified={certified_visual_hash or 'missing'} "
+                        f"rendered={rendered_visual_hash or 'missing'}"
+                    )
+                surfaces = tuple(source.surfaces or ())
+                if (
+                    not surfaces
+                    or int(
+                        certificate.get("projected_surface_count") or 0
+                    )
+                    != len(surfaces)
+                    or projected_surface_visual_hash(surfaces)
+                    != certified_visual_hash
+                ):
+                    raise ValueError(
+                        "certified projected visual mesh is missing or invalid"
+                    )
             geometry_hash = certified_visual_hash
             scope = source.metadata.get("program_book_projection_evidence") or {}
             scope = scope.get("scope") if isinstance(scope, dict) else {}
@@ -652,6 +966,7 @@ class GeometryOutcomeGraph:
                 "evidence_role": "human_and_vlm_visual_observation_not_geometry_authority",
                 "geometry_authority": "certified_projected_visual_mesh",
                 "projected_visual_geometry_hash": geometry_hash,
+                "final_legal_geometry_hash": final_legal_geometry_hash,
                 "capacity_geometry_hash": capacity_geometry_hash,
                 "capacity_alternative": deepcopy(capacity_alternative),
                 "capacity_alternative_id": str(
@@ -674,8 +989,11 @@ class GeometryOutcomeGraph:
                 "program_slug": str(program_slug),
                 "source_seed": str(bridge.get("source_seed") or _seed_family(candidate)),
                 "program_hash": program_hash,
+                "authored_program_hash": authored_book_program_hash,
+                "authored_book_program_hash": authored_book_program_hash,
                 "projected_program_hash": projected_program_hash,
                 "geometry_hash": geometry_hash,
+                "final_legal_geometry_hash": final_legal_geometry_hash,
                 "capacity_geometry_hash": capacity_geometry_hash,
                 "book_principle_id": str(candidate.principle_id),
                 "book_scope": scope_label,
@@ -692,6 +1010,29 @@ class GeometryOutcomeGraph:
                 "render_artifact": artifact,
             }
             self._upsert_observation(observation)
+            program_node = self._upsert_node(
+                "geometry_program",
+                program_hash,
+                {
+                    "name": str(authored_program.get("name") or ""),
+                    "family": str(
+                        authored_metadata.get("family")
+                        or metadata.get("family")
+                        or ""
+                    ),
+                },
+            )
+            authored_node = self._upsert_node(
+                "authored_geometry_program",
+                authored_book_program_hash,
+                {
+                    "typed_ast": _compact_typed_program_ast(
+                        authored_program
+                    ),
+                    "pre_book_program_hash": program_hash,
+                    "typed_ast_is_authored_post_book_program": True,
+                },
+            )
             geometry_node = self._upsert_node(
                 "projected_geometry_program",
                 projected_program_hash or geometry_hash,
@@ -711,6 +1052,16 @@ class GeometryOutcomeGraph:
                 artifact,
             )
             outcome_node = self._upsert_node("outcome", observation_id, observation)
+            self._upsert_edge(
+                program_node,
+                authored_node,
+                "book_projected_to",
+            )
+            self._upsert_edge(
+                authored_node,
+                geometry_node,
+                "legal_projected_to",
+            )
             self._upsert_edge(geometry_node, render_node, "rendered_as")
             self._upsert_edge(render_node, outcome_node, "measured_by")
 
@@ -736,13 +1087,18 @@ class GeometryOutcomeGraph:
         if not fingerprint or not contract:
             return
         source = candidate.source
-        program = source.metadata.get("geometry_program") or {}
+        (
+            _authored_program,
+            program,
+            _authored_metadata,
+            metadata,
+            program_hash,
+            authored_book_program_hash,
+            projected_program_hash,
+        ) = _source_program_identities(source)
         bridge = source.metadata.get("geometry_program_bridge_evidence") or {}
         program = program if isinstance(program, dict) else {}
         bridge = bridge if isinstance(bridge, dict) else {}
-        metadata = program.get("metadata") if isinstance(program.get("metadata"), dict) else {}
-        projected_program_hash = str(bridge.get("program_hash") or "")
-        program_hash = str(metadata.get("pre_book_program_hash") or projected_program_hash)
         geometry_hash = str(
             bridge.get("geometry_hash")
             or (source.metadata.get("geometry_program_compilation") or {}).get("geometry_hash")
@@ -777,6 +1133,8 @@ class GeometryOutcomeGraph:
             "program_slug": str(program_slug),
             "source_seed": source_seed,
             "program_hash": program_hash,
+            "authored_program_hash": authored_book_program_hash,
+            "authored_book_program_hash": authored_book_program_hash,
             "projected_program_hash": projected_program_hash,
             "geometry_hash": geometry_hash,
             "geometry_family": str(
@@ -799,6 +1157,7 @@ class GeometryOutcomeGraph:
         base_node = self._upsert_node("book_base_geometry", fingerprint, {
             "geometry_hash": geometry_hash,
             "program_hash": program_hash,
+            "authored_book_program_hash": authored_book_program_hash,
             "projected_program_hash": projected_program_hash,
             "book_principle_id": str(candidate.principle_id),
             "book_scope": scope_label,
@@ -1904,6 +2263,88 @@ class GeometryOutcomeGraph:
             })
             self._upsert_edge(reference_node, critic_node, "visual_input_to")
 
+    def observe_design_memory_events(
+        self,
+        events: Iterable[dict[str, Any]],
+    ) -> None:
+        """Persist portable event facts while leaving referenced image bytes on disk."""
+
+        from design.maas.design_memory.reference_events import mutable_event
+
+        for immutable_event in events:
+            event = mutable_event(immutable_event)
+            event_type = str(event.get("event_type") or "")
+            event_id = str(event.get("event_id") or "")
+            if not event_type or not event_id:
+                raise ValueError("design-memory event requires type and stable ID")
+            event_node = self._upsert_node(
+                "design_memory_event",
+                event_id,
+                event,
+            )
+            program_hash = str(event.get("program_hash") or "")
+            geometry_hash = str(event.get("geometry_hash") or "")
+            if program_hash:
+                program_node = self._upsert_node(
+                    "geometry_program",
+                    program_hash,
+                    {},
+                )
+                self._upsert_edge(program_node, event_node, "recorded_in")
+            if geometry_hash:
+                geometry_node = self._upsert_node(
+                    "compiled_geometry",
+                    geometry_hash,
+                    {},
+                )
+                self._upsert_edge(geometry_node, event_node, "recorded_in")
+            if event_type in {
+                "reference_retrieved",
+                "reference_submitted_to_vlm",
+            }:
+                source_id = str(event.get("source_id") or "")
+                if not source_id:
+                    continue
+                reference_node = self._upsert_node("reference", source_id, {
+                    key: deepcopy(event.get(key))
+                    for key in (
+                        "title",
+                        "local_path",
+                        "image_uri",
+                        "sha256",
+                        "source_url",
+                        "reference_collection",
+                        "rights",
+                        "provenance",
+                    )
+                })
+                relation = (
+                    "submitted_to_vlm"
+                    if event_type == "reference_submitted_to_vlm"
+                    else "retrieved_as_reference"
+                )
+                self._upsert_edge(reference_node, event_node, relation)
+            elif event_type == "human_pairwise_choice":
+                for role in ("preferred", "rejected"):
+                    candidate_id = str(
+                        event.get(f"{role}_candidate_id") or ""
+                    )
+                    geometry_identity = str(
+                        event.get(f"{role}_geometry_hash") or ""
+                    )
+                    if not candidate_id:
+                        continue
+                    candidate_node = self._upsert_node(
+                        "creative_mass_candidate",
+                        candidate_id,
+                        {"geometry_hash": geometry_identity},
+                    )
+                    self._upsert_edge(
+                        candidate_node,
+                        event_node,
+                        f"{role}_in_choice",
+                    )
+
     def save(self) -> dict[str, Any]:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         payload = self.to_dict()
@@ -1938,34 +2379,11 @@ class GeometryOutcomeGraph:
         }
 
     def mirror_to_neo4j(self) -> dict[str, Any]:
-        if os.getenv("MAAS_OUTCOME_NEO4J", "").strip().lower() not in {"1", "true", "yes", "on"}:
-            return {"status": "disabled", "portable_graph_available": True}
-        try:
-            from graph_db.services.neo4j_service import Neo4jService
-            service = Neo4jService()
-            if not service.connect():
-                return {"status": "unavailable", "reason": "connect_returned_false", "portable_graph_available": True}
-            try:
-                for node in self.nodes.values():
-                    service.execute_query(
-                        "MERGE (n:MaasGeometryOutcomeNode {id: $id}) SET n.kind=$kind, n.payload_json=$payload",
-                        parameters={
-                            "id": node["id"],
-                            "kind": node["kind"],
-                            "payload": json.dumps(node.get("attributes") or {}, ensure_ascii=False, sort_keys=True),
-                        },
-                    )
-                for edge in self.edges.values():
-                    service.execute_query(
-                        "MATCH (a:MaasGeometryOutcomeNode {id:$source}), (b:MaasGeometryOutcomeNode {id:$target}) "
-                        "MERGE (a)-[r:MAAS_GEOMETRY_RELATION {id:$id}]->(b) SET r.kind=$kind",
-                        parameters=edge,
-                    )
-            finally:
-                service.disconnect()
-            return {"status": "mirrored", "node_count": len(self.nodes), "edge_count": len(self.edges)}
-        except Exception as exc:  # graph DB is an optional mirror, never a geometry dependency
-            return {"status": "unavailable", "reason": str(exc), "portable_graph_available": True}
+        from ..design_memory.neo4j_adapter import (
+            DesignMemoryNeo4jAdapter,
+        )
+
+        return DesignMemoryNeo4jAdapter().mirror(self)
 
     def _upsert_node(self, kind: str, identity: str, attributes: dict[str, Any]) -> str:
         node_id = _stable_id(kind, identity)

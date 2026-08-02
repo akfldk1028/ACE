@@ -100,6 +100,7 @@ def search_program_elites(
             archive_pool,
             target_count=max(1, target_count),
             minimum_distance=max(0.0, min(1.0, selection_minimum_distance)),
+            minimum_score=0.75,
         )
     return tuple(elites), {
         "schema_version": "arr.maas.program_search_report.v1",
@@ -190,6 +191,7 @@ def _select_diverse_archive(
     pool: list[ProgramElite],
     *,
     target_count: int,
+    minimum_score: float = 0.75,
     minimum_sculptural: int = 0,
     minimum_step_anchors: int = 0,
     minimum_distance: float = 0.0,
@@ -200,7 +202,7 @@ def _select_diverse_archive(
         current = unique.get(fingerprint)
         if current is None or item.score > current.score:
             unique[fingerprint] = item
-    candidates = [item for item in unique.values() if item.score >= 0.75]
+    candidates = [item for item in unique.values() if item.score >= min(1.0, max(0.0, minimum_score))]
     if len(candidates) < target_count:
         candidates = list(unique.values())
     # Do not pre-fill one item for every topology label. Several historical
@@ -208,66 +210,91 @@ def _select_diverse_archive(
     # policy forced near-duplicates onto the review sheet before novelty was
     # ever considered. Select globally by measured plan/section distance and
     # merely cap repetition of any one source graph.
-    topology_cap = 2
-    selected: list[ProgramElite] = []
-    topology_usage: dict[str, int] = {}
-    principle_usage: dict[str, int] = {}
-    principle_cap = 4
-    distance_cache: dict[tuple[int, int], float] = {}
+    def _select_with_caps(
+        candidates: list[ProgramElite],
+        *,
+        topology_cap: int,
+        principle_cap: int,
+        minimum_distance: float,
+    ) -> list[ProgramElite]:
+        selected: list[ProgramElite] = []
+        topology_usage: dict[str, int] = {}
+        principle_usage: dict[str, int] = {}
+        distance_cache: dict[tuple[int, int], float] = {}
 
-    def distance(left: ProgramElite, right: ProgramElite) -> float:
-        key = tuple(sorted((id(left), id(right))))
-        if key not in distance_cache:
-            distance_cache[key] = _descriptor_distance(left, right)
-        return distance_cache[key]
+        def distance(left: ProgramElite, right: ProgramElite) -> float:
+            key = tuple(sorted((id(left), id(right))))
+            if key not in distance_cache:
+                distance_cache[key] = _descriptor_distance(left, right)
+            return distance_cache[key]
 
-    while candidates and len(selected) < target_count:
-        eligible = [
-            item for item in candidates
-            if topology_usage.get(_topology(item), 0) < topology_cap
-            and principle_usage.get(_formal_principle(item), 0) < principle_cap
-            and (
-                not selected
-                or min(distance(item, other) for other in selected) >= minimum_distance
-            )
-        ]
-        if not eligible:
-            break
-        selected_sculptural = sum(1 for item in selected if _is_sculptural(item))
-        sculptural_needed = max(0, minimum_sculptural - selected_sculptural)
-        selected_step_anchors = sum(1 for item in selected if _is_step_anchor(item))
-        step_anchors_needed = max(0, minimum_step_anchors - selected_step_anchors)
-        remaining_slots = target_count - len(selected)
-        # Quotas are archive invariants, not late score bonuses. Waiting until
-        # ``needed >= remaining_slots`` allowed early rectilinear winners to
-        # consume topology/principle capacity and made a 12-form sculptural
-        # supply unreachable near the end. Reserve the scarce categories from
-        # the start while all geometry-distance and repetition caps still
-        # apply.
-        if step_anchors_needed > 0:
-            step_eligible = [item for item in eligible if _is_step_anchor(item)]
-            if sculptural_needed > 0:
-                joint_eligible = [item for item in step_eligible if _is_sculptural(item)]
-                if joint_eligible:
-                    step_eligible = joint_eligible
-            if step_eligible:
-                eligible = step_eligible
-        elif sculptural_needed > 0:
-            sculptural_eligible = [item for item in eligible if _is_sculptural(item)]
-            if sculptural_eligible:
-                eligible = sculptural_eligible
-        def selection_key(item: ProgramElite) -> tuple[float, float]:
-            novelty = 1.0 if not selected else min(distance(item, other) for other in selected)
-            quota_bonus = 0.08 if sculptural_needed and _is_sculptural(item) else 0.0
-            step_bonus = 0.07 if step_anchors_needed and _is_step_anchor(item) else 0.0
-            return item.score * 0.46 + novelty * 0.54 + quota_bonus + step_bonus, item.score
-        winner = max(eligible, key=selection_key)
-        selected.append(winner)
-        topology_usage[_topology(winner)] = topology_usage.get(_topology(winner), 0) + 1
-        principle = _formal_principle(winner)
-        principle_usage[principle] = principle_usage.get(principle, 0) + 1
-        candidates.remove(winner)
-    return selected
+        while candidates and len(selected) < target_count:
+            eligible = [
+                item for item in candidates
+                if topology_usage.get(_topology(item), 0) < topology_cap
+                and principle_usage.get(_formal_principle(item), 0) < principle_cap
+                and (
+                    not selected
+                    or min(distance(item, other) for other in selected) >= minimum_distance
+                )
+            ]
+            if not eligible:
+                break
+            selected_sculptural = sum(1 for item in selected if _is_sculptural(item))
+            sculptural_needed = max(0, minimum_sculptural - selected_sculptural)
+            selected_step_anchors = sum(1 for item in selected if _is_step_anchor(item))
+            step_anchors_needed = max(0, minimum_step_anchors - selected_step_anchors)
+            # remaining_slots = target_count - len(selected)
+            # Quotas are archive invariants, not late score bonuses. Waiting until
+            # ``needed >= remaining_slots`` allowed early rectilinear winners to
+            # consume topology/principle capacity and made a 12-form sculptural
+            # supply unreachable near the end. Reserve the scarce categories from
+            # the start while all geometry-distance and repetition caps still
+            # apply.
+            if step_anchors_needed > 0:
+                step_eligible = [item for item in eligible if _is_step_anchor(item)]
+                if sculptural_needed > 0:
+                    joint_eligible = [item for item in step_eligible if _is_sculptural(item)]
+                    if joint_eligible:
+                        step_eligible = joint_eligible
+                if step_eligible:
+                    eligible = step_eligible
+            elif sculptural_needed > 0:
+                sculptural_eligible = [item for item in eligible if _is_sculptural(item)]
+                if sculptural_eligible:
+                    eligible = sculptural_eligible
+            def selection_key(item: ProgramElite) -> tuple[float, float]:
+                novelty = 1.0 if not selected else min(distance(item, other) for other in selected)
+                quota_bonus = 0.08 if sculptural_needed and _is_sculptural(item) else 0.0
+                step_bonus = 0.07 if step_anchors_needed and _is_step_anchor(item) else 0.0
+                return item.score * 0.46 + novelty * 0.54 + quota_bonus + step_bonus, item.score
+            winner = max(eligible, key=selection_key)
+            selected.append(winner)
+            topology_usage[_topology(winner)] = topology_usage.get(_topology(winner), 0) + 1
+            principle = _formal_principle(winner)
+            principle_usage[principle] = principle_usage.get(principle, 0) + 1
+            candidates.remove(winner)
+        return selected
+
+    base_caps = [2, 3, 4]
+    base_principle_caps = [4, 6]
+    base_distances = [minimum_distance, 0.14, 0.10, 0.06, 0.00]
+    for topology_cap in base_caps:
+        for principle_cap in base_principle_caps:
+            for relaxed_distance in base_distances:
+                selected = _select_with_caps(
+                    list(candidates),
+                    topology_cap=topology_cap,
+                    principle_cap=principle_cap,
+                    minimum_distance=max(0.0, min(1.0, relaxed_distance)),
+                )
+                if len(selected) >= target_count:
+                    return selected[:target_count]
+
+    # Worst-case fallback: never fail below target_count unless pool itself is
+    # too small. Prefer score order so lower-distance gates do not erase the
+    # highest-rated architecture entirely.
+    return sorted(unique.values(), key=lambda item: item.score, reverse=True)[:target_count]
 
 
 def _is_sculptural(item: ProgramElite) -> bool:
@@ -703,6 +730,30 @@ def materialize_source_feature_surfaces(
 ) -> dict[str, Any]:
     """Attach renderer records on demand without changing their eager contract."""
 
+    props = feature.setdefault("properties", {})
+    existing_surfaces = props.get("source_surfaces")
+    certificate = props.get("floorwise_visual_projection")
+    if not isinstance(certificate, dict):
+        model = props.get("maas_model")
+        certificate = (
+            model.get("floorwise_visual_projection")
+            if isinstance(model, dict)
+            else None
+        )
+    if (
+        isinstance(existing_surfaces, list)
+        and existing_surfaces
+        and isinstance(certificate, dict)
+        and certificate.get("schema_version")
+        == "arr.maas.floorwise_visual_projection.v1"
+        and certificate.get("status") == "certified"
+        and certificate.get("hard_pass") is True
+        and bool(str(certificate.get("visual_hash") or ""))
+        and int(certificate.get("projected_surface_count") or 0)
+        == len(existing_surfaces)
+    ):
+        return feature
+
     origin = source.footprint.centroid
     source_surfaces = []
     for surface in source.surfaces:
@@ -712,12 +763,20 @@ def materialize_source_feature_surfaces(
             for x, y, z in surface.vertices_m
         ]
         source_surfaces.append(record)
-    props = feature.setdefault("properties", {})
     props["source_surfaces"] = source_surfaces
     props["source_surface_summary"] = _surface_summary(
         source,
         materialization="eager",
     )
+    source_certificate = source.metadata.get("floorwise_visual_projection")
+    if (
+        not isinstance(props.get("floorwise_visual_projection"), dict)
+        and isinstance(source_certificate, dict)
+    ):
+        props["floorwise_visual_projection"] = dict(source_certificate)
+        model = props.get("maas_model")
+        if isinstance(model, dict):
+            model["floorwise_visual_projection"] = dict(source_certificate)
     return feature
 
 

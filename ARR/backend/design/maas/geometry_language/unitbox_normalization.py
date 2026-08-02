@@ -114,6 +114,7 @@ def normalize_unitbox_program(program: GeometryProgram) -> GeometryProgram:
         name=program.name,
         schema_version=program.schema_version,
         metadata=metadata,
+        execution_contract=program.execution_contract,
     )
 
 

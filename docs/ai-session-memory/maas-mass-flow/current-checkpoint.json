@@ -1,6 +1,29 @@
 {
   "schema_version": "arr.maas.mass_flow_memory.v1",
   "updated_at": "2026-07-31T13:19:00+09:00",
+  "subagent_mass_diversity_repair_plan": {
+    "applied_at": "2026-07-31T23:20:00+09:00",
+    "focus": "prevent_program_selection_from_stalling_at_diversity_caps",
+    "code_changes": [
+      "ARR/backend/design/maas/program_massing/search.py: _select_diverse_archive now has progressive relaxation and score-aware fallback so target_count=20 is filled when strict topology/principle/novelty caps block selection.",
+      "ARR/backend/design/maas/program_massing/vlm_a2a.py: lowered final stage diversity gates to reduce starvation (search distance 0.14, final/rebalance/audit distance 0.16)."
+    ],
+    "diagnostics_run": {
+      "case": "search_program_elites with program+creative seeds",
+      "target_count": 20,
+      "selection_minimum_distance": 0.16,
+      "result": {
+        "selected": 20,
+        "archive_pool": 794,
+        "evaluated": 1716,
+        "rejected": 922,
+        "topologies": 17,
+        "principles": 9,
+        "near_duplicate_pairs_lt_0.16": 0
+      }
+    },
+    "next_action": "re-run full neighborhood_vlm_a2a with a certified authored panel before VLM scoring; reuse candidate set renderer only after certification gate passes."
+  },
   "frontend_url": "http://127.0.0.1:5178/design/language",
   "latest_r183_real_pnu_full_test": {
     "run_id": "book-program-portfolios-r183-proper-full-pnu",

@@ -11,6 +11,7 @@ import uuid
 
 from design.maas.aesthetic.contracts import AestheticProvider, RenderedReference
 from .panel_roles import locked_sheet_panel_roles
+from .multi_view_contract import proposal_identity
 
 
 def generate_elevation_image_proposal(
@@ -24,13 +25,12 @@ def generate_elevation_image_proposal(
 
     if str(bundle.get("status") or "") != "generated":
         raise ValueError("image proposal requires a generated elevation bundle")
-    identity = {
-        "execution_id": str(bundle.get("execution_id") or ""),
-        "program_hash": str(bundle.get("program_hash") or ""),
-        "geometry_hash": str(bundle.get("geometry_hash") or ""),
-    }
-    if not all(identity.values()):
-        raise ValueError("image proposal requires complete execution identity")
+    try:
+        identity = proposal_identity(bundle)
+    except ValueError as exc:
+        raise ValueError(
+            str(exc).replace("multi-view proposal", "image proposal")
+        ) from exc
     preview = Path(mass_preview).resolve()
     if not preview.is_file():
         raise ValueError(f"MASS preview does not exist: {preview}")

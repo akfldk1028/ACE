@@ -19,6 +19,7 @@ class SingleMassExecutionResult:
     full_flow_status: str
     program_hash: str
     geometry_hash: str
+    floor_capacity_plan_hash: str
     timings_ms: dict[str, float]
     gate_issues: tuple[dict[str, Any], ...]
     output_directory: Path
@@ -41,6 +42,7 @@ class SingleMassExecutionResult:
             "full_flow_status": self.full_flow_status,
             "program_hash": self.program_hash,
             "geometry_hash": self.geometry_hash,
+            "floor_capacity_plan_hash": self.floor_capacity_plan_hash,
             "timings_ms": dict(self.timings_ms),
             "gate_issues": list(self.gate_issues),
             "artifacts": {

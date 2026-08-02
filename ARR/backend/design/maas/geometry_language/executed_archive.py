@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from functools import lru_cache
 from datetime import datetime, timezone
 import json
@@ -15,7 +16,10 @@ from .ast import GeometryProgram
 from .compiler import CompilationResult, compile_geometry_program
 from .dsl import program_to_dsl
 from .execution_persistence import write_mass_execution_passport
-from .projected_visual_contract import validate_projected_visual_artifact
+from .projected_visual_contract import (
+    semantic_audit_payload_hash,
+    validate_projected_visual_artifact,
+)
 from .run_state import RUN_STATE_FILENAME
 from .vlm_adapter import retrieve_geometry_reference_matches
 from design.maas.preference.reference_paths import resolve_reference_image_path
@@ -207,6 +211,13 @@ def executed_mass_manifest(run_id: str | None = None) -> dict[str, Any]:
         "selected_run_id": archive_path.parent.name,
         "run_count": len(runs),
         "archive_revision": revision,
+        "publishable_20": summary.get("publishable_20") is True,
+        "publishable_target_count": int(
+            summary.get("publishable_target_count") or 0
+        ),
+        "publishable_20_manifest": _mapping(
+            summary.get("publishable_20_manifest")
+        ),
         "runs": runs,
         "book_images_included": False,
         "image_authority": "actual archived candidate render tied to exact executed GeometryProgram",
@@ -235,7 +246,11 @@ def compile_executed_mass(
     record, row, archive_path = executed_mass_record(index, run_id)
     artifact = _artifact(record)
     program = GeometryProgram.from_dict(artifact["geometryProgram"])
-    projected_visual = _validated_projected_visual_compilation(artifact, program)
+    projected_visual = _validated_projected_visual_compilation(
+        artifact,
+        program,
+        expected_semantic_anchor=_summary_semantic_anchor(row),
+    )
     if projected_visual is not None:
         return projected_visual, artifact, row, archive_path
     compilation = compile_geometry_program(program)
@@ -256,7 +271,11 @@ def archived_compilation(
     record, row, archive_path = executed_mass_record(index, run_id)
     artifact = _artifact(record)
     program = GeometryProgram.from_dict(artifact["geometryProgram"])
-    projected_visual = _validated_projected_visual_compilation(artifact, program)
+    projected_visual = _validated_projected_visual_compilation(
+        artifact,
+        program,
+        expected_semantic_anchor=_summary_semantic_anchor(row),
+    )
     if projected_visual is not None:
         return projected_visual, artifact, row, archive_path
     stored = _mapping(artifact.get("compilation"))
@@ -280,10 +299,31 @@ def archived_compilation(
 def _validated_projected_visual_compilation(
     artifact: dict[str, Any],
     program: GeometryProgram,
+    *,
+    expected_semantic_anchor: dict[str, Any] | None = None,
 ) -> CompilationResult | None:
     """Hydrate a certified archived triangle skin, rejecting partial or altered data."""
 
-    validated = validate_projected_visual_artifact(artifact)
+    semantic_anchor = (
+        expected_semantic_anchor
+        if isinstance(expected_semantic_anchor, dict)
+        else {}
+    )
+    validated = validate_projected_visual_artifact(
+        artifact,
+        expected_semantic_context=semantic_anchor.get(
+            "expected_semantic_context"
+        ),
+        expected_semantic_projection_hash=str(
+            semantic_anchor.get("expected_semantic_projection_hash") or ""
+        ),
+        expected_semantic_audit_payload_hash=str(
+            semantic_anchor.get(
+                "expected_semantic_audit_payload_hash"
+            )
+            or ""
+        ),
+    )
     if validated is None:
         return None
     identity = _mapping(artifact.get("identity"))
@@ -341,6 +381,23 @@ def _validated_projected_visual_compilation(
         issues=(),
         geometry_hash=validated.visual_hash,
     )
+
+
+def _summary_semantic_anchor(row: dict[str, Any]) -> dict[str, Any]:
+    """Build the final-visual anchor from the separately stored summary row."""
+
+    audit = _mapping(row.get("semantic_projection_hard_gate"))
+    return {
+        "expected_semantic_context": audit.get("audited_context"),
+        "expected_semantic_projection_hash": str(
+            audit.get("semantic_projection_hash") or ""
+        ),
+        "expected_semantic_audit_payload_hash": (
+            semantic_audit_payload_hash(audit)
+            if audit
+            else ""
+        ),
+    }
 
 
 def materialize_executed_mass_preview(index: int, run_id: str | None = None) -> Path:
@@ -497,11 +554,28 @@ def _retrieved_reference_records(program: GeometryProgram) -> list[dict[str, Any
             "title": str(match.get("title") or source_id),
             "source": str(match.get("source") or "archdaily"),
             "source_url": str(match.get("source_url") or match.get("page_url") or ""),
+            "image_url": str(match.get("image_url") or ""),
+            "local_path": str(local_path) if local_path is not None else "",
+            "sha256": (
+                hashlib.sha256(local_path.read_bytes()).hexdigest()
+                if local_path is not None
+                else str(match.get("sha256") or "")
+            ),
             "preview_url": preview_url,
             "selection_role": str(match.get("selection_role") or "similar"),
             "matched_tags": list(match.get("matched_tags") or ()),
             "program_match_tier": str(match.get("program_match_tier") or ""),
             "reference_collection": str(match.get("reference_collection") or ""),
+            "rights": str(match.get("rights") or match.get("license") or ""),
+            "provenance": (
+                dict(match.get("provenance") or {})
+                if isinstance(match.get("provenance"), dict)
+                else (
+                    {"note": str(match.get("provenance"))}
+                    if match.get("provenance")
+                    else {}
+                )
+            ),
             "score": match.get("score"),
             "retrieval_order": order,
             "used_by_vlm": False,
@@ -567,12 +641,111 @@ def _manifest_row(
 ) -> dict[str, Any]:
     artifact = _artifact(record)
     identity = _mapping(artifact.get("identity"))
+    projected_visual_hash = str(
+        artifact.get("projectedVisualGeometryHash") or ""
+    )
+    projected_visual_certificate = _mapping(
+        artifact.get("projectedVisualCertificate")
+    )
+    passport = _mapping(artifact.get("executionPassport"))
+    visual_hash = (
+        projected_visual_hash
+        if (
+            projected_visual_hash
+            and str(
+                projected_visual_certificate.get("visual_hash") or ""
+            )
+            == projected_visual_hash
+            and str(identity.get("geometryHash") or "")
+            == projected_visual_hash
+            and str(passport.get("geometry_hash") or "")
+            == projected_visual_hash
+            and str(passport.get("visual_hash") or "")
+            == projected_visual_hash
+        )
+        else ""
+    )
     compilation = _mapping(artifact.get("compilation"))
     capacity = _mapping(artifact.get("capacityAlternative"))
     hard_gates = _mapping(artifact.get("hardGates"))
     phenotype = str(row.get("body_phenotype") or row.get("solid_phenotype") or "mass")
     operation = str(row.get("book_operation") or record.get("trace_sequence_label") or "executed geometry")
     program = GeometryProgram.from_dict(artifact["geometryProgram"])
+    program_hash = str(
+        identity.get("programHash")
+        or compilation.get("program_hash")
+        or ""
+    )
+    passport_program_hash = str(
+        passport.get("program_hash") or ""
+    )
+    if (
+        not program_hash
+        or program_hash != program.program_hash()
+        or (
+            passport_program_hash
+            and passport_program_hash != program_hash
+        )
+    ):
+        program_hash = ""
+    geometry_hash = str(
+        identity.get("geometryHash")
+        or compilation.get("geometry_hash")
+        or ""
+    )
+    final_geometry_hash = str(
+        artifact.get("finalLegalGeometryHash") or ""
+    )
+    legal_floor_field_hash = str(
+        artifact.get("legalFloorFieldHash") or ""
+    )
+    candidate_stop_hash = str(
+        artifact.get("candidateActualGfaStopHash") or ""
+    )
+    candidate_stop_certificate = _mapping(
+        artifact.get("candidateActualGfaStopCertificate")
+    )
+    passport_stop_certificate = _mapping(
+        passport.get("candidate_actual_gfa_stop_certificate")
+    )
+    row_stop_certificate = _mapping(
+        row.get("candidate_actual_gfa_stop_certificate")
+    )
+    phase_b2_identity_hard_pass = bool(
+        final_geometry_hash
+        and final_geometry_hash
+        == str(passport.get("final_legal_geometry_hash") or "")
+        and legal_floor_field_hash
+        == str(passport.get("legal_floor_field_hash") or "")
+        and candidate_stop_hash
+        == str(passport.get("candidate_actual_gfa_stop_hash") or "")
+        and candidate_stop_hash
+        == str(
+            candidate_stop_certificate.get(
+                "candidate_actual_gfa_stop_hash"
+            )
+            or ""
+        )
+        and candidate_stop_certificate == passport_stop_certificate
+        and candidate_stop_certificate == row_stop_certificate
+        and legal_floor_field_hash
+        == str(
+            candidate_stop_certificate.get(
+                "legal_floor_field_hash"
+            )
+            or ""
+        )
+        and program_hash
+        == str(candidate_stop_certificate.get("program_hash") or "")
+        and final_geometry_hash
+        == str(
+            candidate_stop_certificate.get("final_geometry_hash") or ""
+        )
+        and visual_hash
+        == str(candidate_stop_certificate.get("visual_hash") or "")
+        and str(row.get("floor_capacity_plan_hash") or "")
+        == str(passport.get("floor_capacity_plan_hash") or "")
+    )
     authored_program_payload = artifact.get("authoredGeometryProgram")
     authored_program = (
         GeometryProgram.from_dict(authored_program_payload)
@@ -583,7 +756,7 @@ def _manifest_row(
         program=program,
         capacity=capacity,
         hard_gates=hard_gates,
-        passport=_mapping(artifact.get("executionPassport")),
+        passport=passport,
         compilation=compilation,
     )
     book_base_node = next((
@@ -599,8 +772,41 @@ def _manifest_row(
         "run_id": archive_path.parent.name,
         "program_type": str(artifact.get("programType") or ""),
         "program_label": str(artifact.get("programLabel") or ""),
-        "program_hash": str(identity.get("programHash") or compilation.get("program_hash") or ""),
-        "geometry_hash": str(identity.get("geometryHash") or compilation.get("geometry_hash") or ""),
+        "program_hash": program_hash,
+        "geometry_hash": geometry_hash,
+        "visual_hash": visual_hash,
+        "final_geometry_hash": (
+            final_geometry_hash if phase_b2_identity_hard_pass else ""
+        ),
+        "legal_floor_field_hash": (
+            legal_floor_field_hash
+            if phase_b2_identity_hard_pass
+            else ""
+        ),
+        "candidate_actual_gfa_stop_hash": (
+            candidate_stop_hash if phase_b2_identity_hard_pass else ""
+        ),
+        "candidate_actual_gfa_stop_certificate": (
+            deepcopy(candidate_stop_certificate)
+            if phase_b2_identity_hard_pass
+            else {}
+        ),
+        "candidate_floor_count": (
+            candidate_stop_certificate.get("selected_floor_count")
+            if phase_b2_identity_hard_pass
+            else None
+        ),
+        "candidate_target_gfa_m2": (
+            candidate_stop_certificate.get("target_gfa_m2")
+            if phase_b2_identity_hard_pass
+            else None
+        ),
+        "achieved_gfa_m2": (
+            candidate_stop_certificate.get("achieved_gfa_m2")
+            if phase_b2_identity_hard_pass
+            else None
+        ),
+        "phase_b2_identity_hard_pass": phase_b2_identity_hard_pass,
         "dsl": program_to_dsl(program),
         "node_count": len(program.nodes),
         "operator_path": [node.operator for node in program.topological_nodes()],

@@ -1,5 +1,29 @@
 # MASS Flow Memory Changelog
 
+## 2026-07-30 - LLM-authored MASS and elevation research bundle
+
+- Corrected the creative generation authority: a family recipe is no longer a
+  production prerequisite. The LLM authors typed GeometryProgram ASTs, the
+  compiler/gates own geometry truth, and family is classified after compile.
+- Demoted the 15 deterministic family recipes to explicit fixtures and
+  regression examples; missing LLM credentials may not silently invoke them.
+- Added the required per-MASS research-folder contract: program, author
+  evidence, Matrix4 trace, indexed mesh, CSV/OBJ, six technical views, camera
+  matrices, metric bounds/depth, stable faces, normals, floor guides, facade
+  planes, hashes, and a pre-legal elevation handoff.
+- Design authority:
+  `docs/superpowers/specs/2026-07-30-llm-authored-mass-research-bundle-design.md`.
+- Implemented explicit `payload`, `llm`, and `recipe_fixture` command modes.
+  Payload/live modes never consult the family registry; missing live
+  credentials fail closed. Authored boxes normalize to one UnitBox plus
+  Matrix4 before creative compilation.
+- Verified 52/52 focused tests, including a 100-candidate archive with one
+  complete MASS research folder per candidate.
+- Replayed one stored real LLM AST without a new paid request at
+  `docs/mass/maas-llm-authored-research-bundle-20260730-1538`: 1 UnitBox,
+  5 Matrix4 nodes, 16 vertices, 28 triangles, 6 technical views, 19 MASS files,
+  and all manifest SHA-256 values matched.
+
 ## 2026-07-27 - canonical multi-agent competition-design flow restored
 
 - Ran three read-only parallel audits over recent MASS chronology, backend

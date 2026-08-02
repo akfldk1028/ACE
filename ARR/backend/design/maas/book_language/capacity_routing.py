@@ -1,4 +1,4 @@
-"""Capacity-authoritative routing between geometry gates and paid VLM review."""
+"""Capacity-diagnostic routing between geometry gates and paid VLM review."""
 
 from __future__ import annotations
 
@@ -39,8 +39,9 @@ def build_capacity_review_context(
             for value in floor_contract.get("target_floor_areas_m2", ())
         ],
         "floor_totals": deepcopy(floor_contract.get("totals") or {}),
-        "hard_gates_are_authoritative": True,
-        "visual_review_must_not_relax_capacity": True,
+        "capacity_target_authority": "diagnostic_only",
+        "hard_gates_are_authoritative": False,
+        "visual_review_must_not_relax_legal_or_parking_gates": True,
     }
 
 
@@ -49,44 +50,30 @@ def route_capacity_target_hard_passes(
     *,
     stage: str,
 ) -> tuple[list[CandidateT], dict[str, Any]]:
-    """Keep legacy-unmeasured pools intact, but never route a measured miss.
-
-    A final-solid VLM call is a downstream visual judgment, not a substitute
-    for the already measured FAR/capacity target.  The final selector uses the
-    same ``target_hard_pass`` field, so applying it here prevents paid review
-    of candidates that can never be selected.
-    """
+    """Route every MASS candidate while retaining capacity diagnostics."""
 
     pool = list(candidates)
     gates = [_capacity_target_gate(candidate) for candidate in pool]
     measured_count = sum(gate is not None for gate in gates)
-    if measured_count:
-        routed = [
-            candidate
-            for candidate, gate in zip(pool, gates)
-            if gate is True
-        ]
-        status = (
-            "capacity_target_hard_pass_ready"
-            if routed
-            else "no_capacity_target_hard_pass_candidates"
-        )
-    else:
-        routed = pool
-        status = "legacy_unmeasured_passthrough" if pool else "empty_input"
+    routed = pool
+    pass_count = sum(gate is True for gate in gates)
+    advisory_miss_count = sum(gate is False for gate in gates)
+    status = (
+        "capacity_target_diagnostic_passthrough"
+        if measured_count
+        else ("legacy_unmeasured_passthrough" if pool else "empty_input")
+    )
     return routed, {
         "schema_version": CAPACITY_ROUTING_SCHEMA,
         "stage": str(stage),
         "status": status,
         "input_count": len(pool),
         "measured_count": measured_count,
-        "hard_pass_count": len(routed) if measured_count else 0,
-        "rejected_before_paid_vlm_count": (
-            measured_count - len(routed)
-            if measured_count
-            else 0
-        ),
+        "hard_pass_count": pass_count,
+        "advisory_miss_count": advisory_miss_count,
+        "rejected_before_paid_vlm_count": 0,
         "legacy_unmeasured_count": len(pool) - measured_count,
+        "capacity_target_authority": "diagnostic_only",
         "paid_vlm_boundary": True,
     }
 

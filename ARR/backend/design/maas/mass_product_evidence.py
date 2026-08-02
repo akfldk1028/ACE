@@ -7,7 +7,7 @@ floor counts, areas, parking, or legal ratios from a rendered image.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 from design.maas.geometry_language.ast import GeometryProgram
 
@@ -24,6 +24,7 @@ def serialize_mass_product_evidence(
 
     metadata = _mapping(program.metadata)
     capacity_evidence = _merged_capacity(capacity, passport)
+    passport_payload = _mapping(passport)
     gates = _mapping(hard_gates)
     law_evidence = _stage_evidence(passport, "law")
     parking_evidence = _first_mapping(
@@ -52,14 +53,45 @@ def serialize_mass_product_evidence(
         _mapping(shared_floor.get("identity")).get("floor_capacity_plan_hash"),
         capacity_evidence.get("floor_capacity_plan_hash"),
         floorwise.get("floor_capacity_plan_hash"),
+        passport_payload.get("floor_capacity_plan_hash"),
     )
     floor_contract_hash = _first_text(
         shared_floor.get("floor_contract_hash"),
         projected.get("floor_contract_hash"),
         law_evidence.get("floor_contract_hash"),
     )
+    compilation_payload = _mapping(compilation)
+    compilation_metrics = _mapping(compilation_payload.get("metrics"))
+    elevation_payload = _mapping(passport_payload.get("elevation_evidence"))
+    final_legal_geometry_hash = resolve_final_legal_geometry_identity(
+        compilation=compilation_payload,
+        passport=passport_payload,
+        elevation=elevation_payload,
+    )
+    upstream_geometry_hashes = {
+        key: value
+        for key, value in (
+            (
+                "authored_geometry_hash",
+                _first_text(
+                    compilation_payload.get("authored_geometry_hash"),
+                    compilation_metrics.get("authored_geometry_hash"),
+                ),
+            ),
+            (
+                "capacity_geometry_hash",
+                _first_text(
+                    compilation_payload.get("capacity_geometry_hash"),
+                    compilation_metrics.get("capacity_geometry_hash"),
+                ),
+            ),
+        )
+        if value
+    }
 
     return {
+        "final_legal_geometry_hash": final_legal_geometry_hash,
+        "upstream_geometry_hashes": upstream_geometry_hashes,
         "num_floors": _first_integer(
             totals.get("num_floors"),
             floorwise.get("floor_count"),
@@ -109,19 +141,107 @@ def floor_capacity_plan_hash(
 ) -> str:
     """Extract the law-derived floor-plan identity without deriving a new one."""
 
+    return resolve_floor_capacity_plan_identity(
+        program=program,
+        capacity=capacity,
+        passport=passport,
+    )
+
+
+def resolve_final_legal_geometry_identity(
+    *,
+    compilation: Mapping[str, Any] | None = None,
+    passport: Mapping[str, Any] | None = None,
+    render: Mapping[str, Any] | None = None,
+    elevation: Mapping[str, Any] | None = None,
+    archive: Mapping[str, Any] | None = None,
+    additional_hashes: Sequence[Any] = (),
+) -> str:
+    """Resolve one final projected legal geometry identity.
+
+    Authored and capacity geometry hashes are deliberately not candidates.
+    They remain useful provenance, but cannot prove the final projected mesh.
+    """
+
+    compilation_payload = _mapping(compilation)
+    passport_payload = _mapping(passport)
+    render_payload = _mapping(render)
+    elevation_payload = _mapping(elevation)
+    archive_payload = _mapping(archive)
+    final_hashes = {
+        text
+        for value in (
+            compilation_payload.get("final_legal_geometry_hash"),
+            compilation_payload.get("geometry_hash"),
+            passport_payload.get("final_legal_geometry_hash"),
+            render_payload.get("final_legal_geometry_hash"),
+            elevation_payload.get("final_legal_geometry_hash"),
+            archive_payload.get("final_legal_geometry_hash"),
+            *additional_hashes,
+        )
+        if (text := str(value or "").strip())
+    }
+    if len(final_hashes) > 1:
+        raise ValueError("final legal geometry identity mismatch")
+    return next(iter(final_hashes), "")
+
+
+def resolve_floor_capacity_plan_identity(
+    *,
+    program: GeometryProgram | None = None,
+    capacity: Mapping[str, Any] | None = None,
+    passport: Mapping[str, Any] | None = None,
+    shared_floor_contract: Mapping[str, Any] | None = None,
+    additional_hashes: Sequence[Any] = (),
+    require_shared_contract: bool = False,
+    unresolved: str = "",
+) -> str:
+    """Resolve one capacity-plan identity and reject competing sources."""
+
     metadata = _mapping(program.metadata) if program is not None else {}
-    capacity_evidence = _merged_capacity(capacity, passport)
-    shared_floor = _first_mapping(
-        metadata.get("shared_floor_contract"),
-        capacity_evidence.get("shared_floor_contract"),
-    )
+    supplied_capacity = _mapping(capacity)
+    passport_capacity = _stage_evidence(passport, "capacity")
+    contracts = [
+        row
+        for row in (
+            shared_floor_contract,
+            metadata.get("shared_floor_contract"),
+            supplied_capacity.get("shared_floor_contract"),
+            passport_capacity.get("shared_floor_contract"),
+        )
+        if isinstance(row, Mapping)
+    ]
+    contract_hashes = {
+        text
+        for contract in contracts
+        for value in (
+            contract.get("floor_capacity_plan_hash"),
+            _mapping(contract.get("identity")).get(
+                "floor_capacity_plan_hash"
+            ),
+        )
+        if (text := str(value or "").strip())
+    }
+    if require_shared_contract and (not contracts or not contract_hashes):
+        raise ValueError(
+            "production archive replay requires shared floor capacity plan identity"
+        )
     stack = _mapping(metadata.get("floorwise_legal_matrix_stack"))
-    return _first_text(
-        shared_floor.get("floor_capacity_plan_hash"),
-        _mapping(shared_floor.get("identity")).get("floor_capacity_plan_hash"),
-        capacity_evidence.get("floor_capacity_plan_hash"),
-        stack.get("floor_capacity_plan_hash"),
-    )
+    all_hashes = {
+        text
+        for value in (
+            *contract_hashes,
+            supplied_capacity.get("floor_capacity_plan_hash"),
+            passport_capacity.get("floor_capacity_plan_hash"),
+            _mapping(passport).get("floor_capacity_plan_hash"),
+            stack.get("floor_capacity_plan_hash"),
+            *additional_hashes,
+        )
+        if (text := str(value or "").strip())
+    }
+    if len(all_hashes) > 1:
+        raise ValueError("floor capacity plan identity mismatch")
+    return next(iter(all_hashes), str(unresolved or "").strip())
 
 
 def _merged_capacity(
@@ -265,5 +385,7 @@ def _is_matrix4(value: Any) -> bool:
 
 __all__ = [
     "floor_capacity_plan_hash",
+    "resolve_final_legal_geometry_identity",
+    "resolve_floor_capacity_plan_identity",
     "serialize_mass_product_evidence",
 ]

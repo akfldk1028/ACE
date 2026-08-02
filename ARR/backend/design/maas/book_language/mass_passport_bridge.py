@@ -3,7 +3,14 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Mapping
+from math import isfinite
+from typing import Any, Mapping, MutableMapping
+
+from design.maas.agents.law_graph_agent.evidence import (
+    canonical_agent_evidence_hash,
+    validate_persisted_law_agent_evidence,
+)
+from design.maas.agents.shared.types import AgentEvidence, ExecutionIdentity
 
 from design.maas.geometry_language.execution_passport import (
     build_mass_execution_passport,
@@ -19,6 +26,8 @@ def selected_candidate_execution_passport(
     program_evidence: Mapping[str, Any],
     descriptor: Mapping[str, Any],
     pnu: str,
+    candidate_finalization_evidence: Mapping[str, Any] | None = None,
+    allow_relaxed_finalization: bool = False,
 ) -> dict[str, Any]:
     """Merge already-computed candidate evidence; never rerun a hard gate."""
 
@@ -53,20 +62,76 @@ def selected_candidate_execution_passport(
         vlm_audit = {}
     certified_compilation = compilation.get("certified_compilation")
     if certified_compilation is not None:
-        return build_mass_execution_passport(
-            certified_compilation,
-            vlm_result=vlm_audit or None,
-            downstream_evidence=downstream_evidence,
-            geometry_gate_evidence={
-                "hard_pass": bool(compilation.get("combined_hard_pass")),
-                "authority": "benchmark_final_hard_gates",
-            },
-            render_evidence=(
-                compilation.get("archive_render_evidence")
+        try:
+            passport = build_mass_execution_passport(
+                certified_compilation,
+                vlm_result=vlm_audit or None,
+                downstream_evidence=downstream_evidence,
+                geometry_gate_evidence={
+                    "hard_pass": bool(compilation.get("combined_hard_pass")),
+                    "authority": "benchmark_final_hard_gates",
+                },
+                render_evidence=(
+                    compilation.get("archive_render_evidence")
+                    if isinstance(compilation.get("archive_render_evidence"), Mapping)
+                    else None
+                ),
+                certified_vlm_binding_required=True,
+            )
+        except ValueError:
+            if not allow_relaxed_finalization:
+                raise
+            compiled_render_hash = str(
+                certified_compilation.geometry_hash
+                if certified_compilation is not None
+                else ""
+            )
+            provided_render_evidence = (
+                deepcopy(compilation.get("archive_render_evidence"))
                 if isinstance(compilation.get("archive_render_evidence"), Mapping)
-                else None
-            ),
-            certified_vlm_binding_required=True,
+                else {}
+            )
+            fallback_render_evidence = {
+                **(provided_render_evidence if isinstance(
+                    provided_render_evidence,
+                    Mapping,
+                ) else {}),
+                "status": "warning",
+                "hard_pass": False,
+                "reason": "render_identity_mismatch",
+                "render_identity_relaxed": True,
+                "projected_visual_geometry_hash": compiled_render_hash,
+                "geometry_hash": compiled_render_hash,
+            }
+            passport = build_mass_execution_passport(
+                certified_compilation,
+                vlm_result=vlm_audit or None,
+                downstream_evidence=downstream_evidence,
+                geometry_gate_evidence={
+                    "hard_pass": bool(compilation.get("combined_hard_pass")),
+                    "authority": "benchmark_final_hard_gates_relaxed",
+                },
+                render_evidence=fallback_render_evidence,
+                certified_vlm_binding_required=True,
+            )
+            passport["stages"] = [
+                *deepcopy(passport.get("stages") or ()),
+                {
+                    "id": "render_identity_fallback",
+                    "label": "Render identity fallback",
+                    "status": "not_evaluated",
+                    "required_for_final": False,
+                    "node_ids": [],
+                    "evidence": {
+                        "status": "warn",
+                        "reason": "render identity mismatch relaxed in diagnostic mode",
+                    },
+                },
+            ]
+        return _bind_candidate_finalization_to_passport(
+            passport,
+            candidate_finalization_evidence,
+            allow_relaxed_finalization=allow_relaxed_finalization,
         )
 
     initial = deepcopy(
@@ -76,11 +141,173 @@ def selected_candidate_execution_passport(
     )
     if not initial:
         return {}
-    return enrich_mass_execution_passport(
+    passport = enrich_mass_execution_passport(
         initial,
         downstream_evidence=downstream_evidence,
         vlm_result=vlm_audit or None,
     )
+    return _bind_candidate_finalization_to_passport(
+        passport,
+        candidate_finalization_evidence,
+        allow_relaxed_finalization=allow_relaxed_finalization,
+    )
+
+
+def _bind_candidate_finalization_to_passport(
+    passport: dict[str, Any],
+    evidence: Mapping[str, Any] | None,
+    *,
+    allow_relaxed_finalization: bool = False,
+) -> dict[str, Any]:
+    """Bind the already-certified final-mesh floor authority once."""
+
+    if not isinstance(evidence, Mapping):
+        return passport
+    payload = deepcopy(dict(evidence))
+    certificate = payload.get("candidate_actual_gfa_stop_certificate")
+    measured_identity = payload.get("measured_identity")
+    if (
+        payload.get("schema_version")
+        != "arr.maas.candidate_final_mesh_floor_finalization.v1"
+        or payload.get("status") != "certified"
+        or payload.get("hard_pass") is not True
+        or not isinstance(certificate, dict)
+        or not isinstance(measured_identity, dict)
+    ):
+        if not allow_relaxed_finalization:
+            raise ValueError("candidate finalization evidence is invalid")
+        passport["stages"] = [
+            *deepcopy(passport.get("stages") or ()),
+            {
+                "id": "candidate_finalization_fallback",
+                "label": "Candidate finalization evidence fallback",
+                "status": "not_evaluated",
+                "required_for_final": False,
+                "node_ids": [],
+                "evidence": {
+                    "status": "warn",
+                    "reason": (
+                        "candidate finalization evidence did not meet "
+                        "strict diagnostic passport schema"
+                    ),
+                    "candidate_finalization_evidence": deepcopy(payload),
+                },
+            },
+        ]
+        return passport
+    bindings = {
+        "program_hash": str(passport.get("program_hash") or ""),
+        "final_geometry_hash": str(
+            passport.get("final_legal_geometry_hash")
+            or measured_identity.get("final_geometry_hash")
+            or ""
+        ),
+        "visual_hash": str(passport.get("visual_hash") or ""),
+    }
+    for key, expected in bindings.items():
+        measured = str(measured_identity.get(key) or "")
+        if expected and measured != expected:
+            raise ValueError(
+                f"candidate finalization identity mismatch: {key}"
+            )
+    passport.update({
+        "final_legal_geometry_hash": str(
+            measured_identity.get("final_geometry_hash") or ""
+        ),
+        "legal_floor_field_hash": str(
+            payload.get("legal_floor_field_hash") or ""
+        ),
+        "candidate_actual_gfa_stop_hash": str(
+            payload.get("candidate_actual_gfa_stop_hash") or ""
+        ),
+        "candidate_actual_gfa_stop_certificate": deepcopy(certificate),
+        "candidate_floor_count": payload.get("candidate_floor_count"),
+        "candidate_target_gfa_m2": payload.get(
+            "candidate_target_gfa_m2"
+        ),
+        "achieved_gfa_m2": payload.get("achieved_gfa_m2"),
+    })
+    return passport
+
+
+def persist_selected_law_agent_evidence(
+    *,
+    selected_row: MutableMapping[str, Any],
+    passport: MutableMapping[str, Any],
+    geometry_artifact: MutableMapping[str, Any],
+    evidence: AgentEvidence,
+    expected_identity: ExecutionIdentity,
+) -> dict[str, Any]:
+    """Persist and fail-close one exact selected MASS law-agent binding."""
+
+    payload = evidence.to_dict()
+    evidence_hash = canonical_agent_evidence_hash(payload)
+    issues = validate_persisted_law_agent_evidence(
+        payload,
+        evidence_hash,
+        expected_identity=expected_identity,
+    )
+    hard_pass = not issues
+    persisted_law = {
+        "law_graph_agent_evidence": deepcopy(payload),
+        "law_graph_evidence_hash": evidence_hash,
+        "law_graph_evidence_hard_pass": hard_pass,
+        "law_graph_evidence_failure_reasons": list(issues),
+    }
+    artifact_binding = {
+        "schema_version": "arr.maas.geometry_artifact_law_binding.v1",
+        "identity": expected_identity.to_dict(),
+        **deepcopy(persisted_law),
+    }
+    persisted = {
+        **deepcopy(persisted_law),
+        "geometry_artifact_law_binding": deepcopy(artifact_binding),
+    }
+    selected_row.update(deepcopy(persisted))
+    selected_row.update({
+        "selected_execution_id": expected_identity.execution_id,
+        "final_legal_program_hash": expected_identity.program_hash,
+        "floor_capacity_plan_hash": (
+            expected_identity.floor_capacity_plan_hash
+        ),
+    })
+    passport.update(deepcopy(persisted_law))
+    geometry_artifact.update(deepcopy(persisted_law))
+    geometry_artifact["geometry_artifact_law_binding"] = deepcopy(
+        artifact_binding
+    )
+
+    for passport_stage in passport.get("stages") or ():
+        if not isinstance(passport_stage, dict):
+            continue
+        if passport_stage.get("id") == "law":
+            stage_evidence = passport_stage.get("evidence")
+            if not isinstance(stage_evidence, dict):
+                stage_evidence = {}
+                passport_stage["evidence"] = stage_evidence
+            stage_evidence.update(deepcopy(persisted_law))
+        if not hard_pass and passport_stage.get("id") == "selector":
+            passport_stage["status"] = "failed"
+            selector_evidence = passport_stage.get("evidence")
+            if not isinstance(selector_evidence, dict):
+                selector_evidence = {}
+                passport_stage["evidence"] = selector_evidence
+            selector_evidence.update({
+                "selected": False,
+                "hard_pass": False,
+                "law_graph_evidence_failure_reasons": list(issues),
+            })
+
+    hard_gates = geometry_artifact.get("hardGates")
+    if not isinstance(hard_gates, dict):
+        hard_gates = {}
+        geometry_artifact["hardGates"] = hard_gates
+    hard_gates["lawGraph"] = deepcopy(persisted_law)
+    if not hard_pass:
+        selected_row["combined_hard_pass"] = False
+        passport["hard_pass"] = False
+        hard_gates["combinedHardPass"] = False
+    return persisted
 
 
 def _resolved_capacity_evidence(
@@ -98,6 +325,13 @@ def _resolved_capacity_evidence(
             descriptor.get("capacity_target_hard_pass")
         ),
     )
+    shared_floor_gate = resolve_shared_floor_contract_hard_gate(
+        shared_floor_contract
+    )
+    hard_pass = bool(
+        resolution["resolved_capacity_hard_pass"]
+        and shared_floor_gate["hard_pass"]
+    )
     return {
         **projection,
         "measurement": deepcopy(dict(capacity_measurement or {})),
@@ -105,15 +339,56 @@ def _resolved_capacity_evidence(
         "floor_contract_hash": str(
             shared_floor_contract.get("floor_contract_hash") or ""
         ),
+        "shared_floor_contract_hard_pass": shared_floor_gate["hard_pass"],
+        "shared_floor_contract_failure_reasons": list(
+            shared_floor_gate["failure_reasons"]
+        ),
         "evaluated": bool(capacity_projection or capacity_measurement),
         **resolution,
-        "hard_pass": resolution["resolved_capacity_hard_pass"],
+        "hard_pass": hard_pass,
         "status": (
             "passed"
-            if resolution["resolved_capacity_hard_pass"]
+            if hard_pass
             else "failed"
         ),
     }
+
+
+def resolve_shared_floor_contract_hard_gate(
+    shared_floor_contract: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    """Fail closed when the selected MASS lacks its required floor contract."""
+
+    contract = (
+        dict(shared_floor_contract)
+        if isinstance(shared_floor_contract, Mapping)
+        else {}
+    )
+    structurally_valid = bool(
+        contract.get("schema_version")
+        == "arr.maas.shared_floor_contract.v1"
+        and str(contract.get("floor_contract_hash") or "")
+    )
+    if not structurally_valid:
+        return {
+            "hard_pass": False,
+            "failure_reasons": [
+                "shared_floor_contract_missing_or_invalid"
+            ],
+        }
+    if contract.get("hard_pass") is not True:
+        return {
+            "hard_pass": False,
+            "failure_reasons": list(dict.fromkeys([
+                "shared_floor_contract_failed",
+                *(
+                    str(reason)
+                    for reason in contract.get("failure_reasons") or ()
+                    if str(reason)
+                ),
+            ])),
+        }
+    return {"hard_pass": True, "failure_reasons": []}
 
 
 def resolve_capacity_band_evidence(
@@ -140,20 +415,46 @@ def resolve_capacity_band_evidence(
         if "target_hard_pass" in projection
         else fallback_requested_hard_pass
     )
-    achieved = float(
+    measured_value = (
         measurement.get("feasible_capacity_utilization")
-        or measurement.get("utilization_ratio")
-        or projection.get("achieved_utilization")
-        or 0.0
+        if "feasible_capacity_utilization" in measurement
+        else measurement.get("utilization_ratio")
+        if "utilization_ratio" in measurement
+        else None
     )
-    minimum = max(
-        0.70,
-        float(projection.get("feasible_minimum_utilization") or 0.0),
+    try:
+        achieved = float(measured_value)
+    except (TypeError, ValueError):
+        achieved = 0.0
+    measured_available = bool(
+        measured_value is not None
+        and isfinite(achieved)
+        and achieved >= 0.0
+    )
+    measured_aggregate = bool(
+        measured_available
+        and measurement.get("hard_pass") is not False
+    )
+    minimum_value = (
+        projection.get("feasible_minimum_utilization")
+        if "feasible_minimum_utilization" in projection
+        else measurement.get("feasible_minimum_utilization")
+    )
+    try:
+        minimum = float(minimum_value)
+    except (TypeError, ValueError):
+        minimum = 0.0
+    minimum_is_authoritative = bool(
+        minimum_value is not None
+        and isfinite(minimum)
+        and minimum > 0.0
     )
     if selectable_measured:
         resolved_id = str(
             projection.get("selectable_capacity_alternative_id") or ""
         )
+        if not resolved_id and measured_available:
+            resolved_id = "below_feasible_minimum"
         resolved_target = float(
             projection.get("selectable_capacity_target_utilization") or 0.0
         )
@@ -161,12 +462,21 @@ def resolve_capacity_band_evidence(
             projection.get("selectable_capacity_hard_pass")
             and resolved_id
             and resolved_target > 0.0
+            and measured_aggregate
+            and minimum_is_authoritative
             and achieved + 1e-9 >= max(minimum, resolved_target)
         )
     else:
         resolved_id = requested_id
         resolved_target = requested_target
-        resolved_hard_pass = requested_hard_pass
+        resolved_hard_pass = bool(
+            requested_hard_pass
+            and resolved_id
+            and resolved_target > 0.0
+            and measured_aggregate
+            and minimum_is_authoritative
+            and achieved + 1e-9 >= max(minimum, resolved_target)
+        )
     return {
         "requested_capacity_alternative_id": requested_id,
         "requested_capacity_target_utilization": requested_target,
@@ -180,6 +490,7 @@ def resolve_capacity_band_evidence(
 
 
 __all__ = [
+    "persist_selected_law_agent_evidence",
     "resolve_capacity_band_evidence",
     "selected_candidate_execution_passport",
 ]

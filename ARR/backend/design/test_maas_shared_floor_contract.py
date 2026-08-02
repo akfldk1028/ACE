@@ -1,12 +1,15 @@
 import os
 
+from copy import deepcopy
 from django.test import SimpleTestCase
 from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from PIL import Image
+from shapely.affinity import translate
 from shapely.geometry import LineString, MultiPoint, Point, Polygon, box, mapping
 from shapely.geometry.polygon import orient
+from shapely.ops import unary_union
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -14,6 +17,105 @@ from design.maas.geometry_language.source_bridge import _mesh_section_polygon
 from design.maas.geometry_language import GeometryProgramBuilder, compile_geometry_program
 from design.maas.geometry_language.gate import compilation_gate
 from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
+
+
+def _real_final_projected_source() -> SourceMass:
+    from design.maas.geometry_language import (
+        base_seed_programs,
+    )
+    from design.maas.geometry_language.legal_field_affine_placement import (
+        select_legal_field_affine_projection,
+    )
+    from design.maas.geometry_language.source_bridge import (
+        compile_site_bound_geometry_program_to_source_mass,
+    )
+
+    program = next(
+        item
+        for item in base_seed_programs()
+        if str((item.metadata.get("base_seed") or {}).get("seed_id") or "")
+        == "slab"
+    )
+    legal_sections = (
+        box(-6.0, -6.0, 6.0, 6.0),
+        box(-6.0, -6.0, 6.0, 6.0),
+    )
+    selected = select_legal_field_affine_projection(
+        program,
+        legal_sections=legal_sections,
+        target_floor_areas_m2=(100.0, 100.0),
+        floor_capacity_plan_hash="shared-floor-final-source",
+        maximum_exact_candidates=4,
+    )
+    projection = selected.projection if selected is not None else None
+    assert projection is not None
+    source = compile_site_bound_geometry_program_to_source_mass(
+        projection.program,
+        box(-10.0, -10.0, 10.0, 10.0),
+        name="real-final-projected-source",
+    )
+    assert source is not None
+    assert source.surfaces
+    metadata = dict(source.metadata)
+    bridge = dict(metadata["geometry_program_bridge_evidence"])
+    metadata.update({
+        "geometry_authority": "final_floorwise_legal_geometry_program",
+        "final_program_hash": projection.certificate["final_program_hash"],
+        "final_geometry_hash": projection.certificate["final_geometry_hash"],
+        "final_surface_payload_hash": bridge["surface_payload_hash"],
+        "final_proxy_volume_payload_hash": bridge[
+            "proxy_volume_payload_hash"
+        ],
+        "floorwise_legal_projection": dict(projection.certificate),
+    })
+    bridge["geometry_authority"] = (
+        "final_floorwise_legal_geometry_program"
+    )
+    metadata["geometry_program_bridge_evidence"] = bridge
+    return replace(source, metadata=metadata)
+
+
+class LegalFieldAffineUnderfillTest(SimpleTestCase):
+    def test_single_affine_authored_form_can_pass_advisory_underfill(self):
+        from design.maas.geometry_language import base_seed_programs
+        from design.maas.geometry_language.legal_field_affine_placement import (
+            select_legal_field_affine_projection,
+        )
+
+        program = next(
+            item
+            for item in base_seed_programs()
+            if str(
+                (item.metadata.get("base_seed") or {}).get("seed_id") or ""
+            ) == "slab"
+        )
+        selection = select_legal_field_affine_projection(
+            program,
+            legal_sections=(
+                box(-6.0, -6.0, 6.0, 6.0),
+                box(-3.0, -3.0, 3.0, 3.0),
+            ),
+            target_floor_areas_m2=(100.0, 100.0),
+            floor_capacity_plan_hash="nonuniform-underfill",
+            aggregate_target_area_m2=200.0,
+            minimum_aggregate_target_ratio=0.30,
+        )
+
+        self.assertIsNotNone(selection)
+        assert selection is not None
+        self.assertTrue(selection.projection.certificate["hard_pass"])
+        self.assertGreaterEqual(
+            selection.evidence["achieved_aggregate_area_m2"],
+            60.0,
+        )
+        self.assertEqual(
+            selection.evidence["minimum_aggregate_target_ratio"],
+            0.30,
+        )
+        self.assertEqual(
+            selection.projection.certificate["projection_mode"],
+            "authored_affine_preserved",
+        )
 
 
 def _hollow_square_prism_mesh():
@@ -112,21 +214,51 @@ def _authored_profiled_triangle_source(
     *,
     world_vertices: tuple[tuple[float, float, float], ...],
     footprint: Polygon,
-    raw_mesh_triangle_count: int = 1,
-    exported_surface_count: int = 1,
+    closure_world_vertex: tuple[float, float, float] | None = None,
+    raw_mesh_triangle_count: int | None = None,
+    exported_surface_count: int | None = None,
 ) -> SourceMass:
     origin = footprint.centroid
-    surface = SourceSurface(
-        role="mesh_triangle",
-        volume_role="recursive_primary",
-        verb="geometry_program",
-        surface_type="profiled_recursive_solid_mesh",
-        vertices_m=tuple(
-            (x - float(origin.x), y - float(origin.y), z)
-            for x, y, z in world_vertices
-        ),
-        operator="loft",
-        semantic_patch_id="recursive_primary:profiled_triangle",
+    vertices = (
+        *world_vertices,
+        *((closure_world_vertex,) if closure_world_vertex is not None else ()),
+    )
+    triangles = (
+        ((0, 1, 2),)
+        if closure_world_vertex is None
+        else (
+            (0, 1, 2),
+            (1, 0, 3),
+            (2, 1, 3),
+            (0, 2, 3),
+        )
+    )
+    surfaces = tuple(
+        SourceSurface(
+            role=(
+                "mesh_triangle"
+                if index == 0
+                else f"mesh_closure_{index}"
+            ),
+            volume_role="recursive_primary",
+            verb="geometry_program",
+            surface_type="profiled_recursive_solid_mesh",
+            vertices_m=tuple(
+                (
+                    vertices[vertex][0] - float(origin.x),
+                    vertices[vertex][1] - float(origin.y),
+                    vertices[vertex][2],
+                )
+                for vertex in triangle
+            ),
+            operator="loft",
+            semantic_patch_id=(
+                "recursive_primary:profiled_triangle"
+                if index == 0
+                else f"recursive_primary:closure:{index}"
+            ),
+        )
+        for index, triangle in enumerate(triangles)
     )
     return SourceMass(
         name=name,
@@ -140,20 +272,1136 @@ def _authored_profiled_triangle_source(
                 "geometry_program",
             ),
         ),
-        surfaces=(surface,),
+        surfaces=surfaces,
         metadata={"geometry_program_bridge_evidence": {
             "status": "materialized",
             "program_hash": f"{name}-program",
             "geometry_hash": f"{name}-geometry",
             "authoritative_visual_geometry": "manifold_compilation_mesh",
-            "raw_mesh_triangle_count": raw_mesh_triangle_count,
-            "exported_surface_count": exported_surface_count,
+            "raw_mesh_triangle_count": (
+                len(surfaces)
+                if raw_mesh_triangle_count is None
+                else raw_mesh_triangle_count
+            ),
+            "exported_surface_count": (
+                len(surfaces)
+                if exported_surface_count is None
+                else exported_surface_count
+            ),
             "surface_coordinate_frame": "source_footprint_centroid_local",
         }},
     )
 
 
 class SharedFloorContractTests(SimpleTestCase):
+    def test_mesh_export_execution_contract_is_hash_bound_without_changing_legacy_hash(self):
+        from design.maas.geometry_language.ast import (
+            FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT,
+            GeometryProgram,
+        )
+
+        builder = GeometryProgramBuilder("execution-contract-hash")
+        root_id = builder.add(
+            "primitive",
+            "box",
+            parameters={"width": 2.0, "depth": 3.0, "height": 4.0},
+        )
+        legacy = builder.build(root_id, note="legacy")
+        metadata_only = replace(legacy, metadata={"note": "changed"})
+        contracted = replace(
+            legacy,
+            execution_contract=deepcopy(
+                FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT
+            ),
+        )
+
+        self.assertEqual(legacy.program_hash(), metadata_only.program_hash())
+        self.assertNotEqual(legacy.program_hash(), contracted.program_hash())
+        self.assertEqual(
+            GeometryProgram.from_dict(contracted.to_dict()).program_hash(),
+            contracted.program_hash(),
+        )
+        invalid = replace(
+            legacy,
+            execution_contract={
+                "capacity_replay_numeric_transport": {"threshold": 6}
+            },
+        )
+        self.assertIn(
+            "invalid_execution_contract",
+            {issue.code for issue in invalid.validate()},
+        )
+
+    def test_profiled_floor_allocation_preserves_explicit_ground_reserve(self):
+        from design.maas.geometry_language.source_bridge import (
+            _allocate_profiled_floor_targets,
+        )
+
+        planned = (85.256, 85.256, 62.113)
+        legal_caps = (102.931, 102.931, 74.989)
+        profile = (1.0, 0.7673, 0.6525)
+
+        ordinary = _allocate_profiled_floor_targets(
+            planned_floor_areas_m2=planned,
+            legal_floor_caps_m2=legal_caps,
+            authored_profile_ratios=profile,
+        )
+        bounded = _allocate_profiled_floor_targets(
+            planned_floor_areas_m2=planned,
+            legal_floor_caps_m2=legal_caps,
+            authored_profile_ratios=profile,
+            ground_design_cap_m2=85.256,
+        )
+        infeasible = _allocate_profiled_floor_targets(
+            planned_floor_areas_m2=(60.0, 60.0),
+            legal_floor_caps_m2=(50.0, 50.0),
+            authored_profile_ratios=(1.0, 0.8),
+            ground_design_cap_m2=50.0,
+        )
+
+        self.assertAlmostEqual(ordinary[0], 102.931, delta=1e-6)
+        self.assertAlmostEqual(ordinary[1], 80.0805154, delta=1e-6)
+        self.assertAlmostEqual(ordinary[2], 49.6134846, delta=1e-6)
+        self.assertAlmostEqual(sum(bounded), 232.625, delta=1e-6)
+        self.assertLessEqual(bounded[0], 85.256 + 1e-7)
+        self.assertTrue(all(
+            area <= legal_caps[index] + 1e-7
+            for index, area in enumerate(bounded)
+        ))
+        self.assertTrue(any(
+            abs(bounded[index] - planned[index]) > 1e-4
+            for index in (1, 2)
+        ))
+        self.assertEqual(infeasible, ())
+
+    def test_floorwise_materializer_applies_live_ground_design_cap(self):
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+
+        source_sections = (
+            box(0.0, 0.0, 10.0, 10.0),
+            box(0.0, 0.0, 7.673, 10.0),
+            box(0.0, 0.0, 6.525, 10.0),
+        )
+        source = SourceMass(
+            name="live-ground-reserve-vector",
+            footprint=source_sections[0],
+            volumes=tuple(
+                SourceVolume(
+                    "main",
+                    section,
+                    index / 3.0,
+                    (index + 1) / 3.0,
+                    "geometry_program",
+                )
+                for index, section in enumerate(source_sections)
+            ),
+            metadata={"geometry_program_bridge_evidence": {
+                "program_hash": "ground-reserve-program",
+                "geometry_hash": "ground-reserve-geometry",
+            }},
+        )
+        legal = (
+            box(0.0, 0.0, 10.2931, 10.0),
+            box(0.0, 0.0, 10.2931, 10.0),
+            box(0.0, 0.0, 7.4989, 10.0),
+        )
+
+        result = materialize_floorwise_legal_source(
+            source,
+            legal_sections=legal,
+            target_plan_coverage=0.7,
+            floor_capacity_plan_hash="live-ground-reserve-plan",
+            target_floor_areas_m2=(85.256, 85.256, 62.113),
+        )
+
+        self.assertIsNotNone(result)
+        assert result is not None
+        allocated = result.metadata["floorwise_legal_matrix_stack"][
+            "allocated_floor_areas_m2"
+        ]
+        self.assertAlmostEqual(sum(allocated), 232.625, delta=1e-3)
+        self.assertLessEqual(allocated[0], 85.256 + 1e-3)
+        self.assertTrue(any(
+            abs(allocated[index] - (85.256, 85.256, 62.113)[index])
+            > 1e-3
+            for index in (1, 2)
+        ))
+
+    def test_floorwise_section_loft_preserves_exact_shifted_mid_sections(self):
+        from design.maas.geometry_language.floorwise_section_loft import (
+            loft_floorwise_legal_sections,
+        )
+
+        occupied = (
+            box(-4.0, -3.0, 4.0, 3.0),
+            box(-3.0, -2.0, 5.0, 2.0),
+            box(-1.5, -1.0, 4.5, 1.0),
+        )
+        legal = (
+            box(-5.0, -4.0, 5.0, 4.0),
+            box(-4.0, -3.0, 6.0, 3.0),
+            box(-2.5, -2.0, 5.5, 2.0),
+        )
+        plates = tuple(
+            SourceVolume(
+                "recursive_primary",
+                section,
+                index / 3.0,
+                (index + 1) / 3.0,
+                "floorwise_legal_matrix4",
+            )
+            for index, section in enumerate(occupied)
+        )
+        source = SourceMass(
+            name="nested-shifted-section-loft",
+            footprint=occupied[0],
+            volumes=plates,
+            metadata={"floorwise_legal_matrix_stack": {
+                "floor_capacity_plan_hash": "loft-plan-hash",
+                "floors": [
+                    {"matrix4": [
+                        [1.0, 0.0, 0.0, float(index)],
+                        [0.0, 1.0, 0.0, 0.0],
+                        [0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 0.0, 1.0],
+                    ]}
+                    for index in range(3)
+                ],
+            }},
+        )
+
+        result = loft_floorwise_legal_sections(
+            source,
+            occupied,
+            legal,
+            plates,
+            (0.0, 0.0),
+        )
+
+        self.assertTrue(result.certificate.hard_pass, result.certificate)
+        self.assertEqual(
+            result.certificate.certification_mode,
+            "floorwise_csg_section_loft",
+        )
+        self.assertEqual(
+            result.certificate.visible_geometry_operation,
+            "exact_legal_section_profile_loft",
+        )
+        self.assertFalse(result.certificate.visible_step_fallback)
+        vertices = tuple(
+            vertex
+            for surface in result.surfaces
+            for vertex in surface.vertices_m
+        )
+        triangles = tuple(
+            (index, index + 1, index + 2)
+            for index in range(0, len(vertices), 3)
+        )
+        for index, expected in enumerate(occupied):
+            measured = _mesh_section_polygon(
+                vertices,
+                triangles,
+                (index + 0.5) / 3.0,
+            )
+            self.assertIsNotNone(measured)
+            assert measured is not None
+            self.assertAlmostEqual(measured.area, expected.area, delta=1e-6)
+            self.assertAlmostEqual(
+                measured.symmetric_difference(expected).area,
+                0.0,
+                delta=1e-6,
+            )
+            self.assertTrue(legal[index].buffer(1e-7).covers(measured))
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            _has_closed_directed_edge_topology,
+        )
+        self.assertTrue(_has_closed_directed_edge_topology(result.surfaces))
+        for field in (
+            "section_profile_hash",
+            "capacity_volume_hash",
+            "floor_capacity_plan_hash",
+            "matrix4_stack_hash",
+            "exact_surface_payload_hash",
+            "authority_binding_hash",
+        ):
+            self.assertTrue(getattr(result.certificate, field), field)
+        self.assertTrue(any(
+            abs(left[2] - right[2]) > 1e-8
+            and (
+                abs(left[0] - right[0]) > 1e-8
+                or abs(left[1] - right[1]) > 1e-8
+            )
+            for surface in result.surfaces
+            for left, right in zip(
+                surface.vertices_m,
+                (*surface.vertices_m[1:], surface.vertices_m[0]),
+            )
+        ))
+
+    def test_floorwise_section_loft_cap_preserves_collinear_boundary_segments(self):
+        from design.maas.geometry_language.floorwise_section_loft import (
+            _ear_clip,
+        )
+
+        profile = (
+            (0.0, 0.0, 0.0),
+            (2.66425, 0.0, 0.0),
+            (5.3285, 0.0, 0.0),
+            (7.99275, 0.0, 0.0),
+            (10.657, 0.0, 0.0),
+            (10.657, 2.0, 0.0),
+            (10.657, 4.0, 0.0),
+            (10.657, 6.0, 0.0),
+            (10.657, 8.0, 0.0),
+            (7.99275, 8.0, 0.0),
+            (5.3285, 8.0, 0.0),
+            (2.66425, 8.0, 0.0),
+            (0.0, 8.0, 0.0),
+            (0.0, 6.0, 0.0),
+            (0.0, 4.0, 0.0),
+            (0.0, 2.0, 0.0),
+        )
+        expected = Polygon([(x, y) for x, y, _z in profile])
+        self.assertTrue(expected.is_valid)
+        self.assertTrue(expected.exterior.is_ccw)
+        self.assertAlmostEqual(expected.area, 85.256, delta=1e-9)
+
+        triangles = _ear_clip(profile)
+
+        self.assertIsNotNone(triangles)
+        assert triangles is not None
+        self.assertEqual(len(triangles), len(profile) - 2)
+        triangle_polygons = tuple(
+            Polygon([
+                profile[left][:2],
+                profile[middle][:2],
+                profile[right][:2],
+            ])
+            for left, middle, right in triangles
+        )
+        self.assertTrue(all(triangle.area > 1e-12 for triangle in triangle_polygons))
+        self.assertAlmostEqual(
+            sum(triangle.area for triangle in triangle_polygons),
+            expected.area,
+            delta=1e-9,
+        )
+        self.assertAlmostEqual(
+            unary_union(triangle_polygons).symmetric_difference(expected).area,
+            0.0,
+            delta=1e-9,
+        )
+        directed_edges = tuple(
+            edge
+            for triangle in triangles
+            for edge in (
+                (triangle[0], triangle[1]),
+                (triangle[1], triangle[2]),
+                (triangle[2], triangle[0]),
+            )
+        )
+        for index in range(len(profile)):
+            self.assertEqual(
+                directed_edges.count((index, (index + 1) % len(profile))),
+                1,
+            )
+        undirected_edges = tuple(
+            tuple(sorted(edge))
+            for edge in directed_edges
+        )
+        boundary_edges = {
+            tuple(sorted((index, (index + 1) % len(profile))))
+            for index in range(len(profile))
+        }
+        for edge in set(undirected_edges):
+            self.assertEqual(
+                undirected_edges.count(edge),
+                1 if edge in boundary_edges else 2,
+            )
+
+    def test_floorwise_section_loft_cap_is_invariant_to_cyclic_ring_start(self):
+        from design.maas.geometry_language.floorwise_section_loft import (
+            _ear_clip,
+        )
+
+        base_profile = (
+            (0.0, 0.0, 0.0),
+            (2.66425, 0.0, 0.0),
+            (5.3285, 0.0, 0.0),
+            (7.99275, 0.0, 0.0),
+            (10.657, 0.0, 0.0),
+            (10.657, 2.0, 0.0),
+            (10.657, 4.0, 0.0),
+            (10.657, 6.0, 0.0),
+            (10.657, 8.0, 0.0),
+            (7.99275, 8.0, 0.0),
+            (5.3285, 8.0, 0.0),
+            (2.66425, 8.0, 0.0),
+            (0.0, 8.0, 0.0),
+            (0.0, 6.0, 0.0),
+            (0.0, 4.0, 0.0),
+            (0.0, 2.0, 0.0),
+        )
+        for start in range(len(base_profile)):
+            with self.subTest(start=start):
+                profile = (
+                    *base_profile[start:],
+                    *base_profile[:start],
+                )
+                expected = Polygon([(x, y) for x, y, _z in profile])
+
+                triangles = _ear_clip(profile)
+
+                self.assertIsNotNone(triangles)
+                assert triangles is not None
+                self.assertEqual(_ear_clip(profile), triangles)
+                self.assertEqual(len(triangles), len(profile) - 2)
+                triangle_polygons = tuple(
+                    Polygon([
+                        profile[left][:2],
+                        profile[middle][:2],
+                        profile[right][:2],
+                    ])
+                    for left, middle, right in triangles
+                )
+                self.assertTrue(all(
+                    triangle.area > 1e-12
+                    for triangle in triangle_polygons
+                ))
+                self.assertAlmostEqual(
+                    sum(triangle.area for triangle in triangle_polygons),
+                    expected.area,
+                    delta=1e-9,
+                )
+                self.assertAlmostEqual(
+                    unary_union(triangle_polygons)
+                    .symmetric_difference(expected)
+                    .area,
+                    0.0,
+                    delta=1e-9,
+                )
+                directed_edges = tuple(
+                    edge
+                    for triangle in triangles
+                    for edge in (
+                        (triangle[0], triangle[1]),
+                        (triangle[1], triangle[2]),
+                        (triangle[2], triangle[0]),
+                    )
+                )
+                boundary_edges = {
+                    tuple(sorted((index, (index + 1) % len(profile))))
+                    for index in range(len(profile))
+                }
+                for index in range(len(profile)):
+                    self.assertEqual(
+                        directed_edges.count((
+                            index,
+                            (index + 1) % len(profile),
+                        )),
+                        1,
+                    )
+                undirected_edges = tuple(
+                    tuple(sorted(edge))
+                    for edge in directed_edges
+                )
+                for edge in set(undirected_edges):
+                    self.assertEqual(
+                        undirected_edges.count(edge),
+                        1 if edge in boundary_edges else 2,
+                    )
+
+    def test_floorwise_section_loft_cap_concavity_is_positive_or_fails_closed(self):
+        from design.maas.geometry_language.floorwise_section_loft import (
+            _ear_clip,
+        )
+
+        profile = (
+            (0.0, 0.0, 0.0),
+            (4.0, 0.0, 0.0),
+            (4.0, 4.0, 0.0),
+            (2.0, 2.0, 0.0),
+            (0.0, 4.0, 0.0),
+        )
+        expected = Polygon([(x, y) for x, y, _z in profile])
+        self.assertTrue(expected.is_valid)
+        self.assertTrue(expected.exterior.is_ccw)
+
+        triangles = _ear_clip(profile)
+
+        if triangles is None:
+            return
+        self.assertEqual(len(triangles), len(profile) - 2)
+        triangle_polygons = tuple(
+            Polygon([
+                profile[left][:2],
+                profile[middle][:2],
+                profile[right][:2],
+            ])
+            for left, middle, right in triangles
+        )
+        self.assertTrue(all(
+            triangle.area > 1e-12
+            for triangle in triangle_polygons
+        ))
+        self.assertAlmostEqual(
+            sum(triangle.area for triangle in triangle_polygons),
+            expected.area,
+            delta=1e-9,
+        )
+        self.assertAlmostEqual(
+            unary_union(triangle_polygons).symmetric_difference(expected).area,
+            0.0,
+            delta=1e-9,
+        )
+        directed_edges = tuple(
+            edge
+            for triangle in triangles
+            for edge in (
+                (triangle[0], triangle[1]),
+                (triangle[1], triangle[2]),
+                (triangle[2], triangle[0]),
+            )
+        )
+        boundary_edges = {
+            tuple(sorted((index, (index + 1) % len(profile))))
+            for index in range(len(profile))
+        }
+        for index in range(len(profile)):
+            self.assertEqual(
+                directed_edges.count((index, (index + 1) % len(profile))),
+                1,
+            )
+        undirected_edges = tuple(
+            tuple(sorted(edge))
+            for edge in directed_edges
+        )
+        for edge in set(undirected_edges):
+            self.assertEqual(
+                undirected_edges.count(edge),
+                1 if edge in boundary_edges else 2,
+            )
+
+    def test_floorwise_section_loft_compacts_exact_collinear_breakpoints(self):
+        from design.maas.geometry_language.floorwise_section_loft import (
+            _ring,
+            loft_floorwise_legal_sections,
+        )
+
+        corners = ((0.0, 0.0), (12.0, 0.0), (12.0, 8.0), (0.0, 8.0))
+        dense_coordinates = []
+        for left, right in zip(corners, (*corners[1:], corners[0])):
+            dense_coordinates.extend(
+                (
+                    left[0] + (right[0] - left[0]) * step / 41.0,
+                    left[1] + (right[1] - left[1]) * step / 41.0,
+                )
+                for step in range(41)
+            )
+        dense = Polygon(dense_coordinates)
+        self.assertEqual(len(tuple(dense.exterior.coords)) - 1, 164)
+        self.assertEqual(len(_ring(dense)), 4)
+        occupied = (dense, dense, dense)
+        legal = (box(-1.0, -1.0, 13.0, 9.0),) * 3
+        plates = tuple(
+            SourceVolume(
+                "main",
+                section,
+                index / 3.0,
+                (index + 1) / 3.0,
+                "floorwise_legal_matrix4",
+            )
+            for index, section in enumerate(occupied)
+        )
+        source = SourceMass(
+            name="dense-collinear-live-ring",
+            footprint=dense,
+            volumes=plates,
+            metadata={"floorwise_legal_matrix_stack": {
+                "floor_capacity_plan_hash": "dense-ring-plan",
+                "floors": [
+                    {"matrix4": [
+                        [1.0, 0.0, 0.0, 0.0],
+                        [0.0, 1.0, 0.0, 0.0],
+                        [0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 0.0, 1.0],
+                    ]}
+                    for _index in range(3)
+                ],
+            }},
+        )
+
+        result = loft_floorwise_legal_sections(
+            source,
+            occupied,
+            legal,
+            plates,
+            (6.0, 4.0),
+        )
+
+        self.assertTrue(result.certificate.hard_pass, result.certificate)
+        self.assertEqual(len(result.surfaces), 52)
+        self.assertLess(len(result.surfaces), 2048)
+        vertices = tuple(
+            vertex
+            for surface in result.surfaces
+            for vertex in surface.vertices_m
+        )
+        triangles = tuple(
+            (index, index + 1, index + 2)
+            for index in range(0, len(vertices), 3)
+        )
+        for floor_index in range(3):
+            measured = _mesh_section_polygon(
+                vertices,
+                triangles,
+                (floor_index + 0.5) / 3.0,
+            )
+            self.assertIsNotNone(measured)
+            assert measured is not None
+            expected_local = translate(dense, xoff=-6.0, yoff=-4.0)
+            self.assertAlmostEqual(
+                measured.symmetric_difference(expected_local).area,
+                0.0,
+                delta=1e-6,
+            )
+            self.assertAlmostEqual(
+                measured.area,
+                dense.area,
+                delta=1e-6,
+            )
+
+    def test_floorwise_section_loft_keeps_true_near_collinear_corner(self):
+        from design.maas.geometry_language.floorwise_section_loft import (
+            loft_floorwise_legal_sections,
+        )
+
+        near_collinear = Polygon((
+            (0.0, 0.0),
+            (2.0, 1e-5),
+            (4.0, 0.0),
+            (4.0, 4.0),
+            (0.0, 4.0),
+        ))
+        plate = SourceVolume(
+            "main",
+            near_collinear,
+            0.0,
+            1.0,
+            "floorwise_legal_matrix4",
+        )
+        source = SourceMass(
+            name="true-near-collinear-corner",
+            footprint=near_collinear,
+            volumes=(plate,),
+            metadata={"floorwise_legal_matrix_stack": {
+                "floor_capacity_plan_hash": "near-collinear-plan",
+                "floors": [{"matrix4": [
+                    [1.0, 0.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0, 0.0],
+                    [0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ]}],
+            }},
+        )
+
+        result = loft_floorwise_legal_sections(
+            source,
+            (near_collinear,),
+            (box(-1.0, -1.0, 5.0, 5.0),),
+            (plate,),
+            (2.0, 2.0),
+        )
+
+        self.assertTrue(result.certificate.hard_pass, result.certificate)
+        self.assertEqual(len(result.surfaces), 26)
+
+    def test_floorwise_section_loft_compacts_live_like_noisy_straight_edges(self):
+        from design.maas.geometry_language.floorwise_section_loft import (
+            _ring,
+            loft_floorwise_legal_sections,
+        )
+
+        corners = (
+            (0.0, 0.0),
+            (10.657, 0.0),
+            (10.657, 8.0),
+            (0.0, 8.0),
+        )
+        noisy_coordinates = []
+        noise_m = 2e-9
+        for left, right in zip(corners, (*corners[1:], corners[0])):
+            dx = right[0] - left[0]
+            dy = right[1] - left[1]
+            length = (dx * dx + dy * dy) ** 0.5
+            normal = (-dy / length, dx / length)
+            for step in range(8):
+                amount = step / 8.0
+                noise = (
+                    0.0
+                    if step == 0
+                    else noise_m * (1.0 if step % 2 else -1.0)
+                )
+                noisy_coordinates.append((
+                    left[0] + dx * amount + normal[0] * noise,
+                    left[1] + dy * amount + normal[1] * noise,
+                ))
+        noisy = Polygon(noisy_coordinates)
+        self.assertTrue(noisy.is_valid)
+        self.assertEqual(len(tuple(noisy.exterior.coords)) - 1, 32)
+        self.assertAlmostEqual(noisy.area, 85.256, delta=1e-6)
+        self.assertEqual(len(_ring(noisy)), 4)
+        plate = SourceVolume(
+            "main",
+            noisy,
+            0.0,
+            1.0,
+            "floorwise_legal_matrix4",
+        )
+        source = SourceMass(
+            name="live-like-noisy-ring",
+            footprint=noisy,
+            volumes=(plate,),
+            metadata={"floorwise_legal_matrix_stack": {
+                "floor_capacity_plan_hash": "noisy-ring-plan",
+                "floors": [{"matrix4": [
+                    [1.0, 0.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0, 0.0],
+                    [0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ]}],
+            }},
+        )
+
+        result = loft_floorwise_legal_sections(
+            source,
+            (noisy,),
+            (box(-1.0, -1.0, 12.0, 9.0),),
+            (plate,),
+            tuple(noisy.centroid.coords)[0],
+        )
+
+        self.assertTrue(result.certificate.hard_pass, result.certificate)
+        self.assertEqual(len(result.surfaces), 20)
+        vertices = tuple(
+            vertex
+            for surface in result.surfaces
+            for vertex in surface.vertices_m
+        )
+        triangles = tuple(
+            (index, index + 1, index + 2)
+            for index in range(0, len(vertices), 3)
+        )
+        measured = _mesh_section_polygon(vertices, triangles, 0.5)
+        self.assertIsNotNone(measured)
+        assert measured is not None
+        expected_local = translate(
+            noisy,
+            xoff=-float(noisy.centroid.x),
+            yoff=-float(noisy.centroid.y),
+        )
+        self.assertLessEqual(
+            measured.symmetric_difference(expected_local).area,
+            1e-6,
+        )
+        self.assertAlmostEqual(measured.area, noisy.area, delta=1e-6)
+
+    def test_floorwise_section_loft_fails_closed_on_hole_topology(self):
+        from design.maas.geometry_language.floorwise_section_loft import (
+            loft_floorwise_legal_sections,
+        )
+
+        solid = box(-4.0, -4.0, 4.0, 4.0)
+        hollow = Polygon(
+            solid.exterior.coords,
+            holes=[box(-1.0, -1.0, 1.0, 1.0).exterior.coords],
+        )
+        stale = SourceSurface(
+            role="stale-pre-csg",
+            volume_role="main",
+            verb="geometry_program",
+            surface_type="profiled_recursive_solid_mesh",
+            vertices_m=((50.0, 50.0, 0.0), (51.0, 50.0, 0.0), (50.0, 51.0, 1.0)),
+        )
+        source = SourceMass(
+            name="hole-topology-mismatch",
+            footprint=solid,
+            volumes=(SourceVolume("main", solid, 0.0, 1.0, "base"),),
+            surfaces=(stale,),
+        )
+
+        multipart = unary_union((
+            box(-4.0, -4.0, -1.0, 4.0),
+            box(1.0, -4.0, 4.0, 4.0),
+        ))
+        for invalid in (hollow, multipart):
+            with self.subTest(geometry_type=invalid.geom_type):
+                result = loft_floorwise_legal_sections(
+                    source,
+                    (solid, invalid),
+                    (solid, solid),
+                    source.volumes,
+                    (0.0, 0.0),
+                )
+
+                self.assertFalse(result.certificate.hard_pass)
+                self.assertEqual(
+                    result.certificate.failure_reasons,
+                    ("section_loft_topology_incompatible",),
+                )
+                self.assertEqual(result.surfaces, ())
+
+    def test_floorwise_section_loft_requires_matching_plan_matrix_and_capacity(self):
+        from design.maas.geometry_language.floorwise_section_loft import (
+            loft_floorwise_legal_sections,
+        )
+
+        occupied = (
+            box(-4.0, -3.0, 4.0, 3.0),
+            box(-3.0, -2.0, 5.0, 2.0),
+        )
+        legal = (box(-6.0, -5.0, 6.0, 5.0),) * 2
+        plates = tuple(
+            SourceVolume(
+                "main",
+                section,
+                index / 2.0,
+                (index + 1) / 2.0,
+                "floorwise_legal_matrix4",
+            )
+            for index, section in enumerate(occupied)
+        )
+        floors = [
+            {"matrix4": [
+                [1.0, 0.0, 0.0, float(index)],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]}
+            for index in range(2)
+        ]
+        source = SourceMass(
+            name="authority-evidence-required",
+            footprint=occupied[0],
+            volumes=plates,
+            metadata={"floorwise_legal_matrix_stack": {
+                "floor_capacity_plan_hash": "required-plan",
+                "floors": floors,
+            }},
+        )
+        missing_plan = replace(source, metadata={
+            "floorwise_legal_matrix_stack": {"floors": floors},
+        })
+        short_matrix_stack = replace(source, metadata={
+            "floorwise_legal_matrix_stack": {
+                "floor_capacity_plan_hash": "required-plan",
+                "floors": floors[:1],
+            },
+        })
+        mismatched_plates = (
+            replace(plates[0], footprint=box(-1.0, -1.0, 1.0, 1.0)),
+            plates[1],
+        )
+
+        for candidate, candidate_plates, reason in (
+            (
+                missing_plan,
+                plates,
+                "section_loft_missing_authority_evidence",
+            ),
+            (
+                short_matrix_stack,
+                plates,
+                "section_loft_missing_authority_evidence",
+            ),
+            (
+                source,
+                mismatched_plates,
+                "section_loft_capacity_section_mismatch",
+            ),
+        ):
+            with self.subTest(reason=reason):
+                result = loft_floorwise_legal_sections(
+                    candidate,
+                    occupied,
+                    legal,
+                    candidate_plates,
+                    (0.0, 0.0),
+                )
+                self.assertFalse(result.certificate.hard_pass)
+                self.assertEqual(result.certificate.failure_reasons, (reason,))
+                self.assertEqual(result.surfaces, ())
+
+    def test_floorwise_section_loft_rejects_overlapping_capacity_plate_gfa(self):
+        from design.maas.geometry_language.floorwise_section_loft import (
+            loft_floorwise_legal_sections,
+        )
+
+        occupied = box(0.0, 0.0, 4.0, 4.0)
+        duplicate_plates = (
+            SourceVolume(
+                "main-a",
+                occupied,
+                0.0,
+                1.0,
+                "floorwise_legal_matrix4",
+            ),
+            SourceVolume(
+                "main-b",
+                occupied,
+                0.0,
+                1.0,
+                "floorwise_legal_matrix4",
+            ),
+        )
+        source = SourceMass(
+            name="overlapping-capacity-inflation",
+            footprint=occupied,
+            volumes=duplicate_plates,
+            metadata={"floorwise_legal_matrix_stack": {
+                "floor_capacity_plan_hash": "overlap-plan",
+                "floors": [{"matrix4": [
+                    [1.0, 0.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0, 0.0],
+                    [0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ]}],
+            }},
+        )
+
+        result = loft_floorwise_legal_sections(
+            source,
+            (occupied,),
+            (box(-1.0, -1.0, 5.0, 5.0),),
+            duplicate_plates,
+            (2.0, 2.0),
+        )
+
+        self.assertEqual(occupied.area, 16.0)
+        self.assertEqual(
+            sum(plate.footprint.area for plate in duplicate_plates),
+            32.0,
+        )
+        self.assertFalse(result.certificate.hard_pass)
+        self.assertEqual(
+            result.certificate.failure_reasons,
+            ("section_loft_capacity_section_mismatch",),
+        )
+        self.assertEqual(result.surfaces, ())
+
+    def test_floorwise_section_loft_transport_and_archive_reject_exact_tamper(self):
+        from design.maas.geometry_language.floorwise_section_loft import (
+            loft_floorwise_legal_sections,
+        )
+        from design.maas.geometry_language.projected_visual_contract import (
+            exact_triangle_payload_hash,
+            serialize_certified_projected_visual,
+            validate_projected_visual_artifact,
+        )
+
+        occupied = (
+            box(-4.0, -3.0, 4.0, 3.0),
+            box(-3.0, -2.0, 5.0, 2.0),
+        )
+        legal = (box(-6.0, -5.0, 6.0, 5.0),) * 2
+        plates = tuple(
+            SourceVolume(
+                "main",
+                section,
+                index / 2.0,
+                (index + 1) / 2.0,
+                "floorwise_legal_matrix4",
+            )
+            for index, section in enumerate(occupied)
+        )
+        source = SourceMass(
+            name="exact-loft-transport",
+            footprint=occupied[0],
+            volumes=plates,
+            metadata={"floorwise_legal_matrix_stack": {
+                "floor_capacity_plan_hash": "transport-plan",
+                "floors": [
+                    {"matrix4": [
+                        [1.0, 0.0, 0.0, 0.0],
+                        [0.0, 1.0, 0.0, 0.0],
+                        [0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 0.0, 1.0],
+                    ]},
+                    {"matrix4": [
+                        [1.0, 0.0, 0.0, 1.0],
+                        [0.0, 1.0, 0.0, 0.0],
+                        [0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 0.0, 1.0],
+                    ]},
+                ],
+            }},
+        )
+        projection = loft_floorwise_legal_sections(
+            source,
+            occupied,
+            legal,
+            plates,
+            (0.0, 0.0),
+        )
+        self.assertTrue(projection.certificate.hard_pass)
+        certified = replace(
+            source,
+            surfaces=projection.surfaces,
+            metadata={
+                **source.metadata,
+                "floorwise_visual_projection": (
+                    projection.certificate.to_dict()
+                ),
+            },
+        )
+        artifact = serialize_certified_projected_visual(certified)
+        artifact["identity"] = {
+            "geometryHash": artifact["projectedVisualGeometryHash"],
+        }
+        self.assertIsNotNone(validate_projected_visual_artifact(artifact))
+
+        first = certified.surfaces[0]
+        vertices = list(first.vertices_m)
+        vertices[0] = (
+            vertices[0][0] + 1e-9,
+            vertices[0][1],
+            vertices[0][2],
+        )
+        source_tamper = replace(
+            certified,
+            surfaces=(
+                replace(first, vertices_m=tuple(vertices)),
+                *certified.surfaces[1:],
+            ),
+        )
+        with self.assertRaisesRegex(ValueError, "exact payload hash mismatch"):
+            serialize_certified_projected_visual(source_tamper)
+
+        binding_tamper = deepcopy(certified.metadata)
+        binding_tamper["floorwise_visual_projection"][
+            "section_profile_hash"
+        ] = "a" * 64
+        with self.assertRaisesRegex(ValueError, "authority binding mismatch"):
+            serialize_certified_projected_visual(
+                replace(certified, metadata=binding_tamper)
+            )
+
+        archive_tamper = deepcopy(artifact)
+        archive_tamper["projectedVisualMesh"]["triangles"][0][
+            "vertices_m"
+        ][0][0] += 1e-9
+        tampered_payload = exact_triangle_payload_hash(
+            archive_tamper["projectedVisualMesh"]["triangles"]
+        )
+        archive_tamper["projectedVisualPayloadHash"] = tampered_payload
+        archive_tamper["projectedVisualCertificate"][
+            "exact_surface_payload_hash"
+        ] = tampered_payload
+        with self.assertRaisesRegex(ValueError, "authority binding mismatch"):
+            validate_projected_visual_artifact(archive_tamper)
+
+        archive_component_tamper = deepcopy(artifact)
+        archive_component_tamper["projectedVisualCertificate"][
+            "matrix4_stack_hash"
+        ] = "b" * 64
+        with self.assertRaisesRegex(ValueError, "authority binding mismatch"):
+            validate_projected_visual_artifact(archive_component_tamper)
+
+        mode_mutations = (
+            (
+                "certification_mode",
+                "floorwise_matrix_prism_exact_containment",
+            ),
+            (
+                "certification_mode",
+                "unknown_floorwise_authority_mode",
+            ),
+            (
+                "visible_geometry_operation",
+                "floorwise_matrix_prism_recomposition",
+            ),
+            ("visible_step_fallback", True),
+        )
+        for field, value in mode_mutations:
+            with self.subTest(source_mode_field=field):
+                source_mode_tamper = deepcopy(certified.metadata)
+                source_mode_tamper["floorwise_visual_projection"][
+                    field
+                ] = value
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "(?:authority binding mismatch|authority mode mismatch)",
+                ):
+                    serialize_certified_projected_visual(
+                        replace(certified, metadata=source_mode_tamper)
+                    )
+            with self.subTest(archive_mode_field=field):
+                archive_mode_tamper = deepcopy(artifact)
+                archive_mode_tamper["projectedVisualCertificate"][
+                    field
+                ] = value
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "(?:authority binding mismatch|authority mode mismatch)",
+                ):
+                    validate_projected_visual_artifact(archive_mode_tamper)
+
+        unknown_source_tamper = deepcopy(source_tamper.metadata)
+        unknown_source_tamper["floorwise_visual_projection"][
+            "certification_mode"
+        ] = "unknown_floorwise_authority_mode"
+        with self.assertRaisesRegex(ValueError, "authority mode mismatch"):
+            serialize_certified_projected_visual(
+                replace(source_tamper, metadata=unknown_source_tamper)
+            )
+
+        unknown_archive_tamper = deepcopy(artifact)
+        unknown_archive_tamper["projectedVisualCertificate"][
+            "certification_mode"
+        ] = "unknown_floorwise_authority_mode"
+        unknown_archive_tamper["projectedVisualMesh"]["triangles"][0][
+            "vertices_m"
+        ][0][0] += 1e-9
+        unknown_archive_tamper["projectedVisualPayloadHash"] = (
+            exact_triangle_payload_hash(
+                unknown_archive_tamper["projectedVisualMesh"]["triangles"]
+            )
+        )
+        with self.assertRaisesRegex(ValueError, "authority mode mismatch"):
+            validate_projected_visual_artifact(unknown_archive_tamper)
+
+    def test_unrelated_authored_exact_visual_mode_remains_transportable(self):
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            certify_authored_visual_mesh,
+        )
+        from design.maas.geometry_language.projected_visual_contract import (
+            serialize_certified_projected_visual,
+        )
+
+        source = _authored_profiled_box_source("legacy-authored-exact")
+        projection = certify_authored_visual_mesh(
+            source,
+            (box(-20.0, -20.0, 20.0, 20.0),) * 2,
+        )
+        self.assertTrue(projection.certificate.hard_pass)
+        certified = replace(
+            source,
+            metadata={
+                **source.metadata,
+                "floorwise_visual_projection": (
+                    projection.certificate.to_dict()
+                ),
+            },
+        )
+
+        artifact = serialize_certified_projected_visual(certified)
+
+        self.assertEqual(
+            artifact["projectedVisualCertificate"]["certification_mode"],
+            "authored_visual_legal_validation",
+        )
+
     def test_shared_floor_contract_repairs_non_noded_candidate_topology(self):
         from design.maas.shared_floor_contract import materialize_shared_floor_contract
 
@@ -531,18 +1779,18 @@ class SharedFloorContractTests(SimpleTestCase):
             (0.0, 10.0),
         ))
         target_area = float(legal_host.area) * 0.70
-        scales = _requested_plan_axis_scales(
-            authored_notch,
-            legal_host,
-            target_area=target_area,
-        )
-        self.assertIsNotNone(scales)
-        assert scales is not None
         source_angle, _source_width, _source_depth = _principal_frame(
             authored_notch.convex_hull
         )
         legal_angle, _legal_width, _legal_depth = _principal_frame(legal_host)
-
+        scales = _requested_plan_axis_scales(
+            authored_notch,
+            legal_host,
+            target_area=target_area,
+            target_angle_offset_degrees=legal_angle - source_angle,
+        )
+        self.assertIsNotNone(scales)
+        assert scales is not None
         authored_ratio = scales[0] / scales[1]
         with patch.object(
             source_bridge,
@@ -572,6 +1820,608 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertAlmostEqual(fitted_ratio, authored_ratio, delta=1e-9)
         self.assertAlmostEqual(float(occupied.area), 65.221, delta=0.02)
         self.assertLessEqual(fit_transform.call_count, 13)
+
+    def test_floorwise_materializer_can_use_bounded_legal_csg_projection(self):
+        """A near-fit authored notch may be clipped, but never underfill GFA."""
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+
+        legal_host = Polygon((
+            (19.2093017867, 10.3031964626),
+            (7.9523689583, 4.0761290228),
+            (4.4638355661, 10.3707856369),
+            (4.0776683608, 11.0675501865),
+            (15.3279146364, 17.3083091784),
+        ))
+        authored_notch = Polygon((
+            (0.0, 0.0),
+            (10.0, 0.0),
+            (10.0, 10.0),
+            (6.0, 10.0),
+            (6.0, 4.0),
+            (4.0, 4.0),
+            (4.0, 10.0),
+            (0.0, 10.0),
+        ))
+        target_area = round(float(legal_host.area) * 0.70, 3)
+        source = SourceMass(
+            name="authored_notch_legal_csg",
+            footprint=authored_notch,
+            volumes=(
+                SourceVolume(
+                    "recursive_primary",
+                    authored_notch,
+                    0.0,
+                    1.0,
+                    "geometry_program",
+                ),
+            ),
+            metadata={"geometry_program_bridge_evidence": {
+                "program_hash": "notch-program",
+                "geometry_hash": "notch-geometry",
+            }},
+        )
+
+        stacked = materialize_floorwise_legal_source(
+            source,
+            legal_sections=(legal_host,),
+            target_plan_coverage=0.70,
+            floor_capacity_plan_hash="irregular-csg-plan",
+            target_floor_areas_m2=(target_area,),
+        )
+
+        self.assertIsNotNone(stacked)
+        assert stacked is not None
+        occupied = unary_union([
+            volume.footprint for volume in stacked.volumes
+        ])
+        self.assertTrue(legal_host.buffer(1e-7).covers(occupied))
+        self.assertAlmostEqual(occupied.area, target_area, delta=1e-5)
+        floor = stacked.metadata["floorwise_legal_matrix_stack"]["floors"][0]
+        self.assertGreater(floor["legal_csg_clip_area_m2"], 0.0)
+        self.assertEqual(len(floor["matrix4"]), 4)
+
+    def test_replay_ring_transport_preserves_true_short_non_collinear_corner(self):
+        from design.maas.geometry_language.replay_ring_transport import (
+            normalize_replay_polygon,
+        )
+
+        true_short_corner = Polygon((
+            (0.0, 0.0),
+            (4.0, 0.0),
+            (4.0, 4.0),
+            (3.999995, 4.000005),
+            (0.0, 4.0),
+        ))
+
+        normalized = normalize_replay_polygon(true_short_corner)
+
+        self.assertEqual(
+            tuple(normalized.exterior.coords)[:-1],
+            tuple(true_short_corner.exterior.coords)[:-1],
+        )
+        self.assertEqual(
+            normalized.symmetric_difference(true_short_corner).area,
+            0.0,
+        )
+
+    def test_replay_ring_transport_is_subset_safe_and_cyclic_deterministic(self):
+        from design.maas.geometry_language.replay_ring_transport import (
+            normalize_replay_polygon,
+        )
+
+        shallow_inward_notch = (
+            (2.0, 3.9999995),
+            (0.0, 4.0),
+            (0.0, 0.0),
+            (4.0, 0.0),
+            (4.0, 4.0),
+            (2.000006, 4.0),
+        )
+        normalized_payloads = []
+        for shift in range(len(shallow_inward_notch)):
+            rotated = (
+                shallow_inward_notch[shift:]
+                + shallow_inward_notch[:shift]
+            )
+            canonical = orient(Polygon(rotated), sign=1.0)
+
+            normalized = normalize_replay_polygon(canonical)
+
+            self.assertTrue(
+                canonical.covers(normalized),
+                canonical.difference(normalized).wkt,
+            )
+            self.assertLessEqual(
+                normalized.symmetric_difference(canonical).area,
+                1e-6,
+            )
+            normalized_payloads.append(normalized.wkb_hex)
+        self.assertEqual(len(set(normalized_payloads)), 1)
+        self.assertEqual(
+            len(tuple(normalized.exterior.coords)) - 1,
+            5,
+        )
+
+    def test_floorwise_replay_proves_serialized_payload_without_expansion(self):
+        from design.maas.geometry_language.replay_ring_transport import (
+            replay_polygon_origin,
+        )
+        from design.maas.geometry_language.source_bridge import (
+            floorwise_source_to_geometry_program,
+        )
+
+        exterior = (
+            (2.0, 3.9999995),
+            (0.0, 4.0),
+            (0.0, 0.0),
+            (4.0, 0.0),
+            (4.0, 4.0),
+            (2.000006, 4.0),
+        )
+        hole = (
+            (1.0, 1.0),
+            (1.0, 3.0),
+            (3.0, 3.0),
+            (3.0, 1.0),
+        )
+        serialized_payloads = []
+        precision_modes = set()
+        for shift in range(len(exterior)):
+            rotated = exterior[shift:] + exterior[:shift]
+            footprint = Polygon(rotated, holes=[hole])
+            source = SourceMass(
+                name=f"rounded-replay-proof-{shift}",
+                footprint=footprint,
+                volumes=(
+                    SourceVolume(
+                        "main",
+                        footprint,
+                        0.0,
+                        1.0,
+                        "floorwise_legal_matrix4",
+                    ),
+                ),
+                metadata={"floorwise_legal_matrix_stack": {
+                    "status": "materialized",
+                    "floor_capacity_plan_hash": "rounded-proof",
+                    "floors": [{"matrix4": [
+                        [1.0, 0.0, 0.0, 0.0],
+                        [0.0, 1.0, 0.0, 0.0],
+                        [0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 0.0, 1.0],
+                    ]}],
+                }},
+            )
+
+            program = floorwise_source_to_geometry_program(
+                source,
+                height_m=3.0,
+            )
+
+            primitive = next(
+                node
+                for node in program.nodes
+                if node.operator == "extruded_polygon"
+            )
+            local_payload = Polygon(
+                primitive.parameters["points"],
+                holes=primitive.parameters["holes"],
+            )
+            canonical = orient(footprint, sign=1.0)
+            replay_origin = replay_polygon_origin(footprint)
+            local_reference = translate(
+                canonical,
+                xoff=-replay_origin[0],
+                yoff=-replay_origin[1],
+            )
+            self.assertTrue(local_payload.is_valid)
+            self.assertEqual(len(local_payload.interiors), 1)
+            self.assertTrue(local_payload.exterior.is_ccw)
+            self.assertTrue(all(
+                not interior.is_ccw
+                for interior in local_payload.interiors
+            ))
+            self.assertTrue(local_reference.covers(local_payload))
+            self.assertLessEqual(
+                abs(float(local_payload.area) - float(local_reference.area)),
+                1e-6,
+            )
+            self.assertLessEqual(
+                local_payload.symmetric_difference(local_reference).area,
+                1e-6,
+            )
+            serialized_payloads.append((
+                tuple(tuple(point) for point in primitive.parameters["points"]),
+                tuple(
+                    tuple(tuple(point) for point in ring)
+                    for ring in primitive.parameters["holes"]
+                ),
+            ))
+            precision_modes.add(
+                primitive.provenance["ring_transport_precision"]
+            )
+        self.assertEqual(len(set(serialized_payloads)), 1)
+        self.assertEqual(precision_modes, {"full_precision_fallback"})
+
+    def test_replay_ring_transport_proves_two_hole_fallback_in_local_frame(self):
+        from design.maas.geometry_language.replay_ring_transport import (
+            replay_polygon_origin,
+            replay_polygon_point_payload,
+        )
+
+        exterior = (
+            (2.0, 3.9999995),
+            (0.0, 4.0),
+            (0.0, 0.0),
+            (4.0, 0.0),
+            (4.0, 4.0),
+            (2.000006, 4.0),
+        )
+        holes = (
+            (
+                (1.0, 1.0),
+                (1.0, 3.0),
+                (3.0, 3.0),
+                (3.0, 1.0),
+            ),
+            (
+                (0.2, 0.2),
+                (0.2, 0.4),
+                (0.4, 0.4),
+                (0.4, 0.2),
+            ),
+        )
+        serialized_payloads = []
+        for shift in range(len(exterior)):
+            polygon = orient(
+                Polygon(
+                    exterior[shift:] + exterior[:shift],
+                    holes=holes,
+                ),
+                sign=1.0,
+            )
+            self.assertTrue(polygon.is_valid)
+            origin = replay_polygon_origin(polygon)
+
+            points, transported_holes, precision_mode = (
+                replay_polygon_point_payload(
+                    polygon,
+                    xoff=origin[0],
+                    yoff=origin[1],
+                )
+            )
+
+            local_payload = Polygon(points, holes=transported_holes)
+            local_reference = translate(
+                polygon,
+                xoff=-origin[0],
+                yoff=-origin[1],
+            )
+            self.assertTrue(local_payload.is_valid)
+            self.assertEqual(len(local_payload.interiors), 2)
+            self.assertTrue(local_payload.exterior.is_ccw)
+            self.assertTrue(all(
+                not interior.is_ccw
+                for interior in local_payload.interiors
+            ))
+            self.assertTrue(local_reference.covers(local_payload))
+            self.assertLessEqual(
+                local_reference.symmetric_difference(local_payload).area,
+                1e-6,
+            )
+            self.assertEqual(
+                precision_mode,
+                "full_precision_fallback",
+            )
+            serialized_payloads.append((
+                tuple(tuple(point) for point in points),
+                tuple(
+                    tuple(tuple(point) for point in ring)
+                    for ring in transported_holes
+                ),
+            ))
+        self.assertEqual(len(set(serialized_payloads)), 1)
+
+    def test_floorwise_replay_compacts_only_proven_noisy_breakpoints_without_rekeying_authorities(self):
+        from design.maas.geometry_language.replay_ring_transport import (
+            replay_polygon_origin,
+        )
+        from design.maas.geometry_language.source_bridge import (
+            floorwise_source_to_geometry_program,
+            source_surface_payload_hash,
+            source_volume_payload_hash,
+        )
+
+        noisy_clockwise = orient(
+            Polygon(
+                (
+                    (0.0, 0.0),
+                    (2.0, 0.0),
+                    (2.0, 0.0),
+                    (2.000001, 0.0),
+                    (4.0, 0.0),
+                    (4.0, 3.99998),
+                    (3.99998, 4.0),
+                    (2.5, 4.0),
+                    (2.5, 3.995),
+                    (1.5, 3.995),
+                    (1.5, 4.0),
+                    (0.0, 4.0),
+                ),
+                holes=[(
+                    (1.0, 1.0),
+                    (1.0, 3.0),
+                    (3.0, 3.0),
+                    (3.0, 1.0),
+                )],
+            ),
+            sign=-1.0,
+        )
+        visual_surface = SourceSurface(
+            role="certified_visual",
+            volume_role="main",
+            verb="exact_loft",
+            surface_type="profiled_recursive_solid_mesh",
+            vertices_m=((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)),
+            semantic_patch_id="main:certified-visual",
+        )
+        source = SourceMass(
+            name="replay-noisy-breakpoint",
+            footprint=noisy_clockwise,
+            volumes=(
+                SourceVolume(
+                    "main",
+                    noisy_clockwise,
+                    0.0,
+                    1.0,
+                    "floorwise_legal_matrix4",
+                ),
+            ),
+            surfaces=(visual_surface,),
+            metadata={"floorwise_legal_matrix_stack": {
+                "status": "materialized",
+                "floor_capacity_plan_hash": "c" * 64,
+                "legal_floor_field_hash": "l" * 64,
+                "visual_hash": "v" * 64,
+                "geometry_hash": "g" * 64,
+                "floors": [{"matrix4": [
+                    [1.0, 0.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0, 0.0],
+                    [0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ]}],
+            }},
+        )
+        volume_hash = source_volume_payload_hash(source.volumes)
+        visual_hash = source_surface_payload_hash(source.surfaces)
+
+        replay_program = floorwise_source_to_geometry_program(
+            source,
+            height_m=3.0,
+        )
+        replay_compilation = compile_geometry_program(replay_program)
+
+        self.assertEqual(
+            compilation_gate(replay_compilation),
+            (),
+            compilation_gate(replay_compilation),
+        )
+        primitive = next(
+            node
+            for node in replay_program.nodes
+            if node.operator == "extruded_polygon"
+        )
+        replayed_local_plan = Polygon(
+            primitive.parameters["points"],
+            holes=primitive.parameters["holes"],
+        )
+        replay_origin = replay_polygon_origin(noisy_clockwise)
+        source_local_plan = translate(
+            noisy_clockwise,
+            xoff=-replay_origin[0],
+            yoff=-replay_origin[1],
+        )
+        self.assertTrue(replayed_local_plan.exterior.is_ccw)
+        self.assertTrue(all(
+            not interior.is_ccw
+            for interior in replayed_local_plan.interiors
+        ))
+        replayed_world_points = {
+            (
+                round(float(point[0]) + replay_origin[0], 8),
+                round(float(point[1]) + replay_origin[1], 8),
+            )
+            for point in primitive.parameters["points"]
+        }
+        self.assertIn((4.0, 3.99998), replayed_world_points)
+        self.assertIn((3.99998, 4.0), replayed_world_points)
+        self.assertIn(
+            primitive.provenance["ring_transport_precision"],
+            {"decimal_7", "full_precision_fallback"},
+        )
+        self.assertLessEqual(
+            abs(float(replayed_local_plan.area) - float(source_local_plan.area)),
+            1e-6,
+        )
+        self.assertLessEqual(
+            replayed_local_plan.symmetric_difference(source_local_plan).area,
+            1e-6,
+        )
+        self.assertTrue(source_local_plan.covers(replayed_local_plan))
+        legal_host = box(-1.0, -1.0, 5.0, 5.0)
+        replayed_world_plan = translate(
+            replayed_local_plan,
+            xoff=replay_origin[0],
+            yoff=replay_origin[1],
+        )
+        self.assertTrue(legal_host.covers(replayed_world_plan))
+        self.assertEqual(
+            replay_program.metadata["floorwise_projection"][
+                "floor_capacity_plan_hash"
+            ],
+            "c" * 64,
+        )
+        self.assertEqual(
+            source.metadata["floorwise_legal_matrix_stack"][
+                "legal_floor_field_hash"
+            ],
+            "l" * 64,
+        )
+        self.assertEqual(
+            source.metadata["floorwise_legal_matrix_stack"]["visual_hash"],
+            "v" * 64,
+        )
+        self.assertEqual(source_volume_payload_hash(source.volumes), volume_hash)
+        self.assertEqual(source_surface_payload_hash(source.surfaces), visual_hash)
+
+    def test_real_pnu_grid_replay_normalizes_only_sub_tolerance_sliver_vertices(self):
+        import json
+
+        from shapely.geometry import shape
+
+        from design.maas.book_language.candidate_generation import (
+            _agent_mutated_seeds,
+        )
+        from design.maas.book_language.program_catalog import PROGRAMS
+        from design.maas.book_language.registry import (
+            build_book_language_registry,
+        )
+        from design.maas.geometry_language import (
+            GeometryProgram,
+            apply_book_projection_to_geometry_program,
+            compile_geometry_program_to_source_mass,
+        )
+        from design.maas.geometry_language.source_bridge import (
+            floorwise_source_to_geometry_program,
+            materialize_floorwise_legal_source,
+        )
+        from design.maas.program_massing import (
+            book_sentence_variants,
+            compose_program_with_book_operations,
+        )
+
+        legal_sections = tuple(shape({
+            "type": "Polygon",
+            "coordinates": coordinates,
+        }) for coordinates in (
+            [[
+                [19.209301786660244, 10.303196462622152],
+                [7.952368958284199, 4.076129022809751],
+                [4.463835566056591, 10.370785636863394],
+                [4.0776683608121385, 11.067550186502613],
+                [15.327914636438544, 17.308309178434918],
+                [19.209301786660244, 10.303196462622152],
+            ]],
+            [[
+                [19.209301786660244, 10.303196462622152],
+                [7.952368958284199, 4.076129022809751],
+                [4.463835566056591, 10.370785636863394],
+                [4.0776683608121385, 11.067550186502613],
+                [15.327914636438544, 17.308309178434918],
+                [19.209301786660244, 10.303196462622152],
+            ]],
+            [[
+                [19.209301786660244, 10.303196462622152],
+                [7.952368958284199, 4.076129022809751],
+                [5.099797816884418, 9.223265020497559],
+                [16.41123368811874, 15.353139088336144],
+                [19.209301786660244, 10.303196462622152],
+            ]],
+            [[
+                [19.209301786660244, 10.303196462622152],
+                [7.952368958284199, 4.076129022809751],
+                [6.016642466400299, 7.568924474412199],
+                [17.26653809635558, 13.809488956529954],
+                [19.209301786660244, 10.303196462622152],
+            ]],
+        ))
+        source_seed = _agent_mutated_seeds(
+            PROGRAMS[0][1],
+            None,
+            universal_variation_pages=(0,),
+        )[6]
+        payload = next(
+            note.split("=", 1)[1]
+            for note in source_seed.notes
+            if note.startswith("geometry_program_payload=")
+        )
+        grid_program = GeometryProgram.from_dict(json.loads(payload))
+        bend = next(
+            principle
+            for principle in build_book_language_registry()["principles"]
+            if principle["principle_id"] == "book:operative:bend"
+        )
+        operations = book_sentence_variants(
+            bend["execution_verbs"],
+            count=3,
+        )[1]
+        sequence = compose_program_with_book_operations(
+            source_seed,
+            operations,
+            base_volume_label="3/8",
+            orientation="vertical",
+        )
+        projected = apply_book_projection_to_geometry_program(
+            grid_program,
+            sequence,
+        )
+        source = compile_geometry_program_to_source_mass(
+            projected,
+            legal_sections[0],
+            upper_host=legal_sections[-1],
+            upper_fit_strength=0.0,
+            target_plan_area=92.638,
+            name=projected.name,
+            volume_role="recursive-primary",
+            max_volume_bands=4,
+        )
+        self.assertIsNotNone(source)
+
+        materialized = materialize_floorwise_legal_source(
+            source,
+            legal_sections=legal_sections,
+            target_plan_coverage=0.9,
+            floor_capacity_plan_hash="real-pnu-grid-sliver-regression",
+            target_floor_areas_m2=(92.638, 92.638, 67.49, 46.324),
+        )
+
+        self.assertIsNotNone(materialized)
+        assert materialized is not None
+        replay = compile_geometry_program(
+            floorwise_source_to_geometry_program(
+                materialized,
+                height_m=14.0,
+            )
+        )
+        self.assertFalse(compilation_gate(replay), compilation_gate(replay))
+        for floor_index, (legal, target) in enumerate(zip(
+            legal_sections,
+            (92.638, 92.638, 67.49, 46.324),
+        )):
+            band = unary_union(tuple(
+                volume.footprint
+                for volume in materialized.volumes
+                if round(float(volume.bottom_fraction) * 4) == floor_index
+            ))
+            self.assertTrue(legal.buffer(1e-7).covers(band))
+            self.assertAlmostEqual(float(band.area), target, places=6)
+        stack = materialized.metadata["floorwise_legal_matrix_stack"]
+        self.assertTrue(all(len(floor["matrix4"]) == 4 for floor in stack["floors"]))
+        self.assertGreater(
+            max(
+                len(part.exterior.coords)
+                for volume in materialized.volumes
+                for part in (
+                    tuple(volume.footprint.geoms)
+                    if hasattr(volume.footprint, "geoms")
+                    else (volume.footprint,)
+                )
+            ),
+            8,
+        )
+        self.assertEqual(len(floor["matrix4"]), 4)
 
     def test_floorwise_capacity_budget_preserves_distinct_authored_vertical_profiles(self):
         """A capacity target must not rewrite different AST profiles as one step stack."""
@@ -796,62 +2646,11 @@ class SharedFloorContractTests(SimpleTestCase):
         )
 
         def authored_source(name: str, top_x_offset: float) -> SourceMass:
-            lower = (
-                (-5.0, -5.0, 0.0),
-                (5.0, -5.0, 0.0),
-                (5.0, 5.0, 0.0),
-                (-5.0, 5.0, 0.0),
-            )
-            upper = tuple(
-                (x + top_x_offset, y, 1.0)
-                for x, y, _z in lower
-            )
-            vertices = (*lower, *upper)
-            triangles = tuple(
-                triangle
-                for index in range(4)
-                for next_index in ((index + 1) % 4,)
-                for triangle in (
-                    (index, next_index, 4 + next_index),
-                    (index, 4 + next_index, 4 + index),
-                )
-            )
-            surfaces = tuple(
-                SourceSurface(
-                    role=f"mesh_{index}",
-                    volume_role="recursive_primary",
-                    verb="geometry_program",
-                    surface_type="profiled_recursive_solid_mesh",
-                    vertices_m=tuple(vertices[vertex] for vertex in triangle),
-                    operator="loft",
-                    semantic_patch_id="recursive_primary:loft_side",
-                )
-                for index, triangle in enumerate(triangles)
-            )
-            # Both sources deliberately expose the same conservative proxy.
-            # Only the authored mesh records the upper-level shift.
-            proxy = box(-5.0, -5.0, 5.0, 5.0)
-            return SourceMass(
-                name=name,
-                footprint=proxy,
-                volumes=(
-                    SourceVolume(
-                        "recursive_primary",
-                        proxy,
-                        0.0,
-                        1.0,
-                        "geometry_program",
-                    ),
-                ),
-                surfaces=surfaces,
-                metadata={"geometry_program_bridge_evidence": {
-                    "status": "materialized",
-                    "program_hash": name,
-                    "geometry_hash": name,
-                    "authoritative_visual_geometry": "manifold_compilation_mesh",
-                    "raw_mesh_triangle_count": len(triangles),
-                    "exported_surface_count": len(surfaces),
-                }},
+            # Both sources expose the same conservative proxy. Only the
+            # closed authored mesh records the upper-level shift.
+            return _authored_profiled_box_source(
+                name,
+                top_x_offset=top_x_offset,
             )
 
         centered = materialize_floorwise_legal_source(
@@ -937,6 +2736,1022 @@ class SharedFloorContractTests(SimpleTestCase):
             delta=0.1,
         )
 
+    def test_floorwise_profiled_legal_clip_preserves_real_oblique_skin(self):
+        """The legal clip must preserve measured slope, not relabel a prism."""
+        from math import sqrt
+
+        from design.maas.geometry_language.compiler import (
+            CompilationResult,
+            revalidate_compilation_mesh,
+        )
+        from design.maas.geometry_language.ast import GeometryProgram
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+
+        legal = box(-5.0, -5.0, 5.0, 5.0)
+        authored = _authored_profiled_box_source(
+            "profiled_legal_clip_oblique",
+            top_x_offset=12.0,
+        )
+        stacked = materialize_floorwise_legal_source(
+            authored,
+            legal_sections=(legal, legal),
+            target_plan_coverage=0.95,
+            floor_capacity_plan_hash="profiled-legal-clip-capacity",
+            target_floor_areas_m2=(100.0, 100.0),
+        )
+
+        self.assertIsNotNone(stacked)
+        assert stacked is not None
+        certificate = stacked.metadata["floorwise_visual_projection"]
+        self.assertEqual(
+            certificate["certification_mode"],
+            "floorwise_profiled_legal_clip",
+        )
+        self.assertEqual(
+            certificate["visible_geometry_operation"],
+            "authored_profiled_mesh_legal_solid_intersection",
+        )
+        self.assertFalse(certificate["visible_step_fallback"])
+        self.assertEqual(
+            certificate["floor_capacity_plan_hash"],
+            "profiled-legal-clip-capacity",
+        )
+        self.assertTrue(certificate["authority_binding_hash"])
+
+        vertex_index = {}
+        vertices = []
+        triangles = []
+        sloped_area = total_area = 0.0
+        for surface in stacked.surfaces:
+            triangle = []
+            scaled = []
+            for x, y, z in surface.vertices_m:
+                key = (float(x), float(y), float(z))
+                if key not in vertex_index:
+                    vertex_index[key] = len(vertices)
+                    vertices.append(key)
+                triangle.append(vertex_index[key])
+                scaled.append((float(x), float(y), float(z) * 10.5))
+            triangles.append(tuple(triangle))
+            left = tuple(
+                scaled[1][axis] - scaled[0][axis] for axis in range(3)
+            )
+            right = tuple(
+                scaled[2][axis] - scaled[0][axis] for axis in range(3)
+            )
+            normal = (
+                left[1] * right[2] - left[2] * right[1],
+                left[2] * right[0] - left[0] * right[2],
+                left[0] * right[1] - left[1] * right[0],
+            )
+            magnitude = sqrt(sum(value * value for value in normal))
+            if magnitude <= 1e-12:
+                continue
+            area = magnitude / 2.0
+            total_area += area
+            absolute_z = abs(normal[2]) / magnitude
+            if 0.12 < absolute_z < 0.90:
+                sloped_area += area
+        revalidated = revalidate_compilation_mesh(CompilationResult(
+            program=GeometryProgram(
+                nodes=(),
+                root_id="",
+                name="profiled-clip-test",
+            ),
+            status="compiled",
+            vertices=tuple(vertices),
+            triangles=tuple(triangles),
+        ))
+        self.assertEqual(revalidated.status, "compiled")
+        self.assertTrue(revalidated.metrics["closed_solid"])
+        self.assertTrue(revalidated.metrics["manifold"])
+        self.assertEqual(revalidated.metrics["component_count"], 1)
+        from design.maas.book_language.final_mesh_floor_evidence import (
+            _mesh_section_segments,
+        )
+
+        origin = stacked.footprint.centroid
+        for normalized_z in (0.25, 0.75):
+            segments = _mesh_section_segments(
+                tuple(vertices),
+                tuple(triangles),
+                normalized_z,
+            )
+            self.assertTrue(segments)
+            self.assertTrue(all(
+                legal.covers(translate(
+                    segment,
+                    xoff=float(origin.x),
+                    yoff=float(origin.y),
+                ))
+                for segment in segments
+            ))
+        # This is the label-independent generic-oblique threshold used by
+        # final candidate morphology, not the weaker slice-intent exception.
+        self.assertGreaterEqual(sloped_area / total_area, 0.24)
+
+        for floor_index in range(2):
+            measured = _mesh_section_polygon(
+                tuple(vertices),
+                tuple(triangles),
+                (floor_index + 0.5) / 2.0,
+            )
+            self.assertIsNotNone(measured)
+            assert measured is not None
+            self.assertLess(
+                measured.symmetric_difference(legal).area,
+                1e-6,
+            )
+        below_seam = _mesh_section_polygon(
+            tuple(vertices),
+            tuple(triangles),
+            0.5 - 1e-6,
+        )
+        above_seam = _mesh_section_polygon(
+            tuple(vertices),
+            tuple(triangles),
+            0.5 + 1e-6,
+        )
+        self.assertIsNotNone(below_seam)
+        self.assertIsNotNone(above_seam)
+        assert below_seam is not None and above_seam is not None
+        self.assertLess(
+            below_seam.symmetric_difference(above_seam).area,
+            1e-3,
+        )
+        self.assertAlmostEqual(
+            sum(volume.footprint.area for volume in stacked.volumes),
+            200.0,
+            delta=1e-6,
+        )
+        repeated = materialize_floorwise_legal_source(
+            _authored_profiled_box_source(
+                "profiled_legal_clip_oblique",
+                top_x_offset=12.0,
+            ),
+            legal_sections=(legal, legal),
+            target_plan_coverage=0.95,
+            floor_capacity_plan_hash="profiled-legal-clip-capacity",
+            target_floor_areas_m2=(100.0, 100.0),
+        )
+        self.assertIsNotNone(repeated)
+        assert repeated is not None
+        repeated_certificate = repeated.metadata["floorwise_visual_projection"]
+        self.assertEqual(
+            repeated_certificate["exact_surface_payload_hash"],
+            certificate["exact_surface_payload_hash"],
+        )
+        self.assertEqual(
+            repeated_certificate["authority_binding_hash"],
+            certificate["authority_binding_hash"],
+        )
+        self.assertEqual(repeated.surfaces, stacked.surfaces)
+
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            clip_and_certify_projected_piloti_visual,
+        )
+
+        piloti = clip_and_certify_projected_piloti_visual(
+            stacked.surfaces,
+            certificate,
+            void_height_fraction=0.10,
+        )
+        self.assertIsNotNone(piloti)
+        assert piloti is not None
+        self.assertNotEqual(
+            piloti[1]["exact_surface_payload_hash"],
+            certificate["exact_surface_payload_hash"],
+        )
+        self.assertNotEqual(
+            piloti[1]["authority_binding_hash"],
+            certificate["authority_binding_hash"],
+        )
+        self.assertIsNone(
+            clip_and_certify_projected_piloti_visual(
+                stacked.surfaces,
+                certificate,
+                void_height_fraction=0.30,
+            )
+        )
+
+    def test_floor_center_numeric_equivalence_rejects_holes_and_islands(self):
+        from shapely.geometry import MultiPolygon
+
+        from design.maas.geometry_language.floorwise_profiled_legal_clip import (
+            _floor_center_numeric_equivalence,
+        )
+
+        expected = box(0.0, 0.0, 10.0, 10.0)
+        microscopic_hole = Polygon(
+            expected.exterior.coords,
+            holes=[box(4.9999999, 4.9999999, 5.0000001, 5.0000001).exterior.coords],
+        )
+        microscopic_island = MultiPolygon((
+            expected,
+            box(10.0000001, 0.0, 10.0000002, 0.0000001),
+        ))
+        self.assertIsNone(
+            _floor_center_numeric_equivalence(microscopic_hole, expected)
+        )
+        self.assertIsNone(
+            _floor_center_numeric_equivalence(microscopic_island, expected)
+        )
+
+    def test_floor_center_numeric_equivalence_rejects_boundary_drift(self):
+        from design.maas.geometry_language.floorwise_profiled_legal_clip import (
+            _floor_center_numeric_equivalence,
+        )
+
+        expected = box(0.0, 0.0, 10.0, 10.0)
+        self.assertIsNotNone(
+            _floor_center_numeric_equivalence(
+                translate(expected, xoff=0.5e-6),
+                expected,
+            )
+        )
+        self.assertIsNone(
+            _floor_center_numeric_equivalence(
+                translate(expected, xoff=1.1e-6),
+                expected,
+            )
+        )
+
+    def test_floorwise_profiled_legal_clip_rejects_ambiguous_authority(self):
+        """Holes, multipart fields and capacity drift must fail this exact mode."""
+        from dataclasses import replace
+
+        from design.maas.geometry_language.floorwise_profiled_legal_clip import (
+            clip_profiled_mesh_to_floorwise_legal_solids,
+        )
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            floorwise_authority_binding_hash,
+        )
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+
+        legal = box(-5.0, -5.0, 5.0, 5.0)
+        legacy_binding_fields = {
+            "section_profile_hash": "section",
+            "capacity_volume_hash": "capacity",
+            "floor_capacity_plan_hash": "plan",
+            "matrix4_stack_hash": "matrix",
+            "exact_surface_payload_hash": "surface",
+            "certification_mode": "floorwise_csg_section_loft",
+            "visible_geometry_operation": "exact_legal_section_profile_loft",
+            "visible_step_fallback": False,
+        }
+        self.assertEqual(
+            floorwise_authority_binding_hash(**legacy_binding_fields),
+            floorwise_authority_binding_hash(
+                **legacy_binding_fields,
+                authored_program_hash="",
+                effective_height_m=0.0,
+                verified_profiled_sloped_surface_area=0.0,
+                verified_profiled_sloped_surface_ratio=0.0,
+                verified_profiled_sloped_surface_hash="",
+            ),
+        )
+        authored = _authored_profiled_box_source(
+            "profiled_legal_clip_fail_closed",
+            top_x_offset=12.0,
+        )
+        baseline = materialize_floorwise_legal_source(
+            authored,
+            legal_sections=(legal, legal),
+            target_plan_coverage=0.95,
+            floor_capacity_plan_hash="profiled-legal-clip-fail-closed",
+            target_floor_areas_m2=(100.0, 100.0),
+        )
+        self.assertIsNotNone(baseline)
+        assert baseline is not None
+        stack = baseline.metadata["floorwise_legal_matrix_stack"]
+        authority_source = replace(
+            authored,
+            metadata={
+                **authored.metadata,
+                "floorwise_legal_matrix_stack": stack,
+            },
+        )
+        matrices = tuple(
+            floor["matrix4"]
+            for floor in stack["floors"]
+        )
+        occupied = tuple(
+            unary_union([
+                volume.footprint
+                for volume in baseline.volumes
+                if (
+                    abs(volume.bottom_fraction - floor_index / 2.0)
+                    <= 1e-8
+                )
+            ])
+            for floor_index in range(2)
+        )
+        reversed_legal = Polygon(tuple(reversed(legal.exterior.coords)))
+        reversed_result = clip_profiled_mesh_to_floorwise_legal_solids(
+            replace(
+                authority_source,
+                surfaces=tuple(reversed(authority_source.surfaces)),
+            ),
+            occupied_sections=occupied,
+            legal_sections=(reversed_legal, reversed_legal),
+            floor_matrices=matrices,
+            capacity_plates=tuple(reversed(baseline.volumes)),
+            output_origin=(0.0, 0.0),
+        )
+        self.assertTrue(
+            reversed_result.certificate.hard_pass,
+            reversed_result.certificate.to_dict(),
+        )
+        self.assertEqual(
+            reversed_result.certificate.exact_surface_payload_hash,
+            baseline.metadata["floorwise_visual_projection"][
+                "exact_surface_payload_hash"
+            ],
+        )
+        self.assertEqual(
+            reversed_result.certificate.authority_binding_hash,
+            baseline.metadata["floorwise_visual_projection"][
+                "authority_binding_hash"
+            ],
+        )
+        incomplete_authored_export = clip_profiled_mesh_to_floorwise_legal_solids(
+            replace(
+                authority_source,
+                surfaces=(
+                    *authority_source.surfaces,
+                    SourceSurface(
+                        role="unexported_authored_surface",
+                        volume_role="recursive_primary",
+                        verb="geometry_program",
+                        surface_type="authored_non_profiled_surface",
+                        vertices_m=(
+                            (0.0, 0.0, 0.0),
+                            (1.0, 0.0, 0.0),
+                            (0.0, 1.0, 0.0),
+                        ),
+                    ),
+                ),
+            ),
+            occupied_sections=occupied,
+            legal_sections=(legal, legal),
+            floor_matrices=matrices,
+            capacity_plates=baseline.volumes,
+            output_origin=(0.0, 0.0),
+        )
+        self.assertFalse(incomplete_authored_export.certificate.hard_pass)
+        self.assertEqual(incomplete_authored_export.surfaces, ())
+        self.assertEqual(
+            incomplete_authored_export.certificate.failure_reasons,
+            ("profiled_legal_clip_incomplete_authored_mesh",),
+        )
+        holed = Polygon(
+            tuple(legal.exterior.coords),
+            holes=(
+                ((-1.0, -1.0), (1.0, -1.0), (1.0, 1.0), (-1.0, 1.0)),
+            ),
+        )
+        multipart = unary_union((
+            box(-5.0, -5.0, -1.0, 5.0),
+            box(1.0, -5.0, 5.0, 5.0),
+        ))
+        for ambiguous in (holed, multipart):
+            with self.subTest(geometry_type=ambiguous.geom_type):
+                result = clip_profiled_mesh_to_floorwise_legal_solids(
+                    authority_source,
+                    occupied_sections=occupied,
+                    legal_sections=(ambiguous, ambiguous),
+                    floor_matrices=matrices,
+                    capacity_plates=baseline.volumes,
+                    output_origin=(0.0, 0.0),
+                )
+                self.assertFalse(result.certificate.hard_pass)
+                self.assertEqual(result.surfaces, ())
+                self.assertEqual(
+                    result.certificate.failure_reasons,
+                    ("profiled_legal_clip_topology_ambiguous",),
+                )
+
+        drifted = clip_profiled_mesh_to_floorwise_legal_solids(
+            authority_source,
+            occupied_sections=(
+                legal,
+                box(-4.9, -4.9, 4.9, 4.9),
+            ),
+            legal_sections=(legal, legal),
+            floor_matrices=matrices,
+            capacity_plates=baseline.volumes,
+            output_origin=(0.0, 0.0),
+        )
+        self.assertFalse(drifted.certificate.hard_pass)
+        self.assertEqual(drifted.surfaces, ())
+        self.assertEqual(
+            drifted.certificate.failure_reasons,
+            ("profiled_legal_clip_capacity_section_mismatch",),
+        )
+        mismatched_matrices = list(matrices)
+        mismatched_matrices[0] = (
+            (0.0, -1.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        )
+        matrix_mismatch = clip_profiled_mesh_to_floorwise_legal_solids(
+            authority_source,
+            occupied_sections=occupied,
+            legal_sections=(legal, legal),
+            floor_matrices=tuple(mismatched_matrices),
+            capacity_plates=baseline.volumes,
+            output_origin=(0.0, 0.0),
+        )
+        self.assertFalse(matrix_mismatch.certificate.hard_pass)
+        self.assertEqual(matrix_mismatch.surfaces, ())
+        self.assertEqual(
+            matrix_mismatch.certificate.failure_reasons,
+            ("profiled_legal_clip_matrix_authority_mismatch",),
+        )
+
+    def test_floorwise_profiled_legal_clip_retains_terminal_slice_plane(self):
+        """A real compiled slice plane survives Matrix4 placement and legal CSG."""
+        from math import sqrt
+
+        from design.maas.book_language.candidate_analysis import (
+            _solid_morphology_metrics,
+            _verified_exact_profiled_sloped_mesh,
+        )
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            _split_triangle_at_z_breakpoints,
+            _transform_with_matrix_field,
+            floorwise_authority_binding_hash,
+        )
+        from design.maas.geometry_language.floorwise_profiled_legal_clip import (
+            clip_profiled_mesh_to_floorwise_legal_solids,
+        )
+        from design.maas.geometry_language.programs import (
+            architectural_shape_programs,
+        )
+        from design.maas.geometry_language.projected_visual_contract import (
+            serialize_certified_projected_visual,
+            validate_projected_visual_artifact,
+        )
+        from design.maas.geometry_language.source_bridge import (
+            compile_geometry_program_to_source_mass,
+            floorwise_source_to_geometry_program,
+            materialize_floorwise_legal_source,
+        )
+
+        def plane(
+            triangle: tuple[tuple[float, float, float], ...],
+        ) -> tuple[tuple[float, float, float], float, float]:
+            left = tuple(
+                triangle[1][axis] - triangle[0][axis]
+                for axis in range(3)
+            )
+            right = tuple(
+                triangle[2][axis] - triangle[0][axis]
+                for axis in range(3)
+            )
+            normal = (
+                left[1] * right[2] - left[2] * right[1],
+                left[2] * right[0] - left[0] * right[2],
+                left[0] * right[1] - left[1] * right[0],
+            )
+            magnitude = sqrt(sum(value * value for value in normal))
+            unit = tuple(value / magnitude for value in normal)
+            offset = -sum(
+                unit[axis] * triangle[0][axis]
+                for axis in range(3)
+            )
+            return unit, offset, magnitude / 2.0
+
+        physical_height_m = 10.5
+        identity = (
+            (1.0, 0.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        )
+        program = next(
+            item
+            for item in architectural_shape_programs()
+            if item.name == "shape_13_diagonal_slice"
+        )
+        source = compile_geometry_program_to_source_mass(
+            program,
+            box(-5.0, -5.0, 5.0, 5.0),
+            target_plan_area=80.0,
+            max_volume_bands=2,
+            name="terminal-diagonal-slice-lineage",
+        )
+        self.assertIsNotNone(source)
+        assert source is not None
+        source = replace(
+            source,
+            metadata={
+                **source.metadata,
+                "program_dimensional_context": {
+                    "effective_height_m": physical_height_m,
+                },
+            },
+        )
+        self.assertEqual(
+            next(
+                node.operator
+                for node in program.nodes
+                if node.id == program.root_id
+            ),
+            "slice",
+        )
+
+        authored_slice_triangles = []
+        for surface in source.surfaces:
+            physical = tuple(
+                (float(x), float(y), float(z) * physical_height_m)
+                for x, y, z in surface.vertices_m
+            )
+            normal, _offset, _area = plane(physical)
+            if 0.12 < abs(normal[2]) < 0.90:
+                authored_slice_triangles.append(surface.vertices_m)
+        self.assertEqual(len(authored_slice_triangles), 2)
+        authored_plane = plane(tuple(
+            (
+                float(x),
+                float(y),
+                float(z) * physical_height_m,
+            )
+            for x, y, z in authored_slice_triangles[0]
+        ))
+        self.assertGreater(abs(authored_plane[0][0]), 0.75)
+        self.assertGreater(authored_plane[2], 1.0)
+        for triangle in authored_slice_triangles:
+            for x, y, z in triangle:
+                point = (float(x), float(y), float(z) * physical_height_m)
+                self.assertAlmostEqual(
+                    sum(
+                        authored_plane[0][axis] * point[axis]
+                        for axis in range(3)
+                    ) + authored_plane[1],
+                    0.0,
+                    delta=1e-7,
+                )
+
+        legal = Polygon((
+            (-5.0, -5.0),
+            (5.0, -5.0),
+            (3.0, 5.0),
+            (-3.0, 5.0),
+        ))
+        final = materialize_floorwise_legal_source(
+            source,
+            legal_sections=(legal, legal),
+            target_plan_coverage=0.8,
+            floor_capacity_plan_hash="terminal-diagonal-slice-capacity",
+            target_floor_areas_m2=(40.0, 40.0),
+        )
+        self.assertIsNotNone(final)
+        assert final is not None
+        certificate = final.metadata["floorwise_visual_projection"]
+        self.assertEqual(
+            certificate["certification_mode"],
+            "floorwise_profiled_legal_clip",
+        )
+        self.assertTrue(certificate["hard_pass"], certificate)
+        artifact = serialize_certified_projected_visual(final)
+        artifact["identity"] = {
+            "geometryHash": artifact["projectedVisualGeometryHash"],
+        }
+        self.assertIsNotNone(validate_projected_visual_artifact(artifact))
+        transport_tamper = deepcopy(final.metadata)
+        transport_tamper["floorwise_visual_projection"][
+            "verified_profiled_sloped_surface_hash"
+        ] = "tampered"
+        with self.assertRaisesRegex(
+            ValueError,
+            "authority binding mismatch",
+        ):
+            serialize_certified_projected_visual(
+                replace(final, metadata=transport_tamper)
+            )
+
+        stack = final.metadata["floorwise_legal_matrix_stack"]
+        matrices = tuple(floor["matrix4"] for floor in stack["floors"])
+        centers = (0.25, 0.75)
+        split_levels = (0.25, 0.5, 0.75)
+        source_origin = source.footprint.centroid
+        projected_slice_planes = []
+        for triangle in authored_slice_triangles:
+            world = tuple(
+                (
+                    float(x) + float(source_origin.x),
+                    float(y) + float(source_origin.y),
+                    float(z),
+                )
+                for x, y, z in triangle
+            )
+            for piece in _split_triangle_at_z_breakpoints(
+                world,
+                breakpoints=split_levels,
+            ):
+                transformed = tuple(
+                    _transform_with_matrix_field(
+                        matrices,
+                        point,
+                        breakpoints=centers,
+                    )
+                    for point in piece
+                )
+                physical = tuple(
+                    (x, y, z * physical_height_m)
+                    for x, y, z in transformed
+                )
+                projected_slice_planes.append(plane(physical))
+
+        retained_slice_area = 0.0
+        total_area = 0.0
+        sloped_area = 0.0
+        for surface in final.surfaces:
+            triangle = tuple(
+                (float(x), float(y), float(z) * physical_height_m)
+                for x, y, z in surface.vertices_m
+            )
+            normal, _offset, area = plane(triangle)
+            total_area += area
+            if 0.12 < abs(normal[2]) < 0.90:
+                sloped_area += area
+            for expected_normal, expected_offset, _expected_area in (
+                projected_slice_planes
+            ):
+                parallel = abs(sum(
+                    normal[axis] * expected_normal[axis]
+                    for axis in range(3)
+                ))
+                maximum_distance = max(
+                    abs(sum(
+                        expected_normal[axis] * vertex[axis]
+                        for axis in range(3)
+                    ) + expected_offset)
+                    for vertex in triangle
+                )
+                if parallel >= 1.0 - 1e-6 and maximum_distance <= 1e-5:
+                    retained_slice_area += area
+                    break
+        self.assertGreater(retained_slice_area, 1.0)
+        self.assertGreaterEqual(sloped_area / total_area, 0.055)
+        final.metadata.setdefault(
+            "program_dimensional_context",
+            {},
+        )["effective_height_m"] = physical_height_m
+        morphology = _solid_morphology_metrics(final)
+        self.assertEqual(morphology["measurement_authority"], (
+            "profiled_recursive_solid_mesh"
+        ))
+        self.assertEqual(morphology["body_phenotype"], "oblique")
+        self.assertAlmostEqual(
+            morphology["sloped_surface_ratio"],
+            sloped_area / total_area,
+            delta=1e-4,
+        )
+        self.assertEqual(
+            final.metadata["authored_geometry_program"],
+            program.to_dict(),
+        )
+        self.assertEqual(
+            final.metadata["geometry_program_bridge_evidence"][
+                "upstream_authored_program_hash"
+            ],
+            program.program_hash(),
+        )
+        replay_program = floorwise_source_to_geometry_program(
+            final,
+            height_m=physical_height_m,
+            name="candidate-equivalent-capacity-replay",
+        )
+        self.assertEqual(
+            replay_program.execution_contract[
+                "capacity_replay_numeric_transport"
+            ][
+                "retry_on_issue_codes"
+            ],
+            ["tiny_edge"],
+        )
+        replay_compilation = compile_geometry_program(replay_program)
+        self.assertEqual(
+            replay_compilation.status,
+            "compiled",
+            replay_compilation.issues,
+        )
+        self.assertIn(
+            "capacity_replay_numeric_transport",
+            replay_compilation.metrics,
+        )
+        replay_metadata = deepcopy(final.metadata)
+        replay_metadata["geometry_program"] = replay_program.to_dict()
+        replay_metadata.pop("measured_solid_morphology", None)
+        candidate_equivalent = replace(final, metadata=replay_metadata)
+        candidate_morphology = _solid_morphology_metrics(
+            candidate_equivalent
+        )
+        self.assertEqual(candidate_morphology["body_phenotype"], "oblique")
+        self.assertAlmostEqual(
+            candidate_morphology["sloped_surface_ratio"],
+            sloped_area / total_area,
+            delta=1e-4,
+        )
+
+        tampered_payload = deepcopy(replay_metadata)
+        tampered_payload["authored_geometry_program"]["nodes"][-1][
+            "parameters"
+        ]["offset"] = -2.5
+        tampered_payload.pop("measured_solid_morphology", None)
+        self.assertEqual(
+            _solid_morphology_metrics(
+                replace(final, metadata=tampered_payload)
+            )["body_phenotype"],
+            "prismatic",
+        )
+        tampered_hash = deepcopy(replay_metadata)
+        tampered_hash["geometry_program_bridge_evidence"][
+            "upstream_authored_program_hash"
+        ] = "tampered"
+        tampered_hash.pop("measured_solid_morphology", None)
+        self.assertEqual(
+            _solid_morphology_metrics(
+                replace(final, metadata=tampered_hash)
+            )["body_phenotype"],
+            "prismatic",
+        )
+        tampered_certificate = deepcopy(replay_metadata)
+        tampered_certificate["floorwise_visual_projection"][
+            "verified_profiled_sloped_surface_hash"
+        ] = "tampered"
+        tampered_certificate.pop("measured_solid_morphology", None)
+        self.assertEqual(
+            _solid_morphology_metrics(
+                replace(final, metadata=tampered_certificate)
+            )["body_phenotype"],
+            "prismatic",
+        )
+        for field, value in (
+            ("schema_version", "tampered"),
+            ("verified_profiled_sloped_surface_area", float("nan")),
+        ):
+            malformed_certificate = deepcopy(replay_metadata)
+            malformed_certificate["floorwise_visual_projection"][
+                field
+            ] = value
+            malformed_certificate.pop("measured_solid_morphology", None)
+            self.assertEqual(
+                _verified_exact_profiled_sloped_mesh(
+                    replace(final, metadata=malformed_certificate)
+                ),
+                False,
+            )
+        first_surface = final.surfaces[0]
+        first_vertices = list(first_surface.vertices_m)
+        first_vertices[0] = (
+            first_vertices[0][0] + 1e-3,
+            first_vertices[0][1],
+            first_vertices[0][2],
+        )
+        surface_tampered = replace(
+            final,
+            surfaces=(
+                replace(
+                    first_surface,
+                    vertices_m=tuple(first_vertices),
+                ),
+                *final.surfaces[1:],
+            ),
+            metadata=deepcopy(replay_metadata),
+        )
+        surface_tampered.metadata.pop(
+            "measured_solid_morphology",
+            None,
+        )
+        self.assertEqual(
+            _solid_morphology_metrics(surface_tampered)["body_phenotype"],
+            "prismatic",
+        )
+
+        slice_free_legal = box(2.0, -3.0, 4.0, 3.0)
+        slice_free_volumes = tuple(
+            SourceVolume(
+                "recursive_solid_primary",
+                slice_free_legal,
+                index / 2.0,
+                (index + 1) / 2.0,
+                "floorwise_legal_matrix4",
+            )
+            for index in range(2)
+        )
+        slice_free_stack = {
+            "status": "materialized",
+            "matrix_convention": "row_major_column_vector",
+            "floor_capacity_plan_hash": "slice-plane-fully-clipped",
+            "floors": [
+                {"matrix4": [list(row) for row in identity]}
+                for _index in range(2)
+            ],
+        }
+        slice_free_projection = (
+            clip_profiled_mesh_to_floorwise_legal_solids(
+                replace(
+                    source,
+                    metadata={
+                        **deepcopy(source.metadata),
+                        "floorwise_legal_matrix_stack": slice_free_stack,
+                    },
+                ),
+                occupied_sections=(slice_free_legal, slice_free_legal),
+                legal_sections=(slice_free_legal, slice_free_legal),
+                floor_matrices=(identity, identity),
+                capacity_plates=slice_free_volumes,
+                output_origin=tuple(
+                    slice_free_legal.centroid.coords
+                )[0],
+            )
+        )
+        self.assertTrue(
+            slice_free_projection.certificate.hard_pass,
+            slice_free_projection.certificate.to_dict(),
+        )
+        self.assertEqual(
+            slice_free_projection.certificate.authored_program_hash,
+            program.program_hash(),
+        )
+        self.assertEqual(
+            slice_free_projection.certificate.
+            verified_profiled_sloped_surface_area,
+            0.0,
+        )
+        slice_free_metadata = deepcopy(source.metadata)
+        slice_free_metadata.update({
+            "geometry_program": floorwise_source_to_geometry_program(
+                replace(
+                    source,
+                    footprint=slice_free_legal,
+                    upper_footprint=slice_free_legal,
+                    volumes=slice_free_volumes,
+                    metadata={
+                        **deepcopy(source.metadata),
+                        "floorwise_legal_matrix_stack": slice_free_stack,
+                    },
+                ),
+                height_m=physical_height_m,
+            ).to_dict(),
+            "authored_geometry_program": program.to_dict(),
+            "floorwise_legal_matrix_stack": slice_free_stack,
+            "floorwise_visual_projection": (
+                slice_free_projection.certificate.to_dict()
+            ),
+        })
+        slice_free_bridge = deepcopy(
+            slice_free_metadata["geometry_program_bridge_evidence"]
+        )
+        slice_free_bridge["upstream_authored_program_hash"] = (
+            program.program_hash()
+        )
+        slice_free_metadata["geometry_program_bridge_evidence"] = (
+            slice_free_bridge
+        )
+        slice_free_metadata["program_dimensional_context"] = {
+            "effective_height_m": physical_height_m,
+        }
+        slice_free_candidate = replace(
+            source,
+            footprint=slice_free_legal,
+            upper_footprint=slice_free_legal,
+            volumes=slice_free_volumes,
+            surfaces=slice_free_projection.surfaces,
+            metadata=slice_free_metadata,
+        )
+        self.assertEqual(
+            _solid_morphology_metrics(
+                slice_free_candidate
+            )["body_phenotype"],
+            "prismatic",
+        )
+
+        vertices = tuple(
+            vertex
+            for surface in final.surfaces
+            for vertex in surface.vertices_m
+        )
+        triangles = tuple(
+            (index, index + 1, index + 2)
+            for index in range(0, len(vertices), 3)
+        )
+        for floor_index in range(2):
+            measured = _mesh_section_polygon(
+                vertices,
+                triangles,
+                (floor_index + 0.5) / 2.0,
+            )
+            expected = unary_union(tuple(
+                volume.footprint
+                for volume in final.volumes
+                if abs(
+                    float(volume.bottom_fraction) - floor_index / 2.0
+                    ) <= 1e-8
+            ))
+            expected = translate(
+                expected,
+                xoff=-float(final.footprint.centroid.x),
+                yoff=-float(final.footprint.centroid.y),
+            )
+            self.assertIsNotNone(measured)
+            assert measured is not None
+            self.assertLess(
+                measured.symmetric_difference(expected).area,
+                1e-6,
+            )
+
+    def test_floorwise_profiled_legal_clip_owns_lower_setback_terrace(self):
+        """A lower-band terrace need not fit the smaller upper legal field."""
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+
+        lower = box(-5.0, -5.0, 5.0, 5.0)
+        upper = box(-4.0, -4.0, 4.0, 4.0)
+        stacked = materialize_floorwise_legal_source(
+            _authored_profiled_box_source(
+                "profiled_legal_clip_setback",
+                top_x_offset=12.0,
+            ),
+            legal_sections=(lower, upper),
+            target_plan_coverage=0.95,
+            floor_capacity_plan_hash="profiled-legal-clip-setback",
+            target_floor_areas_m2=(100.0, 64.0),
+        )
+
+        self.assertIsNotNone(stacked)
+        assert stacked is not None
+        certificate = stacked.metadata["floorwise_visual_projection"]
+        self.assertEqual(
+            certificate["certification_mode"],
+            "floorwise_profiled_legal_clip",
+        )
+        self.assertTrue(certificate["hard_pass"])
+        self.assertFalse(certificate["visible_step_fallback"])
+
+    def test_irregular_profiled_clip_is_strictly_final_mesh_contained(self):
+        from design.maas.book_language.final_mesh_floor_evidence import (
+            _mesh_section_segments,
+        )
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+
+        legal = Polygon((
+            (19.209301786660244, 10.303196462622152),
+            (7.952368958284199, 4.076129022809751),
+            (4.463835566056591, 10.370785636863394),
+            (4.0776683608121385, 11.067550186502613),
+            (15.327914636438544, 17.308309178434918),
+        ))
+        stacked = materialize_floorwise_legal_source(
+            _authored_profiled_box_source(
+                "strict_irregular_profiled_clip",
+                top_x_offset=12.0,
+            ),
+            legal_sections=(legal, legal),
+            target_plan_coverage=0.9,
+            floor_capacity_plan_hash="strict-irregular-profiled-clip",
+            target_floor_areas_m2=(92.638, 92.638),
+        )
+
+        self.assertIsNotNone(stacked)
+        assert stacked is not None
+        vertices = tuple(
+            vertex
+            for surface in stacked.surfaces
+            for vertex in surface.vertices_m
+        )
+        triangles = tuple(
+            (index, index + 1, index + 2)
+            for index in range(0, len(vertices), 3)
+        )
+        origin = stacked.footprint.centroid
+        for normalized_z in (0.25, 0.75):
+            segments = _mesh_section_segments(
+                vertices,
+                triangles,
+                normalized_z,
+            )
+            self.assertTrue(segments)
+            self.assertTrue(all(
+                legal.covers(translate(
+                    segment,
+                    xoff=float(origin.x),
+                    yoff=float(origin.y),
+                ))
+                for segment in segments
+            ))
+
     def test_floorwise_visual_projection_rejects_legal_escape(self):
         """An authored mesh outside its legal host must fail, never empty-pass."""
         from design.maas.geometry_language.affine_matrix import identity_matrix4
@@ -983,6 +3798,7 @@ class SharedFloorContractTests(SimpleTestCase):
                 (2.0, -2.0, 0.5),
                 (-2.0, 2.0, 0.5),
             ),
+            closure_world_vertex=(0.0, 0.0, 0.0),
             footprint=legal,
         )
 
@@ -1133,6 +3949,7 @@ class SharedFloorContractTests(SimpleTestCase):
                 (10.0, 0.0, 0.5),
                 (0.0, 10.0, 0.5),
             ),
+            closure_world_vertex=(0.0, 0.0, 0.0),
             footprint=footprint,
         )
         legal = footprint.difference(box(1.5, 1.5, 2.5, 2.5))
@@ -1217,6 +4034,7 @@ class SharedFloorContractTests(SimpleTestCase):
                 (4.0, -4.0, 0.25),
                 (-4.0, 4.0, 0.25),
             ),
+            closure_world_vertex=(0.0, 0.0, 0.0),
             footprint=footprint,
         )
         legal = box(-20.0, -20.0, 20.0, 20.0)
@@ -1244,8 +4062,17 @@ class SharedFloorContractTests(SimpleTestCase):
         )
 
         self.assertTrue(result.certificate.hard_pass, result.certificate)
-        self.assertEqual(result.certificate.projected_surface_count, 1)
-        self.assertEqual(len(result.surfaces), 1)
+        target_surfaces = tuple(
+            surface
+            for surface in result.surfaces
+            if surface.semantic_patch_id
+            == "recursive_primary:profiled_triangle"
+        )
+        self.assertEqual(len(target_surfaces), 1)
+        self.assertEqual(
+            result.certificate.projected_surface_count,
+            len(result.surfaces),
+        )
 
     def test_floorwise_visual_projection_allows_lower_piece_at_upper_setback(self):
         """A lower-floor face may widen below a legal upper setback boundary."""
@@ -1263,6 +4090,7 @@ class SharedFloorContractTests(SimpleTestCase):
                 (-1.0, 0.0, 0.5),
                 (1.0, 0.0, 0.5),
             ),
+            closure_world_vertex=(0.0, 0.0, 0.0),
             footprint=lower_legal,
         )
 
@@ -1616,8 +4444,44 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertEqual(measurement["feasible_capacity_utilization"], 0.8)
         self.assertTrue(measurement["hard_pass"])
 
+    def test_capacity_measurement_honors_rounded_minimum_floor_area(self):
+        """A 0.001 m2 contract must not fail on its unrounded ratio."""
+        from design.maas.book_language.capacity_contract import measure_source_capacity
+
+        site = box(0.0, 0.0, 20.0, 20.0)
+        source = SourceMass(
+            name="rounded_capacity_target",
+            footprint=box(0.0, 0.0, 1.0, 1.0),
+            volumes=(),
+        )
+        measurement = measure_source_capacity(
+            source,
+            {
+                "feasible_maximum_floor_area_m2": 332.322,
+                "minimum_utilization": 0.70,
+                "minimum_floor_area_m2": 232.625,
+            },
+            site_local_utm=site,
+            height_m=10.5,
+            floors=3,
+            shared_floor_contract={
+                "schema_version": "arr.maas.shared_floor_contract.v1",
+                "hard_pass": True,
+                "floor_contract_hash": "rounded-minimum",
+                "totals": {"total_floor_area_m2": 232.625001},
+            },
+        )
+
+        self.assertEqual(measurement["floor_area_m2"], 232.625)
+        self.assertEqual(measurement["feasible_capacity_utilization"], 0.7)
+        self.assertTrue(measurement["hard_pass"])
+
     def test_candidate_capacity_retry_measures_the_same_five_floor_contract(self):
         """Plan-fit retries must not use the old three-band volume estimate."""
+        from design.test_task5_regression_fixtures import (
+            legal_generation_context_for_site,
+        )
+
         try:
             from design.maas.book_language.candidate_generation import (
                 _shared_floor_capacity_measurement,
@@ -1648,7 +4512,7 @@ class SharedFloorContractTests(SimpleTestCase):
                     "feasible_maximum_floor_area_m2": 2000.0,
                     "minimum_utilization": 0.70,
                 },
-                generation_context=SimpleNamespace(),
+                generation_context=legal_generation_context_for_site(site),
                 capacity_site=site,
                 height=15.0,
                 floors=5,
@@ -1716,6 +4580,189 @@ class SharedFloorContractTests(SimpleTestCase):
         )
         self.assertEqual(unchanged.program_hash(), program.program_hash())
 
+    def test_mass_materialization_keeps_one_final_geometry_across_capacity_advice(self):
+        """Advisory utilization cannot replace the final projected program."""
+        from design.maas.book_language import candidate_generation
+        from design.maas.geometry_language import (
+            base_seed_programs,
+        )
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            projected_surface_visual_hash,
+        )
+        from design.maas.program_massing.semantic_carriers import (
+            semantic_site_context_hash,
+        )
+        from design.test_task5_regression_fixtures import (
+            canonical_gym_materialization_context,
+            canonical_gym_semantic_source,
+        )
+
+        program = next(
+            item
+            for item in base_seed_programs()
+            if str((item.metadata.get("base_seed") or {}).get("seed_id") or "")
+            == "slab"
+        )
+        host = box(0.0, 0.0, 40.0, 30.0)
+        source = canonical_gym_semantic_source("authored-capacity-invariant")
+        sequence = SimpleNamespace(
+            notes=("geometry_program_directive=authored-capacity-invariant",)
+        )
+        semantic_context = canonical_gym_materialization_context(
+            capacity_alternative_id="brief_target",
+            site=host,
+        )
+        expected_site_context_hash = semantic_site_context_hash(
+            pnu=semantic_context["pnu"],
+            building_type=semantic_context["building_type"],
+            site=host,
+        )
+
+        with patch.object(
+            candidate_generation,
+            "_geometry_program_registry",
+            return_value={"authored-capacity-invariant": program},
+        ):
+            baseline = candidate_generation._materialize_directed_geometry(
+                source,
+                sequence,
+                containment_host=host,
+                floor_containment_hosts=(host,),
+                minimum_host_plan_coverage=0.15,
+                floor_capacity_plan_hash="capacity-invariant-plan",
+                target_floor_areas_m2=(600.0,),
+                **semantic_context,
+            )
+            capacity_advised = candidate_generation._materialize_directed_geometry(
+                source,
+                sequence,
+                containment_host=host,
+                floor_containment_hosts=(host,),
+                minimum_host_plan_coverage=0.95,
+                capacity_composition_utilizations=(0.40, 0.90),
+                floor_capacity_plan_hash="capacity-invariant-plan",
+                target_floor_areas_m2=(600.0,),
+                **semantic_context,
+            )
+
+        self.assertIsNotNone(baseline)
+        self.assertIsNotNone(capacity_advised)
+        assert baseline is not None and capacity_advised is not None
+        for materialized in (baseline, capacity_advised):
+            persisted_context = materialized.metadata[
+                "final_semantic_projection_context"
+            ]
+            self.assertEqual(
+                persisted_context["site_context_hash"],
+                expected_site_context_hash,
+            )
+            self.assertEqual(
+                persisted_context["capacity_measurement_hash"],
+                "pending_capacity_measurement",
+            )
+            self.assertEqual(
+                persisted_context["achieved_capacity_band"],
+                persisted_context["capacity_alternative_id"],
+            )
+        self.assertEqual(
+            baseline.metadata["geometry_program"],
+            capacity_advised.metadata["geometry_program"],
+        )
+        self.assertEqual(baseline.volumes, capacity_advised.volumes)
+        self.assertEqual(baseline.surfaces, capacity_advised.surfaces)
+        self.assertEqual(
+            projected_surface_visual_hash(baseline.surfaces),
+            projected_surface_visual_hash(capacity_advised.surfaces),
+        )
+        self.assertEqual(
+            baseline.metadata["geometry_authority"],
+            "final_floorwise_legal_geometry_program",
+        )
+        self.assertEqual(
+            baseline.metadata["final_geometry_hash"],
+            capacity_advised.metadata["final_geometry_hash"],
+        )
+        self.assertNotIn(
+            "floorwise_legal_sibling_evidence",
+            baseline.metadata,
+        )
+
+    def test_materialization_uses_aggregate_target_not_largest_floor_target(self):
+        from design.maas.book_language import candidate_generation
+        from design.maas.geometry_language import base_seed_programs
+        from design.test_task5_regression_fixtures import (
+            canonical_gym_materialization_context,
+            canonical_gym_semantic_source,
+        )
+
+        program = next(
+            item
+            for item in base_seed_programs()
+            if str((item.metadata.get("base_seed") or {}).get("seed_id") or "")
+            == "slab"
+        )
+        host = box(0.0, 0.0, 40.0, 30.0)
+        source = canonical_gym_semantic_source("aggregate-capacity-invariant")
+        sequence = SimpleNamespace(
+            notes=("geometry_program_directive=aggregate-capacity-invariant",)
+        )
+        semantic_context = canonical_gym_materialization_context(
+            capacity_alternative_id="brief_target",
+            site=host,
+        )
+
+        with patch.object(
+            candidate_generation,
+            "_geometry_program_registry",
+            return_value={"aggregate-capacity-invariant": program},
+        ):
+            front_loaded = candidate_generation._materialize_directed_geometry(
+                source,
+                sequence,
+                containment_host=host,
+                floor_containment_hosts=(host, host),
+                minimum_host_plan_coverage=0.15,
+                floor_capacity_plan_hash="capacity-plan:front-loaded",
+                target_floor_areas_m2=(600.0, 200.0),
+                **semantic_context,
+            )
+            balanced = candidate_generation._materialize_directed_geometry(
+                source,
+                sequence,
+                containment_host=host,
+                floor_containment_hosts=(host, host),
+                minimum_host_plan_coverage=0.15,
+                floor_capacity_plan_hash="capacity-plan:balanced",
+                target_floor_areas_m2=(400.0, 400.0),
+                **semantic_context,
+            )
+
+        self.assertIsNotNone(front_loaded)
+        self.assertIsNotNone(balanced)
+        assert front_loaded is not None and balanced is not None
+        self.assertEqual(
+            front_loaded.metadata["final_program_hash"],
+            balanced.metadata["final_program_hash"],
+        )
+        self.assertEqual(
+            front_loaded.metadata["final_geometry_hash"],
+            balanced.metadata["final_geometry_hash"],
+        )
+        self.assertEqual(front_loaded.volumes, balanced.volumes)
+        self.assertEqual(front_loaded.surfaces, balanced.surfaces)
+        self.assertEqual(
+            front_loaded.metadata["capacity_projection_measurement"][
+                "requested_floor_area_m2"
+            ],
+            800.0,
+        )
+        self.assertEqual(
+            balanced.metadata["capacity_projection_measurement"][
+                "requested_floor_area_m2"
+            ],
+            800.0,
+        )
+
     def test_capacity_pack_retry_requires_a_vertically_viable_floor_source(self):
         """Plan packing must not spend a retry on missing/unsupported storeys."""
         try:
@@ -1759,8 +4806,8 @@ class SharedFloorContractTests(SimpleTestCase):
             )
         )
 
-    def test_capacity_retry_selects_only_a_floor_safe_measured_improvement(self):
-        """A tiny shortfall should accept a plain refit without forcing a pack."""
+    def test_capacity_retry_improvement_is_advisory_at_mass_stage(self):
+        """Even a measured improvement cannot replace authored MASS geometry."""
         try:
             from design.maas.book_language.candidate_generation import (
                 _capacity_retry_result_is_selectable,
@@ -1771,7 +4818,7 @@ class SharedFloorContractTests(SimpleTestCase):
         initial = {"feasible_capacity_utilization": 0.6972}
         improved = {"feasible_capacity_utilization": 0.7010}
 
-        self.assertTrue(
+        self.assertFalse(
             _capacity_retry_result_is_selectable(
                 {"hard_pass": True},
                 improved,
@@ -2190,8 +5237,8 @@ class SharedFloorContractTests(SimpleTestCase):
             for floor in retried_stack["floors"]
         ))
 
-    def test_downstream_metrics_use_the_same_floor_contract_area_and_hash(self):
-        """Removing the contract argument must make FAR fall back to volume sampling."""
+    def test_downstream_metrics_keep_floor_contract_hash_advisory(self):
+        """The floor hash remains traceable while authored volumes own legal metrics."""
         from design.maas.book_language.downstream_hard_gate import _metrics
         from design.maas.shared_floor_contract import materialize_shared_floor_contract
 
@@ -2224,12 +5271,16 @@ class SharedFloorContractTests(SimpleTestCase):
             self.fail("downstream metrics do not consume shared-floor evidence")
 
         self.assertEqual(metrics["floor_contract_hash"], floor_contract["floor_contract_hash"])
-        self.assertEqual(metrics["floor_area_m2"], 1600.0)
-        self.assertEqual(metrics["far_pct"], 25.0)
+        self.assertEqual(metrics["floor_area_m2"], 320.0)
+        self.assertEqual(metrics["far_pct"], 5.0)
         self.assertEqual(metrics["height_m"], 15.0)
+        self.assertEqual(
+            metrics["metric_authority"],
+            "visible_authored_source_volume_horizontal_slices",
+        )
 
-    def test_paid_review_pool_excludes_candidates_without_shared_floor_hard_pass(self):
-        """Removing the pre-VLM floor filter must send a sculpture to paid review."""
+    def test_paid_review_pool_keeps_shared_floor_misses_for_later_legal_review(self):
+        """A shared-floor miss is advisory before paid VLM and downstream gates."""
         try:
             from design.maas.book_language.portfolio_benchmark import (
                 _shared_floor_hard_pass_candidates,
@@ -2263,10 +5314,40 @@ class SharedFloorContractTests(SimpleTestCase):
 
         retained = _shared_floor_hard_pass_candidates((sculpture, building, missing))
 
-        self.assertEqual(retained, [building])
+        self.assertEqual(retained, [sculpture, building, missing])
 
-    def test_downstream_rejects_failed_floor_contract_and_uses_its_parking_area(self):
-        """Removing floor-contract propagation must let the ring pass downstream."""
+    def test_smoke_pre_downstream_gate_ignores_shared_floor_advice(self):
+        """Smoke MASS gating owns geometry/program validity, not capacity advice."""
+        from design.maas.book_language import portfolio_benchmark
+
+        helper = getattr(
+            portfolio_benchmark,
+            "_smoke_pre_downstream_candidate_pass",
+            None,
+        )
+        self.assertIsNotNone(helper)
+        assert helper is not None
+        candidate = SimpleNamespace(
+            source=SimpleNamespace(
+                metadata={"shared_floor_contract": {"hard_pass": False}}
+            )
+        )
+
+        self.assertTrue(helper(
+            candidate,
+            {"inside_site": True, "program_hard_pass": True},
+        ))
+        self.assertFalse(helper(
+            candidate,
+            {"inside_site": False, "program_hard_pass": True},
+        ))
+        self.assertFalse(helper(
+            candidate,
+            {"inside_site": True, "program_hard_pass": False},
+        ))
+
+    def test_downstream_uses_authored_metrics_even_when_shared_floor_gate_fails(self):
+        """A floor-contract miss fails closed without replacing authored metrics."""
         from design.maas.book_language.downstream_hard_gate import _evaluate_candidate
         from design.maas.shared_floor_contract import materialize_shared_floor_contract
 
@@ -2335,10 +5416,16 @@ class SharedFloorContractTests(SimpleTestCase):
                 parking_options={},
             )
 
+        self.assertFalse(row["legal_projection"]["hard_pass"])
+        self.assertTrue(row["parking_hard_gate"]["hard_pass"])
+        self.assertFalse(row["semantic_projection_hard_gate"]["hard_pass"])
         self.assertFalse(row["combined_hard_pass"])
         self.assertIn(
             "shared_floor_contract_failed",
             row["legal_projection"]["failure_reasons"],
+        )
+        self.assertFalse(
+            row["legal_projection"]["shared_floor_contract_hard_pass"],
         )
         self.assertEqual(
             row["projected_metrics"]["floor_contract_hash"],
@@ -2346,7 +5433,341 @@ class SharedFloorContractTests(SimpleTestCase):
         )
         self.assertEqual(
             row["parking_hard_gate"]["requirement"]["observed_floor_area_m2"],
-            floor_contract["totals"]["total_floor_area_m2"],
+            row["original_metrics"]["floor_area_m2"],
+        )
+
+    def test_downstream_evidence_binds_one_final_geometry_hash(self):
+        from design.maas.book_language.downstream_hard_gate import (
+            _evaluate_candidate,
+        )
+
+        source = _real_final_projected_source()
+        geometry_hash = source.metadata["final_geometry_hash"]
+        measured_gfa = round(sum(
+            source.metadata["floorwise_legal_projection"][
+                "achieved_floor_areas_m2"
+            ]
+        ), 3)
+        source.metadata["shared_floor_contract"] = {
+            "schema_version": "arr.maas.shared_floor_contract.v1",
+            "floor_capacity_plan_hash": "shared-floor-final-source",
+            "floor_contract_hash": "measured-final-floor-contract",
+            "hard_pass": True,
+            "failure_reasons": [],
+            "identity": {"geometry_hash": geometry_hash},
+            "totals": {"total_floor_area_m2": measured_gfa},
+        }
+        footprint = source.footprint
+        candidate = SimpleNamespace(
+            source=source,
+            feature={"properties": {"variant_id": "final-projected"}},
+            sequence=SimpleNamespace(name="final-projected-sequence"),
+            principle_id="book:final",
+        )
+        envelope = SimpleNamespace(
+            buildable_footprint=box(-20.0, -20.0, 20.0, 20.0),
+            bcr_limit=60.0,
+            far_limit=250.0,
+            height_limit=30.0,
+            outputs_def=[],
+        )
+        parking_calls = []
+
+        def parking_requirement(**kwargs):
+            parking_calls.append(dict(kwargs))
+            return {
+                "status": "computed",
+                "required_spaces": 0,
+                "accessible": {"accessible_min": 0},
+                "observed_floor_area_m2": kwargs["facility_area_m2"],
+            }
+
+        with (
+            patch(
+                "design.maas.book_language.downstream_hard_gate.resolve_candidate_parking_requirement",
+                side_effect=parking_requirement,
+            ),
+            patch(
+                "design.maas.book_language.downstream_hard_gate.infer_parking_strategy",
+                return_value={
+                    "selected_strategy": "surface",
+                    "layout_candidate": {
+                        "status": "pass",
+                        "provided_spaces": 0,
+                    },
+                },
+            ),
+        ):
+            row = _evaluate_candidate(
+                candidate,
+                site_local_utm=envelope.buildable_footprint,
+                envelope=envelope,
+                sunlight_ring=[],
+                pnu="1168011800104170004",
+                building_type="neighborhood",
+                height_m=6.0,
+                floors=2,
+                rules={},
+                parking_options={},
+            )
+
+        self.assertFalse(
+            row["combined_hard_pass"],
+            "final authority now also requires verified semantic projection",
+        )
+        self.assertFalse(
+            row["semantic_projection_hard_gate"]["hard_pass"],
+        )
+        self.assertEqual(row["original_metrics"]["floor_area_m2"], measured_gfa)
+        self.assertEqual(row["projected_metrics"]["floor_area_m2"], measured_gfa)
+        self.assertEqual(len(parking_calls), 1)
+        self.assertEqual(
+            parking_calls[0]["facility_area_m2"],
+            measured_gfa,
+        )
+        self.assertEqual(
+            row["parking_hard_gate"]["requirement"][
+                "observed_floor_area_m2"
+            ],
+            measured_gfa,
+        )
+        for bundle in (
+            row["original_metrics"],
+            row["projected_metrics"],
+            row["legal_projection"],
+            row["parking_hard_gate"],
+            row["render_evidence"],
+        ):
+            self.assertEqual(bundle["geometry_hash"], geometry_hash)
+        bridge = source.metadata["geometry_program_bridge_evidence"]
+        self.assertEqual(
+            bridge["raw_mesh_triangle_count"],
+            len(source.surfaces),
+        )
+        self.assertEqual(
+            bridge["exported_surface_count"],
+            len(source.surfaces),
+        )
+        self.assertTrue(bridge["surface_export_complete"])
+        self.assertEqual(
+            row["render_evidence"]["surface_payload_hash"],
+            bridge["surface_payload_hash"],
+        )
+        self.assertTrue(
+            row["render_evidence"]["surface_payload_matches"],
+        )
+
+    def test_downstream_fails_closed_on_surface_payload_tamper(self):
+        from design.maas.book_language.downstream_hard_gate import (
+            _evaluate_candidate,
+        )
+
+        source = _real_final_projected_source()
+        first_surface = source.surfaces[0]
+        tampered_vertices = (
+            (
+                first_surface.vertices_m[0][0] + 0.25,
+                first_surface.vertices_m[0][1],
+                first_surface.vertices_m[0][2],
+            ),
+            *first_surface.vertices_m[1:],
+        )
+        source = replace(
+            source,
+            surfaces=(
+                replace(first_surface, vertices_m=tampered_vertices),
+                *source.surfaces[1:],
+            ),
+        )
+        candidate = SimpleNamespace(
+            source=source,
+            feature={"properties": {"variant_id": "mismatched-final"}},
+            sequence=SimpleNamespace(name="mismatched-final-sequence"),
+            principle_id="book:final",
+        )
+        envelope = SimpleNamespace(
+            buildable_footprint=box(-20.0, -20.0, 20.0, 20.0),
+            bcr_limit=60.0,
+            far_limit=250.0,
+            height_limit=30.0,
+            outputs_def=[],
+        )
+        with (
+            patch(
+                "design.maas.book_language.downstream_hard_gate.resolve_candidate_parking_requirement",
+                return_value={
+                    "status": "computed",
+                    "required_spaces": 0,
+                    "accessible": {"accessible_min": 0},
+                },
+            ),
+            patch(
+                "design.maas.book_language.downstream_hard_gate.infer_parking_strategy",
+                return_value={
+                    "selected_strategy": "surface",
+                    "layout_candidate": {
+                        "status": "pass",
+                        "provided_spaces": 0,
+                    },
+                },
+            ),
+        ):
+            row = _evaluate_candidate(
+                candidate,
+                site_local_utm=envelope.buildable_footprint,
+                envelope=envelope,
+                sunlight_ring=[],
+                pnu="1168011800104170004",
+                building_type="neighborhood",
+                height_m=6.0,
+                floors=1,
+                rules={},
+                parking_options={},
+            )
+
+        self.assertFalse(row["combined_hard_pass"])
+        self.assertIn(
+            "final_source_surface_payload_mismatch",
+            row["legal_projection"]["geometry_failure_reasons"],
+        )
+
+    def test_downstream_identity_fails_closed_on_proxy_volume_tamper(self):
+        from shapely.affinity import translate
+        from design.maas.book_language.downstream_hard_gate import (
+            _final_source_geometry_identity,
+        )
+
+        source = _real_final_projected_source()
+        first = source.volumes[0]
+        tampered = replace(
+            source,
+            volumes=(
+                replace(
+                    first,
+                    footprint=translate(first.footprint, xoff=0.25),
+                ),
+                *source.volumes[1:],
+            ),
+        )
+
+        _hash, failures, _render_hash, _surface_hash, _surface_match = (
+            _final_source_geometry_identity(tampered)
+        )
+
+        self.assertIn(
+            "final_source_proxy_volume_payload_mismatch",
+            failures,
+        )
+
+    def test_downstream_identity_requires_final_proxy_volume_hash(self):
+        from design.maas.book_language.downstream_hard_gate import (
+            _final_source_geometry_identity,
+        )
+
+        source = _real_final_projected_source()
+        metadata = dict(source.metadata)
+        metadata.pop("final_proxy_volume_payload_hash")
+        missing_final_hash = replace(source, metadata=metadata)
+
+        _hash, failures, _render_hash, _surface_hash, _surface_match = (
+            _final_source_geometry_identity(missing_final_hash)
+        )
+
+        self.assertIn(
+            "final_source_proxy_volume_payload_incomplete",
+            failures,
+        )
+
+    def test_downstream_identity_recomputes_actual_proxy_band_counts(self):
+        from design.maas.book_language.downstream_hard_gate import (
+            _final_source_geometry_identity,
+        )
+
+        source = _real_final_projected_source()
+        self.assertEqual(
+            len({
+                (volume.bottom_fraction, volume.top_fraction)
+                for volume in source.volumes
+            }),
+            3,
+        )
+        metadata = dict(source.metadata)
+        bridge = dict(metadata["geometry_program_bridge_evidence"])
+        bridge.update({
+            "requested_proxy_band_count": 1,
+            "exported_proxy_band_count": 1,
+            "exported_proxy_part_count": 3,
+            "proxy_volume_count": 3,
+            "proxy_band_part_counts": [3],
+        })
+        metadata["geometry_program_bridge_evidence"] = bridge
+        forged = replace(source, metadata=metadata)
+
+        _hash, failures, _render_hash, _surface_hash, _surface_match = (
+            _final_source_geometry_identity(forged)
+        )
+
+        self.assertIn(
+            "final_source_proxy_volume_payload_incomplete",
+            failures,
+        )
+
+    def test_downstream_fails_closed_on_empty_final_surface_payload(self):
+        from design.maas.book_language.downstream_hard_gate import (
+            _evaluate_candidate,
+        )
+
+        source = replace(_real_final_projected_source(), surfaces=())
+        candidate = SimpleNamespace(
+            source=source,
+            feature={"properties": {"variant_id": "empty-final-surfaces"}},
+            sequence=SimpleNamespace(name="empty-final-surfaces-sequence"),
+            principle_id="book:final",
+        )
+        envelope = SimpleNamespace(
+            buildable_footprint=box(-20.0, -20.0, 20.0, 20.0),
+            bcr_limit=60.0,
+            far_limit=250.0,
+            height_limit=30.0,
+            outputs_def=[],
+        )
+        with (
+            patch(
+                "design.maas.book_language.downstream_hard_gate.resolve_candidate_parking_requirement",
+                return_value={
+                    "status": "computed",
+                    "required_spaces": 0,
+                    "accessible": {"accessible_min": 0},
+                },
+            ),
+            patch(
+                "design.maas.book_language.downstream_hard_gate.infer_parking_strategy",
+                return_value={
+                    "selected_strategy": "surface",
+                    "layout_candidate": {
+                        "status": "pass",
+                        "provided_spaces": 0,
+                    },
+                },
+            ),
+        ):
+            row = _evaluate_candidate(
+                candidate,
+                site_local_utm=envelope.buildable_footprint,
+                envelope=envelope,
+                sunlight_ring=[],
+                pnu="1168011800104170004",
+                building_type="neighborhood",
+                height_m=6.0,
+                floors=2,
+                rules={},
+                parking_options={},
+            )
+
+        self.assertFalse(row["combined_hard_pass"])
+        self.assertIn(
+            "final_source_surface_payload_incomplete",
+            row["legal_projection"]["geometry_failure_reasons"],
         )
 
     def test_elevation_uses_exact_shared_floor_guides(self):
@@ -2498,7 +5919,11 @@ class SharedFloorContractTests(SimpleTestCase):
                 },
                 "site": {"status": "passed", "pnu": "1168011800104170004"},
                 "capacity": {"evaluated": True, "hard_pass": True},
-                "law": {"evaluated": True, "hard_pass": True},
+                "law": {
+                    "evaluated": True,
+                    "hard_pass": True,
+                    "status": "pass",
+                },
                 "parking": {"evaluated": True, "hard_pass": True},
                 "program_fit": {"evaluated": True, "hard_pass": True},
                 "selector": {"evaluated": True, "hard_pass": True},
@@ -2593,6 +6018,88 @@ class SharedFloorContractTests(SimpleTestCase):
             floor_contract["floor_contract_hash"],
         )
 
+    def test_selected_passport_rejects_false_or_missing_required_floor_contract(self):
+        """A selected MASS cannot revive after its required floor contract fails."""
+        from design.maas.book_language.mass_passport_bridge import (
+            selected_candidate_execution_passport,
+        )
+
+        initial_passport = {
+            "schema_version": "arr.maas.mass_execution_passport.v1",
+            "stages": [
+                {
+                    "id": stage_id,
+                    "status": "passed",
+                    "required_for_final": True,
+                    "evidence": {"evaluated": True, "hard_pass": True},
+                }
+                for stage_id in (
+                    "site",
+                    "capacity",
+                    "law",
+                    "parking",
+                    "program_fit",
+                    "selector",
+                )
+            ],
+            "activation_graph": {"nodes": [], "edges": []},
+        }
+        failed_contract = {
+            "schema_version": "arr.maas.shared_floor_contract.v1",
+            "floor_contract_hash": "failed-floor-contract",
+            "floor_capacity_plan_hash": "floor-plan-1",
+            "hard_pass": False,
+            "failure_reasons": ["insufficient_clear_floor_depth"],
+        }
+
+        for label, contract in (
+            ("false", failed_contract),
+            ("missing", None),
+        ):
+            with self.subTest(shared_floor_contract=label):
+                metadata = {
+                    "capacity_alternative_projection": {
+                        "alternative_id": "spatial_reserve",
+                        "target_utilization": 0.8,
+                        "target_hard_pass": True,
+                    },
+                    "source_capacity_measurement": {
+                        "utilization_ratio": 0.8,
+                        "hard_pass": True,
+                    },
+                }
+                if contract is not None:
+                    metadata["shared_floor_contract"] = contract
+                passport = selected_candidate_execution_passport(
+                    compilation={"execution_passport": initial_passport},
+                    downstream_row={
+                        "legal_projection": {
+                            "evaluated": True,
+                            "hard_pass": True,
+                        },
+                        "parking_hard_gate": {
+                            "evaluated": True,
+                            "hard_pass": True,
+                        },
+                    },
+                    source_metadata=metadata,
+                    program_evidence={"evaluated": True, "hard_pass": True},
+                    descriptor={"capacity_target_hard_pass": True},
+                    pnu="1168011800104170004",
+                )
+                capacity = next(
+                    stage
+                    for stage in passport["stages"]
+                    if stage["id"] == "capacity"
+                )
+                self.assertEqual(capacity["status"], "failed")
+                self.assertFalse(capacity["evidence"]["hard_pass"])
+                self.assertFalse(
+                    capacity["evidence"][
+                        "shared_floor_contract_hard_pass"
+                    ]
+                )
+
     def test_selected_passport_capacity_uses_resolved_selectable_band(self):
         from design.maas.book_language.mass_passport_bridge import (
             selected_candidate_execution_passport,
@@ -2622,9 +6129,16 @@ class SharedFloorContractTests(SimpleTestCase):
             compilation={"execution_passport": initial_passport},
             downstream_row={},
             source_metadata={
+                "shared_floor_contract": {
+                    "schema_version": "arr.maas.shared_floor_contract.v1",
+                    "floor_contract_hash": "selectable-floor-contract",
+                    "hard_pass": True,
+                    "failure_reasons": [],
+                },
                 "capacity_alternative_projection": {
                     "alternative_id": "maximum_feasible",
                     "target_hard_pass": False,
+                    "feasible_minimum_utilization": 0.70,
                     "requested_capacity_alternative_id": "maximum_feasible",
                     "requested_target_utilization": 0.95,
                     "selectable_capacity_alternative_id": "balanced_yield",
@@ -2681,6 +6195,90 @@ class SharedFloorContractTests(SimpleTestCase):
                         "selectable_capacity_hard_pass": True,
                         "feasible_minimum_utilization": 0.70,
                     },
+                    capacity_measurement={
+                        "feasible_capacity_utilization": achieved,
+                    },
+                )
+
+                self.assertEqual(
+                    resolved["resolved_capacity_hard_pass"],
+                    expected,
+                )
+
+    def test_requested_capacity_band_requires_measured_aggregate_utilization(self):
+        from design.maas.book_language.mass_passport_bridge import (
+            resolve_capacity_band_evidence,
+        )
+
+        projection = {
+            "requested_capacity_alternative_id": "brief_target",
+            "requested_target_utilization": 0.80,
+            "target_hard_pass": True,
+            "feasible_minimum_utilization": 0.70,
+        }
+        cases = (
+            ("below_minimum", {}, False),
+            (
+                "below_minimum",
+                {"feasible_capacity_utilization": 0.69},
+                False,
+            ),
+            (
+                "missed_requested_band",
+                {"feasible_capacity_utilization": 0.75},
+                False,
+            ),
+            (
+                "measured_requested_band",
+                {"feasible_capacity_utilization": 0.8241},
+                True,
+            ),
+        )
+        for label, measurement, expected in cases:
+            with self.subTest(label=label):
+                resolved = resolve_capacity_band_evidence(
+                    projection,
+                    capacity_measurement=measurement,
+                )
+
+                self.assertEqual(
+                    resolved["resolved_capacity_hard_pass"],
+                    expected,
+                )
+                self.assertEqual(
+                    resolved["achieved_capacity_utilization"],
+                    float(
+                        measurement.get("feasible_capacity_utilization")
+                        or 0.0
+                    ),
+                )
+
+    def test_capacity_minimum_comes_from_program_specific_authority(self):
+        from design.maas.book_language.mass_passport_bridge import (
+            resolve_capacity_band_evidence,
+        )
+
+        cases = (
+            ("neighborhood", 0.70, 0.70, True),
+            ("cultural", 0.40, 0.40, True),
+            ("missing", None, 0.80, False),
+            ("nonfinite", float("nan"), 0.80, False),
+        )
+        for label, minimum, achieved, expected in cases:
+            projection = {
+                "requested_capacity_alternative_id": f"{label}-band",
+                "requested_target_utilization": (
+                    float(minimum)
+                    if minimum is not None
+                    else 0.40
+                ),
+                "target_hard_pass": True,
+            }
+            if minimum is not None:
+                projection["feasible_minimum_utilization"] = minimum
+            with self.subTest(label=label):
+                resolved = resolve_capacity_band_evidence(
+                    projection,
                     capacity_measurement={
                         "feasible_capacity_utilization": achieved,
                     },
@@ -2863,6 +6461,10 @@ class SharedFloorContractTests(SimpleTestCase):
 
     def test_vlm_repair_rematerializes_floor_identity_for_the_repaired_geometry(self):
         """A typed VLM repair must not retain its parent's floor/hash evidence."""
+        from design.test_task5_regression_fixtures import (
+            legal_generation_context_for_site,
+        )
+
         try:
             from design.maas.book_language.vlm_review import (
                 _materialize_repaired_floor_contract,
@@ -2893,7 +6495,7 @@ class SharedFloorContractTests(SimpleTestCase):
         ):
             floor_contract = _materialize_repaired_floor_contract(
                 source,
-                generation_context=SimpleNamespace(),
+                generation_context=legal_generation_context_for_site(site),
                 capacity_site=site,
                 height=15.0,
                 floors=5,

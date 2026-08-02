@@ -10,6 +10,7 @@ from django.test import SimpleTestCase, override_settings
 from django.core.management import call_command
 from PIL import Image
 
+from design.maas.agents.elevation_agent.projection import render_mesh_views
 from design.maas.agents.shared.types import AgentEvidence
 from design.maas.aesthetic.contracts import ProviderResult
 from design.maas.elevation_proposal_batch import (
@@ -18,6 +19,10 @@ from design.maas.elevation_proposal_batch import (
 from design.maas.geometry_language import GeometryProgramBuilder, compile_geometry_program
 from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
 from design.maas.single_execution import execute_single_mass
+from design.maas.single_execution.catalog import (
+    single_execution_archive_manifest,
+    single_execution_run_id,
+)
 from design.maas.single_execution.vlm_review import _resolve_building_type
 
 
@@ -32,7 +37,9 @@ def _box_program():
     return builder.build(root, family="single_mass_test")
 
 
-def _certified_visual_compilation():
+def _certified_visual_compilation(
+    coordinate_space="capacity_source_centroid_local_xy_normalized_z",
+):
     capacity = compile_geometry_program(_box_program())
     minimum_z = float(capacity.metrics["bounds"][0][2])
     maximum_z = float(capacity.metrics["bounds"][1][2])
@@ -49,11 +56,67 @@ def _certified_visual_compilation():
             "geometry_authority": "certified_projected_visual_mesh",
             "exact_payload_hash": "e" * 64,
             "capacity_geometry_hash": capacity.geometry_hash,
-            "coordinate_space": (
-                "capacity_source_centroid_local_xy_normalized_z"
-            ),
+            "coordinate_space": coordinate_space,
         },
     )
+
+
+def _floor_plan_contract(plan_hash="floor-plan-fixture"):
+    return {
+        "schema_version": "arr.maas.shared_floor_contract.v1",
+        "floor_capacity_plan_hash": plan_hash,
+        "hard_pass": True,
+        "plates": [{
+            "hard_pass": True,
+            "bottom_height_m": 0.0,
+            "top_height_m": 5.0,
+        }],
+    }
+
+
+def _floor_plan_downstream(plan_hash="floor-plan-fixture"):
+    evidence = {
+        stage_id: {
+            "status": "passed",
+            "evaluated": True,
+            "hard_pass": True,
+            "selected": stage_id == "selector",
+        }
+        for stage_id in (
+            "site",
+            "capacity",
+            "law",
+            "parking",
+            "program_fit",
+            "selector",
+        )
+    }
+    contract = _floor_plan_contract(plan_hash)
+    evidence["capacity"]["floor_capacity_plan_hash"] = plan_hash
+    evidence["capacity"]["shared_floor_contract"] = contract
+    evidence["shared_floor_contract"] = contract
+    return evidence
+
+
+def _floor_plan_stage(plan_hash="floor-plan-fixture"):
+    return {
+        "id": "capacity",
+        "status": "passed",
+        "evidence": {
+            "evaluated": True,
+            "hard_pass": True,
+            "floor_capacity_plan_hash": plan_hash,
+            "shared_floor_contract": _floor_plan_contract(plan_hash),
+        },
+    }
+
+
+def _source_archive_artifact(plan_hash="floor-plan-fixture"):
+    return {
+        "executionPassport": {
+            "floor_capacity_plan_hash": plan_hash,
+        },
+    }
 
 
 class _SingleExecutionImageAdapter:
@@ -89,6 +152,32 @@ class _RaisingImageAdapter:
 
 
 class MaasSingleExecutionTest(SimpleTestCase):
+    def test_elevation_render_hides_coplanar_triangulation_edges(self):
+        vertices = (
+            (0.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (1.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0),
+            (1.0, 1.0, 0.0),
+            (0.0, 1.0, 0.0),
+        )
+        triangles = ((0, 1, 2), (3, 4, 5))
+        with TemporaryDirectory() as directory:
+            views = render_mesh_views(
+                vertices,
+                triangles,
+                Path(directory),
+                execution_id="solid-face-regression",
+            )
+            top = next(view for view in views if view.view == "top")
+            center = Image.open(top.path).convert("RGB").getpixel((360, 360))
+
+        self.assertGreater(
+            min(center),
+            100,
+            "coplanar triangle diagonal leaked into the architectural elevation",
+        )
+
     def test_certified_normalized_z_is_rendered_at_physical_capacity_height(self):
         capacity = compile_geometry_program(_box_program())
         certified = replace(
@@ -136,12 +225,30 @@ class MaasSingleExecutionTest(SimpleTestCase):
 
     def test_exact_replay_uses_certified_visual_compilation_for_every_identity(self):
         certified = _certified_visual_compilation()
+        downstream = {
+            "capacity": {
+                "evaluated": True,
+                "hard_pass": True,
+                "floor_capacity_plan_hash": "floor-plan-certified",
+                "shared_floor_contract": {
+                    "schema_version": "arr.maas.shared_floor_contract.v1",
+                    "floor_capacity_plan_hash": "floor-plan-certified",
+                },
+            },
+            "shared_floor_contract": {
+                "schema_version": "arr.maas.shared_floor_contract.v1",
+                "floor_capacity_plan_hash": "floor-plan-certified",
+            },
+        }
         with TemporaryDirectory() as directory:
             result = execute_single_mass(
                 certified.program,
                 output_root=directory,
                 execution_id="certified-visual-replay",
                 execution_mode="exact_replay",
+                source_run_id="production-archive-run",
+                source_mass_index=1,
+                downstream_evidence=downstream,
                 validated_compilation=certified,
             )
 
@@ -154,9 +261,244 @@ class MaasSingleExecutionTest(SimpleTestCase):
             "f" * 64,
         )
         self.assertEqual(
+            passport["floor_capacity_plan_hash"],
+            "floor-plan-certified",
+        )
+        self.assertEqual(
+            result.to_dict()["floor_capacity_plan_hash"],
+            "floor-plan-certified",
+        )
+        self.assertTrue(all(
+            row["identity"]["floor_capacity_plan_hash"]
+            == "floor-plan-certified"
+            for row in (
+                *passport["agent_collaboration"]["evidence"],
+                *passport["agent_collaboration"]["handoffs"],
+            )
+        ))
+        geometry_gate = next(
+            stage for stage in passport["stages"]
+            if stage["id"] == "geometry_gate"
+        )
+        self.assertNotEqual(
+            geometry_gate["evidence"]["metrics"]["capacity_geometry_hash"],
+            passport["floor_capacity_plan_hash"],
+        )
+        self.assertEqual(
             passport["elevation_evidence"]["geometry_hash"],
             "f" * 64,
         )
+
+    def test_final_legal_geometry_hash_is_identical_across_replay_artifacts(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory:
+            result = execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="final-hash-bound-replay",
+                execution_mode="exact_replay",
+                source_run_id="production-archive-run",
+                source_mass_index=1,
+                downstream_evidence=_floor_plan_downstream(),
+                validated_compilation=certified,
+            )
+            manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+            passport = result.passport
+            render = next(
+                stage["evidence"]
+                for stage in passport["stages"]
+                if stage["id"] == "render"
+            )
+            elevation = passport["elevation_evidence"]
+            archive = single_execution_archive_manifest(
+                directory,
+                single_execution_run_id(result.execution_id),
+            )["masses"][0]
+
+        hashes = {
+            passport["final_legal_geometry_hash"],
+            render["final_legal_geometry_hash"],
+            elevation["final_legal_geometry_hash"],
+            archive["final_legal_geometry_hash"],
+            manifest["final_legal_geometry_hash"],
+        }
+        self.assertEqual(hashes, {"f" * 64})
+        geometry_gate = next(
+            stage for stage in passport["stages"]
+            if stage["id"] == "geometry_gate"
+        )
+        self.assertNotEqual(
+            geometry_gate["evidence"]["metrics"]["capacity_geometry_hash"],
+            passport["final_legal_geometry_hash"],
+        )
+
+    def test_exact_replay_accepts_authored_visual_coordinate_space(self):
+        certified = _certified_visual_compilation(
+            "source_footprint_centroid_local_xy_normalized_z"
+        )
+        downstream = _floor_plan_downstream("floor-plan-authored")
+        downstream["shared_floor_contract"]["plates"][0]["top_height_m"] = 14.0
+        downstream["capacity"]["shared_floor_contract"] = downstream[
+            "shared_floor_contract"
+        ]
+        downstream["capacity"].update({
+            "status": "failed",
+            "evaluated": True,
+            "hard_pass": False,
+            "target_hard_pass": False,
+            "hard_gates_remain_downstream": True,
+        })
+
+        with TemporaryDirectory() as directory:
+            result = execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="authored-visual-replay",
+                execution_mode="exact_replay",
+                source_run_id="production-authored-archive",
+                source_mass_index=1,
+                downstream_evidence=downstream,
+                validated_compilation=certified,
+            )
+
+        self.assertEqual(result.geometry_hash, "f" * 64)
+        self.assertEqual(
+            result.passport["elevation_evidence"]["geometry_hash"],
+            "f" * 64,
+        )
+        self.assertEqual(
+            result.passport["elevation_evidence"]["status"],
+            "generated",
+        )
+        geometry_agent = next(
+            evidence
+            for evidence in result.passport["agent_collaboration"]["evidence"]
+            if evidence["agent"] == "maas_geometry_agent"
+        )
+        metrics = geometry_agent["evidence"]["metrics"]
+        self.assertEqual(metrics["physical_z_scale_m"], 14.0)
+        self.assertEqual(metrics["physical_z_origin_m"], 0.0)
+        self.assertEqual(
+            metrics["coordinate_space"],
+            "source_footprint_centroid_local_xy_physical_z_m",
+        )
+        self.assertEqual(
+            metrics["identity_coordinate_space"],
+            "source_footprint_centroid_local_xy_normalized_z",
+        )
+        self.assertAlmostEqual(
+            metrics["bounds"][1][2] - metrics["bounds"][0][2],
+            14.0,
+        )
+        self.assertAlmostEqual(
+            result.passport["elevation_evidence"]["condition_pack"][
+                "facade_planes"
+            ][0]["extent"][1],
+            14.0,
+        )
+
+    def test_production_archive_replay_requires_floor_capacity_plan_hash(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(
+                ValueError,
+                "production archive replay requires shared floor capacity plan identity",
+            ):
+                execute_single_mass(
+                    certified.program,
+                    output_root=directory,
+                    execution_id="missing-capacity-plan",
+                    execution_mode="exact_replay",
+                    source_run_id="production-archive-run",
+                    source_mass_index=1,
+                    downstream_evidence={
+                        "shared_floor_contract": {
+                            "schema_version": "arr.maas.shared_floor_contract.v1",
+                        },
+                    },
+                    validated_compilation=certified,
+                )
+
+    def test_production_archive_replay_rejects_top_level_capacity_hash_without_contract(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(
+                ValueError,
+                "production archive replay requires shared floor capacity plan identity",
+            ):
+                execute_single_mass(
+                    certified.program,
+                    output_root=directory,
+                    execution_id="top-level-capacity-only",
+                    execution_mode="exact_replay",
+                    source_run_id="production-archive-run",
+                    source_mass_index=1,
+                    downstream_evidence={
+                        "capacity": {
+                            "floor_capacity_plan_hash": "top-level-only",
+                        },
+                    },
+                    validated_compilation=certified,
+                )
+
+    def test_program_and_downstream_floor_capacity_plan_conflict_fails_closed(self):
+        program = replace(
+            _box_program(),
+            metadata={
+                **_box_program().metadata,
+                "shared_floor_contract": {
+                    "schema_version": "arr.maas.shared_floor_contract.v1",
+                    "floor_capacity_plan_hash": "floor-plan-program",
+                },
+            },
+        )
+        with TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(
+                ValueError,
+                "floor capacity plan identity mismatch",
+            ):
+                execute_single_mass(
+                    program,
+                    output_root=directory,
+                    execution_id="conflicting-program-capacity-plan",
+                    downstream_evidence={
+                        "capacity": {
+                            "shared_floor_contract": {
+                                "schema_version": "arr.maas.shared_floor_contract.v1",
+                                "floor_capacity_plan_hash": "floor-plan-downstream",
+                            },
+                        },
+                    },
+                )
+
+    def test_production_archive_replay_rejects_conflicting_floor_plan_contracts(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(
+                ValueError,
+                "floor capacity plan identity mismatch",
+            ):
+                execute_single_mass(
+                    certified.program,
+                    output_root=directory,
+                    execution_id="conflicting-capacity-plan",
+                    execution_mode="exact_replay",
+                    source_run_id="production-archive-run",
+                    source_mass_index=1,
+                    downstream_evidence={
+                        "capacity": {
+                            "shared_floor_contract": {
+                                "schema_version": "arr.maas.shared_floor_contract.v1",
+                                "floor_capacity_plan_hash": "floor-plan-capacity",
+                            },
+                        },
+                        "shared_floor_contract": {
+                            "schema_version": "arr.maas.shared_floor_contract.v1",
+                            "floor_capacity_plan_hash": "floor-plan-selected",
+                        },
+                    },
+                    validated_compilation=certified,
+                )
 
     def test_exact_replay_rejects_certified_compilation_for_another_program(self):
         certified = _certified_visual_compilation()
@@ -515,6 +857,14 @@ class MaasSingleExecutionTest(SimpleTestCase):
         self.assertEqual(proposal["identity"]["execution_id"], result.execution_id)
         self.assertEqual(proposal["identity"]["program_hash"], result.program_hash)
         self.assertEqual(proposal["identity"]["geometry_hash"], result.geometry_hash)
+        self.assertEqual(
+            proposal["identity"]["floor_capacity_plan_hash"],
+            "FLOOR_CAPACITY_PLAN_HASH_UNRESOLVED",
+        )
+        self.assertEqual(
+            result.floor_capacity_plan_hash,
+            proposal["identity"]["floor_capacity_plan_hash"],
+        )
         nodes = {
             row["id"]: row
             for row in result.passport["activation_graph"]["nodes"]
@@ -588,11 +938,54 @@ class MaasSingleExecutionTest(SimpleTestCase):
             passport["elevation_evidence"]["image_proposal"]["status"],
             "complete",
         )
+        self.assertEqual(
+            passport["elevation_evidence"]["image_proposal"]["identity"][
+                "floor_capacity_plan_hash"
+            ],
+            "FLOOR_CAPACITY_PLAN_HASH_UNRESOLVED",
+        )
         nodes = {
             row["id"]: row
             for row in passport["activation_graph"]["nodes"]
         }
         self.assertEqual(nodes["elevation:proposal"]["activation"], 1.0)
+
+    def test_capacity_nested_floor_plan_identity_reaches_elevation_proposal(self):
+        downstream = _floor_plan_downstream("floor-plan-capacity-nested")
+        downstream.pop("shared_floor_contract")
+        with TemporaryDirectory() as directory:
+            adapter = _SingleExecutionImageAdapter(Path(directory) / "provider")
+            result = execute_single_mass(
+                _box_program(),
+                output_root=directory,
+                execution_id="capacity-nested-proposal",
+                elevation_image_adapter=adapter,
+                downstream_evidence=downstream,
+            )
+
+        elevation = result.passport["elevation_evidence"]
+        self.assertEqual(elevation["status"], "generated")
+        self.assertEqual(
+            result.floor_capacity_plan_hash,
+            "floor-plan-capacity-nested",
+        )
+        self.assertEqual(
+            elevation["floor_capacity_plan_hash"],
+            "floor-plan-capacity-nested",
+        )
+        self.assertEqual(
+            elevation["condition_pack"]["identity"][
+                "floor_capacity_plan_hash"
+            ],
+            "floor-plan-capacity-nested",
+        )
+        self.assertEqual(
+            elevation["image_proposal"]["identity"][
+                "floor_capacity_plan_hash"
+            ],
+            "floor-plan-capacity-nested",
+        )
+        self.assertEqual(elevation["image_proposal"]["status"], "complete")
 
     def test_invalid_program_persists_truthful_failure_without_a_fake_png(self):
         invalid = _box_program().to_dict()
@@ -756,6 +1149,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
         compilation = _certified_visual_compilation()
         source_passport = {
             "stages": [
+                _floor_plan_stage(),
                 {
                     "id": "site",
                     "status": "passed",
@@ -778,7 +1172,12 @@ class MaasSingleExecutionTest(SimpleTestCase):
         }
         with TemporaryDirectory() as directory, patch(
             "design.management.commands.execute_maas_single_mass.compile_executed_mass",
-            return_value=(compilation, {}, {}, Path(directory) / "archive.json"),
+            return_value=(
+                compilation,
+                _source_archive_artifact(),
+                {},
+                Path(directory) / "archive.json",
+            ),
         ), patch(
             "design.management.commands.execute_maas_single_mass.materialize_executed_mass_passport",
             return_value=source_passport,
@@ -813,10 +1212,15 @@ class MaasSingleExecutionTest(SimpleTestCase):
             MAAS_SINGLE_EXECUTION_ROOT=directory,
         ), patch(
             "design.views.compile_executed_mass",
-            return_value=(compilation, {}, {}, Path(directory) / "archive.json"),
+            return_value=(
+                compilation,
+                _source_archive_artifact(),
+                {},
+                Path(directory) / "archive.json",
+            ),
         ), patch(
             "design.views.materialize_executed_mass_passport",
-            return_value={"stages": []},
+            return_value={"stages": [_floor_plan_stage()]},
         ):
             response = self.client.post(
                 "/design/maas/single-executions/",
@@ -869,11 +1273,17 @@ class MaasSingleExecutionTest(SimpleTestCase):
                 execution_mode="exact_replay",
                 source_run_id="portfolio-source",
                 source_mass_index=1,
+                downstream_evidence=_floor_plan_downstream(),
                 validated_compilation=certified,
             )
             with patch(
                 "design.views.compile_executed_mass",
-                return_value=(certified, {}, {}, Path(directory) / "archive.json"),
+                return_value=(
+                    certified,
+                    _source_archive_artifact(),
+                    {},
+                    Path(directory) / "archive.json",
+                ),
             ):
                 response = self.client.post(
                     "/design/maas/single-executions/",
@@ -886,6 +1296,51 @@ class MaasSingleExecutionTest(SimpleTestCase):
 
         self.assertEqual(response.status_code, 201, response.content)
         self.assertEqual(response.json()["geometry_hash"], "f" * 64)
+
+    def test_http_replay_rejects_floor_plan_drift_from_source_archive(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory, override_settings(
+            MAAS_SINGLE_EXECUTION_ROOT=directory,
+        ):
+            execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="visual-source",
+                execution_mode="exact_replay",
+                source_run_id="portfolio-source",
+                source_mass_index=1,
+                downstream_evidence=_floor_plan_downstream("a" * 64),
+                validated_compilation=certified,
+            )
+            source_root = Path(directory) / "visual-source"
+            for name in ("execution.json", "mass.png.passport.json"):
+                path = source_root / name
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                payload["floor_capacity_plan_hash"] = "b" * 64
+                path.write_text(json.dumps(payload), encoding="utf-8")
+            with patch(
+                "design.views.compile_executed_mass",
+                return_value=(
+                    certified,
+                    _source_archive_artifact("a" * 64),
+                    {},
+                    Path(directory) / "archive.json",
+                ),
+            ):
+                response = self.client.post(
+                    "/design/maas/single-executions/",
+                    data=json.dumps({
+                        "source_run_id": "single-execution:visual-source",
+                        "source_mass_index": 1,
+                    }),
+                    content_type="application/json",
+                )
+
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertIn(
+            "certified floor capacity plan identity mismatch",
+            response.json()["error"],
+        )
 
     def test_http_single_execution_replay_rejects_tampered_archive_identity(self):
         certified = _certified_visual_compilation()
@@ -900,6 +1355,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
                 execution_mode="exact_replay",
                 source_run_id="portfolio-source",
                 source_mass_index=1,
+                downstream_evidence=_floor_plan_downstream(),
                 validated_compilation=certified,
             )
             with patch(
@@ -957,13 +1413,19 @@ class MaasSingleExecutionTest(SimpleTestCase):
                 execution_mode="exact_replay",
                 source_run_id="portfolio-source",
                 source_mass_index=1,
+                downstream_evidence=_floor_plan_downstream(),
                 validated_compilation=certified,
             )
 
             def compile_origin(index, run_id):
                 if (index, run_id) != (1, "portfolio-source"):
                     raise ValueError(f"unexpected archive origin: {run_id}:{index}")
-                return certified, {}, {}, Path(directory) / "archive.json"
+                return (
+                    certified,
+                    _source_archive_artifact(),
+                    {},
+                    Path(directory) / "archive.json",
+                )
 
             with patch(
                 "design.management.commands.execute_maas_single_mass.compile_executed_mass",
@@ -1016,6 +1478,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
                     execution_mode="exact_replay",
                     source_run_id=f"single-execution:{origin}",
                     source_mass_index=1,
+                    downstream_evidence=_floor_plan_downstream(),
                     validated_compilation=certified,
                 )
             with self.assertRaisesRegex(Exception, "provenance cycle"):
@@ -1037,6 +1500,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
                 execution_mode="exact_replay",
                 source_run_id="portfolio-source",
                 source_mass_index=1,
+                downstream_evidence=_floor_plan_downstream(),
                 validated_compilation=certified,
             )
             execute_single_mass(
@@ -1046,6 +1510,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
                 execution_mode="exact_replay",
                 source_run_id="single-execution:origin-link",
                 source_mass_index=1,
+                downstream_evidence=_floor_plan_downstream(),
                 validated_compilation=certified,
             )
             intermediate = (
@@ -1063,6 +1528,48 @@ class MaasSingleExecutionTest(SimpleTestCase):
                     output_root=directory,
                 )
 
+    def test_cli_single_execution_replay_floor_plan_tamper_fails_closed(self):
+        certified = _certified_visual_compilation()
+        with TemporaryDirectory() as directory:
+            execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="origin-link",
+                execution_mode="exact_replay",
+                source_run_id="portfolio-source",
+                source_mass_index=1,
+                downstream_evidence=_floor_plan_downstream("a" * 64),
+                validated_compilation=certified,
+            )
+            execute_single_mass(
+                certified.program,
+                output_root=directory,
+                execution_id="requested-link",
+                execution_mode="exact_replay",
+                source_run_id="single-execution:origin-link",
+                source_mass_index=1,
+                downstream_evidence=_floor_plan_downstream("a" * 64),
+                validated_compilation=certified,
+            )
+            intermediate = (
+                Path(directory) / "origin-link" / "mass.png.passport.json"
+            )
+            passport = json.loads(intermediate.read_text(encoding="utf-8"))
+            passport["floor_capacity_plan_hash"] = "b" * 64
+            intermediate.write_text(json.dumps(passport), encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                Exception,
+                "floor capacity plan identity mismatch",
+            ):
+                call_command(
+                    "execute_maas_single_mass",
+                    run_id="single-execution:requested-link",
+                    mass_index=1,
+                    execution_id="cli-floor-plan-tampered",
+                    output_root=directory,
+                )
+
     def test_single_execution_replay_rejects_nonunit_intermediate_mass_index(self):
         certified = _certified_visual_compilation()
         with TemporaryDirectory() as directory:
@@ -1073,6 +1580,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
                 execution_mode="exact_replay",
                 source_run_id="portfolio-source",
                 source_mass_index=1,
+                downstream_evidence=_floor_plan_downstream(),
                 validated_compilation=certified,
             )
             execute_single_mass(
@@ -1082,6 +1590,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
                 execution_mode="exact_replay",
                 source_run_id="single-execution:origin-link",
                 source_mass_index=1,
+                downstream_evidence=_floor_plan_downstream(),
                 validated_compilation=certified,
             )
             manifest_path = Path(directory) / "requested-link" / "execution.json"
@@ -1132,6 +1641,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
                     _box_program(),
                     output_root=directory,
                     execution_id="source-run",
+                    downstream_evidence=_floor_plan_downstream(),
                 )
                 run_id = "single-execution:source-run"
                 query = quote(run_id, safe="")
@@ -1172,6 +1682,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
                     _box_program(),
                     output_root=directory,
                     execution_id="source-run",
+                    downstream_evidence=_floor_plan_downstream(),
                 )
                 response = self.client.post(
                     "/design/maas/single-executions/",

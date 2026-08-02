@@ -314,7 +314,7 @@ def run_neighborhood_vlm_a2a_loop(
         target_count=target_count,
         seed_sequences=seeds,
         minimum_architectural_score=0.76,
-        selection_minimum_distance=0.16,
+        selection_minimum_distance=0.14,
         accepted_sink=clean_pool,
     )
     capacity_pool: list[ProgramElite] = []
@@ -349,7 +349,7 @@ def run_neighborhood_vlm_a2a_loop(
         "folded_section": 1,
         # The final board requires three. Review a surplus so one weak/boxy
         # step candidate cannot collapse the whole language cell.
-        "stepped_capacity": 5,
+        "stepped_capacity": 3,
         "cluster_field": 1,
     }
     behavior_archive = GraphBehaviorArchive()
@@ -562,7 +562,7 @@ def run_neighborhood_vlm_a2a_loop(
         "carved_void": 3,
         "bridge_interlock": 2,
         "folded_section": 2,
-        "stepped_capacity": 3,
+        "stepped_capacity": 2,
         "cluster_field": 2,
     }
     final_group_maximums = {
@@ -588,7 +588,7 @@ def run_neighborhood_vlm_a2a_loop(
     final_archive = _select_language_balanced_archive(
         visual_floor_pool,
         target_count=target_count,
-        minimum_distance=0.20,
+        minimum_distance=0.16,
         minimum_groups=final_group_minimums,
         minimum_field_topologies={"parallel": 1, "branched": 1},
         # Reserve several geometries whose path/section genotype can be
@@ -613,7 +613,7 @@ def run_neighborhood_vlm_a2a_loop(
         minimum_groups=final_group_minimums,
         minimum_field_topologies={"parallel": 1, "branched": 1},
         maximum_groups=final_group_maximums,
-        minimum_distance=0.20,
+        minimum_distance=0.16,
         minimum_editable_field_count=max(2, target_count // 6),
         minimum_authored_count=max(1, target_count // 2),
         maximum_persisted_count=max(1, (target_count * 4) // 5),
@@ -622,7 +622,7 @@ def run_neighborhood_vlm_a2a_loop(
     final_selection_audit = _archive_selection_audit(
         visual_floor_pool,
         final_archive,
-        minimum_distance=0.20,
+        minimum_distance=0.16,
     )
     final_group_counts = _language_group_counts(final_archive)
     missing_groups = {
@@ -1134,7 +1134,7 @@ def _select_language_balanced_archive(
         # it is a materially different diagram. The old >=1 return made that
         # later distance check unreachable and capped a requested 48-parent
         # VLM frontier at roughly 24 topology labels.
-        if len(topology_peers) >= 2:
+        if len(topology_peers) >= 3:
             return False
         if principle_counts.get(_formal_principle(item), 0) >= 4:
             return False
@@ -1449,7 +1449,7 @@ def _rebalance_capacity_archive(
                 if remaining and min(_descriptor_distance(candidate, item) for item in remaining) < minimum_distance:
                     continue
                 topology_peers = [item for item in remaining if _topology(item) == _topology(candidate)]
-                if len(topology_peers) >= 2:
+                if len(topology_peers) >= 3:
                     continue
                 if topology_peers and min(
                     _descriptor_distance(candidate, item) for item in topology_peers
@@ -1634,10 +1634,14 @@ def _language_group(item: ProgramElite) -> str:
     height_levels = len({round(volume.top_fraction, 2) for volume in item.source.volumes})
     if principle == "continuous_ribbon_field" or primary_verb == "bend":
         return "continuous_field"
-    if surface.get("representation") == "agent_oblique_envelope_mesh":
+    if surface.get("representation") in {
+        "agent_oblique_envelope_mesh",
+        "agent_oblique_polygon_envelope",
+    }:
         return "oblique_envelope"
     if (
         principle == "folded_section"
+        or principle == "torqued_stack"
         or primary_verb == "sloped_roof_mass"
     ):
         return "folded_section"
@@ -1648,6 +1652,13 @@ def _language_group(item: ProgramElite) -> str:
     # carved bucket, so the cluster quota could never be satisfied by design.
     if primary_verb in {"array", "branch"}:
         return "cluster_field"
+    if principle in {
+        "slender_podium_tower",
+        "slender_tower",
+        "podium_tower",
+        "undercut_tapered_tower",
+    }:
+        return "oblique_envelope"
     if (
         principle in {"terraced_ribbon_section", "stacked_shifted_platforms"}
         and height_levels >= 3

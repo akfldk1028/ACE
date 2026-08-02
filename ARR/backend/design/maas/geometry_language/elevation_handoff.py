@@ -6,7 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 import uuid
-from typing import Any
+from typing import Any, Mapping
 
 from .executed_archive import (
     compile_executed_mass,
@@ -17,6 +17,131 @@ from .executed_archive import (
 
 
 SCHEMA_VERSION = "arr.maas.elevation_handoff.v1"
+
+
+def resolve_elevation_handoff_identity(
+    *,
+    program_hash: str,
+    geometry_hash: str,
+    artifact: Mapping[str, Any],
+    passport: Mapping[str, Any],
+    row: Mapping[str, Any],
+    manifest: Mapping[str, Any],
+) -> tuple[dict[str, str], bool]:
+    """Resolve archive consumer identity without backfilling legacy evidence."""
+
+    artifact_identity = (
+        artifact.get("identity")
+        if isinstance(artifact.get("identity"), Mapping)
+        else {}
+    )
+    passport_certificate = passport.get(
+        "candidate_actual_gfa_stop_certificate"
+    )
+    artifact_certificate = artifact.get(
+        "candidateActualGfaStopCertificate"
+    )
+    row_certificate = row.get(
+        "candidate_actual_gfa_stop_certificate"
+    )
+    final_hash, final_ok = _exact_identity(
+        artifact.get("finalLegalGeometryHash"),
+        artifact_identity.get("finalLegalGeometryHash"),
+        passport.get("final_legal_geometry_hash"),
+        row.get("final_legal_geometry_hash"),
+    )
+    visual_hash, visual_ok = _exact_identity(
+        geometry_hash,
+        artifact.get("projectedVisualGeometryHash"),
+        artifact_identity.get("geometryHash"),
+        passport.get("geometry_hash"),
+        passport.get("visual_hash"),
+        row.get("geometry_hash"),
+        row.get("visual_hash"),
+    )
+    resolved_program_hash, program_ok = _exact_identity(
+        program_hash,
+        artifact_identity.get("programHash"),
+        passport.get("program_hash"),
+        row.get("program_hash"),
+    )
+    capacity_hash, capacity_ok = _exact_identity(
+        artifact.get("floorCapacityPlanHash"),
+        passport.get("floor_capacity_plan_hash"),
+        row.get("floor_capacity_plan_hash"),
+    )
+    legal_hash, legal_ok = _exact_identity(
+        manifest.get("legal_floor_field_hash"),
+        artifact.get("legalFloorFieldHash"),
+        passport.get("legal_floor_field_hash"),
+        row.get("legal_floor_field_hash"),
+        _certificate_value(passport_certificate, "legal_floor_field_hash"),
+        _certificate_value(artifact_certificate, "legal_floor_field_hash"),
+        _certificate_value(row_certificate, "legal_floor_field_hash"),
+    )
+    stop_hash, stop_ok = _exact_identity(
+        artifact.get("candidateActualGfaStopHash"),
+        passport.get("candidate_actual_gfa_stop_hash"),
+        row.get("candidate_actual_gfa_stop_hash"),
+        _certificate_value(
+            passport_certificate,
+            "candidate_actual_gfa_stop_hash",
+        ),
+        _certificate_value(
+            artifact_certificate,
+            "candidate_actual_gfa_stop_hash",
+        ),
+        _certificate_value(
+            row_certificate,
+            "candidate_actual_gfa_stop_hash",
+        ),
+    )
+    certificate_ok = bool(
+        isinstance(passport_certificate, Mapping)
+        and isinstance(artifact_certificate, Mapping)
+        and isinstance(row_certificate, Mapping)
+        and dict(passport_certificate) == dict(artifact_certificate)
+        and dict(passport_certificate) == dict(row_certificate)
+        and passport_certificate.get("status") == "certified"
+        and passport_certificate.get("hard_pass") is True
+        and passport_certificate.get("program_hash")
+        == resolved_program_hash
+        and passport_certificate.get("final_geometry_hash")
+        == final_hash
+        and passport_certificate.get("visual_hash") == visual_hash
+    )
+    identity = {
+        "program_hash": resolved_program_hash,
+        "geometry_hash": visual_hash,
+        "final_geometry_hash": final_hash,
+        "final_legal_geometry_hash": final_hash,
+        "visual_hash": visual_hash,
+        "floor_capacity_plan_hash": capacity_hash,
+        "legal_floor_field_hash": legal_hash,
+        "candidate_actual_gfa_stop_hash": stop_hash,
+    }
+    return identity, all((
+        program_ok,
+        final_ok,
+        visual_ok,
+        capacity_ok,
+        legal_ok,
+        stop_ok,
+        certificate_ok,
+        all(identity.values()),
+    ))
+
+
+def _exact_identity(*values: Any) -> tuple[str, bool]:
+    resolved = [str(value or "").strip() for value in values]
+    return (
+        resolved[0] if resolved else "",
+        bool(resolved and all(resolved) and len(set(resolved)) == 1),
+    )
+
+
+def _certificate_value(value: Any, key: str) -> Any:
+    return value.get(key) if isinstance(value, Mapping) else None
 
 
 def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[str, Any]:
@@ -46,6 +171,16 @@ def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[st
     is_projected_visual = bool(projected_visual_mesh)
     geometry_hash = str(compilation.geometry_hash or identity.get("geometryHash") or "")
     program_hash = compilation.program.program_hash()
+    certified_identity, stop_chain_approved = (
+        resolve_elevation_handoff_identity(
+            program_hash=program_hash,
+            geometry_hash=geometry_hash,
+            artifact=artifact,
+            passport=passport,
+            row=row,
+            manifest=manifest,
+        )
+    )
     handoff_id = hashlib.sha256(
         f"{run_id}|{index}|{program_hash}|{geometry_hash}".encode("utf-8")
     ).hexdigest()
@@ -58,8 +193,7 @@ def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[st
             "mass_index": int(index),
             "variant_id": str(row.get("variant_id") or f"maas_{int(index):02d}"),
             "pnu": str(manifest.get("pnu") or ""),
-            "program_hash": program_hash,
-            "geometry_hash": geometry_hash,
+            **certified_identity,
         },
         "authority": {
             "source": (
@@ -116,6 +250,10 @@ def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[st
             "approved_for_final_elevation": bool(
                 (passport.get("executed_mass") or {}).get("hard_pass")
                 and program_fit is True
+                and stop_chain_approved
+            ),
+            "candidate_actual_gfa_stop_chain_hard_pass": (
+                stop_chain_approved
             ),
             "development_use_allowed": True,
         },
@@ -125,7 +263,12 @@ def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[st
                 "camera_poses", "silhouette", "metric_depth", "surface_normals",
                 "floor_guides", "facade_planes", "projection_manifest",
             ],
-            "output_identity_fields": ["run_id", "program_hash", "geometry_hash", "handoff_id"],
+            "output_identity_fields": [
+                "run_id", "program_hash", "geometry_hash",
+                "final_geometry_hash", "visual_hash",
+                "floor_capacity_plan_hash", "legal_floor_field_hash",
+                "candidate_actual_gfa_stop_hash", "handoff_id",
+            ],
             "status": "mesh_handoff_ready_condition_pack_adapter_pending",
             "next_adapter": (
                 "validated projected visual mesh -> multi-view elevation condition pack"
@@ -151,4 +294,9 @@ def write_executed_mass_elevation_handoff(*, run_id: str, index: int, output_pat
     return output
 
 
-__all__ = ["SCHEMA_VERSION", "build_executed_mass_elevation_handoff", "write_executed_mass_elevation_handoff"]
+__all__ = [
+    "SCHEMA_VERSION",
+    "build_executed_mass_elevation_handoff",
+    "resolve_elevation_handoff_identity",
+    "write_executed_mass_elevation_handoff",
+]

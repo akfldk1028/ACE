@@ -190,6 +190,20 @@ def visual_silhouette_distance_from_keys(
     return min(1.0, best)
 
 
+def visual_silhouette_view_variants(source: SourceMass) -> ViewVariants:
+    """Return the cached normalized top/front/side views for ``source``.
+
+    Competition gestalt measurement needs the same certified-mesh
+    projections as the historical silhouette gate.  Exposing the already
+    cached variants keeps that measurement from rebuilding thousands of
+    triangle unions or drifting to a second projection implementation.
+    """
+
+    with _CACHE_LOCK:
+        generation = _CACHE_EPOCH
+    return _source_view_variants(source, generation=generation)
+
+
 def _principal_frame(
     key: VisualSilhouetteKey,
 ) -> tuple[tuple[LayeredFootprint, ...], SurfaceKey] | None:
@@ -437,4 +451,5 @@ __all__ = [
     "visual_silhouette_distance",
     "visual_silhouette_distance_from_keys",
     "visual_silhouette_cache_metrics",
+    "visual_silhouette_view_variants",
 ]

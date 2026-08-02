@@ -17,6 +17,7 @@ from shapely.geometry import box
 from design.maas.geometry_language.compiler import compile_geometry_program
 from design.maas.geometry_language.affine_matrix import identity_matrix4
 from design.maas.geometry_language.floorwise_visual_projection import (
+    certify_authored_visual_mesh,
     project_floorwise_visual_mesh,
 )
 from design.maas.geometry_language.program_projection import project_program_requirements
@@ -44,6 +45,67 @@ from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolu
 
 
 class MaasFlowRegressionTest(SimpleTestCase):
+    def test_candidate_finalization_binds_passport_floor_authorities(self):
+        from design.maas.book_language.mass_passport_bridge import (
+            _bind_candidate_finalization_to_passport,
+        )
+
+        program_hash = "1" * 64
+        final_hash = "2" * 64
+        visual_hash = "3" * 64
+        legal_hash = "4" * 64
+        stop_hash = "5" * 64
+        passport = {
+            "program_hash": program_hash,
+            "visual_hash": visual_hash,
+        }
+        evidence = {
+            "schema_version": (
+                "arr.maas.candidate_final_mesh_floor_finalization.v1"
+            ),
+            "status": "certified",
+            "hard_pass": True,
+            "candidate_height_m": 21.0,
+            "candidate_floor_count": 7,
+            "candidate_target_gfa_m2": 650.0,
+            "achieved_gfa_m2": 650.0,
+            "legal_floor_field_hash": legal_hash,
+            "candidate_actual_gfa_stop_hash": stop_hash,
+            "candidate_actual_gfa_stop_certificate": {
+                "candidate_actual_gfa_stop_hash": stop_hash,
+            },
+            "measured_identity": {
+                "program_hash": program_hash,
+                "final_geometry_hash": final_hash,
+                "visual_hash": visual_hash,
+            },
+        }
+
+        bound = _bind_candidate_finalization_to_passport(
+            passport,
+            evidence,
+        )
+
+        self.assertEqual(bound["final_legal_geometry_hash"], final_hash)
+        self.assertEqual(bound["legal_floor_field_hash"], legal_hash)
+        self.assertEqual(
+            bound["candidate_actual_gfa_stop_hash"],
+            stop_hash,
+        )
+        stale = dict(evidence)
+        stale["measured_identity"] = {
+            **evidence["measured_identity"],
+            "visual_hash": "9" * 64,
+        }
+        with self.assertRaisesRegex(
+            ValueError,
+            "candidate finalization identity mismatch: visual_hash",
+        ):
+            _bind_candidate_finalization_to_passport(
+                dict(passport),
+                stale,
+            )
+
     @staticmethod
     def _projected_visual_source() -> tuple[SourceMass, str]:
         surfaces = (
@@ -189,34 +251,48 @@ class MaasFlowRegressionTest(SimpleTestCase):
         return artifact, visual_hash
 
     @staticmethod
-    def _real_task1_projected_visual_source() -> SourceMass:
+    def _closed_authored_visual_source() -> SourceMass:
         footprint = box(-5.0, -5.0, 5.0, 5.0)
-        authored = SourceMass(
-            name="real-task1-projected-visual",
+        vertices = (
+            (-1.0, -1.0, 0.0),
+            (1.0, -1.0, 0.0),
+            (0.0, 1.0, 0.0),
+            (0.0, 0.0, 1.0),
+        )
+        triangles = (
+            (0, 2, 1),
+            (0, 1, 3),
+            (1, 2, 3),
+            (2, 0, 3),
+        )
+        surfaces = tuple(
+            SourceSurface(
+                role=f"recursive_primary:skin:{index:03d}",
+                volume_role="recursive_primary",
+                verb="geometry_program",
+                surface_type="profiled_recursive_solid_mesh",
+                vertices_m=tuple(vertices[vertex] for vertex in triangle),
+                operator="loft",
+                semantic_patch_id=f"recursive_primary:profiled:{index:03d}",
+            )
+            for index, triangle in enumerate(triangles)
+        )
+        return SourceMass(
+            name="closed-authored-visual",
             footprint=footprint,
-            surfaces=(
-                SourceSurface(
-                    role="recursive_primary:skin:000",
-                    volume_role="recursive_primary",
-                    verb="geometry_program",
-                    surface_type="profiled_recursive_solid_mesh",
-                    vertices_m=(
-                        (-1.0, -1.0, 0.0),
-                        (1.0, -1.0, 0.0),
-                        (0.0, 1.0, 1.0),
-                    ),
-                    operator="loft",
-                    semantic_patch_id="recursive_primary:profiled_triangle",
-                ),
-            ),
+            surfaces=surfaces,
             metadata={
                 "geometry_program_bridge_evidence": {
                     "status": "materialized",
-                    "raw_mesh_triangle_count": 1,
-                    "exported_surface_count": 1,
+                    "raw_mesh_triangle_count": len(triangles),
+                    "exported_surface_count": len(surfaces),
                 },
             },
         )
+
+    @classmethod
+    def _real_task1_projected_visual_source(cls) -> SourceMass:
+        authored = cls._closed_authored_visual_source()
         legal = box(-10.0, -10.0, 10.0, 10.0)
         capacity_plate = SourceVolume(
             role="recursive_primary",
@@ -242,6 +318,117 @@ class MaasFlowRegressionTest(SimpleTestCase):
             metadata={
                 "floorwise_visual_projection": projection.certificate.to_dict(),
             },
+        )
+
+    def test_authored_visual_identity_survives_archive_replay_and_elevation_handoff(
+        self,
+    ):
+        authored = self._closed_authored_visual_source()
+        legal = box(-10.0, -10.0, 10.0, 10.0)
+        certification = certify_authored_visual_mesh(authored, (legal,))
+        self.assertTrue(
+            certification.certificate.hard_pass,
+            certification.certificate,
+        )
+        self.assertEqual(certification.surfaces, authored.surfaces)
+        capacity_plate = SourceVolume(
+            role="floor-capacity",
+            footprint=legal,
+            bottom_fraction=0.0,
+            top_fraction=1.0,
+            verb="floorwise_legal_matrix4",
+        )
+        source = replace(
+            authored,
+            volumes=(capacity_plate,),
+            metadata={
+                **authored.metadata,
+                "floorwise_visual_projection": (
+                    certification.certificate.to_dict()
+                ),
+            },
+        )
+        artifact, visual_hash = self._projected_visual_artifact(source)
+        capacity_hash = str(artifact["compilation"]["geometry_hash"])
+        expected_surfaces = tuple(
+            tuple(tuple(vertex) for vertex in surface.vertices_m)
+            for surface in source.surfaces
+        )
+
+        self.assertEqual(
+            artifact["projectedVisualCertificate"]["certification_mode"],
+            "authored_visual_legal_validation",
+        )
+        self.assertEqual(
+            artifact["projectedVisualCertificate"]["capacity_authority"],
+            "separate_not_visual_authority",
+        )
+        self.assertNotEqual(capacity_hash, visual_hash)
+
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run_id, preview = self._write_projected_visual_archive(
+                root,
+                artifact=artifact,
+                run_id="book-program-portfolios-authored-visual",
+            )
+            with (
+                patch(
+                    "design.maas.geometry_language.executed_archive.workspace_root",
+                    return_value=root,
+                ),
+                patch(
+                    "design.maas.geometry_language.elevation_handoff.executed_mass_manifest",
+                    return_value={"pnu": "test-pnu"},
+                ),
+                patch(
+                    "design.maas.geometry_language.elevation_handoff.materialize_executed_mass_passport",
+                    return_value={"executed_mass": {"hard_pass": True}},
+                ),
+                patch(
+                    "design.maas.geometry_language.elevation_handoff.materialize_executed_mass_preview",
+                    return_value=preview,
+                ),
+            ):
+                compilation, archived, _row, _path = compile_executed_mass(
+                    1,
+                    run_id,
+                )
+                handoff = build_executed_mass_elevation_handoff(
+                    run_id=run_id,
+                    index=1,
+                )
+
+        archived_surfaces = tuple(
+            tuple(
+                tuple(vertex)
+                for vertex in triangle["vertices_m"]
+            )
+            for triangle in archived["projectedVisualMesh"]["triangles"]
+        )
+        replayed_surfaces = tuple(
+            tuple(compilation.vertices[index:index + 3])
+            for index in range(0, len(compilation.vertices), 3)
+        )
+        self.assertEqual(archived_surfaces, expected_surfaces)
+        self.assertEqual(replayed_surfaces, expected_surfaces)
+        self.assertEqual(compilation.geometry_hash, visual_hash)
+        self.assertEqual(
+            compilation.metrics["capacity_geometry_hash"],
+            capacity_hash,
+        )
+        self.assertEqual(handoff["identity"]["geometry_hash"], visual_hash)
+        self.assertEqual(
+            handoff["indexed_triangle_mesh"]["vertices"],
+            [list(vertex) for vertex in compilation.vertices],
+        )
+        self.assertEqual(
+            handoff["geometry_program_role"],
+            "capacity_replay_metadata_and_provenance",
+        )
+        self.assertIn(
+            "silhouette",
+            handoff["elevation_contract"]["required_conditions"],
         )
 
     def test_projected_visual_identity_survives_board_archive_and_elevation(self):
@@ -1397,3 +1584,44 @@ class MaasFlowRegressionTest(SimpleTestCase):
             self.assertEqual(state["phase"], "replenishment")
             self.assertEqual(state["cycle_index"], 2)
             self.assertEqual(state["selected_mass_count"], 17)
+
+    def test_failed_run_preserves_bounded_typed_error_evidence(self):
+        with TemporaryDirectory() as temporary:
+            output_dir = Path(temporary)
+
+            class TypedFailure(RuntimeError):
+                def __init__(self):
+                    super().__init__("final_mesh_legal_escape")
+                    self.evidence = {
+                        "failure_code": "final_mesh_legal_escape",
+                        "floor_number": 3,
+                        "escaped_boundary_length_m": 0.125,
+                    }
+
+            @tracked_mass_command
+            def fake_handle(_command, *args, **options):
+                raise TypedFailure()
+
+            with self.assertRaises(TypedFailure):
+                fake_handle(
+                    SimpleNamespace(),
+                    output_dir=str(output_dir),
+                    pnu="test-pnu",
+                    program=["neighborhood"],
+                    recursive_only=True,
+                    live_vlm=False,
+                    outcome_graph=None,
+                )
+            state = json.loads(
+                (output_dir / "maas-run-state.json").read_text(
+                    encoding="utf-8",
+                )
+            )
+            self.assertEqual(
+                state["error_evidence"],
+                {
+                    "failure_code": "final_mesh_legal_escape",
+                    "floor_number": 3,
+                    "escaped_boundary_length_m": 0.125,
+                },
+            )

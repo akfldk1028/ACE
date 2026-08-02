@@ -24,6 +24,13 @@ from design.maas.geometry_language import (
     materialize_floorwise_legal_source,
     replace_source_dominant_with_geometry_program,
 )
+from design.maas.geometry_language.floorwise_visual_projection import (
+    certify_authored_visual_mesh,
+)
+from design.maas.geometry_language.projected_visual_contract import (
+    semantic_audit_payload_hash,
+    serialize_certified_projected_visual,
+)
 from design.maas.program_massing import program_reference_contract
 from design.maas.program_massing.scoring import attach_program_massing_evidence
 from design.maas.program_massing.search import (
@@ -55,6 +62,7 @@ from .candidate_analysis import (
     _site_access_side_in_principal_frame,
     _solid_morphology_metrics,
 )
+from .candidate_generation import _mass_stage_design_score
 from .base_volume_contract import book_base_volume_spec
 from .capacity_alternatives import (
     capacity_fit_score,
@@ -169,11 +177,6 @@ def _final_book_vlm_hard_pass(
             failures.append(
                 f"{policy.stage}_{concept}_below_{policy.quality_floor_label}"
             )
-    capacity = candidate_capacity or {}
-    capacity_utilization = float(capacity.get("feasible_capacity_utilization") or 0.0)
-    capacity_floor = max(0.0, float(minimum_capacity_utilization))
-    if capacity and capacity_utilization + 1e-9 < capacity_floor:
-        failures.append("book_stage_feasible_capacity_below_competition_floor")
     if not policy.require_finished_silhouette:
         return not failures, failures
     # The scorer already derives fragmentation actions from hierarchy and
@@ -539,6 +542,67 @@ def _book_vlm_review_budget(review_stage: str) -> int:
         return max(1, min(ceiling, int(os.getenv(variable, str(default)))))
     except (TypeError, ValueError):
         return default
+
+
+def _final_book_vlm_recovery_workers() -> int:
+    try:
+        return max(
+            0,
+            min(
+                2,
+                int(os.getenv("MAAS_FINAL_BOOK_VLM_RECOVERY_WORKERS", "1")),
+            ),
+        )
+    except (TypeError, ValueError):
+        return 1
+
+
+def _bind_final_visual_authority_for_review(
+    candidate: _Candidate,
+    semantic_projection_hard_gate: dict[str, Any],
+) -> None:
+    audit = deepcopy(semantic_projection_hard_gate)
+    artifact = serialize_certified_projected_visual(
+        candidate.source,
+        final_semantic_audit=audit,
+    )
+    certificate = artifact.get("projectedVisualCertificate")
+    certificate = certificate if isinstance(certificate, dict) else {}
+    artifact.setdefault("identity", {
+        "programHash": str(certificate.get("final_program_hash") or ""),
+        "geometryHash": str(
+            artifact.get("projectedVisualGeometryHash") or ""
+        ),
+        "finalLegalGeometryHash": str(
+            artifact.get("finalLegalGeometryHash")
+            or certificate.get("final_geometry_hash")
+            or ""
+        ),
+    })
+    props = candidate.feature.setdefault("properties", {})
+    props["geometry_artifact"] = deepcopy(artifact)
+    if isinstance(certificate, dict):
+        props["floorwise_visual_projection"] = deepcopy(certificate)
+    mesh = artifact.get("projectedVisualMesh")
+    triangles = (
+        mesh.get("triangles")
+        if isinstance(mesh, dict)
+        else None
+    )
+    if isinstance(triangles, list) and triangles:
+        props["source_surfaces"] = deepcopy(triangles)
+    props["semantic_projection_hard_gate"] = audit
+    props["final_semantic_anchor"] = {
+        "expected_semantic_context": deepcopy(
+            audit.get("audited_context")
+        ),
+        "expected_semantic_projection_hash": str(
+            audit.get("semantic_projection_hash") or ""
+        ),
+        "expected_semantic_audit_payload_hash": (
+            semantic_audit_payload_hash(audit)
+        ),
+    }
 
 
 def _book_base_parent_shortlist(
@@ -993,18 +1057,12 @@ def _audit_final_book_geometry_with_vlm(
             )
         )
     }
-    try:
-        recovery_workers = max(1, min(
-            2,
-            int(os.getenv("MAAS_FINAL_BOOK_VLM_RECOVERY_WORKERS", "1")),
-        ))
-    except (TypeError, ValueError):
-        recovery_workers = 1
+    recovery_workers = _final_book_vlm_recovery_workers()
     recovery_candidates = [
         candidate for candidate in shortlist
         if id(candidate) in initial_call_failures
     ]
-    if recovery_candidates:
+    if recovery_candidates and recovery_workers:
         with ThreadPoolExecutor(max_workers=min(recovery_workers, len(recovery_candidates))) as executor:
             futures = {
                 executor.submit(evaluate, candidate): candidate
@@ -1121,6 +1179,7 @@ def _audit_final_book_geometry_with_vlm(
             "candidate_design_concept": deepcopy(candidate_design_concept),
             "legal_or_parking_score": False,
             "reference_massing_gate": deepcopy(result.get("reference_massing_gate") or {}),
+            "vlm_image_inputs": deepcopy(result.get("vlm_image_inputs") or {}),
         }
         audit_records.append({
             "source_sequence": candidate.sequence.name,
@@ -1460,6 +1519,17 @@ def audit_book_base_stage_with_vlm(
     }
 
 
+def _final_authority_repair_requires_canonical_reprojection(
+    source: SourceMass,
+) -> bool:
+    """Return whether a VLM edit must re-enter the sole final-authority path."""
+
+    return (
+        str(source.metadata.get("geometry_authority") or "")
+        == "final_floorwise_legal_geometry_program"
+    )
+
+
 def _repair_exact_post_book_candidates_from_vlm(
     audited_pool: list[_Candidate],
     audit_gate: dict[str, Any],
@@ -1532,6 +1602,33 @@ def _repair_exact_post_book_candidates_from_vlm(
     site_access_context = dict(site_access_context or {})
     for candidate in candidates:
         record = records[candidate.sequence.name]
+        if _final_authority_repair_requires_canonical_reprojection(
+            candidate.source
+        ):
+            failures[
+                "final_authority_vlm_repair_canonical_reprojection_unsupported"
+            ] += 1
+            failure_records.append({
+                "source_sequence": candidate.sequence.name,
+                "geometry_family": _geometry_program_family(candidate),
+                "llm_authored_lane": _llm_authored_candidate(candidate),
+                "stage": "final_authority_repair_reprojection",
+                "status": "unsupported_fail_closed",
+                "issues": [
+                    {
+                        "code": (
+                            "final_authority_vlm_repair_canonical_"
+                            "reprojection_unsupported"
+                        ),
+                        "message": (
+                            "A final-authority parent may only be repaired by "
+                            "the canonical Matrix4 and floorwise legal "
+                            "materializer."
+                        ),
+                    }
+                ],
+            })
+            continue
         try:
             parent_program = GeometryProgram.from_dict(candidate.source.metadata["geometry_program"])
         except (TypeError, ValueError):
@@ -1646,11 +1743,7 @@ def _repair_exact_post_book_candidates_from_vlm(
                 else None
             ),
             upper_fit_strength=fit_strength,
-            minimum_host_plan_coverage=recursive_plan_coverage_floor(
-                building_type,
-                alternative_capacity_contract,
-                host_area_m2=float(compile_site.area),
-            ),
+            minimum_host_plan_coverage=0.0,
         )
         if source is None:
             failures["repaired_source_materialization_failed"] += 1
@@ -1666,9 +1759,19 @@ def _repair_exact_post_book_candidates_from_vlm(
                 generation_site,
                 site_access_geometry,
             ),
-            "program_space_zones": deepcopy(source.metadata.get("program_space_zones") or []),
+            "verified_semantic_carriers": deepcopy(
+                (
+                    source.metadata.get(
+                        "program_semantic_carrier_evidence"
+                    )
+                    or {}
+                ).get("carriers")
+                or []
+            ),
         }
         metadata = deepcopy(source.metadata)
+        metadata.pop("program_space_zones", None)
+        metadata.pop("program_role_integration_evidence", None)
         metadata["program_dimensional_context"] = deepcopy(program_dimensional_context or {})
         metadata["program_context"] = program_context
         metadata["geometry_graph_notes"] = build_geometry_graph_notes(
@@ -1693,17 +1796,42 @@ def _repair_exact_post_book_candidates_from_vlm(
         })
         metadata["geometry_program_bridge_evidence"] = repaired_bridge
         source = replace(source, metadata=metadata)
-        if generation_context is not None:
-            legal_sections = tuple(
-                generation_site_at_height(
-                    generation_context,
-                    float(height) * floor_number / max(1, int(floors)),
-                )
-                for floor_number in range(1, max(1, int(floors)) + 1)
+        if generation_context is None:
+            failures["repaired_authored_visual_legal_sections_missing"] += 1
+            continue
+        legal_sections = tuple(
+            generation_site_at_height(
+                generation_context,
+                float(height) * floor_number / max(1, int(floors)),
             )
-            if any(section is None for section in legal_sections):
-                failures["repaired_floorwise_legal_section_missing"] += 1
-                continue
+            for floor_number in range(1, max(1, int(floors)) + 1)
+        )
+        if any(section is None for section in legal_sections):
+            failures["repaired_authored_visual_legal_sections_missing"] += 1
+            continue
+        authored_visual = certify_authored_visual_mesh(
+            source,
+            legal_sections,
+        )
+        if not authored_visual.certificate.hard_pass:
+            failures.update(
+                authored_visual.certificate.failure_reasons
+                or ("repaired_authored_visual_certification_failed",)
+            )
+            continue
+        metadata = deepcopy(source.metadata)
+        metadata["floorwise_visual_projection"] = (
+            authored_visual.certificate.to_dict()
+        )
+        source = replace(source, metadata=metadata)
+        floorwise_sibling_evidence = {
+            "schema_version": "arr.maas.floorwise_legal_sibling_evidence.v1",
+            "status": "not_requested",
+            "visible_authored_geometry_preserved": True,
+            "authority": "diagnostic_only",
+            "failure_reasons": [],
+        }
+        if legal_sections:
             parent_floorwise_stack = candidate.source.metadata.get(
                 "floorwise_legal_matrix_stack"
             )
@@ -1723,35 +1851,67 @@ def _repair_exact_post_book_candidates_from_vlm(
                     )
                 )
             except (TypeError, ValueError):
-                failures["repaired_floorwise_target_coverage_invalid"] += 1
-                continue
-            floorwise_source = materialize_floorwise_legal_source(
-                source,
-                legal_sections=legal_sections,
-                target_plan_coverage=target_plan_coverage,
-                floor_capacity_plan_hash=str(
-                    parent_floorwise_stack.get("floor_capacity_plan_hash")
-                    or (base_capacity_contract or {}).get(
-                        "floor_capacity_plan_hash"
-                    )
-                    or ""
-                ),
-                target_floor_areas_m2=tuple(
-                    float(value)
-                    for value in (
-                        parent_floorwise_stack.get("target_floor_areas_m2")
+                target_plan_coverage = 0.0
+                floorwise_sibling_evidence.update({
+                    "status": "unavailable",
+                    "failure_reasons": [
+                        "repaired_floorwise_target_coverage_invalid"
+                    ],
+                })
+            if not floorwise_sibling_evidence["failure_reasons"]:
+                floorwise_source = materialize_floorwise_legal_source(
+                    source,
+                    legal_sections=legal_sections,
+                    target_plan_coverage=target_plan_coverage,
+                    floor_capacity_plan_hash=str(
+                        parent_floorwise_stack.get("floor_capacity_plan_hash")
                         or (base_capacity_contract or {}).get(
-                            "target_floor_areas_m2"
+                            "floor_capacity_plan_hash"
                         )
-                        or ()
+                        or ""
+                    ),
+                    target_floor_areas_m2=tuple(
+                        float(value)
+                        for value in (
+                            parent_floorwise_stack.get("target_floor_areas_m2")
+                            or (base_capacity_contract or {}).get(
+                                "target_floor_areas_m2"
+                            )
+                            or ()
+                        )
+                    ),
+                )
+                if floorwise_source is None:
+                    floorwise_sibling_evidence.update({
+                        "status": "unavailable",
+                        "failure_reasons": [
+                            "repaired_floorwise_legal_reprojection_failed"
+                        ],
+                    })
+                else:
+                    sibling_metadata = (
+                        floorwise_source.metadata
+                        if isinstance(floorwise_source.metadata, dict)
+                        else {}
                     )
-                ),
-            )
-            if floorwise_source is None:
-                failures["repaired_floorwise_legal_reprojection_failed"] += 1
-                continue
-            source = floorwise_source
-            counts["floorwise_legal_reprojection_count"] += 1
+                    floorwise_sibling_evidence.update({
+                        "status": "materialized",
+                        "sibling_volume_count": len(floorwise_source.volumes),
+                        "sibling_surface_count": len(floorwise_source.surfaces),
+                        "floorwise_legal_matrix_stack": deepcopy(
+                            sibling_metadata.get("floorwise_legal_matrix_stack")
+                            or {}
+                        ),
+                    })
+                    counts["floorwise_legal_sibling_evidence_count"] = (
+                        counts.get("floorwise_legal_sibling_evidence_count", 0)
+                        + 1
+                    )
+        metadata = deepcopy(source.metadata)
+        metadata["floorwise_legal_sibling_evidence"] = (
+            floorwise_sibling_evidence
+        )
+        source = replace(source, metadata=metadata)
         shared_floor_contract = _materialize_repaired_floor_contract(
             source,
             generation_context=generation_context,
@@ -1766,14 +1926,6 @@ def _repair_exact_post_book_candidates_from_vlm(
             metadata = deepcopy(source.metadata)
             metadata["shared_floor_contract"] = shared_floor_contract
             source = replace(source, metadata=metadata)
-            if not shared_floor_contract.get("hard_pass"):
-                failures.update(
-                    f"shared_floor_{reason}"
-                    for reason in shared_floor_contract.get("failure_reasons") or (
-                        "hard_gate_failed",
-                    )
-                )
-                continue
         capacity_measurement: dict[str, Any] = {}
         if base_capacity_contract and capacity_site is not None:
             capacity_measurement = measure_source_capacity(
@@ -1856,13 +2008,16 @@ def _repair_exact_post_book_candidates_from_vlm(
                 source.metadata.get("capacity_alternative_projection") or {},
                 capacity_measurement,
             )
-            score = (
-                float(program["program_fit_score"]) * 0.40
-                + float(spatial["architectural_score"]) * 0.30
-                + capacity_score * 0.30
+            score = _mass_stage_design_score(
+                program_fit_score=float(program["program_fit_score"]),
+                architectural_score=float(spatial["architectural_score"]),
+                advisory_capacity_score=capacity_score,
             )
         else:
-            score = float(program["program_fit_score"]) * 0.56 + float(spatial["architectural_score"]) * 0.44
+            score = _mass_stage_design_score(
+                program_fit_score=float(program["program_fit_score"]),
+                architectural_score=float(spatial["architectural_score"]),
+            )
         repaired.append(_Candidate(
             candidate.principle_id,
             candidate.principle_kind,

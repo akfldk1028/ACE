@@ -13,6 +13,7 @@ class ExecutionIdentity:
     execution_id: str
     program_hash: str
     geometry_hash: str
+    floor_capacity_plan_hash: str
     pnu: str
 
     def __post_init__(self) -> None:
@@ -22,6 +23,7 @@ class ExecutionIdentity:
                 ("execution_id", self.execution_id),
                 ("program_hash", self.program_hash),
                 ("geometry_hash", self.geometry_hash),
+                ("floor_capacity_plan_hash", self.floor_capacity_plan_hash),
                 ("pnu", self.pnu),
             )
             if not str(value).strip()
@@ -34,6 +36,7 @@ class ExecutionIdentity:
             "execution_id": self.execution_id,
             "program_hash": self.program_hash,
             "geometry_hash": self.geometry_hash,
+            "floor_capacity_plan_hash": self.floor_capacity_plan_hash,
             "pnu": self.pnu,
         }
 

@@ -34,6 +34,10 @@ from .cost import ProgramCost, candidate_sort_key, geometry_equivalent, program_
 from .dsl import GeometryDslError, parse_geometry_dsl, program_to_dsl
 from .execution_passport import MASS_EXECUTION_PASSPORT_SCHEMA, build_mass_execution_passport, enrich_mass_execution_passport, passport_path_for_preview, write_mass_execution_passport
 from .execution_agent_context import build_mass_execution_agent_context
+from .floorwise_legal_program import (
+    FloorwiseLegalProgramResult,
+    append_floorwise_legal_projection,
+)
 from .gate import GeometryGatePolicy, compilation_gate
 from .loop import GeometryLoopCandidate, GeometryLoopResult, run_geometry_program_a2a_loop
 from .llm_adapter import GeometryAuthorError, author_geometry_programs_with_openai, geometry_programs_from_author_payload
@@ -77,12 +81,14 @@ __all__ = [
     "GeometryOutcomeGraph",
     "GeometryProgram",
     "GeometryProgramBuilder",
+    "FloorwiseLegalProgramResult",
     "MutationResult",
     "ProgramCost",
     "TYPOLOGY_PRIORS",
     "TypologyPrior",
     "apply_geometry_edits",
     "apply_geometry_edits_compiler_safe",
+    "append_floorwise_legal_projection",
     "apply_book_projection_to_geometry_program",
     "apply_capacity_composition_to_geometry_program",
     "BOOK_KERNEL_PARAMETER_PROJECTIONS",

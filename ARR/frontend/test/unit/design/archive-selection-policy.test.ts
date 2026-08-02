@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildRecentMassCards,
+  selectCreativePortfolioMembers,
   reconcileExecutedMassArchive,
   latestReplayableRunId,
   resolveSelectedMassIndex,
 } from '../../../src/design/components/book-language-flow/archive-selection-policy'
 import type { ExecutedMassManifest } from '../../../src/design/lib/language-system-types'
+import type { CreativeMassCard } from '../../../src/design/lib/language-system-types'
 
 
 function manifest(
@@ -38,6 +40,25 @@ function manifest(
 }
 
 describe('executed MASS archive selection policy', () => {
+  it('keeps all creative members while recent executions retain the 24-card cap', () => {
+    const creative = Array.from({ length: 100 }, (_, index) => ({
+      selectionKey: `run/c${index}/p${index}/g${index}`,
+    })) as CreativeMassCard[]
+    const archive = manifest(
+      'single-execution:r100',
+      Array.from({ length: 40 }, (_, index) => `single-execution:r${index}`),
+      'rev-100',
+    )
+    archive.runs.forEach((run, index) => {
+      run.run_type = 'single_execution'
+      run.created_at = `2026-07-24T00:${String(index).padStart(2, '0')}:00Z`
+      run.geometry_hash = `geometry-${index}`
+    })
+
+    expect(selectCreativePortfolioMembers(creative)).toHaveLength(100)
+    expect(buildRecentMassCards(archive)).toHaveLength(24)
+  })
+
   it('follows a newly arrived replayable run into the graph body', () => {
     const current = manifest('single-execution:r207', ['single-execution:r207'], 'rev-207')
     const incoming = manifest(

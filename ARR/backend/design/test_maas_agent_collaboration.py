@@ -27,6 +27,7 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
             execution_id="mass-contract-01",
             program_hash="program-hash-01",
             geometry_hash="geometry-hash-01",
+            floor_capacity_plan_hash="floor-capacity-plan-hash-01",
             pnu="1168011800104170004",
         )
 
@@ -77,6 +78,12 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
         )
         self.assertTrue(all(row.identity == identity for row in trace.evidence))
         self.assertTrue(all(row.identity == identity for row in trace.handoffs))
+        serialized = trace.to_dict()
+        self.assertTrue(all(
+            row["identity"]["floor_capacity_plan_hash"]
+            == "floor-capacity-plan-hash-01"
+            for row in (*serialized["evidence"], *serialized["handoffs"])
+        ))
         self.assertEqual(trace.final_status, "accepted")
 
     def test_missing_law_evidence_blocks_acceptance_but_keeps_trace(self):
@@ -120,12 +127,43 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
                 },
             )
 
+    def test_floor_capacity_plan_hash_mismatch_fails_closed(self):
+        identity = self._identity()
+
+        def corrupt_capacity_plan(bound_identity, accumulated):
+            return AgentEvidence(
+                evidence_id="evidence:bad-capacity-plan",
+                agent="maas_geometry_agent",
+                status="passed",
+                summary="wrong capacity plan",
+                identity=replace(
+                    bound_identity,
+                    floor_capacity_plan_hash="another-floor-capacity-plan",
+                ),
+                evidence={},
+            )
+
+        with self.assertRaisesMessage(ExecutionCollaborationError, "identity mismatch"):
+            run_execution_collaboration(
+                identity,
+                executors={
+                    "maas_geometry_agent": corrupt_capacity_plan,
+                    "law_graph_agent": self._executor("law_graph_agent"),
+                    "parking_agent": self._executor("parking_agent"),
+                    "review_agent": self._executor("review_agent"),
+                },
+            )
+
     def test_law_agent_records_graph_and_search_provenance(self):
         identity = self._identity()
         evidence = collect_law_agent_evidence(
             identity,
             {
-                "law": {"evaluated": True, "hard_pass": True},
+                "law": {
+                    "evaluated": True,
+                    "hard_pass": True,
+                    "status": "pass",
+                },
                 "building_type": "neighborhood_living",
             },
             graph_loader=lambda: {
@@ -150,7 +188,11 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
     def test_law_agent_marks_unavailable_graph_as_needs_evidence(self):
         evidence = collect_law_agent_evidence(
             self._identity(),
-            {"law": {"evaluated": True, "hard_pass": True}},
+            {"law": {
+                "evaluated": True,
+                "hard_pass": True,
+                "status": "pass",
+            }},
             graph_loader=lambda: {
                 "graph_status": {
                     "attempted": True,
@@ -202,6 +244,14 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
             stage_id: {"evaluated": True, "hard_pass": True, "selected": stage_id == "selector"}
             for stage_id in ("site", "capacity", "law", "parking", "program_fit", "selector")
         }
+        downstream["capacity"]["floor_capacity_plan_hash"] = "floor-capacity-plan-passport"
+        downstream["capacity"]["shared_floor_contract"] = {
+            "schema_version": "arr.maas.shared_floor_contract.v1",
+            "floor_capacity_plan_hash": "floor-capacity-plan-passport",
+        }
+        downstream["shared_floor_contract"] = dict(
+            downstream["capacity"]["shared_floor_contract"]
+        )
         downstream["site"]["pnu"] = self._identity().pnu
         vlm = {
             "model": "fixture-vlm",
@@ -243,6 +293,14 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
             self.assertEqual(identity["execution_id"], "agent-passport")
             self.assertEqual(identity["program_hash"], result.program_hash)
             self.assertEqual(identity["geometry_hash"], result.geometry_hash)
+            self.assertEqual(
+                identity["floor_capacity_plan_hash"],
+                "floor-capacity-plan-passport",
+            )
+            self.assertEqual(
+                passport["floor_capacity_plan_hash"],
+                "floor-capacity-plan-passport",
+            )
             self.assertEqual(passport["status"], "accepted")
             self.assertTrue(Path(result.preview_path).is_file())
             graph = passport["activation_graph"]

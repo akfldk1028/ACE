@@ -7,6 +7,10 @@ from typing import Any
 from .profiles import resolve_program_profile
 from .semantic_projection import project_spatial_roles
 from .geometry_safety import repaired_volume_records, safe_unary_union
+from .semantic_carriers import (
+    REQUIRED_RELATIONS,
+    audit_program_semantic_carrier_geometry,
+)
 
 
 ROLE_GROUPS = {
@@ -37,9 +41,105 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
     areas = [float(item.area) for item in geometries]
     total_component_area = sum(areas)
     signature = props.get("source_signature") if isinstance(props.get("source_signature"), dict) else {}
+    bridge = (
+        signature.get("geometry_program_bridge_evidence")
+        if isinstance(signature.get("geometry_program_bridge_evidence"), dict)
+        else {}
+    )
+    final_floorwise_authority = (
+        str(
+            signature.get("geometry_authority")
+            or bridge.get("geometry_authority")
+            or ""
+        )
+        == "final_floorwise_legal_geometry_program"
+        or str(
+            (
+                signature.get("program_semantic_carrier_evidence")
+                if isinstance(
+                    signature.get("program_semantic_carrier_evidence"),
+                    dict,
+                )
+                else {}
+            ).get("projection_method")
+            or ""
+        )
+        == "final_floor_band_principal_frame_partition"
+    )
     program_space_zones = (
         signature.get("program_space_zones")
-        if isinstance(signature.get("program_space_zones"), list)
+        if (
+            not final_floorwise_authority
+            and isinstance(signature.get("program_space_zones"), list)
+        )
+        else []
+    )
+    carrier_evidence = (
+        signature.get("program_semantic_carrier_evidence")
+        if isinstance(
+            signature.get("program_semantic_carrier_evidence"),
+            dict,
+        )
+        else {}
+    )
+    actual_program_hash, actual_geometry_hash = _actual_final_hashes(
+        signature,
+        bridge,
+    )
+    carrier_audit = audit_program_semantic_carrier_geometry(
+        carrier_evidence,
+        actual_program_hash=actual_program_hash,
+        actual_geometry_hash=actual_geometry_hash,
+        actual_surface_payload_hash=str(
+            signature.get("actual_surface_payload_hash") or ""
+        ),
+        surface_payload_complete=bool(
+            int(signature.get("surface_count") or 0) > 0
+            and bridge.get("surface_export_complete") is True
+            and int(bridge.get("raw_mesh_triangle_count") or 0)
+            == int(signature.get("surface_count") or 0)
+            and int(bridge.get("exported_surface_count") or 0)
+            == int(signature.get("surface_count") or 0)
+        ),
+        program_id=profile_id,
+        current_context=(
+            signature.get("final_semantic_projection_context")
+            if isinstance(
+                signature.get("final_semantic_projection_context"),
+                dict,
+            )
+            else {}
+        ),
+        repaired_volume_records=repaired,
+        final_program_payload=(
+            signature.get("geometry_program")
+            if isinstance(signature.get("geometry_program"), dict)
+            else {}
+        ),
+    ) if final_floorwise_authority else {
+        "schema_version": "arr.maas.final_semantic_projection_audit.v1",
+        "hard_pass": False,
+        "accepted_carrier_count": 0,
+        "accepted_carriers": [],
+        "failures": ["not_final_floorwise_authority"],
+    }
+    bridge_identity_failures = []
+    if str(bridge.get("program_hash") or "") != actual_program_hash:
+        bridge_identity_failures.append("final_program_hash_mismatch")
+    if str(bridge.get("geometry_hash") or "") != actual_geometry_hash:
+        bridge_identity_failures.append("final_geometry_hash_mismatch")
+    if bridge_identity_failures:
+        carrier_audit = dict(carrier_audit)
+        carrier_audit["failures"] = sorted(set(
+            list(carrier_audit.get("failures") or ())
+            + bridge_identity_failures
+        ))
+        carrier_audit["hard_pass"] = False
+        carrier_audit["accepted_carriers"] = []
+    accepted_carriers = (
+        carrier_audit.get("accepted_carriers")
+        if carrier_audit.get("hard_pass")
+        and isinstance(carrier_audit.get("accepted_carriers"), list)
         else []
     )
     zone_area = max(areas, default=0.0) * sum(
@@ -50,7 +150,57 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
     union = safe_unary_union(geometries)
     union_area = float(union.area) if union is not None and not union.is_empty else 0.0
     denominator = float(site_area_m2 or props.get("benchmark_site_area_m2") or union_area or 1.0)
-    coverage = union_area / max(denominator, 1e-9)
+    coverage_numerator = union_area
+    coverage_measurement_mode = "all_volume_plan_union"
+    if final_floorwise_authority:
+        minimum_bottom_height = min(
+            (
+                float(record.get("bottom_height") or 0.0)
+                for record, _geometry in repaired
+            ),
+            default=0.0,
+        )
+        ground_union = safe_unary_union(
+            geometry
+            for record, geometry in repaired
+            if float(record.get("bottom_height") or 0.0)
+            == minimum_bottom_height
+        )
+        coverage_numerator = (
+            float(ground_union.area)
+            if ground_union is not None and not ground_union.is_empty
+            else 0.0
+        )
+        candidate_floor_context = (
+            props.get("candidate_floor_context")
+            if isinstance(props.get("candidate_floor_context"), dict)
+            else {}
+        )
+        legal_floor_areas = candidate_floor_context.get(
+            "legal_floor_section_areas_m2"
+        )
+        ground_host_area = (
+            float(legal_floor_areas[0])
+            if (
+                isinstance(legal_floor_areas, (list, tuple))
+                and legal_floor_areas
+                and type(legal_floor_areas[0]) in (int, float)
+                and float(legal_floor_areas[0]) > 0.0
+            )
+            else 0.0
+        )
+        denominator = float(
+            ground_host_area
+            or props.get("benchmark_site_area_m2")
+            or site_area_m2
+            or union_area
+            or 1.0
+        )
+        coverage_measurement_mode = "lowest_occupied_floor_band"
+    coverage = coverage_numerator / max(denominator, 1e-9)
+    all_height_projected_plan_union_ratio = (
+        union_area / max(denominator, 1e-9)
+    )
     geometric_dominant = max(areas, default=0.0) / max(total_component_area, 1e-9)
     dominant = max(areas, default=0.0) / max(total_component_area + zone_area, 1e-9)
     roles = [str(role).lower() for role in grouped]
@@ -59,6 +209,23 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         for zone in program_space_zones
         if isinstance(zone, dict) and zone.get("role")
     )
+    if accepted_carriers:
+        carrier_areas: dict[str, float] = {}
+        for carrier in accepted_carriers:
+            relation = str(carrier.get("source_relation") or "")
+            carrier_areas[relation] = (
+                carrier_areas.get(relation, 0.0)
+                + float(carrier.get("measured_area_m2") or 0.0)
+            )
+        total_carrier_area = sum(carrier_areas.values())
+        dominant = max(
+            carrier_areas.values(),
+            default=0.0,
+        ) / max(total_carrier_area, 1e-9)
+        roles = [
+            str(carrier.get("semantic_role") or "").lower()
+            for carrier in accepted_carriers
+        ]
     groups = ROLE_GROUPS.get(profile_id, ())
     role_projection = project_spatial_roles(feature)
     if profile_id == "neighborhood_living":
@@ -68,7 +235,18 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
             bool(role_projection["public_spatial_gesture_present"]),
         ]
     else:
-        role_hits = [any(any(token in role for token in group) for role in roles) for group in groups]
+        required_relations = REQUIRED_RELATIONS.get(profile_id)
+        if accepted_carriers and required_relations:
+            present_relations = {
+                str(carrier.get("source_relation") or "")
+                for carrier in accepted_carriers
+            }
+            role_hits = [
+                relation in present_relations
+                for relation in required_relations
+            ]
+        else:
+            role_hits = _distinct_role_group_hits(roles, groups)
     role_score = sum(role_hits) / len(role_hits) if role_hits else 0.6
     top_levels = {round(float(item.get("top_height") or 0.0), 2) for item in records}
     bottom_levels = {round(float(item.get("bottom_height") or 0.0), 2) for item in records}
@@ -80,6 +258,14 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         round(float(zone.get("bottom_fraction") or 0.0), 2)
         for zone in program_space_zones if isinstance(zone, dict)
     }
+    zone_top_levels.update(
+        round(float(carrier.get("top_fraction") or 0.0), 2)
+        for carrier in accepted_carriers
+    )
+    zone_bottom_levels.update(
+        round(float(carrier.get("bottom_fraction") or 0.0), 2)
+        for carrier in accepted_carriers
+    )
     semantic_top_level_count = len(top_levels) + len(zone_top_levels)
     semantic_bottom_level_count = len(bottom_levels) + len(zone_bottom_levels)
     hierarchy_score = min(
@@ -162,12 +348,21 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         "dominant_ratio_score": round(dominant_score, 3),
         "site_coverage_ratio": round(coverage, 3),
         "site_coverage_score": round(coverage_score, 3),
+        "all_height_projected_plan_union_ratio": round(
+            all_height_projected_plan_union_ratio,
+            3,
+        ),
+        "coverage_numerator_m2": round(coverage_numerator, 3),
+        "coverage_denominator_m2": round(denominator, 3),
+        "coverage_measurement_mode": coverage_measurement_mode,
         "height_level_count": semantic_top_level_count,
         "section_level_count": semantic_bottom_level_count,
         "hierarchy_score": round(hierarchy_score, 3),
         "coherence_score": round(coherence_score, 3),
         "architectural_score": round(max(0.0, min(1.0, score)), 3),
         "hard_pass": bool(all(role_hits) and dominant_score >= 0.55 and coverage_score >= 0.55 and hierarchy_score >= 0.5 and coherence.get("hard_pass", False)),
+        "semantic_carrier_audit": carrier_audit,
+        "verified_semantic_carrier_count": len(accepted_carriers),
     }
     props["program_spatial_evidence"] = evidence
     return evidence
@@ -181,6 +376,58 @@ def _range_score(value: float, target: tuple[float, float]) -> float:
         return max(0.75, 1.0 - abs(value - center) / half * 0.25)
     distance = low - value if value < low else value - high
     return max(0.0, 0.75 - distance * 3.0)
+
+
+def _distinct_role_group_hits(
+    roles: list[str],
+    groups: tuple[tuple[str, ...], ...],
+) -> list[bool]:
+    unused = set(range(len(roles)))
+    hits: list[bool] = []
+    for group in groups:
+        match = next((
+            index
+            for index in sorted(unused)
+            if any(token in roles[index] for token in group)
+        ), None)
+        hits.append(match is not None)
+        if match is not None:
+            unused.remove(match)
+    return hits
+
+
+def _actual_final_hashes(
+    signature: dict[str, Any],
+    bridge: dict[str, Any],
+) -> tuple[str, str]:
+    if (
+        str(signature.get("geometry_authority") or "")
+        == "final_floorwise_legal_geometry_program"
+    ):
+        # The stored program is the law/capacity replay graph.  The certified
+        # authored triangle mesh is the final visual geometry authority, so
+        # recompiling the replay plates cannot reproduce its geometry hash.
+        # Surface-payload and semantic audits independently verify that bridge.
+        return (
+            str(bridge.get("program_hash") or ""),
+            str(bridge.get("geometry_hash") or ""),
+        )
+    payload = signature.get("geometry_program")
+    if isinstance(payload, dict) and payload.get("nodes"):
+        try:
+            from design.maas.geometry_language import (
+                GeometryProgram,
+                compile_geometry_program,
+            )
+            program = GeometryProgram.from_dict(payload)
+            compilation = compile_geometry_program(program)
+            return program.program_hash(), compilation.geometry_hash
+        except (TypeError, ValueError):
+            return "", ""
+    return (
+        str(bridge.get("program_hash") or ""),
+        str(bridge.get("geometry_hash") or ""),
+    )
 
 
 __all__ = ["attach_program_spatial_evidence"]

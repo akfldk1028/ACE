@@ -170,6 +170,38 @@ Run:
 
 Expected: all pass.
 
+### Task 3.5: Fail closed on final floorwise law evidence
+
+**Files:**
+- Modify: `ARR/backend/design/maas/legal_mesh_optimizer.py`
+- Test: `ARR/backend/design/test_maas_export.py`
+
+**Interfaces:**
+- Consumes: the site legal envelope, sunlight height field, and each
+  candidate's exact floor plates or mass-volume section bands.
+- Produces: final-selection eligibility evidence that revalidates every
+  occupied floor against height-dependent buildable geometry.
+
+- [ ] **Step 1: Write failing final-boundary regressions**
+
+Reproduce the non-floor-stack candidates selected at 19.6--33.6 m with empty
+`floor_plates`. Require each final candidate either to carry exact floor plates
+validated against `allowed_footprint_at_height`, or to be rejected/repaired
+before ranking and integer projection.
+
+- [ ] **Step 2: Implement one shared floorwise legal validator**
+
+Validate BCR/FAR/height, sunlight, setback and occupied section bands from
+measured geometry. Do not infer a pass from a scalar height alone and do not
+special-case `legal_layered_max` by name. Bind the validator's pass evidence to
+the feature passed to parking, preference, VLM and final selection.
+
+- [ ] **Step 3: Verify focused and full legal regressions**
+
+Run the six floor/legal selection regressions individually, then the full
+`MaasLegalVariantsTest` class. Update only demonstrably stale registry/fixture
+expectations; never weaken the floorwise legal gate to satisfy an old test.
+
 ### Task 4: Deterministic, paid, and frontend end-to-end verification
 
 **Files:**

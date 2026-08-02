@@ -9,7 +9,9 @@ from typing import Any, Mapping
 
 from PIL import Image, UnidentifiedImageError
 
-from design.maas.mass_product_evidence import floor_capacity_plan_hash
+from design.maas.mass_product_evidence import (
+    resolve_floor_capacity_plan_identity,
+)
 
 from .execution_activation import append_vlm_nodes, build_activation_graph
 from .execution_evidence import (
@@ -110,7 +112,16 @@ def build_mass_execution_passport(
     ]
     stages.extend(stage_from_downstream(key, downstream[key]) for key in ("site", "capacity", "law", "parking", "program_fit"))
     stages.extend((
-        stage("compiler", "Geometry Compiler", "passed" if compilation.status == "compiled" else "failed", node_ids=list(trace_by_id), evidence={"status": compilation.status, "trace_count": len(compilation.trace or ()), "issues": [issue.to_dict() for issue in compilation.issues or ()]}),
+        stage("compiler", "Geometry Compiler", "passed" if compilation.status == "compiled" else "failed", node_ids=list(trace_by_id), evidence={
+            "status": compilation.status,
+            "trace_count": len(compilation.trace or ()),
+            "issues": [issue.to_dict() for issue in compilation.issues or ()],
+            "capacity_replay_numeric_transport": deepcopy(
+                (compilation.metrics or {}).get(
+                    "capacity_replay_numeric_transport"
+                ) or {}
+            ),
+        }),
         stage("geometry_gate", "Geometry GATE", "passed" if gate_hard_pass else "failed", evidence={
             **gate_override,
             "hard_pass": gate_hard_pass,
@@ -122,10 +133,19 @@ def build_mass_execution_passport(
         stage_from_downstream("selector", downstream["selector"]),
     ))
     collaboration_status = str(collaboration.get("final_status") or "")
-    capacity_plan_hash = floor_capacity_plan_hash(
+    collaboration_identity = (
+        collaboration.get("identity")
+        if isinstance(collaboration.get("identity"), Mapping)
+        else {}
+    )
+    capacity_plan_hash = resolve_floor_capacity_plan_identity(
         program=program,
         capacity=downstream["capacity"],
-    ) or "FLOOR_CAPACITY_PLAN_HASH_UNRESOLVED"
+        additional_hashes=(
+            collaboration_identity.get("floor_capacity_plan_hash"),
+        ),
+        unresolved="FLOOR_CAPACITY_PLAN_HASH_UNRESOLVED",
+    )
     stages.append(stage(
         "agent_collaboration",
         "Specialist agent collaboration",
@@ -145,6 +165,18 @@ def build_mass_execution_passport(
         elevation_evidence=deepcopy(dict(elevation_evidence or {})),
     )
     state = passport_state(stages)
+    visual_hash = (
+        str(compilation.geometry_hash or "")
+        if (
+            compilation.status == "compiled"
+            and not measured_gate_issues
+            and (
+                compilation.metrics or {}
+            ).get("geometry_authority")
+            == "certified_projected_visual_mesh"
+        )
+        else ""
+    )
     return {
         "schema_version": MASS_EXECUTION_PASSPORT_SCHEMA,
         "mass_id": f"mass:{compilation.geometry_hash or _safe_program_hash(program)}",
@@ -152,6 +184,12 @@ def build_mass_execution_passport(
         "program_hash": _safe_program_hash(program),
         "structural_hash": _safe_structural_hash(program),
         "geometry_hash": str(compilation.geometry_hash or ""),
+        "capacity_replay_numeric_transport": deepcopy(
+            (compilation.metrics or {}).get(
+                "capacity_replay_numeric_transport"
+            ) or {}
+        ),
+        "visual_hash": visual_hash,
         "floor_capacity_plan_hash": capacity_plan_hash,
         **state,
         "truth_policy": {

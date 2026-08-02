@@ -68,9 +68,17 @@ class LawDerivedFloorCapacityPlanTests(SimpleTestCase):
 
         self.assertEqual(plan["status"], "materialized")
         self.assertEqual(plan["selected_floor_count"], 8)
-        self.assertEqual(plan["allowed_floor_range"], [2, 8])
+        self.assertEqual(plan["allowed_floor_range"], [1, 8])
         self.assertEqual(plan["legacy_floor_hint"], 5)
         self.assertFalse(plan["legacy_hint_is_authority"])
+        self.assertEqual(
+            plan["legal_floor_field_hash"],
+            plan["legal_floor_field"]["legal_floor_field_hash"],
+        )
+        self.assertEqual(
+            plan["legal_floor_field"]["measured_usable_floor_count"],
+            8,
+        )
         self.assertAlmostEqual(plan["target_gfa_m2"], 720.0, places=3)
 
     def test_legal_height_clamps_floor_range_before_capacity_measurement(self):
@@ -83,7 +91,7 @@ class LawDerivedFloorCapacityPlanTests(SimpleTestCase):
             target_utilization=0.90,
         )
 
-        self.assertEqual(plan["allowed_floor_range"], [2, 5])
+        self.assertEqual(plan["allowed_floor_range"], [1, 5])
         self.assertEqual(plan["selected_floor_count"], 5)
         self.assertEqual(plan["selected_height_m"], 15.0)
         self.assertEqual(len(plan["legal_floor_section_areas_m2"]), 5)
@@ -226,7 +234,7 @@ class LawDerivedFloorCapacityPlanTests(SimpleTestCase):
             plan["terminal_floor_exclusion_reasons"],
         )
 
-    def test_profile_minimum_above_legal_height_is_explicitly_infeasible(self):
+    def test_program_advisory_minimum_does_not_block_one_lawful_floor(self):
         context, site = _context(height_limit=3.0)
 
         plan = derive_program_floor_capacity_plan(
@@ -236,12 +244,10 @@ class LawDerivedFloorCapacityPlanTests(SimpleTestCase):
             target_utilization=0.90,
         )
 
-        self.assertEqual(plan["status"], "infeasible")
-        self.assertEqual(plan["selected_floor_count"], 0)
-        self.assertIn(
-            "legal_height_below_program_minimum_floors",
-            plan["failure_reasons"],
-        )
+        self.assertEqual(plan["status"], "materialized")
+        self.assertEqual(plan["selected_floor_count"], 1)
+        self.assertEqual(plan["allowed_floor_range"], [1, 1])
+        self.assertEqual(plan["failure_reasons"], [])
 
     def test_clear_span_height_is_not_reinterpreted_as_ordinary_storeys(self):
         context, site = _context(
@@ -281,6 +287,7 @@ class LawDerivedFloorCapacityPlanTests(SimpleTestCase):
         }
 
         height, floors, plan = _resolve_authoritative_floor_context(
+            pnu="1168011800104170004",
             generation_context=context,
             site_local_utm=site,
             building_type="neighborhood living",
@@ -294,6 +301,10 @@ class LawDerivedFloorCapacityPlanTests(SimpleTestCase):
         self.assertEqual(height, 24.0)
         self.assertEqual(plan["selected_floor_count"], 8)
         self.assertFalse(plan["legacy_hint_is_authority"])
+        self.assertEqual(
+            plan["legal_floor_field"]["pnu"],
+            "1168011800104170004",
+        )
 
     def test_capacity_contract_reuses_exact_floor_plan_identity_and_sections(self):
         context, site = _context()
@@ -303,6 +314,7 @@ class LawDerivedFloorCapacityPlanTests(SimpleTestCase):
             building_type="neighborhood living",
             target_utilization=0.90,
             legacy_floor_hint=5,
+            pnu="1168011800104170004",
         )
 
         contract = build_feasible_capacity_contract(
@@ -325,4 +337,9 @@ class LawDerivedFloorCapacityPlanTests(SimpleTestCase):
             contract["floor_capacity_plan_hash"],
             plan["floor_capacity_plan_hash"],
         )
+        self.assertEqual(
+            contract["legal_floor_field_hash"],
+            plan["legal_floor_field_hash"],
+        )
+        self.assertEqual(contract["available_legal_floor_count"], 8)
         self.assertEqual(contract["target_floor_areas_m2"], plan["target_floor_areas_m2"])

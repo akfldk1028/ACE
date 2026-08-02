@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 import hashlib
 import json
+from math import isfinite
 import re
 from typing import Any, Iterable
 
@@ -31,9 +32,13 @@ OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
     "modifier": frozenset({
         "bend", "taper", "twist", "pinch", "inflate",
         "slice", "clip", "clip_fraction", "book_base_volume", "cut_corner",
+        "legal_section_clip", "circularize", "profile_sweep_3d",
     }),
     "boolean": frozenset({"union", "difference", "intersection"}),
-    "pattern": frozenset({"duplicate", "linear_array", "radial_array", "mirror_array", "stack"}),
+    "pattern": frozenset({
+        "duplicate", "linear_array", "radial_array", "mirror_array", "stack",
+        "matrix_array",
+    }),
     "composition": frozenset({"attach", "bridge"}),
     "macro": frozenset({
         "courtyard",
@@ -81,6 +86,15 @@ OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
 
 UNARY_KINDS = frozenset({"transform", "modifier", "pattern"})
 IDENTIFIER_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.:-]{0,79}$")
+FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT = {
+    "schema_version": "arr.maas.geometry_execution_contract.v1",
+    "capacity_replay_numeric_transport": {
+        "collapse_threshold_m": 1e-5,
+        "maximum_3d_displacement_m": 1e-5,
+        "retry_on_issue_codes": ["tiny_edge"],
+        "floor_center_section_equivalence_required": True,
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -149,6 +163,7 @@ class GeometryProgram:
     name: str = "geometry_program"
     schema_version: str = "arr.maas.geometry_program.v1"
     metadata: dict[str, Any] = field(default_factory=dict)
+    execution_contract: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, value: dict[str, Any]) -> "GeometryProgram":
@@ -158,14 +173,18 @@ class GeometryProgram:
         if not isinstance(nodes, list):
             raise TypeError("geometry program nodes must be an array")
         metadata = value.get("metadata") or {}
-        if not isinstance(metadata, dict):
-            raise TypeError("geometry program metadata must be an object")
+        execution_contract = value.get("execution_contract") or {}
+        if not isinstance(metadata, dict) or not isinstance(execution_contract, dict):
+            raise TypeError(
+                "geometry program metadata/execution_contract must be objects"
+            )
         return cls(
             nodes=tuple(GeometryNode.from_dict(item) for item in nodes),
             root_id=str(value.get("root_id") or ""),
             name=str(value.get("name") or "geometry_program"),
             schema_version=str(value.get("schema_version") or "arr.maas.geometry_program.v1"),
             metadata=_json_copy(metadata),
+            execution_contract=_json_copy(execution_contract),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -175,6 +194,11 @@ class GeometryProgram:
             "root_id": self.root_id,
             "nodes": [node.to_dict() for node in self.nodes],
             "metadata": _json_copy(self.metadata),
+            **(
+                {"execution_contract": _json_copy(self.execution_contract)}
+                if self.execution_contract
+                else {}
+            ),
         }
 
     @property
@@ -197,6 +221,14 @@ class GeometryProgram:
 
     def validate(self, *, maximum_nodes: int = 96, maximum_depth: int = 32) -> tuple[GeometryIssue, ...]:
         issues: list[GeometryIssue] = []
+        if self.execution_contract not in (
+            {},
+            FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT,
+        ):
+            issues.append(GeometryIssue(
+                "invalid_execution_contract",
+                "execution_contract is not a whitelisted deterministic contract",
+            ))
         if not self.nodes:
             return (GeometryIssue("empty_program", "program has no nodes"),)
         if len(self.nodes) > maximum_nodes:
@@ -277,7 +309,7 @@ class GeometryProgram:
 
     def canonical_dict(self) -> dict[str, Any]:
         ordered = self.topological_nodes()
-        return {
+        result = {
             "schema_version": self.schema_version,
             "root_id": self.root_id,
             "nodes": [
@@ -292,6 +324,11 @@ class GeometryProgram:
                 for node in ordered
             ],
         }
+        if self.execution_contract:
+            result["execution_contract"] = _canonical_value(
+                self.execution_contract
+            )
+        return result
 
     def program_hash(self) -> str:
         payload = json.dumps(self.canonical_dict(), sort_keys=True, separators=(",", ":"))
@@ -379,6 +416,56 @@ def _parameter_issues(node: GeometryNode) -> list[GeometryIssue]:
         path = params.get("path")
         if not isinstance(path, list) or len(path) < 2:
             issues.append(GeometryIssue("missing_path", "sweep requires at least two path points", node.id))
+    if node.operator == "profile_sweep_3d":
+        path = params.get("path")
+        if not isinstance(path, list) or len(path) < 2:
+            issues.append(GeometryIssue(
+                "missing_path",
+                "profile_sweep_3d requires at least two path points",
+                node.id,
+            ))
+        elif not all(_finite_vector(point, 3) for point in path):
+            issues.append(GeometryIssue(
+                "invalid_profile_sweep_path",
+                "profile_sweep_3d path points must contain three finite numbers",
+                node.id,
+            ))
+        else:
+            points = [tuple(float(value) for value in point) for point in path]
+            segment_lengths = [
+                sum((end[axis] - start[axis]) ** 2 for axis in range(3)) ** 0.5
+                for start, end in zip(points, points[1:])
+            ]
+            if any(length <= 1e-9 for length in segment_lengths):
+                issues.append(GeometryIssue(
+                    "zero_length_profile_sweep_path",
+                    "profile_sweep_3d path contains a zero-length segment",
+                    node.id,
+                ))
+            if any(
+                sum((right[axis] - left[axis]) ** 2 for axis in range(3)) ** 0.5 <= 1e-9
+                for index, left in enumerate(points)
+                for right in points[index + 1:]
+            ):
+                issues.append(GeometryIssue(
+                    "repeated_profile_sweep_point",
+                    "profile_sweep_3d path points must be unique",
+                    node.id,
+                ))
+    if node.operator == "matrix_array":
+        matrices = params.get("matrices")
+        if not isinstance(matrices, list) or not 2 <= len(matrices) <= 24:
+            issues.append(GeometryIssue(
+                "matrix_array_count_out_of_bounds",
+                "matrix_array requires 2..24 explicit matrices",
+                node.id,
+            ))
+        elif not all(_affine_matrix4(matrix) for matrix in matrices):
+            issues.append(GeometryIssue(
+                "invalid_matrix_array_matrix",
+                "matrix_array matrices must be finite affine 4x4 matrices",
+                node.id,
+            ))
     if node.operator in {"slice", "clip"}:
         normal = params.get("normal")
         if not _vector(normal, 3) or sum(float(value) ** 2 for value in normal) <= 1e-12:
@@ -443,6 +530,27 @@ def _vector(value: Any, length: int) -> bool:
         return False
 
 
+def _finite_vector(value: Any, length: int) -> bool:
+    if not isinstance(value, (list, tuple)) or len(value) != length:
+        return False
+    try:
+        return all(isfinite(float(item)) for item in value)
+    except (TypeError, ValueError):
+        return False
+
+
+def _affine_matrix4(value: Any) -> bool:
+    if not isinstance(value, (list, tuple)) or len(value) != 4:
+        return False
+    if not all(_finite_vector(row, 4) for row in value):
+        return False
+    expected = (0.0, 0.0, 0.0, 1.0)
+    return all(
+        abs(float(value[3][index]) - expected[index]) <= 1e-9
+        for index in range(4)
+    )
+
+
 def _deduplicate_issues(issues: Iterable[GeometryIssue]) -> list[GeometryIssue]:
     result: list[GeometryIssue] = []
     seen: set[tuple[str, str, str]] = set()
@@ -479,6 +587,7 @@ GEOMETRY_PROGRAM_JSON_SCHEMA: dict[str, Any] = {
         "name": {"type": "string", "minLength": 1, "maxLength": 120},
         "root_id": {"type": "string", "pattern": IDENTIFIER_RE.pattern},
         "metadata": {"type": "object"},
+        "execution_contract": {"type": "object"},
         "nodes": {
             "type": "array",
             "minItems": 1,
@@ -504,6 +613,7 @@ GEOMETRY_PROGRAM_JSON_SCHEMA: dict[str, Any] = {
 
 __all__ = [
     "GEOMETRY_PROGRAM_JSON_SCHEMA",
+    "FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT",
     "GeometryIssue",
     "GeometryNode",
     "GeometryProgram",

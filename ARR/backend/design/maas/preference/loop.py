@@ -22,6 +22,10 @@ from design.maas.morphology_operators import largest_polygon
 from design.maas.geometry_language.floorwise_visual_projection import (
     projected_surface_visual_hash,
 )
+from design.maas.geometry_language.projected_visual_contract import (
+    exact_triangle_payload_hash,
+    validate_projected_visual_artifact,
+)
 from design.maas.preference.concept_schema import build_preference_distillation
 from design.maas.preference.reference_corpus import (
     default_reference_root,
@@ -125,7 +129,10 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
     except Exception as exc:
         raise ValueError(f"Pillow is required for MAAS preference VLM previews: {exc}") from exc
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
-    _require_certified_authored_visual(props)
+    _require_certified_authored_visual(
+        props,
+        feature_geometry=feature.get("geometry"),
+    )
     site_boundary = None
     site_boundary_geometry = props.get("site_boundary_geometry")
     if isinstance(site_boundary_geometry, dict):
@@ -316,7 +323,11 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
     return path
 
 
-def _require_certified_authored_visual(props: dict[str, Any]) -> None:
+def _require_certified_authored_visual(
+    props: dict[str, Any],
+    *,
+    feature_geometry: Any = None,
+) -> None:
     raw_surfaces = props.get("source_surfaces")
     raw_surfaces = raw_surfaces if isinstance(raw_surfaces, list) else []
     profiled_records = [
@@ -357,7 +368,12 @@ def _require_certified_authored_visual(props: dict[str, Any]) -> None:
     if not isinstance(certificate, dict):
         certificate = artifact.get("projectedVisualCertificate")
     failure = "authored profiled visual mesh requires certified nonempty projection"
-    if (
+    artifact_hash_mismatch = bool(
+        artifact
+        and str(artifact.get("projectedVisualGeometryHash") or "")
+        != str(certificate.get("visual_hash") or "")
+    ) if isinstance(certificate, dict) else bool(artifact)
+    invalid_certificate = (
         not isinstance(certificate, dict)
         or certificate.get("schema_version")
         != "arr.maas.floorwise_visual_projection.v1"
@@ -367,13 +383,20 @@ def _require_certified_authored_visual(props: dict[str, Any]) -> None:
         or int(certificate.get("projected_surface_count") or 0)
         != len(profiled_records)
         or not profiled_records
-        or (
-            artifact
-            and str(artifact.get("projectedVisualGeometryHash") or "")
-            != str(certificate.get("visual_hash") or "")
+        or artifact_hash_mismatch
+    )
+    if invalid_certificate:
+        certificate = certificate if isinstance(certificate, dict) else {}
+        raise ValueError(
+            f"{failure}:"
+            f"schema={certificate.get('schema_version')!s}:"
+            f"status={certificate.get('status')!s}:"
+            f"hard_pass={certificate.get('hard_pass')!s}:"
+            f"visual_hash={bool(str(certificate.get('visual_hash') or ''))}:"
+            f"projected_surface_count={int(certificate.get('projected_surface_count') or 0)}:"
+            f"profiled_record_count={len(profiled_records)}:"
+            f"artifact_hash_mismatch={artifact_hash_mismatch}"
         )
-    ):
-        raise ValueError(failure)
     try:
         surfaces = tuple(
             SourceSurface(
@@ -390,11 +413,98 @@ def _require_certified_authored_visual(props: dict[str, Any]) -> None:
             )
             for record in profiled_records
         )
-    except (TypeError, ValueError):
-        raise ValueError(failure) from None
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{failure}:surface_decode:{exc}") from None
     if (
         any(len(surface.vertices_m) != 3 for surface in surfaces)
-        or projected_surface_visual_hash(surfaces)
+    ):
+        nontriangle_counts = sorted({
+            len(surface.vertices_m)
+            for surface in surfaces
+            if len(surface.vertices_m) != 3
+        })
+        raise ValueError(
+            f"{failure}:nontriangle_vertex_counts={nontriangle_counts}"
+        )
+    if (
+        certificate.get("certification_mode")
+        == "final_floorwise_legal_geometry_authority"
+    ):
+        try:
+            semantic_anchor = (
+                props.get("final_semantic_anchor")
+                if isinstance(props.get("final_semantic_anchor"), dict)
+                else {}
+            )
+            certified_origin = certificate.get(
+                "source_footprint_centroid_utm"
+            )
+            if (
+                not isinstance(certified_origin, list)
+                or len(certified_origin) != 2
+                or not isinstance(feature_geometry, dict)
+            ):
+                raise ValueError(failure)
+            feature_origin = shape(feature_geometry).centroid
+            if (
+                abs(
+                    float(feature_origin.x)
+                    - float(certified_origin[0])
+                )
+                > 1e-7
+                or abs(
+                    float(feature_origin.y)
+                    - float(certified_origin[1])
+                )
+                > 1e-7
+            ):
+                raise ValueError(failure)
+            validated = validate_projected_visual_artifact(
+                artifact,
+                expected_semantic_context=semantic_anchor.get(
+                    "expected_semantic_context"
+                ),
+                expected_semantic_projection_hash=str(
+                    semantic_anchor.get(
+                        "expected_semantic_projection_hash"
+                    )
+                    or ""
+                ),
+                expected_semantic_audit_payload_hash=str(
+                    semantic_anchor.get(
+                        "expected_semantic_audit_payload_hash"
+                    )
+                    or ""
+                ),
+            )
+            surface_records = [
+                {
+                    "role": surface.role,
+                    "volume_role": surface.volume_role,
+                    "verb": surface.verb,
+                    "surface_type": surface.surface_type,
+                    "vertices_m": [
+                        [float(x), float(y), float(z)]
+                        for x, y, z in surface.vertices_m
+                    ],
+                    "operator": surface.operator,
+                    "semantic_patch_id": surface.semantic_patch_id,
+                }
+                for surface in surfaces
+            ]
+            if (
+                validated is None
+                or exact_triangle_payload_hash(surface_records)
+                != str(artifact.get("projectedVisualPayloadHash") or "")
+            ):
+                raise ValueError(failure)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"{failure}:final_authority_validation:{exc}"
+            ) from None
+        return
+    if (
+        projected_surface_visual_hash(surfaces)
         != str(certificate.get("visual_hash") or "")
     ):
         raise ValueError(failure)

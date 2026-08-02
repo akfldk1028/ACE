@@ -1,5 +1,14 @@
 # MAAS MASS Flow Memory
 
+## Active lawful competition MASS recovery - 2026-08-02 KST
+
+Read `checkpoints/2026-08-02-r326-recovery-plan.md` before another MASS run.
+The recovery sequence is target 3, 10, then 20. Production geometry is
+LLM-authored UnitBox/Matrix4/BOOK AST; deterministic forms are fixtures only.
+Law, FAR, BCR, floor, parking and exact-final VLM remain hard gates. Base VLM
+now needs to become critique plus typed repair rather than a parent-deletion
+gate. No new provider request has occurred at this checkpoint.
+
 ## Latest morphology-preservation checkpoint - 2026-08-02 KST
 
 Diagnostic portfolio sizing no longer enables visible stepped fallback. Final
@@ -308,3 +317,9 @@ must see the exact final legal render plus actual ArchDaily images. Preserve
 every rejected render and failure reason on the board. Read the newest
 `Active competition-grade pivot` section in
 `../MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md` before continuing.
+
+2026-08-02 full-test correction: MASS is not a full test unless at least one exact final legal render receives an actual bounded VLM review. No-VLM law/FAR/parking/compiler runs are hard-gate diagnostics only. Interrupted r319 and r320 used live_vlm_requested=false, produced no final board, and are not acceptance evidence. The current backend shell is missing MAAS_LIVE_GEOMETRY_VLM, MAAS_LIVE_VLM_CREDENTIAL_ROTATED, and OPENAI_API_KEY. Restore them before a small --live-vlm run. Never silently remove VLM to save cost. See the newest main memory section.
+
+2026-08-02 r321: live-vlm target-3 completed 0/3. VLM requested but request_count=0 because the pre-VLM selection pool was empty. Logs reproduce legal-projection invented step/pyramid morphology. See the newest main memory section and the r321 failure board path there.
+
+2026-08-02 r325: certificate chain fixed and 7 actual VLM requests executed, but 0/3 selected. Preview evidence is still dominated by staircase/terrace legal recomposition; final VLM rejected the surviving candidate as box-like, weakly continuous, wrong typology, and unresolved at the public threshold. Preserve stepped forms as one family, but make common principal-frame morphology-preserving legal fit the default before floor-varying CSG fallback. See newest main memory section.

@@ -934,18 +934,7 @@ def _program_projection_evidence(
     }
 
 
-_AUTHORED_PROJECTION_MAX_SILHOUETTE_DISTANCE = 0.85
-def _allow_visible_step_fallback() -> bool:
-    """Check whether visible-step fallback should be allowed for diagnostic runs."""
-
-    return os.getenv("MAAS_ALLOW_VISIBLE_STEP_FALLBACK", "").strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
-
-
+_AUTHORED_PROJECTION_MAX_SILHOUETTE_DISTANCE = 0.40
 def _allow_tiny_geometry_gates() -> bool:
     """Check whether tiny-geometry gate relaxations are allowed."""
 
@@ -970,7 +959,14 @@ def _authored_projection_identity_evidence(
     *,
     enforce_morphology_preservation: bool = True,
 ) -> dict[str, Any]:
-    """Fail closed when legal fitting invents a different visible body type."""
+    """Fail closed when legal fitting invents a different visible body type.
+
+    ``enforce_morphology_preservation`` remains as a compatibility argument for
+    older diagnostic callers. It no longer disables the final-MASS identity
+    gate; diagnostics may observe a collapsed projection but may not select it.
+    """
+
+    del enforce_morphology_preservation
 
     authored_metrics = _solid_morphology_metrics(
         SimpleNamespace(source=authored_source)
@@ -1012,24 +1008,20 @@ def _authored_projection_identity_evidence(
     )
     failures: list[str] = []
     if (
-        enforce_morphology_preservation
-        and projected_step_visible
+        projected_step_visible
         and not authored_step_visible
         and not authored_step_intent
     ):
         failures.append("unrequested_legal_step_collapse")
     if (
-        enforce_morphology_preservation
-        and silhouette_distance
-        > _AUTHORED_PROJECTION_MAX_SILHOUETTE_DISTANCE
+        silhouette_distance > _AUTHORED_PROJECTION_MAX_SILHOUETTE_DISTANCE
         and not authored_step_intent
     ):
         failures.append(
             "authored_projection_silhouette_distance_exceeded"
         )
     if (
-        not _allow_visible_step_fallback()
-        and visual_certificate.get("visible_step_fallback") is True
+        visual_certificate.get("visible_step_fallback") is True
         and not authored_step_intent
     ):
         failures.append("unrequested_visible_step_fallback")
@@ -1269,7 +1261,6 @@ def _materialize_directed_geometry(
             _authored_projection_identity_evidence(
                 authored_source,
                 materialized,
-                enforce_morphology_preservation=not _allow_visible_step_fallback(),
             )
         )
         if not authored_projection_identity["hard_pass"]:

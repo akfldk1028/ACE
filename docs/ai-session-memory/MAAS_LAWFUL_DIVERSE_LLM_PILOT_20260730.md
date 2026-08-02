@@ -916,6 +916,64 @@ bar/step repetition. Keep ordinary BaseVolume outcomes, but make plate, slab,
 wall, void, bridge, courtyard and intersection relations survive legal
 projection as genuinely different occupied architectures.
 
+## 2026-08-02 MASS morphology-preservation checkpoint
+
+Scope for this checkpoint is MASS only. ElevationAgent, facade imagery and
+frontend elevation presentation are deferred.
+
+Baseline commits created before the new fix:
+
+- `0dc31b7 chore(maas): checkpoint recent mass pipeline work`
+- `f41e304 chore(repo): exclude nested elevation agent checkout`
+
+Confirmed root cause:
+
+- `run_book_program_portfolios(..., diagnostic_target=...)` automatically set
+  `MAAS_ALLOW_VISIBLE_STEP_FALLBACK=1`.
+- `_materialize_directed_geometry()` converted that environment setting into
+  `enforce_morphology_preservation=False` when affine legal placement failed.
+- Floorwise replay transport could therefore replace a non-stepped authored
+  body with translated floor extrusions and still enter diagnostic flow.
+- The authored silhouette threshold was `0.85`, while existing contract tests
+  require distance `0.41` to fail and `0.3577` to remain admissible.
+
+Implemented bounded correction:
+
+- Diagnostic target sizing no longer injects
+  `MAAS_ALLOW_VISIBLE_STEP_FALLBACK`.
+- Authored-to-legal morphology preservation is non-bypassable for final MASS
+  identity. The old compatibility argument cannot disable the gate.
+- A projected `visible_step_fallback=true` is rejected for non-step authorship
+  even if the old environment variable is externally set.
+- Intentional step operators remain admissible:
+  `book_grade`, `setback`, `stack`, `stepped_mass`, `terrace`.
+- Maximum authored/projected intrinsic silhouette distance is `0.40`.
+
+TDD evidence:
+
+- New RED run: 2/2 tests failed for the expected automatic environment
+  injection and morphology-bypass reasons.
+- GREEN focused run: 6/6 passed, covering diagnostic environment isolation,
+  non-bypassable identity, unrequested step rejection, intentional step
+  acceptance, void morphology retention and per-candidate unreplayable-floor
+  rejection.
+- Test module added:
+  `ARR/backend/design/test_maas_diagnostic_morphology_policy.py`.
+
+Known separate stale-test conflict, not changed here:
+
+- `test_other_floorwise_replay_value_error_still_aborts` expects `None`, while
+  its name and production policy say non-whitelisted `ValueError` must
+  propagate. Resolve that contract separately rather than weakening this fix.
+
+Honest boundary:
+
+- No target-20 portfolio was regenerated.
+- No claim is made yet that final certified supply is diverse.
+- Next checkpoint audits the actual scheduling ratio between ordinary
+  rectilinear UnitBox-derived MASSes and bounded triangular, elliptical/disc,
+  oblique and interlocking outcomes without loosening law, capacity or parking.
+
 ## 2026-07-31 target-20 diagnostic continuity checkpoint (r318)
 
 - Command family:

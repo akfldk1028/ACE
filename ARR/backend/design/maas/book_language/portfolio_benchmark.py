@@ -988,7 +988,6 @@ def run_book_program_portfolios(
         raise ValueError("diagnostic_target must be one of 1, 2, 3, or 20")
     diagnostic_target_int = int(diagnostic_target) if diagnostic_target is not None else None
     if diagnostic_target_int is not None:
-        os.environ.setdefault("MAAS_ALLOW_VISIBLE_STEP_FALLBACK", "1")
         os.environ.setdefault("MAAS_ALLOW_TINY_GEOMETRY_GATES", "1")
     output_dir.mkdir(parents=True, exist_ok=True)
     directive_dir = visual_directive_path.parent if visual_directive_path is not None else output_dir

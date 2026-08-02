@@ -1,5 +1,16 @@
 # MAAS MASS Flow Memory
 
+## Latest morphology-preservation checkpoint - 2026-08-02 KST
+
+Diagnostic portfolio sizing no longer enables visible stepped fallback. Final
+MASS authored-to-legal identity preservation cannot be disabled by the former
+diagnostic compatibility argument or by `MAAS_ALLOW_VISIBLE_STEP_FALLBACK=1`.
+Intentional `book_grade`, `setback`, `stack`, `stepped_mass`, and `terrace`
+authorship remains valid. Focused tests are 6/6 passing; no target-20 run, paid
+VLM call, frontend change, or elevation work was performed. Read the newest
+2026-08-02 checkpoint in
+`../MAAS_LAWFUL_DIVERSE_LLM_PILOT_20260730.md` before generating another board.
+
 ## Latest real-PNU full-test checkpoint - r183, 2026-07-31 KST
 
 Read the newest `Real-PNU full run r183 and bounded VLM checkpoint` section in

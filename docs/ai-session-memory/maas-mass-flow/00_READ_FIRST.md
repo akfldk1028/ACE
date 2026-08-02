@@ -1,5 +1,15 @@
 # MAAS MASS Flow Memory
 
+## Latest progressive target-3 checkpoint - r327, 2026-08-02 KST
+
+Read `checkpoints/2026-08-02-r327-target3-timeout.md` first. r327 reached two
+selection-pool candidates and generated 15 actual VLM inputs/responses but
+timed out at 45 minutes before an official board. The intended six-request
+provider ceiling was not applied because an existing `.env` value defeated
+`setdefault`; at least 31 provider responses were observed. The exact next
+change is direct in-memory budget configuration plus a replenishment runtime
+reserve. Do not repeat r327 unchanged.
+
 ## Active lawful competition MASS recovery - 2026-08-02 KST
 
 Read `checkpoints/2026-08-02-r326-recovery-plan.md` before another MASS run.

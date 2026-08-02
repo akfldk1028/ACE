@@ -45,6 +45,6 @@
 - Consumes: UnitBox-derived family supply and final certified morphology evidence.
 - Produces: a separate follow-up design for mostly rectilinear BaseVolume outcomes with bounded triangular, elliptical/disc, oblique, and interlocking outcomes.
 
-- [ ] **Step 1: Measure configured supply proportions without generating a portfolio**
-- [ ] **Step 2: Compare configured proportions with accepted final-mesh proportions**
-- [ ] **Step 3: Define the next TDD checkpoint without changing selector law gates**
+- [x] **Step 1: Measure configured supply proportions without generating a portfolio**
+- [x] **Step 2: Compare configured proportions with the latest r318 final-mesh classifications**
+- [x] **Step 3: Define the next TDD checkpoint without changing selector law gates**

@@ -14,6 +14,7 @@ from .ast import GeometryNode, GeometryProgram
 from .affine_matrix import (
     compose_matrix4,
     matrix4_to_lists,
+    rotation_matrix4,
     scale_matrix4,
     translation_matrix4,
 )
@@ -138,6 +139,160 @@ def architectural_shape_programs() -> tuple[GeometryProgram, ...]:
         _twisted_mass(),
     ]
     return tuple(programs)
+
+
+def rare_unitbox_capability_programs() -> tuple[GeometryProgram, ...]:
+    """Return four low-rate non-rectilinear programs from one UnitBox.
+
+    These are generic geometry-language capability probes. They are not named
+    building recipes and do not imply a final portfolio quota.
+    """
+
+    return (
+        _unitbox_triangular_clip(),
+        _unitbox_oblique_clip(),
+        _unitbox_elliptical_volume(),
+        _unitbox_interlocking_elliptical_volumes(),
+    )
+
+
+def _rare_capability_metadata(family: str) -> dict[str, Any]:
+    return {
+        "family": family,
+        "capability_sampling": "rare_bounded_page_zero",
+        "canonical_base_model": "1/1 UnitBox",
+        "program_conditioned": False,
+    }
+
+
+def _unitbox_triangular_clip() -> GeometryProgram:
+    builder = GeometryProgramBuilder("capability_unitbox_triangular_clip")
+    base = builder.add(
+        "primitive",
+        "box",
+        parameters={"width": 10.0, "depth": 8.0, "height": 6.0},
+        semantic_role="main",
+    )
+    first = builder.add(
+        "modifier",
+        "clip",
+        inputs=(base,),
+        parameters={"normal": [1.0, 1.0, 0.0], "offset_ratio": 0.16},
+        semantic_role="main",
+    )
+    root = builder.add(
+        "modifier",
+        "clip",
+        inputs=(first,),
+        parameters={"normal": [-1.0, 0.42, 0.0], "offset_ratio": 0.10},
+        semantic_role="main",
+    )
+    return builder.build(
+        root,
+        **_rare_capability_metadata("unitbox_triangular_clip"),
+    )
+
+
+def _unitbox_oblique_clip() -> GeometryProgram:
+    builder = GeometryProgramBuilder("capability_unitbox_oblique_clip")
+    base = builder.add(
+        "primitive",
+        "box",
+        parameters={"width": 10.0, "depth": 7.0, "height": 8.0},
+        semantic_role="main",
+    )
+    root = builder.add(
+        "modifier",
+        "clip",
+        inputs=(base,),
+        parameters={"normal": [0.34, 0.12, -1.0], "offset_ratio": 0.18},
+        semantic_role="main",
+    )
+    return builder.build(
+        root,
+        **_rare_capability_metadata("unitbox_oblique_clip"),
+    )
+
+
+def _unitbox_elliptical_volume() -> GeometryProgram:
+    builder = GeometryProgramBuilder("capability_unitbox_elliptical_volume")
+    base = builder.add(
+        "primitive",
+        "box",
+        parameters={"width": 10.0, "depth": 7.0, "height": 6.0},
+        semantic_role="main",
+    )
+    root = builder.add(
+        "modifier",
+        "circularize",
+        inputs=(base,),
+        parameters={"segments": 28},
+        semantic_role="main",
+    )
+    return builder.build(
+        root,
+        **_rare_capability_metadata("unitbox_elliptical_volume"),
+    )
+
+
+def _unitbox_interlocking_elliptical_volumes() -> GeometryProgram:
+    builder = GeometryProgramBuilder(
+        "capability_unitbox_interlocking_elliptical_volumes"
+    )
+    host = builder.add(
+        "primitive",
+        "box",
+        parameters={
+            "width": 8.0,
+            "depth": 6.0,
+            "height": 4.0,
+            "center": True,
+        },
+        semantic_role="main",
+    )
+    elliptical = builder.add(
+        "modifier",
+        "circularize",
+        inputs=(host,),
+        parameters={"segments": 24},
+        semantic_role="main",
+    )
+    array = builder.add(
+        "pattern",
+        "matrix_array",
+        inputs=(elliptical,),
+        parameters={
+            "matrices": [
+                matrix4_to_lists(rotation_matrix4((0.0, 0.0, -18.0))),
+                matrix4_to_lists(rotation_matrix4((0.0, 0.0, 18.0))),
+            ],
+            "require_connected": True,
+        },
+        semantic_role="main",
+    )
+    spine = builder.add(
+        "primitive",
+        "box",
+        parameters={
+            "width": 2.0,
+            "depth": 2.0,
+            "height": 6.0,
+            "center": True,
+        },
+        semantic_role="support",
+    )
+    root = builder.add(
+        "boolean",
+        "union",
+        inputs=(array, spine),
+        semantic_role="main",
+    )
+    return builder.build(
+        root,
+        **_rare_capability_metadata(
+            "unitbox_interlocking_elliptical_volumes"
+        ),
+    )
 
 
 def reference_language_programs() -> dict[str, GeometryProgram]:
@@ -406,5 +561,6 @@ __all__ = [
     "GeometryProgramBuilder",
     "architectural_shape_programs",
     "l_mass_difference_program",
+    "rare_unitbox_capability_programs",
     "reference_language_programs",
 ]

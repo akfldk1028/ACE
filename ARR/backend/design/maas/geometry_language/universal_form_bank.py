@@ -15,7 +15,10 @@ from typing import Any
 from .ast import GeometryProgram
 from .base_seeds import BASE_SEED_SPECS
 from .chassis_taxonomy import classify_geometry_program
-from .programs import architectural_shape_programs
+from .programs import (
+    architectural_shape_programs,
+    rare_unitbox_capability_programs,
+)
 from .synthesis import synthesize_architectural_programs
 from .typology_priors import TYPOLOGY_PRIORS
 
@@ -82,6 +85,9 @@ def universal_form_bank_contract() -> dict[str, Any]:
         "maximum_cached_variation_pages": 8,
         "replenishment_rule": "advance_low_discrepancy_geometry_program_page",
         "executable_core_lane_program_count": len(architectural_shape_programs()),
+        "rare_unitbox_capability_parent_count": len(
+            rare_unitbox_capability_programs()
+        ),
         "executable_core_lane": (
             "bent_linear", "radial_fan", "l_mass", "u_mass", "courtyard",
             "attached_volume", "overlap", "setback", "cross", "taper",
@@ -197,6 +203,10 @@ def universal_form_programs(variation_page: int = 0) -> tuple[GeometryProgram, .
             (program, "executable_core_language")
             for program in architectural_shape_programs()
         )
+        rare_capability_lane = tuple(
+            (program, "rare_unitbox_capability")
+            for program in rare_unitbox_capability_programs()
+        )
         interleaved: list[tuple[GeometryProgram, str]] = []
         synthesis_tail = synthesis_lane[3:]
         for index in range(max(len(synthesis_tail), len(core_lane))):
@@ -204,7 +214,11 @@ def universal_form_programs(variation_page: int = 0) -> tuple[GeometryProgram, .
                 interleaved.append(synthesis_tail[index])
             if index < len(core_lane):
                 interleaved.append(core_lane[index])
-        lanes = (*synthesis_lane[:3], *interleaved)
+        lanes = (
+            *synthesis_lane[:3],
+            *interleaved,
+            *rare_capability_lane,
+        )
     else:
         lanes = synthesis_lane
     records: list[GeometryProgram] = []

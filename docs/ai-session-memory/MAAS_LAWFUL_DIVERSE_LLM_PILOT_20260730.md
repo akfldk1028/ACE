@@ -974,6 +974,88 @@ Honest boundary:
   rectilinear UnitBox-derived MASSes and bounded triangular, elliptical/disc,
   oblique and interlocking outcomes without loosening law, capacity or parking.
 
+### 2026-08-02 read-only supply scheduling audit
+
+- `generate_maas_creative_100` and the real-PNU BOOK benchmark use different
+  supply paths. The former uses `balanced_family_schedule()`; the latter uses
+  `universal_form_program_pages()` plus `staged_principle_schedule()`.
+- Creative-100 currently balances all fifteen named diagnostic families almost
+  equally. For 100 records it schedules each ordinary family 7 times and each
+  of triangular shard, oblique crystal, thin-disc cluster, interlocking discs
+  and long-span bridge 6 times. The five special families therefore occupy
+  30%, which is higher than the intended low-rate capability sampling.
+- Real-PNU page zero currently has 82 parents. It has no
+  `triangular_shard`, `thin_disc_cluster`, `interlocking_tilted_discs` or
+  equivalent canonical UnitBox-derived low-rate parent.
+- `universal_form_bank_contract()` advertises triangular and oval profiled
+  prism capabilities, but `universal_form_programs()` rejects every synthesis
+  record whose sole primitive is not exactly canonical `box(1,1,1)`.
+  Consequently those advertised profiled-prism seeds do not enter the actual
+  PNU candidate supply.
+- This filtering is correct for singular BaseVolume authority. The required
+  correction is not a second triangle/ellipse primitive authority; it is a
+  small number of canonical UnitBox programs that derive triangular/oblique
+  shape through typed `clip` and elliptical/disc shape through typed
+  `circularize`, then continue through BOOK operations and legal projection.
+- r318 selected 5 diagnostic candidates: all five are `base_operative`; three
+  final bodies are stepped, one voided and one prismatic. Combination,
+  aggregation and case-study selected counts are all zero. All five chassis
+  classifications are `recursive_chassis:unclassified`.
+
+Next bounded implementation target:
+
+- Add four canonical UnitBox-derived low-rate capability parents to the actual
+  universal form bank page zero: triangular clip, oblique clip, elliptical
+  circularize and interlocking circularized plates.
+- Four parents among the current 82 gives approximately 4.7% special parent
+  supply before hard gates. This is a capability range, not a final portfolio
+  quota and not a named-building recipe.
+- Test canonical UnitBox lineage, operator presence, deterministic hashes,
+  compile/manifold evidence and bounded parent percentage before running any
+  portfolio.
+
+### 2026-08-02 low-rate UnitBox capability supply implemented
+
+Implemented in the actual real-PNU parent source rather than only the separate
+creative-100 gallery:
+
+- `rare_unitbox_capability_programs()` adds exactly four generic page-zero
+  parents:
+  - `unitbox_triangular_clip`
+  - `unitbox_oblique_clip`
+  - `unitbox_elliptical_volume`
+  - `unitbox_interlocking_elliptical_volumes`
+- Every program contains exactly one primitive authority:
+  `box(width=1, depth=1, height=1)`.
+- Proportion and placement use Matrix4. Topology change uses typed `clip`,
+  `circularize`, `matrix_array` and `union` operations.
+- No named architect/building metadata, parcel coordinates or final-family
+  selector quota was added.
+- Universal form-bank page zero increases from 82 to 86 parents. Special
+  capability supply is exactly `4/86 = 4.651%` before BOOK, legal, capacity,
+  parking and VLM gates.
+
+TDD and compile evidence:
+
+- Initial RED: focused module failed because
+  `rare_unitbox_capability_programs` did not exist.
+- First GREEN attempt exposed a test-contract error: compiler connectivity is
+  `component_count == 1`, not a nonexistent `connected` metric. Production
+  programs had already compiled; the test was corrected to the real metric.
+- Focused capability plus existing strict UnitBox operator suite: 12/12 pass.
+- All four programs compile with `component_count=1`, `watertight=true`,
+  `manifold=true`, deterministic distinct program hashes and required typed
+  operators.
+
+Remaining boundary:
+
+- This proves real form-bank parent admission and compiler validity only.
+- It does not prove survival through five-floor authoritative plates, exact
+  PNU legal projection, FAR, parking, final selection or VLM.
+- The next small checkpoint should run these four identities through the cheap
+  BOOK screen and deterministic legal/floor preflight without running the full
+  target-20 portfolio.
+
 ## 2026-07-31 target-20 diagnostic continuity checkpoint (r318)
 
 - Command family:

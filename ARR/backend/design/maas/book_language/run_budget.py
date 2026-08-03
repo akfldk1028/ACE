@@ -19,6 +19,7 @@ class MassRunBudget:
     retry_allowance: int = 0
     replenishment_author_reserve: int = 1
     base_diversity_reserve: int = 0
+    replenishment_compile_reserve: int = 0
 
     @property
     def cluster_maximum(self) -> int:
@@ -33,6 +34,16 @@ class MassRunBudget:
     @property
     def initial_author_request_limit(self) -> int:
         return self.author_batch_count
+
+    @property
+    def initial_compile_limit(self) -> int:
+        """Bound initial search while reserving exact work for feedback."""
+
+        return max(
+            0,
+            self.compile_limit
+            - max(0, self.replenishment_compile_reserve),
+        )
 
     @property
     def replenishment_author_request_limit(self) -> int:
@@ -89,9 +100,10 @@ _PROGRESSIVE_BUDGETS = {
     5: MassRunBudget(
         5,
         52,
-        48,
+        60,
         60 * 60,
         base_diversity_reserve=2,
+        replenishment_compile_reserve=12,
     ),
     10: MassRunBudget(10, 90, 70, 90 * 60),
     20: MassRunBudget(20, 160, 120, 180 * 60),

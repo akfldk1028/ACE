@@ -111,8 +111,10 @@ class ProgressiveMassRunBudgetTests(SimpleTestCase):
         self.assertEqual(
             (target_five.raw_target, target_five.compile_limit,
              target_five.timeout_seconds),
-            (52, 48, 60 * 60),
+            (52, 60, 60 * 60),
         )
+        self.assertEqual(target_five.initial_compile_limit, 48)
+        self.assertEqual(target_five.replenishment_compile_reserve, 12)
         self.assertEqual(
             target_five.provider_request_quotas,
             {

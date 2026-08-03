@@ -52,3 +52,15 @@ Connect final-authority VLM typed edits back through the existing canonical Matr
 - r26 bounded target-5 budget test: exact materialization 48, BASE input 8, BASE reviewed 5, descendants generated 5, descendants routed to final VLM 4, final-VLM hard passes 2, selected 1.
 - r26 proves more budget alone is not the solution. Terminal failures were `book_projection=17`, `authored_visual_authority=9`, `floor_affine_fit=7`.
 - Structural failure certificates are collected, but `bounded_parent_replenishment` is null. The next required change is to feed those typed failures and final-VLM critiques to a bounded LLM replenishment author, producing new ASTs rather than relaxing law or silhouette diversity.
+
+## r27 bounded LLM replenishment
+
+- Target-5 compile budget is partitioned into initial 48 plus replenishment reserve 12, cumulative limit 60.
+- The replenishment cycle executed instead of being starved: initial usage 48, cycle usage 3, remaining 9.
+- One live replenishment author request ran with 12 authored-visual failure certificates and BASE VLM feedback in context.
+- The LLM produced three cache-miss AST families: `llm_bend_notch`, `llm_shear_notch`, and `llm_twist_lift`.
+- `llm_shear_notch` failed `profiled_legal_clip_midplane_topology_mismatch`.
+- `llm_bend_notch` failed `unproven_authored_mesh_completeness` during Matrix4 projection.
+- `llm_twist_lift` materialized but did not reach clean/program hard pass.
+- No new final hard-pass candidate entered the selection pool, so the visible result remained 1/5.
+- Next action: translate these exact typed topology/completeness failures into explicit LLM AST repair constraints and request topology-safe authored variants; do not lower the silhouette diversity threshold or statutory gates.

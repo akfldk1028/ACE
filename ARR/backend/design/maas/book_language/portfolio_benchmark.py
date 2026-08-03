@@ -2142,7 +2142,7 @@ def run_book_program_portfolios(
             exact_compile_limit=(
                 progressive_mass_run_budget(
                     progressive_target_int
-                ).compile_limit
+                ).initial_compile_limit
                 if progressive_target_int is not None
                 else None
             ),

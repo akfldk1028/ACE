@@ -41,7 +41,10 @@ from design.maas.preference.loop import openai_preview_preference_scorer
 from design.maas.preference.vlm_scorer import (
     DEFAULT_VLM_MODEL,
     VLM_PROMPT_CONTRACT_VERSION,
+    VlmBudgetExhaustedError,
+    vlm_request_kind_scope,
 )
+from design.maas.paid_provider_budget import paid_provider_budget_snapshot
 from design.maas.shared_floor_contract import (
     bind_shared_floor_contract_capacity,
     materialize_shared_floor_contract,
@@ -177,6 +180,10 @@ def _final_book_vlm_hard_pass(
             failures.append(
                 f"{policy.stage}_{concept}_below_{policy.quality_floor_label}"
             )
+    # Capacity utilization is a design-development diagnostic, not a visual
+    # acceptance authority.  Statutory BCR/FAR and program feasibility are
+    # enforced by their dedicated gates; a VLM-approved mass must not be
+    # discarded merely because it leaves optional capacity unused.
     if not policy.require_finished_silhouette:
         return not failures, failures
     # The scorer already derives fragmentation actions from hierarchy and
@@ -187,21 +194,11 @@ def _final_book_vlm_hard_pass(
         and "good_step_mass" not in actions
     ):
         failures.append("final_book_arbitrary_tier_silhouette")
-    if bool((candidate_morphology or {}).get("pyramidal_like")):
-        # The critic can call a cake-tier silhouette a "good step mass" even
-        # when the compiled graph contains no public terrace/threshold or
-        # program section relation.  Require the visual judgment and one
-        # executable relation to agree. This preserves real stepped courts and
-        # gym roof sections without accepting a token alone.
-        public_relation = bool((candidate_design_concept or {}).get("frontage_aligned")) and (
-            float(scores.get("void_publicness") or 0.0) >= 0.65
-        )
-        section_relation = (
-            str((candidate_morphology or {}).get("section_phenotype") or "none") != "none"
-            and float(scores.get("section_program_fit") or 0.0) >= 0.65
-        )
-        if "good_step_mass" not in actions or not (public_relation or section_relation):
-            failures.append("final_book_unresolved_pyramidal_program_relation")
+    # ``pyramidal_like`` is a coarse morphology diagnostic.  The visual critic
+    # already scores hierarchy, silhouette and program fit and can explicitly
+    # approve a good stepped mass.  Do not let this static label overrule that
+    # typed VLM judgment; unresolved relations remain useful downstream repair
+    # context rather than a pruning gate.
     # A critic request for a carved public void is advisory only when no
     # verified access relation exists.  Once the final AST declares an access
     # side, however, accepting the same sealed mass would contradict both the
@@ -482,10 +479,40 @@ def _lineage_parent_key(candidate: _Candidate) -> str:
     return str(lineage.get("parent_key") or "")
 
 
+def _archived_exact_surface_geometry_hash(candidate: _Candidate) -> str:
+    """Return only the independently archived projected-surface identity."""
+
+    metadata = candidate.source.metadata
+    review_authority = metadata.get("program_review_authority") or {}
+    certificate = metadata.get("authored_legal_projection_certificate") or {}
+    geometry_hash = str(metadata.get("final_geometry_hash") or "")
+    surface_payload_hash = str(
+        metadata.get("final_surface_payload_hash") or ""
+    )
+    if not (
+        isinstance(review_authority, dict)
+        and review_authority.get("legal_archive_authority") is True
+        and isinstance(certificate, dict)
+        and certificate.get("status") == "verified"
+        and certificate.get("hard_pass") is True
+        and geometry_hash
+        and surface_payload_hash
+        and str(certificate.get("projected_surface_hash") or "")
+        == geometry_hash
+        and str(certificate.get("projected_surface_payload_hash") or "")
+        == surface_payload_hash
+    ):
+        return ""
+    return geometry_hash
+
+
 def _base_review_fingerprint(candidate: _Candidate) -> str:
     """Stable identity for one rendered base, independent of run-local names."""
     compilation = candidate.source.metadata.get("geometry_program_compilation") or {}
-    geometry_hash = str(compilation.get("geometry_hash") or "")
+    geometry_hash = (
+        _archived_exact_surface_geometry_hash(candidate)
+        or str(compilation.get("geometry_hash") or "")
+    )
     raw_program = candidate.source.metadata.get("geometry_program") or {}
     if geometry_hash:
         payload = {"geometry_hash": geometry_hash}
@@ -633,10 +660,52 @@ def _book_base_parent_shortlist(
         != "base"
     ]
     bases_by_key: dict[str, _Candidate] = {}
+    base_fingerprints_by_geometry: dict[str, set[str]] = {}
+    base_fingerprints_by_program: dict[str, set[str]] = {}
     for candidate in sorted(bases, key=lambda item: item.score, reverse=True):
-        parent_key = _lineage_parent_key(candidate)
-        if parent_key and parent_key not in bases_by_key:
-            bases_by_key[parent_key] = candidate
+        fingerprint = _base_review_fingerprint(candidate)
+        bases_by_key[fingerprint] = candidate
+        metadata = candidate.source.metadata
+        compilation = metadata.get("geometry_program_compilation") or {}
+        geometry_hash = _archived_exact_surface_geometry_hash(candidate)
+        if geometry_hash:
+            base_fingerprints_by_geometry.setdefault(geometry_hash, set()).add(fingerprint)
+        program = metadata.get("geometry_program") or {}
+        program_metadata = program.get("metadata") or {}
+        program_hash = str(
+            compilation.get("program_hash")
+            or program.get("program_hash")
+            or program_metadata.get("pre_book_program_hash")
+            or ""
+        )
+        if program_hash:
+            base_fingerprints_by_program.setdefault(program_hash, set()).add(fingerprint)
+
+    def exact_parent_fingerprint(candidate: _Candidate) -> str:
+        lineage = candidate.source.metadata.get("book_generation_lineage") or {}
+        supplied: list[str] = []
+        fingerprint = str(
+            lineage.get("parent_base_review_fingerprint")
+            or lineage.get("base_review_fingerprint")
+            or ""
+        )
+        if fingerprint:
+            if fingerprint not in bases_by_key:
+                return ""
+            supplied.append(fingerprint)
+        geometry_hash = str(lineage.get("parent_geometry_hash") or "")
+        if geometry_hash:
+            matches = base_fingerprints_by_geometry.get(geometry_hash, set())
+            if len(matches) != 1:
+                return ""
+            supplied.append(next(iter(matches)))
+        program_hash = str(lineage.get("parent_program_hash") or "")
+        if program_hash:
+            matches = base_fingerprints_by_program.get(program_hash, set())
+            if len(matches) != 1:
+                return ""
+            supplied.append(next(iter(matches)))
+        return supplied[0] if supplied and len(set(supplied)) == 1 else ""
 
     # Reserve base-review bandwidth before descendant parent resolution.  In
     # r150, 60 descendant parents consumed a 64-image budget and left only
@@ -773,12 +842,8 @@ def _book_base_parent_shortlist(
     )
     requested_parent_keys: list[str] = []
     for descendant in descendant_shortlist:
-        parent_key = _lineage_parent_key(descendant)
-        if (
-            parent_key
-            and parent_key in bases_by_key
-            and parent_key not in requested_parent_keys
-        ):
+        parent_key = exact_parent_fingerprint(descendant)
+        if parent_key and parent_key not in requested_parent_keys:
             requested_parent_keys.append(parent_key)
 
     for parent_key in requested_parent_keys:
@@ -807,7 +872,7 @@ def _book_base_parent_shortlist(
         "descendant_shortlist_count": len(descendant_shortlist),
         "requested_exact_parent_count": len(requested_parent_keys),
         "resolved_exact_parent_count": sum(
-            _lineage_parent_key(candidate) in requested_parent_keys
+            _base_review_fingerprint(candidate) in requested_parent_keys
             for candidate in chosen[:review_target]
         ),
         "required_family_anchor_count": sum(
@@ -833,7 +898,7 @@ def _book_base_parent_shortlist(
             min(len(chosen), review_target)
             - anchor_target
             - sum(
-                _lineage_parent_key(candidate) in requested_parent_keys
+                _base_review_fingerprint(candidate) in requested_parent_keys
                 for candidate in chosen[anchor_target:review_target]
             ),
         ),
@@ -876,11 +941,61 @@ def _attach_base_book_vlm_audit(
 ) -> _Candidate:
     """Normalize one base verdict without leaving a false final-stage audit."""
     normalized = deepcopy(audit)
+    nested_audit = normalized.get("vlm_audit")
+    nested_audit = nested_audit if isinstance(nested_audit, dict) else {}
+    failures = tuple(
+        str(value)
+        for value in (
+            normalized.get("failures")
+            or nested_audit.get("failures")
+            or ()
+        )
+    )
+    response_id = str(
+        normalized.get("response_id")
+        or nested_audit.get("response_id")
+        or ""
+    )
+    reviewed_exact = bool(
+        normalized.get("reviewed_exact_post_book_geometry") is True
+        or nested_audit.get("reviewed_exact_post_book_geometry") is True
+    )
+    review_stage = str(
+        normalized.get("review_stage")
+        or nested_audit.get("review_stage")
+        or ""
+    )
+    blocking_tokens = (
+        "structural", "invalid", "nonfinite", "degenerate", "empty_surface",
+        "legal", "containment", "parking", "height", "bcr", "far",
+    )
+    blocking_failures = tuple(
+        failure for failure in failures
+        if any(token in failure.lower() for token in blocking_tokens)
+    )
+    actual_review = bool(
+        response_id
+        and reviewed_exact
+        and review_stage == "book_base_operative"
+    )
+    descendant_development_hard_pass = bool(
+        actual_review and not blocking_failures
+    )
     normalized.update({
         "review_stage": "book_base_operative",
+        "response_id": response_id,
+        "failures": list(failures),
+        "reviewed_exact_post_book_geometry": reviewed_exact,
         "reviewed_before_descendant_release": True,
         "reused_from_outcome_graph": bool(reused_from_outcome_graph),
         "base_review_fingerprint": _base_review_fingerprint(candidate),
+        "base_selection_hard_pass": bool(normalized.get("hard_pass")),
+        "descendant_development_hard_pass": (
+            descendant_development_hard_pass
+        ),
+        "development_blocking_failures": list(blocking_failures),
+        "capacity_is_diagnostic_for_descendant_development": True,
+        "final_selection_authority": False,
     })
     metadata = dict(candidate.source.metadata)
     metadata.pop("final_book_vlm_audit", None)
@@ -919,6 +1034,8 @@ def _audit_final_book_geometry_with_vlm(
     reference_provider: Any | None = None,
     review_stage: str = "final_book",
     shortlist_override: list[_Candidate] | None = None,
+    request_kind: str = "exact_candidate_vlm",
+    paid_opportunity_limit: int | None = None,
 ) -> tuple[list[_Candidate], dict[str, Any]]:
     """Review the post-BOOK solid the user actually sees.
 
@@ -928,6 +1045,19 @@ def _audit_final_book_geometry_with_vlm(
     score from its pre-BOOK parent.
     """
     maximum = _book_vlm_review_budget(review_stage)
+    if paid_opportunity_limit is not None:
+        maximum = min(maximum, max(0, int(paid_opportunity_limit)))
+    snapshot = paid_provider_budget_snapshot()
+    quota_name = (
+        "base_candidate"
+        if request_kind == "base_candidate_vlm"
+        else "exact_candidate"
+    )
+    quota_remaining = (snapshot.get("quota_remaining_counts") or {}).get(
+        quota_name
+    )
+    if quota_remaining is not None:
+        maximum = min(maximum, max(0, int(quota_remaining)))
     try:
         workers = max(1, min(6, int(os.getenv("MAAS_FINAL_BOOK_VLM_WORKERS", "4"))))
     except (TypeError, ValueError):
@@ -1018,11 +1148,12 @@ def _audit_final_book_geometry_with_vlm(
         review_feature["properties"]["capacity_review_context"] = (
             build_capacity_review_context(candidate.source.metadata)
         )
-        result = scorer(
-            feature=review_feature,
-            reference_matches=list(references or ()),
-            model=os.getenv("MAAS_PREFERENCE_VLM_MODEL") or None,
-        )
+        with vlm_request_kind_scope(request_kind):
+            result = scorer(
+                feature=review_feature,
+                reference_matches=list(references or ()),
+                model=os.getenv("MAAS_PREFERENCE_VLM_MODEL") or None,
+            )
         result["reference_massing_gate"] = {
             key: value
             for key, value in reference_audit.items()
@@ -1030,16 +1161,33 @@ def _audit_final_book_geometry_with_vlm(
         }
         return candidate, list(references or ()), result
 
-    evaluated: dict[int, tuple[list[dict[str, Any]], dict[str, Any] | None, str]] = {}
+    evaluated: dict[
+        int,
+        tuple[
+            list[dict[str, Any]],
+            dict[str, Any] | None,
+            str,
+            dict[str, Any],
+        ],
+    ] = {}
     with ThreadPoolExecutor(max_workers=min(workers, max(1, len(shortlist)))) as executor:
         futures = {executor.submit(evaluate, candidate): candidate for candidate in shortlist}
         for future in as_completed(futures):
             candidate = futures[future]
             try:
                 _candidate, references, result = future.result()
-                evaluated[id(candidate)] = (references, result, "")
+                evaluated[id(candidate)] = (references, result, "", {})
+            except VlmBudgetExhaustedError as exc:
+                evaluated[id(candidate)] = ([], None, str(exc)[:500], {
+                    "budget_code": exc.budget_code,
+                    "request_kind": exc.request_kind,
+                    "quota": exc.quota,
+                    "used": exc.used,
+                    "limit": exc.limit,
+                    "remaining": exc.remaining,
+                })
             except Exception as exc:
-                evaluated[id(candidate)] = ([], None, str(exc)[:500])
+                evaluated[id(candidate)] = ([], None, str(exc)[:500], {})
 
     # A transient provider timeout is not architectural evidence.  The scorer
     # already retries one HTTP request, but a burst of parallel calls can still
@@ -1047,12 +1195,14 @@ def _audit_final_book_geometry_with_vlm(
     # concurrency; completed paid calls are retained in the cache and never
     # repeated here.  Candidates that still fail remain rejected.
     initial_call_failures = {
-        id(candidate): evaluated.get(id(candidate), ([], None, "missing_result"))[2]
+        id(candidate): evaluated.get(
+            id(candidate), ([], None, "missing_result", {})
+        )[2]
         for candidate in shortlist
         if (
-            evaluated.get(id(candidate), ([], None, "missing_result"))[2]
+            evaluated.get(id(candidate), ([], None, "missing_result", {}))[2]
             or not isinstance(
-                evaluated.get(id(candidate), ([], None, "missing_result"))[1],
+                evaluated.get(id(candidate), ([], None, "missing_result", {}))[1],
                 dict,
             )
         )
@@ -1061,6 +1211,7 @@ def _audit_final_book_geometry_with_vlm(
     recovery_candidates = [
         candidate for candidate in shortlist
         if id(candidate) in initial_call_failures
+        and not evaluated.get(id(candidate), ([], None, "", {}))[3]
     ]
     if recovery_candidates and recovery_workers:
         with ThreadPoolExecutor(max_workers=min(recovery_workers, len(recovery_candidates))) as executor:
@@ -1072,9 +1223,18 @@ def _audit_final_book_geometry_with_vlm(
                 candidate = futures[future]
                 try:
                     _candidate, references, result = future.result()
-                    evaluated[id(candidate)] = (references, result, "")
+                    evaluated[id(candidate)] = (references, result, "", {})
+                except VlmBudgetExhaustedError as exc:
+                    evaluated[id(candidate)] = ([], None, str(exc)[:500], {
+                        "budget_code": exc.budget_code,
+                        "request_kind": exc.request_kind,
+                        "quota": exc.quota,
+                        "used": exc.used,
+                        "limit": exc.limit,
+                        "remaining": exc.remaining,
+                    })
                 except Exception as exc:
-                    evaluated[id(candidate)] = ([], None, str(exc)[:500])
+                    evaluated[id(candidate)] = ([], None, str(exc)[:500], {})
 
     review_contract = _book_vlm_review_contract(review_stage)
     accepted: list[_Candidate] = []
@@ -1087,9 +1247,16 @@ def _audit_final_book_geometry_with_vlm(
     audit_records: list[dict[str, Any]] = []
     call_failure_records: list[dict[str, Any]] = []
     for candidate in shortlist:
-        references, result, error = evaluated.get(id(candidate), ([], None, "missing_result"))
+        references, result, error, budget_failure = evaluated.get(
+            id(candidate), ([], None, "missing_result", {})
+        )
         if error or not isinstance(result, dict):
-            failure_counts["final_book_vlm_call_failed"] += 1
+            failure_code = (
+                "vlm_provider_budget_exhausted"
+                if budget_failure
+                else "final_book_vlm_call_failed"
+            )
+            failure_counts[failure_code] += 1
             call_failure_records.append({
                 "source_sequence": candidate.sequence.name,
                 "parent_key": _lineage_parent_key(candidate),
@@ -1097,6 +1264,15 @@ def _audit_final_book_geometry_with_vlm(
                 "book_scope": _scope_key(candidate),
                 "geometry_family": _geometry_program_family(candidate),
                 "error": error or "missing_result",
+                "failure_code": failure_code,
+                "budget_code": str(budget_failure.get("budget_code") or ""),
+                "request_kind": str(
+                    budget_failure.get("request_kind") or request_kind
+                ),
+                "quota": str(budget_failure.get("quota") or ""),
+                "used": budget_failure.get("used"),
+                "limit": budget_failure.get("limit"),
+                "remaining": budget_failure.get("remaining"),
             })
             continue
         program = GeometryProgram.from_dict(
@@ -1184,6 +1360,7 @@ def _audit_final_book_geometry_with_vlm(
         audit_records.append({
             "source_sequence": candidate.sequence.name,
             "parent_key": _lineage_parent_key(candidate),
+            "base_review_fingerprint": _base_review_fingerprint(candidate),
             "book_principle_id": candidate.principle_id,
             "book_scope": _scope_key(candidate),
             "geometry_family": _geometry_program_family(candidate),
@@ -1201,11 +1378,7 @@ def _audit_final_book_geometry_with_vlm(
             "candidate_morphology": deepcopy(candidate_morphology),
             "candidate_design_concept": deepcopy(candidate_design_concept),
             "program_hash": program.program_hash(),
-            "geometry_hash": str(
-                candidate.source.metadata.get("geometry_program_compilation", {}).get("geometry_hash")
-                if isinstance(candidate.source.metadata.get("geometry_program_compilation"), dict)
-                else ""
-            ),
+            "geometry_hash": _archived_exact_surface_geometry_hash(candidate),
             "geometry_program": program.to_dict(),
             "review_image_path": str(result.get("review_image_path") or ""),
             "vlm_audit": deepcopy(audit),
@@ -1247,6 +1420,8 @@ def _audit_final_book_geometry_with_vlm(
         "prior_final_vlm_failure_filter": prior_failure_filter,
         "shortlist_count": len(shortlist),
         "review_budget": maximum,
+        "request_kind": request_kind,
+        "paid_opportunity_limit": paid_opportunity_limit,
         "scored_count": scored_count,
         "cache_hit_count": cache_hit_count,
         "initial_call_failure_count": len(initial_call_failures),
@@ -1296,6 +1471,23 @@ def _audit_final_book_geometry_with_vlm(
         "synthetic_fallback_used": False,
         "selection_input_is_reviewed_hard_pass_only": True,
         "audit_records": audit_records,
+        "no_call_reason": (
+            ""
+            if shortlist
+            else (
+                "routing_pool_empty"
+                if input_count == 0
+                else (
+                    "no_exact_geometry_program_for_final_review"
+                    if invalid_geometry_program_count == input_count
+                    else (
+                        "paid_vlm_review_budget_unavailable"
+                        if maximum <= 0
+                        else "final_vlm_shortlist_empty"
+                    )
+                )
+            )
+        ),
     }
     return accepted, evidence
 
@@ -1312,6 +1504,7 @@ def audit_book_base_stage_with_vlm(
     reference_provider: Any | None = None,
     excluded_parent_keys: set[str] | None = None,
     excluded_parent_fingerprints: set[str] | None = None,
+    target_count: int | None = None,
 ) -> tuple[list[_Candidate], dict[str, Any]]:
     """Approve descendants only after their exact BOOK base parent is seen.
 
@@ -1333,22 +1526,66 @@ def audit_book_base_stage_with_vlm(
         if str((candidate.source.metadata.get("book_generation_lineage") or {}).get("stage") or "")
         == "base"
     ]
-    base_fingerprint_by_parent = {
-        _lineage_parent_key(candidate): _base_review_fingerprint(candidate)
+    base_by_fingerprint = {
+        _base_review_fingerprint(candidate): candidate
         for candidate in all_bases
-        if _lineage_parent_key(candidate)
     }
-    eligible_pool = [
-        candidate for candidate in pool
-        if _lineage_parent_key(candidate) not in excluded_parent_keys
-        and base_fingerprint_by_parent.get(_lineage_parent_key(candidate), "")
-        not in excluded_parent_fingerprints
-    ]
-    bases = [
-        candidate for candidate in eligible_pool
-        if str((candidate.source.metadata.get("book_generation_lineage") or {}).get("stage") or "")
-        == "base"
-    ]
+    base_fingerprints_by_parent: dict[str, set[str]] = {}
+    base_fingerprints_by_geometry: dict[str, set[str]] = {}
+    base_fingerprints_by_program: dict[str, set[str]] = {}
+    for fingerprint, candidate in base_by_fingerprint.items():
+        parent_key = _lineage_parent_key(candidate)
+        if parent_key:
+            base_fingerprints_by_parent.setdefault(parent_key, set()).add(fingerprint)
+        metadata = candidate.source.metadata
+        compilation = metadata.get("geometry_program_compilation") or {}
+        geometry_hash = _archived_exact_surface_geometry_hash(candidate)
+        if geometry_hash:
+            base_fingerprints_by_geometry.setdefault(geometry_hash, set()).add(fingerprint)
+        program = metadata.get("geometry_program") or {}
+        program_metadata = program.get("metadata") or {}
+        program_hash = str(
+            compilation.get("program_hash")
+            or program.get("program_hash")
+            or program_metadata.get("pre_book_program_hash")
+            or ""
+        )
+        if program_hash:
+            base_fingerprints_by_program.setdefault(program_hash, set()).add(fingerprint)
+
+    def exact_parent_fingerprint(candidate: _Candidate) -> str:
+        metadata = candidate.source.metadata
+        lineage = metadata.get("book_generation_lineage") or {}
+        prior_audit = metadata.get("base_book_vlm_parent_audit") or {}
+        fingerprint = str(
+            lineage.get("parent_base_review_fingerprint")
+            or lineage.get("base_review_fingerprint")
+            or prior_audit.get("base_review_fingerprint")
+            or ""
+        )
+        exact_matches: list[str] = []
+        if fingerprint:
+            if fingerprint not in base_by_fingerprint:
+                return ""
+            exact_matches.append(fingerprint)
+        geometry_hash = str(lineage.get("parent_geometry_hash") or "")
+        if geometry_hash:
+            geometry_matches = base_fingerprints_by_geometry.get(geometry_hash, set())
+            if len(geometry_matches) != 1:
+                return ""
+            exact_matches.append(next(iter(geometry_matches)))
+        program_hash = str(lineage.get("parent_program_hash") or "")
+        if program_hash:
+            program_matches = base_fingerprints_by_program.get(program_hash, set())
+            if len(program_matches) != 1:
+                return ""
+            exact_matches.append(next(iter(program_matches)))
+        return exact_matches[0] if exact_matches and len(set(exact_matches)) == 1 else ""
+
+    # Exclusions prevent duplicate fresh VLM work. Do not erase descendants
+    # before exact persisted base audits can release them.
+    eligible_pool = list(pool)
+    bases = list(all_bases)
     if not bases:
         return [], {
             "schema_version": "arr.maas.book_base_stage_vlm_gate.v2",
@@ -1376,27 +1613,43 @@ def audit_book_base_stage_with_vlm(
         if outcome_graph is not None
         else {}
     )
-    reused_by_key: dict[str, _Candidate] = {}
+    reused_by_fingerprint: dict[str, _Candidate] = {}
     reused_audits: dict[str, dict[str, Any]] = {}
     for candidate in bases:
-        parent_key = _lineage_parent_key(candidate)
-        audit = persisted_audits.get(_base_review_fingerprint(candidate))
-        if not parent_key or not isinstance(audit, dict):
+        fingerprint = _base_review_fingerprint(candidate)
+        audit = persisted_audits.get(fingerprint)
+        if not isinstance(audit, dict):
             continue
-        reused_by_key[parent_key] = _attach_base_book_vlm_audit(
+        reused_by_fingerprint[fingerprint] = _attach_base_book_vlm_audit(
             candidate,
             audit,
             reused_from_outcome_graph=True,
         )
-        reused_audits[parent_key] = deepcopy(audit)
+        reused_audits[fingerprint] = deepcopy(audit)
 
+    fresh_base_fingerprints = {
+        _base_review_fingerprint(candidate)
+        for candidate in bases
+        if _base_review_fingerprint(candidate) not in reused_by_fingerprint
+        and _lineage_parent_key(candidate) not in excluded_parent_keys
+        and _base_review_fingerprint(candidate) not in excluded_parent_fingerprints
+    }
     fresh_pool = [
         candidate for candidate in eligible_pool
-        if _lineage_parent_key(candidate) not in reused_by_key
+        if (
+            str((candidate.source.metadata.get("book_generation_lineage") or {}).get("stage") or "")
+            == "base"
+            and _base_review_fingerprint(candidate) in fresh_base_fingerprints
+        )
+        or (
+            str((candidate.source.metadata.get("book_generation_lineage") or {}).get("stage") or "")
+            != "base"
+            and exact_parent_fingerprint(candidate) in fresh_base_fingerprints
+        )
     ]
     fresh_bases = [
         candidate for candidate in bases
-        if _lineage_parent_key(candidate) not in reused_by_key
+        if _base_review_fingerprint(candidate) in fresh_base_fingerprints
     ]
     review_budget = _book_vlm_review_budget("book_base_operative")
     if fresh_bases:
@@ -1404,6 +1657,13 @@ def audit_book_base_stage_with_vlm(
             fresh_pool,
             target=min(review_budget, len(fresh_bases)),
             visual_directive=visual_directive,
+        )
+        configured_target = int(
+            target_count
+            or (paid_provider_budget_snapshot().get("run_metadata") or {}).get(
+                "target_count"
+            )
+            or review_budget
         )
         approved, raw_evidence = _audit_final_book_geometry_with_vlm(
             fresh_bases,
@@ -1416,6 +1676,8 @@ def audit_book_base_stage_with_vlm(
             reference_provider=reference_provider,
             review_stage="book_base_operative",
             shortlist_override=parent_shortlist,
+            request_kind="base_candidate_vlm",
+            paid_opportunity_limit=configured_target,
         )
     else:
         parent_shortlist = []
@@ -1436,39 +1698,79 @@ def audit_book_base_stage_with_vlm(
             "review_stage": "book_base_operative",
         }
 
-    approved_by_key: dict[str, _Candidate] = dict(reused_by_key)
+    approved_by_fingerprint: dict[str, _Candidate] = dict(reused_by_fingerprint)
     base_audits: dict[str, dict[str, Any]] = dict(reused_audits)
     for candidate in approved:
-        parent_key = _lineage_parent_key(candidate)
-        if not parent_key:
-            continue
         audit = dict(candidate.source.metadata.get("final_book_vlm_audit") or {})
-        approved_by_key[parent_key] = _attach_base_book_vlm_audit(
+        fingerprint = _base_review_fingerprint(candidate)
+        approved_by_fingerprint[fingerprint] = _attach_base_book_vlm_audit(
             candidate,
             audit,
             reused_from_outcome_graph=False,
         )
-        base_audits[parent_key] = audit
+        base_audits[fingerprint] = audit
 
-    released: list[_Candidate] = list(approved_by_key.values())
+    # Base VLM is a developmental critic. A reviewed failure must retain its
+    # typed critique so the exact post-BOOK repair loop can improve it; only an
+    # unreviewed parent is withheld. Final exact-render VLM remains the visual
+    # acceptance authority.
+    reviewed_by_fingerprint: dict[str, _Candidate] = dict(approved_by_fingerprint)
+    for record in raw_evidence.get("audit_records") or ():
+        vlm_audit = record.get("vlm_audit") or {}
+        if not (
+            str(record.get("response_id") or "")
+            and isinstance(vlm_audit, dict)
+            and vlm_audit.get("reviewed_exact_post_book_geometry") is True
+            and str(vlm_audit.get("review_stage") or "")
+            == "book_base_operative"
+        ):
+            continue
+        fingerprint = str(record.get("base_review_fingerprint") or "")
+        if fingerprint not in base_by_fingerprint:
+            parent_matches = base_fingerprints_by_parent.get(
+                str(record.get("parent_key") or ""),
+                set(),
+            )
+            fingerprint = next(iter(parent_matches)) if len(parent_matches) == 1 else ""
+        if not fingerprint or fingerprint in reviewed_by_fingerprint:
+            continue
+        candidate = base_by_fingerprint.get(fingerprint)
+        if candidate is None:
+            continue
+        audit = {
+            **dict(record),
+            "review_stage": "book_base_operative",
+            "status": "pass" if bool(record.get("hard_pass")) else "critique",
+        }
+        reviewed_by_fingerprint[fingerprint] = _attach_base_book_vlm_audit(
+            candidate,
+            audit,
+            reused_from_outcome_graph=False,
+        )
+        base_audits[fingerprint] = audit
+
+    released: list[_Candidate] = list(reviewed_by_fingerprint.values())
     descendant_count = 0
     for candidate in eligible_pool:
         lineage = candidate.source.metadata.get("book_generation_lineage") or {}
         if str(lineage.get("stage") or "") == "base":
             continue
         parent_key = str(lineage.get("parent_key") or "")
-        if parent_key not in approved_by_key:
+        fingerprint = exact_parent_fingerprint(candidate)
+        if fingerprint not in reviewed_by_fingerprint:
             continue
-        parent_audit = base_audits[parent_key]
+        parent_audit = base_audits[fingerprint]
         metadata = dict(candidate.source.metadata)
         metadata["base_book_vlm_parent_audit"] = {
             "parent_key": parent_key,
-            "hard_pass": True,
+            "hard_pass": bool(parent_audit.get("hard_pass")),
             "response_id": str(parent_audit.get("response_id") or ""),
             "review_stage": "book_base_operative",
-            "base_review_fingerprint": base_fingerprint_by_parent.get(parent_key, ""),
+            "critic_actions": list(parent_audit.get("critic_actions") or ()),
+            "geometry_edits": list(parent_audit.get("geometry_edits") or ()),
+            "base_review_fingerprint": fingerprint,
             "review_contract_fingerprint": str(review_contract["fingerprint"]),
-            "reused_from_outcome_graph": parent_key in reused_by_key,
+            "reused_from_outcome_graph": fingerprint in reused_by_fingerprint,
         }
         feature = deepcopy(candidate.feature)
         feature.setdefault("properties", {})["base_book_vlm_parent_audit"] = deepcopy(
@@ -1481,14 +1783,12 @@ def audit_book_base_stage_with_vlm(
         ))
         descendant_count += 1
 
-    reviewed_parent_keys = sorted(set(reused_by_key) | {
-        str(record.get("parent_key") or "")
-        for record in raw_evidence.get("audit_records") or ()
-        if str(record.get("parent_key") or "")
+    reviewed_parent_keys = sorted({
+        _lineage_parent_key(candidate)
+        for candidate in reviewed_by_fingerprint.values()
+        if _lineage_parent_key(candidate)
     })
-    reviewed_parent_fingerprints = sorted(set(persisted_audits) | {
-        _base_review_fingerprint(candidate) for candidate in parent_shortlist
-    })
+    reviewed_parent_fingerprints = sorted(reviewed_by_fingerprint)
     return released, {
         "schema_version": "arr.maas.book_base_stage_vlm_gate.v2",
         "required": True,
@@ -1499,15 +1799,23 @@ def audit_book_base_stage_with_vlm(
         "excluded_parent_fingerprint_count": len(excluded_parent_fingerprints),
         "base_input_count": len(bases),
         "fresh_base_input_count": len(fresh_bases),
-        "persisted_approved_base_count": len(reused_by_key),
-        "newly_approved_base_count": len(approved_by_key) - len(reused_by_key),
-        "approved_base_count": len(approved_by_key),
+        "persisted_approved_base_count": len(reused_by_fingerprint),
+        "newly_approved_base_count": len(approved_by_fingerprint) - len(reused_by_fingerprint),
+        "approved_base_count": len(approved_by_fingerprint),
+        "developmental_critique_parent_count": max(
+            0,
+            len(reviewed_by_fingerprint) - len(approved_by_fingerprint),
+        ),
+        "reviewed_base_count": len(reviewed_by_fingerprint),
+        "base_stage_selection_authority": False,
         "released_descendant_count": descendant_count,
         "rejected_descendant_count": max(
             0,
             len(eligible_pool) - len(bases) - descendant_count,
         ),
-        "hard_pass": bool(approved_by_key),
+        "hard_pass": bool(approved_by_fingerprint),
+        "development_release_hard_pass": bool(reviewed_by_fingerprint),
+        "capacity_excluded_from_development_release_hard_pass": True,
         "base_audit": raw_evidence,
         "parent_shortlist": parent_shortlist_evidence,
         "reviewed_parent_keys": reviewed_parent_keys,
@@ -1524,10 +1832,10 @@ def _final_authority_repair_requires_canonical_reprojection(
 ) -> bool:
     """Return whether a VLM edit must re-enter the sole final-authority path."""
 
-    return (
-        str(source.metadata.get("geometry_authority") or "")
-        == "final_floorwise_legal_geometry_program"
-    )
+    return str(source.metadata.get("geometry_authority") or "") in {
+        "authored_projected_surface_payload",
+        "authored_compiled_surface_payload",
+    }
 
 
 def _repair_exact_post_book_candidates_from_vlm(
@@ -1602,33 +1910,11 @@ def _repair_exact_post_book_candidates_from_vlm(
     site_access_context = dict(site_access_context or {})
     for candidate in candidates:
         record = records[candidate.sequence.name]
-        if _final_authority_repair_requires_canonical_reprojection(
+        requires_canonical_reprojection = (
+            _final_authority_repair_requires_canonical_reprojection(
             candidate.source
-        ):
-            failures[
-                "final_authority_vlm_repair_canonical_reprojection_unsupported"
-            ] += 1
-            failure_records.append({
-                "source_sequence": candidate.sequence.name,
-                "geometry_family": _geometry_program_family(candidate),
-                "llm_authored_lane": _llm_authored_candidate(candidate),
-                "stage": "final_authority_repair_reprojection",
-                "status": "unsupported_fail_closed",
-                "issues": [
-                    {
-                        "code": (
-                            "final_authority_vlm_repair_canonical_"
-                            "reprojection_unsupported"
-                        ),
-                        "message": (
-                            "A final-authority parent may only be repaired by "
-                            "the canonical Matrix4 and floorwise legal "
-                            "materializer."
-                        ),
-                    }
-                ],
-            })
-            continue
+            )
+        )
         try:
             parent_program = GeometryProgram.from_dict(candidate.source.metadata["geometry_program"])
         except (TypeError, ValueError):
@@ -1793,8 +2079,14 @@ def _repair_exact_post_book_candidates_from_vlm(
             "legal_fit_strength": round(fit_strength, 4),
             "repair_stage": "exact_post_book_vlm_typed_edit",
             "parent_geometry_hash": parent_compilation.geometry_hash,
+            "program_hash": repaired_program.program_hash(),
+            "geometry_hash": repaired_compilation.geometry_hash,
         })
         metadata["geometry_program_bridge_evidence"] = repaired_bridge
+        metadata["geometry_program"] = repaired_program.to_dict()
+        metadata["authored_geometry_program"] = repaired_program.to_dict()
+        metadata["final_program_hash"] = repaired_program.program_hash()
+        metadata["final_geometry_hash"] = repaired_compilation.geometry_hash
         source = replace(source, metadata=metadata)
         if generation_context is None:
             failures["repaired_authored_visual_legal_sections_missing"] += 1
@@ -1809,37 +2101,141 @@ def _repair_exact_post_book_candidates_from_vlm(
         if any(section is None for section in legal_sections):
             failures["repaired_authored_visual_legal_sections_missing"] += 1
             continue
-        authored_visual = certify_authored_visual_mesh(
-            source,
-            legal_sections,
+        parent_floorwise_stack = candidate.source.metadata.get(
+            "floorwise_legal_matrix_stack"
         )
-        if not authored_visual.certificate.hard_pass:
+        parent_floorwise_stack = (
+            parent_floorwise_stack
+            if isinstance(parent_floorwise_stack, dict)
+            else {}
+        )
+        if requires_canonical_reprojection:
+            try:
+                target_plan_coverage = float(
+                    parent_floorwise_stack.get("target_plan_coverage")
+                    or parent_capacity_alternative.get(
+                        "target_base_plan_coverage"
+                    )
+                    or recursive_plan_coverage_floor(
+                        building_type,
+                        alternative_capacity_contract,
+                        host_area_m2=float(compile_site.area),
+                    )
+                )
+            except (TypeError, ValueError):
+                failures["repaired_floorwise_target_coverage_invalid"] += 1
+                continue
+            terminal_failure_sink: list[dict[str, Any]] = []
+            projected_source = materialize_floorwise_legal_source(
+                source,
+                legal_sections=legal_sections,
+                target_plan_coverage=target_plan_coverage,
+                floor_capacity_plan_hash=str(
+                    parent_floorwise_stack.get("floor_capacity_plan_hash")
+                    or (base_capacity_contract or {}).get(
+                        "floor_capacity_plan_hash"
+                    )
+                    or ""
+                ),
+                target_floor_areas_m2=tuple(
+                    float(value)
+                    for value in (
+                        parent_floorwise_stack.get("target_floor_areas_m2")
+                        or (base_capacity_contract or {}).get(
+                            "target_floor_areas_m2"
+                        )
+                        or ()
+                    )
+                ),
+                terminal_failure_sink=terminal_failure_sink,
+            )
+            if projected_source is None:
+                terminal_reasons = [
+                    str(
+                        (item.get("evidence") or {}).get("repair_reason")
+                        or item.get("stage")
+                        or ""
+                    )
+                    for item in terminal_failure_sink
+                    if isinstance(item, dict)
+                ]
+                failures.update(
+                    terminal_reasons
+                    or ["repaired_floorwise_legal_reprojection_failed"]
+                )
+                failure_records.append({
+                    "source_sequence": candidate.sequence.name,
+                    "geometry_family": _geometry_program_family(candidate),
+                    "llm_authored_lane": _llm_authored_candidate(candidate),
+                    "stage": "final_authority_repair_reprojection",
+                    "status": "canonical_reprojection_failed",
+                    "issues": deepcopy(terminal_failure_sink),
+                })
+                continue
+            projected_metadata = deepcopy(projected_source.metadata)
+            projected_bridge = deepcopy(
+                projected_metadata.get("geometry_program_bridge_evidence")
+                or repaired_bridge
+            )
+            projected_bridge.update({
+                "program_hash": repaired_program.program_hash(),
+                "geometry_hash": repaired_compilation.geometry_hash,
+                "repair_stage": "exact_post_book_vlm_typed_edit",
+                "parent_geometry_hash": parent_compilation.geometry_hash,
+            })
+            projected_metadata.update({
+                "geometry_authority": "authored_projected_surface_payload",
+                "geometry_program": repaired_program.to_dict(),
+                "authored_geometry_program": repaired_program.to_dict(),
+                "final_program_hash": repaired_program.program_hash(),
+                "geometry_program_bridge_evidence": projected_bridge,
+                "final_vlm_repair_parent_audit": deepcopy(record),
+            })
+            source = replace(
+                projected_source,
+                metadata=projected_metadata,
+            )
+            counts["floorwise_legal_reprojection_count"] += 1
+            floorwise_sibling_evidence = {
+                "schema_version": (
+                    "arr.maas.floorwise_legal_sibling_evidence.v1"
+                ),
+                "status": "promoted_to_visual_authority",
+                "visible_authored_geometry_preserved": True,
+                "authority": "final_visual_authority",
+                "failure_reasons": [],
+                "floorwise_legal_matrix_stack": deepcopy(
+                    source.metadata.get("floorwise_legal_matrix_stack") or {}
+                ),
+            }
+        else:
+            authored_visual = certify_authored_visual_mesh(
+                source,
+                legal_sections,
+            )
+        if (
+            not requires_canonical_reprojection
+            and not authored_visual.certificate.hard_pass
+        ):
             failures.update(
                 authored_visual.certificate.failure_reasons
                 or ("repaired_authored_visual_certification_failed",)
             )
             continue
-        metadata = deepcopy(source.metadata)
-        metadata["floorwise_visual_projection"] = (
-            authored_visual.certificate.to_dict()
-        )
-        source = replace(source, metadata=metadata)
-        floorwise_sibling_evidence = {
-            "schema_version": "arr.maas.floorwise_legal_sibling_evidence.v1",
-            "status": "not_requested",
-            "visible_authored_geometry_preserved": True,
-            "authority": "diagnostic_only",
-            "failure_reasons": [],
-        }
-        if legal_sections:
-            parent_floorwise_stack = candidate.source.metadata.get(
-                "floorwise_legal_matrix_stack"
+        if not requires_canonical_reprojection:
+            metadata = deepcopy(source.metadata)
+            metadata["floorwise_visual_projection"] = (
+                authored_visual.certificate.to_dict()
             )
-            parent_floorwise_stack = (
-                parent_floorwise_stack
-                if isinstance(parent_floorwise_stack, dict)
-                else {}
-            )
+            source = replace(source, metadata=metadata)
+            floorwise_sibling_evidence = {
+                "schema_version": "arr.maas.floorwise_legal_sibling_evidence.v1",
+                "status": "not_requested",
+                "visible_authored_geometry_preserved": True,
+                "authority": "diagnostic_only",
+                "failure_reasons": [],
+            }
+        if legal_sections and not requires_canonical_reprojection:
             try:
                 target_plan_coverage = float(
                     parent_floorwise_stack.get("target_plan_coverage")
@@ -1859,6 +2255,7 @@ def _repair_exact_post_book_candidates_from_vlm(
                     ],
                 })
             if not floorwise_sibling_evidence["failure_reasons"]:
+                terminal_failure_sink: list[dict[str, Any]] = []
                 floorwise_source = materialize_floorwise_legal_source(
                     source,
                     legal_sections=legal_sections,
@@ -1880,13 +2277,29 @@ def _repair_exact_post_book_candidates_from_vlm(
                             or ()
                         )
                     ),
+                    terminal_failure_sink=terminal_failure_sink,
                 )
                 if floorwise_source is None:
+                    terminal_reasons = [
+                        str(
+                            (
+                                record.get("evidence") or {}
+                            ).get("repair_reason")
+                            or record.get("stage")
+                            or ""
+                        )
+                        for record in terminal_failure_sink
+                        if isinstance(record, dict)
+                    ]
                     floorwise_sibling_evidence.update({
                         "status": "unavailable",
-                        "failure_reasons": [
-                            "repaired_floorwise_legal_reprojection_failed"
-                        ],
+                        "failure_reasons": (
+                            terminal_reasons
+                            or ["repaired_floorwise_legal_reprojection_failed"]
+                        ),
+                        "terminal_failure_evidence": deepcopy(
+                            terminal_failure_sink
+                        ),
                     })
                 else:
                     sibling_metadata = (

@@ -72,6 +72,7 @@ def measure_authoritative_geometry_artifact(
     expected_final_geometry_hash: str,
     expected_visual_hash: str,
     semantic_projection_hard_gate: dict[str, Any] | None = None,
+    expected_section_geometry_binding_hash: str = "",
 ) -> AuthoritativeCertifiedMeshMeasurement:
     """Recompile AST, validate exact visual bytes, then remeasure morphology."""
 
@@ -79,9 +80,32 @@ def measure_authoritative_geometry_artifact(
         raise ValueError("authoritative_geometry_artifact_missing")
     if artifact.get("schemaVersion") != "arr.maas.geometry_artifact.v1":
         raise ValueError("authoritative_geometry_artifact_schema_mismatch")
+    certificate = artifact.get("projectedVisualCertificate")
+    certificate = certificate if isinstance(certificate, dict) else {}
+    final_authority = (
+        certificate.get("certification_mode")
+        == FINAL_AUTHORITY_CERTIFICATION_MODE
+    )
     program_payload = artifact.get("geometryProgram")
+    if final_authority:
+        certified_program_hash = str(
+            certificate.get("final_program_hash") or ""
+        )
+        program_payload = next((
+            payload for payload in (
+                artifact.get("authoredGeometryProgram"),
+                artifact.get("geometryProgram"),
+            )
+            if isinstance(payload, dict)
+            and GeometryProgram.from_dict(payload).program_hash()
+            == certified_program_hash
+        ), None)
     if not isinstance(program_payload, dict):
-        raise ValueError("authoritative_geometry_program_missing")
+        raise ValueError(
+            "authoritative_geometry_program_identity_missing"
+            if final_authority
+            else "authoritative_geometry_program_missing"
+        )
     program = GeometryProgram.from_dict(program_payload)
     compilation = compile_geometry_program(program)
     if compilation.status != "compiled" or compilation_gate(compilation):
@@ -89,31 +113,36 @@ def measure_authoritative_geometry_artifact(
 
     identity = artifact.get("identity")
     identity = identity if isinstance(identity, dict) else {}
-    certificate = artifact.get("projectedVisualCertificate")
-    certificate = certificate if isinstance(certificate, dict) else {}
-    final_authority = (
-        certificate.get("certification_mode")
-        == FINAL_AUTHORITY_CERTIFICATION_MODE
-    )
-    program_hash = str(compilation.program.program_hash() or "")
+    program_hash = str(program.program_hash() or "")
     final_geometry_hash = str(
         artifact.get("finalLegalGeometryHash") or ""
     )
+    identity_mismatches: list[str] = []
+    if not program_hash:
+        identity_mismatches.append("program_hash_missing")
+    if program_hash != str(expected_program_hash or ""):
+        identity_mismatches.append("expected_program_hash")
+    if str(identity.get("programHash") or "") != program_hash:
+        identity_mismatches.append("identity_program_hash")
+    if not final_geometry_hash:
+        identity_mismatches.append("final_geometry_hash_missing")
+    if final_geometry_hash != str(expected_final_geometry_hash or ""):
+        identity_mismatches.append("expected_final_geometry_hash")
     if (
-        not program_hash
-        or program_hash != str(expected_program_hash or "")
-        or str(identity.get("programHash") or "") != program_hash
-        or not final_geometry_hash
-        or final_geometry_hash
-        != str(expected_final_geometry_hash or "")
-        or str(identity.get("finalLegalGeometryHash") or "")
+        str(identity.get("finalLegalGeometryHash") or "")
         != final_geometry_hash
-        or (
-            not final_authority
-            and compilation.geometry_hash != final_geometry_hash
-        )
     ):
-        raise ValueError("authoritative_geometry_identity_mismatch")
+        identity_mismatches.append("identity_final_legal_geometry_hash")
+    if (
+        not final_authority
+        and compilation.geometry_hash != final_geometry_hash
+    ):
+        identity_mismatches.append("compiled_final_geometry_hash")
+    if identity_mismatches:
+        raise ValueError(
+            "authoritative_geometry_identity_mismatch:"
+            + ",".join(identity_mismatches)
+        )
 
     semantic_gate = (
         semantic_projection_hard_gate
@@ -137,6 +166,9 @@ def measure_authoritative_geometry_artifact(
             semantic_audit_payload_hash(semantic_gate)
             if final_authority
             else ""
+        ),
+        expected_section_geometry_binding_hash=str(
+            expected_section_geometry_binding_hash or ""
         ),
     )
     if validated is None:

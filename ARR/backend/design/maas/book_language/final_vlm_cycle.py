@@ -21,6 +21,7 @@ from .vlm_review import (
     _audit_final_book_geometry_with_vlm,
     _repair_exact_post_book_candidates_from_vlm,
 )
+from design.maas.paid_provider_budget import paid_provider_budget_snapshot
 
 
 @dataclass(frozen=True)
@@ -32,6 +33,12 @@ class FinalVlmCycleResult:
     repair_vlm_passes: list[_Candidate]
     repair_evidence: dict[str, Any]
     final_vlm_gate: dict[str, Any]
+
+
+def _bounded_final_review_pool(pool: list[_Candidate]) -> list[_Candidate]:
+    """Review every valid descendant when the live pool is five or smaller."""
+
+    return list(pool) if len(pool) <= 5 else _bounded_visual_selection_pool(pool)
 
 
 def run_final_vlm_cycle(
@@ -56,15 +63,28 @@ def run_final_vlm_cycle(
     hard_gate_summary: Callable[[dict[str, Any] | None, list[_Candidate]], dict[str, Any]],
     completion_status: str,
     no_repair_status: str,
+    target_count: int | None = None,
 ) -> FinalVlmCycleResult:
     """Run the exact causal review loop without relaxing any hard gate."""
-    routed_review_pool, initial_capacity_routing = (
+    if target_count is None:
+        configured_target = (
+            paid_provider_budget_snapshot().get("run_metadata") or {}
+        ).get("target_count")
+        if configured_target is not None:
+            target_count = max(0, int(configured_target))
+    _capacity_routed_review_pool, initial_capacity_routing = (
         route_capacity_target_hard_passes(
             review_pool,
             stage="initial_final_book_paid_vlm",
         )
     )
-    bounded_review_pool = _bounded_visual_selection_pool(routed_review_pool)
+    initial_capacity_routing = {
+        **initial_capacity_routing,
+        "authority": "diagnostic_only",
+        "selection_effect": "none",
+    }
+    routed_review_pool = list(review_pool)
+    bounded_review_pool = _bounded_final_review_pool(routed_review_pool)
     if not bounded_review_pool:
         initial_gate = {
             "schema_version": "arr.maas.final_book_vlm_portfolio_gate.v2",
@@ -77,6 +97,11 @@ def run_final_vlm_cycle(
             "post_book_geometry_reviewed": False,
             "synthetic_fallback_used": False,
             "capacity_target_routing": initial_capacity_routing,
+            "no_call_reason": (
+                "routing_pool_empty"
+                if not review_pool
+                else "routing_pool_empty_after_diagnostic_routing"
+            ),
         }
         repair_vlm_gate = {
             "schema_version": "arr.maas.final_book_vlm_portfolio_gate.v1",
@@ -107,7 +132,7 @@ def run_final_vlm_cycle(
             "exact_post_book_typed_repair_gate": repair_vlm_gate,
         }
         return FinalVlmCycleResult(
-            selection_pool=_bounded_visual_selection_pool(
+            selection_pool=_bounded_final_review_pool(
                 list(retained_hard_passes)
             ),
             initial_vlm_passes=[],
@@ -117,6 +142,11 @@ def run_final_vlm_cycle(
             repair_evidence=repair_evidence,
             final_vlm_gate=final_gate,
         )
+    initial_opportunity_limit = (
+        2 * max(0, int(target_count))
+        if target_count is not None
+        else None
+    )
     initial_passes, initial_gate = _audit_final_book_geometry_with_vlm(
         bounded_review_pool,
         building_type=building_type,
@@ -124,6 +154,8 @@ def run_final_vlm_cycle(
         visual_directive=visual_directive,
         outcome_graph=outcome_graph,
         program_slug=program_slug,
+        request_kind="exact_candidate_vlm",
+        paid_opportunity_limit=initial_opportunity_limit,
     )
     initial_gate = {
         **initial_gate,
@@ -156,20 +188,31 @@ def run_final_vlm_cycle(
             for candidate, row in zip(repair_pool, repair_hard_gate["rows"])
             if row["combined_hard_pass"]
         ]
-    repair_selection_pool, repair_capacity_routing = (
+    _capacity_routed_repair_pool, repair_capacity_routing = (
         route_capacity_target_hard_passes(
             repair_selection_pool,
             stage="repaired_final_book_paid_vlm",
         )
     )
+    repair_capacity_routing = {
+        **repair_capacity_routing,
+        "authority": "diagnostic_only",
+        "selection_effect": "none",
+    }
     if repair_selection_pool:
         repair_vlm_passes, repair_vlm_gate = _audit_final_book_geometry_with_vlm(
-            _bounded_visual_selection_pool(repair_selection_pool),
+            _bounded_final_review_pool(repair_selection_pool),
             building_type=building_type,
             output_dir=output_dir / "exact-post-book-typed-repair",
             visual_directive=visual_directive,
             outcome_graph=outcome_graph,
             program_slug=program_slug,
+            request_kind="exact_candidate_vlm",
+            paid_opportunity_limit=(
+                3 * max(0, int(target_count))
+                if target_count is not None
+                else None
+            ),
         )
     else:
         repair_vlm_passes = []
@@ -186,7 +229,7 @@ def run_final_vlm_cycle(
         **repair_vlm_gate,
         "capacity_target_routing": repair_capacity_routing,
     }
-    capacity_valid_selection_pool, final_capacity_routing = (
+    _capacity_routed_selection_pool, final_capacity_routing = (
         route_capacity_target_hard_passes(
             [
                 *retained_hard_passes,
@@ -196,7 +239,17 @@ def run_final_vlm_cycle(
             stage="final_vlm_selection_pool",
         )
     )
-    selection_pool = _bounded_visual_selection_pool(capacity_valid_selection_pool)
+    final_capacity_routing = {
+        **final_capacity_routing,
+        "authority": "diagnostic_only",
+        "selection_effect": "none",
+    }
+    capacity_valid_selection_pool = [
+        *retained_hard_passes,
+        *initial_passes,
+        *repair_vlm_passes,
+    ]
+    selection_pool = _bounded_final_review_pool(capacity_valid_selection_pool)
     repair_evidence = {
         **repair_counts,
         "preselection_hard_gate": hard_gate_summary(repair_hard_gate, repair_pool),

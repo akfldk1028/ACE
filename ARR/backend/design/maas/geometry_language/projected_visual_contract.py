@@ -9,10 +9,19 @@ import json
 from math import isfinite
 from typing import Any
 
+from shapely import from_wkb
+from shapely.geometry import MultiPolygon, Polygon
+
 from .floorwise_visual_projection import (
     FLOORWISE_EXACT_AUTHORITY_CONTRACTS,
     FLOORWISE_EXACT_AUTHORITY_MODES,
     floorwise_authority_binding_hash,
+)
+from .floorwise_profiled_legal_clip import _legal_band_projection_sample_count
+from .profiled_mesh_numeric_repair import (
+    floor_center_numeric_equivalence,
+    indexed_mesh_section_topology,
+    revalidated_profiled_mesh,
 )
 
 
@@ -23,16 +32,35 @@ AUTHORED_COORDINATE_SPACE = (
     "source_footprint_centroid_local_xy_normalized_z"
 )
 FINAL_AUTHORITY_CERTIFICATION_MODE = (
+    "authored_projected_surface_authority"
+)
+LEGACY_FINAL_AUTHORITY_CERTIFICATION_MODE = (
     "final_floorwise_legal_geometry_authority"
 )
 PROJECTED_AUTHORITY = "certified_projected_visual_mesh"
-CAPACITY_PROGRAM_ROLE = "capacity_replay_metadata_and_provenance"
+CAPACITY_PROGRAM_ROLE = (
+    "authored_projected_surface_program_and_provenance"
+)
+LEGACY_CAPACITY_PROGRAM_ROLE = (
+    "capacity_replay_metadata_and_provenance"
+)
+PERSISTED_LEGACY_AUTHORITY_SCHEMA = (
+    "arr.maas.persisted_legacy_visual_authority.v1"
+)
 PROJECTED_FIELDS = (
     "projectedVisualMesh",
     "projectedVisualCertificate",
     "projectedVisualGeometryHash",
     "projectedVisualPayloadHash",
 )
+MAX_PROJECTED_VISUAL_SERIALIZED_BYTES = 256 * 1024 * 1024
+MAX_PROJECTED_VISUAL_TRIANGLES = 1_000_000
+MAX_PROJECTED_VISUAL_FLOORS = 256
+MAX_PROJECTED_VISUAL_COMPONENTS = 4096
+MAX_PROJECTED_VISUAL_CONTOURS = 8192
+MAX_PROJECTED_VISUAL_POINTS = 4_000_000
+MAX_AUTHORITY_CERTIFICATE_STRING_LENGTH = 4096
+MAX_AUTHORITY_GATE_FAILURE_CODES = 256
 
 
 @dataclass(frozen=True)
@@ -61,11 +89,11 @@ def serialize_certified_projected_visual(
         str(getattr(surface, "surface_type", "") or "").startswith("profiled_")
         for surface in tuple(getattr(source, "surfaces", ()) or ())
     )
-    if (
-        metadata.get("geometry_authority")
-        == "final_floorwise_legal_geometry_program"
-    ):
-        return _serialize_final_floorwise_authority(
+    if metadata.get("geometry_authority") in {
+        "authored_projected_surface_payload",
+        "authored_compiled_surface_payload",
+    }:
+        return _serialize_final_authored_surface_authority(
             source,
             metadata,
             final_semantic_audit=final_semantic_audit,
@@ -89,6 +117,7 @@ def serialize_certified_projected_visual(
         _surface_triangle_record(surface)
         for surface in tuple(getattr(source, "surfaces", ()) or ())
     ]
+    _validate_projected_visual_resource_bounds(certificate, triangles)
     expected_hash = str(certificate.get("visual_hash") or "")
     expected_count = int(certificate.get("projected_surface_count") or 0)
     if (
@@ -115,9 +144,15 @@ def serialize_certified_projected_visual(
         raise ValueError(
             "certified authored visual exact payload hash mismatch"
         )
-    _validate_floorwise_authority_binding(
+    validate_floorwise_authority_binding(
         certificate,
         exact_payload_hash=payload_hash,
+        triangle_payload=triangles,
+        expected_section_geometry_binding_hash=str(
+            metadata.get(
+                "profiled_legal_section_authority_binding_hash"
+            ) or ""
+        ),
     )
     return {
         "authority": PROJECTED_AUTHORITY,
@@ -135,13 +170,27 @@ def serialize_certified_projected_visual(
     }
 
 
-def _serialize_final_floorwise_authority(
+def _semantic_authority_audit_payload(
+    audit: dict[str, Any],
+) -> dict[str, Any]:
+    payload = deepcopy(audit)
+    payload.pop("semantic_projection_hash", None)
+    payload.pop("audited_context_hash", None)
+    context = payload.get("audited_context")
+    if isinstance(context, dict):
+        context = dict(context)
+        context.pop("capacity_measurement_hash", None)
+        payload["audited_context"] = context
+    return payload
+
+
+def _classify_final_authored_surface_identity(
     source: Any,
     metadata: dict[str, Any],
     *,
-    final_semantic_audit: dict[str, Any] | None,
+    external_audit: dict[str, Any],
 ) -> dict[str, Any]:
-    """Serialize the exact Task 3 authority without a legacy visual sibling."""
+    """Classify immutable authority identity and capacity-only drift once."""
 
     from design.maas.program_massing.semantic_carriers import (
         audit_source_semantic_projection,
@@ -151,21 +200,14 @@ def _serialize_final_floorwise_authority(
 
     semantic_evidence = metadata.get("program_semantic_carrier_evidence")
     semantic_evidence = (
-        semantic_evidence
-        if isinstance(semantic_evidence, dict)
-        else {}
+        semantic_evidence if isinstance(semantic_evidence, dict) else {}
     )
     program_id = str(semantic_evidence.get("program_id") or "")
-    external_audit = (
-        final_semantic_audit
-        if isinstance(final_semantic_audit, dict)
-        else {}
-    )
     external_context = external_audit.get("audited_context")
     external_context = (
         external_context if isinstance(external_context, dict) else {}
     )
-    recomputed_audit = audit_source_semantic_projection(
+    initial_audit = audit_source_semantic_projection(
         source,
         building_type=program_id,
         expected_context=external_context,
@@ -173,33 +215,33 @@ def _serialize_final_floorwise_authority(
     semantic_hash = str(
         semantic_evidence.get("semantic_projection_hash") or ""
     )
+    audited_capacity_hash = str(
+        external_context.get("capacity_measurement_hash") or ""
+    )
+    current_capacity_hash = str(
+        semantic_evidence.get("capacity_measurement_hash") or ""
+    )
+    initial_failures = set(initial_audit.get("failures") or ())
+    external_failures = set(external_audit.get("failures") or ())
+    identity_failures = initial_failures | external_failures
+    capacity_drift = identity_failures == {
+        "capacity_measurement_hash_mismatch"
+    }
+
     bridge = metadata.get("geometry_program_bridge_evidence")
     bridge = bridge if isinstance(bridge, dict) else {}
     final_program_hash = str(bridge.get("program_hash") or "")
     final_geometry_hash = str(bridge.get("geometry_hash") or "")
     surfaces = tuple(getattr(source, "surfaces", ()) or ())
     actual_surface_hash = source_surface_payload_hash(surfaces)
-    identity_ok = bool(
+    external_semantic_hash = str(
+        external_audit.get("semantic_projection_hash") or ""
+    )
+    independent_hard_identity = bool(
         external_audit.get("schema_version")
         == "arr.maas.final_semantic_projection_audit.v1"
-        and external_audit.get("status") == "verified"
-        and external_audit.get("hard_pass") is True
-        and isinstance(external_audit.get("accepted_carriers"), list)
-        and bool(external_audit.get("accepted_carriers"))
-        and int(external_audit.get("accepted_carrier_count") or 0)
-        == len(external_audit.get("accepted_carriers") or ())
         and str(external_audit.get("audited_context_hash") or "")
         == semantic_audit_context_hash(external_context)
-        and recomputed_audit.get("hard_pass") is True
-        and str(external_audit.get("semantic_projection_hash") or "")
-        == semantic_hash
-        and str(recomputed_audit.get("semantic_projection_hash") or "")
-        == semantic_hash
-        and str(recomputed_audit.get("audited_context_hash") or "")
-        == str(external_audit.get("audited_context_hash") or "")
-        and _canonical_payload_hash(recomputed_audit)
-        == _canonical_payload_hash(external_audit)
-        and semantic_hash
         and final_program_hash
         and final_geometry_hash
         and str(metadata.get("final_program_hash") or "")
@@ -211,20 +253,78 @@ def _serialize_final_floorwise_authority(
         and str(bridge.get("surface_payload_hash") or "")
         == actual_surface_hash
     )
-    if not identity_ok:
-        failures = sorted(set(
-            list(recomputed_audit.get("failures") or ())
-            + list(external_audit.get("failures") or ())
-        ))
+    strict_semantic_identity = bool(
+        external_audit.get("status") == "verified"
+        and external_audit.get("hard_pass") is True
+        and
+        initial_audit.get("hard_pass") is True
+        and isinstance(external_audit.get("accepted_carriers"), list)
+        and bool(external_audit.get("accepted_carriers"))
+        and int(external_audit.get("accepted_carrier_count") or 0)
+        == len(external_audit.get("accepted_carriers") or ())
+        and semantic_hash
+        and external_semantic_hash
+        and external_semantic_hash == semantic_hash
+        and _canonical_payload_hash(
+            _semantic_authority_audit_payload(initial_audit)
+        )
+        == _canonical_payload_hash(
+            _semantic_authority_audit_payload(external_audit)
+        )
+    )
+    hard_pass = bool(
+        independent_hard_identity
+        and (capacity_drift or strict_semantic_identity)
+    )
+    if not hard_pass:
+        failures = sorted(identity_failures)
         raise ValueError(
-            "final floorwise visual authority identity audit failed"
+            "authored projected surface authority identity audit failed"
             + (f": {','.join(failures)}" if failures else "")
         )
+    return {
+        "surfaces": surfaces,
+        "actual_surface_hash": actual_surface_hash,
+        "final_program_hash": final_program_hash,
+        "final_geometry_hash": final_geometry_hash,
+        "authority_semantic_hash": external_semantic_hash or semantic_hash,
+        "capacity_drift": capacity_drift,
+        "audited_capacity_hash": audited_capacity_hash,
+        "current_capacity_hash": current_capacity_hash,
+    }
+
+
+def _serialize_final_authored_surface_authority(
+    source: Any,
+    metadata: dict[str, Any],
+    *,
+    final_semantic_audit: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Serialize exact authored surfaces as the sole visual authority."""
+
+    external_audit = (
+        final_semantic_audit
+        if isinstance(final_semantic_audit, dict)
+        else {}
+    )
+    identity = _classify_final_authored_surface_identity(
+        source,
+        metadata,
+        external_audit=external_audit,
+    )
+    surfaces = identity["surfaces"]
+    actual_surface_hash = identity["actual_surface_hash"]
+    final_program_hash = identity["final_program_hash"]
+    final_geometry_hash = identity["final_geometry_hash"]
+    authority_semantic_hash = identity["authority_semantic_hash"]
+    capacity_drift = identity["capacity_drift"]
+    audited_capacity_hash = identity["audited_capacity_hash"]
+    current_capacity_hash = identity["current_capacity_hash"]
 
     triangles = [_surface_triangle_record(surface) for surface in surfaces]
     if not triangles:
         raise ValueError(
-            "final floorwise visual authority identity audit failed: "
+            "authored projected surface authority identity audit failed: "
             "empty_surface_payload"
         )
     payload_hash = exact_triangle_payload_hash(triangles)
@@ -236,7 +336,7 @@ def _serialize_final_floorwise_authority(
     origin = getattr(origin, "centroid", None)
     if origin is None:
         raise ValueError(
-            "final floorwise visual authority identity audit failed: "
+            "authored projected surface authority identity audit failed: "
             "source_origin_missing"
         )
     certificate = {
@@ -251,7 +351,7 @@ def _serialize_final_floorwise_authority(
         "final_program_hash": final_program_hash,
         "final_geometry_hash": final_geometry_hash,
         "final_surface_payload_hash": actual_surface_hash,
-        "semantic_projection_hash": semantic_hash,
+        "semantic_projection_hash": authority_semantic_hash,
         "semantic_projection_audit_hard_pass": True,
         "semantic_audit_context_hash": str(
             external_audit.get("audited_context_hash") or ""
@@ -277,11 +377,19 @@ def _serialize_final_floorwise_authority(
         "projectedVisualPayloadHash": payload_hash,
         "finalLegalGeometryHash": final_geometry_hash,
         "finalSurfacePayloadHash": actual_surface_hash,
-        "semanticProjectionHash": semantic_hash,
+        "semanticProjectionHash": authority_semantic_hash,
         "semanticProjectionAudit": deepcopy(external_audit),
         "semanticProjectionAuditPayloadHash": (
             semantic_audit_payload_hash
         ),
+        "capacityMeasurementProvenance": {
+            "identity_authority": False,
+            "status": (
+                "diagnostic_drift" if capacity_drift else "unchanged"
+            ),
+            "audited_capacity_measurement_hash": audited_capacity_hash,
+            "current_capacity_measurement_hash": current_capacity_hash,
+        },
     }
 
 
@@ -295,12 +403,51 @@ def declares_projected_visual_binding(artifact: dict[str, Any]) -> bool:
     )
 
 
+def normalize_persisted_projected_visual_artifact(
+    artifact: dict[str, Any],
+) -> dict[str, Any]:
+    """Normalize explicitly marked persisted aliases at ingestion only."""
+
+    certificate = artifact.get("projectedVisualCertificate")
+    certificate = certificate if isinstance(certificate, dict) else {}
+    has_legacy_alias = bool(
+        artifact.get("geometryProgramRole") == LEGACY_CAPACITY_PROGRAM_ROLE
+        or certificate.get("certification_mode")
+        == LEGACY_FINAL_AUTHORITY_CERTIFICATION_MODE
+    )
+    if not has_legacy_alias:
+        return artifact
+    provenance = artifact.get("persistedLegacyAuthority")
+    if (
+        not isinstance(provenance, dict)
+        or provenance.get("schemaVersion")
+        != PERSISTED_LEGACY_AUTHORITY_SCHEMA
+        or provenance.get("persistedRecord") is not True
+        or not str(provenance.get("sourceSchemaVersion") or "")
+    ):
+        raise ValueError("unmarked obsolete projected visual authority")
+    normalized = deepcopy(artifact)
+    if normalized.get("geometryProgramRole") == LEGACY_CAPACITY_PROGRAM_ROLE:
+        normalized["geometryProgramRole"] = CAPACITY_PROGRAM_ROLE
+    normalized_certificate = normalized.get("projectedVisualCertificate")
+    if (
+        isinstance(normalized_certificate, dict)
+        and normalized_certificate.get("certification_mode")
+        == LEGACY_FINAL_AUTHORITY_CERTIFICATION_MODE
+    ):
+        normalized_certificate["certification_mode"] = (
+            FINAL_AUTHORITY_CERTIFICATION_MODE
+        )
+    return normalized
+
+
 def validate_projected_visual_artifact(
     artifact: dict[str, Any],
     *,
     expected_semantic_context: dict[str, Any] | None = None,
     expected_semantic_projection_hash: str = "",
     expected_semantic_audit_payload_hash: str = "",
+    expected_section_geometry_binding_hash: str = "",
 ) -> ValidatedProjectedVisual | None:
     """Validate and hydrate one complete binding; only true legacy returns None.
 
@@ -309,6 +456,7 @@ def validate_projected_visual_artifact(
     their historical no-anchor validation path.
     """
 
+    artifact = normalize_persisted_projected_visual_artifact(artifact)
     if not declares_projected_visual_binding(artifact):
         return None
     if (
@@ -346,6 +494,7 @@ def validate_projected_visual_artifact(
     triangle_payload = mesh.get("triangles")
     if not isinstance(triangle_payload, list) or not triangle_payload:
         raise ValueError("invalid projected visual triangle payload")
+    _validate_projected_visual_resource_bounds(certificate, triangle_payload)
     try:
         actual_payload_hash = exact_triangle_payload_hash(triangle_payload)
     except (TypeError, ValueError) as exc:
@@ -367,11 +516,6 @@ def validate_projected_visual_artifact(
         raise ValueError(
             "certified authored visual exact payload hash mismatch"
         )
-    _validate_floorwise_authority_binding(
-        certificate,
-        exact_payload_hash=actual_payload_hash,
-    )
-
     normalized: list[dict[str, Any]] = []
     vertices: list[tuple[float, float, float]] = []
     triangles: list[tuple[int, int, int]] = []
@@ -382,34 +526,71 @@ def validate_projected_visual_artifact(
         triangles.append((base_index, base_index + 1, base_index + 2))
         normalized.append(record)
 
+    validate_floorwise_authority_binding(
+        certificate,
+        exact_payload_hash=actual_payload_hash,
+        triangle_payload=normalized,
+        expected_section_geometry_binding_hash=(
+            expected_section_geometry_binding_hash
+        ),
+    )
+
     final_authority = (
         certificate.get("certification_mode")
         == FINAL_AUTHORITY_CERTIFICATION_MODE
     )
-    if final_authority and (
-        str(certificate.get("final_program_hash") or "")
-        != str(identity.get("programHash") or "")
-        or str(certificate.get("final_geometry_hash") or "")
-        != str(artifact.get("finalLegalGeometryHash") or "")
-        or str(identity.get("finalLegalGeometryHash") or "")
-        != str(certificate.get("final_geometry_hash") or "")
-        or str(certificate.get("final_surface_payload_hash") or "")
-        != str(artifact.get("finalSurfacePayloadHash") or "")
-        or str(certificate.get("semantic_projection_hash") or "")
-        != str(artifact.get("semanticProjectionHash") or "")
-        or str(certificate.get("semantic_audit_payload_hash") or "")
-        != str(artifact.get("semanticProjectionAuditPayloadHash") or "")
-        or not str(certificate.get("final_surface_payload_hash") or "")
-        or not str(certificate.get("semantic_projection_hash") or "")
-        or certificate.get("semantic_projection_audit_hard_pass") is not True
-        or not isinstance(
-            certificate.get("source_footprint_centroid_utm"),
-            list,
+    authority_mismatches: list[str] = []
+    if final_authority:
+        comparisons = (
+            (
+                "final_program_hash",
+                certificate.get("final_program_hash"),
+                identity.get("programHash"),
+            ),
+            (
+                "final_geometry_hash",
+                certificate.get("final_geometry_hash"),
+                artifact.get("finalLegalGeometryHash"),
+            ),
+            (
+                "identity_final_legal_geometry_hash",
+                identity.get("finalLegalGeometryHash"),
+                certificate.get("final_geometry_hash"),
+            ),
+            (
+                "final_surface_payload_hash",
+                certificate.get("final_surface_payload_hash"),
+                artifact.get("finalSurfacePayloadHash"),
+            ),
+            (
+                "semantic_projection_hash",
+                certificate.get("semantic_projection_hash"),
+                artifact.get("semanticProjectionHash"),
+            ),
+            (
+                "semantic_audit_payload_hash",
+                certificate.get("semantic_audit_payload_hash"),
+                artifact.get("semanticProjectionAuditPayloadHash"),
+            ),
         )
-        or len(certificate.get("source_footprint_centroid_utm") or ())
-        != 2
-    ):
-        raise ValueError("invalid final floorwise visual authority certificate")
+        authority_mismatches.extend(
+            name for name, left, right in comparisons
+            if str(left or "") != str(right or "")
+        )
+        if not str(certificate.get("final_surface_payload_hash") or ""):
+            authority_mismatches.append("final_surface_payload_hash_missing")
+        if not str(certificate.get("semantic_projection_hash") or ""):
+            authority_mismatches.append("semantic_projection_hash_missing")
+        if certificate.get("semantic_projection_audit_hard_pass") is not True:
+            authority_mismatches.append("semantic_projection_audit_not_hard_pass")
+        origin = certificate.get("source_footprint_centroid_utm")
+        if not isinstance(origin, list) or len(origin) != 2:
+            authority_mismatches.append("source_footprint_centroid_utm")
+    if final_authority and authority_mismatches:
+        raise ValueError(
+            "invalid authored projected surface authority certificate: "
+            + ",".join(authority_mismatches)
+        )
     if final_authority:
         actual_final_geometry_hash = _final_authority_geometry_hash(
             normalized,
@@ -427,7 +608,7 @@ def validate_projected_visual_artifact(
             or not str(expected_semantic_audit_payload_hash or "")
         ):
             raise ValueError(
-                "invalid final floorwise visual authority external semantic "
+                "invalid authored projected surface authority external semantic "
                 "anchor"
             )
         expected_context_hash = _canonical_payload_hash(
@@ -463,6 +644,18 @@ def validate_projected_visual_artifact(
                 "invalid final floorwise visual authority external semantic "
                 "anchor"
             )
+        capacity_provenance = artifact.get("capacityMeasurementProvenance")
+        capacity_provenance = (
+            capacity_provenance
+            if isinstance(capacity_provenance, dict)
+            else {}
+        )
+        capacity_only_semantic_drift = bool(
+            capacity_provenance.get("identity_authority") is False
+            and capacity_provenance.get("status") == "diagnostic_drift"
+            and set(audit.get("failures") or ())
+            == {"capacity_measurement_hash_mismatch"}
+        )
         if (
             actual_final_geometry_hash
             != str(certificate.get("final_geometry_hash") or "")
@@ -470,8 +663,14 @@ def validate_projected_visual_artifact(
             != str(certificate.get("final_surface_payload_hash") or "")
             or audit.get("schema_version")
             != "arr.maas.final_semantic_projection_audit.v1"
-            or audit.get("status") != "verified"
-            or audit.get("hard_pass") is not True
+            or (
+                audit.get("status") != "verified"
+                and not capacity_only_semantic_drift
+            )
+            or (
+                audit.get("hard_pass") is not True
+                and not capacity_only_semantic_drift
+            )
             or str(audit.get("semantic_projection_hash") or "")
             != str(certificate.get("semantic_projection_hash") or "")
             or str(audit.get("audited_context_hash") or "")
@@ -517,10 +716,200 @@ def exact_triangle_payload_hash(triangles: list[dict[str, Any]]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
-def _validate_floorwise_authority_binding(
+def _validate_projected_visual_resource_bounds(
+    certificate: dict[str, Any],
+    triangle_payload: list[dict[str, Any]],
+) -> None:
+    triangle_count = len(triangle_payload)
+    floor_count = int(certificate.get("floor_count") or 0)
+    if (
+        triangle_count <= 0
+        or triangle_count > MAX_PROJECTED_VISUAL_TRIANGLES
+        or triangle_count * 3 > MAX_PROJECTED_VISUAL_POINTS
+        or floor_count < 0
+        or floor_count > MAX_PROJECTED_VISUAL_FLOORS
+    ):
+        raise ValueError("projected visual resource bound exceeded")
+    authority_string_fields = (
+        "section_profile_hash",
+        "capacity_volume_hash",
+        "floor_capacity_plan_hash",
+        "matrix4_stack_hash",
+        "exact_surface_payload_hash",
+        "certification_mode",
+        "visible_geometry_operation",
+        "authored_program_hash",
+        "verified_profiled_sloped_surface_hash",
+        "floor_center_numeric_equivalence_schema",
+        "mesh_numeric_repair_schema",
+        "mesh_cleanup_raw_indexed_mesh_hash",
+        "mesh_cleanup_clean_indexed_mesh_hash",
+        "section_geometry_binding_hash",
+        "authority_binding_hash",
+    )
+    for field in authority_string_fields:
+        value = certificate.get(field)
+        if value is None:
+            continue
+        if (
+            not isinstance(value, str)
+            or len(value) > MAX_AUTHORITY_CERTIFICATE_STRING_LENGTH
+        ):
+            raise ValueError("projected visual resource bound exceeded")
+    authority_numeric_fields = (
+        "effective_height_m",
+        "verified_profiled_sloped_surface_area",
+        "verified_profiled_sloped_surface_ratio",
+        "section_numeric_epsilon_m",
+        "max_section_area_delta_m2",
+        "max_section_symdiff_m2",
+        "max_section_hausdorff_m",
+        "max_section_area_bound_m2",
+        "mesh_cleanup_collapse_threshold_m",
+        "mesh_cleanup_max_physical_displacement_m",
+    )
+    for field in authority_numeric_fields:
+        value = certificate.get(field)
+        if value is None:
+            continue
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not isfinite(float(value))
+        ):
+            raise ValueError("projected visual resource bound exceeded")
+    for field in (
+        "visible_step_fallback",
+        "mesh_cleanup_clean_gate_hard_pass",
+    ):
+        value = certificate.get(field)
+        if value is not None and not isinstance(value, bool):
+            raise ValueError("projected visual resource bound exceeded")
+    raw_gate_failure_codes = certificate.get(
+        "mesh_cleanup_raw_gate_failure_codes"
+    )
+    if raw_gate_failure_codes is not None:
+        if (
+            not isinstance(raw_gate_failure_codes, list)
+            or len(raw_gate_failure_codes) > MAX_AUTHORITY_GATE_FAILURE_CODES
+        ):
+            raise ValueError("projected visual resource bound exceeded")
+        for code in raw_gate_failure_codes:
+            if (
+                not isinstance(code, str)
+                or len(code) > MAX_AUTHORITY_CERTIFICATE_STRING_LENGTH
+            ):
+                raise ValueError("projected visual resource bound exceeded")
+    serialized_bytes = 2
+    triangle_string_fields = (
+        "role",
+        "volume_role",
+        "verb",
+        "surface_type",
+        "operator",
+        "semantic_patch_id",
+    )
+    triangle_allowed_fields = {
+        *triangle_string_fields,
+        "vertices_m",
+    }
+    for triangle in triangle_payload:
+        if (
+            not isinstance(triangle, dict)
+            or len(triangle) > len(triangle_allowed_fields)
+            or any(
+                not isinstance(key, str)
+                or key not in triangle_allowed_fields
+                for key in triangle
+            )
+        ):
+            raise ValueError("projected visual resource bound exceeded")
+        for field in triangle_string_fields:
+            value = triangle.get(field, "")
+            if not isinstance(value, str) or len(value) > 4096:
+                raise ValueError("projected visual resource bound exceeded")
+            serialized_bytes += len(value.encode("utf-8")) + len(field) + 6
+        vertices = triangle.get("vertices_m")
+        if not isinstance(vertices, list) or len(vertices) != 3:
+            raise ValueError("projected visual resource bound exceeded")
+        for vertex in vertices:
+            if not isinstance(vertex, list) or len(vertex) != 3:
+                raise ValueError("projected visual resource bound exceeded")
+            for value in vertex:
+                if (
+                    isinstance(value, bool)
+                    or not isinstance(value, (int, float))
+                    or not isfinite(float(value))
+                ):
+                    raise ValueError("projected visual resource bound exceeded")
+                serialized_bytes += 32
+        serialized_bytes += 128
+    binding_bytes = 0
+    for field in ("occupied_section_wkb_hex", "legal_section_wkb_hex"):
+        values = certificate.get(field) or ()
+        if isinstance(values, list):
+            if len(values) > MAX_PROJECTED_VISUAL_FLOORS:
+                raise ValueError("projected visual resource bound exceeded")
+            for value in values:
+                if (
+                    not isinstance(value, str)
+                    or len(value) > MAX_PROJECTED_VISUAL_SERIALIZED_BYTES * 2
+                ):
+                    raise ValueError("projected visual resource bound exceeded")
+                binding_bytes += len(value) // 2
+    component_count = 0
+    contour_count = 0
+    for field in (
+        "occupied_section_topology",
+        "legal_section_topology",
+        "floor_center_topology_metrics",
+    ):
+        rows = certificate.get(field)
+        if rows is None:
+            continue
+        if not isinstance(rows, list) or len(rows) > MAX_PROJECTED_VISUAL_FLOORS:
+            raise ValueError("projected visual resource bound exceeded")
+        for row in rows:
+            if not isinstance(row, dict) or len(row) > 32:
+                raise ValueError("projected visual resource bound exceeded")
+            for key, value in row.items():
+                if not isinstance(key, str) or len(key) > 128:
+                    raise ValueError("projected visual resource bound exceeded")
+                if isinstance(value, str):
+                    if len(value) > 4096:
+                        raise ValueError("projected visual resource bound exceeded")
+                elif isinstance(value, list):
+                    if (
+                        len(value) > MAX_PROJECTED_VISUAL_COMPONENTS
+                        or any(
+                            isinstance(item, bool)
+                            or not isinstance(item, (int, float))
+                            or not isfinite(float(item))
+                            for item in value
+                        )
+                    ):
+                        raise ValueError("projected visual resource bound exceeded")
+                elif value is not None and not isinstance(
+                    value, (bool, int, float)
+                ):
+                    raise ValueError("projected visual resource bound exceeded")
+            component_count += max(0, int(row.get("component_count") or 0))
+            contour_count += max(0, int(row.get("contour_count") or 0))
+    if (
+        serialized_bytes + binding_bytes
+        > MAX_PROJECTED_VISUAL_SERIALIZED_BYTES
+        or component_count > MAX_PROJECTED_VISUAL_COMPONENTS
+        or contour_count > MAX_PROJECTED_VISUAL_CONTOURS
+    ):
+        raise ValueError("projected visual resource bound exceeded")
+
+
+def validate_floorwise_authority_binding(
     certificate: dict[str, Any],
     *,
     exact_payload_hash: str,
+    triangle_payload: list[dict[str, Any]] | None = None,
+    expected_section_geometry_binding_hash: str = "",
 ) -> None:
     mode = str(certificate.get("certification_mode") or "")
     if mode not in FLOORWISE_EXACT_AUTHORITY_MODES:
@@ -613,12 +1002,83 @@ def _validate_floorwise_authority_binding(
         raise ValueError(
             "certified floorwise visual numeric equivalence mismatch"
         )
-    recomputed = floorwise_authority_binding_hash(
+    if mode == "floorwise_profiled_legal_clip":
+        if (
+            not expected_section_geometry_binding_hash
+            or expected_section_geometry_binding_hash
+            != str(certificate.get("section_geometry_binding_hash") or "")
+        ):
+            raise ValueError(
+                "profiled external lawful section binding mismatch"
+            )
+        _validate_profiled_mesh_section_binding(
+            certificate,
+            triangle_payload=triangle_payload,
+        )
+    recomputed = _recomputed_floorwise_authority_binding_hash(
+        certificate,
+        exact_payload_hash=certificate_exact_hash,
+    )
+    if recomputed != str(certificate.get("authority_binding_hash") or ""):
+        raise ValueError(
+            "certified floorwise visual authority binding mismatch"
+        )
+
+
+def has_strict_height_dependent_legal_section_contraction(
+    certificate: dict[str, Any],
+) -> bool:
+    """Return true only when every higher certified legal section contracts."""
+
+    if certificate.get("certification_mode") != "floorwise_profiled_legal_clip":
+        return False
+    raw_sections = certificate.get("legal_section_wkb_hex")
+    floor_count = int(certificate.get("floor_count") or 0)
+    if (
+        not isinstance(raw_sections, list)
+        or floor_count < 2
+        or len(raw_sections) != floor_count
+    ):
+        return False
+    try:
+        sections = tuple(
+            from_wkb(bytes.fromhex(value))
+            for value in raw_sections
+            if isinstance(value, str) and value
+        )
+    except (TypeError, ValueError):
+        return False
+    if (
+        len(sections) != floor_count
+        or any(
+            section.is_empty
+            or not section.is_valid
+            or not isfinite(float(section.area))
+            or float(section.area) <= 0.0
+            for section in sections
+        )
+    ):
+        return False
+    return all(
+        upper.covered_by(lower)
+        and float(lower.area) > float(upper.area)
+        for lower, upper in zip(sections, sections[1:])
+    )
+
+
+def _recomputed_floorwise_authority_binding_hash(
+    certificate: dict[str, Any],
+    *,
+    exact_payload_hash: str,
+) -> str:
+    mode = str(certificate.get("certification_mode") or "")
+    expected_operation, _ = FLOORWISE_EXACT_AUTHORITY_CONTRACTS[mode]
+    return floorwise_authority_binding_hash(
         section_profile_hash=str(certificate["section_profile_hash"]),
         capacity_volume_hash=str(certificate["capacity_volume_hash"]),
         floor_capacity_plan_hash=str(certificate["floor_capacity_plan_hash"]),
         matrix4_stack_hash=str(certificate["matrix4_stack_hash"]),
-        exact_surface_payload_hash=certificate_exact_hash,
+        exact_surface_payload_hash=exact_payload_hash,
         certification_mode=mode,
         visible_geometry_operation=expected_operation,
         visible_step_fallback=bool(
@@ -688,11 +1148,186 @@ def _validate_floorwise_authority_binding(
         mesh_cleanup_clean_gate_hard_pass=bool(
             certificate.get("mesh_cleanup_clean_gate_hard_pass")
         ),
+        section_geometry_binding_hash=str(
+            certificate.get("section_geometry_binding_hash") or ""
+        ),
     )
-    if recomputed != str(certificate.get("authority_binding_hash") or ""):
-        raise ValueError(
-            "certified floorwise visual authority binding mismatch"
+
+
+def _validate_profiled_mesh_section_binding(
+    certificate: dict[str, Any],
+    *,
+    triangle_payload: list[dict[str, Any]] | None,
+) -> None:
+    schema = str(certificate.get("section_geometry_binding_schema") or "")
+    binding_hash = str(certificate.get("section_geometry_binding_hash") or "")
+    occupied_hex = certificate.get("occupied_section_wkb_hex")
+    legal_hex = certificate.get("legal_section_wkb_hex")
+    floor_count = int(certificate.get("floor_count") or 0)
+    if (
+        schema != "arr.maas.profiled_legal_section_geometry_binding.v1"
+        or not binding_hash
+        or not isinstance(occupied_hex, list)
+        or not isinstance(legal_hex, list)
+        or len(occupied_hex) != floor_count
+        or len(legal_hex) != floor_count
+        or not triangle_payload
+    ):
+        raise ValueError("profiled lawful section binding missing")
+    binding_payload = {
+        "schema": schema,
+        "occupied_section_wkb_hex": occupied_hex,
+        "legal_section_wkb_hex": legal_hex,
+    }
+    measured_binding_hash = hashlib.sha256(json.dumps(
+        binding_payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+        allow_nan=False,
+    ).encode("utf-8")).hexdigest()
+    if measured_binding_hash != binding_hash:
+        raise ValueError("profiled lawful section binding hash mismatch")
+
+    def decode_sections(values: list[Any]) -> tuple[Polygon | MultiPolygon, ...]:
+        decoded: list[Polygon | MultiPolygon] = []
+        for value in values:
+            if not isinstance(value, str):
+                raise ValueError("profiled lawful section binding malformed")
+            try:
+                geometry = from_wkb(bytes.fromhex(value))
+            except (TypeError, ValueError) as exc:
+                raise ValueError("profiled lawful section binding malformed") from exc
+            if (
+                not isinstance(geometry, (Polygon, MultiPolygon))
+                or geometry.is_empty
+                or not geometry.is_valid
+                or not isfinite(float(geometry.area))
+                or geometry.normalize().wkb_hex != value
+            ):
+                raise ValueError("profiled lawful section binding malformed")
+            decoded.append(geometry)
+        return tuple(decoded)
+
+    occupied_sections = decode_sections(occupied_hex)
+    legal_sections = decode_sections(legal_hex)
+    actual_component_count = 0
+    actual_contour_count = 0
+    actual_point_count = 0
+    for geometry in (*occupied_sections, *legal_sections):
+        components = (
+            tuple(geometry.geoms)
+            if isinstance(geometry, MultiPolygon)
+            else (geometry,)
         )
+        actual_component_count += len(components)
+        for component in components:
+            actual_contour_count += 1 + len(component.interiors)
+            actual_point_count += len(component.exterior.coords)
+            actual_point_count += sum(
+                len(ring.coords) for ring in component.interiors
+            )
+    if (
+        actual_component_count > MAX_PROJECTED_VISUAL_COMPONENTS
+        or actual_contour_count > MAX_PROJECTED_VISUAL_CONTOURS
+        or actual_point_count > MAX_PROJECTED_VISUAL_POINTS
+    ):
+        raise ValueError("projected visual resource bound exceeded")
+    vertices: list[tuple[float, float, float]] = []
+    triangles: list[tuple[int, int, int]] = []
+    for payload in triangle_payload:
+        _, exact_vertices = _validated_triangle_record(payload)
+        base = len(vertices)
+        vertices.extend(exact_vertices)
+        triangles.append((base, base + 1, base + 2))
+    revalidated = revalidated_profiled_mesh(tuple(vertices), tuple(triangles))
+    if revalidated is None:
+        raise ValueError("profiled serialized mesh is not a closed manifold")
+    measured_component_count = int(
+        revalidated.metrics.get("component_count", 0)
+    )
+    if measured_component_count != int(certificate.get("final_component_count") or 0):
+        raise ValueError("profiled serialized mesh component topology mismatch")
+
+    expected_rows = certificate.get("floor_center_topology_metrics")
+    occupied_rows = certificate.get("occupied_section_topology")
+    legal_rows = certificate.get("legal_section_topology")
+    if not all(isinstance(rows, list) and len(rows) == floor_count for rows in (
+        expected_rows, occupied_rows, legal_rows,
+    )):
+        raise ValueError("profiled serialized mesh topology certificate mismatch")
+    measured_rows: list[dict[str, Any]] = []
+    for floor_index in range(floor_count):
+        section_result = indexed_mesh_section_topology(
+            tuple(vertices), tuple(triangles), (floor_index + 0.5) / floor_count
+        )
+        if section_result is None:
+            raise ValueError(
+                "profiled serialized mesh lawful section midplane topology mismatch"
+            )
+        measured, contour_count, _ = section_result
+        metric = floor_center_numeric_equivalence(
+            measured,
+            occupied_sections[floor_index],
+            epsilon_m=float(certificate.get("section_numeric_epsilon_m") or 0.0),
+            contour_count=contour_count,
+        )
+        if metric is None or not metric.get("hard_pass"):
+            raise ValueError(
+                "profiled serialized mesh lawful section midplane topology mismatch"
+            )
+        measured_rows.append(metric)
+        measured_counts = {
+            "component_count": int(metric["component_count"]),
+            "hole_count": int(metric["hole_count"]),
+            "contour_count": int(metric["contour_count"]),
+        }
+        if any(int(expected_rows[floor_index].get(key, -1)) != value for key, value in measured_counts.items()):
+            raise ValueError(
+                "profiled serialized mesh lawful section midplane topology mismatch"
+            )
+        occupied = occupied_sections[floor_index]
+        legal = legal_sections[floor_index]
+        occupied_counts = {
+            "component_count": len(occupied.geoms) if isinstance(occupied, MultiPolygon) else 1,
+            "hole_count": sum(len(part.interiors) for part in occupied.geoms) if isinstance(occupied, MultiPolygon) else len(occupied.interiors),
+        }
+        legal_counts = {
+            "component_count": len(legal.geoms) if isinstance(legal, MultiPolygon) else 1,
+            "hole_count": sum(len(part.interiors) for part in legal.geoms) if isinstance(legal, MultiPolygon) else len(legal.interiors),
+        }
+        if any(int(occupied_rows[floor_index].get(key, -1)) != value for key, value in occupied_counts.items()):
+            raise ValueError("profiled serialized mesh occupied topology mismatch")
+        if any(int(legal_rows[floor_index].get(key, -1)) != value for key, value in legal_counts.items()):
+            raise ValueError("profiled serialized mesh lawful section topology mismatch")
+
+    measured_area_bound = max(
+        float(row["area_bound_m2"]) for row in measured_rows
+    )
+    section_epsilon = float(
+        certificate.get("section_numeric_epsilon_m") or 0.0
+    )
+    for key, measured, tolerance in (
+        ("max_section_area_delta_m2", max(float(row["area_delta_m2"]) for row in measured_rows), measured_area_bound),
+        ("max_section_symdiff_m2", max(float(row["symdiff_m2"]) for row in measured_rows), measured_area_bound),
+        ("max_section_hausdorff_m", max(float(row["hausdorff_m"]) for row in measured_rows), section_epsilon),
+        ("max_section_area_bound_m2", measured_area_bound, section_epsilon),
+    ):
+        if abs(float(certificate.get(key) or 0.0) - measured) > tolerance:
+            raise ValueError(
+                "profiled serialized mesh measured topology metrics mismatch: "
+                f"metric={key} expected={certificate.get(key)!r} measured={measured!r}"
+            )
+    legal_count, witness = _legal_band_projection_sample_count(
+        tuple(vertices), tuple(triangles), legal_sections
+    )
+    if legal_count is None:
+        raise ValueError(
+            "profiled serialized mesh legal containment failed: "
+            + json.dumps(witness, sort_keys=True, separators=(",", ":"))
+        )
+    if legal_count != int(certificate.get("legal_sample_count") or -1):
+        raise ValueError("profiled serialized mesh legal containment count mismatch")
 
 
 def _validate_certificate_status(certificate: dict[str, Any]) -> None:
@@ -921,7 +1556,10 @@ __all__ = [
     "declares_projected_visual_binding",
     "exact_triangle_payload_hash",
     "final_floorwise_visual_geometry_hash",
+    "has_strict_height_dependent_legal_section_contraction",
+    "normalize_persisted_projected_visual_artifact",
     "semantic_audit_payload_hash",
     "serialize_certified_projected_visual",
+    "validate_floorwise_authority_binding",
     "validate_projected_visual_artifact",
 ]

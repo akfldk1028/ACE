@@ -11,7 +11,6 @@ from dataclasses import replace
 from math import cos, isfinite, sin
 from pathlib import Path
 from time import perf_counter
-from types import SimpleNamespace
 from typing import Any, Callable
 
 from shapely.geometry import Polygon, mapping, shape
@@ -21,6 +20,7 @@ from design.maas.geometry_language import (
     GeometryOutcomeGraph,
     GeometryProgram,
     apply_book_projection_to_geometry_program,
+    apply_capacity_composition_to_geometry_program,
     universal_form_program_pages,
     apply_geometry_edits_compiler_safe,
     architectural_shape_programs,
@@ -37,6 +37,7 @@ from design.maas.geometry_language import (
     run_geometry_program_a2a_loop,
     synthesize_architectural_programs,
 )
+from design.maas.paid_provider_budget import PaidProviderBudgetError
 from design.maas.geometry_language.floorwise_legal_program import (
     is_intentional_floorwise_stepped_program,
 )
@@ -44,15 +45,19 @@ from design.maas.geometry_language.gate import GeometryGatePolicy, compilation_g
 from design.maas.geometry_language.legal_field_affine_placement import (
     select_legal_field_affine_projection,
 )
+from .legal_fit_deficit import build_legal_fit_deficit
+from .legal_mass_archive import LegalMassArchive
+from .authorship_policy import bounded_llm_author_batch_count
 from design.maas.geometry_language.source_bridge import (
     compile_site_bound_geometry_program_to_source_mass,
-    floorwise_source_to_geometry_program,
     materialize_floorwise_legal_source,
     source_surface_payload_hash,
     source_volume_payload_hash,
 )
 from design.maas.geometry_language.projected_visual_contract import (
     final_floorwise_visual_geometry_hash,
+    has_strict_height_dependent_legal_section_contraction,
+    serialize_certified_projected_visual,
 )
 from design.maas.grammar.verb_sequence import VerbSequence
 from design.maas.program_massing import (
@@ -62,9 +67,11 @@ from design.maas.program_massing import (
     program_reference_contract,
     program_seed_sequences,
 )
+from design.maas.program_massing.book_projection import book_projection_calls
 from design.maas.program_massing.scoring import attach_program_massing_evidence
 from design.maas.program_massing.morphology import (
-    intrinsic_silhouette_distance,
+    authoritative_surface_morphology,
+    authoritative_surface_silhouette_distance,
 )
 from design.maas.program_massing.semantic_carriers import (
     bind_source_role_scaffold_to_program,
@@ -99,7 +106,11 @@ from .candidate_floor_authority import (
     _compact_candidate_capacity_evidence,
     _shared_floor_capacity_measurement as _measure_candidate_floor_capacity,
 )
-from .capacity_contract import measure_source_capacity, recursive_plan_coverage_floor
+from .capacity_contract import (
+    evaluate_legal_capacity_authority,
+    measure_source_capacity,
+    recursive_plan_coverage_floor,
+)
 from .mass_passport_bridge import resolve_capacity_band_evidence
 from .capacity_alternatives import (
     build_capacity_alternative,
@@ -113,6 +124,8 @@ from .capacity_alternatives import (
 
 
 logger = logging.getLogger(__name__)
+
+GEOMETRY_RETRY_POLICY = "measured_typed_ast_capacity_composition"
 from .competition_candidate_screen import (
     _capacity_alternative_schedule_index,
     _cheap_ast_bounds,
@@ -138,7 +151,12 @@ from .diagnostic_anchor_scheduler import (
 from .variation_lattice import book_probe_scope, book_variation_indices
 from .downstream_hard_gate import LegalGenerationContext, fit_source_to_sunlight_field, generation_site_at_height
 from .gate_diagnostics import _empty_gate_diagnostic, _merge_gate_diagnostics, _record_gate_diagnostic, _summarize_gate_diagnostic
-from .lineage import gate_descendants_by_base, lineage_record, staged_principle_schedule
+from .lineage import (
+    canonical_lineage_parent_key,
+    gate_descendants_by_base,
+    lineage_record,
+    staged_principle_schedule,
+)
 from .program_catalog import PROGRAMS
 from .reference_context import _audited_final_book_references, _reference_language_author_context
 from .registry import build_book_language_registry
@@ -183,6 +201,206 @@ def _mass_stage_design_score(
     )
 
 
+def _retain_candidate_with_legal_capacity_authority(
+    source: Any,
+    shared_floor_contract: dict[str, Any] | None,
+    capacity_measurement: dict[str, Any] | None,
+    capacity_contract: dict[str, Any] | None,
+) -> Any | None:
+    """Annotate legal candidates and reject independently uncertified floors."""
+
+    authority = evaluate_legal_capacity_authority(
+        shared_floor_contract,
+        capacity_measurement,
+        capacity_contract,
+    )
+    metadata = deepcopy(source.metadata)
+    metadata["legal_capacity_authority"] = authority
+    metadata.update(authority)
+    annotated = replace(source, metadata=metadata)
+    return annotated if authority["legal_hard_pass"] is True else None
+
+
+def _admit_legal_mass_candidate(
+    archive: LegalMassArchive,
+    source: Any,
+    *,
+    compiler_clean_passed: bool,
+    site_containment_passed: bool,
+) -> dict[str, Any] | None:
+    """Archive only a source that passed the real gates and final certificate."""
+
+    if not compiler_clean_passed or not site_containment_passed:
+        return None
+    metadata = source.metadata if isinstance(source.metadata, dict) else {}
+    certificate = metadata.get("authored_legal_projection_certificate")
+    certificate = certificate if isinstance(certificate, dict) else {}
+    program_hash = str(metadata.get("final_program_hash") or "")
+    geometry_hash = str(metadata.get("final_geometry_hash") or "")
+    surface_payload_hash = str(
+        metadata.get("final_surface_payload_hash") or ""
+    )
+    surfaces = tuple(getattr(source, "surfaces", ()) or ())
+    try:
+        actual_surface_payload_hash = source_surface_payload_hash(surfaces)
+    except (TypeError, ValueError):
+        return None
+    if not (
+        certificate.get("schema_version")
+        == "arr.maas.authored_legal_projection_certificate.v1"
+        and certificate.get("status") == "verified"
+        and certificate.get("hard_pass") is True
+        and program_hash
+        and geometry_hash
+        and surface_payload_hash
+        and str(certificate.get("input_authored_program_hash") or "")
+        == program_hash
+        and str(certificate.get("projected_surface_hash") or "")
+        == geometry_hash
+        and str(certificate.get("projected_surface_payload_hash") or "")
+        == surface_payload_hash
+        and surfaces
+        and actual_surface_payload_hash == surface_payload_hash
+    ):
+        return None
+    authority = metadata.get("legal_capacity_authority")
+    authority = authority if isinstance(authority, dict) else {}
+    return archive.admit({
+        "geometry_hash": geometry_hash,
+        "program_hash": program_hash,
+        "final_authored_surface_payload": [
+            {
+                "operator": surface.operator,
+                "role": surface.role,
+                "semantic_patch_id": surface.semantic_patch_id,
+                "surface_type": surface.surface_type,
+                "verb": surface.verb,
+                "vertices_m": [
+                    [float(x), float(y), float(z)]
+                    for x, y, z in surface.vertices_m
+                ],
+                "volume_role": surface.volume_role,
+            }
+            for surface in surfaces
+        ],
+        "final_surface_payload_hash": surface_payload_hash,
+        "policy_evidence": {
+            "compiler_clean": compiler_clean_passed,
+            "contained": site_containment_passed,
+            "authored_surface_certified": True,
+            "legal_hard_pass": authority.get("legal_hard_pass") is True,
+        },
+        "capacity_evidence": {
+            "legal_capacity_authority": deepcopy(authority),
+            "source_capacity_measurement": deepcopy(
+                metadata.get("source_capacity_measurement") or {}
+            ),
+            "capacity_alternative_projection": deepcopy(
+                metadata.get("capacity_alternative_projection") or {}
+            ),
+        },
+        "scope": deepcopy(
+            metadata.get("book_scope")
+            or metadata.get("generation_scope")
+            or {}
+        ),
+        "family": str(metadata.get("family") or ""),
+        "lineage": deepcopy(metadata.get("generation_lineage") or {}),
+    })
+
+
+def _record_capacity_projection_diagnostics(
+    capacity_stage_counts: Counter,
+    *,
+    alternative_id: str,
+    metadata: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Observe advisory capacity state without gating candidate publication."""
+
+    metadata = metadata if isinstance(metadata, dict) else {}
+    projection = metadata.get("capacity_alternative_projection")
+    projection = projection if isinstance(projection, dict) else {}
+    authority = metadata.get("legal_capacity_authority")
+    authority = authority if isinstance(authority, dict) else {}
+    status = str(
+        projection.get("capacity_objective_status")
+        or authority.get("capacity_objective_status")
+        or "unreported"
+    )
+    revision_recommended = bool(
+        projection.get("revision_recommended")
+        or authority.get("revision_recommended")
+    )
+    prefix = f"alternative:{str(alternative_id or 'unclassified')}"
+    capacity_stage_counts[f"{prefix}:capacity_diagnostic_observed"] += 1
+    capacity_stage_counts[
+        f"{prefix}:capacity_objective_status:{status}"
+    ] += 1
+    if revision_recommended:
+        capacity_stage_counts[f"{prefix}:capacity_revision_recommended"] += 1
+    return {
+        "capacity_objective_status": status,
+        "revision_recommended": revision_recommended,
+        "hard_gate": False,
+    }
+
+
+def _program_review_authority(
+    *,
+    archived_record: dict[str, Any] | None,
+    program_evidence: dict[str, Any] | None,
+    program_form_gate: dict[str, Any] | None,
+    gate_pass: dict[str, bool] | None,
+    coherence_evidence: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Keep legal MASS reviewable while preserving design-quality evidence."""
+
+    program_evidence = (
+        program_evidence if isinstance(program_evidence, dict) else {}
+    )
+    program_form_gate = (
+        program_form_gate if isinstance(program_form_gate, dict) else {}
+    )
+    gate_pass = gate_pass if isinstance(gate_pass, dict) else {}
+    coherence_evidence = (
+        coherence_evidence if isinstance(coherence_evidence, dict) else {}
+    )
+    failed_design_gates = tuple(
+        str(name) for name, passed in gate_pass.items() if not passed
+    )
+    design_pass = bool(program_evidence.get("hard_pass")) and bool(
+        program_form_gate.get("hard_pass")
+    )
+    archive_authority = isinstance(archived_record, dict)
+    return {
+        "schema_version": "arr.maas.program_review_authority.v1",
+        "hard_pass": bool(archive_authority or design_pass),
+        "release_authority": (
+            "independently_certified_legal_mass_archive"
+            if archive_authority
+            else "legacy_program_design_gate"
+            if design_pass
+            else "none"
+        ),
+        "legal_archive_authority": archive_authority,
+        "design_quality_hard_gate": False,
+        "design_quality_pass": design_pass,
+        "failed_design_gates": list(failed_design_gates),
+        "program_form_failures": list(
+            program_form_gate.get("failures") or ()
+        ),
+        "coherence_evidence": deepcopy(coherence_evidence),
+        "typed_revision_signal": {
+            "active": bool(archive_authority and not design_pass),
+            "hard_gate": False,
+            "route": "base_vlm_then_typed_revision_or_selection",
+            "reasons": list(failed_design_gates) + list(
+                program_form_gate.get("failures") or ()
+            ),
+        },
+    }
+
+
 def _eligible_smoke_floor_candidate(
     source: Any,
     shared_floor_contract: dict[str, Any] | None,
@@ -190,15 +408,80 @@ def _eligible_smoke_floor_candidate(
     capacity_projection: dict[str, Any] | None,
     viable_base_keys: set[str],
 ) -> bool:
-    """Never stop generation from a pre-downstream acceptance proxy."""
-    _ = (
-        source,
-        shared_floor_contract,
-        capacity_measurement,
-        capacity_projection,
-        viable_base_keys,
+    """Count only candidates carrying the requested shared-floor hard pass."""
+
+    if not (
+        isinstance(shared_floor_contract, dict)
+        and shared_floor_contract.get("hard_pass") is True
+        and isinstance(capacity_measurement, dict)
+        and capacity_measurement.get("hard_pass") is True
+        and isinstance(capacity_projection, dict)
+        and capacity_projection.get("target_hard_pass") is True
+    ):
+        return False
+    lineage = source.metadata.get("generation_lineage") or {}
+    return (
+        str(lineage.get("stage") or "") == "base"
+        or str(lineage.get("parent_key") or "") in viable_base_keys
     )
-    return False
+
+
+def _proven_llm_pre_book_parent_key(
+    source: Any,
+    generation_lineage: dict[str, Any],
+) -> str:
+    """Read a lineage key only from matching, compiler-clean parent proof."""
+    canonical_key = canonical_lineage_parent_key(generation_lineage)
+    if not canonical_key or not isinstance(source.metadata, dict):
+        return ""
+    bridge = source.metadata.get("geometry_program_bridge_evidence") or {}
+    proof = bridge.get("pre_book_lineage_parent_proof") or {}
+    if not isinstance(bridge, dict) or not isinstance(proof, dict):
+        return ""
+    if not (
+        bridge.get("llm_geometry_author_active") is True
+        and proof.get("compiler_clean") is True
+        and proof.get("contained") is True
+        and str(proof.get("parent_key") or "") == canonical_key
+        and str(proof.get("program_hash") or "")
+        == str(bridge.get("initial_llm_authored_pre_book_program_hash") or "")
+        and str(proof.get("geometry_hash") or "")
+        == str(bridge.get("initial_llm_authored_pre_book_geometry_hash") or "")
+    ):
+        return ""
+    return canonical_key
+
+
+def _observe_compiler_clean_base_geometry_hash(
+    bindings: dict[str, str | None],
+    parent_key: str,
+    geometry_hash: str,
+) -> None:
+    """Record one exact base hash, invalidating ambiguous parent keys."""
+    canonical_key = str(parent_key or "")
+    canonical_hash = str(geometry_hash or "")
+    if not canonical_key or not canonical_hash:
+        return
+    if canonical_key not in bindings:
+        bindings[canonical_key] = canonical_hash
+    elif bindings[canonical_key] != canonical_hash:
+        bindings[canonical_key] = None
+
+
+def _bind_parent_geometry_hash(
+    generation_lineage: dict[str, Any],
+    bindings: dict[str, str | None],
+) -> dict[str, Any]:
+    """Bind descendants only to one exact compiler-clean base geometry."""
+    bound = dict(generation_lineage)
+    bound.pop("parent_geometry_hash", None)
+    if str(bound.get("stage") or "") == "base":
+        return bound
+    parent_key = str(bound.get("parent_key") or "")
+    parent_geometry_hash = bindings.get(parent_key)
+    if isinstance(parent_geometry_hash, str) and parent_geometry_hash:
+        bound["parent_geometry_hash"] = parent_geometry_hash
+    return bound
 
 
 def _capacity_retry_result_is_selectable(
@@ -206,9 +489,96 @@ def _capacity_retry_result_is_selectable(
     retried_capacity: dict[str, Any] | None,
     baseline_capacity: dict[str, Any] | None,
 ) -> bool:
-    """Capacity evidence cannot select replacement geometry at the MASS stage."""
+    """Select only a recompiled typed AST that improves measured capacity."""
 
-    return False
+    if not all(isinstance(value, dict) for value in (
+        floor_contract,
+        retried_capacity,
+        baseline_capacity,
+    )):
+        return False
+    if floor_contract.get("hard_pass") is not True:
+        return False
+    if retried_capacity.get("hard_pass") is not True:
+        return False
+    retried = float(retried_capacity.get("feasible_capacity_utilization") or 0.0)
+    baseline = float(baseline_capacity.get("feasible_capacity_utilization") or 0.0)
+    return retried > baseline + 1e-6
+
+
+def _materialize_once_for_capacity_policy(
+    materializer: Callable[[float, tuple[float, ...], tuple[float, float] | None], Any],
+    coverage: float,
+    floor_targets: tuple[float, ...],
+    capacity_composition_utilizations: tuple[float, float] | None = None,
+) -> Any:
+    """Materialize one authored or measured typed-composition AST."""
+
+    return materializer(
+        float(coverage),
+        tuple(floor_targets),
+        capacity_composition_utilizations,
+    )
+
+
+def _capacity_authoring_deficit(
+    *,
+    resolved_capacity_hard_pass: bool,
+    parent_fingerprint: str,
+    parent_program_hash: str,
+    geometry_family: str,
+    body_phenotype: str,
+    scope: str,
+    capacity_band: str,
+    achieved_utilization: float | None,
+    required_utilization: float | None,
+    measured_gfa_m2: float | None,
+    feasible_gfa_m2: float | None,
+    achieved_floor_areas_m2: Sequence[float] | None,
+    target_floor_areas_m2: Sequence[float] | None,
+    terminal_materialization_reason: str = "",
+) -> dict[str, Any] | None:
+    if resolved_capacity_hard_pass:
+        return None
+    achieved = float(achieved_utilization or 0.0)
+    required = float(required_utilization or 0.0)
+    measured_gfa = float(measured_gfa_m2 or 0.0)
+    feasible_gfa = float(feasible_gfa_m2 or 0.0)
+    required_gfa = feasible_gfa * required
+    payload = {
+        "schema_version": "arr.maas.capacity_authoring_deficit.v1",
+        "type": "capacity_authoring_deficit",
+        "geometry_retry_policy": GEOMETRY_RETRY_POLICY,
+        "parent_fingerprint": str(parent_fingerprint or "")[:160],
+        "rejected_parent_program_hash": str(parent_program_hash or "")[:160],
+        "geometry_family": str(geometry_family or "unclassified")[:96],
+        "body_phenotype": str(body_phenotype or "unclassified")[:96],
+        "scope": str(scope or "unclassified")[:32],
+        "capacity_band": str(capacity_band or "unclassified")[:96],
+        "achieved_utilization": round(achieved, 6),
+        "required_minimum_utilization": (
+            round(float(required_utilization), 6)
+            if required_utilization is not None
+            else None
+        ),
+        "measured_gfa_m2": round(measured_gfa, 3),
+        "required_gfa_m2": round(required_gfa, 3),
+        "gfa_deficit_m2": round(max(0.0, required_gfa - measured_gfa), 3),
+        "terminal_materialization_reason": str(
+            terminal_materialization_reason or ""
+        )[:96],
+    }
+    achieved_floors = tuple(achieved_floor_areas_m2 or ())
+    target_floors = tuple(target_floor_areas_m2 or ())
+    if achieved_floors and len(achieved_floors) == len(target_floors):
+        payload["per_floor_deficit_status"] = "measured"
+        payload["per_floor_gfa_deficits_m2"] = [
+            round(max(0.0, float(target) - float(actual)), 3)
+            for actual, target in zip(achieved_floors, target_floors)
+        ]
+    else:
+        payload["per_floor_deficit_status"] = "unavailable"
+    return payload
 
 
 def _shared_floor_capacity_measurement(
@@ -416,6 +786,12 @@ def _agent_mutated_seeds(
         programs = synthesize_architectural_programs(request, building_type=building_type)
         vlm_status = "not_requested"
         llm_author_status = "not_requested"
+        llm_author_budget_failure: dict[str, Any] | None = None
+        llm_author_request_executed = False
+        base_book_vlm_feedback_count = 0
+        base_book_vlm_feedback_in_author_context = False
+        authored_visual_authority_feedback_count = 0
+        authored_visual_authority_feedback_in_author_context = False
         live_prebook_vlm_requested = bool(request.get("live_vlm_revision"))
         llm_author_requested = bool(request.get("live_llm_author")) or str(
             request.get("synthesis_request_source") or ""
@@ -515,14 +891,67 @@ def _agent_mutated_seeds(
                             "author materially different recursive solid ASTs; references are reviewed "
                             "later by the image-grounded VLM critic; no parcel coordinates or completed form"
                         ),
+                        "author_batch_index": int(
+                            request.get("llm_author_batch_index") or 0
+                        ),
+                        "author_batch_count": int(
+                            request.get("llm_author_batch_count") or 1
+                        ),
+                        "author_variation_offset": int(
+                            request.get("llm_author_variation_offset") or 0
+                        ),
+                        "legal_fit_repair_feedback": list(
+                            request.get("legal_fit_repair_feedback") or ()
+                        )[:12],
+                        "capacity_authoring_deficits": deepcopy(list(
+                            request.get("capacity_authoring_deficits") or ()
+                        )[:12]),
+                        "family_supply_deficits": deepcopy(dict(
+                            request.get("family_supply_deficits") or {}
+                        )),
+                        "require_new_geometry_program_ast": bool(
+                            request.get("require_new_geometry_program_ast")
+                        ),
+                        "author_stage": str(
+                            request.get("author_stage") or "initial"
+                        ),
+                        "author_request_kind": str(
+                            request.get("author_request_kind")
+                            or "geometry_author_initial"
+                        ),
+                        "base_book_vlm_replenishment_feedback": deepcopy(list(
+                            request.get(
+                                "base_book_vlm_replenishment_feedback"
+                            ) or ()
+                        )[:12]),
+                        "authored_visual_authority_replenishment_feedback": deepcopy(list(
+                            request.get(
+                                "authored_visual_authority_replenishment_feedback"
+                            ) or ()
+                        )[:12]),
                     }
+                    base_book_vlm_feedback_count = len(
+                        llm_author_context[
+                            "base_book_vlm_replenishment_feedback"
+                        ]
+                    )
+                    base_book_vlm_feedback_in_author_context = bool(
+                        base_book_vlm_feedback_count
+                    )
+                    authored_visual_authority_feedback_count = len(
+                        llm_author_context[
+                            "authored_visual_authority_replenishment_feedback"
+                        ]
+                    )
+                    authored_visual_authority_feedback_in_author_context = bool(
+                        authored_visual_authority_feedback_count
+                    )
                     if llm_author_requested:
                         try:
                             llm_authored = author_geometry_programs_with_openai(
                                 llm_author_context,
-                                target_count=max(
-                                    1,
-                                    min(12, int(request.get("llm_author_count") or 8)),
+                                target_count=bounded_llm_author_batch_count(
+                                    int(request.get("llm_author_count") or 8)
                                 ),
                                 model=str(request.get("llm_author_model") or "") or None,
                             )
@@ -551,6 +980,39 @@ def _agent_mutated_seeds(
                             llm_author_status = (
                                 f"completed:{len(llm_authored)}:"
                                 f"cache_hits={sum(bool(item.metadata.get('author_cache_hit')) for item in llm_authored)}"
+                            )
+                            llm_author_request_executed = any(
+                                not bool(item.metadata.get("author_cache_hit"))
+                                for item in llm_authored
+                            )
+                            llm_author_budget_failure = next((
+                                deepcopy(item.metadata.get(
+                                    "author_compiler_repair_budget_failure"
+                                ))
+                                for item in llm_authored
+                                if isinstance(item.metadata.get(
+                                    "author_compiler_repair_budget_failure"
+                                ), dict)
+                            ), None)
+                        except PaidProviderBudgetError as exc:
+                            llm_author_budget_failure = {
+                                "code": exc.code,
+                                "request_kind": exc.request_kind,
+                                "quota": exc.quota,
+                                "used": exc.used,
+                                "limit": exc.limit,
+                                "remaining": exc.remaining,
+                                "author_stage": str(
+                                    llm_author_context.get("author_stage") or ""
+                                ),
+                            }
+                            llm_author_status = (
+                                "budget_error:"
+                                + json.dumps(
+                                    llm_author_budget_failure,
+                                    sort_keys=True,
+                                    separators=(",", ":"),
+                                )
                             )
                         except GeometryAuthorError as exc:
                             # The deterministic control population remains in the
@@ -775,6 +1237,26 @@ def _agent_mutated_seeds(
                     f"geometry_program_vlm_memory_observation_count={int(program.metadata.get('vlm_memory_observation_count') or 0)}",
                     f"geometry_program_vlm_revision_count={int(program.metadata.get('vlm_geometry_revision_count') or 0)}",
                     f"geometry_program_llm_author_status={llm_author_status}",
+                    "geometry_program_llm_author_request_executed="
+                    f"{llm_author_request_executed}",
+                    "geometry_program_base_book_vlm_feedback_count="
+                    f"{base_book_vlm_feedback_count}",
+                    "geometry_program_base_book_vlm_feedback_in_author_context="
+                    f"{base_book_vlm_feedback_in_author_context}",
+                    "geometry_program_authored_visual_authority_feedback_count="
+                    f"{authored_visual_authority_feedback_count}",
+                    "geometry_program_authored_visual_authority_feedback_in_author_context="
+                    f"{authored_visual_authority_feedback_in_author_context}",
+                    "geometry_program_llm_author_budget_failure="
+                    + (
+                        json.dumps(
+                            llm_author_budget_failure,
+                            sort_keys=True,
+                            separators=(",", ":"),
+                        )
+                        if llm_author_budget_failure is not None
+                        else ""
+                    ),
                     f"geometry_program_llm_author_active={bool(program.metadata.get('llm_geometry_author_active'))}",
                     f"geometry_program_prebook_vlm_quarantined={bool(program.metadata.get('pre_book_vlm_quarantined'))}",
                 ))
@@ -874,67 +1356,223 @@ def _body_program_for_book_projection(
     program: GeometryProgram,
     sequence: VerbSequence,
 ) -> GeometryProgram:
-    if (
-        program.metadata.get("author_provider")
-        == "openai_llm_geometry_author"
-        or program.metadata.get("llm_geometry_author_active") is True
-    ):
+    if not book_projection_calls(sequence):
         return program
     return apply_book_projection_to_geometry_program(program, sequence)
+
+
+def _bind_book_program_source_role(
+    post_book_program: GeometryProgram,
+    source: Any,
+    *,
+    program_id: str,
+) -> GeometryProgram:
+    """Attach source-role identity as a reachable geometry-identity root."""
+
+    bound = bind_source_role_scaffold_to_program(
+        post_book_program,
+        source,
+        program_id=program_id,
+    )
+    if bound is None:
+        raise ValueError("source_role_scaffold_binding_failed")
+    return bound
+
+
+def _required_book_projection_failure(
+    sequence: VerbSequence,
+    *,
+    pre_book_program: GeometryProgram,
+    pre_book_compilation: Any,
+    post_book_program: GeometryProgram,
+    post_book_compilation: Any,
+) -> dict[str, Any] | None:
+    """Return typed evidence when an explicitly requested BOOK edit is inert."""
+
+    calls = book_projection_calls(sequence)
+    if not calls:
+        return None
+    projection = post_book_program.metadata.get("book_recursive_projection")
+    if not isinstance(projection, dict) or projection.get("active") is not True:
+        return {
+            "book_projection_failure": "book_projection_adapter_inactive",
+            "book_projection_call_count": len(calls),
+        }
+    if post_book_compilation.status != "compiled":
+        return {
+            "book_projection_failure": "book_projection_post_compile_failed",
+            "book_projection_call_count": len(calls),
+            "compilation_status": str(post_book_compilation.status),
+        }
+    if pre_book_program.program_hash() == post_book_program.program_hash():
+        return {
+            "book_projection_failure": "book_projection_program_noop",
+            "book_projection_call_count": len(calls),
+            "pre_book_program_hash": pre_book_program.program_hash(),
+            "post_book_program_hash": post_book_program.program_hash(),
+        }
+    if (
+        pre_book_compilation.status == "compiled"
+        and str(pre_book_compilation.geometry_hash or "")
+        and str(pre_book_compilation.geometry_hash)
+        == str(post_book_compilation.geometry_hash or "")
+    ):
+        return {
+            "book_projection_failure": "book_projection_geometry_noop",
+            "book_projection_call_count": len(calls),
+            "pre_book_geometry_hash": str(pre_book_compilation.geometry_hash),
+            "post_book_geometry_hash": str(post_book_compilation.geometry_hash),
+        }
+    return None
+
+
+def _principles_for_seed(
+    scheduled_principles: tuple[tuple[int, dict[str, Any]], ...],
+    *,
+    seed_index: int,
+    llm_authored_seed: bool,
+    selected_principle_ids: frozenset[str] | None = None,
+    descendant_probe_count: int = 1,
+) -> tuple[tuple[int, dict[str, Any]], ...]:
+    if not llm_authored_seed or not scheduled_principles:
+        return scheduled_principles
+    selectable = tuple(
+        item
+        for item in scheduled_principles
+        if selected_principle_ids is None
+        or str(item[1].get("principle_id") or "")
+        in selected_principle_ids
+    )
+    if not selectable:
+        return ()
+    selected = selectable[int(seed_index) % len(selectable)]
+    selected_id = str(selected[1].get("principle_id") or "")
+    base_id = str(
+        selected[1].get("lineage_base_operative_id")
+        or selected_id
+    )
+    if not selected_id:
+        return ()
+    if max(1, int(descendant_probe_count)) == 1 and base_id == selected_id:
+        return (selected,)
+    base = next((
+        item
+        for item in scheduled_principles
+        if str(item[1].get("principle_id") or "") == base_id
+    ), None)
+    if base is None:
+        return ()
+    probe_count = max(1, int(descendant_probe_count))
+    if probe_count > 1:
+        descendants = [
+            item for item in selectable
+            if str(item[1].get("principle_id") or "") != base_id
+            and str(item[1].get("lineage_base_operative_id") or "")
+            == base_id
+        ]
+        if selected in descendants:
+            descendants.remove(selected)
+            descendants.insert(0, selected)
+        diverse: list[tuple[int, dict[str, Any]]] = []
+        deferred: list[tuple[int, dict[str, Any]]] = []
+        seen_kinds: set[str] = set()
+        for item in descendants:
+            kind = str(item[1].get("kind") or "")
+            if kind and kind not in seen_kinds:
+                diverse.append(item)
+                seen_kinds.add(kind)
+            else:
+                deferred.append(item)
+        return tuple((base, *(diverse + deferred)[:probe_count]))
+    if base_id == selected_id:
+        return (selected,)
+    return (base, selected)
+
+
+def _llm_base_then_descendant_schedule(
+    scheduled_principles: tuple[tuple[int, dict[str, Any]], ...],
+) -> tuple[tuple[int, dict[str, Any]], ...]:
+    """Execute each LLM lineage's BASE work before its descendants."""
+
+    base_phase: list[tuple[int, dict[str, Any]]] = []
+    descendant_phase: list[tuple[int, dict[str, Any]]] = []
+    for item in scheduled_principles:
+        principle = item[1]
+        principle_id = str(principle.get("principle_id") or "")
+        lineage_base_id = str(
+            principle.get("lineage_base_operative_id") or principle_id
+        )
+        if (
+            str(principle.get("generation_stage") or "") == "base"
+            or principle_id == lineage_base_id
+        ):
+            base_phase.append(item)
+        else:
+            descendant_phase.append(item)
+    return tuple(base_phase + descendant_phase)
+
+
+def _competition_exact_key_parts(
+    key: str,
+) -> tuple[str, str, str] | None:
+    seed_index, separator, remainder = str(key).partition(":")
+    principle_id, variant_separator, variant_index = remainder.rpartition(":")
+    if not separator or not variant_separator:
+        return None
+    if not seed_index.isdigit() or not variant_index.isdigit() or not principle_id:
+        return None
+    return seed_index, principle_id, variant_index
+
+
+def _expand_competition_exact_lineage_dependencies(
+    selected_keys: frozenset[str],
+    principles: tuple[dict[str, Any], ...],
+) -> frozenset[str]:
+    """Add each selected descendant's exact base key or reject it closed."""
+
+    principle_by_id = {
+        str(principle.get("principle_id") or ""): principle
+        for principle in principles
+        if str(principle.get("principle_id") or "")
+    }
+    expanded: set[str] = set()
+    for key in selected_keys:
+        parts = _competition_exact_key_parts(key)
+        if parts is None:
+            continue
+        seed_index, principle_id, variant_index = parts
+        principle = principle_by_id.get(principle_id)
+        if principle is None:
+            continue
+        base_id = str(
+            principle.get("lineage_base_operative_id")
+            or principle_id
+        )
+        base = principle_by_id.get(base_id)
+        if base is None:
+            continue
+        if str(base.get("lineage_base_operative_id") or base_id) != base_id:
+            continue
+        expanded.add(key)
+        expanded.add(f"{seed_index}:{base_id}:{variant_index}")
+    return frozenset(expanded)
 
 
 def _program_projection_evidence(
     program: GeometryProgram,
     bridge_evidence: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    evidence = recursive_book_projection_evidence(program, bridge_evidence)
-    if evidence:
-        return evidence
-    if not (
-        program.metadata.get("author_provider")
-        == "openai_llm_geometry_author"
-        or program.metadata.get("llm_geometry_author_active") is True
-    ):
-        return {}
-    bridge = dict(bridge_evidence or {})
-    status = (
-        "materialized"
-        if bridge.get("status") == "materialized"
-        and bridge.get("geometry_hash")
-        else "compile_failed"
-    )
-    return {
-        "schema_version": "arr.maas.program_book_projection.v2",
-        "status": status,
-        "projection_kind": "direct_llm_authored_ast",
-        "geometry_authority": "llm_authored_recursive_manifold_ast",
-        "legacy_source_projection_bypassed": True,
-        "operations": [],
-        "scope": {
-            "node_id": program.root_id,
-            "relation": "authored_base_volume_program",
-            "base_volume_label": "llm_authored",
-            "requested_fraction": None,
-            "topology": "authored_ast",
-            "orientation": "authored",
-        },
-        "author_response_id": str(
-            program.metadata.get("author_response_id") or ""
-        ),
-        "authoritative_program_hash": str(
-            bridge.get("program_hash") or program.program_hash()
-        ),
-        "authoritative_geometry_hash": str(
-            bridge.get("geometry_hash") or ""
-        ),
-        "projection_graph": {
-            "schema_version": "arr.maas.book_projection_graph.v2",
-            "nodes": [],
-        },
-    }
+    return recursive_book_projection_evidence(program, bridge_evidence)
 
 
 _AUTHORED_PROJECTION_MAX_SILHOUETTE_DISTANCE = 0.40
+_AUTHORED_PROJECTION_IDENTITY_PREDICATE = (
+    "preserve_pose_invariant_top_front_side_figure_and_do_not_"
+    "invent_step_or_pyramid_morphology"
+)
+_AUTHORED_PROJECTION_IDENTITY_PREDICATE_VERSION = (
+    "arr.maas.authored_projection_identity_predicate.v3"
+)
 def _allow_tiny_geometry_gates() -> bool:
     """Check whether tiny-geometry gate relaxations are allowed."""
 
@@ -953,27 +1591,42 @@ _AUTHORED_STEP_OPERATORS = frozenset({
 })
 
 
+def _authored_projection_terminal_stage(identity_evidence: dict[str, Any]) -> str:
+    reasons = tuple(str(value) for value in identity_evidence.get("failure_reasons") or ())
+    if "authored_ast_noop" in reasons:
+        return "authored_ast_noop"
+    if "book_projection_noop" in reasons:
+        return "book_projection_noop"
+    if any("authoritative_visual_surfaces_missing" in reason for reason in reasons):
+        return "authored_visual_authority"
+    return "authored_identity_collapse"
+
+
 def _authored_projection_identity_evidence(
     authored_source: Any,
     projected_source: Any,
     *,
     enforce_morphology_preservation: bool = True,
+    base_primitive_geometry_hash: str = "",
+    authored_ast_geometry_hash: str = "",
+    book_projection_required: bool = False,
+    pre_book_program_hash: str = "",
+    post_book_program_hash: str = "",
+    pre_book_geometry_hash: str = "",
+    post_book_geometry_hash: str = "",
 ) -> dict[str, Any]:
-    """Fail closed when legal fitting invents a different visible body type.
+    """Separate structural projection validity from visual-identity advice.
 
-    ``enforce_morphology_preservation`` remains as a compatibility argument for
-    older diagnostic callers. It no longer disables the final-MASS identity
-    gate; diagnostics may observe a collapsed projection but may not select it.
+    Exact legal projection can legitimately alter silhouette or introduce a
+    stepped section. Those differences remain typed revision/VLM evidence but
+    cannot erase an otherwise valid final surface. Missing or malformed visual
+    authority, synthetic step fallback, and authored/BOOK no-ops remain hard.
     """
 
     del enforce_morphology_preservation
 
-    authored_metrics = _solid_morphology_metrics(
-        SimpleNamespace(source=authored_source)
-    )
-    projected_metrics = _solid_morphology_metrics(
-        SimpleNamespace(source=projected_source)
-    )
+    authored_metrics = authoritative_surface_morphology(authored_source)
+    projected_metrics = authoritative_surface_morphology(projected_source)
     program = authored_source.metadata.get("geometry_program")
     program = program if isinstance(program, dict) else {}
     authored_operators = {
@@ -992,12 +1645,7 @@ def _authored_projection_identity_evidence(
         projected_metrics.get("visible_stepped")
         or projected_metrics.get("pyramidal_like")
     )
-    silhouette_distance = float(
-        intrinsic_silhouette_distance(
-            authored_source,
-            projected_source,
-        )
-    )
+    silhouette_distance = float(authoritative_surface_silhouette_distance(authored_source, projected_source))
     visual_certificate = projected_source.metadata.get(
         "floorwise_visual_projection"
     )
@@ -1006,32 +1654,143 @@ def _authored_projection_identity_evidence(
         if isinstance(visual_certificate, dict)
         else {}
     )
-    failures: list[str] = []
+    mandatory_legal_field_setback = False
     if (
+        visual_certificate.get("status") == "certified"
+        and visual_certificate.get("hard_pass") is True
+        and visual_certificate.get("certification_mode")
+        == "floorwise_profiled_legal_clip"
+        and visual_certificate.get("visible_geometry_operation")
+        == "authored_profiled_mesh_legal_solid_intersection"
+        and visual_certificate.get("visible_step_fallback") is False
+    ):
+        try:
+            certified_artifact = serialize_certified_projected_visual(
+                projected_source
+            )
+            certified_certificate = certified_artifact.get(
+                "projectedVisualCertificate"
+            )
+            mandatory_legal_field_setback = bool(
+                isinstance(certified_certificate, dict)
+                and has_strict_height_dependent_legal_section_contraction(
+                    certified_certificate
+                )
+            )
+        except (AttributeError, TypeError, ValueError):
+            mandatory_legal_field_setback = False
+    failures: list[str] = []
+    diagnostic_reasons: list[str] = []
+    if not authored_metrics.get("hard_pass"):
+        failures.append("authored_authoritative_visual_surfaces_missing")
+    if not projected_metrics.get("hard_pass"):
+        failures.append("projected_authoritative_visual_surfaces_missing")
+    if (
+        authored_metrics.get("hard_pass")
+        and projected_metrics.get("hard_pass")
+        and
         projected_step_visible
         and not authored_step_visible
         and not authored_step_intent
+        and not mandatory_legal_field_setback
     ):
-        failures.append("unrequested_legal_step_collapse")
+        diagnostic_reasons.append("unrequested_legal_step_collapse")
     if (
+        authored_metrics.get("hard_pass")
+        and projected_metrics.get("hard_pass")
+        and
         silhouette_distance > _AUTHORED_PROJECTION_MAX_SILHOUETTE_DISTANCE
         and not authored_step_intent
+        and not mandatory_legal_field_setback
     ):
-        failures.append(
+        diagnostic_reasons.append(
             "authored_projection_silhouette_distance_exceeded"
         )
     if (
         visual_certificate.get("visible_step_fallback") is True
+        and not authored_step_visible
         and not authored_step_intent
     ):
         failures.append("unrequested_visible_step_fallback")
+    if (
+        base_primitive_geometry_hash
+        and authored_ast_geometry_hash
+        and base_primitive_geometry_hash == authored_ast_geometry_hash
+    ):
+        failures.append("authored_ast_noop")
+    if book_projection_required:
+        program_noop = bool(
+            pre_book_program_hash
+            and post_book_program_hash
+            and pre_book_program_hash == post_book_program_hash
+        )
+        geometry_noop = bool(
+            pre_book_geometry_hash
+            and post_book_geometry_hash
+            and pre_book_geometry_hash == post_book_geometry_hash
+        )
+        if program_noop or geometry_noop:
+            failures.append("book_projection_noop")
+    try:
+        authored_surface_hash = source_surface_payload_hash(tuple(authored_source.surfaces or ()))
+    except (AttributeError, TypeError, ValueError):
+        authored_surface_hash = ""
+    try:
+        projected_surface_hash = source_surface_payload_hash(tuple(projected_source.surfaces or ()))
+    except (AttributeError, TypeError, ValueError):
+        projected_surface_hash = ""
+    try:
+        authored_proxy_hash = source_volume_payload_hash(tuple(authored_source.volumes or ()))
+    except (AttributeError, TypeError, ValueError):
+        authored_proxy_hash = "invalid_proxy_volume_payload"
+    try:
+        projected_proxy_hash = source_volume_payload_hash(tuple(projected_source.volumes or ()))
+    except (AttributeError, TypeError, ValueError):
+        projected_proxy_hash = "invalid_proxy_volume_payload"
+    frozen_identity_evidence = {
+        "schema_version": "arr.maas.authored_projection_identity_frozen.v1",
+        "frozen_at_source_pair_comparison": True,
+        "predicate": _AUTHORED_PROJECTION_IDENTITY_PREDICATE,
+        "predicate_version": _AUTHORED_PROJECTION_IDENTITY_PREDICATE_VERSION,
+        "before_phenotype": str(authored_metrics.get("phenotype") or ""),
+        "after_phenotype": str(projected_metrics.get("phenotype") or ""),
+        "before_step_visible": authored_step_visible,
+        "after_step_visible": projected_step_visible,
+        "step_requested": authored_step_intent,
+        "raw_silhouette_distance": silhouette_distance,
+        "maximum_silhouette_distance": (
+            _AUTHORED_PROJECTION_MAX_SILHOUETTE_DISTANCE
+        ),
+    }
     return {
         "schema_version": "arr.maas.authored_projection_identity.v1",
-        "status": "pass" if not failures else "fail",
+        "status": (
+            "fail"
+            if failures
+            else "pass_with_revision_signal"
+            if diagnostic_reasons
+            else "pass"
+        ),
         "hard_pass": not failures,
         "failure_reasons": failures,
+        "diagnostic_reasons": diagnostic_reasons,
+        "typed_revision_signal": {
+            "schema_version": "arr.maas.projected_identity_revision_signal.v1",
+            "active": bool(diagnostic_reasons),
+            "hard_gate": False,
+            "route": "typed_revision_or_vlm_review",
+            "reasons": list(diagnostic_reasons),
+        },
+        "mandatory_legal_field_setback": mandatory_legal_field_setback,
+        "visual_identity_authority": "profiled_surface_payload",
+        "authored_surface_payload_hash": authored_surface_hash,
+        "projected_surface_payload_hash": projected_surface_hash,
+        "proxy_volume_hashes_diagnostic_only": True,
+        "authored_proxy_volume_payload_hash": authored_proxy_hash,
+        "projected_proxy_volume_payload_hash": projected_proxy_hash,
         "authored_program_operators": sorted(authored_operators),
         "authored_step_intent": authored_step_intent,
+        "frozen_identity_evidence": frozen_identity_evidence,
         "authored_phenotype": str(
             authored_metrics.get("phenotype") or ""
         ),
@@ -1057,11 +1816,355 @@ def _authored_projection_identity_evidence(
         "visible_step_fallback": bool(
             visual_certificate.get("visible_step_fallback")
         ),
-        "identity_policy": (
-            "preserve_pose_invariant_top_front_side_figure_and_do_not_"
-            "invent_step_or_pyramid_morphology"
+        "base_primitive_geometry_hash": str(base_primitive_geometry_hash),
+        "authored_ast_geometry_hash": str(authored_ast_geometry_hash),
+        "book_projection_required": bool(book_projection_required),
+        "pre_book_program_hash": str(pre_book_program_hash),
+        "post_book_program_hash": str(post_book_program_hash),
+        "pre_book_geometry_hash": str(pre_book_geometry_hash),
+        "post_book_geometry_hash": str(post_book_geometry_hash),
+        "identity_policy": _AUTHORED_PROJECTION_IDENTITY_PREDICATE,
+        "identity_policy_version": (
+            _AUTHORED_PROJECTION_IDENTITY_PREDICATE_VERSION
         ),
     }
+
+
+_TERMINAL_CERTIFICATE_EVIDENCE_SCHEMA_VERSION = (
+    "arr.maas.authored_visual_authority_terminal_certificate.v1"
+)
+_TERMINAL_CERTIFICATE_STRING_LIMIT = 160
+_TERMINAL_CERTIFICATE_REASON_LIMIT = 12
+_TERMINAL_EVIDENCE_SCALAR_FIELDS = frozenset({
+    "repair_reason",
+    "failure_reason",
+    "legal_floor_field_hash",
+    "floor_index",
+    "floor_count",
+    "floor_union_count",
+    "measured_section_present",
+    "fitted_floor_count",
+    "source_volume_count",
+    "legal_section_count",
+    "viable_section_count",
+    "source_present",
+    "legal_present",
+    "containment",
+    "stage_detail",
+})
+_TERMINAL_EVIDENCE_LIST_FIELDS = frozenset({
+    "failure_reasons",
+    "certificate_causes",
+    "certificate_modes",
+    "identity_failure_reasons",
+})
+
+
+def _bounded_terminal_record_evidence(raw_evidence: Mapping[str, Any]) -> dict[str, Any]:
+    """Apply the explicit coordinate-free terminal certificate schema."""
+
+    bounded: dict[str, Any] = {}
+    for key in _TERMINAL_EVIDENCE_SCALAR_FIELDS:
+        value = raw_evidence.get(key)
+        if isinstance(value, str):
+            bounded[key] = value[:_TERMINAL_CERTIFICATE_STRING_LIMIT]
+        elif isinstance(value, (bool, int, float)) or value is None:
+            if key in raw_evidence:
+                bounded[key] = value
+    for key in _TERMINAL_EVIDENCE_LIST_FIELDS:
+        value = raw_evidence.get(key)
+        if not isinstance(value, (list, tuple)):
+            continue
+        bounded[key] = list(dict.fromkeys(
+            str(item)[:_TERMINAL_CERTIFICATE_STRING_LIMIT]
+            for item in value[:_TERMINAL_CERTIFICATE_REASON_LIMIT]
+            if isinstance(item, str) and item
+        ))
+    identity = raw_evidence.get("identity_evidence")
+    if isinstance(identity, dict):
+        identity_reasons = identity.get("failure_reasons")
+        if isinstance(identity_reasons, (list, tuple)):
+            bounded["identity_failure_reasons"] = list(dict.fromkeys(
+                str(item)[:_TERMINAL_CERTIFICATE_STRING_LIMIT]
+                for item in identity_reasons[:_TERMINAL_CERTIFICATE_REASON_LIMIT]
+                if isinstance(item, str) and item
+            ))
+        frozen_identity = identity.get("frozen_identity_evidence")
+        if isinstance(frozen_identity, dict):
+            bounded["frozen_identity_evidence"] = deepcopy(
+                frozen_identity
+            )
+    return bounded
+
+
+def _authored_visual_authority_subreason(
+    *,
+    stage: str,
+    repair_reason: str,
+    failure_reason: str,
+    certificate_causes: Sequence[str] = (),
+    certificate_modes: Sequence[str] = (),
+) -> str:
+    """Classify terminal visual-authority failures without naming a form."""
+
+    if stage != "authored_visual_authority":
+        return ""
+    detail = " ".join((
+        repair_reason,
+        failure_reason,
+        *certificate_causes,
+        *certificate_modes,
+    )).lower()
+    if any(token in detail for token in (
+        "empty",
+        "no_valid_surface",
+        "no_valid_surfaces",
+        "no valid surface",
+        "no valid surfaces",
+        "surface_missing",
+        "surfaces_missing",
+        "surface absent",
+        "surfaces absent",
+    )):
+        return "authored_visual_authority_empty_or_no_valid_surface"
+    if "revalidat" in detail:
+        return "authored_visual_authority_revalidation"
+    if repair_reason == "authored_matrix4_projection_failed":
+        return "authored_visual_authority_matrix4_projection"
+    if repair_reason == "authored_profiled_legal_clip_failed":
+        return "authored_visual_authority_profiled_clip"
+    return "authored_visual_authority_csg_midplane_certificate"
+
+
+def _terminal_certificate_evidence(
+    *,
+    stage: str,
+    evidence: Mapping[str, Any],
+    program: Any,
+    source_seed: str,
+    book_scope: str,
+    legal_floor_field_hash: str,
+) -> dict[str, Any]:
+    """Return a small coordinate-free repair payload for later AST authoring."""
+
+    repair_reason = str(evidence.get("repair_reason") or "")[:_TERMINAL_CERTIFICATE_STRING_LIMIT]
+    failure_reason = str(evidence.get("failure_reason") or "")[:_TERMINAL_CERTIFICATE_STRING_LIMIT]
+    raw_failure_reasons = evidence.get("failure_reasons") or ()
+    failure_reasons = [
+        str(value)[:_TERMINAL_CERTIFICATE_STRING_LIMIT]
+        for value in raw_failure_reasons[:_TERMINAL_CERTIFICATE_REASON_LIMIT]
+        if str(value)
+    ] if isinstance(raw_failure_reasons, (list, tuple)) else []
+    program_payload = program.to_dict() if hasattr(program, "to_dict") else {}
+    program_metadata = (
+        program_payload.get("metadata")
+        if isinstance(program_payload, dict)
+        and isinstance(program_payload.get("metadata"), dict)
+        else {}
+    )
+    program_hash = str(
+        program.program_hash() if hasattr(program, "program_hash") else ""
+    )[:_TERMINAL_CERTIFICATE_STRING_LIMIT]
+    raw_causes = evidence.get("certificate_causes") or failure_reasons
+    certificate_causes = list(dict.fromkeys(
+        str(value)[:_TERMINAL_CERTIFICATE_STRING_LIMIT]
+        for value in raw_causes[:_TERMINAL_CERTIFICATE_REASON_LIMIT]
+        if isinstance(value, str) and value
+    )) if isinstance(raw_causes, (list, tuple)) else []
+    raw_modes = evidence.get("certificate_modes") or ()
+    certificate_modes = list(dict.fromkeys(
+        str(value)[:_TERMINAL_CERTIFICATE_STRING_LIMIT]
+        for value in raw_modes[:_TERMINAL_CERTIFICATE_REASON_LIMIT]
+        if isinstance(value, str) and value
+    )) if isinstance(raw_modes, (list, tuple)) else []
+    subreason = _authored_visual_authority_subreason(
+        stage=stage,
+        repair_reason=repair_reason,
+        failure_reason=failure_reason,
+        certificate_causes=certificate_causes,
+        certificate_modes=certificate_modes,
+    )
+    certificate = {
+        "schema_version": _TERMINAL_CERTIFICATE_EVIDENCE_SCHEMA_VERSION,
+        "structural_failure": str(stage)[:_TERMINAL_CERTIFICATE_STRING_LIMIT],
+        "structural_subreason": subreason,
+        "repair_reason": repair_reason,
+        "failure_reason": failure_reason,
+        "failure_reasons": failure_reasons,
+        "certificate_causes": certificate_causes,
+        "certificate_modes": certificate_modes,
+        "hard_fail_closed": stage == "authored_visual_authority",
+        "visual_authority": "profiled_surface_payload",
+        "legal_floor_loft_or_prism_replay_allowed": False,
+        "program_hash": program_hash,
+        "geometry_family": str(program_metadata.get("family") or "")[:_TERMINAL_CERTIFICATE_STRING_LIMIT],
+        "book_scope": str(book_scope)[:_TERMINAL_CERTIFICATE_STRING_LIMIT],
+        "legal_floor_field_hash": str(
+            evidence.get("legal_floor_field_hash") or legal_floor_field_hash
+        )[:_TERMINAL_CERTIFICATE_STRING_LIMIT],
+        "source_seed": str(source_seed)[:_TERMINAL_CERTIFICATE_STRING_LIMIT],
+    }
+    frozen_identity = evidence.get("frozen_identity_evidence")
+    if isinstance(frozen_identity, dict):
+        certificate["frozen_identity_evidence"] = deepcopy(
+            frozen_identity
+        )
+    return certificate
+
+
+def _propagate_terminal_materialization_failure(
+    *,
+    terminal_record: dict[str, Any],
+    report_records: list[dict[str, Any]],
+    outcome_graph: Any | None,
+    program_slug: str,
+    source_seed: str,
+    program: Any,
+    principle_id: str,
+    book_scope: str,
+    legal_floor_field_hash: str = "",
+) -> None:
+    """Preserve one bounded typed terminal record without string flattening."""
+
+    raw_stage = str(terminal_record.get("stage") or "outer_precondition")
+    stage = (
+        "authored_visual_authority"
+        if raw_stage == "visual_projection_or_replay"
+        else raw_stage
+    )
+    raw_evidence = terminal_record.get("evidence")
+    raw_evidence = raw_evidence if isinstance(raw_evidence, dict) else {}
+    evidence = _bounded_terminal_record_evidence(raw_evidence)
+    if raw_stage == "visual_projection_or_replay":
+        evidence.setdefault(
+            "repair_reason",
+            "authored_visual_projection_revalidation_failed",
+        )
+        evidence.setdefault(
+            "failure_reason",
+            "revalidation_floor_section_mismatch",
+        )
+        evidence.setdefault(
+            "failure_reasons",
+            [evidence["failure_reason"]],
+        )
+        evidence.setdefault(
+            "certificate_causes",
+            list(evidence["failure_reasons"]),
+        )
+        evidence.setdefault(
+            "certificate_modes",
+            ["post_projection_section_revalidation"],
+        )
+    certificate_evidence = _terminal_certificate_evidence(
+        stage=stage,
+        evidence=evidence,
+        program=program,
+        source_seed=source_seed,
+        book_scope=book_scope,
+        legal_floor_field_hash=legal_floor_field_hash,
+    )
+    record = {
+        "stage": stage,
+        "evidence": evidence,
+        "terminal_certificate_evidence": certificate_evidence,
+    }
+    report_records.append(record)
+    del report_records[:-48]
+    if outcome_graph is None:
+        return
+    failure_reason = str(evidence.get("failure_reason") or "")
+    structural_subreason = str(
+        certificate_evidence.get("structural_subreason") or ""
+    )
+    identity_reasons = tuple(
+        str(value) for value in evidence.get("identity_failure_reasons") or ()
+    )
+    reasons = tuple(dict.fromkeys(
+        value for value in (
+            stage,
+            structural_subreason,
+            failure_reason,
+            *identity_reasons,
+        ) if value
+    ))
+    outcome_graph.observe_geometry_gate_failure(
+        program_slug=program_slug,
+        source_seed=source_seed,
+        program=program,
+        principle_id=principle_id,
+        book_scope=book_scope,
+        stage=stage,
+        failure_reasons=reasons,
+        terminal_certificate_evidence=certificate_evidence,
+        legal_floor_field_hash=str(
+            certificate_evidence.get("legal_floor_field_hash") or ""
+        ),
+    )
+    observations = getattr(outcome_graph, "observations", None)
+    if not isinstance(observations, list):
+        return
+    for observation in reversed(observations):
+        if (
+            str(observation.get("geometry_gate_stage") or "") == stage
+            and str(observation.get("program_slug") or "") == str(program_slug)
+        ):
+            observation["terminal_materialization_evidence"] = deepcopy(evidence)
+            observation["terminal_certificate_evidence"] = deepcopy(
+                certificate_evidence
+            )
+            break
+
+
+class _MaterializationAttemptDiagnostics:
+    def __init__(self) -> None:
+        self.materialization_invocation_count = 0
+        self.terminal_failure_reason_counts: Counter[str] = Counter()
+
+    def record_invocation(
+        self,
+        *,
+        materialized: Any | None,
+        terminal_failures: Sequence[Mapping[str, Any]],
+    ) -> None:
+        self.materialization_invocation_count += 1
+        if materialized is not None:
+            return
+        reason = "unclassified_terminal_materialization_failure"
+        if terminal_failures:
+            reason = str(terminal_failures[0].get("stage") or reason)
+        self.terminal_failure_reason_counts[reason] += 1
+
+    def metadata(
+        self,
+        legal_fit_deficits: Sequence[Mapping[str, Any]],
+    ) -> dict[str, Any]:
+        terminal_reason_counts = dict(
+            sorted(self.terminal_failure_reason_counts.items())
+        )
+        terminal_failure_count = sum(terminal_reason_counts.values())
+        if terminal_failure_count > self.materialization_invocation_count:
+            raise AssertionError(
+                "terminal materialization failures exceed invocation count"
+            )
+        return {
+            "legal_fit_failure_reason_counts": dict(sorted(Counter(
+                reason
+                for deficit in legal_fit_deficits
+                for reason in deficit.get("typed_reasons") or ()
+            ).items())),
+            "legal_fit_failure_count_unit": "deficit_reason_event",
+            "terminal_materialization_failure_reason_counts": (
+                terminal_reason_counts
+            ),
+            "terminal_materialization_failure_count_unit": (
+                "failed_materialization_invocation"
+            ),
+            "materialization_invocation_count": (
+                self.materialization_invocation_count
+            ),
+            "terminal_materialization_failure_count": terminal_failure_count,
+        }
 
 
 def _materialize_directed_geometry(
@@ -1083,7 +2186,50 @@ def _materialize_directed_geometry(
     capacity_measurement_hash: str = "",
     site_context_hash: str = "",
     legal_floor_field_hash: str = "",
+    legal_fit_failure_sink: list[dict[str, Any]] | None = None,
+    terminal_failure_sink: list[dict[str, Any]] | None = None,
+    lineage_parent_key: str = "",
+    pre_book_parent_compiler_clean: bool = False,
+    pre_book_parent_contained: bool = False,
 ) -> Any | None:
+    terminal_failure_sink_start = (
+        len(terminal_failure_sink)
+        if terminal_failure_sink is not None
+        else 0
+    )
+    terminal_failure_emitted = False
+
+    def terminal_failure(stage: str, **evidence: Any) -> None:
+        nonlocal terminal_failure_emitted
+        if terminal_failure_sink is None or terminal_failure_emitted:
+            return
+        if len(terminal_failure_sink) > terminal_failure_sink_start:
+            terminal_failure_emitted = True
+            return
+        bounded_evidence: dict[str, Any] = {}
+        for key, value in evidence.items():
+            if len(bounded_evidence) >= 8:
+                break
+            if isinstance(value, dict):
+                bounded_evidence[str(key)] = deepcopy(
+                    dict(tuple(value.items())[:24])
+                )
+            elif isinstance(value, (list, tuple)):
+                bounded_evidence[str(key)] = deepcopy(list(value[:24]))
+            elif isinstance(value, str):
+                bounded_evidence[str(key)] = value[:160]
+            elif isinstance(value, (bool, int, float)) or value is None:
+                bounded_evidence[str(key)] = value
+        if legal_floor_field_hash:
+            bounded_evidence["legal_floor_field_hash"] = str(
+                legal_floor_field_hash
+            )[:160]
+        terminal_failure_sink.append({
+            "stage": stage,
+            "evidence": bounded_evidence,
+        })
+        terminal_failure_emitted = True
+
     directive = next((
         note.split("=", 1)[1]
         for note in sequence.notes
@@ -1104,16 +2250,26 @@ def _materialize_directed_geometry(
     try:
         fit_strength = max(0.0, min(1.0, float(raw_fit_strength)))
     except (TypeError, ValueError):
+        terminal_failure("outer_precondition", field="legal_fit_strength")
         return None
     if raw_payload:
         try:
             program = GeometryProgram.from_dict(json.loads(raw_payload))
         except (TypeError, ValueError, json.JSONDecodeError):
+            terminal_failure("outer_precondition", field="geometry_payload")
             return None
     else:
         program = _geometry_program_registry().get(directive)
     if program is None:
+        terminal_failure("outer_precondition", field="geometry_program")
         return None
+    if capacity_composition_utilizations is not None:
+        achieved_utilization, target_utilization = capacity_composition_utilizations
+        program = apply_capacity_composition_to_geometry_program(
+            program,
+            achieved_utilization=achieved_utilization,
+            target_utilization=target_utilization,
+        )
     raw_edits = next((
         note.split("=", 1)[1]
         for note in sequence.notes
@@ -1122,40 +2278,83 @@ def _materialize_directed_geometry(
     try:
         edit_records = json.loads(raw_edits)
     except (TypeError, ValueError, json.JSONDecodeError):
+        terminal_failure("outer_precondition", field="geometry_edits")
         return None
     if edit_records:
         safe_mutation = apply_geometry_edits_compiler_safe(program, edit_records)
         mutation = safe_mutation.mutation
         if mutation.status != "revised" or mutation.program is None:
+            terminal_failure("book_projection", mutation_status=mutation.status)
             return None
         program = mutation.program
     # BOOK p.3 scope and ordered operations must mutate the same recursive
     # manifold later rendered and gated. The old SourceMass projection remains
     # as program/legal evidence, but it is no longer the geometry authority.
+    pre_book_program = program
+    pre_book_compilation = compile_geometry_program(pre_book_program)
+    pre_book_lineage_parent_proof: dict[str, Any] = {}
+    if (
+        lineage_parent_key
+        and pre_book_parent_compiler_clean
+        and pre_book_parent_contained
+        and pre_book_compilation.status == "compiled"
+        and not compilation_gate(
+            pre_book_compilation,
+            GeometryGatePolicy(maximum_components=1),
+        )
+    ):
+        pre_book_lineage_parent_proof = {
+            "schema_version": "arr.maas.pre_book_lineage_parent_proof.v1",
+            "parent_key": str(lineage_parent_key),
+            "program_hash": pre_book_program.program_hash(),
+            "geometry_hash": str(pre_book_compilation.geometry_hash or ""),
+            "compiler_clean": True,
+            "contained": True,
+        }
     try:
-        program = _body_program_for_book_projection(
+        book_geometry_program = _body_program_for_book_projection(
             program,
             sequence,
         )
-        book_geometry_program = program
-        semantic_program = project_program_requirements(
-            book_geometry_program,
-            building_type=building_type,
-            access_side=site_access_side,
-        )
-        bind_source_role_scaffold_to_program(
-            semantic_program,
-            source,
-            program_id=building_type,
-        )
+    except (TypeError, ValueError) as exc:
+        typed_evidence = getattr(exc, "evidence", None)
+        if isinstance(typed_evidence, dict):
+            terminal_failure("book_projection", **typed_evidence)
+        else:
+            terminal_failure(
+                "book_projection",
+                code="book_projection_application_failed",
+                failure_type=type(exc).__name__,
+                failure_detail=str(exc),
+                pre_program_hash=pre_book_program.program_hash(),
+            )
+        return None
+    try:
+        if book_projection_calls(sequence):
+            program = _bind_book_program_source_role(
+                book_geometry_program,
+                source,
+                program_id=building_type,
+            )
+        else:
+            program = book_geometry_program
         # At MASS, program relations are certified semantic carriers over the
         # legal floor bands. They must not silently replace the authored
         # BaseVolume→BOOK body with a near-complete program template before
         # plan design. The visible authority therefore remains the BOOK AST.
-        program = book_geometry_program
-    except (TypeError, ValueError):
+    except (TypeError, ValueError) as exc:
+        terminal_failure(
+            "book_projection",
+            code="source_role_scaffold_binding_failed",
+            stage_detail="role_scaffold",
+            failure_type=type(exc).__name__,
+            failure_detail=str(exc),
+            pre_program_hash=pre_book_program.program_hash(),
+            post_book_program_hash=book_geometry_program.program_hash(),
+        )
         return None
     if program is None:
+        terminal_failure("book_projection", stage_detail="book_program")
         return None
     legal_sections = tuple(floor_containment_hosts)
     if (
@@ -1171,9 +2370,24 @@ def _materialize_directed_geometry(
             for section in legal_sections
         )
     ):
+        terminal_failure(
+            "outer_precondition",
+            legal_section_count=len(legal_sections),
+            target_floor_count=len(target_floor_areas_m2),
+        )
         return None
     authored_program = program
     authored_compilation = compile_geometry_program(authored_program)
+    book_projection_failure = _required_book_projection_failure(
+        sequence,
+        pre_book_program=pre_book_program,
+        pre_book_compilation=pre_book_compilation,
+        post_book_program=authored_program,
+        post_book_compilation=authored_compilation,
+    )
+    if book_projection_failure is not None:
+        terminal_failure("book_projection", **book_projection_failure)
+        return None
     if (
         authored_compilation.status != "compiled"
         or compilation_gate(
@@ -1181,8 +2395,13 @@ def _materialize_directed_geometry(
             GeometryGatePolicy(maximum_components=1),
         )
     ):
+        terminal_failure(
+            "book_projection",
+            compilation_status=authored_compilation.status,
+        )
         return None
     if not source.volumes:
+        terminal_failure("outer_precondition", source_volume_count=0)
         return None
     primary_volume_role = max(
         source.volumes,
@@ -1206,6 +2425,18 @@ def _materialize_directed_geometry(
     )
     final_projection_book_program = authored_program
     if legal_field_selection is None:
+        legal_fit_deficit = build_legal_fit_deficit(
+            authored_program_hash=authored_program.program_hash(),
+            legal_sections=legal_sections,
+            target_floor_areas_m2=target_areas,
+            floor_capacity_plan_hash=floor_capacity_plan_hash,
+        ).to_dict()
+        if legal_fit_failure_sink is not None:
+            legal_fit_failure_sink.append(legal_fit_deficit)
+        logger.info(
+            "Principal-frame legal fit requires typed repair: %s",
+            legal_fit_deficit,
+        )
         candidate_floor_context = (
             source.metadata.get("candidate_floor_context")
             if isinstance(
@@ -1222,12 +2453,14 @@ def _materialize_directed_geometry(
                 candidate_floor_context.get("floors")
             )
         except (TypeError, ValueError):
+            terminal_failure("outer_precondition", field="candidate_floor_context")
             return None
         if (
             not isfinite(candidate_height_m)
             or candidate_height_m <= 0.0
             or candidate_floor_count != len(legal_sections)
         ):
+            terminal_failure("outer_precondition", field="candidate_floor_context")
             return None
         authored_source = compile_geometry_program_to_source_mass(
             authored_program,
@@ -1240,6 +2473,7 @@ def _materialize_directed_geometry(
             max_volume_bands=max(3, len(legal_sections)),
         )
         if authored_source is None:
+            terminal_failure("book_projection", stage_detail="authored_source")
             return None
         authored_source = replace(
             authored_source,
@@ -1253,14 +2487,26 @@ def _materialize_directed_geometry(
             legal_sections=legal_sections,
             target_plan_coverage=minimum_host_plan_coverage,
             floor_capacity_plan_hash=floor_capacity_plan_hash,
+            legal_floor_field_hash=legal_floor_field_hash,
             target_floor_areas_m2=target_areas,
+            terminal_failure_sink=terminal_failure_sink,
         )
         if materialized is None:
+            terminal_failure("floor_affine_fit", floor_count=len(legal_sections))
             return None
         authored_projection_identity = (
             _authored_projection_identity_evidence(
                 authored_source,
                 materialized,
+                base_primitive_geometry_hash=str(
+                    pre_book_program.metadata.get("base_primitive_geometry_hash") or ""
+                ),
+                authored_ast_geometry_hash=str(authored_compilation.geometry_hash or ""),
+                book_projection_required=bool(book_projection_calls(sequence)),
+                pre_book_program_hash=pre_book_program.program_hash(),
+                post_book_program_hash=authored_program.program_hash(),
+                pre_book_geometry_hash=str(pre_book_compilation.geometry_hash or ""),
+                post_book_geometry_hash=str(authored_compilation.geometry_hash or ""),
             )
         )
         if not authored_projection_identity["hard_pass"]:
@@ -1268,77 +2514,19 @@ def _materialize_directed_geometry(
                 "Rejecting authored legal projection identity collapse: %s",
                 authored_projection_identity,
             )
-            return None
-        try:
-            execution_program = floorwise_source_to_geometry_program(
-                materialized,
-                height_m=candidate_height_m,
-                name=f"{authored_program.name}__final_legal_projection",
-                allow_tiny_footprint=_allow_tiny_geometry_gates(),
-            )
-        except ValueError as exc:
-            if str(exc) != "floorwise volume has no replayable footprint":
-                raise
-            logger.info(
-                "Rejecting authored projection replay serialization: %s",
-                exc,
-            )
-            return None
-        execution_program = bind_source_role_scaffold_to_program(
-            execution_program,
-            source,
-            program_id=building_type,
-        )
-        final_compilation = compile_geometry_program(execution_program)
-        final_compilation_gate_policy = GeometryGatePolicy(
-            maximum_components=8
-            if _allow_tiny_geometry_gates()
-            else 1,
-            minimum_edge_length=1e-8
-            if _allow_tiny_geometry_gates()
-            else 1e-5,
-            minimum_triangle_area=1e-12
-            if _allow_tiny_geometry_gates()
-            else 1e-10
-        )
-        final_compilation_gate_issues = compilation_gate(
-            final_compilation,
-            final_compilation_gate_policy,
-        )
-        if (
-            _allow_tiny_geometry_gates()
-            and final_compilation_gate_issues
-            and all(
-                issue.code in {"tiny_face", "tiny_edge"}
-                for issue in final_compilation_gate_issues
-            )
-        ):
-            final_compilation_gate_issues = ()
-        if (
-            final_compilation.status != "compiled"
-            or final_compilation_gate_issues
-        ):
-            logger.info(
-                "Rejecting authored projection replay compilation: "
-                "status=%s compile_issues=%s gate_issues=%s transport=%s",
-                final_compilation.status,
-                [
-                    issue.to_dict()
-                    for issue in final_compilation.issues
-                ][:8],
-                [
-                    issue.to_dict()
-                    for issue in final_compilation_gate_issues
-                ][:8],
-                deepcopy(
-                    (final_compilation.metrics or {}).get(
-                        "capacity_replay_numeric_transport"
-                    )
-                    or {}
+            terminal_failure(
+                _authored_projection_terminal_stage(authored_projection_identity),
+                failure_reason=str(
+                    (authored_projection_identity.get("failure_reasons") or ["authored_identity_collapse"])[0]
                 ),
+                identity_evidence=authored_projection_identity,
             )
             return None
-        final_program_hash = execution_program.program_hash()
+        # The projected authored surface payload is the sole final visual
+        # authority. Legal floor volumes remain analysis proxies and must not
+        # be serialized into a replacement prism/loft execution program.
+        final_compilation = authored_compilation
+        final_program_hash = authored_program.program_hash()
         final_geometry_hash = final_floorwise_visual_geometry_hash(
             materialized
         )
@@ -1395,11 +2583,31 @@ def _materialize_directed_geometry(
         fallback_metadata["final_proxy_volume_payload_hash"] = (
             final_proxy_volume_payload_hash
         )
-        final_compilation_payload = final_compilation.to_dict(
+        authored_legal_projection_certificate = {
+            "schema_version": (
+                "arr.maas.authored_legal_projection_certificate.v1"
+            ),
+            "status": "verified",
+            "hard_pass": True,
+            "input_authored_program_hash": authored_program.program_hash(),
+            "input_authored_geometry_hash": str(
+                authored_compilation.geometry_hash or ""
+            ),
+            "legal_floor_field_hash": str(legal_floor_field_hash or ""),
+            "projected_surface_hash": final_geometry_hash,
+            "projected_surface_payload_hash": final_surface_payload_hash,
+            "legal_proxy_role": "analysis_only_gfa_parking_containment",
+        }
+        fallback_metadata["authored_legal_projection_certificate"] = (
+            deepcopy(authored_legal_projection_certificate)
+        )
+        projection_evidence["authored_legal_projection_certificate"] = (
+            deepcopy(authored_legal_projection_certificate)
+        )
+        final_compilation_payload = authored_compilation.to_dict(
             include_mesh=False
         )
-        final_compilation_payload["geometry_hash"] = final_geometry_hash
-        fallback_metadata["geometry_program"] = execution_program.to_dict()
+        fallback_metadata["geometry_program"] = authored_program.to_dict()
         fallback_metadata["geometry_program_compilation"] = (
             final_compilation_payload
         )
@@ -1408,14 +2616,14 @@ def _materialize_directed_geometry(
         )
         fallback_metadata["geometry_graph_notes"] = (
             build_geometry_graph_notes(
-                execution_program,
-                final_compilation,
+                authored_program,
+                authored_compilation,
             )
         )
         fallback_metadata["geometry_graph_snapshot"] = (
             build_geometry_graph_snapshot(
-                execution_program,
-                final_compilation,
+                authored_program,
+                authored_compilation,
             )
         )
         fallback_bridge = deepcopy(
@@ -1435,14 +2643,17 @@ def _materialize_directed_geometry(
             "exported_proxy_part_count": len(materialized.volumes),
             "proxy_volume_count": len(materialized.volumes),
             "proxy_band_part_counts": list(proxy_band_part_counts),
-            "geometry_authority": (
-                "final_floorwise_legal_geometry_program"
-            ),
+            "geometry_authority": "authored_projected_surface_payload",
+            "legal_proxy_authority": "analysis_only_gfa_parking_containment",
+            "legal_floor_loft_or_prism_replay_allowed": False,
             "upstream_authored_program_hash": (
                 authored_program.program_hash()
             ),
             "upstream_authored_geometry_hash": (
                 authored_compilation.geometry_hash
+            ),
+            "authored_legal_projection_certificate": deepcopy(
+                authored_legal_projection_certificate
             ),
         })
         fallback_metadata["geometry_program_bridge_evidence"] = (
@@ -1455,6 +2666,7 @@ def _materialize_directed_geometry(
     else:
         projected = legal_field_selection.projection
         if projected.certificate.get("hard_pass") is not True:
+            terminal_failure("book_projection", stage_detail="legal_projection")
             return None
         materialized = compile_site_bound_geometry_program_to_source_mass(
             projected.program,
@@ -1463,9 +2675,10 @@ def _materialize_directed_geometry(
             volume_role=primary_volume_role,
         )
         if materialized is None:
+            terminal_failure("book_projection", stage_detail="site_bound_compile")
             return None
-        final_projection_book_program = projected.program
-        final_program_hash = projected.program.program_hash()
+        final_projection_book_program = authored_program
+        final_program_hash = authored_program.program_hash()
         final_geometry_hash = str(
             projected.certificate.get("final_geometry_hash") or ""
         )
@@ -1477,6 +2690,99 @@ def _materialize_directed_geometry(
             )
         )
         projection_evidence = deepcopy(legal_field_selection.evidence)
+
+    # Three identities remain distinct through every legal-fit route:
+    # initial LLM-authored pre-BOOK AST/mesh, post-BOOK authored AST/mesh,
+    # and the final post-legal-projection visual surface. The legal projection
+    # may supply the final surface, but it never replaces the authored AST.
+    final_program_hash = authored_program.program_hash()
+    final_projection_book_program = authored_program
+    final_surface_payload_hash = source_surface_payload_hash(
+        tuple(materialized.surfaces)
+    )
+    authored_legal_projection_certificate = {
+        "schema_version": (
+            "arr.maas.authored_legal_projection_certificate.v1"
+        ),
+        "status": "verified",
+        "hard_pass": True,
+        "input_authored_program_hash": authored_program.program_hash(),
+        "input_authored_geometry_hash": str(
+            authored_compilation.geometry_hash or ""
+        ),
+        "legal_floor_field_hash": str(legal_floor_field_hash or ""),
+        "projected_surface_hash": final_geometry_hash,
+        "projected_surface_payload_hash": final_surface_payload_hash,
+        "legal_proxy_role": "analysis_only_gfa_parking_containment",
+    }
+    authoritative_metadata = deepcopy(materialized.metadata)
+    authoritative_compilation_payload = authored_compilation.to_dict(
+        include_mesh=False
+    )
+    authoritative_metadata.update({
+        "geometry_program": authored_program.to_dict(),
+        "authored_geometry_program": authored_program.to_dict(),
+        "geometry_program_compilation": authoritative_compilation_payload,
+        "mass_execution_passport": deepcopy(
+            authoritative_compilation_payload.get("execution_passport") or {}
+        ),
+        "geometry_graph_notes": build_geometry_graph_notes(
+            authored_program,
+            authored_compilation,
+        ),
+        "geometry_graph_snapshot": build_geometry_graph_snapshot(
+            authored_program,
+            authored_compilation,
+        ),
+        "authored_legal_projection_certificate": deepcopy(
+            authored_legal_projection_certificate
+        ),
+        "final_surface_payload_hash": final_surface_payload_hash,
+    })
+    authoritative_bridge = deepcopy(
+        authoritative_metadata.get("geometry_program_bridge_evidence") or {}
+    )
+    authoritative_bridge.pop("upstream_authored_program_hash", None)
+    authoritative_bridge.pop("upstream_authored_geometry_hash", None)
+    authoritative_bridge.update({
+        "program_hash": final_program_hash,
+        "geometry_hash": final_geometry_hash,
+        "surface_payload_hash": final_surface_payload_hash,
+        "geometry_authority": "authored_projected_surface_payload",
+        "legal_proxy_authority": "analysis_only_gfa_parking_containment",
+        "legal_floor_loft_or_prism_replay_allowed": False,
+        "initial_authored_pre_book_program_hash": (
+            pre_book_program.program_hash()
+        ),
+        "initial_authored_pre_book_geometry_hash": str(
+            pre_book_compilation.geometry_hash or ""
+        ),
+        "post_book_authored_program_hash": authored_program.program_hash(),
+        "post_book_authored_geometry_hash": str(
+            authored_compilation.geometry_hash or ""
+        ),
+        "final_projected_surface_hash": final_geometry_hash,
+        "final_projected_surface_payload_hash": final_surface_payload_hash,
+        "authored_legal_projection_certificate": deepcopy(
+            authored_legal_projection_certificate
+        ),
+    })
+    if pre_book_program.metadata.get("llm_geometry_author_active") is True:
+        authoritative_bridge.update({
+            "initial_llm_authored_pre_book_program_hash": (
+                pre_book_program.program_hash()
+            ),
+            "initial_llm_authored_pre_book_geometry_hash": str(
+                pre_book_compilation.geometry_hash or ""
+            ),
+        })
+    authoritative_metadata["geometry_program_bridge_evidence"] = (
+        authoritative_bridge
+    )
+    materialized = replace(materialized, metadata=authoritative_metadata)
+    projection_evidence["authored_legal_projection_certificate"] = deepcopy(
+        authored_legal_projection_certificate
+    )
     bridge = (
         materialized.metadata.get("geometry_program_bridge_evidence")
         if isinstance(
@@ -1498,7 +2804,47 @@ def _materialize_directed_geometry(
         or not final_geometry_hash
         or str(bridge.get("program_hash") or "") != final_program_hash
         or str(bridge.get("geometry_hash") or "") != final_geometry_hash
-        or str(compilation.get("geometry_hash") or "") != final_geometry_hash
+        or (
+            str(bridge.get("geometry_authority") or "")
+            == "authored_projected_surface_payload"
+            and (
+                not isinstance(
+                    bridge.get("authored_legal_projection_certificate"),
+                    dict,
+                )
+                or bridge["authored_legal_projection_certificate"].get(
+                    "hard_pass"
+                ) is not True
+                or str(compilation.get("geometry_hash") or "")
+                != str(bridge.get("post_book_authored_geometry_hash") or "")
+                or str(
+                    bridge["authored_legal_projection_certificate"].get(
+                        "input_authored_geometry_hash"
+                    ) or ""
+                ) != str(bridge.get("post_book_authored_geometry_hash") or "")
+                or str(
+                    bridge["authored_legal_projection_certificate"].get(
+                        "input_authored_program_hash"
+                    ) or ""
+                ) != str(bridge.get("post_book_authored_program_hash") or "")
+                or str(
+                    bridge["authored_legal_projection_certificate"].get(
+                        "legal_floor_field_hash"
+                    ) or ""
+                ) != str(legal_floor_field_hash or "")
+                or str(
+                    bridge["authored_legal_projection_certificate"].get(
+                        "projected_surface_hash"
+                    ) or ""
+                ) != final_geometry_hash
+            )
+        )
+        or (
+            str(bridge.get("geometry_authority") or "")
+            != "authored_projected_surface_payload"
+            and str(compilation.get("geometry_hash") or "")
+            != final_geometry_hash
+        )
     ):
         logger.info(
             "Rejecting authored projection identity binding mismatch: %s",
@@ -1516,6 +2862,7 @@ def _materialize_directed_geometry(
                 ),
             },
         )
+        terminal_failure("final_identity_binding")
         return None
     requested_floor_area = sum(float(value) for value in target_floor_areas_m2)
     achieved_floor_area = sum(achieved_floor_areas)
@@ -1528,22 +2875,114 @@ def _materialize_directed_geometry(
         for note in sequence.notes
         if note.startswith("geometry_program_source_seed=")
     ), "")
+    declared_author_source = next((
+        note.split("=", 1)[1]
+        for note in sequence.notes
+        if note.startswith("geometry_program_source=")
+    ), "")
     metadata = {
         **deepcopy(source.metadata),
         **deepcopy(materialized.metadata),
     }
     bridge = deepcopy(metadata.get("geometry_program_bridge_evidence") or {})
     bridge["source_seed"] = source_seed
-    bridge["author_provider"] = next((
-        note.split("=", 1)[1]
-        for note in sequence.notes
-        if note.startswith("geometry_program_source=")
-    ), "unknown")
-    bridge["geometry_authority"] = "final_floorwise_legal_geometry_program"
-    bridge["upstream_authored_program_hash"] = authored_program.program_hash()
-    bridge["upstream_authored_geometry_hash"] = authored_compilation.geometry_hash
+    bridge["llm_geometry_author_active"] = bool(
+        pre_book_program.metadata.get("llm_geometry_author_active")
+    )
+    for field in (
+        "author_model",
+        "author_response_id",
+        "llm_geometry_author_model",
+        "llm_geometry_author_response_id",
+        "initial_llm_authored_pre_book_program_hash",
+        "initial_llm_authored_pre_book_geometry_hash",
+    ):
+        bridge.pop(field, None)
+    if bridge["llm_geometry_author_active"]:
+        bridge["author_provider"] = str(
+            pre_book_program.metadata.get("author_provider")
+            or "openai_llm_geometry_author"
+        )
+        bridge["author_source"] = str(
+            pre_book_program.metadata.get("author_source")
+            or bridge["author_provider"]
+        )
+        author_model = str(
+            pre_book_program.metadata.get("author_model")
+            or pre_book_program.metadata.get("llm_geometry_author_model")
+            or ""
+        )
+        author_response_id = str(
+            pre_book_program.metadata.get("author_response_id")
+            or pre_book_program.metadata.get(
+                "llm_geometry_author_response_id"
+            )
+            or ""
+        )
+        if author_model:
+            bridge["author_model"] = author_model
+            bridge["llm_geometry_author_model"] = author_model
+        if author_response_id:
+            bridge["author_response_id"] = author_response_id
+            bridge["llm_geometry_author_response_id"] = author_response_id
+        if pre_book_lineage_parent_proof:
+            bridge["pre_book_lineage_parent_proof"] = deepcopy(
+                pre_book_lineage_parent_proof
+            )
+        else:
+            bridge.pop("pre_book_lineage_parent_proof", None)
+    else:
+        authored_provider = str(
+            pre_book_program.metadata.get("author_provider") or ""
+        )
+        if authored_provider == "openai_llm_geometry_author":
+            authored_provider = ""
+        procedural_source = str(declared_author_source or "")
+        if procedural_source == "openai_llm_geometry_author":
+            procedural_source = ""
+        bridge["author_provider"] = (
+            authored_provider
+            or procedural_source
+            or "bounded_procedural_geometry_agent"
+        )
+        bridge["author_source"] = (
+            procedural_source or bridge["author_provider"]
+        )
+        bridge.pop("pre_book_lineage_parent_proof", None)
+    bridge.setdefault(
+        "geometry_authority",
+        "authored_compiled_surface_payload",
+    )
+    bridge["legal_proxy_authority"] = (
+        "analysis_only_gfa_parking_containment"
+    )
+    bridge["legal_floor_loft_or_prism_replay_allowed"] = False
+    bridge["initial_authored_pre_book_program_hash"] = (
+        pre_book_program.program_hash()
+    )
+    bridge["initial_authored_pre_book_geometry_hash"] = str(
+        pre_book_compilation.geometry_hash or ""
+    )
+    if bridge["llm_geometry_author_active"]:
+        bridge["initial_llm_authored_pre_book_program_hash"] = (
+            pre_book_program.program_hash()
+        )
+        bridge["initial_llm_authored_pre_book_geometry_hash"] = str(
+            pre_book_compilation.geometry_hash or ""
+        )
+    else:
+        bridge.pop("initial_llm_authored_pre_book_program_hash", None)
+        bridge.pop("initial_llm_authored_pre_book_geometry_hash", None)
+    bridge["post_book_authored_program_hash"] = authored_program.program_hash()
+    bridge["post_book_authored_geometry_hash"] = str(
+        authored_compilation.geometry_hash or ""
+    )
+    bridge["final_projected_surface_hash"] = final_geometry_hash
+    bridge["final_projected_surface_payload_hash"] = str(
+        metadata.get("final_surface_payload_hash") or ""
+    )
     metadata["geometry_program_bridge_evidence"] = bridge
-    metadata["geometry_authority"] = "final_floorwise_legal_geometry_program"
+    metadata["geometry_authority"] = bridge["geometry_authority"]
     metadata["final_program_hash"] = final_program_hash
     metadata["final_geometry_hash"] = final_geometry_hash
     metadata["legal_field_affine_placement"] = projection_evidence
@@ -1571,10 +3010,32 @@ def _materialize_directed_geometry(
         )
     )
     metadata["authored_geometry_provenance"] = {
-        "program_hash": authored_program.program_hash(),
-        "geometry_hash": authored_compilation.geometry_hash,
-        "authority": "upstream_provenance_only",
+        "initial_authored_pre_book_program_hash": (
+            pre_book_program.program_hash()
+        ),
+        "initial_authored_pre_book_geometry_hash": str(
+            pre_book_compilation.geometry_hash or ""
+        ),
+        "post_book_authored_program_hash": authored_program.program_hash(),
+        "post_book_authored_geometry_hash": str(
+            authored_compilation.geometry_hash or ""
+        ),
+        "final_projected_surface_hash": final_geometry_hash,
+        "final_projected_surface_payload_hash": str(
+            metadata.get("final_surface_payload_hash") or ""
+        ),
+        "authority": "post_book_authored_ast",
+        "final_visual_authority": "post_legal_projected_surface",
     }
+    if bridge["llm_geometry_author_active"]:
+        metadata["authored_geometry_provenance"].update({
+            "initial_llm_authored_pre_book_program_hash": (
+                pre_book_program.program_hash()
+            ),
+            "initial_llm_authored_pre_book_geometry_hash": str(
+                pre_book_compilation.geometry_hash or ""
+            ),
+        })
     site_context_hash = str(site_context_hash or semantic_site_context_hash(
         pnu=pnu,
         building_type=building_type,
@@ -1619,6 +3080,7 @@ def _materialize_directed_geometry(
         ),
     )
     if semantic_projection.get("hard_pass") is not True:
+        terminal_failure("semantic_carrier")
         return None
     metadata["final_semantic_projection_context"] = semantic_projection_context
     metadata["program_semantic_carrier_evidence"] = semantic_projection
@@ -1639,7 +3101,7 @@ def _materialize_directed_geometry(
 
 
 
-def _program_pool(
+def _program_pool_single_phase(
     site: Polygon,
     building_type: str,
     height: float,
@@ -1653,6 +3115,7 @@ def _program_pool(
     outcome_graph: GeometryOutcomeGraph | None = None,
     recursive_only: bool = False,
     target_count: int = 0,
+    exact_compile_limit: int | None = None,
     program_dimensional_context: dict[str, Any] | None = None,
     site_boundary_source: str = "",
     site_access_context: dict[str, Any] | None = None,
@@ -1673,10 +3136,20 @@ def _program_pool(
     diagnostic_evaluation_trace_callback: (
         Callable[[dict[str, Any]], None] | None
     ) = None,
+    _directed_seeds_override: tuple[VerbSequence, ...] | None = None,
+    _generation_phase: str = "all",
+    _reviewed_base_registry: dict[str, str | None] | None = None,
+    _reviewed_base_audits: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[list[_Candidate], dict[str, Any]]:
     # Local import avoids expanding the ordinary candidate-analysis import
     # surface while allowing online quality-diversity compaction.
     from .quality_diversity_archive import StreamingMapElitesArchive
+
+    legal_fit_deficits: list[dict[str, Any]] = []
+    terminal_materialization_failures: list[dict[str, Any]] = []
+    capacity_authoring_deficits: list[dict[str, Any]] = []
+    materialization_diagnostics = _MaterializationAttemptDiagnostics()
+    legal_mass_archive = LegalMassArchive()
 
     if (
         (base_capacity_contract or {}).get("legal_floor_field")
@@ -1758,14 +3231,23 @@ def _program_pool(
     capacity_target_floor_failure_counts: Counter[str] = Counter()
     floor_hard_capacity_utilizations: list[float] = []
     smoke_floor_pass_candidates = 0
-    compiler_clean_base_keys: set[str] = set()
+    compiler_clean_base_geometry_hashes: dict[str, str | None] = dict(
+        _reviewed_base_registry or {}
+    )
+
+    def certified_archived_base_keys() -> set[str]:
+        return {
+            key
+            for key, geometry_hash in (
+                compiler_clean_base_geometry_hashes.items()
+            )
+            if isinstance(geometry_hash, str) and geometry_hash
+        }
     requested_early_stop_target = max(
         0,
         int(stop_after_shared_floor_hard_passes or 0),
     )
-    # Final legal/parking evidence is created downstream of this generator.
-    # A pre-downstream floor/capacity proxy cannot authorize stopping a page.
-    early_stop_target = 0
+    early_stop_target = requested_early_stop_target
     explicit_diagnostic_budget = bool(
         diagnostic_scope_labels
         or diagnostic_book_probe_count is not None
@@ -1820,22 +3302,26 @@ def _program_pool(
             })
 
     requested_parent_indices = tuple(sorted({max(0, int(index)) for index in parent_variant_indices})) or (0,)
-    directed_seeds = _agent_mutated_seeds(
-        building_type,
-        typed_graph_mutations,
-        geometry_program_mutations,
-        synthesis_requests,
-        outcome_graph,
-        site=site,
-        site_boundary_source=site_boundary_source,
-        site_access_context=site_access_context,
-        site_access_geometry=site_access_geometry,
-        program_dimensional_context=program_dimensional_context,
-        height=height,
-        floors=floors,
-        live_geometry_vlm_revision=live_geometry_vlm_revision,
-        base_capacity_contract=base_capacity_contract,
-        universal_variation_pages=requested_parent_indices,
+    directed_seeds = (
+        tuple(_directed_seeds_override)
+        if _directed_seeds_override is not None
+        else _agent_mutated_seeds(
+            building_type,
+            typed_graph_mutations,
+            geometry_program_mutations,
+            synthesis_requests,
+            outcome_graph,
+            site=site,
+            site_boundary_source=site_boundary_source,
+            site_access_context=site_access_context,
+            site_access_geometry=site_access_geometry,
+            program_dimensional_context=program_dimensional_context,
+            height=height,
+            floors=floors,
+            live_geometry_vlm_revision=live_geometry_vlm_revision,
+            base_capacity_contract=base_capacity_contract,
+            universal_variation_pages=requested_parent_indices,
+        )
     )
     llm_author_only_active = any(
         isinstance(request, dict)
@@ -1876,6 +3362,20 @@ def _program_pool(
     )
     if diagnostic_anchors_active:
         parent_seeds = schedule_diagnostic_anchor_parents(parent_seeds)
+    compile_limit = (
+        None
+        if exact_compile_limit is None
+        else max(0, int(exact_compile_limit))
+    )
+    if compile_limit is not None:
+        parent_seeds = parent_seeds[:compile_limit]
+
+    def exact_compile_cap_reached() -> bool:
+        return bool(
+            compile_limit is not None
+            and materialization_diagnostics.materialization_invocation_count
+            >= compile_limit
+        )
     outcome_program_slug = next(
         (slug for slug, label, _height, _floors in PROGRAMS if label == building_type),
         str(building_type),
@@ -1929,6 +3429,7 @@ def _program_pool(
         if run_floor_containment_hosts
         else None
     )
+    competition_selected_exact_keys: frozenset[str] = frozenset()
     competition_exact_keys: frozenset[str] = frozenset()
     competition_cheap_schedule = None
     cheap_screen_duration = 0.0
@@ -1944,16 +3445,24 @@ def _program_pool(
             legal_sections=run_floor_containment_hosts,
             capacity_contract=base_capacity_contract,
         )
-        competition_exact_keys, competition_cheap_schedule = (
+        competition_selected_exact_keys, competition_cheap_schedule = (
             _competition_pre_exact_shortlist(
                 cheap_records,
                 page_index=min(requested_parent_indices),
                 target_count=int(target_count),
             )
         )
+        competition_exact_keys = (
+            _expand_competition_exact_lineage_dependencies(
+                competition_selected_exact_keys,
+                tuple(principles),
+            )
+        )
         cheap_screen_duration = perf_counter() - cheap_screen_started
     exact_compile_started = perf_counter()
     for seed_index, seed in enumerate(parent_seeds):
+        if exact_compile_cap_reached():
+            break
         if (
             diagnostic_cap_reached()
             or early_stop_target
@@ -2062,7 +3571,63 @@ def _program_pool(
                     "program_hard_passed": 0,
                 },
             )
-        for schedule_index, (principle_index, principle) in enumerate(scheduled_principles):
+        seed_principles = _principles_for_seed(
+            scheduled_principles,
+            seed_index=seed_index,
+            llm_authored_seed=llm_authored_seed,
+            selected_principle_ids=(
+                frozenset(
+                    parts[1]
+                    for key in competition_selected_exact_keys
+                    if (parts := _competition_exact_key_parts(key))
+                    is not None
+                    and int(parts[0]) == seed_index
+                )
+                if competition_breadth_budget
+                else None
+            ),
+            descendant_probe_count=(
+                max(1, int(book_probe_count))
+                if _generation_phase == "descendant"
+                else 1
+            ),
+        )
+        if llm_authored_seed:
+            llm_authored_stage_counts[
+                "outer_book_schedule_duplicates_skipped"
+            ] += max(0, len(scheduled_principles) - len(seed_principles))
+            # BASE candidates must finish certification and archive admission
+            # before any descendant reads the exact parent geometry registry.
+            seed_principles = _llm_base_then_descendant_schedule(
+                seed_principles
+            )
+        if _generation_phase == "base":
+            seed_principles = tuple(
+                item for item in seed_principles
+                if str(item[1].get("generation_stage") or "") == "base"
+                or str(item[1].get("principle_id") or "")
+                == str(
+                    item[1].get("lineage_base_operative_id")
+                    or item[1].get("principle_id")
+                    or ""
+                )
+            )
+        elif _generation_phase == "descendant":
+            seed_principles = tuple(
+                item for item in seed_principles
+                if not (
+                    str(item[1].get("generation_stage") or "") == "base"
+                    or str(item[1].get("principle_id") or "")
+                    == str(
+                        item[1].get("lineage_base_operative_id")
+                        or item[1].get("principle_id")
+                        or ""
+                    )
+                )
+            )
+        for schedule_index, (principle_index, principle) in enumerate(seed_principles):
+            if exact_compile_cap_reached():
+                break
             if (
                 diagnostic_cap_reached()
                 or early_stop_target
@@ -2102,6 +3667,8 @@ def _program_pool(
                 else indexed_variants
             )
             for variant_index, operations in scheduled_variants:
+                if exact_compile_cap_reached():
+                    break
                 if (
                     diagnostic_cap_reached()
                     or early_stop_target
@@ -2368,6 +3935,11 @@ def _program_pool(
                             program=recursive_program,
                             principle_id=str(principle["principle_id"]),
                             book_scope=base_volume_label,
+                            legal_floor_field_hash=str(
+                                candidate_floor_context.get(
+                                    "legal_floor_field_hash"
+                                ) or ""
+                            ),
                             stage="sequence_compile",
                             failure_reasons=("sequence_compile_failed",),
                         )
@@ -2376,6 +3948,19 @@ def _program_pool(
                     if geometry_stages is not None:
                         geometry_stages["sequence_compile_failed"] += 1
                     continue
+                pre_book_parent_compiler_clean = False
+                pre_book_parent_contained = False
+                lineage_parent_key = ""
+                if llm_authored_seed and recursive_directed:
+                    parent_clean, _parent_clean_evidence = _clean_mass_gate(source)
+                    parent_contained = _inside_site(source, compile_site)
+                    candidate_parent_key = canonical_lineage_parent_key(
+                        generation_lineage
+                    )
+                    if parent_clean and parent_contained and candidate_parent_key:
+                        pre_book_parent_compiler_clean = True
+                        pre_book_parent_contained = True
+                        lineage_parent_key = candidate_parent_key
                 capacity_measurement: dict[str, Any] = {}
                 if geometry_stages is not None:
                     geometry_stages["sequence_compiled"] += 1
@@ -2405,11 +3990,14 @@ def _program_pool(
                     alternative_capacity_contract,
                     host_area_m2=float(compile_site.area),
                 )
+                candidate_terminal_failures: list[dict[str, Any]] = []
                 def materialize_capacity_fit(
                     coverage: float,
                     floor_targets: tuple[float, ...],
+                    capacity_utilizations: tuple[float, float] | None = None,
                 ) -> SourceMass | None:
-                    return _materialize_directed_geometry(
+                    candidate_terminal_failures.clear()
+                    materialized = _materialize_directed_geometry(
                         materialization_source,
                         sequence,
                         building_type=building_type,
@@ -2423,6 +4011,7 @@ def _program_pool(
                         upper_containment_host=upper_containment_host,
                         floor_containment_hosts=floor_containment_hosts,
                         minimum_host_plan_coverage=coverage,
+                        capacity_composition_utilizations=capacity_utilizations,
                         floor_capacity_plan_hash=str(
                             alternative_capacity_contract.get(
                                 "floor_capacity_plan_hash"
@@ -2435,6 +4024,8 @@ def _program_pool(
                             )
                             or ""
                         ),
+                        legal_fit_failure_sink=legal_fit_deficits,
+                        terminal_failure_sink=candidate_terminal_failures,
                         target_floor_areas_m2=floor_targets,
                         pnu=pnu,
                         capacity_alternative_id=str(
@@ -2452,9 +4043,22 @@ def _program_pool(
                                 else site
                             ),
                         ),
+                        lineage_parent_key=lineage_parent_key,
+                        pre_book_parent_compiler_clean=(
+                            pre_book_parent_compiler_clean
+                        ),
+                        pre_book_parent_contained=pre_book_parent_contained,
                     )
+                    materialization_diagnostics.record_invocation(
+                        materialized=materialized,
+                        terminal_failures=candidate_terminal_failures,
+                    )
+                    return materialized
 
-                source = materialize_capacity_fit(
+                if exact_compile_cap_reached():
+                    break
+                source = _materialize_once_for_capacity_policy(
+                    materialize_capacity_fit,
                     plan_coverage,
                     tuple(
                         float(value)
@@ -2467,25 +4071,44 @@ def _program_pool(
                     ),
                 )
                 if source is None:
-                    if outcome_graph is not None and recursive_program is not None and source_seed_name:
-                        outcome_graph.observe_geometry_gate_failure(
+                    terminal_record = (
+                        candidate_terminal_failures[0]
+                        if candidate_terminal_failures
+                        else {"stage": "outer_precondition", "evidence": {}}
+                    )
+                    terminal_stage = str(
+                        terminal_record.get("stage") or "outer_precondition"
+                    )
+                    if recursive_program is not None and source_seed_name:
+                        _propagate_terminal_materialization_failure(
+                            terminal_record=terminal_record,
+                            report_records=terminal_materialization_failures,
+                            outcome_graph=outcome_graph,
                             program_slug=outcome_program_slug,
                             source_seed=source_seed_name,
                             program=recursive_program,
                             principle_id=str(principle["principle_id"]),
                             book_scope=base_volume_label,
-                            stage="directed_geometry_materialization",
-                            failure_reasons=("directed_geometry_materialization_failed",),
+                            legal_floor_field_hash=str(
+                                candidate_floor_context.get(
+                                    "legal_floor_field_hash"
+                                ) or ""
+                            ),
                         )
                     if llm_authored_seed:
                         llm_authored_failure_counts["directed_geometry_materialization_failed"] += 1
+                        llm_authored_failure_counts[terminal_stage] += 1
                     if geometry_stages is not None:
                         geometry_stages["directed_geometry_materialization_failed"] += 1
+                        geometry_stages[terminal_stage] = (
+                            geometry_stages.get(terminal_stage, 0) + 1
+                        )
                     continue
                 capacity_plan_fit_evidence: dict[str, Any] = {
                     "schema_version": "arr.maas.capacity_plan_fit.v1",
                     "retry_limit": 2,
                     "retry_attempted": False,
+                    "geometry_retry_policy": GEOMETRY_RETRY_POLICY,
                     "initial_plan_coverage": round(plan_coverage, 6),
                 }
                 if base_capacity_contract and capacity_site is not None and recursive_directed:
@@ -2539,7 +4162,8 @@ def _program_pool(
                         "retry_attempted": False,
                         "retry_selected": False,
                         "geometry_retry_bypassed": bool(retry_required),
-                        "retry_authority": "diagnostic_only",
+                        "geometry_retry_policy": GEOMETRY_RETRY_POLICY,
+                        "retry_authority": GEOMETRY_RETRY_POLICY,
                         "retry_floor_source_eligible": (
                             _capacity_pack_retry_eligible(initial_floor_contract)
                         ),
@@ -2548,49 +4172,44 @@ def _program_pool(
                         capacity_stage_counts[
                             "plan_fit_retry_advisory_opportunity"
                         ] += 1
-                    # Capacity evidence is diagnostic at MASS authoring time.
-                    # Do not silently replace the authored geometry here: the
-                    # attempted refit proved it can reach yield only by
-                    # collapsing a bent/prismatic body into an unrequested
-                    # stepped/pyramidal legal projection.
-                    if (
+                    retry_eligible = bool(
                         retry_required
-                        and not capacity_plan_fit_evidence[
-                            "geometry_retry_bypassed"
-                        ]
-                    ):
-                        if not _capacity_pack_retry_eligible(initial_floor_contract):
-                            capacity_stage_counts[
-                                "plan_fit_retry_skipped_nonviable_floor_source"
-                            ] += 1
-                        else:
-                            capacity_plan_fit_evidence[
-                                "retry_attempted"
-                            ] = True
-                            retry_source = materialize_capacity_fit(
-                                retry_coverage,
-                                tuple(
-                                    float(value)
-                                    for value in retry_floor_targets
-                                ),
-                            )
-                            if retry_source is not None:
-                                (
-                                    retry_floor_contract,
-                                    retry_capacity,
-                                ) = _shared_floor_capacity_measurement(
-                                    retry_source,
+                        and _capacity_pack_retry_eligible(initial_floor_contract)
+                        and not exact_compile_cap_reached()
+                    )
+                    if retry_eligible:
+                        target_utilization = max(
+                            float(capacity_alternative.get("target_utilization") or 0.0),
+                            float(capacity_alternative.get("feasible_minimum_utilization") or 0.0),
+                        )
+                        retried_source = _materialize_once_for_capacity_policy(
+                            materialize_capacity_fit,
+                            retry_coverage,
+                            retry_floor_targets,
+                            (
+                                float(initial_capacity.get("feasible_capacity_utilization") or 0.0),
+                                target_utilization,
+                            ),
+                        )
+                        capacity_plan_fit_evidence["retry_attempted"] = True
+                        capacity_plan_fit_evidence["geometry_retry_bypassed"] = False
+                        capacity_plan_fit_evidence["geometry_retry_policy"] = (
+                            "measured_typed_ast_capacity_composition"
+                        )
+                        capacity_plan_fit_evidence["retry_authority"] = (
+                            "recompiled_geometry_program_ast"
+                        )
+                        if retried_source is not None:
+                            retried_floor_contract, retried_capacity = (
+                                _shared_floor_capacity_measurement(
+                                    retried_source,
                                     alternative_capacity_contract,
-                                    generation_context=(
-                                        generation_context
-                                    ),
+                                    generation_context=generation_context,
                                     capacity_site=capacity_site,
                                     height=candidate_height,
                                     floors=candidate_floors,
                                     pnu=pnu,
-                                    trusted_legal_floor_field=(
-                                        trusted_legal_floor_field
-                                    ),
+                                    trusted_legal_floor_field=trusted_legal_floor_field,
                                     expected_legal_floor_field_hash=(
                                         trusted_legal_floor_field_hash
                                     ),
@@ -2598,276 +4217,18 @@ def _program_pool(
                                         trusted_clear_span_floor_plan
                                     ),
                                 )
-                                initial_utilization = float(
-                                    initial_capacity.get(
-                                        "feasible_capacity_utilization"
-                                    )
-                                    or 0.0
-                                )
-                                retry_utilization = float(
-                                    retry_capacity.get(
-                                        "feasible_capacity_utilization"
-                                    )
-                                    or 0.0
-                                )
-                                minimum_floor_area = float(
-                                    alternative_capacity_contract.get(
-                                        "minimum_floor_area_m2"
-                                    )
-                                    or 0.0
-                                )
-                                retry_floor_area = float(
-                                    retry_capacity.get(
-                                        "floor_area_m2"
-                                    )
-                                    or 0.0
-                                )
-                                if (
-                                    retry_floor_contract.get(
-                                        "hard_pass"
-                                    )
-                                    is True
-                                    and retry_capacity.get(
-                                        "hard_pass"
-                                    )
-                                    is not True
-                                    and minimum_floor_area > 0.0
-                                    and retry_floor_area > 0.0
-                                ):
-                                    correction = (
-                                        minimum_floor_area
-                                        / retry_floor_area
-                                    )
-                                    corrected_targets = tuple(
-                                        float(value) * correction
-                                        for value in retry_floor_targets
-                                    )
-                                    corrected_source = (
-                                        materialize_capacity_fit(
-                                            retry_coverage,
-                                            corrected_targets,
-                                        )
-                                    )
-                                    if corrected_source is not None:
-                                        (
-                                            corrected_floor_contract,
-                                            corrected_capacity,
-                                        ) = (
-                                            _shared_floor_capacity_measurement(
-                                                corrected_source,
-                                                alternative_capacity_contract,
-                                                generation_context=(
-                                                    generation_context
-                                                ),
-                                                capacity_site=capacity_site,
-                                                height=candidate_height,
-                                                floors=candidate_floors,
-                                                pnu=pnu,
-                                                trusted_legal_floor_field=(
-                                                    trusted_legal_floor_field
-                                                ),
-                                                expected_legal_floor_field_hash=(
-                                                    trusted_legal_floor_field_hash
-                                                ),
-                                                trusted_clear_span_floor_plan=(
-                                                    trusted_clear_span_floor_plan
-                                                ),
-                                            )
-                                        )
-                                        corrected_utilization = float(
-                                            corrected_capacity.get(
-                                                "feasible_capacity_utilization"
-                                            )
-                                            or 0.0
-                                        )
-                                        if (
-                                            corrected_floor_contract.get(
-                                                "hard_pass"
-                                            )
-                                            is True
-                                            and corrected_utilization
-                                            > retry_utilization + 1e-6
-                                        ):
-                                            retry_source = corrected_source
-                                            retry_floor_contract = (
-                                                corrected_floor_contract
-                                            )
-                                            retry_capacity = (
-                                                corrected_capacity
-                                            )
-                                            retry_floor_targets = (
-                                                corrected_targets
-                                            )
-                                            retry_utilization = (
-                                                corrected_utilization
-                                            )
-                                            capacity_plan_fit_evidence[
-                                                "correction_retry_attempted"
-                                            ] = True
-                                for correction_index in range(3):
-                                    minimum_floor_area = float(
-                                        alternative_capacity_contract.get(
-                                            "minimum_floor_area_m2"
-                                        )
-                                        or 0.0
-                                    )
-                                    retry_floor_area = sum(
-                                        float(volume.footprint.area)
-                                        for volume in retry_source.volumes
-                                    )
-                                    if (
-                                        minimum_floor_area <= 0.0
-                                        or retry_floor_area <= 0.0
-                                    ):
-                                        break
-                                    if (
-                                        abs(
-                                            retry_floor_area
-                                            - minimum_floor_area
-                                        )
-                                        <= 5e-7
-                                    ):
-                                        break
-                                    correction = (
-                                        minimum_floor_area
-                                        / retry_floor_area
-                                    )
-                                    corrected_targets = tuple(
-                                        float(value) * correction
-                                        for value in retry_floor_targets
-                                    )
-                                    corrected_source = (
-                                        materialize_capacity_fit(
-                                            retry_coverage,
-                                            corrected_targets,
-                                        )
-                                    )
-                                    if corrected_source is None:
-                                        break
-                                    (
-                                        corrected_floor_contract,
-                                        corrected_capacity,
-                                    ) = _shared_floor_capacity_measurement(
-                                        corrected_source,
-                                        alternative_capacity_contract,
-                                        generation_context=(
-                                            generation_context
-                                        ),
-                                        capacity_site=capacity_site,
-                                        height=candidate_height,
-                                        floors=candidate_floors,
-                                        pnu=pnu,
-                                        trusted_legal_floor_field=(
-                                            trusted_legal_floor_field
-                                        ),
-                                        expected_legal_floor_field_hash=(
-                                            trusted_legal_floor_field_hash
-                                        ),
-                                        trusted_clear_span_floor_plan=(
-                                            trusted_clear_span_floor_plan
-                                        ),
-                                    )
-                                    corrected_utilization = float(
-                                        corrected_capacity.get(
-                                            "feasible_capacity_utilization"
-                                        )
-                                        or 0.0
-                                    )
-                                    corrected_floor_area = sum(
-                                        float(volume.footprint.area)
-                                        for volume
-                                        in corrected_source.volumes
-                                    )
-                                    if (
-                                        corrected_floor_contract.get(
-                                            "hard_pass"
-                                        )
-                                        is not True
-                                        or abs(
-                                            corrected_floor_area
-                                            - minimum_floor_area
-                                        )
-                                        >= abs(
-                                            retry_floor_area
-                                            - minimum_floor_area
-                                        )
-                                    ):
-                                        break
-                                    retry_source = corrected_source
-                                    retry_floor_contract = (
-                                        corrected_floor_contract
-                                    )
-                                    retry_capacity = corrected_capacity
-                                    retry_floor_targets = (
-                                        corrected_targets
-                                    )
-                                    retry_utilization = (
-                                        corrected_utilization
-                                    )
-                                    capacity_plan_fit_evidence[
-                                        "correction_retry_count"
-                                    ] = correction_index + 2
-                                capacity_plan_fit_evidence.update({
-                                    "retry_achieved_utilization": (
-                                        retry_utilization
-                                    ),
-                                    "retry_floor_hard_pass": bool(
-                                        retry_floor_contract.get(
-                                            "hard_pass"
-                                        )
-                                    ),
-                                })
-                                if (
-                                    retry_floor_contract.get(
-                                        "hard_pass"
-                                    )
-                                    is True
-                                    and retry_utilization
-                                    > initial_utilization + 1e-6
-                                ):
-                                    retry_metadata = deepcopy(
-                                        retry_source.metadata
-                                    )
-                                    retry_semantic_context = dict(
-                                        retry_metadata.get(
-                                            "final_semantic_projection_context"
-                                        )
-                                        or {}
-                                    )
-                                    retry_semantic_context[
-                                        "candidate_target_gfa_m2"
-                                    ] = float(
-                                        alternative_capacity_contract.get(
-                                            "candidate_target_gfa_m2"
-                                        )
-                                        or alternative_capacity_contract.get(
-                                            "target_floor_area_m2"
-                                        )
-                                        or 0.0
-                                    )
-                                    retry_metadata[
-                                        "final_semantic_projection_context"
-                                    ] = retry_semantic_context
-                                    retry_source = replace(
-                                        retry_source,
-                                        metadata=retry_metadata,
-                                    )
-                                    source = retry_source
-                                    initial_floor_contract = (
-                                        retry_floor_contract
-                                    )
-                                    initial_capacity = retry_capacity
-                                    plan_coverage = retry_coverage
-                                    capacity_plan_fit_evidence.update({
-                                        "retry_selected": True,
-                                        "geometry_retry_bypassed": False,
-                                        "selected_plan_coverage": (
-                                            retry_coverage
-                                        ),
-                                    })
-                                    capacity_stage_counts[
-                                        "plan_fit_retry_selected"
-                                    ] += 1
+                            )
+                            capacity_plan_fit_evidence["retried_achieved_utilization"] = (
+                                retried_capacity.get("feasible_capacity_utilization")
+                            )
+                            if _capacity_retry_result_is_selectable(
+                                retried_floor_contract,
+                                retried_capacity,
+                                initial_capacity,
+                            ):
+                                source = retried_source
+                                capacity_plan_fit_evidence["retry_selected"] = True
+                                capacity_stage_counts["typed_capacity_retry_selected"] += 1
                 if geometry_stages is not None:
                     geometry_stages["directed_geometry_materialized"] += 1
                 if llm_authored_seed:
@@ -2952,8 +4313,24 @@ def _program_pool(
                             height_m=candidate_height,
                             floors=candidate_floors,
                         )
+                generation_lineage = _bind_parent_geometry_hash(
+                    generation_lineage,
+                    compiler_clean_base_geometry_hashes,
+                )
                 metadata = deepcopy(source.metadata)
                 metadata["book_generation_lineage"] = generation_lineage
+                parent_key = str(generation_lineage.get("parent_key") or "")
+                if (
+                    str(generation_lineage.get("stage") or "") != "base"
+                    and parent_key
+                    and isinstance(
+                        (_reviewed_base_audits or {}).get(parent_key),
+                        dict,
+                    )
+                ):
+                    metadata["base_book_vlm_parent_audit"] = deepcopy(
+                        (_reviewed_base_audits or {})[parent_key]
+                    )
                 metadata["base_capacity_contract"] = deepcopy(base_capacity_contract or {})
                 metadata["candidate_capacity_contract"] = (
                     _compact_candidate_capacity_evidence(
@@ -3028,11 +4405,23 @@ def _program_pool(
                             metadata["capacity_alternative_projection"],
                         )
                         metadata["shared_floor_contract"] = shared_floor_contract
+                    source = _retain_candidate_with_legal_capacity_authority(
+                        source,
+                        shared_floor_contract,
+                        capacity_measurement,
+                        alternative_capacity_contract,
+                    )
+                    if source is None:
+                        continue
+                    metadata = deepcopy(source.metadata)
+                    capacity_resolution = resolve_capacity_band_evidence(
+                        metadata["capacity_alternative_projection"],
+                        capacity_measurement=capacity_measurement,
+                    )
                     achieved_capacity_band = str(
-                        resolve_capacity_band_evidence(
-                            metadata["capacity_alternative_projection"],
-                            capacity_measurement=capacity_measurement,
-                        ).get("resolved_capacity_alternative_id")
+                        capacity_resolution.get(
+                            "resolved_capacity_alternative_id"
+                        )
                         or ""
                     )
                     capacity_identity_hash = semantic_capacity_measurement_hash(
@@ -3067,25 +4456,82 @@ def _program_pool(
                             semantic_context
                         )
                     source = replace(source, metadata=metadata)
+                    if capacity_resolution.get(
+                        "resolved_capacity_hard_pass"
+                    ) is not True:
+                        plates = (
+                            shared_floor_contract.get("plates") or ()
+                            if isinstance(shared_floor_contract, dict)
+                            else ()
+                        )
+                        achieved_floor_areas = tuple(
+                            float(plate.get("gross_area_m2") or 0.0)
+                            for plate in plates
+                            if isinstance(plate, dict)
+                        )
+                        bridge = source.metadata.get(
+                            "geometry_program_bridge_evidence"
+                        ) or {}
+                        morphology = _solid_morphology_metrics(source)
+                        deficit = _capacity_authoring_deficit(
+                            resolved_capacity_hard_pass=False,
+                            parent_fingerprint=str(
+                                generation_lineage.get("parent_fingerprint")
+                                or generation_lineage.get("fingerprint")
+                                or ""
+                            ),
+                            parent_program_hash=str(
+                                bridge.get("program_hash") or ""
+                            ),
+                            geometry_family=str(
+                                source.metadata.get("family") or ""
+                            ),
+                            body_phenotype=str(
+                                morphology.get("body_phenotype")
+                                or morphology.get("phenotype")
+                                or ""
+                            ),
+                            scope=base_volume_label,
+                            capacity_band=achieved_capacity_band,
+                            achieved_utilization=capacity_resolution.get(
+                                "achieved_capacity_utilization"
+                            ),
+                            required_utilization=max(
+                                float(capacity_resolution.get(
+                                    "resolved_capacity_target_utilization"
+                                ) or 0.0),
+                                float(capacity_resolution.get(
+                                    "resolved_capacity_minimum_utilization"
+                                ) or 0.0),
+                            ),
+                            measured_gfa_m2=capacity_measurement.get(
+                                "floor_area_m2"
+                            ),
+                            feasible_gfa_m2=capacity_measurement.get(
+                                "feasible_maximum_floor_area_m2"
+                            ),
+                            achieved_floor_areas_m2=(
+                                achieved_floor_areas or None
+                            ),
+                            target_floor_areas_m2=(
+                                alternative_capacity_contract.get(
+                                    "target_floor_areas_m2"
+                                )
+                            ),
+                            terminal_materialization_reason="",
+                        )
+                        if deficit is not None:
+                            capacity_authoring_deficits.append(deficit)
                     capacity_stage_counts[
                         f"alternative:{capacity_alternative['alternative_id']}:measured"
                     ] += 1
-                    if metadata["capacity_alternative_projection"]["target_hard_pass"]:
-                        capacity_stage_counts[
-                            f"alternative:{capacity_alternative['alternative_id']}:target_passed"
-                        ] += 1
-                    if metadata["capacity_alternative_projection"].get(
-                        "selectable_capacity_hard_pass"
-                    ):
-                        resolved_id = str(
-                            metadata["capacity_alternative_projection"].get(
-                                "selectable_capacity_alternative_id"
-                            )
-                            or "unclassified"
-                        )
-                        capacity_stage_counts[
-                            f"realized_band:{resolved_id}:selectable_passed"
-                        ] += 1
+                    _record_capacity_projection_diagnostics(
+                        capacity_stage_counts,
+                        alternative_id=str(
+                            capacity_alternative["alternative_id"]
+                        ),
+                        metadata=metadata,
+                    )
                     if not capacity_measurement["hard_pass"]:
                         capacity_stage_counts["below_feasible_capacity_floor"] += 1
                         capacity_stage_counts["retained_for_stage_aware_vlm"] += 1
@@ -3137,7 +4583,8 @@ def _program_pool(
                             key = f"clean_failed_{reason}"
                             geometry_stages[key] = geometry_stages.get(key, 0) + 1
                     continue
-                if not _inside_site(source, compile_site):
+                site_containment_passed = _inside_site(source, compile_site)
+                if not site_containment_passed:
                     if outcome_graph is not None and recursive_program is not None and source_seed_name:
                         outcome_graph.observe_geometry_gate_failure(
                             program_slug=outcome_program_slug,
@@ -3154,6 +4601,12 @@ def _program_pool(
                     if geometry_stages is not None:
                         geometry_stages["containment_failed"] += 1
                     continue
+                archived_record = _admit_legal_mass_candidate(
+                    legal_mass_archive,
+                    source,
+                    compiler_clean_passed=clean_mass_pass,
+                    site_containment_passed=site_containment_passed,
+                )
                 clean += 1
                 scope_counts["clean"] += 1
                 # A BOOK descendant is allowed to repair its base parent's
@@ -3163,8 +4616,14 @@ def _program_pool(
                 # gate and carry it across QD compaction.
                 if str(generation_lineage.get("stage") or "") == "base":
                     base_key = str(generation_lineage.get("parent_key") or "")
-                    if base_key:
-                        compiler_clean_base_keys.add(base_key)
+                    if base_key and isinstance(archived_record, dict):
+                        _observe_compiler_clean_base_geometry_hash(
+                            compiler_clean_base_geometry_hashes,
+                            base_key,
+                            str(
+                                archived_record.get("geometry_hash") or ""
+                            ),
+                        )
                 capacity_stage_counts[
                     f"alternative:{capacity_alternative['alternative_id']}:clean_passed"
                 ] += 1
@@ -3241,6 +4700,25 @@ def _program_pool(
                 coherence_evidence = (
                     feature["properties"].get("source_signature", {}).get("coherence_evidence") or {}
                 )
+                program_review_authority = _program_review_authority(
+                    archived_record=archived_record,
+                    program_evidence=program,
+                    program_form_gate=program_form_gate,
+                    gate_pass=gate_pass,
+                    coherence_evidence=coherence_evidence,
+                )
+                feature["properties"]["program_review_authority"] = deepcopy(
+                    program_review_authority
+                )
+                source = replace(
+                    source,
+                    metadata={
+                        **source.metadata,
+                        "program_review_authority": deepcopy(
+                            program_review_authority
+                        ),
+                    },
+                )
                 _record_gate_diagnostic(
                     gate_diagnostics[base_volume_label],
                     spatial=spatial,
@@ -3273,7 +4751,7 @@ def _program_pool(
                             program_hard_pass=combined_program_hard_pass,
                             program_evidence=program,
                         )
-                if not combined_program_hard_pass:
+                if not program_review_authority["hard_pass"]:
                     if llm_authored_seed:
                         llm_authored_failure_counts.update(f"program_{name}" for name in failed_gates)
                         logger.info(
@@ -3373,6 +4851,14 @@ def _program_pool(
                     feature,
                     round(score, 6),
                 ))
+                if early_stop_target and _eligible_smoke_floor_candidate(
+                    source,
+                    shared_floor_contract,
+                    capacity_measurement,
+                    capacity_projection,
+                    certified_archived_base_keys(),
+                ):
+                    smoke_floor_pass_candidates += 1
                 emit_progress()
     accepted = accepted_archive.finalize()
     capacity_stage_counts["qd_stream_compaction_count"] += accepted_archive.compaction_count
@@ -3380,7 +4866,8 @@ def _program_pool(
     capacity_stage_counts["qd_stream_peak_candidate_count"] = accepted_archive.peak_candidate_count
     accepted, lineage_gate = gate_descendants_by_base(
         accepted,
-        known_viable_base_keys=compiler_clean_base_keys,
+        known_viable_base_keys=certified_archived_base_keys(),
+        require_known_viable_base_keys=True,
     )
     if candidate_cap:
         accepted = accepted[:candidate_cap]
@@ -3390,10 +4877,13 @@ def _program_pool(
         for label, diagnostic in gate_diagnostics.items()
     }
     return accepted, {
+        "_runtime_directed_seeds": directed_seeds,
+        "generation_phase": _generation_phase,
         "evaluated": evaluated,
         "compiled": compiled,
         "clean": clean,
         "program_passed": program_passed,
+        "legal_mass_archive": legal_mass_archive.evidence(),
         "diagnostic_generation_budget": {
             "active": bool(
                 explicit_diagnostic_budget
@@ -3452,14 +4942,15 @@ def _program_pool(
             ),
         },
         "hard_acceptance_early_stop": {
-            "active": False,
+            "active": bool(early_stop_target),
             "target": early_stop_target,
             "requested_target": requested_early_stop_target,
-            "disabled_reason": (
-                "final_legal_and_parking_gates_run_after_candidate_generation"
-            ),
+            "disabled_reason": "" if early_stop_target else "not_requested",
             "observed_hard_acceptance_candidates": smoke_floor_pass_candidates,
-            "stopped_early": False,
+            "stopped_early": bool(
+                early_stop_target
+                and smoke_floor_pass_candidates >= early_stop_target
+            ),
         },
         "capacity_floor_intersection": {
             "target_and_floor_hard_pass_count": int(
@@ -3530,6 +5021,52 @@ def _program_pool(
             for note in seed.notes
             if note.startswith("geometry_program_llm_author_status=")
         ).items())),
+        "base_book_vlm_feedback_count": max((
+            int(note.split("=", 1)[1])
+            for seed in directed_seeds
+            for note in seed.notes
+            if note.startswith(
+                "geometry_program_base_book_vlm_feedback_count="
+            )
+        ), default=0),
+        "base_book_vlm_feedback_in_author_context": any(
+            note == (
+                "geometry_program_base_book_vlm_feedback_in_author_context=True"
+            )
+            for seed in directed_seeds
+            for note in seed.notes
+        ),
+        "authored_visual_authority_feedback_count": max((
+            int(note.split("=", 1)[1])
+            for seed in directed_seeds
+            for note in seed.notes
+            if note.startswith(
+                "geometry_program_authored_visual_authority_feedback_count="
+            )
+        ), default=0),
+        "authored_visual_authority_feedback_in_author_context": any(
+            note == (
+                "geometry_program_authored_visual_authority_feedback_in_author_context=True"
+            )
+            for seed in directed_seeds
+            for note in seed.notes
+        ),
+        "llm_author_request_executed": any(
+            note == "geometry_program_llm_author_request_executed=True"
+            for seed in directed_seeds
+            for note in seed.notes
+        ),
+        "geometry_program_llm_author_budget_failures": [
+            json.loads(payload)
+            for payload in sorted({
+                note.split("=", 1)[1]
+                for seed in directed_seeds
+                for note in seed.notes
+                if note.startswith(
+                    "geometry_program_llm_author_budget_failure="
+                ) and note.split("=", 1)[1]
+            })
+        ],
         "geometry_program_llm_author_active_seed_count": sum(
             note == "geometry_program_llm_author_active=True"
             for seed in directed_seeds
@@ -3560,6 +5097,33 @@ def _program_pool(
             ), default=0),
         },
         "base_capacity_contract": deepcopy(base_capacity_contract or {}),
+        "legal_fit_deficits": deepcopy(legal_fit_deficits),
+        "terminal_materialization_failures": deepcopy(
+            terminal_materialization_failures
+        ),
+        "capacity_authoring_deficits": deepcopy(
+            capacity_authoring_deficits[-24:]
+        ),
+        "geometry_retry_policy": GEOMETRY_RETRY_POLICY,
+        "exact_compile_invocation_count": (
+            materialization_diagnostics.materialization_invocation_count
+        ),
+        "exact_compile_limit": compile_limit,
+        "exact_compile_remaining": (
+            None
+            if compile_limit is None
+            else max(
+                0,
+                compile_limit
+                - materialization_diagnostics.materialization_invocation_count,
+            )
+        ),
+        "exact_compile_stop_reason": (
+            "cumulative_exact_compile_budget_exhausted"
+            if exact_compile_cap_reached()
+            else ""
+        ),
+        **materialization_diagnostics.metadata(legal_fit_deficits),
         "capacity_stage_counts": dict(sorted(capacity_stage_counts.items())),
         "book_lineage_gate": lineage_gate,
         "program_passed_by_seed_family": dict(sorted(Counter(_seed_family(candidate) for candidate in accepted).items())),
@@ -3575,5 +5139,189 @@ def _program_pool(
     }
 
 
+def _reviewed_archived_base_registry(
+    reviewed_bases: list[_Candidate],
+) -> dict[str, str | None]:
+    """Bind only unique archived final hashes carrying an actual BASE review."""
 
-__all__ = ["_agent_mutated_seeds","_prebook_vlm_quarantined_llm_parents","_geometry_program_registry","_materialize_directed_geometry","_program_pool"]
+    registry: dict[str, str | None] = {}
+    for candidate in reviewed_bases:
+        metadata = candidate.source.metadata
+        lineage = metadata.get("book_generation_lineage") or {}
+        authority = metadata.get("program_review_authority") or {}
+        audit = metadata.get("base_book_vlm_audit") or {}
+        parent_key = str(lineage.get("parent_key") or "")
+        final_hash = str(metadata.get("final_geometry_hash") or "")
+        explicit_parking = tuple(
+            value for value in (
+                metadata.get("parking_hard_gate"),
+                metadata.get("parking_compliance"),
+            )
+            if isinstance(value, dict)
+        )
+        if not (
+            str(lineage.get("stage") or "") == "base"
+            and isinstance(authority, dict)
+            and authority.get("legal_archive_authority") is True
+            and isinstance(audit, dict)
+            and str(audit.get("response_id") or "")
+            and str(audit.get("review_stage") or "") == "book_base_operative"
+            and audit.get("reviewed_exact_post_book_geometry") is True
+            and audit.get("descendant_development_hard_pass") is True
+            and not any(
+                record.get("hard_pass") is False
+                for record in explicit_parking
+            )
+            and parent_key
+            and final_hash
+        ):
+            continue
+        _observe_compiler_clean_base_geometry_hash(
+            registry,
+            parent_key,
+            final_hash,
+        )
+    return registry
+
+
+def _reviewed_base_development_audits(
+    reviewed_bases: list[_Candidate],
+    registry: dict[str, str | None],
+) -> dict[str, dict[str, Any]]:
+    audits: dict[str, dict[str, Any]] = {}
+    for candidate in reviewed_bases:
+        metadata = candidate.source.metadata
+        lineage = metadata.get("book_generation_lineage") or {}
+        parent_key = str(lineage.get("parent_key") or "")
+        audit = metadata.get("base_book_vlm_audit") or {}
+        if (
+            isinstance(registry.get(parent_key), str)
+            and registry.get(parent_key)
+            == str(metadata.get("final_geometry_hash") or "")
+            and isinstance(audit, dict)
+            and audit.get("descendant_development_hard_pass") is True
+        ):
+            audits[parent_key] = deepcopy(audit)
+    return audits
+
+
+def _merge_two_phase_generation_counts(
+    base_counts: dict[str, Any],
+    descendant_counts: dict[str, Any],
+    *,
+    base_vlm_evidence: dict[str, Any],
+    registry: dict[str, str | None],
+) -> dict[str, Any]:
+    merged = deepcopy(descendant_counts or base_counts)
+    for key in ("evaluated", "compiled", "clean", "program_passed"):
+        merged[key] = int(base_counts.get(key) or 0) + int(
+            descendant_counts.get(key) or 0
+        )
+    base_archive = base_counts.get("legal_mass_archive") or {}
+    descendant_archive = descendant_counts.get("legal_mass_archive") or {}
+    records_by_hash = {
+        str(record.get("geometry_hash") or ""): deepcopy(record)
+        for record in (
+            list(base_archive.get("records") or ())
+            + list(descendant_archive.get("records") or ())
+        )
+        if isinstance(record, dict) and str(record.get("geometry_hash") or "")
+    }
+    merged["legal_mass_archive"] = {
+        **deepcopy(base_archive),
+        "record_count": len(records_by_hash),
+        "records": list(records_by_hash.values()),
+    }
+    base_timings = base_counts.get("phase_durations_seconds") or {}
+    descendant_timings = descendant_counts.get("phase_durations_seconds") or {}
+    merged["phase_durations_seconds"] = {
+        phase: float(base_timings.get(phase) or 0.0)
+        + float(descendant_timings.get(phase) or 0.0)
+        for phase in {**base_timings, **descendant_timings}
+    }
+    merged["two_phase_base_vlm"] = {
+        "schema_version": "arr.maas.two_phase_base_vlm_generation.v1",
+        "active": True,
+        "base_generation_count": len(base_archive.get("records") or ()),
+        "reviewed_base_count": len(
+            base_vlm_evidence.get("reviewed_parent_fingerprints") or ()
+        ),
+        "registered_unique_parent_count": sum(
+            isinstance(value, str) and bool(value)
+            for value in registry.values()
+        ),
+        "conflicting_parent_count": sum(value is None for value in registry.values()),
+        "descendant_generation_count": int(
+            descendant_counts.get("program_passed") or 0
+        ),
+        "base_vlm_gate": deepcopy(base_vlm_evidence),
+    }
+    return merged
+
+
+def _program_pool(
+    site: Polygon,
+    building_type: str,
+    height: float,
+    floors: int,
+    *,
+    base_review_callback: (
+        Callable[[list[_Candidate]], tuple[list[_Candidate], dict[str, Any]]]
+        | None
+    ) = None,
+    **kwargs: Any,
+) -> tuple[list[_Candidate], dict[str, Any]]:
+    """Execute BASE review before descendant enumeration in one run."""
+
+    if base_review_callback is None:
+        pool, counts = _program_pool_single_phase(
+            site, building_type, height, floors, **kwargs
+        )
+        counts.pop("_runtime_directed_seeds", None)
+        return pool, counts
+    base_pool, base_counts = _program_pool_single_phase(
+        site,
+        building_type,
+        height,
+        floors,
+        _generation_phase="base",
+        **kwargs,
+    )
+    directed_seeds = tuple(base_counts.pop("_runtime_directed_seeds", ()) or ())
+    reviewed_bases, base_vlm_evidence = base_review_callback(list(base_pool))
+    registry = _reviewed_archived_base_registry(list(reviewed_bases))
+    reviewed_base_audits = _reviewed_base_development_audits(
+        list(reviewed_bases),
+        registry,
+    )
+    if not any(isinstance(value, str) and value for value in registry.values()):
+        counts = _merge_two_phase_generation_counts(
+            base_counts,
+            {},
+            base_vlm_evidence=base_vlm_evidence,
+            registry=registry,
+        )
+        return list(reviewed_bases), counts
+    descendant_pool, descendant_counts = _program_pool_single_phase(
+        site,
+        building_type,
+        height,
+        floors,
+        _directed_seeds_override=directed_seeds,
+        _generation_phase="descendant",
+        _reviewed_base_registry=registry,
+        _reviewed_base_audits=reviewed_base_audits,
+        **kwargs,
+    )
+    descendant_counts.pop("_runtime_directed_seeds", None)
+    counts = _merge_two_phase_generation_counts(
+        base_counts,
+        descendant_counts,
+        base_vlm_evidence=base_vlm_evidence,
+        registry=registry,
+    )
+    return list(reviewed_bases) + list(descendant_pool), counts
+
+
+
+__all__ = ["_agent_mutated_seeds","_prebook_vlm_quarantined_llm_parents","_geometry_program_registry","_materialize_directed_geometry","_program_pool","_program_review_authority"]

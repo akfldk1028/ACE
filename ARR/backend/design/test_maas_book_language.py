@@ -6140,7 +6140,156 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertEqual(evidence["invalid_geometry_program_rejected_count"], 1)
         self.assertEqual(evidence["initial_call_failure_count"], 0)
 
-    def test_final_vlm_typed_edit_keeps_authored_mass_and_only_records_floor_sibling(self):
+    def test_final_authority_vlm_repair_uses_canonical_floorwise_projection(self):
+        site = Polygon(((0, 0), (42, 0), (42, 30), (0, 30)))
+        sequence = program_seed_sequences("gymnasium")[0]
+        source = compile_sequence_to_source_mass(site, sequence)
+        self.assertIsNotNone(source)
+        assert source is not None
+        parent_program = base_seed_program("slab")
+        source = replace(source, metadata={
+            **source.metadata,
+            "geometry_authority": "authored_projected_surface_payload",
+            "geometry_program": parent_program.to_dict(),
+            "geometry_program_bridge_evidence": {
+                "legal_fit_strength": 0.0,
+            },
+            "legal_generation_context_evidence": {},
+            "capacity_alternative_projection": {},
+            "floorwise_legal_matrix_stack": {
+                "target_plan_coverage": 0.72,
+                "floor_capacity_plan_hash": "repair-floor-plan",
+                "target_floor_areas_m2": [300.0, 300.0, 300.0],
+            },
+        })
+        candidate = portfolio_benchmark._Candidate(
+            "book:combination:test",
+            "combination",
+            "split+shift",
+            sequence,
+            source,
+            {"type": "Feature", "properties": {}},
+            0.8,
+        )
+        audit_gate = {"audit_records": [{
+            "source_sequence": sequence.name,
+            "hard_pass": False,
+            "response_id": "critic-final-authority-repair",
+            "geometry_edits": [{
+                "operation": "set_parameter",
+                "target_node_id": "unit_box",
+                "parameter_name": "width",
+                "numeric_value": 1.3,
+            }],
+        }]}
+        projected_sources = []
+
+        def materialize(_base_source, repaired_program, **_kwargs):
+            repaired_source = compile_geometry_program_to_source_mass(
+                repaired_program,
+                site,
+            )
+            self.assertIsNotNone(repaired_source)
+            assert repaired_source is not None
+            return replace(repaired_source, metadata={
+                **source.metadata,
+                **repaired_source.metadata,
+                "geometry_program": repaired_program.to_dict(),
+            })
+
+        def project_floorwise(repaired_source, **_kwargs):
+            projected = replace(repaired_source, metadata={
+                **repaired_source.metadata,
+                "geometry_authority": "authored_projected_surface_payload",
+                "floorwise_visual_projection": {
+                    "schema_version": "arr.maas.floorwise_visual_projection.v1",
+                    "status": "certified",
+                    "hard_pass": True,
+                    "marker": "canonical-repaired-authority",
+                    "final_geometry_hash": "projected-geometry-hash",
+                },
+                "final_geometry_hash": "projected-geometry-hash",
+                "final_surface_payload_hash": "projected-surface-hash",
+            })
+            projected_sources.append(projected)
+            return projected
+
+        def attach_evidence(feature, **_kwargs):
+            feature.setdefault("properties", {})["program_spatial_evidence"] = {
+                "architectural_score": 0.82,
+            }
+            return {"hard_pass": True, "program_fit_score": 0.84}
+
+        with (
+            patch.object(vlm_review, "compile_sequence_to_source_mass", return_value=source),
+            patch.object(vlm_review, "replace_source_dominant_with_geometry_program", side_effect=materialize),
+            patch.object(vlm_review, "materialize_floorwise_legal_source", side_effect=project_floorwise) as canonical,
+            patch.object(vlm_review, "certify_authored_visual_mesh", side_effect=AssertionError("canonical projection is final authority")),
+            patch.object(vlm_review, "_materialize_repaired_floor_contract", return_value=None),
+            patch.object(vlm_review, "generation_site_at_height", return_value=site),
+            patch.object(vlm_review, "_clean_mass_gate", return_value=(True, {"failure_reasons": []})),
+            patch.object(vlm_review, "_inside_site", return_value=True),
+            patch.object(vlm_review, "source_feature", return_value={"type": "Feature", "properties": {}}),
+            patch.object(vlm_review, "attach_program_massing_evidence", side_effect=attach_evidence),
+            patch.object(vlm_review, "_program_form_gate", return_value={"hard_pass": True}),
+        ):
+            repaired, counts = portfolio_benchmark._repair_exact_post_book_candidates_from_vlm(
+                [candidate],
+                audit_gate,
+                generation_site=site,
+                building_type="gymnasium",
+                height=18.0,
+                floors=3,
+                generation_context=SimpleNamespace(),
+                program_dimensional_context={},
+                site_boundary_source="unit_test",
+                site_access_context={},
+                site_access_geometry=None,
+                capacity_site=site,
+            )
+
+        canonical.assert_called_once()
+        self.assertEqual(counts["failure_counts"], {})
+        self.assertEqual(counts["floorwise_legal_reprojection_count"], 1)
+        self.assertEqual(len(repaired), 1)
+        repaired_metadata = repaired[0].source.metadata
+        self.assertEqual(
+            repaired_metadata["floorwise_visual_projection"]["marker"],
+            "canonical-repaired-authority",
+        )
+        self.assertEqual(
+            repaired_metadata["geometry_authority"],
+            "authored_projected_surface_payload",
+        )
+        self.assertEqual(
+            repaired_metadata["final_surface_payload_hash"],
+            "projected-surface-hash",
+        )
+        self.assertEqual(
+            repaired_metadata["final_geometry_hash"],
+            "projected-geometry-hash",
+        )
+        self.assertEqual(
+            repaired_metadata["geometry_program_bridge_evidence"]["program_hash"],
+            GeometryProgram.from_dict(
+                repaired_metadata["geometry_program"]
+            ).program_hash(),
+        )
+        self.assertFalse(counts["book_reprojection_applied"])
+        self.assertNotIn(
+            "final_authority_vlm_repair_canonical_reprojection_unsupported",
+            counts["failure_counts"],
+        )
+        self.assertEqual(
+            repaired[0].source.surfaces,
+            projected_sources[0].surfaces,
+        )
+        self.assertEqual(
+            repaired[0].source.volumes,
+            projected_sources[0].volumes,
+        )
+
+    def test_final_vlm_typed_edit_propagates_floorwise_terminal_authority_reason(self):
         site = Polygon(((0, 0), (42, 0), (42, 30), (0, 30)))
         sequence = program_seed_sequences("gymnasium")[0]
         source = compile_sequence_to_source_mass(site, sequence)
@@ -6187,14 +6336,15 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             "response_id": "critic-exact-1",
             "geometry_edits": [{
                 "operation": "set_parameter",
-                "target_node_id": "seed_slab",
-                "parameter_name": "vector",
-                "vector_value": [2.65, 1.25, 0.34],
+                "target_node_id": "unit_box",
+                "parameter_name": "width",
+                "numeric_value": 1.3,
             }],
         }]}
 
         materialize_calls = []
         materialized_sources = []
+        capacity_sources = []
 
         def materialize(_base_source, repaired_program, **kwargs):
             materialize_calls.append(kwargs)
@@ -6209,14 +6359,45 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
                 **repaired_source.metadata,
                 "geometry_program": repaired_program.to_dict(),
             })
-            materialized_sources.append(repaired_source)
-            return repaired_source
+            center = repaired_source.footprint.centroid
+            narrow_floor_proxy = Polygon((
+                (center.x + 99.0, center.y - 1.0),
+                (center.x + 101.0, center.y - 1.0),
+                (center.x + 101.0, center.y + 1.0),
+                (center.x + 99.0, center.y + 1.0),
+            ))
+            authored_visual_with_narrow_proxy = replace(
+                repaired_source,
+                volumes=tuple(
+                    replace(volume, footprint=narrow_floor_proxy)
+                    for volume in repaired_source.volumes
+                ),
+                surfaces=tuple(
+                    replace(
+                        surface,
+                        vertices_m=tuple(
+                            (-x, y, z) if z > 0.5 else (x, y, z)
+                            for x, y, z in surface.vertices_m
+                        ),
+                    )
+                    for surface in repaired_source.surfaces
+                ),
+            )
+            materialized_sources.append(authored_visual_with_narrow_proxy)
+            return authored_visual_with_narrow_proxy
 
         def attach_evidence(feature, **_kwargs):
             feature.setdefault("properties", {})["program_spatial_evidence"] = {
                 "architectural_score": 0.82,
             }
             return {"hard_pass": True, "program_fit_score": 0.84}
+
+        def measure_capacity(observed_source, *_args, **_kwargs):
+            capacity_sources.append(observed_source)
+            return {
+                "schema_version": "arr.maas.source_capacity_measurement.v1",
+                "feasible_capacity_utilization": 0.99,
+            }
 
         with (
             patch.object(vlm_review, "compile_sequence_to_source_mass", return_value=source),
@@ -6226,26 +6407,11 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             patch.object(vlm_review, "source_feature", return_value={"type": "Feature", "properties": {}}),
             patch.object(vlm_review, "attach_program_massing_evidence", side_effect=attach_evidence),
             patch.object(vlm_review, "_program_form_gate", return_value={"hard_pass": True}),
-            patch.object(vlm_review, "measure_source_capacity", return_value={
-                "schema_version": "arr.maas.source_capacity_measurement.v1",
-                "feasible_capacity_utilization": 0.99,
-            }),
             patch.object(
                 vlm_review,
-                "materialize_floorwise_legal_source",
-                side_effect=lambda repaired_source, **_kwargs: replace(
-                    repaired_source,
-                    name="capacity-floorwise-sibling",
-                    footprint=Polygon(((0, 0), (6, 0), (6, 6), (0, 6))),
-                    metadata={
-                        **repaired_source.metadata,
-                        "floorwise_legal_matrix_stack": {
-                            "status": "materialized",
-                            "visual_hash": "capacity-sibling-hash",
-                        },
-                    },
-                ),
-            ) as floorwise_reprojection,
+                "measure_source_capacity",
+                side_effect=measure_capacity,
+            ),
             patch.object(
                 vlm_review,
                 "_materialize_repaired_floor_contract",
@@ -6273,71 +6439,51 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
                 capacity_site=site,
             )
 
-        self.assertEqual(len(repaired), 1)
+        self.assertEqual(counts["failure_counts"], {})
         self.assertEqual(counts["geometry_changed_count"], 1)
         self.assertEqual(counts["repaired_candidate_count"], 1)
         self.assertEqual(counts["floorwise_legal_reprojection_count"], 0)
-        self.assertEqual(floorwise_reprojection.call_count, 1)
-        self.assertEqual(
-            floorwise_reprojection.call_args.kwargs["target_plan_coverage"],
-            0.74,
-        )
         self.assertEqual(
             materialize_calls[0]["minimum_host_plan_coverage"],
             0.0,
         )
-        self.assertNotEqual(
-            repaired[0].source.name,
-            "capacity-floorwise-sibling",
+        self.assertEqual(len(capacity_sources), 1)
+        floorwise_sibling_evidence = capacity_sources[0].metadata[
+            "floorwise_legal_sibling_evidence"
+        ]
+        self.assertEqual(
+            floorwise_sibling_evidence,
+            repaired[0].source.metadata["floorwise_legal_sibling_evidence"],
+        )
+        self.assertEqual("unavailable", floorwise_sibling_evidence["status"])
+        self.assertEqual(
+            ["authored_profiled_legal_clip_failed"],
+            floorwise_sibling_evidence["failure_reasons"],
         )
         self.assertEqual(
-            repaired[0].source.footprint,
-            materialized_sources[0].footprint,
+            [{
+                "stage": "authored_visual_authority",
+                "evidence": {
+                    "repair_reason": (
+                        "authored_profiled_legal_clip_failed"
+                    ),
+                    "failure_reason": (
+                        "profiled_legal_clip_missing_authority_evidence"
+                    ),
+                },
+            }],
+            floorwise_sibling_evidence["terminal_failure_evidence"],
+        )
+        self.assertNotIn(
+            "repaired_floorwise_legal_reprojection_failed",
+            floorwise_sibling_evidence["failure_reasons"],
         )
         self.assertTrue(
-            repaired[0].source.metadata["floorwise_legal_sibling_evidence"][
+            capacity_sources[0].metadata["floorwise_legal_sibling_evidence"][
                 "visible_authored_geometry_preserved"
             ]
         )
-        self.assertFalse(
-            repaired[0].source.metadata["shared_floor_contract"]["hard_pass"]
-        )
         self.assertFalse(counts["book_reprojection_applied"])
-        repaired_program = repaired[0].source.metadata["geometry_program"]
-        self.assertEqual(
-            repaired_program["metadata"]["final_vlm_repair"]["parent_program_hash"],
-            parent_program.program_hash(),
-        )
-        self.assertNotEqual(
-            compile_geometry_program(parent_program).geometry_hash,
-            compile_geometry_program(type(parent_program).from_dict(repaired_program)).geometry_hash,
-        )
-        repaired_capacity = repaired[0].source.metadata["capacity_alternative_projection"]
-        self.assertEqual(repaired_capacity["alternative_id"], "maximum_feasible")
-        self.assertEqual(repaired_capacity["target_utilization"], 0.98)
-        self.assertTrue(repaired_capacity["target_hard_pass"])
-        repaired_source = repaired[0].source
-        self.assertTrue(repaired_source.surfaces)
-        self.assertEqual(
-            repaired_source.metadata["floorwise_visual_projection"][
-                "certification_mode"
-            ],
-            "authored_visual_legal_validation",
-        )
-        artifact = portfolio_benchmark._certified_projected_visual_artifact(
-            repaired_source
-        )
-        artifact["identity"] = {
-            "geometryHash": artifact["projectedVisualGeometryHash"],
-        }
-        rebound = validate_projected_visual_artifact(artifact)
-        self.assertIsNotNone(rebound)
-        self.assertEqual(
-            rebound.visual_hash,
-            repaired_source.metadata["floorwise_visual_projection"][
-                "visual_hash"
-            ],
-        )
 
     def test_exact_post_book_repair_reserves_bandwidth_for_typed_llm_ast(self):
         candidates = []
@@ -6465,7 +6611,7 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertIn("final_book_vlm_too_box_like", final_failures)
         self.assertIn("final_book_vlm_wrong_program_typology", final_failures)
 
-    def test_book_vlm_capacity_floor_is_advisory_to_visual_hard_gate(self):
+    def test_book_vlm_capacity_floor_is_enforced_per_review_stage(self):
         base_policy = vlm_review.book_vlm_stage_policy("book_base_operative")
         final_policy = vlm_review.book_vlm_stage_policy("final_book")
 
@@ -6513,10 +6659,26 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertTrue(viable)
         self.assertEqual(viable_failures, [])
         self.assertTrue(undersized)
-        self.assertNotIn(
-            "book_stage_feasible_capacity_below_competition_floor",
-            undersized_failures,
+        self.assertEqual(undersized_failures, [])
+
+        base_viable, base_viable_failures = vlm_review._final_book_vlm_hard_pass(
+            result,
+            candidate_capacity={"feasible_capacity_utilization": 0.025},
+            minimum_capacity_utilization=0.025,
+            review_stage="book_base_operative",
         )
+        base_undersized, base_undersized_failures = (
+            vlm_review._final_book_vlm_hard_pass(
+                result,
+                candidate_capacity={"feasible_capacity_utilization": 0.024},
+                minimum_capacity_utilization=0.025,
+                review_stage="book_base_operative",
+            )
+        )
+        self.assertTrue(base_viable)
+        self.assertEqual(base_viable_failures, [])
+        self.assertTrue(base_undersized)
+        self.assertEqual(base_undersized_failures, [])
 
     def test_program_site_infeasible_stops_before_mass_generation_and_persists_evidence(self):
         site = Polygon(((0, 0), (40, 0), (40, 30), (0, 30)))
@@ -6732,7 +6894,7 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertFalse(hard_pass)
         self.assertIn("final_book_reference_massing_suitability_failed", failures)
 
-    def test_final_book_vlm_gate_requires_program_relation_for_pyramidal_mass(self):
+    def test_final_book_vlm_gate_does_not_let_pyramidal_label_override_vlm(self):
         base_result = {
             "program_fit_hard_pass": True,
             "concept_scores": {
@@ -6765,8 +6927,8 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             candidate_design_concept={"frontage_aligned": False},
         )
 
-        self.assertFalse(hard_pass)
-        self.assertIn("final_book_unresolved_pyramidal_program_relation", failures)
+        self.assertTrue(hard_pass)
+        self.assertEqual(failures, [])
         self.assertTrue(resolved)
         self.assertEqual(resolved_failures, [])
 

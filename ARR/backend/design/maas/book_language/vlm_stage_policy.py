@@ -20,6 +20,8 @@ class BookVlmStagePolicy:
     blocking_actions: frozenset[str]
     quality_floors: Mapping[str, float]
     quality_floor_label: str
+    quality_floors_hard_gate: bool
+    locally_derived_actions_hard_gate: bool
     require_finished_silhouette: bool
     minimum_feasible_capacity_utilization: float
     capacity_normalization: str
@@ -32,6 +34,8 @@ class BookVlmStagePolicy:
             "blocking_actions": sorted(self.blocking_actions),
             "quality_floors": dict(self.quality_floors),
             "quality_floor_label": self.quality_floor_label,
+            "quality_floors_hard_gate": self.quality_floors_hard_gate,
+            "locally_derived_actions_hard_gate": self.locally_derived_actions_hard_gate,
             "require_finished_silhouette": self.require_finished_silhouette,
             "minimum_feasible_capacity_utilization": self.minimum_feasible_capacity_utilization,
             "capacity_normalization": self.capacity_normalization,
@@ -54,6 +58,8 @@ BASE_OPERATIVE_POLICY = BookVlmStagePolicy(
         "repair_integrity": 0.60,
     },
     quality_floor_label="development_floor",
+    quality_floors_hard_gate=True,
+    locally_derived_actions_hard_gate=True,
     require_finished_silhouette=False,
     minimum_feasible_capacity_utilization=0.40,
     capacity_normalization="book_scope_fraction",
@@ -82,6 +88,8 @@ FINAL_BOOK_POLICY = BookVlmStagePolicy(
         "program_appropriateness": 0.65,
     },
     quality_floor_label="competition_floor",
+    quality_floors_hard_gate=False,
+    locally_derived_actions_hard_gate=False,
     require_finished_silhouette=True,
     # Capacity target remains 0.78 in the data-backed feasible-capacity
     # contract.  The image gate only rejects forms below the shared creative

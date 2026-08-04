@@ -7,6 +7,8 @@ import json
 import mimetypes
 import os
 import hashlib
+from contextlib import contextmanager
+from contextvars import ContextVar
 import threading
 import time
 import urllib.error
@@ -58,6 +60,73 @@ class VlmScoringError(RuntimeError):
     pass
 
 
+class VlmBudgetExhaustedError(VlmScoringError):
+    """Stable typed failure raised before an over-budget provider request."""
+
+    code = "provider_quota_exhausted"
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        request_kind: str,
+        quota: str,
+        budget_code: str = "provider_quota_exhausted",
+        used: int | None = None,
+        limit: int | None = None,
+        remaining: int | None = None,
+    ):
+        self.request_kind = request_kind
+        self.quota = quota
+        self.budget_code = budget_code
+        self.used = used
+        self.limit = limit
+        self.remaining = remaining
+        super().__init__(
+            f"vlm_budget_exhausted:code={self.code}:kind={request_kind}:"
+            f"quota={quota}:{str(message)[:500]}"
+        )
+
+    @classmethod
+    def from_provider_error(cls, error: PaidProviderBudgetError):
+        return cls(
+            str(error),
+            request_kind=error.request_kind,
+            quota=error.quota,
+            budget_code=error.code,
+            used=error.used,
+            limit=error.limit,
+            remaining=error.remaining,
+        )
+
+
+_VLM_REQUEST_KIND = ContextVar("maas_vlm_request_kind", default=None)
+
+
+@contextmanager
+def vlm_request_kind_scope(kind: str):
+    token = _VLM_REQUEST_KIND.set(str(kind or "").strip() or None)
+    try:
+        yield
+    finally:
+        _VLM_REQUEST_KIND.reset(token)
+
+
+@contextmanager
+def live_vlm_request_count_scope():
+    """Give one command an isolated transport count and restore its caller."""
+
+    global _LIVE_VLM_REQUEST_COUNT
+    with _LIVE_VLM_REQUEST_LOCK:
+        previous = _LIVE_VLM_REQUEST_COUNT
+        _LIVE_VLM_REQUEST_COUNT = 0
+    try:
+        yield
+    finally:
+        with _LIVE_VLM_REQUEST_LOCK:
+            _LIVE_VLM_REQUEST_COUNT = previous
+
+
 def _consume_live_vlm_request_budget(*, kind: str = "vlm") -> int:
     """Reserve one real HTTP request under a process-wide cost ceiling."""
 
@@ -68,13 +137,15 @@ def _consume_live_vlm_request_budget(*, kind: str = "vlm") -> int:
         limit = 24
     with _LIVE_VLM_REQUEST_LOCK:
         if _LIVE_VLM_REQUEST_COUNT >= limit:
-            raise VlmScoringError(
-                f"live_vlm_request_budget_exhausted:{_LIVE_VLM_REQUEST_COUNT}/{limit}"
+            raise VlmBudgetExhaustedError(
+                f"live_vlm_request_budget_exhausted:{_LIVE_VLM_REQUEST_COUNT}/{limit}",
+                request_kind=kind,
+                quota="live_vlm_global",
             )
         try:
             reserve_paid_provider_request(kind)
         except PaidProviderBudgetError as exc:
-            raise VlmScoringError(str(exc)) from exc
+            raise VlmBudgetExhaustedError.from_provider_error(exc) from exc
         _LIVE_VLM_REQUEST_COUNT += 1
         return _LIVE_VLM_REQUEST_COUNT
 
@@ -505,7 +576,9 @@ def audit_reference_image_for_massing(
             else max(0, int(os.getenv("MAAS_PREFERENCE_VLM_RETRIES", "1")))
         )
         for attempt in range(retry_count + 1):
-            _consume_live_vlm_request_budget(kind="reference_audit_vlm")
+            _consume_live_vlm_request_budget(
+                kind="reference_audit_vlm" if attempt == 0 else "provider_retry"
+            )
             try:
                 with urllib.request.urlopen(request, timeout=timeout) as response:
                     data = json.loads(response.read().decode("utf-8"))
@@ -576,6 +649,7 @@ def score_candidate_with_openai_vlm(
     image_detail: str = "high",
     program_hash: str = "",
     geometry_hash: str = "",
+    request_kind: str | None = None,
 ) -> dict[str, Any]:
     """Score a candidate PNG with OpenAI's Responses API.
 
@@ -653,8 +727,15 @@ def score_candidate_with_openai_vlm(
     )
     data: dict[str, Any] | None = None
     last_error: Exception | None = None
+    initial_request_kind = (
+        str(request_kind or "").strip()
+        or _VLM_REQUEST_KIND.get()
+        or "candidate_vlm"
+    )
     for attempt in range(retry_count + 1):
-        _consume_live_vlm_request_budget(kind="candidate_vlm")
+        _consume_live_vlm_request_budget(
+            kind=initial_request_kind if attempt == 0 else "provider_retry"
+        )
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 data = json.loads(response.read().decode("utf-8"))
@@ -1343,18 +1424,25 @@ def _normalize_vlm_result(
         "preserve_dominant_gesture",
         "wrong_program_typology", "missing_program_section",
     } and (str(item) != "missing_program_section" or explicit_section_required)]
+    provider_actions = list(dict.fromkeys(actions))
+    locally_derived_actions: list[str] = []
+
+    def add_local_action(action: str) -> None:
+        locally_derived_actions.append(action)
+        actions.append(action)
+
     if scores["hierarchy"] < 0.55:
-        actions.append("weak_primary_mass")
+        add_local_action("weak_primary_mass")
     if scores["gesture_clarity"] < 0.60:
-        actions.append("needs_clean_anchor")
+        add_local_action("needs_clean_anchor")
     if scores["hierarchy"] < 0.60 or scores["repair_integrity"] < 0.55:
-        actions.append("too_fragmented")
+        add_local_action("too_fragmented")
     if scores["gesture_clarity"] >= 0.75 and scores["hierarchy"] >= 0.70:
-        actions.append("preserve_dominant_gesture")
+        add_local_action("preserve_dominant_gesture")
     if scores["program_appropriateness"] < 0.55:
-        actions.append("wrong_program_typology")
+        add_local_action("wrong_program_typology")
     if explicit_section_required and scores["section_program_fit"] < 0.50:
-        actions.append("missing_program_section")
+        add_local_action("missing_program_section")
     # A low non-stair score means the critic sees arbitrary cake-tier
     # repetition, unless it explicitly recognizes a program-related stepped
     # mass.  Waiting until the post-BOOK audit to reject it archives the bad
@@ -1362,8 +1450,9 @@ def _normalize_vlm_result(
     # Mark the parent as structurally unresolved here; its typed edits are
     # still applied and only a recompiled child may enter the archive.
     if scores["non_stair_silhouette"] < 0.55 and "good_step_mass" not in actions:
-        actions.append("weak_form_continuity")
+        add_local_action("weak_form_continuity")
     actions = list(dict.fromkeys(actions))
+    locally_derived_actions = list(dict.fromkeys(locally_derived_actions))
     blocking_visual_actions = {
         "too_fragmented",
         "weak_primary_mass",
@@ -1375,10 +1464,11 @@ def _normalize_vlm_result(
         "wrong_program_typology",
         "missing_program_section",
     }
+    provider_program_fit_hard_pass = bool(data.get("program_fit_hard_pass"))
     program_fit_hard_pass = (
         scores["program_appropriateness"] >= 0.55
         and (not explicit_section_required or scores["section_program_fit"] >= 0.50)
-        and bool(data.get("program_fit_hard_pass"))
+        and provider_program_fit_hard_pass
         and not blocking_visual_actions.intersection(actions)
     )
     reference_assessments = [
@@ -1647,12 +1737,15 @@ def _normalize_vlm_result(
         "model": model,
         "response_id": response_id,
         "concept_scores": scores,
+        "provider_program_fit_hard_pass": provider_program_fit_hard_pass,
         "program_fit_hard_pass": program_fit_hard_pass,
         "explicit_program_section_required": explicit_section_required,
         "reference_assessments": reference_assessments,
         "rationale": str(data.get("rationale") or ""),
         "warnings": [str(item) for item in data.get("warnings") or []],
         "critic_actions": actions,
+        "provider_critic_actions": provider_actions,
+        "locally_derived_critic_actions": locally_derived_actions,
         "graph_edits": graph_edits[:6],
         "geometry_edits": geometry_edits[:8],
     }

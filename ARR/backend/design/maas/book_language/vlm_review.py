@@ -163,29 +163,55 @@ def _final_book_vlm_hard_pass(
     policy = book_vlm_stage_policy(review_stage)
     scores = result.get("concept_scores") if isinstance(result.get("concept_scores"), dict) else {}
     actions = {str(value) for value in result.get("critic_actions") or ()}
+    provider_action_payload = result.get("provider_critic_actions")
+    provider_actions = (
+        {str(value) for value in provider_action_payload}
+        if isinstance(provider_action_payload, list)
+        else set(actions)
+    )
+    local_actions = {
+        str(value)
+        for value in result.get("locally_derived_critic_actions") or ()
+    }
+    provider_program_fit_hard_pass = bool(result.get(
+        "provider_program_fit_hard_pass",
+        result.get("program_fit_hard_pass"),
+    ))
     failures: list[str] = []
+    hard_failures: list[str] = []
     reference_gate = (
         result.get("reference_massing_gate")
         if isinstance(result.get("reference_massing_gate"), dict)
         else {}
     )
     if reference_gate and not bool(reference_gate.get("hard_pass")):
-        failures.append(f"{policy.stage}_reference_massing_suitability_failed")
-    if policy.require_program_fit and not bool(result.get("program_fit_hard_pass")):
+        code = f"{policy.stage}_reference_massing_suitability_failed"
+        failures.append(code)
+        hard_failures.append(code)
+    if policy.require_program_fit and not provider_program_fit_hard_pass:
         failures.append("final_book_program_fit_failed")
+        hard_failures.append("final_book_program_fit_failed")
     for action in sorted(actions & policy.blocking_actions):
-        failures.append(f"{policy.stage}_vlm_{action}")
+        code = f"{policy.stage}_vlm_{action}"
+        failures.append(code)
+        if (
+            action in provider_actions
+            or policy.locally_derived_actions_hard_gate
+            and action in local_actions
+        ):
+            hard_failures.append(code)
     for concept, floor in policy.quality_floors.items():
         if float(scores.get(concept) or 0.0) + 1e-9 < floor:
-            failures.append(
-                f"{policy.stage}_{concept}_below_{policy.quality_floor_label}"
-            )
+            code = f"{policy.stage}_{concept}_below_{policy.quality_floor_label}"
+            failures.append(code)
+            if policy.quality_floors_hard_gate:
+                hard_failures.append(code)
     # Capacity utilization is a design-development diagnostic, not a visual
     # acceptance authority.  Statutory BCR/FAR and program feasibility are
     # enforced by their dedicated gates; a VLM-approved mass must not be
     # discarded merely because it leaves optional capacity unused.
     if not policy.require_finished_silhouette:
-        return not failures, failures
+        return not hard_failures, failures
     # The scorer already derives fragmentation actions from hierarchy and
     # repair integrity. This additional explicit field catches arbitrary cake
     # tiers that can retain both scores while repeating one silhouette.
@@ -215,7 +241,7 @@ def _final_book_vlm_hard_pass(
         and "needs_carved_void" in actions
     ):
         failures.append("final_book_unresolved_public_threshold_relation")
-    return not failures, failures
+    return not hard_failures, failures
 
 
 def _final_book_vlm_shortlist(
@@ -1320,7 +1346,22 @@ def _audit_final_book_geometry_with_vlm(
             "response_id": str(result.get("response_id") or ""),
             "cache_hit": bool(result.get("cache_hit")),
             "concept_scores": dict(scores),
+            "provider_program_fit_hard_pass": bool(result.get(
+                "provider_program_fit_hard_pass",
+                result.get("program_fit_hard_pass"),
+            )),
+            "normalized_program_fit_hard_pass": bool(
+                result.get("program_fit_hard_pass")
+            ),
             "critic_actions": list(result.get("critic_actions") or ()),
+            "provider_critic_actions": list(
+                result.get("provider_critic_actions")
+                if isinstance(result.get("provider_critic_actions"), list)
+                else result.get("critic_actions") or ()
+            ),
+            "locally_derived_critic_actions": list(
+                result.get("locally_derived_critic_actions") or ()
+            ),
             "geometry_edits": list(result.get("geometry_edits") or ()),
             "rationale": str(result.get("rationale") or "")[:1000],
             "capacity_review_context": build_capacity_review_context(
@@ -1371,6 +1412,16 @@ def _audit_final_book_geometry_with_vlm(
             "response_id": audit["response_id"],
             "concept_scores": dict(scores),
             "critic_actions": list(audit["critic_actions"]),
+            "provider_program_fit_hard_pass": audit[
+                "provider_program_fit_hard_pass"
+            ],
+            "normalized_program_fit_hard_pass": audit[
+                "normalized_program_fit_hard_pass"
+            ],
+            "provider_critic_actions": list(audit["provider_critic_actions"]),
+            "locally_derived_critic_actions": list(
+                audit["locally_derived_critic_actions"]
+            ),
             "geometry_edits": list(audit["geometry_edits"]),
             "reference_ids": list(audit["reference_ids"]),
             "reference_massing_gate": deepcopy(audit["reference_massing_gate"]),

@@ -6552,7 +6552,130 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertIn("weak_form_continuity", unresolved["critic_actions"])
         self.assertTrue(intentional["program_fit_hard_pass"])
 
-    def test_final_book_vlm_gate_rejects_fragmentation_and_arbitrary_tiers(self):
+    def test_vlm_normalization_preserves_provider_verdict_and_action_provenance(self):
+        result = _normalize_vlm_result({
+            "concept_scores": {
+                "gesture_clarity": 0.68,
+                "hierarchy": 0.62,
+                "non_stair_silhouette": 0.42,
+                "void_publicness": 0.35,
+                "repair_integrity": 0.70,
+                "precedent_resonance": 0.60,
+                "program_appropriateness": 0.51,
+                "section_program_fit": 0.38,
+            },
+            "program_fit_hard_pass": False,
+            "critic_actions": ["needs_carved_void"],
+        }, model="test-vlm", response_id="provider-provenance")
+
+        self.assertFalse(result["provider_program_fit_hard_pass"])
+        self.assertEqual(result["provider_critic_actions"], ["needs_carved_void"])
+        self.assertIn("wrong_program_typology", result["locally_derived_critic_actions"])
+        self.assertIn("weak_form_continuity", result["locally_derived_critic_actions"])
+        self.assertIn("needs_carved_void", result["critic_actions"])
+
+    def test_final_book_vlm_gate_keeps_r30_provider_pass_despite_soft_floors(self):
+        eligible, diagnostics = portfolio_benchmark._final_book_vlm_hard_pass({
+            "provider_program_fit_hard_pass": True,
+            "program_fit_hard_pass": True,
+            "provider_critic_actions": [
+                "preserve_dominant_gesture", "good_step_mass", "good_void",
+            ],
+            "locally_derived_critic_actions": [],
+            "critic_actions": [
+                "preserve_dominant_gesture", "good_step_mass", "good_void",
+            ],
+            "concept_scores": {
+                "gesture_clarity": 0.71,
+                "hierarchy": 0.67,
+                "non_stair_silhouette": 0.58,
+                "void_publicness": 0.62,
+                "repair_integrity": 0.70,
+                "precedent_resonance": 0.64,
+                "program_appropriateness": 0.69,
+                "section_program_fit": 0.56,
+            },
+        })
+
+        self.assertTrue(eligible)
+        self.assertIn(
+            "final_book_gesture_clarity_below_competition_floor",
+            diagnostics,
+        )
+        self.assertIn(
+            "final_book_hierarchy_below_competition_floor",
+            diagnostics,
+        )
+
+    def test_final_book_vlm_gate_rejects_provider_false_and_provider_blocker(self):
+        provider_false, provider_false_diagnostics = (
+            portfolio_benchmark._final_book_vlm_hard_pass({
+                "provider_program_fit_hard_pass": False,
+                "program_fit_hard_pass": False,
+                "provider_critic_actions": [],
+                "locally_derived_critic_actions": [],
+                "critic_actions": [],
+                "concept_scores": {
+                    "gesture_clarity": 0.90,
+                    "hierarchy": 0.90,
+                    "repair_integrity": 0.90,
+                    "program_appropriateness": 0.90,
+                    "non_stair_silhouette": 0.90,
+                },
+            })
+        )
+        provider_blocked, provider_blocked_diagnostics = (
+            portfolio_benchmark._final_book_vlm_hard_pass({
+                "provider_program_fit_hard_pass": True,
+                "program_fit_hard_pass": False,
+                "provider_critic_actions": ["too_fragmented"],
+                "locally_derived_critic_actions": ["needs_clean_anchor"],
+                "critic_actions": ["too_fragmented", "needs_clean_anchor"],
+                "concept_scores": {
+                    "gesture_clarity": 0.90,
+                    "hierarchy": 0.90,
+                    "repair_integrity": 0.90,
+                    "program_appropriateness": 0.90,
+                    "non_stair_silhouette": 0.90,
+                },
+            })
+        )
+
+        self.assertFalse(provider_false)
+        self.assertIn("final_book_program_fit_failed", provider_false_diagnostics)
+        self.assertFalse(provider_blocked)
+        self.assertIn("final_book_vlm_too_fragmented", provider_blocked_diagnostics)
+        self.assertIn("final_book_vlm_needs_clean_anchor", provider_blocked_diagnostics)
+
+    def test_final_book_vlm_gate_keeps_local_blockers_as_diagnostics_only(self):
+        eligible, diagnostics = portfolio_benchmark._final_book_vlm_hard_pass({
+            "provider_program_fit_hard_pass": True,
+            "program_fit_hard_pass": False,
+            "provider_critic_actions": ["needs_carved_void"],
+            "locally_derived_critic_actions": [
+                "weak_form_continuity", "wrong_program_typology",
+            ],
+            "critic_actions": [
+                "needs_carved_void", "weak_form_continuity", "wrong_program_typology",
+            ],
+            "concept_scores": {
+                "gesture_clarity": 0.71,
+                "hierarchy": 0.67,
+                "non_stair_silhouette": 0.42,
+                "void_publicness": 0.62,
+                "repair_integrity": 0.70,
+                "precedent_resonance": 0.64,
+                "program_appropriateness": 0.51,
+                "section_program_fit": 0.38,
+            },
+        })
+
+        self.assertTrue(eligible)
+        self.assertIn("final_book_vlm_weak_form_continuity", diagnostics)
+        self.assertIn("final_book_vlm_wrong_program_typology", diagnostics)
+        self.assertIn("final_book_arbitrary_tier_silhouette", diagnostics)
+
+    def test_final_book_vlm_gate_rejects_provider_fragmentation_and_diagnoses_tiers(self):
         accepted, accepted_failures = portfolio_benchmark._final_book_vlm_hard_pass({
             "program_fit_hard_pass": True,
             "concept_scores": {
@@ -6580,7 +6703,7 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertFalse(fragmented)
         self.assertIn("final_book_vlm_too_fragmented", fragmented_failures)
         self.assertIn("final_book_vlm_weak_form_continuity", fragmented_failures)
-        self.assertFalse(tiered)
+        self.assertTrue(tiered)
         self.assertIn("final_book_arbitrary_tier_silhouette", tiered_failures)
 
     def test_base_book_vlm_gate_preserves_developable_parent_for_descendants(self):

@@ -76,6 +76,7 @@ from design.maas.program_massing.morphology import (
     authoritative_surface_silhouette_distance,
 )
 from design.maas.program_massing.semantic_carriers import (
+    REQUIRED_RELATIONS,
     bind_source_role_scaffold_to_program,
     build_program_semantic_carrier_evidence,
     rebind_semantic_projection_capacity,
@@ -2910,13 +2911,61 @@ def _issue_authored_legal_projection_authority(
         achieved_capacity_band=achieved_capacity_band,
         capacity_measurement_hash=capacity_measurement_hash,
     )
-    if semantic_projection.get("hard_pass") is not True:
+    resolved_program_id = str(
+        semantic_projection.get("program_id") or ""
+    )
+    required_relations = set(
+        REQUIRED_RELATIONS.get(resolved_program_id, ())
+    )
+    scaffold_records = tuple(
+        record
+        for record in semantic_projection.get("source_role_scaffold") or ()
+        if isinstance(record, dict)
+    )
+    carrier_records = tuple(
+        record
+        for record in semantic_projection.get("carriers") or ()
+        if isinstance(record, dict)
+        and float(record.get("measured_area_m2") or 0.0) > 0.0
+    )
+    scaffold_relations = {
+        str(record.get("source_relation") or "")
+        for record in scaffold_records
+    }
+    carrier_relations = {
+        str(record.get("source_relation") or "")
+        for record in carrier_records
+    }
+    role_evidence_complete = all(
+        str(record.get("source_relation") or "")
+        and str(record.get("semantic_role") or "")
+        and str(record.get("source_component_id") or "")
+        for record in (*scaffold_records, *carrier_records)
+    )
+    missing_scaffold_relations = sorted(
+        required_relations - scaffold_relations
+    )
+    missing_carrier_relations = sorted(
+        required_relations - carrier_relations
+    )
+    if (
+        semantic_projection.get("hard_pass") is not True
+        or missing_scaffold_relations
+        or missing_carrier_relations
+        or (required_relations and not role_evidence_complete)
+    ):
         fail(
             "semantic_projection_authority_issuance_failed",
             failures=list(semantic_projection.get("failures") or ()),
+            required_relations=sorted(required_relations),
+            missing_scaffold_relations=missing_scaffold_relations,
+            missing_carrier_relations=missing_carrier_relations,
+            role_evidence_complete=role_evidence_complete,
         )
         return None
     metadata["program_semantic_carrier_evidence"] = semantic_projection
+    metadata.pop("program_space_zones", None)
+    metadata.pop("program_role_integration_evidence", None)
     bridge = deepcopy(metadata["geometry_program_bridge_evidence"])
     bridge["geometry_authority"] = "authored_projected_surface_payload"
     metadata["geometry_program_bridge_evidence"] = bridge

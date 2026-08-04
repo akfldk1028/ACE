@@ -6542,6 +6542,167 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             tampered_failures,
         )
 
+    def test_final_vlm_repair_binds_reachable_source_role_scaffold_before_authority_issuance(self):
+        from design.maas.book_language.candidate_generation import (
+            _bind_book_program_source_role,
+            _issue_authored_legal_projection_authority,
+        )
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+        from design.maas.program_massing.semantic_carriers import (
+            REQUIRED_RELATIONS,
+        )
+
+        site = Polygon(((0, 0), (42, 0), (42, 30), (0, 30)))
+        base_source = compile_sequence_to_source_mass(
+            site,
+            program_seed_sequences("gymnasium")[0],
+        )
+        self.assertIsNotNone(base_source)
+        assert base_source is not None
+        repaired_program = base_seed_program("slab")
+        repaired_compilation = compile_geometry_program(repaired_program)
+        bound_program = _bind_book_program_source_role(
+            repaired_program,
+            base_source,
+            program_id="gymnasium",
+        )
+        bound_compilation = compile_geometry_program(bound_program)
+        self.assertEqual(bound_compilation.status, "compiled")
+        self.assertEqual(
+            bound_compilation.geometry_hash,
+            repaired_compilation.geometry_hash,
+        )
+        self.assertEqual(
+            bound_program.node_map[bound_program.root_id].semantic_role,
+            "source_role_scaffold_origin",
+        )
+        relation_nodes = tuple(
+            node
+            for node in bound_program.topological_nodes()
+            if node.semantic_role == "source_role_relation_binding"
+        )
+        required_relations = set(REQUIRED_RELATIONS["gymnasium"])
+        self.assertEqual(len(relation_nodes), len(required_relations))
+        self.assertEqual(
+            {
+                node.parameters["source_role_relation_binding"][
+                    "source_relation"
+                ]
+                for node in relation_nodes
+            },
+            required_relations,
+        )
+        for node in relation_nodes:
+            binding = node.parameters["source_role_relation_binding"]
+            self.assertTrue(binding["source_component_id"])
+            self.assertTrue(binding["semantic_role"])
+            self.assertTrue(binding["relation_hash"])
+
+        def issue(program, compilation):
+            authored = replace_source_dominant_with_geometry_program(
+                base_source,
+                program,
+                containment_host=site,
+                upper_containment_host=site,
+                minimum_host_plan_coverage=0.0,
+            )
+            self.assertIsNotNone(authored)
+            assert authored is not None
+            projected = materialize_floorwise_legal_source(
+                authored,
+                legal_sections=(site,),
+                target_plan_coverage=0.7,
+                floor_capacity_plan_hash="b" * 64,
+                legal_floor_field_hash="a" * 64,
+                target_floor_areas_m2=(float(site.area) * 0.7,),
+            )
+            self.assertIsNotNone(projected)
+            assert projected is not None
+            failures = []
+            result = _issue_authored_legal_projection_authority(
+                base_source,
+                projected,
+                authored_program=program,
+                authored_compilation=compilation,
+                building_type="gymnasium",
+                containment_host=site,
+                pnu="1111010100100010000",
+                legal_floor_field_hash="a" * 64,
+                floor_capacity_plan_hash="b" * 64,
+                target_floor_areas_m2=(float(site.area) * 0.7,),
+                capacity_measurement={"measured_gfa_m2": site.area * 0.7},
+                capacity_projection={
+                    "alternative_id": "brief_target",
+                    "hard_pass": True,
+                },
+                failure_sink=failures,
+            )
+            return result, failures
+
+        issued, failures = issue(bound_program, bound_compilation)
+        self.assertIsNotNone(issued, failures)
+        assert issued is not None
+        semantic = issued.metadata["program_semantic_carrier_evidence"]
+        self.assertTrue(semantic["hard_pass"])
+        self.assertTrue(semantic["carriers"])
+        self.assertEqual(
+            {
+                record["source_relation"]
+                for record in semantic["source_role_scaffold"]
+            },
+            required_relations,
+        )
+        self.assertEqual(
+            {
+                record["source_relation"]
+                for record in semantic["carriers"]
+                if float(record["measured_area_m2"]) > 0.0
+            },
+            required_relations,
+        )
+        self.assertIn("service_support", required_relations)
+        self.assertIn("public_entry_daylight", required_relations)
+        for record in (
+            *semantic["source_role_scaffold"],
+            *semantic["carriers"],
+        ):
+            self.assertTrue(record["source_relation"])
+            self.assertTrue(record["semantic_role"])
+            self.assertTrue(record["source_component_id"])
+
+        stale_relation_id = relation_nodes[0].id
+        stale_program = replace(
+            bound_program,
+            nodes=tuple(
+                replace(node, parameters={
+                    **node.parameters,
+                    "source_role_relation_binding": {
+                        **node.parameters["source_role_relation_binding"],
+                        "source_component_id": "stale-parent-component",
+                    },
+                })
+                if node.id == stale_relation_id
+                else node
+                for node in bound_program.nodes
+            ),
+        )
+        stale_compilation = compile_geometry_program(stale_program)
+        rejected, rejection_failures = issue(
+            stale_program,
+            stale_compilation,
+        )
+        self.assertIsNone(rejected)
+        self.assertEqual(
+            rejection_failures[-1]["reason"],
+            "semantic_projection_authority_issuance_failed",
+        )
+        self.assertIn(
+            "source_role_scaffold_not_bound_to_reachable_final_ast",
+            rejection_failures[-1]["evidence"]["failures"],
+        )
+
     def test_source_dominant_replacement_records_typed_none_reason(self):
         site = Polygon(((0, 0), (30, 0), (30, 24), (0, 24)))
         sequence = program_seed_sequences("gymnasium")[0]

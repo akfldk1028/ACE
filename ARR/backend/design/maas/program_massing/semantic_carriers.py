@@ -112,10 +112,77 @@ def bind_source_role_scaffold_to_program(
         provenance,
         program_id=normalized,
     )
+    scaffold_by_relation = {
+        str(record.get("source_relation") or ""): record
+        for record in scaffold
+        if isinstance(record, dict)
+    }
+    required_relations = tuple(REQUIRED_RELATIONS.get(normalized, ()))
+    if (
+        not required_relations
+        or any(
+            relation not in scaffold_by_relation
+            for relation in required_relations
+        )
+    ):
+        return None
+    existing = set(program.node_map)
+    relation_nodes = []
+    reachable_root_id = program.root_id
+    for relation in required_relations:
+        record = scaffold_by_relation[relation]
+        relation_payload = {
+            "schema_version": "arr.maas.source_role_relation_binding.v1",
+            "program_id": normalized,
+            "source_relation": relation,
+            "source_component_id": str(
+                record.get("source_component_id") or ""
+            ),
+            "semantic_role": str(record.get("semantic_role") or ""),
+        }
+        if (
+            not relation_payload["source_component_id"]
+            or not relation_payload["semantic_role"]
+        ):
+            return None
+        relation_payload["relation_hash"] = _canonical_hash(
+            relation_payload
+        )
+        base_relation_id = (
+            f"semantic_projection:{normalized}:source_role:{relation}"
+        )
+        relation_node_id = base_relation_id
+        relation_suffix = 2
+        while relation_node_id in existing:
+            relation_node_id = f"{base_relation_id}:{relation_suffix}"
+            relation_suffix += 1
+        existing.add(relation_node_id)
+        relation_node = GeometryNode(
+            id=relation_node_id,
+            kind="transform",
+            operator="matrix4",
+            inputs=(reachable_root_id,),
+            parameters={
+                "matrix4": matrix4_to_lists(identity_matrix4()),
+                "source_role_relation_binding": relation_payload,
+            },
+            semantic_role="source_role_relation_binding",
+            provenance={
+                "source": "compiled_source_role_relation_binding",
+                "program_id": normalized,
+                "source_relation": relation,
+                "source_component_id": relation_payload[
+                    "source_component_id"
+                ],
+                "geometry_effect": "identity",
+                "reachable_final_root_required": True,
+            },
+        )
+        relation_nodes.append(relation_node)
+        reachable_root_id = relation_node.id
     base_id = f"semantic_projection:{normalized}:source_role_origin"
     node_id = base_id
     suffix = 2
-    existing = set(program.node_map)
     while node_id in existing:
         node_id = f"{base_id}:{suffix}"
         suffix += 1
@@ -123,7 +190,7 @@ def bind_source_role_scaffold_to_program(
         id=node_id,
         kind="transform",
         operator="matrix4",
-        inputs=(program.root_id,),
+        inputs=(reachable_root_id,),
         parameters={
             "matrix4": matrix4_to_lists(identity_matrix4()),
             "source_role_scaffold_origin": origin,
@@ -138,7 +205,7 @@ def bind_source_role_scaffold_to_program(
     )
     return replace(
         program,
-        nodes=(*program.nodes, node),
+        nodes=(*program.nodes, *relation_nodes, node),
         root_id=node.id,
     )
 
@@ -560,17 +627,17 @@ def audit_source_semantic_projection(
             "accepted_carriers": [],
             "failures": [],
         }
-    if (
-        source.metadata.get("geometry_authority")
-        != "final_floorwise_legal_geometry_program"
-    ):
+    if source.metadata.get("geometry_authority") not in {
+        "authored_projected_surface_payload",
+        "authored_compiled_surface_payload",
+    }:
         return {
             "schema_version": "arr.maas.final_semantic_projection_audit.v1",
             "status": "rejected",
             "hard_pass": False,
             "accepted_carriers": [],
             "failures": [
-                "final_floorwise_legal_geometry_authority_required"
+                "authored_surface_geometry_authority_required"
             ],
         }
     signature = source.signature()
@@ -826,7 +893,53 @@ def _final_program_has_reachable_source_role_origin(
         and node.parameters.get("source_role_scaffold_origin")
         == expected_origin
     ]
-    return len(matches) == 1
+    if len(matches) != 1:
+        return False
+    expected_components = tuple(
+        component
+        for component in expected_origin.get("source_components") or ()
+        if isinstance(component, dict)
+    )
+    expected_by_relation = {
+        str(component.get("source_relation") or ""): component
+        for component in expected_components
+    }
+    relation_nodes = [
+        node
+        for node in nodes
+        if node.semantic_role == "source_role_relation_binding"
+        and node.kind == "transform"
+        and node.operator == "matrix4"
+    ]
+    if len(relation_nodes) != len(expected_by_relation):
+        return False
+    observed_relations: set[str] = set()
+    for node in relation_nodes:
+        binding = node.parameters.get("source_role_relation_binding")
+        if not isinstance(binding, dict):
+            return False
+        relation = str(binding.get("source_relation") or "")
+        expected = expected_by_relation.get(relation)
+        relation_hash = str(binding.get("relation_hash") or "")
+        hash_payload = {
+            key: value
+            for key, value in binding.items()
+            if key != "relation_hash"
+        }
+        if (
+            expected is None
+            or relation in observed_relations
+            or str(binding.get("program_id") or "")
+            != str(expected_origin.get("program_id") or "")
+            or str(binding.get("source_component_id") or "")
+            != str(expected.get("source_component_id") or "")
+            or str(binding.get("semantic_role") or "")
+            != str(expected.get("semantic_role") or "")
+            or relation_hash != _canonical_hash(hash_payload)
+        ):
+            return False
+        observed_relations.add(relation)
+    return observed_relations == set(expected_by_relation)
 
 
 def _project_scaffold_to_final_bands(

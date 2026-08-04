@@ -69,6 +69,7 @@ from .candidate_analysis import (
     _solid_morphology_metrics,
 )
 from .candidate_generation import (
+    _bind_book_program_source_role,
     _issue_authored_legal_projection_authority,
     _mass_stage_design_score,
 )
@@ -2198,6 +2199,71 @@ def _repair_exact_post_book_candidates_from_vlm(
         if base_source is None:
             failures["program_sequence_recompile_failed"] += 1
             continue
+        unbound_repaired_program_hash = repaired_program.program_hash()
+        unbound_repaired_geometry_hash = str(
+            repaired_compilation.geometry_hash or ""
+        )
+        try:
+            source_role_bound_program = _bind_book_program_source_role(
+                repaired_program,
+                base_source,
+                program_id=building_type,
+            )
+        except (TypeError, ValueError) as exc:
+            record_repair_failure(
+                candidate=candidate,
+                critic_record=record,
+                stage="final_vlm_repair_source_role_binding",
+                reason="source_role_scaffold_binding_failed",
+                evidence={
+                    "repaired_program_hash": unbound_repaired_program_hash,
+                    "repaired_geometry_hash": unbound_repaired_geometry_hash,
+                    "failure_type": type(exc).__name__,
+                    "failure_detail": str(exc),
+                },
+                legacy_counter="repaired_source_role_binding_failed",
+            )
+            continue
+        source_role_bound_compilation = compile_geometry_program(
+            source_role_bound_program
+        )
+        if (
+            source_role_bound_compilation.status != "compiled"
+            or str(source_role_bound_compilation.geometry_hash or "")
+            != unbound_repaired_geometry_hash
+        ):
+            record_repair_failure(
+                candidate=candidate,
+                critic_record=record,
+                stage="final_vlm_repair_source_role_binding",
+                reason=(
+                    "source_role_binding_compile_failed"
+                    if source_role_bound_compilation.status != "compiled"
+                    else "source_role_binding_geometry_identity_mismatch"
+                ),
+                evidence={
+                    "unbound_repaired_program_hash": (
+                        unbound_repaired_program_hash
+                    ),
+                    "bound_repaired_program_hash": (
+                        source_role_bound_program.program_hash()
+                    ),
+                    "expected_geometry_hash": unbound_repaired_geometry_hash,
+                    "bound_geometry_hash": str(
+                        source_role_bound_compilation.geometry_hash or ""
+                    ),
+                    "compilation_status": (
+                        source_role_bound_compilation.status
+                    ),
+                },
+                legacy_counter="repaired_source_role_binding_failed",
+            )
+            continue
+        repaired_program = source_role_bound_program
+        repaired_compilation = source_role_bound_compilation
+        counts["source_role_scaffold_bound_count"] = (
+            counts.get("source_role_scaffold_bound_count", 0) + 1
+        )
         bridge = candidate.source.metadata.get("geometry_program_bridge_evidence") or {}
         parent_capacity_alternative = deepcopy(
             candidate.source.metadata.get("capacity_alternative_projection") or {}
@@ -2285,8 +2351,6 @@ def _repair_exact_post_book_candidates_from_vlm(
         metadata.update(
             _certified_repair_floor_context_binding(candidate.source.metadata)
         )
-        metadata.pop("program_space_zones", None)
-        metadata.pop("program_role_integration_evidence", None)
         metadata["program_dimensional_context"] = deepcopy(program_dimensional_context or {})
         metadata["program_context"] = program_context
         metadata["geometry_graph_notes"] = build_geometry_graph_notes(
@@ -2630,7 +2694,7 @@ def _repair_exact_post_book_candidates_from_vlm(
                 else {}
             )
             issued_source = _issue_authored_legal_projection_authority(
-                authored_repaired_source,
+                base_source,
                 source,
                 authored_program=repaired_program,
                 authored_compilation=repaired_compilation,

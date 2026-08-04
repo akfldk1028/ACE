@@ -9,7 +9,7 @@ from design.maas.book_language import final_vlm_cycle, portfolio_benchmark
 
 def _candidate(
     *,
-    stage: str,
+    stage: str | None,
     operation: str,
     principle_kind: str | None = None,
 ):
@@ -22,12 +22,16 @@ def _candidate(
         ),
         operation=operation,
         sequence=SimpleNamespace(name=f"candidate-{stage}"),
-        source=SimpleNamespace(metadata={
-            "book_generation_lineage": {
-                "stage": stage,
-                "parent_key": "parent-1",
-            },
-        }),
+        source=SimpleNamespace(metadata=(
+            {
+                "book_generation_lineage": {
+                    "stage": stage,
+                    "parent_key": "parent-1",
+                },
+            }
+            if stage is not None
+            else {}
+        )),
         feature={"properties": {}},
         score=0.8,
     )
@@ -173,22 +177,83 @@ class FinalVlmDescendantRoutingTest(SimpleTestCase):
             "resp-final-1",
         )
 
-    def test_base_only_is_not_routed_and_records_no_call_reason(self):
+    def test_applied_base_stage_book_operation_routes_to_final_vlm(self):
         base = _candidate(stage="base", operation="book:operative:bend")
         report = {"rows": [{
             "combined_hard_pass": True,
             "semantic_projection_hard_gate": {"hard_pass": True},
         }]}
 
+        with patch.object(
+            portfolio_benchmark,
+            "_bind_final_visual_authority_for_review",
+        ):
+            routed = portfolio_benchmark._final_vlm_input_from_downstream(
+                [base],
+                report,
+            )
+
+        self.assertEqual(routed, [base])
+        self.assertEqual(
+            report["final_vlm_routing"]["base_only_excluded_count"],
+            0,
+        )
+        self.assertEqual(
+            report["final_vlm_routing"]["routed_book_descendant_count"],
+            1,
+        )
+
+    def test_raw_base_without_operation_remains_base_only(self):
+        raw_base = _candidate(stage="base", operation="")
+        report = {"rows": [{
+            "combined_hard_pass": True,
+            "semantic_projection_hard_gate": {"hard_pass": True},
+        }]}
+
         routed = portfolio_benchmark._final_vlm_input_from_downstream(
-            [base],
+            [raw_base],
             report,
         )
 
         self.assertEqual(routed, [])
         self.assertEqual(
-            report["final_vlm_routing"]["no_call_reason"],
-            "no_law_parking_structural_valid_book_descendants",
+            report["final_vlm_routing"]["base_only_excluded_count"],
+            1,
+        )
+        self.assertEqual(
+            report["final_vlm_routing"]["non_book_excluded_count"],
+            0,
+        )
+
+    def test_missing_lineage_and_non_book_operation_remain_non_book(self):
+        candidates = [
+            _candidate(stage=None, operation="book:operative:bend"),
+            _candidate(stage="combination", operation="legacy:shift"),
+        ]
+        report = {"rows": [
+            {
+                "combined_hard_pass": True,
+                "semantic_projection_hard_gate": {"hard_pass": True},
+            },
+            {
+                "combined_hard_pass": True,
+                "semantic_projection_hard_gate": {"hard_pass": True},
+            },
+        ]}
+
+        routed = portfolio_benchmark._final_vlm_input_from_downstream(
+            candidates,
+            report,
+        )
+
+        self.assertEqual(routed, [])
+        self.assertEqual(
+            report["final_vlm_routing"]["base_only_excluded_count"],
+            0,
+        )
+        self.assertEqual(
+            report["final_vlm_routing"]["non_book_excluded_count"],
+            2,
         )
 
     def test_critic_rejection_with_response_remains_unselected(self):

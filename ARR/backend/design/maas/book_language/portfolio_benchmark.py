@@ -1485,10 +1485,11 @@ def _final_vlm_input_from_downstream(
         combined_hard_pass_count += 1
         lineage = candidate.source.metadata.get("book_generation_lineage") or {}
         stage = str(lineage.get("stage") or "")
-        if stage == "base":
+        operation = str(candidate.operation or "").strip()
+        if stage == "base" and not operation:
             base_only_count += 1
             continue
-        if not stage or not str(candidate.operation or ""):
+        if not stage or not operation.startswith("book:"):
             non_book_count += 1
             continue
         _bind_final_visual_authority_for_review(

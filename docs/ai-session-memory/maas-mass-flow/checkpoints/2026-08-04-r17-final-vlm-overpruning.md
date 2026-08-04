@@ -113,3 +113,9 @@ Current remaining bottlenecks:
 Visible outputs:
 - selected board: docs/playwright/design-route-live-verify/book-program-portfolios-legal-archive-target5-r33/maas-book-neighborhood-5.png
 - legal archive board: docs/playwright/design-route-live-verify/book-program-portfolios-legal-archive-target5-r33/maas-book-neighborhood-0-legal-archive.png
+
+## r33 selector and replenishment diagnosis
+
+Typed applied-BOOK routing is fully recovered: 6/6 routed, zero typed exclusions. Final VLM provider verdict passed 2 candidates: base operative expand and combination expand+shift. The final selector retained expand and rejected expand+shift as silhouette_near_duplicate with certified-mesh-derived gestalt distance 0.0727 below 0.1. Both share the same llm_scale_courtyard chassis, so lowering the diversity threshold merely to count both is not the correct next move.
+
+The next supply bottleneck is replenishment control, not exact compile capacity. r33 retained 17/60 exact compiles, but only one replenishment cycle and one author_replenishment request were allowed. Its single bend+notch candidate failed whole_solid_affine_fit_infeasible, released no QD candidate, and produced no additional final VLM input. Next implementation should let target-deficit BOOK graph coverage consume bounded remaining author/exact budget until target is met or real provider/exact limits are exhausted; it must not lower silhouette diversity thresholds.

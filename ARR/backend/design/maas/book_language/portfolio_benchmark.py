@@ -279,6 +279,23 @@ def _shared_floor_hard_pass_candidates(candidates):
     return list(candidates)
 
 
+def _candidate_program_hard_pass(candidate) -> bool:
+    """Read only the canonical program authority and fail closed if absent."""
+
+    result = candidate.source.metadata.get("program_gate_result") or {}
+    return bool(isinstance(result, dict) and result.get("hard_pass") is True)
+
+
+def _program_selection_candidates(candidates):
+    """Exclude development-only BASE review inputs from selection/downstream."""
+
+    return [
+        candidate
+        for candidate in candidates
+        if _candidate_program_hard_pass(candidate)
+    ]
+
+
 def _smoke_pre_downstream_candidate_pass(candidate, row) -> bool:
     """Apply only MASS-owned gates before downstream legal/parking review."""
     return bool(row.get("inside_site") and row.get("program_hard_pass"))
@@ -391,8 +408,14 @@ def _deficit_directed_replenishment_inputs(
     progressive_target: int | None,
     base_book_vlm_replenishment_feedback: list[dict[str, Any]] | None = None,
     authored_visual_authority_replenishment_feedback: list[dict[str, Any]] | None = None,
+    selected_count: int,
+    selected_scope_count: int,
+    target_count: int,
+    required_scope_count: int,
     exact_compile_remaining: int | None = None,
     cycle_index: int = 1,
+    cycle_budget: int = 1,
+    author_replenishment_remaining: int | None = None,
 ) -> dict[str, Any]:
     bounded_legal = deepcopy(list(legal_fit_repair_feedback)[-12:])
     bounded_capacity_source = deepcopy(list(capacity_authoring_deficits)[-12:])
@@ -444,9 +467,53 @@ def _deficit_directed_replenishment_inputs(
         if valid_requests
         else []
     )
-    requests = [
-        {
+    compile_remaining = exact_compile_remaining
+    if compile_remaining is None and progressive_target is not None:
+        compile_remaining = progressive_mass_run_budget(
+            progressive_target
+        ).compile_limit
+    remaining_exact = max(0, int(compile_remaining or 0))
+    remaining_cycle_opportunities = max(
+        1,
+        int(cycle_budget) - max(1, int(cycle_index)) + 1,
+    )
+    author_opportunities = (
+        remaining_cycle_opportunities
+        if author_replenishment_remaining is None
+        else max(1, int(author_replenishment_remaining))
+    )
+    viable_cycles = max(1, min(
+        remaining_cycle_opportunities,
+        author_opportunities,
+        max(1, remaining_exact),
+    ))
+    cycle_exact_limit = (
+        (remaining_exact + viable_cycles - 1) // viable_cycles
+        if remaining_exact > 0
+        else 0
+    )
+    candidate_demand = max(
+        0,
+        int(target_count) - int(selected_count),
+        int(required_scope_count) - int(selected_scope_count),
+    )
+
+    def cycle_request(request: dict[str, Any]) -> dict[str, Any]:
+        original_counts = [
+            max(0, int(request.get(name) or 0))
+            for name in ("candidate_count", "llm_author_count")
+            if int(request.get(name) or 0) > 0
+        ]
+        original_count = min(original_counts) if original_counts else 8
+        effective_count = min(
+            original_count,
+            candidate_demand,
+            cycle_exact_limit,
+        )
+        return {
             **dict(request),
+            "candidate_count": effective_count,
+            "llm_author_count": effective_count,
             "legal_fit_repair_feedback": bounded_legal,
             "capacity_authoring_deficits": bounded_capacity,
             "family_supply_deficits": bounded_family,
@@ -463,16 +530,10 @@ def _deficit_directed_replenishment_inputs(
                 "from rejected parents; " + capacity_authoring_instruction
             ).strip("; "),
         }
-        for request in selected_requests
-    ]
-    compile_limit = exact_compile_remaining
-    if compile_limit is None and progressive_target is not None:
-        compile_limit = progressive_mass_run_budget(
-            progressive_target
-        ).compile_limit
+    requests = [cycle_request(request) for request in selected_requests]
     return {
         "synthesis_requests": requests,
-        "exact_compile_limit": compile_limit,
+        "exact_compile_limit": cycle_exact_limit,
     }
 
 
@@ -2358,6 +2419,18 @@ def run_book_program_portfolios(
                 ),
                 "input_count": len(pool),
             }
+        program_selection_input_count = len(downstream_evaluation_pool)
+        downstream_evaluation_pool = _program_selection_candidates(
+            downstream_evaluation_pool
+        )
+        counts["program_selection_routing"] = {
+            "schema_version": "arr.maas.program_selection_routing.v1",
+            "input_count": program_selection_input_count,
+            "canonical_hard_pass_count": len(downstream_evaluation_pool),
+            "development_only_excluded_count": (
+                program_selection_input_count - len(downstream_evaluation_pool)
+            ),
+        }
         preselection_hard_gate = None
         selection_pool = downstream_evaluation_pool
         if generation_context is not None:
@@ -2710,12 +2783,14 @@ def run_book_program_portfolios(
                 author_replenishment_remaining = (
                     provider_snapshot.get("quota_remaining_counts") or {}
                 ).get("author_replenishment")
+                selected_count = len(selected)
+                selected_scope_count = len({
+                    _scope_key(candidate) for candidate in selected
+                })
                 preflight_stop_reason = (
                     _replenishment_cycle_preflight_stop_reason(
-                        selected_count=len(selected),
-                        selected_scope_count=len({
-                            _scope_key(candidate) for candidate in selected
-                        }),
+                        selected_count=selected_count,
+                        selected_scope_count=selected_scope_count,
                         target_count=selection_target,
                         required_scope_count=required_scope_target,
                         exact_compile_remaining=exact_compile_remaining,
@@ -2766,8 +2841,18 @@ def run_book_program_portfolios(
                     authored_visual_authority_replenishment_feedback=(
                         authored_visual_authority_replenishment_feedback
                     ),
+                    selected_count=selected_count,
+                    selected_scope_count=selected_scope_count,
+                    target_count=selection_target,
+                    required_scope_count=required_scope_target,
                     exact_compile_remaining=exact_compile_remaining,
                     cycle_index=cycle_index,
+                    cycle_budget=cycle_budget,
+                    author_replenishment_remaining=(
+                        int(author_replenishment_remaining)
+                        if author_replenishment_remaining is not None
+                        else None
+                    ),
                 )
                 cycle_synthesis_requests = replenishment_inputs[
                     "synthesis_requests"
@@ -3137,7 +3222,7 @@ def run_book_program_portfolios(
                 "legal_generation_context_evidence": deepcopy(
                     candidate.source.metadata.get("legal_generation_context_evidence") or {}
                 ),
-                "program_hard_pass": bool(props["program_massing_evidence"]["hard_pass"]),
+                "program_hard_pass": _candidate_program_hard_pass(candidate),
                 "vlm_geometry_critic_active": bool(
                     _geometry_program_metadata(candidate).get("vlm_geometry_critic_active")
                 ),
@@ -3273,8 +3358,10 @@ def run_book_program_portfolios(
             )
             hard_gates = {
                 "program": {
-                    "hard_pass": bool(props.get("program_massing_evidence", {}).get("hard_pass")),
-                    "evidence": deepcopy(props.get("program_massing_evidence") or {}),
+                    "hard_pass": _candidate_program_hard_pass(candidate),
+                    "evidence": deepcopy(
+                        candidate.source.metadata.get("program_gate_result") or {}
+                    ),
                 },
                 "cleanMass": {
                     "hard_pass": True,

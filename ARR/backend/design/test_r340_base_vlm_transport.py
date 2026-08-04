@@ -1,10 +1,12 @@
 """r340 regressions for exact-shortlist base lineage transport."""
 
 from dataclasses import replace
+from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
 
 from design.maas.book_language import candidate_generation
+from design.maas.book_language import portfolio_benchmark
 from design.maas.book_language import quality_diversity_archive
 from design.maas.book_language import vlm_review
 from design.maas.book_language.legal_mass_archive import LegalMassArchive
@@ -48,7 +50,7 @@ class R340BaseVlmTransportTests(TestCase):
             }),
         )
 
-    def test_archived_legal_mass_survives_design_quality_failures_for_base_vlm(self):
+    def test_archived_program_failure_is_development_only_for_base_vlm(self):
         source = legal_archive_tests.LegalMassArchiveTests()._generation_source()
         archive = LegalMassArchive()
         archived_record = candidate_generation._admit_legal_mass_candidate(
@@ -57,9 +59,7 @@ class R340BaseVlmTransportTests(TestCase):
             compiler_clean_passed=True,
             site_containment_passed=True,
         )
-
-        authority = candidate_generation._program_review_authority(
-            archived_record=archived_record,
+        program_gate_result = candidate_generation._program_gate_result(
             program_evidence={"hard_pass": False},
             program_form_gate={
                 "hard_pass": False,
@@ -73,6 +73,10 @@ class R340BaseVlmTransportTests(TestCase):
                 "coherence": False,
                 "program_form": False,
             },
+        )
+        authority = candidate_generation._program_review_authority(
+            archived_record=archived_record,
+            program_gate_result=program_gate_result,
             coherence_evidence={
                 "hard_pass": False,
                 "failure_reasons": ["over_tortuous_mass_outline"],
@@ -81,12 +85,24 @@ class R340BaseVlmTransportTests(TestCase):
         )
 
         self.assertIsNotNone(archived_record)
-        self.assertTrue(authority["hard_pass"])
+        self.assertFalse(program_gate_result["hard_pass"])
+        self.assertEqual(
+            program_gate_result["failed_gates"],
+            (
+                "site_coverage",
+                "hierarchy",
+                "coherence",
+                "program_form",
+            ),
+        )
+        self.assertFalse(authority["hard_pass"])
+        self.assertFalse(authority["selection_eligible"])
+        self.assertTrue(authority["development_review_eligible"])
         self.assertTrue(authority["legal_archive_authority"])
-        self.assertFalse(authority["design_quality_hard_gate"])
+        self.assertTrue(authority["design_quality_hard_gate"])
         self.assertEqual(
             authority["release_authority"],
-            "independently_certified_legal_mass_archive",
+            "developmental_base_vlm_only",
         )
         self.assertTrue(authority["typed_revision_signal"]["active"])
         self.assertIn("site_coverage", authority["failed_design_gates"])
@@ -115,15 +131,92 @@ class R340BaseVlmTransportTests(TestCase):
                 )
                 authority = candidate_generation._program_review_authority(
                     archived_record=archived_record,
-                    program_evidence={"hard_pass": False},
-                    program_form_gate={"hard_pass": False, "failures": []},
-                    gate_pass={"site_coverage": False, "coherence": False},
+                    program_gate_result=candidate_generation._program_gate_result(
+                        program_evidence={"hard_pass": False},
+                        program_form_gate={"hard_pass": False, "failures": []},
+                        gate_pass={"site_coverage": False, "coherence": False},
+                    ),
                     coherence_evidence={"hard_pass": False},
                 )
 
                 self.assertIsNone(archived_record)
                 self.assertFalse(authority["hard_pass"])
+                self.assertFalse(authority["selection_eligible"])
+                self.assertFalse(authority["development_review_eligible"])
                 self.assertEqual(authority["release_authority"], "none")
+
+    def test_development_only_base_cannot_register_selection_lineage(self):
+        source = legal_archive_tests.LegalMassArchiveTests()._generation_source()
+        metadata = dict(source.metadata)
+        metadata.update({
+            "book_generation_lineage": {
+                "stage": "base",
+                "parent_key": "parent:development-only",
+            },
+            "program_gate_result": {
+                "schema_version": "arr.maas.program_gate_result.v1",
+                "hard_pass": False,
+                "failed_gates": ("coherence", "site_coverage"),
+            },
+            "program_review_authority": {
+                "legal_archive_authority": True,
+                "selection_eligible": False,
+                "development_review_eligible": True,
+            },
+            "base_book_vlm_audit": {
+                "response_id": "resp_development_only",
+                "review_stage": "book_base_operative",
+                "reviewed_exact_post_book_geometry": True,
+                "descendant_development_hard_pass": True,
+            },
+        })
+        candidate = SimpleNamespace(source=SimpleNamespace(metadata=metadata))
+
+        registry = candidate_generation._reviewed_archived_base_registry([candidate])
+
+        self.assertEqual(registry, {})
+
+    def test_downstream_uses_canonical_program_gate_result(self):
+        source = legal_archive_tests.LegalMassArchiveTests()._generation_source()
+        metadata = dict(source.metadata)
+        metadata["program_gate_result"] = {
+            "schema_version": "arr.maas.program_gate_result.v1",
+            "hard_pass": False,
+            "failed_gates": ("coherence",),
+        }
+        candidate = SimpleNamespace(
+            source=SimpleNamespace(metadata=metadata),
+            feature={
+                "properties": {
+                    "program_massing_evidence": {"hard_pass": True},
+                },
+            },
+        )
+
+        self.assertFalse(portfolio_benchmark._candidate_program_hard_pass(candidate))
+
+    def test_post_base_selection_pool_excludes_development_only_candidates(self):
+        development_candidate = SimpleNamespace(source=SimpleNamespace(metadata={
+            "program_gate_result": {
+                "schema_version": "arr.maas.program_gate_result.v1",
+                "hard_pass": False,
+                "failed_gates": ("site_coverage",),
+            },
+        }))
+        passing_candidate = SimpleNamespace(source=SimpleNamespace(metadata={
+            "program_gate_result": {
+                "schema_version": "arr.maas.program_gate_result.v1",
+                "hard_pass": True,
+                "failed_gates": (),
+            },
+        }))
+
+        routed = portfolio_benchmark._program_selection_candidates([
+            development_candidate,
+            passing_candidate,
+        ])
+
+        self.assertEqual(routed, [passing_candidate])
 
     def test_exact_shortlist_does_not_duplicate_selected_base(self):
         base, descendant = self._principles()

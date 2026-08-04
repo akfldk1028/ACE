@@ -381,15 +381,13 @@ def _record_capacity_projection_diagnostics(
     }
 
 
-def _program_review_authority(
+def _program_gate_result(
     *,
-    archived_record: dict[str, Any] | None,
     program_evidence: dict[str, Any] | None,
     program_form_gate: dict[str, Any] | None,
     gate_pass: dict[str, bool] | None,
-    coherence_evidence: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    """Keep legal MASS reviewable while preserving design-quality evidence."""
+    """Return the single program authority consumed by every later stage."""
 
     program_evidence = (
         program_evidence if isinstance(program_evidence, dict) else {}
@@ -398,28 +396,56 @@ def _program_review_authority(
         program_form_gate if isinstance(program_form_gate, dict) else {}
     )
     gate_pass = gate_pass if isinstance(gate_pass, dict) else {}
+    return {
+        "schema_version": "arr.maas.program_gate_result.v1",
+        "hard_pass": bool(
+            program_evidence.get("hard_pass") is True
+            and program_form_gate.get("hard_pass") is True
+        ),
+        "failed_gates": tuple(
+            str(name) for name, passed in gate_pass.items() if not passed
+        ),
+        "gate_pass": dict(gate_pass),
+        "program_evidence": deepcopy(program_evidence),
+        "program_form_gate": deepcopy(program_form_gate),
+    }
+
+
+def _program_review_authority(
+    *,
+    archived_record: dict[str, Any] | None,
+    program_gate_result: dict[str, Any] | None,
+    coherence_evidence: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Keep legal MASS reviewable while preserving design-quality evidence."""
+
+    program_gate_result = (
+        program_gate_result if isinstance(program_gate_result, dict) else {}
+    )
     coherence_evidence = (
         coherence_evidence if isinstance(coherence_evidence, dict) else {}
     )
-    failed_design_gates = tuple(
-        str(name) for name, passed in gate_pass.items() if not passed
-    )
-    design_pass = bool(program_evidence.get("hard_pass")) and bool(
-        program_form_gate.get("hard_pass")
-    )
+    failed_design_gates = tuple(program_gate_result.get("failed_gates") or ())
+    program_form_gate = program_gate_result.get("program_form_gate") or {}
+    design_pass = program_gate_result.get("hard_pass") is True
     archive_authority = isinstance(archived_record, dict)
+    development_review_eligible = bool(archive_authority and not design_pass)
     return {
         "schema_version": "arr.maas.program_review_authority.v1",
-        "hard_pass": bool(archive_authority or design_pass),
+        "hard_pass": design_pass,
+        "selection_eligible": design_pass,
+        "development_review_eligible": development_review_eligible,
         "release_authority": (
-            "independently_certified_legal_mass_archive"
-            if archive_authority
-            else "legacy_program_design_gate"
+            "canonical_program_gate"
             if design_pass
-            else "none"
+            else (
+                "developmental_base_vlm_only"
+                if development_review_eligible
+                else "none"
+            )
         ),
         "legal_archive_authority": archive_authority,
-        "design_quality_hard_gate": False,
+        "design_quality_hard_gate": True,
         "design_quality_pass": design_pass,
         "failed_design_gates": list(failed_design_gates),
         "program_form_failures": list(
@@ -427,9 +453,9 @@ def _program_review_authority(
         ),
         "coherence_evidence": deepcopy(coherence_evidence),
         "typed_revision_signal": {
-            "active": bool(archive_authority and not design_pass),
+            "active": development_review_eligible,
             "hard_gate": False,
-            "route": "base_vlm_then_typed_revision_or_selection",
+            "route": "base_vlm_then_typed_revision",
             "reasons": list(failed_design_gates) + list(
                 program_form_gate.get("failures") or ()
             ),
@@ -4742,17 +4768,23 @@ def _program_pool_single_phase(
                     "coherence": bool((feature["properties"].get("source_signature", {}).get("coherence_evidence") or {}).get("hard_pass", False)),
                     "program_form": bool(program_form_gate["hard_pass"]),
                 }
-                failed_gates = tuple(name for name in gate_names if not gate_pass[name])
-                combined_program_hard_pass = bool(program["hard_pass"]) and bool(program_form_gate["hard_pass"])
+                program_gate_result = _program_gate_result(
+                    program_evidence=program,
+                    program_form_gate=program_form_gate,
+                    gate_pass=gate_pass,
+                )
+                failed_gates = tuple(program_gate_result["failed_gates"])
+                combined_program_hard_pass = bool(program_gate_result["hard_pass"])
                 coherence_evidence = (
                     feature["properties"].get("source_signature", {}).get("coherence_evidence") or {}
                 )
                 program_review_authority = _program_review_authority(
                     archived_record=archived_record,
-                    program_evidence=program,
-                    program_form_gate=program_form_gate,
-                    gate_pass=gate_pass,
+                    program_gate_result=program_gate_result,
                     coherence_evidence=coherence_evidence,
+                )
+                feature["properties"]["program_gate_result"] = deepcopy(
+                    program_gate_result
                 )
                 feature["properties"]["program_review_authority"] = deepcopy(
                     program_review_authority
@@ -4761,6 +4793,7 @@ def _program_pool_single_phase(
                     source,
                     metadata={
                         **source.metadata,
+                        "program_gate_result": deepcopy(program_gate_result),
                         "program_review_authority": deepcopy(
                             program_review_authority
                         ),
@@ -4798,7 +4831,10 @@ def _program_pool_single_phase(
                             program_hard_pass=combined_program_hard_pass,
                             program_evidence=program,
                         )
-                if not program_review_authority["hard_pass"]:
+                if not (
+                    program_review_authority["selection_eligible"]
+                    or program_review_authority["development_review_eligible"]
+                ):
                     if llm_authored_seed:
                         llm_authored_failure_counts.update(f"program_{name}" for name in failed_gates)
                         logger.info(
@@ -4809,15 +4845,21 @@ def _program_pool_single_phase(
                             deepcopy(program_form_gate),
                         )
                     continue
-                program_passed += 1
-                scope_counts["program_passed"] += 1
-                capacity_stage_counts[
-                    f"alternative:{capacity_alternative['alternative_id']}:program_passed"
-                ] += 1
-                if geometry_stages is not None:
-                    geometry_stages["program_hard_passed"] += 1
-                if llm_authored_seed:
-                    llm_authored_stage_counts["program_hard_passed"] += 1
+                if program_review_authority["selection_eligible"]:
+                    program_passed += 1
+                    scope_counts["program_passed"] += 1
+                    capacity_stage_counts[
+                        f"alternative:{capacity_alternative['alternative_id']}:program_passed"
+                    ] += 1
+                    if geometry_stages is not None:
+                        geometry_stages["program_hard_passed"] += 1
+                    if llm_authored_seed:
+                        llm_authored_stage_counts["program_hard_passed"] += 1
+                else:
+                    scope_counts["program_development_review_eligible"] += 1
+                    capacity_stage_counts[
+                        "program_development_review_eligible"
+                    ] += 1
                 if capacity_measurement:
                     capacity_projection = (
                         source.metadata.get("capacity_alternative_projection")
@@ -5173,8 +5215,16 @@ def _program_pool_single_phase(
         **materialization_diagnostics.metadata(legal_fit_deficits),
         "capacity_stage_counts": dict(sorted(capacity_stage_counts.items())),
         "book_lineage_gate": lineage_gate,
-        "program_passed_by_seed_family": dict(sorted(Counter(_seed_family(candidate) for candidate in accepted).items())),
-        "program_passed_by_section_family": dict(sorted(Counter(_section_family(candidate) for candidate in accepted).items())),
+        "program_passed_by_seed_family": dict(sorted(Counter(
+            _seed_family(candidate)
+            for candidate in accepted
+            if (candidate.source.metadata.get("program_gate_result") or {}).get("hard_pass") is True
+        ).items())),
+        "program_passed_by_section_family": dict(sorted(Counter(
+            _section_family(candidate)
+            for candidate in accepted
+            if (candidate.source.metadata.get("program_gate_result") or {}).get("hard_pass") is True
+        ).items())),
         "scope_stage_counts": scope_stage_counts,
         "program_gate_diagnostics_by_scope": summarized_gate_diagnostics,
         "program_gate_diagnostics_by_recursive_geometry_family": {
@@ -5196,6 +5246,7 @@ def _reviewed_archived_base_registry(
         metadata = candidate.source.metadata
         lineage = metadata.get("book_generation_lineage") or {}
         authority = metadata.get("program_review_authority") or {}
+        program_gate_result = metadata.get("program_gate_result") or {}
         audit = metadata.get("base_book_vlm_audit") or {}
         parent_key = str(lineage.get("parent_key") or "")
         final_hash = str(metadata.get("final_geometry_hash") or "")
@@ -5210,6 +5261,9 @@ def _reviewed_archived_base_registry(
             str(lineage.get("stage") or "") == "base"
             and isinstance(authority, dict)
             and authority.get("legal_archive_authority") is True
+            and isinstance(program_gate_result, dict)
+            and program_gate_result.get("hard_pass") is True
+            and authority.get("selection_eligible") is True
             and isinstance(audit, dict)
             and str(audit.get("response_id") or "")
             and str(audit.get("review_stage") or "") == "book_base_operative"

@@ -510,6 +510,7 @@ def _archived_exact_surface_geometry_hash(candidate: _Candidate) -> str:
 
     metadata = candidate.source.metadata
     review_authority = metadata.get("program_review_authority") or {}
+    program_gate_result = metadata.get("program_gate_result") or {}
     certificate = metadata.get("authored_legal_projection_certificate") or {}
     geometry_hash = str(metadata.get("final_geometry_hash") or "")
     surface_payload_hash = str(
@@ -518,6 +519,17 @@ def _archived_exact_surface_geometry_hash(candidate: _Candidate) -> str:
     if not (
         isinstance(review_authority, dict)
         and review_authority.get("legal_archive_authority") is True
+        and isinstance(program_gate_result, dict)
+        and (
+            (
+                program_gate_result.get("hard_pass") is True
+                and review_authority.get("selection_eligible") is True
+            )
+            or (
+                program_gate_result.get("hard_pass") is False
+                and review_authority.get("development_review_eligible") is True
+            )
+        )
         and isinstance(certificate, dict)
         and certificate.get("status") == "verified"
         and certificate.get("hard_pass") is True

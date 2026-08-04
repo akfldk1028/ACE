@@ -82,7 +82,13 @@ class DynamicReplenishmentBudgetTests(SimpleTestCase):
                 family_supply_deficits={},
                 progressive_target=5,
                 cycle_index=cycle_index,
+                cycle_budget=5,
                 exact_compile_remaining=17,
+                author_replenishment_remaining=5,
+                selected_count=1,
+                selected_scope_count=1,
+                target_count=5,
+                required_scope_count=5,
             )
             self.assertEqual(len(result["synthesis_requests"]), 1)
             selected_seeds.append(
@@ -93,6 +99,98 @@ class DynamicReplenishmentBudgetTests(SimpleTestCase):
             selected_seeds,
             ["seed-a", "seed-b", "seed-c", "seed-a"],
         )
+
+    def test_cycle_batch_is_bounded_by_target_deficit_and_fair_exact_share(self):
+        book_graph_context = {
+            "schema_version": "arr.maas.book_graph_supply.v1",
+            "hard_gate_effect": "none_diagnostic_only",
+            "principle_id_counts": {"base-01": 1},
+        }
+        family_feedback = {"missing_chassis": ["split_wing"]}
+        result = portfolio_benchmark._deficit_directed_replenishment_inputs(
+            [{
+                "source_seed": "seed-b",
+                "candidate_count": 24,
+                "llm_author_count": 24,
+                "llm_author_batch_index": 1,
+                "llm_author_batch_count": 3,
+                "llm_author_variation_offset": 24,
+                "book_graph_supply": book_graph_context,
+                "book_graph_vocabulary": {"principles": ["base-01", "comb-01"]},
+                "instruction": "retain canonical program authority",
+            }],
+            legal_fit_repair_feedback=[{"failure": "legal"}],
+            capacity_authoring_deficits=[{"gfa_deficit_m2": 12.0}],
+            family_supply_deficits=family_feedback,
+            progressive_target=5,
+            selected_count=1,
+            selected_scope_count=1,
+            target_count=5,
+            required_scope_count=5,
+            cycle_index=2,
+            cycle_budget=5,
+            exact_compile_remaining=17,
+            author_replenishment_remaining=4,
+        )
+
+        self.assertEqual(result["exact_compile_limit"], 5)
+        self.assertEqual(len(result["synthesis_requests"]), 1)
+        request = result["synthesis_requests"][0]
+        self.assertEqual(request["candidate_count"], 4)
+        self.assertEqual(request["llm_author_count"], 4)
+        self.assertEqual(request["llm_author_batch_index"], 1)
+        self.assertEqual(request["llm_author_batch_count"], 3)
+        self.assertEqual(request["llm_author_variation_offset"], 24)
+        self.assertEqual(request["book_graph_supply"], book_graph_context)
+        self.assertEqual(
+            request["book_graph_vocabulary"],
+            {"principles": ["base-01", "comb-01"]},
+        )
+        self.assertEqual(request["family_supply_deficits"], family_feedback)
+        self.assertIn("retain canonical program authority", request["instruction"])
+        self.assertEqual(request["legal_fit_repair_feedback"], [{"failure": "legal"}])
+
+    def test_scope_deficit_drives_batch_when_count_target_is_met(self):
+        result = portfolio_benchmark._deficit_directed_replenishment_inputs(
+            [{"candidate_count": 24, "llm_author_count": 24}],
+            legal_fit_repair_feedback=[],
+            capacity_authoring_deficits=[],
+            family_supply_deficits={},
+            progressive_target=5,
+            selected_count=5,
+            selected_scope_count=2,
+            target_count=5,
+            required_scope_count=5,
+            cycle_index=1,
+            cycle_budget=3,
+            exact_compile_remaining=9,
+            author_replenishment_remaining=3,
+        )
+
+        self.assertEqual(result["exact_compile_limit"], 3)
+        self.assertEqual(result["synthesis_requests"][0]["candidate_count"], 3)
+        self.assertEqual(result["synthesis_requests"][0]["llm_author_count"], 3)
+
+    def test_last_viable_cycle_may_use_exact_remainder_but_batch_stays_demand_bounded(self):
+        result = portfolio_benchmark._deficit_directed_replenishment_inputs(
+            [{"candidate_count": 24, "llm_author_count": 24}],
+            legal_fit_repair_feedback=[],
+            capacity_authoring_deficits=[],
+            family_supply_deficits={},
+            progressive_target=5,
+            selected_count=1,
+            selected_scope_count=1,
+            target_count=5,
+            required_scope_count=5,
+            cycle_index=5,
+            cycle_budget=5,
+            exact_compile_remaining=17,
+            author_replenishment_remaining=1,
+        )
+
+        self.assertEqual(result["exact_compile_limit"], 17)
+        self.assertEqual(result["synthesis_requests"][0]["candidate_count"], 4)
+        self.assertEqual(result["synthesis_requests"][0]["llm_author_count"], 4)
 
     def test_cycle_preflight_rechecks_target_exact_author_and_runtime(self):
         preflight = getattr(

@@ -161,6 +161,13 @@ class CertifiedMassArtifact:
                 or certificate.get("section_geometry_binding_hash")
                 or ""
             ),
+            "expected_normalized_source_surface_payload_hash": str(
+                metadata.get("final_surface_payload_hash")
+                or certificate.get(
+                    "normalized_source_surface_payload_hash"
+                )
+                or ""
+            ),
         }
         return cls.load(payload, authority_context=authority_context)
 
@@ -193,6 +200,12 @@ class CertifiedMassArtifact:
             ),
             expected_section_geometry_binding_hash=str(
                 context.get("expected_section_geometry_binding_hash") or ""
+            ),
+            expected_normalized_source_surface_payload_hash=str(
+                context.get(
+                    "expected_normalized_source_surface_payload_hash"
+                )
+                or ""
             ),
         )
         if validated is None:
@@ -560,6 +573,12 @@ def _serialize_final_authored_surface_authority(
             external_audit.get("audited_context_hash") or ""
         ),
         "semantic_audit_payload_hash": semantic_audit_payload_hash,
+        "section_geometry_binding_hash": str(
+            metadata.get(
+                "profiled_legal_section_authority_binding_hash"
+            )
+            or ""
+        ),
         "source_footprint_centroid_utm": [
             float(origin.x),
             float(origin.y),
@@ -652,6 +671,7 @@ def _validate_projected_visual_artifact_payload(
     expected_semantic_projection_hash: str = "",
     expected_semantic_audit_payload_hash: str = "",
     expected_section_geometry_binding_hash: str = "",
+    expected_normalized_source_surface_payload_hash: str = "",
 ) -> ValidatedProjectedVisual | None:
     """Validate and hydrate one complete binding; only true legacy returns None.
 
@@ -855,18 +875,44 @@ def _validate_projected_visual_artifact_payload(
             and set(audit.get("failures") or ())
             == {"capacity_measurement_hash_mismatch"}
         )
+        normalized_source_identity_valid = bool(
+            (
+                expected_normalized_source_surface_payload_hash
+                and str(
+                    certificate.get(
+                        "normalized_source_surface_payload_hash"
+                    )
+                    or ""
+                )
+                == expected_normalized_source_surface_payload_hash
+                and str(
+                    artifact.get("normalizedSourceSurfacePayloadHash")
+                    or ""
+                )
+                == expected_normalized_source_surface_payload_hash
+            )
+            or (
+                not expected_normalized_source_surface_payload_hash
+                and actual_normalized_source_hash
+                == str(
+                    certificate.get(
+                        "normalized_source_surface_payload_hash"
+                    )
+                    or ""
+                )
+                and actual_normalized_source_hash
+                == str(
+                    artifact.get("normalizedSourceSurfacePayloadHash")
+                    or ""
+                )
+            )
+        )
         if (
             actual_final_geometry_hash
             != str(certificate.get("final_geometry_hash") or "")
             or actual_surface_hash
             != str(certificate.get("final_surface_payload_hash") or "")
-            or actual_normalized_source_hash
-            != str(
-                certificate.get("normalized_source_surface_payload_hash")
-                or ""
-            )
-            or actual_normalized_source_hash
-            != str(artifact.get("normalizedSourceSurfacePayloadHash") or "")
+            or not normalized_source_identity_valid
             or audit.get("schema_version")
             != "arr.maas.final_semantic_projection_audit.v1"
             or (

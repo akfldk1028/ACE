@@ -23,13 +23,17 @@ from design.maas.source_geometry.ir import SourceSurface
 
 
 class ProjectedVisualCapacityProvenanceTest(SimpleTestCase):
-    def _fixture(self):
+    def _fixture(self, *, peak_z=1.0):
         surface = SourceSurface(
             role="final_surface",
             volume_role="main",
             verb="geometry_program",
             surface_type="profiled_recursive_solid_mesh",
-            vertices_m=((0.0, 0.0, 0.0), (2.0, 0.0, 0.0), (0.0, 2.0, 1.0)),
+            vertices_m=(
+                (0.0, 0.0, 0.0),
+                (2.0, 0.0, 0.0),
+                (0.0, 2.0, peak_z),
+            ),
             operator="union",
             semantic_patch_id="final:0",
         )
@@ -203,6 +207,41 @@ class ProjectedVisualCapacityProvenanceTest(SimpleTestCase):
                 tampered,
                 authority_context=binding["final_semantic_anchor"],
             )
+
+    def test_final_vlm_issue_binds_source_section_authority_context(self):
+        from design.maas.book_language.vlm_review import (
+            _bind_final_visual_authority_for_review,
+        )
+
+        source, audit = self._fixture(peak_z=0.235)
+        source.metadata[
+            "profiled_legal_section_authority_binding_hash"
+        ] = "section-binding-hash"
+        candidate = SimpleNamespace(
+            source=source,
+            feature={"type": "Feature", "properties": {}},
+        )
+
+        with patch(
+            "design.maas.program_massing.semantic_carriers."
+            "audit_source_semantic_projection",
+            side_effect=self._semantic_audit,
+        ):
+            _bind_final_visual_authority_for_review(candidate, audit)
+
+        certificate = candidate.feature["properties"][
+            "geometry_artifact"
+        ]["projectedVisualCertificate"]
+        self.assertEqual(
+            certificate["section_geometry_binding_hash"],
+            "section-binding-hash",
+        )
+        self.assertEqual(
+            candidate.feature["properties"]["final_semantic_anchor"][
+                "expected_section_geometry_binding_hash"
+            ],
+            "section-binding-hash",
+        )
 
     def test_final_consumers_share_core_and_ignore_stale_source_certificate(self):
         from design.maas.book_language import portfolio_benchmark

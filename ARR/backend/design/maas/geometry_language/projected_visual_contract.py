@@ -26,11 +26,14 @@ from .profiled_mesh_numeric_repair import (
 
 
 MESH_SCHEMA = "arr.maas.projected_visual_mesh.v1"
+FINAL_MESH_SCHEMA = "arr.maas.projected_visual_mesh.v2"
 CERTIFICATE_SCHEMA = "arr.maas.floorwise_visual_projection.v1"
+FINAL_CERTIFICATE_SCHEMA = "arr.maas.floorwise_visual_projection.v2"
 COORDINATE_SPACE = "capacity_source_centroid_local_xy_normalized_z"
-AUTHORED_COORDINATE_SPACE = (
+NORMALIZED_AUTHORED_COORDINATE_SPACE = (
     "source_footprint_centroid_local_xy_normalized_z"
 )
+AUTHORED_COORDINATE_SPACE = "source_footprint_centroid_local_xyz_m"
 FINAL_AUTHORITY_CERTIFICATION_MODE = (
     "authored_projected_surface_authority"
 )
@@ -321,7 +324,8 @@ def _serialize_final_authored_surface_authority(
     audited_capacity_hash = identity["audited_capacity_hash"]
     current_capacity_hash = identity["current_capacity_hash"]
 
-    triangles = [_surface_triangle_record(surface) for surface in surfaces]
+    metric_payload = canonical_metric_surface_payload(source)
+    triangles = metric_payload["triangles"]
     if not triangles:
         raise ValueError(
             "authored projected surface authority identity audit failed: "
@@ -329,6 +333,15 @@ def _serialize_final_authored_surface_authority(
         )
     payload_hash = exact_triangle_payload_hash(triangles)
     visual_hash = _task1_visual_hash(triangles)
+    physical_surface_hash = str(metric_payload["surface_payload_hash"])
+    if (
+        str(metric_payload["normalized_source_surface_payload_hash"])
+        != actual_surface_hash
+    ):
+        raise ValueError(
+            "authored projected surface authority identity audit failed: "
+            "normalized_source_surface_payload_hash_mismatch"
+        )
     semantic_audit_payload_hash = _canonical_payload_hash(
         external_audit
     )
@@ -340,17 +353,22 @@ def _serialize_final_authored_surface_authority(
             "source_origin_missing"
         )
     certificate = {
-        "schema_version": CERTIFICATE_SCHEMA,
+        "schema_version": FINAL_CERTIFICATE_SCHEMA,
         "status": "certified",
         "hard_pass": True,
         "certification_mode": FINAL_AUTHORITY_CERTIFICATION_MODE,
         "visual_hash": visual_hash,
         "projected_surface_count": len(triangles),
         "projected_surface_coordinate_frame": AUTHORED_COORDINATE_SPACE,
+        "source_surface_coordinate_frame": (
+            NORMALIZED_AUTHORED_COORDINATE_SPACE
+        ),
+        "physical_height_m": metric_payload["physical_height_m"],
+        "normalized_source_surface_payload_hash": actual_surface_hash,
         "exact_surface_payload_hash": payload_hash,
         "final_program_hash": final_program_hash,
         "final_geometry_hash": final_geometry_hash,
-        "final_surface_payload_hash": actual_surface_hash,
+        "final_surface_payload_hash": physical_surface_hash,
         "semantic_projection_hash": authority_semantic_hash,
         "semantic_projection_audit_hard_pass": True,
         "semantic_audit_context_hash": str(
@@ -366,7 +384,7 @@ def _serialize_final_authored_surface_authority(
         "authority": PROJECTED_AUTHORITY,
         "geometryProgramRole": CAPACITY_PROGRAM_ROLE,
         "projectedVisualMesh": {
-            "schemaVersion": MESH_SCHEMA,
+            "schemaVersion": FINAL_MESH_SCHEMA,
             "coordinateSpace": AUTHORED_COORDINATE_SPACE,
             "triangles": triangles,
             "vertexCount": len(triangles) * 3,
@@ -376,7 +394,8 @@ def _serialize_final_authored_surface_authority(
         "projectedVisualGeometryHash": visual_hash,
         "projectedVisualPayloadHash": payload_hash,
         "finalLegalGeometryHash": final_geometry_hash,
-        "finalSurfacePayloadHash": actual_surface_hash,
+        "finalSurfacePayloadHash": physical_surface_hash,
+        "normalizedSourceSurfacePayloadHash": actual_surface_hash,
         "semanticProjectionHash": authority_semantic_hash,
         "semanticProjectionAudit": deepcopy(external_audit),
         "semanticProjectionAuditPayloadHash": (
@@ -483,7 +502,7 @@ def validate_projected_visual_artifact(
     ):
         raise ValueError("invalid projected visual certificate identity")
     if (
-        mesh.get("schemaVersion") != MESH_SCHEMA
+        mesh.get("schemaVersion") != _mesh_schema(certificate)
         or mesh.get("coordinateSpace")
         != _certificate_coordinate_space(certificate)
         or certificate.get("projected_surface_coordinate_frame")
@@ -526,19 +545,24 @@ def validate_projected_visual_artifact(
         triangles.append((base_index, base_index + 1, base_index + 2))
         normalized.append(record)
 
+    final_authority = (
+        certificate.get("certification_mode")
+        == FINAL_AUTHORITY_CERTIFICATION_MODE
+    )
+    authority_triangles = (
+        _normalized_source_triangle_records(normalized, certificate)
+        if final_authority
+        else normalized
+    )
     validate_floorwise_authority_binding(
         certificate,
         exact_payload_hash=actual_payload_hash,
-        triangle_payload=normalized,
+        triangle_payload=authority_triangles,
         expected_section_geometry_binding_hash=(
             expected_section_geometry_binding_hash
         ),
     )
 
-    final_authority = (
-        certificate.get("certification_mode")
-        == FINAL_AUTHORITY_CERTIFICATION_MODE
-    )
     authority_mismatches: list[str] = []
     if final_authority:
         comparisons = (
@@ -593,11 +617,14 @@ def validate_projected_visual_artifact(
         )
     if final_authority:
         actual_final_geometry_hash = _final_authority_geometry_hash(
-            normalized,
+            authority_triangles,
             certificate=certificate,
         )
         actual_surface_hash = _source_surface_payload_hash_from_triangles(
             normalized
+        )
+        actual_normalized_source_hash = (
+            _source_surface_payload_hash_from_triangles(authority_triangles)
         )
         audit = artifact.get("semanticProjectionAudit")
         audit = audit if isinstance(audit, dict) else {}
@@ -661,6 +688,13 @@ def validate_projected_visual_artifact(
             != str(certificate.get("final_geometry_hash") or "")
             or actual_surface_hash
             != str(certificate.get("final_surface_payload_hash") or "")
+            or actual_normalized_source_hash
+            != str(
+                certificate.get("normalized_source_surface_payload_hash")
+                or ""
+            )
+            or actual_normalized_source_hash
+            != str(artifact.get("normalizedSourceSurfacePayloadHash") or "")
             or audit.get("schema_version")
             != "arr.maas.final_semantic_projection_audit.v1"
             or (
@@ -1331,8 +1365,14 @@ def _validate_profiled_mesh_section_binding(
 
 
 def _validate_certificate_status(certificate: dict[str, Any]) -> None:
+    expected_schema = (
+        FINAL_CERTIFICATE_SCHEMA
+        if certificate.get("certification_mode")
+        == FINAL_AUTHORITY_CERTIFICATION_MODE
+        else CERTIFICATE_SCHEMA
+    )
     if (
-        certificate.get("schema_version") != CERTIFICATE_SCHEMA
+        certificate.get("schema_version") != expected_schema
         or certificate.get("status") != "certified"
         or certificate.get("hard_pass") is not True
     ):
@@ -1349,6 +1389,101 @@ def _certificate_coordinate_space(certificate: dict[str, Any]) -> str:
         }
         else COORDINATE_SPACE
     )
+
+
+def _mesh_schema(certificate: dict[str, Any]) -> str:
+    return (
+        FINAL_MESH_SCHEMA
+        if certificate.get("certification_mode")
+        == FINAL_AUTHORITY_CERTIFICATION_MODE
+        else MESH_SCHEMA
+    )
+
+
+def _physical_height_m(source: Any) -> float:
+    metadata = (
+        source.metadata
+        if isinstance(getattr(source, "metadata", None), dict)
+        else {}
+    )
+    contexts = (
+        metadata.get("candidate_floor_context"),
+        metadata.get("floorwise_visual_projection"),
+        metadata.get("floorwise_legal_matrix_stack"),
+    )
+    for context in contexts:
+        if not isinstance(context, dict):
+            continue
+        for key in (
+            "height_m",
+            "effective_height_m",
+            "candidate_requested_height_m",
+            "requested_height_m",
+        ):
+            try:
+                height = float(context.get(key) or 0.0)
+            except (TypeError, ValueError):
+                continue
+            if isfinite(height) and height > 0.0:
+                return height
+    raise ValueError("certified final visual mesh has no physical height")
+
+
+def canonical_metric_surface_payload(source: Any) -> dict[str, Any]:
+    """Return final render/VLM triangles in one local physical-meter frame."""
+
+    normalized = [
+        _surface_triangle_record(surface)
+        for surface in tuple(getattr(source, "surfaces", ()) or ())
+    ]
+    height_m = _physical_height_m(source)
+    metric = []
+    for triangle in normalized:
+        record = deepcopy(triangle)
+        vertices = []
+        for x, y, normalized_z in triangle["vertices_m"]:
+            if normalized_z < 0.0 or normalized_z > 1.0:
+                raise ValueError(
+                    "certified final visual source Z is not normalized"
+                )
+            vertices.append([float(x), float(y), float(normalized_z) * height_m])
+        record["vertices_m"] = vertices
+        metric.append(record)
+    return {
+        "schema_version": "arr.maas.canonical_metric_surface_payload.v1",
+        "coordinate_space": AUTHORED_COORDINATE_SPACE,
+        "source_coordinate_space": NORMALIZED_AUTHORED_COORDINATE_SPACE,
+        "physical_height_m": height_m,
+        "triangles": metric,
+        "exact_payload_hash": exact_triangle_payload_hash(metric),
+        "surface_payload_hash": _source_surface_payload_hash_from_triangles(
+            metric
+        ),
+        "normalized_source_surface_payload_hash": (
+            _source_surface_payload_hash_from_triangles(normalized)
+        ),
+    }
+
+
+def _normalized_source_triangle_records(
+    triangles: list[dict[str, Any]],
+    certificate: dict[str, Any],
+) -> list[dict[str, Any]]:
+    try:
+        height_m = float(certificate.get("physical_height_m") or 0.0)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("invalid physical visual height") from exc
+    if not isfinite(height_m) or height_m <= 0.0:
+        raise ValueError("invalid physical visual height")
+    normalized = []
+    for triangle in triangles:
+        record = deepcopy(triangle)
+        record["vertices_m"] = [
+            [float(x), float(y), float(z) / height_m]
+            for x, y, z in triangle["vertices_m"]
+        ]
+        normalized.append(record)
+    return normalized
 
 
 def _surface_triangle_record(surface: Any) -> dict[str, Any]:
@@ -1548,6 +1683,7 @@ def semantic_audit_payload_hash(audit: dict[str, Any]) -> str:
 
 __all__ = [
     "AUTHORED_COORDINATE_SPACE",
+    "canonical_metric_surface_payload",
     "CAPACITY_PROGRAM_ROLE",
     "COORDINATE_SPACE",
     "PROJECTED_AUTHORITY",

@@ -8,9 +8,10 @@ only passes the resulting immutable dictionaries between stages.
 from __future__ import annotations
 
 from copy import deepcopy
+from math import isfinite
 from typing import Any
 
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, shape
 from shapely.ops import unary_union
 
 from design.maas.source_geometry.ir import SourceMass
@@ -207,6 +208,261 @@ def build_feasible_capacity_contract(
             legal_floor_field.get("measured_usable_floor_count") or 0
         ),
         "floor_capacity_plan_status": str((plan or {}).get("status") or ""),
+    }
+
+
+def evaluate_legal_capacity_authority(
+    shared_floor_contract: dict[str, Any] | None,
+    source_capacity_measurement: dict[str, Any] | None,
+    capacity_contract: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Keep legal floor admissibility independent from capacity objectives."""
+
+    from shapely import set_precision
+
+    shared = (
+        shared_floor_contract
+        if isinstance(shared_floor_contract, dict)
+        and shared_floor_contract.get("schema_version")
+        == "arr.maas.shared_floor_contract.v1"
+        else None
+    )
+    plates = shared.get("plates") if shared is not None else None
+    shared_floor_measured = isinstance(plates, list) and bool(plates)
+    failure_reasons = {
+        str(reason)
+        for reason in (shared.get("failure_reasons") or ())
+    } if shared is not None else {"missing_shared_floor_contract"}
+    capacity_only_failures = {
+        "insufficient_clear_floor_depth",
+        "insufficient_floor_area",
+    }
+    minimum_support_ratio = float(
+        (shared or {}).get("minimum_support_ratio") or 0.20
+    )
+
+    minimum_positive_area_m2 = 1e-6
+    occupied_area_match_tolerance_m2 = 0.002
+    constructive_coordinate_grid_m = 1e-6
+    minimum_legal_retention_ratio = 0.80
+    numeric_comparison_epsilon = 1e-9
+    support_threshold_source = (
+        "shared_floor_contract.minimum_support_ratio"
+        if shared is not None and shared.get("minimum_support_ratio") is not None
+        else "legal_capacity_authority.default_minimum_support_ratio"
+    )
+
+    def assess_plate_legal_evidence(
+        plate: Any,
+        index: int,
+    ) -> tuple[bool, dict[str, Any]]:
+        reasons: list[str] = []
+        measured_values: dict[str, Any] = {}
+        record = {
+            "floor_index": index,
+            "reasons": reasons,
+            "measured_values": measured_values,
+            "thresholds": {
+                "minimum_positive_area_m2": minimum_positive_area_m2,
+                "occupied_area_match_tolerance_m2": occupied_area_match_tolerance_m2,
+                "constructive_coordinate_grid_m": constructive_coordinate_grid_m,
+                "minimum_legal_retention_ratio": minimum_legal_retention_ratio,
+                "minimum_support_ratio": minimum_support_ratio,
+            },
+            "threshold_sources": {
+                "minimum_positive_area_m2": "legal_capacity_authority.existing_numeric_contract",
+                "occupied_area_match_tolerance_m2": "legal_capacity_authority.existing_numeric_contract",
+                "constructive_coordinate_grid_m": "shared_floor_contract.intersection_grid_size",
+                "minimum_legal_retention_ratio": "legal_capacity_authority.existing_recertification_policy",
+                "minimum_support_ratio": support_threshold_source,
+            },
+        }
+        if not isinstance(plate, dict):
+            reasons.append("malformed_plate")
+            return False, record
+
+        record["floor"] = plate.get("floor")
+        plate_failures = {
+            str(reason)
+            for reason in (plate.get("failure_reasons") or ())
+        }
+        record["contract_failure_reasons"] = sorted(plate_failures)
+        declared_hard_pass = plate.get("hard_pass")
+        measured_values["declared_hard_pass"] = declared_hard_pass
+        if declared_hard_pass is not (not plate_failures):
+            reasons.append("declared_plate_status_mismatch")
+
+        try:
+            legal = shape(plate["legal_geometry_utm"])
+            occupied = shape(plate["occupied_geometry_utm"])
+            gross_area = float(plate["gross_area_m2"])
+            legal_retention = float(plate["legal_retention_ratio"])
+            support_ratio = float(plate["support_ratio"])
+        except (KeyError, TypeError, ValueError):
+            reasons.append("malformed_plate")
+            return False, record
+
+        measured_values.update({
+            "gross_area_m2": gross_area,
+            "legal_retention_ratio": legal_retention,
+            "support_ratio": support_ratio,
+            "legal_polygon_is_empty": bool(legal.is_empty),
+            "legal_polygon_is_valid": bool(legal.is_valid),
+            "occupied_polygon_is_empty": bool(occupied.is_empty),
+            "occupied_polygon_is_valid": bool(occupied.is_valid),
+        })
+        if not all(
+            isfinite(value)
+            for value in (gross_area, legal_retention, support_ratio)
+        ) or gross_area <= minimum_positive_area_m2:
+            reasons.append("malformed_plate")
+        if legal.is_empty or not legal.is_valid:
+            reasons.append("invalid_legal_polygon")
+        if occupied.is_empty or not occupied.is_valid:
+            reasons.append("invalid_occupied_polygon")
+
+        if not occupied.is_empty and occupied.is_valid:
+            occupied_area = float(occupied.area)
+            occupied_area_delta = abs(occupied_area - gross_area)
+            measured_values["occupied_area_m2"] = occupied_area
+            measured_values["occupied_area_delta_m2"] = occupied_area_delta
+            if occupied_area_delta > occupied_area_match_tolerance_m2:
+                reasons.append("occupied_area_mismatch")
+        if (
+            not legal.is_empty
+            and legal.is_valid
+            and not occupied.is_empty
+            and occupied.is_valid
+        ):
+            canonical_legal = set_precision(
+                legal,
+                constructive_coordinate_grid_m,
+            )
+            canonical_occupied = set_precision(
+                occupied,
+                constructive_coordinate_grid_m,
+            )
+            outside = canonical_occupied.difference(canonical_legal)
+            outside_area = float(outside.area)
+            outside_distances = [
+                float(canonical_legal.distance(shape({
+                    "type": "Point",
+                    "coordinates": tuple(coordinate)[:2],
+                })))
+                for polygon in (
+                    canonical_occupied.geoms
+                    if hasattr(canonical_occupied, "geoms")
+                    else (canonical_occupied,)
+                )
+                for ring in (
+                    (polygon.exterior, *polygon.interiors)
+                    if hasattr(polygon, "exterior")
+                    else ()
+                )
+                for coordinate in ring.coords
+            ]
+            outside_distance = max(outside_distances, default=0.0)
+            measured_values["occupied_outside_legal_area_m2"] = outside_area
+            measured_values["occupied_outside_legal_distance_m"] = outside_distance
+            buffered_legal = canonical_legal.buffer(
+                constructive_coordinate_grid_m,
+            )
+            if not buffered_legal.covers(canonical_occupied):
+                reasons.append("occupied_outside_legal_geometry")
+        if legal_retention + numeric_comparison_epsilon < minimum_legal_retention_ratio:
+            reasons.append("legal_retention_below_threshold")
+        if index > 0 and support_ratio + numeric_comparison_epsilon < minimum_support_ratio:
+            reasons.append("vertical_support_below_threshold")
+
+        passes = not (plate_failures - capacity_only_failures) and not reasons
+        return passes, record
+
+    plate_assessments = [
+        assess_plate_legal_evidence(plate, index)
+        for index, plate in enumerate(plates or ())
+    ]
+    plates_recertified = bool(
+        shared_floor_measured
+        and all(passes for passes, _record in plate_assessments)
+    )
+    plate_recertification_failures = [
+        record for passes, record in plate_assessments if not passes
+    ]
+    plate_recertification_failure_reasons = sorted({
+        reason
+        for record in plate_recertification_failures
+        for reason in record.get("reasons", ())
+    })
+    declared_hard_pass = (
+        shared.get("hard_pass") if shared is not None else None
+    )
+    certified_contract_pass = bool(
+        declared_hard_pass is True and not failure_reasons
+    )
+    capacity_only_advisory_override = bool(
+        declared_hard_pass is False
+        and failure_reasons
+        and not (failure_reasons - capacity_only_failures)
+    )
+    legal_hard_pass = bool(
+        plates_recertified
+        and (certified_contract_pass or capacity_only_advisory_override)
+    )
+
+    measurement = (
+        source_capacity_measurement
+        if isinstance(source_capacity_measurement, dict)
+        and source_capacity_measurement.get("schema_version")
+        == "arr.maas.source_capacity_measurement.v1"
+        else None
+    )
+    raw_utilization = (
+        measurement.get("feasible_capacity_utilization")
+        if measurement is not None
+        else None
+    )
+    utilization = (
+        float(raw_utilization)
+        if isinstance(raw_utilization, (int, float))
+        and isfinite(float(raw_utilization))
+        else 0.0
+    )
+    contract = capacity_contract if isinstance(capacity_contract, dict) else {}
+    target_utilization = float(contract.get("target_utilization") or 0.0)
+    minimum_utilization = float(contract.get("minimum_utilization") or 0.0)
+    if measurement is None:
+        objective_status = "unavailable"
+    elif utilization + 1e-9 < minimum_utilization:
+        objective_status = "below"
+    elif utilization > target_utilization + 1e-9:
+        objective_status = "above"
+    else:
+        objective_status = "within"
+
+    targets = contract.get("target_floor_areas_m2") or ()
+    achieved = (
+        tuple(
+            float(plate.get("gross_area_m2") or 0.0)
+            for plate in plates
+            if isinstance(plate, dict)
+        )
+        if shared_floor_measured
+        else ()
+    )
+    deltas = [
+        round((achieved[index] if index < len(achieved) else 0.0) - float(target), 3)
+        for index, target in enumerate(targets)
+        if isinstance(target, (int, float))
+    ]
+    return {
+        "legal_hard_pass": legal_hard_pass,
+        "shared_floor_measured": shared_floor_measured,
+        "feasible_capacity_utilization": round(utilization, 4),
+        "capacity_objective_status": objective_status,
+        "per_floor_target_deltas_m2": deltas,
+        "revision_recommended": objective_status in {"below", "above"},
+        "plate_recertification_failures": plate_recertification_failures,
+        "plate_recertification_failure_reasons": plate_recertification_failure_reasons,
     }
 
 

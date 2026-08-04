@@ -57,7 +57,8 @@ _COMPILATION_CACHE_LIMIT = 512
 
 
 Point3 = tuple[float, float, float]
-_TERMINAL_FAILURE_EVIDENCE_LIMIT = 24
+_TERMINAL_FAILURE_EVIDENCE_LIMIT = 32
+_TERMINAL_FAILURE_WITNESS_LIMIT = 48
 
 
 def _append_terminal_failure(
@@ -90,6 +91,19 @@ def _append_terminal_failure(
                 for item in value[:12]
                 if str(item)
             ))
+        elif str(key) == "failure_witness" and isinstance(value, dict):
+            bounded_witness: dict[str, Any] = {}
+            for witness_key, witness_value in value.items():
+                if len(bounded_witness) >= _TERMINAL_FAILURE_WITNESS_LIMIT:
+                    break
+                if isinstance(witness_value, str):
+                    bounded_witness[str(witness_key)] = witness_value[:160]
+                elif (
+                    isinstance(witness_value, (bool, int, float))
+                    or witness_value is None
+                ):
+                    bounded_witness[str(witness_key)] = witness_value
+            bounded_evidence[str(key)] = bounded_witness
     sink.append({"stage": stage, "evidence": bounded_evidence})
 
 
@@ -834,13 +848,17 @@ def materialize_floorwise_legal_source(
             ),
         })
 
-    ground, ground_diagnostics = _repair_polygonal_floor_union(
+    ground_diagnostics: dict[str, Any] = {}
+    ground, _ = _repair_polygonal_floor_union(
         floor_unions[0],
         minimum_area=1.0,
+        diagnostics=ground_diagnostics,
     )
-    upper, upper_diagnostics = _repair_polygonal_floor_union(
+    upper_diagnostics: dict[str, Any] = {}
+    upper, _ = _repair_polygonal_floor_union(
         floor_unions[-1],
-        minimum_area=1.0,
+        minimum_area=0.0,
+        diagnostics=upper_diagnostics,
     )
     if ground is None or upper is None:
         _record_terminal_failure(
@@ -3367,8 +3385,12 @@ def _repair_polygonal_floor_union(
     geometry: Any,
     *,
     minimum_area: float,
+    diagnostics: dict[str, Any] | None = None,
 ) -> tuple[Any | None, dict[str, Any]]:
     """Repair and retain the complete polygonal endpoint-floor aggregate."""
+
+    if diagnostics is None:
+        diagnostics = {}
 
     geom_type = str(getattr(geometry, "geom_type", type(geometry).__name__))
     is_empty = bool(getattr(geometry, "is_empty", True))
@@ -3384,6 +3406,7 @@ def _repair_polygonal_floor_union(
 
     aggregate = None
     repaired_parts: tuple[Polygon, ...] = ()
+    repair_failed = False
     if geometry is not None and not is_empty:
         try:
             repaired = geometry if is_valid else make_valid(geometry)
@@ -3405,6 +3428,7 @@ def _repair_polygonal_floor_union(
         except (GEOSException, TypeError, ValueError):
             aggregate = None
             repaired_parts = ()
+            repair_failed = True
 
     aggregate_area = (
         float(aggregate.area)
@@ -3413,12 +3437,32 @@ def _repair_polygonal_floor_union(
         and isfinite(float(aggregate.area))
         else 0.0
     )
-    diagnostics = {
+    if geometry is None:
+        failure_branch = "missing_geometry"
+    elif is_empty:
+        failure_branch = "input_empty"
+    elif repair_failed:
+        failure_branch = "repair_exception"
+    elif aggregate is None:
+        failure_branch = "aggregate_missing"
+    elif aggregate.is_empty:
+        failure_branch = "aggregate_empty"
+    elif not aggregate.is_valid:
+        failure_branch = "aggregate_invalid"
+    elif not repaired_parts:
+        failure_branch = "no_polygon_components"
+    elif aggregate_area < float(minimum_area):
+        failure_branch = "aggregate_below_minimum_area"
+    else:
+        failure_branch = ""
+
+    diagnostics.update({
         "geom_type": geom_type,
         "is_valid": is_valid,
         "validity_reason": str(validity_reason),
         "is_empty": is_empty,
         "aggregate_area_m2": round(aggregate_area, 8),
+        "component_count": len(repaired_parts),
         "polygon_count": len(repaired_parts),
         "largest_polygon_area_m2": round(
             max((float(part.area) for part in repaired_parts), default=0.0),
@@ -3427,7 +3471,8 @@ def _repair_polygonal_floor_union(
         "post_repair_geom_type": str(
             getattr(aggregate, "geom_type", "None")
         ),
-    }
+        "failure_branch": failure_branch,
+    })
     if (
         aggregate is None
         or aggregate.is_empty

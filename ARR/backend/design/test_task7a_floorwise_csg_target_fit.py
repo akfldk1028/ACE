@@ -250,6 +250,125 @@ class FloorwiseCsgTargetFitContractTest(SimpleTestCase):
         for key in ("program_hash", "geometry_hash", "surface_payload_hash"):
             self.assertEqual(result_bridge.get(key), original_bridge.get(key))
 
+    def test_floor_union_repair_mutates_empty_caller_diagnostics_on_none(self):
+        from design.maas.geometry_language.source_bridge import (
+            _repair_polygonal_floor_union,
+        )
+
+        diagnostics = {}
+
+        repaired, returned_diagnostics = _repair_polygonal_floor_union(
+            Polygon(),
+            minimum_area=1.0,
+            diagnostics=diagnostics,
+        )
+
+        self.assertIsNone(repaired)
+        self.assertIs(returned_diagnostics, diagnostics)
+        self.assertEqual(diagnostics["geom_type"], "Polygon")
+        self.assertIs(diagnostics["is_valid"], True)
+        self.assertEqual(diagnostics["validity_reason"], "Valid Geometry")
+        self.assertIs(diagnostics["is_empty"], True)
+        self.assertEqual(diagnostics["aggregate_area_m2"], 0.0)
+        self.assertEqual(diagnostics["component_count"], 0)
+        self.assertEqual(diagnostics["largest_polygon_area_m2"], 0.0)
+        self.assertEqual(diagnostics["post_repair_geom_type"], "None")
+        self.assertEqual(diagnostics["failure_branch"], "input_empty")
+
+    def test_upper_endpoint_positive_taper_below_one_square_meter_is_valid(self):
+        legal = box(0.0, 0.0, 10.0, 10.0)
+        source = compile_geometry_program_to_source_mass(
+            architectural_shape_programs()[0],
+            legal,
+            target_plan_area=36.0,
+            name="task7a-valid-upper-taper",
+        )
+        self.assertIsNotNone(source)
+        ground = box(1.0, 1.0, 3.0, 2.0)
+        upper = box(1.0, 1.0, 2.0, 1.5)
+        identity_matrix = (
+            (1.0, 0.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        )
+        certificate = SimpleNamespace(
+            hard_pass=True,
+            status="certified",
+            certification_mode="matrix4_authored_surface",
+            failure_reasons=(),
+            to_dict=lambda: {
+                "hard_pass": True,
+                "status": "certified",
+                "certification_mode": "matrix4_authored_surface",
+            },
+        )
+        projection = SimpleNamespace(
+            certificate=certificate,
+            surfaces=source.surfaces,
+        )
+        sink = []
+
+        with patch(
+            "design.maas.geometry_language.source_bridge._exact_authored_mesh_section",
+            return_value=source.footprint,
+        ), patch(
+            "design.maas.geometry_language.source_bridge._matrix_fit_polygon_to_host",
+            side_effect=((ground, identity_matrix), (upper, identity_matrix)),
+        ), patch(
+            "design.maas.geometry_language.floorwise_visual_projection.project_floorwise_visual_mesh",
+            return_value=projection,
+        ):
+            result = materialize_floorwise_legal_source(
+                source,
+                legal_sections=(legal, legal),
+                target_plan_coverage=0.5,
+                floor_capacity_plan_hash="task7a-valid-upper-taper",
+                target_floor_areas_m2=(2.0, 0.5),
+                terminal_failure_sink=sink,
+            )
+
+        self.assertIsNone(result)
+        self.assertEqual(
+            sink[-1]["evidence"]["failure_reason"],
+            "revalidation_floor_section_area_mismatch",
+        )
+        self.assertFalse(any(
+            record.get("evidence", {}).get("failure_reason")
+            == "revalidation_floor_union_invalid"
+            for record in sink
+        ))
+
+    def test_upper_endpoint_positive_area_policy_still_rejects_bad_geometry(self):
+        from shapely.geometry import LineString
+        from design.maas.geometry_language.source_bridge import (
+            _repair_polygonal_floor_union,
+        )
+
+        invalid_polygonal_payload = SimpleNamespace(
+            geom_type="Polygon",
+            is_empty=False,
+            is_valid=False,
+        )
+        cases = (
+            (Polygon(), "input_empty"),
+            (LineString(((0.0, 0.0), (1.0, 0.0))), "aggregate_missing"),
+            (invalid_polygonal_payload, "repair_exception"),
+        )
+
+        for geometry, expected_branch in cases:
+            with self.subTest(expected_branch=expected_branch):
+                repaired, diagnostics = _repair_polygonal_floor_union(
+                    geometry,
+                    minimum_area=0.0,
+                    diagnostics={},
+                )
+                self.assertIsNone(repaired)
+                self.assertEqual(
+                    diagnostics["failure_branch"],
+                    expected_branch,
+                )
+
     def test_invalid_floor_union_terminal_evidence_is_typed_for_both_endpoints(self):
         legal = box(0.0, 0.0, 10.0, 10.0)
         source = compile_geometry_program_to_source_mass(
@@ -306,6 +425,7 @@ class FloorwiseCsgTargetFitContractTest(SimpleTestCase):
                 places=6,
             )
             self.assertEqual(evidence[f"{endpoint}_polygon_count"], 2)
+            self.assertEqual(evidence[f"{endpoint}_component_count"], 2)
             self.assertAlmostEqual(
                 evidence[f"{endpoint}_largest_polygon_area_m2"],
                 0.25,
@@ -314,6 +434,14 @@ class FloorwiseCsgTargetFitContractTest(SimpleTestCase):
             self.assertEqual(
                 evidence[f"{endpoint}_post_repair_geom_type"],
                 "MultiPolygon",
+            )
+            self.assertEqual(
+                evidence[f"{endpoint}_failure_branch"],
+                (
+                    "aggregate_below_minimum_area"
+                    if endpoint == "ground"
+                    else ""
+                ),
             )
 
     def test_floor_affine_terminal_evidence_preserves_identity_frame_and_bracket(self):
@@ -541,3 +669,69 @@ class FloorwiseCsgTargetFitContractTest(SimpleTestCase):
             "no_positive_lower_projection",
             observation["geometry_failure_reasons"],
         )
+
+    def test_candidate_report_preserves_floor_union_endpoint_diagnostics(self):
+        class FakeProgram:
+            def program_hash(self):
+                return "program-task7a-floor-union-report"
+
+            def to_dict(self):
+                return {
+                    "metadata": {"family": "llm_scale_courtyard"},
+                }
+
+        class FakeOutcomeGraph:
+            def __init__(self):
+                self.observations = []
+
+            def observe_geometry_gate_failure(self, **kwargs):
+                self.observations.append({
+                    "geometry_gate_stage": kwargs["stage"],
+                    "program_slug": kwargs["program_slug"],
+                })
+
+        endpoint = {
+            "geom_type": "MultiPolygon",
+            "is_valid": True,
+            "validity_reason": "Valid Geometry",
+            "is_empty": False,
+            "aggregate_area_m2": 0.5,
+            "component_count": 2,
+            "polygon_count": 2,
+            "largest_polygon_area_m2": 0.25,
+            "post_repair_geom_type": "MultiPolygon",
+            "failure_branch": "aggregate_below_minimum_area",
+        }
+        evidence = {
+            "failure_reason": "revalidation_floor_union_invalid",
+            "floor_union_count": 4,
+            **{f"ground_{key}": value for key, value in endpoint.items()},
+            **{f"upper_{key}": value for key, value in endpoint.items()},
+        }
+        report_records = []
+        graph = FakeOutcomeGraph()
+
+        _propagate_terminal_materialization_failure(
+            terminal_record={
+                "stage": "authored_visual_authority",
+                "evidence": evidence,
+            },
+            report_records=report_records,
+            outcome_graph=graph,
+            program_slug="task7a",
+            source_seed="active_bar",
+            program=FakeProgram(),
+            principle_id="book:operative:expand",
+            book_scope="1/1",
+        )
+
+        for destination in (
+            report_records[0]["evidence"],
+            graph.observations[0]["terminal_materialization_evidence"],
+        ):
+            for endpoint_name in ("ground", "upper"):
+                for key, value in endpoint.items():
+                    self.assertEqual(
+                        destination[f"{endpoint_name}_{key}"],
+                        value,
+                    )

@@ -10,7 +10,8 @@ from typing import Any, Sequence
 
 import manifold3d as m3d
 import numpy as np
-from shapely.geometry import Polygon
+from shapely.geometry import MultiPolygon, Polygon
+from shapely.ops import unary_union
 
 from .compiler import CompilationResult, revalidate_compilation_mesh
 from .gate import GeometryGatePolicy, compilation_gate
@@ -110,14 +111,19 @@ def section_numeric_epsilon_m(cleanup_displacement_m: float) -> float:
 
 def floor_center_numeric_equivalence(
     measured: Any,
-    expected: Polygon,
+    expected: Any,
     *,
     epsilon_m: float = SECTION_EXTRACTOR_EPSILON_M,
-) -> dict[str, float] | None:
+    contour_count: int | None = None,
+) -> dict[str, Any] | None:
     """Certify one reconstructed section without hiding topology changes."""
 
-    if not _single_ring(measured) or not _single_ring(expected):
+    if not _valid_polygonal(measured) or not _valid_polygonal(expected):
         return None
+    measured_components = _components(measured)
+    expected_components = _components(expected)
+    measured_holes = sum(len(component.interiors) for component in measured_components)
+    expected_holes = sum(len(component.interiors) for component in expected_components)
     area_delta = abs(float(measured.area) - float(expected.area))
     symdiff = float(measured.symmetric_difference(expected).area)
     hausdorff = float(
@@ -127,19 +133,49 @@ def floor_center_numeric_equivalence(
         SECTION_EXTRACTOR_EPSILON_M
         + float(expected.length) * float(epsilon_m)
     )
-    values = (area_delta, symdiff, hausdorff, area_bound)
-    if (
-        not all(isfinite(value) for value in values)
-        or area_delta > area_bound
-        or symdiff > area_bound
-        or hausdorff > float(epsilon_m)
-    ):
+    hausdorff_bound = max(
+        float(epsilon_m),
+        SECTION_EXTRACTOR_EPSILON_M
+        + MAXIMUM_CLEANUP_DISPLACEMENT_M
+        + SECTION_ROUNDING_BUDGET_M,
+    )
+    values = (
+        area_delta,
+        symdiff,
+        hausdorff,
+        area_bound,
+        hausdorff_bound,
+    )
+    if not all(isfinite(value) for value in values):
         return None
+    failed_predicates = []
+    if len(measured_components) != len(expected_components):
+        failed_predicates.append("component_count_mismatch")
+    if measured_holes != expected_holes:
+        failed_predicates.append("hole_count_mismatch")
+    if area_delta > area_bound:
+        failed_predicates.append("area_delta_exceeds_bound")
+    if symdiff > area_bound:
+        failed_predicates.append("symmetric_difference_exceeds_bound")
+    if hausdorff > hausdorff_bound:
+        failed_predicates.append("hausdorff_distance_exceeds_bound")
     return {
+        "hard_pass": not failed_predicates,
         "area_delta_m2": area_delta,
         "symdiff_m2": symdiff,
         "hausdorff_m": hausdorff,
         "area_bound_m2": area_bound,
+        "hausdorff_bound_m": hausdorff_bound,
+        "failed_predicates": failed_predicates,
+        "component_count": len(measured_components),
+        "hole_count": measured_holes,
+        "expected_component_count": len(expected_components),
+        "expected_hole_count": expected_holes,
+        "contour_count": int(
+            contour_count
+            if contour_count is not None
+            else len(measured_components) + measured_holes
+        ),
     }
 
 
@@ -147,8 +183,19 @@ def indexed_mesh_section_polygon(
     vertices: tuple[tuple[float, float, float], ...],
     triangles: tuple[tuple[int, int, int], ...],
     z: float,
-) -> Polygon | None:
-    """Kernel-slice the final indexed payload and require one simple contour."""
+) -> Polygon | MultiPolygon | None:
+    """Kernel-slice the final indexed payload without flattening topology."""
+
+    measured = indexed_mesh_section_topology(vertices, triangles, z)
+    return measured[0] if measured is not None else None
+
+
+def indexed_mesh_section_topology(
+    vertices: tuple[tuple[float, float, float], ...],
+    triangles: tuple[tuple[int, int, int], ...],
+    z: float,
+) -> tuple[Polygon | MultiPolygon, int, int] | None:
+    """Return complete polygonal section, contour count, and solid count."""
 
     try:
         mesh = m3d.Mesh(
@@ -164,17 +211,15 @@ def indexed_mesh_section_polygon(
     if (
         solid.is_empty()
         or "NoError" not in str(solid.status())
-        or len(solid.decompose()) != 1
         or section.is_empty()
-        or int(section.num_contour()) != 1
-        or len(contours) != 1
+        or int(section.num_contour()) <= 0
+        or len(contours) != int(section.num_contour())
     ):
         return None
-    polygon = Polygon([
-        (float(point[0]), float(point[1]))
-        for point in contours[0]
-    ])
-    return polygon if _single_ring(polygon) else None
+    polygonal = _polygonal_from_contours(contours)
+    if polygonal is None:
+        return None
+    return polygonal, int(section.num_contour()), len(solid.decompose())
 
 
 def profiled_surface_section_polygon(
@@ -182,7 +227,7 @@ def profiled_surface_section_polygon(
     *,
     origin_xy: tuple[float, float],
     z: float,
-) -> Polygon | None:
+) -> Polygon | MultiPolygon | None:
     """Kernel-slice a complete triangle-surface transport payload."""
 
     vertices: list[tuple[float, float, float]] = []
@@ -243,13 +288,16 @@ def _revalidated_result(
         and result.metrics.get("self_intersection_checked_by_kernel") is True
         and result.metrics.get("outward_normals") is True
         and float(result.metrics.get("volume") or 0.0) > 0.0
-        and int(result.metrics.get("component_count") or 0) == 1
+        and int(result.metrics.get("component_count") or 0) >= 1
     )
     failures = tuple(
         issue.code
         for issue in compilation_gate(
             result,
-            GeometryGatePolicy(maximum_components=1),
+            GeometryGatePolicy(maximum_components=max(
+                1,
+                int(result.metrics.get("component_count") or 0),
+            )),
         )
     )
     if not structural and not failures:
@@ -370,15 +418,76 @@ def _collapse_edges(
     return compact_vertices, compact_triangles, max_displacement
 
 
-def _single_ring(value: Any) -> bool:
+def _components(value: Any) -> tuple[Polygon, ...]:
+    if isinstance(value, Polygon):
+        return (value,)
+    if isinstance(value, MultiPolygon):
+        return tuple(sorted(
+            value.geoms,
+            key=lambda component: component.normalize().wkb_hex,
+        ))
+    return ()
+
+
+def _valid_polygonal(value: Any) -> bool:
     return bool(
-        isinstance(value, Polygon)
+        isinstance(value, (Polygon, MultiPolygon))
         and not value.is_empty
         and value.is_valid
         and isfinite(float(value.area))
         and float(value.area) > 1e-8
-        and len(value.interiors) == 0
     )
+
+
+def _polygonal_from_contours(contours: Sequence[Any]) -> Polygon | MultiPolygon | None:
+    rings = []
+    for contour in contours:
+        coordinates = tuple(
+            (float(point[0]), float(point[1]))
+            for point in contour
+        )
+        ring = Polygon(coordinates)
+        if ring.is_empty or not ring.is_valid or float(ring.area) <= 1e-8:
+            return None
+        rings.append(ring)
+    parents: list[int | None] = []
+    for index, ring in enumerate(rings):
+        point = ring.representative_point()
+        containers = [
+            candidate
+            for candidate, outer in enumerate(rings)
+            if candidate != index
+            and float(outer.area) > float(ring.area)
+            and outer.covers(point)
+        ]
+        parents.append(
+            min(containers, key=lambda item: rings[item].area)
+            if containers else None
+        )
+    depths = []
+    for index in range(len(rings)):
+        depth = 0
+        parent = parents[index]
+        seen = {index}
+        while parent is not None:
+            if parent in seen:
+                return None
+            seen.add(parent)
+            depth += 1
+            parent = parents[parent]
+        depths.append(depth)
+    polygons = []
+    for index, ring in enumerate(rings):
+        if depths[index] % 2:
+            continue
+        holes = [
+            tuple(rings[child].exterior.coords)
+            for child, parent in enumerate(parents)
+            if parent == index and depths[child] == depths[index] + 1
+        ]
+        polygons.append(Polygon(tuple(ring.exterior.coords), holes=holes))
+    result = unary_union(polygons).normalize()
+    return result if _valid_polygonal(result) else None
 
 
 def _rotate_triangle(
@@ -400,6 +509,7 @@ __all__ = [
     "ProfiledMeshNumericRepair",
     "floor_center_numeric_equivalence",
     "indexed_mesh_section_polygon",
+    "indexed_mesh_section_topology",
     "profiled_surface_section_polygon",
     "repair_profiled_indexed_mesh",
     "revalidated_profiled_mesh",

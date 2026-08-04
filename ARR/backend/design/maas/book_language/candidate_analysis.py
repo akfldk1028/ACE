@@ -541,6 +541,9 @@ def _verified_exact_profiled_sloped_mesh(source: Any) -> bool:
             mesh_cleanup_clean_gate_hard_pass=bool(
                 certificate.get("mesh_cleanup_clean_gate_hard_pass")
             ),
+            section_geometry_binding_hash=str(
+                certificate.get("section_geometry_binding_hash") or ""
+            ),
         )
     except (TypeError, ValueError):
         return False
@@ -1598,6 +1601,14 @@ def _inside_site(source: Any, site: Polygon) -> bool:
 def _clean_mass_gate(source: Any) -> tuple[bool, dict[str, Any]]:
     """Enforce one connected, bounded-complexity architectural solid."""
     signature = source.signature()
+    continuous_surface_evidence = (
+        signature.get("continuous_surface_evidence") or {}
+    )
+    continuous_surface_evidence = (
+        continuous_surface_evidence
+        if isinstance(continuous_surface_evidence, dict)
+        else {}
+    )
     floorwise_stack = source.metadata.get("floorwise_legal_matrix_stack")
     floorwise_stack = (
         floorwise_stack
@@ -1608,7 +1619,7 @@ def _clean_mass_gate(source: Any) -> tuple[bool, dict[str, Any]]:
     floor_band_count = max(0, int(floorwise_stack.get("floor_count") or 0))
     raw_surfaces = int(signature.get("surface_count") or 0)
     effective_surfaces = int(signature.get("effective_surface_count") or raw_surfaces)
-    profiled = bool((signature.get("continuous_surface_evidence") or {}).get("hard_pass"))
+    profiled = bool(continuous_surface_evidence.get("hard_pass"))
     recursive_mesh = bool(source.metadata.get("geometry_program_bridge_evidence"))
     raw_surface_limit = 2048 if recursive_mesh else (160 if profiled else 48)
     failures: list[str] = []
@@ -1636,9 +1647,70 @@ def _clean_mass_gate(source: Any) -> tuple[bool, dict[str, Any]]:
         # detached pieces are no more architectural than small Lego specks;
         # split wings and arrays must be joined by an explicit bridge/spine.
         failures.append("disconnected_mesh_component_count")
+    polygon_footprints = tuple(
+        footprint
+        for footprint in (
+            getattr(volume, "footprint", None)
+            for volume in source.volumes
+        )
+        if footprint is not None
+    )
+    polygon_areas = tuple(
+        float(getattr(footprint, "area", 0.0) or 0.0)
+        for footprint in polygon_footprints
+    )
+    measurements = {
+        "components": {
+            "mesh_component_count": component_count,
+            "visible_component_count": visible_component_count,
+            "minimum_component_volume_ratio": float(
+                compilation_metrics.get("minimum_component_volume_ratio")
+                or 0.0
+            ),
+        },
+        "manifold": {
+            "continuous_surface_hard_pass": profiled,
+            "boundary_edge_count": int(
+                continuous_surface_evidence.get("boundary_edge_count") or 0
+            ),
+            "non_manifold_edge_count": int(
+                continuous_surface_evidence.get("non_manifold_edge_count")
+                or 0
+            ),
+        },
+        "volumes": {
+            "visible_volume_count": len(source.volumes),
+            "volume_limit": volume_limit,
+            "floor_band_count": floor_band_count,
+        },
+        "topology": {
+            "raw_surface_count": raw_surfaces,
+            "raw_surface_limit": raw_surface_limit,
+            "effective_surface_count": effective_surfaces,
+            "effective_surface_limit": 28,
+            "recursive_mesh": recursive_mesh,
+        },
+        "polygon_quality": {
+            "evaluated_polygon_count": len(polygon_footprints),
+            "valid_polygon_count": sum(
+                bool(getattr(footprint, "is_valid", False))
+                for footprint in polygon_footprints
+            ),
+            "empty_polygon_count": sum(
+                bool(getattr(footprint, "is_empty", True))
+                for footprint in polygon_footprints
+            ),
+            "minimum_polygon_area_m2": (
+                min(polygon_areas) if polygon_areas else 0.0
+            ),
+        },
+    }
     return not failures, {
+        "schema_version": "arr.maas.clean_mass_gate.v2",
         "hard_pass": not failures,
         "failure_reasons": failures,
+        "subreasons": list(failures),
+        "measurements": measurements,
         "visible_volume_count": len(source.volumes),
         "visible_component_count": visible_component_count,
         "floor_band_count": floor_band_count,

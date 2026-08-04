@@ -18,12 +18,23 @@ from typing import Any, Iterable
 from .chassis_taxonomy import core_chassis_families
 from .floorwise_visual_projection import projected_surface_visual_hash
 from .projected_visual_contract import (
+    CertifiedMassArtifact,
     FINAL_AUTHORITY_CERTIFICATION_MODE,
-    validate_projected_visual_artifact,
 )
 
 
 SCHEMA_VERSION = "arr.maas.geometry_mutation_outcome_graph.v1"
+
+
+class PortfolioRenderAuthorityError(ValueError):
+    """Typed refusal of missing or mismatched immutable render authority."""
+
+    def __init__(self, evidence: dict[str, Any]) -> None:
+        self.evidence = dict(evidence)
+        super().__init__(
+            "portfolio_render_authority_invalid: "
+            + str(self.evidence.get("reason") or "unknown")
+        )
 
 
 def _stable_id(kind: str, value: str) -> str:
@@ -379,6 +390,8 @@ class GeometryOutcomeGraph:
         stage: str,
         failure_reasons: Iterable[str],
         source: Any | None = None,
+        terminal_certificate_evidence: dict[str, Any] | None = None,
+        legal_floor_field_hash: str = "",
     ) -> None:
         """Persist failures that occur before the program gate.
 
@@ -448,10 +461,34 @@ class GeometryOutcomeGraph:
             "geometry_family": str(metadata.get("family") or "recursive_solid"),
             "book_principle_id": str(principle_id),
             "book_scope": str(book_scope),
+            "legal_floor_field_hash": str(legal_floor_field_hash)[:160],
             "program_hard_pass": False,
             "geometry_failure_reasons": failures,
             "selected": False,
         }
+        if isinstance(terminal_certificate_evidence, dict):
+            observation["terminal_certificate_evidence"] = {
+                str(key): deepcopy(value)
+                for key, value in terminal_certificate_evidence.items()
+                if str(key) in {
+                    "schema_version",
+                    "structural_failure",
+                    "structural_subreason",
+                    "repair_reason",
+                    "failure_reason",
+                    "failure_reasons",
+                    "certificate_causes",
+                    "certificate_modes",
+                    "hard_fail_closed",
+                    "visual_authority",
+                    "legal_floor_loft_or_prism_replay_allowed",
+                    "program_hash",
+                    "geometry_family",
+                    "book_scope",
+                    "legal_floor_field_hash",
+                    "source_seed",
+                }
+            }
         self._upsert_observation(observation)
         program_node = self._upsert_node("geometry_program", program_hash, {
             "family": observation["geometry_family"],
@@ -534,10 +571,36 @@ class GeometryOutcomeGraph:
             "book_scope": scope_label,
             "program_hard_pass": True,
             "legal_hard_pass": bool(legal.get("hard_pass")),
+            "legal_component_evidence": deepcopy(
+                legal.get("component_evidence") or {}
+            ),
+            "legal_component_failure_reasons": {
+                str(component): list(
+                    (evidence or {}).get("failure_reasons") or ()
+                )
+                for component, evidence in (
+                    legal.get("component_evidence") or {}
+                ).items()
+                if isinstance(evidence, dict)
+            },
             "geometry_retention_pass": bool(legal.get("geometry_retention_pass")),
             "volume_retention": round(float(legal.get("volume_retention") or 0.0), 4),
             "parking_hard_pass": bool(parking.get("hard_pass")),
             "combined_hard_pass": bool(downstream_row.get("combined_hard_pass")),
+            "capacity_diagnostic": deepcopy(
+                downstream_row.get("capacity_hard_gate") or {}
+            ),
+            "shared_floor_diagnostic": deepcopy(
+                (legal.get("diagnostic_evidence") or {}).get(
+                    "shared_floor"
+                ) or {}
+            ),
+            "semantic_program_diagnostic": deepcopy(
+                downstream_row.get("semantic_projection_hard_gate") or {}
+            ),
+            "release_component_evidence": deepcopy(
+                downstream_row.get("release_component_evidence") or {}
+            ),
             "selected": bool(selected),
             "geometry_failure_reasons": sorted(str(value) for value in legal.get("geometry_failure_reasons") or ()),
             "vlm_critic_score": authored_metadata.get("vlm_critic_score"),
@@ -856,32 +919,61 @@ class GeometryOutcomeGraph:
                 evidence.get("projected_visual_geometry_hash") or ""
             )
             if final_visual_authority:
-                semantic_anchor = (
-                    feature_props.get("final_semantic_anchor")
-                    if isinstance(
-                        feature_props.get("final_semantic_anchor"),
-                        dict,
+                semantic_anchor = evidence.get("final_semantic_anchor")
+                semantic_audit = evidence.get("semantic_projection_audit")
+                if (
+                    not isinstance(semantic_anchor, dict)
+                    or not semantic_anchor
+                    or not isinstance(semantic_audit, dict)
+                    or not semantic_audit
+                ):
+                    raise PortfolioRenderAuthorityError({
+                        "reason": "render_authority_context_missing",
+                        "candidate_id": str(
+                            feature_props.get("variant_id") or ""
+                        ),
+                    })
+                feature_anchor = feature_props.get("final_semantic_anchor")
+                artifact_audit = geometry_artifact.get(
+                    "semanticProjectionAudit"
+                )
+                if (
+                    not isinstance(feature_anchor, dict)
+                    or feature_anchor != semantic_anchor
+                    or not isinstance(artifact_audit, dict)
+                    or artifact_audit != semantic_audit
+                ):
+                    raise PortfolioRenderAuthorityError({
+                        "reason": "render_authority_context_mismatch",
+                        "candidate_id": str(
+                            feature_props.get("variant_id") or ""
+                        ),
+                    })
+                if semantic_audit.get("hard_pass") is not True:
+                    raise PortfolioRenderAuthorityError({
+                        "reason": "render_semantic_projection_hard_gate_failed",
+                        "candidate_id": str(
+                            feature_props.get("variant_id") or ""
+                        ),
+                        "failures": list(
+                            semantic_audit.get("failures") or ()
+                        ),
+                    })
+                try:
+                    certified_artifact = CertifiedMassArtifact.load(
+                        geometry_artifact,
+                        authority_context=semantic_anchor,
                     )
-                    else {}
-                )
-                validated_visual = validate_projected_visual_artifact(
-                    geometry_artifact,
-                    expected_semantic_context=semantic_anchor.get(
-                        "expected_semantic_context"
-                    ),
-                    expected_semantic_projection_hash=str(
-                        semantic_anchor.get(
-                            "expected_semantic_projection_hash"
-                        )
-                        or ""
-                    ),
-                    expected_semantic_audit_payload_hash=str(
-                        semantic_anchor.get(
-                            "expected_semantic_audit_payload_hash"
-                        )
-                        or ""
-                    ),
-                )
+                except ValueError as exc:
+                    raise PortfolioRenderAuthorityError({
+                        "reason": "render_authority_context_mismatch",
+                        "candidate_id": str(
+                            feature_props.get("variant_id") or ""
+                        ),
+                        "failure_type": type(exc).__name__,
+                        "failure_detail": str(exc),
+                    }) from exc
+                validated_visual = certified_artifact.validated_visual
                 certified_visual_hash = str(
                     validated_visual.visual_hash
                     if validated_visual is not None
@@ -1100,7 +1192,8 @@ class GeometryOutcomeGraph:
         program = program if isinstance(program, dict) else {}
         bridge = bridge if isinstance(bridge, dict) else {}
         geometry_hash = str(
-            bridge.get("geometry_hash")
+            source.metadata.get("final_geometry_hash")
+            or bridge.get("geometry_hash")
             or (source.metadata.get("geometry_program_compilation") or {}).get("geometry_hash")
             or ""
         )
@@ -1214,6 +1307,163 @@ class GeometryOutcomeGraph:
             if isinstance(audit, dict):
                 resolved[fingerprint] = deepcopy(audit)
         return resolved
+
+    def base_book_vlm_replenishment_feedback(
+        self,
+        *,
+        program_slug: str,
+        limit: int = 12,
+    ) -> list[dict[str, Any]]:
+        """Return rejected exact base identities as coordinate-free edit intent."""
+
+        def transferable_value(value: Any, depth: int = 0) -> Any:
+            if depth > 3:
+                return None
+            if isinstance(value, (str, int, float)) and not isinstance(value, bool):
+                return value if not isinstance(value, str) else value[:300]
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, (list, tuple)):
+                return [
+                    item for item in (
+                        transferable_value(member, depth + 1)
+                        for member in value[:12]
+                    ) if item is not None
+                ]
+            if isinstance(value, dict):
+                return {
+                    str(key)[:80]: converted
+                    for key, member in list(value.items())[:24]
+                    if "id" not in str(key).lower()
+                    and (converted := transferable_value(member, depth + 1))
+                    is not None
+                }
+            return None
+
+        latest: dict[tuple[str, str], dict[str, Any]] = {}
+        for observation in self.observations:
+            if observation.get("stage") != "book_base_vlm":
+                continue
+            if str(observation.get("program_slug") or "") != str(program_slug):
+                continue
+            if observation.get("base_book_vlm_hard_pass") is True:
+                continue
+            fingerprint = str(
+                observation.get("base_review_fingerprint") or ""
+            )
+            program_hash = str(observation.get("program_hash") or "")
+            if not fingerprint or not program_hash:
+                continue
+            audit = observation.get("base_book_vlm_audit") or {}
+            audit = audit if isinstance(audit, dict) else {}
+            row = {
+                "parent_fingerprint": fingerprint,
+                "program_hash": program_hash,
+                "failed_gates": [
+                    str(item)[:120]
+                    for item in observation.get(
+                        "failed_base_book_vlm_gates"
+                    ) or ()
+                ][:12],
+                "critic_actions": transferable_value(
+                    list(audit.get("critic_actions") or ())[:8]
+                ) or [],
+                "geometry_edit_intents": transferable_value(
+                    list(audit.get("geometry_edits") or ())[:8]
+                ) or [],
+                "rationale": str(audit.get("rationale") or "")[:500],
+            }
+            latest[(fingerprint, program_hash)] = row
+        return list(latest.values())[-max(0, min(24, int(limit))):]
+
+    def authored_visual_authority_replenishment_feedback(
+        self,
+        *,
+        program_slug: str,
+        limit: int = 12,
+    ) -> list[dict[str, Any]]:
+        """Return bounded coordinate-free structural repair feedback for AST revision."""
+
+        latest: dict[tuple[str, str], dict[str, Any]] = {}
+        for observation in self.observations:
+            if observation.get("stage") != "geometry_gate":
+                continue
+            if str(observation.get("program_slug") or "") != str(program_slug):
+                continue
+            evidence = observation.get("terminal_certificate_evidence")
+            evidence = evidence if isinstance(evidence, dict) else {}
+            legacy_evidence = observation.get("terminal_materialization_evidence")
+            legacy_evidence = (
+                legacy_evidence if isinstance(legacy_evidence, dict) else {}
+            )
+            gate_stage = str(observation.get("geometry_gate_stage") or "")
+            structural_failure = str(evidence.get("structural_failure") or "")
+            if not structural_failure and gate_stage == "visual_projection_or_replay":
+                structural_failure = "authored_visual_authority"
+                evidence = {
+                    "structural_failure": structural_failure,
+                    "structural_subreason": "authored_visual_authority_revalidation",
+                    "repair_reason": "authored_visual_projection_revalidation_failed",
+                    "failure_reason": str(
+                        legacy_evidence.get("failure_reason")
+                        or "revalidation_floor_section_mismatch"
+                    ),
+                    "certificate_causes": [str(
+                        legacy_evidence.get("failure_reason")
+                        or "revalidation_floor_section_mismatch"
+                    )],
+                    "certificate_modes": [
+                        "post_projection_section_revalidation"
+                    ],
+                    "legal_floor_field_hash": str(
+                        legacy_evidence.get("legal_floor_field_hash") or ""
+                    ),
+                }
+            if structural_failure != "authored_visual_authority":
+                continue
+            subreason = str(evidence.get("structural_subreason") or "")[:120]
+            if not subreason:
+                continue
+            program_hash = str(observation.get("program_hash") or "")[:160]
+            if not program_hash:
+                continue
+            row = {
+                "structural_failure": "authored_visual_authority",
+                "structural_subreason": subreason,
+                "repair_reason": str(evidence.get("repair_reason") or "")[:160],
+                "failure_reason": str(evidence.get("failure_reason") or "")[:160],
+                "certificate_causes": [
+                    str(value)[:160]
+                    for value in evidence.get("certificate_causes") or ()
+                    if isinstance(value, str) and value
+                ][:12],
+                "certificate_modes": [
+                    str(value)[:160]
+                    for value in evidence.get("certificate_modes") or ()
+                    if isinstance(value, str) and value
+                ][:12],
+                "program_hash": program_hash,
+                "geometry_family": str(
+                    evidence.get("geometry_family")
+                    or observation.get("geometry_family")
+                    or ""
+                )[:160],
+                "book_scope": str(
+                    evidence.get("book_scope")
+                    or observation.get("book_scope")
+                    or ""
+                )[:160],
+                "legal_floor_field_hash": str(
+                    evidence.get("legal_floor_field_hash")
+                    or observation.get("legal_floor_field_hash")
+                    or ""
+                )[:160],
+                "hard_fail_closed": True,
+                "visual_authority": "profiled_surface_payload",
+                "legal_floor_loft_or_prism_replay_allowed": False,
+            }
+            latest[(program_hash, subreason)] = row
+        return list(latest.values())[-max(0, min(24, int(limit))):]
 
     def migrate_legacy_base_book_vlm_observations(
         self,

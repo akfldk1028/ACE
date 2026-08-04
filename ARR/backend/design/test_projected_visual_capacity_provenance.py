@@ -366,6 +366,127 @@ class ProjectedVisualCapacityProvenanceTest(SimpleTestCase):
         )
         self.assertEqual(persisted.core_hash, certified.core_hash)
 
+    def test_r65_outcome_render_loads_exact_immutable_authority_context(self):
+        from pathlib import Path
+
+        from design.maas.geometry_language import outcome_graph
+
+        source, audit = self._fixture()
+        with patch(
+            "design.maas.program_massing.semantic_carriers."
+            "audit_source_semantic_projection",
+            side_effect=self._semantic_audit,
+        ):
+            certified = CertifiedMassArtifact.issue(
+                source,
+                semantic_audit=audit,
+            )
+        binding = certified.feature_binding()
+        artifact = binding["geometry_artifact"]
+        feature = {
+            "type": "Feature",
+            "geometry": source.footprint.__geo_interface__,
+            "properties": deepcopy(binding),
+        }
+        candidate = SimpleNamespace(
+            source=source,
+            feature=feature,
+            sequence=SimpleNamespace(
+                name="program_neighborhood_active_bar__book_expand"
+            ),
+            operation="expand",
+            principle_id="book:operative:expand",
+            principle_kind="operative",
+            score=0.8,
+        )
+        evidence = {
+            "card_index": 1,
+            "hard_pass": True,
+            "projected_visual_geometry_hash": artifact[
+                "projectedVisualGeometryHash"
+            ],
+            "final_legal_geometry_hash": artifact[
+                "finalLegalGeometryHash"
+            ],
+            "final_semantic_anchor": deepcopy(
+                binding["final_semantic_anchor"]
+            ),
+            "semantic_projection_audit": deepcopy(
+                artifact["semanticProjectionAudit"]
+            ),
+        }
+        graph = outcome_graph.GeometryOutcomeGraph(
+            Path("unused-r65.json"),
+            pnu="test",
+        )
+        identities = (
+            {"nodes": [{}]},
+            {"nodes": [{}]},
+            {},
+            {},
+            "program-hash",
+            "authored-book-hash",
+            "projected-program-hash",
+        )
+
+        with patch.object(
+            outcome_graph,
+            "_source_program_identities",
+            return_value=identities,
+        ), patch.object(
+            outcome_graph.CertifiedMassArtifact,
+            "issue",
+            side_effect=AssertionError("render must not regenerate artifact"),
+        ):
+            graph.observe_portfolio_render(
+                program_slug="neighborhood",
+                candidates=(candidate,),
+                render_features=(feature,),
+                board_path=Path("board.png"),
+                render_evidence=(evidence,),
+            )
+
+        self.assertEqual(
+            graph.observations[-1]["geometry_hash"],
+            artifact["projectedVisualGeometryHash"],
+        )
+
+        for label, mutation, reason in (
+            (
+                "missing",
+                lambda value: value.pop("final_semantic_anchor"),
+                "render_authority_context_missing",
+            ),
+            (
+                "mismatch",
+                lambda value: value["final_semantic_anchor"].update(
+                    expected_semantic_projection_hash="tampered"
+                ),
+                "render_authority_context_mismatch",
+            ),
+        ):
+            with self.subTest(label=label):
+                invalid = deepcopy(evidence)
+                mutation(invalid)
+                with patch.object(
+                    outcome_graph,
+                    "_source_program_identities",
+                    return_value=identities,
+                ), self.assertRaises(
+                    outcome_graph.PortfolioRenderAuthorityError,
+                ) as captured:
+                    graph.observe_portfolio_render(
+                        program_slug="neighborhood",
+                        candidates=(candidate,),
+                        render_features=(feature,),
+                        board_path=Path("board.png"),
+                        render_evidence=(invalid,),
+                    )
+                self.assertEqual(
+                    captured.exception.evidence["reason"],
+                    reason,
+                )
+
     def test_four_floor_visual_payload_uses_one_physical_metric_frame(self):
         source, audit = self._fixture()
 

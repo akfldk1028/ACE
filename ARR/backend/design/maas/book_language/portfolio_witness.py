@@ -97,6 +97,9 @@ def persist_portfolio_witness(
             "status": str(record.get("status") or "diagnostic"),
             "failure_reasons": list(record.get("failure_reasons") or ()),
         }
+        properties["portfolio_selection_status"] = str(
+            record.get("status") or "diagnostic"
+        )
         certified, authority = _certified_witness_visual_authority(feature)
         if certified:
             normalized_features.append(feature)
@@ -123,12 +126,20 @@ def persist_portfolio_witness(
         renderer = render_archive_sheet
     if normalized_features:
         assert renderer is not None
+        has_selected_witness = any(
+            str(record.get("status") or "") == "selected"
+            for record in normalized_records
+        )
         renderer(
             normalized_features,
             board,
             title=(
                 f"MAAS {program_slug} - {len(normalized_features)} WITNESSES - "
-                f"NOT SELECTED / NOT PUBLISHABLE"
+                + (
+                    "INCOMPLETE PORTFOLIO / NOT PUBLISHABLE"
+                    if has_selected_witness
+                    else "NOT SELECTED / NOT PUBLISHABLE"
+                )
             ),
         )
     evidence = {

@@ -396,6 +396,19 @@ def _selected_semantic_projection_hard_gate(
         })
     return deepcopy(gate)
 
+
+def _portfolio_witness_candidate_status(
+    candidate_program_hash: str,
+    *,
+    selected_program_hashes: set[str],
+    selection_pool_hashes: set[str],
+) -> str:
+    if candidate_program_hash in selected_program_hashes:
+        return "selected"
+    if candidate_program_hash in selection_pool_hashes:
+        return "hard_pass_not_selected"
+    return "rejected"
+
 from .portfolio_selection import (
     PORTFOLIO_SILHOUETTE_DISTANCE,
     build_gestalt_compatibility_analysis,
@@ -1017,6 +1030,15 @@ def _staged_projected_visual_surfaces(
             "empty_triangles",
             triangle_count=0,
         )
+    legacy_normalized_z = (
+        str(mesh.get("schemaVersion") or "")
+        == "arr.maas.projected_visual_mesh.v1"
+        and str(mesh.get("coordinateSpace") or "")
+        in {
+            "capacity_source_centroid_local_xy_normalized_z",
+            "source_footprint_centroid_local_xy_normalized_z",
+        }
+    )
 
     replacement: list[dict[str, Any]] = []
     for triangle_index, triangle in enumerate(triangles):
@@ -1056,7 +1078,7 @@ def _staged_projected_visual_surfaces(
             world_vertices.append([
                 float(visual_origin.x) + x,
                 float(visual_origin.y) + y,
-                float(candidate_height) * z,
+                float(candidate_height) * z if legacy_normalized_z else z,
             ])
         rendered_triangle = deepcopy(triangle)
         rendered_triangle["vertices_world_m"] = world_vertices
@@ -3513,6 +3535,7 @@ def run_book_program_portfolios(
             props["variant_id"] = f"maas_{index + 1:02d}"
             props["mass_shape"] = candidate.operation
             props["review_status"] = "accept"
+            props["portfolio_selection_status"] = "selected"
             props["review_reasons"] = candidate_review_reasons
             if runtime_live_vlm:
                 props["review_reasons"].append("exact post-BOOK VLM hard pass")
@@ -4043,6 +4066,9 @@ def run_book_program_portfolios(
         selection_pool_hashes = {
             _candidate_program_hash(candidate) for candidate in selection_pool
         }
+        selected_program_hashes = {
+            _candidate_program_hash(candidate) for candidate in selected
+        }
         witness_records: list[dict[str, Any]] = []
         witness_failure_histogram: Counter[str] = Counter()
         for candidate in witness_candidates:
@@ -4050,18 +4076,19 @@ def run_book_program_portfolios(
             final_audit = metadata.get("final_book_vlm_audit") or {}
             failure_reasons = list(final_audit.get("failures") or ())
             candidate_program_hash = _candidate_program_hash(candidate)
-            status = (
-                "hard_pass_not_selected"
-                if candidate_program_hash in selection_pool_hashes
-                else "rejected"
+            status = _portfolio_witness_candidate_status(
+                candidate_program_hash,
+                selected_program_hashes=selected_program_hashes,
+                selection_pool_hashes=selection_pool_hashes,
             )
-            if not failure_reasons:
+            if not failure_reasons and status != "selected":
                 failure_reasons = [
                     "strict_portfolio_not_selected"
                     if status == "hard_pass_not_selected"
                     else "downstream_or_final_vlm_hard_gate_failed"
                 ]
-            witness_failure_histogram.update(failure_reasons)
+            if status != "selected":
+                witness_failure_histogram.update(failure_reasons)
             compilation = metadata.get("geometry_program_compilation") or {}
             visual = metadata.get("floorwise_visual_projection") or {}
             witness_records.append({
@@ -4125,7 +4152,29 @@ def run_book_program_portfolios(
                 for compilation in archive_compilations
             ],
         )
-        for row, evidence in zip(rows, render_evidence):
+        for row, evidence, feature in zip(rows, render_evidence, features):
+            feature_props = (
+                feature.get("properties")
+                if isinstance(feature.get("properties"), dict)
+                else {}
+            )
+            geometry_artifact = (
+                feature_props.get("geometry_artifact")
+                if isinstance(
+                    feature_props.get("geometry_artifact"),
+                    dict,
+                )
+                else {}
+            )
+            evidence["final_semantic_anchor"] = deepcopy(
+                feature_props.get("final_semantic_anchor") or {}
+            )
+            evidence["semantic_projection_audit"] = deepcopy(
+                geometry_artifact.get("semanticProjectionAudit") or {}
+            )
+            evidence["certified_mass_artifact_core_hash"] = str(
+                feature_props.get("certified_mass_artifact_core_hash") or ""
+            )
             row["archive_render_evidence"] = evidence
         law_batch_requests: list[
             tuple[ExecutionIdentity, dict[str, Any]]

@@ -417,6 +417,37 @@ def run_site_adaptation_benchmark(*, output_json: Path, output_png: Path) -> dic
     return result
 
 
+def _archive_review_display(props: dict[str, Any]) -> dict[str, str]:
+    review_status = str(props.get("review_status") or "").strip().lower()
+    selected = str(
+        props.get("portfolio_selection_status") or ""
+    ).strip().lower() == "selected"
+    reasons = [str(value) for value in props.get("review_reasons") or []]
+    if selected:
+        status_label = "SELECTED/WARN" if review_status == "warn" else "SELECTED"
+        footer_fill = "#4a3514" if review_status == "warn" else "#123524"
+        text_fill = "#fcd34d" if review_status == "warn" else "#86efac"
+    elif review_status == "accept":
+        status_label, footer_fill, text_fill = "ACCEPT", "#123524", "#86efac"
+    elif review_status == "warn":
+        status_label, footer_fill, text_fill = "WARN", "#4a3514", "#fcd34d"
+    elif review_status == "reject":
+        status_label, footer_fill, text_fill = "REJECT", "#441d25", "#fda4af"
+    else:
+        status_label, footer_fill, text_fill = "", "#101d32", "#cbd5e1"
+    note = (
+        f"{status_label} · {', '.join(reasons[:2]) or 'visual floor pass'}"
+        if status_label
+        else ""
+    )
+    return {
+        "status_label": status_label,
+        "footer_fill": footer_fill,
+        "text_fill": text_fill,
+        "note": note,
+    }
+
+
 def _render_archive_sheet(
     features: list[dict[str, Any]],
     output: Path,
@@ -455,12 +486,8 @@ def _render_archive_sheet(
             display_score = float(creative_evidence.get("creative_score") or program_evidence.get("program_fit_score") or 0.0)
             display_mode = "creative" if creative_evidence else ("program" if program_evidence else "unscored")
             evidence = {"creative_score": display_score}
-            review_status = str(props.get("review_status") or "").strip().lower()
-            footer_fill = (
-                "#123524" if review_status == "accept"
-                else "#441d25" if review_status == "reject"
-                else "#101d32"
-            )
+            review_display = _archive_review_display(props)
+            footer_fill = review_display["footer_fill"]
             draw.rectangle((x, y + 260, x + card_w, y + card_h), fill=footer_fill)
             source_id = str(props.get("archive_variant_id") or props["variant_id"])
             topology = str(props.get("mass_shape") or source_id.split("__search_", 1)[0].replace("creative_", ""))
@@ -495,16 +522,14 @@ def _render_archive_sheet(
                     f"{target:.0%}>{achieved:.0%} | FAR {far_pct:.0f}/{feasible_far:.0f}%"
                 )
             draw.text((x + 12, y + 274), label, fill="#f8fafc", font=label_font)
-            if review_status:
-                reasons = [str(value) for value in props.get("review_reasons") or []]
-                status_label = "ACCEPT" if review_status == "accept" else "REJECT"
-                note = f"{status_label} · {', '.join(reasons[:2]) or 'visual floor pass'}"
+            if review_display["status_label"]:
+                note = review_display["note"]
                 if len(note) > 63:
                     note = note[:60] + "..."
                 draw.text(
                     (x + 12, y + 298),
                     note,
-                    fill="#86efac" if review_status == "accept" else "#fda4af",
+                    fill=review_display["text_fill"],
                     font=note_font,
                 )
         for index in range(len(features), row_count * columns):

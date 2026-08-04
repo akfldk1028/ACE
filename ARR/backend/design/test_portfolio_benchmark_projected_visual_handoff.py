@@ -16,7 +16,13 @@ class ProjectedVisualHandoffTest(SimpleTestCase):
     def _artifact(triangles):
         return {
             "authority": "certified_projected_visual_mesh",
-            "projectedVisualMesh": {"triangles": triangles},
+            "projectedVisualMesh": {
+                "schemaVersion": "arr.maas.projected_visual_mesh.v1",
+                "coordinateSpace": (
+                    "source_footprint_centroid_local_xy_normalized_z"
+                ),
+                "triangles": triangles,
+            },
         }
 
     @staticmethod
@@ -188,6 +194,38 @@ class ProjectedVisualHandoffTest(SimpleTestCase):
                     [10.0, 21.0, 12.0],
                 ],
             }],
+        )
+
+    def test_projected_visual_z_scaling_respects_explicit_coordinate_contract(self):
+        physical_triangle = self._triangle()
+        physical_triangle["vertices_m"][2][2] = 14.0
+        physical = {
+            "projectedVisualMesh": {
+                "schemaVersion": "arr.maas.projected_visual_mesh.v2",
+                "coordinateSpace": "source_footprint_centroid_local_xyz_m",
+                "triangles": [physical_triangle],
+            },
+        }
+        legacy = self._artifact([self._triangle()])
+
+        physical_staged = portfolio_benchmark._staged_projected_visual_surfaces(
+            physical,
+            visual_origin=SimpleNamespace(x=10.0, y=20.0),
+            candidate_height=14.0,
+        )
+        legacy_staged = portfolio_benchmark._staged_projected_visual_surfaces(
+            legacy,
+            visual_origin=SimpleNamespace(x=10.0, y=20.0),
+            candidate_height=14.0,
+        )
+
+        self.assertEqual(
+            physical_staged[0]["vertices_world_m"][2][2],
+            14.0,
+        )
+        self.assertEqual(
+            legacy_staged[0]["vertices_world_m"][2][2],
+            14.0,
         )
 
     def test_production_handoff_staging_is_nonmutating_until_commit(self):

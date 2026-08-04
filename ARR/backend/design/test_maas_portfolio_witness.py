@@ -9,10 +9,40 @@ from design.maas.book_language.portfolio_witness import (
 )
 from design.maas.book_language.portfolio_benchmark import (
     _candidate_program_hash,
+    _portfolio_witness_candidate_status,
 )
+from design.maas.program_massing.benchmark import _archive_review_display
 
 
 class PortfolioWitnessTests(SimpleTestCase):
+    def test_selected_warn_is_not_reclassified_as_rejected_or_not_selected(self):
+        candidate_hash = "selected-program-hash"
+        self.assertEqual(
+            _portfolio_witness_candidate_status(
+                candidate_hash,
+                selected_program_hashes={candidate_hash},
+                selection_pool_hashes={candidate_hash},
+            ),
+            "selected",
+        )
+        self.assertEqual(
+            _portfolio_witness_candidate_status(
+                "unselected-program-hash",
+                selected_program_hashes={candidate_hash},
+                selection_pool_hashes={"unselected-program-hash"},
+            ),
+            "hard_pass_not_selected",
+        )
+
+        display = _archive_review_display({
+            "portfolio_selection_status": "selected",
+            "review_status": "warn",
+            "review_reasons": ["program hard pass", "clean mass pass"],
+        })
+        self.assertEqual(display["status_label"], "SELECTED/WARN")
+        self.assertNotIn("REJECT", display["note"])
+        self.assertIn("program hard pass", display["note"])
+
     def test_witness_renderer_excludes_uncertified_authored_profiled_feature(self):
         rendered = []
 

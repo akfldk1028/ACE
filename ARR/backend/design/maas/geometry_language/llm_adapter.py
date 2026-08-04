@@ -92,12 +92,7 @@ def author_geometry_programs_with_openai(
     author_stage, author_request_kind = _geometry_author_request_identity(
         context
     )
-    book_principle_ids = _canonical_book_principle_ids(context)
-    if "book_graph_vocabulary" in context:
-        context = {
-            **context,
-            "book_principle_ids": list(book_principle_ids),
-        }
+    book_principle_ids: tuple[str, ...] = ()
     author_program_context = _author_validation_context(context)
     selected_model = model or os.getenv("MAAS_GEOMETRY_AUTHOR_MODEL") or DEFAULT_GEOMETRY_AUTHOR_MODEL
     explicit_replay_path = os.getenv(
@@ -126,6 +121,14 @@ def author_geometry_programs_with_openai(
             prompt_contract=LEGACY_GEOMETRY_AUTHOR_PROMPT_CONTRACT,
         )
         cached = _load_author_cache(legacy_cache_path)
+    if cached is not None and "book_graph_vocabulary" in context:
+        try:
+            book_principle_ids = _canonical_book_principle_ids(
+                context,
+                cached,
+            )
+        except GeometryAuthorError:
+            cached = None
     if cached is not None:
         if isinstance(cached.get("compiled_programs"), list):
             programs = tuple(
@@ -162,6 +165,14 @@ def author_geometry_programs_with_openai(
     rejected_cache = _load_revalidatable_kernel_rejection(
         cache_path.with_suffix(".rejected.json")
     )
+    if rejected_cache is not None and "book_graph_vocabulary" in context:
+        try:
+            book_principle_ids = _canonical_book_principle_ids(
+                context,
+                rejected_cache,
+            )
+        except GeometryAuthorError:
+            rejected_cache = None
     if rejected_cache is not None:
         try:
             programs = geometry_programs_from_author_payload(
@@ -220,6 +231,9 @@ def author_geometry_programs_with_openai(
                     count,
                     allowed_base_seeds=_allowed_author_base_seeds(context),
                     allowed_operators=_allowed_author_operators(context),
+                    book_principle_vocabulary=(
+                        _book_graph_principle_vocabulary(context)
+                    ),
                 ),
             }
         },
@@ -242,6 +256,7 @@ def author_geometry_programs_with_openai(
     except json.JSONDecodeError as exc:
         raise GeometryAuthorError("geometry author returned invalid JSON") from exc
     response_id = str(response_data.get("id") or "")
+    book_principle_ids = _canonical_book_principle_ids(context, payload)
     parse_error: GeometryAuthorError | None = None
     try:
         initial_programs = geometry_programs_from_author_payload(
@@ -377,7 +392,9 @@ def _decorate_author_programs(
     }) for program in programs)
 
 
-def _canonical_book_principle_ids(context: dict[str, Any]) -> tuple[str, ...]:
+def _book_graph_principle_vocabulary(
+    context: dict[str, Any],
+) -> tuple[str, ...]:
     if "book_graph_vocabulary" not in context:
         return ()
     vocabulary = context.get("book_graph_vocabulary")
@@ -402,10 +419,24 @@ def _canonical_book_principle_ids(context: dict[str, Any]) -> tuple[str, ...]:
         raise GeometryAuthorError(
             "book_graph_vocabulary contains no canonical book principle ids"
         )
-    requested = context.get("book_principle_ids")
+    return tuple(sorted(canonical_ids))
+
+
+def _canonical_book_principle_ids(
+    context: dict[str, Any],
+    provenance: dict[str, Any] | None = None,
+) -> tuple[str, ...]:
+    canonical_ids = set(_book_graph_principle_vocabulary(context))
+    if not canonical_ids:
+        return ()
+    requested = (
+        provenance.get("book_principle_ids")
+        if isinstance(provenance, dict)
+        else None
+    )
     if not isinstance(requested, (list, tuple)) or not requested:
         raise GeometryAuthorError(
-            "book_principle_ids are required with book_graph_vocabulary"
+            "book_principle_ids are required in vocabulary-bearing author provenance"
         )
     normalized: list[str] = []
     for value in requested:
@@ -764,7 +795,6 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
     # Source-level graph memory is already bounded and coordinate-free. Keep
     # enough room for transferable post-BOOK repair priors; the previous 12k
     # cut could silently drop the final keys after successful genotype priors.
-    book_principle_ids = _canonical_book_principle_ids(context)
     bounded_context = {
         key: value
         for key, value in context.items()
@@ -784,11 +814,6 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
         )
         if "book_graph_vocabulary" in context
         else "not supplied (legacy context)"
-    )
-    book_principle_ids_text = json.dumps(
-        list(book_principle_ids),
-        ensure_ascii=False,
-        separators=(",", ":"),
     )
     parameter_contracts = json.dumps({
         operator: {
@@ -926,8 +951,8 @@ Rules:
 Program/site context:
 {context_text}
 
-Canonical BOOK principle ids selected for this authoring context:
-{book_principle_ids_text}
+Select and return a non-empty `book_principle_ids` array using exact canonical ids from the vocabulary below.
+These ids record transferable principles used by the authored AST; they are not completed-form labels.
 
 Complete compact BOOK graph vocabulary (relation vocabulary only; never copy a completed form):
 {book_graph_vocabulary_text}
@@ -977,6 +1002,7 @@ def _author_schema(
     *,
     allowed_base_seeds: list[str] | tuple[str, ...] | None = None,
     allowed_operators: list[str] | tuple[str, ...] | None = None,
+    book_principle_vocabulary: tuple[str, ...] = (),
 ) -> dict[str, Any]:
     operators = list(allowed_operators or sorted({
         operator
@@ -984,7 +1010,7 @@ def _author_schema(
         for operator in values
     }))
     node_schema = _author_node_schema(operators)
-    return {
+    schema = {
         "type": "object",
         "additionalProperties": False,
         "required": ["programs"],
@@ -1022,6 +1048,17 @@ def _author_schema(
             }
         },
     }
+    if book_principle_vocabulary:
+        schema["properties"]["book_principle_ids"] = {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": list(book_principle_vocabulary),
+            },
+            "minItems": 1,
+        }
+        schema["required"].append("book_principle_ids")
+    return schema
 
 
 def _author_node_schema(allowed_operators: list[str]) -> dict[str, Any]:

@@ -6429,7 +6429,8 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             "resp-cached-author",
         )
 
-    def test_llm_author_book_graph_context_requires_canonical_principle_ids(self):
+    def test_llm_author_book_graph_request_reauthors_when_legacy_cache_has_no_ids(self):
+        authored = base_seed_programs()[1]
         context = {
             "program_id": "neighborhood_living",
             "book_graph_vocabulary": {
@@ -6439,29 +6440,111 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                 ],
             },
         }
+        live_payload = {
+            "book_principle_ids": ["book:operative:bend"],
+            "programs": [{
+                "name": authored.name,
+                "dsl": geometry_llm_adapter.program_to_dsl(authored),
+            }],
+        }
+        response_data = {
+            "id": "resp-fresh-book-author",
+            "output": [{
+                "content": [{
+                    "type": "output_text",
+                    "text": json.dumps(live_payload),
+                }],
+            }],
+        }
+        with TemporaryDirectory() as temporary_dir:
+            cache_path = Path(temporary_dir) / "legacy-author-cache.json"
+            cache_path.write_text(json.dumps({
+                "cache_schema_version": "arr.maas.geometry_llm_author_cache.v3",
+                "validation_status": "accepted",
+                "model": "cached-test-model",
+                "response_id": "resp-stale-legacy-author",
+                "compiled_programs": [authored.to_dict()],
+            }), encoding="utf-8")
+            with (
+                patch.dict(os.environ, {
+                    "MAAS_GEOMETRY_AUTHOR_REPLAY_CACHE_PATH": str(cache_path),
+                    "OPENAI_API_KEY": "test-only-not-sent",
+                }, clear=True),
+                patch.object(
+                    geometry_llm_adapter,
+                    "reserve_paid_provider_request",
+                ),
+                patch.object(geometry_llm_adapter.urllib.request, "urlopen") as urlopen,
+            ):
+                urlopen.return_value.__enter__.return_value.read.return_value = (
+                    json.dumps(response_data).encode("utf-8")
+                )
+                programs = geometry_llm_adapter.author_geometry_programs_with_openai(
+                    context,
+                    target_count=1,
+                    model="cached-test-model",
+                )
 
-        with self.assertRaisesRegex(
-            geometry_llm_adapter.GeometryAuthorError,
-            "book_principle_ids",
-        ):
-            geometry_llm_adapter.author_geometry_programs_with_openai(
-                context,
-                target_count=1,
-                model="cached-test-model",
-            )
+        urlopen.assert_called_once()
+        self.assertFalse(programs[0].metadata["author_cache_hit"])
+        self.assertEqual(
+            programs[0].metadata["book_principle_ids"],
+            ["book:operative:bend"],
+        )
+        self.assertEqual(
+            programs[0].metadata["author_response_id"],
+            "resp-fresh-book-author",
+        )
 
-        with self.assertRaisesRegex(
-            geometry_llm_adapter.GeometryAuthorError,
-            "canonical book principle",
+    def test_llm_author_fresh_book_graph_response_requires_canonical_ids(self):
+        context = {
+            "program_id": "neighborhood_living",
+            "book_graph_vocabulary": {
+                "principles": [{
+                    "principle_id": "book:operative:bend",
+                    "label": "bend",
+                }],
+            },
+        }
+        response_data = {
+            "id": "resp-fresh-book-author-without-ids",
+            "output": [{
+                "content": [{
+                    "type": "output_text",
+                    "text": json.dumps({
+                        "programs": [{
+                            "name": "fresh_without_ids",
+                            "dsl": "mass result = box(10, 8, 6)",
+                        }],
+                    }),
+                }],
+            }],
+        }
+        with (
+            patch.dict(os.environ, {
+                "OPENAI_API_KEY": "test-only-not-sent",
+                "MAAS_GEOMETRY_AUTHOR_CACHE_DIR": TemporaryDirectory().name,
+            }, clear=True),
+            patch.object(
+                geometry_llm_adapter,
+                "reserve_paid_provider_request",
+            ),
+            patch.object(geometry_llm_adapter.urllib.request, "urlopen") as urlopen,
         ):
-            geometry_llm_adapter.author_geometry_programs_with_openai(
-                {
-                    **context,
-                    "book_principle_ids": ["book:operative:not-in-manifest"],
-                },
-                target_count=1,
-                model="cached-test-model",
+            urlopen.return_value.__enter__.return_value.read.return_value = (
+                json.dumps(response_data).encode("utf-8")
             )
+            with self.assertRaisesRegex(
+                geometry_llm_adapter.GeometryAuthorError,
+                "book_principle_ids",
+            ):
+                geometry_llm_adapter.author_geometry_programs_with_openai(
+                    context,
+                    target_count=1,
+                    model="cached-test-model",
+                )
+
+        urlopen.assert_called_once()
 
     def test_llm_author_book_graph_vocabulary_is_complete_and_ids_are_recorded(self):
         authored = base_seed_programs()[1]
@@ -6481,11 +6564,6 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         context = {
             "program_id": "neighborhood_living",
             "book_graph_vocabulary": {"principles": principles},
-            "book_principle_ids": [
-                "book:operative:last-canonical-principle",
-                "book:operative:generated-0001",
-                "book:operative:last-canonical-principle",
-            ],
             "oversized_prior_memory": "y" * 26000,
         }
 
@@ -6500,6 +6578,11 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                 "validation_status": "accepted",
                 "model": "cached-test-model",
                 "response_id": "resp-cached-book-author",
+                "book_principle_ids": [
+                    "book:operative:last-canonical-principle",
+                    "book:operative:generated-0001",
+                    "book:operative:last-canonical-principle",
+                ],
                 "compiled_programs": [authored.to_dict()],
             }), encoding="utf-8")
             with patch.dict(os.environ, {

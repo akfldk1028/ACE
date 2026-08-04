@@ -81,3 +81,35 @@ TDD evidence:
 - LLM prompt/schema/metadata tests: RED 2 expected failures across 3 tests, then GREEN 3/3.
 
 Next action: run r28 full target-five MASS flow and inspect authored principle coverage, legal archive, VLM routing, selected count, and PNG boards.
+
+## r28-r33 - full BOOK graph and final VLM authority repair
+
+Commits:
+- e7f8be4 full compact BOOK graph vocabulary into LLM author/replenishment context
+- 723ec57 invalidate legacy author cache for the new principle-binding contract
+- 6bc64ca and 227d29e exposed incomplete stage/kind routing heuristics
+- dea0f6a separated provider VLM eligibility from local competition quality objectives
+- bfaebad replaced string heuristics with registry/lineage/projection typed applied-BOOK routing
+
+Run evidence:
+- r28: 0/5 immediately; legacy cached payload was incorrectly validated as a new response.
+- r29: 7 legal archive, 2 final VLM inputs, 0 selected. Four applied base operatives were incorrectly excluded; both remaining combinations failed final VLM.
+- r30: 10 legal archive, base VLM 6 inputs/2 passes, final selection 0. Local gesture/hierarchy score floors overruled a positive provider program-fit verdict.
+- r31: 11 legal archive, 1 final VLM input, 1 selected after VLM authority separation.
+- r32: 11 legal archive, 0 final inputs. Candidate.operation labels were incorrectly treated as book:* IDs.
+- r33: typed routing v2 routed all 6/6 applied BOOK candidates with no exclusions; final VLM hard-passed 2; final hard-pass pool 2; selector retained 1/5. Archive count 11. Exact compile usage 43/60.
+
+Current architecture:
+- LLM receives the complete canonical principle graph and must bind canonical IDs.
+- Applied BOOK routing is proven by canonical registry identity, typed lineage, parent key, and materialized projection certificate; stage and display labels are not authority.
+- Provider VLM program-fit/blocking verdict remains hard eligibility.
+- Local competition floors remain diagnostics/rank/repair objectives, never sole deletion authority.
+
+Current remaining bottlenecks:
+- provider-approved final supply is 2/6;
+- selector reduces the 2 hard passes to 1 distinct silhouette;
+- materialization still loses many programs to book_projection, authored_visual_authority, and floor_affine_fit.
+
+Visible outputs:
+- selected board: docs/playwright/design-route-live-verify/book-program-portfolios-legal-archive-target5-r33/maas-book-neighborhood-5.png
+- legal archive board: docs/playwright/design-route-live-verify/book-program-portfolios-legal-archive-target5-r33/maas-book-neighborhood-0-legal-archive.png

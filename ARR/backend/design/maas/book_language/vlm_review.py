@@ -1871,6 +1871,78 @@ def _final_authority_repair_requires_canonical_reprojection(
     }
 
 
+def _repaired_program_release_contract(
+    program: dict[str, Any],
+    program_form: dict[str, Any],
+) -> dict[str, Any]:
+    """Separate repaired-surface authority from design-review evidence."""
+
+    explicit_components = all(
+        key in program
+        for key in ("volume_hard_pass", "floor_hard_pass")
+    )
+    volume_hard_pass = bool(
+        program.get("volume_hard_pass")
+        if explicit_components
+        else program.get("hard_pass")
+    )
+    floor_hard_pass = bool(
+        program.get("floor_hard_pass")
+        if explicit_components
+        else program.get("hard_pass")
+    )
+    coherence_hard_pass = bool(program.get("coherence_hard_pass", True))
+    spatial_hard_pass = bool(program.get("spatial_hard_pass", True))
+    program_form_hard_pass = program_form.get("hard_pass") is True
+    component_reasons = program.get("component_failure_reasons")
+    component_reasons = (
+        deepcopy(component_reasons)
+        if isinstance(component_reasons, dict)
+        else {}
+    )
+    design_failure_reasons = [
+        *list(component_reasons.get("coherence") or ()),
+        *list(component_reasons.get("spatial") or ()),
+    ]
+    if not coherence_hard_pass and not component_reasons.get("coherence"):
+        design_failure_reasons.append("coherence_hard_pass_false")
+    if not spatial_hard_pass and not component_reasons.get("spatial"):
+        design_failure_reasons.append("spatial_hard_pass_false")
+    hard_failure_reasons = []
+    if not volume_hard_pass:
+        hard_failure_reasons.extend(
+            component_reasons.get("volume") or ("volume_hard_pass_false",)
+        )
+    if not floor_hard_pass:
+        hard_failure_reasons.extend(
+            component_reasons.get("floor") or ("floor_hard_pass_false",)
+        )
+    if not program_form_hard_pass:
+        hard_failure_reasons.extend(
+            program_form.get("failure_reasons")
+            or program_form.get("failures")
+            or ("program_form_hard_pass_false",)
+        )
+    return {
+        "schema_version": "arr.maas.repaired_program_release.v1",
+        "hard_pass": bool(
+            volume_hard_pass
+            and floor_hard_pass
+            and program_form_hard_pass
+        ),
+        "volume_hard_pass": volume_hard_pass,
+        "floor_hard_pass": floor_hard_pass,
+        "program_form_hard_pass": program_form_hard_pass,
+        "coherence_hard_pass": coherence_hard_pass,
+        "spatial_hard_pass": spatial_hard_pass,
+        "hard_failure_reasons": list(dict.fromkeys(hard_failure_reasons)),
+        "design_review_required": bool(design_failure_reasons),
+        "design_failure_reasons": list(dict.fromkeys(design_failure_reasons)),
+        "coherence_and_spatial_are_final_vlm_diagnostics": True,
+        "statutory_structural_clean_gates_precede_this_contract": True,
+    }
+
+
 def _repair_exact_post_book_candidates_from_vlm(
     audited_pool: list[_Candidate],
     audit_gate: dict[str, Any],
@@ -2513,9 +2585,26 @@ def _repair_exact_post_book_candidates_from_vlm(
         program = attach_program_massing_evidence(feature, building_type=building_type)
         program_form = _program_form_gate(source, building_type)
         feature["properties"]["program_form_gate"] = program_form
-        if not (program.get("hard_pass") and program_form.get("hard_pass")):
-            program_failed = program.get("hard_pass") is not True
-            program_form_failed = program_form.get("hard_pass") is not True
+        release_contract = _repaired_program_release_contract(
+            program,
+            program_form,
+        )
+        feature["properties"]["final_vlm_repair_program_release"] = deepcopy(
+            release_contract
+        )
+        source_metadata = deepcopy(source.metadata)
+        source_metadata["final_vlm_repair_program_release"] = deepcopy(
+            release_contract
+        )
+        source = replace(source, metadata=source_metadata)
+        if not release_contract["hard_pass"]:
+            program_failed = bool(
+                not release_contract["volume_hard_pass"]
+                or not release_contract["floor_hard_pass"]
+            )
+            program_form_failed = not release_contract[
+                "program_form_hard_pass"
+            ]
             failure_reason = (
                 "program_and_program_form_gate_failed"
                 if program_failed and program_form_failed
@@ -2535,6 +2624,7 @@ def _repair_exact_post_book_candidates_from_vlm(
                     "repaired_geometry_hash": repaired_compilation.geometry_hash,
                     "program_gate": deepcopy(program),
                     "program_form_gate": deepcopy(program_form),
+                    "repaired_program_release": deepcopy(release_contract),
                     "program_failed_gates": list(
                         program.get("failed_gates")
                         or program.get("failure_reasons")
@@ -2550,6 +2640,26 @@ def _repair_exact_post_book_candidates_from_vlm(
             )
             continue
         counts["program_hard_pass_count"] += 1
+        if release_contract["design_review_required"]:
+            outcome = StageOutcome.diagnostic(
+                "final_vlm_repair_program_design_review",
+                "non_statutory_program_design_review_required",
+                evidence={
+                    "source_sequence": candidate.sequence.name,
+                    "geometry_family": _geometry_program_family(candidate),
+                    "critic_response_id": str(record.get("response_id") or ""),
+                    "repaired_program_hash": repaired_program.program_hash(),
+                    "repaired_geometry_hash": repaired_compilation.geometry_hash,
+                    "repaired_program_release": deepcopy(release_contract),
+                    "program_gate": deepcopy(program),
+                    "program_form_gate": deepcopy(program_form),
+                },
+            )
+            record_stage_outcome(outcome, records=stage_outcomes)
+            repair_outcomes.append(outcome.to_record())
+            counts["design_diagnostic_release_count"] = (
+                int(counts.get("design_diagnostic_release_count") or 0) + 1
+            )
         spatial = feature["properties"]["program_spatial_evidence"]
         if capacity_measurement:
             capacity_score = capacity_fit_score(

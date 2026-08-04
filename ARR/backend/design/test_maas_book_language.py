@@ -6218,8 +6218,23 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         def attach_evidence(feature, **_kwargs):
             feature.setdefault("properties", {})["program_spatial_evidence"] = {
                 "architectural_score": 0.82,
+                "hard_pass": False,
+                "failure_reasons": ["spatial_hard_pass_false"],
             }
-            return {"hard_pass": True, "program_fit_score": 0.84}
+            return {
+                "hard_pass": False,
+                "program_fit_score": 0.84,
+                "volume_hard_pass": True,
+                "floor_hard_pass": True,
+                "coherence_hard_pass": True,
+                "spatial_hard_pass": False,
+                "component_failure_reasons": {
+                    "volume": [],
+                    "floor": [],
+                    "coherence": [],
+                    "spatial": ["spatial_hard_pass_false"],
+                },
+            }
 
         with (
             patch.object(vlm_review, "compile_sequence_to_source_mass", return_value=source),
@@ -6252,7 +6267,21 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         canonical.assert_called_once()
         self.assertEqual(counts["failure_counts"], {})
         self.assertEqual(counts["floorwise_legal_reprojection_count"], 1)
+        self.assertEqual(counts["design_diagnostic_release_count"], 1)
         self.assertEqual(len(repaired), 1)
+        release = repaired[0].feature["properties"][
+            "final_vlm_repair_program_release"
+        ]
+        self.assertTrue(release["hard_pass"])
+        self.assertTrue(release["design_review_required"])
+        self.assertEqual(
+            release["design_failure_reasons"],
+            ["spatial_hard_pass_false"],
+        )
+        self.assertEqual(
+            counts["repair_outcomes"][0]["reason"],
+            "non_statutory_program_design_review_required",
+        )
         repaired_metadata = repaired[0].source.metadata
         self.assertEqual(
             repaired_metadata["floorwise_visual_projection"]["marker"],
@@ -6289,6 +6318,51 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             repaired[0].source.volumes,
             projected_sources[0].volumes,
         )
+
+    def test_final_vlm_repair_release_keeps_volume_floor_and_program_form_hard(self):
+        passing_program = {
+            "hard_pass": False,
+            "volume_hard_pass": True,
+            "floor_hard_pass": True,
+            "coherence_hard_pass": True,
+            "spatial_hard_pass": False,
+            "component_failure_reasons": {
+                "volume": [],
+                "floor": [],
+                "coherence": [],
+                "spatial": ["spatial_hard_pass_false"],
+            },
+        }
+        for program, program_form, expected_reason in (
+            (
+                {**passing_program, "volume_hard_pass": False},
+                {"hard_pass": True, "failures": []},
+                "volume_hard_pass_false",
+            ),
+            (
+                {**passing_program, "floor_hard_pass": False},
+                {"hard_pass": True, "failures": []},
+                "floor_hard_pass_false",
+            ),
+            (
+                passing_program,
+                {
+                    "hard_pass": False,
+                    "failures": ["architectural_body_rule_budget_exceeded"],
+                },
+                "architectural_body_rule_budget_exceeded",
+            ),
+        ):
+            with self.subTest(expected_reason=expected_reason):
+                release = vlm_review._repaired_program_release_contract(
+                    program,
+                    program_form,
+                )
+                self.assertFalse(release["hard_pass"])
+                self.assertIn(
+                    expected_reason,
+                    release["hard_failure_reasons"],
+                )
 
     def test_source_dominant_replacement_records_typed_none_reason(self):
         site = Polygon(((0, 0), (30, 0), (30, 24), (0, 24)))

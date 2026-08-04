@@ -208,6 +208,49 @@ class ProjectedVisualCapacityProvenanceTest(SimpleTestCase):
                 authority_context=binding["final_semantic_anchor"],
             )
 
+    def test_final_vlm_materializer_preserves_certified_physical_binding(self):
+        from design.maas.book_language.vlm_review import (
+            _bind_final_visual_authority_for_review,
+        )
+        from design.maas.program_massing.search import (
+            materialize_source_feature_surfaces,
+        )
+
+        source, audit = self._fixture()
+        candidate = SimpleNamespace(
+            source=source,
+            feature={"type": "Feature", "geometry": None, "properties": {}},
+        )
+        with patch(
+            "design.maas.program_massing.semantic_carriers."
+            "audit_source_semantic_projection",
+            side_effect=self._semantic_audit,
+        ):
+            _bind_final_visual_authority_for_review(candidate, audit)
+
+        props = candidate.feature["properties"]
+        artifact_before = deepcopy(props["geometry_artifact"])
+        surfaces_before = deepcopy(props["source_surfaces"])
+        core_hash_before = props["certified_mass_artifact_core_hash"]
+
+        materialize_source_feature_surfaces(
+            candidate.feature,
+            source,
+            height=14.0,
+        )
+
+        self.assertEqual(props["geometry_artifact"], artifact_before)
+        self.assertEqual(props["source_surfaces"], surfaces_before)
+        self.assertEqual(
+            props["certified_mass_artifact_core_hash"],
+            core_hash_before,
+        )
+        loaded = CertifiedMassArtifact.load(
+            props["geometry_artifact"],
+            authority_context=props["final_semantic_anchor"],
+        )
+        self.assertEqual(loaded.core_hash, core_hash_before)
+
     def test_final_vlm_issue_binds_source_section_authority_context(self):
         from design.maas.book_language.vlm_review import (
             _bind_final_visual_authority_for_review,

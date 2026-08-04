@@ -91,6 +91,7 @@ def bind_source_role_scaffold_to_program(
     source: SourceMass,
     *,
     program_id: str,
+    failure_sink: list[dict[str, Any]] | None = None,
 ) -> Any | None:
     """Bind the compiled source-role identity into a reachable AST node."""
 
@@ -100,6 +101,19 @@ def bind_source_role_scaffold_to_program(
         program_id=normalized,
     )
     if failures or not scaffold:
+        if failure_sink is not None:
+            failure_sink.append({
+                "reason": "source_role_scaffold_invalid",
+                "program_id": normalized,
+                "required_relations": list(REQUIRED_RELATIONS.get(normalized, ())),
+                "available_relations": sorted({
+                    str(record.get("source_relation") or "")
+                    for record in scaffold
+                    if isinstance(record, dict) and record.get("source_relation")
+                }),
+                "scaffold_failures": list(failures),
+                "component_graph_provenance": provenance,
+            })
         return None
     from design.maas.geometry_language import GeometryNode
     from design.maas.geometry_language.affine_matrix import (
@@ -125,6 +139,21 @@ def bind_source_role_scaffold_to_program(
             for relation in required_relations
         )
     ):
+        if failure_sink is not None:
+            failure_sink.append({
+                "reason": "required_source_relations_missing",
+                "program_id": normalized,
+                "required_relations": list(required_relations),
+                "available_relations": sorted(
+                    relation for relation in scaffold_by_relation if relation
+                ),
+                "missing_relations": [
+                    relation
+                    for relation in required_relations
+                    if relation not in scaffold_by_relation
+                ],
+                "component_graph_provenance": provenance,
+            })
         return None
     existing = set(program.node_map)
     relation_nodes = []
@@ -144,6 +173,15 @@ def bind_source_role_scaffold_to_program(
             not relation_payload["source_component_id"]
             or not relation_payload["semantic_role"]
         ):
+            if failure_sink is not None:
+                failure_sink.append({
+                    "reason": "source_relation_identity_incomplete",
+                    "program_id": normalized,
+                    "required_relations": list(required_relations),
+                    "source_relation": relation,
+                    "source_component_id": relation_payload["source_component_id"],
+                    "semantic_role": relation_payload["semantic_role"],
+                })
             return None
         relation_payload["relation_hash"] = _canonical_hash(
             relation_payload
@@ -1146,9 +1184,12 @@ def _source_relation(program_id: str, role: str, *, dominant: bool) -> str:
         if any(token in text for token in ("entry", "bridge", "ramp")):
             return "public_entry_path"
     elif program_id == "neighborhood_living":
-        if dominant:
+        if "primary" in text:
             return "primary_program_mass"
-        if any(token in text for token in ("ground", "platform", "podium")):
+        if any(
+            token in text
+            for token in ("active", "ground", "platform", "podium")
+        ):
             return "active_ground_program"
         if any(token in text for token in ("entry", "canopy", "terrace", "public")):
             return "public_spatial_gesture"

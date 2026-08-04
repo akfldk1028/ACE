@@ -2210,6 +2210,7 @@ def _repair_exact_post_book_candidates_from_vlm(
                 program_id=building_type,
             )
         except (TypeError, ValueError) as exc:
+            binding_evidence = getattr(exc, "evidence", None)
             record_repair_failure(
                 candidate=candidate,
                 critic_record=record,
@@ -2220,6 +2221,11 @@ def _repair_exact_post_book_candidates_from_vlm(
                     "repaired_geometry_hash": unbound_repaired_geometry_hash,
                     "failure_type": type(exc).__name__,
                     "failure_detail": str(exc),
+                    "source_role_binding_failure": (
+                        deepcopy(binding_evidence)
+                        if isinstance(binding_evidence, dict)
+                        else {}
+                    ),
                 },
                 legacy_counter="repaired_source_role_binding_failed",
             )

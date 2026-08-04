@@ -6703,6 +6703,81 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             rejection_failures[-1]["evidence"]["failures"],
         )
 
+    def test_r62_neighborhood_repaired_inputs_bind_complete_source_role_contract(self):
+        from design.maas.book_language.candidate_generation import (
+            _bind_book_program_source_role,
+        )
+        from design.maas.program_massing.book_projection import (
+            book_sentence_variants,
+            compose_program_with_book_operations,
+        )
+        from design.maas.program_massing.semantic_carriers import REQUIRED_RELATIONS
+
+        site = Polygon(((0, 0), (42, 0), (42, 30), (0, 30)))
+        seed = next(
+            sequence
+            for sequence in program_seed_sequences("neighborhood_living")
+            if sequence.name == "program_neighborhood_active_bar"
+        )
+        cases = (
+            (
+                "program_neighborhood_active_bar__synth_1_4_0_llm_cut_corner_notch_274d09d141__book_combination_09_shift+shift__search_v5",
+                ("shift", "shift"),
+            ),
+            (
+                "program_neighborhood_active_bar__synth_1_4_0_llm_cut_corner_notch_274d09d141__book_operative_shift__search_v5",
+                ("shift",),
+            ),
+            (
+                "program_neighborhood_active_bar__synth_0_9_0_llm_twist_lift_e75bd9914c__book_case_60_carve+offset__search_v0",
+                ("carve", "offset"),
+            ),
+            (
+                "program_neighborhood_active_bar__synth_0_9_0_llm_twist_lift_e75bd9914c__book_operative_carve__search_v0",
+                ("carve",),
+            ),
+        )
+        repaired_program = base_seed_program("slab")
+        repaired_geometry_hash = compile_geometry_program(
+            repaired_program
+        ).geometry_hash
+
+        for source_sequence, verbs in cases:
+            with self.subTest(source_sequence=source_sequence):
+                operations = book_sentence_variants(verbs, count=1)[0]
+                book_sequence = compose_program_with_book_operations(
+                    replace(seed, name=source_sequence.split("__book_", 1)[0]),
+                    operations,
+                    name_suffix=source_sequence.split("__book_", 1)[1],
+                )
+                book_sequence = replace(book_sequence, name=source_sequence)
+                source = compile_sequence_to_source_mass(site, book_sequence)
+                self.assertIsNotNone(source)
+                assert source is not None
+
+                bound = _bind_book_program_source_role(
+                    repaired_program,
+                    source,
+                    program_id="neighborhood",
+                )
+                bound_compilation = compile_geometry_program(bound)
+                self.assertEqual(bound_compilation.status, "compiled")
+                self.assertEqual(
+                    bound_compilation.geometry_hash,
+                    repaired_geometry_hash,
+                )
+                bindings = {
+                    node.parameters["source_role_relation_binding"][
+                        "source_relation"
+                    ]
+                    for node in bound.topological_nodes()
+                    if node.semantic_role == "source_role_relation_binding"
+                }
+                self.assertEqual(
+                    bindings,
+                    set(REQUIRED_RELATIONS["neighborhood_living"]),
+                )
+
     def test_source_dominant_replacement_records_typed_none_reason(self):
         site = Polygon(((0, 0), (30, 0), (30, 24), (0, 24)))
         sequence = program_seed_sequences("gymnasium")[0]

@@ -1637,13 +1637,33 @@ def _bind_book_program_source_role(
 ) -> GeometryProgram:
     """Attach source-role identity as a reachable geometry-identity root."""
 
+    binding_failures: list[dict[str, Any]] = []
     bound = bind_source_role_scaffold_to_program(
         post_book_program,
         source,
         program_id=program_id,
+        failure_sink=binding_failures,
     )
     if bound is None:
-        raise ValueError("source_role_scaffold_binding_failed")
+        evidence = (
+            binding_failures[-1]
+            if binding_failures
+            else {
+                "reason": "source_role_scaffold_binding_failed",
+                "program_id": str(program_id or ""),
+                "required_relations": [],
+            }
+        )
+        error = ValueError(
+            "source_role_scaffold_binding_failed:"
+            f"{evidence.get('reason') or 'unknown'}:"
+            f"required={evidence.get('required_relations') or []}:"
+            f"missing={evidence.get('missing_relations') or []}:"
+            f"available={evidence.get('available_relations') or []}:"
+            f"scaffold_failures={evidence.get('scaffold_failures') or []}"
+        )
+        error.evidence = evidence
+        raise error
     return bound
 
 

@@ -4,68 +4,120 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
-from design.maas.book_language import final_vlm_cycle, portfolio_benchmark
+from design.maas.book_language import final_vlm_cycle, lineage, portfolio_benchmark
 
 
 def _candidate(
     *,
-    stage: str | None,
-    operation: str,
-    principle_kind: str | None = None,
+    principle_id: str = "book:combination:18:expand+shift",
+    principle_kind: str = "combination",
+    stage: str | None = "combination",
+    operation: str = "",
+    include_lineage: bool = True,
+    lineage_principle_id: str | None = None,
+    lineage_principle_kind: str | None = None,
+    projection_status: str | None = "materialized",
 ):
+    base_operative_ids = {
+        "book:operative:expand": "book:operative:expand",
+        "book:combination:18:expand+shift": "book:operative:expand",
+        "book:aggregation:array+stack:rotate": "book:operative:rotate",
+        "book:case:65:bend+shift": "book:operative:bend",
+    }
+    lineage_id = lineage_principle_id or principle_id
+    base_operative_id = base_operative_ids.get(lineage_id, lineage_id)
+    source_seed = "test-seed"
+    scope_label = "1/1"
+    orientation = "long_axis"
+    variant_index = 0
+    parent_key = "|".join((
+        source_seed,
+        base_operative_id,
+        scope_label,
+        orientation,
+        f"v{variant_index}",
+    ))
+    metadata = {}
+    if include_lineage:
+        metadata["book_generation_lineage"] = {
+            "schema_version": "arr.maas.book_generation_lineage.v1",
+            "stage": stage,
+            "principle_id": lineage_id,
+            "principle_kind": (
+                lineage_principle_kind or principle_kind
+            ),
+            "base_operative_id": base_operative_id,
+            "parent_key": parent_key,
+            "source_seed": source_seed,
+            "scope_label": scope_label,
+            "orientation": orientation,
+            "variant_index": variant_index,
+        }
+    if projection_status is not None:
+        metadata["program_book_projection_evidence"] = {
+            "status": projection_status,
+        }
     return SimpleNamespace(
-        principle_id="principle",
-        principle_kind=(
-            principle_kind
-            if principle_kind is not None
-            else ("base_operative" if stage == "base" else "combination")
-        ),
+        principle_id=principle_id,
+        principle_kind=principle_kind,
         operation=operation,
         sequence=SimpleNamespace(name=f"candidate-{stage}"),
-        source=SimpleNamespace(metadata=(
-            {
-                "book_generation_lineage": {
-                    "stage": stage,
-                    "parent_key": "parent-1",
-                },
-            }
-            if stage is not None
-            else {}
-        )),
+        source=SimpleNamespace(metadata=metadata),
         feature={"properties": {}},
         score=0.8,
     )
 
 
 class FinalVlmDescendantRoutingTest(SimpleTestCase):
-    def test_applied_descendant_lineage_routes_despite_base_principle_kind(self):
-        descendant = _candidate(
-            stage="combination",
-            operation="book:combination:expand+shift",
-            principle_kind="base_operative",
-        )
-        report = {"rows": [{
-            "combined_hard_pass": True,
-            "semantic_projection_hard_gate": {"hard_pass": True},
-        }]}
+    def test_canonical_applied_book_kinds_route_regardless_of_operation_label(self):
+        candidates = [
+            _candidate(
+                principle_id="book:operative:expand",
+                principle_kind="base_operative",
+                stage="base",
+                operation="",
+            ),
+            _candidate(operation="arbitrary combination label"),
+            _candidate(
+                principle_id="book:aggregation:array+stack:rotate",
+                principle_kind="aggregation",
+                stage="aggregation",
+                operation="",
+            ),
+            _candidate(
+                principle_id="book:case:65:bend+shift",
+                principle_kind="case_study",
+                stage="case_study",
+                operation="case label without prefix",
+            ),
+        ]
+        report = {"rows": [
+            {
+                "combined_hard_pass": True,
+                "semantic_projection_hard_gate": {"hard_pass": True},
+            }
+            for _candidate_item in candidates
+        ]}
 
         with patch.object(
             portfolio_benchmark,
             "_bind_final_visual_authority_for_review",
         ):
             routed = portfolio_benchmark._final_vlm_input_from_downstream(
-                [descendant],
+                candidates,
                 report,
             )
 
-        self.assertEqual(routed, [descendant])
+        self.assertEqual(routed, candidates)
         self.assertEqual(
-            report["final_vlm_routing"]["base_only_excluded_count"],
-            0,
+            report["final_vlm_routing"]["schema_version"],
+            "arr.maas.final_vlm_applied_book_routing.v2",
         )
         self.assertEqual(
-            report["final_vlm_routing"]["routed_book_descendant_count"],
-            1,
+            report["final_vlm_routing"][
+                "routed_applied_book_candidate_count"
+            ],
+            4,
         )
 
     def test_live_valid_book_descendant_calls_critic_and_approval_is_eligible(self):
@@ -178,7 +230,12 @@ class FinalVlmDescendantRoutingTest(SimpleTestCase):
         )
 
     def test_applied_base_stage_book_operation_routes_to_final_vlm(self):
-        base = _candidate(stage="base", operation="book:operative:bend")
+        base = _candidate(
+            principle_id="book:operative:expand",
+            principle_kind="base_operative",
+            stage="base",
+            operation="book:operative:bend",
+        )
         report = {"rows": [{
             "combined_hard_pass": True,
             "semantic_projection_hard_gate": {"hard_pass": True},
@@ -204,7 +261,14 @@ class FinalVlmDescendantRoutingTest(SimpleTestCase):
         )
 
     def test_raw_base_without_operation_remains_base_only(self):
-        raw_base = _candidate(stage="base", operation="")
+        raw_base = _candidate(
+            principle_id="",
+            principle_kind="",
+            stage=None,
+            operation="",
+            include_lineage=False,
+            projection_status=None,
+        )
         report = {"rows": [{
             "combined_hard_pass": True,
             "semantic_projection_hard_gate": {"hard_pass": True},
@@ -225,21 +289,64 @@ class FinalVlmDescendantRoutingTest(SimpleTestCase):
             0,
         )
 
-    def test_missing_lineage_and_non_book_operation_remain_non_book(self):
-        candidates = [
-            _candidate(stage=None, operation="book:operative:bend"),
-            _candidate(stage="combination", operation="legacy:shift"),
+    def test_invalid_applied_book_contracts_emit_typed_reasons(self):
+        cases = [
+            (
+                "raw_base",
+                _candidate(
+                    principle_id="",
+                    principle_kind="",
+                    include_lineage=False,
+                    projection_status=None,
+                ),
+            ),
+            (
+                "missing_lineage",
+                _candidate(include_lineage=False),
+            ),
+            (
+                "unknown_principle",
+                _candidate(
+                    principle_id="unknown-principle",
+                    principle_kind="combination",
+                ),
+            ),
+            (
+                "principle_id_mismatch",
+                _candidate(
+                    lineage_principle_id="book:operative:expand",
+                    lineage_principle_kind="base_operative",
+                ),
+            ),
+            (
+                "principle_kind_mismatch",
+                _candidate(principle_kind="base_operative"),
+            ),
+            (
+                "projection_not_materialized",
+                _candidate(projection_status="failed"),
+            ),
         ]
-        report = {"rows": [
-            {
-                "combined_hard_pass": True,
-                "semantic_projection_hard_gate": {"hard_pass": True},
-            },
-            {
-                "combined_hard_pass": True,
-                "semantic_projection_hard_gate": {"hard_pass": True},
-            },
-        ]}
+        candidates = [candidate for _reason, candidate in cases]
+        report = {"rows": [{
+            "combined_hard_pass": True,
+            "semantic_projection_hard_gate": {"hard_pass": True},
+        } for _candidate_item in candidates]}
+
+        for expected_reason, candidate in cases:
+            with self.subTest(reason=expected_reason):
+                classification = lineage.classify_applied_book_candidate(
+                    candidate
+                )
+                self.assertIsInstance(
+                    classification,
+                    lineage.AppliedBookCandidateClassification,
+                )
+                self.assertFalse(classification.eligible)
+                self.assertEqual(
+                    classification.reason.value,
+                    expected_reason,
+                )
 
         routed = portfolio_benchmark._final_vlm_input_from_downstream(
             candidates,
@@ -249,11 +356,15 @@ class FinalVlmDescendantRoutingTest(SimpleTestCase):
         self.assertEqual(routed, [])
         self.assertEqual(
             report["final_vlm_routing"]["base_only_excluded_count"],
-            0,
+            1,
         )
         self.assertEqual(
             report["final_vlm_routing"]["non_book_excluded_count"],
-            2,
+            5,
+        )
+        self.assertEqual(
+            report["final_vlm_routing"]["exclusion_reason_counts"],
+            {reason: 1 for reason, _candidate_item in cases},
         )
 
     def test_critic_rejection_with_response_remains_unselected(self):

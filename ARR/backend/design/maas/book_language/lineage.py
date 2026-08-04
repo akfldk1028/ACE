@@ -2,7 +2,153 @@
 
 from __future__ import annotations
 
-from typing import Any
+from dataclasses import dataclass
+from enum import Enum
+from functools import lru_cache
+from typing import Any, Literal
+
+from .registry import build_book_language_registry
+
+
+BookPrincipleKind = Literal[
+    "base_operative",
+    "combination",
+    "aggregation",
+    "case_study",
+]
+
+
+class AppliedBookCandidateReason(str, Enum):
+    APPLIED_BOOK = "applied_book"
+    RAW_BASE = "raw_base"
+    MISSING_LINEAGE = "missing_lineage"
+    UNKNOWN_PRINCIPLE = "unknown_principle"
+    PRINCIPLE_ID_MISMATCH = "principle_id_mismatch"
+    PRINCIPLE_KIND_MISMATCH = "principle_kind_mismatch"
+    INVALID_LINEAGE = "invalid_lineage"
+    PROJECTION_NOT_MATERIALIZED = "projection_not_materialized"
+
+
+@dataclass(frozen=True)
+class AppliedBookCandidateClassification:
+    eligible: bool
+    reason: AppliedBookCandidateReason
+    principle_id: str = ""
+    principle_kind: BookPrincipleKind | None = None
+
+
+@lru_cache(maxsize=1)
+def _canonical_book_principles() -> dict[str, dict[str, Any]]:
+    return {
+        str(principle["principle_id"]): principle
+        for principle in build_book_language_registry()["principles"]
+    }
+
+
+def classify_applied_book_candidate(
+    candidate: Any,
+) -> AppliedBookCandidateClassification:
+    """Classify canonical applied BOOK evidence without label heuristics."""
+    principle_id = str(getattr(candidate, "principle_id", "") or "")
+    principle_kind = str(getattr(candidate, "principle_kind", "") or "")
+    source = getattr(candidate, "source", None)
+    metadata = getattr(source, "metadata", {}) if source is not None else {}
+    metadata = metadata if isinstance(metadata, dict) else {}
+    lineage = metadata.get("book_generation_lineage")
+    projection = metadata.get("program_book_projection_evidence")
+
+    if not principle_id and not principle_kind and not lineage and not projection:
+        return AppliedBookCandidateClassification(
+            False,
+            AppliedBookCandidateReason.RAW_BASE,
+        )
+    if not isinstance(lineage, dict) or not lineage:
+        return AppliedBookCandidateClassification(
+            False,
+            AppliedBookCandidateReason.MISSING_LINEAGE,
+            principle_id,
+        )
+
+    principle = _canonical_book_principles().get(principle_id)
+    if principle is None:
+        return AppliedBookCandidateClassification(
+            False,
+            AppliedBookCandidateReason.UNKNOWN_PRINCIPLE,
+            principle_id,
+        )
+    if str(lineage.get("principle_id") or "") != principle_id:
+        return AppliedBookCandidateClassification(
+            False,
+            AppliedBookCandidateReason.PRINCIPLE_ID_MISMATCH,
+            principle_id,
+        )
+
+    canonical_kind = str(principle.get("kind") or "")
+    if (
+        principle_kind != canonical_kind
+        or str(lineage.get("principle_kind") or "") != canonical_kind
+    ):
+        return AppliedBookCandidateClassification(
+            False,
+            AppliedBookCandidateReason.PRINCIPLE_KIND_MISMATCH,
+            principle_id,
+        )
+
+    expected_base_id = str(
+        principle.get("lineage_base_operative_id")
+        or principle_id
+    )
+    if (
+        str(lineage.get("schema_version") or "")
+        != "arr.maas.book_generation_lineage.v1"
+        or str(lineage.get("base_operative_id") or "") != expected_base_id
+        or not canonical_lineage_parent_key(lineage)
+    ):
+        return AppliedBookCandidateClassification(
+            False,
+            AppliedBookCandidateReason.INVALID_LINEAGE,
+            principle_id,
+        )
+    if (
+        not isinstance(projection, dict)
+        or projection.get("status") != "materialized"
+    ):
+        return AppliedBookCandidateClassification(
+            False,
+            AppliedBookCandidateReason.PROJECTION_NOT_MATERIALIZED,
+            principle_id,
+        )
+
+    return AppliedBookCandidateClassification(
+        True,
+        AppliedBookCandidateReason.APPLIED_BOOK,
+        principle_id,
+        canonical_kind,
+    )
+
+
+def canonical_lineage_parent_key(lineage: dict[str, Any]) -> str:
+    """Return the v1 parent key only when every key component agrees."""
+    if not isinstance(lineage, dict):
+        return ""
+    source_seed = str(lineage.get("source_seed") or "")
+    base_id = str(lineage.get("base_operative_id") or "")
+    scope_label = str(lineage.get("scope_label") or "")
+    orientation = str(lineage.get("orientation") or "")
+    try:
+        variant_index = int(lineage["variant_index"])
+    except (KeyError, TypeError, ValueError):
+        return ""
+    if not all((source_seed, base_id, scope_label, orientation)):
+        return ""
+    canonical = "|".join((
+        source_seed,
+        base_id,
+        scope_label,
+        orientation,
+        f"v{variant_index}",
+    ))
+    return canonical if str(lineage.get("parent_key") or "") == canonical else ""
 
 
 def staged_principle_schedule(
@@ -128,6 +274,7 @@ def gate_descendants_by_base(
     candidates: list[Any],
     *,
     known_viable_base_keys: set[str] | None = None,
+    require_known_viable_base_keys: bool = False,
 ) -> tuple[list[Any], dict[str, Any]]:
     """Keep descendants whose exact base passed before or after QD compaction."""
     def family(candidate: Any) -> str:
@@ -139,11 +286,16 @@ def gate_descendants_by_base(
             or "unclassified"
         )
 
-    retained_base_keys = {
+    retained_pool_base_keys = {
         str((candidate.source.metadata.get("book_generation_lineage") or {}).get("parent_key") or "")
         for candidate in candidates
         if str((candidate.source.metadata.get("book_generation_lineage") or {}).get("stage") or "") == "base"
     }
+    retained_base_keys = (
+        retained_pool_base_keys & (known_viable_base_keys or set())
+        if require_known_viable_base_keys
+        else retained_pool_base_keys
+    )
     base_keys = {
         key
         for key in (
@@ -185,7 +337,7 @@ def gate_descendants_by_base(
         "schema_version": "arr.maas.book_lineage_gate.v1",
         "input_count": len(candidates),
         "base_parent_count": len(base_keys),
-        "retained_pool_base_parent_count": len(retained_base_keys),
+        "retained_pool_base_parent_count": len(retained_pool_base_keys),
         "known_viable_base_parent_count": len(known_viable_base_keys or set()),
         "retained_count": len(retained),
         "retained_via_known_base_count": retained_via_known_base,
@@ -217,4 +369,13 @@ def gate_descendants_by_base(
     }
 
 
-__all__ = ["gate_descendants_by_base", "lineage_record", "staged_principle_schedule"]
+__all__ = [
+    "AppliedBookCandidateClassification",
+    "AppliedBookCandidateReason",
+    "BookPrincipleKind",
+    "canonical_lineage_parent_key",
+    "classify_applied_book_candidate",
+    "gate_descendants_by_base",
+    "lineage_record",
+    "staged_principle_schedule",
+]

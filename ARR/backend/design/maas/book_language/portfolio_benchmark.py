@@ -147,7 +147,13 @@ from .final_mesh_floor_evidence import (
     resolve_candidate_finalization_context,
 )
 from .legal_floor_field import validate_legal_floor_field
-from .lineage import gate_descendants_by_base, lineage_record, staged_principle_schedule
+from .lineage import (
+    AppliedBookCandidateReason,
+    classify_applied_book_candidate,
+    gate_descendants_by_base,
+    lineage_record,
+    staged_principle_schedule,
+)
 
 
 from .candidate_analysis import (
@@ -1479,18 +1485,21 @@ def _final_vlm_input_from_downstream(
     combined_hard_pass_count = 0
     base_only_count = 0
     non_book_count = 0
+    exclusion_reason_counts: dict[str, int] = {}
     for candidate, row in zip(candidates, rows):
         if not isinstance(row, dict) or row.get("combined_hard_pass") is not True:
             continue
         combined_hard_pass_count += 1
-        lineage = candidate.source.metadata.get("book_generation_lineage") or {}
-        stage = str(lineage.get("stage") or "")
-        operation = str(candidate.operation or "").strip()
-        if stage == "base" and not operation:
-            base_only_count += 1
-            continue
-        if not stage or not operation.startswith("book:"):
-            non_book_count += 1
+        classification = classify_applied_book_candidate(candidate)
+        if not classification.eligible:
+            reason = classification.reason.value
+            exclusion_reason_counts[reason] = (
+                exclusion_reason_counts.get(reason, 0) + 1
+            )
+            if classification.reason is AppliedBookCandidateReason.RAW_BASE:
+                base_only_count += 1
+            else:
+                non_book_count += 1
             continue
         _bind_final_visual_authority_for_review(
             candidate,
@@ -1499,17 +1508,26 @@ def _final_vlm_input_from_downstream(
         final_vlm_input.append(candidate)
     if isinstance(downstream_report, dict):
         downstream_report["final_vlm_routing"] = {
-            "schema_version": "arr.maas.final_vlm_descendant_routing.v1",
+            "schema_version": "arr.maas.final_vlm_applied_book_routing.v2",
             "input_count": len(candidates),
             "row_count": len(rows),
             "combined_hard_pass_count": combined_hard_pass_count,
+            "routed_applied_book_candidate_count": len(final_vlm_input),
+            "raw_base_excluded_count": base_only_count,
+            "typed_contract_excluded_count": sum(
+                exclusion_reason_counts.values()
+            ),
+            "exclusion_reason_counts": dict(sorted(
+                exclusion_reason_counts.items()
+            )),
+            # Deprecated v1 aliases retained for artifact consumers.
             "base_only_excluded_count": base_only_count,
             "non_book_excluded_count": non_book_count,
             "routed_book_descendant_count": len(final_vlm_input),
             "exact_archived_surface_bound_count": len(final_vlm_input),
             "no_call_reason": (
                 "" if final_vlm_input
-                else "no_law_parking_structural_valid_book_descendants"
+                else "no_law_parking_structural_valid_applied_book_candidates"
             ),
         }
     return final_vlm_input

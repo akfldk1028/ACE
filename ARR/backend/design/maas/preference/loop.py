@@ -126,6 +126,47 @@ def _opaque_profiled_surface_fill(vertices: list[list[float]]) -> tuple[int, int
     )
 
 
+def _display_projection_frame(
+    vertices: list[list[float]],
+    *,
+    angle: float,
+    top_view: bool,
+    view_width: int,
+    view_height: int,
+) -> tuple[Callable[[tuple[float, float], float], tuple[float, float]], tuple[float, float]]:
+    """Build a display-only camera from immutable visual-vertex XYZ bounds."""
+
+    theta = radians(angle)
+
+    def raw(point: tuple[float, float], z: float) -> tuple[float, float]:
+        rx = float(point[0]) * cos(theta) - float(point[1]) * sin(theta)
+        ry = float(point[0]) * sin(theta) + float(point[1]) * cos(theta)
+        return (rx, -ry) if top_view else (rx, ry * 0.34 - float(z))
+
+    projected = [raw((vertex[0], vertex[1]), vertex[2]) for vertex in vertices]
+    min_px = min(point[0] for point in projected)
+    max_px = max(point[0] for point in projected)
+    min_py = min(point[1] for point in projected)
+    max_py = max(point[1] for point in projected)
+    span_x = max(max_px - min_px, 1e-9)
+    span_y = max(max_py - min_py, 1e-9)
+    scale = min((view_width - 70) / span_x, (view_height - 70) / span_y)
+    center_x = (min_px + max_px) / 2.0
+    center_y = (min_py + max_py) / 2.0
+
+    def project(point: tuple[float, float], z: float = 0.0) -> tuple[float, float]:
+        px, py = raw(point, z)
+        return (
+            view_width * 0.50 + (px - center_x) * scale,
+            view_height * 0.55 + (py - center_y) * scale,
+        )
+
+    return project, (
+        sum(float(vertex[0]) for vertex in vertices) / len(vertices),
+        sum(float(vertex[1]) for vertex in vertices) / len(vertices),
+    )
+
+
 def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
     """Write a small temporary massing preview for VLM scoring."""
     try:
@@ -187,6 +228,23 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
             ))
     if not rings:
         raise ValueError("candidate has no previewable geometry")
+    surface_records = [
+        (surface, _surface_vertices_world(surface, feature))
+        for surface in explicit_surfaces
+    ]
+    surface_records = [record for record in surface_records if len(record[1]) >= 3]
+    visual_vertices = [
+        [float(value) for value in vertex]
+        for _surface, vertices in surface_records
+        for vertex in vertices
+    ]
+    if not visual_vertices:
+        visual_vertices = [
+            [float(x), float(y), float(z)]
+            for coords, bottom, top, _role in rings
+            for x, y in coords
+            for z in (bottom, top)
+        ]
     xs = [x for coords, _, _, _ in rings for x, _ in coords]
     ys = [y for coords, _, _, _ in rings for _, y in coords]
     site_coords = (
@@ -206,8 +264,6 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
     # four-view contact sheet for every candidate.
     width, height = 720, 520
     view_width, view_height = 350, 235
-    plan_span = max(maxx - minx, maxy - miny, 1e-9)
-    scale = min((view_width - 70) / plan_span, (view_height - 70) / plan_span)
     image = Image.new("RGB", (width, height), "#f7f9fb")
     draw = ImageDraw.Draw(image, "RGBA")
     shape_name = str(props.get("mass_shape") or props.get("variant_id") or "maas")
@@ -217,24 +273,24 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
         ("front", 0.0, False, 0, 250),
         ("top", 0.0, True, 360, 250),
     )
-    cx, cy = (minx + maxx) / 2.0, (miny + maxy) / 2.0
     for label, angle, top_view, ox, oy in views:
         theta = radians(angle)
+        local_project, (camera_cx, camera_cy) = _display_projection_frame(
+            visual_vertices,
+            angle=angle,
+            top_view=top_view,
+            view_width=view_width,
+            view_height=view_height,
+        )
 
         def project(point: tuple[float, float], z: float = 0.0) -> tuple[float, float]:
-            x, y = point[0] - cx, point[1] - cy
-            rx = x * cos(theta) - y * sin(theta)
-            ry = x * sin(theta) + y * cos(theta)
-            if top_view:
-                return (ox + view_width * 0.50 + rx * scale, oy + view_height * 0.55 - ry * scale)
-            return (
-                ox + view_width * 0.50 + rx * scale,
-                oy + view_height * 0.68 + ry * scale * 0.34 - z * 3.2,
-            )
+            px, py = local_project(point, z)
+            return ox + px, oy + py
 
         def camera_depth(vertex: list[float]) -> float:
             """Painter depth matching the fixed orthographic preview camera."""
-            x, y = float(vertex[0]) - cx, float(vertex[1]) - cy
+            x = float(vertex[0]) - camera_cx
+            y = float(vertex[1]) - camera_cy
             ry = x * sin(theta) + y * cos(theta)
             return float(vertex[2]) if top_view else ry + float(vertex[2]) * 0.12
 
@@ -265,11 +321,6 @@ def feature_preview_png(feature: Feature, output_dir: Path) -> Path:
                     draw.polygon(side, fill=_opaque_profiled_surface_fill(side_vertices), outline=None)
             top_vertices = [[point[0], point[1], top] for point in coords]
             draw.polygon(top_points, fill=_opaque_profiled_surface_fill(top_vertices), outline=None)
-        surface_records = [
-            (surface, _surface_vertices_world(surface, feature))
-            for surface in explicit_surfaces
-        ]
-        surface_records = [record for record in surface_records if len(record[1]) >= 3]
         recursive_triangles: list[RasterTriangle] = []
         for surface, vertices in sorted(
             surface_records,

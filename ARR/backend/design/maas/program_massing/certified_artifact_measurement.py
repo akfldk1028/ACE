@@ -15,8 +15,8 @@ from design.maas.geometry_language import GeometryProgram, compile_geometry_prog
 from design.maas.geometry_language.compiler import revalidate_compilation_mesh
 from design.maas.geometry_language.gate import compilation_gate
 from design.maas.geometry_language.projected_visual_contract import (
+    CertifiedMassArtifact,
     FINAL_AUTHORITY_CERTIFICATION_MODE,
-    semantic_audit_payload_hash,
     validate_projected_visual_artifact,
 )
 from design.maas.source_geometry.ir import (
@@ -40,6 +40,54 @@ class AuthoritativeCertifiedMeshMeasurement:
     exact_mesh_payload_hash: str
     gestalt_key: CompetitionGestaltKey
     morphology: dict[str, Any]
+
+
+class AuthoritativeArtifactMeasurementError(ValueError):
+    def __init__(self, evidence: dict[str, Any]):
+        self.evidence = dict(evidence)
+        super().__init__(str(self.evidence.get("reason") or "authoritative_artifact_error"))
+
+
+def _load_exact_selected_certified_artifact(
+    artifact: dict[str, Any],
+    *,
+    final_semantic_anchor: dict[str, Any] | None,
+    semantic_projection_audit: dict[str, Any] | None,
+    expected_core_hash: str,
+) -> CertifiedMassArtifact:
+    if not isinstance(final_semantic_anchor, dict) or not final_semantic_anchor:
+        raise AuthoritativeArtifactMeasurementError({
+            "reason": "certified_artifact_authority_context_missing",
+        })
+    if not isinstance(semantic_projection_audit, dict) or not semantic_projection_audit:
+        raise AuthoritativeArtifactMeasurementError({
+            "reason": "certified_artifact_semantic_audit_missing",
+        })
+    if artifact.get("semanticProjectionAudit") != semantic_projection_audit:
+        raise AuthoritativeArtifactMeasurementError({
+            "reason": "certified_artifact_semantic_audit_mismatch",
+        })
+    if not str(expected_core_hash or ""):
+        raise AuthoritativeArtifactMeasurementError({
+            "reason": "certified_artifact_core_hash_missing",
+        })
+    try:
+        certified = CertifiedMassArtifact.load(
+            artifact,
+            authority_context=final_semantic_anchor,
+        )
+    except ValueError as exc:
+        raise AuthoritativeArtifactMeasurementError({
+            "reason": "certified_artifact_authority_context_mismatch",
+            "detail": str(exc),
+        }) from exc
+    if certified.core_hash != str(expected_core_hash):
+        raise AuthoritativeArtifactMeasurementError({
+            "reason": "certified_artifact_core_hash_mismatch",
+            "expected_core_hash": str(expected_core_hash),
+            "actual_core_hash": certified.core_hash,
+        })
+    return certified
 
 
 def exact_compilation_mesh_payload_hash(compilation: Any) -> str:
@@ -73,6 +121,9 @@ def measure_authoritative_geometry_artifact(
     expected_visual_hash: str,
     semantic_projection_hard_gate: dict[str, Any] | None = None,
     expected_section_geometry_binding_hash: str = "",
+    final_semantic_anchor: dict[str, Any] | None = None,
+    semantic_projection_audit: dict[str, Any] | None = None,
+    expected_certified_mass_artifact_core_hash: str = "",
 ) -> AuthoritativeCertifiedMeshMeasurement:
     """Recompile AST, validate exact visual bytes, then remeasure morphology."""
 
@@ -144,33 +195,29 @@ def measure_authoritative_geometry_artifact(
             + ",".join(identity_mismatches)
         )
 
-    semantic_gate = (
-        semantic_projection_hard_gate
-        if isinstance(semantic_projection_hard_gate, dict)
-        else {}
-    )
-    validated = validate_projected_visual_artifact(
-        artifact,
-        expected_semantic_context=(
-            semantic_gate.get("audited_context")
-            if final_authority
-            and isinstance(semantic_gate.get("audited_context"), dict)
-            else None
-        ),
-        expected_semantic_projection_hash=(
-            str(semantic_gate.get("semantic_projection_hash") or "")
-            if final_authority
-            else ""
-        ),
-        expected_semantic_audit_payload_hash=(
-            semantic_audit_payload_hash(semantic_gate)
-            if final_authority
-            else ""
-        ),
-        expected_section_geometry_binding_hash=str(
-            expected_section_geometry_binding_hash or ""
-        ),
-    )
+    if final_authority:
+        validated = _load_exact_selected_certified_artifact(
+            artifact,
+            final_semantic_anchor=final_semantic_anchor,
+            semantic_projection_audit=semantic_projection_audit,
+            expected_core_hash=expected_certified_mass_artifact_core_hash,
+        ).validated_visual
+    else:
+        semantic_gate = (
+            semantic_projection_hard_gate
+            if isinstance(semantic_projection_hard_gate, dict)
+            else {}
+        )
+        validated = validate_projected_visual_artifact(
+            artifact,
+            expected_semantic_context=semantic_gate.get("audited_context"),
+            expected_semantic_projection_hash=str(
+                semantic_gate.get("semantic_projection_hash") or ""
+            ),
+            expected_section_geometry_binding_hash=str(
+                expected_section_geometry_binding_hash or ""
+            ),
+        )
     if validated is None:
         raise ValueError("authoritative_projected_visual_missing")
     visual_hash = str(validated.visual_hash or "")

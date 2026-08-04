@@ -638,3 +638,70 @@ class ProjectedVisualCapacityProvenanceTest(SimpleTestCase):
                 source,
                 final_semantic_audit=tampered,
             )
+
+    def test_r66_measurement_loads_exact_selected_certified_artifact_context(self):
+        from design.maas.program_massing import certified_artifact_measurement as measurement
+
+        source, semantic_audit = self._fixture()
+        with patch(
+            "design.maas.program_massing.semantic_carriers."
+            "audit_source_semantic_projection",
+            side_effect=self._semantic_audit,
+        ):
+            certified = CertifiedMassArtifact.issue(
+                source,
+                semantic_audit=semantic_audit,
+            )
+        binding = certified.feature_binding()
+        artifact = certified.payload()
+        anchor = binding["final_semantic_anchor"]
+        audit = artifact["semanticProjectionAudit"]
+        core_hash = binding["certified_mass_artifact_core_hash"]
+
+        loaded = measurement._load_exact_selected_certified_artifact(
+            artifact,
+            final_semantic_anchor=anchor,
+            semantic_projection_audit=audit,
+            expected_core_hash=core_hash,
+        )
+        self.assertEqual(loaded.core_hash, core_hash)
+
+        with self.assertRaises(measurement.AuthoritativeArtifactMeasurementError) as missing:
+            measurement._load_exact_selected_certified_artifact(
+                artifact,
+                final_semantic_anchor=None,
+                semantic_projection_audit=audit,
+                expected_core_hash=core_hash,
+            )
+        self.assertEqual(
+            missing.exception.evidence["reason"],
+            "certified_artifact_authority_context_missing",
+        )
+
+        stale_audit = deepcopy(audit)
+        stale_audit["semantic_projection_hard_pass"] = not bool(
+            stale_audit.get("semantic_projection_hard_pass", False)
+        )
+        with self.assertRaises(measurement.AuthoritativeArtifactMeasurementError) as stale:
+            measurement._load_exact_selected_certified_artifact(
+                artifact,
+                final_semantic_anchor=anchor,
+                semantic_projection_audit=stale_audit,
+                expected_core_hash=core_hash,
+            )
+        self.assertEqual(
+            stale.exception.evidence["reason"],
+            "certified_artifact_semantic_audit_mismatch",
+        )
+
+        with self.assertRaises(measurement.AuthoritativeArtifactMeasurementError) as mismatch:
+            measurement._load_exact_selected_certified_artifact(
+                artifact,
+                final_semantic_anchor=anchor,
+                semantic_projection_audit=audit,
+                expected_core_hash="tampered-core-hash",
+            )
+        self.assertEqual(
+            mismatch.exception.evidence["reason"],
+            "certified_artifact_core_hash_mismatch",
+        )

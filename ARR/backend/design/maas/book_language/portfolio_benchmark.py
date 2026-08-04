@@ -4430,6 +4430,23 @@ def run_book_program_portfolios(
             rows[index]["authoritative_geometry_artifact"] = deepcopy(
                 artifact
             )
+            render_authority = (
+                rows[index].get("archive_render_evidence")
+                if isinstance(
+                    rows[index].get("archive_render_evidence"), dict
+                )
+                else {}
+            )
+            rows[index]["final_semantic_anchor"] = deepcopy(
+                render_authority.get("final_semantic_anchor") or {}
+            )
+            rows[index]["semantic_projection_audit"] = deepcopy(
+                artifact.get("semanticProjectionAudit") or {}
+            )
+            rows[index]["certified_mass_artifact_core_hash"] = str(
+                render_authority.get("certified_mass_artifact_core_hash")
+                or ""
+            )
         outcome_graph.observe_portfolio_render(
             program_slug=slug,
             candidates=selected,
@@ -4811,6 +4828,21 @@ def run_book_program_portfolios(
                         else {}
                     ).get("expected_section_geometry_binding_hash")
                     or ""
+                ),
+                final_semantic_anchor=(
+                    row.get("final_semantic_anchor")
+                    if isinstance(row.get("final_semantic_anchor"), dict)
+                    else None
+                ),
+                semantic_projection_audit=(
+                    row.get("semantic_projection_audit")
+                    if isinstance(
+                        row.get("semantic_projection_audit"), dict
+                    )
+                    else None
+                ),
+                expected_certified_mass_artifact_core_hash=str(
+                    row.get("certified_mass_artifact_core_hash") or ""
                 ),
             )
             for row in rows

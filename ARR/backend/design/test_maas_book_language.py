@@ -6240,6 +6240,11 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             patch.object(vlm_review, "compile_sequence_to_source_mass", return_value=source),
             patch.object(vlm_review, "replace_source_dominant_with_geometry_program", side_effect=materialize),
             patch.object(vlm_review, "materialize_floorwise_legal_source", side_effect=project_floorwise) as canonical,
+            patch.object(
+                vlm_review,
+                "_issue_authored_legal_projection_authority",
+                side_effect=lambda _authored, projected, **_kwargs: projected,
+            ),
             patch.object(vlm_review, "certify_authored_visual_mesh", side_effect=AssertionError("canonical projection is final authority")),
             patch.object(vlm_review, "_materialize_repaired_floor_contract", return_value=None),
             patch.object(vlm_review, "generation_site_at_height", return_value=site),
@@ -6363,6 +6368,179 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
                     expected_reason,
                     release["hard_failure_reasons"],
                 )
+
+    def test_repaired_candidate_preserves_certified_floor_context_for_second_downstream_evaluation(self):
+        from design.maas.book_language.downstream_hard_gate import (
+            CandidateDownstreamFloorContextError,
+            _candidate_downstream_dimensions,
+        )
+
+        floor_context = {
+            "status": "materialized",
+            "hard_pass": True,
+            "height_m": 18.0,
+            "floors": 3,
+            "legal_floor_field_hash": "a" * 64,
+        }
+        capacity_contract = {
+            "floor_capacity_plan_hash": "b" * 64,
+        }
+        parent_metadata = {
+            "candidate_floor_context": floor_context,
+            "candidate_capacity_contract": capacity_contract,
+            "final_semantic_projection_context": {"pnu": "1111010100100010000"},
+            "base_capacity_contract": {"legal_floor_field": {"marker": "trusted"}},
+        }
+        with patch.object(
+            vlm_review,
+            "resolve_candidate_finalization_context",
+            return_value=SimpleNamespace(),
+        ) as validate:
+            binding = vlm_review._certified_repair_floor_context_binding(
+                parent_metadata
+            )
+
+        validate.assert_called_once()
+        self.assertEqual(binding["candidate_floor_context"], floor_context)
+        self.assertEqual(
+            binding["candidate_capacity_contract"], capacity_contract
+        )
+        self.assertIsNot(binding["candidate_floor_context"], floor_context)
+        repaired_candidate = SimpleNamespace(
+            source=SimpleNamespace(metadata=binding)
+        )
+        repaired_dimensions = _candidate_downstream_dimensions(
+            repaired_candidate,
+            fallback_height_m=99.0,
+            fallback_floors=99,
+        )
+        self.assertEqual(repaired_dimensions.height_m, 18.0)
+        self.assertEqual(repaired_dimensions.floors, 3)
+        self.assertEqual(
+            repaired_dimensions.authority,
+            "candidate_floor_context",
+        )
+        self.assertTrue(repaired_dimensions.publishable)
+
+        missing_candidate = SimpleNamespace(
+            source=SimpleNamespace(metadata={})
+        )
+        with self.assertRaisesRegex(
+            CandidateDownstreamFloorContextError,
+            "missing_candidate_floor_context",
+        ):
+            _candidate_downstream_dimensions(
+                missing_candidate,
+                fallback_height_m=18.0,
+                fallback_floors=3,
+            )
+        tampered_candidate = SimpleNamespace(source=SimpleNamespace(metadata={
+            "candidate_floor_context": {
+                **floor_context,
+                "legal_floor_field_hash": "tampered",
+            },
+        }))
+        with self.assertRaises(CandidateDownstreamFloorContextError):
+            _candidate_downstream_dimensions(
+                tampered_candidate,
+                fallback_height_m=18.0,
+                fallback_floors=3,
+            )
+
+    def test_final_vlm_repair_issued_authority_passes_second_downstream_and_rejects_stale_or_tampered_chain(self):
+        from design.maas.book_language.candidate_generation import (
+            _issue_authored_legal_projection_authority,
+        )
+        from design.maas.book_language.downstream_hard_gate import (
+            _final_source_geometry_identity,
+        )
+
+        site = Polygon(((0, 0), (30, 0), (30, 24), (0, 24)))
+        repaired_program = base_seed_program("slab")
+        repaired_compilation = compile_geometry_program(repaired_program)
+        repaired_source = compile_geometry_program_to_source_mass(
+            repaired_program,
+            site,
+        )
+        self.assertIsNotNone(repaired_source)
+        assert repaired_source is not None
+        repaired_source = replace(repaired_source, metadata={
+            **repaired_source.metadata,
+            "geometry_program": repaired_program.to_dict(),
+            "authored_geometry_program": repaired_program.to_dict(),
+        })
+        failures = []
+        issued = _issue_authored_legal_projection_authority(
+            repaired_source,
+            repaired_source,
+            authored_program=repaired_program,
+            authored_compilation=repaired_compilation,
+            building_type="unresolved_repair_test",
+            containment_host=site,
+            pnu="1111010100100010000",
+            legal_floor_field_hash="a" * 64,
+            floor_capacity_plan_hash="b" * 64,
+            target_floor_areas_m2=(120.0,),
+            capacity_measurement={"measured_gfa_m2": 120.0},
+            capacity_projection={
+                "alternative_id": "brief_target",
+                "hard_pass": True,
+            },
+            failure_sink=failures,
+        )
+        self.assertIsNotNone(issued, failures)
+        assert issued is not None
+        render_hash, identity_failures, _, _, _ = (
+            _final_source_geometry_identity(issued)
+        )
+        self.assertTrue(render_hash)
+        self.assertEqual(identity_failures, [])
+        certificate = issued.metadata[
+            "authored_legal_projection_certificate"
+        ]
+        self.assertEqual(
+            certificate,
+            issued.metadata["geometry_program_bridge_evidence"][
+                "authored_legal_projection_certificate"
+            ],
+        )
+        feature = {"properties": {
+            "authored_legal_projection_certificate": deepcopy(certificate),
+        }}
+        self.assertEqual(
+            feature["properties"]["authored_legal_projection_certificate"],
+            certificate,
+        )
+
+        stale_metadata = deepcopy(issued.metadata)
+        stale_metadata["geometry_program_bridge_evidence"] = deepcopy(
+            stale_metadata["geometry_program_bridge_evidence"]
+        )
+        stale_metadata["geometry_program_bridge_evidence"][
+            "post_book_authored_geometry_hash"
+        ] = "stale"
+        _, stale_failures, _, _, _ = _final_source_geometry_identity(
+            replace(issued, metadata=stale_metadata)
+        )
+        self.assertIn(
+            "authored_legal_projection_chain_mismatch",
+            stale_failures,
+        )
+
+        tampered_metadata = deepcopy(issued.metadata)
+        tampered_metadata["authored_legal_projection_certificate"] = deepcopy(
+            tampered_metadata["authored_legal_projection_certificate"]
+        )
+        tampered_metadata["authored_legal_projection_certificate"][
+            "projected_surface_payload_hash"
+        ] = "tampered"
+        _, tampered_failures, _, _, _ = _final_source_geometry_identity(
+            replace(issued, metadata=tampered_metadata)
+        )
+        self.assertIn(
+            "authored_legal_projection_chain_mismatch",
+            tampered_failures,
+        )
 
     def test_source_dominant_replacement_records_typed_none_reason(self):
         site = Polygon(((0, 0), (30, 0), (30, 24), (0, 24)))

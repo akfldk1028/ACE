@@ -68,7 +68,10 @@ from .candidate_analysis import (
     _site_access_side_in_principal_frame,
     _solid_morphology_metrics,
 )
-from .candidate_generation import _mass_stage_design_score
+from .candidate_generation import (
+    _issue_authored_legal_projection_authority,
+    _mass_stage_design_score,
+)
 from .base_volume_contract import book_base_volume_spec
 from .capacity_alternatives import (
     capacity_fit_score,
@@ -78,10 +81,47 @@ from .capacity_alternatives import (
 from .capacity_contract import measure_source_capacity, recursive_plan_coverage_floor
 from .capacity_routing import build_capacity_review_context
 from .downstream_hard_gate import LegalGenerationContext, generation_site_at_height
+from .final_mesh_floor_evidence import resolve_candidate_finalization_context
 from .portfolio_selection import _select
 from .reference_context import _audited_final_book_references
 from .stage_outcome import StageOutcome, record_stage_outcome
 from .vlm_stage_policy import book_vlm_stage_policy
+
+
+def _certified_repair_floor_context_binding(
+    parent_metadata: dict[str, Any],
+) -> dict[str, dict[str, Any]]:
+    """Copy only a canonically certified parent's immutable floor binding."""
+
+    floor_context = parent_metadata.get("candidate_floor_context")
+    capacity_contract = parent_metadata.get("candidate_capacity_contract")
+    semantic_context = parent_metadata.get("final_semantic_projection_context")
+    base_capacity_contract = parent_metadata.get("base_capacity_contract")
+    if not all(
+        type(value) is dict
+        for value in (
+            floor_context,
+            capacity_contract,
+            semantic_context,
+            base_capacity_contract,
+        )
+    ):
+        return {}
+    trusted_legal_floor_field = base_capacity_contract.get("legal_floor_field")
+    expected_legal_floor_field_hash = str(
+        floor_context.get("legal_floor_field_hash") or ""
+    )
+    expected_pnu = str(semantic_context.get("pnu") or "")
+    resolve_candidate_finalization_context(
+        parent_metadata,
+        trusted_legal_floor_field=trusted_legal_floor_field,
+        expected_legal_floor_field_hash=expected_legal_floor_field_hash,
+        expected_pnu=expected_pnu,
+    )
+    return {
+        "candidate_floor_context": deepcopy(floor_context),
+        "candidate_capacity_contract": deepcopy(capacity_contract),
+    }
 
 
 def _materialize_repaired_floor_contract(
@@ -2230,6 +2270,21 @@ def _repair_exact_post_book_candidates_from_vlm(
             ),
         }
         metadata = deepcopy(source.metadata)
+        for stale_authority_key in (
+            "geometry_authority",
+            "authored_legal_projection_certificate",
+            "floorwise_legal_projection",
+            "legal_field_affine_placement",
+            "final_surface_payload_hash",
+            "final_proxy_volume_payload_hash",
+            "final_semantic_projection_context",
+            "program_semantic_carrier_evidence",
+            "capacity_projection_measurement",
+        ):
+            metadata.pop(stale_authority_key, None)
+        metadata.update(
+            _certified_repair_floor_context_binding(candidate.source.metadata)
+        )
         metadata.pop("program_space_zones", None)
         metadata.pop("program_role_integration_evidence", None)
         metadata["program_dimensional_context"] = deepcopy(program_dimensional_context or {})
@@ -2248,6 +2303,17 @@ def _repair_exact_post_book_candidates_from_vlm(
         metadata["capacity_alternative_projection"] = parent_capacity_alternative
         metadata["final_vlm_repair_parent_audit"] = deepcopy(record)
         repaired_bridge = deepcopy(metadata.get("geometry_program_bridge_evidence") or {})
+        for stale_bridge_key in (
+            "geometry_authority",
+            "authored_legal_projection_certificate",
+            "post_book_authored_program_hash",
+            "post_book_authored_geometry_hash",
+            "final_projected_surface_hash",
+            "final_projected_surface_payload_hash",
+            "surface_payload_hash",
+            "proxy_volume_payload_hash",
+        ):
+            repaired_bridge.pop(stale_bridge_key, None)
         repaired_bridge.update({
             "source_seed": str((bridge or {}).get("source_seed") or ""),
             "legal_fit_strength": round(fit_strength, 4),
@@ -2262,6 +2328,7 @@ def _repair_exact_post_book_candidates_from_vlm(
         metadata["final_program_hash"] = repaired_program.program_hash()
         metadata["final_geometry_hash"] = repaired_compilation.geometry_hash
         source = replace(source, metadata=metadata)
+        authored_repaired_source = source
         if generation_context is None:
             failures["repaired_authored_visual_legal_sections_missing"] += 1
             continue
@@ -2358,7 +2425,6 @@ def _repair_exact_post_book_candidates_from_vlm(
                 "parent_geometry_hash": parent_compilation.geometry_hash,
             })
             projected_metadata.update({
-                "geometry_authority": "authored_projected_surface_payload",
                 "geometry_program": repaired_program.to_dict(),
                 "authored_geometry_program": repaired_program.to_dict(),
                 "final_program_hash": repaired_program.program_hash(),
@@ -2540,6 +2606,96 @@ def _repair_exact_post_book_candidates_from_vlm(
                 )
                 metadata["shared_floor_contract"] = shared_floor_contract
             source = replace(source, metadata=metadata)
+        if requires_canonical_reprojection:
+            authority_failures: list[dict[str, Any]] = []
+            floor_context = (
+                candidate.source.metadata.get("candidate_floor_context")
+                if isinstance(
+                    candidate.source.metadata.get("candidate_floor_context"),
+                    dict,
+                )
+                else {}
+            )
+            candidate_capacity_contract = (
+                candidate.source.metadata.get("candidate_capacity_contract")
+                if isinstance(
+                    candidate.source.metadata.get("candidate_capacity_contract"),
+                    dict,
+                )
+                else {}
+            )
+            legal_floor_field = (
+                (base_capacity_contract or {}).get("legal_floor_field")
+                if isinstance(base_capacity_contract, dict)
+                else {}
+            )
+            issued_source = _issue_authored_legal_projection_authority(
+                authored_repaired_source,
+                source,
+                authored_program=repaired_program,
+                authored_compilation=repaired_compilation,
+                building_type=building_type,
+                containment_host=compile_site,
+                pnu=str((legal_floor_field or {}).get("pnu") or ""),
+                legal_floor_field_hash=str(
+                    floor_context.get("legal_floor_field_hash") or ""
+                ),
+                floor_capacity_plan_hash=str(
+                    candidate_capacity_contract.get("floor_capacity_plan_hash")
+                    or (base_capacity_contract or {}).get(
+                        "floor_capacity_plan_hash"
+                    )
+                    or ""
+                ),
+                target_floor_areas_m2=tuple(
+                    float(value)
+                    for value in (
+                        candidate_capacity_contract.get(
+                            "target_floor_areas_m2"
+                        )
+                        or (base_capacity_contract or {}).get(
+                            "target_floor_areas_m2"
+                        )
+                        or ()
+                    )
+                ),
+                capacity_measurement=capacity_measurement,
+                capacity_projection=(
+                    source.metadata.get("capacity_alternative_projection")
+                    if isinstance(
+                        source.metadata.get("capacity_alternative_projection"),
+                        dict,
+                    )
+                    else {}
+                ),
+                failure_sink=authority_failures,
+            )
+            if issued_source is None:
+                typed_failure = (
+                    authority_failures[-1]
+                    if authority_failures
+                    else {
+                        "reason": "authority_issuance_returned_none",
+                        "evidence": {},
+                    }
+                )
+                record_repair_failure(
+                    candidate=candidate,
+                    critic_record=record,
+                    stage="final_vlm_repair_authority_issuance",
+                    reason=str(
+                        typed_failure.get("reason")
+                        or "repaired_authority_issuance_failed"
+                    ),
+                    evidence={
+                        "repaired_program_hash": repaired_program.program_hash(),
+                        "repaired_geometry_hash": repaired_compilation.geometry_hash,
+                        "authority_failure": deepcopy(typed_failure),
+                    },
+                    legacy_counter="repaired_authority_issuance_failed",
+                )
+                continue
+            source = issued_source
         clean_pass, clean_evidence = _clean_mass_gate(source)
         if not clean_pass:
             failures.update(f"clean_{reason}" for reason in clean_evidence.get("failure_reasons") or ())
@@ -2568,6 +2724,12 @@ def _repair_exact_post_book_candidates_from_vlm(
         )
         props = feature.setdefault("properties", {})
         props.update({
+            "candidate_floor_context": deepcopy(
+                source.metadata.get("candidate_floor_context") or {}
+            ),
+            "candidate_capacity_contract": deepcopy(
+                source.metadata.get("candidate_capacity_contract") or {}
+            ),
             "site_boundary_geometry": mapping(generation_site),
             "site_boundary_source": site_boundary_source,
             "site_access_context": site_access_context,
@@ -2580,6 +2742,34 @@ def _repair_exact_post_book_candidates_from_vlm(
             "source_capacity_measurement": deepcopy(capacity_measurement),
             "capacity_alternative_projection": deepcopy(
                 source.metadata.get("capacity_alternative_projection") or {}
+            ),
+            "geometry_authority": str(
+                source.metadata.get("geometry_authority") or ""
+            ),
+            "final_program_hash": str(
+                source.metadata.get("final_program_hash") or ""
+            ),
+            "final_geometry_hash": str(
+                source.metadata.get("final_geometry_hash") or ""
+            ),
+            "final_surface_payload_hash": str(
+                source.metadata.get("final_surface_payload_hash") or ""
+            ),
+            "authored_legal_projection_certificate": deepcopy(
+                source.metadata.get("authored_legal_projection_certificate")
+                or {}
+            ),
+            "geometry_program_bridge_evidence": deepcopy(
+                source.metadata.get("geometry_program_bridge_evidence") or {}
+            ),
+            "floorwise_legal_projection": deepcopy(
+                source.metadata.get("floorwise_legal_projection") or {}
+            ),
+            "final_semantic_projection_context": deepcopy(
+                source.metadata.get("final_semantic_projection_context") or {}
+            ),
+            "program_semantic_carrier_evidence": deepcopy(
+                source.metadata.get("program_semantic_carrier_evidence") or {}
             ),
         })
         program = attach_program_massing_evidence(feature, building_type=building_type)

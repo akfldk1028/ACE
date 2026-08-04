@@ -2684,6 +2684,246 @@ def _record_clean_mass_rejection(
     return artifact
 
 
+def _issue_authored_legal_projection_authority(
+    authored_source: Any,
+    projected_source: Any,
+    *,
+    authored_program: GeometryProgram,
+    authored_compilation: Any,
+    building_type: str,
+    containment_host: Polygon,
+    pnu: str,
+    legal_floor_field_hash: str,
+    floor_capacity_plan_hash: str,
+    target_floor_areas_m2: tuple[float, ...],
+    capacity_measurement: dict[str, Any],
+    capacity_projection: dict[str, Any],
+    failure_sink: list[dict[str, Any]] | None = None,
+) -> Any | None:
+    """Issue a complete authority chain from the newly projected surface."""
+
+    def fail(reason: str, **evidence: Any) -> None:
+        if failure_sink is not None:
+            failure_sink.append({
+                "schema_version": (
+                    "arr.maas.authored_legal_projection_issuance_failure.v1"
+                ),
+                "stage": "authored_legal_projection_authority_issuance",
+                "reason": reason,
+                "evidence": deepcopy(evidence),
+            })
+
+    compilation_geometry_hash = str(
+        getattr(authored_compilation, "geometry_hash", "") or ""
+    )
+    program_hash = authored_program.program_hash()
+    targets = tuple(float(value) for value in target_floor_areas_m2)
+    if (
+        getattr(authored_compilation, "status", "") != "compiled"
+        or not program_hash
+        or not compilation_geometry_hash
+        or len(str(legal_floor_field_hash or "")) != 64
+        or len(str(floor_capacity_plan_hash or "")) != 64
+        or not str(pnu or "")
+        or not targets
+        or not projected_source.surfaces
+        or not projected_source.volumes
+        or not capacity_measurement
+        or not capacity_projection
+    ):
+        fail(
+            "authority_issuance_precondition_failed",
+            program_hash=program_hash,
+            compilation_geometry_hash=compilation_geometry_hash,
+            legal_floor_field_hash=str(legal_floor_field_hash or ""),
+            floor_capacity_plan_hash=str(floor_capacity_plan_hash or ""),
+            surface_count=len(projected_source.surfaces or ()),
+            proxy_volume_count=len(projected_source.volumes or ()),
+        )
+        return None
+
+    final_geometry_hash = final_floorwise_visual_geometry_hash(projected_source)
+    surface_payload_hash = source_surface_payload_hash(
+        tuple(projected_source.surfaces)
+    )
+    proxy_payload_hash = source_volume_payload_hash(
+        tuple(projected_source.volumes)
+    )
+    if not final_geometry_hash or not surface_payload_hash or not proxy_payload_hash:
+        fail("authority_payload_hash_missing")
+        return None
+
+    band_counts = Counter(
+        (float(volume.bottom_fraction), float(volume.top_fraction))
+        for volume in projected_source.volumes
+    )
+    achieved_floor_areas = tuple(
+        sum(
+            float(volume.footprint.area)
+            for volume in projected_source.volumes
+            if (
+                float(volume.bottom_fraction),
+                float(volume.top_fraction),
+            ) == band
+        )
+        for band in sorted(band_counts)
+    )
+    requested_floor_area = sum(targets)
+    achieved_floor_area = sum(achieved_floor_areas)
+    certificate = {
+        "schema_version": "arr.maas.authored_legal_projection_certificate.v1",
+        "status": "verified",
+        "hard_pass": True,
+        "input_authored_program_hash": program_hash,
+        "input_authored_geometry_hash": compilation_geometry_hash,
+        "legal_floor_field_hash": str(legal_floor_field_hash),
+        "projected_surface_hash": final_geometry_hash,
+        "projected_surface_payload_hash": surface_payload_hash,
+        "legal_proxy_role": "analysis_only_gfa_parking_containment",
+    }
+    compilation_payload = authored_compilation.to_dict(include_mesh=False)
+    metadata = deepcopy(projected_source.metadata)
+    projection = deepcopy(metadata.get("floorwise_legal_matrix_stack") or {})
+    projection.update({
+        "projection_mode": "floorwise_matrix_field_authored_mesh_preserved",
+        "hard_pass": True,
+        "final_program_hash": program_hash,
+        "final_geometry_hash": final_geometry_hash,
+        "authored_legal_projection_certificate": deepcopy(certificate),
+    })
+    bridge = deepcopy(metadata.get("geometry_program_bridge_evidence") or {})
+    for stale_key in (
+        "authored_legal_projection_certificate",
+        "post_book_authored_program_hash",
+        "post_book_authored_geometry_hash",
+        "final_projected_surface_hash",
+        "final_projected_surface_payload_hash",
+        "geometry_authority",
+    ):
+        bridge.pop(stale_key, None)
+    bridge.update({
+        "program_hash": program_hash,
+        "geometry_hash": final_geometry_hash,
+        "surface_payload_hash": surface_payload_hash,
+        "raw_mesh_triangle_count": len(projected_source.surfaces),
+        "exported_surface_count": len(projected_source.surfaces),
+        "surface_export_complete": True,
+        "proxy_volume_payload_hash": proxy_payload_hash,
+        "requested_proxy_band_count": len(band_counts),
+        "exported_proxy_band_count": len(band_counts),
+        "exported_proxy_part_count": len(projected_source.volumes),
+        "proxy_volume_count": len(projected_source.volumes),
+        "proxy_band_part_counts": [
+            band_counts[band] for band in sorted(band_counts)
+        ],
+        "legal_proxy_authority": "analysis_only_gfa_parking_containment",
+        "legal_floor_loft_or_prism_replay_allowed": False,
+        "post_book_authored_program_hash": program_hash,
+        "post_book_authored_geometry_hash": compilation_geometry_hash,
+        "final_projected_surface_hash": final_geometry_hash,
+        "final_projected_surface_payload_hash": surface_payload_hash,
+        "authored_legal_projection_certificate": deepcopy(certificate),
+    })
+    capacity_resolution = resolve_capacity_band_evidence(
+        capacity_projection,
+        capacity_measurement=capacity_measurement,
+    )
+    capacity_alternative_id = str(
+        capacity_projection.get("alternative_id")
+        or capacity_resolution.get("resolved_capacity_alternative_id")
+        or ""
+    )
+    achieved_capacity_band = str(
+        capacity_resolution.get("resolved_capacity_alternative_id")
+        or capacity_alternative_id
+    )
+    capacity_measurement_hash = semantic_capacity_measurement_hash(
+        capacity_measurement,
+        capacity_projection,
+    )
+    site_context_hash = semantic_site_context_hash(
+        pnu=str(pnu),
+        building_type=building_type,
+        site=containment_host,
+    )
+    semantic_context = {
+        "floor_capacity_plan_hash": str(floor_capacity_plan_hash),
+        "legal_floor_field_hash": str(legal_floor_field_hash),
+        "candidate_requested_floors": len(targets),
+        "candidate_target_gfa_m2": round(requested_floor_area, 6),
+        "pnu": str(pnu),
+        "site_context_hash": site_context_hash,
+        "capacity_alternative_id": capacity_alternative_id,
+        "achieved_capacity_band": achieved_capacity_band,
+        "capacity_measurement_hash": capacity_measurement_hash,
+    }
+    metadata.update({
+        "geometry_program": authored_program.to_dict(),
+        "authored_geometry_program": authored_program.to_dict(),
+        "geometry_program_compilation": compilation_payload,
+        "mass_execution_passport": deepcopy(
+            compilation_payload.get("execution_passport") or {}
+        ),
+        "geometry_graph_notes": build_geometry_graph_notes(
+            authored_program, authored_compilation
+        ),
+        "geometry_graph_snapshot": build_geometry_graph_snapshot(
+            authored_program, authored_compilation
+        ),
+        "authored_legal_projection_certificate": deepcopy(certificate),
+        "final_program_hash": program_hash,
+        "final_geometry_hash": final_geometry_hash,
+        "final_surface_payload_hash": surface_payload_hash,
+        "final_proxy_volume_payload_hash": proxy_payload_hash,
+        "floorwise_legal_projection": projection,
+        "legal_field_affine_placement": deepcopy(projection),
+        "capacity_projection_measurement": {
+            "schema_version": "arr.maas.capacity_projection_measurement.v1",
+            "authority": "diagnostic_only_task4_classification",
+            "requested_floor_area_m2": round(requested_floor_area, 6),
+            "achieved_floor_area_m2": round(achieved_floor_area, 6),
+            "achieved_to_requested_ratio": round(
+                achieved_floor_area / max(requested_floor_area, 1e-9), 8
+            ),
+            "requested_capacity_satisfied": bool(
+                requested_floor_area > 0.0
+                and achieved_floor_area + 1e-7
+                >= requested_floor_area * 0.995
+            ),
+            "candidate_requested_floors": len(targets),
+            "legal_floor_field_hash": str(legal_floor_field_hash),
+        },
+        "final_semantic_projection_context": semantic_context,
+        "geometry_program_bridge_evidence": bridge,
+    })
+    staged_source = replace(projected_source, metadata=metadata)
+    semantic_projection = build_program_semantic_carrier_evidence(
+        authored_source,
+        staged_source,
+        program_id=building_type,
+        final_program_hash=program_hash,
+        final_geometry_hash=final_geometry_hash,
+        floor_capacity_plan_hash=str(floor_capacity_plan_hash),
+        pnu=str(pnu),
+        site_context_hash=site_context_hash,
+        capacity_alternative_id=capacity_alternative_id,
+        achieved_capacity_band=achieved_capacity_band,
+        capacity_measurement_hash=capacity_measurement_hash,
+    )
+    if semantic_projection.get("hard_pass") is not True:
+        fail(
+            "semantic_projection_authority_issuance_failed",
+            failures=list(semantic_projection.get("failures") or ()),
+        )
+        return None
+    metadata["program_semantic_carrier_evidence"] = semantic_projection
+    bridge = deepcopy(metadata["geometry_program_bridge_evidence"])
+    bridge["geometry_authority"] = "authored_projected_surface_payload"
+    metadata["geometry_program_bridge_evidence"] = bridge
+    metadata["geometry_authority"] = "authored_projected_surface_payload"
+    return replace(projected_source, metadata=metadata)
+
+
 class _MaterializationAttemptDiagnostics:
     def __init__(self) -> None:
         self.materialization_invocation_count = 0

@@ -422,3 +422,64 @@ class ProjectedVisualHandoffTest(SimpleTestCase):
             side_effect=ValueError("tampered certified artifact"),
         ), self.assertRaisesRegex(ValueError, "tampered certified artifact"):
             portfolio_benchmark._projected_visual_handoff_artifact(feature)
+
+    def test_r63_selected_repaired_persistence_binds_certified_semantic_gate(self):
+        gate = {
+            "schema_version": "arr.maas.final_semantic_projection.v1",
+            "status": "verified",
+            "hard_pass": True,
+            "semantic_projection_hash": "r63-semantic-projection-hash",
+            "failures": [],
+        }
+        feature = {
+            "type": "Feature",
+            "properties": {
+                "variant_id": "r63-repaired-selected",
+                "semantic_projection_hard_gate": deepcopy(gate),
+            },
+        }
+
+        resolved = (
+            portfolio_benchmark._selected_semantic_projection_hard_gate(
+                feature,
+                candidate_id="r63-repaired-selected",
+            )
+        )
+
+        self.assertEqual(resolved, gate)
+        self.assertIsNot(resolved, feature["properties"]["semantic_projection_hard_gate"])
+
+        for label, invalid_feature, reason in (
+            (
+                "missing",
+                {"type": "Feature", "properties": {"variant_id": "missing"}},
+                "selected_semantic_projection_hard_gate_missing",
+            ),
+            (
+                "failed",
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "variant_id": "failed",
+                        "semantic_projection_hard_gate": {
+                            **gate,
+                            "hard_pass": False,
+                            "failures": ["statutory_context_mismatch"],
+                        },
+                    },
+                },
+                "selected_semantic_projection_hard_gate_failed",
+            ),
+        ):
+            with self.subTest(label=label), self.assertRaises(
+                portfolio_benchmark.SelectedSemanticProjectionHardGateError,
+            ) as captured:
+                portfolio_benchmark._selected_semantic_projection_hard_gate(
+                    invalid_feature,
+                    candidate_id=f"r63-{label}",
+                )
+            self.assertEqual(captured.exception.evidence["reason"], reason)
+            self.assertEqual(
+                captured.exception.evidence["candidate_id"],
+                f"r63-{label}",
+            )

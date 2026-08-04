@@ -350,6 +350,50 @@ def _persist_final_downstream_authority(
         downstream_row.get("combined_hard_pass")
     )
 
+
+class SelectedSemanticProjectionHardGateError(ValueError):
+    """Typed persistence failure for absent/rejected selected authority."""
+
+    def __init__(self, evidence: dict[str, Any]) -> None:
+        self.evidence = dict(evidence)
+        super().__init__(
+            "selected_semantic_projection_hard_gate_invalid: "
+            + str(self.evidence.get("reason") or "unknown")
+        )
+
+
+def _selected_semantic_projection_hard_gate(
+    feature: dict[str, Any],
+    *,
+    candidate_id: str,
+) -> dict[str, Any]:
+    """Load the final-VLM-bound gate from this exact selected feature."""
+
+    properties = (
+        feature.get("properties")
+        if isinstance(feature, dict)
+        and isinstance(feature.get("properties"), dict)
+        else {}
+    )
+    gate = properties.get("semantic_projection_hard_gate")
+    if not isinstance(gate, dict) or not gate:
+        raise SelectedSemanticProjectionHardGateError({
+            "schema_version": "arr.maas.selected_semantic_projection_failure.v1",
+            "reason": "selected_semantic_projection_hard_gate_missing",
+            "candidate_id": str(candidate_id or ""),
+            "hard_pass": False,
+            "failures": ["semantic_projection_hard_gate_missing"],
+        })
+    if gate.get("hard_pass") is not True:
+        raise SelectedSemanticProjectionHardGateError({
+            "schema_version": "arr.maas.selected_semantic_projection_failure.v1",
+            "reason": "selected_semantic_projection_hard_gate_failed",
+            "candidate_id": str(candidate_id or ""),
+            "hard_pass": False,
+            "failures": list(gate.get("failures") or ()),
+        })
+    return deepcopy(gate)
+
 from .portfolio_selection import (
     PORTFOLIO_SILHOUETTE_DISTANCE,
     build_gestalt_compatibility_analysis,
@@ -3788,8 +3832,11 @@ def run_book_program_portfolios(
                 staged_handoff=staged_handoff,
                 final_semantic_anchor=final_semantic_anchor,
             )
-            rows[index]["semantic_projection_hard_gate"] = deepcopy(
-                semantic_projection_hard_gate
+            rows[index]["semantic_projection_hard_gate"] = (
+                _selected_semantic_projection_hard_gate(
+                    feature,
+                    candidate_id=str(props.get("variant_id") or ""),
+                )
             )
             certified_compilation = (
                 revalidate_compilation_mesh(replace(

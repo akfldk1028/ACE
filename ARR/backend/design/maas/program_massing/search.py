@@ -732,6 +732,47 @@ def materialize_source_feature_surfaces(
 
     props = feature.setdefault("properties", {})
     existing_surfaces = props.get("source_surfaces")
+    artifact = props.get("geometry_artifact")
+    artifact_certificate = (
+        artifact.get("projectedVisualCertificate")
+        if isinstance(artifact, dict)
+        else None
+    )
+    from design.maas.geometry_language.projected_visual_contract import (
+        CertifiedMassArtifact,
+        FINAL_AUTHORITY_CERTIFICATION_MODE,
+        FINAL_CERTIFICATE_SCHEMA,
+    )
+
+    if (
+        isinstance(artifact_certificate, dict)
+        and artifact_certificate.get("certification_mode")
+        == FINAL_AUTHORITY_CERTIFICATION_MODE
+        and artifact_certificate.get("schema_version")
+        == FINAL_CERTIFICATE_SCHEMA
+    ):
+        authority_context = props.get("final_semantic_anchor")
+        certified = CertifiedMassArtifact.load(
+            artifact,
+            authority_context=(
+                authority_context
+                if isinstance(authority_context, dict)
+                else {}
+            ),
+        )
+        binding = certified.feature_binding()
+        if existing_surfaces != binding["source_surfaces"]:
+            raise ValueError(
+                "certified MASS artifact source surface binding mismatch"
+            )
+        if (
+            str(props.get("certified_mass_artifact_core_hash") or "")
+            != certified.core_hash
+        ):
+            raise ValueError(
+                "certified MASS artifact core hash binding mismatch"
+            )
+        return feature
     certificate = props.get("floorwise_visual_projection")
     if not isinstance(certificate, dict):
         model = props.get("maas_model")

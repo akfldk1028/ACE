@@ -410,6 +410,12 @@ def _bounded_replenishment_causal_feedback(
 
     import json
 
+    bounded_limit = max(0, min(24, int(limit)))
+    if bounded_limit <= 0:
+        return []
+    source_limit = min(24, max(bounded_limit, 12))
+    remaining_nodes = 384
+
     blocked_keys = {
         "coordinate",
         "coordinates",
@@ -430,6 +436,10 @@ def _bounded_replenishment_causal_feedback(
     }
 
     def bounded(value: Any, depth: int = 0) -> Any:
+        nonlocal remaining_nodes
+        if remaining_nodes <= 0:
+            return None
+        remaining_nodes -= 1
         if depth > 4:
             return None
         if isinstance(value, str):
@@ -456,14 +466,20 @@ def _bounded_replenishment_causal_feedback(
             return result
         return None
 
+    def capped_tail(value: Any) -> list[Any]:
+        if not isinstance(value, (list, tuple)):
+            return []
+        return list(value[-source_limit:])
+
     candidates: list[dict[str, Any]] = [
         safe
-        for item in existing_feedback or ()
+        for item in capped_tail(existing_feedback)
         if isinstance(item, dict)
         and isinstance((safe := bounded(item)), dict)
+        and safe
     ]
     repair = exact_repair_evidence if isinstance(exact_repair_evidence, dict) else {}
-    for failure in repair.get("failure_records") or ():
+    for failure in capped_tail(repair.get("failure_records")):
         if not isinstance(failure, dict):
             continue
         safe_failure = bounded(failure)
@@ -483,7 +499,7 @@ def _bounded_replenishment_causal_feedback(
             "geometry_family": str(failure.get("geometry_family") or "")[:120],
             "evidence": safe_failure,
         })
-    for outcome in stage_outcomes or ():
+    for outcome in capped_tail(stage_outcomes):
         if not isinstance(outcome, dict) or outcome.get("kind") != "failed":
             continue
         safe_outcome = bounded(outcome)
@@ -501,7 +517,7 @@ def _bounded_replenishment_causal_feedback(
             "evidence": safe_outcome,
         })
     gate = final_vlm_gate if isinstance(final_vlm_gate, dict) else {}
-    for audit in gate.get("audit_records") or ():
+    for audit in capped_tail(gate.get("audit_records")):
         if not isinstance(audit, dict) or audit.get("hard_pass") is True:
             continue
         safe_audit = bounded(audit)
@@ -524,15 +540,54 @@ def _bounded_replenishment_causal_feedback(
 
     deduplicated: dict[str, dict[str, Any]] = {}
     for candidate in candidates:
+        sources = {
+            str(source)
+            for source in candidate.get("feedback_sources") or ()
+            if str(source)
+        }
+        if candidate.get("feedback_source"):
+            sources.add(str(candidate["feedback_source"]))
+        causal_identity = {
+            key: candidate.get(key)
+            for key in (
+                "stage",
+                "reason",
+                "program_hash",
+                "source_sequence",
+                "geometry_family",
+                "book_scope",
+            )
+        }
+        if any(value not in (None, "", [], {}) for value in causal_identity.values()):
+            identity_payload = {"causal_identity": causal_identity}
+        else:
+            identity_payload = {
+                "legacy_payload": {
+                    key: value
+                    for key, value in candidate.items()
+                    if key not in {"feedback_source", "feedback_sources"}
+                }
+            }
         identity = json.dumps(
-            candidate,
+            identity_payload,
             ensure_ascii=True,
             sort_keys=True,
             separators=(",", ":"),
         )
+        if identity in deduplicated:
+            prior = deduplicated[identity]
+            sources.update(
+                str(source)
+                for source in prior.get("feedback_sources") or ()
+                if str(source)
+            )
+            if prior.get("feedback_source"):
+                sources.add(str(prior["feedback_source"]))
+            prior["feedback_sources"] = sorted(sources)
+            continue
+        candidate["feedback_sources"] = sorted(sources)
         deduplicated[identity] = candidate
-    bounded_limit = max(0, min(24, int(limit)))
-    return deepcopy(list(deduplicated.values())[-bounded_limit:])
+    return list(deduplicated.values())[-bounded_limit:]
 
 
 def _deficit_directed_replenishment_inputs(
@@ -553,15 +608,15 @@ def _deficit_directed_replenishment_inputs(
     cycle_budget: int = 1,
     author_replenishment_remaining: int | None = None,
 ) -> dict[str, Any]:
-    bounded_legal = deepcopy(list(legal_fit_repair_feedback)[-12:])
-    bounded_capacity_source = deepcopy(list(capacity_authoring_deficits)[-12:])
-    bounded_family = deepcopy(dict(family_supply_deficits))
-    bounded_base_critique = deepcopy(list(
-        base_book_vlm_replenishment_feedback or ()
-    )[-12:])
-    bounded_authored_visual_authority = deepcopy(list(
-        authored_visual_authority_replenishment_feedback or ()
-    )[-12:])
+    bounded_legal = deepcopy(legal_fit_repair_feedback[-12:])
+    bounded_capacity_source = deepcopy(capacity_authoring_deficits[-12:])
+    bounded_family = deepcopy(dict(list(family_supply_deficits.items())[-12:]))
+    bounded_base_critique = deepcopy(
+        (base_book_vlm_replenishment_feedback or [])[-12:]
+    )
+    bounded_authored_visual_authority = deepcopy(
+        (authored_visual_authority_replenishment_feedback or [])[-12:]
+    )
     capacity_replenishment_contract = {
         "schema_version": "arr.maas.capacity_replenishment_contract.v1",
         "require_new_geometry_program_ast": True,

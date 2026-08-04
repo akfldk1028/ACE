@@ -1898,14 +1898,15 @@ def _repair_exact_post_book_candidates_from_vlm(
     are not projected a second time.
     """
 
+    local_audit_gate = deepcopy(audit_gate)
     completion_evidence = complete_empty_final_vlm_repair_records(
         audited_pool,
-        audit_gate,
+        local_audit_gate,
         provider=typed_edit_completion_provider,
     )
     records = {
         str(record.get("source_sequence") or ""): record
-        for record in audit_gate.get("audit_records") or ()
+        for record in local_audit_gate.get("audit_records") or ()
         if isinstance(record, dict)
         and not record.get("hard_pass")
         and isinstance(record.get("geometry_edits"), list)
@@ -1949,6 +1950,7 @@ def _repair_exact_post_book_candidates_from_vlm(
         **completion_evidence,
     }
     site_access_context = dict(site_access_context or {})
+    repair_outcomes: list[dict[str, Any]] = []
 
     def record_repair_failure(
         *,
@@ -1980,9 +1982,7 @@ def _repair_exact_post_book_candidates_from_vlm(
                 terminal.to_record()
             ),
         )
-        critic_record.setdefault("typed_repair_failures", []).append(
-            outcome.to_record()
-        )
+        repair_outcomes.append(outcome.to_record())
 
     for candidate in candidates:
         record = records[candidate.sequence.name]
@@ -2584,6 +2584,7 @@ def _repair_exact_post_book_candidates_from_vlm(
     counts["llm_authored_failure_counts"] = dict(sorted(authored_failure_counts.items()))
     counts["stage_outcomes"] = stage_outcomes
     counts["failure_records"] = failure_records
+    counts["repair_outcomes"] = repair_outcomes
     return repaired, counts
 
 

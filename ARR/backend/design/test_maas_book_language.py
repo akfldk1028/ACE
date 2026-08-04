@@ -6310,6 +6310,62 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
         self.assertEqual(failures[0]["evidence"]["source_volume_count"], 0)
         self.assertTrue(failures[0]["evidence"]["program_hash"])
 
+    def test_source_dominant_replacement_collects_bounded_diagnostics_only_with_sink(self):
+        from design.maas.geometry_language import source_bridge
+
+        site = Polygon(((0, 0), (30, 0), (30, 24), (0, 24)))
+        sequence = program_seed_sequences("gymnasium")[0]
+        source = compile_sequence_to_source_mass(site, sequence)
+        self.assertIsNotNone(source)
+        assert source is not None
+        program = base_seed_program("slab")
+
+        with (
+            patch.object(
+                source_bridge,
+                "compile_geometry_program_to_source_mass",
+                return_value=None,
+            ),
+            patch.object(
+                source_bridge,
+                "_compile_geometry_program_cached",
+                side_effect=AssertionError("diagnostics must be lazy"),
+            ),
+        ):
+            self.assertIsNone(
+                replace_source_dominant_with_geometry_program(source, program)
+            )
+
+        compilation = compile_geometry_program(program)
+        failures = []
+        with (
+            patch.object(
+                source_bridge,
+                "compile_geometry_program_to_source_mass",
+                return_value=None,
+            ),
+            patch.object(
+                source_bridge,
+                "_compile_geometry_program_cached",
+                return_value=compilation,
+            ),
+        ):
+            self.assertIsNone(replace_source_dominant_with_geometry_program(
+                source,
+                program,
+                failure_sink=failures,
+            ))
+
+        evidence = failures[0]["evidence"]
+        self.assertEqual(
+            failures[0]["reason"],
+            "recursive_geometry_materialization_failed",
+        )
+        self.assertIn("compilation_issue_count", evidence)
+        self.assertIn("compilation_gate_issue_count", evidence)
+        self.assertNotIn("compilation_metrics", evidence)
+        self.assertNotIn("compilation_issues", evidence)
+
     def test_final_vlm_typed_edit_persists_materialization_stage_outcome(self):
         site = Polygon(((0, 0), (42, 0), (42, 30), (0, 30)))
         sequence = program_seed_sequences("gymnasium")[0]
@@ -6353,10 +6409,10 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
                 "reason": "recursive_geometry_materialization_failed",
                 "evidence": {
                     "program_hash": repaired_program.program_hash(),
-                    "compilation_gate_issues": [{
-                        "code": "disconnected_component_budget_exceeded",
-                        "message": "too many disconnected solid components",
-                    }],
+                    "compilation_gate_issue_count": 1,
+                    "compilation_gate_issue_codes": [
+                        "disconnected_component_budget_exceeded"
+                    ],
                 },
             })
             return None
@@ -6393,21 +6449,22 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             counts["failure_counts"]["repaired_source_materialization_failed"],
             1,
         )
-        outcome = counts["stage_outcomes"][0]
+        outcome = counts["repair_outcomes"][0]
         self.assertEqual(outcome["stage"], "final_vlm_repair_materialization")
         self.assertEqual(
             outcome["reason"],
             "recursive_geometry_materialization_failed",
         )
         self.assertEqual(counts["failure_records"], [outcome])
-        issues = outcome["evidence"]["materialization_failure"]["evidence"][
-            "compilation_gate_issues"
-        ]
+        materialization_evidence = outcome["evidence"][
+            "materialization_failure"
+        ]["evidence"]
         self.assertEqual(
-            issues[0]["code"],
-            "disconnected_component_budget_exceeded",
+            materialization_evidence["compilation_gate_issue_codes"],
+            ["disconnected_component_budget_exceeded"],
         )
-        self.assertEqual(audit_record["typed_repair_failures"], [outcome])
+        self.assertEqual(materialization_evidence["compilation_gate_issue_count"], 1)
+        self.assertNotIn("typed_repair_failures", audit_record)
 
     def test_final_vlm_typed_edit_propagates_floorwise_terminal_authority_reason(self):
         site = Polygon(((0, 0), (42, 0), (42, 30), (0, 30)))
@@ -6580,19 +6637,25 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             ["authored_profiled_legal_clip_failed"],
             floorwise_sibling_evidence["failure_reasons"],
         )
+        terminal_records = floorwise_sibling_evidence[
+            "terminal_failure_evidence"
+        ]
+        authored_record = next(
+            record for record in terminal_records
+            if record.get("stage") == "authored_visual_authority"
+        )
+        authored_evidence = authored_record["evidence"]
+        self.assertTrue({
+            "repair_reason",
+            "failure_reason",
+        }.issubset(authored_evidence))
         self.assertEqual(
-            [{
-                "stage": "authored_visual_authority",
-                "evidence": {
-                    "repair_reason": (
-                        "authored_profiled_legal_clip_failed"
-                    ),
-                    "failure_reason": (
-                        "profiled_legal_clip_missing_authority_evidence"
-                    ),
-                },
-            }],
-            floorwise_sibling_evidence["terminal_failure_evidence"],
+            authored_evidence["repair_reason"],
+            "authored_profiled_legal_clip_failed",
+        )
+        self.assertEqual(
+            authored_evidence["failure_reason"],
+            "profiled_legal_clip_missing_authority_evidence",
         )
         self.assertNotIn(
             "repaired_floorwise_legal_reprojection_failed",

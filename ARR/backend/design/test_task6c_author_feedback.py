@@ -8,7 +8,7 @@ from unittest.mock import patch
 from django.test import SimpleTestCase
 from shapely.geometry import box
 
-from design.maas.book_language import candidate_generation
+from design.maas.book_language import candidate_generation, vlm_review
 from design.maas.book_language.candidate_analysis import _Candidate
 from design.maas.book_language.portfolio_benchmark import (
     _bounded_replenishment_causal_feedback,
@@ -684,6 +684,10 @@ class Task6CBaseCritiqueTest(SimpleTestCase):
             family_supply_deficits={},
             base_book_vlm_replenishment_feedback=feedback,
             progressive_target=3,
+            selected_count=0,
+            selected_scope_count=0,
+            target_count=3,
+            required_scope_count=3,
         )
         request = result["synthesis_requests"][0]
         self.assertEqual(request["author_stage"], "replenishment")
@@ -762,6 +766,107 @@ class Task6CBaseCritiqueTest(SimpleTestCase):
         self.assertNotIn("site_boundary_geometry", serialized)
         self.assertNotIn("vlm_image_inputs", serialized)
         self.assertNotIn('"kind": "passed"', serialized)
+
+    def test_causal_feedback_limit_zero_returns_empty(self):
+        feedback = _bounded_replenishment_causal_feedback(
+            [{"feedback_source": "existing", "reason": "must_not_escape"}],
+            exact_repair_evidence={
+                "failure_records": [{"reason": "must_not_escape_either"}]
+            },
+            limit=0,
+        )
+
+        self.assertEqual(feedback, [])
+
+    def test_causal_feedback_bounds_oversized_nested_input_globally(self):
+        oversized = {
+            "stage": "program_review",
+            "kind": "failed",
+            "reason": "program_fit",
+            "evidence": {
+                f"branch_{index}": {
+                    f"leaf_{leaf}": ["x" * 5000] * 30
+                    for leaf in range(40)
+                }
+                for index in range(40)
+            },
+        }
+
+        feedback = _bounded_replenishment_causal_feedback(
+            [],
+            stage_outcomes=[oversized] * 100,
+        )
+
+        self.assertLess(len(json.dumps(feedback).encode("utf-8")), 256_000)
+        self.assertLessEqual(len(feedback), 12)
+
+    def test_legacy_feedback_dedupes_by_bounded_canonical_payload(self):
+        first = {
+            "feedback_source": "legacy_archive",
+            "structural_subreason": "matrix4_projection_failed",
+            "certificate_causes": ["matrix4_certificate_failed"],
+        }
+        duplicate_from_another_source = {
+            **first,
+            "feedback_source": "prior_cycle",
+        }
+        distinct = {
+            "feedback_source": "legacy_archive",
+            "structural_subreason": "authored_surface_missing",
+            "certificate_causes": ["no_valid_surface"],
+        }
+
+        feedback = _bounded_replenishment_causal_feedback(
+            [first, duplicate_from_another_source, distinct],
+        )
+
+        self.assertEqual(len(feedback), 2)
+        self.assertEqual(
+            {item["structural_subreason"] for item in feedback},
+            {"matrix4_projection_failed", "authored_surface_missing"},
+        )
+        merged = next(
+            item
+            for item in feedback
+            if item["structural_subreason"] == "matrix4_projection_failed"
+        )
+        self.assertEqual(
+            merged["feedback_sources"],
+            ["legacy_archive", "prior_cycle"],
+        )
+
+    def test_repeated_repair_call_does_not_mutate_provider_audit(self):
+        audit_gate = {
+            "audit_records": [{
+                "source_sequence": "provider-owned",
+                "hard_pass": False,
+                "geometry_edits": [],
+                "critic_record": {"nested": ["provider-owned"]},
+            }]
+        }
+        original = json.loads(json.dumps(audit_gate))
+        kwargs = {
+            "generation_site": box(0.0, 0.0, 10.0, 10.0),
+            "building_type": "gymnasium",
+            "height": 10.0,
+            "floors": 2,
+            "generation_context": None,
+            "program_dimensional_context": {},
+            "site_boundary_source": "unit_test",
+            "site_access_context": {},
+            "site_access_geometry": None,
+        }
+
+        first = vlm_review._repair_exact_post_book_candidates_from_vlm(
+            [], audit_gate, **kwargs
+        )
+        second = vlm_review._repair_exact_post_book_candidates_from_vlm(
+            [], audit_gate, **kwargs
+        )
+
+        self.assertEqual(audit_gate, original)
+        self.assertEqual(first[1]["repair_outcomes"], [])
+        self.assertEqual(second[1]["repair_outcomes"], [])
 
 
 class Task6CTruthfulEvidenceTest(SimpleTestCase):

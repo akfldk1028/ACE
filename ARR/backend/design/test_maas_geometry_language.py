@@ -8228,63 +8228,103 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertEqual(resolution["resolved_node_id"], semantic_root.id)
         self.assertEqual(resolution["reference_field"], "input_ids")
 
-    def test_compiler_safe_mutation_rejects_ambiguous_semantic_projection_resolution(self):
+    def test_compiler_safe_mutation_rejects_cross_program_semantic_projection_resolution(self):
         from design.maas.geometry_language import GeometryNode
 
         program = parse_geometry_dsl("mass result = box(10, 8, 6)")
-        wrappers = tuple(
-            GeometryNode(
-                id=f"semantic_projection:neighborhood_living:source_role_origin:{index}",
-                kind="transform",
-                operator="matrix4",
-                inputs=("result",),
-                parameters={
-                    "matrix4": [
-                        [1.0, 0.0, 0.0, 0.0],
-                        [0.0, 1.0, 0.0, 0.0],
-                        [0.0, 0.0, 1.0, 0.0],
-                        [0.0, 0.0, 0.0, 1.0],
-                    ]
-                },
-                semantic_role="source_role_scaffold_origin",
-                provenance={
-                    "source": "compiled_source_role_scaffold_binding",
-                    "reachable_final_root_required": True,
-                },
-            )
-            for index in (1, 2)
-        )
-        combined = GeometryNode(
-            id="semantic_projection_root_pair",
-            kind="boolean",
-            operator="union",
-            inputs=tuple(node.id for node in wrappers),
+        wrapper = GeometryNode(
+            id="semantic_projection:neighborhood_living:source_role_origin",
+            kind="transform",
+            operator="matrix4",
+            inputs=("result",),
+            parameters={
+                "matrix4": [
+                    [1.0, 0.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0, 0.0],
+                    [0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ]
+            },
+            semantic_role="source_role_scaffold_origin",
+            provenance={
+                "source": "compiled_source_role_scaffold_binding",
+                "program_id": "neighborhood_living",
+                "geometry_effect": "identity",
+                "reachable_final_root_required": True,
+            },
         )
         program = program.with_nodes(
-            (*program.nodes, *wrappers, combined),
-            root_id=combined.id,
+            (*program.nodes, wrapper),
+            root_id=wrapper.id,
         )
 
-        rejected = apply_geometry_edits_compiler_safe(program, [{
-            "operation": "add_node",
-            "node_id": "new_courtyard",
-            "node_kind": "macro",
-            "operator": "courtyard",
-            "input_ids": ["result"],
-        }])
+        rejected = apply_geometry_edits_compiler_safe(program, [
+            {
+                "operation": "add_node",
+                "node_id": "new_courtyard",
+                "node_kind": "macro",
+                "operator": "courtyard",
+                "input_ids": [
+                    "semantic_projection:gymnasium:source_role_origin"
+                ],
+            },
+            {
+                "operation": "set_root",
+                "target_node_id": "new_courtyard",
+            },
+        ])
 
         self.assertEqual(rejected.mutation.status, "target_resolution_failed")
         self.assertEqual(rejected.recovery_mode, "target_resolution_rejected")
         self.assertIn(
-            "semantic_projection_target_ambiguous",
+            "semantic_projection_target_identity_mismatch",
             {issue.code for issue in rejected.mutation.issues},
         )
         evidence = rejected.target_resolution_evidence[0]
-        self.assertEqual(evidence["status"], "rejected_ambiguous")
-        self.assertEqual(
-            evidence["candidate_node_ids"],
-            sorted(node.id for node in wrappers),
+        self.assertEqual(evidence["status"], "rejected_identity_mismatch")
+        self.assertEqual(evidence["candidate_node_ids"], [wrapper.id])
+
+    def test_compiler_safe_mutation_does_not_rewrite_ordinary_below_wrapper_rewire(self):
+        from design.maas.geometry_language import GeometryNode
+
+        program = parse_geometry_dsl(
+            "mass base = box(10, 8, 6)\n"
+            "mass result = notch(base, side='west', ratio=0.2)"
         )
+        wrapper = GeometryNode(
+            id="semantic_projection:neighborhood_living:source_role_origin",
+            kind="transform",
+            operator="matrix4",
+            inputs=("result",),
+            parameters={
+                "matrix4": [
+                    [1.0, 0.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0, 0.0],
+                    [0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ]
+            },
+            semantic_role="source_role_scaffold_origin",
+            provenance={
+                "source": "compiled_source_role_scaffold_binding",
+                "program_id": "neighborhood_living",
+                "geometry_effect": "identity",
+                "reachable_final_root_required": True,
+            },
+        )
+        program = program.with_nodes(
+            (*program.nodes, wrapper),
+            root_id=wrapper.id,
+        )
+        recovered = apply_geometry_edits_compiler_safe(program, [{
+            "operation": "rewire_input",
+            "target_node_id": "result",
+            "input_index": 0,
+            "input_node_id": "base",
+        }])
+
+        self.assertEqual(recovered.target_resolution_evidence, ())
+        self.assertNotEqual(recovered.recovery_mode, "target_resolution_rejected")
 
     def test_typed_critic_rejects_compiler_noop_parameter_and_stale_replacement_parameters(self):
         program = parse_geometry_dsl(

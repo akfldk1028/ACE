@@ -631,149 +631,108 @@ def _resolve_semantic_projection_root_references(
     tuple[dict[str, Any], ...],
     tuple[GeometryIssue, ...],
 ]:
-    """Keep new critic roots above the unique final semantic identity wrapper.
+    """Keep a proven add-node/set-root repair above final semantic identity.
 
     Final semantic projection binds an identity Matrix4 above the authored
-    geometry root. A critic still sees and may name that authored root. Using
-    it as a new node input and then selecting the new node as root would detach
-    the certified source-role identity. Resolve only ancestry references; a
-    parameter edit on the authored node continues to target authored geometry.
+    geometry root. Only the r57 repair pattern may use the authored child as a
+    stale ancestry alias: one new node consumes that child and the same node is
+    selected as root. Ordinary rewires and parameter targets are never mapped.
     """
 
     node_map = program.node_map
-    reachable: set[str] = set()
-    frontier = [program.root_id]
-    while frontier:
-        node_id = frontier.pop()
-        if node_id in reachable:
-            continue
-        reachable.add(node_id)
-        node = node_map.get(node_id)
-        if node is not None:
-            frontier.extend(node.inputs)
-
-    wrappers = tuple(
-        node
-        for node in program.nodes
-        if node.id in reachable
-        and len(node.inputs) == 1
-        and (
-            node.semantic_role == "source_role_scaffold_origin"
-            or (
-                node.id.startswith("semantic_projection:")
-                and "source_role_origin" in node.id
-            )
-        )
-        and str((node.provenance or {}).get("source") or "")
-        == "compiled_source_role_scaffold_binding"
-        and (node.provenance or {}).get("reachable_final_root_required") is True
-    )
-    wrappers_by_authored_root: dict[str, list[GeometryNode]] = {}
-    for wrapper in wrappers:
-        wrappers_by_authored_root.setdefault(wrapper.inputs[0], []).append(wrapper)
-
     evidence: list[dict[str, Any]] = []
     issues: list[GeometryIssue] = []
 
-    def resolve_reference(
-        node_id: str,
-        *,
-        operation: str,
-        reference_field: str,
-    ) -> str:
-        candidates = tuple(wrappers_by_authored_root.get(node_id) or ())
-        resolution_basis = (
-            "unique_reachable_source_role_identity_wrapper_for_authored_root"
-        )
-        semantic_reference = (
-            node_id.startswith("semantic_projection:")
-            and "source_role_origin" in node_id
-        )
-        if not candidates and semantic_reference and node_id not in reachable:
-            candidates = wrappers
-            resolution_basis = (
-                "unique_reachable_source_role_identity_wrapper_for_stale_semantic_id"
-            )
-        if len(candidates) == 1:
-            resolved = candidates[0]
-            evidence.append({
-                "schema_version": "arr.maas.semantic_projection_target_resolution.v1",
-                "status": "resolved",
-                "operation": operation,
-                "reference_field": reference_field,
-                "original_node_id": node_id,
-                "resolved_node_id": resolved.id,
-                "candidate_node_ids": [resolved.id],
-                "program_root_id": program.root_id,
-                "program_hash": program.program_hash(),
-                "resolution_basis": resolution_basis,
-            })
-            return resolved.id
-        if len(candidates) > 1:
-            candidate_ids = sorted(node.id for node in candidates)
-            evidence.append({
-                "schema_version": "arr.maas.semantic_projection_target_resolution.v1",
-                "status": "rejected_ambiguous",
-                "operation": operation,
-                "reference_field": reference_field,
-                "original_node_id": node_id,
-                "resolved_node_id": "",
-                "candidate_node_ids": candidate_ids,
-                "program_root_id": program.root_id,
-                "program_hash": program.program_hash(),
-                "resolution_basis": (
-                    "multiple_reachable_source_role_identity_wrappers_for_authored_root"
-                ),
-            })
-            issues.append(GeometryIssue(
-                "semantic_projection_target_ambiguous",
-                f"authored root {node_id} maps to multiple reachable semantic identities: {candidate_ids}",
-                node_id,
-            ))
-        elif semantic_reference and node_id not in reachable:
-            evidence.append({
-                "schema_version": "arr.maas.semantic_projection_target_resolution.v1",
-                "status": "rejected_missing",
-                "operation": operation,
-                "reference_field": reference_field,
-                "original_node_id": node_id,
-                "resolved_node_id": "",
-                "candidate_node_ids": [],
-                "program_root_id": program.root_id,
-                "program_hash": program.program_hash(),
-                "resolution_basis": "no_reachable_source_role_identity_wrapper",
-            })
-            issues.append(GeometryIssue(
-                "semantic_projection_target_missing",
-                f"semantic projection reference {node_id} has no reachable canonical identity",
-                node_id,
-            ))
-        return node_id
+    wrapper = node_map.get(program.root_id)
+    wrapper_id = str(wrapper.id if wrapper is not None else "")
+    prefix = "semantic_projection:"
+    marker = ":source_role_origin"
+    marker_index = wrapper_id.find(marker)
+    bound_program_id = (
+        wrapper_id[len(prefix):marker_index]
+        if wrapper_id.startswith(prefix) and marker_index > len(prefix)
+        else ""
+    )
+    provenance = wrapper.provenance if wrapper is not None else {}
+    canonical_wrapper = bool(
+        wrapper is not None
+        and wrapper.kind == "transform"
+        and wrapper.operator == "matrix4"
+        and len(wrapper.inputs) == 1
+        and wrapper.semantic_role == "source_role_scaffold_origin"
+        and str((provenance or {}).get("source") or "")
+        == "compiled_source_role_scaffold_binding"
+        and str((provenance or {}).get("program_id") or "")
+        == bound_program_id
+        and bool(bound_program_id)
+        and (provenance or {}).get("geometry_effect") == "identity"
+        and (provenance or {}).get("reachable_final_root_required") is True
+    )
+    authored_root_id = wrapper.inputs[0] if canonical_wrapper else ""
+    root_targets = {
+        edit.target_node_id or edit.node_id
+        for edit in edits
+        if edit.operation == "set_root"
+    }
+
+    def semantic_reference(node_id: str) -> bool:
+        return node_id.startswith(prefix) and marker in node_id
 
     resolved_edits: list[GeometryEdit] = []
     for edit in edits:
         resolved = edit
-        if edit.operation == "add_node" and edit.input_ids:
-            resolved = replace(
-                resolved,
-                input_ids=tuple(
-                    resolve_reference(
-                        node_id,
-                        operation=edit.operation,
-                        reference_field="input_ids",
-                    )
-                    for node_id in edit.input_ids
+        if (
+            edit.operation == "add_node"
+            and edit.node_id
+            and edit.node_id in root_targets
+            and len(edit.input_ids) == 1
+            and edit.input_ids[0] == authored_root_id
+            and canonical_wrapper
+        ):
+            resolved = replace(edit, input_ids=(wrapper_id,))
+            evidence.append({
+                "schema_version": "arr.maas.semantic_projection_target_resolution.v1",
+                "status": "resolved",
+                "operation": "add_node",
+                "reference_field": "input_ids",
+                "original_node_id": authored_root_id,
+                "resolved_node_id": wrapper_id,
+                "candidate_node_ids": [wrapper_id],
+                "program_root_id": program.root_id,
+                "program_hash": program.program_hash(),
+                "program_id": bound_program_id,
+                "resolution_basis": (
+                    "matched_add_node_set_root_pair_above_canonical_source_role_identity"
                 ),
+            })
+        elif (
+            edit.operation == "add_node"
+            and edit.node_id in root_targets
+            and any(semantic_reference(node_id) for node_id in edit.input_ids)
+            and any(node_id != wrapper_id for node_id in edit.input_ids)
+        ):
+            stale_ids = sorted(
+                node_id for node_id in edit.input_ids
+                if semantic_reference(node_id) and node_id != wrapper_id
             )
-        elif edit.operation == "rewire_input" and edit.input_node_id:
-            resolved = replace(
-                resolved,
-                input_node_id=resolve_reference(
-                    edit.input_node_id,
-                    operation=edit.operation,
-                    reference_field="input_node_id",
-                ),
-            )
+            evidence.append({
+                "schema_version": "arr.maas.semantic_projection_target_resolution.v1",
+                "status": "rejected_identity_mismatch",
+                "operation": "add_node",
+                "reference_field": "input_ids",
+                "original_node_id": stale_ids[0],
+                "resolved_node_id": "",
+                "candidate_node_ids": [wrapper_id] if canonical_wrapper else [],
+                "program_root_id": program.root_id,
+                "program_hash": program.program_hash(),
+                "program_id": bound_program_id,
+                "resolution_basis": "semantic_projection_program_or_provenance_mismatch",
+            })
+            issues.append(GeometryIssue(
+                "semantic_projection_target_identity_mismatch",
+                "stale semantic projection does not match the candidate canonical identity",
+                stale_ids[0],
+            ))
         resolved_edits.append(resolved)
 
     return tuple(resolved_edits), tuple(evidence), tuple(issues)

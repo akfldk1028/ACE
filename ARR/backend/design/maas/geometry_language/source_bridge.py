@@ -2555,11 +2555,6 @@ def replace_source_dominant_with_geometry_program(
             float(recursive_host.area) * coverage_floor,
         ),
     )
-    replacement_compilation = _compile_geometry_program_cached(program)
-    replacement_gate_issues = compilation_gate(
-        replacement_compilation,
-        GeometryGatePolicy(maximum_components=1),
-    )
     recursive = compile_geometry_program_to_source_mass(
         program,
         recursive_host,
@@ -2576,22 +2571,54 @@ def replace_source_dominant_with_geometry_program(
         max_volume_bands=max(1, min(3, max_total_volumes - len(physical_subordinate))),
     )
     if recursive is None:
+        replacement_compilation = (
+            _compile_geometry_program_cached(program)
+            if failure_sink is not None
+            else None
+        )
+        replacement_gate_issues = (
+            compilation_gate(
+                replacement_compilation,
+                GeometryGatePolicy(maximum_components=1),
+            )
+            if replacement_compilation is not None
+            else ()
+        )
+        compilation_issue_codes = sorted({
+            str(issue.code or "unknown")
+            for issue in (
+                replacement_compilation.issues
+                if replacement_compilation is not None
+                else ()
+            )
+        })[:16]
+        compilation_gate_issue_codes = sorted({
+            str(issue.code or "unknown")
+            for issue in replacement_gate_issues
+        })[:16]
         fail(
             "recursive_geometry_materialization_failed",
             source_name=str(source.name),
             program_name=str(program.name),
             program_hash=program.program_hash(),
-            compilation_status=str(replacement_compilation.status),
+            compilation_status=str(
+                replacement_compilation.status
+                if replacement_compilation is not None
+                else "not_collected"
+            ),
             compilation_geometry_hash=str(
                 replacement_compilation.geometry_hash or ""
+                if replacement_compilation is not None
+                else ""
             ),
-            compilation_issues=[
-                issue.to_dict() for issue in replacement_compilation.issues
-            ],
-            compilation_gate_issues=[
-                issue.to_dict() for issue in replacement_gate_issues
-            ],
-            compilation_metrics=deepcopy(replacement_compilation.metrics or {}),
+            compilation_issue_count=(
+                len(replacement_compilation.issues)
+                if replacement_compilation is not None
+                else 0
+            ),
+            compilation_issue_codes=compilation_issue_codes,
+            compilation_gate_issue_count=len(replacement_gate_issues),
+            compilation_gate_issue_codes=compilation_gate_issue_codes,
             recursive_host_geom_type=str(recursive_host.geom_type),
             recursive_host_valid=bool(recursive_host.is_valid),
             recursive_host_empty=bool(recursive_host.is_empty),

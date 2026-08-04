@@ -45,6 +45,9 @@ from design.maas.preference.vlm_scorer import (
     vlm_request_kind_scope,
 )
 from design.maas.paid_provider_budget import paid_provider_budget_snapshot
+from design.maas.book_language.typed_edit_completion import (
+    complete_empty_final_vlm_repair_records,
+)
 from design.maas.shared_floor_contract import (
     bind_shared_floor_contract_capacity,
     materialize_shared_floor_contract,
@@ -1917,6 +1920,7 @@ def _repair_exact_post_book_candidates_from_vlm(
     base_capacity_contract: dict[str, Any] | None = None,
     capacity_site: Polygon | None = None,
     repair_budget: int = 32,
+    typed_edit_completion_provider: Any = None,
 ) -> tuple[list[_Candidate], dict[str, Any]]:
     """Apply exact final-image VLM edits to that candidate's final AST.
 
@@ -1927,6 +1931,11 @@ def _repair_exact_post_book_candidates_from_vlm(
     are not projected a second time.
     """
 
+    completion_evidence = complete_empty_final_vlm_repair_records(
+        audited_pool,
+        audit_gate,
+        provider=typed_edit_completion_provider,
+    )
     records = {
         str(record.get("source_sequence") or ""): record
         for record in audit_gate.get("audit_records") or ()
@@ -1969,6 +1978,7 @@ def _repair_exact_post_book_candidates_from_vlm(
         "compiler_safe_recovery_count": 0,
         "compiler_safe_rejected_group_count": 0,
         "floorwise_legal_reprojection_count": 0,
+        **completion_evidence,
     }
     site_access_context = dict(site_access_context or {})
     for candidate in candidates:
@@ -2022,6 +2032,9 @@ def _repair_exact_post_book_candidates_from_vlm(
                     "critic_response_id": str(record.get("response_id") or ""),
                     "edit_count": len(record.get("geometry_edits") or ()),
                     "source_sequence": candidate.sequence.name,
+                    "typed_edit_completion": deepcopy(
+                        record.get("typed_edit_completion") or {}
+                    ),
                 },
             },
         )

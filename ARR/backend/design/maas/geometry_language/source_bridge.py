@@ -22,6 +22,7 @@ from shapely.errors import GEOSException
 from shapely.geometry import LineString, MultiPoint, Point, Polygon
 from shapely.geometry.polygon import orient
 from shapely.ops import nearest_points, polygonize, unary_union
+from shapely.validation import explain_validity
 
 from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
 from design.maas.source_geometry.coherence import evaluate_source_volume_coherence
@@ -56,6 +57,40 @@ _COMPILATION_CACHE_LIMIT = 512
 
 
 Point3 = tuple[float, float, float]
+_TERMINAL_FAILURE_EVIDENCE_LIMIT = 24
+
+
+def _append_terminal_failure(
+    sink: list[dict[str, Any]] | None,
+    stage: str,
+    **evidence: Any,
+) -> None:
+    """Emit one bounded, serializable terminal failure record."""
+
+    if sink is None:
+        return
+    bounded_evidence: dict[str, Any] = {}
+    for key, value in evidence.items():
+        if len(bounded_evidence) >= _TERMINAL_FAILURE_EVIDENCE_LIMIT:
+            break
+        if isinstance(value, str):
+            bounded_evidence[str(key)] = value[:160]
+        elif isinstance(value, (bool, int, float)) or value is None:
+            bounded_evidence[str(key)] = value
+        elif (
+            str(key) in {
+                "failure_reasons",
+                "certificate_causes",
+                "certificate_modes",
+            }
+            and isinstance(value, (list, tuple))
+        ):
+            bounded_evidence[str(key)] = list(dict.fromkeys(
+                str(item)[:160]
+                for item in value[:12]
+                if str(item)
+            ))
+    sink.append({"stage": stage, "evidence": bounded_evidence})
 
 
 @dataclass(frozen=True)
@@ -373,7 +408,9 @@ def materialize_floorwise_legal_source(
     legal_sections: tuple[Polygon, ...],
     target_plan_coverage: float,
     floor_capacity_plan_hash: str = "",
+    legal_floor_field_hash: str = "",
     target_floor_areas_m2: tuple[float, ...] = (),
+    terminal_failure_sink: list[dict[str, Any]] | None = None,
 ) -> SourceMass | None:
     """Refit one authored AST body into one affine legal plate per floor.
 
@@ -383,7 +420,25 @@ def materialize_floorwise_legal_source(
     parcel coordinate or completed form is stored in the reusable program.
     """
 
+    def _record_terminal_failure(
+        sink: list[dict[str, Any]] | None,
+        stage: str,
+        **evidence: Any,
+    ) -> None:
+        """Bind every terminal branch to this legal-field context."""
+
+        evidence["legal_floor_field_hash"] = str(
+            legal_floor_field_hash or ""
+        )
+        _append_terminal_failure(sink, stage, **evidence)
+
     if not source.volumes or not legal_sections:
+        _record_terminal_failure(
+            terminal_failure_sink,
+            "source_floor_section",
+            source_volume_count=len(source.volumes),
+            legal_section_count=len(legal_sections),
+        )
         return None
     coverage = max(0.05, min(0.95, float(target_plan_coverage or 0.0)))
     floor_count = len(legal_sections)
@@ -428,6 +483,12 @@ def materialize_floorwise_legal_source(
         else None
     )
     if ground_source is None or float(ground_source.area) <= 1e-9:
+        _record_terminal_failure(
+            terminal_failure_sink,
+            "source_floor_section",
+            floor_count=floor_count,
+            viable_section_count=len(viable_source_sections),
+        )
         return None
     ground_source_area = float(ground_source.area)
     visual_fit_parts = _polygon_parts(source.footprint)
@@ -441,9 +502,19 @@ def materialize_floorwise_legal_source(
         or visual_fit_source.is_empty
         or float(visual_fit_source.area) <= 1e-9
     ):
+        _record_terminal_failure(
+            terminal_failure_sink,
+            "source_floor_section",
+            footprint_part_count=len(visual_fit_parts),
+        )
         return None
     ground_legal = repair_source_polygon(legal_sections[0], minimum_area=1.0)
     if ground_legal is None or ground_legal.is_empty:
+        _record_terminal_failure(
+            terminal_failure_sink,
+            "source_floor_section",
+            floor_index=0,
+        )
         return None
     source_reference_angle, _source_width, _source_depth = _principal_frame(
         visual_fit_source.convex_hull
@@ -465,10 +536,23 @@ def materialize_floorwise_legal_source(
             or legal is None
             or legal.is_empty
         ):
+            _record_terminal_failure(
+                terminal_failure_sink,
+                "source_floor_section",
+                floor_index=floor_index,
+                source_present=raw_source is not None,
+                legal_present=legal is not None,
+            )
             return None
         source_parts = _polygon_parts(raw_source)
         source_plan = unary_union(source_parts)
         if source_plan.is_empty or float(source_plan.area) <= 1e-9:
+            _record_terminal_failure(
+                terminal_failure_sink,
+                "source_floor_section",
+                floor_index=floor_index,
+                source_part_count=len(source_parts),
+            )
             return None
         vertical_profile_ratio = max(
             0.05,
@@ -526,6 +610,12 @@ def materialize_floorwise_legal_source(
             sum(allocated_floor_targets) - sum(planned_floor_targets)
         ) > 1e-6
     ):
+        _record_terminal_failure(
+            terminal_failure_sink,
+            "floor_affine_fit",
+            floor_count=floor_count,
+            requested_floor_count=len(planned_floor_targets),
+        )
         return None
     global_axis_scales = _requested_plan_axis_scales(
         ground_source,
@@ -538,6 +628,11 @@ def materialize_floorwise_legal_source(
         target_angle_offset_degrees=pose_rotation_degrees,
     )
     if global_axis_scales is None:
+        _record_terminal_failure(
+            terminal_failure_sink,
+            "floor_affine_fit",
+            floor_index=0,
+        )
         return None
     global_x_scale, global_y_scale = global_axis_scales
     global_anisotropy_ratio = global_x_scale / max(global_y_scale, 1e-9)
@@ -546,6 +641,7 @@ def materialize_floorwise_legal_source(
         tuple[Any, tuple[tuple[float, float, float, float], ...]] | None
     ] = []
     floor_anisotropy_ratios: list[float] = []
+    floor_fit_evidence: list[dict[str, Any]] = []
     for floor_index, (
         source_plan,
         legal,
@@ -560,11 +656,18 @@ def materialize_floorwise_legal_source(
             target_angle_offset_degrees=pose_rotation_degrees,
         )
         if floor_axis_scales is None:
+            _record_terminal_failure(
+                terminal_failure_sink,
+                "floor_affine_fit",
+                floor_index=floor_index,
+            )
             return None
         floor_x_scale, floor_y_scale = floor_axis_scales
         floor_anisotropy_ratios.append(
             floor_x_scale / max(floor_y_scale, 1e-9)
         )
+        fit_evidence: dict[str, Any] = {}
+        floor_fit_evidence.append(fit_evidence)
         fitted_floor_results.append(_matrix_fit_polygon_to_host(
             source_plan,
             legal,
@@ -583,6 +686,7 @@ def materialize_floorwise_legal_source(
                 floor_anisotropy_ratios[-1]
             ),
             allow_legal_csg_projection=True,
+            fit_evidence=fit_evidence,
         ))
 
     requested_total = sum(allocated_floor_targets)
@@ -596,6 +700,25 @@ def materialize_floorwise_legal_source(
     )
     pose_fallback_used = False
     if any(fitted is None for fitted in fitted_floor_results):
+        failed_floor_index = next(
+            index
+            for index, fitted in enumerate(fitted_floor_results)
+            if fitted is None
+        )
+        _record_terminal_failure(
+            terminal_failure_sink,
+            "floor_affine_fit",
+            **_floor_affine_terminal_evidence(
+                source=source,
+                floor_index=failed_floor_index,
+                legal=prepared_floors[failed_floor_index][1],
+                target_area_m2=allocated_floor_targets[failed_floor_index],
+                fit_evidence=floor_fit_evidence[failed_floor_index],
+            ),
+            fitted_floor_count=sum(
+                fitted is not None for fitted in fitted_floor_results
+            ),
+        )
         return None
 
     volumes: list[SourceVolume] = []
@@ -614,6 +737,11 @@ def materialize_floorwise_legal_source(
         )
         fitted = fitted_floor_results[floor_index]
         if fitted is None:
+            _record_terminal_failure(
+                terminal_failure_sink,
+                "floor_affine_fit",
+                floor_index=floor_index,
+            )
             return None
         visual_fit, matrix = fitted
         # The floor Matrix4 result is the only geometry/GFA authority.  The
@@ -625,12 +753,36 @@ def materialize_floorwise_legal_source(
             achieved_area_m2=float(visual_fit.area),
             target_area_m2=float(target_area),
         ):
+            _record_terminal_failure(
+                terminal_failure_sink,
+                "floor_affine_fit",
+                **_floor_affine_terminal_evidence(
+                    source=source,
+                    floor_index=floor_index,
+                    legal=legal,
+                    target_area_m2=target_area,
+                    achieved_area_m2=float(visual_fit.area),
+                    fit_evidence=floor_fit_evidence[floor_index],
+                ),
+            )
             return None
         occupied = visual_fit
         if not legal.buffer(1e-7).covers(occupied):
+            _record_terminal_failure(
+                terminal_failure_sink,
+                "floor_affine_fit",
+                floor_index=floor_index,
+                containment="failed",
+            )
             return None
         occupied_parts = _polygon_parts(occupied)
         if not occupied_parts:
+            _record_terminal_failure(
+                terminal_failure_sink,
+                "floor_affine_fit",
+                floor_index=floor_index,
+                occupied_part_count=0,
+            )
             return None
         bottom = floor_index / floor_count
         top = (floor_index + 1) / floor_count
@@ -682,18 +834,39 @@ def materialize_floorwise_legal_source(
             ),
         })
 
-    ground = repair_source_polygon(floor_unions[0], minimum_area=1.0)
-    upper = repair_source_polygon(floor_unions[-1], minimum_area=1.0)
+    ground, ground_diagnostics = _repair_polygonal_floor_union(
+        floor_unions[0],
+        minimum_area=1.0,
+    )
+    upper, upper_diagnostics = _repair_polygonal_floor_union(
+        floor_unions[-1],
+        minimum_area=1.0,
+    )
     if ground is None or upper is None:
+        _record_terminal_failure(
+            terminal_failure_sink,
+            "authored_visual_authority",
+            repair_reason="authored_visual_projection_revalidation_failed",
+            failure_reason="revalidation_floor_union_invalid",
+            failure_reasons=("revalidation_floor_union_invalid",),
+            certificate_causes=("revalidation_floor_union_invalid",),
+            certificate_modes=("post_projection_section_revalidation",),
+            legal_floor_field_hash=str(legal_floor_field_hash or ""),
+            floor_union_count=len(floor_unions),
+            **{
+                f"ground_{key}": value
+                for key, value in ground_diagnostics.items()
+            },
+            **{
+                f"upper_{key}": value
+                for key, value in upper_diagnostics.items()
+            },
+        )
         return None
     # Law-derived floor plates remain the sole GFA authority.  A complete
     # authored triangle skin is carried separately through the same Matrix4
     # evidence so renderer/VLM diversity survives capacity materialization.
     from .floorwise_visual_projection import (
-        FloorwiseVisualProjection,
-        FloorwiseVisualProjectionCertificate,
-        _exact_surface_payload_hash,
-        _stable_visual_hash,
         project_floorwise_visual_mesh,
     )
 
@@ -711,13 +884,16 @@ def materialize_floorwise_legal_source(
             float(ground.centroid.y),
         ),
     )
+    profiled_clip_attempted = False
     if (
         not visual_projection.certificate.hard_pass
         and visual_projection.certificate.failure_reasons
         == ("projected_visual_mesh_outside_legal_section",)
     ):
+        profiled_clip_attempted = True
         from .floorwise_profiled_legal_clip import (
             clip_profiled_mesh_to_floorwise_legal_solids,
+            profiled_legal_section_authority_binding_hash,
         )
 
         profiled_clip_source = replace(
@@ -749,169 +925,66 @@ def materialize_floorwise_legal_source(
                 float(ground.centroid.y),
             ),
         )
+    if (
+        visual_projection.certificate.hard_pass
+        and not visual_projection.surfaces
+    ):
+        _record_terminal_failure(
+            terminal_failure_sink,
+            "authored_visual_authority",
+            repair_reason="authored_visual_projection_empty_surface_payload",
+            failure_reason="authored_visual_projection_empty_surface_payload",
+            failure_reasons=("authored_visual_projection_empty_surface_payload",),
+            certificate_causes=("authored_visual_projection_empty_surface_payload",),
+            certificate_modes=tuple(filter(None, (
+                str(getattr(visual_projection.certificate, "status", "") or ""),
+                str(getattr(visual_projection.certificate, "certification_mode", "") or ""),
+            ))),
+            legal_floor_field_hash=str(legal_floor_field_hash or ""),
+        )
+        return None
     if not visual_projection.certificate.hard_pass:
-        from .floorwise_section_loft import (
-            floorwise_authority_component_hashes,
-            loft_floorwise_legal_sections,
+        certificate_to_dict = getattr(
+            visual_projection.certificate,
+            "to_dict",
+            None,
         )
-
-        loft_source = replace(
-            source,
-            metadata={
-                **deepcopy(source.metadata),
-                "floorwise_legal_matrix_stack": {
-                    "status": "materialized",
-                    "matrix_convention": "row_major_column_vector",
-                    "floor_capacity_plan_hash": str(
-                        floor_capacity_plan_hash or ""
-                    ),
-                    "floors": floor_evidence,
-                },
-            },
+        projection_certificate = (
+            certificate_to_dict()
+            if callable(certificate_to_dict)
+            else {}
         )
-        visual_projection = loft_floorwise_legal_sections(
-            loft_source,
-            tuple(floor_unions),
-            legal_sections,
-            tuple(volumes),
-            (
-                float(ground.centroid.x),
-                float(ground.centroid.y),
+        failure_reasons = (
+            getattr(visual_projection.certificate, "failure_reasons", ())
+            or ("uncertified_visual_projection",)
+        )
+        _record_terminal_failure(
+            terminal_failure_sink,
+            "authored_visual_authority",
+            repair_reason=(
+                "authored_profiled_legal_clip_failed"
+                if profiled_clip_attempted
+                else "authored_matrix4_projection_failed"
+            ),
+            failure_reason=str(failure_reasons[0]),
+            failure_reasons=tuple(str(reason) for reason in failure_reasons),
+            certificate_causes=tuple(str(reason) for reason in failure_reasons),
+            certificate_modes=tuple(filter(None, (
+                str(getattr(visual_projection.certificate, "status", "") or ""),
+                str(getattr(visual_projection.certificate, "certification_mode", "") or ""),
+            ))),
+            legal_floor_field_hash=str(legal_floor_field_hash or ""),
+            failure_witness=projection_certificate.get("failure_witness") or {},
+            occupied_section_topology=(
+                projection_certificate.get("occupied_section_topology") or []
+            ),
+            legal_section_topology=(
+                projection_certificate.get("legal_section_topology") or []
+            ),
+            floor_center_topology_metrics=(
+                projection_certificate.get("floor_center_topology_metrics") or []
             ),
         )
-    if not visual_projection.certificate.hard_pass:
-        # A continuous interpolation between two individually legal affine
-        # sections can cross outside a concave sunlight/legal field.  Preserve
-        # the exact authored floor sections and their Matrix4 evidence as
-        # vertically stacked legal prisms instead of shrinking them or
-        # inventing a separate capacity plate.
-        replay_source = replace(
-            source,
-            footprint=ground,
-            upper_footprint=upper,
-            volumes=tuple(volumes),
-            metadata={
-                **deepcopy(source.metadata),
-                # The replay compiler emits a new complete triangle payload;
-                # do not validate it against the upstream authored mesh count.
-                # Candidate materialization writes the new exact count/hash
-                # after this temporary legal certification succeeds.
-                "geometry_program_bridge_evidence": {},
-                "floorwise_legal_matrix_stack": {
-                    "status": "materialized",
-                    "matrix_convention": "row_major_column_vector",
-                    "floor_capacity_plan_hash": str(
-                        floor_capacity_plan_hash or ""
-                    ),
-                    "target_floor_areas_m2": [
-                        round(float(value), 6)
-                        for value in allocated_floor_targets
-                    ],
-                },
-            },
-        )
-        try:
-            replay_program = floorwise_source_to_geometry_program(
-                replay_source,
-                height_m=1.0,
-                name=f"{source.name}__visible_floorwise_prism_replay",
-            )
-        except ValueError:
-            return None
-        replay_compilation = compile_geometry_program(replay_program)
-        if (
-            replay_compilation.status != "compiled"
-            or compilation_gate(
-                replay_compilation,
-                GeometryGatePolicy(maximum_components=1),
-            )
-        ):
-            return None
-        replay_surfaces = _mesh_surfaces(
-            tuple(replay_compilation.vertices),
-            replay_compilation,
-            volume_role=primary_role,
-            max_raw_surfaces=None,
-        )
-        replay_source = replace(
-            replay_source,
-            surfaces=replay_surfaces,
-        )
-        fallback_components, _fallback_component_failure = (
-            floorwise_authority_component_hashes(
-                tuple(floor_unions),
-                tuple(volumes),
-                floor_capacity_plan_hash=str(
-                    floor_capacity_plan_hash or ""
-                ),
-                floor_evidence=floor_evidence,
-            )
-        )
-        if fallback_components is None:
-            return None
-        fallback_exact_hash = _exact_surface_payload_hash(replay_surfaces)
-        from .floorwise_visual_projection import (
-            floorwise_authority_binding_hash,
-        )
-        fallback_binding_hash = floorwise_authority_binding_hash(
-            **fallback_components,
-            exact_surface_payload_hash=fallback_exact_hash,
-            certification_mode=(
-                "floorwise_matrix_prism_exact_containment"
-            ),
-            visible_geometry_operation=(
-                "floorwise_matrix_prism_recomposition"
-            ),
-            visible_step_fallback=True,
-        )
-        # Per-band containment was already measured on the exact footprints
-        # used to compile this replay, and the replay itself passed the closed
-        # manifold gate above.  The generic continuous-skin validator is not
-        # applicable here because a legal setback terrace at a floor boundary
-        # belongs to the lower band and need not fit the smaller upper section.
-        visual_projection = FloorwiseVisualProjection(
-            surfaces=replay_surfaces,
-            certificate=FloorwiseVisualProjectionCertificate(
-                status="certified",
-                hard_pass=True,
-                visual_hash=_stable_visual_hash(replay_surfaces),
-                source_surface_count=len(replay_surfaces),
-                projected_surface_count=len(replay_surfaces),
-                legal_sample_count=len(volumes),
-                capacity_gfa_m2=sum(
-                    float(volume.footprint.area)
-                    for volume in volumes
-                ),
-                floor_count=floor_count,
-                certification_mode=(
-                    "floorwise_matrix_prism_exact_containment"
-                ),
-                visible_geometry_operation=(
-                    "floorwise_matrix_prism_recomposition"
-                ),
-                exact_surface_payload_hash=(
-                    fallback_exact_hash
-                ),
-                capacity_authority=(
-                    "same_floorwise_matrix_prism_geometry"
-                ),
-                visible_step_fallback=True,
-                section_profile_hash=(
-                    fallback_components["section_profile_hash"]
-                ),
-                capacity_volume_hash=(
-                    fallback_components["capacity_volume_hash"]
-                ),
-                floor_capacity_plan_hash=(
-                    fallback_components["floor_capacity_plan_hash"]
-                ),
-                matrix4_stack_hash=(
-                    fallback_components["matrix4_stack_hash"]
-                ),
-                authority_binding_hash=fallback_binding_hash,
-            ),
-        )
-    if not visual_projection.certificate.hard_pass:
         return None
     measured_visual_source = replace(
         source,
@@ -959,13 +1032,61 @@ def materialize_floorwise_legal_source(
             )
             if active_volume_sections:
                 measured_section = unary_union(active_volume_sections)
-        if (
-            measured_section is None
-            or not _floor_visual_section_matches_occupied(
+        topology_metrics = None
+        if profiled_exact_mode and measured_section is not None:
+            from .profiled_mesh_numeric_repair import (
+                floor_center_numeric_equivalence,
+            )
+
+            topology_metrics = floor_center_numeric_equivalence(
+                measured_section,
+                occupied_floor,
+                epsilon_m=float(
+                    visual_projection.certificate.section_numeric_epsilon_m
+                    or 1e-6
+                ),
+            )
+        section_matches = (
+            topology_metrics is not None
+            and topology_metrics.get("hard_pass") is True
+            if profiled_exact_mode
+            else measured_section is not None
+            and _floor_visual_section_matches_occupied(
                 measured_area_m2=float(measured_section.area),
                 occupied_area_m2=float(occupied_floor.area),
             )
-        ):
+        )
+        if not section_matches:
+            topology_failure = (
+                profiled_exact_mode
+                and measured_section is not None
+                and topology_metrics is not None
+            )
+            failure_code = (
+                "revalidation_floor_section_missing"
+                if measured_section is None
+                else (
+                    "revalidation_floor_section_topology_mismatch"
+                    if topology_failure
+                    else "revalidation_floor_section_area_mismatch"
+                )
+            )
+            _record_terminal_failure(
+                terminal_failure_sink,
+                "authored_visual_authority",
+                repair_reason="authored_visual_projection_revalidation_failed",
+                failure_reason=failure_code,
+                failure_reasons=(failure_code,),
+                certificate_causes=(failure_code,),
+                certificate_modes=("post_projection_section_revalidation",),
+                legal_floor_field_hash=str(legal_floor_field_hash or ""),
+                floor_index=floor_index,
+                measured_section_present=measured_section is not None,
+                failure_witness={
+                    "floor_index": floor_index,
+                    **(topology_metrics or {}),
+                },
+            )
             return None
     metadata = deepcopy(source.metadata)
     bridge = metadata.get("geometry_program_bridge_evidence")
@@ -1052,6 +1173,17 @@ def materialize_floorwise_legal_source(
     metadata["floorwise_visual_projection"] = (
         visual_projection.certificate.to_dict()
     )
+    if profiled_exact_mode:
+        metadata["profiled_legal_section_authority_binding_hash"] = (
+            profiled_legal_section_authority_binding_hash(
+                tuple(floor_unions),
+                legal_sections,
+                (
+                    float(ground.centroid.x),
+                    float(ground.centroid.y),
+                ),
+            )
+        )
     # Materialization changes the occupied plan on every level. Never retain
     # coherence evidence measured on the pre-fit BOOK body; downstream
     # program gates must judge the exact legal floor bands they will render.
@@ -1075,12 +1207,11 @@ def floorwise_source_to_geometry_program(
     name: str | None = None,
     allow_tiny_footprint: bool = False,
 ) -> GeometryProgram:
-    """Serialize the final legal floor plates as the exact replay program.
+    """Serialize legal floor plates for bounded analysis diagnostics only.
 
-    The authored LLM/BOOK AST remains in provenance.  This projection program
-    is the downstream executable handoff: single execution, renderer, VLM and
-    elevation all compile the same law-derived affine-fitted plates that passed FAR,
-    parking and shared-floor gates.
+    This program may support isolated legal/GFA/parking transport diagnostics.
+    It is never a candidate render, VLM, elevation, or final-geometry authority;
+    the authored projected surface payload remains authoritative.
     """
 
     total_height = float(height_m)
@@ -1211,10 +1342,10 @@ def floorwise_source_to_geometry_program(
         name=name or f"{source.name}_floorwise_legal_projection",
         metadata={
             "family": "materialized_floorwise_legal_projection",
-            "language_layer": "downstream_executable_projection",
+            "language_layer": "legal_analysis_proxy_diagnostic",
             "floorwise_projection": {
                 "schema_version": "arr.maas.floorwise_geometry_program.v1",
-                "status": "executable",
+                "status": "diagnostic_only",
                 "floor_count": len(bands),
                 "volume_count": len(ordered_volumes),
                 "height_m": round(total_height, 6),
@@ -1263,7 +1394,10 @@ def floorwise_source_to_geometry_program(
                 "matrix_convention": str(
                     stack.get("matrix_convention") or "row_major_column_vector"
                 ),
-                "source_authority": "final_legal_floorwise_source_mass",
+                "source_authority": "legal_analysis_proxy_only",
+                "render_authority": False,
+                "vlm_authority": False,
+                "final_geometry_authority": False,
                 "completed_building_template": False,
                 "parcel_coordinates_are_execution_only": True,
             },
@@ -1282,6 +1416,7 @@ def _matrix_fit_polygon_to_host(
     anisotropy_ratio: float = 1.0,
     allow_legal_csg_projection: bool = False,
     minimum_contained_area_ratio: float = 0.78,
+    fit_evidence: dict[str, Any] | None = None,
 ) -> tuple[Any, tuple[tuple[float, float, float, float], ...]] | None:
     """Return the largest fixed-pose affine fit that stays inside ``host``.
 
@@ -1291,18 +1426,24 @@ def _matrix_fit_polygon_to_host(
     and anisotropy. A capacity target never authorizes a different pose.
     """
 
+    evidence = fit_evidence if fit_evidence is not None else {}
+    evidence["target_area_m2"] = float(target_area)
     source_parts = _polygon_parts(source)
     if not source_parts:
+        evidence["failure_reason"] = "no_positive_lower_projection"
         return None
     source_union = unary_union(source_parts)
     if source_union.is_empty or float(source_union.area) <= 1e-9:
+        evidence["failure_reason"] = "no_positive_lower_projection"
         return None
     source_frame_polygon = source_union.convex_hull
     if not isinstance(source_frame_polygon, Polygon):
+        evidence["failure_reason"] = "no_positive_lower_projection"
         return None
     source_angle, source_width, source_depth = _principal_frame(source_frame_polygon)
     _host_angle, target_width, target_depth = _principal_frame(host)
     if min(source_width, source_depth, target_width, target_depth) <= 1e-9:
+        evidence["failure_reason"] = "no_positive_lower_projection"
         return None
     source_center = source_union.centroid
     # The recursive source is already in the live site's coordinate frame.
@@ -1314,18 +1455,34 @@ def _matrix_fit_polygon_to_host(
         if target_center is not None
         else source_center
     )
+    representative_center = host.representative_point()
+    evidence.update({
+        "requested_center_x": float(resolved_target_center.x),
+        "requested_center_y": float(resolved_target_center.y),
+        "representative_center_x": float(representative_center.x),
+        "representative_center_y": float(representative_center.y),
+    })
+    target_centers = [resolved_target_center]
+    if representative_center.distance(resolved_target_center) > 1e-7:
+        target_centers.append(representative_center)
     target_angle = source_angle + float(target_angle_offset_degrees)
     requested_area_scale_product = (
         max(0.2, float(target_area)) / max(float(source_union.area), 1e-9)
     )
     if requested_area_scale_product <= 1e-9:
+        evidence["failure_reason"] = "no_positive_lower_projection"
         return None
     ratio = max(0.25, min(4.0, float(anisotropy_ratio or 1.0)))
+    evidence.update({
+        "frame_angle_degrees": float(target_angle),
+        "anisotropy_ratio": float(ratio),
+    })
 
     def fit(
         ratio: float,
         angle: float,
         uniform_factor: float,
+        center: Point = resolved_target_center,
     ) -> tuple[Any, tuple[tuple[float, float, float, float], ...]]:
         x_scale = (requested_area_scale_product * ratio) ** 0.5 * uniform_factor
         y_scale = (requested_area_scale_product / ratio) ** 0.5 * uniform_factor
@@ -1335,8 +1492,8 @@ def _matrix_fit_polygon_to_host(
             scale_matrix4((x_scale, y_scale, 1.0)),
             rotation_matrix4((0.0, 0.0, angle)),
             translation_matrix4((
-                resolved_target_center.x,
-                resolved_target_center.y,
+                center.x,
+                center.y,
                 0.0,
             )),
         )
@@ -1354,31 +1511,183 @@ def _matrix_fit_polygon_to_host(
         return fitted, matrix
 
     containment_host = host.buffer(1e-7)
-    fitted, matrix = fit(ratio, target_angle, 1.0)
-    if containment_host.covers(fitted):
-        return fitted, matrix
-
-    lower = 0.0
-    upper = 1.0
     candidate = None
-    for _iteration in range(12):
-        probe = (lower + upper) / 2.0
-        fitted, matrix = fit(ratio, target_angle, probe)
+    selected_center = resolved_target_center
+    for center in target_centers:
+        fitted, matrix = fit(ratio, target_angle, 1.0, center)
         if containment_host.covers(fitted):
-            lower = probe
-            candidate = (fitted, matrix)
-        else:
-            upper = probe
-    if (
-        not allow_legal_csg_projection
-        or candidate is None
-        or float(candidate[0].area)
-        + 1e-9
-        < float(target_area) * max(
-            0.0,
-            min(1.0, float(minimum_contained_area_ratio)),
+            evidence.update({
+                "fit_mode": "affine_exact_target",
+                "scale_factor": 1.0,
+                "achieved_area_m2": float(fitted.area),
+                "lower_scale": 1.0,
+                "upper_scale": 1.0,
+                "lower_area_m2": float(fitted.area),
+                "upper_area_m2": float(fitted.area),
+            })
+            return fitted, matrix
+
+        lower = 0.0
+        upper = 1.0
+        center_candidate = None
+        for _iteration in range(12):
+            probe = (lower + upper) / 2.0
+            fitted, matrix = fit(ratio, target_angle, probe, center)
+            if containment_host.covers(fitted):
+                lower = probe
+                center_candidate = (fitted, matrix)
+            else:
+                upper = probe
+        if (
+            center_candidate is not None
+            and (
+                candidate is None
+                or float(center_candidate[0].area)
+                > float(candidate[0].area) + 1e-7
+            )
+        ):
+            candidate = center_candidate
+            selected_center = center
+
+    # Before paying for legal CSG, restore the bounded committed reflow that
+    # searches nearby pose/aspect variants of the same authored polygon.  Each
+    # result remains one homogeneous affine image, so holes, concavities and
+    # the authored silhouette survive; this path cannot manufacture a stepped
+    # floor-plate recipe.
+    selected_ratio = ratio
+    selected_angle = target_angle
+    if allow_legal_csg_projection:
+        alternate_poses = tuple(
+            (
+                max(0.125, min(8.0, ratio * ratio_multiplier)),
+                target_angle + angle_delta,
+                center,
+            )
+            for ratio_multiplier in (
+                1.20,
+                1.0 / 1.20,
+                1.44,
+                1.0 / 1.44,
+            )
+            for angle_delta in (0.0, 6.0, -6.0)
+            for center in target_centers
         )
-    ):
+        for alternate_ratio, alternate_angle, center in alternate_poses:
+            alternate = fit(
+                alternate_ratio,
+                alternate_angle,
+                1.0,
+                center,
+            )
+            if containment_host.covers(alternate[0]):
+                evidence.update({
+                    "fit_mode": "affine_exact_target",
+                    "scale_factor": 1.0,
+                    "achieved_area_m2": float(alternate[0].area),
+                    "lower_scale": 1.0,
+                    "upper_scale": 1.0,
+                    "lower_area_m2": float(alternate[0].area),
+                    "upper_area_m2": float(alternate[0].area),
+                })
+                return alternate
+
+        scored_poses: list[
+            tuple[
+                float,
+                int,
+                float,
+                float,
+                float,
+                float,
+                Point,
+                tuple[
+                    Any,
+                    tuple[tuple[float, float, float, float], ...],
+                ] | None,
+            ]
+        ] = []
+        for pose_index, (
+            alternate_ratio,
+            alternate_angle,
+            center,
+        ) in enumerate(alternate_poses):
+            alternate_lower = 0.0
+            alternate_upper = 1.0
+            alternate_candidate = None
+            for _iteration in range(4):
+                probe = (alternate_lower + alternate_upper) / 2.0
+                fitted, matrix = fit(
+                    alternate_ratio,
+                    alternate_angle,
+                    probe,
+                    center,
+                )
+                if containment_host.covers(fitted):
+                    alternate_lower = probe
+                    alternate_candidate = (fitted, matrix)
+                else:
+                    alternate_upper = probe
+            scored_poses.append((
+                alternate_lower,
+                pose_index,
+                alternate_ratio,
+                alternate_angle,
+                alternate_lower,
+                alternate_upper,
+                center,
+                alternate_candidate,
+            ))
+
+        best_area = float(candidate[0].area) if candidate is not None else 0.0
+        for (
+            _score,
+            _pose_index,
+            alternate_ratio,
+            alternate_angle,
+            alternate_lower,
+            alternate_upper,
+            center,
+            alternate_candidate,
+        ) in sorted(
+            scored_poses,
+            key=lambda item: (-item[0], item[1]),
+        )[:2]:
+            for _iteration in range(8):
+                probe = (alternate_lower + alternate_upper) / 2.0
+                fitted, matrix = fit(
+                    alternate_ratio,
+                    alternate_angle,
+                    probe,
+                    center,
+                )
+                if containment_host.covers(fitted):
+                    alternate_lower = probe
+                    alternate_candidate = (fitted, matrix)
+                else:
+                    alternate_upper = probe
+            if alternate_candidate is None:
+                continue
+            alternate = fit(
+                alternate_ratio,
+                alternate_angle,
+                alternate_lower,
+                center,
+            )
+            alternate_area = float(alternate[0].area)
+            if alternate_area > best_area + 1e-7:
+                candidate = alternate
+                best_area = alternate_area
+                selected_ratio = alternate_ratio
+                selected_angle = alternate_angle
+                selected_center = center
+    if not allow_legal_csg_projection:
+        if candidate is None or float(candidate[0].area) <= 1e-9:
+            evidence["failure_reason"] = "no_positive_lower_projection"
+        else:
+            evidence.update({
+                "fit_mode": "affine_maximum_contained_lower",
+                "achieved_area_m2": float(candidate[0].area),
+            })
         return candidate
 
     # The legal placement contract is Matrix4 + typed CSG.  A near-fit
@@ -1391,9 +1700,10 @@ def _matrix_fit_polygon_to_host(
         uniform_factor: float,
     ) -> tuple[Any, tuple[tuple[float, float, float, float], ...]] | None:
         raw, projected_matrix = fit(
-            ratio,
-            target_angle,
+            selected_ratio,
+            selected_angle,
             uniform_factor,
+            selected_center,
         )
         projected_parts = _polygon_parts(
             raw.intersection(host)
@@ -1402,34 +1712,155 @@ def _matrix_fit_polygon_to_host(
             return None
         return unary_union(projected_parts), projected_matrix
 
-    projection_lower = 1.0
+    projection_lower = 0.0
     projection_upper = 1.0
     projected = projected_fit(projection_upper)
+    lower_projected = (
+        projected
+        if (
+            projected is not None
+            and 0.0 < float(projected[0].area) <= float(target_area)
+        )
+        else None
+    )
+    if lower_projected is not None:
+        projection_lower = projection_upper
     while (
-        projected is not None
-        and float(projected[0].area) + 1e-9 < float(target_area)
+        (
+            projected is None
+            or float(projected[0].area) + 1e-9 < float(target_area)
+        )
         and projection_upper < 8.0
     ):
-        projection_lower = projection_upper
-        projection_upper *= 1.25
+        if (
+            projected is not None
+            and 0.0 < float(projected[0].area) <= float(target_area)
+        ):
+            projection_lower = projection_upper
+            lower_projected = projected
+        projection_upper = min(8.0, projection_upper * 1.25)
         projected = projected_fit(projection_upper)
     if (
         projected is None
         or float(projected[0].area) + 1e-9 < float(target_area)
     ):
+        if (
+            projected is not None
+            and 0.0 < float(projected[0].area) <= float(target_area)
+        ):
+            projection_lower = projection_upper
+            lower_projected = projected
+        if lower_projected is not None:
+            evidence.update({
+                "fit_mode": "legal_csg_maximum_lower",
+                "scale_factor": float(projection_lower),
+                "achieved_area_m2": float(lower_projected[0].area),
+                "lower_scale": float(projection_lower),
+                "upper_scale": float(projection_upper),
+                "lower_area_m2": float(lower_projected[0].area),
+                "upper_area_m2": (
+                    float(projected[0].area) if projected is not None else 0.0
+                ),
+            })
+            return lower_projected
+        if candidate is None or float(candidate[0].area) <= 1e-9:
+            evidence["failure_reason"] = "no_positive_lower_projection"
         return candidate
-    for _iteration in range(56):
+    upper_projected = projected
+    for _iteration in range(8):
         probe = (projection_lower + projection_upper) / 2.0
         probe_projection = projected_fit(probe)
         if probe_projection is None:
-            projection_lower = probe
-            continue
-        if float(probe_projection[0].area) >= float(target_area):
             projection_upper = probe
-            projected = probe_projection
+            continue
+        probe_area = float(probe_projection[0].area)
+        if probe_area > float(target_area):
+            projection_upper = probe
+            upper_projected = probe_projection
         else:
             projection_lower = probe
-    return projected
+            lower_projected = probe_projection
+    if lower_projected is None or float(lower_projected[0].area) <= 1e-9:
+        evidence.update({
+            "failure_reason": "no_positive_lower_projection",
+            "lower_scale": float(projection_lower),
+            "upper_scale": float(projection_upper),
+            "upper_area_m2": float(upper_projected[0].area),
+        })
+        return None
+    evidence.update({
+        "fit_mode": "legal_csg_maximum_lower",
+        "scale_factor": float(projection_lower),
+        "achieved_area_m2": float(lower_projected[0].area),
+        "lower_scale": float(projection_lower),
+        "upper_scale": float(projection_upper),
+        "lower_area_m2": float(lower_projected[0].area),
+        "upper_area_m2": float(upper_projected[0].area),
+    })
+    return lower_projected
+
+
+def _floor_affine_terminal_evidence(
+    *,
+    source: SourceMass,
+    floor_index: int,
+    legal: Polygon,
+    target_area_m2: float,
+    fit_evidence: dict[str, Any],
+    achieved_area_m2: float | None = None,
+) -> dict[str, Any]:
+    bridge = source.metadata.get("geometry_program_bridge_evidence")
+    bridge = bridge if isinstance(bridge, dict) else {}
+    legal_hash = hashlib.sha256(
+        json.dumps(
+            _canonical_polygon_payload(legal),
+            allow_nan=False,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+    ).hexdigest()
+    evidence = {
+        "failure_reason": str(
+            fit_evidence.get("failure_reason") or "floor_target_fit_failed"
+        ),
+        "program_hash": str(bridge.get("program_hash") or ""),
+        "geometry_family": str(
+            bridge.get("geometry_family")
+            or source.metadata.get("geometry_family")
+            or ""
+        ),
+        "book_scope": str(source.metadata.get("book_scope") or ""),
+        "floor_index": int(floor_index),
+        "legal_section_hash": legal_hash,
+        "target_area_m2": float(target_area_m2),
+        "achieved_area_m2": float(
+            achieved_area_m2
+            if achieved_area_m2 is not None
+            else fit_evidence.get("achieved_area_m2") or 0.0
+        ),
+    }
+    for key in (
+        "requested_center_x",
+        "requested_center_y",
+        "representative_center_x",
+        "representative_center_y",
+        "frame_angle_degrees",
+        "anisotropy_ratio",
+        "scale_factor",
+        "lower_scale",
+        "upper_scale",
+        "lower_area_m2",
+        "upper_area_m2",
+    ):
+        if key in fit_evidence:
+            evidence[key] = fit_evidence[key]
+    claimed_legal_section_hash = str(
+        fit_evidence.get("legal_section_hash") or ""
+    )
+    if claimed_legal_section_hash:
+        evidence["claimed_legal_section_hash"] = claimed_legal_section_hash
+    return evidence
 
 
 def compile_geometry_program_to_source_mass(
@@ -1958,14 +2389,18 @@ def compile_site_bound_geometry_program_to_source_mass(
     ):
         return None
     bridge["geometry_authority"] = (
-        "final_floorwise_legal_geometry_program"
+        "legal_analysis_proxy_only"
         if floorwise_projection
         else "site_bound_geometry_program"
     )
     metadata["geometry_program_bridge_evidence"] = bridge
     if floorwise_projection:
         metadata.update({
-            "geometry_authority": "final_floorwise_legal_geometry_program",
+            "geometry_authority": "legal_analysis_proxy_only",
+            "render_geometry_authority": False,
+            "vlm_geometry_authority": False,
+            "final_geometry_authority": False,
+            "legal_proxy_role": "analysis_only_gfa_parking_containment",
             "final_program_hash": program.program_hash(),
             "final_geometry_hash": compilation.geometry_hash,
             "final_surface_payload_hash": actual_surface_hash,
@@ -2926,6 +3361,82 @@ def _polygon_parts(geometry: Any) -> tuple[Polygon, ...]:
         key=lambda part: part.area,
         reverse=True,
     ))
+
+
+def _repair_polygonal_floor_union(
+    geometry: Any,
+    *,
+    minimum_area: float,
+) -> tuple[Any | None, dict[str, Any]]:
+    """Repair and retain the complete polygonal endpoint-floor aggregate."""
+
+    geom_type = str(getattr(geometry, "geom_type", type(geometry).__name__))
+    is_empty = bool(getattr(geometry, "is_empty", True))
+    is_valid = bool(getattr(geometry, "is_valid", False))
+    try:
+        validity_reason = (
+            explain_validity(geometry)
+            if geometry is not None
+            else "missing geometry"
+        )
+    except (GEOSException, TypeError, ValueError):
+        validity_reason = "validity unavailable"
+
+    aggregate = None
+    repaired_parts: tuple[Polygon, ...] = ()
+    if geometry is not None and not is_empty:
+        try:
+            repaired = geometry if is_valid else make_valid(geometry)
+            repaired_parts = tuple(
+                part
+                for part in _polygon_parts(repaired)
+                if (
+                    not part.is_empty
+                    and part.is_valid
+                    and isfinite(float(part.area))
+                    and float(part.area) > 0.0
+                )
+            )
+            if repaired_parts:
+                aggregate = unary_union(repaired_parts)
+                if not aggregate.is_valid:
+                    aggregate = unary_union(_polygon_parts(make_valid(aggregate)))
+                repaired_parts = _polygon_parts(aggregate)
+        except (GEOSException, TypeError, ValueError):
+            aggregate = None
+            repaired_parts = ()
+
+    aggregate_area = (
+        float(aggregate.area)
+        if aggregate is not None
+        and not aggregate.is_empty
+        and isfinite(float(aggregate.area))
+        else 0.0
+    )
+    diagnostics = {
+        "geom_type": geom_type,
+        "is_valid": is_valid,
+        "validity_reason": str(validity_reason),
+        "is_empty": is_empty,
+        "aggregate_area_m2": round(aggregate_area, 8),
+        "polygon_count": len(repaired_parts),
+        "largest_polygon_area_m2": round(
+            max((float(part.area) for part in repaired_parts), default=0.0),
+            8,
+        ),
+        "post_repair_geom_type": str(
+            getattr(aggregate, "geom_type", "None")
+        ),
+    }
+    if (
+        aggregate is None
+        or aggregate.is_empty
+        or not aggregate.is_valid
+        or not repaired_parts
+        or aggregate_area < float(minimum_area)
+    ):
+        return None, diagnostics
+    return aggregate, diagnostics
 
 
 def _principal_frame(poly: Polygon) -> tuple[float, float, float]:

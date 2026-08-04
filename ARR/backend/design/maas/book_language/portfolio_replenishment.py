@@ -36,7 +36,10 @@ from .downstream_hard_gate import evaluate_accepted_sources_downstream
 from .final_vlm_cycle import run_final_vlm_cycle
 from .portfolio_selection import _bounded_visual_selection_pool
 from .run_budget import MAX_REPLENISHMENT_CYCLES
-from .vlm_review import audit_book_base_stage_with_vlm
+from .vlm_review import (
+    _bind_final_visual_authority_for_review,
+    audit_book_base_stage_with_vlm,
+)
 
 
 @dataclass(frozen=True)
@@ -662,11 +665,19 @@ def run_replenishment_cycle(
             downstream_evaluation_pool,
             **downstream_context,
         )
-        downstream_passes = [
-            candidate
-            for candidate, row in zip(downstream_evaluation_pool, downstream_report["rows"])
-            if row["combined_hard_pass"]
-        ]
+        downstream_passes = []
+        for candidate, row in zip(
+            downstream_evaluation_pool,
+            downstream_report["rows"],
+        ):
+            if not row["combined_hard_pass"]:
+                continue
+            if runtime_live_vlm:
+                _bind_final_visual_authority_for_review(
+                    candidate,
+                    row.get("semantic_projection_hard_gate") or {},
+                )
+            downstream_passes.append(candidate)
     if live_vlm_selection_required:
         downstream_passes = [
             candidate for candidate in downstream_passes

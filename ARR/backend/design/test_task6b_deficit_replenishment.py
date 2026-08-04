@@ -9,11 +9,122 @@ from design.maas.book_language import candidate_generation
 from design.maas.book_language import competition_portfolio_contract
 from design.maas.book_language import portfolio_benchmark
 from design.maas.book_language import portfolio_replenishment
+from design.maas.book_language.final_vlm_cycle import FinalVlmCycleResult
 from design.maas.geometry_language import base_seed_programs
 from design.test_maas_floorwise_candidate_rejection import _slab_fallback_case
 
 
 class Task6BDeficitDirectedReplenishmentTest(SimpleTestCase):
+    def test_replenishment_final_vlm_selection_preserves_certified_binding(self):
+        artifact = {"canonical": "artifact"}
+        anchor = {"expected_semantic_projection_hash": "semantic-hash"}
+        candidate = SimpleNamespace(
+            source=SimpleNamespace(metadata={
+                "shared_floor_contract": {"hard_pass": True},
+            }),
+            feature={"type": "Feature", "properties": {}},
+        )
+
+        def bind(review_candidate, audit):
+            self.assertEqual(audit["semantic_projection_hash"], "semantic-hash")
+            review_candidate.feature["properties"].update({
+                "geometry_artifact": artifact,
+                "final_semantic_anchor": anchor,
+                "certified_mass_artifact_core_hash": "core-hash",
+            })
+
+        def final_cycle(review_pool, **_kwargs):
+            props = review_pool[0].feature["properties"]
+            self.assertIs(props["geometry_artifact"], artifact)
+            self.assertEqual(
+                props["certified_mass_artifact_core_hash"], "core-hash"
+            )
+            return FinalVlmCycleResult(
+                selection_pool=list(review_pool),
+                initial_vlm_passes=list(review_pool),
+                initial_vlm_gate={},
+                repair_pool=[],
+                repair_vlm_passes=[],
+                repair_evidence={},
+                final_vlm_gate={},
+            )
+
+        with patch.object(
+            portfolio_replenishment,
+            "_program_pool",
+            return_value=([candidate], {}),
+        ), patch.object(
+            portfolio_replenishment,
+            "audit_book_base_stage_with_vlm",
+            return_value=([candidate], {}),
+        ), patch.object(
+            portfolio_replenishment,
+            "evaluate_accepted_sources_downstream",
+            return_value={"rows": [{
+                "combined_hard_pass": True,
+                "semantic_projection_hard_gate": {
+                    "semantic_projection_hash": "semantic-hash",
+                },
+            }]},
+        ), patch.object(
+            portfolio_replenishment,
+            "_solid_morphology_metrics",
+            return_value={"degenerate_sheet_like": False},
+        ), patch.object(
+            portfolio_replenishment,
+            "_bind_final_visual_authority_for_review",
+            side_effect=bind,
+            create=True,
+        ) as binder, patch.object(
+            portfolio_replenishment,
+            "run_final_vlm_cycle",
+            side_effect=final_cycle,
+        ):
+            result = portfolio_replenishment.run_replenishment_cycle(
+                cycle_index=1,
+                parent_variant_index=1,
+                retained_selection_pool=[],
+                excluded_parent_keys=set(),
+                excluded_parent_fingerprints=set(),
+                excluded_program_hashes=set(),
+                generation_site=object(),
+                building_type="library",
+                height=20.0,
+                floors=5,
+                generation_context=object(),
+                typed_graph_mutations=[],
+                geometry_program_mutations=[],
+                synthesis_requests=[],
+                outcome_graph=None,
+                recursive_only=True,
+                target_count=1,
+                exact_compile_limit=1,
+                program_dimensional_context=None,
+                site_boundary_source="test",
+                site_access_context=None,
+                site_access_geometry=None,
+                runtime_live_vlm=True,
+                live_vlm_selection_required=False,
+                base_capacity_contract=None,
+                trusted_legal_floor_field=None,
+                trusted_legal_floor_field_hash="",
+                trusted_clear_span_floor_plan=None,
+                capacity_site=None,
+                output_dir=portfolio_replenishment.Path("."),
+                program_slug="library",
+                visual_directive={},
+                downstream_context={},
+                hard_gate_summary=lambda _report, _pool: {},
+            )
+
+        binder.assert_called_once()
+        self.assertIs(
+            result.selection_pool[0].feature["properties"][
+                "geometry_artifact"
+            ],
+            artifact,
+        )
+
     def test_capacity_retry_opportunity_materializes_authored_geometry_once(self):
         materialize_once = getattr(
             candidate_generation,

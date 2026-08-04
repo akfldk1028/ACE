@@ -673,6 +673,21 @@ def _projected_visual_handoff_artifact(
 ) -> Any:
     """Preserve an absent authority separately from malformed payload values."""
 
+    if isinstance(source, CertifiedMassArtifact):
+        return source.payload()
+    if isinstance(source, dict) and isinstance(
+        source.get("properties"), dict
+    ):
+        properties = source["properties"]
+        if "geometry_artifact" not in properties:
+            raise ValueError(
+                "selected candidate has no certified MASS artifact"
+            )
+        existing_artifact = properties.get("geometry_artifact")
+        existing_authority_context = properties.get(
+            "final_semantic_anchor"
+        )
+
     if (
         isinstance(existing_artifact, dict)
         and (
@@ -3406,14 +3421,7 @@ def run_book_program_portfolios(
                 "combinedHardPass": bool(downstream_row.get("combined_hard_pass")),
             }
             projected_visual_artifact = _projected_visual_handoff_artifact(
-                candidate.source,
-                final_semantic_audit=downstream_row.get(
-                    "semantic_projection_hard_gate"
-                ),
-                existing_artifact=props.get("geometry_artifact"),
-                existing_authority_context=props.get(
-                    "final_semantic_anchor"
-                ),
+                candidate.feature,
             )
             projected_visual_authority_present = (
                 projected_visual_artifact
@@ -3436,32 +3444,9 @@ def run_book_program_portfolios(
                 if isinstance(projected_visual_certificate, dict)
                 else {}
             )
-            semantic_projection_hard_gate = deepcopy(
-                downstream_row.get("semantic_projection_hard_gate") or {}
+            final_semantic_anchor = deepcopy(
+                props.get("final_semantic_anchor") or {}
             )
-            final_semantic_anchor = {
-                "expected_semantic_context": deepcopy(
-                    semantic_projection_hard_gate.get(
-                        "audited_context"
-                    )
-                ),
-                "expected_semantic_projection_hash": str(
-                    semantic_projection_hard_gate.get(
-                        "semantic_projection_hash"
-                    )
-                    or ""
-                ),
-                "expected_semantic_audit_payload_hash": (
-                    semantic_audit_payload_hash(
-                        semantic_projection_hard_gate
-                    )
-                ),
-                "expected_section_geometry_binding_hash": str(
-                    candidate.source.metadata.get(
-                        "profiled_legal_section_authority_binding_hash"
-                    ) or ""
-                ),
-            }
             visual_origin = candidate.source.footprint.centroid
             staged_handoff = _stage_projected_visual_handoff(
                 projected_visual_artifact,

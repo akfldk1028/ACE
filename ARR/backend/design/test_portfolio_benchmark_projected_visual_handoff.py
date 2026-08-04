@@ -386,3 +386,39 @@ class ProjectedVisualHandoffTest(SimpleTestCase):
                         final_semantic_anchor=anchor,
                     )
                 self.assertEqual(props, before)
+
+    def test_selected_candidate_handoff_loads_embedded_canonical_artifact(self):
+        artifact = {"projectedVisualMesh": {"triangles": [self._triangle()]}}
+        anchor = {"expected_semantic_projection_hash": "semantic-hash"}
+        feature = {
+            "type": "Feature",
+            "properties": {
+                "geometry_artifact": artifact,
+                "final_semantic_anchor": anchor,
+            },
+        }
+        certified = SimpleNamespace(payload=lambda: deepcopy(artifact))
+
+        with patch.object(
+            portfolio_benchmark.CertifiedMassArtifact,
+            "load",
+            return_value=certified,
+        ) as loader:
+            result = portfolio_benchmark._projected_visual_handoff_artifact(
+                feature,
+            )
+
+        self.assertEqual(result, artifact)
+        loader.assert_called_once_with(artifact, authority_context=anchor)
+
+        with self.assertRaises(ValueError):
+            portfolio_benchmark._projected_visual_handoff_artifact(
+                {"type": "Feature", "properties": {}},
+            )
+
+        with patch.object(
+            portfolio_benchmark.CertifiedMassArtifact,
+            "load",
+            side_effect=ValueError("tampered certified artifact"),
+        ), self.assertRaisesRegex(ValueError, "tampered certified artifact"):
+            portfolio_benchmark._projected_visual_handoff_artifact(feature)

@@ -35,6 +35,7 @@ from .competition_portfolio_contract import competition_family_supply_deficits
 from .downstream_hard_gate import evaluate_accepted_sources_downstream
 from .final_vlm_cycle import run_final_vlm_cycle
 from .portfolio_selection import _bounded_visual_selection_pool
+from .run_budget import MAX_REPLENISHMENT_CYCLES
 from .vlm_review import audit_book_base_stage_with_vlm
 
 
@@ -321,28 +322,48 @@ def competition_exact_hard_pass_deficits(
     return deficits
 
 
-def replenishment_cycle_budget() -> int:
-    """Return the bounded number of fresh parent variants to explore.
+def replenishment_cycle_budget(
+    *,
+    run_budget_limit: int = MAX_REPLENISHMENT_CYCLES,
+) -> int:
+    """Return an explicit lowering of the run-owned cycle ceiling.
 
-    Parent indices are an actual deterministic variation-lattice axis.  The
-    One cycle is the safe default because every fresh parent can trigger both
-    base and final image review. Larger experiments must opt in explicitly and
-    remain protected by the process-wide live-request budget.
+    Parent indices are an actual deterministic variation-lattice axis. The
+    progressive run budget owns the default ceiling; this environment setting
+    can only reduce it for a bounded diagnostic run.
     """
+    hard_limit = max(
+        0,
+        min(MAX_REPLENISHMENT_CYCLES, int(run_budget_limit)),
+    )
+    configured = os.getenv("MAAS_BOOK_REPLENISHMENT_CYCLES")
+    if configured is None:
+        return hard_limit
     try:
-        return max(1, min(8, int(os.getenv("MAAS_BOOK_REPLENISHMENT_CYCLES", "1"))))
+        return max(0, min(hard_limit, int(configured)))
     except (TypeError, ValueError):
-        return 1
+        return hard_limit
 
 
 def replenishment_cycle_budget_for_run(
     *,
     live_vlm: bool,
     smoke_mode: bool = False,
+    run_budget_limit: int | None = None,
 ) -> int:
     """Keep paid review bounded while letting local geometry pages close."""
 
-    configured = replenishment_cycle_budget()
+    hard_limit = (
+        MAX_REPLENISHMENT_CYCLES
+        if run_budget_limit is None
+        else max(
+            0,
+            min(MAX_REPLENISHMENT_CYCLES, int(run_budget_limit)),
+        )
+    )
+    configured = replenishment_cycle_budget(
+        run_budget_limit=hard_limit,
+    )
     if smoke_mode:
         smoke_diagnostic = os.getenv(
             "MAAS_BOOK_SMOKE_REPLENISHMENT_CYCLES"
@@ -352,10 +373,13 @@ def replenishment_cycle_budget_for_run(
                 # Zero is an explicit diagnostic-only request. It never makes
                 # an undersized portfolio pass; it only persists the initial
                 # selection diagnostics without compiling another page.
-                return max(0, min(8, int(smoke_diagnostic)))
+                return min(
+                    configured,
+                    max(0, min(hard_limit, int(smoke_diagnostic))),
+                )
             except (TypeError, ValueError):
                 pass
-    if live_vlm or smoke_mode:
+    if live_vlm or smoke_mode or run_budget_limit is not None:
         return configured
     # Production/local closure still defaults to seven geometry pages. A
     # deliberately named diagnostic override can stop after an early page so
@@ -364,10 +388,13 @@ def replenishment_cycle_budget_for_run(
     diagnostic = os.getenv("MAAS_BOOK_NONLIVE_REPLENISHMENT_CYCLES")
     if diagnostic is not None:
         try:
-            return max(1, min(8, int(diagnostic)))
+            return min(
+                configured,
+                max(0, min(hard_limit, int(diagnostic))),
+            )
         except (TypeError, ValueError):
             pass
-    return max(7, configured)
+    return min(hard_limit, max(7, configured))
 
 
 def replenishment_stop_reason(
@@ -381,6 +408,9 @@ def replenishment_stop_reason(
     exact_hard_pass_count: int | None = None,
     feasible_portfolio: bool | None = None,
     author_budget_failure: dict[str, Any] | None = None,
+    exact_compile_remaining: int | None = None,
+    author_replenishment_remaining: int | None = None,
+    runtime_reserve_available: bool | None = None,
 ) -> str:
     """Return a terminal reason only for success or an exhausted budget.
 
@@ -390,13 +420,6 @@ def replenishment_stop_reason(
     zero-growth final pools as stagnation skipped that next bounded variant
     and contradicted the three-cycle exploration contract.
     """
-    failure = author_budget_failure or {}
-    if (
-        failure.get("code") == "request_quota_exhausted"
-        and failure.get("quota") == "author_replenishment"
-        and failure.get("author_stage") == "replenishment"
-    ):
-        return "replenishment_author_quota_exhausted"
     if int(target_count) == 20:
         if CompetitionBreadthScheduler.exact_pool_ready(
             exact_hard_pass_count=int(exact_hard_pass_count or 0),
@@ -405,6 +428,22 @@ def replenishment_stop_reason(
             return "competition_exact_reserve_feasible"
     elif selected_count >= target_count and selected_scope_count >= required_scope_count:
         return "target_and_scope_coverage_reached"
+    if exact_compile_remaining is not None and exact_compile_remaining <= 0:
+        return "cumulative_exact_compile_budget_exhausted"
+    if (
+        author_replenishment_remaining is not None
+        and author_replenishment_remaining <= 0
+    ):
+        return "replenishment_author_quota_exhausted"
+    if runtime_reserve_available is False:
+        return "runtime_reserve_exhausted"
+    failure = author_budget_failure or {}
+    if (
+        failure.get("code") == "request_quota_exhausted"
+        and failure.get("quota") == "author_replenishment"
+        and failure.get("author_stage") == "replenishment"
+    ):
+        return "replenishment_author_quota_exhausted"
     if cycles_run >= cycle_budget:
         return "cycle_budget_exhausted"
     return ""

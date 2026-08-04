@@ -364,6 +364,7 @@ from .run_budget import (
     progressive_mass_run_budget,
     replenishment_allowed_by_deadline,
 )
+from design.maas.paid_provider_budget import paid_provider_budget_snapshot
 from .portfolio_contract import (
     evaluate_portfolio_completion,
     resolve_progressive_portfolio_requirement,
@@ -391,6 +392,7 @@ def _deficit_directed_replenishment_inputs(
     base_book_vlm_replenishment_feedback: list[dict[str, Any]] | None = None,
     authored_visual_authority_replenishment_feedback: list[dict[str, Any]] | None = None,
     exact_compile_remaining: int | None = None,
+    cycle_index: int = 1,
 ) -> dict[str, Any]:
     bounded_legal = deepcopy(list(legal_fit_repair_feedback)[-12:])
     bounded_capacity_source = deepcopy(list(capacity_authoring_deficits)[-12:])
@@ -432,6 +434,16 @@ def _deficit_directed_replenishment_inputs(
         for deficit in bounded_capacity_source
         if isinstance(deficit, dict)
     ]
+    valid_requests = [
+        request
+        for request in synthesis_requests
+        if isinstance(request, dict)
+    ]
+    selected_requests = (
+        [valid_requests[(max(1, int(cycle_index)) - 1) % len(valid_requests)]]
+        if valid_requests
+        else []
+    )
     requests = [
         {
             **dict(request),
@@ -451,8 +463,7 @@ def _deficit_directed_replenishment_inputs(
                 "from rejected parents; " + capacity_authoring_instruction
             ).strip("; "),
         }
-        for request in synthesis_requests
-        if isinstance(request, dict)
+        for request in selected_requests
     ]
     compile_limit = exact_compile_remaining
     if compile_limit is None and progressive_target is not None:
@@ -467,6 +478,35 @@ def _deficit_directed_replenishment_inputs(
 
 def _remaining_exact_compile_budget(limit: int, *actual_usage: int) -> int:
     return max(0, int(limit) - sum(max(0, int(value)) for value in actual_usage))
+
+
+def _replenishment_cycle_preflight_stop_reason(
+    *,
+    selected_count: int,
+    selected_scope_count: int,
+    target_count: int,
+    required_scope_count: int,
+    exact_compile_remaining: int | None,
+    author_replenishment_remaining: int | None,
+    runtime_reserve_available: bool,
+) -> str:
+    """Stop before a cycle only for completion or an exhausted real budget."""
+
+    if (
+        selected_count >= target_count
+        and selected_scope_count >= required_scope_count
+    ):
+        return "target_and_scope_coverage_reached"
+    if exact_compile_remaining is not None and exact_compile_remaining <= 0:
+        return "cumulative_exact_compile_budget_exhausted"
+    if (
+        author_replenishment_remaining is not None
+        and author_replenishment_remaining <= 0
+    ):
+        return "replenishment_author_quota_exhausted"
+    if not runtime_reserve_available:
+        return "runtime_reserve_exhausted"
+    return ""
 
 
 def _run_replenishment_cycle_with_compile_authority(
@@ -2582,9 +2622,19 @@ def run_book_program_portfolios(
                 base_stage_vlm_gate.get("reviewed_parent_fingerprints") or ()
             )
             stop_reason = "cycle_budget_exhausted"
+            progressive_budget = (
+                progressive_mass_run_budget(progressive_target_int)
+                if progressive_target_int is not None
+                else None
+            )
             cycle_budget = replenishment_cycle_budget_for_run(
                 live_vlm=runtime_live_vlm,
                 smoke_mode=smoke_mode,
+                run_budget_limit=(
+                    progressive_budget.replenishment_author_request_limit
+                    if progressive_budget is not None
+                    else None
+                ),
             )
             if diagnostic_budget is not None:
                 cycle_budget = min(
@@ -2649,11 +2699,37 @@ def run_book_program_portfolios(
                 if str(deficit.get("rejected_parent_program_hash") or "")
             }
             for cycle_index in range(1, cycle_budget + 1):
-                if progressive_target_int is not None:
-                    if exact_compile_remaining == 0:
-                        stop_reason = (
-                            "cumulative_exact_compile_budget_exhausted"
-                        )
+                runtime_reserve_available = True
+                if progressive_budget is not None:
+                    runtime_reserve_available = replenishment_allowed_by_deadline(
+                        started_at=portfolio_started_at,
+                        timeout_seconds=progressive_budget.timeout_seconds,
+                        now=perf_counter(),
+                    )
+                provider_snapshot = paid_provider_budget_snapshot()
+                author_replenishment_remaining = (
+                    provider_snapshot.get("quota_remaining_counts") or {}
+                ).get("author_replenishment")
+                preflight_stop_reason = (
+                    _replenishment_cycle_preflight_stop_reason(
+                        selected_count=len(selected),
+                        selected_scope_count=len({
+                            _scope_key(candidate) for candidate in selected
+                        }),
+                        target_count=selection_target,
+                        required_scope_count=required_scope_target,
+                        exact_compile_remaining=exact_compile_remaining,
+                        author_replenishment_remaining=(
+                            int(author_replenishment_remaining)
+                            if author_replenishment_remaining is not None
+                            else None
+                        ),
+                        runtime_reserve_available=runtime_reserve_available,
+                    )
+                )
+                if preflight_stop_reason:
+                    stop_reason = preflight_stop_reason
+                    if stop_reason == "cumulative_exact_compile_budget_exhausted":
                         counts["progressive_exact_compile_stop"] = {
                             "schema_version": (
                                 "arr.maas.progressive_exact_compile_stop.v1"
@@ -2664,15 +2740,7 @@ def run_book_program_portfolios(
                             "actual_usage": exact_compile_used,
                             "remaining": 0,
                         }
-                        break
-                    progressive_budget = progressive_mass_run_budget(
-                        progressive_target_int
-                    )
-                    if not replenishment_allowed_by_deadline(
-                        started_at=portfolio_started_at,
-                        timeout_seconds=progressive_budget.timeout_seconds,
-                        now=perf_counter(),
-                    ):
+                    if stop_reason == "runtime_reserve_exhausted":
                         counts["progressive_runtime_stop"] = {
                             "schema_version": (
                                 "arr.maas.progressive_runtime_stop.v1"
@@ -2684,7 +2752,7 @@ def run_book_program_portfolios(
                                 progressive_budget.timeout_seconds
                             ),
                         }
-                        break
+                    break
                 previous_pool_count = len(selection_pool)
                 replenishment_inputs = _deficit_directed_replenishment_inputs(
                     synthesis_requests,
@@ -2699,6 +2767,7 @@ def run_book_program_portfolios(
                         authored_visual_authority_replenishment_feedback
                     ),
                     exact_compile_remaining=exact_compile_remaining,
+                    cycle_index=cycle_index,
                 )
                 cycle_synthesis_requests = replenishment_inputs[
                     "synthesis_requests"
@@ -2901,6 +2970,14 @@ def run_book_program_portfolios(
                             "geometry_program_llm_author_budget_failures"
                         ) or ()
                     ), None),
+                    exact_compile_remaining=exact_compile_remaining,
+                    author_replenishment_remaining=(
+                        (
+                            paid_provider_budget_snapshot().get(
+                                "quota_remaining_counts"
+                            ) or {}
+                        ).get("author_replenishment")
+                    ),
                 )
                 del cycle
                 if terminal_reason:

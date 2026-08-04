@@ -6,6 +6,9 @@ from dataclasses import dataclass
 from math import ceil
 
 
+MAX_REPLENISHMENT_CYCLES = 8
+
+
 @dataclass(frozen=True)
 class MassRunBudget:
     target_count: int
@@ -17,7 +20,7 @@ class MassRunBudget:
     portfolio_board_reserve: int = 1
     reference_audit_allowance: int = 0
     retry_allowance: int = 0
-    replenishment_author_reserve: int = 1
+    replenishment_author_reserve: int | None = None
     base_diversity_reserve: int = 0
     replenishment_compile_reserve: int = 0
 
@@ -47,7 +50,16 @@ class MassRunBudget:
 
     @property
     def replenishment_author_request_limit(self) -> int:
-        return max(0, int(self.replenishment_author_reserve))
+        requested = (
+            self.target_count
+            if self.replenishment_author_reserve is None
+            else int(self.replenishment_author_reserve)
+        )
+        return min(
+            MAX_REPLENISHMENT_CYCLES,
+            max(0, int(self.target_count)),
+            max(0, requested),
+        )
 
     @property
     def base_parent_review_budget(self) -> int:
@@ -133,6 +145,7 @@ def replenishment_allowed_by_deadline(
 
 
 __all__ = [
+    "MAX_REPLENISHMENT_CYCLES",
     "MassRunBudget",
     "progressive_mass_run_budget",
     "replenishment_allowed_by_deadline",

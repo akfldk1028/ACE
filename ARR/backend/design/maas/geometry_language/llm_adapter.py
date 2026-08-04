@@ -30,7 +30,8 @@ from ..paid_provider_budget import (
 
 
 DEFAULT_GEOMETRY_AUTHOR_MODEL = "gpt-5.4-mini"
-GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v24_nonfragmenting_relation_pairs"
+GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v25_book_graph_principle_binding"
+LEGACY_GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v24_nonfragmenting_relation_pairs"
 MAX_AUTHOR_COMPILER_REPAIR_GENERATIONS = 3
 
 SEMANTIC_MACRO_BASE_SEEDS: dict[str, frozenset[str]] = {
@@ -58,6 +59,27 @@ class GeometryAuthorError(RuntimeError):
     pass
 
 
+def _geometry_author_request_identity(
+    context: dict[str, Any],
+) -> tuple[str, str]:
+    stage = str(context.get("author_stage") or "initial").strip().lower()
+    expected = {
+        "initial": "geometry_author_initial",
+        "replenishment": "geometry_author_replenishment",
+    }
+    if stage not in expected:
+        raise GeometryAuthorError(f"invalid geometry author stage: {stage}")
+    request_kind = str(
+        context.get("author_request_kind") or expected[stage]
+    ).strip()
+    if request_kind != expected[stage]:
+        raise GeometryAuthorError(
+            "geometry author request kind does not match stage:"
+            f"{stage}:{request_kind}"
+        )
+    return stage, request_kind
+
+
 def author_geometry_programs_with_openai(
     context: dict[str, Any],
     *,
@@ -67,6 +89,15 @@ def author_geometry_programs_with_openai(
 ) -> tuple[GeometryProgram, ...]:
     """Generate explicit DSL programs; never accept prose or uncompiled labels."""
     count = max(1, min(20, int(target_count)))
+    author_stage, author_request_kind = _geometry_author_request_identity(
+        context
+    )
+    book_principle_ids = _canonical_book_principle_ids(context)
+    if "book_graph_vocabulary" in context:
+        context = {
+            **context,
+            "book_principle_ids": list(book_principle_ids),
+        }
     author_program_context = _author_validation_context(context)
     selected_model = model or os.getenv("MAAS_GEOMETRY_AUTHOR_MODEL") or DEFAULT_GEOMETRY_AUTHOR_MODEL
     explicit_replay_path = os.getenv(
@@ -83,6 +114,18 @@ def author_geometry_programs_with_openai(
         )
     )
     cached = _load_author_cache(cache_path)
+    if (
+        cached is None
+        and not explicit_replay_path
+        and "book_graph_vocabulary" not in context
+    ):
+        legacy_cache_path = _author_cache_path(
+            context=context,
+            count=count,
+            model=selected_model,
+            prompt_contract=LEGACY_GEOMETRY_AUTHOR_PROMPT_CONTRACT,
+        )
+        cached = _load_author_cache(legacy_cache_path)
     if cached is not None:
         if isinstance(cached.get("compiled_programs"), list):
             programs = tuple(
@@ -114,6 +157,7 @@ def author_geometry_programs_with_openai(
             model=str(cached.get("model") or selected_model),
             response_id=str(cached.get("response_id") or ""),
             cache_hit=True,
+            book_principle_ids=book_principle_ids,
         )
     rejected_cache = _load_revalidatable_kernel_rejection(
         cache_path.with_suffix(".rejected.json")
@@ -133,6 +177,7 @@ def author_geometry_programs_with_openai(
                 model=str(rejected_cache.get("model") or selected_model),
                 response_id=str(rejected_cache.get("response_id") or ""),
                 cache_hit=True,
+                book_principle_ids=book_principle_ids,
             )
             _save_author_cache(cache_path, {
                 "cache_schema_version": "arr.maas.geometry_llm_author_cache.v3",
@@ -186,7 +231,7 @@ def author_geometry_programs_with_openai(
         method="POST",
     )
     try:
-        reserve_paid_provider_request("geometry_author")
+        reserve_paid_provider_request(author_request_kind)
         with urllib.request.urlopen(request, timeout=timeout) as response:
             response_data = json.loads(response.read().decode("utf-8"))
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
@@ -212,6 +257,7 @@ def author_geometry_programs_with_openai(
         model=selected_model,
         response_id=response_id,
         cache_hit=False,
+        book_principle_ids=book_principle_ids,
     ))
     repair_generation = int(context.get("author_compiler_repair_generation") or 0)
     programs = [replace(program, metadata={
@@ -243,6 +289,7 @@ def author_geometry_programs_with_openai(
                 "do not repeat invalid node-kind/operator pairs, degenerate relations, or invalid parameter types."
             ),
         }
+        repair_budget_failure: dict[str, Any] | None = None
         try:
             repaired = author_geometry_programs_with_openai(
                 repair_context,
@@ -250,7 +297,20 @@ def author_geometry_programs_with_openai(
                 model=selected_model,
                 timeout=timeout,
             )
-        except (GeometryAuthorError, PaidProviderBudgetError):
+        except PaidProviderBudgetError as exc:
+            if not programs:
+                raise
+            repair_budget_failure = {
+                "code": exc.code,
+                "request_kind": exc.request_kind,
+                "quota": exc.quota,
+                "used": exc.used,
+                "limit": exc.limit,
+                "remaining": exc.remaining,
+                "author_stage": author_stage,
+            }
+            repaired = ()
+        except GeometryAuthorError:
             repaired = ()
         seen_hashes = {program.program_hash() for program in programs}
         for program in repaired:
@@ -258,6 +318,13 @@ def author_geometry_programs_with_openai(
                 continue
             seen_hashes.add(program.program_hash())
             programs.append(program)
+        if repair_budget_failure is not None:
+            programs = [replace(program, metadata={
+                **program.metadata,
+                "author_compiler_repair_budget_failure": (
+                    repair_budget_failure
+                ),
+            }) for program in programs]
     if not programs:
         exc = parse_error or GeometryAuthorError("geometry author and compiler repair yielded no valid programs")
         _save_author_cache(cache_path.with_suffix(".rejected.json"), {
@@ -282,6 +349,7 @@ def author_geometry_programs_with_openai(
             int(program.metadata.get("author_compiler_repair_generation") or 0)
             for program in programs
         ), default=0),
+        "book_principle_ids": list(book_principle_ids),
     })
     return tuple(programs)
 
@@ -292,6 +360,7 @@ def _decorate_author_programs(
     model: str,
     response_id: str,
     cache_hit: bool,
+    book_principle_ids: tuple[str, ...] = (),
 ) -> tuple[GeometryProgram, ...]:
     return tuple(replace(program, metadata={
         **program.metadata,
@@ -300,7 +369,54 @@ def _decorate_author_programs(
         "author_response_id": response_id or str(program.metadata.get("author_response_id") or ""),
         "author_cache_hit": bool(cache_hit),
         "author_prompt_contract": GEOMETRY_AUTHOR_PROMPT_CONTRACT,
+        **(
+            {"book_principle_ids": list(book_principle_ids)}
+            if book_principle_ids
+            else {}
+        ),
     }) for program in programs)
+
+
+def _canonical_book_principle_ids(context: dict[str, Any]) -> tuple[str, ...]:
+    if "book_graph_vocabulary" not in context:
+        return ()
+    vocabulary = context.get("book_graph_vocabulary")
+    if not isinstance(vocabulary, (dict, list)):
+        raise GeometryAuthorError("book_graph_vocabulary must be a JSON object or array")
+
+    canonical_ids: set[str] = set()
+
+    def collect(value: Any) -> None:
+        if isinstance(value, dict):
+            principle_id = value.get("principle_id")
+            if isinstance(principle_id, str) and principle_id.strip():
+                canonical_ids.add(principle_id.strip())
+            for nested in value.values():
+                collect(nested)
+        elif isinstance(value, list):
+            for nested in value:
+                collect(nested)
+
+    collect(vocabulary)
+    if not canonical_ids:
+        raise GeometryAuthorError(
+            "book_graph_vocabulary contains no canonical book principle ids"
+        )
+    requested = context.get("book_principle_ids")
+    if not isinstance(requested, (list, tuple)) or not requested:
+        raise GeometryAuthorError(
+            "book_principle_ids are required with book_graph_vocabulary"
+        )
+    normalized: list[str] = []
+    for value in requested:
+        principle_id = value.strip() if isinstance(value, str) else ""
+        if not principle_id or principle_id not in canonical_ids:
+            raise GeometryAuthorError(
+                f"unknown canonical book principle id: {value!r}"
+            )
+        if principle_id not in normalized:
+            normalized.append(principle_id)
+    return tuple(normalized)
 
 
 def _author_payload_compiler_diagnostics(
@@ -648,7 +764,32 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
     # Source-level graph memory is already bounded and coordinate-free. Keep
     # enough room for transferable post-BOOK repair priors; the previous 12k
     # cut could silently drop the final keys after successful genotype priors.
-    context_text = json.dumps(context, ensure_ascii=False, sort_keys=True)[:24000]
+    book_principle_ids = _canonical_book_principle_ids(context)
+    bounded_context = {
+        key: value
+        for key, value in context.items()
+        if key not in {"book_graph_vocabulary", "book_principle_ids"}
+    }
+    context_text = json.dumps(
+        bounded_context,
+        ensure_ascii=False,
+        sort_keys=True,
+    )[:24000]
+    book_graph_vocabulary_text = (
+        json.dumps(
+            context["book_graph_vocabulary"],
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        if "book_graph_vocabulary" in context
+        else "not supplied (legacy context)"
+    )
+    book_principle_ids_text = json.dumps(
+        list(book_principle_ids),
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
     parameter_contracts = json.dumps({
         operator: {
             parameter: _author_parameter_value_contract(operator, parameter)
@@ -784,6 +925,12 @@ Rules:
 
 Program/site context:
 {context_text}
+
+Canonical BOOK principle ids selected for this authoring context:
+{book_principle_ids_text}
+
+Complete compact BOOK graph vocabulary (relation vocabulary only; never copy a completed form):
+{book_graph_vocabulary_text}
 """
 
 
@@ -1338,9 +1485,15 @@ def _author_parameter_value_contract(operator: str, parameter: str) -> Any:
     return {"type": "literal"}
 
 
-def _author_cache_path(*, context: dict[str, Any], count: int, model: str) -> Path:
+def _author_cache_path(
+    *,
+    context: dict[str, Any],
+    count: int,
+    model: str,
+    prompt_contract: str = GEOMETRY_AUTHOR_PROMPT_CONTRACT,
+) -> Path:
     payload = json.dumps({
-        "schema": GEOMETRY_AUTHOR_PROMPT_CONTRACT,
+        "schema": prompt_contract,
         "model": model,
         "count": count,
         "context": context,

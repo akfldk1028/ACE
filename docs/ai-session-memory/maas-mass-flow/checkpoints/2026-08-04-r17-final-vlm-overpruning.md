@@ -64,3 +64,20 @@ Connect final-authority VLM typed edits back through the existing canonical Matr
 - `llm_twist_lift` materialized but did not reach clean/program hard pass.
 - No new final hard-pass candidate entered the selection pool, so the visible result remained 1/5.
 - Next action: translate these exact typed topology/completeness failures into explicit LLM AST repair constraints and request topology-safe authored variants; do not lower the silhouette diversity threshold or statutory gates.
+
+## r28 preparation - full BOOK graph author binding
+
+Root cause after r27: the canonical BOOK registry existed, but the LLM author request was created before that registry entered the pipeline. Replenishment also collapsed feedback to broad geometry-family and stepped-shape signals, discarding BOOK principle, kind, verb, and lineage coverage.
+
+Implemented contracts:
+- Candidate authors receive a compact canonical BOOK graph vocabulary containing every principle, without OCR/page payload bloat.
+- Retained selection pools contribute diagnostic principle-id and principle-kind supply counts to replenishment requests; this is advisory and never a hard gate.
+- New live LLM author responses bind one or more canonical book_principle_ids, validate them against the supplied vocabulary, and persist them in GeometryProgram metadata/cache records.
+- The complete BOOK vocabulary is serialized separately from the old 24k context truncation boundary.
+- Legacy cached payloads remain replayable.
+
+TDD evidence:
+- Replenishment/context tests: RED 2 expected failures, then GREEN 2/2.
+- LLM prompt/schema/metadata tests: RED 2 expected failures across 3 tests, then GREEN 3/3.
+
+Next action: run r28 full target-five MASS flow and inspect authored principle coverage, legal archive, VLM routing, selected count, and PNG boards.

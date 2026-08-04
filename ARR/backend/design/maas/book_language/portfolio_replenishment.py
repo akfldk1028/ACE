@@ -31,6 +31,7 @@ from .competition_breadth_scheduler import (
     CompetitionBreadthScheduler,
     STAGE_FAILURE_NAMES,
 )
+from .competition_portfolio_contract import competition_family_supply_deficits
 from .downstream_hard_gate import evaluate_accepted_sources_downstream
 from .final_vlm_cycle import run_final_vlm_cycle
 from .portfolio_selection import _bounded_visual_selection_pool
@@ -46,6 +47,104 @@ class ReplenishmentCycleResult:
     evidence: dict[str, Any]
     reviewed_parent_keys: set[str]
     reviewed_parent_fingerprints: set[str]
+
+
+def _candidate_program_hashes(candidate: _Candidate) -> set[str]:
+    metadata = getattr(getattr(candidate, "source", None), "metadata", {}) or {}
+    bridge = metadata.get("geometry_program_bridge_evidence") or {}
+    semantic = metadata.get("final_semantic_projection_context") or {}
+    snapshot = metadata.get("geometry_graph_snapshot") or {}
+    program = metadata.get("geometry_program") or {}
+    return {
+        str(value)
+        for value in (
+            bridge.get("program_hash"),
+            semantic.get("program_hash"),
+            snapshot.get("program_hash"),
+            program.get("program_hash"),
+        )
+        if str(value or "")
+    }
+
+
+def _exclude_duplicate_program_hashes(
+    candidates: list[_Candidate],
+    excluded_program_hashes: set[str],
+) -> tuple[list[_Candidate], int]:
+    excluded = {str(value) for value in excluded_program_hashes if str(value)}
+    retained = [
+        candidate for candidate in candidates
+        if not (_candidate_program_hashes(candidate) & excluded)
+    ]
+    return retained, len(candidates) - len(retained)
+
+
+def family_supply_deficits_for_candidates(
+    candidates: list[_Candidate],
+    *,
+    target_count: int,
+    compatibility_analysis: Any | None = None,
+) -> dict[str, Any]:
+    facts = []
+    for candidate in candidates:
+        morphology = _solid_morphology_metrics(candidate)
+        body = str(
+            morphology.get("body_phenotype")
+            or morphology.get("phenotype")
+            or "unclassified"
+        )
+        roof = _roof_archetype(candidate)
+        facts.append({
+            "body_phenotype": body,
+            "roof_archetype": roof,
+            "body_roof_signature": f"{body}|{roof}",
+            "geometry_family": _geometry_program_family(candidate),
+            "visible_stepped": bool(morphology.get("visible_stepped")),
+        })
+    pair_distances = []
+    if compatibility_analysis is not None:
+        for left_index, left in enumerate(candidates):
+            for right in candidates[left_index + 1:]:
+                pair_distances.append(
+                    compatibility_analysis.distance(left, right)
+                )
+    return competition_family_supply_deficits(
+        facts,
+        target_count=target_count,
+        pair_distances=pair_distances,
+    )
+
+
+def book_graph_supply_for_candidates(
+    candidates: list[_Candidate],
+) -> dict[str, Any]:
+    """Describe retained BOOK principle supply without creating a hard gate."""
+
+    principle_id_counts: dict[str, int] = {}
+    principle_kind_counts: dict[str, int] = {}
+    for candidate in candidates:
+        principle_id = str(
+            getattr(candidate, "principle_id", "") or ""
+        )
+        principle_kind = str(
+            getattr(candidate, "principle_kind", "") or ""
+        )
+        if principle_id:
+            principle_id_counts[principle_id] = (
+                principle_id_counts.get(principle_id, 0) + 1
+            )
+        if principle_kind:
+            principle_kind_counts[principle_kind] = (
+                principle_kind_counts.get(principle_kind, 0) + 1
+            )
+    return {
+        "schema_version": "arr.maas.book_graph_supply.v1",
+        "hard_gate_effect": "none_diagnostic_only",
+        "principle_id_counts": dict(sorted(principle_id_counts.items())),
+        "principle_kind_counts": dict(
+            sorted(principle_kind_counts.items())
+        ),
+    }
 
 
 def competition_breadth_replenishment_state(
@@ -281,6 +380,7 @@ def replenishment_stop_reason(
     cycle_budget: int,
     exact_hard_pass_count: int | None = None,
     feasible_portfolio: bool | None = None,
+    author_budget_failure: dict[str, Any] | None = None,
 ) -> str:
     """Return a terminal reason only for success or an exhausted budget.
 
@@ -290,6 +390,13 @@ def replenishment_stop_reason(
     zero-growth final pools as stagnation skipped that next bounded variant
     and contradicted the three-cycle exploration contract.
     """
+    failure = author_budget_failure or {}
+    if (
+        failure.get("code") == "request_quota_exhausted"
+        and failure.get("quota") == "author_replenishment"
+        and failure.get("author_stage") == "replenishment"
+    ):
+        return "replenishment_author_quota_exhausted"
     if int(target_count) == 20:
         if CompetitionBreadthScheduler.exact_pool_ready(
             exact_hard_pass_count=int(exact_hard_pass_count or 0),
@@ -301,6 +408,35 @@ def replenishment_stop_reason(
     if cycles_run >= cycle_budget:
         return "cycle_budget_exhausted"
     return ""
+
+
+def critic_feedback_consumption_evidence(
+    *,
+    feedback_count: int,
+    included_in_author_context: bool,
+    author_request_executed: bool,
+) -> dict[str, Any]:
+    count = max(0, int(feedback_count))
+    consumed = bool(
+        count > 0
+        and included_in_author_context
+        and author_request_executed
+    )
+    if consumed:
+        reason = "consumed"
+    elif count == 0:
+        reason = "no_feedback"
+    elif not included_in_author_context:
+        reason = "not_included_in_author_context"
+    else:
+        reason = "author_request_not_executed"
+    return {
+        "critic_feedback_consumed_same_run": consumed,
+        "feedback_count": count,
+        "included_in_author_context": bool(included_in_author_context),
+        "author_request_executed": bool(author_request_executed),
+        "reason": reason,
+    }
 
 
 def competition_exact_hard_pass_reserve(
@@ -332,6 +468,7 @@ def run_replenishment_cycle(
     retained_selection_pool: list[_Candidate],
     excluded_parent_keys: set[str],
     excluded_parent_fingerprints: set[str],
+    excluded_program_hashes: set[str],
     generation_site: Any,
     building_type: str,
     height: float,
@@ -343,6 +480,7 @@ def run_replenishment_cycle(
     outcome_graph: Any,
     recursive_only: bool,
     target_count: int = 0,
+    exact_compile_limit: int | None = None,
     program_dimensional_context: dict[str, Any] | None,
     site_boundary_source: str,
     site_access_context: dict[str, Any] | None,
@@ -364,6 +502,25 @@ def run_replenishment_cycle(
     progress_callback: Callable[[dict[str, int]], None] | None = None,
 ) -> ReplenishmentCycleResult:
     diagnostic_budget = dict(diagnostic_generation_budget or {})
+    book_graph_supply = book_graph_supply_for_candidates(
+        retained_selection_pool
+    )
+    effective_synthesis_requests = [
+        {
+            **dict(request),
+            "book_graph_supply": {
+                **book_graph_supply,
+                "principle_id_counts": dict(
+                    book_graph_supply["principle_id_counts"]
+                ),
+                "principle_kind_counts": dict(
+                    book_graph_supply["principle_kind_counts"]
+                ),
+            },
+        }
+        for request in synthesis_requests
+        if isinstance(request, dict)
+    ]
     generated_pool, generation_counts = _program_pool(
         generation_site,
         building_type,
@@ -373,10 +530,11 @@ def run_replenishment_cycle(
         parent_variant_indices=(parent_variant_index,),
         typed_graph_mutations=typed_graph_mutations,
         geometry_program_mutations=geometry_program_mutations,
-        synthesis_requests=synthesis_requests,
+        synthesis_requests=effective_synthesis_requests,
         outcome_graph=outcome_graph,
         recursive_only=recursive_only,
         target_count=int(target_count),
+        exact_compile_limit=exact_compile_limit,
         program_dimensional_context=program_dimensional_context,
         site_boundary_source=site_boundary_source,
         site_access_context=site_access_context,
@@ -402,6 +560,12 @@ def run_replenishment_cycle(
         diagnostic_evaluation_cap=diagnostic_budget.get("evaluation_cap"),
         diagnostic_candidate_cap=diagnostic_budget.get("candidate_cap"),
         progress_callback=progress_callback,
+    )
+    generated_pool, duplicate_program_hash_count = (
+        _exclude_duplicate_program_hashes(
+            generated_pool,
+            set(excluded_program_hashes or ()),
+        )
     )
     generated_pool = [
         candidate
@@ -479,7 +643,36 @@ def run_replenishment_cycle(
         "cycle_index": cycle_index,
         "parent_variant_index": parent_variant_index,
         "causal_trigger": "exact_post_book_vlm_and_portfolio_capacity",
-        "critic_feedback_consumed_same_run": bool(runtime_live_vlm),
+        **critic_feedback_consumption_evidence(
+            feedback_count=int(
+                generation_counts.get("base_book_vlm_feedback_count") or 0
+            ),
+            included_in_author_context=bool(
+                generation_counts.get(
+                    "base_book_vlm_feedback_in_author_context"
+                )
+            ),
+            author_request_executed=bool(
+                generation_counts.get("llm_author_request_executed")
+            ),
+        ),
+        "authored_visual_authority_feedback_consumption": {
+            "feedback_count": int(
+                generation_counts.get(
+                    "authored_visual_authority_feedback_count"
+                ) or 0
+            ),
+            "included_in_author_context": bool(
+                generation_counts.get(
+                    "authored_visual_authority_feedback_in_author_context"
+                )
+            ),
+            "author_request_executed": bool(
+                generation_counts.get("llm_author_request_executed")
+            ),
+            "revision_target": "typed_geometry_program_ast_mechanism",
+            "legal_floor_loft_or_prism_replay_allowed": False,
+        },
         "recursive_geometry_lane_enabled": bool(recursive_only),
         "preselection_hard_gate": hard_gate_summary(
             downstream_report,
@@ -487,6 +680,9 @@ def run_replenishment_cycle(
         ),
         "degenerate_sheet_like_rejected_count": degenerate_count,
         "book_base_stage_vlm_gate": base_gate,
+        "duplicate_parent_program_hash_excluded_count": (
+            duplicate_program_hash_count
+        ),
     }
     if breadth_schedule is not None:
         exact_hard_pass_deficits = competition_exact_hard_pass_deficits(
@@ -566,6 +762,7 @@ __all__ = [
     "competition_exact_hard_pass_reserve",
     "competition_exact_hard_pass_deficits",
     "competition_exact_reserve_transition",
+    "family_supply_deficits_for_candidates",
     "replenishment_cycle_budget",
     "replenishment_cycle_budget_for_run",
     "replenishment_stop_reason",

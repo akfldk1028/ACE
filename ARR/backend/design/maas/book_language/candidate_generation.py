@@ -168,6 +168,42 @@ class _PostBookVlmOnly(RuntimeError):
     """Stop pre-BOOK review after authorship; the exact final solid owns VLM."""
 
 
+def _book_graph_author_vocabulary() -> dict[str, Any]:
+    """Project the canonical BOOK graph into a compact author vocabulary."""
+
+    registry = build_book_language_registry()
+    principle_fields = (
+        "principle_id",
+        "kind",
+        "label",
+        "execution_verbs",
+        "generation_stage",
+        "generation_stage_order",
+        "lineage_base_operative_id",
+        "lineage_parent_principle_id",
+        "transformation",
+        "cardinality",
+        "aggregation_methods",
+        "implementation_elements",
+        "semantics",
+    )
+    principles = [
+        {
+            key: deepcopy(principle.get(key))
+            for key in principle_fields
+            if principle.get(key) is not None
+        }
+        for principle in registry["principles"]
+    ]
+    return {
+        "schema_version": "arr.maas.book_graph_author_vocabulary.v1",
+        "corpus_id": registry["corpus_id"],
+        "base_volumes": deepcopy(registry["base_volumes"]),
+        "principle_count": len(principles),
+        "principles": principles,
+    }
+
+
 
 
 
@@ -856,6 +892,12 @@ def _agent_mutated_seeds(
                         "source_program_seed": source.name,
                         "base_seeds": list(request.get("base_seeds") or ()),
                         "intent_tags": list(request.get("intent_tags") or ()),
+                        "book_graph_vocabulary": (
+                            _book_graph_author_vocabulary()
+                        ),
+                        "book_graph_supply": deepcopy(
+                            request.get("book_graph_supply") or {}
+                        ),
                         "maximum_operator_depth": max(1, min(3, int(request.get("maximum_operator_depth") or 2))),
                         "downstream_body_rule_reserve": max(
                             0,

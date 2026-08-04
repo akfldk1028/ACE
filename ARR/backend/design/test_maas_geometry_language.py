@@ -848,7 +848,7 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertEqual(evidence["prior_exact_failure_count"], 1)
         self.assertEqual(evidence["remaining_candidate_count"], 1)
 
-    def test_base_stage_vlm_releases_only_descendants_of_approved_exact_parent(self):
+    def test_base_stage_vlm_releases_reviewed_parents_for_typed_repair(self):
         from design.maas.book_language.candidate_analysis import _Candidate
         from design.maas.book_language.vlm_review import audit_book_base_stage_with_vlm
 
@@ -866,6 +866,12 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                     "book_generation_lineage": {
                         "stage": stage,
                         "parent_key": parent_key,
+                        **({
+                            "parent_geometry_hash": f"geometry-{parent_key}",
+                        } if stage != "base" else {}),
+                    },
+                    "geometry_program_compilation": {
+                        "geometry_hash": f"geometry-{parent_key}",
                     },
                 }),
                 {"properties": {}},
@@ -898,8 +904,18 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                 return_value=([audited_base], {
                     "hard_pass_count": 1,
                     "audit_records": [
-                        {"parent_key": "parent-approved"},
-                        {"parent_key": "parent-rejected"},
+                        {
+                            "parent_key": "parent-approved",
+                            "hard_pass": True,
+                            "response_id": "base-response",
+                        },
+                        {
+                            "parent_key": "parent-rejected",
+                            "hard_pass": False,
+                            "response_id": "base-repair-response",
+                            "critic_actions": ["strengthen_public_threshold"],
+                            "geometry_edits": [{"operator": "subtract"}],
+                        },
                     ],
                 }),
             ),
@@ -911,16 +927,38 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                 visual_directive={},
             )
 
-        self.assertEqual(len(released), 2)
+        self.assertEqual(len(released), 4)
         self.assertEqual(
             {item.source.metadata["book_generation_lineage"]["parent_key"] for item in released},
-            {"parent-approved"},
+            {"parent-approved", "parent-rejected"},
         )
-        base = next(item for item in released if item.principle_kind == "base_operative")
-        child = next(item for item in released if item.principle_kind == "combination")
+        base = next(
+            item for item in released
+            if item.principle_kind == "base_operative"
+            and item.source.metadata["book_generation_lineage"]["parent_key"]
+            == "parent-approved"
+        )
+        child = next(
+            item for item in released
+            if item.principle_kind == "combination"
+            and item.source.metadata["book_generation_lineage"]["parent_key"]
+            == "parent-approved"
+        )
+        repair_child = next(
+            item for item in released
+            if item.principle_kind == "combination"
+            and item.source.metadata["book_generation_lineage"]["parent_key"]
+            == "parent-rejected"
+        )
         self.assertEqual(base.source.metadata["base_book_vlm_audit"]["review_stage"], "book_base_operative")
         self.assertTrue(child.source.metadata["base_book_vlm_parent_audit"]["hard_pass"])
-        self.assertEqual(evidence["rejected_descendant_count"], 1)
+        self.assertFalse(repair_child.source.metadata["base_book_vlm_parent_audit"]["hard_pass"])
+        self.assertEqual(
+            repair_child.source.metadata["base_book_vlm_parent_audit"]["critic_actions"],
+            ["strengthen_public_threshold"],
+        )
+        self.assertEqual(evidence["developmental_critique_parent_count"], 1)
+        self.assertEqual(evidence["rejected_descendant_count"], 0)
         self.assertEqual(
             set(evidence["reviewed_parent_keys"]),
             {"parent-approved", "parent-rejected"},
@@ -1003,6 +1041,586 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertEqual([item.principle_id for item in released], ["parent-second-batch"])
         self.assertEqual(evidence["excluded_parent_count"], 0)
         self.assertEqual(evidence["excluded_parent_fingerprint_count"], 1)
+
+    def test_base_stage_vlm_keeps_exact_bases_and_binds_descendants_by_geometry_identity(self):
+        from design.maas.book_language.candidate_analysis import _Candidate
+        from design.maas.book_language.vlm_review import (
+            _base_review_fingerprint,
+            audit_book_base_stage_with_vlm,
+        )
+
+        @dataclass(frozen=True)
+        class FakeSource:
+            metadata: dict
+
+        def candidate(stage: str, name: str, geometry_hash: str):
+            lineage = {
+                "stage": stage,
+                "parent_key": "shared-coarse-parent",
+            }
+            if stage != "base":
+                lineage["parent_geometry_hash"] = geometry_hash
+            return _Candidate(
+                name,
+                "base_operative" if stage == "base" else "combination",
+                f"book:{stage}:{name}",
+                program_seed_sequences("neighborhood_living")[0],
+                FakeSource({
+                    "book_generation_lineage": lineage,
+                    "geometry_program_compilation": {
+                        "geometry_hash": geometry_hash,
+                    },
+                }),
+                {"properties": {}},
+                0.7,
+            )
+
+        base_a = candidate("base", "exact-base-a", "exact-geometry-a")
+        base_b = candidate("base", "exact-base-b", "exact-geometry-b")
+        child_a = candidate("combination", "child-of-a", "exact-geometry-a")
+        child_b = candidate("combination", "child-of-b", "exact-geometry-b")
+        audited_a = replace(
+            base_a,
+            source=replace(base_a.source, metadata={
+                **base_a.source.metadata,
+                "final_book_vlm_audit": {
+                    "hard_pass": True,
+                    "response_id": "response-a",
+                },
+            }),
+        )
+        audited_b = replace(
+            base_b,
+            source=replace(base_b.source, metadata={
+                **base_b.source.metadata,
+                "final_book_vlm_audit": {
+                    "hard_pass": True,
+                    "response_id": "response-b",
+                },
+            }),
+        )
+
+        with (
+            patch(
+                "design.maas.book_language.vlm_review._book_base_parent_shortlist",
+                return_value=([base_a, base_b], {
+                    "descendant_first_parent_resolution": True,
+                }),
+            ),
+            patch(
+                "design.maas.book_language.vlm_review._audit_final_book_geometry_with_vlm",
+                return_value=([audited_a, audited_b], {
+                    "hard_pass_count": 2,
+                    "audit_records": [],
+                }),
+            ),
+        ):
+            released, evidence = audit_book_base_stage_with_vlm(
+                [base_a, base_b, child_a, child_b],
+                building_type="neighborhood_living",
+                output_dir=Path("unused"),
+                visual_directive={},
+            )
+
+        self.assertEqual(len(released), 4)
+        self.assertEqual(evidence["approved_base_count"], 2)
+        children = {
+            item.principle_id: item
+            for item in released
+            if item.principle_kind == "combination"
+        }
+        self.assertEqual(
+            children["child-of-a"].source.metadata["base_book_vlm_parent_audit"]["response_id"],
+            "response-a",
+        )
+        self.assertEqual(
+            children["child-of-b"].source.metadata["base_book_vlm_parent_audit"]["response_id"],
+            "response-b",
+        )
+        self.assertEqual(
+            children["child-of-a"].source.metadata["base_book_vlm_parent_audit"]["base_review_fingerprint"],
+            _base_review_fingerprint(base_a),
+        )
+        self.assertEqual(
+            children["child-of-b"].source.metadata["base_book_vlm_parent_audit"]["base_review_fingerprint"],
+            _base_review_fingerprint(base_b),
+        )
+
+    def test_base_stage_vlm_reuses_exact_audits_before_coarse_exclusion_removes_descendants(self):
+        from design.maas.book_language.candidate_analysis import _Candidate
+        from design.maas.book_language.vlm_review import (
+            _base_review_fingerprint,
+            _book_vlm_review_contract,
+            audit_book_base_stage_with_vlm,
+        )
+
+        @dataclass(frozen=True)
+        class FakeSource:
+            metadata: dict
+
+        def candidate(stage: str, name: str, geometry_hash: str):
+            lineage = {
+                "stage": stage,
+                "parent_key": "reviewed-coarse-parent",
+            }
+            if stage != "base":
+                lineage["parent_geometry_hash"] = geometry_hash
+            return _Candidate(
+                name,
+                "base_operative" if stage == "base" else "combination",
+                f"book:{stage}:{name}",
+                program_seed_sequences("neighborhood_living")[0],
+                FakeSource({
+                    "book_generation_lineage": lineage,
+                    "geometry_program_compilation": {
+                        "geometry_hash": geometry_hash,
+                    },
+                }),
+                {"properties": {}},
+                0.7,
+            )
+
+        base_a = candidate("base", "reused-base-a", "reused-geometry-a")
+        base_b = candidate("base", "reused-base-b", "reused-geometry-b")
+        child_a = candidate("combination", "reused-child-a", "reused-geometry-a")
+        child_b = candidate("combination", "reused-child-b", "reused-geometry-b")
+        graph = GeometryOutcomeGraph(Path("unused.json"), pnu="site-a")
+        contract = _book_vlm_review_contract("book_base_operative")
+        for base, response_id in ((base_a, "reused-response-a"), (base_b, "reused-response-b")):
+            graph.observe_base_book_vlm_audit(
+                program_slug="neighborhood",
+                candidate=base,
+                base_review_fingerprint=_base_review_fingerprint(base),
+                review_contract_fingerprint=contract["fingerprint"],
+                audit={
+                    "hard_pass": True,
+                    "status": "pass",
+                    "model": contract["model"],
+                    "prompt_contract_version": contract["prompt_contract_version"],
+                    "review_contract_fingerprint": contract["fingerprint"],
+                    "response_id": response_id,
+                    "review_stage": "book_base_operative",
+                },
+            )
+
+        with patch(
+            "design.maas.book_language.vlm_review._audit_final_book_geometry_with_vlm"
+        ) as audit:
+            released, evidence = audit_book_base_stage_with_vlm(
+                [base_a, base_b, child_a, child_b],
+                building_type="neighborhood_living",
+                output_dir=Path("unused"),
+                visual_directive={},
+                outcome_graph=graph,
+                program_slug="neighborhood",
+                excluded_parent_keys={"reviewed-coarse-parent"},
+            )
+
+        audit.assert_not_called()
+        self.assertEqual(len(released), 4)
+        self.assertEqual(evidence["persisted_approved_base_count"], 2)
+        children = {
+            item.principle_id: item
+            for item in released
+            if item.principle_kind == "combination"
+        }
+        self.assertEqual(
+            children["reused-child-a"].source.metadata["base_book_vlm_parent_audit"]["response_id"],
+            "reused-response-a",
+        )
+        self.assertEqual(
+            children["reused-child-b"].source.metadata["base_book_vlm_parent_audit"]["response_id"],
+            "reused-response-b",
+        )
+
+    def test_base_parent_shortlist_keeps_exact_bases_with_shared_coarse_parent_key(self):
+        from design.maas.book_language.candidate_analysis import _Candidate
+        from design.maas.book_language.vlm_review import _book_base_parent_shortlist
+
+        @dataclass(frozen=True)
+        class FakeSource:
+            metadata: dict
+
+        def candidate(stage: str, name: str, geometry_hash: str):
+            lineage = {
+                "stage": stage,
+                "parent_key": "shared-shortlist-parent",
+            }
+            if stage != "base":
+                lineage["parent_geometry_hash"] = geometry_hash
+            return _Candidate(
+                name,
+                "base_operative" if stage == "base" else "combination",
+                f"book:{stage}:{name}",
+                program_seed_sequences("neighborhood_living")[0],
+                FakeSource({
+                    "book_generation_lineage": lineage,
+                    "geometry_program_compilation": {"geometry_hash": geometry_hash},
+                    "geometry_program_bridge_evidence": {"status": "materialized"},
+                    "geometry_program": {
+                        "metadata": {
+                            "family": "split_bridge",
+                            "form_bank_lane": "executable_core_language",
+                        },
+                    },
+                }),
+                {"properties": {}},
+                0.7,
+            )
+
+        base_a = candidate("base", "shortlist-base-a", "shortlist-geometry-a")
+        base_b = candidate("base", "shortlist-base-b", "shortlist-geometry-b")
+        child_a = candidate("combination", "shortlist-child-a", "shortlist-geometry-a")
+        child_b = candidate("combination", "shortlist-child-b", "shortlist-geometry-b")
+
+        with patch(
+            "design.maas.book_language.vlm_review._final_book_vlm_shortlist",
+            side_effect=lambda pool, **kwargs: list(pool)[:kwargs["target"]],
+        ):
+            shortlist, evidence = _book_base_parent_shortlist(
+                [base_a, base_b, child_a, child_b],
+                target=2,
+                visual_directive={},
+            )
+
+        self.assertEqual(
+            {item.principle_id for item in shortlist},
+            {"shortlist-base-a", "shortlist-base-b"},
+        )
+        self.assertEqual(evidence["requested_exact_parent_count"], 2)
+
+    def test_base_stage_vlm_rejects_contradictory_descendant_exact_identities(self):
+        from design.maas.book_language.candidate_analysis import _Candidate
+        from design.maas.book_language.vlm_review import (
+            _base_review_fingerprint,
+            _book_vlm_review_contract,
+            audit_book_base_stage_with_vlm,
+        )
+
+        @dataclass(frozen=True)
+        class FakeSource:
+            metadata: dict
+
+        def candidate(stage: str, name: str, geometry_hash: str, **lineage_values):
+            lineage = {
+                "stage": stage,
+                "parent_key": "contradictory-parent",
+                **lineage_values,
+            }
+            return _Candidate(
+                name,
+                "base_operative" if stage == "base" else "combination",
+                f"book:{stage}:{name}",
+                program_seed_sequences("neighborhood_living")[0],
+                FakeSource({
+                    "book_generation_lineage": lineage,
+                    "geometry_program_compilation": {"geometry_hash": geometry_hash},
+                }),
+                {"properties": {}},
+                0.7,
+            )
+
+        base_a = candidate("base", "contradictory-base-a", "contradictory-geometry-a")
+        base_b = candidate("base", "contradictory-base-b", "contradictory-geometry-b")
+        child = candidate(
+            "combination",
+            "contradictory-child",
+            "child-geometry",
+            parent_base_review_fingerprint=_base_review_fingerprint(base_a),
+            parent_geometry_hash="contradictory-geometry-b",
+        )
+        graph = GeometryOutcomeGraph(Path("unused.json"), pnu="site-a")
+        contract = _book_vlm_review_contract("book_base_operative")
+        for base in (base_a, base_b):
+            graph.observe_base_book_vlm_audit(
+                program_slug="neighborhood",
+                candidate=base,
+                base_review_fingerprint=_base_review_fingerprint(base),
+                review_contract_fingerprint=contract["fingerprint"],
+                audit={
+                    "hard_pass": True,
+                    "status": "pass",
+                    "model": contract["model"],
+                    "prompt_contract_version": contract["prompt_contract_version"],
+                    "review_contract_fingerprint": contract["fingerprint"],
+                    "response_id": base.principle_id,
+                    "review_stage": "book_base_operative",
+                },
+            )
+
+        released, evidence = audit_book_base_stage_with_vlm(
+            [base_a, base_b, child],
+            building_type="neighborhood_living",
+            output_dir=Path("unused"),
+            visual_directive={},
+            outcome_graph=graph,
+            program_slug="neighborhood",
+        )
+
+        self.assertEqual(len(released), 2)
+        self.assertEqual(evidence["released_descendant_count"], 0)
+        self.assertEqual(evidence["rejected_descendant_count"], 1)
+
+    def test_base_stage_vlm_never_releases_descendant_from_coarse_parent_key_alone(self):
+        from design.maas.book_language.candidate_analysis import _Candidate
+        from design.maas.book_language.vlm_review import (
+            _base_review_fingerprint,
+            _book_vlm_review_contract,
+            audit_book_base_stage_with_vlm,
+        )
+
+        @dataclass(frozen=True)
+        class FakeSource:
+            metadata: dict
+
+        def candidate(stage: str, name: str):
+            return _Candidate(
+                name,
+                "base_operative" if stage == "base" else "combination",
+                f"book:{stage}:{name}",
+                program_seed_sequences("neighborhood_living")[0],
+                FakeSource({
+                    "book_generation_lineage": {
+                        "stage": stage,
+                        "parent_key": "coarse-only-parent",
+                    },
+                    "geometry_program_compilation": {
+                        "geometry_hash": f"geometry-{name}",
+                    },
+                }),
+                {"properties": {}},
+                0.7,
+            )
+
+        base = candidate("base", "coarse-only-base")
+        child = candidate("combination", "coarse-only-child")
+        graph = GeometryOutcomeGraph(Path("unused.json"), pnu="site-a")
+        contract = _book_vlm_review_contract("book_base_operative")
+        graph.observe_base_book_vlm_audit(
+            program_slug="neighborhood",
+            candidate=base,
+            base_review_fingerprint=_base_review_fingerprint(base),
+            review_contract_fingerprint=contract["fingerprint"],
+            audit={
+                "hard_pass": True,
+                "status": "pass",
+                "model": contract["model"],
+                "prompt_contract_version": contract["prompt_contract_version"],
+                "review_contract_fingerprint": contract["fingerprint"],
+                "response_id": "coarse-only-response",
+                "review_stage": "book_base_operative",
+            },
+        )
+
+        released, evidence = audit_book_base_stage_with_vlm(
+            [base, child],
+            building_type="neighborhood_living",
+            output_dir=Path("unused"),
+            visual_directive={},
+            outcome_graph=graph,
+            program_slug="neighborhood",
+        )
+
+        self.assertEqual(len(released), 1)
+        self.assertEqual(evidence["released_descendant_count"], 0)
+
+    def test_base_stage_vlm_reports_only_audited_review_fingerprints(self):
+        from design.maas.book_language.candidate_analysis import _Candidate
+        from design.maas.book_language.vlm_review import (
+            _base_review_fingerprint,
+            audit_book_base_stage_with_vlm,
+        )
+
+        @dataclass(frozen=True)
+        class FakeSource:
+            metadata: dict
+
+        def candidate(name: str, geometry_hash: str):
+            return _Candidate(
+                name,
+                "base_operative",
+                f"book:base:{name}",
+                program_seed_sequences("neighborhood_living")[0],
+                FakeSource({
+                    "book_generation_lineage": {
+                        "stage": "base",
+                        "parent_key": name,
+                    },
+                    "geometry_program_compilation": {"geometry_hash": geometry_hash},
+                    "geometry_program_bridge_evidence": {"status": "materialized"},
+                    "geometry_program": {
+                        "metadata": {
+                            "family": "split_bridge",
+                            "form_bank_lane": "executable_core_language",
+                        },
+                    },
+                }),
+                {"properties": {}},
+                0.7,
+            )
+
+        audited = candidate("audited-shortlist-base", "audited-shortlist-geometry")
+        unreviewed = candidate("unreviewed-shortlist-base", "unreviewed-shortlist-geometry")
+        with (
+            patch(
+                "design.maas.book_language.vlm_review._final_book_vlm_shortlist",
+                side_effect=lambda pool, **kwargs: list(pool)[:kwargs["target"]],
+            ),
+            patch(
+                "design.maas.book_language.vlm_review._audit_final_book_geometry_with_vlm",
+                return_value=([], {
+                    "hard_pass_count": 0,
+                    "audit_records": [{
+                        "parent_key": "audited-shortlist-base",
+                        "base_review_fingerprint": _base_review_fingerprint(audited),
+                        "hard_pass": False,
+                    }],
+                }),
+            ),
+        ):
+            _, evidence = audit_book_base_stage_with_vlm(
+                [audited, unreviewed],
+                building_type="neighborhood_living",
+                output_dir=Path("unused"),
+                visual_directive={},
+            )
+
+        self.assertEqual(
+            evidence["reviewed_parent_fingerprints"],
+            [_base_review_fingerprint(audited)],
+        )
+
+    def test_base_stage_vlm_attributes_real_failed_audit_record_by_exact_fingerprint(self):
+        from design.maas.book_language.candidate_analysis import _Candidate
+        from design.maas.book_language.vlm_review import (
+            _audit_final_book_geometry_with_vlm,
+            _base_review_fingerprint,
+            audit_book_base_stage_with_vlm,
+        )
+
+        sequence = program_seed_sequences("neighborhood_living")[0]
+        site = Polygon(((0, 0), (30, 0), (30, 24), (0, 24)))
+
+        def base_candidate(name: str, program_index: int):
+            program = base_seed_programs()[program_index]
+            compilation = compile_geometry_program(program)
+            source = compile_sequence_to_source_mass(site, sequence)
+            self.assertIsNotNone(source)
+            assert source is not None
+            source = replace(source, metadata={
+                **source.metadata,
+                "book_generation_lineage": {
+                    "stage": "base",
+                    "parent_key": "shared-audit-parent",
+                },
+                "geometry_program": program.to_dict(),
+                "geometry_program_compilation": {
+                    "geometry_hash": compilation.geometry_hash,
+                },
+            })
+            return _Candidate(
+                name,
+                "base_operative",
+                f"book:base:{name}",
+                sequence,
+                source,
+                {"type": "Feature", "geometry": None, "properties": {}},
+                0.7,
+            )
+
+        def child_candidate(name: str, parent_geometry_hash: str):
+            source = compile_sequence_to_source_mass(site, sequence)
+            self.assertIsNotNone(source)
+            assert source is not None
+            source = replace(source, metadata={
+                **source.metadata,
+                "book_generation_lineage": {
+                    "stage": "combination",
+                    "parent_key": "shared-audit-parent",
+                    "parent_geometry_hash": parent_geometry_hash,
+                },
+            })
+            return _Candidate(
+                name,
+                "combination",
+                f"book:combination:{name}",
+                sequence,
+                source,
+                {"type": "Feature", "geometry": None, "properties": {}},
+                0.7,
+            )
+
+        failed_base = base_candidate("failed-exact-base", 0)
+        other_base = base_candidate("other-exact-base", 1)
+        failed_geometry = failed_base.source.metadata["geometry_program_compilation"]["geometry_hash"]
+        failed_child = child_candidate("failed-exact-child", failed_geometry)
+
+        def scorer(**kwargs):
+            return {
+                "concept_scores": {},
+                "critic_actions": ["strengthen_public_threshold"],
+                "geometry_edits": [{"operator": "subtract"}],
+                "response_id": "real-failed-base-response",
+                "model": "test-vlm",
+            }
+
+        with (
+            TemporaryDirectory() as temporary_dir,
+            patch(
+                "design.maas.book_language.vlm_review._audited_final_book_references",
+                return_value=([], {"hard_pass": True, "accepted": []}),
+            ),
+            patch(
+                "design.maas.book_language.vlm_review._solid_morphology_metrics",
+                return_value={"phenotype": "prismatic", "pyramidal_like": False},
+            ),
+            patch(
+                "design.maas.book_language.vlm_review._final_book_vlm_hard_pass",
+                return_value=(False, ["gesture_clarity"]),
+            ),
+        ):
+            _, producer_evidence = _audit_final_book_geometry_with_vlm(
+                [failed_base],
+                building_type="neighborhood_living",
+                output_dir=Path(temporary_dir),
+                visual_directive={},
+                scorer=scorer,
+                review_stage="book_base_operative",
+                shortlist_override=[failed_base],
+            )
+
+        record = producer_evidence["audit_records"][0]
+        self.assertEqual(
+            record.get("base_review_fingerprint"),
+            _base_review_fingerprint(failed_base),
+        )
+        with (
+            patch(
+                "design.maas.book_language.vlm_review._book_base_parent_shortlist",
+                return_value=([failed_base], {"descendant_first_parent_resolution": True}),
+            ),
+            patch(
+                "design.maas.book_language.vlm_review._audit_final_book_geometry_with_vlm",
+                return_value=([], producer_evidence),
+            ),
+        ):
+            released, evidence = audit_book_base_stage_with_vlm(
+                [failed_base, other_base, failed_child],
+                building_type="neighborhood_living",
+                output_dir=Path("unused"),
+                visual_directive={},
+            )
+
+        self.assertEqual(
+            {item.principle_id for item in released},
+            {"failed-exact-base", "failed-exact-child"},
+        )
+        child = next(item for item in released if item.principle_id == "failed-exact-child")
+        self.assertEqual(
+            child.source.metadata["base_book_vlm_parent_audit"]["response_id"],
+            "real-failed-base-response",
+        )
+        self.assertEqual(evidence["reviewed_base_count"], 1)
 
     def test_base_parent_shortlist_reserves_required_and_core_before_descendants(self):
         from design.maas.book_language.candidate_analysis import _Candidate
@@ -1166,6 +1784,9 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                     "book_generation_lineage": {
                         "stage": stage,
                         "parent_key": "stable-parent",
+                        **({
+                            "parent_geometry_hash": "stable-exact-base",
+                        } if stage != "base" else {}),
                     },
                     "geometry_program_compilation": {
                         "geometry_hash": "stable-exact-base",
@@ -5807,6 +6428,121 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             programs[0].metadata["author_response_id"],
             "resp-cached-author",
         )
+
+    def test_llm_author_book_graph_context_requires_canonical_principle_ids(self):
+        context = {
+            "program_id": "neighborhood_living",
+            "book_graph_vocabulary": {
+                "principles": [
+                    {"principle_id": "book:operative:bend", "label": "bend"},
+                    {"principle_id": "book:operative:split", "label": "split"},
+                ],
+            },
+        }
+
+        with self.assertRaisesRegex(
+            geometry_llm_adapter.GeometryAuthorError,
+            "book_principle_ids",
+        ):
+            geometry_llm_adapter.author_geometry_programs_with_openai(
+                context,
+                target_count=1,
+                model="cached-test-model",
+            )
+
+        with self.assertRaisesRegex(
+            geometry_llm_adapter.GeometryAuthorError,
+            "canonical book principle",
+        ):
+            geometry_llm_adapter.author_geometry_programs_with_openai(
+                {
+                    **context,
+                    "book_principle_ids": ["book:operative:not-in-manifest"],
+                },
+                target_count=1,
+                model="cached-test-model",
+            )
+
+    def test_llm_author_book_graph_vocabulary_is_complete_and_ids_are_recorded(self):
+        authored = base_seed_programs()[1]
+        principles = [
+            {
+                "principle_id": f"book:operative:generated-{index:04d}",
+                "category": "operative",
+                "label": "transferable relation " + ("x" * 80),
+            }
+            for index in range(320)
+        ]
+        principles.append({
+            "principle_id": "book:operative:last-canonical-principle",
+            "category": "operative",
+            "label": "last transferable relation",
+        })
+        context = {
+            "program_id": "neighborhood_living",
+            "book_graph_vocabulary": {"principles": principles},
+            "book_principle_ids": [
+                "book:operative:last-canonical-principle",
+                "book:operative:generated-0001",
+                "book:operative:last-canonical-principle",
+            ],
+            "oversized_prior_memory": "y" * 26000,
+        }
+
+        prompt = geometry_llm_adapter._author_prompt(context, 1)
+        self.assertIn("book:operative:generated-0000", prompt)
+        self.assertIn("book:operative:last-canonical-principle", prompt)
+
+        with TemporaryDirectory() as temporary_dir:
+            cache_path = Path(temporary_dir) / "legacy-author-cache.json"
+            cache_path.write_text(json.dumps({
+                "cache_schema_version": "arr.maas.geometry_llm_author_cache.v3",
+                "validation_status": "accepted",
+                "model": "cached-test-model",
+                "response_id": "resp-cached-book-author",
+                "compiled_programs": [authored.to_dict()],
+            }), encoding="utf-8")
+            with patch.dict(os.environ, {
+                "MAAS_GEOMETRY_AUTHOR_REPLAY_CACHE_PATH": str(cache_path),
+            }, clear=True):
+                programs = geometry_llm_adapter.author_geometry_programs_with_openai(
+                    context,
+                    target_count=1,
+                    model="cached-test-model",
+                )
+
+        self.assertEqual(
+            programs[0].metadata["book_principle_ids"],
+            [
+                "book:operative:last-canonical-principle",
+                "book:operative:generated-0001",
+            ],
+        )
+        self.assertIn(".v25_", programs[0].metadata["author_prompt_contract"])
+
+    def test_llm_author_legacy_context_and_v3_cache_remain_compatible(self):
+        authored = base_seed_programs()[1]
+        with TemporaryDirectory() as temporary_dir:
+            cache_path = Path(temporary_dir) / "legacy-author-cache.json"
+            cache_path.write_text(json.dumps({
+                "cache_schema_version": "arr.maas.geometry_llm_author_cache.v3",
+                "validation_status": "accepted",
+                "model": "cached-test-model",
+                "response_id": "resp-legacy-author",
+                "compiled_programs": [authored.to_dict()],
+            }), encoding="utf-8")
+            with patch.dict(os.environ, {
+                "MAAS_GEOMETRY_AUTHOR_REPLAY_CACHE_PATH": str(cache_path),
+            }, clear=True):
+                programs = geometry_llm_adapter.author_geometry_programs_with_openai(
+                    {"program_id": "neighborhood_living"},
+                    target_count=1,
+                    model="cached-test-model",
+                )
+
+        self.assertEqual(len(programs), 1)
+        self.assertTrue(programs[0].metadata["author_cache_hit"])
+        self.assertNotIn("book_principle_ids", programs[0].metadata)
 
     def test_llm_author_cache_replay_can_select_one_named_paid_result(self):
         first, second = base_seed_programs()[:2]

@@ -27,8 +27,10 @@ from design.maas.geometry_language.projected_visual_contract import (
     CERTIFICATE_SCHEMA,
     FINAL_AUTHORITY_CERTIFICATION_MODE,
     FINAL_CERTIFICATE_SCHEMA,
+    RENDERER_COORDINATE_CONTRACT_VERSION,
     exact_triangle_payload_hash,
     normalize_persisted_projected_visual_artifact,
+    projected_visual_z_coordinate_mode,
 )
 from design.maas.preference.concept_schema import build_preference_distillation
 from design.maas.preference.reference_corpus import (
@@ -599,6 +601,16 @@ def _surface_vertices_world(surface: dict[str, Any], feature: Feature) -> list[l
             props.get("geometry_artifact")
             or props.get("benchmark_site_area_m2")
         )
+        artifact = (
+            props.get("geometry_artifact")
+            if isinstance(props.get("geometry_artifact"), dict)
+            else None
+        )
+        z_mode = (
+            projected_visual_z_coordinate_mode(artifact)
+            if artifact
+            else "normalized_height_fraction_z"
+        )
         if projected_feature_frame:
             origin = shape(feature.get("geometry")).centroid
         else:
@@ -624,7 +636,12 @@ def _surface_vertices_world(surface: dict[str, Any], feature: Feature) -> list[l
             vertices.append([
                 round(world_x, 8),
                 round(world_y, 8),
-                round(height * z, 4),
+                round(
+                    z
+                    if z_mode == "physical_meter_z"
+                    else height * z,
+                    4,
+                ),
             ])
         return vertices
     except (TypeError, ValueError):
@@ -633,14 +650,27 @@ def _surface_vertices_world(surface: dict[str, Any], feature: Feature) -> list[l
         ) from None
 
 
-def _vlm_cache_key(feature: Feature, reference_matches: list[dict[str, Any]], model: str | None) -> str:
+def _vlm_cache_key(
+    feature: Feature,
+    reference_matches: list[dict[str, Any]],
+    model: str | None,
+    *,
+    rendered_png_sha256: str = "",
+    renderer_coordinate_contract_version: str = (
+        RENDERER_COORDINATE_CONTRACT_VERSION
+    ),
+) -> str:
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
     volumes = props.get("mass_volumes") if isinstance(props.get("mass_volumes"), list) else []
     surfaces = props.get("source_surfaces") if isinstance(props.get("source_surfaces"), list) else []
     payload = {
-        "schema": "arr.maas.vlm_cache.v3_program_context",
+        "schema": "arr.maas.vlm_cache.v4_rendered_png_authority",
         "prompt_contract": VLM_PROMPT_CONTRACT_VERSION,
         "model": model or "",
+        "rendered_png_sha256": str(rendered_png_sha256 or ""),
+        "renderer_coordinate_contract_version": str(
+            renderer_coordinate_contract_version or ""
+        ),
         # These fields are part of the scorer prompt and can change a valid
         # judgment even when the rendered solid is byte-for-byte identical.
         # Omitting them allowed a gym/site/review-stage decision to leak into
@@ -693,9 +723,20 @@ def openai_preview_preference_scorer(*, preview_dir: Path, cache_dir: Path | Non
         # separate concerns: a cached judgement still needs run-local visual
         # evidence so /design/language can replay what the critic saw.
         image_path = feature_preview_png(feature, preview_dir)
+        rendered_png_sha256 = hashlib.sha256(
+            image_path.read_bytes()
+        ).hexdigest()
         cache_path: Path | None = None
         if cache_dir is not None:
-            cache_path = cache_dir / f"{_vlm_cache_key(feature, reference_matches, model)}.json"
+            cache_path = cache_dir / f"{_vlm_cache_key(
+                feature,
+                reference_matches,
+                model,
+                rendered_png_sha256=rendered_png_sha256,
+                renderer_coordinate_contract_version=(
+                    RENDERER_COORDINATE_CONTRACT_VERSION
+                ),
+            )}.json"
             try:
                 cached = json.loads(cache_path.read_text(encoding="utf-8"))
                 if isinstance(cached, dict) and isinstance(cached.get("concept_scores"), dict):

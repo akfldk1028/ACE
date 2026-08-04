@@ -34,6 +34,9 @@ NORMALIZED_AUTHORED_COORDINATE_SPACE = (
     "source_footprint_centroid_local_xy_normalized_z"
 )
 AUTHORED_COORDINATE_SPACE = "source_footprint_centroid_local_xyz_m"
+RENDERER_COORDINATE_CONTRACT_VERSION = (
+    "arr.maas.renderer_coordinate_contract.v2_physical_meter_z"
+)
 FINAL_AUTHORITY_CERTIFICATION_MODE = (
     "authored_projected_surface_authority"
 )
@@ -1677,6 +1680,30 @@ def validate_projected_visual_field_contract(
     return mesh, certificate
 
 
+def projected_visual_z_coordinate_mode(artifact: dict[str, Any]) -> str:
+    """Classify explicit projected mesh Z units for every render consumer."""
+
+    mesh = artifact.get("projectedVisualMesh")
+    if not isinstance(mesh, dict):
+        raise ValueError("invalid projected visual mesh coordinate contract")
+    schema = str(mesh.get("schemaVersion") or "")
+    coordinate_space = str(mesh.get("coordinateSpace") or "")
+    if (
+        schema == FINAL_MESH_SCHEMA
+        and coordinate_space == AUTHORED_COORDINATE_SPACE
+    ):
+        return "physical_meter_z"
+    if (
+        schema == MESH_SCHEMA
+        and coordinate_space in {
+            COORDINATE_SPACE,
+            NORMALIZED_AUTHORED_COORDINATE_SPACE,
+        }
+    ):
+        return "normalized_height_fraction_z"
+    raise ValueError("invalid projected visual mesh coordinate contract")
+
+
 def _validate_certificate_status(certificate: dict[str, Any]) -> None:
     expected_schema = (
         FINAL_CERTIFICATE_SCHEMA
@@ -1997,6 +2024,7 @@ def semantic_audit_payload_hash(audit: dict[str, Any]) -> str:
 __all__ = [
     "CertifiedMassArtifact",
     "AUTHORED_COORDINATE_SPACE",
+    "RENDERER_COORDINATE_CONTRACT_VERSION",
     "canonical_metric_surface_payload",
     "CAPACITY_PROGRAM_ROLE",
     "COORDINATE_SPACE",
@@ -2008,6 +2036,7 @@ __all__ = [
     "final_floorwise_visual_geometry_hash",
     "has_strict_height_dependent_legal_section_contraction",
     "normalize_persisted_projected_visual_artifact",
+    "projected_visual_z_coordinate_mode",
     "semantic_audit_payload_hash",
     "serialize_certified_projected_visual",
     "validate_floorwise_authority_binding",

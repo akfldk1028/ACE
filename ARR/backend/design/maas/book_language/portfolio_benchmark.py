@@ -49,6 +49,7 @@ from design.maas.geometry_language.compiler import revalidate_compilation_mesh
 from design.maas.geometry_language.run_state import update_run_progress
 from design.maas.geometry_language.projected_visual_contract import (
     CertifiedMassArtifact,
+    projected_visual_z_coordinate_mode,
     semantic_audit_payload_hash,
 )
 from design.maas.capacity_policy import resolve_massing_capacity_policy
@@ -1031,13 +1032,8 @@ def _staged_projected_visual_surfaces(
             triangle_count=0,
         )
     legacy_normalized_z = (
-        str(mesh.get("schemaVersion") or "")
-        == "arr.maas.projected_visual_mesh.v1"
-        and str(mesh.get("coordinateSpace") or "")
-        in {
-            "capacity_source_centroid_local_xy_normalized_z",
-            "source_footprint_centroid_local_xy_normalized_z",
-        }
+        projected_visual_z_coordinate_mode(projected_visual_artifact)
+        == "normalized_height_fraction_z"
     )
 
     replacement: list[dict[str, Any]] = []

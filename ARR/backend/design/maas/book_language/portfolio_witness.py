@@ -8,6 +8,10 @@ import json
 from pathlib import Path
 from typing import Any, Callable, Iterable
 
+from design.maas.geometry_language.projected_visual_contract import (
+    CertifiedMassArtifact,
+)
+
 
 def _certified_witness_visual_authority(
     feature: dict[str, Any],
@@ -18,50 +22,40 @@ def _certified_witness_visual_authority(
         and isinstance(feature.get("properties"), dict)
         else {}
     )
-    surfaces = properties.get("source_surfaces")
-    surfaces = surfaces if isinstance(surfaces, list) else []
-    certified_surfaces = [item for item in surfaces if isinstance(item, dict)]
-    profiled_surfaces = [
-        item for item in certified_surfaces
-        if str(item.get("surface_type") or "").startswith("profiled_")
-    ]
-    certificate = properties.get("floorwise_visual_projection")
-    if not isinstance(certificate, dict):
-        model = properties.get("maas_model")
-        model = model if isinstance(model, dict) else {}
-        certificate = model.get("floorwise_visual_projection")
-    certificate = certificate if isinstance(certificate, dict) else {}
     artifact = properties.get("geometry_artifact")
     artifact = artifact if isinstance(artifact, dict) else {}
-    visual_hash = str(certificate.get("visual_hash") or "")
-    artifact_hash = str(artifact.get("projectedVisualGeometryHash") or "")
-    artifact_hash_matches = bool(
-        artifact_hash and visual_hash and artifact_hash == visual_hash
-    )
+    try:
+        certified = CertifiedMassArtifact.load(
+            artifact,
+            authority_context=(
+                properties.get("final_semantic_anchor")
+                if isinstance(properties.get("final_semantic_anchor"), dict)
+                else {}
+            ),
+        )
+    except (TypeError, ValueError) as exc:
+        return False, {
+            "status": "invalid_certified_mass_artifact",
+            "reason": str(exc),
+            "certified_mass_artifact_core_hash": "",
+        }
+    properties.update(certified.feature_binding())
+    certificate = certified.certificate()
+    surfaces = properties.get("source_surfaces") or []
     authority = {
         "schema_version": str(certificate.get("schema_version") or ""),
         "status": str(certificate.get("status") or ""),
         "hard_pass": certificate.get("hard_pass") is True,
-        "visual_hash_present": bool(visual_hash),
+        "visual_hash_present": bool(certified.validated_visual.visual_hash),
         "projected_surface_count": int(
             certificate.get("projected_surface_count") or 0
         ),
-        "source_surface_count": len(certified_surfaces),
-        "profiled_surface_count": len(profiled_surfaces),
-        "artifact_hash_matches": artifact_hash_matches,
+        "source_surface_count": len(surfaces),
+        "profiled_surface_count": len(surfaces),
+        "artifact_hash_matches": True,
+        "certified_mass_artifact_core_hash": certified.core_hash,
     }
-    hard_pass = bool(
-        authority["schema_version"]
-        == "arr.maas.floorwise_visual_projection.v1"
-        and authority["status"] == "certified"
-        and authority["hard_pass"]
-        and authority["visual_hash_present"]
-        and authority["projected_surface_count"]
-        == authority["source_surface_count"]
-        and authority["profiled_surface_count"] > 0
-        and (not artifact or artifact_hash_matches)
-    )
-    return hard_pass, authority
+    return True, authority
 
 
 def persist_portfolio_witness(

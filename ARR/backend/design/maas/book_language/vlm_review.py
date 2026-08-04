@@ -28,8 +28,8 @@ from design.maas.geometry_language.floorwise_visual_projection import (
     certify_authored_visual_mesh,
 )
 from design.maas.geometry_language.projected_visual_contract import (
+    CertifiedMassArtifact,
     semantic_audit_payload_hash,
-    serialize_certified_projected_visual,
 )
 from design.maas.program_massing import program_reference_contract
 from design.maas.program_massing.scoring import attach_program_massing_evidence
@@ -630,47 +630,13 @@ def _bind_final_visual_authority_for_review(
     semantic_projection_hard_gate: dict[str, Any],
 ) -> None:
     audit = deepcopy(semantic_projection_hard_gate)
-    artifact = serialize_certified_projected_visual(
+    certified = CertifiedMassArtifact.issue(
         candidate.source,
-        final_semantic_audit=audit,
+        semantic_audit=audit,
     )
-    certificate = artifact.get("projectedVisualCertificate")
-    certificate = certificate if isinstance(certificate, dict) else {}
-    artifact.setdefault("identity", {
-        "programHash": str(certificate.get("final_program_hash") or ""),
-        "geometryHash": str(
-            artifact.get("projectedVisualGeometryHash") or ""
-        ),
-        "finalLegalGeometryHash": str(
-            artifact.get("finalLegalGeometryHash")
-            or certificate.get("final_geometry_hash")
-            or ""
-        ),
-    })
     props = candidate.feature.setdefault("properties", {})
-    props["geometry_artifact"] = deepcopy(artifact)
-    if isinstance(certificate, dict):
-        props["floorwise_visual_projection"] = deepcopy(certificate)
-    mesh = artifact.get("projectedVisualMesh")
-    triangles = (
-        mesh.get("triangles")
-        if isinstance(mesh, dict)
-        else None
-    )
-    if isinstance(triangles, list) and triangles:
-        props["source_surfaces"] = deepcopy(triangles)
+    props.update(certified.feature_binding())
     props["semantic_projection_hard_gate"] = audit
-    props["final_semantic_anchor"] = {
-        "expected_semantic_context": deepcopy(
-            audit.get("audited_context")
-        ),
-        "expected_semantic_projection_hash": str(
-            audit.get("semantic_projection_hash") or ""
-        ),
-        "expected_semantic_audit_payload_hash": (
-            semantic_audit_payload_hash(audit)
-        ),
-    }
 
 
 def _book_base_parent_shortlist(

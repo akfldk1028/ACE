@@ -302,11 +302,28 @@ class ProjectedVisualHandoffTest(SimpleTestCase):
             "expected_section_geometry_binding_hash": "section-hash",
         }
         validated = SimpleNamespace(visual_hash="canonical-v2-visual-hash")
+        certified = SimpleNamespace(
+            payload=lambda: deepcopy(artifact),
+            feature_binding=lambda: {
+                "geometry_artifact": deepcopy(artifact),
+                "floorwise_visual_projection": deepcopy(
+                    canonical_certificate
+                ),
+                "source_surfaces": [self._triangle()],
+                "final_semantic_anchor": deepcopy(anchor),
+                "certified_mass_artifact_core_hash": "core-hash",
+            },
+            validated_visual=validated,
+        )
 
         with patch.object(
-            portfolio_benchmark,
-            "_certified_projected_visual_artifact",
+            portfolio_benchmark.CertifiedMassArtifact,
+            "issue",
             side_effect=AssertionError("canonical artifact must not be regenerated"),
+        ), patch.object(
+            portfolio_benchmark.CertifiedMassArtifact,
+            "load",
+            return_value=certified,
         ):
             selected_artifact = (
                 portfolio_benchmark._projected_visual_handoff_artifact(
@@ -321,10 +338,10 @@ class ProjectedVisualHandoffTest(SimpleTestCase):
         self.assertEqual(selected_artifact, artifact)
 
         with patch.object(
-            portfolio_benchmark,
-            "validate_projected_visual_artifact",
-            return_value=validated,
-        ) as validator:
+            portfolio_benchmark.CertifiedMassArtifact,
+            "load",
+            return_value=certified,
+        ) as loader:
             result = portfolio_benchmark._persist_projected_visual_authority(
                 props,
                 geometry_artifact=artifact,
@@ -338,18 +355,9 @@ class ProjectedVisualHandoffTest(SimpleTestCase):
             canonical_certificate,
         )
         self.assertEqual(props["geometry_artifact"], artifact)
-        validator.assert_called_once_with(
+        loader.assert_called_once_with(
             artifact,
-            expected_semantic_context=anchor["expected_semantic_context"],
-            expected_semantic_projection_hash=anchor[
-                "expected_semantic_projection_hash"
-            ],
-            expected_semantic_audit_payload_hash=anchor[
-                "expected_semantic_audit_payload_hash"
-            ],
-            expected_section_geometry_binding_hash=anchor[
-                "expected_section_geometry_binding_hash"
-            ],
+            authority_context=anchor,
         )
 
         for label, mutate in (

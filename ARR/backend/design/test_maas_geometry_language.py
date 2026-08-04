@@ -678,12 +678,29 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                 ]
             },
         }
+        binding = {
+            "geometry_artifact": artifact,
+            "floorwise_visual_projection": artifact[
+                "projectedVisualCertificate"
+            ],
+            "source_surfaces": artifact["projectedVisualMesh"][
+                "triangles"
+            ],
+            "final_semantic_anchor": {
+                "expected_semantic_context": audit["audited_context"],
+                "expected_semantic_projection_hash": "semantic-hash",
+                "expected_semantic_audit_payload_hash": "audit-hash",
+                "expected_section_geometry_binding_hash": "",
+            },
+            "certified_mass_artifact_core_hash": "core-hash",
+        }
         with patch(
             "design.maas.book_language.vlm_review."
-            "serialize_certified_projected_visual",
-            return_value=artifact,
-        ):
+            "CertifiedMassArtifact.issue",
+            return_value=SimpleNamespace(feature_binding=lambda: binding),
+        ) as issue:
             _bind_final_visual_authority_for_review(candidate, audit)
+        issue.assert_called_once_with(candidate.source, semantic_audit=audit)
 
         props = candidate.feature["properties"]
         self.assertEqual(props["geometry_artifact"], artifact)
@@ -8475,9 +8492,8 @@ class MetricFinalVisualArtifactBindingTests(SimpleTestCase):
             "coordinates": [[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0], [0.0, 0.0]]],
         }
         with patch(
-            "design.maas.preference.loop.validate_projected_visual_artifact",
-            return_value=object(),
-        ):
+            "design.maas.preference.loop.CertifiedMassArtifact.load",
+        ) as load:
             for candidate_index in range(4):
                 candidate_props = deepcopy(props)
                 candidate_hash = f"{canonical_hash}-{candidate_index}"
@@ -8487,15 +8503,26 @@ class MetricFinalVisualArtifactBindingTests(SimpleTestCase):
                 candidate_props["geometry_artifact"][
                     "projectedVisualCertificate"
                 ]["visual_hash"] = candidate_hash
+                load.return_value = SimpleNamespace(
+                    payload=lambda: deepcopy(
+                        candidate_props["geometry_artifact"]
+                    ),
+                    certificate=lambda: deepcopy(
+                        candidate_props["geometry_artifact"][
+                            "projectedVisualCertificate"
+                        ]
+                    ),
+                    validated_visual=object(),
+                )
                 _require_certified_authored_visual(
                     candidate_props,
                     feature_geometry=geometry,
                 )
                 self.assertEqual(
-                    candidate_props["floorwise_visual_projection"],
-                    candidate_props["geometry_artifact"][
-                        "projectedVisualCertificate"
+                    candidate_props["floorwise_visual_projection"][
+                        "visual_hash"
                     ],
+                    "stale-normalized-v1-hash",
                 )
 
         stale_artifact_props = deepcopy(props)

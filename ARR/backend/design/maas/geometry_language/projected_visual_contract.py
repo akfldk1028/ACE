@@ -76,7 +76,192 @@ class ValidatedProjectedVisual:
     certificate: dict[str, Any]
 
 
-def serialize_certified_projected_visual(
+_CERTIFIED_MASS_CORE_FIELDS = (
+    "authority",
+    "geometryProgramRole",
+    "projectedVisualMesh",
+    "projectedVisualCertificate",
+    "projectedVisualGeometryHash",
+    "projectedVisualPayloadHash",
+    "identity",
+    "finalLegalGeometryHash",
+    "finalSurfacePayloadHash",
+    "normalizedSourceSurfacePayloadHash",
+    "semanticProjectionHash",
+    "semanticProjectionAudit",
+    "semanticProjectionAuditPayloadHash",
+    "capacityMeasurementProvenance",
+)
+
+
+@dataclass(frozen=True)
+class CertifiedMassArtifact:
+    """Immutable, fully validated final visual-authority carrier."""
+
+    _payload_json: bytes
+    _core_payload_json: bytes
+    _authority_context_json: bytes
+    _vertices: tuple[tuple[float, float, float], ...]
+    _triangles: tuple[tuple[int, int, int], ...]
+    _visual_hash: str
+    _exact_payload_hash: str
+    _coordinate_space: str
+    _certificate_json: bytes
+
+    @classmethod
+    def issue(
+        cls,
+        source: Any,
+        *,
+        semantic_audit: dict[str, Any],
+        section_binding_hash: str = "",
+    ) -> "CertifiedMassArtifact":
+        payload = _serialize_certified_projected_visual_payload(
+            source,
+            final_semantic_audit=semantic_audit,
+        )
+        certificate = payload.get("projectedVisualCertificate")
+        certificate = certificate if isinstance(certificate, dict) else {}
+        if (
+            certificate.get("certification_mode")
+            != FINAL_AUTHORITY_CERTIFICATION_MODE
+        ):
+            raise ValueError("certified MASS artifact requires final v2 authority")
+        payload["identity"] = {
+            "programHash": str(certificate.get("final_program_hash") or ""),
+            "geometryHash": str(
+                payload.get("projectedVisualGeometryHash") or ""
+            ),
+            "finalLegalGeometryHash": str(
+                payload.get("finalLegalGeometryHash")
+                or certificate.get("final_geometry_hash")
+                or ""
+            ),
+        }
+        metadata = (
+            source.metadata
+            if isinstance(getattr(source, "metadata", None), dict)
+            else {}
+        )
+        authority_context = {
+            "expected_semantic_context": deepcopy(
+                semantic_audit.get("audited_context")
+            ),
+            "expected_semantic_projection_hash": str(
+                semantic_audit.get("semantic_projection_hash") or ""
+            ),
+            "expected_semantic_audit_payload_hash": (
+                semantic_audit_payload_hash(semantic_audit)
+            ),
+            "expected_section_geometry_binding_hash": str(
+                section_binding_hash
+                or metadata.get(
+                    "profiled_legal_section_authority_binding_hash"
+                )
+                or certificate.get("section_geometry_binding_hash")
+                or ""
+            ),
+        }
+        return cls.load(payload, authority_context=authority_context)
+
+    @classmethod
+    def load(
+        cls,
+        payload: dict[str, Any],
+        *,
+        authority_context: dict[str, Any],
+    ) -> "CertifiedMassArtifact":
+        carrier = deepcopy(payload)
+        _, certificate = validate_projected_visual_field_contract(carrier)
+        if (
+            certificate.get("schema_version") != FINAL_CERTIFICATE_SCHEMA
+            or certificate.get("certification_mode")
+            != FINAL_AUTHORITY_CERTIFICATION_MODE
+        ):
+            raise ValueError("certified MASS artifact rejects legacy visual authority")
+        context = deepcopy(authority_context)
+        validated = _validate_projected_visual_artifact_payload(
+            carrier,
+            expected_semantic_context=context.get(
+                "expected_semantic_context"
+            ),
+            expected_semantic_projection_hash=str(
+                context.get("expected_semantic_projection_hash") or ""
+            ),
+            expected_semantic_audit_payload_hash=str(
+                context.get("expected_semantic_audit_payload_hash") or ""
+            ),
+            expected_section_geometry_binding_hash=str(
+                context.get("expected_section_geometry_binding_hash") or ""
+            ),
+        )
+        if validated is None:
+            raise ValueError("certified MASS artifact binding is incomplete")
+        core_payload = {
+            key: deepcopy(carrier[key])
+            for key in _CERTIFIED_MASS_CORE_FIELDS
+            if key in carrier
+        }
+        return cls(
+            _payload_json=_canonical_artifact_json(carrier),
+            _core_payload_json=_canonical_artifact_json(core_payload),
+            _authority_context_json=_canonical_artifact_json(context),
+            _vertices=validated.vertices,
+            _triangles=validated.triangles,
+            _visual_hash=validated.visual_hash,
+            _exact_payload_hash=validated.exact_payload_hash,
+            _coordinate_space=validated.coordinate_space,
+            _certificate_json=_canonical_artifact_json(validated.certificate),
+        )
+
+    @property
+    def core_hash(self) -> str:
+        return hashlib.sha256(self._core_payload_json).hexdigest()
+
+    @property
+    def validated_visual(self) -> ValidatedProjectedVisual:
+        return ValidatedProjectedVisual(
+            vertices=self._vertices,
+            triangles=self._triangles,
+            visual_hash=self._visual_hash,
+            exact_payload_hash=self._exact_payload_hash,
+            coordinate_space=self._coordinate_space,
+            certificate=json.loads(self._certificate_json.decode("utf-8")),
+        )
+
+    def payload(self) -> dict[str, Any]:
+        return json.loads(self._payload_json.decode("utf-8"))
+
+    def certificate(self) -> dict[str, Any]:
+        return json.loads(self._certificate_json.decode("utf-8"))
+
+    def authority_context(self) -> dict[str, Any]:
+        return json.loads(self._authority_context_json.decode("utf-8"))
+
+    def feature_binding(self) -> dict[str, Any]:
+        payload = self.payload()
+        mesh = payload.get("projectedVisualMesh")
+        triangles = mesh.get("triangles") if isinstance(mesh, dict) else []
+        return {
+            "geometry_artifact": payload,
+            "floorwise_visual_projection": self.certificate(),
+            "source_surfaces": deepcopy(triangles),
+            "final_semantic_anchor": self.authority_context(),
+            "certified_mass_artifact_core_hash": self.core_hash,
+        }
+
+
+def _canonical_artifact_json(payload: dict[str, Any]) -> bytes:
+    return json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+        allow_nan=False,
+    ).encode("utf-8")
+
+
+def _serialize_certified_projected_visual_payload(
     source: Any,
     *,
     final_semantic_audit: dict[str, Any] | None = None,
@@ -460,7 +645,7 @@ def normalize_persisted_projected_visual_artifact(
     return normalized
 
 
-def validate_projected_visual_artifact(
+def _validate_projected_visual_artifact_payload(
     artifact: dict[str, Any],
     *,
     expected_semantic_context: dict[str, Any] | None = None,
@@ -721,6 +906,80 @@ def validate_projected_visual_artifact(
         exact_payload_hash=expected_payload_hash,
         coordinate_space=str(mesh.get("coordinateSpace") or ""),
         certificate=deepcopy(certificate),
+    )
+
+
+def serialize_certified_projected_visual(
+    source: Any,
+    *,
+    final_semantic_audit: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Compatibility wrapper; new final-authority code uses issue()."""
+
+    metadata = (
+        source.metadata
+        if isinstance(getattr(source, "metadata", None), dict)
+        else {}
+    )
+    if str(metadata.get("geometry_authority") or "") in {
+        "authored_projected_surface_payload",
+        "authored_compiled_surface_payload",
+    }:
+        if not isinstance(final_semantic_audit, dict):
+            return _serialize_certified_projected_visual_payload(source)
+        return CertifiedMassArtifact.issue(
+            source,
+            semantic_audit=final_semantic_audit,
+        ).payload()
+    return _serialize_certified_projected_visual_payload(
+        source,
+        final_semantic_audit=final_semantic_audit,
+    )
+
+
+def validate_projected_visual_artifact(
+    artifact: dict[str, Any],
+    *,
+    expected_semantic_context: dict[str, Any] | None = None,
+    expected_semantic_projection_hash: str = "",
+    expected_semantic_audit_payload_hash: str = "",
+    expected_section_geometry_binding_hash: str = "",
+) -> ValidatedProjectedVisual | None:
+    """Compatibility wrapper; new final-authority code uses load()."""
+
+    certificate = artifact.get("projectedVisualCertificate")
+    if (
+        isinstance(certificate, dict)
+        and certificate.get("certification_mode")
+        == FINAL_AUTHORITY_CERTIFICATION_MODE
+    ):
+        return CertifiedMassArtifact.load(
+            artifact,
+            authority_context={
+                "expected_semantic_context": deepcopy(
+                    expected_semantic_context
+                ),
+                "expected_semantic_projection_hash": str(
+                    expected_semantic_projection_hash or ""
+                ),
+                "expected_semantic_audit_payload_hash": str(
+                    expected_semantic_audit_payload_hash or ""
+                ),
+                "expected_section_geometry_binding_hash": str(
+                    expected_section_geometry_binding_hash or ""
+                ),
+            },
+        ).validated_visual
+    return _validate_projected_visual_artifact_payload(
+        artifact,
+        expected_semantic_context=expected_semantic_context,
+        expected_semantic_projection_hash=expected_semantic_projection_hash,
+        expected_semantic_audit_payload_hash=(
+            expected_semantic_audit_payload_hash
+        ),
+        expected_section_geometry_binding_hash=(
+            expected_section_geometry_binding_hash
+        ),
     )
 
 
@@ -1690,6 +1949,7 @@ def semantic_audit_payload_hash(audit: dict[str, Any]) -> str:
 
 
 __all__ = [
+    "CertifiedMassArtifact",
     "AUTHORED_COORDINATE_SPACE",
     "canonical_metric_surface_payload",
     "CAPACITY_PROGRAM_ROLE",

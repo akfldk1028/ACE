@@ -47,6 +47,7 @@ from design.maas.geometry_language.legal_field_affine_placement import (
 )
 from .legal_fit_deficit import build_legal_fit_deficit
 from .legal_mass_archive import LegalMassArchive
+from .stage_outcome import StageOutcome, record_stage_outcome
 from .authorship_policy import bounded_llm_author_batch_count
 from design.maas.geometry_language.source_bridge import (
     compile_site_bound_geometry_program_to_source_mass,
@@ -330,11 +331,24 @@ def _admit_legal_mass_candidate(
     *,
     compiler_clean_passed: bool,
     site_containment_passed: bool,
+    rejection_evidence_sink: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any] | None:
     """Archive only a source that passed the real gates and final certificate."""
 
-    if not compiler_clean_passed or not site_containment_passed:
+    def reject(reason: str, **evidence: Any) -> None:
+        if rejection_evidence_sink is not None:
+            rejection_evidence_sink.append({
+                "failure_reason": reason,
+                **evidence,
+            })
         return None
+
+    if not compiler_clean_passed or not site_containment_passed:
+        return reject(
+            "legal_archive_upstream_gate_failed",
+            compiler_clean_passed=bool(compiler_clean_passed),
+            site_containment_passed=bool(site_containment_passed),
+        )
     metadata = source.metadata if isinstance(source.metadata, dict) else {}
     certificate = metadata.get("authored_legal_projection_certificate")
     certificate = certificate if isinstance(certificate, dict) else {}
@@ -347,7 +361,7 @@ def _admit_legal_mass_candidate(
     try:
         actual_surface_payload_hash = source_surface_payload_hash(surfaces)
     except (TypeError, ValueError):
-        return None
+        return reject("legal_archive_surface_payload_hash_failed")
     if not (
         certificate.get("schema_version")
         == "arr.maas.authored_legal_projection_certificate.v1"
@@ -365,16 +379,35 @@ def _admit_legal_mass_candidate(
         and surfaces
         and actual_surface_payload_hash == surface_payload_hash
     ):
-        return None
+        return reject(
+            "legal_archive_projection_certificate_mismatch",
+            certificate_schema_version=str(certificate.get("schema_version") or ""),
+            certificate_status=str(certificate.get("status") or ""),
+            certificate_hard_pass=certificate.get("hard_pass") is True,
+            program_hash_present=bool(program_hash),
+            geometry_hash_present=bool(geometry_hash),
+            surface_payload_hash_present=bool(surface_payload_hash),
+            surface_payload_present=bool(surfaces),
+            actual_surface_payload_hash_matches=(
+                bool(surface_payload_hash)
+                and actual_surface_payload_hash == surface_payload_hash
+            ),
+        )
     try:
         metric_payload = canonical_metric_surface_payload(source)
     except (TypeError, ValueError):
-        return None
+        return reject("legal_archive_metric_payload_failed")
     if (
         metric_payload["normalized_source_surface_payload_hash"]
         != surface_payload_hash
     ):
-        return None
+        return reject(
+            "legal_archive_normalized_payload_hash_mismatch",
+            normalized_surface_payload_hash=str(
+                metric_payload.get("normalized_source_surface_payload_hash") or ""
+            ),
+            expected_surface_payload_hash=surface_payload_hash,
+        )
     authority = metadata.get("legal_capacity_authority")
     authority = authority if isinstance(authority, dict) else {}
     return archive.admit({
@@ -525,6 +558,75 @@ def _program_review_authority(
             ),
         },
     }
+
+
+def _book_projection_stage_outcome(
+    projection_evidence: dict[str, Any] | None,
+) -> StageOutcome[Any]:
+    evidence = dict(projection_evidence or {})
+    status = str(evidence.get("status") or "missing")
+    evidence.setdefault("status", status)
+    if status == "materialized":
+        return StageOutcome.passed("book_projection", evidence=evidence)
+    reason = str(
+        evidence.get("failure_reason")
+        or evidence.get("book_projection_failure")
+        or "book_projection_failed"
+    )
+    return StageOutcome.failed("book_projection", reason, evidence=evidence)
+
+
+def _site_containment_stage_outcome(contained: bool) -> StageOutcome[Any]:
+    evidence = {"contained": bool(contained)}
+    if contained:
+        return StageOutcome.passed("site_containment", evidence=evidence)
+    return StageOutcome.failed(
+        "site_containment",
+        "containment_failed",
+        evidence=evidence,
+    )
+
+
+def _legal_archive_stage_outcome(
+    archived_record: dict[str, Any] | None,
+    *,
+    reason: str,
+    evidence: dict[str, Any],
+) -> StageOutcome[Any]:
+    payload = {**dict(evidence), "archive_admitted": isinstance(archived_record, dict)}
+    if isinstance(archived_record, dict):
+        return StageOutcome.passed(
+            "legal_archive",
+            evidence=payload,
+            value=archived_record,
+        )
+    return StageOutcome.failed(
+        "legal_archive",
+        reason or "legal_archive_admission_failed",
+        evidence=payload,
+    )
+
+
+def _program_review_stage_outcome(
+    program_review_authority: dict[str, Any],
+) -> StageOutcome[Any]:
+    evidence = deepcopy(program_review_authority)
+    if program_review_authority.get("selection_eligible") is True:
+        return StageOutcome.passed(
+            "program_review",
+            evidence=evidence,
+            value=program_review_authority,
+        )
+    if program_review_authority.get("development_review_eligible") is True:
+        return StageOutcome.diagnostic(
+            "program_review",
+            "development_review_only",
+            evidence=evidence,
+            value=program_review_authority,
+        )
+    failed_gates = tuple(program_review_authority.get("failed_design_gates") or ())
+    reason = str(failed_gates[0]) if failed_gates else "program_review_rejected"
+    return StageOutcome.failed("program_review", reason, evidence=evidence)
 
 
 def _empty_scope_stage_counts() -> dict[str, int]:
@@ -2367,6 +2469,44 @@ def _propagate_terminal_materialization_failure(
             break
 
 
+def _record_generation_stage_outcome(
+    outcome: StageOutcome[Any],
+    *,
+    stage_outcomes: list[dict[str, Any]],
+    terminal_records: list[dict[str, Any]],
+    outcome_graph: Any | None,
+    program_slug: str,
+    source_seed: str,
+    program: Any,
+    principle_id: str,
+    book_scope: str,
+    legal_floor_field_hash: str,
+    counter_updates: tuple[tuple[dict[str, int], str], ...] = (),
+) -> None:
+    def record_terminal(failed: StageOutcome[Any]) -> None:
+        evidence = deepcopy(dict(failed.evidence))
+        evidence["failure_reason"] = failed.reason
+        evidence.setdefault("failure_reasons", [failed.reason])
+        _propagate_terminal_materialization_failure(
+            terminal_record={"stage": failed.stage, "evidence": evidence},
+            report_records=terminal_records,
+            outcome_graph=outcome_graph,
+            program_slug=program_slug,
+            source_seed=source_seed,
+            program=program,
+            principle_id=principle_id,
+            book_scope=book_scope,
+            legal_floor_field_hash=legal_floor_field_hash,
+        )
+
+    record_stage_outcome(
+        outcome,
+        records=stage_outcomes,
+        counter_updates=counter_updates,
+        terminal_recorder=record_terminal,
+    )
+
+
 def _record_projection_authority_failure(
     *,
     authority_evidence: dict[str, Any],
@@ -2381,6 +2521,7 @@ def _record_projection_authority_failure(
     scope_counts: dict[str, int],
     geometry_stages: dict[str, int] | None,
     llm_authored_failure_counts: dict[str, int] | Counter[str],
+    stage_outcomes: list[dict[str, Any]] | None = None,
 ) -> None:
     """Record legal authority attrition before projection evidence exists."""
     failure_reason = str(
@@ -2412,21 +2553,33 @@ def _record_projection_authority_failure(
             or value is None
         )
     }
-    _propagate_terminal_materialization_failure(
-        terminal_record={
-            "stage": "projection_authority",
-            "evidence": {
-                "failure_reason": failure_reason,
-                "failure_reasons": [failure_reason],
-                "certificate_causes": contract_failures,
-                "certificate_modes": ["legal_capacity_authority"],
-                "failure_witness": failure_witness,
-                "plate_recertification_failures": list(
-                    authority_evidence.get("plate_recertification_failures") or []
-                ),
-            },
+    outcome = StageOutcome.failed(
+        "projection_authority",
+        failure_reason,
+        evidence={
+            "failure_reason": failure_reason,
+            "failure_reasons": [failure_reason],
+            "certificate_causes": contract_failures,
+            "certificate_modes": ["legal_capacity_authority"],
+            "failure_witness": failure_witness,
+            "plate_recertification_failures": list(
+                authority_evidence.get("plate_recertification_failures") or []
+            ),
         },
-        report_records=report_records,
+    )
+    counter_updates: list[tuple[dict[str, int], str]] = [
+        (scope_counts, "projection_failed"),
+        (llm_authored_failure_counts, failure_reason),
+    ]
+    if geometry_stages is not None:
+        counter_updates.extend((
+            (geometry_stages, "projection_failed"),
+            (geometry_stages, "projection_authority_failed"),
+        ))
+    _record_generation_stage_outcome(
+        outcome,
+        stage_outcomes=(stage_outcomes if stage_outcomes is not None else []),
+        terminal_records=report_records,
         outcome_graph=outcome_graph,
         program_slug=program_slug,
         source_seed=source_seed,
@@ -2434,19 +2587,7 @@ def _record_projection_authority_failure(
         principle_id=principle_id,
         book_scope=book_scope,
         legal_floor_field_hash=legal_floor_field_hash,
-    )
-    scope_counts["projection_failed"] = (
-        scope_counts.get("projection_failed", 0) + 1
-    )
-    if geometry_stages is not None:
-        geometry_stages["projection_failed"] = (
-            geometry_stages.get("projection_failed", 0) + 1
-        )
-        geometry_stages["projection_authority_failed"] = (
-            geometry_stages.get("projection_authority_failed", 0) + 1
-        )
-    llm_authored_failure_counts[failure_reason] = (
-        llm_authored_failure_counts.get(failure_reason, 0) + 1
+        counter_updates=tuple(counter_updates),
     )
 
 
@@ -3657,6 +3798,7 @@ def _program_pool_single_phase(
     legal_fit_deficits: list[dict[str, Any]] = []
     terminal_materialization_failures: list[dict[str, Any]] = []
     clean_mass_rejections: list[dict[str, Any]] = []
+    stage_outcomes: list[dict[str, Any]] = []
     capacity_authoring_deficits: list[dict[str, Any]] = []
     materialization_diagnostics = _MaterializationAttemptDiagnostics()
     legal_mass_archive = LegalMassArchive()
@@ -4948,8 +5090,21 @@ def _program_pool_single_phase(
                             llm_authored_failure_counts=(
                                 llm_authored_failure_counts
                             ),
+                            stage_outcomes=stage_outcomes,
                         )
                         continue
+                    record_stage_outcome(
+                        StageOutcome.passed(
+                            "projection_authority",
+                            evidence=deepcopy(
+                                retained_source.metadata.get(
+                                    "legal_capacity_authority"
+                                ) or {"legal_hard_pass": True}
+                            ),
+                            value=retained_source,
+                        ),
+                        records=stage_outcomes,
+                    )
                     source = retained_source
                     metadata = deepcopy(source.metadata)
                     capacity_resolution = resolve_capacity_band_evidence(
@@ -5079,81 +5234,185 @@ def _program_pool_single_phase(
                 emit_progress()
                 scope_counts["compiled"] += 1
                 projection_evidence = source.metadata.get("program_book_projection_evidence") or {}
-                if projection_evidence.get("status") != "materialized":
-                    if outcome_graph is not None and recursive_program is not None and source_seed_name:
-                        outcome_graph.observe_geometry_gate_failure(
-                            program_slug=outcome_program_slug,
-                            source_seed=source_seed_name,
-                            program=recursive_program,
-                            principle_id=str(principle["principle_id"]),
-                            book_scope=base_volume_label,
-                            stage="book_projection",
-                            failure_reasons=("book_projection_failed",),
-                            source=source,
-                        )
-                    if llm_authored_seed:
-                        llm_authored_failure_counts["book_projection_failed"] += 1
-                    scope_counts["projection_failed"] += 1
-                    if geometry_stages is not None:
-                        geometry_stages["projection_failed"] += 1
-                    continue
-                scope_counts["projection_materialized"] += 1
+                projection_outcome = _book_projection_stage_outcome(
+                    projection_evidence
+                )
+                projection_counter_updates = [(scope_counts, (
+                    "projection_failed"
+                    if projection_outcome.kind == "failed"
+                    else "projection_materialized"
+                ))]
                 if geometry_stages is not None:
-                    geometry_stages["projection_materialized"] += 1
+                    projection_counter_updates.append((geometry_stages, (
+                        "projection_failed"
+                        if projection_outcome.kind == "failed"
+                        else "projection_materialized"
+                    )))
+                if llm_authored_seed and projection_outcome.kind == "failed":
+                    projection_counter_updates.append((
+                        llm_authored_failure_counts,
+                        "book_projection_failed",
+                    ))
+                _record_generation_stage_outcome(
+                    projection_outcome,
+                    stage_outcomes=stage_outcomes,
+                    terminal_records=terminal_materialization_failures,
+                    outcome_graph=outcome_graph,
+                    program_slug=outcome_program_slug,
+                    source_seed=source_seed_name,
+                    program=recursive_program,
+                    principle_id=str(principle["principle_id"]),
+                    book_scope=base_volume_label,
+                    legal_floor_field_hash=str(
+                        candidate_floor_context.get("legal_floor_field_hash") or ""
+                    ),
+                    counter_updates=tuple(projection_counter_updates),
+                )
+                if projection_outcome.kind == "failed":
+                    continue
                 clean_mass_pass, clean_mass_evidence = _clean_mass_gate(source)
                 if not clean_mass_pass:
-                    if recursive_program is not None and source_seed_name:
-                        _record_clean_mass_rejection(
-                            source=source,
-                            clean_mass_evidence=clean_mass_evidence,
-                            report_records=clean_mass_rejections,
-                            outcome_graph=outcome_graph,
-                            program_slug=outcome_program_slug,
-                            source_seed=source_seed_name,
-                            program=recursive_program,
-                            principle_id=str(principle["principle_id"]),
-                            book_scope=base_volume_label,
-                            legal_floor_field_hash=str(
-                                candidate_floor_context.get(
-                                    "legal_floor_field_hash"
-                                )
-                                or ""
-                            ),
-                        )
+                    clean_reasons = tuple(
+                        clean_mass_evidence.get("failure_reasons")
+                        or ("clean_mass_failed",)
+                    )
+                    clean_counter_updates = []
                     if llm_authored_seed:
-                        for reason in clean_mass_evidence["failure_reasons"]:
-                            llm_authored_failure_counts[f"clean_{reason}"] += 1
+                        clean_counter_updates.extend(
+                            (llm_authored_failure_counts, f"clean_{reason}")
+                            for reason in clean_reasons
+                        )
                     if geometry_stages is not None:
-                        for reason in clean_mass_evidence["failure_reasons"]:
-                            key = f"clean_failed_{reason}"
-                            geometry_stages[key] = geometry_stages.get(key, 0) + 1
+                        clean_counter_updates.extend(
+                            (geometry_stages, f"clean_failed_{reason}")
+                            for reason in clean_reasons
+                        )
+
+                    def record_clean_terminal(_outcome: StageOutcome[Any]) -> None:
+                        if recursive_program is not None and source_seed_name:
+                            _record_clean_mass_rejection(
+                                source=source,
+                                clean_mass_evidence=clean_mass_evidence,
+                                report_records=clean_mass_rejections,
+                                outcome_graph=outcome_graph,
+                                program_slug=outcome_program_slug,
+                                source_seed=source_seed_name,
+                                program=recursive_program,
+                                principle_id=str(principle["principle_id"]),
+                                book_scope=base_volume_label,
+                                legal_floor_field_hash=str(
+                                    candidate_floor_context.get(
+                                        "legal_floor_field_hash"
+                                    )
+                                    or ""
+                                ),
+                            )
+                        else:
+                            clean_mass_rejections.append({
+                                "stage": "clean_mass",
+                                "evidence": deepcopy(clean_mass_evidence),
+                            })
+
+                    record_stage_outcome(
+                        StageOutcome.failed(
+                            "clean_mass",
+                            str(clean_reasons[0]),
+                            evidence=clean_mass_evidence,
+                        ),
+                        records=stage_outcomes,
+                        counter_updates=tuple(clean_counter_updates),
+                        terminal_recorder=record_clean_terminal,
+                    )
                     continue
+                clean_counter_updates = []
+                if geometry_stages is not None:
+                    clean_counter_updates.append(
+                        (geometry_stages, "clean_mass_passed")
+                    )
+                if llm_authored_seed:
+                    clean_counter_updates.append(
+                        (llm_authored_stage_counts, "clean_mass_passed")
+                    )
+                record_stage_outcome(
+                    StageOutcome.passed(
+                        "clean_mass",
+                        evidence=clean_mass_evidence,
+                        value=source,
+                    ),
+                    records=stage_outcomes,
+                    counter_updates=tuple(clean_counter_updates),
+                )
                 site_containment_passed = _inside_site(source, compile_site)
-                if not site_containment_passed:
-                    if outcome_graph is not None and recursive_program is not None and source_seed_name:
-                        outcome_graph.observe_geometry_gate_failure(
-                            program_slug=outcome_program_slug,
-                            source_seed=source_seed_name,
-                            program=recursive_program,
-                            principle_id=str(principle["principle_id"]),
-                            book_scope=base_volume_label,
-                            stage="containment",
-                            failure_reasons=("containment_failed",),
-                            source=source,
-                        )
+                containment_outcome = _site_containment_stage_outcome(
+                    site_containment_passed
+                )
+                containment_counter_updates = []
+                if containment_outcome.kind == "failed":
                     if llm_authored_seed:
-                        llm_authored_failure_counts["containment_failed"] += 1
+                        containment_counter_updates.append((
+                            llm_authored_failure_counts,
+                            "containment_failed",
+                        ))
                     if geometry_stages is not None:
-                        geometry_stages["containment_failed"] += 1
+                        containment_counter_updates.append((
+                            geometry_stages,
+                            "containment_failed",
+                        ))
+                else:
+                    containment_counter_updates.append((scope_counts, "clean"))
+                _record_generation_stage_outcome(
+                    containment_outcome,
+                    stage_outcomes=stage_outcomes,
+                    terminal_records=terminal_materialization_failures,
+                    outcome_graph=outcome_graph,
+                    program_slug=outcome_program_slug,
+                    source_seed=source_seed_name,
+                    program=recursive_program,
+                    principle_id=str(principle["principle_id"]),
+                    book_scope=base_volume_label,
+                    legal_floor_field_hash=str(
+                        candidate_floor_context.get("legal_floor_field_hash") or ""
+                    ),
+                    counter_updates=tuple(containment_counter_updates),
+                )
+                if containment_outcome.kind == "failed":
                     continue
+                archive_rejection_evidence: list[dict[str, Any]] = []
                 archived_record = _admit_legal_mass_candidate(
                     legal_mass_archive,
                     source,
                     compiler_clean_passed=clean_mass_pass,
                     site_containment_passed=site_containment_passed,
+                    rejection_evidence_sink=archive_rejection_evidence,
+                )
+                archive_failure = (
+                    archive_rejection_evidence[0]
+                    if archive_rejection_evidence
+                    else {}
+                )
+                archive_outcome = _legal_archive_stage_outcome(
+                    archived_record,
+                    reason=str(
+                        archive_failure.get("failure_reason")
+                        or "legal_archive_admission_failed"
+                    ),
+                    evidence=archive_failure or {"archive_admitted": True},
+                )
+                _record_generation_stage_outcome(
+                    archive_outcome,
+                    stage_outcomes=stage_outcomes,
+                    terminal_records=terminal_materialization_failures,
+                    outcome_graph=outcome_graph,
+                    program_slug=outcome_program_slug,
+                    source_seed=source_seed_name,
+                    program=recursive_program,
+                    principle_id=str(principle["principle_id"]),
+                    book_scope=base_volume_label,
+                    legal_floor_field_hash=str(
+                        candidate_floor_context.get("legal_floor_field_hash") or ""
+                    ),
                 )
                 clean += 1
-                scope_counts["clean"] += 1
                 # A BOOK descendant is allowed to repair its base parent's
                 # program relation.  Its causal parent therefore needs to be
                 # compiler-clean and contained, not already a final
@@ -5172,10 +5431,6 @@ def _program_pool_single_phase(
                 capacity_stage_counts[
                     f"alternative:{capacity_alternative['alternative_id']}:clean_passed"
                 ] += 1
-                if geometry_stages is not None:
-                    geometry_stages["clean_mass_passed"] += 1
-                if llm_authored_seed:
-                    llm_authored_stage_counts["clean_mass_passed"] += 1
                 feature = source_feature(
                     source,
                     sequence,
@@ -5303,12 +5558,42 @@ def _program_pool_single_phase(
                             program_hard_pass=combined_program_hard_pass,
                             program_evidence=program,
                         )
-                if not (
-                    program_review_authority["selection_eligible"]
-                    or program_review_authority["development_review_eligible"]
-                ):
+                program_outcome = _program_review_stage_outcome(
+                    program_review_authority
+                )
+                program_counter_updates = []
+                if program_outcome.kind == "failed" and llm_authored_seed:
+                    program_counter_updates.extend(
+                        (llm_authored_failure_counts, f"program_{name}")
+                        for name in failed_gates
+                    )
+                elif program_outcome.kind == "diagnostic":
+                    program_counter_updates.append((
+                        scope_counts,
+                        "program_development_review_eligible",
+                    ))
+                elif program_outcome.kind == "passed":
+                    program_counter_updates.append((
+                        scope_counts,
+                        "program_passed",
+                    ))
+                _record_generation_stage_outcome(
+                    program_outcome,
+                    stage_outcomes=stage_outcomes,
+                    terminal_records=terminal_materialization_failures,
+                    outcome_graph=outcome_graph,
+                    program_slug=outcome_program_slug,
+                    source_seed=source_seed_name,
+                    program=recursive_program,
+                    principle_id=str(principle["principle_id"]),
+                    book_scope=base_volume_label,
+                    legal_floor_field_hash=str(
+                        candidate_floor_context.get("legal_floor_field_hash") or ""
+                    ),
+                    counter_updates=tuple(program_counter_updates),
+                )
+                if program_outcome.kind == "failed":
                     if llm_authored_seed:
-                        llm_authored_failure_counts.update(f"program_{name}" for name in failed_gates)
                         logger.info(
                             "Rejecting LLM-authored program hard gate: "
                             "failed_gates=%s coherence=%s program_form=%s",
@@ -5317,9 +5602,8 @@ def _program_pool_single_phase(
                             deepcopy(program_form_gate),
                         )
                     continue
-                program_passed_increment = _record_program_scope_outcome(
-                    scope_counts,
-                    program_review_authority,
+                program_passed_increment = int(
+                    program_outcome.kind == "passed"
                 )
                 if program_passed_increment:
                     program_passed += program_passed_increment
@@ -5665,6 +5949,7 @@ def _program_pool_single_phase(
             terminal_materialization_failures
         ),
         "clean_mass_rejections": deepcopy(clean_mass_rejections),
+        "stage_outcomes": deepcopy(stage_outcomes),
         "capacity_authoring_deficits": deepcopy(
             capacity_authoring_deficits[-24:]
         ),

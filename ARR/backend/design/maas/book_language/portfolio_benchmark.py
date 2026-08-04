@@ -48,10 +48,8 @@ from design.maas.geometry_language.gate import GeometryGatePolicy, compilation_g
 from design.maas.geometry_language.compiler import revalidate_compilation_mesh
 from design.maas.geometry_language.run_state import update_run_progress
 from design.maas.geometry_language.projected_visual_contract import (
+    CertifiedMassArtifact,
     semantic_audit_payload_hash,
-    serialize_certified_projected_visual,
-    validate_projected_visual_artifact,
-    validate_projected_visual_field_contract,
 )
 from design.maas.capacity_policy import resolve_massing_capacity_policy
 from design.maas.grammar.verb_sequence import VerbSequence
@@ -666,22 +664,12 @@ def _load_visual_directive(output_dir: Path, pnu: str) -> dict[str, Any]:
     return payload
 
 
-def _certified_projected_visual_artifact(
-    source: Any,
-    *,
-    final_semantic_audit: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    return serialize_certified_projected_visual(
-        source,
-        final_semantic_audit=final_semantic_audit,
-    )
-
-
 def _projected_visual_handoff_artifact(
     source: Any,
     *,
     final_semantic_audit: dict[str, Any] | None = None,
     existing_artifact: Any = None,
+    existing_authority_context: dict[str, Any] | None = None,
 ) -> Any:
     """Preserve an absent authority separately from malformed payload values."""
 
@@ -692,12 +680,14 @@ def _projected_visual_handoff_artifact(
             or "projectedVisualCertificate" in existing_artifact
         )
     ):
-        validate_projected_visual_field_contract(existing_artifact)
-        return deepcopy(existing_artifact)
-    artifact = _certified_projected_visual_artifact(
-        source,
-        final_semantic_audit=final_semantic_audit,
-    )
+        return CertifiedMassArtifact.load(
+            existing_artifact,
+            authority_context=(
+                existing_authority_context
+                if isinstance(existing_authority_context, dict)
+                else {}
+            ),
+        ).payload()
     metadata = getattr(source, "metadata", None)
     metadata = metadata if isinstance(metadata, dict) else {}
     certificate = metadata.get("floorwise_visual_projection")
@@ -712,9 +702,9 @@ def _projected_visual_handoff_artifact(
             != "not_applicable_no_authored_mesh"
         )
     )
-    if artifact == {} and not source_declares_authority:
+    if not source_declares_authority:
         return _PROJECTED_VISUAL_ARTIFACT_ABSENT
-    return artifact
+    raise ValueError("selected final candidate has no CertifiedMassArtifact")
 
 
 class ProjectedVisualHandoffError(ValueError):
@@ -850,7 +840,6 @@ def _stage_projected_visual_handoff(
     """Stage all projected-authority property changes without mutation."""
 
     staged = {
-        "final_semantic_anchor": deepcopy(final_semantic_anchor),
         "projected_visual_section_geometry_binding_hash": str(
             final_semantic_anchor.get(
                 "expected_section_geometry_binding_hash"
@@ -872,13 +861,12 @@ def _stage_projected_visual_handoff(
                 triangle_count=0,
             )
         return staged
-    replacement = _staged_projected_visual_surfaces(
+    _staged_projected_visual_surfaces(
         projected_visual_artifact,
         visual_origin=visual_origin,
         candidate_height=candidate_height,
     )
     staged.update({
-        "source_surfaces": replacement,
         "projected_visual_geometry_hash": str(
             projected_visual_artifact.get("projectedVisualGeometryHash") or ""
         ),
@@ -895,32 +883,16 @@ def _persist_projected_visual_authority(
 ) -> Any:
     """Validate canonical artifact authority before atomically rebinding props."""
 
-    _, canonical_certificate = validate_projected_visual_field_contract(
-        geometry_artifact
-    )
-    validated_visual = validate_projected_visual_artifact(
+    certified = CertifiedMassArtifact.load(
         geometry_artifact,
-        expected_semantic_context=final_semantic_anchor[
-            "expected_semantic_context"
-        ],
-        expected_semantic_projection_hash=final_semantic_anchor[
-            "expected_semantic_projection_hash"
-        ],
-        expected_semantic_audit_payload_hash=final_semantic_anchor[
-            "expected_semantic_audit_payload_hash"
-        ],
-        expected_section_geometry_binding_hash=final_semantic_anchor[
-            "expected_section_geometry_binding_hash"
-        ],
+        authority_context=final_semantic_anchor,
     )
-    if validated_visual is None:
-        raise ValueError("final projected visual authority is incomplete")
+    binding = certified.feature_binding()
     props.update({
         **staged_handoff,
-        "floorwise_visual_projection": deepcopy(canonical_certificate),
-        "geometry_artifact": geometry_artifact,
+        **binding,
     })
-    return validated_visual
+    return certified.validated_visual
 
 
 def _candidate_program_hash(candidate: _Candidate) -> str:
@@ -3439,6 +3411,9 @@ def run_book_program_portfolios(
                     "semantic_projection_hard_gate"
                 ),
                 existing_artifact=props.get("geometry_artifact"),
+                existing_authority_context=props.get(
+                    "final_semantic_anchor"
+                ),
             )
             projected_visual_authority_present = (
                 projected_visual_artifact

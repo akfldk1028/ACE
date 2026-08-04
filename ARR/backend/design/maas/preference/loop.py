@@ -23,13 +23,12 @@ from design.maas.geometry_language.floorwise_visual_projection import (
     projected_surface_visual_hash,
 )
 from design.maas.geometry_language.projected_visual_contract import (
+    CertifiedMassArtifact,
     CERTIFICATE_SCHEMA,
     FINAL_AUTHORITY_CERTIFICATION_MODE,
     FINAL_CERTIFICATE_SCHEMA,
     exact_triangle_payload_hash,
     normalize_persisted_projected_visual_artifact,
-    validate_projected_visual_artifact,
-    validate_projected_visual_field_contract,
 )
 from design.maas.preference.concept_schema import build_preference_distillation
 from design.maas.preference.reference_corpus import (
@@ -374,19 +373,25 @@ def _require_certified_authored_visual(
     if artifact:
         artifact = normalize_persisted_projected_visual_artifact(artifact)
     artifact_certificate = artifact.get("projectedVisualCertificate")
+    certified_mass_artifact = None
     if (
         isinstance(artifact_certificate, dict)
         and artifact_certificate.get("certification_mode")
         == FINAL_AUTHORITY_CERTIFICATION_MODE
     ):
         try:
-            _, artifact_certificate = (
-                validate_projected_visual_field_contract(artifact)
+            certified_mass_artifact = CertifiedMassArtifact.load(
+                artifact,
+                authority_context=(
+                    props.get("final_semantic_anchor")
+                    if isinstance(props.get("final_semantic_anchor"), dict)
+                    else {}
+                ),
             )
         except ValueError as exc:
             raise ValueError(f"{failure}:{exc}") from None
-        certificate = dict(artifact_certificate)
-        props["floorwise_visual_projection"] = certificate
+        artifact = certified_mass_artifact.payload()
+        certificate = certified_mass_artifact.certificate()
     elif not isinstance(certificate, dict):
         certificate = artifact_certificate
     expected_certificate_schema = (
@@ -488,28 +493,10 @@ def _require_certified_authored_visual(
                 > 1e-7
             ):
                 raise ValueError(failure)
-            validated = validate_projected_visual_artifact(
-                artifact,
-                expected_semantic_context=semantic_anchor.get(
-                    "expected_semantic_context"
-                ),
-                expected_semantic_projection_hash=str(
-                    semantic_anchor.get(
-                        "expected_semantic_projection_hash"
-                    )
-                    or ""
-                ),
-                expected_semantic_audit_payload_hash=str(
-                    semantic_anchor.get(
-                        "expected_semantic_audit_payload_hash"
-                    )
-                    or ""
-                ),
-                expected_section_geometry_binding_hash=str(
-                    semantic_anchor.get(
-                        "expected_section_geometry_binding_hash"
-                    ) or ""
-                ),
+            validated = (
+                certified_mass_artifact.validated_visual
+                if certified_mass_artifact is not None
+                else None
             )
             surface_records = [
                 {

@@ -80,6 +80,7 @@ from .capacity_routing import build_capacity_review_context
 from .downstream_hard_gate import LegalGenerationContext, generation_site_at_height
 from .portfolio_selection import _select
 from .reference_context import _audited_final_book_references
+from .stage_outcome import StageOutcome, record_stage_outcome
 from .vlm_stage_policy import book_vlm_stage_policy
 
 
@@ -1927,6 +1928,7 @@ def _repair_exact_post_book_candidates_from_vlm(
     compilation_issue_detail_counts: Counter[str] = Counter()
     authored_failure_counts: Counter[str] = Counter()
     failure_records: list[dict[str, Any]] = []
+    stage_outcomes: list[dict[str, Any]] = []
     counts = {
         "schema_version": "arr.maas.exact_post_book_typed_repair.v1",
         "requested_count": len(candidates),
@@ -1947,6 +1949,41 @@ def _repair_exact_post_book_candidates_from_vlm(
         **completion_evidence,
     }
     site_access_context = dict(site_access_context or {})
+
+    def record_repair_failure(
+        *,
+        candidate: _Candidate,
+        critic_record: dict[str, Any],
+        stage: str,
+        reason: str,
+        evidence: dict[str, Any],
+        legacy_counter: str,
+    ) -> None:
+        outcome = StageOutcome.failed(
+            stage,
+            reason,
+            evidence={
+                "source_sequence": candidate.sequence.name,
+                "geometry_family": _geometry_program_family(candidate),
+                "llm_authored_lane": _llm_authored_candidate(candidate),
+                "critic_response_id": str(
+                    critic_record.get("response_id") or ""
+                ),
+                **deepcopy(evidence),
+            },
+        )
+        record_stage_outcome(
+            outcome,
+            records=stage_outcomes,
+            counter_updates=((failures, legacy_counter),),
+            terminal_recorder=lambda terminal: failure_records.append(
+                terminal.to_record()
+            ),
+        )
+        critic_record.setdefault("typed_repair_failures", []).append(
+            outcome.to_record()
+        )
+
     for candidate in candidates:
         record = records[candidate.sequence.name]
         requires_canonical_reprojection = (
@@ -2061,6 +2098,7 @@ def _repair_exact_post_book_candidates_from_vlm(
             fit_strength = max(0.0, min(1.0, float(bridge.get("legal_fit_strength") or 0.0)))
         except (TypeError, ValueError):
             fit_strength = 0.0
+        materialization_failures: list[dict[str, Any]] = []
         source = replace_source_dominant_with_geometry_program(
             base_source,
             repaired_program,
@@ -2072,9 +2110,31 @@ def _repair_exact_post_book_candidates_from_vlm(
             ),
             upper_fit_strength=fit_strength,
             minimum_host_plan_coverage=0.0,
+            failure_sink=materialization_failures,
         )
         if source is None:
-            failures["repaired_source_materialization_failed"] += 1
+            typed_failure = (
+                materialization_failures[-1]
+                if materialization_failures
+                else {
+                    "reason": "source_materialization_returned_none_without_evidence",
+                    "evidence": {},
+                }
+            )
+            record_repair_failure(
+                candidate=candidate,
+                critic_record=record,
+                stage="final_vlm_repair_materialization",
+                reason=str(typed_failure.get("reason") or "repaired_source_materialization_failed"),
+                evidence={
+                    "parent_program_hash": parent_program.program_hash(),
+                    "parent_geometry_hash": parent_compilation.geometry_hash,
+                    "repaired_program_hash": repaired_program.program_hash(),
+                    "repaired_geometry_hash": repaired_compilation.geometry_hash,
+                    "materialization_failure": deepcopy(typed_failure),
+                },
+                legacy_counter="repaired_source_materialization_failed",
+            )
             continue
         counts["source_materialized_count"] += 1
         program_context = {
@@ -2454,7 +2514,40 @@ def _repair_exact_post_book_candidates_from_vlm(
         program_form = _program_form_gate(source, building_type)
         feature["properties"]["program_form_gate"] = program_form
         if not (program.get("hard_pass") and program_form.get("hard_pass")):
-            failures["program_hard_gate_failed"] += 1
+            program_failed = program.get("hard_pass") is not True
+            program_form_failed = program_form.get("hard_pass") is not True
+            failure_reason = (
+                "program_and_program_form_gate_failed"
+                if program_failed and program_form_failed
+                else (
+                    "program_gate_failed"
+                    if program_failed
+                    else "program_form_gate_failed"
+                )
+            )
+            record_repair_failure(
+                candidate=candidate,
+                critic_record=record,
+                stage="final_vlm_repair_program_gate",
+                reason=failure_reason,
+                evidence={
+                    "repaired_program_hash": repaired_program.program_hash(),
+                    "repaired_geometry_hash": repaired_compilation.geometry_hash,
+                    "program_gate": deepcopy(program),
+                    "program_form_gate": deepcopy(program_form),
+                    "program_failed_gates": list(
+                        program.get("failed_gates")
+                        or program.get("failure_reasons")
+                        or ()
+                    ),
+                    "program_form_failed_gates": list(
+                        program_form.get("failed_gates")
+                        or program_form.get("failure_reasons")
+                        or ()
+                    ),
+                },
+                legacy_counter="program_hard_gate_failed",
+            )
             continue
         counts["program_hard_pass_count"] += 1
         spatial = feature["properties"]["program_spatial_evidence"]
@@ -2489,6 +2582,7 @@ def _repair_exact_post_book_candidates_from_vlm(
     counts["compilation_issue_counts"] = dict(sorted(compilation_issue_counts.items()))
     counts["compilation_issue_detail_counts"] = dict(sorted(compilation_issue_detail_counts.items()))
     counts["llm_authored_failure_counts"] = dict(sorted(authored_failure_counts.items()))
+    counts["stage_outcomes"] = stage_outcomes
     counts["failure_records"] = failure_records
     return repaired, counts
 

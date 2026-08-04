@@ -45,6 +45,7 @@ from design.maas.geometry_language import (
     base_seed_program,
     compile_geometry_program,
     compile_geometry_program_to_source_mass,
+    replace_source_dominant_with_geometry_program,
 )
 from design.maas.geometry_language.projected_visual_contract import (
     validate_projected_visual_artifact,
@@ -6288,6 +6289,125 @@ class MaasBookLanguageRegistryTest(SimpleTestCase):
             repaired[0].source.volumes,
             projected_sources[0].volumes,
         )
+
+    def test_source_dominant_replacement_records_typed_none_reason(self):
+        site = Polygon(((0, 0), (30, 0), (30, 24), (0, 24)))
+        sequence = program_seed_sequences("gymnasium")[0]
+        source = compile_sequence_to_source_mass(site, sequence)
+        self.assertIsNotNone(source)
+        assert source is not None
+        failures = []
+
+        result = replace_source_dominant_with_geometry_program(
+            replace(source, volumes=()),
+            base_seed_program("slab"),
+            failure_sink=failures,
+        )
+
+        self.assertIsNone(result)
+        self.assertEqual(len(failures), 1)
+        self.assertEqual(failures[0]["reason"], "source_has_no_volumes")
+        self.assertEqual(failures[0]["evidence"]["source_volume_count"], 0)
+        self.assertTrue(failures[0]["evidence"]["program_hash"])
+
+    def test_final_vlm_typed_edit_persists_materialization_stage_outcome(self):
+        site = Polygon(((0, 0), (42, 0), (42, 30), (0, 30)))
+        sequence = program_seed_sequences("gymnasium")[0]
+        source = compile_sequence_to_source_mass(site, sequence)
+        self.assertIsNotNone(source)
+        assert source is not None
+        parent_program = base_seed_program("slab")
+        source = replace(source, metadata={
+            **source.metadata,
+            "geometry_program": parent_program.to_dict(),
+            "geometry_program_bridge_evidence": {"legal_fit_strength": 0.0},
+            "legal_generation_context_evidence": {},
+            "capacity_alternative_projection": {},
+        })
+        candidate = portfolio_benchmark._Candidate(
+            "test-principle",
+            "base_operative",
+            "expand",
+            sequence,
+            source,
+            {"type": "Feature", "properties": {}},
+            0.8,
+        )
+        audit_record = {
+            "source_sequence": sequence.name,
+            "hard_pass": False,
+            "response_id": "critic-materialization-1",
+            "geometry_edits": [{
+                "operation": "set_parameter",
+                "target_node_id": "unit_box",
+                "parameter_name": "width",
+                "numeric_value": 1.3,
+            }],
+        }
+        audit_gate = {"audit_records": [audit_record]}
+
+        def fail_materialization(_source, repaired_program, **kwargs):
+            kwargs["failure_sink"].append({
+                "schema_version": "arr.maas.source_dominant_replacement_failure.v1",
+                "stage": "replace_source_dominant_with_geometry_program",
+                "reason": "recursive_geometry_materialization_failed",
+                "evidence": {
+                    "program_hash": repaired_program.program_hash(),
+                    "compilation_gate_issues": [{
+                        "code": "disconnected_component_budget_exceeded",
+                        "message": "too many disconnected solid components",
+                    }],
+                },
+            })
+            return None
+
+        with (
+            patch.object(
+                vlm_review,
+                "compile_sequence_to_source_mass",
+                return_value=source,
+            ),
+            patch.object(
+                vlm_review,
+                "replace_source_dominant_with_geometry_program",
+                side_effect=fail_materialization,
+            ),
+        ):
+            repaired, counts = vlm_review._repair_exact_post_book_candidates_from_vlm(
+                [candidate],
+                audit_gate,
+                generation_site=site,
+                building_type="gymnasium",
+                height=18.0,
+                floors=3,
+                generation_context=None,
+                program_dimensional_context={},
+                site_boundary_source="unit_test",
+                site_access_context={},
+                site_access_geometry=None,
+                capacity_site=site,
+            )
+
+        self.assertEqual(repaired, [])
+        self.assertEqual(
+            counts["failure_counts"]["repaired_source_materialization_failed"],
+            1,
+        )
+        outcome = counts["stage_outcomes"][0]
+        self.assertEqual(outcome["stage"], "final_vlm_repair_materialization")
+        self.assertEqual(
+            outcome["reason"],
+            "recursive_geometry_materialization_failed",
+        )
+        self.assertEqual(counts["failure_records"], [outcome])
+        issues = outcome["evidence"]["materialization_failure"]["evidence"][
+            "compilation_gate_issues"
+        ]
+        self.assertEqual(
+            issues[0]["code"],
+            "disconnected_component_budget_exceeded",
+        )
+        self.assertEqual(audit_record["typed_repair_failures"], [outcome])
 
     def test_final_vlm_typed_edit_propagates_floorwise_terminal_authority_reason(self):
         site = Polygon(((0, 0), (42, 0), (42, 30), (0, 30)))

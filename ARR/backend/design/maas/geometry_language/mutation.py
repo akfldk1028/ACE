@@ -102,6 +102,7 @@ class CompilerSafeMutationResult:
     compilation: "CompilationResult | None" = None
     recovery_mode: str = "none"
     rejected_groups: tuple[dict[str, Any], ...] = ()
+    target_resolution_evidence: tuple[dict[str, Any], ...] = ()
 
 
 ALLOWED_EDIT_OPERATIONS = frozenset({
@@ -516,6 +517,19 @@ def apply_geometry_edits_compiler_safe(
         edit if isinstance(edit, GeometryEdit) else GeometryEdit.from_dict(edit)
         for edit in edits
     )
+    normalized, target_resolution_evidence, target_resolution_issues = (
+        _resolve_semantic_projection_root_references(program, normalized)
+    )
+    if target_resolution_issues:
+        return CompilerSafeMutationResult(
+            mutation=MutationResult(
+                "target_resolution_failed",
+                None,
+                issues=target_resolution_issues,
+            ),
+            recovery_mode="target_resolution_rejected",
+            target_resolution_evidence=target_resolution_evidence,
+        )
     direct = apply_geometry_edits(program, normalized)
     if direct.program is not None:
         direct_compilation = compile_geometry_program(direct.program)
@@ -524,6 +538,7 @@ def apply_geometry_edits_compiler_safe(
                 mutation=direct,
                 compilation=direct_compilation,
                 recovery_mode="all_edits_compiled",
+                target_resolution_evidence=target_resolution_evidence,
             )
 
     parent_compilation = compile_geometry_program(program)
@@ -536,6 +551,7 @@ def apply_geometry_edits_compiler_safe(
             ),
             compilation=parent_compilation,
             recovery_mode="unavailable",
+            target_resolution_evidence=target_resolution_evidence,
         )
 
     groups = _atomic_edit_groups(normalized)
@@ -591,6 +607,7 @@ def apply_geometry_edits_compiler_safe(
             compilation=direct_compilation,
             recovery_mode="recovery_exhausted",
             rejected_groups=tuple(rejected),
+            target_resolution_evidence=target_resolution_evidence,
         )
     return CompilerSafeMutationResult(
         mutation=MutationResult(
@@ -602,7 +619,164 @@ def apply_geometry_edits_compiler_safe(
         compilation=current_compilation,
         recovery_mode="atomic_group_recovery",
         rejected_groups=tuple(rejected),
+        target_resolution_evidence=target_resolution_evidence,
     )
+
+
+def _resolve_semantic_projection_root_references(
+    program: GeometryProgram,
+    edits: tuple[GeometryEdit, ...],
+) -> tuple[
+    tuple[GeometryEdit, ...],
+    tuple[dict[str, Any], ...],
+    tuple[GeometryIssue, ...],
+]:
+    """Keep new critic roots above the unique final semantic identity wrapper.
+
+    Final semantic projection binds an identity Matrix4 above the authored
+    geometry root. A critic still sees and may name that authored root. Using
+    it as a new node input and then selecting the new node as root would detach
+    the certified source-role identity. Resolve only ancestry references; a
+    parameter edit on the authored node continues to target authored geometry.
+    """
+
+    node_map = program.node_map
+    reachable: set[str] = set()
+    frontier = [program.root_id]
+    while frontier:
+        node_id = frontier.pop()
+        if node_id in reachable:
+            continue
+        reachable.add(node_id)
+        node = node_map.get(node_id)
+        if node is not None:
+            frontier.extend(node.inputs)
+
+    wrappers = tuple(
+        node
+        for node in program.nodes
+        if node.id in reachable
+        and len(node.inputs) == 1
+        and (
+            node.semantic_role == "source_role_scaffold_origin"
+            or (
+                node.id.startswith("semantic_projection:")
+                and "source_role_origin" in node.id
+            )
+        )
+        and str((node.provenance or {}).get("source") or "")
+        == "compiled_source_role_scaffold_binding"
+        and (node.provenance or {}).get("reachable_final_root_required") is True
+    )
+    wrappers_by_authored_root: dict[str, list[GeometryNode]] = {}
+    for wrapper in wrappers:
+        wrappers_by_authored_root.setdefault(wrapper.inputs[0], []).append(wrapper)
+
+    evidence: list[dict[str, Any]] = []
+    issues: list[GeometryIssue] = []
+
+    def resolve_reference(
+        node_id: str,
+        *,
+        operation: str,
+        reference_field: str,
+    ) -> str:
+        candidates = tuple(wrappers_by_authored_root.get(node_id) or ())
+        resolution_basis = (
+            "unique_reachable_source_role_identity_wrapper_for_authored_root"
+        )
+        semantic_reference = (
+            node_id.startswith("semantic_projection:")
+            and "source_role_origin" in node_id
+        )
+        if not candidates and semantic_reference and node_id not in reachable:
+            candidates = wrappers
+            resolution_basis = (
+                "unique_reachable_source_role_identity_wrapper_for_stale_semantic_id"
+            )
+        if len(candidates) == 1:
+            resolved = candidates[0]
+            evidence.append({
+                "schema_version": "arr.maas.semantic_projection_target_resolution.v1",
+                "status": "resolved",
+                "operation": operation,
+                "reference_field": reference_field,
+                "original_node_id": node_id,
+                "resolved_node_id": resolved.id,
+                "candidate_node_ids": [resolved.id],
+                "program_root_id": program.root_id,
+                "program_hash": program.program_hash(),
+                "resolution_basis": resolution_basis,
+            })
+            return resolved.id
+        if len(candidates) > 1:
+            candidate_ids = sorted(node.id for node in candidates)
+            evidence.append({
+                "schema_version": "arr.maas.semantic_projection_target_resolution.v1",
+                "status": "rejected_ambiguous",
+                "operation": operation,
+                "reference_field": reference_field,
+                "original_node_id": node_id,
+                "resolved_node_id": "",
+                "candidate_node_ids": candidate_ids,
+                "program_root_id": program.root_id,
+                "program_hash": program.program_hash(),
+                "resolution_basis": (
+                    "multiple_reachable_source_role_identity_wrappers_for_authored_root"
+                ),
+            })
+            issues.append(GeometryIssue(
+                "semantic_projection_target_ambiguous",
+                f"authored root {node_id} maps to multiple reachable semantic identities: {candidate_ids}",
+                node_id,
+            ))
+        elif semantic_reference and node_id not in reachable:
+            evidence.append({
+                "schema_version": "arr.maas.semantic_projection_target_resolution.v1",
+                "status": "rejected_missing",
+                "operation": operation,
+                "reference_field": reference_field,
+                "original_node_id": node_id,
+                "resolved_node_id": "",
+                "candidate_node_ids": [],
+                "program_root_id": program.root_id,
+                "program_hash": program.program_hash(),
+                "resolution_basis": "no_reachable_source_role_identity_wrapper",
+            })
+            issues.append(GeometryIssue(
+                "semantic_projection_target_missing",
+                f"semantic projection reference {node_id} has no reachable canonical identity",
+                node_id,
+            ))
+        return node_id
+
+    resolved_edits: list[GeometryEdit] = []
+    for edit in edits:
+        resolved = edit
+        if edit.operation == "add_node" and edit.input_ids:
+            resolved = replace(
+                resolved,
+                input_ids=tuple(
+                    resolve_reference(
+                        node_id,
+                        operation=edit.operation,
+                        reference_field="input_ids",
+                    )
+                    for node_id in edit.input_ids
+                ),
+            )
+        elif edit.operation == "rewire_input" and edit.input_node_id:
+            resolved = replace(
+                resolved,
+                input_node_id=resolve_reference(
+                    edit.input_node_id,
+                    operation=edit.operation,
+                    reference_field="input_node_id",
+                ),
+            )
+        resolved_edits.append(resolved)
+
+    return tuple(resolved_edits), tuple(evidence), tuple(issues)
 
 
 def _atomic_edit_groups(edits: tuple[GeometryEdit, ...]) -> tuple[tuple[str, tuple[GeometryEdit, ...]], ...]:

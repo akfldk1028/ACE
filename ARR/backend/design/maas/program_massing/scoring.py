@@ -8,6 +8,17 @@ from .profiles import resolve_program_profile
 from .spatial_evaluation import attach_program_spatial_evidence
 
 
+def _component_failure_reasons(payload: dict[str, Any], fallback: str) -> list[Any]:
+    for key in ("failure_reasons", "failures"):
+        reasons = payload.get(key)
+        if isinstance(reasons, (list, tuple)) and reasons:
+            return list(reasons)
+    reason = payload.get("failure_reason")
+    if reason not in (None, ""):
+        return [reason]
+    return [fallback]
+
+
 def attach_program_massing_evidence(feature: dict[str, Any], *, building_type: str) -> dict[str, Any]:
     props = feature.setdefault("properties", {})
     profile = resolve_program_profile(building_type)
@@ -43,6 +54,24 @@ def attach_program_massing_evidence(feature: dict[str, Any], *, building_type: s
     )
     spatial_fit = float(spatial.get("architectural_score") or 0.0)
     score = volume_fit * 0.14 + floor_fit * 0.14 + family_fit * 0.18 + coherence_fit * 0.16 + spatial_fit * 0.38
+    volume_hard_pass = volume_fit >= 0.44
+    floor_hard_pass = floor_fit >= 0.40
+    coherence_hard_pass = bool(coherence.get("hard_pass", coherence_fit >= 0.70))
+    spatial_hard_pass = bool(spatial.get("hard_pass"))
+    component_failure_reasons = {
+        "volume": [] if volume_hard_pass else ["volume_fit_below_hard_pass_threshold"],
+        "floor": [] if floor_hard_pass else ["floor_fit_below_hard_pass_threshold"],
+        "coherence": (
+            []
+            if coherence_hard_pass
+            else _component_failure_reasons(coherence, "coherence_hard_pass_false")
+        ),
+        "spatial": (
+            []
+            if spatial_hard_pass
+            else _component_failure_reasons(spatial, "spatial_hard_pass_false")
+        ),
+    }
     evidence = {
         "schema_version": "arr.maas.program_massing_evidence.v1",
         "profile_id": profile["id"],
@@ -58,11 +87,21 @@ def attach_program_massing_evidence(feature: dict[str, Any], *, building_type: s
         "coherence_fit": round(coherence_fit, 3),
         "spatial_fit": round(spatial_fit, 3),
         "program_fit_score": round(max(0.0, min(1.0, score)), 3),
+        "volume_hard_pass": volume_hard_pass,
+        "floor_hard_pass": floor_hard_pass,
+        "coherence_hard_pass": coherence_hard_pass,
+        "spatial_hard_pass": spatial_hard_pass,
+        "component_failure_reasons": component_failure_reasons,
+        "failure_reasons": [
+            reason
+            for component in ("volume", "floor", "coherence", "spatial")
+            for reason in component_failure_reasons[component]
+        ],
         "hard_pass": bool(
-            volume_fit >= 0.44
-            and floor_fit >= 0.40
-            and bool(coherence.get("hard_pass", coherence_fit >= 0.70))
-            and bool(spatial.get("hard_pass"))
+            volume_hard_pass
+            and floor_hard_pass
+            and coherence_hard_pass
+            and spatial_hard_pass
         ),
     }
     props["program_massing_evidence"] = evidence

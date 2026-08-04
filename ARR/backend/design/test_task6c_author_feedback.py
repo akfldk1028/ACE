@@ -11,6 +11,7 @@ from shapely.geometry import box
 from design.maas.book_language import candidate_generation
 from design.maas.book_language.candidate_analysis import _Candidate
 from design.maas.book_language.portfolio_benchmark import (
+    _bounded_replenishment_causal_feedback,
     _deficit_directed_replenishment_inputs,
 )
 from design.maas.book_language import portfolio_replenishment
@@ -692,6 +693,75 @@ class Task6CBaseCritiqueTest(SimpleTestCase):
         self.assertEqual(
             request["base_book_vlm_replenishment_feedback"], feedback
         )
+
+    def test_cycle_failure_becomes_next_cycle_coordinate_free_author_feedback(self):
+        cycle_n_feedback = _bounded_replenishment_causal_feedback(
+            [],
+            exact_repair_evidence={"failure_records": [{
+                "stage": "repaired_program_compile",
+                "status": "compile_failed",
+                "source_sequence": "cycle-n-source",
+                "geometry_family": "llm_twist_carve_void",
+                "issues": [{"code": "unsupported_edit", "coordinates": [1, 2]}],
+            }]},
+            stage_outcomes=[
+                {
+                    "stage": "program_review",
+                    "kind": "failed",
+                    "reason": "program_fit",
+                    "evidence": {
+                        "program_hash": "cycle-n-program",
+                        "site_boundary_geometry": {
+                            "type": "Polygon",
+                            "coordinates": [[[0, 0], [1, 0], [0, 0]]],
+                        },
+                    },
+                },
+                {
+                    "stage": "clean_mass",
+                    "kind": "passed",
+                    "reason": "",
+                    "evidence": {"hard_pass": True},
+                },
+            ],
+            final_vlm_gate={"audit_records": [{
+                "hard_pass": False,
+                "failures": ["final_book_weak_primary_mass"],
+                "source_sequence": "cycle-n-source",
+                "critic_actions": ["strengthen_primary_mass"],
+                "geometry_edits": [{"operation": "scale", "factor": 1.1}],
+                "vlm_image_inputs": {"image_url": "forbidden"},
+            }]},
+        )
+
+        cycle_n_plus_1 = _deficit_directed_replenishment_inputs(
+            [{"source_seed": "seed", "candidate_count": 2}],
+            legal_fit_repair_feedback=[],
+            capacity_authoring_deficits=[],
+            family_supply_deficits={},
+            progressive_target=3,
+            authored_visual_authority_replenishment_feedback=cycle_n_feedback,
+            selected_count=0,
+            selected_scope_count=0,
+            target_count=3,
+            required_scope_count=3,
+            exact_compile_remaining=3,
+            cycle_index=2,
+            cycle_budget=2,
+        )
+        feedback = cycle_n_plus_1["synthesis_requests"][0][
+            "authored_visual_authority_replenishment_feedback"
+        ]
+        serialized = json.dumps(feedback, sort_keys=True)
+
+        self.assertIn("cycle-n-source", serialized)
+        self.assertIn("program_fit", serialized)
+        self.assertIn("strengthen_primary_mass", serialized)
+        self.assertIn('"operation": "scale"', serialized)
+        self.assertNotIn("coordinates", serialized)
+        self.assertNotIn("site_boundary_geometry", serialized)
+        self.assertNotIn("vlm_image_inputs", serialized)
+        self.assertNotIn('"kind": "passed"', serialized)
 
 
 class Task6CTruthfulEvidenceTest(SimpleTestCase):

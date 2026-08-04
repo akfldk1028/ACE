@@ -398,6 +398,143 @@ from .portfolio_replenishment import (
 )
 
 
+def _bounded_replenishment_causal_feedback(
+    existing_feedback: list[dict[str, Any]] | None,
+    *,
+    exact_repair_evidence: dict[str, Any] | None = None,
+    stage_outcomes: list[dict[str, Any]] | None = None,
+    final_vlm_gate: dict[str, Any] | None = None,
+    limit: int = 12,
+) -> list[dict[str, Any]]:
+    """Merge coordinate-free causal failures into the existing author channel."""
+
+    import json
+
+    blocked_keys = {
+        "coordinate",
+        "coordinates",
+        "vertices",
+        "vertices_m",
+        "triangles",
+        "surfaces",
+        "surface_payload",
+        "mesh_payload",
+        "image",
+        "image_url",
+        "vlm_image_inputs",
+        "site_boundary_geometry",
+        "legal_geometry_utm",
+        "occupied_geometry_utm",
+        "final_authored_surface_payload",
+        "typed_surface_payload",
+    }
+
+    def bounded(value: Any, depth: int = 0) -> Any:
+        if depth > 4:
+            return None
+        if isinstance(value, str):
+            return value[:500]
+        if isinstance(value, (bool, int, float)) or value is None:
+            return value
+        if isinstance(value, (list, tuple)):
+            return [
+                converted
+                for item in value[:12]
+                if (converted := bounded(item, depth + 1)) is not None
+            ]
+        if isinstance(value, dict):
+            if "coordinates" in value and str(value.get("type") or ""):
+                return None
+            result: dict[str, Any] = {}
+            for key, item in list(value.items())[:32]:
+                safe_key = str(key)[:100]
+                if safe_key.lower() in blocked_keys:
+                    continue
+                converted = bounded(item, depth + 1)
+                if converted is not None:
+                    result[safe_key] = converted
+            return result
+        return None
+
+    candidates: list[dict[str, Any]] = [
+        safe
+        for item in existing_feedback or ()
+        if isinstance(item, dict)
+        and isinstance((safe := bounded(item)), dict)
+    ]
+    repair = exact_repair_evidence if isinstance(exact_repair_evidence, dict) else {}
+    for failure in repair.get("failure_records") or ():
+        if not isinstance(failure, dict):
+            continue
+        safe_failure = bounded(failure)
+        if not isinstance(safe_failure, dict):
+            continue
+        candidates.append({
+            "schema_version": "arr.maas.replenishment_causal_feedback.v1",
+            "feedback_source": "exact_post_book_typed_repair",
+            "stage": str(failure.get("stage") or "typed_repair")[:120],
+            "reason": str(
+                failure.get("status")
+                or failure.get("failure_reason")
+                or "typed_repair_failed"
+            )[:160],
+            "program_hash": str(failure.get("program_hash") or "")[:160],
+            "source_sequence": str(failure.get("source_sequence") or "")[:200],
+            "geometry_family": str(failure.get("geometry_family") or "")[:120],
+            "evidence": safe_failure,
+        })
+    for outcome in stage_outcomes or ():
+        if not isinstance(outcome, dict) or outcome.get("kind") != "failed":
+            continue
+        safe_outcome = bounded(outcome)
+        if not isinstance(safe_outcome, dict):
+            continue
+        evidence = outcome.get("evidence") if isinstance(outcome.get("evidence"), dict) else {}
+        candidates.append({
+            "schema_version": "arr.maas.replenishment_causal_feedback.v1",
+            "feedback_source": "stage_outcome",
+            "stage": str(outcome.get("stage") or "unknown_stage")[:120],
+            "reason": str(outcome.get("reason") or "stage_failed")[:160],
+            "program_hash": str(evidence.get("program_hash") or "")[:160],
+            "geometry_family": str(evidence.get("geometry_family") or "")[:120],
+            "book_scope": str(evidence.get("book_scope") or "")[:40],
+            "evidence": safe_outcome,
+        })
+    gate = final_vlm_gate if isinstance(final_vlm_gate, dict) else {}
+    for audit in gate.get("audit_records") or ():
+        if not isinstance(audit, dict) or audit.get("hard_pass") is True:
+            continue
+        safe_audit = bounded(audit)
+        if not isinstance(safe_audit, dict):
+            continue
+        failures = [str(value) for value in audit.get("failures") or () if str(value)]
+        candidates.append({
+            "schema_version": "arr.maas.replenishment_causal_feedback.v1",
+            "feedback_source": "final_book_vlm",
+            "stage": "final_book_vlm",
+            "reason": (failures[0] if failures else "final_book_vlm_rejected")[:160],
+            "program_hash": str(audit.get("program_hash") or "")[:160],
+            "source_sequence": str(audit.get("source_sequence") or "")[:200],
+            "geometry_family": str(audit.get("geometry_family") or "")[:120],
+            "book_scope": str(audit.get("book_scope") or "")[:40],
+            "critic_actions": bounded(list(audit.get("critic_actions") or ())),
+            "geometry_edits": bounded(list(audit.get("geometry_edits") or ())),
+            "evidence": safe_audit,
+        })
+
+    deduplicated: dict[str, dict[str, Any]] = {}
+    for candidate in candidates:
+        identity = json.dumps(
+            candidate,
+            ensure_ascii=True,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        deduplicated[identity] = candidate
+    bounded_limit = max(0, min(24, int(limit)))
+    return deepcopy(list(deduplicated.values())[-bounded_limit:])
+
+
 def _deficit_directed_replenishment_inputs(
     synthesis_requests: list[dict[str, Any]],
     *,
@@ -2802,9 +2939,21 @@ def run_book_program_portfolios(
                 )
                 else []
             )
-            counts["authored_visual_authority_replenishment_feedback"] = deepcopy(
-                authored_visual_authority_replenishment_feedback
-            )
+            initial_final_vlm_feedback = {
+                "audit_records": [
+                    *list((counts.get("initial_final_book_vlm_gate") or {}).get(
+                        "audit_records"
+                    ) or ()),
+                    *list((final_book_vlm_gate or {}).get("audit_records") or ()),
+                ]
+            }
+            prior_cycle_causal_evidence = {
+                "exact_post_book_typed_repair": deepcopy(
+                    counts.get("exact_post_book_typed_repair") or {}
+                ),
+                "stage_outcomes": deepcopy(counts.get("stage_outcomes") or []),
+                "final_book_vlm_gate": initial_final_vlm_feedback,
+            }
             excluded_program_hashes = {
                 str(deficit.get("rejected_parent_program_hash") or "")
                 for deficit in capacity_authoring_deficits
@@ -2868,6 +3017,23 @@ def run_book_program_portfolios(
                         }
                     break
                 previous_pool_count = len(selection_pool)
+                authored_visual_authority_replenishment_feedback = (
+                    _bounded_replenishment_causal_feedback(
+                        authored_visual_authority_replenishment_feedback,
+                        exact_repair_evidence=prior_cycle_causal_evidence.get(
+                            "exact_post_book_typed_repair"
+                        ),
+                        stage_outcomes=prior_cycle_causal_evidence.get(
+                            "stage_outcomes"
+                        ),
+                        final_vlm_gate=prior_cycle_causal_evidence.get(
+                            "final_book_vlm_gate"
+                        ),
+                    )
+                )
+                counts["authored_visual_authority_replenishment_feedback"] = deepcopy(
+                    authored_visual_authority_replenishment_feedback
+                )
                 replenishment_inputs = _deficit_directed_replenishment_inputs(
                     synthesis_requests,
                     legal_fit_repair_feedback=legal_fit_repair_feedback,
@@ -2966,6 +3132,17 @@ def run_book_program_portfolios(
                 legal_fit_repair_feedback = list(
                     cycle.evidence.get("legal_fit_deficits") or ()
                 )[-12:]
+                prior_cycle_causal_evidence = {
+                    "exact_post_book_typed_repair": deepcopy(
+                        cycle.evidence.get("exact_post_book_typed_repair") or {}
+                    ),
+                    "stage_outcomes": deepcopy(
+                        cycle.evidence.get("stage_outcomes") or []
+                    ),
+                    "final_book_vlm_gate": deepcopy(
+                        cycle.evidence.get("final_book_vlm_gate") or {}
+                    ),
+                }
                 cycle_exact_compile_usage = int(
                     cycle.evidence.get("exact_compile_invocation_count") or 0
                 )

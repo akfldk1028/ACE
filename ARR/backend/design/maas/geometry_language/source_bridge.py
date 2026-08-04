@@ -2497,9 +2497,27 @@ def replace_source_dominant_with_geometry_program(
     upper_containment_host: Polygon | None = None,
     upper_fit_strength: float = 0.0,
     minimum_host_plan_coverage: float = 0.0,
+    failure_sink: list[dict[str, Any]] | None = None,
 ) -> SourceMass | None:
     """Compose a recursive primary solid with an existing program role graph."""
+    def fail(reason: str, **evidence: Any) -> None:
+        if failure_sink is None:
+            return
+        failure_sink.append({
+            "schema_version": "arr.maas.source_dominant_replacement_failure.v1",
+            "stage": "replace_source_dominant_with_geometry_program",
+            "reason": reason,
+            "evidence": deepcopy(evidence),
+        })
+
     if not source.volumes:
+        fail(
+            "source_has_no_volumes",
+            source_name=str(source.name),
+            source_volume_count=0,
+            program_name=str(program.name),
+            program_hash=program.program_hash(),
+        )
         return None
     dominant = max(source.volumes, key=lambda volume: volume.footprint.area * (volume.top_fraction - volume.bottom_fraction))
     subordinate = tuple(volume for volume in source.volumes if volume is not dominant)
@@ -2537,6 +2555,11 @@ def replace_source_dominant_with_geometry_program(
             float(recursive_host.area) * coverage_floor,
         ),
     )
+    replacement_compilation = _compile_geometry_program_cached(program)
+    replacement_gate_issues = compilation_gate(
+        replacement_compilation,
+        GeometryGatePolicy(maximum_components=1),
+    )
     recursive = compile_geometry_program_to_source_mass(
         program,
         recursive_host,
@@ -2553,6 +2576,46 @@ def replace_source_dominant_with_geometry_program(
         max_volume_bands=max(1, min(3, max_total_volumes - len(physical_subordinate))),
     )
     if recursive is None:
+        fail(
+            "recursive_geometry_materialization_failed",
+            source_name=str(source.name),
+            program_name=str(program.name),
+            program_hash=program.program_hash(),
+            compilation_status=str(replacement_compilation.status),
+            compilation_geometry_hash=str(
+                replacement_compilation.geometry_hash or ""
+            ),
+            compilation_issues=[
+                issue.to_dict() for issue in replacement_compilation.issues
+            ],
+            compilation_gate_issues=[
+                issue.to_dict() for issue in replacement_gate_issues
+            ],
+            compilation_metrics=deepcopy(replacement_compilation.metrics or {}),
+            recursive_host_geom_type=str(recursive_host.geom_type),
+            recursive_host_valid=bool(recursive_host.is_valid),
+            recursive_host_empty=bool(recursive_host.is_empty),
+            recursive_host_area_m2=float(recursive_host.area),
+            upper_host_requested=upper_containment_host is not None,
+            upper_host_repaired=upper_dominant_host is not None,
+            upper_host_area_m2=(
+                float(upper_dominant_host.area)
+                if upper_dominant_host is not None
+                else None
+            ),
+            upper_fit_strength=float(upper_fit_strength),
+            target_plan_area_m2=float(program_target_plan_area),
+            minimum_plan_area_m2=(
+                float(recursive_host.area) * coverage_floor
+                if coverage_floor > 1e-9
+                else None
+            ),
+            maximum_components=1,
+            maximum_volume_bands=max(
+                1,
+                min(3, max_total_volumes - len(physical_subordinate)),
+            ),
+        )
         return None
     program_space_zones = _normalized_program_space_zones(
         program_zone_volumes,
@@ -2566,6 +2629,17 @@ def replace_source_dominant_with_geometry_program(
     )
     volumes = tuple((*recursive.volumes, *physical_subordinate))
     if len(volumes) > max_total_volumes:
+        fail(
+            "total_volume_budget_exceeded",
+            source_name=str(source.name),
+            program_name=str(program.name),
+            program_hash=program.program_hash(),
+            recursive_volume_count=len(recursive.volumes),
+            physical_subordinate_volume_count=len(physical_subordinate),
+            total_volume_count=len(volumes),
+            max_total_volumes=int(max_total_volumes),
+            volume_roles=[str(volume.role) for volume in volumes],
+        )
         return None
     dominant_surface_roles = {
         dominant.role,
@@ -2578,6 +2652,18 @@ def replace_source_dominant_with_geometry_program(
     union = unary_union([volume.footprint for volume in volumes])
     footprint = repair_source_polygon(union, minimum_area=1.0)
     if footprint is None:
+        fail(
+            "composed_footprint_invalid",
+            source_name=str(source.name),
+            program_name=str(program.name),
+            program_hash=program.program_hash(),
+            aggregate_geom_type=str(union.geom_type),
+            aggregate_valid=bool(union.is_valid),
+            aggregate_empty=bool(union.is_empty),
+            aggregate_area_m2=float(union.area),
+            component_count=len(volumes),
+            minimum_area_m2=1.0,
+        )
         return None
     recursive_surfaces = _rebase_surfaces(
         recursive.surfaces,

@@ -8154,6 +8154,138 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             {issue["code"] for issue in rejected["public_court"]["issues"]},
         )
 
+    def test_compiler_safe_mutation_resolves_authored_root_through_semantic_projection(self):
+        from design.maas.geometry_language import GeometryNode
+
+        program = parse_geometry_dsl(
+            "mass base = box(10, 8, 6)\n"
+            "mass result = notch(base, side='west', ratio=0.2)"
+        )
+        semantic_root = GeometryNode(
+            id="semantic_projection:neighborhood_living:source_role_origin",
+            kind="transform",
+            operator="matrix4",
+            inputs=("result",),
+            parameters={
+                "matrix4": [
+                    [1.0, 0.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0, 0.0],
+                    [0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ]
+            },
+            semantic_role="source_role_scaffold_origin",
+            provenance={
+                "source": "compiled_source_role_scaffold_binding",
+                "program_id": "neighborhood_living",
+                "geometry_effect": "identity",
+                "reachable_final_root_required": True,
+            },
+        )
+        program = program.with_nodes(
+            (*program.nodes, semantic_root),
+            root_id=semantic_root.id,
+        )
+
+        recovered = apply_geometry_edits_compiler_safe(program, [
+            {
+                "operation": "add_node",
+                "node_id": "new_courtyard",
+                "node_kind": "macro",
+                "operator": "courtyard",
+                "input_ids": ["result"],
+                "semantic_role": "void",
+            },
+            {
+                "operation": "set_parameter",
+                "target_node_id": "new_courtyard",
+                "parameter_name": "margin_ratio",
+                "numeric_value": 0.2,
+            },
+            {
+                "operation": "set_parameter",
+                "target_node_id": "new_courtyard",
+                "parameter_name": "open_side",
+                "string_value": "west",
+            },
+            {
+                "operation": "set_root",
+                "target_node_id": "new_courtyard",
+            },
+        ])
+
+        self.assertEqual(recovered.mutation.status, "revised")
+        self.assertEqual(recovered.compilation.status, "compiled")
+        self.assertEqual(
+            recovered.mutation.program.node_map["new_courtyard"].inputs,
+            (semantic_root.id,),
+        )
+        self.assertEqual(recovered.mutation.program.root_id, "new_courtyard")
+        self.assertEqual(len(recovered.target_resolution_evidence), 1)
+        resolution = recovered.target_resolution_evidence[0]
+        self.assertEqual(resolution["status"], "resolved")
+        self.assertEqual(resolution["original_node_id"], "result")
+        self.assertEqual(resolution["resolved_node_id"], semantic_root.id)
+        self.assertEqual(resolution["reference_field"], "input_ids")
+
+    def test_compiler_safe_mutation_rejects_ambiguous_semantic_projection_resolution(self):
+        from design.maas.geometry_language import GeometryNode
+
+        program = parse_geometry_dsl("mass result = box(10, 8, 6)")
+        wrappers = tuple(
+            GeometryNode(
+                id=f"semantic_projection:neighborhood_living:source_role_origin:{index}",
+                kind="transform",
+                operator="matrix4",
+                inputs=("result",),
+                parameters={
+                    "matrix4": [
+                        [1.0, 0.0, 0.0, 0.0],
+                        [0.0, 1.0, 0.0, 0.0],
+                        [0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 0.0, 1.0],
+                    ]
+                },
+                semantic_role="source_role_scaffold_origin",
+                provenance={
+                    "source": "compiled_source_role_scaffold_binding",
+                    "reachable_final_root_required": True,
+                },
+            )
+            for index in (1, 2)
+        )
+        combined = GeometryNode(
+            id="semantic_projection_root_pair",
+            kind="boolean",
+            operator="union",
+            inputs=tuple(node.id for node in wrappers),
+        )
+        program = program.with_nodes(
+            (*program.nodes, *wrappers, combined),
+            root_id=combined.id,
+        )
+
+        rejected = apply_geometry_edits_compiler_safe(program, [{
+            "operation": "add_node",
+            "node_id": "new_courtyard",
+            "node_kind": "macro",
+            "operator": "courtyard",
+            "input_ids": ["result"],
+        }])
+
+        self.assertEqual(rejected.mutation.status, "target_resolution_failed")
+        self.assertEqual(rejected.recovery_mode, "target_resolution_rejected")
+        self.assertIn(
+            "semantic_projection_target_ambiguous",
+            {issue.code for issue in rejected.mutation.issues},
+        )
+        evidence = rejected.target_resolution_evidence[0]
+        self.assertEqual(evidence["status"], "rejected_ambiguous")
+        self.assertEqual(
+            evidence["candidate_node_ids"],
+            sorted(node.id for node in wrappers),
+        )
+
     def test_typed_critic_rejects_compiler_noop_parameter_and_stale_replacement_parameters(self):
         program = parse_geometry_dsl(
             "mass base = box(10, 8, 6)\n"

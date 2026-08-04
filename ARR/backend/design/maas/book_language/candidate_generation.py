@@ -463,6 +463,34 @@ def _program_review_authority(
     }
 
 
+def _empty_scope_stage_counts() -> dict[str, int]:
+    """Return the authoritative per-scope generation counter schema."""
+
+    return {
+        "evaluated": 0,
+        "compiled": 0,
+        "projection_materialized": 0,
+        "projection_failed": 0,
+        "clean": 0,
+        "program_passed": 0,
+        "program_development_review_eligible": 0,
+    }
+
+
+def _record_program_scope_outcome(
+    scope_counts: dict[str, int],
+    program_review_authority: dict[str, Any],
+) -> int:
+    """Record one canonical pass or development-only program outcome."""
+
+    if program_review_authority.get("selection_eligible") is True:
+        scope_counts["program_passed"] += 1
+        return 1
+    if program_review_authority.get("development_review_eligible") is True:
+        scope_counts["program_development_review_eligible"] += 1
+    return 0
+
+
 def _eligible_smoke_floor_candidate(
     source: Any,
     shared_floor_contract: dict[str, Any] | None,
@@ -3284,14 +3312,7 @@ def _program_pool_single_phase(
     accepted_archive = StreamingMapElitesArchive()
     evaluated = compiled = clean = program_passed = 0
     scope_stage_counts = {
-        label: {
-            "evaluated": 0,
-            "compiled": 0,
-            "projection_materialized": 0,
-            "projection_failed": 0,
-            "clean": 0,
-            "program_passed": 0,
-        }
+        label: _empty_scope_stage_counts()
         for label, _fraction in BASE_VOLUME_FRACTIONS
     }
     gate_names = ("role_coverage", "dominant_ratio", "site_coverage", "hierarchy", "coherence", "program_form")
@@ -4845,9 +4866,12 @@ def _program_pool_single_phase(
                             deepcopy(program_form_gate),
                         )
                     continue
-                if program_review_authority["selection_eligible"]:
-                    program_passed += 1
-                    scope_counts["program_passed"] += 1
+                program_passed_increment = _record_program_scope_outcome(
+                    scope_counts,
+                    program_review_authority,
+                )
+                if program_passed_increment:
+                    program_passed += program_passed_increment
                     capacity_stage_counts[
                         f"alternative:{capacity_alternative['alternative_id']}:program_passed"
                     ] += 1
@@ -4855,8 +4879,7 @@ def _program_pool_single_phase(
                         geometry_stages["program_hard_passed"] += 1
                     if llm_authored_seed:
                         llm_authored_stage_counts["program_hard_passed"] += 1
-                else:
-                    scope_counts["program_development_review_eligible"] += 1
+                elif program_review_authority["development_review_eligible"]:
                     capacity_stage_counts[
                         "program_development_review_eligible"
                     ] += 1

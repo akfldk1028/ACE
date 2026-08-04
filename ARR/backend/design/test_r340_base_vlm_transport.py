@@ -218,6 +218,32 @@ class R340BaseVlmTransportTests(TestCase):
 
         self.assertEqual(routed, [passing_candidate])
 
+    def test_development_review_scope_count_does_not_increment_program_passed(self):
+        scope_counts = candidate_generation._empty_scope_stage_counts()
+        authority = candidate_generation._program_review_authority(
+            archived_record={"geometry_hash": "legal-development-candidate"},
+            program_gate_result=candidate_generation._program_gate_result(
+                program_evidence={"hard_pass": False},
+                program_form_gate={"hard_pass": True, "failures": []},
+                gate_pass={"coherence": False, "program_form": True},
+            ),
+            coherence_evidence={"hard_pass": False},
+        )
+
+        program_passed_increment = (
+            candidate_generation._record_program_scope_outcome(
+                scope_counts,
+                authority,
+            )
+        )
+
+        self.assertEqual(program_passed_increment, 0)
+        self.assertEqual(scope_counts["program_passed"], 0)
+        self.assertEqual(
+            scope_counts["program_development_review_eligible"],
+            1,
+        )
+
     def test_exact_shortlist_does_not_duplicate_selected_base(self):
         base, descendant = self._principles()
         expand = getattr(

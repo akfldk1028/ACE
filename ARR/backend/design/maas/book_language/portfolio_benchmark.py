@@ -375,7 +375,9 @@ def _selected_semantic_projection_hard_gate(
         and isinstance(feature.get("properties"), dict)
         else {}
     )
-    gate = properties.get("semantic_projection_hard_gate")
+    artifact = properties.get("geometry_artifact")
+    artifact = artifact if isinstance(artifact, dict) else {}
+    gate = artifact.get("semanticProjectionAudit")
     if not isinstance(gate, dict) or not gate:
         raise SelectedSemanticProjectionHardGateError({
             "schema_version": "arr.maas.selected_semantic_projection_failure.v1",

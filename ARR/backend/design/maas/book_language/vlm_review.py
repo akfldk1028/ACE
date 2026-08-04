@@ -32,6 +32,9 @@ from design.maas.geometry_language.projected_visual_contract import (
     semantic_audit_payload_hash,
 )
 from design.maas.program_massing import program_reference_contract
+from design.maas.program_massing.semantic_carriers import (
+    audit_source_semantic_projection,
+)
 from design.maas.program_massing.scoring import attach_program_massing_evidence
 from design.maas.program_massing.search import (
     materialize_source_feature_surfaces,
@@ -667,11 +670,78 @@ def _final_book_vlm_recovery_workers() -> int:
         return 1
 
 
+class FinalSemanticProjectionAuthorityError(ValueError):
+    """Typed refusal to certify a stale or invalid semantic projection."""
+
+    def __init__(self, evidence: dict[str, Any]) -> None:
+        self.evidence = dict(evidence)
+        super().__init__(
+            "final_semantic_projection_authority_invalid: "
+            + str(self.evidence.get("reason") or "unknown")
+        )
+
+
+def _repaired_source_semantic_projection_gate(
+    candidate: _Candidate,
+    downstream_gate: dict[str, Any],
+) -> dict[str, Any]:
+    downstream_failures = {
+        str(reason)
+        for reason in downstream_gate.get("failures") or ()
+        if str(reason)
+    }
+    if (
+        downstream_gate.get("hard_pass") is not True
+        and downstream_failures != {"capacity_measurement_hash_mismatch"}
+    ):
+        raise FinalSemanticProjectionAuthorityError({
+            "reason": "downstream_semantic_projection_hard_gate_failed",
+            "failures": sorted(downstream_failures),
+        })
+    evidence = candidate.source.metadata.get(
+        "program_semantic_carrier_evidence"
+    )
+    if not isinstance(evidence, dict) or evidence.get("hard_pass") is not True:
+        raise FinalSemanticProjectionAuthorityError({
+            "reason": "source_semantic_projection_certificate_missing_or_failed",
+            "failures": list(
+                evidence.get("failures") or ()
+                if isinstance(evidence, dict)
+                else ()
+            ),
+        })
+    expected_context = {
+        key: evidence.get(key)
+        for key in (
+            "floor_capacity_plan_hash",
+            "pnu",
+            "site_context_hash",
+            "capacity_alternative_id",
+            "achieved_capacity_band",
+            "capacity_measurement_hash",
+        )
+    }
+    audit = audit_source_semantic_projection(
+        candidate.source,
+        building_type=str(evidence.get("program_id") or ""),
+        expected_context=expected_context,
+    )
+    if audit.get("hard_pass") is not True:
+        raise FinalSemanticProjectionAuthorityError({
+            "reason": "source_semantic_projection_certificate_revalidation_failed",
+            "failures": list(audit.get("failures") or ()),
+        })
+    return deepcopy(audit)
+
+
 def _bind_final_visual_authority_for_review(
     candidate: _Candidate,
     semantic_projection_hard_gate: dict[str, Any],
 ) -> None:
-    audit = deepcopy(semantic_projection_hard_gate)
+    audit = _repaired_source_semantic_projection_gate(
+        candidate,
+        semantic_projection_hard_gate,
+    )
     certified = CertifiedMassArtifact.issue(
         candidate.source,
         semantic_audit=audit,

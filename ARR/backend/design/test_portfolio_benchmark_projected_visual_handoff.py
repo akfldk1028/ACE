@@ -435,7 +435,9 @@ class ProjectedVisualHandoffTest(SimpleTestCase):
             "type": "Feature",
             "properties": {
                 "variant_id": "r63-repaired-selected",
-                "semantic_projection_hard_gate": deepcopy(gate),
+                "geometry_artifact": {
+                    "semanticProjectionAudit": deepcopy(gate),
+                },
             },
         }
 
@@ -461,10 +463,12 @@ class ProjectedVisualHandoffTest(SimpleTestCase):
                     "type": "Feature",
                     "properties": {
                         "variant_id": "failed",
-                        "semantic_projection_hard_gate": {
-                            **gate,
-                            "hard_pass": False,
-                            "failures": ["statutory_context_mismatch"],
+                        "geometry_artifact": {
+                            "semanticProjectionAudit": {
+                                **gate,
+                                "hard_pass": False,
+                                "failures": ["statutory_context_mismatch"],
+                            },
                         },
                     },
                 },
@@ -482,4 +486,96 @@ class ProjectedVisualHandoffTest(SimpleTestCase):
             self.assertEqual(
                 captured.exception.evidence["candidate_id"],
                 f"r63-{label}",
+            )
+
+    def test_r64_repaired_authority_rebinds_capacity_drift_from_source_certificate(self):
+        from design.maas.book_language import vlm_review
+
+        stale_gate = {
+            "schema_version": "arr.maas.final_semantic_projection_audit.v1",
+            "status": "rejected",
+            "hard_pass": False,
+            "failures": ["capacity_measurement_hash_mismatch"],
+        }
+        source_evidence = {
+            "schema_version": "arr.maas.final_semantic_projection.v1",
+            "hard_pass": True,
+            "program_id": "neighborhood_living",
+            "floor_capacity_plan_hash": "floor-plan-hash",
+            "pnu": "1168011800104170004",
+            "site_context_hash": "site-context-hash",
+            "capacity_alternative_id": "brief_target",
+            "achieved_capacity_band": "balanced_yield",
+            "capacity_measurement_hash": "repaired-capacity-hash",
+        }
+        repaired_gate = {
+            "schema_version": "arr.maas.final_semantic_projection_audit.v1",
+            "status": "verified",
+            "hard_pass": True,
+            "semantic_projection_hash": "repaired-semantic-hash",
+            "audited_context": {
+                "program_id": "neighborhood_living",
+                "capacity_measurement_hash": "repaired-capacity-hash",
+            },
+            "failures": [],
+        }
+        source = SimpleNamespace(metadata={
+            "program_semantic_carrier_evidence": deepcopy(source_evidence),
+        })
+        candidate = SimpleNamespace(
+            source=source,
+            feature={
+                "type": "Feature",
+                "properties": {
+                    "variant_id": "r64-repaired-selected",
+                    "semantic_projection_hard_gate": deepcopy(stale_gate),
+                },
+            },
+        )
+        artifact = {"semanticProjectionAudit": deepcopy(repaired_gate)}
+        certified = SimpleNamespace(feature_binding=lambda: {
+            "geometry_artifact": deepcopy(artifact),
+        })
+
+        with patch.object(
+            vlm_review,
+            "audit_source_semantic_projection",
+            return_value=deepcopy(repaired_gate),
+        ) as auditor, patch.object(
+            vlm_review.CertifiedMassArtifact,
+            "issue",
+            return_value=certified,
+        ) as issuer:
+            vlm_review._bind_final_visual_authority_for_review(
+                candidate,
+                stale_gate,
+            )
+
+        auditor.assert_called_once()
+        issuer.assert_called_once_with(
+            source,
+            semantic_audit=repaired_gate,
+        )
+        self.assertEqual(
+            candidate.feature["properties"]["semantic_projection_hard_gate"],
+            repaired_gate,
+        )
+        self.assertEqual(
+            portfolio_benchmark._selected_semantic_projection_hard_gate(
+                candidate.feature,
+                candidate_id="r64-repaired-selected",
+            ),
+            repaired_gate,
+        )
+
+        statutory_failure = {
+            **stale_gate,
+            "failures": ["site_context_hash_mismatch"],
+        }
+        with self.assertRaises(
+            vlm_review.FinalSemanticProjectionAuthorityError,
+        ):
+            vlm_review._bind_final_visual_authority_for_review(
+                candidate,
+                statutory_failure,
             )

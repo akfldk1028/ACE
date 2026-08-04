@@ -1485,7 +1485,7 @@ def _final_vlm_input_from_downstream(
         combined_hard_pass_count += 1
         lineage = candidate.source.metadata.get("book_generation_lineage") or {}
         stage = str(lineage.get("stage") or "")
-        if stage == "base" or candidate.principle_kind == "base_operative":
+        if stage == "base":
             base_only_count += 1
             continue
         if not stage or not str(candidate.operation or ""):

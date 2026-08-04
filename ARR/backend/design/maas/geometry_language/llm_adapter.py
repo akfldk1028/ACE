@@ -92,6 +92,14 @@ def author_geometry_programs_with_openai(
     author_stage, author_request_kind = _geometry_author_request_identity(
         context
     )
+    repair_generation = int(
+        context.get("author_compiler_repair_generation") or 0
+    )
+    provider_request_kind = (
+        "provider_retry"
+        if author_stage == "replenishment" and repair_generation > 0
+        else author_request_kind
+    )
     book_principle_ids: tuple[str, ...] = ()
     author_program_context = _author_validation_context(context)
     selected_model = model or os.getenv("MAAS_GEOMETRY_AUTHOR_MODEL") or DEFAULT_GEOMETRY_AUTHOR_MODEL
@@ -245,7 +253,7 @@ def author_geometry_programs_with_openai(
         method="POST",
     )
     try:
-        reserve_paid_provider_request(author_request_kind)
+        reserve_paid_provider_request(provider_request_kind)
         with urllib.request.urlopen(request, timeout=timeout) as response:
             response_data = json.loads(response.read().decode("utf-8"))
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
@@ -274,15 +282,16 @@ def author_geometry_programs_with_openai(
         cache_hit=False,
         book_principle_ids=book_principle_ids,
     ))
-    repair_generation = int(context.get("author_compiler_repair_generation") or 0)
     programs = [replace(program, metadata={
         **program.metadata,
         "author_compiler_repair_generation": repair_generation,
+        "author_provider_request_kind": provider_request_kind,
     }) for program in programs]
     repair_diagnostics = _author_payload_compiler_diagnostics(
         payload,
         program_context=author_program_context,
     )
+    repair_request_count = 0
     if (
         len(programs) < count
         and repair_generation < MAX_AUTHOR_COMPILER_REPAIR_GENERATIONS
@@ -312,6 +321,12 @@ def author_geometry_programs_with_openai(
                 model=selected_model,
                 timeout=timeout,
             )
+            repair_request_count = 1 + max((
+                int(program.metadata.get(
+                    "author_compiler_repair_request_count"
+                ) or 0)
+                for program in repaired
+            ), default=0)
         except PaidProviderBudgetError as exc:
             if not programs:
                 raise
@@ -340,6 +355,10 @@ def author_geometry_programs_with_openai(
                     repair_budget_failure
                 ),
             }) for program in programs]
+    programs = [replace(program, metadata={
+        **program.metadata,
+        "author_compiler_repair_request_count": repair_request_count,
+    }) for program in programs]
     if not programs:
         exc = parse_error or GeometryAuthorError("geometry author and compiler repair yielded no valid programs")
         _save_author_cache(cache_path.with_suffix(".rejected.json"), {

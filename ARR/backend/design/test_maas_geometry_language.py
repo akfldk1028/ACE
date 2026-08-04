@@ -6429,6 +6429,224 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             "resp-cached-author",
         )
 
+    def test_replenishment_compiler_repair_preserves_one_logical_author_opportunity(self):
+        from unittest.mock import MagicMock
+
+        from design.maas.paid_provider_budget import (
+            paid_provider_budget_scope,
+            paid_provider_budget_snapshot,
+        )
+
+        authored = base_seed_programs()[:2]
+
+        def response(response_id):
+            result = MagicMock()
+            result.__enter__.return_value.read.return_value = json.dumps({
+                "id": response_id,
+                "output": [{
+                    "content": [{
+                        "type": "output_text",
+                        "text": json.dumps({"programs": [{"name": response_id}]}),
+                    }],
+                }],
+            }).encode("utf-8")
+            return result
+
+        quotas = {
+            "author_initial": 0,
+            "author_replenishment": 1,
+            "base_candidate": 0,
+            "exact_candidate": 0,
+            "portfolio_board": 0,
+            "reference_audit": 0,
+            "retry": 1,
+        }
+        with TemporaryDirectory() as temporary_dir:
+            with (
+                paid_provider_budget_scope(2, quotas=quotas),
+                patch.dict(os.environ, {
+                    "OPENAI_API_KEY": "test-only-not-sent",
+                    "MAAS_GEOMETRY_AUTHOR_CACHE_DIR": temporary_dir,
+                }, clear=True),
+                patch.object(
+                    geometry_llm_adapter.urllib.request,
+                    "urlopen",
+                    side_effect=[response("outer"), response("repair-1")],
+                ),
+                patch.object(
+                    geometry_llm_adapter,
+                    "geometry_programs_from_author_payload",
+                    side_effect=[(authored[0],), (authored[1],)],
+                ),
+                patch.object(
+                    geometry_llm_adapter,
+                    "_author_payload_compiler_diagnostics",
+                    return_value=[],
+                ),
+            ):
+                programs = geometry_llm_adapter.author_geometry_programs_with_openai(
+                    {
+                        "program_id": "neighborhood_living",
+                        "author_stage": "replenishment",
+                        "author_request_kind": "geometry_author_replenishment",
+                    },
+                    target_count=2,
+                    model="test-model",
+                )
+                ledger = paid_provider_budget_snapshot()
+
+        self.assertEqual(len(programs), 2)
+        self.assertEqual(ledger["quota_request_counts"]["author_replenishment"], 1)
+        self.assertEqual(ledger["quota_request_counts"]["retry"], 1)
+        self.assertEqual(ledger["request_count"], 2)
+        self.assertTrue(all(
+            program.metadata["author_compiler_repair_request_count"] == 1
+            for program in programs
+        ))
+
+    def test_replenishment_compiler_repairs_are_bounded_and_observably_counted(self):
+        from unittest.mock import MagicMock
+
+        from design.maas.paid_provider_budget import (
+            paid_provider_budget_scope,
+            paid_provider_budget_snapshot,
+        )
+
+        authored = base_seed_programs()[:4]
+
+        def response(index):
+            result = MagicMock()
+            result.__enter__.return_value.read.return_value = json.dumps({
+                "id": f"response-{index}",
+                "output": [{
+                    "content": [{
+                        "type": "output_text",
+                        "text": json.dumps({"programs": [{"name": f"program-{index}"}]}),
+                    }],
+                }],
+            }).encode("utf-8")
+            return result
+
+        quotas = {
+            "author_initial": 0,
+            "author_replenishment": 1,
+            "base_candidate": 0,
+            "exact_candidate": 0,
+            "portfolio_board": 0,
+            "reference_audit": 0,
+            "retry": 3,
+        }
+        with TemporaryDirectory() as temporary_dir:
+            with (
+                paid_provider_budget_scope(4, quotas=quotas),
+                patch.dict(os.environ, {
+                    "OPENAI_API_KEY": "test-only-not-sent",
+                    "MAAS_GEOMETRY_AUTHOR_CACHE_DIR": temporary_dir,
+                }, clear=True),
+                patch.object(
+                    geometry_llm_adapter.urllib.request,
+                    "urlopen",
+                    side_effect=[response(index) for index in range(4)],
+                ) as urlopen,
+                patch.object(
+                    geometry_llm_adapter,
+                    "geometry_programs_from_author_payload",
+                    side_effect=[(program,) for program in authored],
+                ),
+                patch.object(
+                    geometry_llm_adapter,
+                    "_author_payload_compiler_diagnostics",
+                    return_value=[],
+                ),
+            ):
+                programs = geometry_llm_adapter.author_geometry_programs_with_openai(
+                    {
+                        "program_id": "neighborhood_living",
+                        "author_stage": "replenishment",
+                        "author_request_kind": "geometry_author_replenishment",
+                    },
+                    target_count=4,
+                    model="test-model",
+                )
+                ledger = paid_provider_budget_snapshot()
+
+        self.assertEqual(len(programs), 4)
+        self.assertEqual(urlopen.call_count, 1 + geometry_llm_adapter.MAX_AUTHOR_COMPILER_REPAIR_GENERATIONS)
+        self.assertEqual(ledger["quota_request_counts"]["author_replenishment"], 1)
+        self.assertEqual(ledger["quota_request_counts"]["retry"], 3)
+        self.assertEqual(ledger["request_count"], 4)
+        self.assertTrue(all(
+            program.metadata["author_compiler_repair_request_count"] == 3
+            for program in programs
+        ))
+
+    def test_initial_author_compiler_repair_keeps_initial_quota_semantics(self):
+        from unittest.mock import MagicMock
+
+        from design.maas.paid_provider_budget import (
+            paid_provider_budget_scope,
+            paid_provider_budget_snapshot,
+        )
+
+        authored = base_seed_programs()[0]
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps({
+            "id": "initial-response",
+            "output": [{
+                "content": [{
+                    "type": "output_text",
+                    "text": json.dumps({"programs": [{"name": "initial"}]}),
+                }],
+            }],
+        }).encode("utf-8")
+        quotas = {
+            "author_initial": 1,
+            "author_replenishment": 0,
+            "base_candidate": 0,
+            "exact_candidate": 0,
+            "portfolio_board": 0,
+            "reference_audit": 0,
+            "retry": 1,
+        }
+        with TemporaryDirectory() as temporary_dir:
+            with (
+                paid_provider_budget_scope(2, quotas=quotas),
+                patch.dict(os.environ, {
+                    "OPENAI_API_KEY": "test-only-not-sent",
+                    "MAAS_GEOMETRY_AUTHOR_CACHE_DIR": temporary_dir,
+                }, clear=True),
+                patch.object(
+                    geometry_llm_adapter.urllib.request,
+                    "urlopen",
+                    return_value=response,
+                ) as urlopen,
+                patch.object(
+                    geometry_llm_adapter,
+                    "geometry_programs_from_author_payload",
+                    return_value=(authored,),
+                ),
+                patch.object(
+                    geometry_llm_adapter,
+                    "_author_payload_compiler_diagnostics",
+                    return_value=[],
+                ),
+            ):
+                programs = geometry_llm_adapter.author_geometry_programs_with_openai(
+                    {"program_id": "neighborhood_living"},
+                    target_count=2,
+                    model="test-model",
+                )
+                ledger = paid_provider_budget_snapshot()
+
+        self.assertEqual(len(programs), 1)
+        self.assertEqual(urlopen.call_count, 1)
+        self.assertEqual(ledger["quota_request_counts"]["author_initial"], 1)
+        self.assertEqual(ledger["quota_request_counts"]["retry"], 0)
+        self.assertEqual(
+            programs[0].metadata["author_compiler_repair_budget_failure"]["quota"],
+            "author_initial",
+        )
+
     def test_llm_author_book_graph_request_reauthors_when_legacy_cache_has_no_ids(self):
         authored = base_seed_programs()[1]
         context = {

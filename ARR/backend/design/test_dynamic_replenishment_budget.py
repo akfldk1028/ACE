@@ -12,6 +12,34 @@ from design.maas.book_language.run_budget import progressive_mass_run_budget
 
 
 class DynamicReplenishmentBudgetTests(SimpleTestCase):
+    def test_compile_authority_preserves_fair_cycle_limit_below_global_remaining(self):
+        observed_limits = []
+
+        def run_cycle(*, cycle_index, exact_compile_limit, **_kwargs):
+            observed_limits.append((cycle_index, exact_compile_limit))
+            return exact_compile_limit
+
+        fair_limit = portfolio_benchmark._run_replenishment_cycle_with_compile_authority(
+            run_cycle,
+            exact_compile_remaining=18,
+            compile_stop_sink={},
+            cycle_index=2,
+            exact_compile_limit=4,
+        )
+        globally_capped_limit = (
+            portfolio_benchmark._run_replenishment_cycle_with_compile_authority(
+                run_cycle,
+                exact_compile_remaining=18,
+                compile_stop_sink={},
+                cycle_index=3,
+                exact_compile_limit=24,
+            )
+        )
+
+        self.assertEqual(fair_limit, 4)
+        self.assertEqual(globally_capped_limit, 18)
+        self.assertEqual(observed_limits, [(2, 4), (3, 18)])
+
     def test_replenishment_author_limit_scales_with_target_under_safety_cap(self):
         self.assertEqual(
             progressive_mass_run_budget(5).replenishment_author_request_limit,

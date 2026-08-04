@@ -578,7 +578,7 @@ def _run_replenishment_cycle_with_compile_authority(
     cycle_index: int,
     **cycle_kwargs: Any,
 ) -> Any | None:
-    """Call the existing cycle with the run-global remaining exact budget."""
+    """Call the cycle without exceeding the run-global exact remainder."""
 
     if exact_compile_remaining is not None and exact_compile_remaining <= 0:
         compile_stop_sink["progressive_exact_compile_stop"] = {
@@ -589,8 +589,12 @@ def _run_replenishment_cycle_with_compile_authority(
         }
         return None
     if exact_compile_remaining is not None:
-        cycle_kwargs["exact_compile_limit"] = int(
-            exact_compile_remaining
+        cycle_limit = cycle_kwargs.get("exact_compile_limit")
+        cycle_kwargs["exact_compile_limit"] = min(
+            int(exact_compile_remaining),
+            int(cycle_limit)
+            if cycle_limit is not None
+            else int(exact_compile_remaining),
         )
     return run_cycle(cycle_index=cycle_index, **cycle_kwargs)
 from .reference_context import (

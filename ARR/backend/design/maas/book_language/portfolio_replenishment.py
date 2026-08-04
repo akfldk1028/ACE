@@ -442,6 +442,10 @@ def replenishment_stop_reason(
         failure.get("code") == "request_quota_exhausted"
         and failure.get("quota") == "author_replenishment"
         and failure.get("author_stage") == "replenishment"
+        and (
+            author_replenishment_remaining is None
+            or author_replenishment_remaining <= 0
+        )
     ):
         return "replenishment_author_quota_exhausted"
     if cycles_run >= cycle_budget:

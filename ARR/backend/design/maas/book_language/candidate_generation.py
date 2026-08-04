@@ -1032,9 +1032,14 @@ def _agent_mutated_seeds(
                                     "author_compiler_repair_budget_failure"
                                 ))
                                 for item in llm_authored
-                                if isinstance(item.metadata.get(
-                                    "author_compiler_repair_budget_failure"
-                                ), dict)
+                                if (
+                                    not bool(item.metadata.get(
+                                        "author_cache_hit"
+                                    ))
+                                    and isinstance(item.metadata.get(
+                                        "author_compiler_repair_budget_failure"
+                                    ), dict)
+                                )
                             ), None)
                         except PaidProviderBudgetError as exc:
                             llm_author_budget_failure = {

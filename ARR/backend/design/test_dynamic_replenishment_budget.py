@@ -174,3 +174,35 @@ class DynamicReplenishmentBudgetTests(SimpleTestCase):
             ),
             "target_and_scope_coverage_reached",
         )
+
+    def test_authoritative_author_remainder_overrides_historical_failure(self):
+        historical_failure = {
+            "code": "request_quota_exhausted",
+            "quota": "author_replenishment",
+            "author_stage": "replenishment",
+        }
+        common = {
+            "selected_count": 1,
+            "selected_scope_count": 1,
+            "target_count": 5,
+            "required_scope_count": 5,
+            "cycles_run": 1,
+            "cycle_budget": 5,
+            "exact_compile_remaining": 17,
+            "author_budget_failure": historical_failure,
+        }
+
+        self.assertEqual(
+            portfolio_replenishment.replenishment_stop_reason(
+                **common,
+                author_replenishment_remaining=5,
+            ),
+            "",
+        )
+        self.assertEqual(
+            portfolio_replenishment.replenishment_stop_reason(
+                **common,
+                author_replenishment_remaining=0,
+            ),
+            "replenishment_author_quota_exhausted",
+        )

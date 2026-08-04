@@ -8411,3 +8411,117 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertTrue(first["revision_proof"]["geometry_changed"])
         self.assertEqual(loop.trace["archive_count"], 1)
         self.assertTrue(all(candidate.program.root_id != "result" for candidate in loop.archive))
+
+
+class MetricFinalVisualArtifactBindingTests(SimpleTestCase):
+    def test_r50_metric_v2_uses_canonical_contract_for_four_final_candidates(self):
+        from copy import deepcopy
+
+        from design.maas.geometry_language.projected_visual_contract import (
+            AUTHORED_COORDINATE_SPACE,
+            FINAL_CERTIFICATE_SCHEMA,
+            FINAL_MESH_SCHEMA,
+            exact_triangle_payload_hash,
+        )
+        from design.maas.preference.loop import _require_certified_authored_visual
+
+        surface = {
+            "role": "authored",
+            "volume_role": "primary",
+            "verb": "shift",
+            "surface_type": "profiled_wall",
+            "vertices_m": [[0.0, 0.0, 0.0], [14.0, 0.0, 0.0], [0.0, 14.0, 14.0]],
+            "operator": "book",
+            "semantic_patch_id": "r49-metric-14m",
+        }
+        canonical_hash = "r49-v2-physical-meter-visual-hash"
+        payload_hash = exact_triangle_payload_hash([surface])
+        canonical_certificate = {
+            "schema_version": FINAL_CERTIFICATE_SCHEMA,
+            "certification_mode": "authored_projected_surface_authority",
+            "status": "certified",
+            "certified": True,
+            "hard_pass": True,
+            "visual_hash": canonical_hash,
+            "projected_surface_count": 1,
+            "projected_surface_coordinate_frame": AUTHORED_COORDINATE_SPACE,
+            "source_footprint_centroid_utm": [0.5, 0.5],
+            "exact_surface_payload_hash": payload_hash,
+        }
+        artifact = {
+            "projectedVisualMesh": {
+                "schemaVersion": FINAL_MESH_SCHEMA,
+                "coordinateSpace": AUTHORED_COORDINATE_SPACE,
+                "triangles": [deepcopy(surface)],
+            },
+            "projectedVisualCertificate": deepcopy(canonical_certificate),
+            "projectedVisualGeometryHash": canonical_hash,
+            "projectedVisualPayloadHash": payload_hash,
+            "identity": {"geometryHash": canonical_hash},
+        }
+        props = {
+            "source_surfaces": [deepcopy(surface)],
+            "geometry_artifact": artifact,
+            "floorwise_visual_projection": {
+                **canonical_certificate,
+                "schema_version": "arr.maas.floorwise_visual_projection.v1",
+                "projected_surface_coordinate_frame": "stale_normalized_frame",
+                "visual_hash": "stale-normalized-v1-hash",
+            },
+            "final_semantic_anchor": {},
+        }
+        geometry = {
+            "type": "Polygon",
+            "coordinates": [[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0], [0.0, 0.0]]],
+        }
+        with patch(
+            "design.maas.preference.loop.validate_projected_visual_artifact",
+            return_value=object(),
+        ):
+            for candidate_index in range(4):
+                candidate_props = deepcopy(props)
+                candidate_hash = f"{canonical_hash}-{candidate_index}"
+                candidate_props["geometry_artifact"][
+                    "projectedVisualGeometryHash"
+                ] = candidate_hash
+                candidate_props["geometry_artifact"][
+                    "projectedVisualCertificate"
+                ]["visual_hash"] = candidate_hash
+                _require_certified_authored_visual(
+                    candidate_props,
+                    feature_geometry=geometry,
+                )
+                self.assertEqual(
+                    candidate_props["floorwise_visual_projection"],
+                    candidate_props["geometry_artifact"][
+                        "projectedVisualCertificate"
+                    ],
+                )
+
+        stale_artifact_props = deepcopy(props)
+        stale_artifact_props["geometry_artifact"][
+            "projectedVisualCertificate"
+        ]["schema_version"] = "arr.maas.floorwise_visual_projection.v1"
+        with self.assertRaisesRegex(ValueError, "certified nonempty projection"):
+            _require_certified_authored_visual(stale_artifact_props, feature_geometry=geometry)
+
+        missing_frame_props = deepcopy(props)
+        del missing_frame_props["geometry_artifact"][
+            "projectedVisualCertificate"
+        ]["projected_surface_coordinate_frame"]
+        with self.assertRaisesRegex(ValueError, "certified nonempty projection"):
+            _require_certified_authored_visual(missing_frame_props, feature_geometry=geometry)
+
+        wrong_frame_props = deepcopy(props)
+        wrong_frame_props["geometry_artifact"]["projectedVisualMesh"][
+            "coordinateSpace"
+        ] = "source_footprint_centroid_local_xy_normalized_z"
+        with self.assertRaisesRegex(ValueError, "certified nonempty projection"):
+            _require_certified_authored_visual(wrong_frame_props, feature_geometry=geometry)
+
+        tampered_props = deepcopy(props)
+        tampered_props["geometry_artifact"][
+            "projectedVisualGeometryHash"
+        ] = "tampered-artifact-hash"
+        with self.assertRaisesRegex(ValueError, "certified nonempty projection"):
+            _require_certified_authored_visual(tampered_props, feature_geometry=geometry)

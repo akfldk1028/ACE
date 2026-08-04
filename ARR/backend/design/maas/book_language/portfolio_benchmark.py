@@ -51,6 +51,7 @@ from design.maas.geometry_language.projected_visual_contract import (
     semantic_audit_payload_hash,
     serialize_certified_projected_visual,
     validate_projected_visual_artifact,
+    validate_projected_visual_field_contract,
 )
 from design.maas.capacity_policy import resolve_massing_capacity_policy
 from design.maas.grammar.verb_sequence import VerbSequence
@@ -680,9 +681,19 @@ def _projected_visual_handoff_artifact(
     source: Any,
     *,
     final_semantic_audit: dict[str, Any] | None = None,
+    existing_artifact: Any = None,
 ) -> Any:
     """Preserve an absent authority separately from malformed payload values."""
 
+    if (
+        isinstance(existing_artifact, dict)
+        and (
+            "projectedVisualMesh" in existing_artifact
+            or "projectedVisualCertificate" in existing_artifact
+        )
+    ):
+        validate_projected_visual_field_contract(existing_artifact)
+        return deepcopy(existing_artifact)
     artifact = _certified_projected_visual_artifact(
         source,
         final_semantic_audit=final_semantic_audit,
@@ -873,6 +884,43 @@ def _stage_projected_visual_handoff(
         ),
     })
     return staged
+
+
+def _persist_projected_visual_authority(
+    props: dict[str, Any],
+    *,
+    geometry_artifact: dict[str, Any],
+    staged_handoff: dict[str, Any],
+    final_semantic_anchor: dict[str, Any],
+) -> Any:
+    """Validate canonical artifact authority before atomically rebinding props."""
+
+    _, canonical_certificate = validate_projected_visual_field_contract(
+        geometry_artifact
+    )
+    validated_visual = validate_projected_visual_artifact(
+        geometry_artifact,
+        expected_semantic_context=final_semantic_anchor[
+            "expected_semantic_context"
+        ],
+        expected_semantic_projection_hash=final_semantic_anchor[
+            "expected_semantic_projection_hash"
+        ],
+        expected_semantic_audit_payload_hash=final_semantic_anchor[
+            "expected_semantic_audit_payload_hash"
+        ],
+        expected_section_geometry_binding_hash=final_semantic_anchor[
+            "expected_section_geometry_binding_hash"
+        ],
+    )
+    if validated_visual is None:
+        raise ValueError("final projected visual authority is incomplete")
+    props.update({
+        **staged_handoff,
+        "floorwise_visual_projection": deepcopy(canonical_certificate),
+        "geometry_artifact": geometry_artifact,
+    })
+    return validated_visual
 
 
 def _candidate_program_hash(candidate: _Candidate) -> str:
@@ -3390,6 +3438,7 @@ def run_book_program_portfolios(
                 final_semantic_audit=downstream_row.get(
                     "semantic_projection_hard_gate"
                 ),
+                existing_artifact=props.get("geometry_artifact"),
             )
             projected_visual_authority_present = (
                 projected_visual_artifact
@@ -3541,25 +3590,12 @@ def run_book_program_portfolios(
                 "selectionEffect": "none_shadow_only",
                 **projected_visual_artifact_payload,
             }
-            validated_visual = validate_projected_visual_artifact(
-                geometry_artifact,
-                expected_semantic_context=final_semantic_anchor[
-                    "expected_semantic_context"
-                ],
-                expected_semantic_projection_hash=final_semantic_anchor[
-                    "expected_semantic_projection_hash"
-                ],
-                expected_semantic_audit_payload_hash=final_semantic_anchor[
-                    "expected_semantic_audit_payload_hash"
-                ],
-                expected_section_geometry_binding_hash=final_semantic_anchor[
-                    "expected_section_geometry_binding_hash"
-                ],
+            validated_visual = _persist_projected_visual_authority(
+                props,
+                geometry_artifact=geometry_artifact,
+                staged_handoff=staged_handoff,
+                final_semantic_anchor=final_semantic_anchor,
             )
-            props.update({
-                **staged_handoff,
-                "geometry_artifact": geometry_artifact,
-            })
             rows[index]["semantic_projection_hard_gate"] = deepcopy(
                 semantic_projection_hard_gate
             )

@@ -23,8 +23,13 @@ from design.maas.geometry_language.floorwise_visual_projection import (
     projected_surface_visual_hash,
 )
 from design.maas.geometry_language.projected_visual_contract import (
+    CERTIFICATE_SCHEMA,
+    FINAL_AUTHORITY_CERTIFICATION_MODE,
+    FINAL_CERTIFICATE_SCHEMA,
     exact_triangle_payload_hash,
+    normalize_persisted_projected_visual_artifact,
     validate_projected_visual_artifact,
+    validate_projected_visual_field_contract,
 )
 from design.maas.preference.concept_schema import build_preference_distillation
 from design.maas.preference.reference_corpus import (
@@ -330,13 +335,13 @@ def _require_certified_authored_visual(
 ) -> None:
     raw_surfaces = props.get("source_surfaces")
     raw_surfaces = raw_surfaces if isinstance(raw_surfaces, list) else []
+    certified_records = [
+        record for record in raw_surfaces if isinstance(record, dict)
+    ]
     profiled_records = [
         record
-        for record in raw_surfaces
-        if (
-            isinstance(record, dict)
-            and str(record.get("surface_type") or "").startswith("profiled_")
-        )
+        for record in certified_records
+        if str(record.get("surface_type") or "").startswith("profiled_")
     ]
     signature = (
         props.get("source_signature")
@@ -360,14 +365,37 @@ def _require_certified_authored_visual(
     certificate = props.get("floorwise_visual_projection")
     if not isinstance(certificate, dict):
         certificate = model.get("floorwise_visual_projection")
+    failure = "authored profiled visual mesh requires certified nonempty projection"
     artifact = (
         props.get("geometry_artifact")
         if isinstance(props.get("geometry_artifact"), dict)
         else {}
     )
-    if not isinstance(certificate, dict):
-        certificate = artifact.get("projectedVisualCertificate")
-    failure = "authored profiled visual mesh requires certified nonempty projection"
+    if artifact:
+        artifact = normalize_persisted_projected_visual_artifact(artifact)
+    artifact_certificate = artifact.get("projectedVisualCertificate")
+    if (
+        isinstance(artifact_certificate, dict)
+        and artifact_certificate.get("certification_mode")
+        == FINAL_AUTHORITY_CERTIFICATION_MODE
+    ):
+        try:
+            _, artifact_certificate = (
+                validate_projected_visual_field_contract(artifact)
+            )
+        except ValueError as exc:
+            raise ValueError(f"{failure}:{exc}") from None
+        certificate = dict(artifact_certificate)
+        props["floorwise_visual_projection"] = certificate
+    elif not isinstance(certificate, dict):
+        certificate = artifact_certificate
+    expected_certificate_schema = (
+        FINAL_CERTIFICATE_SCHEMA
+        if isinstance(certificate, dict)
+        and certificate.get("certification_mode")
+        == FINAL_AUTHORITY_CERTIFICATION_MODE
+        else CERTIFICATE_SCHEMA
+    )
     artifact_hash_mismatch = bool(
         artifact
         and str(artifact.get("projectedVisualGeometryHash") or "")
@@ -376,12 +404,12 @@ def _require_certified_authored_visual(
     invalid_certificate = (
         not isinstance(certificate, dict)
         or certificate.get("schema_version")
-        != "arr.maas.floorwise_visual_projection.v1"
+        != expected_certificate_schema
         or certificate.get("status") != "certified"
         or certificate.get("hard_pass") is not True
         or not str(certificate.get("visual_hash") or "")
         or int(certificate.get("projected_surface_count") or 0)
-        != len(profiled_records)
+        != len(certified_records)
         or not profiled_records
         or artifact_hash_mismatch
     )
@@ -394,6 +422,7 @@ def _require_certified_authored_visual(
             f"hard_pass={certificate.get('hard_pass')!s}:"
             f"visual_hash={bool(str(certificate.get('visual_hash') or ''))}:"
             f"projected_surface_count={int(certificate.get('projected_surface_count') or 0)}:"
+            f"certified_record_count={len(certified_records)}:"
             f"profiled_record_count={len(profiled_records)}:"
             f"artifact_hash_mismatch={artifact_hash_mismatch}"
         )
@@ -411,7 +440,7 @@ def _require_certified_authored_visual(
                 operator=str(record.get("operator") or "extrude"),
                 semantic_patch_id=str(record.get("semantic_patch_id") or ""),
             )
-            for record in profiled_records
+            for record in certified_records
         )
     except (TypeError, ValueError) as exc:
         raise ValueError(f"{failure}:surface_decode:{exc}") from None
@@ -428,7 +457,7 @@ def _require_certified_authored_visual(
         )
     if (
         certificate.get("certification_mode")
-        == "final_floorwise_legal_geometry_authority"
+        == "authored_projected_surface_authority"
     ):
         try:
             semantic_anchor = (
@@ -475,6 +504,11 @@ def _require_certified_authored_visual(
                         "expected_semantic_audit_payload_hash"
                     )
                     or ""
+                ),
+                expected_section_geometry_binding_hash=str(
+                    semantic_anchor.get(
+                        "expected_section_geometry_binding_hash"
+                    ) or ""
                 ),
             )
             surface_records = [

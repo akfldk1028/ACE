@@ -485,11 +485,7 @@ def validate_projected_visual_artifact(
     ):
         raise ValueError("incomplete projected visual archive binding")
 
-    mesh = artifact.get("projectedVisualMesh")
-    certificate = artifact.get("projectedVisualCertificate")
-    if not isinstance(mesh, dict) or not isinstance(certificate, dict):
-        raise ValueError("invalid projected visual archive binding")
-    _validate_certificate_status(certificate)
+    mesh, certificate = validate_projected_visual_field_contract(artifact)
 
     expected_visual_hash = str(artifact.get("projectedVisualGeometryHash") or "")
     expected_payload_hash = str(artifact.get("projectedVisualPayloadHash") or "")
@@ -501,15 +497,6 @@ def validate_projected_visual_artifact(
         or str(certificate.get("visual_hash") or "") != expected_visual_hash
     ):
         raise ValueError("invalid projected visual certificate identity")
-    if (
-        mesh.get("schemaVersion") != _mesh_schema(certificate)
-        or mesh.get("coordinateSpace")
-        != _certificate_coordinate_space(certificate)
-        or certificate.get("projected_surface_coordinate_frame")
-        != _certificate_coordinate_space(certificate)
-    ):
-        raise ValueError("invalid projected visual mesh coordinate contract")
-
     triangle_payload = mesh.get("triangles")
     if not isinstance(triangle_payload, list) or not triangle_payload:
         raise ValueError("invalid projected visual triangle payload")
@@ -1362,6 +1349,27 @@ def _validate_profiled_mesh_section_binding(
         )
     if legal_count != int(certificate.get("legal_sample_count") or -1):
         raise ValueError("profiled serialized mesh legal containment count mismatch")
+
+
+def validate_projected_visual_field_contract(
+    artifact: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Return the canonical mesh/certificate pair after schema/frame checks."""
+
+    mesh = artifact.get("projectedVisualMesh")
+    certificate = artifact.get("projectedVisualCertificate")
+    if not isinstance(mesh, dict) or not isinstance(certificate, dict):
+        raise ValueError("invalid projected visual archive binding")
+    _validate_certificate_status(certificate)
+    coordinate_space = _certificate_coordinate_space(certificate)
+    if (
+        mesh.get("schemaVersion") != _mesh_schema(certificate)
+        or mesh.get("coordinateSpace") != coordinate_space
+        or certificate.get("projected_surface_coordinate_frame")
+        != coordinate_space
+    ):
+        raise ValueError("invalid projected visual mesh coordinate contract")
+    return mesh, certificate
 
 
 def _validate_certificate_status(certificate: dict[str, Any]) -> None:

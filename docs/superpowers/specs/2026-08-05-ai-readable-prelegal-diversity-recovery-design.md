@@ -54,8 +54,11 @@ No new archive, agent, compiler or generation system is introduced.
 - `book_language/candidate_generation.py` owns LLM program acquisition,
   BASE/BOOK descendant scheduling, canonical materialization and stage outcome
   emission. It remains the production generation implementation.
-- `book_language/quality_diversity_archive.py` owns existing certified-mesh
-  behavior descriptors and streaming MAP-Elites retention.
+- `creative_morphology.py` owns the existing pre-legal scale-invariant mesh
+  descriptor, pair distance and morphology acceptance decision.
+- `book_language/quality_diversity_archive.py` remains the full BOOK legal
+  candidate archive. Its `_Candidate` contract is not imported into the
+  pre-legal creative command.
 - `book_language/run_budget.py` owns author request and compile budgets.
 - `book_language/portfolio_selection.py` remains the final portfolio selector;
   it is not used to disguise deficient pre-legal supply.
@@ -94,7 +97,7 @@ same PNU + neighborhood context
 -> typed GeometryProgram validation
 -> canonical compile and structural geometry gates
 -> authoritative indexed-mesh morphology measurement
--> existing streaming MAP-Elites archive
+-> existing creative-morphology distance retention
 -> deterministic twenty-card pre-legal board and evidence bundle
 ```
 

@@ -82,3 +82,20 @@ coordinates, or enormous candidate payloads in agent memory.
 - Do not run another broad cached-manifest replay, weaken the identity or law
   gates, restore host-replacement CSG, or confuse phenotype-island selection
   with valid architectural supply.
+
+## Current handoff update: C124
+
+- Latest bounded production proof is C124: `1 evaluated / 1 compiled / 1
+  individual hard-pass / 1 compatible selected`; canonical remains `0/20`.
+- C124 GFA is `217.718 m2`, feasible utilization `0.6551`, FAR `82.43%`.
+  Law, parking, semantic projection, clean mesh and final binding pass.
+- ISO PNG is
+  `docs/playwright/design-route-live-verify/legal-mass-v31-c124-continuous-fold1/maas-book-neighborhood-1.png`
+  with SHA-256
+  `032818651c3fe230029543b08070f58fed5922a18e5d7c19a68346dafba10a22`.
+  It is continuous/non-stepped but still wedge-like, so it is not a diverse
+  portfolio claim.
+- Resume with one fresh non-wedge site-feasible AST using the same full-stack
+  `0.60` capacity contract and exact `0.995` direct affine acceptance. Prefer
+  a void, wing, curved or multi-axis continuous phenotype; inspect its ISO
+  before requesting three. Do not rerun C118-C124 or launch target 20.

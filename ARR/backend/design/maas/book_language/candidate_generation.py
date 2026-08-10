@@ -2,17 +2,21 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
+import hashlib
 import json
 import logging
 import os
 from collections import Counter
 from copy import deepcopy
 from dataclasses import replace
-from math import cos, isfinite, sin
+from math import ceil, cos, floor, isfinite, sin
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Callable
 
+from shapely.errors import GEOSException
 from shapely.geometry import Polygon, mapping, shape
 
 from design.maas.geometry_language import (
@@ -37,7 +41,10 @@ from design.maas.geometry_language import (
     run_geometry_program_a2a_loop,
     synthesize_architectural_programs,
 )
-from design.maas.paid_provider_budget import PaidProviderBudgetError
+from design.maas.paid_provider_budget import (
+    PaidProviderBudgetError,
+    paid_provider_budget_snapshot,
+)
 from design.maas.geometry_language.floorwise_legal_program import (
     is_intentional_floorwise_stepped_program,
 )
@@ -50,6 +57,7 @@ from .legal_mass_archive import LegalMassArchive
 from .stage_outcome import StageOutcome, record_stage_outcome
 from .authorship_policy import bounded_llm_author_batch_count
 from design.maas.geometry_language.source_bridge import (
+    compile_normalized_geometry_program_to_source_mass,
     compile_site_bound_geometry_program_to_source_mass,
     materialize_floorwise_legal_source,
     source_surface_payload_hash,
@@ -61,7 +69,7 @@ from design.maas.geometry_language.projected_visual_contract import (
     has_strict_height_dependent_legal_section_contraction,
     serialize_certified_projected_visual,
 )
-from design.maas.grammar.verb_sequence import VerbSequence
+from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.program_massing import (
     ProgramSectionGraphEdit,
     compose_program_with_book_operations,
@@ -69,7 +77,10 @@ from design.maas.program_massing import (
     program_reference_contract,
     program_seed_sequences,
 )
-from design.maas.program_massing.book_projection import book_projection_calls
+from design.maas.program_massing.book_projection import (
+    book_projection_calls,
+    book_sentence_variants,
+)
 from design.maas.program_massing.scoring import attach_program_massing_evidence
 from design.maas.program_massing.morphology import (
     authoritative_surface_morphology,
@@ -120,6 +131,7 @@ from .capacity_alternatives import (
     capacity_fit_score,
     capacity_retry_floor_targets,
     capacity_retry_plan_coverage,
+    capacity_contract_with_retry_targets,
     capacity_alternative_for_host,
     capacity_contract_for_alternative,
     evaluate_capacity_alternative,
@@ -134,6 +146,8 @@ from .competition_candidate_screen import (
     _cheap_ast_bounds,
     _cheap_morphology_preclassification,
     _cheap_typed_ast_candidate_evidence,
+    _balanced_principle_window_with_lineage_bases,
+    _lineage_stable_scope_label,
     _competition_cheap_candidate_records,
     _competition_pre_exact_shortlist,
     _diagnostic_generation_cap_reached,
@@ -246,6 +260,7 @@ def _retain_candidate_with_legal_capacity_authority(
     capacity_measurement: dict[str, Any] | None,
     capacity_contract: dict[str, Any] | None,
     *,
+    capacity_projection: dict[str, Any] | None = None,
     rejection_evidence_sink: list[dict[str, Any]] | None = None,
 ) -> Any | None:
     """Annotate legal candidates and reject independently uncertified floors."""
@@ -256,6 +271,16 @@ def _retain_candidate_with_legal_capacity_authority(
         capacity_contract,
     )
     metadata = deepcopy(source.metadata)
+    metadata["source_capacity_measurement"] = deepcopy(
+        capacity_measurement or {}
+    )
+    metadata["capacity_alternative_projection"] = deepcopy(
+        capacity_projection or {}
+    )
+    if isinstance(shared_floor_contract, dict):
+        metadata["shared_floor_contract"] = deepcopy(
+            shared_floor_contract
+        )
     metadata["legal_capacity_authority"] = authority
     metadata.update(authority)
     annotated = replace(source, metadata=metadata)
@@ -439,7 +464,7 @@ def _admit_legal_mass_candidate(
             or {}
         ),
         "family": str(metadata.get("family") or ""),
-        "lineage": deepcopy(metadata.get("generation_lineage") or {}),
+        "lineage": deepcopy(metadata.get("book_generation_lineage") or {}),
     })
 
 
@@ -588,6 +613,52 @@ def _site_containment_stage_outcome(contained: bool) -> StageOutcome[Any]:
     )
 
 
+def _inside_floorwise_legal_sections(
+    source: Any,
+    legal_sections: tuple[Polygon, ...],
+) -> bool:
+    """Check every legal proxy band against its own law-derived section."""
+
+    floor_count = len(legal_sections)
+    if floor_count <= 0 or any(
+        not isinstance(section, Polygon)
+        or section.is_empty
+        or not section.is_valid
+        for section in legal_sections
+    ):
+        return False
+    try:
+        for volume in source.volumes:
+            bottom = float(volume.bottom_fraction)
+            top = float(volume.top_fraction)
+            if (
+                not isfinite(bottom)
+                or not isfinite(top)
+                or bottom < -1e-9
+                or top > 1.0 + 1e-9
+                or top <= bottom + 1e-9
+                or not volume.footprint.is_valid
+            ):
+                return False
+            first = max(
+                0,
+                min(floor_count - 1, floor(bottom * floor_count + 1e-9)),
+            )
+            last = max(
+                first + 1,
+                min(floor_count, ceil(top * floor_count - 1e-9)),
+            )
+            if any(
+                volume.footprint.difference(legal_sections[index]).area
+                > 1e-6
+                for index in range(first, last)
+            ):
+                return False
+        return True
+    except (GEOSException, TypeError, ValueError):
+        return False
+
+
 def _legal_archive_stage_outcome(
     archived_record: dict[str, Any] | None,
     *,
@@ -676,7 +747,7 @@ def _eligible_smoke_floor_candidate(
         and capacity_projection.get("target_hard_pass") is True
     ):
         return False
-    lineage = source.metadata.get("generation_lineage") or {}
+    lineage = source.metadata.get("book_generation_lineage") or {}
     return (
         str(lineage.get("stage") or "") == "base"
         or str(lineage.get("parent_key") or "") in viable_base_keys
@@ -731,14 +802,116 @@ def _bind_parent_geometry_hash(
 ) -> dict[str, Any]:
     """Bind descendants only to one exact compiler-clean base geometry."""
     bound = dict(generation_lineage)
-    bound.pop("parent_geometry_hash", None)
     if str(bound.get("stage") or "") == "base":
+        bound.pop("parent_geometry_hash", None)
         return bound
-    parent_key = str(bound.get("parent_key") or "")
+    parent_base_lineage = bound.get("parent_base_lineage") or {}
+    parent_key = canonical_lineage_parent_key(parent_base_lineage)
+    if not parent_key or str(bound.get("parent_key") or "") != parent_key:
+        bound.pop("parent_geometry_hash", None)
+        return bound
     parent_geometry_hash = bindings.get(parent_key)
     if isinstance(parent_geometry_hash, str) and parent_geometry_hash:
         bound["parent_geometry_hash"] = parent_geometry_hash
+    elif not isinstance(bound.get("parent_geometry_hash"), str):
+        bound.pop("parent_geometry_hash", None)
     return bound
+
+
+def _source_with_book_generation_lineage(
+    source: Any,
+    generation_lineage: dict[str, Any],
+    *,
+    parent_audit: dict[str, Any] | None = None,
+) -> Any:
+    """Persist one immutable copy of the authorized parent/operation record."""
+
+    metadata = deepcopy(getattr(source, "metadata", None) or {})
+    metadata["book_generation_lineage"] = deepcopy(generation_lineage)
+    if isinstance(parent_audit, dict):
+        metadata["base_book_vlm_parent_audit"] = deepcopy(parent_audit)
+    return replace(source, metadata=metadata)
+
+
+def _authorize_descendant_lineage_for_materialization(
+    generation_lineage: dict[str, Any],
+    registry: dict[str, str | None],
+    reviewed_base_audits: dict[str, dict[str, Any]],
+) -> tuple[dict[str, Any] | None, str]:
+    """Bind one descendant to its exact canonical reviewed BASE authority."""
+    if str(generation_lineage.get("stage") or "") == "base":
+        parent_base_lineage = generation_lineage
+    else:
+        parent_base_lineage = generation_lineage.get(
+            "parent_base_lineage"
+        ) or {}
+    parent_key = canonical_lineage_parent_key(parent_base_lineage)
+    if (
+        not parent_key
+        or str(generation_lineage.get("parent_key") or "") != parent_key
+    ):
+        return None, "lineage_parent_key_disagreement"
+    if parent_key not in registry:
+        return None, "unknown_parent"
+    parent_geometry_hash = registry.get(parent_key)
+    if parent_geometry_hash is None:
+        return None, "conflicting_registry_hash"
+    if not isinstance(parent_geometry_hash, str) or not parent_geometry_hash:
+        return None, "unknown_parent"
+    audit = reviewed_base_audits.get(parent_key)
+    if not isinstance(audit, dict):
+        return None, "missing_reviewed_audit"
+    if str(audit.get("geometry_hash") or "") != parent_geometry_hash:
+        return None, "reviewed_audit_geometry_mismatch"
+    if not str(audit.get("program_hash") or ""):
+        return None, "reviewed_audit_program_missing"
+    expected_fingerprint = hashlib.sha256(
+        json.dumps(
+            {"geometry_hash": parent_geometry_hash},
+            ensure_ascii=True,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+    if str(audit.get("base_review_fingerprint") or "") != expected_fingerprint:
+        return None, "reviewed_audit_fingerprint_mismatch"
+    bound = dict(generation_lineage)
+    bound["parent_geometry_hash"] = parent_geometry_hash
+    return bound, "authorized"
+
+
+def _authorize_and_compose_descendant_candidate(
+    seed: VerbSequence,
+    operations: tuple[Any, ...],
+    *,
+    generation_lineage: dict[str, Any],
+    generation_phase: str,
+    registry: dict[str, str | None],
+    reviewed_base_audits: dict[str, dict[str, Any]],
+    name_suffix: str,
+    base_volume_label: str,
+    orientation: str,
+) -> tuple[dict[str, Any] | None, VerbSequence | None, str]:
+    """Authorize exact descendant identity before any BOOK composition."""
+    authorization_reason = "not_required"
+    if generation_phase == "descendant":
+        generation_lineage, authorization_reason = (
+            _authorize_descendant_lineage_for_materialization(
+                generation_lineage,
+                registry,
+                reviewed_base_audits,
+            )
+        )
+        if generation_lineage is None:
+            return None, None, authorization_reason
+    composed = compose_program_with_book_operations(
+        seed,
+        operations,
+        name_suffix=name_suffix,
+        base_volume_label=base_volume_label,
+        orientation=orientation,
+    )
+    return generation_lineage, composed, authorization_reason
 
 
 def _capacity_retry_result_is_selectable(
@@ -868,6 +1041,73 @@ def _shared_floor_capacity_measurement(
     )
 
 
+@dataclass(frozen=True)
+class LlmAuthorRequestOutcome:
+    provider_request_executed: bool
+    author_stage: str
+    request_kind: str
+    requested_count: int
+    feedback_count: int
+    base_feedback_count: int
+    cache_hit_count: int
+    valid_authored_program_count: int
+    terminal_status: str
+    failure_reason: str
+    failure_diagnostics: dict[str, Any] | None = None
+
+    def __post_init__(self) -> None:
+        counts = (
+            self.requested_count,
+            self.feedback_count,
+            self.base_feedback_count,
+            self.cache_hit_count,
+            self.valid_authored_program_count,
+        )
+        if any(int(value) < 0 for value in counts):
+            raise ValueError("LLM author request outcome counts must be nonnegative")
+        if self.cache_hit_count > self.valid_authored_program_count:
+            raise ValueError("cache hits cannot exceed valid authored programs")
+        if not self.author_stage or not self.request_kind or not self.terminal_status:
+            raise ValueError("LLM author request outcome identity is required")
+        if self.terminal_status != "completed" and not self.failure_reason:
+            raise ValueError("non-completed LLM author outcome requires a reason")
+        object.__setattr__(
+            self,
+            "failure_diagnostics",
+            deepcopy(self.failure_diagnostics or {}),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": "arr.maas.llm_author_request_outcome.v1",
+            "provider_request_executed": self.provider_request_executed,
+            "author_stage": self.author_stage,
+            "request_kind": self.request_kind,
+            "requested_count": self.requested_count,
+            "feedback_count": self.feedback_count,
+            "base_feedback_count": self.base_feedback_count,
+            "cache_hit_count": self.cache_hit_count,
+            "valid_authored_program_count": self.valid_authored_program_count,
+            "terminal_status": self.terminal_status,
+            "failure_reason": self.failure_reason,
+            "failure_diagnostics": deepcopy(self.failure_diagnostics or {}),
+        }
+
+
+def _paid_provider_request_count() -> int:
+    snapshot = paid_provider_budget_snapshot()
+    by_kind = snapshot.get("request_counts_by_kind") or {}
+    kind_total = sum(
+        max(0, int(value or 0))
+        for value in by_kind.values()
+    ) if isinstance(by_kind, dict) else 0
+    try:
+        declared_total = max(0, int(snapshot.get("request_count") or 0))
+    except (TypeError, ValueError):
+        declared_total = 0
+    return max(declared_total, kind_total)
+
+
 def _agent_mutated_seeds(
     building_type: str,
     mutations: list[dict[str, Any]] | None,
@@ -884,6 +1124,7 @@ def _agent_mutated_seeds(
     live_geometry_vlm_revision: bool = False,
     base_capacity_contract: dict[str, Any] | None = None,
     universal_variation_pages: tuple[int, ...] = (0,),
+    author_request_outcomes: list[LlmAuthorRequestOutcome] | None = None,
 ) -> tuple[VerbSequence, ...]:
     """Apply agent/VLM graph edits to reusable role seeds, never finished forms."""
     seeds = list(program_seed_sequences(building_type))
@@ -1049,6 +1290,10 @@ def _agent_mutated_seeds(
         base_book_vlm_feedback_in_author_context = False
         authored_visual_authority_feedback_count = 0
         authored_visual_authority_feedback_in_author_context = False
+        llm_author_cache_hit_count = 0
+        llm_author_valid_program_count = 0
+        llm_author_failure_reason = ""
+        provider_request_count_before: int | None = None
         live_prebook_vlm_requested = bool(request.get("live_vlm_revision"))
         llm_author_requested = bool(request.get("live_llm_author")) or str(
             request.get("synthesis_request_source") or ""
@@ -1209,7 +1454,43 @@ def _agent_mutated_seeds(
                     authored_visual_authority_feedback_in_author_context = bool(
                         authored_visual_authority_feedback_count
                     )
-                    if llm_author_requested:
+                    llm_author_failure_diagnostics: dict[str, Any] = {}
+                    cooldown = request.get("author_rate_limit_cooldown")
+                    if llm_author_requested and isinstance(cooldown, dict):
+                        llm_author_failure_reason = "rate_limited_cooldown"
+                        llm_author_status = "deferred:rate_limited_cooldown"
+                        llm_author_failure_diagnostics = {
+                            "schema_version": (
+                                "arr.maas.geometry_author_failure_diagnostics.v1"
+                            ),
+                            "provider_error": {
+                                "category": "rate_limited_cooldown",
+                                "http_status": 429,
+                            },
+                            "cooldown": {
+                                key: cooldown[key]
+                                for key in (
+                                    "schema_version",
+                                    "attempt_count",
+                                    "deadline_epoch_seconds",
+                                    "backoff_seconds",
+                                    "source",
+                                    "http_status",
+                                    "retry_after_seconds",
+                                    "remaining_seconds",
+                                    "active",
+                                    "scope",
+                                    "circuit_open",
+                                )
+                                if key in cooldown
+                            },
+                        }
+                        if llm_author_only:
+                            programs = ()
+                    elif llm_author_requested:
+                        provider_request_count_before = (
+                            _paid_provider_request_count()
+                        )
                         try:
                             llm_authored = author_geometry_programs_with_openai(
                                 llm_author_context,
@@ -1244,10 +1525,19 @@ def _agent_mutated_seeds(
                                 f"completed:{len(llm_authored)}:"
                                 f"cache_hits={sum(bool(item.metadata.get('author_cache_hit')) for item in llm_authored)}"
                             )
-                            llm_author_request_executed = any(
-                                not bool(item.metadata.get("author_cache_hit"))
+                            llm_author_valid_program_count = len(llm_authored)
+                            llm_author_cache_hit_count = sum(
+                                bool(item.metadata.get("author_cache_hit"))
                                 for item in llm_authored
                             )
+                            llm_author_request_executed = bool(
+                                not llm_authored
+                                or llm_author_cache_hit_count < len(llm_authored)
+                            )
+                            if not llm_authored:
+                                llm_author_failure_reason = (
+                                    "no_valid_authored_program"
+                                )
                             llm_author_budget_failure = next((
                                 deepcopy(item.metadata.get(
                                     "author_compiler_repair_budget_failure"
@@ -1262,7 +1552,22 @@ def _agent_mutated_seeds(
                                     ), dict)
                                 )
                             ), None)
+                            llm_author_failure_diagnostics = next((
+                                deepcopy(item.metadata.get(
+                                    "author_failure_diagnostics"
+                                ))
+                                for item in llm_authored
+                                if isinstance(item.metadata.get(
+                                    "author_failure_diagnostics"
+                                ), dict)
+                            ), {})
                         except PaidProviderBudgetError as exc:
+                            llm_author_request_executed = (
+                                str(exc.request_kind) == "provider_retry"
+                            )
+                            llm_author_failure_reason = (
+                                "paid_provider_budget_error"
+                            )
                             llm_author_budget_failure = {
                                 "code": exc.code,
                                 "request_kind": exc.request_kind,
@@ -1282,14 +1587,28 @@ def _agent_mutated_seeds(
                                     separators=(",", ":"),
                                 )
                             )
+                            if llm_author_only:
+                                programs = ()
                         except GeometryAuthorError as exc:
+                            llm_author_failure_reason = "geometry_author_error"
+                            llm_author_failure_diagnostics = deepcopy(
+                                getattr(exc, "diagnostics", {}) or {}
+                            )
                             # The deterministic control population remains in the
                             # additive lane; a failed external author is explicit
                             # evidence and never replaced with fabricated DSL.
-                            llm_author_status = f"error:{type(exc).__name__}:{str(exc)[:160]}"
+                            llm_author_status = f"error:{type(exc).__name__}"
                             logger.warning(
                                 "LLM geometry author request failed: %s",
                                 llm_author_status,
+                            )
+                            if llm_author_only:
+                                programs = ()
+                        finally:
+                            llm_author_request_executed = bool(
+                                provider_request_count_before is not None
+                                and _paid_provider_request_count()
+                                > provider_request_count_before
                             )
                     if llm_author_only:
                         raise _PostBookVlmOnly
@@ -1478,6 +1797,38 @@ def _agent_mutated_seeds(
                         type(exc).__name__,
                         str(exc)[:300],
                     )
+        if llm_author_requested and author_request_outcomes is not None:
+            if llm_author_valid_program_count > 0:
+                terminal_status = "completed"
+                terminal_failure_reason = ""
+            elif llm_author_failure_reason:
+                terminal_status = (
+                    "deferred"
+                    if llm_author_failure_reason == "rate_limited_cooldown"
+                    else "failed"
+                )
+                terminal_failure_reason = llm_author_failure_reason
+            else:
+                terminal_status = "not_executed"
+                terminal_failure_reason = str(vlm_status or llm_author_status)
+            author_request_outcomes.append(LlmAuthorRequestOutcome(
+                provider_request_executed=llm_author_request_executed,
+                author_stage=str(request.get("author_stage") or "initial"),
+                request_kind=str(
+                    request.get("author_request_kind")
+                    or "geometry_author_initial"
+                ),
+                requested_count=bounded_llm_author_batch_count(
+                    int(request.get("llm_author_count") or 8)
+                ),
+                feedback_count=authored_visual_authority_feedback_count,
+                base_feedback_count=base_book_vlm_feedback_count,
+                cache_hit_count=llm_author_cache_hit_count,
+                valid_authored_program_count=llm_author_valid_program_count,
+                terminal_status=terminal_status,
+                failure_reason=terminal_failure_reason,
+                failure_diagnostics=llm_author_failure_diagnostics,
+            ))
         # Legal compliance must not silently author a second geometry on top
         # of the typed recursive program.  The former 0.25..1.0 frame blend
         # changed every vertex as a function of height and collapsed diverse
@@ -1792,6 +2143,354 @@ def _principles_for_seed(
     return (base, selected)
 
 
+def _llm_book_path_execution_contract(
+    program: GeometryProgram | None,
+    principles: tuple[dict[str, Any], ...] | list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    """Resolve one LLM-selected BOOK path into its exact production axes."""
+
+    if program is None:
+        return None
+    path_id = str(
+        program.metadata.get("book_composition_path_id") or ""
+    ).strip()
+    if not path_id:
+        return None
+    from .composition_lattice import book_composition_path_by_id
+
+    path = book_composition_path_by_id(path_id)
+    if path is None or not path.executable:
+        return None
+    principle = next((
+        item for item in principles
+        if str(item.get("principle_id") or "") == path.principle_id
+    ), None)
+    if principle is None:
+        return None
+    if tuple(principle.get("execution_verbs") or ()) != path.ordered_operations:
+        return None
+    return {
+        "schema_version": "arr.maas.llm_book_path_execution_contract.v1",
+        "path_id": path.path_id,
+        "base_volume_label": path.base_volume_label,
+        "orientation": path.orientation,
+        "variation_index": path.variation_index,
+        "principle_id": path.principle_id,
+        "principle_kind": path.principle_kind,
+        "ordered_operations": list(path.ordered_operations),
+        "graph_edges": [list(edge) for edge in path.graph_edges],
+        "topology_class": path.topology_class,
+        "matrix4_count": 1,
+        "principle": principle,
+    }
+
+
+def _canonical_descendant_tuple_schedule(
+    principles: tuple[dict[str, Any], ...] | list[dict[str, Any]],
+    reviewed_parent_lineages: tuple[dict[str, Any], ...],
+    *,
+    seed: VerbSequence,
+    seed_index: int,
+    selected_principle_ids: frozenset[str] | None,
+    descendant_probe_count: int,
+    variant_count: int,
+    schedule_cap: int | None,
+    rotation_offset: int,
+    selected_candidate_keys: frozenset[str] | None = None,
+    allowed_variant_indices: frozenset[int] | None = None,
+    replenishment_causal_request_hash: str = "",
+    reviewed_parent_authority: dict[str, dict[str, Any]] | None = None,
+    attempted_work_keys: frozenset[str] = frozenset(),
+    work_disposition_evidence: dict[str, Any] | None = None,
+) -> tuple[
+    tuple[int, dict[str, Any], int, tuple[Any, ...], dict[str, Any]],
+    ...,
+]:
+    """Schedule exact reviewed parent/allowed child/variant tuples fairly."""
+
+    indexed_principles = tuple(enumerate(principles))
+    reviewed_parents: list[dict[str, Any]] = []
+    seen_parent_keys: set[str] = set()
+    for lineage in reviewed_parent_lineages:
+        parent_key = canonical_lineage_parent_key(lineage)
+        base_id = str(lineage.get("base_operative_id") or "")
+        if (
+            not base_id
+            or str(lineage.get("source_seed") or "") != seed.name
+            or not parent_key
+            or parent_key in seen_parent_keys
+        ):
+            continue
+        seen_parent_keys.add(parent_key)
+        reviewed_parents.append(lineage)
+    if reviewed_parents:
+        offset = int(rotation_offset) % len(reviewed_parents)
+        reviewed_parents = (
+            reviewed_parents[offset:] + reviewed_parents[:offset]
+        )
+
+    exact_variants_by_principle: dict[str, set[int]] | None = None
+    if selected_candidate_keys is not None:
+        exact_variants_by_principle = {}
+        for key in selected_candidate_keys:
+            parts = _competition_exact_key_parts(key)
+            if parts is None or int(parts[0]) != int(seed_index):
+                continue
+            exact_variants_by_principle.setdefault(parts[1], set()).add(
+                int(parts[2])
+            )
+
+    parent_queues: list[
+        list[tuple[int, dict[str, Any], int, tuple[Any, ...], dict[str, Any]]]
+    ] = []
+    for parent_position, parent in enumerate(reviewed_parents):
+        base_id = str(parent.get("base_operative_id") or "")
+        canonical_child_ids = frozenset(
+            str(principle.get("principle_id") or "")
+            for principle in principles
+            if str(principle.get("lineage_base_operative_id") or "")
+            == base_id
+            and str(principle.get("principle_id") or "") != base_id
+        )
+        allowed_child_ids = canonical_child_ids
+        if selected_principle_ids is not None:
+            allowed_child_ids &= selected_principle_ids
+        if exact_variants_by_principle is not None:
+            allowed_child_ids &= frozenset(exact_variants_by_principle)
+        if not allowed_child_ids:
+            continue
+        children_list: list[tuple[int, dict[str, Any]]] = []
+        seen_child_ids: set[str] = set()
+        for probe_offset in range(max(1, int(descendant_probe_count))):
+            allowed_pool = _principles_for_seed(
+                indexed_principles,
+                seed_index=(
+                    int(seed_index)
+                    + int(rotation_offset)
+                    + parent_position
+                    + probe_offset
+                ),
+                llm_authored_seed=True,
+                selected_principle_ids=allowed_child_ids,
+            )
+            for item in allowed_pool:
+                child_id = str(item[1].get("principle_id") or "")
+                if (
+                    str(item[1].get("lineage_base_operative_id") or "")
+                    == base_id
+                    and child_id != base_id
+                    and child_id not in seen_child_ids
+                ):
+                    seen_child_ids.add(child_id)
+                    children_list.append(item)
+        children = tuple(children_list)
+        variants_by_child = []
+        for principle_index, principle in children:
+            principle_id = str(principle.get("principle_id") or "")
+            indexed_variants = tuple(zip(
+                book_variation_indices(variant_count),
+                diagnostic_anchor_sentence_variants(
+                    seed,
+                    tuple(principle["execution_verbs"]),
+                    default_count=variant_count,
+                ),
+            ))
+            if allowed_variant_indices is not None:
+                indexed_variants = tuple(
+                    item for item in indexed_variants
+                    if int(item[0]) in allowed_variant_indices
+                )
+            if exact_variants_by_principle is not None:
+                exact_variants = exact_variants_by_principle.get(
+                    principle_id,
+                    set(),
+                )
+                indexed_variants = tuple(
+                    item for item in indexed_variants
+                    if int(item[0]) in exact_variants
+                )
+            variants_by_child.append((
+                principle_index,
+                principle,
+                indexed_variants,
+            ))
+        queue = [
+            (principle_index, principle, variant_index, operations, parent)
+            for variant_position in range(max(
+                (len(variants) for _index, _principle, variants in variants_by_child),
+                default=0,
+            ))
+            for principle_index, principle, variants in variants_by_child
+            if variant_position < len(variants)
+            for variant_index, operations in (variants[variant_position],)
+            if not (
+                replenishment_causal_request_hash
+                and _replenishment_descendant_work_identity(
+                    parent,
+                    principle_id=str(principle.get("principle_id") or ""),
+                    variant_index=int(variant_index),
+                    causal_request_hash=replenishment_causal_request_hash,
+                    reviewed_parent_authority=(
+                        reviewed_parent_authority or {}
+                    ),
+                )["work_key"] in attempted_work_keys
+            )
+        ]
+        if queue:
+            parent_queues.append(queue)
+    limit = (
+        sum(len(queue) for queue in parent_queues)
+        if schedule_cap is None or int(schedule_cap) <= 0
+        else int(schedule_cap)
+    )
+    scheduled = []
+    tuple_index = 0
+    while len(scheduled) < limit:
+        appended = False
+        for queue in parent_queues:
+            if tuple_index < len(queue):
+                scheduled.append(queue[tuple_index])
+                appended = True
+                if len(scheduled) >= limit:
+                    break
+        if not appended:
+            break
+        tuple_index += 1
+    if work_disposition_evidence is not None:
+        all_candidate_count = sum(
+            len(variants)
+            for parent in reviewed_parents
+            for principle in principles
+            if str(principle.get("lineage_base_operative_id") or "")
+            == str(parent.get("base_operative_id") or "")
+            and str(principle.get("principle_id") or "")
+            != str(parent.get("base_operative_id") or "")
+            for variants in (book_variation_indices(variant_count),)
+        )
+        work_disposition_evidence.update({
+            "schema_version": "arr.maas.replenishment_work_schedule.v1",
+            "attempted_work_dispositions": [],
+            "scheduled_work_count": len(scheduled),
+            "skipped_attempted_work_count": max(
+                0,
+                all_candidate_count - len(scheduled),
+            ) if attempted_work_keys else 0,
+        })
+    return tuple(scheduled)
+
+
+def _replenishment_descendant_work_identity(
+    parent_lineage: dict[str, Any],
+    *,
+    principle_id: str,
+    variant_index: int,
+    causal_request_hash: str,
+    reviewed_parent_authority: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    parent_key = canonical_lineage_parent_key(parent_lineage)
+    authority = reviewed_parent_authority.get(parent_key) or {}
+    authority_payload = {
+        "parent_key": parent_key,
+        "geometry_hash": str(authority.get("geometry_hash") or ""),
+        "program_hash": str(authority.get("program_hash") or ""),
+        "base_review_fingerprint": str(
+            authority.get("base_review_fingerprint") or ""
+        ),
+    }
+    authority_fingerprint = hashlib.sha256(json.dumps(
+        authority_payload,
+        ensure_ascii=True,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
+    identity_payload = {
+        "parent_authority_fingerprint": authority_fingerprint,
+        "causal_request_hash": str(causal_request_hash or ""),
+        "child_principle_id": str(principle_id or ""),
+        "variant_index": int(variant_index),
+    }
+    return {
+        **identity_payload,
+        "work_key": hashlib.sha256(json.dumps(
+            identity_payload,
+            ensure_ascii=True,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")).hexdigest(),
+    }
+
+
+def _begin_replenishment_work_disposition(
+    identity: dict[str, Any],
+    *,
+    evidence: dict[str, Any],
+) -> dict[str, Any]:
+    record = {
+        **deepcopy(identity),
+        "terminal_stage": "generation",
+        "terminal_reason": "attempted",
+    }
+    evidence.setdefault("attempted_work_dispositions", []).append(record)
+    return record
+
+
+def _finish_replenishment_work_disposition(
+    record: dict[str, Any] | None,
+    *,
+    terminal_stage: str,
+    terminal_reason: str,
+) -> None:
+    if not isinstance(record, dict):
+        return
+    record["terminal_stage"] = str(terminal_stage or "generation_terminal")
+    record["terminal_reason"] = str(terminal_reason or "not_released")
+
+
+def _finalize_replenishment_work_dispositions(
+    evidence: dict[str, Any],
+    *,
+    terminal_records: tuple[dict[str, Any], ...]
+    | list[dict[str, Any]],
+) -> None:
+    unresolved = [
+        record
+        for record in evidence.get("attempted_work_dispositions", ())
+        if isinstance(record, dict)
+        and record.get("terminal_reason") == "attempted"
+    ]
+    failures = [
+        record for record in terminal_records if isinstance(record, dict)
+    ]
+    for index, record in enumerate(unresolved):
+        failure = failures[index] if index < len(failures) else {}
+        failure_evidence = failure.get("evidence") or {}
+        failure_evidence = (
+            failure_evidence if isinstance(failure_evidence, dict) else {}
+        )
+        reason = (
+            failure.get("reason")
+            or failure.get("failure_reason")
+            or failure_evidence.get("reason")
+            or failure_evidence.get("failure_reason")
+        )
+        if not reason:
+            reasons = (
+                failure.get("failure_reasons")
+                or failure.get("failed_gates")
+                or failure_evidence.get("failure_reasons")
+                or failure_evidence.get("failed_gates")
+                or ()
+            )
+            reason = next(iter(reasons), "not_released")
+        _finish_replenishment_work_disposition(
+            record,
+            terminal_stage=str(
+                failure.get("stage") or "generation_terminal"
+            ),
+            terminal_reason=str(reason),
+        )
+
+
 def _llm_base_then_descendant_schedule(
     scheduled_principles: tuple[tuple[int, dict[str, Any]], ...],
 ) -> tuple[tuple[int, dict[str, Any]], ...]:
@@ -1861,6 +2560,126 @@ def _expand_competition_exact_lineage_dependencies(
     return frozenset(expanded)
 
 
+def _competition_base_anchor_keys(
+    *,
+    parent_count: int,
+    principles: tuple[dict[str, Any], ...],
+    book_probe_count: int,
+) -> frozenset[str]:
+    """Give every competition parent one registry-native BASE runway."""
+
+    bases = tuple(
+        principle
+        for principle in principles
+        if (
+            str(principle.get("generation_stage") or "") == "base"
+            or str(principle.get("principle_id") or "")
+            == str(
+                principle.get("lineage_base_operative_id")
+                or principle.get("principle_id")
+                or ""
+            )
+        )
+    )
+    variants = book_variation_indices(book_probe_count)
+    if not bases or not variants:
+        return frozenset()
+    return frozenset(
+        f"{seed_index}:"
+        f"{bases[(seed_index * 7) % len(bases)]['principle_id']}:"
+        f"{variants[seed_index % len(variants)]}"
+        for seed_index in range(max(0, int(parent_count)))
+    )
+
+
+def _competition_language_anchor_keys(
+    *,
+    parent_count: int,
+    principles: tuple[dict[str, Any], ...],
+    book_probe_count: int,
+) -> frozenset[str]:
+    """Pair one rotated descendant language with its exact BASE per parent."""
+
+    by_id = {
+        str(principle.get("principle_id") or ""): principle
+        for principle in principles
+        if str(principle.get("principle_id") or "")
+    }
+    kind_order = ("combination", "aggregation", "case_study")
+    by_kind = {
+        kind: tuple(
+            principle
+            for principle in principles
+            if str(principle.get("kind") or "") == kind
+            or str(principle.get("generation_stage") or "") == kind
+        )
+        for kind in kind_order
+    }
+    variants = book_variation_indices(book_probe_count)
+    if not variants or any(not by_kind[kind] for kind in kind_order):
+        return frozenset()
+    keys: set[str] = set()
+    for seed_index in range(max(0, int(parent_count))):
+        kind = kind_order[seed_index % len(kind_order)]
+        descendants = by_kind[kind]
+        descendant = descendants[(seed_index * 7) % len(descendants)]
+        descendant_id = str(descendant.get("principle_id") or "")
+        base_id = str(
+            descendant.get("lineage_base_operative_id") or ""
+        )
+        if not descendant_id or base_id not in by_id:
+            continue
+        variant = variants[seed_index % len(variants)]
+        keys.add(f"{seed_index}:{base_id}:{variant}")
+        keys.add(f"{seed_index}:{descendant_id}:{variant}")
+    return frozenset(keys)
+
+
+def _competition_exact_principle_schedule(
+    exact_keys: frozenset[str],
+    principles: tuple[dict[str, Any], ...],
+    *,
+    seed_index: int,
+) -> tuple[tuple[int, dict[str, Any]], ...]:
+    """Materialize the exact shortlist, independent of local BOOK windows."""
+
+    selected_ids = {
+        parts[1]
+        for key in exact_keys
+        if (parts := _competition_exact_key_parts(key)) is not None
+        and int(parts[0]) == int(seed_index)
+    }
+    selected = tuple(
+        (index, principle)
+        for index, principle in enumerate(principles)
+        if str(principle.get("principle_id") or "") in selected_ids
+    )
+    return _llm_base_then_descendant_schedule(selected)
+
+
+def _competition_exact_variant_schedule(
+    exact_keys: frozenset[str],
+    *,
+    seed_index: int,
+    principle_id: str,
+    indexed_variants: tuple[tuple[int, tuple[Any, ...]], ...],
+) -> tuple[tuple[int, tuple[Any, ...]], ...]:
+    """Execute the variant encoded in each exact shortlist identity."""
+
+    selected_variants = {
+        int(parts[2])
+        for key in exact_keys
+        if (parts := _competition_exact_key_parts(key)) is not None
+        and int(parts[0]) == int(seed_index)
+        and parts[1] == str(principle_id)
+    }
+    return tuple(
+        (variant_index, operations)
+        for variant_index, operations in indexed_variants
+        if int(variant_index) in selected_variants
+    )
+
+
 def _program_projection_evidence(
     program: GeometryProgram,
     bridge_evidence: dict[str, Any] | None,
@@ -1869,12 +2688,13 @@ def _program_projection_evidence(
 
 
 _AUTHORED_PROJECTION_MAX_SILHOUETTE_DISTANCE = 0.40
+_AUTHORED_LEGAL_CSG_MAX_SILHOUETTE_DISTANCE = 0.10
 _AUTHORED_PROJECTION_IDENTITY_PREDICATE = (
     "preserve_pose_invariant_top_front_side_figure_and_do_not_"
-    "invent_step_or_pyramid_morphology"
+    "invent_visible_step_morphology"
 )
 _AUTHORED_PROJECTION_IDENTITY_PREDICATE_VERSION = (
-    "arr.maas.authored_projection_identity_predicate.v3"
+    "arr.maas.authored_projection_identity_predicate.v7_visible_step_distortion"
 )
 def _allow_tiny_geometry_gates() -> bool:
     """Check whether tiny-geometry gate relaxations are allowed."""
@@ -1918,15 +2738,7 @@ def _authored_projection_identity_evidence(
     pre_book_geometry_hash: str = "",
     post_book_geometry_hash: str = "",
 ) -> dict[str, Any]:
-    """Separate structural projection validity from visual-identity advice.
-
-    Exact legal projection can legitimately alter silhouette or introduce a
-    stepped section. Those differences remain typed revision/VLM evidence but
-    cannot erase an otherwise valid final surface. Missing or malformed visual
-    authority, synthetic step fallback, and authored/BOOK no-ops remain hard.
-    """
-
-    del enforce_morphology_preservation
+    """Certify that legal projection did not replace the authored architecture."""
 
     authored_metrics = authoritative_surface_morphology(authored_source)
     projected_metrics = authoritative_surface_morphology(projected_source)
@@ -1940,14 +2752,13 @@ def _authored_projection_identity_evidence(
     authored_step_intent = bool(
         authored_operators & _AUTHORED_STEP_OPERATORS
     )
-    authored_step_visible = bool(
-        authored_metrics.get("visible_stepped")
-        or authored_metrics.get("pyramidal_like")
-    )
-    projected_step_visible = bool(
-        projected_metrics.get("visible_stepped")
-        or projected_metrics.get("pyramidal_like")
-    )
+    # A continuous taper/pyramid is an architectural section language, not a
+    # staircase.  Portfolio selection may cap repeated pyramidal forms, while
+    # identity protection hard-rejects only a genuinely new visible step (or
+    # excessive silhouette distance).  Conflating the two discarded C119 even
+    # though both authoritative surfaces reported ``visible_stepped=false``.
+    authored_step_visible = bool(authored_metrics.get("visible_stepped"))
+    projected_step_visible = bool(projected_metrics.get("visible_stepped"))
     silhouette_distance = float(authoritative_surface_silhouette_distance(authored_source, projected_source))
     visual_certificate = projected_source.metadata.get(
         "floorwise_visual_projection"
@@ -1961,10 +2772,19 @@ def _authored_projection_identity_evidence(
     if (
         visual_certificate.get("status") == "certified"
         and visual_certificate.get("hard_pass") is True
-        and visual_certificate.get("certification_mode")
-        == "floorwise_profiled_legal_clip"
-        and visual_certificate.get("visible_geometry_operation")
-        == "authored_profiled_mesh_legal_solid_intersection"
+        and (
+            visual_certificate.get("certification_mode"),
+            visual_certificate.get("visible_geometry_operation"),
+        ) in {
+            (
+                "floorwise_profiled_continuous_envelope_clip",
+                "authored_profiled_mesh_continuous_legal_envelope_intersection",
+            ),
+            (
+                "floorwise_profiled_legal_clip",
+                "authored_profiled_mesh_legal_solid_intersection",
+            ),
+        }
         and visual_certificate.get("visible_step_fallback") is False
     ):
         try:
@@ -1982,6 +2802,11 @@ def _authored_projection_identity_evidence(
             )
         except (AttributeError, TypeError, ValueError):
             mandatory_legal_field_setback = False
+    maximum_silhouette_distance = (
+        _AUTHORED_LEGAL_CSG_MAX_SILHOUETTE_DISTANCE
+        if mandatory_legal_field_setback
+        else _AUTHORED_PROJECTION_MAX_SILHOUETTE_DISTANCE
+    )
     failures: list[str] = []
     diagnostic_reasons: list[str] = []
     if not authored_metrics.get("hard_pass"):
@@ -1995,18 +2820,20 @@ def _authored_projection_identity_evidence(
         projected_step_visible
         and not authored_step_visible
         and not authored_step_intent
-        and not mandatory_legal_field_setback
     ):
-        diagnostic_reasons.append("unrequested_legal_step_collapse")
+        (
+            failures
+            if enforce_morphology_preservation
+            else diagnostic_reasons
+        ).append("unrequested_legal_step_collapse")
     if (
         authored_metrics.get("hard_pass")
         and projected_metrics.get("hard_pass")
         and
-        silhouette_distance > _AUTHORED_PROJECTION_MAX_SILHOUETTE_DISTANCE
+        silhouette_distance > maximum_silhouette_distance
         and not authored_step_intent
-        and not mandatory_legal_field_setback
     ):
-        diagnostic_reasons.append(
+        failures.append(
             "authored_projection_silhouette_distance_exceeded"
         )
     if (
@@ -2062,7 +2889,7 @@ def _authored_projection_identity_evidence(
         "step_requested": authored_step_intent,
         "raw_silhouette_distance": silhouette_distance,
         "maximum_silhouette_distance": (
-            _AUTHORED_PROJECTION_MAX_SILHOUETTE_DISTANCE
+            maximum_silhouette_distance
         ),
     }
     return {
@@ -2079,10 +2906,12 @@ def _authored_projection_identity_evidence(
         "diagnostic_reasons": diagnostic_reasons,
         "typed_revision_signal": {
             "schema_version": "arr.maas.projected_identity_revision_signal.v1",
-            "active": bool(diagnostic_reasons),
-            "hard_gate": False,
+            "active": bool(failures or diagnostic_reasons),
+            "hard_gate": bool(failures),
             "route": "typed_revision_or_vlm_review",
-            "reasons": list(diagnostic_reasons),
+            "reasons": list(dict.fromkeys(
+                [*failures, *diagnostic_reasons]
+            )),
         },
         "mandatory_legal_field_setback": mandatory_legal_field_setback,
         "visual_identity_authority": "profiled_surface_payload",
@@ -2114,7 +2943,7 @@ def _authored_projection_identity_evidence(
         ),
         "silhouette_distance": round(silhouette_distance, 6),
         "maximum_silhouette_distance": (
-            _AUTHORED_PROJECTION_MAX_SILHOUETTE_DISTANCE
+            maximum_silhouette_distance
         ),
         "visible_step_fallback": bool(
             visual_certificate.get("visible_step_fallback")
@@ -2213,6 +3042,123 @@ def _bounded_terminal_record_evidence(raw_evidence: Mapping[str, Any]) -> dict[s
                 ]
             elif isinstance(value, (bool, int, float)) or value is None:
                 bounded_witness[str(key)] = value
+            elif (
+                str(key) == "failed_predicates"
+                and isinstance(value, (list, tuple))
+            ):
+                bounded_witness[str(key)] = list(dict.fromkeys(
+                    str(item)[:_TERMINAL_CERTIFICATE_STRING_LIMIT]
+                    for item in value[:_TERMINAL_CERTIFICATE_REASON_LIMIT]
+                    if isinstance(item, str) and item
+                ))
+            elif (
+                str(key) == "profiled_mesh_revalidation"
+                and isinstance(value, dict)
+            ):
+                typed_revalidation: dict[str, Any] = {}
+                for typed_key in (
+                    "repair_attempted",
+                    "max_physical_displacement_m",
+                    "raw_component_count",
+                    "post_repair_component_count",
+                ):
+                    typed_value = value.get(typed_key)
+                    if isinstance(typed_value, (bool, int, float)):
+                        typed_revalidation[typed_key] = typed_value
+                for typed_key in (
+                    "raw_gate_codes",
+                    "post_repair_gate_codes",
+                ):
+                    typed_value = value.get(typed_key)
+                    if isinstance(typed_value, (list, tuple)):
+                        typed_revalidation[typed_key] = list(dict.fromkeys(
+                            str(item)[:_TERMINAL_CERTIFICATE_STRING_LIMIT]
+                            for item in typed_value[
+                                :_TERMINAL_CERTIFICATE_REASON_LIMIT
+                            ]
+                            if isinstance(item, str) and item
+                        ))
+                numeric = value.get("numeric_measurements")
+                if isinstance(numeric, dict):
+                    typed_revalidation["numeric_measurements"] = {
+                        str(name): measurement
+                        for name, measurement in list(numeric.items())[:8]
+                        if isinstance(measurement, (int, float))
+                    }
+                attempts = value.get("attempt_records")
+                if isinstance(attempts, list):
+                    bounded_attempts = []
+                    required_numeric = (
+                        "threshold_m",
+                        "max_chain_displacement_m",
+                        "minimum_surviving_edge_physical_m",
+                        "minimum_surviving_edge_coordinate",
+                    )
+                    for attempt in attempts[:5]:
+                        if not isinstance(attempt, dict):
+                            continue
+                        numeric_values = {
+                            name: attempt.get(name) for name in required_numeric
+                        }
+                        if not all(
+                            isinstance(measurement, (int, float))
+                            and measurement == measurement
+                            and abs(float(measurement)) != float("inf")
+                            for measurement in numeric_values.values()
+                        ):
+                            continue
+                        reason = attempt.get("termination_reason")
+                        endpoints = attempt.get("minimum_edge_endpoint_indices")
+                        delta = attempt.get("minimum_edge_delta_xyz")
+                        post_codes = attempt.get("post_gate_codes")
+                        structural = attempt.get("structural_evidence")
+                        if (
+                            reason not in {
+                                "no_eligible_edge",
+                                "chain_displacement_exceeded",
+                                "invalid_effective_height",
+                                "completed",
+                            }
+                            or not isinstance(attempt.get("collapse_count"), int)
+                            or not isinstance(attempt.get("raw_component_count"), int)
+                            or not isinstance(attempt.get("post_component_count"), int)
+                            or not isinstance(attempt.get("selected_as_final"), bool)
+                            or not isinstance(endpoints, list)
+                            or len(endpoints) > 2
+                            or not all(isinstance(index, int) for index in endpoints)
+                            or not isinstance(delta, list)
+                            or len(delta) != 3
+                            or not all(
+                                isinstance(measurement, (int, float))
+                                and measurement == measurement
+                                and abs(float(measurement)) != float("inf")
+                                for measurement in delta
+                            )
+                            or not isinstance(post_codes, list)
+                            or not all(isinstance(code, str) for code in post_codes[:12])
+                            or not isinstance(structural, dict)
+                            or not all(
+                                isinstance(name, str) and isinstance(flag, bool)
+                                for name, flag in structural.items()
+                            )
+                        ):
+                            continue
+                        bounded_attempts.append({
+                            **numeric_values,
+                            "collapse_count": attempt["collapse_count"],
+                            "termination_reason": reason,
+                            "minimum_edge_endpoint_indices": endpoints[:2],
+                            "minimum_edge_delta_xyz": list(delta),
+                            "post_gate_codes": list(dict.fromkeys(post_codes[:12])),
+                            "raw_component_count": attempt["raw_component_count"],
+                            "post_component_count": attempt["post_component_count"],
+                            "structural_evidence": dict(
+                                list(structural.items())[:5]
+                            ),
+                            "selected_as_final": attempt["selected_as_final"],
+                        })
+                    typed_revalidation["attempt_records"] = bounded_attempts
+                bounded_witness[str(key)] = typed_revalidation
         bounded["failure_witness"] = bounded_witness
     plate_failures = raw_evidence.get("plate_recertification_failures")
     if isinstance(plate_failures, (list, tuple)):
@@ -3348,7 +4294,12 @@ def _materialize_directed_geometry(
         floor_capacity_plan_hash=floor_capacity_plan_hash,
         aggregate_target_area_m2=sum(target_areas),
         maximum_exact_candidates=4,
-        minimum_aggregate_target_ratio=0.35,
+        # This selector is an acceptance path, not a loose morphology probe.
+        # Returning a 35%-of-target affine body suppresses the capacity-aware
+        # repair below and guarantees a later FAR rejection.  Require the
+        # selected unchanged body to satisfy the complete requested budget;
+        # infeasible authored bodies continue into the explicit repair path.
+        minimum_aggregate_target_ratio=0.995,
     )
     final_projection_book_program = authored_program
     if legal_field_selection is None:
@@ -3389,12 +4340,8 @@ def _materialize_directed_geometry(
         ):
             terminal_failure("outer_precondition", field="candidate_floor_context")
             return None
-        authored_source = compile_geometry_program_to_source_mass(
+        authored_source = compile_normalized_geometry_program_to_source_mass(
             authored_program,
-            legal_sections[0],
-            upper_host=legal_sections[-1],
-            upper_fit_strength=fit_strength,
-            target_plan_area=target_areas[0],
             name=f"{source.name}__authored_{authored_program.name}",
             volume_role=primary_volume_role,
             max_volume_bands=max(3, len(legal_sections)),
@@ -3423,6 +4370,7 @@ def _materialize_directed_geometry(
             authored_source,
             legal_sections=legal_sections,
             target_plan_coverage=minimum_host_plan_coverage,
+            site_access_side=site_access_side,
             floor_capacity_plan_hash=floor_capacity_plan_hash,
             legal_floor_field_hash=legal_floor_field_hash,
             target_floor_areas_m2=target_areas,
@@ -3622,6 +4570,7 @@ def _materialize_directed_geometry(
             containment_host,
             name=f"{source.name}__geometry_{projected.program.name}",
             volume_role=primary_volume_role,
+            floor_count=len(legal_sections),
         )
         if materialized is None:
             terminal_failure(
@@ -3659,6 +4608,28 @@ def _materialize_directed_geometry(
     final_surface_payload_hash = source_surface_payload_hash(
         tuple(materialized.surfaces)
     )
+    final_proxy_volume_payload_hash = source_volume_payload_hash(
+        tuple(materialized.volumes)
+    )
+    proxy_band_counts = Counter(
+        (
+            float(volume.bottom_fraction),
+            float(volume.top_fraction),
+        )
+        for volume in materialized.volumes
+    )
+    proxy_band_part_counts = tuple(
+        proxy_band_counts[band]
+        for band in sorted(proxy_band_counts)
+    )
+    # Both the unchanged-affine path and the explicit repair path terminate
+    # in the same certified projection contract.  Bind that contract here so
+    # downstream law/parking gates do not depend on which materializer won.
+    projection_evidence.update({
+        "hard_pass": True,
+        "final_program_hash": final_program_hash,
+        "final_geometry_hash": final_geometry_hash,
+    })
     authored_legal_projection_certificate = {
         "schema_version": (
             "arr.maas.authored_legal_projection_certificate.v1"
@@ -3697,6 +4668,9 @@ def _materialize_directed_geometry(
             authored_legal_projection_certificate
         ),
         "final_surface_payload_hash": final_surface_payload_hash,
+        "final_proxy_volume_payload_hash": (
+            final_proxy_volume_payload_hash
+        ),
     })
     authoritative_bridge = deepcopy(
         authoritative_metadata.get("geometry_program_bridge_evidence") or {}
@@ -3707,6 +4681,12 @@ def _materialize_directed_geometry(
         "program_hash": final_program_hash,
         "geometry_hash": final_geometry_hash,
         "surface_payload_hash": final_surface_payload_hash,
+        "proxy_volume_payload_hash": final_proxy_volume_payload_hash,
+        "requested_proxy_band_count": len(proxy_band_counts),
+        "exported_proxy_band_count": len(proxy_band_counts),
+        "exported_proxy_part_count": len(materialized.volumes),
+        "proxy_volume_count": len(materialized.volumes),
+        "proxy_band_part_counts": list(proxy_band_part_counts),
         "geometry_authority": "authored_projected_surface_payload",
         "legal_proxy_authority": "analysis_only_gfa_parking_containment",
         "legal_floor_loft_or_prism_replay_allowed": False,
@@ -4039,7 +5019,15 @@ def _materialize_directed_geometry(
         ),
     )
     if semantic_projection.get("hard_pass") is not True:
-        terminal_failure("semantic_carrier")
+        terminal_failure(
+            "semantic_carrier",
+            failures=list(semantic_projection.get("failures") or ()),
+            program_id=str(semantic_projection.get("program_id") or ""),
+            source_role_count=len(
+                semantic_projection.get("source_role_scaffold") or ()
+            ),
+            carrier_count=len(semantic_projection.get("carriers") or ()),
+        )
         return None
     metadata["final_semantic_projection_context"] = semantic_projection_context
     metadata["program_semantic_carrier_evidence"] = semantic_projection
@@ -4096,9 +5084,14 @@ def _program_pool_single_phase(
         Callable[[dict[str, Any]], None] | None
     ) = None,
     _directed_seeds_override: tuple[VerbSequence, ...] | None = None,
+    _parent_seeds_override: tuple[VerbSequence, ...] | None = None,
     _generation_phase: str = "all",
     _reviewed_base_registry: dict[str, str | None] | None = None,
     _reviewed_base_audits: dict[str, dict[str, Any]] | None = None,
+    _reviewed_base_lineages: tuple[dict[str, Any], ...] | None = None,
+    _replenishment_causal_request_hash: str = "",
+    _replenishment_effective_context_hash: str = "",
+    _replenishment_attempted_work_keys: frozenset[str] = frozenset(),
 ) -> tuple[list[_Candidate], dict[str, Any]]:
     # Local import avoids expanding the ordinary candidate-analysis import
     # surface while allowing online quality-diversity compaction.
@@ -4111,6 +5104,14 @@ def _program_pool_single_phase(
     capacity_authoring_deficits: list[dict[str, Any]] = []
     materialization_diagnostics = _MaterializationAttemptDiagnostics()
     legal_mass_archive = LegalMassArchive()
+    descendant_parent_authorization = {
+        "schema_version": "arr.maas.descendant_parent_authorization.v1",
+        "input_count": 0,
+        "authorized_count": 0,
+        "filtered_count": 0,
+        "filtered_by_reason": {},
+    }
+    replenishment_work_evidence: dict[str, Any] = {}
 
     if (
         (base_capacity_contract or {}).get("legal_floor_field")
@@ -4256,6 +5257,7 @@ def _program_pool_single_phase(
             })
 
     requested_parent_indices = tuple(sorted({max(0, int(index)) for index in parent_variant_indices})) or (0,)
+    author_request_outcomes: list[LlmAuthorRequestOutcome] = []
     directed_seeds = (
         tuple(_directed_seeds_override)
         if _directed_seeds_override is not None
@@ -4275,12 +5277,16 @@ def _program_pool_single_phase(
             live_geometry_vlm_revision=live_geometry_vlm_revision,
             base_capacity_contract=base_capacity_contract,
             universal_variation_pages=requested_parent_indices,
+            author_request_outcomes=author_request_outcomes,
         )
     )
     llm_author_only_active = any(
         isinstance(request, dict)
         and bool(request.get("llm_author_only"))
         for request in (synthesis_requests or ())
+    ) or bool(directed_seeds) and all(
+        _seed_is_llm_authored(seed)
+        for seed in directed_seeds
     )
     if recursive_only:
         directed_seeds = tuple(
@@ -4297,15 +5303,19 @@ def _program_pool_single_phase(
                 )
             )
         )
-    parent_seeds = tuple(
-        variant
-        for seed_index, seed in enumerate(directed_seeds)
-        for variant_index, variant in enumerate(program_seed_variants(
-            seed,
-            count=max(requested_parent_indices) + 1,
-            random_seed=417 + seed_index * 97,
-        ))
-        if variant_index in requested_parent_indices
+    parent_seeds = (
+        tuple(deepcopy(_parent_seeds_override))
+        if _parent_seeds_override is not None
+        else tuple(
+            variant
+            for seed_index, seed in enumerate(directed_seeds)
+            for variant_index, variant in enumerate(program_seed_variants(
+                seed,
+                count=max(requested_parent_indices) + 1,
+                random_seed=417 + seed_index * 97,
+            ))
+            if variant_index in requested_parent_indices
+        )
     )
     diagnostic_anchors_active = diagnostic_anchor_schedule_active(
         recursive_only=recursive_only,
@@ -4313,6 +5323,7 @@ def _program_pool_single_phase(
         parent_indices=requested_parent_indices,
         has_capacity_contract=bool(base_capacity_contract),
         target_count=target_count,
+        llm_author_only=llm_author_only_active,
     )
     if diagnostic_anchors_active:
         parent_seeds = schedule_diagnostic_anchor_parents(parent_seeds)
@@ -4385,6 +5396,8 @@ def _program_pool_single_phase(
     )
     competition_selected_exact_keys: frozenset[str] = frozenset()
     competition_exact_keys: frozenset[str] = frozenset()
+    competition_base_anchor_keys: frozenset[str] = frozenset()
+    competition_language_anchor_keys: frozenset[str] = frozenset()
     competition_cheap_schedule = None
     cheap_screen_duration = 0.0
     if competition_breadth_budget:
@@ -4412,6 +5425,21 @@ def _program_pool_single_phase(
                 tuple(principles),
             )
         )
+        competition_base_anchor_keys = _competition_base_anchor_keys(
+            parent_count=len(parent_seeds),
+            principles=tuple(principles),
+            book_probe_count=book_probe_count,
+        )
+        competition_language_anchor_keys = _competition_language_anchor_keys(
+            parent_count=len(parent_seeds),
+            principles=tuple(principles),
+            book_probe_count=book_probe_count,
+        )
+        competition_exact_keys = frozenset({
+            *competition_exact_keys,
+            *competition_base_anchor_keys,
+            *competition_language_anchor_keys,
+        })
         cheap_screen_duration = perf_counter() - cheap_screen_started
     exact_compile_started = perf_counter()
     for seed_index, seed in enumerate(parent_seeds):
@@ -4429,6 +5457,7 @@ def _program_pool_single_phase(
             for note in seed.notes
         )
         recursive_program: GeometryProgram | None = None
+        llm_book_path_contract: dict[str, Any] | None = None
         if recursive_seed:
             payload = next((
                 note.split("=", 1)[1]
@@ -4439,6 +5468,11 @@ def _program_pool_single_phase(
                 recursive_program = GeometryProgram.from_dict(json.loads(payload))
             except (TypeError, ValueError, json.JSONDecodeError):
                 recursive_program = None
+        if llm_authored_seed:
+            llm_book_path_contract = _llm_book_path_execution_contract(
+                recursive_program,
+                tuple(principles),
+            )
         source_seed_name = next((
             note.split("=", 1)[1]
             for note in seed.notes
@@ -4485,9 +5519,13 @@ def _program_pool_single_phase(
             explicit_diagnostic_budget=explicit_diagnostic_budget,
         )
         if recursive_seed and principle_schedule_limit is not None:
-            scheduled_principles = scheduled_principles[
-                :principle_schedule_limit
-            ]
+            scheduled_principles = (
+                _balanced_principle_window_with_lineage_bases(
+                    scheduled_principles,
+                    seed_index=seed_index,
+                    count=principle_schedule_limit,
+                )
+            )
         scheduled_principles = diagnostic_anchor_principles(
             seed,
             principle_by_id,
@@ -4496,17 +5534,34 @@ def _program_pool_single_phase(
         if competition_breadth_budget:
             # The cheap screen already chose the exact descriptor keys.
             # Consume those same keys directly instead of spending the exact
-            # cap while skipping eleven unselected principles per parent.
-            scheduled_principles = tuple(
-                item
-                for item in scheduled_principles
-                if any(
-                    key.startswith(
-                        f"{seed_index}:{item[1]['principle_id']}:"
-                    )
-                    for key in competition_exact_keys
-                )
+            # cap against a separately reconstructed local BOOK window.
+            scheduled_principles = _competition_exact_principle_schedule(
+                competition_exact_keys,
+                tuple(principles),
+                seed_index=seed_index,
             )
+        if llm_book_path_contract is not None:
+            selected_principle_id = str(
+                llm_book_path_contract["principle_id"]
+            )
+            selected_item = principle_by_id.get(selected_principle_id)
+            base_id = str(
+                llm_book_path_contract["principle"].get(
+                    "lineage_base_operative_id"
+                ) or selected_principle_id
+            )
+            base_item = principle_by_id.get(base_id)
+            exact_schedule: list[tuple[int, dict[str, Any]]] = []
+            exact_ids: set[str] = set()
+            for item in (base_item, selected_item):
+                if item is None:
+                    continue
+                item_id = str(item[1].get("principle_id") or "")
+                if not item_id or item_id in exact_ids:
+                    continue
+                exact_ids.add(item_id)
+                exact_schedule.append(item)
+            scheduled_principles = tuple(exact_schedule)
         recursive_family = str((recursive_program.metadata if recursive_program else {}).get("family") or "")
         geometry_stages = None
         if recursive_seed:
@@ -4525,26 +5580,32 @@ def _program_pool_single_phase(
                     "program_hard_passed": 0,
                 },
             )
-        seed_principles = _principles_for_seed(
-            scheduled_principles,
-            seed_index=seed_index,
-            llm_authored_seed=llm_authored_seed,
-            selected_principle_ids=(
-                frozenset(
-                    parts[1]
-                    for key in competition_selected_exact_keys
-                    if (parts := _competition_exact_key_parts(key))
-                    is not None
-                    and int(parts[0]) == seed_index
-                )
-                if competition_breadth_budget
-                else None
-            ),
-            descendant_probe_count=(
-                max(1, int(book_probe_count))
-                if _generation_phase == "descendant"
-                else 1
-            ),
+        selected_principle_ids = (
+            frozenset(
+                parts[1]
+                for key in competition_selected_exact_keys
+                if (parts := _competition_exact_key_parts(key))
+                is not None
+                and int(parts[0]) == seed_index
+            )
+            if competition_breadth_budget
+            else None
+        )
+        descendant_tuple_schedule = ()
+        seed_principles = (
+            scheduled_principles
+            if llm_book_path_contract is not None
+            else _principles_for_seed(
+                scheduled_principles,
+                seed_index=seed_index,
+                llm_authored_seed=llm_authored_seed,
+                selected_principle_ids=selected_principle_ids,
+                descendant_probe_count=(
+                    max(1, int(book_probe_count))
+                    if _generation_phase == "descendant"
+                    else 1
+                ),
+            )
         )
         if llm_authored_seed:
             llm_authored_stage_counts[
@@ -4567,17 +5628,111 @@ def _program_pool_single_phase(
                 )
             )
         elif _generation_phase == "descendant":
-            seed_principles = tuple(
-                item for item in seed_principles
-                if not (
-                    str(item[1].get("generation_stage") or "") == "base"
-                    or str(item[1].get("principle_id") or "")
-                    == str(
-                        item[1].get("lineage_base_operative_id")
-                        or item[1].get("principle_id")
-                        or ""
-                    )
+            reviewed_seed_parent_lineages = tuple(
+                lineage
+                for lineage in (_reviewed_base_lineages or ())
+                if canonical_lineage_parent_key(lineage)
+                and str(lineage.get("source_seed") or "") == seed.name
+            )
+            descendant_schedule_cap = (
+                12 if recursive_seed else len(principles)
+            )
+            if (
+                principle_schedule_limit is not None
+                and int(principle_schedule_limit) > 0
+            ):
+                descendant_schedule_cap = min(
+                    descendant_schedule_cap,
+                    int(principle_schedule_limit),
                 )
+            if evaluation_cap is not None and int(evaluation_cap) > 0:
+                descendant_schedule_cap = min(
+                    descendant_schedule_cap,
+                    int(evaluation_cap),
+                )
+            if llm_book_path_contract is not None:
+                selected = next((
+                    item for item in seed_principles
+                    if str(item[1].get("principle_id") or "")
+                    == str(llm_book_path_contract["principle_id"])
+                ), None)
+                exact_variants = book_sentence_variants(
+                    tuple(llm_book_path_contract["ordered_operations"]),
+                    count=11,
+                )
+                reviewed_parent = next(iter(
+                    reviewed_seed_parent_lineages
+                ), None)
+                descendant_tuple_schedule = (
+                    (
+                        selected[0],
+                        selected[1],
+                        int(llm_book_path_contract["variation_index"]),
+                        exact_variants[
+                            int(llm_book_path_contract["variation_index"])
+                        ],
+                        reviewed_parent,
+                    ),
+                ) if selected is not None and reviewed_parent is not None else ()
+            else:
+                descendant_tuple_schedule = _canonical_descendant_tuple_schedule(
+                    tuple(principles),
+                    reviewed_seed_parent_lineages,
+                    seed=seed,
+                    seed_index=seed_index,
+                    selected_principle_ids=selected_principle_ids,
+                    descendant_probe_count=max(1, int(book_probe_count)),
+                    variant_count=max(1, int(book_probe_count)),
+                    schedule_cap=descendant_schedule_cap,
+                    rotation_offset=(
+                        min(parent_variant_indices)
+                        if parent_variant_indices
+                        else 0
+                    ),
+                    selected_candidate_keys=(
+                        competition_selected_exact_keys
+                        if competition_breadth_budget
+                        else None
+                    ),
+                    allowed_variant_indices=(
+                        frozenset({int(anchor_spec.variant_index)})
+                        if anchor_spec is not None
+                        else None
+                    ),
+                    replenishment_causal_request_hash=(
+                        _replenishment_causal_request_hash
+                    ),
+                    reviewed_parent_authority={
+                        parent_key: {
+                            "parent_key": parent_key,
+                            "geometry_hash": str(
+                                (_reviewed_base_registry or {}).get(
+                                    parent_key
+                                ) or ""
+                            ),
+                            "program_hash": str(
+                                audit.get("program_hash") or ""
+                            ),
+                            "base_review_fingerprint": str(
+                                audit.get("base_review_fingerprint") or ""
+                            ),
+                        }
+                        for parent_key, audit in (
+                            _reviewed_base_audits or {}
+                        ).items()
+                        if isinstance(audit, dict)
+                    },
+                    attempted_work_keys=(
+                        _replenishment_attempted_work_keys
+                    ),
+                    work_disposition_evidence=(
+                        replenishment_work_evidence
+                    ),
+                )
+            seed_principles = tuple(
+                (principle_index, principle)
+                for principle_index, principle, _variant, _operations, _parent
+                in descendant_tuple_schedule
             )
         for schedule_index, (principle_index, principle) in enumerate(seed_principles):
             if exact_compile_cap_reached():
@@ -4607,11 +5762,29 @@ def _program_pool_single_phase(
                 execution_verbs,
                 default_count=book_probe_count,
             )
+            if llm_book_path_contract is not None:
+                exact_variation_index = int(
+                    llm_book_path_contract["variation_index"]
+                )
+                variation_indices = (exact_variation_index,)
+                sentence_variants = (
+                    book_sentence_variants(
+                        execution_verbs,
+                        count=11,
+                    )[exact_variation_index],
+                )
             if anchor_spec is not None:
                 variation_indices = (anchor_spec.variant_index,)
             indexed_variants = tuple(zip(variation_indices, sentence_variants))
             scheduled_variants = (
-                (
+                _competition_exact_variant_schedule(
+                    competition_exact_keys,
+                    seed_index=seed_index,
+                    principle_id=str(principle["principle_id"]),
+                    indexed_variants=indexed_variants,
+                )
+                if competition_breadth_budget
+                else (
                     indexed_variants[
                         (seed_index + lineage_base_index)
                         % len(indexed_variants)
@@ -4620,7 +5793,38 @@ def _program_pool_single_phase(
                 if recursive_seed
                 else indexed_variants
             )
-            for variant_index, operations in scheduled_variants:
+            reviewed_parent_lineages = tuple(
+                lineage
+                for lineage in (
+                    reviewed_seed_parent_lineages
+                    if _generation_phase == "descendant"
+                    else ()
+                )
+                if str(lineage.get("base_operative_id") or "")
+                == lineage_base_id
+            )
+            if _generation_phase == "descendant":
+                (
+                    _scheduled_principle_index,
+                    _scheduled_principle,
+                    scheduled_variant_index,
+                    scheduled_operations,
+                    scheduled_parent,
+                ) = descendant_tuple_schedule[schedule_index]
+                scheduled_lineage_variants = ((
+                    scheduled_variant_index,
+                    scheduled_operations,
+                    scheduled_parent,
+                ),)
+            else:
+                scheduled_lineage_variants = tuple(
+                    (variant_index, operations, reviewed_parent)
+                    for variant_index, operations in scheduled_variants
+                    for reviewed_parent in (None,)
+                )
+            for variant_index, operations, reviewed_parent in (
+                scheduled_lineage_variants
+            ):
                 if exact_compile_cap_reached():
                     break
                 if (
@@ -4629,6 +5833,47 @@ def _program_pool_single_phase(
                     and smoke_floor_pass_candidates >= early_stop_target
                 ):
                     break
+                active_work_disposition = None
+                if (
+                    _generation_phase == "descendant"
+                    and reviewed_parent is not None
+                    and _replenishment_causal_request_hash
+                ):
+                    active_work_disposition = (
+                        _begin_replenishment_work_disposition(
+                            _replenishment_descendant_work_identity(
+                                reviewed_parent,
+                                principle_id=str(principle["principle_id"]),
+                                variant_index=int(variant_index),
+                                causal_request_hash=(
+                                    _replenishment_causal_request_hash
+                                ),
+                                reviewed_parent_authority={
+                                    parent_key: {
+                                        "parent_key": parent_key,
+                                        "geometry_hash": str(
+                                            (_reviewed_base_registry or {}).get(
+                                                parent_key
+                                            ) or ""
+                                        ),
+                                        "program_hash": str(
+                                            audit.get("program_hash") or ""
+                                        ),
+                                        "base_review_fingerprint": str(
+                                            audit.get(
+                                                "base_review_fingerprint"
+                                            ) or ""
+                                        ),
+                                    }
+                                    for parent_key, audit in (
+                                        _reviewed_base_audits or {}
+                                    ).items()
+                                    if isinstance(audit, dict)
+                                },
+                            ),
+                            evidence=replenishment_work_evidence,
+                        )
+                    )
                 evaluated += 1
                 emit_progress()
                 if llm_authored_seed:
@@ -4654,10 +5899,20 @@ def _program_pool_single_phase(
                     # unreachable; scope must rotate independently here.
                     couple_variation=not recursive_seed,
                 )
-                if scope_schedule_labels:
-                    base_volume_label = scope_schedule_labels[
-                        (evaluated - 1) % len(scope_schedule_labels)
-                    ]
+                if scope_schedule_labels and llm_book_path_contract is None:
+                    base_volume_label = _lineage_stable_scope_label(
+                        scope_schedule_labels,
+                        seed_index=seed_index,
+                        lineage_base_index=lineage_base_index,
+                        variant_index=variant_index,
+                    )
+                if llm_book_path_contract is not None:
+                    base_volume_label = str(
+                        llm_book_path_contract["base_volume_label"]
+                    )
+                    orientation = str(
+                        llm_book_path_contract["orientation"]
+                    )
                 base_volume_label, orientation = diagnostic_anchor_scope(
                     seed,
                     default_label=base_volume_label,
@@ -4665,20 +5920,123 @@ def _program_pool_single_phase(
                 )
                 scope_counts = scope_stage_counts[base_volume_label]
                 scope_counts["evaluated"] += 1
-                generation_lineage = lineage_record(
-                    principle,
-                    source_seed=seed.name,
-                    scope_label=base_volume_label,
-                    orientation=orientation,
-                    variant_index=variant_index,
+                if reviewed_parent is not None:
+                    generation_lineage = lineage_record(
+                        principle,
+                        source_seed=seed.name,
+                        scope_label=base_volume_label,
+                        orientation=orientation,
+                        variant_index=variant_index,
+                    )
+                    generation_lineage["parent_base_lineage"] = deepcopy(
+                        reviewed_parent
+                    )
+                    generation_lineage["parent_key"] = (
+                        canonical_lineage_parent_key(reviewed_parent)
+                    )
+                    generation_lineage["descendant_operation"] = {
+                        "schema_version": (
+                            "arr.maas.book_descendant_operation.v1"
+                        ),
+                        "stage": str(
+                            principle.get("generation_stage")
+                            or principle.get("kind")
+                            or "descendant"
+                        ),
+                        "stage_order": int(
+                            principle.get("generation_stage_order") or 2
+                        ),
+                        "principle_id": str(principle["principle_id"]),
+                        "principle_label": str(principle.get("label") or ""),
+                        "principle_kind": str(principle.get("kind") or ""),
+                        "parent_principle_id": principle.get(
+                            "lineage_parent_principle_id"
+                        ),
+                        "execution_verbs": list(
+                            principle.get("execution_verbs") or ()
+                        ),
+                        "implementation_elements": list(
+                            principle.get("implementation_elements") or ()
+                        ),
+                        "scope_label": base_volume_label,
+                        "orientation": orientation,
+                        "variant_index": int(variant_index),
+                    }
+                    if _replenishment_causal_request_hash:
+                        generation_lineage[
+                            "replenishment_work_identity"
+                        ] = _replenishment_descendant_work_identity(
+                            reviewed_parent,
+                            principle_id=str(principle["principle_id"]),
+                            variant_index=int(variant_index),
+                            causal_request_hash=(
+                                _replenishment_causal_request_hash
+                            ),
+                            reviewed_parent_authority={
+                                parent_key: {
+                                    "parent_key": parent_key,
+                                    "geometry_hash": str(
+                                        (_reviewed_base_registry or {}).get(
+                                            parent_key
+                                        ) or ""
+                                    ),
+                                    "program_hash": str(
+                                        audit.get("program_hash") or ""
+                                    ),
+                                    "base_review_fingerprint": str(
+                                        audit.get(
+                                            "base_review_fingerprint"
+                                        ) or ""
+                                    ),
+                                }
+                                for parent_key, audit in (
+                                    _reviewed_base_audits or {}
+                                ).items()
+                                if isinstance(audit, dict)
+                            },
+                        )
+                else:
+                    generation_lineage = lineage_record(
+                        principle,
+                        source_seed=seed.name,
+                        scope_label=base_volume_label,
+                        orientation=orientation,
+                        variant_index=variant_index,
+                    )
+                if llm_book_path_contract is not None:
+                    generation_lineage["llm_book_path_execution_contract"] = (
+                        deepcopy(llm_book_path_contract)
+                    )
+                generation_lineage, composed, authorization_reason = (
+                    _authorize_and_compose_descendant_candidate(
+                        seed,
+                        operations,
+                        generation_lineage=generation_lineage,
+                        generation_phase=_generation_phase,
+                        registry=_reviewed_base_registry or {},
+                        reviewed_base_audits=_reviewed_base_audits or {},
+                        name_suffix=suffix,
+                        base_volume_label=base_volume_label,
+                        orientation=orientation,
+                    )
                 )
-                composed = compose_program_with_book_operations(
-                    seed,
-                    operations,
-                    name_suffix=suffix,
-                    base_volume_label=base_volume_label,
-                    orientation=orientation,
-                )
+                if _generation_phase == "descendant":
+                    descendant_parent_authorization["input_count"] += 1
+                    if generation_lineage is None or composed is None:
+                        descendant_parent_authorization["filtered_count"] += 1
+                        reasons = descendant_parent_authorization[
+                            "filtered_by_reason"
+                        ]
+                        reasons[authorization_reason] = (
+                            int(reasons.get(authorization_reason) or 0) + 1
+                        )
+                        _finish_replenishment_work_disposition(
+                            active_work_disposition,
+                            terminal_stage="lineage_authorization",
+                            terminal_reason=authorization_reason,
+                        )
+                        continue
+                    descendant_parent_authorization["authorized_count"] += 1
                 sequence = VerbSequence(
                     name=f"{composed.name}__search_v{variant_index}",
                     label=composed.label,
@@ -5180,6 +6538,12 @@ def _program_pool_single_phase(
                                 retried_capacity,
                                 initial_capacity,
                             ):
+                                alternative_capacity_contract = (
+                                    capacity_contract_with_retry_targets(
+                                        alternative_capacity_contract,
+                                        retry_floor_targets,
+                                    )
+                                )
                                 source = retried_source
                                 capacity_plan_fit_evidence["retry_selected"] = True
                                 capacity_stage_counts["typed_capacity_retry_selected"] += 1
@@ -5271,20 +6635,22 @@ def _program_pool_single_phase(
                     generation_lineage,
                     compiler_clean_base_geometry_hashes,
                 )
-                metadata = deepcopy(source.metadata)
-                metadata["book_generation_lineage"] = generation_lineage
                 parent_key = str(generation_lineage.get("parent_key") or "")
-                if (
-                    str(generation_lineage.get("stage") or "") != "base"
-                    and parent_key
-                    and isinstance(
-                        (_reviewed_base_audits or {}).get(parent_key),
-                        dict,
-                    )
-                ):
-                    metadata["base_book_vlm_parent_audit"] = deepcopy(
-                        (_reviewed_base_audits or {})[parent_key]
-                    )
+                parent_audit = (
+                    (_reviewed_base_audits or {}).get(parent_key)
+                    if str(generation_lineage.get("stage") or "") != "base"
+                    else None
+                )
+                source = _source_with_book_generation_lineage(
+                    source,
+                    generation_lineage,
+                    parent_audit=(
+                        parent_audit
+                        if isinstance(parent_audit, dict)
+                        else None
+                    ),
+                )
+                metadata = deepcopy(source.metadata)
                 metadata["base_capacity_contract"] = deepcopy(base_capacity_contract or {})
                 metadata["candidate_capacity_contract"] = (
                     _compact_candidate_capacity_evidence(
@@ -5365,6 +6731,9 @@ def _program_pool_single_phase(
                         shared_floor_contract,
                         capacity_measurement,
                         alternative_capacity_contract,
+                        capacity_projection=metadata[
+                            "capacity_alternative_projection"
+                        ],
                         rejection_evidence_sink=authority_rejection_evidence,
                     )
                     if retained_source is None:
@@ -5651,7 +7020,25 @@ def _program_pool_single_phase(
                     records=stage_outcomes,
                     counter_updates=tuple(clean_counter_updates),
                 )
-                site_containment_passed = _inside_site(source, compile_site)
+                projection_certificate = (
+                    source.metadata.get(
+                        "authored_legal_projection_certificate"
+                    )
+                    if isinstance(source.metadata, dict)
+                    else None
+                )
+                site_containment_passed = (
+                    _inside_floorwise_legal_sections(
+                        source,
+                        candidate_legal_sections,
+                    )
+                    if (
+                        recursive_directed
+                        and isinstance(projection_certificate, dict)
+                        and projection_certificate.get("hard_pass") is True
+                    )
+                    else _inside_site(source, compile_site)
+                )
                 containment_outcome = _site_containment_stage_outcome(
                     site_containment_passed
                 )
@@ -5737,6 +7124,27 @@ def _program_pool_single_phase(
                                 archived_record.get("geometry_hash") or ""
                             ),
                         )
+                if (
+                    llm_book_path_contract is not None
+                    and str(principle.get("principle_id") or "")
+                    != str(
+                        llm_book_path_contract.get("principle_id") or ""
+                    )
+                ):
+                    # A combination/aggregation/case-study path may require
+                    # its base operative to be compiled and certified first.
+                    # That base is causal execution evidence, not a second
+                    # LLM-authored design choice and must never enter final
+                    # selection as if the author selected two paths.
+                    capacity_stage_counts[
+                        "causal_book_path_intermediate_certified"
+                    ] += 1
+                    _finish_replenishment_work_disposition(
+                        active_work_disposition,
+                        terminal_stage="causal_path_intermediate",
+                        terminal_reason="certified_not_selection_eligible",
+                    )
+                    continue
                 capacity_stage_counts[
                     f"alternative:{capacity_alternative['alternative_id']}:clean_passed"
                 ] += 1
@@ -6007,6 +7415,15 @@ def _program_pool_single_phase(
                     feature,
                     round(score, 6),
                 ))
+                _finish_replenishment_work_disposition(
+                    active_work_disposition,
+                    terminal_stage="program_release",
+                    terminal_reason=(
+                        "program_hard_pass"
+                        if program_outcome.kind == "passed"
+                        else "development_review_eligible"
+                    ),
+                )
                 if early_stop_target and _eligible_smoke_floor_candidate(
                     source,
                     shared_floor_contract,
@@ -6017,6 +7434,10 @@ def _program_pool_single_phase(
                     smoke_floor_pass_candidates += 1
                 emit_progress()
     accepted = accepted_archive.finalize()
+    _finalize_replenishment_work_dispositions(
+        replenishment_work_evidence,
+        terminal_records=terminal_materialization_failures,
+    )
     capacity_stage_counts["qd_stream_compaction_count"] += accepted_archive.compaction_count
     capacity_stage_counts["qd_stream_candidates_released"] += accepted_archive.released_count
     capacity_stage_counts["qd_stream_peak_candidate_count"] = accepted_archive.peak_candidate_count
@@ -6034,7 +7455,14 @@ def _program_pool_single_phase(
     }
     return accepted, {
         "_runtime_directed_seeds": directed_seeds,
+        "_runtime_parent_seeds": parent_seeds,
         "generation_phase": _generation_phase,
+        "descendant_parent_authorization": deepcopy(
+            descendant_parent_authorization
+        ),
+        "replenishment_work_disposition": deepcopy(
+            replenishment_work_evidence
+        ),
         "evaluated": evaluated,
         "compiled": compiled,
         "clean": clean,
@@ -6084,6 +7512,12 @@ def _program_pool_single_phase(
             ),
             "pre_exact_selected_keys": sorted(
                 competition_exact_keys
+            ),
+            "base_runway_anchor_count": len(
+                competition_base_anchor_keys
+            ),
+            "language_runway_anchor_count": len(
+                competition_language_anchor_keys
             ),
         },
         "phase_durations_seconds": {
@@ -6171,46 +7605,79 @@ def _program_pool_single_phase(
             for note in seed.notes
             if note.startswith("geometry_program_vlm_status=")
         ).items())),
+        "llm_author_request_outcomes": [
+            outcome.to_dict() for outcome in author_request_outcomes
+        ],
         "geometry_program_llm_author_status_counts": dict(sorted(Counter(
             note.split("=", 1)[1]
             for seed in directed_seeds
             for note in seed.notes
             if note.startswith("geometry_program_llm_author_status=")
         ).items())),
-        "base_book_vlm_feedback_count": max((
-            int(note.split("=", 1)[1])
-            for seed in directed_seeds
-            for note in seed.notes
-            if note.startswith(
-                "geometry_program_base_book_vlm_feedback_count="
-            )
-        ), default=0),
-        "base_book_vlm_feedback_in_author_context": any(
-            note == (
-                "geometry_program_base_book_vlm_feedback_in_author_context=True"
-            )
-            for seed in directed_seeds
-            for note in seed.notes
+        "base_book_vlm_feedback_count": max(
+            [outcome.base_feedback_count for outcome in author_request_outcomes]
+            or [
+                int(note.split("=", 1)[1])
+                for seed in directed_seeds
+                for note in seed.notes
+                if note.startswith(
+                    "geometry_program_base_book_vlm_feedback_count="
+                )
+            ],
+            default=0,
         ),
-        "authored_visual_authority_feedback_count": max((
-            int(note.split("=", 1)[1])
-            for seed in directed_seeds
-            for note in seed.notes
-            if note.startswith(
-                "geometry_program_authored_visual_authority_feedback_count="
+        "base_book_vlm_feedback_in_author_context": (
+            any(outcome.base_feedback_count > 0 for outcome in author_request_outcomes)
+            if author_request_outcomes
+            else any(
+                note == (
+                    "geometry_program_base_book_vlm_feedback_in_author_context=True"
+                )
+                for seed in directed_seeds
+                for note in seed.notes
             )
-        ), default=0),
-        "authored_visual_authority_feedback_in_author_context": any(
-            note == (
-                "geometry_program_authored_visual_authority_feedback_in_author_context=True"
-            )
-            for seed in directed_seeds
-            for note in seed.notes
         ),
-        "llm_author_request_executed": any(
-            note == "geometry_program_llm_author_request_executed=True"
-            for seed in directed_seeds
-            for note in seed.notes
+        "authored_visual_authority_feedback_count": max(
+            [outcome.feedback_count for outcome in author_request_outcomes]
+            or [
+                int(note.split("=", 1)[1])
+                for seed in directed_seeds
+                for note in seed.notes
+                if note.startswith(
+                    "geometry_program_authored_visual_authority_feedback_count="
+                )
+            ],
+            default=0,
+        ),
+        "authored_visual_authority_feedback_in_author_context": (
+            any(outcome.feedback_count > 0 for outcome in author_request_outcomes)
+            if author_request_outcomes
+            else any(
+                note == (
+                    "geometry_program_authored_visual_authority_feedback_in_author_context=True"
+                )
+                for seed in directed_seeds
+                for note in seed.notes
+            )
+        ),
+        "llm_author_request_executed": (
+            any(
+                outcome.provider_request_executed
+                for outcome in author_request_outcomes
+            )
+            if author_request_outcomes
+            else any(
+                note == "geometry_program_llm_author_request_executed=True"
+                for seed in directed_seeds
+                for note in seed.notes
+            )
+        ),
+        "llm_author_valid_program_count": sum(
+            outcome.valid_authored_program_count
+            for outcome in author_request_outcomes
+        ),
+        "llm_author_cache_hit_count": sum(
+            outcome.cache_hit_count for outcome in author_request_outcomes
         ),
         "geometry_program_llm_author_budget_failures": [
             json.loads(payload)
@@ -6319,6 +7786,22 @@ def _reviewed_archived_base_registry(
         audit = metadata.get("base_book_vlm_audit") or {}
         parent_key = str(lineage.get("parent_key") or "")
         final_hash = str(metadata.get("final_geometry_hash") or "")
+        final_program_hash = str(metadata.get("final_program_hash") or "")
+        final_surface_payload_hash = str(
+            metadata.get("final_surface_payload_hash") or ""
+        )
+        base_review_fingerprint = (
+            hashlib.sha256(
+                json.dumps(
+                    {"geometry_hash": final_hash},
+                    ensure_ascii=True,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            ).hexdigest()
+            if final_hash
+            else ""
+        )
         explicit_parking = tuple(
             value for value in (
                 metadata.get("parking_hard_gate"),
@@ -6326,13 +7809,42 @@ def _reviewed_archived_base_registry(
             )
             if isinstance(value, dict)
         )
+        certificate = metadata.get("authored_legal_projection_certificate")
+        certificate = certificate if isinstance(certificate, dict) else {}
+        legal_authority = metadata.get("legal_capacity_authority")
+        legal_authority = (
+            legal_authority if isinstance(legal_authority, dict) else {}
+        )
+        selectable_release = bool(
+            isinstance(program_gate_result, dict)
+            and program_gate_result.get("hard_pass") is True
+            and authority.get("selection_eligible") is True
+        )
+        development_release = bool(
+            authority.get("development_review_eligible") is True
+            and certificate.get("schema_version")
+            == "arr.maas.authored_legal_projection_certificate.v1"
+            and certificate.get("status") == "verified"
+            and certificate.get("hard_pass") is True
+            and final_program_hash
+            and str(certificate.get("input_authored_program_hash") or "")
+            == final_program_hash
+            and str(certificate.get("projected_surface_hash") or "")
+            == final_hash
+            and final_surface_payload_hash
+            and str(certificate.get("projected_surface_payload_hash") or "")
+            == final_surface_payload_hash
+            and legal_authority.get("legal_hard_pass") is True
+            and str(audit.get("geometry_hash") or "") == final_hash
+            and str(audit.get("program_hash") or "") == final_program_hash
+            and str(audit.get("base_review_fingerprint") or "")
+            == base_review_fingerprint
+        )
         if not (
             str(lineage.get("stage") or "") == "base"
             and isinstance(authority, dict)
             and authority.get("legal_archive_authority") is True
-            and isinstance(program_gate_result, dict)
-            and program_gate_result.get("hard_pass") is True
-            and authority.get("selection_eligible") is True
+            and (selectable_release or development_release)
             and isinstance(audit, dict)
             and str(audit.get("response_id") or "")
             and str(audit.get("review_stage") or "") == "book_base_operative"
@@ -6364,15 +7876,194 @@ def _reviewed_base_development_audits(
         lineage = metadata.get("book_generation_lineage") or {}
         parent_key = str(lineage.get("parent_key") or "")
         audit = metadata.get("base_book_vlm_audit") or {}
+        final_geometry_hash = str(metadata.get("final_geometry_hash") or "")
+        final_program_hash = str(metadata.get("final_program_hash") or "")
+        expected_fingerprint = (
+            hashlib.sha256(
+                json.dumps(
+                    {"geometry_hash": final_geometry_hash},
+                    ensure_ascii=True,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            ).hexdigest()
+            if final_geometry_hash
+            else ""
+        )
         if (
-            isinstance(registry.get(parent_key), str)
+            canonical_lineage_parent_key(lineage) == parent_key
+            and isinstance(registry.get(parent_key), str)
             and registry.get(parent_key)
-            == str(metadata.get("final_geometry_hash") or "")
+            == final_geometry_hash
             and isinstance(audit, dict)
             and audit.get("descendant_development_hard_pass") is True
+            and str(audit.get("geometry_hash") or "")
+            == final_geometry_hash
+            and final_program_hash
+            and str(audit.get("program_hash") or "")
+            == final_program_hash
+            and str(audit.get("base_review_fingerprint") or "")
+            == expected_fingerprint
         ):
             audits[parent_key] = deepcopy(audit)
     return audits
+
+
+def _exact_canonical_reviewed_parent_keys(
+    reviewed_bases: list[_Candidate],
+    registry: dict[str, str | None],
+    reviewed_base_audits: dict[str, dict[str, Any]],
+) -> set[str]:
+    keys: set[str] = set()
+    for candidate in reviewed_bases:
+        source = getattr(candidate, "source", None)
+        metadata = getattr(source, "metadata", None)
+        if not isinstance(metadata, dict):
+            continue
+        lineage = metadata.get("book_generation_lineage") or {}
+        parent_key = canonical_lineage_parent_key(lineage)
+        if not parent_key:
+            continue
+        authorized, _reason = _authorize_descendant_lineage_for_materialization(
+            lineage,
+            registry,
+            reviewed_base_audits,
+        )
+        if authorized is None:
+            continue
+        audit = reviewed_base_audits[parent_key]
+        if str(audit.get("program_hash") or "") != str(
+            metadata.get("final_program_hash") or ""
+        ):
+            continue
+        keys.add(parent_key)
+    return keys
+
+
+@dataclass(frozen=True)
+class CertifiedReviewedBaseParent:
+    parent_key: str
+    source_seed: str
+    geometry_hash: str
+    program_hash: str
+    base_review_fingerprint: str
+    sequence_payload: str
+    sequence_hash: str
+    candidate: Any
+
+    def parent_seed(self) -> VerbSequence:
+        payload = json.loads(self.sequence_payload)
+        return VerbSequence(
+            name=str(payload["name"]),
+            label=str(payload["label"]),
+            calls=tuple(
+                VerbCall(
+                    verb=str(call["verb"]),
+                    params=deepcopy(call.get("params") or {}),
+                )
+                for call in payload["calls"]
+            ),
+            notes=tuple(str(note) for note in payload.get("notes") or ()),
+        )
+
+
+def _certified_reviewed_base_parent_records(
+    reviewed_bases: list[Any],
+    parent_seeds: tuple[VerbSequence, ...] | list[VerbSequence],
+) -> tuple[CertifiedReviewedBaseParent, ...]:
+    isolated_bases = deepcopy(list(reviewed_bases or ()))
+    isolated_seeds = deepcopy(tuple(parent_seeds or ()))
+    registry = _reviewed_archived_base_registry(isolated_bases)
+    audits = _reviewed_base_development_audits(isolated_bases, registry)
+    exact_keys = _exact_canonical_reviewed_parent_keys(
+        isolated_bases,
+        registry,
+        audits,
+    )
+    seed_bindings: dict[str, dict[str, tuple[str, VerbSequence]]] = {}
+    for seed in isolated_seeds:
+        payload = json.dumps(
+            {
+                "name": seed.name,
+                "label": seed.label,
+                "calls": seed.to_list(),
+                "notes": list(seed.notes),
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+        seed_bindings.setdefault(seed.name, {})[digest] = (payload, seed)
+    conflicting_seed_names = {
+        name for name, bindings in seed_bindings.items()
+        if len(bindings) != 1
+    }
+    records_by_key: dict[str, list[CertifiedReviewedBaseParent]] = {}
+    for candidate in isolated_bases:
+        metadata = getattr(getattr(candidate, "source", None), "metadata", None)
+        if not isinstance(metadata, dict):
+            continue
+        lineage = metadata.get("book_generation_lineage") or {}
+        parent_key = str(lineage.get("parent_key") or "")
+        source_seed = str(lineage.get("source_seed") or "")
+        bindings = seed_bindings.get(source_seed) or {}
+        if (
+            parent_key not in exact_keys
+            or source_seed in conflicting_seed_names
+            or len(bindings) != 1
+        ):
+            continue
+        local_registry = _reviewed_archived_base_registry([candidate])
+        local_audit = _reviewed_base_development_audits(
+            [candidate], local_registry
+        ).get(parent_key)
+        if (
+            local_registry.get(parent_key) != registry.get(parent_key)
+            or local_audit != audits.get(parent_key)
+        ):
+            continue
+        sequence_hash, (sequence_payload, _seed) = next(iter(bindings.items()))
+        record = CertifiedReviewedBaseParent(
+            parent_key=parent_key,
+            source_seed=source_seed,
+            geometry_hash=str(metadata.get("final_geometry_hash") or ""),
+            program_hash=str(metadata.get("final_program_hash") or ""),
+            base_review_fingerprint=str(
+                local_audit.get("base_review_fingerprint") or ""
+            ),
+            sequence_payload=sequence_payload,
+            sequence_hash=sequence_hash,
+            candidate=deepcopy(candidate),
+        )
+        records_by_key.setdefault(parent_key, []).append(record)
+    records = [
+        values[0]
+        for parent_key, values in sorted(records_by_key.items())
+        if len({
+            (
+                value.geometry_hash,
+                value.program_hash,
+                value.base_review_fingerprint,
+                value.source_seed,
+                value.sequence_hash,
+            )
+            for value in values
+        }) == 1
+    ]
+    conflicting_program_seed_names = {
+        source_seed
+        for source_seed in {record.source_seed for record in records}
+        if len({
+            (record.program_hash, record.sequence_hash)
+            for record in records
+            if record.source_seed == source_seed
+        }) != 1
+    }
+    return tuple(
+        record for record in records
+        if record.source_seed not in conflicting_program_seed_names
+    )
 
 
 def _merge_two_phase_generation_counts(
@@ -6383,6 +8074,26 @@ def _merge_two_phase_generation_counts(
     registry: dict[str, str | None],
 ) -> dict[str, Any]:
     merged = deepcopy(descendant_counts or base_counts)
+    author_outcomes = [
+        *deepcopy(base_counts.get("llm_author_request_outcomes") or []),
+        *deepcopy(descendant_counts.get("llm_author_request_outcomes") or []),
+    ]
+    merged["llm_author_request_outcomes"] = author_outcomes
+    merged["llm_author_request_executed"] = any(
+        bool(outcome.get("provider_request_executed"))
+        for outcome in author_outcomes
+        if isinstance(outcome, dict)
+    )
+    merged["llm_author_valid_program_count"] = sum(
+        max(0, int(outcome.get("valid_authored_program_count") or 0))
+        for outcome in author_outcomes
+        if isinstance(outcome, dict)
+    )
+    merged["llm_author_cache_hit_count"] = sum(
+        max(0, int(outcome.get("cache_hit_count") or 0))
+        for outcome in author_outcomes
+        if isinstance(outcome, dict)
+    )
     for key in ("evaluated", "compiled", "clean", "program_passed"):
         merged[key] = int(base_counts.get(key) or 0) + int(
             descendant_counts.get(key) or 0
@@ -6424,6 +8135,17 @@ def _merge_two_phase_generation_counts(
         "descendant_generation_count": int(
             descendant_counts.get("program_passed") or 0
         ),
+        "descendant_parent_authorization": deepcopy(
+            descendant_counts.get("descendant_parent_authorization") or {
+                "schema_version": (
+                    "arr.maas.descendant_parent_authorization.v1"
+                ),
+                "input_count": 0,
+                "authorized_count": 0,
+                "filtered_count": 0,
+                "filtered_by_reason": {},
+            }
+        ),
         "base_vlm_gate": deepcopy(base_vlm_evidence),
     }
     return merged
@@ -6439,6 +8161,7 @@ def _program_pool(
         Callable[[list[_Candidate]], tuple[list[_Candidate], dict[str, Any]]]
         | None
     ) = None,
+    reviewed_base_parent_carry: tuple[CertifiedReviewedBaseParent, ...] = (),
     **kwargs: Any,
 ) -> tuple[list[_Candidate], dict[str, Any]]:
     """Execute BASE review before descendant enumeration in one run."""
@@ -6448,6 +8171,7 @@ def _program_pool(
             site, building_type, height, floors, **kwargs
         )
         counts.pop("_runtime_directed_seeds", None)
+        counts.pop("_runtime_parent_seeds", None)
         return pool, counts
     base_pool, base_counts = _program_pool_single_phase(
         site,
@@ -6458,39 +8182,149 @@ def _program_pool(
         **kwargs,
     )
     directed_seeds = tuple(base_counts.pop("_runtime_directed_seeds", ()) or ())
-    reviewed_bases, base_vlm_evidence = base_review_callback(list(base_pool))
+    fresh_parent_seeds = tuple(
+        base_counts.pop("_runtime_parent_seeds", ()) or ()
+    )
+    fresh_reviewed_bases, base_vlm_evidence = base_review_callback(
+        list(base_pool)
+    )
+    fresh_parent_records = _certified_reviewed_base_parent_records(
+        list(fresh_reviewed_bases),
+        fresh_parent_seeds,
+    )
+    carried_input = tuple(
+        record for record in deepcopy(reviewed_base_parent_carry or ())
+        if isinstance(record, CertifiedReviewedBaseParent)
+    )
+    carried_parent_records = _certified_reviewed_base_parent_records(
+        [record.candidate for record in carried_input],
+        [record.parent_seed() for record in carried_input],
+    )
+    reviewed_parent_records = _certified_reviewed_base_parent_records(
+        [
+            record.candidate
+            for record in (*fresh_parent_records, *carried_parent_records)
+        ],
+        [
+            *fresh_parent_seeds,
+            *(record.parent_seed() for record in carried_parent_records),
+        ],
+    )
+    reviewed_bases = [record.candidate for record in reviewed_parent_records]
     registry = _reviewed_archived_base_registry(list(reviewed_bases))
     reviewed_base_audits = _reviewed_base_development_audits(
         list(reviewed_bases),
         registry,
     )
-    if not any(isinstance(value, str) and value for value in registry.values()):
+    exact_parent_keys = _exact_canonical_reviewed_parent_keys(
+        list(reviewed_bases),
+        registry,
+        reviewed_base_audits,
+    )
+    base_vlm_evidence = deepcopy(base_vlm_evidence)
+    base_vlm_evidence["reviewed_parent_keys"] = sorted(exact_parent_keys)
+    base_vlm_evidence["reviewed_parent_fingerprints"] = sorted({
+        str(audit.get("base_review_fingerprint") or "")
+        for parent_key, audit in reviewed_base_audits.items()
+        if parent_key in exact_parent_keys
+        and str(audit.get("base_review_fingerprint") or "")
+    })
+    base_vlm_evidence["fresh_reviewed_parent_count"] = len(
+        fresh_reviewed_bases
+    )
+    base_vlm_evidence["carried_reviewed_parent_count"] = len(
+        carried_parent_records
+    )
+    if not exact_parent_keys:
         counts = _merge_two_phase_generation_counts(
             base_counts,
             {},
             base_vlm_evidence=base_vlm_evidence,
             registry=registry,
         )
-        return list(reviewed_bases), counts
+        counts["two_phase_base_vlm"]["descendant_parent_authorization"] = {
+            "schema_version": "arr.maas.descendant_parent_authorization.v1",
+            "phase_skipped": True,
+            "reason": "no_exact_canonical_reviewed_parent",
+            "input_count": 0,
+            "authorized_count": 0,
+            "filtered_count": 0,
+            "filtered_by_reason": {},
+        }
+        counts["two_phase_base_vlm"]["carried_parent_count"] = len(
+            carried_parent_records
+        )
+        counts["_runtime_certified_reviewed_base_parents"] = (
+            reviewed_parent_records
+        )
+        return list(fresh_reviewed_bases), counts
+    reviewed_base_lineages_by_key: dict[str, dict[str, Any]] = {}
+    for candidate in reviewed_bases:
+        metadata = getattr(getattr(candidate, "source", None), "metadata", None)
+        if not isinstance(metadata, dict):
+            continue
+        lineage = metadata.get("book_generation_lineage") or {}
+        parent_key = canonical_lineage_parent_key(lineage)
+        if parent_key not in exact_parent_keys:
+            continue
+        candidate_registry = _reviewed_archived_base_registry([candidate])
+        if candidate_registry.get(parent_key) != registry.get(parent_key):
+            continue
+        candidate_audit = _reviewed_base_development_audits(
+            [candidate],
+            candidate_registry,
+        ).get(parent_key)
+        if (
+            not isinstance(candidate_audit, dict)
+            or candidate_audit != reviewed_base_audits.get(parent_key)
+        ):
+            continue
+        authorized_lineage, _reason = (
+            _authorize_descendant_lineage_for_materialization(
+                lineage,
+                candidate_registry,
+                {parent_key: candidate_audit},
+            )
+        )
+        if authorized_lineage is None:
+            continue
+        reviewed_base_lineages_by_key[parent_key] = deepcopy(lineage)
     descendant_pool, descendant_counts = _program_pool_single_phase(
         site,
         building_type,
         height,
         floors,
         _directed_seeds_override=directed_seeds,
+        _parent_seeds_override=tuple(
+            record.parent_seed() for record in reviewed_parent_records
+        ),
         _generation_phase="descendant",
-        _reviewed_base_registry=registry,
-        _reviewed_base_audits=reviewed_base_audits,
+        _reviewed_base_registry={
+            key: registry[key] for key in exact_parent_keys
+        },
+        _reviewed_base_audits={
+            key: reviewed_base_audits[key] for key in exact_parent_keys
+        },
+        _reviewed_base_lineages=tuple(
+            reviewed_base_lineages_by_key.values()
+        ),
         **kwargs,
     )
     descendant_counts.pop("_runtime_directed_seeds", None)
+    descendant_counts.pop("_runtime_parent_seeds", None)
     counts = _merge_two_phase_generation_counts(
         base_counts,
         descendant_counts,
         base_vlm_evidence=base_vlm_evidence,
         registry=registry,
     )
-    return list(reviewed_bases) + list(descendant_pool), counts
+    counts["two_phase_base_vlm"]["carried_parent_count"] = len(
+        carried_parent_records
+    )
+    counts["_runtime_certified_reviewed_base_parents"] = (
+        reviewed_parent_records
+    )
+    return list(fresh_reviewed_bases) + list(descendant_pool), counts
 
 
 

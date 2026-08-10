@@ -4,33 +4,51 @@ from __future__ import annotations
 
 import json
 import hashlib
+from math import atan2, degrees, hypot
 import os
 from dataclasses import replace
+from datetime import timezone
+from email.utils import format_datetime, parsedate_to_datetime
 from pathlib import Path
 import urllib.error
 import urllib.request
 import uuid
 from typing import Any
 
+from shapely.affinity import rotate as rotate_geometry
+from shapely.geometry import Polygon, shape
+
+
+def _safe_retry_after_http_date(value: Any) -> str:
+    try:
+        parsed = parsedate_to_datetime(str(value or "").strip())
+    except (TypeError, ValueError, OverflowError):
+        return ""
+    if parsed.tzinfo is None:
+        return ""
+    return format_datetime(parsed.astimezone(timezone.utc), usegmt=True)
+
 from .ast import GeometryNode, GeometryProgram, OPERATORS_BY_KIND
-from .base_seeds import BASE_SEED_SPECS
+from .base_seeds import BASE_FORM_SPECS, BASE_SEED_SPECS
 from .compiler import compile_geometry_program
 from .dsl import GeometryDslError, parse_geometry_dsl, program_to_dsl
 from .gate import GeometryGatePolicy, compilation_gate
-from .mutation import (
-    NUMERIC_BOUNDS,
-    OPERATOR_PARAMETER_CONTRACTS,
-    STRING_PARAMETER_VALUES,
-    VECTOR_LENGTHS,
+from .mutation import OPERATOR_PARAMETER_CONTRACTS
+from .author_output_schema import author_node_schema as _author_node_schema
+from .author_parameter_contract import (
+    author_parameter_value_contract as _author_parameter_value_contract,
 )
 from ..paid_provider_budget import (
     PaidProviderBudgetError,
     reserve_paid_provider_request,
 )
+from design.maas.book_language.paid_provider_admission import (
+    admit_paid_provider_program,
+)
 
 
 DEFAULT_GEOMETRY_AUTHOR_MODEL = "gpt-5.4-mini"
-GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v25_book_graph_principle_binding"
+GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes"
 LEGACY_GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v24_nonfragmenting_relation_pairs"
 MAX_AUTHOR_COMPILER_REPAIR_GENERATIONS = 3
 
@@ -54,9 +72,242 @@ CANONICAL_OPERATOR_KIND: dict[str, str] = {
 
 AUTHOR_GEOMETRY_GATE_POLICY = GeometryGatePolicy(maximum_components=1)
 
+_AUTHOR_REJECTION_CATEGORIES = frozenset({
+    "schema", "ast_decode", "compiler_or_gate", "duplicate", "other",
+})
+_AUTHOR_REJECTION_CODES = frozenset({
+    "non_object_program",
+    "ast_decode_error",
+    "compiler_gate_rejected",
+    "declared_base_seed_mismatch",
+    "declared_base_form_mismatch",
+    "semantic_macro_base_seed_mismatch",
+    "program_relation_not_terminal_suffix",
+    "program_access_relation_not_bound",
+    "program_geometry_language_contract_failed",
+    "duplicate_program",
+    "uncategorized_rejection",
+    "kernel_unavailable",
+    "non_manifold",
+    "multiple_components",
+    "empty_geometry",
+    "degenerate_geometry",
+    "invalid_volume",
+    "unknown_operator",
+})
+_AUTHOR_PROVIDER_ERROR_CATEGORIES = frozenset({
+    "rate_limited",
+    "http_error",
+    "network_error",
+    "timeout",
+    "provider_response_json_decode",
+})
+_AUTHOR_PAYLOAD_ERROR_CATEGORIES = frozenset({
+    "provider_response_schema",
+    "author_payload_json_decode",
+    "author_payload_schema",
+})
+_AUTHOR_BUDGET_CODES = frozenset({
+    "total_budget_exhausted",
+    "request_quota_exhausted",
+    "request_kind_unpartitioned",
+})
+
+
+def _safe_nonnegative_int(value: Any) -> int:
+    try:
+        return max(0, int(value))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _sanitize_author_failure_diagnostics(
+    diagnostics: dict[str, Any] | None,
+) -> dict[str, Any]:
+    source = diagnostics if isinstance(diagnostics, dict) else {}
+    result: dict[str, Any] = {
+        "schema_version": "arr.maas.geometry_author_failure_diagnostics.v1",
+    }
+    provider = source.get("provider_error")
+    if isinstance(provider, dict):
+        category = str(provider.get("category") or "")
+        if category in _AUTHOR_PROVIDER_ERROR_CATEGORIES:
+            record: dict[str, Any] = {"category": category}
+            if provider.get("http_status") is not None:
+                record["http_status"] = _safe_nonnegative_int(
+                    provider.get("http_status")
+                )
+            if provider.get("retry_after_seconds") is not None:
+                retry_after = _safe_nonnegative_int(
+                    provider.get("retry_after_seconds")
+                )
+                if retry_after <= 86400:
+                    record["retry_after_seconds"] = retry_after
+            retry_after_http_date = _safe_retry_after_http_date(
+                provider.get("retry_after_http_date")
+            )
+            if retry_after_http_date:
+                record["retry_after_http_date"] = retry_after_http_date
+            result["provider_error"] = record
+    payload_error = source.get("payload_error")
+    if isinstance(payload_error, dict):
+        category = str(payload_error.get("category") or "")
+        if category in _AUTHOR_PAYLOAD_ERROR_CATEGORIES:
+            result["payload_error"] = {"category": category}
+    batches: list[dict[str, Any]] = []
+    for batch in source.get("batches") or ():
+        if not isinstance(batch, dict):
+            continue
+        role = str(batch.get("batch_role") or "")
+        if role not in {"initial", "repair"}:
+            continue
+        category_counts = {
+            str(code): _safe_nonnegative_int(count)
+            for code, count in dict(
+                batch.get("rejection_category_counts") or {}
+            ).items()
+            if str(code) in _AUTHOR_REJECTION_CATEGORIES
+        }
+        code_counts = {
+            str(code): _safe_nonnegative_int(count)
+            for code, count in dict(
+                batch.get("rejection_code_counts") or {}
+            ).items()
+            if str(code) in _AUTHOR_REJECTION_CODES
+        }
+        batches.append({
+            "batch_role": role,
+            "repair_generation": _safe_nonnegative_int(
+                batch.get("repair_generation")
+            ),
+            "raw_program_count": _safe_nonnegative_int(
+                batch.get("raw_program_count")
+            ),
+            "valid_program_count": _safe_nonnegative_int(
+                batch.get("valid_program_count")
+            ),
+            "rejected_program_count": _safe_nonnegative_int(
+                batch.get("rejected_program_count")
+            ),
+            "rejection_category_counts": dict(sorted(category_counts.items())),
+            "rejection_code_counts": dict(sorted(code_counts.items())),
+        })
+    if batches:
+        result["batches"] = batches
+    secondary: list[dict[str, Any]] = []
+    for failure in source.get("secondary_failures") or ():
+        if not isinstance(failure, dict):
+            continue
+        category = str(failure.get("category") or "")
+        if category == "retry_budget":
+            code = str(failure.get("code") or "")
+            record = {"category": category}
+            if code in _AUTHOR_BUDGET_CODES:
+                record["code"] = code
+            for field in ("used", "limit", "remaining"):
+                if failure.get(field) is not None:
+                    record[field] = _safe_nonnegative_int(failure.get(field))
+            secondary.append(record)
+        elif category == "repair_author_failure":
+            secondary.append({
+                "category": category,
+                "diagnostics": _sanitize_author_failure_diagnostics(
+                    failure.get("diagnostics")
+                ),
+            })
+    if secondary:
+        result["secondary_failures"] = secondary
+    return result
+
 
 class GeometryAuthorError(RuntimeError):
-    pass
+    def __init__(
+        self,
+        message: str,
+        *,
+        diagnostics: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.diagnostics = _sanitize_author_failure_diagnostics(diagnostics)
+
+
+def _provider_failure_diagnostics(
+    *,
+    category: str,
+    http_status: int | None = None,
+    retry_after: Any = None,
+) -> dict[str, Any]:
+    provider_error: dict[str, Any] = {"category": category}
+    if http_status is not None:
+        provider_error["http_status"] = int(http_status)
+    try:
+        retry_after_seconds = int(str(retry_after).strip())
+    except (TypeError, ValueError):
+        retry_after_seconds = -1
+    if 0 <= retry_after_seconds <= 86400:
+        provider_error["retry_after_seconds"] = retry_after_seconds
+    else:
+        retry_after_http_date = _safe_retry_after_http_date(retry_after)
+        if retry_after_http_date:
+            provider_error["retry_after_http_date"] = retry_after_http_date
+    return {
+        "schema_version": "arr.maas.geometry_author_failure_diagnostics.v1",
+        "provider_error": provider_error,
+    }
+
+
+def _author_batch_failure_diagnostics(
+    payload: dict[str, Any],
+    compiler_diagnostics: list[dict[str, Any]],
+    *,
+    valid_program_count: int,
+    batch_role: str,
+    repair_generation: int,
+    repair_batches: list[dict[str, Any]] | None = None,
+    secondary_failures: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    raw_programs = payload.get("programs")
+    raw_program_count = len(raw_programs) if isinstance(raw_programs, list) else 0
+    category_counts: dict[str, int] = {}
+    code_counts: dict[str, int] = {}
+    rejected_program_count = max(
+        0, raw_program_count - max(0, int(valid_program_count))
+    )
+    classified_count = 0
+    for diagnostic in compiler_diagnostics:
+        if not isinstance(diagnostic, dict):
+            continue
+        category = str(diagnostic.get("category") or "other")
+        if category not in _AUTHOR_REJECTION_CATEGORIES:
+            category = "other"
+        category_counts[category] = category_counts.get(category, 0) + 1
+        classified_count += 1
+        for value in diagnostic.get("rejection_codes") or ():
+            code = str(value)
+            if code in _AUTHOR_REJECTION_CODES:
+                code_counts[code] = code_counts.get(code, 0) + 1
+    if classified_count < rejected_program_count:
+        missing = rejected_program_count - classified_count
+        category_counts["other"] = category_counts.get("other", 0) + missing
+        code_counts["uncategorized_rejection"] = (
+            code_counts.get("uncategorized_rejection", 0) + missing
+        )
+    batch = {
+        "batch_role": batch_role,
+        "repair_generation": max(0, int(repair_generation)),
+        "raw_program_count": raw_program_count,
+        "valid_program_count": max(0, int(valid_program_count)),
+        "rejected_program_count": rejected_program_count,
+        "rejection_category_counts": dict(sorted(category_counts.items())),
+        "rejection_code_counts": dict(sorted(code_counts.items())),
+    }
+    result: dict[str, Any] = {
+        "schema_version": "arr.maas.geometry_author_failure_diagnostics.v1",
+        "batches": [batch, *(repair_batches or [])],
+    }
+    if secondary_failures:
+        result["secondary_failures"] = json.loads(json.dumps(secondary_failures))
+    return _sanitize_author_failure_diagnostics(result)
 
 
 def _geometry_author_request_identity(
@@ -163,13 +414,26 @@ def author_geometry_programs_with_openai(
                     "named geometry author replay program was not found: "
                     f"{replay_program_name}"
                 )
-        return _decorate_author_programs(
-            programs,
-            model=str(cached.get("model") or selected_model),
-            response_id=str(cached.get("response_id") or ""),
-            cache_hit=True,
-            book_principle_ids=book_principle_ids,
-        )
+        if (
+            "book_graph_vocabulary" in context
+            and not _valid_program_book_path_bindings(
+                context,
+                programs,
+                count=count,
+            )
+        ):
+            cached = None
+        if cached is None:
+            programs = ()
+        else:
+            decorated = _decorate_author_programs(
+                programs,
+                model=str(cached.get("model") or selected_model),
+                response_id=str(cached.get("response_id") or ""),
+                cache_hit=True,
+                book_principle_ids=book_principle_ids,
+            )
+            return _admit_paid_author_programs(decorated)
     rejected_cache = _load_revalidatable_kernel_rejection(
         cache_path.with_suffix(".rejected.json")
     )
@@ -207,7 +471,7 @@ def author_geometry_programs_with_openai(
                 "compiled_programs": [program.to_dict() for program in decorated],
                 "revalidated_from": "kernel_unavailable_rejection",
             })
-            return decorated
+            return _admit_paid_author_programs(decorated)
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise GeometryAuthorError("OPENAI_API_KEY is not set")
@@ -242,6 +506,13 @@ def author_geometry_programs_with_openai(
                     book_principle_vocabulary=(
                         _book_graph_principle_vocabulary(context)
                     ),
+                    book_composition_path_ids=tuple(
+                        item["path_id"]
+                        for item in _book_composition_path_slice(
+                            context,
+                            count,
+                        )
+                    ),
                 ),
             }
         },
@@ -256,15 +527,68 @@ def author_geometry_programs_with_openai(
         reserve_paid_provider_request(provider_request_kind)
         with urllib.request.urlopen(request, timeout=timeout) as response:
             response_data = json.loads(response.read().decode("utf-8"))
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-        raise GeometryAuthorError(f"geometry author request failed: {exc}") from exc
-    raw_text = _response_output_text(response_data)
+    except urllib.error.HTTPError as exc:
+        raise GeometryAuthorError(
+            "geometry author provider request failed",
+            diagnostics=_provider_failure_diagnostics(
+                category="rate_limited" if exc.code == 429 else "http_error",
+                http_status=exc.code,
+                retry_after=(exc.headers or {}).get("Retry-After"),
+            ),
+        ) from exc
+    except urllib.error.URLError as exc:
+        raise GeometryAuthorError(
+            "geometry author request failed",
+            diagnostics=_provider_failure_diagnostics(category="network_error"),
+        ) from exc
+    except TimeoutError as exc:
+        raise GeometryAuthorError(
+            "geometry author request failed",
+            diagnostics=_provider_failure_diagnostics(category="timeout"),
+        ) from exc
+    except json.JSONDecodeError as exc:
+        raise GeometryAuthorError(
+            "geometry author provider response was invalid JSON",
+            diagnostics=_provider_failure_diagnostics(
+                category="provider_response_json_decode"
+            ),
+        ) from exc
+    try:
+        raw_text = _response_output_text(response_data)
+    except GeometryAuthorError as exc:
+        raise GeometryAuthorError(
+            "geometry author provider response failed schema validation",
+            diagnostics={
+                "schema_version": "arr.maas.geometry_author_failure_diagnostics.v1",
+                "payload_error": {"category": "provider_response_schema"},
+            },
+        ) from exc
     try:
         payload = json.loads(raw_text)
     except json.JSONDecodeError as exc:
-        raise GeometryAuthorError("geometry author returned invalid JSON") from exc
+        raise GeometryAuthorError(
+            "geometry author returned invalid JSON",
+            diagnostics={
+                "schema_version": "arr.maas.geometry_author_failure_diagnostics.v1",
+                "payload_error": {"category": "author_payload_json_decode"},
+            },
+        ) from exc
     response_id = str(response_data.get("id") or "")
-    book_principle_ids = _canonical_book_principle_ids(context, payload)
+    try:
+        book_principle_ids = _canonical_book_principle_ids(context, payload)
+        book_composition_path_ids = _canonical_book_composition_path_ids(
+            context,
+            payload,
+            count=count,
+        )
+    except GeometryAuthorError as exc:
+        raise GeometryAuthorError(
+            "geometry author payload failed schema validation: " + str(exc),
+            diagnostics={
+                "schema_version": "arr.maas.geometry_author_failure_diagnostics.v1",
+                "payload_error": {"category": "author_payload_schema"},
+            },
+        ) from exc
     parse_error: GeometryAuthorError | None = None
     try:
         initial_programs = geometry_programs_from_author_payload(
@@ -287,11 +611,16 @@ def author_geometry_programs_with_openai(
         "author_compiler_repair_generation": repair_generation,
         "author_provider_request_kind": provider_request_kind,
     }) for program in programs]
+    initial_valid_program_count = len(programs)
     repair_diagnostics = _author_payload_compiler_diagnostics(
         payload,
         program_context=author_program_context,
     )
     repair_request_count = 0
+    repair_budget_failure: dict[str, Any] | None = None
+    repair_author_failure: dict[str, Any] | None = None
+    repair_batches: list[dict[str, Any]] = []
+    repair_secondary_failures: list[dict[str, Any]] = []
     if (
         len(programs) < count
         and repair_generation < MAX_AUTHOR_COMPILER_REPAIR_GENERATIONS
@@ -313,7 +642,6 @@ def author_geometry_programs_with_openai(
                 "do not repeat invalid node-kind/operator pairs, degenerate relations, or invalid parameter types."
             ),
         }
-        repair_budget_failure: dict[str, Any] | None = None
         try:
             repaired = author_geometry_programs_with_openai(
                 repair_context,
@@ -327,9 +655,18 @@ def author_geometry_programs_with_openai(
                 ) or 0)
                 for program in repaired
             ), default=0)
+            repaired_diagnostics = next((
+                program.metadata.get("author_failure_diagnostics")
+                for program in repaired
+                if isinstance(
+                    program.metadata.get("author_failure_diagnostics"), dict
+                )
+            ), {})
+            repair_batches = list(repaired_diagnostics.get("batches") or ())
+            repair_secondary_failures = list(
+                repaired_diagnostics.get("secondary_failures") or ()
+            )
         except PaidProviderBudgetError as exc:
-            if not programs:
-                raise
             repair_budget_failure = {
                 "code": exc.code,
                 "request_kind": exc.request_kind,
@@ -340,7 +677,12 @@ def author_geometry_programs_with_openai(
                 "author_stage": author_stage,
             }
             repaired = ()
-        except GeometryAuthorError:
+        except GeometryAuthorError as exc:
+            repair_batches = list(exc.diagnostics.get("batches") or ())
+            repair_author_failure = {
+                "category": "repair_author_failure",
+                "diagnostics": exc.diagnostics,
+            }
             repaired = ()
         seen_hashes = {program.program_hash() for program in programs}
         for program in repaired:
@@ -359,18 +701,46 @@ def author_geometry_programs_with_openai(
         **program.metadata,
         "author_compiler_repair_request_count": repair_request_count,
     }) for program in programs]
+    secondary_failures = list(repair_secondary_failures)
+    if repair_budget_failure is not None:
+        secondary_failures.append({
+            "category": "retry_budget",
+            "code": repair_budget_failure.get("code"),
+            "used": repair_budget_failure.get("used"),
+            "limit": repair_budget_failure.get("limit"),
+            "remaining": repair_budget_failure.get("remaining"),
+        })
+    if repair_author_failure is not None:
+        secondary_failures.append(repair_author_failure)
+    failure_diagnostics = _author_batch_failure_diagnostics(
+        payload,
+        repair_diagnostics,
+        valid_program_count=initial_valid_program_count,
+        batch_role="repair" if repair_generation else "initial",
+        repair_generation=repair_generation,
+        repair_batches=repair_batches,
+        secondary_failures=secondary_failures,
+    )
     if not programs:
-        exc = parse_error or GeometryAuthorError("geometry author and compiler repair yielded no valid programs")
+        exc = GeometryAuthorError(
+            "geometry author and compiler repair yielded no valid programs",
+            diagnostics=failure_diagnostics,
+        )
         _save_author_cache(cache_path.with_suffix(".rejected.json"), {
             "cache_schema_version": "arr.maas.geometry_llm_author_cache.v3",
             "validation_status": "rejected",
-            "validation_error": str(exc)[:2000],
+            "validation_error": "geometry_author_batch_rejected",
             "model": selected_model,
             "response_id": response_id,
             "payload": payload,
             "compiler_repair_feedback": repair_diagnostics,
+            "failure_diagnostics": failure_diagnostics,
         })
         raise exc
+    programs = [replace(program, metadata={
+        **program.metadata,
+        "author_failure_diagnostics": failure_diagnostics,
+    }) for program in programs]
     _save_author_cache(cache_path, {
         "cache_schema_version": "arr.maas.geometry_llm_author_cache.v3",
         "validation_status": "accepted",
@@ -384,8 +754,20 @@ def author_geometry_programs_with_openai(
             for program in programs
         ), default=0),
         "book_principle_ids": list(book_principle_ids),
+        "book_composition_path_ids": list(book_composition_path_ids),
     })
-    return tuple(programs)
+    return _admit_paid_author_programs(programs)
+
+
+def _admit_paid_author_programs(
+    programs: tuple[GeometryProgram, ...] | list[GeometryProgram],
+) -> tuple[GeometryProgram, ...]:
+    """Record only programs emitted by this paid-provider boundary."""
+
+    admitted = tuple(programs)
+    for program in admitted:
+        admit_paid_provider_program(program)
+    return admitted
 
 
 def _decorate_author_programs(
@@ -469,17 +851,89 @@ def _canonical_book_principle_ids(
     return tuple(normalized)
 
 
+def _canonical_book_composition_path_ids(
+    context: dict[str, Any],
+    provenance: dict[str, Any],
+    *,
+    count: int,
+) -> tuple[str, ...]:
+    offered = {
+        item["path_id"]
+        for item in _book_composition_path_slice(context, count)
+    }
+    if not offered:
+        return ()
+    programs = provenance.get("programs")
+    if not isinstance(programs, list) or not programs:
+        raise GeometryAuthorError(
+            "book composition path bindings require authored programs"
+        )
+    selected: list[str] = []
+    for item in programs:
+        path_id = (
+            str(item.get("book_composition_path_id") or "").strip()
+            if isinstance(item, dict)
+            else ""
+        )
+        if not path_id or path_id not in offered:
+            raise GeometryAuthorError(
+                f"unknown offered BOOK composition path id: {path_id!r}"
+            )
+        if path_id in selected:
+            raise GeometryAuthorError(
+                "BOOK composition path ids must be unique within an authored batch"
+            )
+        selected.append(path_id)
+    return tuple(selected)
+
+
+def _valid_program_book_path_bindings(
+    context: dict[str, Any],
+    programs: tuple[GeometryProgram, ...],
+    *,
+    count: int,
+) -> bool:
+    offered = {
+        item["path_id"]
+        for item in _book_composition_path_slice(context, count)
+    }
+    if not offered or not programs:
+        return False
+    selected = [
+        str(program.metadata.get("book_composition_path_id") or "").strip()
+        for program in programs
+    ]
+    return bool(
+        all(path_id in offered for path_id in selected)
+        and len(selected) == len(set(selected))
+    )
+
+
 def _author_payload_compiler_diagnostics(
     payload: dict[str, Any],
     *,
     program_context: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     diagnostics: list[dict[str, Any]] = []
+    seen_hashes: set[str] = set()
     for index, item in enumerate(payload.get("programs") or ()):
         if not isinstance(item, dict):
+            diagnostics.append({
+                "raw_index": index,
+                "category": "schema",
+                "rejection_codes": ["non_object_program"],
+            })
             continue
         try:
-            program = _program_from_structured_author_item(item, index=index)
+            if isinstance(item.get("nodes"), list):
+                program = _program_from_structured_author_item(
+                    item, index=index
+                )
+            else:
+                program = parse_geometry_dsl(
+                    str(item.get("dsl") or ""),
+                    name=str(item.get("name") or f"llm_geometry_{index + 1:02d}"),
+                )
             program = _canonicalize_program_relation_suffix(program)
             compilation = compile_geometry_program(program)
             issues = tuple(
@@ -496,6 +950,17 @@ def _author_payload_compiler_diagnostics(
             nonterminal_relation = _nonterminal_program_relation(program)
             access_relation_issue = _misaligned_access_relation(program, program_context or {})
             language_contract_issue = _program_language_contract_issue(program, program_context or {})
+            known_seeds = {spec.seed_id for spec in BASE_SEED_SPECS}
+            declared_seed = str(item.get("base_seed") or "").strip().lower()
+            declared_seed_mismatch = bool(
+                declared_seed in known_seeds and declared_seed != inferred_seed
+            )
+            known_forms = {spec.form_id for spec in BASE_FORM_SPECS}
+            inferred_form = _infer_base_form(program)
+            declared_form = str(item.get("base_form_id") or "").strip().lower()
+            declared_form_mismatch = bool(
+                declared_form in known_forms and declared_form != inferred_form
+            )
             if (
                 compilation.status == "compiled"
                 and not issues
@@ -503,53 +968,49 @@ def _author_payload_compiler_diagnostics(
                 and not nonterminal_relation
                 and not access_relation_issue
                 and not language_contract_issue
+                and not declared_seed_mismatch
+                and not declared_form_mismatch
             ):
+                program_hash = program.program_hash()
+                if program_hash in seen_hashes:
+                    diagnostics.append({
+                        "raw_index": index,
+                        "category": "duplicate",
+                        "rejection_codes": ["duplicate_program"],
+                    })
+                else:
+                    seen_hashes.add(program_hash)
                 continue
-            issue_records = [
-                {"code": issue.code, "node_id": issue.node_id, "message": issue.message[:240]}
+            rejection_codes = [
+                str(issue.code)
+                if str(issue.code) in _AUTHOR_REJECTION_CODES
+                else "compiler_gate_rejected"
                 for issue in issues[:6]
             ]
+            if compilation.status != "compiled" and not rejection_codes:
+                rejection_codes.append("compiler_gate_rejected")
             if incompatible_macro:
-                issue_records.append({
-                    "code": "semantic_macro_base_seed_mismatch",
-                    "node_id": "",
-                    "message": f"{incompatible_macro} is incompatible with {inferred_seed} base seed",
-                })
+                rejection_codes.append("semantic_macro_base_seed_mismatch")
             if nonterminal_relation:
-                issue_records.append({
-                    "code": "program_relation_not_terminal_suffix",
-                    "node_id": nonterminal_relation.split(",", 1)[0],
-                    "message": (
-                        "public threshold/court/entry relations must follow body transforms; "
-                        f"nonterminal nodes: {nonterminal_relation}"
-                    ),
-                })
+                rejection_codes.append("program_relation_not_terminal_suffix")
             if access_relation_issue:
-                issue_records.append({
-                    "code": "program_access_relation_not_bound",
-                    "node_id": access_relation_issue.split(":", 1)[0],
-                    "message": access_relation_issue,
-                })
+                rejection_codes.append("program_access_relation_not_bound")
             if language_contract_issue:
-                issue_records.append({
-                    "code": "program_geometry_language_contract_failed",
-                    "node_id": language_contract_issue.split(":", 1)[0],
-                    "message": language_contract_issue,
-                })
+                rejection_codes.append("program_geometry_language_contract_failed")
+            if declared_seed_mismatch:
+                rejection_codes.append("declared_base_seed_mismatch")
+            if declared_form_mismatch:
+                rejection_codes.append("declared_base_form_mismatch")
             diagnostics.append({
-                "candidate_name": str(item.get("name") or f"candidate-{index + 1}"),
-                "declared_base_seed": str(item.get("base_seed") or ""),
-                "inferred_base_seed": inferred_seed,
-                "compile_status": compilation.status,
-                "issues": issue_records,
-                "repair_contract": "return a new typed AST; do not return prose or patch text",
+                "raw_index": index,
+                "category": "compiler_or_gate",
+                "rejection_codes": sorted(set(rejection_codes)),
             })
-        except (GeometryDslError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        except (GeometryDslError, TypeError, ValueError, json.JSONDecodeError):
             diagnostics.append({
-                "candidate_name": str(item.get("name") or f"candidate-{index + 1}"),
-                "compile_status": "decode_failed",
-                "issues": [{"code": type(exc).__name__, "node_id": "", "message": str(exc)[:240]}],
-                "repair_contract": "return a new typed AST; do not return prose or patch text",
+                "raw_index": index,
+                "category": "ast_decode",
+                "rejection_codes": ["ast_decode_error"],
             })
     return diagnostics
 
@@ -599,6 +1060,15 @@ def geometry_programs_from_author_payload(
             )
             continue
         base_seed = inferred_seed
+        known_forms = {spec.form_id for spec in BASE_FORM_SPECS}
+        declared_form = str(item.get("base_form_id") or "").strip().lower()
+        inferred_form = _infer_base_form(program)
+        if declared_form in known_forms and declared_form != inferred_form:
+            rejected.append(
+                f"{index + 1}:declared_base_form_{declared_form}_does_not_match_{inferred_form}"
+            )
+            continue
+        base_form_id = inferred_form
         incompatible_macro = next((
             node.operator
             for node in program.topological_nodes()
@@ -655,11 +1125,21 @@ def geometry_programs_from_author_payload(
             "language_layer": "llm_authored_recursive_geometry",
             "family": "llm_" + ("_".join(operator_path) if operator_path else "prismatic"),
             "base_seed": base_seed,
+            "base_form_id": base_form_id,
             "intent_tags": [str(value) for value in item.get("intent_tags") or ()][:12],
             "operator_path": operator_path or ["prismatic"],
             "author_provider": "structured_geometry_dsl_payload",
             "parcel_coordinates_in_program": False,
             "completed_building_template": False,
+            **(
+                {
+                    "book_composition_path_id": str(
+                        item["book_composition_path_id"]
+                    ),
+                }
+                if str(item.get("book_composition_path_id") or "").strip()
+                else {}
+            ),
             "author_representation": (
                 "typed_json_ast" if isinstance(item.get("nodes"), list) else "legacy_dsl"
             ),
@@ -674,8 +1154,8 @@ def geometry_programs_from_author_payload(
     minimum = max(1, int(expected_count or 1))
     if len(programs) < minimum:
         raise GeometryAuthorError(
-            f"geometry author yielded {len(programs)}/{minimum} valid unique programs"
-            + (f" ({'; '.join(rejected[:5])})" if rejected else "")
+            "geometry author batch yielded insufficient valid unique programs"
+            + (": " + "; ".join(rejected[:12]) if rejected else "")
         )
     input_count = len(payload.get("programs") or ())
     return tuple(replace(program, metadata={
@@ -754,16 +1234,27 @@ def _program_from_structured_author_item(item: dict[str, Any], *, index: int) ->
             name = str(parameter.get("name") or "").strip()
             if not name:
                 raise ValueError("structured author parameter name is required")
+            allowed_parameters = OPERATOR_PARAMETER_CONTRACTS.get(operator)
+            if allowed_parameters is not None and name not in allowed_parameters:
+                raise ValueError(
+                    f"unknown_author_parameter:{operator}.{name}"
+                )
             declared_value_type = str(parameter.get("value_type") or "")
             value_contract = _author_parameter_value_contract(operator, name)
             contract_type = str(value_contract.get("type") or "")
             value_type = {
                 "numeric_vector": "vector",
                 "structured_literal": "structured_json",
+                "matrix4": "matrix4",
                 "literal": declared_value_type,
             }.get(contract_type, contract_type)
+            if contract_type == "matrix4" and declared_value_type == "structured_json":
+                # Read older cached/provider payloads while all new schemas use
+                # a real nested numeric array instead of a token-heavy string.
+                value_type = "structured_json"
             if value_type not in {"number", "string", "boolean", "vector", "structured_json"}:
-                value_type = declared_value_type
+                if value_type != "matrix4":
+                    value_type = declared_value_type
             if value_type != declared_value_type:
                 parameter_type_corrections.append({
                     "node_id": str(raw.get("id") or ""),
@@ -782,8 +1273,32 @@ def _program_from_structured_author_item(item: dict[str, Any], *, index: int) ->
                 value = [float(component) for component in parameter.get("vector_value") or ()]
             elif value_type == "structured_json":
                 value = json.loads(str(parameter.get("structured_json") or "null"))
+            elif value_type == "matrix4":
+                value = parameter.get("matrix4_value")
             else:
                 raise ValueError(f"unsupported structured parameter value_type {value_type}")
+            if value_type == "number":
+                minimum = value_contract.get("minimum")
+                maximum = value_contract.get("maximum")
+                if minimum is not None and value < float(minimum):
+                    raise ValueError(
+                        f"author_parameter_below_minimum:{operator}.{name}"
+                    )
+                if maximum is not None and value > float(maximum):
+                    raise ValueError(
+                        f"author_parameter_above_maximum:{operator}.{name}"
+                    )
+            elif value_type == "string" and "enum" in value_contract:
+                if value not in value_contract["enum"]:
+                    raise ValueError(
+                        f"author_parameter_outside_enum:{operator}.{name}"
+                    )
+            elif value_type == "vector" and "lengths" in value_contract:
+                allowed_lengths = tuple(int(length) for length in value_contract["lengths"])
+                if len(value) not in allowed_lengths:
+                    raise ValueError(
+                        f"author_parameter_vector_length:{operator}.{name}"
+                    )
             parameters[name] = value
         nodes.append(GeometryNode(
             id=str(raw.get("id") or ""),
@@ -803,11 +1318,168 @@ def _program_from_structured_author_item(item: dict[str, Any], *, index: int) ->
         name=str(item.get("name") or f"llm_geometry_{index + 1:02d}"),
         metadata={
             "authored_structured_ast": True,
+            **(
+                {
+                    "book_composition_path_id": str(
+                        item["book_composition_path_id"]
+                    ),
+                }
+                if str(item.get("book_composition_path_id") or "").strip()
+                else {}
+            ),
             "canonicalized_identity_boolean_node_ids": sorted(identity_aliases),
             "contract_lowered_node_kind_corrections": kind_corrections,
             "contract_lowered_parameter_type_corrections": parameter_type_corrections,
         },
     )
+
+
+def _book_composition_path_slice(
+    context: dict[str, Any],
+    count: int,
+) -> list[dict[str, Any]]:
+    """Offer a deterministic, stratified slice; the LLM chooses within it."""
+
+    if "book_graph_vocabulary" not in context:
+        return []
+    from design.maas.book_language.composition_lattice import (
+        iter_book_composition_paths,
+    )
+
+    paths = tuple(
+        item for item in iter_book_composition_paths()
+        if item.executable
+    )
+    if not paths:
+        return []
+    wanted = min(96, max(16, int(count) * 4))
+    identity = json.dumps({
+        "program_id": context.get("program_id") or context.get("building_type"),
+        "author_stage": context.get("author_stage"),
+        "author_request_kind": context.get("author_request_kind"),
+        "failure_feedback": context.get("compiler_repair_feedback"),
+        "author_batch_index": context.get("author_batch_index"),
+        "author_batch_count": context.get("author_batch_count"),
+        "author_variation_offset": context.get("author_variation_offset"),
+        "legal_fit_repair_feedback": context.get("legal_fit_repair_feedback"),
+        "capacity_authoring_deficits": context.get("capacity_authoring_deficits"),
+        "family_supply_deficits": context.get("family_supply_deficits"),
+        "book_graph_supply": context.get("book_graph_supply"),
+    }, sort_keys=True, separators=(",", ":"), default=str)
+    stride = max(1, len(paths) // wanted)
+    offset = int(
+        hashlib.sha256(identity.encode("utf-8")).hexdigest()[:12],
+        16,
+    ) % stride
+    selected = [
+        paths[(offset + index * stride) % len(paths)]
+        for index in range(wanted)
+    ]
+    compact: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in selected:
+        if item.path_id in seen:
+            continue
+        seen.add(item.path_id)
+        path_contract = item.to_dict()
+        compact.append({
+            "path_id": item.path_id,
+            "base_volume_label": item.base_volume_label,
+            "orientation": item.orientation,
+            "variation_index": item.variation_index,
+            "principle_id": item.principle_id,
+            "principle_kind": item.principle_kind,
+            "ordered_operations": list(item.ordered_operations),
+            "graph_edges": [list(edge) for edge in item.graph_edges],
+            "topology_class": item.topology_class,
+            "matrix4_contract": path_contract["matrix4_contract"],
+            "parameter_state": path_contract["parameter_state"],
+        })
+    return compact
+
+
+def _normalized_legal_field_design_context(
+    capacity_contract: dict[str, Any],
+) -> dict[str, Any]:
+    """Expose legal shape relations without parcel coordinates or form recipes."""
+
+    raw_sections = capacity_contract.get("candidate_legal_floor_sections")
+    if not isinstance(raw_sections, list) or not raw_sections:
+        legal_field = capacity_contract.get("legal_floor_field")
+        raw_sections = (
+            legal_field.get("legal_floor_sections")
+            if isinstance(legal_field, dict)
+            else None
+        )
+    if not isinstance(raw_sections, list) or not raw_sections:
+        return {}
+    sections: list[Polygon] = []
+    try:
+        for raw in raw_sections:
+            polygon = shape(raw)
+            if (
+                not isinstance(polygon, Polygon)
+                or polygon.is_empty
+                or not polygon.is_valid
+                or float(polygon.area) <= 1e-9
+            ):
+                return {}
+            sections.append(polygon)
+    except (TypeError, ValueError):
+        return {}
+    ground = sections[0]
+    rectangle = list(ground.minimum_rotated_rectangle.exterior.coords)[:4]
+    if len(rectangle) != 4:
+        return {}
+    edges = []
+    for index, left in enumerate(rectangle):
+        right = rectangle[(index + 1) % 4]
+        dx = float(right[0]) - float(left[0])
+        dy = float(right[1]) - float(left[1])
+        edges.append((hypot(dx, dy), degrees(atan2(dy, dx))))
+    _length, principal_angle = max(edges)
+    rotated = tuple(
+        rotate_geometry(section, -principal_angle, origin=ground.centroid)
+        for section in sections
+    )
+    min_x, min_y, max_x, max_y = rotated[0].bounds
+    span_x = max_x - min_x
+    span_y = max_y - min_y
+    if span_x <= 1e-9 or span_y <= 1e-9:
+        return {}
+    ground_area = float(rotated[0].area)
+    bands = []
+    for index, section in enumerate(rotated):
+        low_x, low_y, high_x, high_y = section.bounds
+        bands.append({
+            "band_index": index,
+            "area_ratio_to_ground": round(float(section.area) / ground_area, 6),
+            "long_axis_min": round((low_x - min_x) / span_x, 6),
+            "long_axis_max": round((high_x - min_x) / span_x, 6),
+            "short_axis_min": round((low_y - min_y) / span_y, 6),
+            "short_axis_max": round((high_y - min_y) / span_y, 6),
+            "centroid_long_axis": round(
+                (float(section.centroid.x) - min_x) / span_x,
+                6,
+            ),
+            "centroid_short_axis": round(
+                (float(section.centroid.y) - min_y) / span_y,
+                6,
+            ),
+        })
+    return {
+        "schema_version": "arr.maas.normalized_legal_field_design_context.v1",
+        "authority": "constraint_context_only_not_morphology_recipe",
+        "coordinate_frame": "generation_host_principal_frame_normalized",
+        "absolute_parcel_coordinates_included": False,
+        "floor_band_count": len(bands),
+        "ground_long_to_short_aspect": round(span_x / span_y, 6),
+        "bands": bands,
+        "authorship_instruction": (
+            "Author one continuous architectural section that can survive these "
+            "relations; never replay band boundaries or copy a per-floor profile."
+        ),
+    }
 
 
 def _author_prompt(context: dict[str, Any], count: int) -> str:
@@ -817,8 +1489,54 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
     bounded_context = {
         key: value
         for key, value in context.items()
-        if key not in {"book_graph_vocabulary", "book_principle_ids"}
+        if key not in {
+            "book_graph_vocabulary",
+            "book_principle_ids",
+            "base_capacity_contract",
+        }
     }
+    program_context = (
+        dict(bounded_context.get("program_context"))
+        if isinstance(bounded_context.get("program_context"), dict)
+        else {}
+    )
+    nested_capacity = program_context.pop("base_capacity_contract", None)
+    if "program_context" in bounded_context:
+        bounded_context["program_context"] = program_context
+    capacity_contract = (
+        context.get("base_capacity_contract")
+        if isinstance(context.get("base_capacity_contract"), dict)
+        else nested_capacity
+    )
+    if isinstance(capacity_contract, dict):
+        bounded_context["capacity_design_budget"] = {
+            key: capacity_contract.get(key)
+            for key in (
+                "feasible_maximum_floor_area_m2",
+                "minimum_utilization",
+                "target_utilization",
+                "target_floor_areas_m2",
+                "legal_floor_section_areas_m2",
+            )
+            if capacity_contract.get(key) is not None
+        }
+        legal_design_context = _normalized_legal_field_design_context(
+            capacity_contract
+        )
+        if legal_design_context:
+            bounded_context["legal_field_design_context"] = (
+                legal_design_context
+            )
+            site_relation = (
+                dict(bounded_context.get("site_relation"))
+                if isinstance(bounded_context.get("site_relation"), dict)
+                else {}
+            )
+            site_relation.update({
+                "absolute_coordinates_available_to_author": False,
+                "normalized_legal_constraint_context_available": True,
+            })
+            bounded_context["site_relation"] = site_relation
     context_text = json.dumps(
         bounded_context,
         ensure_ascii=False,
@@ -834,6 +1552,17 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
         if "book_graph_vocabulary" in context
         else "not supplied (legacy context)"
     )
+    offered_book_paths = _book_composition_path_slice(context, count)
+    offered_book_paths_text = (
+        json.dumps(
+            offered_book_paths,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        if offered_book_paths
+        else "not supplied (legacy context)"
+    )
     parameter_contracts = json.dumps({
         operator: {
             parameter: _author_parameter_value_contract(operator, parameter)
@@ -842,6 +1571,7 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
         for operator, parameters in sorted(OPERATOR_PARAMETER_CONTRACTS.items())
     }, ensure_ascii=False, sort_keys=True)
     allowed_base_seeds = ", ".join(_allowed_author_base_seeds(context))
+    allowed_base_forms = ", ".join(spec.form_id for spec in BASE_FORM_SPECS)
     allowed_macro_operators = ", ".join(_allowed_author_macro_operators(context))
     program_context = (
         context.get("program_context")
@@ -869,6 +1599,45 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
     )
     return f"""Create exactly {count} executable and materially different architectural mass programs as typed AST node graphs.
 
+NON-NEGOTIABLE MASS MEMORY:
+- The causal representation is UnitBox -> authored base-form capability -> one global homogeneous 4x4 Matrix4
+  -> BOOK p.3 fraction scope -> orientation -> typed BOOK operations
+  -> typed CSG -> deterministic legal projection. In this AST, the normalized base scale is the BaseVolume and every
+  translate/rotate/scale/shear is lowered into that explicit Matrix4 chain. Do not author parcel coordinates or a
+  separately recentered floor stack.
+- The LLM owns architectural authorship. Deterministic code owns zoning, setbacks, height, FAR/GFA, parking,
+  connectivity, mesh validity, and final admission; it may reject a design but must never replace it with a generic mass.
+- Qatar National Library and other references contribute capabilities only: continuous public space, circulation-section,
+  span, void, and aggregation. Never copy their completed outline. Translate a capability into executable topology.
+- The BOOK is a compositional graph, not a checklist. Compose its BaseVolume fractions, orientations, thirty base
+  operatives, bounded variations, combination edges, aggregation methods, and case-study relation paths into a broad
+  lattice containing thousands of executable possibilities; author and rank materially distinct AST paths from that
+  lattice before choosing the requested portfolio. The requested twenty are selections from this large graph space.
+- Never assign one required language per output and never force one law-friendly operator across the batch. Taper is only
+  one possible graph node beside expand, branch, merge, nest, offset, bend, skew, split, twist, interlock, intersect,
+  lift, lodge, overlap, rotate, shift, carve, compress, fracture, grade, notch, pinch, shear, embed, extract, inscribe,
+  puncture, plus valid combination and aggregation paths. Labels and parameter-only variants do not count.
+- Candidate identity binds BaseVolume scope, orientation, ordered operative nodes, combination/aggregation edges,
+  topology, and parameters. Measure diversity both in graph/topology space before BOOK and in certified visible-mesh
+  space after legal projection. A maximum-FAR staircase or repeated cake-tier envelope is failure even when inputs differ.
+- Preserve the authored inter-floor pose with one global plan transform. Continuous taper, shear, wing, bridge, court,
+  void and section profiles are encouraged; independent floor inflation, per-floor recentering, and forced legal steps
+  are forbidden. Never numerically inverse-compensate for the known legal floor contraction in the reusable AST.
+- Treat sunlight/setback contraction as a continuous legal-envelope condition, not a command to emit separately extruded
+  floor bands. Start continuous section transitions before a contracting legal height where necessary, so the closed
+  solid band—not merely its midpoint slice—remains contained. Use one coherent authored section/profile that can survive
+  continuous legal CSG; law-derived floor plates remain the deterministic GFA measurement authority and must not become
+  the visible design language.
+- Capacity is a whole-building design budget, not a maximum-FAR shape generator. Repair a measured capacity deficit with
+  authored compactness, section profile, void ratio, or the one global Matrix4 while keeping the architectural concept;
+  never fill the deficit by adding algorithmic tiers or independently scaling floors.
+- A source-only compiler check is insufficient. Each candidate must survive its final production BOOK/program/legal projection,
+  keep an authoritative nonempty certified visual mesh, use zero pose fallback, and remain visibly identifiable there.
+  For the current competition capacity contract, capacity utilization must remain at least 0.60 after that final projection;
+  0.70 is the preferred design target, not the hard minimum.
+- For a requested portfolio of 20, all 20 selected candidates must remain LLM-authored, legal, capacity-passing, and
+  materially diverse in the combined PNG. Count never authorizes a deterministic fallback or weakened diversity cap.
+
 If mass_execution_agent_context is present, it is the measured causal trace from a prior candidate: preserve
 successful active relations, repair failed_stages, never assume pending_required_stages passed, and target only
 exact editable_ast_nodes that remain valid in the current program contract. It is not hidden-neuron evidence.
@@ -882,7 +1651,7 @@ Example concept (the schema, not prose, is authoritative): unit box -> scale vec
 
 Allowed primitives: box, cylinder, extruded_polygon, wedge, sweep, loft.
 Allowed transforms: translate/move, rotate, scale, mirror, shear.
-Allowed modifiers: bend, taper, twist, pinch, inflate, slice, clip, clip_fraction, cut_corner.
+Allowed modifiers: ellipsoidize, tetrahedralize, bend, taper, twist, pinch, inflate, slice, clip, clip_fraction, cut_corner.
 Allowed booleans: union, subtract/difference, intersection.
 Allowed patterns: duplicate, linear_array, radial_array, mirror_array, stack.
 Allowed compositions: attach, bridge.
@@ -914,6 +1683,9 @@ Rules:
   role is explicitly an internal environmental court, not the public threshold.
 - Use bounded local normalized dimensions, not parcel coordinates and not a copied famous building.
 - Keep parcel scope and base seed separate. Scope is supplied by the site graph. Select a normalized
+  base_form_id from this independent authoring axis: {allowed_base_forms}. Its executable operator must occur before
+  the one global Matrix4, and it is independent from the later BOOK fraction scope.
+  Select a normalized
   base seed only from this program-profile allow-list: {allowed_base_seeds}. BLOCK is [1,1,1],
   SLAB is [2.2,1.45,0.28], BAR is [2.8,0.62,0.48], and TOWER is [0.68,0.68,2.5], all made
   by scaling the same UnitBox; PROFILED PRISM uses an explicit extruded_polygon. Never introduce
@@ -956,6 +1728,11 @@ Rules:
   when the measured memory reports repeated box-like, pyramidal, fragmented, weak-threshold, or wrong-typology
   failures, choose a materially different tree and explicitly resolve that relation. A topology with zero
   visually verified projections is not a positive precedent.
+- `author_forbidden_body_rule_families` is measured retry feedback, not a permanent language ban. Do not emit any
+  source operator from a listed family; the typed parser rejects it before compilation so repeated failed families
+  cannot consume BOOK-path search time.
+- `author_forbidden_operators` is the finer-grained form of the same measured retry feedback. It suppresses only
+  explicitly repeated operators while leaving other architectural languages in the same family available.
 - outcome_graph_memory.portfolio_visual_feedback is the board-level sibling verdict. Treat repeated_family_groups
   as a batch-level negative constraint and distribute new tree topologies toward required_next_relations; it is not
   permission to reject an otherwise valid individual without compiling and rendering the new portfolio.
@@ -972,6 +1749,15 @@ Program/site context:
 
 Select and return a non-empty `book_principle_ids` array using exact canonical ids from the vocabulary below.
 These ids record transferable principles used by the authored AST; they are not completed-form labels.
+
+The complete BOOK lattice contains 13,662 content-addressed executable paths. For this request, choose one
+`book_composition_path_id` per program from the bounded cross-lattice offer below. Multiple programs may inspect the
+same offer, but each returned program must select a different path id. The selected path binds its BaseVolume fraction,
+orientation, one global Matrix4 contract, ordered operations, graph edges, topology class, and variation state; do not
+substitute a hand-assigned language label or a path not present in this offer.
+
+BOOK composition path offer:
+{offered_book_paths_text}
 
 Complete compact BOOK graph vocabulary (relation vocabulary only; never copy a completed form):
 {book_graph_vocabulary_text}
@@ -1012,6 +1798,7 @@ def _allowed_author_operators(context: dict[str, Any]) -> list[str]:
         for kind, values in OPERATORS_BY_KIND.items()
         if kind != "macro"
         for operator in values
+        if operator != "book_base_volume"
     }
     return sorted(core | set(_allowed_author_macro_operators(context)))
 
@@ -1022,6 +1809,7 @@ def _author_schema(
     allowed_base_seeds: list[str] | tuple[str, ...] | None = None,
     allowed_operators: list[str] | tuple[str, ...] | None = None,
     book_principle_vocabulary: tuple[str, ...] = (),
+    book_composition_path_ids: tuple[str, ...] = (),
 ) -> dict[str, Any]:
     operators = list(allowed_operators or sorted({
         operator
@@ -1042,10 +1830,13 @@ def _author_schema(
                     "type": "object",
                     "additionalProperties": False,
                     "required": [
-                        "name", "base_seed", "intent_tags", "nodes", "root_id", "rationale",
+                        "name", "base_form_id", "base_seed", "intent_tags", "nodes", "root_id", "rationale",
                     ],
                     "properties": {
                         "name": {"type": "string", "minLength": 1, "maxLength": 120},
+                        "base_form_id": {
+                            "enum": [spec.form_id for spec in BASE_FORM_SPECS],
+                        },
                         "base_seed": {
                             "enum": list(allowed_base_seeds or [spec.seed_id for spec in BASE_SEED_SPECS]),
                         },
@@ -1077,92 +1868,14 @@ def _author_schema(
             "minItems": 1,
         }
         schema["required"].append("book_principle_ids")
-    return schema
-
-
-def _author_node_schema(allowed_operators: list[str]) -> dict[str, Any]:
-    """Return an arity-discriminated strict schema for executable AST nodes.
-
-    A single unconstrained ``inputs`` array let the author emit syntactically
-    valid JSON that could never be a GeometryNode (most often ``union(A)`` or
-    ``bridge(A, A)``).  Arity is part of the language type, so enforce it at
-    generation time rather than spending compiler-repair turns rediscovering
-    it. Distinct-input semantics are checked while decoding because JSON Schema
-    cannot express uniqueness after ID-alias resolution.
-    """
-
-    parameter_schema = {
-        "type": "object",
-        "additionalProperties": False,
-        "required": [
-            "name", "value_type", "numeric_value", "string_value",
-            "boolean_value", "vector_value", "structured_json",
-        ],
-        "properties": {
-            "name": {"type": "string", "minLength": 1, "maxLength": 80},
-            "value_type": {
-                "enum": ["number", "string", "boolean", "vector", "structured_json"],
-            },
-            "numeric_value": {"type": "number"},
-            "string_value": {"type": "string", "maxLength": 200},
-            "boolean_value": {"type": "boolean"},
-            "vector_value": {
-                "type": "array",
-                "maxItems": 48,
-                "items": {"type": "number"},
-            },
-            "structured_json": {"type": "string", "maxLength": 4000},
-        },
-    }
-
-    allowed = set(allowed_operators)
-
-    def variant(
-        kind: str,
-        operators: set[str] | frozenset[str],
-        *,
-        minimum_inputs: int,
-        maximum_inputs: int,
-    ) -> dict[str, Any] | None:
-        available = sorted(set(operators) & allowed)
-        if not available:
-            return None
-        return {
-            "type": "object",
-            "additionalProperties": False,
-            "required": ["id", "kind", "operator", "inputs", "parameters", "semantic_role"],
-            "properties": {
-                "id": {"type": "string", "minLength": 1, "maxLength": 80},
-                "kind": {"enum": [kind]},
-                "operator": {"enum": available},
-                "inputs": {
-                    "type": "array",
-                    "minItems": minimum_inputs,
-                    "maxItems": maximum_inputs,
-                    "items": {"type": "string", "minLength": 1, "maxLength": 80},
-                },
-                "parameters": {
-                    "type": "array",
-                    "maxItems": 20,
-                    "items": parameter_schema,
-                },
-                "semantic_role": {"type": "string", "maxLength": 80},
-            },
+    if book_composition_path_ids:
+        program_schema = schema["properties"]["programs"]["items"]
+        program_schema["properties"]["book_composition_path_id"] = {
+            "type": "string",
+            "enum": list(book_composition_path_ids),
         }
-
-    variants = [
-        variant("primitive", OPERATORS_BY_KIND["primitive"], minimum_inputs=0, maximum_inputs=0),
-        variant("transform", OPERATORS_BY_KIND["transform"], minimum_inputs=1, maximum_inputs=1),
-        variant("modifier", OPERATORS_BY_KIND["modifier"], minimum_inputs=1, maximum_inputs=1),
-        variant("pattern", OPERATORS_BY_KIND["pattern"], minimum_inputs=1, maximum_inputs=1),
-        variant("boolean", {"difference"}, minimum_inputs=2, maximum_inputs=2),
-        variant("boolean", {"union", "intersection"}, minimum_inputs=2, maximum_inputs=4),
-        variant("composition", {"attach"}, minimum_inputs=2, maximum_inputs=4),
-        variant("composition", {"bridge"}, minimum_inputs=2, maximum_inputs=2),
-        variant("macro", set(OPERATORS_BY_KIND["macro"]) - {"bridge"}, minimum_inputs=1, maximum_inputs=4),
-        variant("macro", {"bridge"}, minimum_inputs=2, maximum_inputs=2),
-    ]
-    return {"anyOf": [item for item in variants if item is not None]}
+        program_schema["required"].append("book_composition_path_id")
+    return schema
 
 
 def _response_output_text(data: dict[str, Any]) -> str:
@@ -1177,6 +1890,58 @@ def _response_output_text(data: dict[str, Any]) -> str:
     raise GeometryAuthorError("geometry author response contained no output text")
 
 
+def _infer_base_form(program: GeometryProgram) -> str:
+    """Infer the form immediately upstream of the one global Matrix4."""
+
+    matrices = [
+        node for node in program.topological_nodes()
+        if node.kind == "transform" and node.operator == "matrix4"
+    ]
+    if len(matrices) != 1 or len(matrices[0].inputs) != 1:
+        return "unknown"
+    carrier = program.node_map.get(matrices[0].inputs[0])
+    if carrier is None:
+        return "unknown"
+    # A non-block normalized base seed is an independent proportion axis.
+    # For the unmodified cube form its executable ``scale`` necessarily sits
+    # between UnitBox and the one global Matrix4.  Do not misclassify that
+    # seed controller as an unknown base-form operator.
+    if carrier.operator == "scale" and len(carrier.inputs) == 1:
+        parent = program.node_map.get(carrier.inputs[0])
+        try:
+            vector = tuple(
+                float(value)
+                for value in (
+                    carrier.parameters.get("scale")
+                    or carrier.parameters.get("vector")
+                    or ()
+                )
+            )
+        except (TypeError, ValueError):
+            vector = ()
+        normalized_seed_scale = bool(
+            parent is not None
+            and parent.operator == "box"
+            and len(vector) == 3
+            and min(vector) > 0.0
+            and any(
+                spec.primitive_operator == "box"
+                and max(
+                    abs(vector[index] - spec.normalized_scale[index])
+                    for index in range(3)
+                ) <= 0.08
+                for spec in BASE_SEED_SPECS
+            )
+        )
+        if normalized_seed_scale:
+            carrier = parent
+    return {
+        "ellipsoidize": "elliptical",
+        "tetrahedralize": "tetrahedral",
+        "box": "cube",
+    }.get(carrier.operator, "unknown")
+
+
 def _infer_base_seed(program: GeometryProgram) -> str:
     ordered = program.topological_nodes()
     node_map = program.node_map
@@ -1187,7 +1952,11 @@ def _infer_base_seed(program: GeometryProgram) -> str:
         if parent is None or parent.operator != "box":
             continue
         try:
-            vector = tuple(float(value) for value in node.parameters.get("vector") or ())
+            vector = tuple(float(value) for value in (
+                node.parameters.get("scale")
+                or node.parameters.get("vector")
+                or ()
+            ))
         except (TypeError, ValueError):
             vector = ()
         if len(vector) != 3 or min(vector) <= 0:
@@ -1363,8 +2132,32 @@ def _program_language_contract_issue(
     program_context: dict[str, Any],
 ) -> str:
     language_contract = program_context.get("geometry_language_contract")
-    if not isinstance(language_contract, dict):
+    has_forbidden_family_feedback = bool(
+        program_context.get("author_forbidden_body_rule_families")
+    )
+    has_forbidden_operator_feedback = bool(
+        program_context.get("author_forbidden_operators")
+    )
+    if (
+        not isinstance(language_contract, dict)
+        and not has_forbidden_family_feedback
+        and not has_forbidden_operator_feedback
+    ):
         return ""
+    if not isinstance(language_contract, dict):
+        language_contract = {}
+    forbidden_operators = {
+        str(value).strip().lower()
+        for value in program_context.get("author_forbidden_operators") or ()
+        if str(value).strip()
+    }
+    blocked_operator = next((
+        node.operator
+        for node in program.topological_nodes()
+        if node.operator in forbidden_operators
+    ), "")
+    if blocked_operator:
+        return f"author_operator_forbidden:{blocked_operator}"
     known_macros = set(OPERATORS_BY_KIND["macro"])
     actual = [node for node in program.topological_nodes() if node.kind == "macro"]
     repeated_plan_relation = next((
@@ -1436,6 +2229,19 @@ def _program_language_contract_issue(
     })
     if duplicated_body_families:
         return f"program:body_rule_family_repeated={','.join(duplicated_body_families)}"
+    forbidden_body_families = {
+        str(value).strip().lower()
+        for value in program_context.get("author_forbidden_body_rule_families") or ()
+        if str(value).strip()
+    }
+    blocked_body_families = sorted(
+        forbidden_body_families.intersection(body_families)
+    )
+    if blocked_body_families:
+        return (
+            "author_body_rule_family_forbidden:"
+            + ",".join(blocked_body_families)
+        )
     if maximum_threshold_rules and public_threshold_count > maximum_threshold_rules:
         return (
             f"program:public_threshold_rule_budget={public_threshold_count}:"
@@ -1469,8 +2275,26 @@ def _author_validation_context(context: dict[str, Any]) -> dict[str, Any]:
     program_context.update({
         "author_maximum_body_rule_count": maximum_body_rules,
         "author_maximum_public_threshold_rule_count": 1,
+        "author_forbidden_body_rule_families": sorted({
+            str(value).strip().lower()
+            for value in context.get("author_forbidden_body_rule_families") or ()
+            if str(value).strip()
+        }),
+        "author_forbidden_operators": sorted({
+            str(value).strip().lower()
+            for value in context.get("author_forbidden_operators") or ()
+            if str(value).strip()
+        }),
     })
     return program_context
+
+
+def geometry_author_validation_context(
+    context: dict[str, Any],
+) -> dict[str, Any]:
+    """Return the exact contextual gate input shared by every LLM author."""
+
+    return _author_validation_context(context)
 
 
 def _author_body_rule_budget(context: dict[str, Any]) -> int:
@@ -1499,7 +2323,11 @@ def _base_seed_controller_id(program: GeometryProgram, seed_id: str) -> str:
             if parent is None or parent.operator != "box":
                 continue
             try:
-                vector = tuple(float(value) for value in node.parameters.get("vector") or ())
+                vector = tuple(float(value) for value in (
+                    node.parameters.get("scale")
+                    or node.parameters.get("vector")
+                    or ()
+                ))
             except (TypeError, ValueError):
                 continue
             if len(vector) == 3 and max(
@@ -1516,29 +2344,6 @@ def _base_seed_controller_id(program: GeometryProgram, seed_id: str) -> str:
             return profiled.id
     primitive = next((node for node in ordered if node.kind == "primitive"), None)
     return primitive.id if primitive is not None else ""
-
-
-def _author_parameter_value_contract(operator: str, parameter: str) -> Any:
-    allowed = STRING_PARAMETER_VALUES.get((operator, parameter))
-    if allowed is not None:
-        return {"type": "string", "enum": sorted(allowed)}
-    if parameter == "axis":
-        return {"type": "string", "enum": ["x", "y", "z"]}
-    if parameter in VECTOR_LENGTHS:
-        return {"type": "numeric_vector", "lengths": list(VECTOR_LENGTHS[parameter])}
-    if parameter in NUMERIC_BOUNDS:
-        lower, upper = NUMERIC_BOUNDS[parameter]
-        return {"type": "number", "minimum": lower, "maximum": upper}
-    if parameter in {"x", "y", "z"}:
-        # Normalized local translation/bridge coordinates. These parameters
-        # are intentionally absent from the mutation clamp table because the
-        # site fitter rebases them later, but their JSON type is still numeric.
-        return {"type": "number", "minimum": -4.0, "maximum": 4.0}
-    if parameter in {"center", "bridge", "ground_spine"}:
-        return {"type": "boolean"}
-    if parameter in {"points", "holes", "path", "profiles", "section_controls"}:
-        return {"type": "structured_literal"}
-    return {"type": "literal"}
 
 
 def _author_cache_path(

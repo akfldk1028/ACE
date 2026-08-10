@@ -194,3 +194,20 @@ measured feedback.
   only `2.6-3.7%` feasible utilization. This is an authored-supply failure,
   not evidence that legal architectural massing is impossible. Move capacity,
   four-section 3D profile, and retention checks before BOOK/production.
+- C118-C120: the first compact site-aware taper exposed three independent
+  policy failures: a two-floor spatial-reserve prefix overfilled lower plates,
+  continuous pyramidal geometry was mislabeled as a visible stair, and direct
+  affine acceptance stopped at only `35%` of the requested capacity. The full
+  lawful reserve stack, measured visible-step predicate, and `0.995` direct
+  capacity acceptance now replace those contracts.
+- C121-C123: an actually feasible typed loft was successively blocked by
+  stale cross-module bindings: source export required exactly one primitive
+  instead of exactly one canonical UnitBox; a four-floor legal certificate
+  exported as three proxy bands; and direct-affine success omitted final
+  projection/proxy hashes. These were bookkeeping/contract defects, not law
+  or geometry failures. All are fixed without weakening containment.
+- C124: current production succeeds `1/1` at `217.718 m2` and `0.6551`
+  utilization with exact clean mesh and law containment. Direct PNG review
+  rejects it as a diversity endpoint because the continuous one-sided fold is
+  still wedge-like. Keep it as a non-stepped flow proof; do not clone it into
+  a three- or twenty-card portfolio.

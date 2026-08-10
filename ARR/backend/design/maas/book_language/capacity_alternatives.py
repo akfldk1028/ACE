@@ -215,11 +215,16 @@ def capacity_contract_for_alternative(
     _apply_candidate_floor_prefix(
         projected,
         target=float(alternative.get("target_floor_area_m2") or 0.0),
-        # Use only the lawful prefix required by the measured target. A later
-        # geometry fit may reject a low-retention form, but it may not add an
-        # otherwise unnecessary sunlight-setback floor and call that authored
-        # diversity.
-        preserve_full_lawful_stack=False,
+        # Spatial reserve intentionally distributes the minimum total GFA over
+        # the complete lawful design stack. Packing the same 60% aggregate
+        # into the minimum two-floor prefix demanded roughly 97% of each live
+        # plate on the Gangnam parcel, leaving no room for courts, wings or a
+        # continuous section and forcing every survivor toward the envelope.
+        # Higher-yield alternatives still use their minimum required prefix.
+        preserve_full_lawful_stack=(
+            str(alternative.get("alternative_id") or "")
+            == "spatial_reserve"
+        ),
     )
     target_floor_areas = _alternative_floor_targets(
         projected,

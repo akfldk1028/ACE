@@ -15,6 +15,59 @@ class _StopAfterDiagnosticPolicy(RuntimeError):
 
 
 class DiagnosticMorphologyPolicyTests(SimpleTestCase):
+    def test_continuous_pyramidal_projection_is_not_a_visible_step(self):
+        authored = SimpleNamespace(metadata={
+            "geometry_program": {"nodes": [
+                {"operator": "box"},
+                {"operator": "taper"},
+                {"operator": "notch"},
+            ]},
+        })
+        projected = SimpleNamespace(metadata={
+            "floorwise_visual_projection": {
+                "visible_step_fallback": False,
+            },
+        })
+        authored_metrics = {
+            "hard_pass": True,
+            "phenotype": "oblique",
+            "visible_stepped": False,
+            "pyramidal_like": False,
+        }
+        projected_metrics = {
+            "hard_pass": True,
+            "phenotype": "pyramidal",
+            "visible_stepped": False,
+            "pyramidal_like": True,
+        }
+
+        with (
+            patch.object(
+                candidate_generation,
+                "authoritative_surface_morphology",
+                side_effect=(authored_metrics, projected_metrics),
+            ),
+            patch.object(
+                candidate_generation,
+                "authoritative_surface_silhouette_distance",
+                return_value=0.066,
+            ),
+        ):
+            evidence = (
+                candidate_generation._authored_projection_identity_evidence(
+                    authored,
+                    projected,
+                )
+            )
+
+        self.assertTrue(evidence["hard_pass"], evidence)
+        self.assertNotIn(
+            "unrequested_legal_step_collapse",
+            evidence["failure_reasons"],
+        )
+        self.assertTrue(evidence["projected_pyramidal_like"])
+        self.assertFalse(evidence["projected_visible_stepped"])
+
     def test_diagnostic_target_does_not_enable_visible_step_fallback(self):
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("MAAS_ALLOW_VISIBLE_STEP_FALLBACK", None)
@@ -54,11 +107,13 @@ class DiagnosticMorphologyPolicyTests(SimpleTestCase):
             }
         })
         authored_metrics = {
+            "hard_pass": True,
             "phenotype": "voided",
             "visible_stepped": False,
             "pyramidal_like": False,
         }
         projected_metrics = {
+            "hard_pass": True,
             "phenotype": "stepped",
             "visible_stepped": True,
             "pyramidal_like": True,
@@ -71,12 +126,12 @@ class DiagnosticMorphologyPolicyTests(SimpleTestCase):
             ),
             patch.object(
                 candidate_generation,
-                "_solid_morphology_metrics",
+                "authoritative_surface_morphology",
                 side_effect=(authored_metrics, projected_metrics),
             ),
             patch.object(
                 candidate_generation,
-                "intrinsic_silhouette_distance",
+                "authoritative_surface_silhouette_distance",
                 return_value=0.41,
             ),
         ):
@@ -91,9 +146,62 @@ class DiagnosticMorphologyPolicyTests(SimpleTestCase):
         self.assertFalse(evidence["hard_pass"])
         self.assertIn(
             "unrequested_legal_step_collapse",
-            evidence["failure_reasons"],
+            evidence["diagnostic_reasons"],
         )
         self.assertIn(
+            "unrequested_visible_step_fallback",
+            evidence["failure_reasons"],
+        )
+
+    def test_authored_visible_steps_are_not_misclassified_as_projection_fallback(self):
+        authored = SimpleNamespace(metadata={
+            "geometry_program": {
+                "nodes": [
+                    {"operator": "box"},
+                    {"operator": "grid_mass"},
+                    {"operator": "difference"},
+                ]
+            }
+        })
+        projected = SimpleNamespace(metadata={
+            "floorwise_visual_projection": {
+                "visible_step_fallback": True,
+            }
+        })
+        authored_metrics = {
+            "hard_pass": True,
+            "phenotype": "voided",
+            "visible_stepped": True,
+            "pyramidal_like": False,
+        }
+        projected_metrics = {
+            "hard_pass": True,
+            "phenotype": "voided",
+            "visible_stepped": True,
+            "pyramidal_like": True,
+        }
+
+        with (
+            patch.object(
+                candidate_generation,
+                "authoritative_surface_morphology",
+                side_effect=(authored_metrics, projected_metrics),
+            ),
+            patch.object(
+                candidate_generation,
+                "authoritative_surface_silhouette_distance",
+                return_value=0.2,
+            ),
+        ):
+            evidence = (
+                candidate_generation._authored_projection_identity_evidence(
+                    authored,
+                    projected,
+                )
+            )
+
+        self.assertTrue(evidence["hard_pass"])
+        self.assertNotIn(
             "unrequested_visible_step_fallback",
             evidence["failure_reasons"],
         )

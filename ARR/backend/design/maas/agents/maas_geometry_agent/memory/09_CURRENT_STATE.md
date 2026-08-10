@@ -502,3 +502,45 @@ Date: 2026-08-09
   clipping. BaseVolume, NumPy Matrix4 transforms, typed BOOK operations, law,
   parking and topology remain active; paper-aligned phenotype islands select
   among valid seeds but cannot manufacture valid supply from flat symbols.
+
+## 2026-08-10 C118-C124 site-feasible continuous-profile recovery
+
+- C118 proved that a clean compact taper could enter production, but the old
+  two-floor minimum prefix yielded only `138.343 m2` (`41.63%`). Spatial
+  reserve now preserves the full four-floor lawful design stack and allocates
+  its `0.60` minimum across that stack instead of demanding about `97%` of
+  each of two lower plates.
+- C119 exposed a morphology-policy error: a continuous pyramidal surface was
+  treated as a visible stair. Visible-step identity now uses measured
+  `visible_stepped` only; pyramidal portfolio count is still capped and the
+  silhouette-distance gate remains active. C120 then exposed the honest
+  capacity failure instead of hiding it behind that false identity rejection.
+- The direct affine acceptance path used
+  `minimum_aggregate_target_ratio=0.35`. That allowed a low-area body to
+  suppress capacity repair and fail later. It now requires `0.995` of the
+  requested capacity budget. The author prompt states the real policy:
+  `0.60` hard minimum, `0.70` preferred target, and continuous section
+  transitions must begin before a contracting legal band when needed.
+- Two cross-module contract mismatches were fixed. Site-bound export now
+  permits typed loft/cutter primitives while requiring exactly one canonical
+  UnitBox, matching the legal certificate. It also receives the certified
+  floor count explicitly, so a four-floor certificate cannot be exported as
+  three proxy bands. Direct-affine and repair paths now share the same final
+  projection/hash/proxy binding.
+- C124 is the first honest current-flow production success after the retention
+  correction: `1 evaluated -> 1 compiled -> 1 individual hard-pass -> 1
+  compatible selected`. GFA is `217.718 m2`, feasible utilization `0.6551`,
+  FAR `82.43%`, clean/watertight/manifold and four-floor containment all pass.
+  The immutable admission is manifest SHA
+  `f3eab174f426aee7f2cf5a7596d987c46b01cb7875d996fd5c369797d09061bd`
+  and authored program hash
+  `29f3bf0f7ad80c6f46e0650f82502e9191ad45818d51ac3633866080a4057135`;
+  no paid provider call was used.
+- Direct ISO inspection confirms C124 is not a floor-by-floor staircase, but
+  its one-sided continuous fold is still visually wedge-like. Therefore it is
+  a flow-recovery proof, not a diverse-board success. PNG:
+  `docs/playwright/design-route-live-verify/legal-mass-v31-c124-continuous-fold1/maas-book-neighborhood-1.png`,
+  SHA-256 `032818651c3fe230029543b08070f58fed5922a18e5d7c19a68346dafba10a22`.
+- Honest counters: bounded C124 `1/1`; canonical publishable `0/20`. Next run
+  must author one new non-wedge continuous topology (void/wing/curved island)
+  through this same unweakened flow before attempting three candidates.

@@ -2873,8 +2873,14 @@ def compile_site_bound_geometry_program_to_source_mass(
     *,
     name: str | None = None,
     volume_role: str = "recursive_solid_primary",
+    floor_count: int | None = None,
 ) -> SourceMass | None:
-    """Export an already placed program from its exact compiled world mesh."""
+    """Export an already placed program from its exact compiled world mesh.
+
+    ``floor_count`` is the caller's certified legal-field band count.  It is
+    explicit because an unchanged-affine certificate is a result object, not
+    hidden mutable program metadata.
+    """
 
     if not _has_single_canonical_unitbox_authority(program):
         return None
@@ -2890,7 +2896,13 @@ def compile_site_bound_geometry_program_to_source_mass(
         )
         else {}
     )
-    floor_count = int(floorwise_projection.get("floor_count") or 0)
+    metadata_floor_count = int(floorwise_projection.get("floor_count") or 0)
+    try:
+        requested_floor_count = int(floor_count or metadata_floor_count)
+    except (TypeError, ValueError):
+        return None
+    if requested_floor_count < 0:
+        return None
     source_gate_policy = GeometryGatePolicy(maximum_components=1)
     if (
         compilation.status != "compiled"
@@ -2921,7 +2933,7 @@ def compile_site_bound_geometry_program_to_source_mass(
         repaired_host,
         name=name,
         volume_role=volume_role,
-        max_volume_bands=max(1, floor_count or 3),
+        max_volume_bands=max(1, requested_floor_count or 3),
         _site_bound_compilation=compilation,
     )
     if source is None:
@@ -3002,17 +3014,21 @@ def compile_site_bound_geometry_program_to_source_mass(
 
 
 def _has_single_canonical_unitbox_authority(program: GeometryProgram) -> bool:
-    primitives = tuple(
+    canonical_unitboxes = tuple(
         node
         for node in program.nodes
-        if node.kind == "primitive"
+        if (
+            node.kind == "primitive"
+            and node.operator == "box"
+            and node.parameters
+            == {"width": 1.0, "depth": 1.0, "height": 1.0}
+        )
     )
-    return (
-        len(primitives) == 1
-        and primitives[0].operator == "box"
-        and primitives[0].parameters
-        == {"width": 1.0, "depth": 1.0, "height": 1.0}
-    )
+    # Typed cutters/profile primitives are legitimate operands in the same
+    # authored DAG.  The canonical authority contract is exactly one UnitBox,
+    # not exactly one primitive of any kind.  Keep this aligned with the
+    # unchanged-affine legal certificate.
+    return len(canonical_unitboxes) == 1
 
 
 def _base_seed_plan_occupancy_fraction(program: GeometryProgram) -> float | None:

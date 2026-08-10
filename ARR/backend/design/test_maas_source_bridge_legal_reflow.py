@@ -5,11 +5,57 @@ from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
 from design.maas.geometry_language.source_bridge import (
+    compile_site_bound_geometry_program_to_source_mass,
+    _has_single_canonical_unitbox_authority,
     _matrix_fit_polygon_to_host,
 )
+from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
+from design.maas.geometry_language import base_seed_program
 
 
 class SourceBridgeLegalReflowTests(SimpleTestCase):
+    def test_site_bound_export_uses_explicit_certified_floor_count(self):
+        source = compile_site_bound_geometry_program_to_source_mass(
+            base_seed_program("block"),
+            box(-10.0, -10.0, 10.0, 10.0),
+            floor_count=4,
+        )
+
+        self.assertIsNotNone(source)
+        assert source is not None
+        bridge = source.metadata["geometry_program_bridge_evidence"]
+        self.assertEqual(4, bridge["requested_proxy_band_count"])
+        self.assertEqual(4, bridge["exported_proxy_band_count"])
+
+    def test_typed_profile_primitive_does_not_replace_unitbox_authority(self):
+        unit = GeometryNode(
+            "unit",
+            "primitive",
+            "box",
+            parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        profile = GeometryNode(
+            "profile",
+            "primitive",
+            "loft",
+            parameters={
+                "profiles": [
+                    {"z": 0.0, "points": [[0, 0], [2, 0], [2, 1], [0, 1]]},
+                    {"z": 1.0, "points": [[0, 0.2], [2, 0.2], [2, 1], [0, 1]]},
+                ],
+            },
+        )
+        root = GeometryNode(
+            "root",
+            "boolean",
+            "intersection",
+            inputs=(unit.id, profile.id),
+        )
+
+        self.assertTrue(_has_single_canonical_unitbox_authority(
+            GeometryProgram((unit, profile, root), root.id),
+        ))
+
     def test_csg_growth_cannot_replace_a_cross_with_the_legal_host(self):
         authored = unary_union((
             box(-5.0, -1.0, 5.0, 1.0),
